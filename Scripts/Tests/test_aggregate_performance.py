@@ -15,7 +15,6 @@ SCRIPT_INPUTS = (
 
 
 import json
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -23,7 +22,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from performance_test_support import report
-from script_test_support import ROOT, load_script
+from script_test_support import ROOT, load_script, run_captured, write_json
 
 
 SCRIPT = ROOT / "Scripts/aggregate-performance-results.py"
@@ -40,11 +39,7 @@ class AggregatePerformanceTests(unittest.TestCase):
                 invalid = {"scenario": "navigation", "schemaVersion": 5, "iteration": iteration}
                 (logs / "run.log").write_text("TRINKET_PERFORMANCE_REPORT " + json.dumps(invalid) + "\n")
                 output = root / "reports.json"
-                result = subprocess.run(
-                    [sys.executable, str(SCRIPT.with_name("collect-performance-results.py")), str(logs), str(output)],
-                    capture_output=True, text=True,
-                )
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                run_captured([sys.executable, str(SCRIPT.with_name("collect-performance-results.py")), str(logs), str(output)], expected=0)
                 records = json.loads(output.read_text())["reports"]
                 self.assertEqual(records[0]["iteration"], iteration)
                 status, summary = self.run_aggregate(records)
@@ -62,11 +57,7 @@ class AggregatePerformanceTests(unittest.TestCase):
             for metadata in ("broken JSON", "[]"):
                 with self.subTest(metadata=metadata):
                     (root / "environment.json").write_text(metadata)
-                    result = subprocess.run(
-                        [sys.executable, str(SCRIPT.with_name("collect-performance-results.py")), str(logs), str(output)],
-                        capture_output=True, text=True,
-                    )
-                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    result = run_captured([sys.executable, str(SCRIPT.with_name("collect-performance-results.py")), str(logs), str(output)], expected=1)
                     record = json.loads(output.read_text())["reports"][0]
                     self.assertEqual(record["averageFPS"], measurement["averageFPS"])
                     self.assertEqual(record["sourceLog"], "run.log")
@@ -85,19 +76,16 @@ class AggregatePerformanceTests(unittest.TestCase):
             baseline = root / "baseline.json"
             output = root / "evidence" / "aggregate.json"
             summary = root / "summary" / "aggregate.md"
-            results.write_text(json.dumps({"reports": reports}))
-            baseline.write_text(json.dumps({
-                "scenarios": scenarios or ["navigation"],
-                "mode": mode,
-                "scenarioGoals": {
-                    "real-card-play": {"maximumMissedDeadlineCount": 0, "maximumFrameMs": 20},
+            write_json(results, {"reports": reports})
+            write_json(
+                baseline,
+                {
+                    "scenarios": scenarios or ["navigation"],
+                    "mode": mode,
+                    "scenarioGoals": {"real-card-play": {"maximumMissedDeadlineCount": 0, "maximumFrameMs": 20}},
+                    "goals": {"minimumAverageFPS": 59, "minimumOnePercentLowFPS": 59, "maximumSevereStallCount": 0},
                 },
-                "goals": {
-                    "minimumAverageFPS": 59,
-                    "minimumOnePercentLowFPS": 59,
-                    "maximumSevereStallCount": 0,
-                },
-            }))
+            )
             argv = [
                 str(SCRIPT),
                 "--results", str(results),

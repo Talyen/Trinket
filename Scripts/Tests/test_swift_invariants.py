@@ -9,7 +9,7 @@ SCRIPT_INPUTS = (
 
 import subprocess
 import tempfile
-from script_test_support import ScriptRegressionTestCase, ROOT
+from script_test_support import ROOT, ScriptRegressionTestCase, run_captured
 
 
 class SwiftInvariantsTests(ScriptRegressionTestCase):
@@ -44,8 +44,7 @@ class SwiftInvariantsTests(ScriptRegressionTestCase):
         for source, failure in cases:
             with self.subTest(source=source):
                 fixture.write_text(source)
-                result = subprocess.run([str(root / "Scripts/check-agent-invariants.sh")],
-                                        cwd=root, capture_output=True, text=True)
+                result = run_captured([str(root / "Scripts/check-agent-invariants.sh")], cwd=root)
                 self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
                 if failure:
                     self.assertIn(failure, result.stderr)
@@ -58,8 +57,7 @@ class SwiftInvariantsTests(ScriptRegressionTestCase):
         app_main = root / "Trinket/App/TrinketApp.swift"
 
         def run_checker() -> subprocess.CompletedProcess[str]:
-            return subprocess.run([str(root / "Scripts/check-agent-invariants.sh")],
-                                    cwd=root, capture_output=True, text=True)
+            return run_captured([str(root / "Scripts/check-agent-invariants.sh")], cwd=root)
 
         clean = (
             (engine_probe, "struct Probe {}\n"),
@@ -119,8 +117,7 @@ class SwiftInvariantsTests(ScriptRegressionTestCase):
         for label, source, failure in cases:
             with self.subTest(label=label):
                 fixture.write_text(source)
-                result = subprocess.run([str(root / "Scripts/check-exclusivity-footguns.sh")],
-                                        cwd=root, capture_output=True, text=True)
+                result = run_captured([str(root / "Scripts/check-exclusivity-footguns.sh")], cwd=root)
                 self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
                 if failure:
                     self.assertIn(failure, result.stderr)

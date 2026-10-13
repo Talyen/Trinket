@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 SCRIPT_INPUTS = (
     'Scripts/internal/output_retention.py',"Scripts/agent-sim-lifetime.py", "Scripts/ensure-simulator.sh", "Scripts/lib/simctl.sh")
-from script_test_support import ROOT, load_script
+from script_test_support import ROOT, load_script, write_executable, write_json
 
 MODULE = load_script("agent_sim_lifetime", "agent-sim-lifetime.py")
 
@@ -86,7 +86,7 @@ class AgentSimulatorLifetimeTests(unittest.TestCase):
     def test_busy_cleanup_lock_is_retried_until_idle_device_is_released(self):
         path = self.slot.with_suffix(".lifetime.json")
         self.record["grace"] = 0
-        path.write_text(json.dumps(self.record))
+        write_json(path, self.record)
         with patch.object(MODULE, "wait_release"), patch.object(MODULE.time, "sleep"), \
                 patch.object(MODULE, "cleanup", side_effect=[False, True]) as cleanup:
             MODULE.watch(path, self.record["token"])
@@ -96,9 +96,9 @@ class AgentSimulatorLifetimeTests(unittest.TestCase):
     def test_replaced_watcher_cannot_shut_down_a_newly_released_device(self):
         path = self.slot.with_suffix(".lifetime.json")
         self.record["grace"] = 0
-        path.write_text(json.dumps(self.record))
+        write_json(path, self.record)
         def replace_record(_):
-            path.write_text(json.dumps({**self.record, "token": "new-token"}))
+            write_json(path, {**self.record, "token": "new-token"})
         with patch.object(MODULE, "wait_release", side_effect=replace_record), \
                 patch.object(MODULE.time, "sleep"), patch.object(MODULE, "cleanup") as cleanup:
             MODULE.watch(path, self.record["token"])
@@ -124,7 +124,7 @@ class AgentSimulatorLifetimeTests(unittest.TestCase):
     def simulator_environment(self):
         fake = self.slot.parent / "xcrun"
         state = self.slot.parent / "shutdown"
-        fake.write_text('''#!/usr/bin/env python3
+        write_executable(fake, '''#!/usr/bin/env python3
 import json, os, pathlib, sys
 state = pathlib.Path(os.environ["TRINKET_LIFETIME_FIXTURE_STATE"])
 if sys.argv[1:3] == ["simctl", "shutdown"]:
@@ -132,7 +132,6 @@ if sys.argv[1:3] == ["simctl", "shutdown"]:
 else:
     print(json.dumps({"devices":{"runtime":[{"udid":"agent-device","name":"Trinket Agent 1","state":"Shutdown" if state.exists() else "Booted"}]}}))
 ''')
-        fake.chmod(0o755)
         return {**os.environ, "PATH": str(self.slot.parent) + os.pathsep + os.environ["PATH"],
                 "TRINKET_LIFETIME_FIXTURE_STATE": str(state)}, state
 

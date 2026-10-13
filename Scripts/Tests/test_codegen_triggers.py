@@ -12,12 +12,11 @@ SCRIPT_INPUTS = (
 )
 
 
-import json
 from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from script_test_support import ScriptRegressionTestCase, load_script
+from script_test_support import ScriptRegressionTestCase, load_script, write_json
 from internal.content import content_codegen_modifiers
 from internal.content import content_codegen_triggers
 
@@ -38,10 +37,8 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
             index = folder / "index.json"
-            index.write_text(json.dumps({"families": ["sample.json"]}))
-            (folder / "sample.json").write_text(json.dumps({
-                "family": "sample", "file_stem": "SampleTriggers", "fields": fields,
-            }))
+            write_json(index, {"families": ["sample.json"]})
+            write_json(folder / "sample.json", {"family": "sample", "file_stem": "SampleTriggers", "fields": fields})
             with patch.object(content_codegen_triggers, "TRIGGER_FAMILY_SCHEMA", index):
                 content_codegen_triggers._trigger_families.cache_clear()
                 try:
@@ -59,17 +56,17 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             index = folder / "index.json"
             family = {"family": "sample", "file_stem": "SampleTriggers",
                       "fields": [{"name": "bonus", "type": "Int", "default": "0", "merge": "add"}]}
-            (folder / "sample.json").write_text(json.dumps(family))
+            write_json(folder / "sample.json", family)
             with patch.object(content_codegen_triggers, "TRIGGER_FAMILY_SCHEMA", index):
                 try:
                     for names in (["../sample.json"], ["sample.json", "sample.json"]):
-                        index.write_text(json.dumps({"families": names}))
+                        write_json(index, {"families": names})
                         content_codegen_triggers._trigger_families.cache_clear()
                         with self.assertRaises(ValueError):
                             content_codegen_triggers._trigger_families()
-                    index.write_text(json.dumps({"families": ["sample.json"]}))
+                    write_json(index, {"families": ["sample.json"]})
                     family["fields"].append(family["fields"][0])
-                    (folder / "sample.json").write_text(json.dumps(family))
+                    write_json(folder / "sample.json", family)
                     content_codegen_triggers._trigger_families.cache_clear()
                     with self.assertRaisesRegex(ValueError, "Duplicate"):
                         content_codegen_triggers._trigger_families()
@@ -78,11 +75,11 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
                                       {'default': 'many'}, {'type': 'Bool', 'merge': 'or', 'default': 'TRUE'},
                                       {'name': 'invalid-name'}, {'defualt': '2'}, {'merg': 'max'}):
                         broken = {**family, 'fields': [{**family['fields'][0], **overrides}]}
-                        (folder / 'sample.json').write_text(json.dumps(broken))
+                        write_json(folder / 'sample.json', broken)
                         content_codegen_triggers._trigger_families.cache_clear()
                         with self.subTest(overrides=overrides), self.assertRaises(ValueError):
                             content_codegen_triggers._trigger_families()
-                    (folder / 'sample.json').write_text(json.dumps({**family, 'file_stem': '../Escaping'}))
+                    write_json(folder / 'sample.json', {**family, 'file_stem': '../Escaping'})
                     content_codegen_triggers._trigger_families.cache_clear()
                     with self.assertRaisesRegex(ValueError, 'Swift identifiers'):
                         content_codegen_triggers._trigger_families()
@@ -97,7 +94,7 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             for rows in (None, {}, [], [None], [row, row], [{**row, "token": None}],
                          [{**row, "case": 3}], [{**row, "type": []}],
                          [{**row, "type": "Float"}], [{**row, "keyword": "false"}]):
-                path.write_text(json.dumps(rows))
+                write_json(path, rows)
                 with self.subTest(rows=rows), self.assertRaisesRegex(ValueError, "[Mm]odifier"):
                     modifier_definitions(path)
 

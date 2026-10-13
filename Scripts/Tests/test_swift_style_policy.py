@@ -30,7 +30,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from script_test_support import ROOT, load_script
+from script_test_support import ROOT, load_script, run_captured
 
 
 class SwiftStylePolicyTests(unittest.TestCase):
@@ -134,20 +134,16 @@ class Probe: XCTestCase {
             fixture = root / "Trinket/Probe.swift"
             fixture.write_text('// NavigationView\nlet text = "NavigationView"\n')
             command = [str(root / "Scripts/check-api-bans.sh")]
-            passed = subprocess.run(command, cwd=root, capture_output=True, text=True)
-            self.assertEqual(passed.returncode, 0, passed.stdout + passed.stderr)
+            run_captured(command, cwd=root, expected=0)
             fixture.write_text('// NavigationView\nlet probe = NavigationView {}\n')
-            failed = subprocess.run(command, cwd=root, capture_output=True, text=True,
-                                    env={**os.environ, "GITHUB_ACTIONS": "true"})
-            self.assertEqual(failed.returncode, 1, failed.stdout + failed.stderr)
+            failed = run_captured(command, cwd=root, env={**os.environ, "GITHUB_ACTIONS": "true"}, expected=1)
             self.assertIn("Trinket/Probe.swift:2:", failed.stderr)
             self.assertIn("::error file=Trinket/Probe.swift,line=2,title=API Ban::", failed.stdout)
             fixture.write_text("struct Probe {}\n")
             generated_test = root / "Packages/Probe/Tests/Generated/Probe.swift"
             generated_test.parent.mkdir()
             generated_test.write_text("import XCTest\n")
-            failed = subprocess.run(command, cwd=root, capture_output=True, text=True)
-            self.assertEqual(failed.returncode, 1, failed.stdout + failed.stderr)
+            failed = run_captured(command, cwd=root, expected=1)
             self.assertIn("Packages/Probe/Tests/Generated/Probe.swift:1:", failed.stderr)
 
     def test_search_and_tokenizer_failures_do_not_pass(self) -> None:
@@ -177,11 +173,7 @@ class Probe: XCTestCase {
         source = ('// swiftformat:disable redundantRawValues - persisted identifiers\n'
                   'enum Persisted: String { case sample = "sample" }\n'
                   '// swiftformat:enable redundantRawValues\n')
-        result = subprocess.run(
-            [self.formatter, "stdin", "--config", str(ROOT / ".swiftformat"),
-             "--cache", "ignore", "--quiet"], input=source, capture_output=True, text=True,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
+        result = run_captured([self.formatter, "stdin", "--config", str(ROOT / ".swiftformat"), "--cache", "ignore", "--quiet"], input=source, expected=0)
         self.assertIn('case sample = "sample"', result.stdout)
 
 

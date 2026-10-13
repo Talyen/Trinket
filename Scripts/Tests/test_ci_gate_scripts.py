@@ -22,10 +22,9 @@ SCRIPT_INPUTS = (
 import os
 import json
 import shutil
-import subprocess
 import unittest
 
-from script_test_support import ROOT, ScriptRegressionTestCase, load_script
+from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured, write_executable, write_json
 
 import tempfile
 from pathlib import Path
@@ -35,11 +34,7 @@ class CIGateScriptTests(ScriptRegressionTestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_repo_fixture(directory, ('Scripts/lib/gate.sh',))
             for name in ('generate.sh', 'test.sh', 'test-scripts.sh', 'assert-generated-output.sh'):
-                script = root / 'Scripts' / name
-                script.write_text('#!/bin/bash\n'
-                                  'if [[ "${1:-}" == --idempotent ]]; then '
-                                  'exit "${IDEMPOTENCE_STATUS:-0}"; fi\n')
-                script.chmod(0o755)
+                write_executable(root / 'Scripts' / name, '#!/bin/bash\n' 'if [[ "${1:-}" == --idempotent ]]; then ' 'exit "${IDEMPOTENCE_STATUS:-0}"; fi\n')
             command = '''
 source Scripts/lib/gate.sh
 trinket_gate_ensure_tools() { :; }
@@ -51,9 +46,7 @@ trinket_run_full_gate
 '''
             for status in (0, 17):
                 with self.subTest(idempotence_status=status):
-                    result = subprocess.run(['bash', '-eu', '-c', command], cwd=root,
-                        capture_output=True, text=True,
-                        env=self.verification_environment(IDEMPOTENCE_STATUS=str(status)))
+                    result = run_captured(['bash', '-eu', '-c', command], cwd=root, env=self.verification_environment(IDEMPOTENCE_STATUS=str(status)))
                     self.assertEqual(result.returncode, status, result.stdout + result.stderr)
 
     @unittest.skipUnless(shutil.which('jq'), 'Release verification requires jq')
@@ -65,27 +58,36 @@ trinket_run_full_gate
                            conclusion='failure', html_url='https://example.com/main')
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            gh = root / 'gh'
-            gh.write_text('#!/usr/bin/env python3\n'
-                          'import json, os, subprocess, sys\n'
-                          'endpoint = sys.argv[2]\n'
-                          'if "/commits/" in endpoint: data = {"sha": "abc"}\n'
-                          'elif "/compare/" in endpoint: data = {"status": "identical"}\n'
-                          'else: data = json.loads(os.environ["RUNS"])\n'
-                          'result = subprocess.run([os.environ["JQ"], "-r", sys.argv[-1]], '
-                          'input=json.dumps(data), text=True)\n'
-                          'sys.exit(result.returncode)\n')
-            gh.chmod(0o755)
+            write_executable(
+                root / 'gh',
+                '#!/usr/bin/env python3\n'
+                'import json, os, subprocess, sys\n'
+                'endpoint = sys.argv[2]\n'
+                'if "/commits/" in endpoint: data = {"sha": "abc"}\n'
+                'elif "/compare/" in endpoint: data = {"status": "identical"}\n'
+                'else: data = json.loads(os.environ["RUNS"])\n'
+                'result = subprocess.run([os.environ["JQ"], "-r", sys.argv[-1]], '
+                'input=json.dumps(data), text=True)\n'
+                'sys.exit(result.returncode)\n',
+            )
             for newest, expected in (
                 ({**failed_push, 'event': 'workflow_dispatch', 'conclusion': 'success'}, 1),
                 ({**failed_push, 'head_branch': 'other', 'conclusion': 'success'}, 1),
                 ({**failed_push, 'conclusion': 'success'}, 0),
             ):
                 with self.subTest(newest=newest):
-                    result = subprocess.run(['bash', '-c', command], capture_output=True, text=True,
-                        timeout=10, env={**os.environ, 'PATH': f'{root}:{os.environ["PATH"]}',
-                            'REPO': 'owner/repo', 'TAG': 'v1.0.0', 'JQ': shutil.which('jq'),
-                            'RUNS': json.dumps({'workflow_runs': [newest, failed_push]})})
+                    result = run_captured(
+                        ['bash', '-c', command],
+                        timeout=10,
+                        env={
+                            **os.environ,
+                            'PATH': f'{root}:{os.environ["PATH"]}',
+                            'REPO': 'owner/repo',
+                            'TAG': 'v1.0.0',
+                            'JQ': shutil.which('jq'),
+                            'RUNS': json.dumps({'workflow_runs': [newest, failed_push]}),
+                        },
+                    )
                     self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                     self.assertIn('Trinket CI', result.stdout)
 
@@ -121,13 +123,9 @@ trinket_run_full_gate
             scripts = root / 'Scripts'
             scripts.mkdir()
             (scripts / 'ci-run-budget.py').write_text((ROOT / 'Scripts/ci-run-budget.py').read_text())
-            gate = scripts / 'ci-gate.sh'
-            gate.write_text('#!/bin/bash\necho original failure >&2\nexit 65\n')
-            gate.chmod(0o755)
+            write_executable(scripts / 'ci-gate.sh', '#!/bin/bash\necho original failure >&2\nexit 65\n')
             results = root / 'TestResults'
-            result = subprocess.run(['bash', '-c', command], cwd=root, capture_output=True, text=True,
-                                    env={**os.environ, 'RESULTS_DIR': str(results)})
-            self.assertEqual(result.returncode, 65, result.stdout + result.stderr)
+            run_captured(['bash', '-c', command], cwd=root, env={**os.environ, 'RESULTS_DIR': str(results)}, expected=65)
             self.assertIn('original failure', (results / 'gate.log').read_text())
         stage = workflow.split('      - name: Stage bounded gate failure diagnostics', 1)[1]
         self.assertIn('if: failure()', stage)
@@ -152,12 +150,9 @@ trinket_run_full_gate
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             jobs = root / 'jobs.json'
-            jobs.write_text(json.dumps([{'jobs': [job('tests / Exhaustive UI (Battle)', 'failure')]}]))
+            write_json(jobs, [{'jobs': [job('tests / Exhaustive UI (Battle)', 'failure')]}])
             summary_path = root / 'summary.md'
-            result = subprocess.run(['python3', str(ROOT / 'Scripts/report-exhaustive-ci.py'), str(jobs)],
-                                    capture_output=True, text=True,
-                                    env={**os.environ, 'GITHUB_STEP_SUMMARY': str(summary_path)})
-            self.assertEqual(result.returncode, 0, result.stderr)
+            result = run_captured(['python3', str(ROOT / 'Scripts/report-exhaustive-ci.py'), str(jobs)], env={**os.environ, 'GITHUB_STEP_SUMMARY': str(summary_path)}, expected=0)
             self.assertIn('::warning::Advisory exhaustive shard', result.stdout)
             self.assertIn('attention required', summary_path.read_text())
 
@@ -167,9 +162,8 @@ trinket_run_full_gate
             for outcome, expected in [('success', 0), ('skipped', 1), ('failure', 1), ('cancelled', 1), (None, 1)]:
                 pages = [{'jobs': [] if outcome is None else [{'name': 'tests / Exhaustive UI (All)',
                     'conclusion': outcome, 'status': 'completed', 'html_url': 'https://example.com/job'}]}]
-                jobs.write_text(json.dumps(pages))
-                result = subprocess.run(['python3', str(ROOT / 'Scripts/report-exhaustive-ci.py'), str(jobs),
-                                         '--require-execution'], capture_output=True, text=True)
+                write_json(jobs, pages)
+                result = run_captured(['python3', str(ROOT / 'Scripts/report-exhaustive-ci.py'), str(jobs), '--require-execution'])
                 self.assertEqual(result.returncode, expected, result.stderr)
 
     def test_ci_diff_review_is_advisory(self) -> None:
@@ -193,14 +187,7 @@ trinket_run_full_gate
         script = ROOT / "Scripts" / "record-time-profiler.sh"
 
         def printed(*args: str) -> str:
-            result = subprocess.run(
-                [str(script), "--print-command", *args],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
+            result = run_captured([str(script), "--print-command", *args], cwd=ROOT, expected=0)
             return result.stdout
 
         default = printed("--output", "/tmp/trinket-tp.trace", "--time-limit", "8s")
@@ -224,23 +211,10 @@ trinket_run_full_gate
         self.assertIn("kill -INT", text)
 
     def test_handoff_requires_explicit_scope_and_supports_working_tree_override(self) -> None:
-        missing = subprocess.run(
-            [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        missing = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run"], cwd=ROOT)
         self.assertNotEqual(missing.returncode, 0)
         self.assertIn("requires --paths", missing.stderr)
-        explicit = subprocess.run(
-            [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--working-tree"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(explicit.returncode, 0, explicit.stderr)
+        run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--working-tree"], cwd=ROOT, expected=0)
 
     def test_cheap_slices_require_a_readable_nonempty_registry(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -249,7 +223,7 @@ trinket_run_full_gate
             for content, status in ((None, 1), ("# empty\n", 1), ("exit 17\n", 17), ("true\n", 0)):
                 if content is not None:
                     registry.write_text(content)
-                result = subprocess.run(["bash", "-eu", "-c", script, "_", str(registry)], cwd=ROOT, capture_output=True, text=True)
+                result = run_captured(["bash", "-eu", "-c", script, "_", str(registry)], cwd=ROOT)
                 self.assertEqual(result.returncode, status, result.stdout + result.stderr)
 
 

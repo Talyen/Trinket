@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -18,6 +19,33 @@ sys.path.insert(0, str(ROOT / "Scripts"))
 from internal.cli import load_sibling as load_script
 
 
+def run_captured(command, *, expected: int | None = None, **options) -> subprocess.CompletedProcess[str]:
+    """Capture both text streams; callers retain exit-code and environment policy."""
+    result = subprocess.run(command, capture_output=True, text=True, **options)
+    if expected is not None and result.returncode != expected:
+        raise AssertionError(
+            f"{command!r}: expected exit {expected}, got {result.returncode}\n"
+            f"{result.stdout}{result.stderr}"
+        )
+    return result
+
+
+def run_python(script: str, *arguments, **options) -> subprocess.CompletedProcess[str]:
+    """Run a repository Python entry point with this test's interpreter."""
+    return run_captured([sys.executable, str(ROOT / "Scripts" / script), *arguments], **options)
+
+
+def write_json(path: Path, payload) -> None:
+    """Write a fixture payload using the standard JSON encoding."""
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+def write_executable(path: Path, source: str) -> None:
+    """Install an exact stub body with executable permissions."""
+    path.write_text(source, encoding="utf-8")
+    path.chmod(0o755)
+
+
 def fake_toolchain(root):
     """Provide stable identities without requiring Xcode or a Git checkout."""
     tools = root / 'fake-tools'
@@ -28,8 +56,7 @@ def fake_toolchain(root):
         'git': 'if [ "$1" = rev-parse ]; then echo "${FAKE_COMMIT:-commit-a}"; fi',
     }.items():
         executable = tools / name
-        executable.write_text('#!/bin/sh\n' + body + '\n')
-        executable.chmod(0o755)
+        write_executable(executable, '#!/bin/sh\n' + body + '\n')
     # Apple's /usr/bin/python3 shim consults DEVELOPER_DIR before executing;
     # fixtures must launch the real interpreter even for a synthetic Xcode bundle.
     (tools / 'python3').symlink_to(Path(sys.executable).resolve())
@@ -141,11 +168,6 @@ class ScriptRegressionTestCase(unittest.TestCase):
     def run_audio_fixture(
         self, root: Path, environment: dict[str, str], kind: str
     ) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(
-            ["bash", "Scripts/prepare-audio-assets.sh", kind],
-            cwd=root,
-            env=environment,
-            capture_output=True,
-            text=True,
-            check=False,
+        return run_captured(
+            ["bash", "Scripts/prepare-audio-assets.sh", kind], cwd=root, env=environment,
         )

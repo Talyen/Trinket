@@ -14,10 +14,9 @@ SCRIPT_INPUTS = (
     'Scripts/lib/app-build.sh',
 )
 
-import subprocess
 import tempfile
 from pathlib import Path
-from script_test_support import ROOT, ScriptRegressionTestCase
+from script_test_support import ROOT, ScriptRegressionTestCase, run_captured
 
 
 class VerificationPolicyTests(ScriptRegressionTestCase):
@@ -36,8 +35,7 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
                 with self.subTest(settings=settings):
                     prepared = root / 'preparation'
                     prepared.unlink(missing_ok=True)
-                    result = subprocess.run(['bash', 'Scripts/playthrough-sweep.sh'], cwd=root,
-                                            env=self.verification_environment(**settings), capture_output=True, text=True)
+                    result = run_captured(['bash', 'Scripts/playthrough-sweep.sh'], cwd=root, env=self.verification_environment(**settings))
                     self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                     self.assertEqual(prepared.exists(), expected == 99)
 
@@ -55,28 +53,31 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
             ['Scripts/test-deploy.sh'],
         ):
             with self.subTest(command=command):
-                result = subprocess.run(['bash', *command], cwd=ROOT, env=self.verification_environment(),
-                                        capture_output=True, text=True)
-                self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+                result = run_captured(['bash', *command], cwd=ROOT, env=self.verification_environment(), expected=2)
                 self.assertIn('CI-owned', result.stderr)
                 self.assertNotIn('run-env mode=', result.stdout)
 
     def test_ci_policy_and_deliberate_local_diagnostics(self):
         command = 'source Scripts/lib/verification-policy.sh; trinket_require_heavy_verification test; env'
-        ci = subprocess.run(['bash', '-ec', command], cwd=ROOT, env=self.verification_environment(GITHUB_ACTIONS='true'),
-                            capture_output=True, text=True)
-        self.assertEqual(ci.returncode, 0, ci.stderr)
-        local = subprocess.run(['bash', '-ec', command], cwd=ROOT,
-                               env=self.verification_environment(TRINKET_ALLOW_HEAVY_LOCAL='1'), capture_output=True, text=True)
-        self.assertEqual(local.returncode, 0, local.stderr)
+        run_captured(['bash', '-ec', command], cwd=ROOT, env=self.verification_environment(GITHUB_ACTIONS='true'), expected=0)
+        local = run_captured(['bash', '-ec', command], cwd=ROOT, env=self.verification_environment(TRINKET_ALLOW_HEAVY_LOCAL='1'), expected=0)
         self.assertIn('TRINKET_PACKAGE_TEST_JOBS=1', local.stdout)
         self.assertIn('TRINKET_MAX_CONCURRENT_UI=1', local.stdout)
 
     def test_local_handoff_lists_heavy_work_as_deferred(self):
-        result = subprocess.run(['bash', 'Scripts/handoff.sh', '--dry-run', '--smoke', '--paths',
-                                 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Accessibility/AccessibilityID.swift'],
-                                cwd=ROOT, env=self.verification_environment(), capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        result = run_captured(
+            [
+                'bash',
+                'Scripts/handoff.sh',
+                '--dry-run',
+                '--smoke',
+                '--paths',
+                'Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Accessibility/AccessibilityID.swift',
+            ],
+            cwd=ROOT,
+            env=self.verification_environment(),
+            expected=0,
+        )
         local, deferred = result.stdout.split('Deferred to CI:', 1)
         self.assertNotIn('test-package.sh', local)
         self.assertNotIn('build.sh', local)
@@ -86,7 +87,5 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
 
     def test_game_builds_keep_the_local_architecture_with_two_workers(self):
         command = 'source Scripts/lib/app-build.sh; trinket_set_local_simulator_architecture_args iphonesimulator Debug; printf "%s\\n" "${TRINKET_LOCAL_SIMULATOR_ARCHITECTURE_ARGS[@]}"'
-        result = subprocess.run(['bash', '-ec', command], cwd=ROOT, env=self.verification_environment(),
-                                capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        result = run_captured(['bash', '-ec', command], cwd=ROOT, env=self.verification_environment(), expected=0)
         self.assertEqual(result.stdout.splitlines()[-2:], ['-jobs', '2'])

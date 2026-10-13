@@ -19,17 +19,15 @@ from pathlib import Path
 import os
 import shutil
 import json
-import subprocess
 import tempfile
-from script_test_support import ScriptRegressionTestCase, ROOT
+from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, write_executable
 
 
 class PolicyScriptsTests(ScriptRegressionTestCase):
     def test_ci_watch_dispatch_requires_readable_job_evidence_for_the_requested_branch(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            fake_gh = root / 'gh'
-            fake_gh.write_text('''#!/usr/bin/env python3
+            write_executable(root / 'gh', '''#!/usr/bin/env python3
 import json, os, sys
 args = sys.argv[1:]
 if args[:2] == ['repo', 'view']:
@@ -51,7 +49,6 @@ elif args[:2] == ['workflow', 'run']:
 else:
     sys.exit(92)
 ''')
-            fake_gh.chmod(0o755)
             cases = (
                 ('unavailable', False, 1), ('{}', False, 1), ('{"jobs":[]}', False, 1),
                 ('{"jobs":[{}]}', False, 1),
@@ -62,12 +59,11 @@ else:
                 with self.subTest(jobs=jobs):
                     dispatched = root / 'dispatched'
                     dispatched.unlink(missing_ok=True)
-                    result = subprocess.run(
-                        [str(ROOT / 'Scripts/agent-watch-ci.sh'), '--ref', 'fixture-branch',
-                         '--no-infra-rerun', '--poll-seconds', '1'], cwd=ROOT,
-                        env={**os.environ, 'PATH': f"{root}:{os.environ['PATH']}",
-                             'FIXTURE_JOBS': jobs, 'FIXTURE_DISPATCH': str(dispatched)},
-                        capture_output=True, text=True, timeout=10,
+                    result = run_captured(
+                        [str(ROOT / 'Scripts/agent-watch-ci.sh'), '--ref', 'fixture-branch', '--no-infra-rerun', '--poll-seconds', '1'],
+                        cwd=ROOT,
+                        env={**os.environ, 'PATH': f"{root}:{os.environ['PATH']}", 'FIXTURE_JOBS': jobs, 'FIXTURE_DISPATCH': str(dispatched)},
+                        timeout=10,
                     )
                     self.assertEqual(result.returncode, status, result.stdout + result.stderr)
                     self.assertEqual(dispatched.exists(), dispatch)
@@ -75,8 +71,7 @@ else:
     def test_ci_infrastructure_retry_requires_evidence_for_every_failed_job(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            fake_gh = root / "gh"
-            fake_gh.write_text('''#!/usr/bin/env python3
+            write_executable(root / "gh", '''#!/usr/bin/env python3
 import json, os, subprocess, sys
 args = sys.argv[1:]
 jobs = json.loads(os.environ['FIXTURE_JOBS'])
@@ -104,7 +99,6 @@ elif '--log-failed' in args:
 else:
     sys.exit(1)
 ''')
-            fake_gh.chmod(0o755)
             infra = 'Unable to boot simulator'
             cases = (
                 ([{'id': 1, 'name': 'Build for testing'}], {'1': infra}, True),
@@ -132,28 +126,21 @@ else:
                 with self.subTest(jobs=jobs, log_sizes={key: len(value) for key, value in logs.items()}):
                     rerun = root / 'rerun'
                     rerun.unlink(missing_ok=True)
-                    result = subprocess.run(
-                        [str(ROOT / 'Scripts/ci-infra-rerun.sh'), '--run-id', '123', '--rerun'], cwd=ROOT,
-                        env={**os.environ, 'PATH': f"{root}:{os.environ['PATH']}",
-                             'FIXTURE_JOBS': json.dumps(jobs), 'FIXTURE_LOGS': json.dumps(logs),
-                             'FIXTURE_RERUN': str(rerun)}, capture_output=True, text=True,
+                    result = run_captured(
+                        [str(ROOT / 'Scripts/ci-infra-rerun.sh'), '--run-id', '123', '--rerun'],
+                        cwd=ROOT,
+                        env={**os.environ, 'PATH': f"{root}:{os.environ['PATH']}", 'FIXTURE_JOBS': json.dumps(jobs), 'FIXTURE_LOGS': json.dumps(logs), 'FIXTURE_RERUN': str(rerun)},
                     )
                     self.assertEqual(result.returncode, 0 if retry else 1, result.stdout + result.stderr)
                     self.assertEqual(rerun.exists(), retry)
 
     def test_shell_policy_checks_reject_search_errors(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            fake_rg = Path(directory) / "rg"
-            fake_rg.write_text('#!/bin/sh\nexit "$SEARCH_STATUS"\n')
-            fake_rg.chmod(0o755)
+            write_executable(Path(directory) / "rg", '#!/bin/sh\nexit "$SEARCH_STATUS"\n')
             for name in ("api-bans", "agent-invariants", "exclusivity-footguns", "module-boundaries"):
                 for status in (1, 2):
                     with self.subTest(check=name, status=status):
-                        result = subprocess.run(
-                            [str(ROOT / f"Scripts/check-{name}.sh")], cwd=ROOT,
-                            env={**os.environ, "PATH": f"{directory}:{os.environ['PATH']}", "SEARCH_STATUS": str(status)},
-                            capture_output=True, text=True,
-                        )
+                        result = run_captured([str(ROOT / f"Scripts/check-{name}.sh")], cwd=ROOT, env={**os.environ, "PATH": f"{directory}:{os.environ['PATH']}", "SEARCH_STATUS": str(status)})
                         self.assertEqual(result.returncode, 0 if status == 1 else 2, result.stdout + result.stderr)
 
 
@@ -221,8 +208,7 @@ else:
                         path.write_text(source)
                     for path, source in overwrites:
                         path.write_text(source)
-                    result = subprocess.run([str(root / "Scripts/check-module-boundaries.sh")],
-                                            cwd=root, capture_output=True, text=True)
+                    result = run_captured([str(root / "Scripts/check-module-boundaries.sh")], cwd=root)
                     self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
                     if failure:
                         self.assertIn(failure, result.stderr)
@@ -249,9 +235,6 @@ else:
             for scope, failing in (('', ''), (' Probe.swift', checks[0]), ('', checks[-1])):
                 with self.subTest(scope=scope, failing=failing):
                     (root / 'calls').unlink(missing_ok=True)
-                    result = subprocess.run(
-                        ['bash', '-ec', 'source Scripts/lib/test-style.sh; trinket_run_style_gate' + scope],
-                        cwd=root, env={**os.environ, 'FAILING_CHECK': failing}, capture_output=True, text=True,
-                    )
+                    result = run_captured(['bash', '-ec', 'source Scripts/lib/test-style.sh; trinket_run_style_gate' + scope], cwd=root, env={**os.environ, 'FAILING_CHECK': failing})
                     self.assertEqual(result.returncode, 7 if failing else 0, result.stdout + result.stderr)
                     self.assertEqual((root / 'calls').read_text().splitlines(), list(checks))

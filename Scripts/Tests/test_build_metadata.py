@@ -22,13 +22,11 @@ import os
 import plistlib
 from pathlib import Path
 import shutil
-import subprocess
-import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from script_test_support import fake_toolchain, load_script
+from script_test_support import fake_toolchain, load_script, run_captured, write_executable
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -52,8 +50,7 @@ class BuildMetadataTests(unittest.TestCase):
         self.env['DERIVED_DATA_PATH'] = str(self.root / '.DerivedData')
 
     def shell(self, command, expected=0, env=None):
-        result = subprocess.run(['bash', '-ec', 'source Scripts/build-freshness.sh\n' + command],
-                                cwd=self.root, env=env or self.env, text=True, capture_output=True)
+        result = run_captured(['bash', '-ec', 'source Scripts/build-freshness.sh\n' + command], cwd=self.root, env=env or self.env)
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
         return result
 
@@ -215,24 +212,28 @@ touch_build_stamp results package_TrinketCore
         products = self.root / '.DerivedData/Build/Products'
         app = products / 'Debug-iphonesimulator/Trinket.app/Trinket'
         app.parent.mkdir(parents=True, exist_ok=True)
-        app.write_text('binary')
-        app.chmod(0o755)
+        write_executable(app, 'binary')
         (products / 'Trinket.xctestrun').write_text('test configuration')
         self.shell('begin_build_stamps .DerivedData/TestResults smoke\n'
                    'touch_build_stamp .DerivedData/TestResults smoke\n'
                    'touch_build_stamp .DerivedData/TestResults ui', env=env)
 
     def prepare(self, env, downloaded=True, status=0, expected=0, valid=True):
-        rebuild = self.root / 'rebuild.sh'
-        rebuild.write_text('#!/bin/bash\nset -euo pipefail\necho rebuilt >> rebuild-count\n'
-                           f'exit_status={status}\n(( exit_status == 0 )) || exit "$exit_status"\n'
-                           'mkdir -p .DerivedData/Build/Products/Debug-iphonesimulator/Trinket.app\n'
-                           'touch .DerivedData/Build/Products/Trinket.xctestrun\n'
-                           + ('source Scripts/build-freshness.sh\n'
-                              'begin_build_stamps .DerivedData/TestResults smoke\n'
-                              'touch_build_stamp .DerivedData/TestResults smoke\n'
-                              'touch_build_stamp .DerivedData/TestResults ui\n' if valid else ''))
-        rebuild.chmod(0o755)
+        write_executable(
+            self.root / 'rebuild.sh',
+            '#!/bin/bash\nset -euo pipefail\necho rebuilt >> rebuild-count\n'
+            f'exit_status={status}\n(( exit_status == 0 )) || exit "$exit_status"\n'
+            'mkdir -p .DerivedData/Build/Products/Debug-iphonesimulator/Trinket.app\n'
+            'touch .DerivedData/Build/Products/Trinket.xctestrun\n'
+            + (
+                'source Scripts/build-freshness.sh\n'
+                'begin_build_stamps .DerivedData/TestResults smoke\n'
+                'touch_build_stamp .DerivedData/TestResults smoke\n'
+                'touch_build_stamp .DerivedData/TestResults ui\n'
+                if valid
+                else ''
+            ),
+        )
         return self.shell('./Scripts/restore-ci-test-products.sh '
                           + ('--downloaded ' if downloaded else '') + '-- ./rebuild.sh', expected, env)
 

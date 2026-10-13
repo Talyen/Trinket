@@ -33,7 +33,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from script_test_support import ROOT, ScriptRegressionTestCase, load_script
+from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured
 
 
 class DocumentationTests(ScriptRegressionTestCase):
@@ -48,8 +48,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             (root / "Docs/Plans").mkdir(parents=True)
             script = root / "Scripts/new-plan.sh"
             shutil.copy2(ROOT / "Scripts/new-plan.sh", script)
-            created = subprocess.run([str(script), "Fixture"], cwd=root, capture_output=True, text=True)
-            self.assertEqual(created.returncode, 0, created.stderr)
+            run_captured([str(script), "Fixture"], cwd=root, expected=0)
             text = (root / "Docs/Plans/Fixture.md").read_text(encoding="utf-8")
             self.assertIn("type: execution-plan", text)
             self.assertIn("status: active", text)
@@ -121,8 +120,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             plan.write_text(original)
 
             def run(name, *args, status=0, message=""):
-                result = subprocess.run([sys.executable, str(scripts / name), *args],
-                                        cwd=root, capture_output=True, text=True)
+                result = run_captured([sys.executable, str(scripts / name), *args], cwd=root)
                 self.assertEqual(result.returncode, status, result.stdout + result.stderr)
                 self.assertIn(message, result.stdout + result.stderr)
                 return result
@@ -294,14 +292,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             ],
         )
         # Dry-run must include cheap slices in order after plan.
-        result = subprocess.run(
-            [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Docs/Platform/Verification.md"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
+        result = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Docs/Platform/Verification.md"], cwd=ROOT, expected=0)
         planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
         # Docs scope should contain docs check plus 4 cheap slices in registry order.
         self.assertIn("python3 ./Scripts/check-docs.py", planned)
@@ -312,13 +303,12 @@ class DocumentationTests(ScriptRegressionTestCase):
     def test_mixed_script_and_docs_runs_docs_once(self) -> None:
         for hosted in (False, True):
             with self.subTest(hosted=hosted):
-                result = subprocess.run(
-                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths",
-                     "Scripts/build.sh", "Docs/Platform/Verification.md"],
-                    cwd=ROOT, env=self.verification_environment(hosted=hosted),
-                    capture_output=True, text=True, check=False,
+                result = run_captured(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", "Scripts/build.sh", "Docs/Platform/Verification.md"],
+                    cwd=ROOT,
+                    env=self.verification_environment(hosted=hosted),
+                    expected=0,
                 )
-                self.assertEqual(result.returncode, 0, result.stderr)
                 planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
                 self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 1)
                 script_commands = [p for p in planned if p.startswith("./Scripts/test-scripts.sh")]
@@ -330,12 +320,9 @@ class DocumentationTests(ScriptRegressionTestCase):
     def test_plain_script_scope_still_validates_docs(self) -> None:
         for hosted in (False, True):
             with self.subTest(hosted=hosted):
-                result = subprocess.run(
-                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", "Scripts/build.sh"],
-                    cwd=ROOT, env=self.verification_environment(hosted=hosted),
-                    capture_output=True, text=True, check=False,
+                result = run_captured(
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", "Scripts/build.sh"], cwd=ROOT, env=self.verification_environment(hosted=hosted), expected=0
                 )
-                self.assertEqual(result.returncode, 0, result.stderr)
                 planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
                 flag = "" if hosted else " --fast"
                 self.assertIn(f"./Scripts/test-scripts.sh{flag} --paths Scripts/build.sh", planned)
@@ -357,14 +344,11 @@ class DocumentationTests(ScriptRegressionTestCase):
             for flags in (["--final"], ["--final", "--keep-plan"]):
                 with self.subTest(flags=flags):
                     args = [*flags, "--paths", "Scripts/build.sh", "Docs/Plans/Pending work.md"]
-                    preview = subprocess.run([str(scripts / "handoff.sh"), "--dry-run", *args],
-                                             capture_output=True, text=True)
-                    self.assertEqual(preview.returncode, 0, preview.stdout + preview.stderr)
+                    preview = run_captured([str(scripts / "handoff.sh"), "--dry-run", *args], expected=0)
                     self.assertFalse(captured.exists())
                     command = next(line.strip() for line in preview.stdout.splitlines()
                                    if "python3 ./Scripts/check-docs.py" in line)
-                    result = subprocess.run([str(scripts / "handoff.sh"), *args], capture_output=True, text=True)
-                    self.assertEqual(result.returncode, 91, result.stdout + result.stderr)
+                    run_captured([str(scripts / "handoff.sh"), *args], expected=91)
                     expected = [*flags, "--paths", "Docs/Plans/Pending work.md", "Scripts/build.sh"]
                     self.assertEqual(json.loads(captured.read_text()), expected)
                     self.assertEqual(shlex.split(command)[2:], expected)

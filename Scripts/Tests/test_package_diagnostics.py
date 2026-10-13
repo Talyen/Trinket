@@ -15,12 +15,11 @@ SCRIPT_INPUTS = (
 
 import contextlib
 import io
-import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from script_test_support import ScriptRegressionTestCase, load_script
+from script_test_support import ScriptRegressionTestCase, load_script, run_captured, write_json
 import script_diagnostics
 
 REPORT = load_script("package_diagnostics", "package-diagnostics.py")
@@ -66,7 +65,7 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
                 (root / f"{package}.report").write_text(str(prefix))
                 issues = [{"file": "Shared.swift", "line": 4, "message": "duplicate compiler error"}]
                 issues += [{"file": "Other.swift", "line": i, "message": "huge " + "x" * 5000} for i in range(100)]
-                Path(str(prefix) + ".json").write_text(json.dumps({"issues": issues}))
+                write_json(Path(str(prefix) + ".json"), {"issues": issues})
                 Path(str(prefix) + ".md").write_text("full markdown report\n")
             output = io.StringIO()
             with contextlib.redirect_stdout(output):
@@ -163,9 +162,9 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
             )
             for action, extra, status in cases:
                 with self.subTest(action=action, extra=extra, status=status):
-                    result = subprocess.run(
+                    result = run_captured(
                         ["bash", str(scripts / "test-package.sh"), *action, *extra, "TrinketCore", "BattleEngine"],
-                        env={**os.environ, "FIXTURE_STATUS": status, "GITHUB_ACTIONS": "true"}, capture_output=True, text=True,
+                        env={**os.environ, "FIXTURE_STATUS": status, "GITHUB_ACTIONS": "true"},
                     )
                     self.assertEqual(result.returncode, int(status != "0"), result.stdout + result.stderr)
                     self.assertEqual(result.stdout.count("VERBOSE WORKER LOG"), 2 if "--verbose" in extra else 0)

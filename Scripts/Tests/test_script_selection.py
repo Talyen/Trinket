@@ -17,14 +17,13 @@ SCRIPT_INPUTS = (
 
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 import unittest
 from fnmatch import fnmatchcase
 from pathlib import Path
 
-from script_test_support import ROOT
+from script_test_support import ROOT, run_captured, write_executable
 
 sys.path.insert(0, str(ROOT / "Scripts"))
 from script_test_selection import regression_families, INTENTIONALLY_UNMAPPED, select_tests
@@ -122,11 +121,7 @@ class ScriptSelectionTests(unittest.TestCase):
         relative = "Scripts/Tests/test_internal_cli.py"
         outputs = []
         for path in (relative, str(ROOT / relative)):
-            result = subprocess.run(
-                ["bash", "Scripts/test-scripts.sh", "--fast", "--paths", path],
-                cwd=ROOT, capture_output=True, text=True, check=False,
-            )
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            result = run_captured(["bash", "Scripts/test-scripts.sh", "--fast", "--paths", path], cwd=ROOT, expected=0)
             self.assertIn("Script scope: 1 Python and 0 shell suites.", result.stdout)
             self.assertIn("Script syntax passed", result.stdout)
             outputs.append([line for line in result.stdout.splitlines()
@@ -134,10 +129,7 @@ class ScriptSelectionTests(unittest.TestCase):
         self.assertEqual(outputs[0], outputs[1])
 
         for path in (str(ROOT / "Scripts"), str(ROOT.parent / "outside.py")):
-            result = subprocess.run(
-                ["bash", "Scripts/test-scripts.sh", "--fast", "--paths", path],
-                cwd=ROOT, capture_output=True, text=True, check=False,
-            )
+            result = run_captured(["bash", "Scripts/test-scripts.sh", "--fast", "--paths", path], cwd=ROOT)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("--paths", result.stderr)
 
@@ -156,8 +148,7 @@ class ScriptSelectionTests(unittest.TestCase):
                 shutil.copy2(ROOT / "Scripts" / name, scripts / name)
             (scripts / "script_test_selection.py").write_text(
                 'print("Scripts/Tests/test_first.py\\nScripts/Tests/test_last.py\\nScripts/Tests/test-peer.sh")\n')
-            (scripts / "check-build-cache-paths.sh").write_text('#!/bin/sh\nexit 0\n')
-            (scripts / "check-build-cache-paths.sh").chmod(0o755)
+            write_executable(scripts / "check-build-cache-paths.sh", '#!/bin/sh\nexit 0\n')
             (scripts / "check-docs.py").write_text('raise RuntimeError("docs must be skipped")\n')
             # A syntactically valid file must never execute during compilation.
             (scripts / "syntax_probe.py").write_text('raise RuntimeError("syntax executed")\n')
@@ -178,8 +169,7 @@ class ScriptSelectionTests(unittest.TestCase):
             environment = {**os.environ, "TRINKET_SCRIPT_TEST_JOBS": "2", "RESULTS_DIR": str(root / "logs")}
 
             def run():
-                return subprocess.run(["/bin/bash", "Scripts/test-scripts.sh", "--skip-docs"],
-                                      cwd=root, env=environment, capture_output=True, text=True)
+                return run_captured(["/bin/bash", "Scripts/test-scripts.sh", "--skip-docs"], cwd=root, env=environment)
 
             rejected = scripts / "broken.py"
             rejected.write_text('def broken(\n')

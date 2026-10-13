@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from script_test_support import ROOT, load_script
+from script_test_support import ROOT, load_script, write_json
 from internal.change_routing import classify
 
 REGISTRY = load_script('ui_registration', 'check-testplan-sync.py')
@@ -58,7 +58,7 @@ class UIRegistrationTests(unittest.TestCase):
                 plan = {'configurations': [{'id': 'keep-me'}], 'defaultOptions': {'testExecutionOrdering': 'alphabetical'},
                         'testTargets': [{'automaticallyIncludesTests': False, 'selectedTests': ['Old'],
                                          'target': {'name': 'TrinketUITests', 'identifier': 'preserve-id'}}]}
-                (root / f'{suite}.xctestplan').write_text(json.dumps(plan))
+                write_json(root / f'{suite}.xctestplan', plan)
             rows = REGISTRY.registrations(root)
             REGISTRY.generate(root, rows)
             before = [(root / f'{suite}.xctestplan').read_bytes() for suite in ('Smoke', 'FullUI')]
@@ -72,7 +72,7 @@ class UIRegistrationTests(unittest.TestCase):
             for exclusion in ({'enabled': False}, {'skippedTests': ['SmokeFixture']}):
                 rejected = json.loads(before[0])
                 rejected['testTargets'][0].update(exclusion)
-                smoke.write_text(json.dumps(rejected))
+                write_json(smoke, rejected)
                 with self.subTest(exclusion=exclusion), self.assertRaisesRegex(ValueError, 'exclusions'):
                     REGISTRY.generate(root, rows)
                 self.assertEqual(json.loads(smoke.read_text()), rejected)

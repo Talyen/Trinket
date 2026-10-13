@@ -32,7 +32,7 @@ import subprocess
 import tempfile
 import unittest
 
-from script_test_support import fake_toolchain
+from script_test_support import fake_toolchain, run_captured, write_executable
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -44,8 +44,7 @@ class BuildArtifactTests(unittest.TestCase):
             products = root / "Build/Products"
             executable = products / "Debug-iphonesimulator/Trinket.app/Trinket"
             executable.parent.mkdir(parents=True)
-            executable.write_text("#!/bin/sh\nexit 0\n")
-            executable.chmod(0o755)
+            write_executable(executable, "#!/bin/sh\nexit 0\n")
             (products / "current-app").symlink_to("Debug-iphonesimulator/Trinket.app")
             (products / "Trinket.xctestrun").write_text("test configuration")
             for path in ("TestResults/.last-build-test.stamp", "TestResults/.last-build-test.stamp.json",
@@ -150,9 +149,7 @@ class BuildArtifactTests(unittest.TestCase):
             source.write_text("after")
             stamp = next((root / "results").glob("*.stamp"))
             os.utime(source, (stamp.stat().st_mtime + 2, stamp.stat().st_mtime + 2))
-            result = subprocess.run(["bash", "-ec", prefix + 'assert_no_build_inputs_are_fresh "$(build_stamp_path results smoke)" smoke'],
-                                    cwd=root, env=environment, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 1)
+            result = run_captured(["bash", "-ec", prefix + 'assert_no_build_inputs_are_fresh "$(build_stamp_path results smoke)" smoke'], cwd=root, env=environment, expected=1)
             self.assertIn("input_snapshot", result.stderr)
 
 

@@ -13,25 +13,22 @@ SCRIPT_INPUTS = (
 )
 
 
-import json
 import os
 import re
 import subprocess
 import sys
 import tempfile
-import time
 import unittest
 from pathlib import Path
 
-from script_test_support import ROOT, ScriptRegressionTestCase, load_script
+from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, write_executable
 
 class MediaAssetScriptTests(ScriptRegressionTestCase):
     def test_media_temp_cleanup_preserves_paths_with_spaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             scratch = Path(directory) / 'temporary assets'
             scratch.mkdir()
-            result = subprocess.run(
-                ['bash', '-eu', '-c', '''
+            run_captured(['bash', '-eu', '-c', '''
 source "$1"
 # Exercise a spaced path on BSD hosts too; GNU mktemp honors TMPDIR by default.
 mktemp() { command mktemp "$TMPDIR/asset.XXXXXX"; }
@@ -40,10 +37,7 @@ trinket_asset_track_mktemp second
 touch "$first.next" "$second.sorted"
 trinket_asset_cleanup_tracked
 trinket_asset_cleanup_tracked
-''', '_', str(ROOT / 'Scripts/lib/media-assets.sh')],
-                env={**os.environ, 'TMPDIR': str(scratch)}, capture_output=True, text=True,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
+''', '_', str(ROOT / 'Scripts/lib/media-assets.sh')], env={**os.environ, 'TMPDIR': str(scratch)}, expected=0)
             self.assertEqual(list(scratch.iterdir()), [])
 
     def test_sfx_cache_tracks_profile_state_output_and_force(self) -> None:
@@ -115,9 +109,7 @@ trinket_asset_cleanup_tracked
             scratch = root / "temporary music"
             scratch.mkdir()
             environment["TMPDIR"] = str(scratch)
-            mktemp = root / "bin/mktemp"
-            mktemp.write_text('#!/bin/sh\nexec /usr/bin/mktemp "$TMPDIR/music.XXXXXX"\n')
-            mktemp.chmod(0o755)
+            write_executable(root / "bin/mktemp", '#!/bin/sh\nexec /usr/bin/mktemp "$TMPDIR/music.XXXXXX"\n')
 
             def assert_run(expected_conversions: int, **overrides: str) -> None:
                 result = self.run_audio_fixture(root, {**environment, **overrides}, "music")
@@ -143,9 +135,7 @@ trinket_asset_cleanup_tracked
             previous = {path: path.read_bytes() for path in (catalog, state)}
             manifest = root / "MusicManifest/music.tsv"
             manifest.write_text(manifest.read_text().replace("1.0", "0.5"))
-            move = root / "bin/mv"
-            move.write_text('#!/bin/sh\ncase "$*" in *MusicCatalog.generated.swift*) exit 23;; esac\nexec /bin/mv "$@"\n')
-            move.chmod(0o755)
+            write_executable(root / "bin/mv", '#!/bin/sh\ncase "$*" in *MusicCatalog.generated.swift*) exit 23;; esac\nexec /bin/mv "$@"\n')
             failed = self.run_audio_fixture(root, environment, "music")
             self.assertEqual(failed.returncode, 23, failed.stderr)
             self.assertEqual(list(scratch.iterdir()), [])
@@ -163,7 +153,7 @@ trinket_asset_cleanup_tracked
             for name in ("keep.m4a", "remove.m4a", "ignore.txt"):
                 (resources / name).write_text(name, encoding="utf-8")
 
-            result = subprocess.run(
+            run_captured(
                 [
                     "bash",
                     "-c",
@@ -173,11 +163,8 @@ trinket_asset_cleanup_tracked
                     str(resources),
                     str(active),
                 ],
-                capture_output=True,
-                text=True,
-                check=False,
+                expected=0,
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((resources / "keep.m4a").exists())
             self.assertFalse((resources / "remove.m4a").exists())
             self.assertTrue((resources / "ignore.txt").exists())
@@ -221,8 +208,8 @@ trinket_asset_cleanup_tracked
         )
         for tier in ("Skill", "Ultimate"):
             (root / f"Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+{tier}.swift").write_text("")
-        sips = root / "bin/sips"
-        sips.write_text(
+        write_executable(
+            root / "bin/sips",
             "#!/usr/bin/env python3\n"
             "import pathlib, sys\n"
             "args = sys.argv[1:]\n"
@@ -235,9 +222,7 @@ trinket_asset_cleanup_tracked
             "    portrait = 'portrait' in args[-1]\n"
             "    print('pixelWidth:', 1536 if portrait else 1600)\n"
             "    print('pixelHeight:', 2752 if portrait else 1194)\n",
-            encoding="utf-8",
         )
-        sips.chmod(0o755)
         log = root / "conversions.log"
         log.write_text("", encoding="utf-8")
         environment = {
@@ -250,14 +235,7 @@ trinket_asset_cleanup_tracked
     def run_art_fixture(
         self, root: Path, environment: dict[str, str]
     ) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(
-            ["bash", "Scripts/prepare-art-assets.sh"],
-            cwd=root,
-            env=environment,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        return run_captured(["bash", "Scripts/prepare-art-assets.sh"], cwd=root, env=environment)
 
     def test_art_kind_matrix_emits_expected_variants(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -390,17 +368,14 @@ trinket_asset_cleanup_tracked
             ):
                 (root / relative).mkdir(parents=True, exist_ok=True)
             for relative in ("Scripts/prepare-app-icon.sh", "Scripts/lib/media-assets.sh"):
-                destination = root / relative
-                destination.write_text((ROOT / relative).read_text(encoding="utf-8"), encoding="utf-8")
-                destination.chmod(0o755)
+                write_executable(root / relative, (ROOT / relative).read_text(encoding="utf-8"))
             (root / "Raw Assets/App Icon/Trinket App Icon.icon/icon.json").write_text(
                 "{}", encoding="utf-8"
             )
             (root / "Raw Assets/App Icon/Trinket App Icon.icon/contents.dat").write_bytes(b"icon")
             command = ["bash", "Scripts/prepare-app-icon.sh"]
 
-            first = subprocess.run(command, cwd=root, capture_output=True, text=True)
-            self.assertEqual(first.returncode, 0, first.stderr)
+            first = run_captured(command, cwd=root, expected=0)
             self.assertIn("Installed", first.stdout)
             self.assertTrue((root / "Trinket/AppIcon.icon/icon.json").is_file())
             state = (
@@ -409,8 +384,7 @@ trinket_asset_cleanup_tracked
             ).read_text(encoding="utf-8")
             self.assertTrue(state.splitlines()[1].startswith("# asset_name\tsource_sha256\tencode_profile"))
 
-            second = subprocess.run(command, cwd=root, capture_output=True, text=True)
-            self.assertEqual(second.returncode, 0, second.stderr)
+            second = run_captured(command, cwd=root, expected=0)
             self.assertNotIn("Installed", second.stdout)
 
             # The focused pipeline must consume the manifest after preflight
@@ -419,13 +393,10 @@ trinket_asset_cleanup_tracked
             library.mkdir()
             (root / "Raw Assets/App Icon/Trinket App Icon.icon").rename(library / "Moved.icon")
             environment = {**os.environ, 'ASSET_LIBRARY_ROOT': str(library)}
-            relocated = subprocess.run(command, cwd=root, env=environment, capture_output=True, text=True)
-            self.assertEqual(relocated.returncode, 0, relocated.stderr)
+            run_captured(command, cwd=root, env=environment, expected=0)
             self.assertIn("Moved.icon", (root / "ArtManifest/app-icon.tsv").read_text())
             self.assertEqual((root / "Trinket/AppIcon.icon/contents.dat").read_bytes(), b"icon")
-            checked = subprocess.run([sys.executable, 'Scripts/asset-library.py', '--check', '--kind', 'app-icon'],
-                                     cwd=root, env=environment, capture_output=True, text=True)
-            self.assertEqual(checked.returncode, 0, checked.stderr)
+            run_captured([sys.executable, 'Scripts/asset-library.py', '--check', '--kind', 'app-icon'], cwd=root, env=environment, expected=0)
 
 if __name__ == "__main__":
     unittest.main()

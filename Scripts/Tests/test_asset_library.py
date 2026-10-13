@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 
-from script_test_support import ScriptRegressionTestCase
+from script_test_support import ScriptRegressionTestCase, run_captured, write_executable, write_json
 
 SCRIPT_INPUTS = (
     'Scripts/asset-library.py',
@@ -33,11 +33,8 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                                                'Scripts/lib/generated-paths.sh', 'Scripts/config/generated-paths.tsv'))
             prepare = root / 'Scripts/prepare-assets.sh'
             prepare.rename(root / 'Scripts/prepare-selected-assets.sh')
-            prepare.write_text('#!/bin/bash\nexec bash Scripts/prepare-selected-assets.sh "$@" --kind sfx\n')
-            prepare.chmod(0o755)
-            generator = root / 'Scripts/generate.sh'
-            generator.write_text('#!/bin/bash\nexit 0\n')
-            generator.chmod(0o755)
+            write_executable(prepare, '#!/bin/bash\nexec bash Scripts/prepare-selected-assets.sh "$@" --kind sfx\n')
+            write_executable(root / 'Scripts/generate.sh', '#!/bin/bash\nexit 0\n')
             library = root / 'library'
             library.mkdir()
             (root / 'Raw Assets').rename(library / 'Raw Assets')
@@ -50,18 +47,15 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             before = manifest.read_bytes()
             command = ['bash', '-ec', 'unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE; '
                        'source Scripts/build-freshness.sh; prepare_generated_inputs results']
-            hosted = subprocess.run(command, cwd=root, env={**env, 'CI': 'true'}, capture_output=True, text=True)
-            self.assertEqual(hosted.returncode, 0, hosted.stderr)
+            run_captured(command, cwd=root, env={**env, 'CI': 'true'}, expected=0)
             self.assertEqual(manifest.read_bytes(), before)
             pipeline = root / 'Scripts/prepare-audio-assets.sh'
             original = pipeline.read_bytes()
             pipeline.write_text('#!/bin/bash\nexit 9\n')
-            interrupted = subprocess.run(command, cwd=root, env=env, capture_output=True, text=True)
-            self.assertEqual(interrupted.returncode, 9, interrupted.stderr)
+            run_captured(command, cwd=root, env=env, expected=9)
             self.assertIn('Renamed.wav', manifest.read_text())
             pipeline.write_bytes(original)
-            healed = subprocess.run(command, cwd=root, env=env, capture_output=True, text=True)
-            self.assertEqual(healed.returncode, 0, healed.stderr)
+            run_captured(command, cwd=root, env=env, expected=0)
             checked = self.run_check(root, env, '--check')
             self.assertEqual(checked.returncode, 0, checked.stderr)
             self.assertEqual((root / 'Trinket/Media/SFX/sfx_test_clip.m4a').read_bytes(), b'fixture audio')
@@ -81,7 +75,7 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                       source: hashlib.sha256(b'art master').hexdigest()}
         receipt = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json'
         receipt.parent.mkdir(parents=True)
-        receipt.write_text(json.dumps({kind: {'sources': hashes}}))
+        write_json(receipt, {kind: {'sources': hashes}})
         env = {**self.verification_environment(), 'ASSET_LIBRARY_ROOT': str(library)}
         return root, library, manifest, receipt, env
 
@@ -99,11 +93,9 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                     moved.write_bytes(b'art master')
                 before, recorded = manifest.read_bytes(), receipt.read_bytes()
                 command = [sys.executable, 'Scripts/asset-library.py', '--kind', kind]
-                preview = subprocess.run(command + ['--relink'], cwd=root, env=env, capture_output=True, text=True)
-                self.assertEqual(preview.returncode, 0, preview.stderr)
+                run_captured(command + ['--relink'], cwd=root, env=env, expected=0)
                 self.assertEqual(manifest.read_bytes(), before)
-                prepared = subprocess.run(command + ['--preflight', '--snapshot'], cwd=root, env=env, capture_output=True, text=True)
-                self.assertEqual(prepared.returncode, 0, prepared.stderr)
+                prepared = run_captured(command + ['--preflight', '--snapshot'], cwd=root, env=env, expected=0)
                 snapshot = json.loads(prepared.stdout)
                 self.assertTrue(all(name.startswith('New/') for name in snapshot['sources']))
                 self.assertEqual(manifest.read_bytes(), before.replace(b'Old/Icon.icon' if kind == 'app-icon' else b'Old/Knight.jpeg',
@@ -123,7 +115,7 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                         stream.write('background\tplace\tplace\tOld/Place.jpeg\t0.50\t0.50\n')
                     record = json.loads(receipt.read_text())
                     record['art']['sources']['Old/Place.jpeg'] = hashlib.sha256(b'place').hexdigest()
-                    receipt.write_text(json.dumps(record))
+                    write_json(receipt, record)
                     (library / 'Place.jpeg').write_bytes(b'place')
                 elif failure == 'unrecorded':
                     receipt.unlink()
@@ -137,8 +129,7 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                     (package / 'icon.json').write_bytes(b'icon settings')
                     (package / 'renamed-master.jpeg').write_bytes(b'art master')
                 before = manifest.read_bytes()
-                result = subprocess.run([sys.executable, 'Scripts/asset-library.py', '--preflight', '--kind', kind],
-                                        cwd=root, env=env, capture_output=True, text=True)
+                result = run_captured([sys.executable, 'Scripts/asset-library.py', '--preflight', '--kind', kind], cwd=root, env=env)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn('manifests were preserved', result.stderr)
                 self.assertEqual(manifest.read_bytes(), before)
@@ -151,14 +142,12 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             selected.write_bytes(b'intentionally revised artwork')
             (library / 'old-copy.jpeg').write_bytes(b'art master')
             before = manifest.read_bytes()
-            result = subprocess.run([sys.executable, 'Scripts/asset-library.py', '--preflight', '--kind', 'art'],
-                                    cwd=root, env=env, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            run_captured([sys.executable, 'Scripts/asset-library.py', '--preflight', '--kind', 'art'], cwd=root, env=env, expected=0)
             self.assertEqual(manifest.read_bytes(), before)
             self.assertEqual(selected.read_bytes(), b'intentionally revised artwork')
 
     def run_check(self, root, environment, *arguments):
-        return subprocess.run(['python3', 'Scripts/asset-library.py', '--kind', 'sfx', *arguments], cwd=root, env=environment, capture_output=True, text=True)
+        return run_captured(['python3', 'Scripts/asset-library.py', '--kind', 'sfx', *arguments], cwd=root, env=environment)
 
     def test_source_free_integrity_and_local_source_freshness(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -188,7 +177,7 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             root, env, _ = self.make_audio_fixture(directory, 'sfx')
             receipt = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json'
             other = {'input_hash': 'music-inputs', 'sources': {}, 'outputs': {}}
-            receipt.write_text(json.dumps({'music': other, 'retired': {'outputs': {}}}))
+            write_json(receipt, {'music': other, 'retired': {'outputs': {}}})
             prepared = self.run_audio_fixture(root, env, 'sfx')
             self.assertEqual(prepared.returncode, 0, prepared.stderr)
             recorded = json.loads(receipt.read_text())
@@ -242,10 +231,9 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             self.assertEqual(prepared.returncode, 0, prepared.stderr)
             unavailable = {**env, 'ASSET_LIBRARY_ROOT': str(root / 'unavailable')}
             command = ['python3', 'Scripts/asset-library.py', '--check', '--outputs-only', '--kind', 'music']
-            checked = subprocess.run(command, cwd=root, env=unavailable, capture_output=True, text=True)
-            self.assertEqual(checked.returncode, 0, checked.stderr)
+            checked = run_captured(command, cwd=root, env=unavailable, expected=0)
             content.write_text('id: "test_boss", isBoss: false\n')
-            checked = subprocess.run(command, cwd=root, env=unavailable, capture_output=True, text=True)
+            checked = run_captured(command, cwd=root, env=unavailable)
             self.assertNotEqual(checked.returncode, 0)
             self.assertIn('no longer', checked.stderr)
 
@@ -263,7 +251,7 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                         del record['sfx']
                     else:
                         del record['sfx']['outputs']['Trinket/Media/SFX/sfx_test_clip.m4a']
-                    receipt.write_text(json.dumps(record))
+                    write_json(receipt, record)
                 output = root / 'Trinket/Media/SFX/sfx_test_clip.m4a'
                 output.write_bytes(b'corrupt shipping bytes')
                 result = self.run_audio_fixture(root, env, 'sfx')
@@ -338,6 +326,4 @@ assets.record_kind(kind, expected)
                         process.communicate()
             self.assertEqual(set(json.loads(receipt.read_text())), {'music', 'sfx'})
             for kind in ('music', 'sfx'):
-                checked = subprocess.run(['python3', 'Scripts/asset-library.py', '--check', '--kind', kind],
-                                         cwd=root, env=env, capture_output=True, text=True)
-                self.assertEqual(checked.returncode, 0, checked.stderr)
+                run_captured(['python3', 'Scripts/asset-library.py', '--check', '--kind', kind], cwd=root, env=env, expected=0)

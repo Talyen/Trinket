@@ -36,7 +36,7 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
-from script_test_support import ROOT
+from script_test_support import ROOT, run_captured
 
 
 class ProjectGenerationTests(unittest.TestCase):
@@ -96,15 +96,7 @@ printf cached > "$cache"
             path.chmod(0o755)
 
     def run_command(self, *args, expected=0, input_text=None):
-        result = subprocess.run(
-            args,
-            cwd=self.root,
-            env=self.env,
-            text=True,
-            capture_output=True,
-            stdin=subprocess.DEVNULL if input_text is None else None,
-            input=input_text,
-        )
+        result = run_captured(args, cwd=self.root, env=self.env, stdin=subprocess.DEVNULL if input_text is None else None, input=input_text)
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
         return result
 

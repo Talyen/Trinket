@@ -46,6 +46,7 @@ sys.path.insert(0, str(ROOT / "Scripts"))
 import failure_diagnostics as REPORTER  # noqa: E402
 
 import shutil
+from script_test_support import run_python, run_captured, write_executable, write_json
 
 
 def fixture(name: str) -> dict:
@@ -150,10 +151,7 @@ class ReporterTests(unittest.TestCase):
     def test_attachments_are_assigned_by_test_identifier(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            (root / "manifest.json").write_text(
-                json.dumps(fixture("attachments-multiple.json")),
-                encoding="utf-8",
-            )
+            write_json(root / "manifest.json", fixture("attachments-multiple.json"))
             for name in ("first.png", "second.png", "runner.txt"):
                 (root / name).write_text(name, encoding="utf-8")
             issues = [
@@ -192,13 +190,13 @@ class ReporterTests(unittest.TestCase):
                 path = root / name
                 path.parent.mkdir()
                 path.write_text(name)
-            (root / "manifest.json").write_text(json.dumps([
-                {"testIdentifier": test, "attachments": [
-                    {"exportedFileName": name, "isAssociatedWithFailure": True}
-                ]}
-                for test, name in (("Battle/first()", "first/evidence.png"),
-                                   ("Battle/second()", "second/evidence.png"))
-            ]))
+            write_json(
+                root / "manifest.json",
+                [
+                    {"testIdentifier": test, "attachments": [{"exportedFileName": name, "isAssociatedWithFailure": True}]}
+                    for test, name in (("Battle/first()", "first/evidence.png"), ("Battle/second()", "second/evidence.png"))
+                ],
+            )
             issues = [REPORTER.DiagnosticIssue.from_observation(
                 REPORTER.IssueObservation("test-failure", test, "failed", test=test)
             ) for test in ("Battle/first()", "Battle/second()")]
@@ -472,26 +470,24 @@ class ReporterTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             diagnostics = root / "failure-diagnostics.json"
-            diagnostics.write_text(
-                json.dumps(
-                    {
-                        "schema_version": 1,
-                        "label": "failure",
-                        "exit_code": 1,
-                        "classification": "test-failure",
-                        "issues": [
-                            {
-                                "id": "failure-1",
-                                "kind": "test-failure",
-                                "title": "Failure",
-                                "message": "Expectation failed",
-                                "details": "large detail" * 1000,
-                                "attachments": [],
-                            }
-                        ],
-                    }
-                ),
-                encoding="utf-8",
+            write_json(
+                diagnostics,
+                {
+                    "schema_version": 1,
+                    "label": "failure",
+                    "exit_code": 1,
+                    "classification": "test-failure",
+                    "issues": [
+                        {
+                            "id": "failure-1",
+                            "kind": "test-failure",
+                            "title": "Failure",
+                            "message": "Expectation failed",
+                            "details": "large detail" * 1000,
+                            "attachments": [],
+                        }
+                    ],
+                },
             )
             compact_path = root / "compact.json"
             full_path = root / "full.json"
@@ -499,19 +495,7 @@ class ReporterTests(unittest.TestCase):
                 ([], compact_path),
                 (["--full"], full_path),
             ):
-                completed = subprocess.run(
-                    [
-                        sys.executable,
-                        str(ROOT / "Scripts" / "ci-diagnostics.py"),
-                        *arguments,
-                        str(root),
-                        str(output),
-                    ],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                self.assertEqual(completed.returncode, 0, completed.stderr)
+                run_python('ci-diagnostics.py', *arguments, str(root), str(output), expected=0)
             compact = json.loads(compact_path.read_text(encoding="utf-8"))
             full = json.loads(full_path.read_text(encoding="utf-8"))
             self.assertNotIn("issues", compact["invocations"][0])
@@ -620,19 +604,8 @@ class ReporterTests(unittest.TestCase):
             REPORTER.write_report(report, str(root / "fixture-diagnostics"))
             aggregate_path = root / "ci-diagnostics.json"
 
-            completed = subprocess.run(
-                [
-                    sys.executable,
-                    str(ROOT / "Scripts" / "ci-diagnostics.py"),
-                    str(root),
-                    str(aggregate_path),
-                ],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+            run_python('ci-diagnostics.py', str(root), str(aggregate_path), expected=0)
 
-            self.assertEqual(completed.returncode, 0, completed.stderr)
             aggregate = json.loads(aggregate_path.read_text(encoding="utf-8"))
             self.assertEqual(aggregate["category"], "test-failure")
             self.assertEqual(aggregate["issues"][0]["message"], "Expectation failed")
@@ -657,8 +630,7 @@ class ReporterTests(unittest.TestCase):
                 ("unknown", 0, "process-exit", False),
             ):
                 with self.subTest(action=action, code=code, completion=completion):
-                    manifest_path.write_text(json.dumps({"action": action, "exit_code": code,
-                        "status": "passed", "completion_source": completion}))
+                    write_json(manifest_path, {"action": action, "exit_code": code, "status": "passed", "completion_source": completion})
                     subprocess.run([sys.executable, str(ROOT / "Scripts/ci-diagnostics.py"), str(root), str(output)], env=env, check=True, capture_output=True)
                     aggregate = json.loads(output.read_text())
                     self.assertEqual(aggregate["category"] == "passed", passed)
@@ -681,24 +653,12 @@ class ReporterTests(unittest.TestCase):
                 "test_execution_proven": True,
                 "result_bundle_complete": False,
             }
-            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            write_json(manifest_path, manifest)
             aggregate_path = root / "ci-diagnostics.json"
 
             clean_env = {**os.environ}
             clean_env.pop("TRINKET_DIAGNOSTICS_SESSION_ID", None)
-            accepted = subprocess.run(
-                [
-                    sys.executable,
-                    str(ROOT / "Scripts" / "ci-diagnostics.py"),
-                    str(root),
-                    str(aggregate_path),
-                ],
-                env=clean_env,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(accepted.returncode, 0, accepted.stderr)
+            run_python('ci-diagnostics.py', str(root), str(aggregate_path), env=clean_env, expected=0)
             aggregate = json.loads(aggregate_path.read_text(encoding="utf-8"))
             self.assertEqual(aggregate["category"], "passed")
             self.assertEqual(aggregate["incomplete_result_invocations"], 1)
@@ -706,20 +666,8 @@ class ReporterTests(unittest.TestCase):
 
             manifest["completion_source"] = "process-exit"
             manifest["test_execution_proven"] = False
-            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-            rejected = subprocess.run(
-                [
-                    sys.executable,
-                    str(ROOT / "Scripts" / "ci-diagnostics.py"),
-                    str(root),
-                    str(aggregate_path),
-                ],
-                env=clean_env,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(rejected.returncode, 0, rejected.stderr)
+            write_json(manifest_path, manifest)
+            run_python('ci-diagnostics.py', str(root), str(aggregate_path), env=clean_env, expected=0)
             aggregate = json.loads(aggregate_path.read_text(encoding="utf-8"))
             self.assertEqual(aggregate["category"], "unknown")
             self.assertEqual(aggregate["failed_invocations"], 1)
@@ -743,18 +691,14 @@ class ReporterTests(unittest.TestCase):
                 for name in ("test-scripts.sh", "script_test_selection.py", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env", "cleanup-outputs.py", "internal/output_retention.py", "lib/output-retention.sh", "lib/lock.sh"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
-                (scripts / "check-build-cache-paths.sh").write_text("#!/bin/bash\nexit 0\n")
-                (scripts / "check-build-cache-paths.sh").chmod(0o755)
+                write_executable(scripts / "check-build-cache-paths.sh", "#!/bin/bash\nexit 0\n")
                 (root / "payload").write_text(payload)
                 (scripts / "Tests/test_fixture.py").write_text("")
                 (root / "bin").mkdir()
-                stub = root / "bin/python3"
-                stub.write_text(
-                    '#!/bin/bash\nif [[ "$1" == -m ]]; then\n'
-                    '  if [[ "$CASE" == python ]]; then cat "$PAYLOAD"; exit 7; fi\n'
-                    '  exit 0\nfi\nexec "$REAL_PYTHON" "$@"\n'
+                write_executable(
+                    root / "bin/python3",
+                    '#!/bin/bash\nif [[ "$1" == -m ]]; then\n' '  if [[ "$CASE" == python ]]; then cat "$PAYLOAD"; exit 7; fi\n' '  exit 0\nfi\nexec "$REAL_PYTHON" "$@"\n',
                 )
-                stub.chmod(0o755)
                 (scripts / "Tests/test-fixture.sh").write_text(
                     '#!/bin/bash\ncat "$PAYLOAD"\n[[ "$CASE" == success ]] && exit 0\nexit 9\n'
                 )
@@ -763,7 +707,7 @@ class ReporterTests(unittest.TestCase):
                 env = {**os.environ, "PATH": str(root / "bin") + ":" + os.environ["PATH"],
                        "CASE": case, "PAYLOAD": str(root / "payload"), "REAL_PYTHON": sys.executable,
                        "RESULTS_DIR": str(root / "retained logs")}
-                result = subprocess.run([str(scripts / "test-scripts.sh"), "--skip-docs"], env=env, text=True, capture_output=True)
+                result = run_captured([str(scripts / "test-scripts.sh"), "--skip-docs"], env=env)
                 self.assertEqual(result.returncode, 0 if case == "success" else 7 if case == "python" else 2 if case == "syntax" else 9, result.stdout + result.stderr)
                 if case == "success":
                     self.assertFalse(list((root / "retained logs").iterdir()))

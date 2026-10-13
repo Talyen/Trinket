@@ -8,11 +8,10 @@ SCRIPT_INPUTS = ('.gitignore', 'Scripts/pre-push-paths.py', '.githooks/pre-push'
 import os
 from pathlib import Path
 import shutil
-import subprocess
 import tempfile
 import unittest
 
-from script_test_support import ROOT
+from script_test_support import ROOT, run_captured, write_executable
 
 
 class PrePushTests(unittest.TestCase):
@@ -31,9 +30,7 @@ class PrePushTests(unittest.TestCase):
         self.base = self.git('rev-parse', 'HEAD').stdout.strip()
 
     def git(self, *args):
-        result = subprocess.run(['git', *args], cwd=self.root, env=self.env,
-                                capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        result = run_captured(['git', *args], cwd=self.root, env=self.env, expected=0)
         return result
 
     def commit(self):
@@ -45,9 +42,7 @@ class PrePushTests(unittest.TestCase):
         return f'refs/heads/main {local} refs/heads/main {remote or self.base}\n'
 
     def select(self, refs):
-        return subprocess.run(['python3', str(ROOT / 'Scripts/pre-push-paths.py')],
-                              cwd=self.root, env=self.env, input=refs,
-                              capture_output=True, text=True)
+        return run_captured(['python3', str(ROOT / 'Scripts/pre-push-paths.py')], cwd=self.root, env=self.env, input=refs)
 
     def test_new_refs_cover_complete_tree_and_moves_keep_old_owner(self):
         self.git('mv', 'old.swift', 'renamed.swift')
@@ -109,13 +104,11 @@ class PrePushTests(unittest.TestCase):
                      'check-api-bans.sh', 'check-exclusivity-footguns.sh',
                      'check-agent-invariants.sh', 'prepare-assets.sh'):
             path = scripts / name
-            path.write_text('#!/bin/bash\nexit 0\n')
-            path.chmod(0o755)
+            write_executable(path, '#!/bin/bash\nexit 0\n')
         (scripts / 'check-accessibility-ids.py').write_text('')
         self.commit()
         def hook(refs):
-            return subprocess.run(['bash', '.githooks/pre-push'], cwd=self.root,
-                                  env=self.env, input=refs, capture_output=True, text=True)
+            return run_captured(['bash', '.githooks/pre-push'], cwd=self.root, env=self.env, input=refs)
         missing = hook(self.refs(remote='1' * 40))
         self.assertNotEqual(missing.returncode, 0)
         self.assertNotIn('ensure pinned', missing.stdout)

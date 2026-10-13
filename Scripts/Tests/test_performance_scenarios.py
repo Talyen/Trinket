@@ -26,7 +26,7 @@ import tempfile
 import subprocess
 import sys
 
-from script_test_support import ROOT, load_script
+from script_test_support import ROOT, load_script, run_captured, write_executable, write_json
 
 module = load_script('performance_scenarios', 'performance-scenarios.py')
 
@@ -100,9 +100,7 @@ class PerformanceScenarioTests(unittest.TestCase):
             root = Path(directory)
             tests = root / 'TrinketUITests/Performance'
             tests.mkdir(parents=True)
-            (root / 'BattlePerformance.xctestplan').write_text(json.dumps({
-                'testTargets': [{'selectedTests': ['FixtureUITests']}],
-            }))
+            write_json(root / 'BattlePerformance.xctestplan', {'testTargets': [{'selectedTests': ['FixtureUITests']}]})
             source = tests / 'FixtureUITests.swift'
             baseline = {
                 'scenarios': ['options-reset-cancel'],
@@ -149,14 +147,16 @@ class PerformanceScenarioTests(unittest.TestCase):
                 )
                 baseline = root / "Performance/Baselines/simulator-60.json"
                 baseline.parent.mkdir(parents=True)
-                baseline.write_text(json.dumps({
-                    "scenarios": ["navigation"], "mode": "observe",
-                    "coverage": {"navigation": {"group": "app", "test": "AppPerformanceUITests/testNavigation"}},
-                    "goals": {"minimumAverageFPS": 59, "minimumOnePercentLowFPS": 59, "maximumSevereStallCount": 0},
-                }))
-                (root / "BattlePerformance.xctestplan").write_text(json.dumps({
-                    "testTargets": [{"selectedTests": ["AppPerformanceUITests"]}]
-                }))
+                write_json(
+                    baseline,
+                    {
+                        "scenarios": ["navigation"],
+                        "mode": "observe",
+                        "coverage": {"navigation": {"group": "app", "test": "AppPerformanceUITests/testNavigation"}},
+                        "goals": {"minimumAverageFPS": 59, "minimumOnePercentLowFPS": 59, "maximumSevereStallCount": 0},
+                    },
+                )
+                write_json(root / "BattlePerformance.xctestplan", {"testTargets": [{"selectedTests": ["AppPerformanceUITests"]}]})
                 tests = root / "TrinketUITests/Performance"
                 tests.mkdir(parents=True)
                 (tests / "AppPerformanceUITests.swift").write_text('func testNavigation() { measured("navigation") {} }')
@@ -166,20 +166,21 @@ class PerformanceScenarioTests(unittest.TestCase):
                     "p99FrameMs": 50, "maxFrameMs": 50, "missedDeadlineCount": 1,
                     "missedDeadlineRatio": 0.1, "severeStallCount": 1,
                 }
-                stub = scripts / "test.sh"
-                stub.write_text(
+                write_executable(
+                    scripts / "test.sh",
                     '#!/bin/bash\nmkdir -p "$RESULTS_DIR"\n'
                     + 'echo "$TRINKET_XCODE_WALL_TIMEOUT_SECONDS" > "$RESULTS_DIR/wall-budget.txt"\n'
                     + 'cat > "$RESULTS_DIR/run.log" <<REPORT\n'
-                    + "TRINKET_PERFORMANCE_REPORT " + json.dumps(report) + "\nREPORT\n"
-                    + f"exit {test_status}\n"
+                    + "TRINKET_PERFORMANCE_REPORT "
+                    + json.dumps(report)
+                    + "\nREPORT\n"
+                    + f"exit {test_status}\n",
                 )
-                stub.chmod(0o755)
                 environment = {key: value for key, value in os.environ.items() if not key.startswith("TRINKET_PERFORMANCE_")}
                 environment.pop("TRINKET_XCODE_WALL_TIMEOUT_SECONDS", None)
                 environment.pop("TRINKET_CI_DEADLINE_EPOCH", None)
                 environment["GITHUB_ACTIONS"] = "true"
-                result = subprocess.run([str(scripts / "performance.sh")], env=environment, capture_output=True, text=True)
+                result = run_captured([str(scripts / "performance.sh")], env=environment)
                 self.assertEqual(result.returncode, test_status, result.stdout + result.stderr)
                 reports = list((root / ".DerivedData/PerformanceResults").glob("*/reports.json"))
                 self.assertEqual(len(reports), 1)
@@ -187,6 +188,6 @@ class PerformanceScenarioTests(unittest.TestCase):
                 self.assertGreaterEqual(int((reports[0].parent / "TestResults/wall-budget.txt").read_text()), 1200)
                 self.assertFalse((root / ".DerivedData/.performance.lock").exists())
                 environment["TRINKET_PERFORMANCE_OUTPUT_DIR"] = str(reports[0].parent)
-                reused = subprocess.run([str(scripts / "performance.sh")], env=environment, capture_output=True, text=True)
+                reused = run_captured([str(scripts / "performance.sh")], env=environment)
                 self.assertNotEqual(reused.returncode, 0)
                 self.assertIn("already exists", reused.stderr)

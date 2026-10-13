@@ -13,9 +13,7 @@ SCRIPT_INPUTS = (
     'Scripts/test-scripts.sh',
 )
 
-import contextlib
 from datetime import datetime, timezone
-import io
 import json
 import os
 from pathlib import Path
@@ -25,7 +23,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-from script_test_support import ROOT, ScriptRegressionTestCase
+from script_test_support import ScriptRegressionTestCase, run_captured, write_json
 from internal import output_retention as retention
 
 
@@ -89,11 +87,11 @@ class OutputRetentionTests(ScriptRegressionTestCase):
         folder = path.parent
         os.utime(folder, (0, 0))
         owner = folder / retention.OWNER
-        owner.write_text(json.dumps({'pid': 123, 'started': self.processes[123][0]}))
+        write_json(owner, {'pid': 123, 'started': self.processes[123][0]})
         self.clean()
         self.assertTrue(path.exists())
         # PID reuse is not the same invocation; its obsolete output can expire.
-        owner.write_text(json.dumps({'pid': 123, 'started': 'different start'}))
+        write_json(owner, {'pid': 123, 'started': 'different start'})
         keep = folder / retention.KEEP
         keep.touch()
         self.clean()
@@ -122,7 +120,7 @@ class OutputRetentionTests(ScriptRegressionTestCase):
     def test_transient_process_timeout_retries_without_losing_owner_protection(self):
         path = self.output('.DerivedData/HandoffResults/run/log', age=90000)
         owner = path.parent / retention.OWNER
-        owner.write_text(json.dumps({'pid': 123, 'started': self.processes[123][0]}))
+        write_json(owner, {'pid': 123, 'started': self.processes[123][0]})
         timeout = subprocess.TimeoutExpired('ps', 10)
         snapshot = subprocess.CompletedProcess('ps', 0, '123 Mon Oct 5 00:00:00 2026 fixture worker\n', '')
         with patch.object(retention.subprocess, 'run', side_effect=[timeout, snapshot]) as command:
@@ -189,8 +187,7 @@ class OutputRetentionTests(ScriptRegressionTestCase):
         bundle.mkdir(parents=True)
         (bundle / 'result').write_text('passed result')
         manifest = results / 'passed-invocation.json'
-        manifest.write_text(json.dumps({'status': 'passed', 'exit_code': 0,
-                                       'result_bundle': str(bundle)}))
+        write_json(manifest, {'status': 'passed', 'exit_code': 0, 'result_bundle': str(bundle)})
         (results / 'ci-diagnostics.json').write_text('{"category":"unknown"}')
         staged = self.root / 'staged'
         maintenance.stage(results, staged)
@@ -238,9 +235,9 @@ echo complete > "$1/output.log"
 test -f "$1/output.log"
 exit "$2"
 '''
-            result = subprocess.run(['bash', '-c', command, '_', str(path), str(status)], cwd=root,
-                                    env={**os.environ, 'TRINKET_CLEANUP_TEST_ARTIFACTS': '1', 'TRINKET_KEEP_REPORTS': '0'},
-                                    capture_output=True, text=True)
+            result = run_captured(
+                ['bash', '-c', command, '_', str(path), str(status)], cwd=root, env={**os.environ, 'TRINKET_CLEANUP_TEST_ARTIFACTS': '1', 'TRINKET_KEEP_REPORTS': '0'}
+            )
             self.assertEqual(result.returncode, status, result.stdout + result.stderr)
             self.assertEqual(path.exists(), status != 0, result.stdout + result.stderr)
             self.assertFalse(path.with_name(path.name + '.lock').exists())

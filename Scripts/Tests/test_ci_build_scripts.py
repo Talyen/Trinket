@@ -82,9 +82,8 @@ import tempfile
 import time
 import unittest
 
-from script_test_support import ROOT, ScriptRegressionTestCase
+from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, write_executable, write_json
 
-import shutil
 from pathlib import Path
 
 class CIBuildScriptTests(ScriptRegressionTestCase):
@@ -107,11 +106,8 @@ trinket_assert_targeted_tests_executed
                                  for suite, result in (('SmokeA', 'Passed'), ('SmokeB', outcome))]
                         log.write_text("Test Case '-[SmokeA testJourney]' passed (0.1 seconds).\n"
                                        f"Test Case '-[SmokeB testJourney]' {outcome.lower()} (0.1 seconds).\n")
-                        result = subprocess.run(
-                            ['bash', '-eu', '-c', command, '_', str(log)], cwd=ROOT,
-                            env={**os.environ, 'RESULT_EVIDENCE': evidence,
-                                 'TEST_RESULTS': json.dumps({'testNodes': tests})},
-                            capture_output=True, text=True,
+                        result = run_captured(
+                            ['bash', '-eu', '-c', command, '_', str(log)], cwd=ROOT, env={**os.environ, 'RESULT_EVIDENCE': evidence, 'TEST_RESULTS': json.dumps({'testNodes': tests})}
                         )
                         self.assertEqual(result.returncode, 0 if outcome == 'Passed' else 1,
                                          result.stdout + result.stderr)
@@ -146,8 +142,7 @@ trinket_assert_targeted_tests_executed
                     ('reporter', '#!/bin/sh\nexit 0\n'),
                 ):
                     script = tools / filename
-                    script.write_text(source)
-                    script.chmod(0o755)
+                    write_executable(script, source)
                 script = '''source Scripts/xcode-runner.sh
 xcode_runner_prepare unit "$PWD/results"
 if [[ "$FAKE_SUMMARY" != null ]]; then
@@ -157,12 +152,19 @@ fi
 xcrun() { printf '%s' "$FAKE_SUMMARY"; }
 xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" --log "$XCODE_RUNNER_LOG_PATH" --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" -- xcodebuild "$1"
 '''
-                result = subprocess.run(['/bin/bash', '-c', script, '_', action], cwd=root,
-                    env={**self.verification_environment(), 'PATH': str(tools) + ':' + os.environ['PATH'],
-                         'FAKE_LOG': log, 'FAKE_SUMMARY': json.dumps(summary),
-                         'XCODE_RUNNER_REPORTER': str(tools / 'reporter'),
-                         'TRINKET_XCODE_WALL_TIMEOUT_SECONDS': '0', 'TRINKET_XCODE_IDLE_TIMEOUT_SECONDS': '0'},
-                    capture_output=True, text=True)
+                result = run_captured(
+                    ['/bin/bash', '-c', script, '_', action],
+                    cwd=root,
+                    env={
+                        **self.verification_environment(),
+                        'PATH': str(tools) + ':' + os.environ['PATH'],
+                        'FAKE_LOG': log,
+                        'FAKE_SUMMARY': json.dumps(summary),
+                        'XCODE_RUNNER_REPORTER': str(tools / 'reporter'),
+                        'TRINKET_XCODE_WALL_TIMEOUT_SECONDS': '0',
+                        'TRINKET_XCODE_IDLE_TIMEOUT_SECONDS': '0',
+                    },
+                )
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                 manifest = json.loads(next((root / 'results').glob('*-invocation.json')).read_text())
                 self.assertEqual(manifest['status'], 'passed' if expected == 0 else 'failed')
@@ -184,13 +186,7 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
             live = action.read_text(encoding="utf-8")
 
             def run_checker() -> subprocess.CompletedProcess[str]:
-                return subprocess.run(
-                    [str(root / "Scripts/check-build-cache-paths.sh")],
-                    cwd=root,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
+                return run_captured([str(root / "Scripts/check-build-cache-paths.sh")], cwd=root)
 
             lines = live.splitlines(keepends=True)
             full_index = next(i for i, line in enumerate(lines) if "full=" in line)
@@ -279,23 +275,21 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
                 (root / "Scripts/run-env.sh").write_text(
                     'trinket_run_env_init() { export RESULTS_DIR="$PWD/results"; }\n'
                 )
-                generate = root / "Scripts/generate.sh"
-                generate.write_text('#!/bin/bash\n[[ ("$*" == "" || "$*" == "--assets") && "$TRINKET_FORCE_ABILITY_DUMP" == 1 ]] || exit 9\nprintf called >> calls\n' + generator + "\n")
-                generate.chmod(0o755)
+                write_executable(
+                    root / "Scripts/generate.sh",
+                    '#!/bin/bash\n[[ ("$*" == "" || "$*" == "--assets") && "$TRINKET_FORCE_ABILITY_DUMP" == 1 ]] || exit 9\nprintf called >> calls\n' + generator + "\n",
+                )
                 identifier = "A" * 24
                 (root / "Trinket.xcodeproj/project.pbxproj").write_text(
                     "Begin PBXNativeTarget section\n"
                     + identifier + " /* target */\nEnd PBXNativeTarget section\n"
                 )
-                (root / "Smoke.xctestplan").write_text(json.dumps({"identifier": identifier}))
+                write_json(root / "Smoke.xctestplan", {"identifier": identifier})
                 (root / "output").write_text(initial)
                 stamp = root / "results/.last-generate.stamp"
                 stamp.touch()
                 os.utime(stamp, (time.time() + 60, time.time() + 60))
-                result = subprocess.run(
-                    ["bash", "Scripts/assert-generated-output.sh", "--idempotent"],
-                    cwd=root, capture_output=True, text=True,
-                )
+                result = run_captured(["bash", "Scripts/assert-generated-output.sh", "--idempotent"], cwd=root)
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                 self.assertEqual((root / "calls").read_text(), "called")
 
@@ -304,12 +298,11 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
             root = self.make_repo_fixture(
                 directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env",
                             "Scripts/lib/generated-paths.sh", "Scripts/config/generated-paths.tsv"))
-            prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n[[ ! -f invalid-assets ]] || exit 7\nprintf checked >> asset-checks\n')
-            prepare.chmod(0o755)
-            generate = root / "Scripts/generate.sh"
-            generate.write_text('#!/bin/bash\necho generated >> calls\n')
-            generate.chmod(0o755)
+            write_executable(
+                root / 'Scripts/prepare-assets.sh',
+                '#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n[[ ! -f invalid-assets ]] || exit 7\nprintf checked >> asset-checks\n',
+            )
+            write_executable(root / "Scripts/generate.sh", '#!/bin/bash\necho generated >> calls\n')
             script = """
 unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE
 source Scripts/build-freshness.sh
@@ -336,8 +329,7 @@ prepare_generated_inputs results || status=$?
 [[ $status -eq 7 ]]
 [[ $(wc -l < calls) -eq 4 ]]
 """
-            result = subprocess.run(["bash", "-eu", "-c", script], cwd=root, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run_captured(["bash", "-eu", "-c", script], cwd=root, expected=0)
 
     def test_generation_tracks_shared_generator_helpers(self) -> None:
         for relative, expected in (
@@ -358,9 +350,10 @@ prepare_generated_inputs results || status=$?
                 root = self.make_repo_fixture(
                     directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env",
                                 "Scripts/lib/generated-paths.sh", "Scripts/config/generated-paths.tsv"))
-                prepare = root / 'Scripts/prepare-assets.sh'
-                prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n')
-                prepare.chmod(0o755)
+                write_executable(
+                    root / 'Scripts/prepare-assets.sh',
+                    '#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n',
+                )
                 (root / "ContentManifest").mkdir()
                 (root / "ContentManifest/input.tsv").touch()
                 (root / "ArtManifest").mkdir()
@@ -368,18 +361,16 @@ prepare_generated_inputs results || status=$?
                 (root / "project.yml").touch()
                 (root / relative).parent.mkdir(parents=True, exist_ok=True)
                 (root / relative).touch()
-                generate = root / "Scripts/generate.sh"
-                generate.write_text('#!/bin/bash\nprintf "%s" "$*" > calls\n')
-                generate.chmod(0o755)
+                write_executable(root / "Scripts/generate.sh", '#!/bin/bash\nprintf "%s" "$*" > calls\n')
                 (root / "results").mkdir()
                 stamp = root / "results/.last-generate.stamp"
                 subprocess.run(["bash", "-ec", "source Scripts/build-freshness.sh; touch_generate_stamp results"], cwd=root, check=True)
                 os.utime(root / relative, (time.time() + 60, time.time() + 60))
-                result = subprocess.run(
+                run_captured(
                     ["bash", "-ec", "unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE; source Scripts/build-freshness.sh; prepare_generated_inputs results"],
-                    cwd=root, capture_output=True, text=True,
+                    cwd=root,
+                    expected=0,
                 )
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertEqual((root / "calls").read_text(), expected)
 
     def test_preparation_repairs_changed_or_missing_generated_outputs(self) -> None:
@@ -391,18 +382,17 @@ prepare_generated_inputs results || status=$?
             (root / "Scripts/config/generated-paths.tsv").write_text(
                 "content|Generated/Catalog.swift\nproject|Trinket/Info.plist\n"
             )
-            prepare = root / "Scripts/prepare-assets.sh"
-            prepare.write_text('#!/bin/bash\nexit 0\n')
-            prepare.chmod(0o755)
-            generate = root / "Scripts/generate.sh"
-            generate.write_text('#!/bin/bash\nset -eu\nprintf "%s\\n" "$*" >> calls\n'
-                                'mkdir -p Generated Trinket Trinket.xcodeproj/xcshareddata/xcschemes\n'
-                                'printf catalog > Generated/Catalog.swift\n'
-                                'if [[ "$*" != --skip-xcodegen ]]; then\n'
-                                '  printf plist > Trinket/Info.plist\n'
-                                '  printf scheme > Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme\nfi\n')
-            generate.chmod(0o755)
-            result = subprocess.run(["bash", "-eu", "-c", '''
+            write_executable(root / "Scripts/prepare-assets.sh", '#!/bin/bash\nexit 0\n')
+            write_executable(
+                root / "Scripts/generate.sh",
+                '#!/bin/bash\nset -eu\nprintf "%s\\n" "$*" >> calls\n'
+                'mkdir -p Generated Trinket Trinket.xcodeproj/xcshareddata/xcschemes\n'
+                'printf catalog > Generated/Catalog.swift\n'
+                'if [[ "$*" != --skip-xcodegen ]]; then\n'
+                '  printf plist > Trinket/Info.plist\n'
+                '  printf scheme > Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme\nfi\n',
+            )
+            run_captured(["bash", "-eu", "-c", '''
 unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE
 source Scripts/build-freshness.sh
 prepare_generated_inputs results
@@ -421,8 +411,7 @@ rm -r Trinket.xcodeproj/xcshareddata
 prepare_generated_inputs results
 [[ -f Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme ]]
 prepare_generated_inputs results
-'''], cwd=root, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+'''], cwd=root, expected=0)
             self.assertEqual((root / "calls").read_text().splitlines(),
                              ["", "--skip-xcodegen", "--skip-xcodegen", "", ""])
 
@@ -435,21 +424,13 @@ prepare_generated_inputs results
                 pipeline = root / "Scripts" / f"prepare-{kind}-assets.sh"
                 if kind == "app-icon":
                     pipeline = root / "Scripts/prepare-app-icon.sh"
-                pipeline.write_text('#!/bin/bash\nprintf "%s %s\\n" "$0" "$*" >> calls\n')
-                pipeline.chmod(0o755)
+                write_executable(pipeline, '#!/bin/bash\nprintf "%s %s\\n" "$0" "$*" >> calls\n')
             for arguments in (("--kind", "typo"), ("--kind", "art", "extra"), ("--kind",)):
                 with self.subTest(arguments=arguments):
-                    result = subprocess.run(
-                        ["bash", "Scripts/prepare-assets.sh", *arguments],
-                        cwd=root, capture_output=True, text=True,
-                    )
+                    result = run_captured(["bash", "Scripts/prepare-assets.sh", *arguments], cwd=root)
                     self.assertNotEqual(result.returncode, 0)
                     self.assertFalse((root / "calls").exists())
-            result = subprocess.run(
-                ["bash", "Scripts/prepare-assets.sh", "--kind", "sfx"],
-                cwd=root, capture_output=True, text=True,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
+            result = run_captured(["bash", "Scripts/prepare-assets.sh", "--kind", "sfx"], cwd=root, expected=0)
             self.assertEqual((root / "calls").read_text(), "Scripts/prepare-audio-assets.sh sfx\n")
 
     def test_bare_full_ui_requires_explicit_opt_in(self) -> None:
@@ -472,12 +453,9 @@ prepare_generated_inputs results
             ))
             scripts = root / "Scripts"
             (scripts / "run-env.sh").write_text('trinket_run_env_init() { exit 91; }\n')
-            (scripts / "test-package.sh").write_text('#!/bin/bash\nprintf "%s\\n" "$@"\nexit 17\n')
-            (scripts / "test-package.sh").chmod(0o755)
+            write_executable(scripts / "test-package.sh", '#!/bin/bash\nprintf "%s\\n" "$@"\nexit 17\n')
             for flags in (("--no-build", "--verbose"), ("--quiet",)):
-                result = subprocess.run([str(scripts / "test.sh"), "unit", *flags],
-                                        env={**os.environ, "GITHUB_ACTIONS": "true"}, capture_output=True, text=True)
-                self.assertEqual(result.returncode, 17, result.stdout + result.stderr)
+                result = run_captured([str(scripts / "test.sh"), "unit", *flags], env={**os.environ, "GITHUB_ACTIONS": "true"}, expected=17)
                 args = result.stdout.splitlines()
                 self.assertEqual(args[:len(flags)], list(flags))
                 self.assertIn("BattleEngine", args)
@@ -506,11 +484,7 @@ prepare_generated_inputs results
                 ["--build-for-testing"],
             ):
                 with self.subTest(action=action):
-                    result = subprocess.run(
-                        [str(scripts / "test-package.sh"), *action, "BattleEngine"],
-                        env={**os.environ, "GITHUB_ACTIONS": "true"}, capture_output=True, text=True,
-                    )
-                    self.assertEqual(result.returncode, 73, result.stdout + result.stderr)
+                    result = run_captured([str(scripts / "test-package.sh"), *action, "BattleEngine"], env={**os.environ, "GITHUB_ACTIONS": "true"}, expected=73)
                     self.assertIn("prepared inputs", result.stdout)
 
 

@@ -38,14 +38,13 @@ import contextlib
 import io
 import os
 import subprocess
-import sys
 import tempfile
 import time
 import unittest
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-from script_test_support import ROOT, ScriptRegressionTestCase, load_script
+from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured, run_python, write_executable, write_json
 from unittest.mock import patch
 
 import plistlib
@@ -87,10 +86,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                     )
                     try:
                         self.assertEqual(owner.stdout.readline(), 'ready\n')
-                        challenger = subprocess.run(
-                            ['bash', '-c', setup, '_', str(primary), kind, str(ROOT)],
-                            env=environment, capture_output=True, text=True, timeout=15,
-                        )
+                        challenger = run_captured(['bash', '-c', setup, '_', str(primary), kind, str(ROOT)], env=environment, timeout=15)
                         self.assertNotEqual(challenger.returncode, 0, challenger.stdout + challenger.stderr)
                         cache = linked / '.DerivedData/runs/agent-1'
                         cache.mkdir(parents=True, exist_ok=True)
@@ -98,22 +94,25 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                             reason = retention.protection(cache, linked, {owner.pid: ('fixture', 'fixture owner')})
                         self.assertIn('active lease', reason)
                         # Hygiene from either checkout sees the same live reservations.
-                        probe = subprocess.run(
-                            ['bash', '-eu', '-c', 'source "$2/Scripts/run-env.sh"; TRINKET_REPO_ROOT="$1"; '
-                             'trinket_run_env_init; trinket_simulator_is_leased_name "Trinket Run"',
-                             '_', str(primary), str(ROOT)],
-                            env=environment, capture_output=True, text=True, timeout=15,
+                        probe = run_captured(
+                            [
+                                'bash',
+                                '-eu',
+                                '-c',
+                                'source "$2/Scripts/run-env.sh"; TRINKET_REPO_ROOT="$1"; ' 'trinket_run_env_init; trinket_simulator_is_leased_name "Trinket Run"',
+                                '_',
+                                str(primary),
+                                str(ROOT),
+                            ],
+                            env=environment,
+                            timeout=15,
                         ) if kind == 'shared' else None
                         if probe is not None:
                             self.assertEqual(probe.returncode, 0, probe.stderr)
                     finally:
                         stdout, stderr = owner.communicate('release\n', timeout=15)
                         self.assertEqual(owner.returncode, 0, stdout + stderr)
-                    retry = subprocess.run(
-                        ['bash', '-c', setup, '_', str(primary), kind, str(ROOT)],
-                        env=environment, capture_output=True, text=True, timeout=15,
-                    )
-                    self.assertEqual(retry.returncode, 0, retry.stdout + retry.stderr)
+                    run_captured(['bash', '-c', setup, '_', str(primary), kind, str(ROOT)], env=environment, timeout=15, expected=0)
             # An older checkout may still own a local lease or its detached
             # lifetime watcher. Neither may be treated as an unleased device.
             legacy = linked / '.DerivedData/.active-sim'
@@ -123,10 +122,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                 owner = legacy / name
                 owner.write_text(contents)
                 try:
-                    blocked = subprocess.run(
-                        ['bash', '-c', setup, '_', str(primary), 'agent', str(ROOT)],
-                        env=environment, capture_output=True, text=True, timeout=15,
-                    )
+                    blocked = run_captured(['bash', '-c', setup, '_', str(primary), 'agent', str(ROOT)], env=environment, timeout=15)
                     self.assertNotEqual(blocked.returncode, 0, blocked.stdout + blocked.stderr)
                     self.assertIn('Legacy checkout-local simulator reservation preserved', blocked.stderr)
                     self.assertEqual(owner.read_text(), contents)
@@ -146,9 +142,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             external.write_text('unrelated evidence')
             (logs / 'foreign.log').symlink_to(external)
             artifact = root / 'artifact'
-            result = subprocess.run([str(ROOT / 'Scripts/ci-diagnostics.sh'), '--stage-gate-artifacts',
-                                     str(results), str(artifact)], capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            run_captured([str(ROOT / 'Scripts/ci-diagnostics.sh'), '--stage-gate-artifacts', str(results), str(artifact)], expected=0)
             retained = (artifact / 'script-tests.fixture/python-test.log').read_bytes()
             self.assertLessEqual(len(retained), 1024 * 1024)
             self.assertTrue(retained.startswith(b'first error'))
@@ -160,9 +154,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             self.assertGreater((logs / 'python-test.log').stat().st_size, len(retained))
             for index in range(20):
                 (logs / f'z-large-{index:02}.log').write_bytes(b'x' * (1024 * 1024))
-            repeated = subprocess.run([str(ROOT / 'Scripts/ci-diagnostics.sh'), '--stage-gate-artifacts',
-                                      str(results), str(artifact)], capture_output=True, text=True)
-            self.assertEqual(repeated.returncode, 0, repeated.stderr)
+            run_captured([str(ROOT / 'Scripts/ci-diagnostics.sh'), '--stage-gate-artifacts', str(results), str(artifact)], expected=0)
             files = [path for path in artifact.rglob('*') if path.is_file()]
             self.assertLessEqual(len(files), 128)
             self.assertLessEqual(sum(path.stat().st_size for path in files), 16 * 1024 * 1024)
@@ -175,56 +167,19 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             raw.mkdir(exist_ok=True)
             (raw / "pass.log").write_text("pass\n", encoding="utf-8")
             (results / "pass.xcresult").mkdir()
-            (results / "pass-invocation.json").write_text(
-                json.dumps(
-                    {
-                        "status": "passed",
-                        "exit_code": 0,
-                        "result_bundle": str(results / "pass.xcresult"),
-                    }
-                ),
-                encoding="utf-8",
-            )
-            (results / "ci-diagnostics.json").write_text(
-                json.dumps({"category": "passed"}), encoding="utf-8"
-            )
+            write_json(results / "pass-invocation.json", {"status": "passed", "exit_code": 0, "result_bundle": str(results / "pass.xcresult")})
+            write_json(results / "ci-diagnostics.json", {"category": "passed"})
             passed_stage = Path(directory) / "passed-artifact"
-            staged = subprocess.run(
-                [
-                    str(ROOT / "Scripts" / "ci-diagnostics.sh"),
-                    "--stage-artifacts",
-                    str(results),
-                    str(passed_stage),
-                ],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(staged.returncode, 0, staged.stderr)
+            run_captured([str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--stage-artifacts", str(results), str(passed_stage)], cwd=ROOT, expected=0)
             self.assertFalse((passed_stage / "raw").exists())
             self.assertTrue((passed_stage / "ci-diagnostics.json").exists())
 
             raw.mkdir(exist_ok=True)
             (raw / "pass.log").write_text("failure evidence\n", encoding="utf-8")
             (results / "pass.xcresult").mkdir(exist_ok=True)
-            (results / "ci-diagnostics.json").write_text(
-                json.dumps({"category": "test-failure"}), encoding="utf-8"
-            )
+            write_json(results / "ci-diagnostics.json", {"category": "test-failure"})
             failed_stage = Path(directory) / "failed-artifact"
-            staged = subprocess.run(
-                [
-                    str(ROOT / "Scripts" / "ci-diagnostics.sh"),
-                    "--stage-artifacts",
-                    str(results),
-                    str(failed_stage),
-                ],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(staged.returncode, 0, staged.stderr)
+            run_captured([str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--stage-artifacts", str(results), str(failed_stage)], cwd=ROOT, expected=0)
             self.assertTrue((failed_stage / "raw" / "pass.log").exists())
 
     def test_ci_diagnostics_rejects_overlapping_artifact_destinations(self) -> None:
@@ -248,10 +203,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                 with self.subTest(destination=destination):
                     evidence.parent.mkdir(parents=True, exist_ok=True)
                     evidence.write_text("failure evidence\n")
-                    result = subprocess.run(
-                        [str(ROOT / "Scripts/ci-diagnostics.sh"), "--stage-artifacts", str(results), str(destination)],
-                        cwd=ROOT, capture_output=True, text=True,
-                    )
+                    result = run_captured([str(ROOT / "Scripts/ci-diagnostics.sh"), "--stage-artifacts", str(results), str(destination)], cwd=ROOT)
                     self.assertNotEqual(result.returncode, 0)
                     self.assertEqual(evidence.read_text(), "failure evidence\n")
                     self.assertEqual(retained.read_text(), "unrelated evidence")
@@ -265,29 +217,19 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                 ("old", "session-old", "passed", 0),
                 ("current", "session-current", "failed", 65),
             ):
-                (results / f"{label}-invocation.json").write_text(
-                    json.dumps(
-                        {
-                            "label": label,
-                            "session_id": session,
-                            "status": status,
-                            "exit_code": exit_code,
-                            "result_bundle": str(results / f"{label}.xcresult"),
-                            "generated_at": f"2026-08-20T00:00:0{len(label)}Z",
-                        }
-                    ),
-                    encoding="utf-8",
+                write_json(
+                    results / f"{label}-invocation.json",
+                    {
+                        "label": label,
+                        "session_id": session,
+                        "status": status,
+                        "exit_code": exit_code,
+                        "result_bundle": str(results / f"{label}.xcresult"),
+                        "generated_at": f"2026-08-20T00:00:0{len(label)}Z",
+                    },
                 )
             aggregate = results / "current.json"
-            selected = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "ci-diagnostics.py"), str(results), str(aggregate)],
-                cwd=ROOT,
-                env={**os.environ, "TRINKET_DIAGNOSTICS_SESSION_ID": "session-current"},
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(selected.returncode, 0, selected.stderr)
+            run_python('ci-diagnostics.py', str(results), str(aggregate), cwd=ROOT, env={**os.environ, "TRINKET_DIAGNOSTICS_SESSION_ID": "session-current"}, expected=0)
             payload = json.loads(aggregate.read_text(encoding="utf-8"))
             self.assertEqual(payload["recorded_invocations"], 1)
             self.assertEqual(payload["session_id"], "session-current")
@@ -297,48 +239,16 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             raw = results / "raw"
             raw.mkdir()
             (raw / "passed.log").write_text("pass\n", encoding="utf-8")
-            (results / "passed-invocation.json").write_text(
-                json.dumps(
-                    {
-                        "status": "passed",
-                        "exit_code": 0,
-                        "result_bundle": str(passed_bundle),
-                    }
-                ),
-                encoding="utf-8",
-            )
-            cleaned = subprocess.run(
-                [str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--cleanup", str(results)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(cleaned.returncode, 0, cleaned.stderr)
+            write_json(results / "passed-invocation.json", {"status": "passed", "exit_code": 0, "result_bundle": str(passed_bundle)})
+            run_captured([str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--cleanup", str(results)], cwd=ROOT, expected=0)
             self.assertFalse(passed_bundle.exists())
             self.assertFalse((raw / "passed.log").exists())
             self.assertTrue((results / "current-invocation.json").exists())
 
             kept_bundle = results / "kept.xcresult"
             kept_bundle.mkdir()
-            (results / "kept-invocation.json").write_text(
-                json.dumps(
-                    {
-                        "status": "passed",
-                        "exit_code": 0,
-                        "result_bundle": str(kept_bundle),
-                    }
-                ),
-                encoding="utf-8",
-            )
-            kept = subprocess.run(
-                [str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--cleanup", "--keep", str(results)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(kept.returncode, 0, kept.stderr)
+            write_json(results / "kept-invocation.json", {"status": "passed", "exit_code": 0, "result_bundle": str(kept_bundle)})
+            run_captured([str(ROOT / "Scripts" / "ci-diagnostics.sh"), "--cleanup", "--keep", str(results)], cwd=ROOT, expected=0)
             self.assertTrue(kept_bundle.exists())
 
     def test_cleanup_rejects_results_root_and_escaping_artifact_paths(self) -> None:
@@ -357,10 +267,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             alias.symlink_to(outside, target_is_directory=True)
             for artifact in (results, outside, alias):
                 with self.subTest(artifact=artifact):
-                    (results / "passed-invocation.json").write_text(json.dumps({
-                        "status": "passed", "exit_code": 0,
-                        "result_bundle": str(artifact), "diagnostics_json": str(artifact),
-                    }))
+                    write_json(results / "passed-invocation.json", {"status": "passed", "exit_code": 0, "result_bundle": str(artifact), "diagnostics_json": str(artifact)})
                     with contextlib.redirect_stdout(io.StringIO()):
                         maintenance.cleanup(results, keep=False)
                     self.assertEqual((evidence / "failure.txt").read_text(), "keep failure evidence")
@@ -407,14 +314,12 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             manifest = results / "build-invocation.json"
             for code in (False, 0.0, "0", None):
                 with self.subTest(exit_code=code):
-                    manifest.write_text(json.dumps({
-                        "status": "passed", "exit_code": code, "result_bundle": str(bundle),
-                    }))
+                    write_json(manifest, {"status": "passed", "exit_code": code, "result_bundle": str(bundle)})
                     with contextlib.redirect_stdout(io.StringIO()):
                         maintenance.cleanup(results, keep=False)
                     self.assertEqual(evidence.read_text(), "keep failure evidence")
                     self.assertTrue(manifest.exists())
-            manifest.write_text(json.dumps({"status": "passed", "exit_code": 0, "result_bundle": str(bundle)}))
+            write_json(manifest, {"status": "passed", "exit_code": 0, "result_bundle": str(bundle)})
             with contextlib.redirect_stdout(io.StringIO()):
                 maintenance.cleanup(results, keep=False)
             self.assertFalse(bundle.exists())
@@ -425,31 +330,14 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             results = Path(directory) / "TestResults"
             results.mkdir()
             for label, session, seconds in (("older", "session-a", "00"), ("newer", "session-b", "30")):
-                (results / f"{label}-invocation.json").write_text(
-                    json.dumps(
-                        {
-                            "label": label,
-                            "session_id": session,
-                            "status": "passed",
-                            "exit_code": 0,
-                            "result_bundle": "",
-                            "generated_at": f"2026-08-20T00:00:{seconds}Z",
-                        }
-                    ),
-                    encoding="utf-8",
+                write_json(
+                    results / f"{label}-invocation.json",
+                    {"label": label, "session_id": session, "status": "passed", "exit_code": 0, "result_bundle": "", "generated_at": f"2026-08-20T00:00:{seconds}Z"},
                 )
             aggregate = results / "current.json"
             env = {**os.environ}
             env.pop("TRINKET_DIAGNOSTICS_SESSION_ID", None)
-            unscoped = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "ci-diagnostics.py"), str(results), str(aggregate)],
-                cwd=ROOT,
-                env=env,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(unscoped.returncode, 0, unscoped.stderr)
+            run_python('ci-diagnostics.py', str(results), str(aggregate), cwd=ROOT, env=env, expected=0)
             payload = json.loads(aggregate.read_text(encoding="utf-8"))
             self.assertEqual(payload["distinct_sessions"], 2)
             self.assertIn("Warning:", payload["detail"])
@@ -467,7 +355,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
         )
 
         def init_session(extra_env: dict[str, str]) -> str:
-            result = subprocess.run(
+            result = run_captured(
                 [
                     "bash",
                     "-c",
@@ -479,11 +367,8 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                 ],
                 cwd=ROOT,
                 env={**environment, **extra_env},
-                capture_output=True,
-                text=True,
-                check=False,
+                expected=0,
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
             session = result.stdout.strip()
             self.assertTrue(session)
             return session
@@ -492,7 +377,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
         second = init_session({})
         self.assertNotEqual(first, second)
 
-        nested = subprocess.run(
+        nested = run_captured(
             [
                 "bash",
                 "-c",
@@ -505,11 +390,8 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             ],
             cwd=ROOT,
             env=environment,
-            capture_output=True,
-            text=True,
-            check=False,
+            expected=0,
         )
-        self.assertEqual(nested.returncode, 0, nested.stderr)
         self.assertEqual(nested.stdout.strip(), "parent-session")
 
     def test_aggregation_selects_newest_failed_while_retaining_old(self) -> None:
@@ -520,31 +402,14 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                 ("old-fail", "session-old-fail", "00"),
                 ("new-fail", "session-new-fail", "30"),
             ):
-                (results / f"{label}-invocation.json").write_text(
-                    json.dumps(
-                        {
-                            "label": label,
-                            "session_id": session,
-                            "status": "failed",
-                            "exit_code": 65,
-                            "result_bundle": "",
-                            "generated_at": f"2026-08-20T00:00:{seconds}Z",
-                        }
-                    ),
-                    encoding="utf-8",
+                write_json(
+                    results / f"{label}-invocation.json",
+                    {"label": label, "session_id": session, "status": "failed", "exit_code": 65, "result_bundle": "", "generated_at": f"2026-08-20T00:00:{seconds}Z"},
                 )
             aggregate = results / "current.json"
             env = {**os.environ}
             env.pop("TRINKET_DIAGNOSTICS_SESSION_ID", None)
-            unscoped = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "ci-diagnostics.py"), str(results), str(aggregate)],
-                cwd=ROOT,
-                env=env,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(unscoped.returncode, 0, unscoped.stderr)
+            run_python('ci-diagnostics.py', str(results), str(aggregate), cwd=ROOT, env=env, expected=0)
             payload = json.loads(aggregate.read_text(encoding="utf-8"))
             self.assertEqual(payload["session_id"], "session-new-fail")
             self.assertEqual(payload["recorded_invocations"], 1)
@@ -619,7 +484,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                     settings.append({"target": "Trinket", "buildSettings": {
                         "TARGET_BUILD_DIR": str(app.parent), "FULL_PRODUCT_NAME": app.name,
                     }})
-                (root / "settings.json").write_text(json.dumps(settings))
+                write_json(root / "settings.json", settings)
                 (root / "mode").write_text(mode)
                 binaries = root / "bin"
                 binaries.mkdir()
@@ -654,9 +519,7 @@ import json, pathlib, sys
 pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
 """
                 for name, source in commands.items():
-                    binary = binaries / name
-                    binary.write_text(source)
-                    binary.chmod(0o755)
+                    write_executable(binaries / name, source)
                 environment = {key: value for key, value in os.environ.items()
                                if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR"}}
                 environment["PATH"] = str(binaries) + os.pathsep + os.environ["PATH"]
@@ -664,9 +527,7 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                     environment.pop("DEVELOPER_DIR", None)
                     command = [str(scripts / "run-simulator.sh"), "--isolate", "--inspect"]
                     if mode == "inspect-no-terminal":
-                        result = subprocess.run(command, env=environment, stdin=subprocess.DEVNULL,
-                                                capture_output=True, text=True)
-                        self.assertEqual(result.returncode, 1, result.stderr)
+                        result = run_captured(command, env=environment, stdin=subprocess.DEVNULL, expected=1)
                         self.assertFalse((root / ".DerivedData").exists())
                         self.assertFalse((root / "build-args.jsonl").exists())
                         continue
@@ -708,11 +569,7 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                     self.assertEqual(opened[2:], ["--args", "-CurrentDeviceUDID", "fixture"]
                                      if mode == "inspect-legacy" else [])
                     continue
-                result = subprocess.run(
-                    [str(scripts / "run-simulator.sh"), "--isolate"],
-                    env={**os.environ, "PATH": str(binaries) + os.pathsep + os.environ["PATH"]},
-                    capture_output=True, text=True,
-                )
+                result = run_captured([str(scripts / "run-simulator.sh"), "--isolate"], env={**os.environ, "PATH": str(binaries) + os.pathsep + os.environ["PATH"]})
                 calls = [json.loads(line) for line in (root / "build-args.jsonl").read_text().splitlines()]
                 self.assertEqual(calls[0][0], "build")
                 self.assertEqual(calls[1][:2], ["-showBuildSettings", "-json"])
@@ -762,9 +619,7 @@ source Scripts/lib/lock.sh
 trinket_dir_lock_acquire "$1" 0
 trinket_dir_lock_acquire "$2" 0
 '''
-            result = subprocess.run(["bash", "-eu", "-c", script, "_", str(first), str(second)],
-                                    cwd=ROOT, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run_captured(["bash", "-eu", "-c", script, "_", str(first), str(second)], cwd=ROOT, expected=0)
             self.assertFalse(first.exists())
             self.assertFalse(second.exists())
 
@@ -808,9 +663,7 @@ read -r owner _ < "$pid_path"
 '''
         for kind in ("directory", "slot"):
             with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
-                result = subprocess.run(["bash", "-eu", "-c", script, "_", kind, directory],
-                                        cwd=ROOT, capture_output=True, text=True, timeout=5)
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                run_captured(["bash", "-eu", "-c", script, "_", kind, directory], cwd=ROOT, timeout=5, expected=0)
                 self.assertTrue((Path(directory) / "run.slot").exists())
 
     def test_claimed_lock_recovery_fails_closed_with_diagnostic(self) -> None:
@@ -820,9 +673,7 @@ read -r owner _ < "$pid_path"
             (lock / "pid").write_text("99999999\n")
             claim = Path(str(lock) + ".reclaim")
             claim.mkdir()
-            result = subprocess.run(["bash", "-eu", "-c",
-                                     'source Scripts/lib/lock.sh; trinket_dir_lock_acquire "$1" 0',
-                                     "_", str(lock)], cwd=ROOT, capture_output=True, text=True, timeout=5)
+            result = run_captured(["bash", "-eu", "-c", 'source Scripts/lib/lock.sh; trinket_dir_lock_acquire "$1" 0', "_", str(lock)], cwd=ROOT, timeout=5)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Stale-lock recovery is already claimed", result.stderr)
             self.assertEqual((lock / "pid").read_text(), "99999999\n")
@@ -838,9 +689,7 @@ source Scripts/lib/lock.sh
 source Scripts/lib/simctl.sh
 ! trinket_sim_cleanup_lock_try_acquire "$1"
 '''
-                result = subprocess.run(["bash", "-eu", "-c", script, "_", directory],
-                                        cwd=ROOT, capture_output=True, text=True, timeout=5)
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                run_captured(["bash", "-eu", "-c", script, "_", directory], cwd=ROOT, timeout=5, expected=0)
                 self.assertEqual(lock.read_text(), contents)
 
 
@@ -849,13 +698,9 @@ source Scripts/lib/simctl.sh
             root = Path(temporary)
             binaries = root / 'bin'
             binaries.mkdir()
-            query = binaries / 'ps'
-            query.write_text('#!/bin/sh\nexit 7\n')
-            query.chmod(0o755)
+            write_executable(binaries / 'ps', '#!/bin/sh\nexit 7\n')
             script = 'source Scripts/run-env.sh; SIMULATOR_UDID=fixture; trinket_track_test_guests_locked "$1/guest-tests" "$$"'
-            result = subprocess.run(['bash', '-eu', '-c', script, '_', str(root)], cwd=ROOT,
-                                    env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}'},
-                                    capture_output=True, text=True)
+            result = run_captured(['bash', '-eu', '-c', script, '_', str(root)], cwd=ROOT, env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}'})
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('Simulator guest process inspection failed', result.stderr)
             self.assertFalse((root / 'guest-tests').exists())
@@ -971,8 +816,7 @@ echo continued > "$2/continued"
             other.mkdir(parents=True)
             fake = root / "bin"
             fake.mkdir()
-            xcrun = fake / "xcrun"
-            xcrun.write_text('''#!/usr/bin/env python3
+            write_executable(fake / "xcrun", '''#!/usr/bin/env python3
 import json, os, sys
 with open(os.environ["MIRROR_CALLS"], "a") as stream:
     stream.write(json.dumps(sys.argv[1:]) + "\\n")
@@ -985,7 +829,6 @@ elif sys.argv[1:3] == ["simctl", "install"]:
 else:
     sys.exit(92)
 ''')
-            xcrun.chmod(0o755)
             env = {key: value for key, value in os.environ.items()
                    if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR", "GITHUB_ACTIONS"}}
             env.update(PATH=f"{fake}:{env['PATH']}", MIRROR_CALLS=str(calls))
@@ -994,9 +837,7 @@ else:
                     if not product:
                         shutil.rmtree(app)
                     calls.write_text("")
-                    result = subprocess.run([str(scripts / "promote.sh")], cwd=root,
-                                            env={**env, "BUILD_STATUS": str(build_status), "INSTALL_STATUS": str(install_status)},
-                                            capture_output=True, text=True, timeout=10)
+                    result = run_captured([str(scripts / "promote.sh")], cwd=root, env={**env, "BUILD_STATUS": str(build_status), "INSTALL_STATUS": str(install_status)}, timeout=10)
                     self.assertEqual(result.returncode, 0 if build_status == install_status == 0 and product else 1,
                                      result.stdout + result.stderr)
                     lines = calls.read_text().splitlines()

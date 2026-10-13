@@ -14,13 +14,12 @@ SCRIPT_INPUTS = (
 )
 
 
-import json
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from script_test_support import ROOT, load_script
+from script_test_support import ROOT, load_script, write_json
 from performance_test_support import report
 
 
@@ -41,17 +40,16 @@ class ComparePerformanceTests(unittest.TestCase):
             baseline = root / "baseline.json"
             results = root / "results.json"
             summary = root / "summary.md"
-            baseline.write_text(json.dumps({
-                **({"mode": mode} if mode is not None else {}),
-                "goals": goals or {
-                    "minimumAverageFPS": 59,
-                    "minimumOnePercentLowFPS": 59,
-                    "maximumSevereStallCount": 0,
+            write_json(
+                baseline,
+                {
+                    **({"mode": mode} if mode is not None else {}),
+                    "goals": goals or {"minimumAverageFPS": 59, "minimumOnePercentLowFPS": 59, "maximumSevereStallCount": 0},
+                    "refreshTargetHz": 60,
+                    "scenarios": ["navigation"],
                 },
-                "refreshTargetHz": 60,
-                "scenarios": ["navigation"],
-            }))
-            results.write_text(json.dumps({"reports": reports}))
+            )
+            write_json(results, {"reports": reports})
             argv = [
                 str(SCRIPT),
                 "--baseline", str(baseline),

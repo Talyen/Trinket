@@ -32,7 +32,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from script_test_support import load_script
+from script_test_support import load_script, run_captured, write_executable, write_json
 
 
 SCRIPT = Path(__file__).parents[1] / "test-timing.py"
@@ -48,13 +48,7 @@ class TestTimingTests(unittest.TestCase):
         environment = os.environ.copy()
         environment["RESULTS_DIR"] = str(results_dir)
         environment.update(extra_environment or {})
-        return subprocess.run(
-            [sys.executable, str(SCRIPT), *args],
-            env=environment,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        return run_captured([sys.executable, str(SCRIPT), *args], env=environment)
 
     def test_timing_history_survives_successful_artifact_cleanup(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -66,8 +60,7 @@ class TestTimingTests(unittest.TestCase):
             exports = root / "passed-xcresult-reports"
             exports.mkdir()
             (exports / "tests.json").write_text("{}")
-            (root / "passed-invocation.json").write_text(json.dumps(
-                {"status": "passed", "exit_code": 0, "result_bundle": str(bundle)}))
+            write_json(root / "passed-invocation.json", {"status": "passed", "exit_code": 0, "result_bundle": str(bundle)})
             maintenance = load_script("review_maintenance", "diagnostic_maintenance.py")
             maintenance.cleanup(root, False)
             self.assertFalse((root / "passed-invocation.json").exists())
@@ -109,7 +102,7 @@ class TestTimingTests(unittest.TestCase):
                 self.assertEqual(read(), (passed, None))
                 saved = json.loads(cache.read_text())
                 saved["identity"]["path"] = str(Path(directory) / "another.xcresult")
-                cache.write_text(json.dumps(saved))
+                write_json(cache, saved)
                 self.assertEqual(read(), (passed, None))
                 info.unlink()
                 self.assertEqual(read(), (passed, None))
@@ -282,8 +275,8 @@ class TestTimingTests(unittest.TestCase):
             (bundle / "Info.plist").write_text("complete\n", encoding="utf-8")
             tools = results_dir / "tools"
             tools.mkdir()
-            xcrun = tools / "xcrun"
-            xcrun.write_text(
+            write_executable(
+                tools / "xcrun",
                 "#!/usr/bin/env bash\n"
                 'printf "%s\\n" "$*" >> "$QUERY_LOG"\n'
                 "if [[ \"$*\" == *\" summary \"* ]]; then\n"
@@ -291,9 +284,7 @@ class TestTimingTests(unittest.TestCase):
                 "else\n"
                 "  echo '{\"testNodes\":[{\"nodeType\":\"Test Case\",\"nodeIdentifier\":\"ExampleTests/testOne\",\"name\":\"testOne\",\"durationInSeconds\":1,\"result\":\"Passed\"}]}'\n"
                 "fi\n",
-                encoding="utf-8",
             )
-            xcrun.chmod(0o755)
             queries = results_dir / 'queries.log'
             environment = {"PATH": f"{tools}:{os.environ['PATH']}", "QUERY_LOG": str(queries)}
 
@@ -316,10 +307,7 @@ class TestTimingTests(unittest.TestCase):
             self.assertIn(f"(run {bundle.stem})", record.stdout)
 
             # Filter validation runs in another process and shares timing's exact export.
-            exported = subprocess.run([sys.executable, str(SCRIPT.parent / "xcresult-report.py"),
-                                       str(bundle), "tests"], env={**os.environ, **environment},
-                                      capture_output=True, text=True)
-            self.assertEqual(exported.returncode, 0, exported.stderr)
+            exported = run_captured([sys.executable, str(SCRIPT.parent / "xcresult-report.py"), str(bundle), "tests"], env={**os.environ, **environment}, expected=0)
             self.assertEqual(json.loads(exported.stdout)["testNodes"][0]["result"], "Passed")
             self.assertEqual(len(queries.read_text().splitlines()), 2)
 
@@ -343,7 +331,7 @@ class TestTimingTests(unittest.TestCase):
                 (captured | {'test_summary': None}, 2),
             ):
                 shutil.rmtree(bundle.with_name(bundle.stem + '-xcresult-reports'), ignore_errors=True)
-                manifest.write_text(json.dumps(summary))
+                write_json(manifest, summary)
                 queries.write_text('')
                 reused = self.run_script(results_dir, 'record', '--mode', 'ui', '--run', 'captured',
                                          '--xcresult', str(bundle), '--manifest', str(manifest),

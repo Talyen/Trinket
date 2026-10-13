@@ -23,15 +23,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from script_test_support import ROOT, ScriptRegressionTestCase, load_script
+from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured
 
 class AgentContextTests(ScriptRegressionTestCase):
     def test_voyage_and_labyrinth_focus_preserves_progression_rules_and_broad_discovery(self) -> None:
         for concern in ('voyage', 'labyrinth'):
             command = subprocess.check_output(['bash', 'Scripts/agent-context.sh', '--task', concern, '--read-command'], cwd=ROOT, text=True)
             arguments = shlex.split(command)
-            result = subprocess.run(arguments, cwd=ROOT, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            result = run_captured(arguments, cwd=ROOT, expected=0)
             for invariant in ('Reward arithmetic saturates', 'Saved IDs stay stable',
                               'requires a current playable', 'Shop offers are pinned',
                               'Mystery opening pins', 'Defeat and retreat XP'):
@@ -65,15 +64,14 @@ class AgentContextTests(ScriptRegressionTestCase):
         handoff = lambda text: next(line for line in text.splitlines() if './Scripts/handoff.sh' in line)
         self.assertEqual(handoff(automatic), handoff(self.route(*task['sources'])))
         for query in ('missing-concern', 'battle'):
-            result = subprocess.run([str(ROOT / 'Scripts/agent-context.sh'), '--task', query], cwd=ROOT, capture_output=True, text=True)
+            result = run_captured([str(ROOT / 'Scripts/agent-context.sh'), '--task', query], cwd=ROOT)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('matches:', result.stderr)
 
     def test_concern_read_command_executes_and_preserves_shared_shop_constraints(self) -> None:
         output = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--task', 'shop'], cwd=ROOT, text=True)
         command = next(line.strip() for line in output.splitlines() if 'python3 Scripts/agent-read.py' in line)
-        result = subprocess.run(shlex.split(command), cwd=ROOT, capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        result = run_captured(shlex.split(command), cwd=ROOT, expected=0)
         for invariant in ('Shop offers are pinned', 'Empty Shops prepare stock', 'Voyage encounters use'):
             self.assertIn(invariant, result.stdout)
         self.assertNotIn('Corruption gives', result.stdout)
@@ -108,8 +106,7 @@ class AgentContextTests(ScriptRegressionTestCase):
                 actual = {line.strip().removeprefix(prefix) for line in output.splitlines() if line.strip().startswith(prefix)}
                 self.assertEqual(actual, expected)
                 for section in actual:
-                    result = subprocess.run(['python3', 'Scripts/agent-read.py', prefix + section], cwd=ROOT, capture_output=True, text=True)
-                    self.assertEqual(result.returncode, 0, result.stderr)
+                    run_captured(['python3', 'Scripts/agent-read.py', prefix + section], cwd=ROOT, expected=0)
         for leaf, hub, card in (
             (engine + 'ManaEmpowermentBudget.swift', engine + 'State/BattleState.swift', 'battle-actions'),
             (persistence + 'PlayerSaveStore+Roster.swift', persistence + 'PlayerSaveStore.swift', 'persistence-storage'),
@@ -158,7 +155,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         for path in (str(ROOT / relative), "./" + relative, "Packages/../" + relative):
             self.assertEqual(subprocess.check_output([*command, path], cwd=ROOT, text=True), expected)
         for path in (str(ROOT.parent / "outside.swift"), "../outside.swift", "Packages", ""):
-            result = subprocess.run([*command, path], cwd=ROOT, capture_output=True, text=True)
+            result = run_captured([*command, path], cwd=ROOT)
             self.assertNotEqual(result.returncode, 0, path)
         deleted = subprocess.check_output([*command, str(ROOT / relative.replace("BattleState", "Deleted"))], cwd=ROOT, text=True)
         self.assertIn("./Scripts/test-package.sh BattleEngine", deleted)
@@ -287,23 +284,14 @@ class AgentContextTests(ScriptRegressionTestCase):
 
 
     def test_agent_context_requires_explicit_scope(self) -> None:
-        result = subprocess.run(
-            [str(ROOT / "Scripts" / "agent-context.sh"), "--agent"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        result = run_captured([str(ROOT / "Scripts" / "agent-context.sh"), "--agent"], cwd=ROOT)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("requires --paths", result.stderr)
 
     def test_file_scoped_commands_reject_directories(self) -> None:
         for script, flags in (("agent-context.sh", []), ("handoff.sh", ["--dry-run", "--isolate"])):
             with self.subTest(script=script):
-                result = subprocess.run(
-                    [str(ROOT / "Scripts" / script), *flags, "--paths", "Scripts"],
-                    cwd=ROOT, capture_output=True, text=True,
-                )
+                result = run_captured([str(ROOT / "Scripts" / script), *flags, "--paths", "Scripts"], cwd=ROOT)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("individual files", result.stderr)
 
@@ -313,14 +301,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         ) as probe_directory:
             probe = Path(probe_directory) / "untracked-probe.txt"
             probe.write_text("working-tree cap probe\n", encoding="utf-8")
-            result = subprocess.run(
-                [str(ROOT / "Scripts" / "agent-context.sh"), "--agent", "--working-tree"],
-                cwd=ROOT,
-                env={**os.environ, "TRINKET_MAX_WORKING_TREE_PATHS": "0"},
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+            result = run_captured([str(ROOT / "Scripts" / "agent-context.sh"), "--agent", "--working-tree"], cwd=ROOT, env={**os.environ, "TRINKET_MAX_WORKING_TREE_PATHS": "0"})
         self.assertEqual(result.returncode, 3)
         self.assertIn("use explicit --paths or --allow-broad-scope", result.stderr)
 
@@ -339,12 +320,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             )
             for flags in ([], ["--full", "--allow-broad-scope"]):
                 with self.subTest(flags=flags):
-                    result = subprocess.run(
-                        ["/bin/bash", str(root / "Scripts/agent-context.sh"), "--agent", "--status",
-                         "--working-tree", *flags],
-                        cwd=root, env=env, capture_output=True, text=True,
-                    )
-                    self.assertEqual(result.returncode, 0, result.stderr)
+                    result = run_captured(["/bin/bash", str(root / "Scripts/agent-context.sh"), "--agent", "--status", "--working-tree", *flags], cwd=root, env=env, expected=0)
                     self.assertIn("Workspace status: 0 dirty entries", result.stdout)
                     self.assertIn("Agent context (working tree, 0):", result.stdout)
                     self.assertIn("./Scripts/handoff.sh --isolate --quiet --working-tree", result.stdout)
@@ -412,19 +388,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         )
         for path, expected_card in cases:
             with self.subTest(path=path):
-                result = subprocess.run(
-                    [
-                        str(ROOT / "Scripts" / "agent-context.sh"),
-                        "--agent",
-                        "--paths",
-                        path,
-                    ],
-                    cwd=ROOT,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                self.assertEqual(result.returncode, 0, result.stderr)
+                result = run_captured([str(ROOT / "Scripts" / "agent-context.sh"), "--agent", "--paths", path], cwd=ROOT, expected=0)
                 self.assertIn(expected_card, result.stdout)
                 for _, other_card in cases:
                     if other_card != expected_card:

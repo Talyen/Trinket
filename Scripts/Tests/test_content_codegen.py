@@ -19,10 +19,9 @@ SCRIPT_INPUTS = (
 
 
 import re
-import subprocess
 import sys
 
-from script_test_support import ROOT, ScriptRegressionTestCase
+from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, run_python
 
 
 class ContentCodegenTests(ScriptRegressionTestCase):
@@ -40,22 +39,13 @@ class ContentCodegenTests(ScriptRegressionTestCase):
              "./Scripts/test-package.sh TrinketContent"),
         ):
             with self.subTest(path=path):
-                result = subprocess.run(
-                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path],
-                    cwd=ROOT, env=self.verification_environment(hosted=True),
-                    capture_output=True, text=True,
-                )
-                self.assertEqual(result.returncode, 0, result.stderr)
+                result = run_captured([str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path], cwd=ROOT, env=self.verification_environment(hosted=True), expected=0)
                 self.assertIn("./Scripts/generate.sh", result.stdout)
                 self.assertIn("./Scripts/assert-generated-output.sh --idempotent", result.stdout)
                 self.assertIn(check, result.stdout)
 
     def test_live_manifests_validate_through_extracted_domains(self) -> None:
-        result = subprocess.run(
-            [sys.executable, str(ROOT / "Scripts/content_codegen.py"), "validate"],
-            cwd=ROOT, capture_output=True, text=True,
-        )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        result = run_python('content_codegen.py', "validate", cwd=ROOT, expected=0)
         self.assertIn("Validated", result.stdout)
 
     def test_enemy_trait_lists_validate_and_render(self) -> None:

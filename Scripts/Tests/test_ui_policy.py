@@ -11,10 +11,8 @@ SCRIPT_INPUTS = (
 from pathlib import Path
 from unittest.mock import patch
 import shutil
-import subprocess
-import sys
 import tempfile
-from script_test_support import ScriptRegressionTestCase, ROOT, load_script
+from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured, run_python
 
 
 class UiPolicyTests(ScriptRegressionTestCase):
@@ -25,13 +23,7 @@ class UiPolicyTests(ScriptRegressionTestCase):
                 "Image.preparedAsset(named: art.imageName)\n",
                 encoding="utf-8",
             )
-            rejected = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "check-ui-style.py"), str(fixture)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
+            rejected = run_python('check-ui-style.py', str(fixture), cwd=ROOT)
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn("catalog artwork without explicit display size", rejected.stdout)
 
@@ -39,14 +31,7 @@ class UiPolicyTests(ScriptRegressionTestCase):
                 "Image.preparedAsset(art, displaySize: .compact)\n",
                 encoding="utf-8",
             )
-            accepted = subprocess.run(
-                [sys.executable, str(ROOT / "Scripts" / "check-ui-style.py"), str(fixture)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
+            run_python('check-ui-style.py', str(fixture), cwd=ROOT, expected=0)
 
 
     def test_ui_style_owns_product_color_policy(self) -> None:
@@ -59,13 +44,7 @@ class UiPolicyTests(ScriptRegressionTestCase):
                 'let color = Color("Alert", bundle: .main)\n',
             ):
                 fixture.write_text(source, encoding="utf-8")
-                rejected = subprocess.run(
-                    [sys.executable, str(ROOT / "Scripts" / "check-ui-style.py"), str(fixture)],
-                    cwd=ROOT,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
+                rejected = run_python('check-ui-style.py', str(fixture), cwd=ROOT)
                 self.assertNotEqual(rejected.returncode, 0, source)
 
         swiftlint = (ROOT / ".swiftlint.yml").read_text(encoding="utf-8")
@@ -114,8 +93,7 @@ class UiPolicyTests(ScriptRegressionTestCase):
             for label, source, failure in cases:
                 with self.subTest(label=label):
                     fixture.write_text(source, encoding="utf-8")
-                    result = subprocess.run([str(root / "Scripts/check-artwork-budget.sh")],
-                                            cwd=root, capture_output=True, text=True)
+                    result = run_captured([str(root / "Scripts/check-artwork-budget.sh")], cwd=root)
                     self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
                     if failure:
                         self.assertIn(failure, result.stderr)

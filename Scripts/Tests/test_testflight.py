@@ -22,7 +22,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from script_test_support import ROOT
+from script_test_support import ROOT, run_captured, write_executable
 
 
 class TestFlightTests(unittest.TestCase):
@@ -32,11 +32,7 @@ class TestFlightTests(unittest.TestCase):
     def test_deployment_contracts(self):
         ruby = shutil.which("ruby")
         self.assertIsNotNone(ruby, "Ruby is required for the credential-free TestFlight script regressions")
-        result = subprocess.run(
-            [ruby, str(ROOT / "Scripts/Tests/testflight_test.rb")],
-            cwd=ROOT, env=self.environment(), capture_output=True, text=True, timeout=30,
-        )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        result = run_captured([ruby, str(ROOT / "Scripts/Tests/testflight_test.rb")], cwd=ROOT, env=self.environment(), timeout=30, expected=0)
         self.assertIn("TestFlight regression scenarios passed", result.stdout)
 
     def test_deployment_wrapper_serializes_linked_worktrees(self):
@@ -52,9 +48,7 @@ class TestFlightTests(unittest.TestCase):
             (root / 'Scripts/lib/testflight-tools.sh').write_text(
                 'trinket_testflight_tools() { TRINKET_BUNDLE="$PWD/bundle"; }\n'
             )
-            bundle = root / 'bundle'
-            bundle.write_text('#!/bin/bash\nprintf "started\\n"\nread -r release\n')
-            bundle.chmod(0o755)
+            write_executable(root / 'bundle', '#!/bin/bash\nprintf "started\\n"\nread -r release\n')
             (root / '.gitignore').write_text('.DerivedData/\n__pycache__/\n')
             linked = Path(directory) / 'linked checkout'
             environment = {key: value for key, value in self.environment().items()
@@ -72,8 +66,7 @@ class TestFlightTests(unittest.TestCase):
             try:
                 self.assertTrue(owner.stdout.readline().startswith('Command log: '))
                 self.assertEqual(owner.stdout.readline(), 'started\n')
-                other = subprocess.run(['bash', 'Scripts/testflight.sh'], cwd=root, env=environment,
-                                       input='release\n', capture_output=True, text=True, timeout=15)
+                other = run_captured(['bash', 'Scripts/testflight.sh'], cwd=root, env=environment, input='release\n', timeout=15)
                 self.assertNotEqual(other.returncode, 0, other.stdout + other.stderr)
                 self.assertNotIn('started', other.stdout)
             finally:
@@ -83,8 +76,7 @@ class TestFlightTests(unittest.TestCase):
             legacy = linked / '.DerivedData/testflight/.deploy.lock'
             legacy.mkdir(parents=True)
             (legacy / 'pid').write_text(str(os.getpid()))
-            blocked = subprocess.run(['bash', 'Scripts/testflight.sh'], cwd=root, env=environment,
-                                     input='release\n', capture_output=True, text=True, timeout=15)
+            blocked = run_captured(['bash', 'Scripts/testflight.sh'], cwd=root, env=environment, input='release\n', timeout=15)
             self.assertNotEqual(blocked.returncode, 0, blocked.stdout + blocked.stderr)
             self.assertIn('Legacy checkout-local deployment lock preserved', blocked.stderr)
             self.assertEqual((legacy / 'pid').read_text(), str(os.getpid()))
@@ -92,13 +84,19 @@ class TestFlightTests(unittest.TestCase):
     @unittest.skipUnless((ROOT / ".tools/testflight/gems/bin/bundle").exists(),
                          "Optional pinned-Fastlane adapter check requires setup-testflight.sh")
     def test_installed_fastlane_adapter(self):
-        result = subprocess.run(
-            ["bash", "-c", 'source Scripts/lib/testflight-tools.sh\n'
-             'trinket_testflight_tools "$PWD" false\n'
-             '"$TRINKET_BUNDLE" _4.0.15_ exec ruby Scripts/Tests/testflight_test.rb --fastlane'],
-            cwd=ROOT, env=self.environment(), capture_output=True, text=True, timeout=45,
+        result = run_captured(
+            [
+                "bash",
+                "-c",
+                'source Scripts/lib/testflight-tools.sh\n'
+                'trinket_testflight_tools "$PWD" false\n'
+                '"$TRINKET_BUNDLE" _4.0.15_ exec ruby Scripts/Tests/testflight_test.rb --fastlane',
+            ],
+            cwd=ROOT,
+            env=self.environment(),
+            timeout=45,
+            expected=0,
         )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("Pinned Fastlane adapter scenarios passed", result.stdout)
 
 

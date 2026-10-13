@@ -61,7 +61,7 @@ import subprocess
 import tempfile
 import unittest
 
-from script_test_support import fake_toolchain
+from script_test_support import fake_toolchain, run_captured, write_executable
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -79,16 +79,12 @@ class BuildProcessTests(unittest.TestCase):
                 ("iphoneos", "Release", "", "", False),
             ):
                 with self.subTest(host=host, sdk=sdk, configuration=configuration, ci=ci, github=github):
-                    result = subprocess.run(
-                        ["bash", "-eu", "-c", '''
+                    result = run_captured(["bash", "-eu", "-c", '''
 source Scripts/lib/app-build.sh
 uname() { printf '%s\\n' "$TEST_HOST_ARCH"; }
 trinket_set_app_xcodebuild_args /tmp/build "$1" generic "$2"
 printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
-''', "_", sdk, configuration], cwd=ROOT, capture_output=True, text=True,
-                        env={**os.environ, "CI": ci, "GITHUB_ACTIONS": github, "TEST_HOST_ARCH": host},
-                    )
-                    self.assertEqual(result.returncode, 0, result.stderr)
+''', "_", sdk, configuration], cwd=ROOT, env={**os.environ, "CI": ci, "GITHUB_ACTIONS": github, "TEST_HOST_ARCH": host}, expected=0)
                     args = result.stdout.splitlines()
                     self.assertEqual([arg for arg in args if arg.startswith("ARCHS=")],
                                      [f"ARCHS={host}"] if narrowed else [])
@@ -112,11 +108,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             ):
                 for ci in ("", "true"):
                     with self.subTest(entrypoint=entrypoint, ci=ci):
-                        result = subprocess.run(
-                            [str(scripts / entrypoint), *flags], capture_output=True, text=True,
-                            env={**os.environ, "CI": ci, "GITHUB_ACTIONS": "", "TRINKET_ALLOW_HEAVY_LOCAL": "1"},
-                        )
-                        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                        run_captured([str(scripts / entrypoint), *flags], env={**os.environ, "CI": ci, "GITHUB_ACTIONS": "", "TRINKET_ALLOW_HEAVY_LOCAL": "1"}, expected=0)
                         args = (root / "arguments").read_text().splitlines()
                         if entrypoint == "test-package.sh":
                             tenant = args[args.index("-derivedDataPath") + 1]
@@ -160,8 +152,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                 (["--release-device"], "iphoneos", "generic/platform=iOS"),
             ):
                 with self.subTest(flags=flags):
-                    result = subprocess.run([str(scripts / "build.sh"), *flags], capture_output=True, text=True)
-                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    result = run_captured([str(scripts / "build.sh"), *flags], expected=0)
                     args = (root / "arguments").read_text().splitlines()
                     self.assertEqual(args[:2], ["xcodebuild", "build"])
                     self.assertIn("ENABLE_CODE_COVERAGE=NO", args)
@@ -186,8 +177,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             )
             env = {**fake_toolchain(root), "TRINKET_ALLOW_HEAVY_LOCAL": "1"}
             command = [str(scripts / "build-for-testing.sh"), "--app-only"]
-            result = subprocess.run(command, env=env, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            result = run_captured(command, env=env, expected=0)
             self.assertEqual(len(list((root / "results").glob("*.stamp"))), 2)
             result = subprocess.run(command, env={**env, "BUILD_STATUS": "65"}, capture_output=True)
             self.assertEqual(result.returncode, 65)
@@ -215,9 +205,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                 'xcode_runner_run() { printf "%s" "${TEST_RUNNER_TRINKET_UI_SUCCESS_SCREENSHOTS:-}" > "$PWD/screenshots";'))
             env = {**os.environ, "TRINKET_ALLOW_HEAVY_LOCAL": "1", "TRINKET_ISOLATE": "1",
                    "TRINKET_UI_SUCCESS_SCREENSHOTS": "1", "PATH": f"{root}:{os.environ['PATH']}"}
-            result = subprocess.run([str(scripts / "test.sh"), "smoke", "--no-build", "SmokeShellTests"],
-                                    env=env, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run_captured([str(scripts / "test.sh"), "smoke", "--no-build", "SmokeShellTests"], env=env, expected=0)
             args = (root / "arguments").read_text().splitlines()
             self.assertEqual(args[:2], ["xcodebuild", "test-without-building"])
             self.assertEqual((root / "screenshots").read_text(), "1")
@@ -230,12 +218,8 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                  'for arg in "$@"; do if [[ "$arg" == SYMROOT=* ]]; then mkdir -p "${arg#SYMROOT=}/Debug-iphoneos/Trinket.app"; fi; done\n'),
                 ("xcrun", 'printf "%s\\n" "$@" > installed\n'),
             ):
-                binary = root / name
-                binary.write_text('#!/bin/bash\n' + body)
-                binary.chmod(0o755)
-            result = subprocess.run([str(scripts / "install-device.sh"), "--device", "fixture", "--no-launch"],
-                                    env=env, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                write_executable(root / name, '#!/bin/bash\n' + body)
+            run_captured([str(scripts / "install-device.sh"), "--device", "fixture", "--no-launch"], env=env, expected=0)
             args = (root / "arguments").read_text().splitlines()
             products = f"{root}/.DerivedData/Device/Build/Products"
             self.assertIn(f"SYMROOT={products}", args)
@@ -250,9 +234,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             (scripts / "lib/tools.sh").write_text(
                 'trinket_prepend_pinned_tools() { :; }\ntrinket_require_pinned_version() { :; }\n'
             )
-            binary = root / "swiftlint"
-            binary.write_text('#!/bin/bash\nprintf "%s\\n" "$@" > "$ANALYZE_ARGUMENTS"\necho "$ANALYZE_OUTPUT"\nexit "${ANALYZE_STATUS:-0}"\n')
-            binary.chmod(0o755)
+            write_executable(root / "swiftlint", '#!/bin/bash\nprintf "%s\\n" "$@" > "$ANALYZE_ARGUMENTS"\necho "$ANALYZE_OUTPUT"\nexit "${ANALYZE_STATUS:-0}"\n')
             (root / "Probe.swift").write_text("let answer = 42\n")
             cases = (
                 ("Done analyzing! Found 0 violations, 0 serious in 0 files.", "0", "0", 1),
@@ -266,7 +248,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                     env = {**os.environ, "PATH": f"{root}:{os.environ['PATH']}",
                            "ANALYZE_OUTPUT": output, "ANALYZE_STATUS": status, "BUILD_STATUS": build_status,
                            "ANALYZE_ARGUMENTS": str(root / "analyze-arguments")}
-                    result = subprocess.run([str(scripts / "lint-analyze.sh"), "Probe.swift"], env=env, capture_output=True, text=True)
+                    result = run_captured([str(scripts / "lint-analyze.sh"), "Probe.swift"], env=env)
                     self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                     args = (root / "arguments").read_text().splitlines()
                     self.assertIn("analyze.", args[args.index("-derivedDataPath") + 1])
@@ -280,12 +262,8 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             for name in ("build-freshness.sh", "build-inputs.env", "lib/generated-paths.sh", "config/generated-paths.tsv"):
                 (root / "Scripts" / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
-            prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
-            prepare.chmod(0o755)
-            generator = root / "Scripts/generate.sh"
-            generator.write_text('#!/bin/bash\nexit "${GENERATION_STATUS:-0}"\n')
-            generator.chmod(0o755)
+            write_executable(root / 'Scripts/prepare-assets.sh', '#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
+            write_executable(root / "Scripts/generate.sh", '#!/bin/bash\nexit "${GENERATION_STATUS:-0}"\n')
             command = """
 unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE
 source Scripts/build-freshness.sh
@@ -303,8 +281,7 @@ export GENERATION_STATUS=0
 prepare_generated_inputs results
 ! cmp -s previous results/.last-generate.stamp.content
 """
-            result = subprocess.run(["bash", "-eu", "-c", command], cwd=root, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run_captured(["bash", "-eu", "-c", command], cwd=root, expected=0)
 
 
     def test_simulator_tenants_share_generation_without_releasing_parent_resources(self):
@@ -314,12 +291,11 @@ prepare_generated_inputs results
             for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh", "lib/generated-paths.sh", "config/generated-paths.tsv"):
                 (root / "Scripts" / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
-            prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n')
-            prepare.chmod(0o755)
-            generator = root / "Scripts/generate.sh"
-            generator.write_text('#!/bin/bash\nsleep 1\necho generated >> calls\n')
-            generator.chmod(0o755)
+            write_executable(
+                root / 'Scripts/prepare-assets.sh',
+                '#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n',
+            )
+            write_executable(root / "Scripts/generate.sh", '#!/bin/bash\nsleep 1\necho generated >> calls\n')
             command = """
 source Scripts/lib/lock.sh
 source Scripts/build-freshness.sh
@@ -340,8 +316,7 @@ prepare_generated_inputs human
 prepare_generated_inputs agent
 [[ $(wc -l < calls) -eq 2 ]] || exit 1
 """
-            result = subprocess.run(["bash", "-eu", "-c", command], cwd=root, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run_captured(["bash", "-eu", "-c", command], cwd=root, expected=0)
             self.assertEqual((root / "parent-resources").read_text(), "released\n")
 
     def test_preparation_timeout_preserves_another_subshells_lock(self):
@@ -351,9 +326,7 @@ prepare_generated_inputs agent
             for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh", "lib/generated-paths.sh", "config/generated-paths.tsv"):
                 (root / "Scripts" / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
-            prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
-            prepare.chmod(0o755)
+            write_executable(root / 'Scripts/prepare-assets.sh', '#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
             command = """
 source Scripts/lib/lock.sh
 source Scripts/build-freshness.sh
@@ -373,9 +346,7 @@ touch done
 wait "$holder"
 [[ ! -d shared/.generated-inputs.lock ]] || exit 13
 """
-            result = subprocess.run(["bash", "-eu", "-c", command], cwd=root,
-                                    capture_output=True, text=True, timeout=10)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run_captured(["bash", "-eu", "-c", command], cwd=root, timeout=10, expected=0)
 
     def test_shared_generation_reuses_a_matching_existing_tenant_stamp(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -384,12 +355,8 @@ wait "$holder"
             for name in ("build-freshness.sh", "build-inputs.env", "lib/lock.sh", "lib/generated-paths.sh", "config/generated-paths.tsv"):
                 (root / "Scripts" / name).parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "Scripts" / name, root / "Scripts" / name)
-            prepare = root / 'Scripts/prepare-assets.sh'
-            prepare.write_text('#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
-            prepare.chmod(0o755)
-            generator = root / "Scripts/generate.sh"
-            generator.write_text('#!/bin/bash\necho unexpected > calls\nexit 9\n')
-            generator.chmod(0o755)
+            write_executable(root / 'Scripts/prepare-assets.sh', '#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n')
+            write_executable(root / "Scripts/generate.sh", '#!/bin/bash\necho unexpected > calls\nexit 9\n')
             command = """
 source Scripts/lib/lock.sh
 source Scripts/build-freshness.sh
@@ -402,8 +369,7 @@ prepare_generated_inputs agent
 [[ ! -e calls ]] || exit 1
 [[ -f shared/GeneratedInputs/.last-generate.stamp ]] || exit 1
 """
-            result = subprocess.run(["bash", "-eu", "-c", command], cwd=root, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run_captured(["bash", "-eu", "-c", command], cwd=root, expected=0)
 
     def test_tool_updates_leave_pins_untouched_after_download_or_hash_failure(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -414,16 +380,10 @@ prepare_generated_inputs agent
                 shutil.copy2(ROOT / "Scripts" / name, scripts)
             pins = scripts / "tool-versions.env"
             initial = pins.read_bytes()
-            curl = root / "curl"
-            curl.write_text('#!/bin/bash\nif [[ "$*" == *api.github.com* ]]; then echo \'{"tag_name":"999.0.0"}\'; exit 0; fi\nexit "$DOWNLOAD_STATUS"\n')
-            curl.chmod(0o755)
-            hasher = root / "shasum"
-            hasher.write_text('#!/bin/bash\nexit 7\n')
-            hasher.chmod(0o755)
+            write_executable(root / "curl", '#!/bin/bash\nif [[ "$*" == *api.github.com* ]]; then echo \'{"tag_name":"999.0.0"}\'; exit 0; fi\nexit "$DOWNLOAD_STATUS"\n')
+            write_executable(root / "shasum", '#!/bin/bash\nexit 7\n')
             for download, expected in ((22, 22), (0, 7)):
-                result = subprocess.run([str(scripts / "update-tools.sh"), "--apply"],
-                                        env={**os.environ, "PATH": f"{root}:{os.environ['PATH']}",
-                                             "DOWNLOAD_STATUS": str(download)}, capture_output=True, text=True)
+                result = run_captured([str(scripts / "update-tools.sh"), "--apply"], env={**os.environ, "PATH": f"{root}:{os.environ['PATH']}", "DOWNLOAD_STATUS": str(download)})
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                 self.assertEqual(pins.read_bytes(), initial)
 
@@ -461,7 +421,7 @@ prepare_generated_inputs agent
             ]
             for name, args, status, message in cases:
                 with self.subTest(name=name, args=args):
-                    result = subprocess.run([str(scripts / name), *args], capture_output=True, text=True)
+                    result = run_captured([str(scripts / name), *args])
                     self.assertEqual(result.returncode, status, result.stdout + result.stderr)
                     self.assertIn(message, result.stdout + result.stderr)
 

@@ -17,7 +17,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
-from script_test_support import load_script
+from script_test_support import load_script, write_json
 
 MODULE = load_script("playthrough_sweep", "playthrough_sweep.py")
 
@@ -45,10 +45,12 @@ class PlaythroughSweepTests(unittest.TestCase):
                 for request in requests[:2]:
                     folder = Path(request['output'])
                     folder.mkdir(exist_ok=True)
-                    (folder / 'summary.json').write_text(json.dumps(dict(termination='completedObjective')))
+                    write_json(folder / 'summary.json', dict(termination='completedObjective'))
                     (folder / 'worker-wall-seconds.txt').write_text('2.5')
-                    (folder / 'scenario.json').write_text(json.dumps(dict(worldSeed=request['seed'], attempts=10, fullAccess=True, mode='contracts',
-                                                                                 policy='setupAware-v1', heroID='knight', companionID='wolf')))
+                    write_json(
+                        folder / 'scenario.json',
+                        dict(worldSeed=request['seed'], attempts=10, fullAccess=True, mode='contracts', policy='setupAware-v1', heroID='knight', companionID='wolf'),
+                    )
                 return dict(exitCode=0, processWallSeconds=12)
             with patch.object(MODULE, 'worker', side_effect=invoke):
                 results = MODULE.batch_workers(args, Path('unused'))
@@ -57,7 +59,7 @@ class PlaythroughSweepTests(unittest.TestCase):
             self.assertEqual(results[0]['scenarioManifest']['worldSeed'], 101)
             self.assertEqual(results[0]['careerBodySeconds'], 2.5)
             self.assertNotIn('processWallSeconds', results[0])
-            (args.output / 'career-0000/scenario.json').write_text(json.dumps(dict(worldSeed=999)))
+            write_json(args.output / 'career-0000/scenario.json', dict(worldSeed=999))
             with patch.object(MODULE, 'worker', return_value=dict(exitCode=0, processWallSeconds=12)):
                 mismatched = MODULE.batch_workers(args, Path('unused'))
             self.assertEqual(mismatched[0]['exitCode'], 1)
@@ -103,11 +105,11 @@ class PlaythroughSweepTests(unittest.TestCase):
                 for request in requests[:-1]:
                     folder = Path(request['output'])
                     folder.mkdir()
-                    (folder / 'summary.json').write_text(json.dumps(dict(termination='completedObjective')))
+                    write_json(folder / 'summary.json', dict(termination='completedObjective'))
                     (folder / 'worker-wall-seconds.txt').write_text('1')
                     manifest = dict(worldSeed=request['seed'], attempts=10, fullAccess=True,
                                     mode=request['mode'], policy=request['policy'], heroID='knight', companionID='wolf')
-                    (folder / 'scenario.json').write_text(json.dumps(manifest))
+                    write_json(folder / 'scenario.json', manifest)
                 return dict(exitCode=0, processWallSeconds=30)
             with patch.object(MODULE, 'worker', side_effect=invoke) as worker:
                 rows = MODULE.batch_workers(args, Path('unused'))
@@ -171,7 +173,7 @@ class PlaythroughSweepTests(unittest.TestCase):
             self.assertFalse(agent_report["rawEvidence"]["included"])
             args.baseline = args.output / "baseline.json"
             bad = dict(result, horizon=3)
-            args.baseline.write_text(json.dumps(bad))
+            write_json(args.baseline, bad)
             with self.assertRaisesRegex(ValueError, "baseline manifest"):
                 MODULE.report(args, workers, {})
 
@@ -226,7 +228,7 @@ class PlaythroughSweepTests(unittest.TestCase):
             for worker in baseline["workers"]:
                 worker["scenarioManifest"]["policy"] = "greedy-v1"
             baseline_path = Path(temporary) / "baseline.json"
-            baseline_path.write_text(json.dumps(baseline))
+            write_json(baseline_path, baseline)
             args.baseline = baseline_path
             result = MODULE.report(args, workers, {})
             self.assertEqual(result["baselinePolicy"], "greedy-v1")
@@ -247,7 +249,7 @@ class PlaythroughSweepTests(unittest.TestCase):
                     bad_baseline, bad_workers = copy.deepcopy(baseline), copy.deepcopy(workers)
                     for worker in bad_baseline["workers"] + bad_workers:
                         worker["scenarioManifest"] = manifest
-                    baseline_path.write_text(json.dumps(bad_baseline))
+                    write_json(baseline_path, bad_baseline)
                     with self.assertRaisesRegex(ValueError, "scenario manifest"):
                         MODULE.report(args, bad_workers, {})
             for population in ("baseline", "current"):
@@ -255,7 +257,7 @@ class PlaythroughSweepTests(unittest.TestCase):
                     bad_baseline, bad_workers = copy.deepcopy(baseline), copy.deepcopy(workers)
                     duplicate_workers = bad_baseline["workers"] if population == "baseline" else bad_workers
                     duplicate_workers.append(copy.deepcopy(duplicate_workers[0]))
-                    baseline_path.write_text(json.dumps(bad_baseline))
+                    write_json(baseline_path, bad_baseline)
                     with self.assertRaisesRegex(ValueError, "seed population"):
                         MODULE.report(args, bad_workers, {})
 

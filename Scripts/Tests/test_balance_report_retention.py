@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from script_test_support import write_executable
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -29,9 +30,7 @@ class BalanceReportRetentionTests(unittest.TestCase):
                 shutil.copy2(ROOT / 'Scripts' / name, target)
             tools = root / "bin"
             tools.mkdir()
-            swift = tools / "swift"
-            swift.write_text("#!/bin/sh\nexit 0\n")
-            swift.chmod(0o755)
+            write_executable(tools / "swift", "#!/bin/sh\nexit 0\n")
             reports = root / "BalanceSweepReports"
             reports.mkdir()
             evidence = reports / "previous.json"

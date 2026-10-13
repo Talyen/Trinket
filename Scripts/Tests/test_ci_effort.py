@@ -14,7 +14,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from script_test_support import load_script
+from script_test_support import load_script, write_json
 
 REUSE = load_script('ci_reuse_test', 'ci-reuse.py')
 RETRY = load_script('ci_retry_test', 'ci_ui_retry.py')
@@ -106,7 +106,7 @@ class CIEffortTests(unittest.TestCase):
             retry = dict(status='passed', exit_code=0, session_id='session', action='test-without-building',
                          result_bundle_complete=True, result_bundle=str(retry_bundle))
             retry_path = root / 'retry-invocation.json'
-            retry_path.write_text(json.dumps(retry))
+            write_json(retry_path, retry)
             original['infrastructure_recovery'] = dict(retry_manifest=str(retry_path), targets=['BattleTests', 'OtherTests'],
                 original_evidence=evidence, retry_evidence=dict(summary=dict(passed=1, failed=0, skipped=0),
                     tests=[dict(id='BattleTests/testLaunch()', result='Passed')]))
@@ -121,9 +121,9 @@ class CIEffortTests(unittest.TestCase):
             self.assertTrue(normalized['infrastructure_recovered'])
             for changes in ({'session_id': 'unrelated'}, {'status': 'failed'}, {'exit_code': 1},
                             {'exit_code': False}, {'exit_code': 0.0}):
-                retry_path.write_text(json.dumps({**retry, **changes}))
+                write_json(retry_path, {**retry, **changes})
                 self.assertFalse(RETRY.recovery_valid(original, report))
-            retry_path.write_text(json.dumps(retry))
+            write_json(retry_path, retry)
             original['infrastructure_recovery']['retry_evidence']['tests'][0]['id'] = 'OtherTests/testInteraction()'
             self.assertFalse(RETRY.recovery_valid(original, report))
 
@@ -140,9 +140,9 @@ class CIEffortTests(unittest.TestCase):
                 if len(calls) == 1:
                     original.update(session_id=session, label='ui')
                     report_path = results / 'original-diagnostics.json'
-                    report_path.write_text(json.dumps(report))
+                    write_json(report_path, report)
                     original['diagnostics_json'] = str(report_path)
-                    (results / 'original-invocation.json').write_text(json.dumps(original))
+                    write_json(results / 'original-invocation.json', original)
                     (results / 'unrelated-invocation.json').write_text('broken')
                     return 65
                 self.assertEqual(env['TRINKET_REPREP_UI_SIMULATOR'], '1')
@@ -151,7 +151,7 @@ class CIEffortTests(unittest.TestCase):
                 (bundle / 'Info.plist').touch()
                 retry = dict(status='passed', exit_code=0, session_id=session, label='ui',
                              action='test-without-building', result_bundle_complete=True, result_bundle=str(bundle))
-                (results / 'retry-invocation.json').write_text(json.dumps(retry))
+                write_json(results / 'retry-invocation.json', retry)
                 return 0
             retried = dict(summary=dict(passed=1, failed=0, skipped=0), tests=[dict(id='BattleTests/testLaunch()', result='Passed')])
             with patch.dict(os.environ, RESULTS_DIR=str(results)), patch.object(RETRY.subprocess, 'call', side_effect=execute), \

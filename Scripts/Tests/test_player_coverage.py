@@ -15,7 +15,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from script_test_support import ROOT, load_script
+from script_test_support import ROOT, load_script, run_captured, write_executable, write_json
 
 MODULE = load_script('coverage_profiles', 'coverage_profiles.py')
 
@@ -109,7 +109,7 @@ class PlayerCoverageTests(unittest.TestCase):
                 results, output = root / 'TestResults', root / 'artifact'
                 results.mkdir()
                 output.mkdir()
-                (results / 'ci-diagnostics.json').write_text(json.dumps(dict(category=category)))
+                write_json(results / 'ci-diagnostics.json', dict(category=category))
                 bundle = results / 'profile.xcresult'
                 bundle.mkdir()
                 (bundle / 'Info.plist').write_text('audit evidence')
@@ -142,17 +142,11 @@ trinket_run_env_install_self_clean() { :; }
 ''')
             (scripts / 'ensure-simulator.sh').write_text('ensure_test_simulator_logged() { :; }\n')
             for name, code in [('build-for-testing.sh', 0), ('test-package.sh', 0), ('test.sh', 1)]:
-                path = scripts / name
-                path.write_text(f'#!/bin/sh\nprintf "%s\\n" "{name} $* results=$RESULTS_DIR" >> "$PWD/calls"\nexit {code}\n')
-                path.chmod(0o755)
+                write_executable(scripts / name, f'#!/bin/sh\nprintf "%s\\n" "{name} $* results=$RESULTS_DIR" >> "$PWD/calls"\nexit {code}\n')
             binaries = root / 'bin'
             binaries.mkdir()
-            python = binaries / 'python3'
-            python.write_text('#!/bin/sh\nprintf "%s\\n" "$*" >> "$PWD/calls"\nexit 0\n')
-            python.chmod(0o755)
-            result = subprocess.run(['bash', 'Scripts/player-coverage.sh', 'soak'], cwd=root,
-                                    env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}'}, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 1, result.stderr)
+            write_executable(binaries / 'python3', '#!/bin/sh\nprintf "%s\\n" "$*" >> "$PWD/calls"\nexit 0\n')
+            run_captured(['bash', 'Scripts/player-coverage.sh', 'soak'], cwd=root, env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}'}, expected=1)
             calls = (root / 'calls').read_text().splitlines()
             cohorts = [line.split() for line in calls if '--batch' in line]
             self.assertEqual(len(cohorts), 1)
@@ -175,16 +169,13 @@ trinket_run_env_install_self_clean() { :; }
 ''')
             (scripts / 'ensure-simulator.sh').write_text('ensure_test_simulator_logged() { :; }\n')
             for name in ('test.sh', 'test-package.sh'):
-                path = scripts / name
-                path.write_text('''#!/bin/sh
+                write_executable(scripts / name, '''#!/bin/sh
 printf '%s\n' "$0 $* major=$TRINKET_SIM_OS_MAJOR purchase=$TEST_RUNNER_TRINKET_REQUIRED_PURCHASE screenshots=$TRINKET_UI_SUCCESS_SCREENSHOTS" >> "$PWD/calls"
 exit 0
 ''')
-                path.chmod(0o755)
             binaries = root / 'bin'
             binaries.mkdir()
-            python = binaries / 'python3'
-            python.write_text('''#!/bin/sh
+            write_executable(binaries / 'python3', '''#!/bin/sh
 case "$*" in
   *'definition --name ios18') printf 'fixture-phone\t18\n' ;;
   *'--classes Smoke') printf 'SmokeBattleTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests\n' ;;
@@ -192,11 +183,12 @@ case "$*" in
   *) exit 2 ;;
 esac
 ''')
-            python.chmod(0o755)
-            result = subprocess.run(['bash', 'Scripts/player-coverage.sh', 'ios18'], cwd=root,
-                                    env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
-                                         'TRINKET_COVERAGE_NO_BUILD': '1'}, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 1, result.stderr)
+            run_captured(
+                ['bash', 'Scripts/player-coverage.sh', 'ios18'],
+                cwd=root,
+                env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}', 'TRINKET_COVERAGE_NO_BUILD': '1'},
+                expected=1,
+            )
             calls = (root / 'calls').read_text().splitlines()
             self.assertEqual(len(calls), 3)
             self.assertIn('smoke --no-build SmokeBattleTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests', calls[0])
@@ -215,8 +207,15 @@ esac
                     ('skipped', 'skipped', 'failure', 'success', 1), ('success', 'success', 'success', 'cancelled', 1),
                     ('failure', 'skipped', 'skipped', 'skipped', 1), ('cancelled', 'skipped', 'skipped', 'skipped', 1),
                     ('skipped', 'skipped', 'success', 'skipped', 0)]:
-                result = subprocess.run(['bash', '-ec', command], env={**os.environ,
-                    'IOS18_RUNTIME': runtime, 'COMPATIBILITY': compatibility, 'PROFILES': profiles,
-                    'SOAK': soak, 'GITHUB_STEP_SUMMARY': str(Path(temporary) / 'summary')},
-                    capture_output=True, text=True)
+                result = run_captured(
+                    ['bash', '-ec', command],
+                    env={
+                        **os.environ,
+                        'IOS18_RUNTIME': runtime,
+                        'COMPATIBILITY': compatibility,
+                        'PROFILES': profiles,
+                        'SOAK': soak,
+                        'GITHUB_STEP_SUMMARY': str(Path(temporary) / 'summary'),
+                    },
+                )
                 self.assertEqual(result.returncode, expected, result.stderr)

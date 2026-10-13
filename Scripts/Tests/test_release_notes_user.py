@@ -16,7 +16,6 @@ SCRIPT_INPUTS = (
 )
 
 
-import subprocess
 import io
 from contextlib import redirect_stdout
 from unittest.mock import patch
@@ -25,7 +24,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from script_test_support import ROOT, load_script
+from script_test_support import load_script, run_captured
 
 notes = load_script("release_notes_user", "release-notes-user.py")
 
@@ -45,8 +44,7 @@ class ReleaseNotesUserTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             def git(*args):
-                return subprocess.run(["git", "-c", "commit.gpgsign=false", *args], cwd=root,
-                                      capture_output=True, text=True, check=True)
+                return run_captured(["git", "-c", "commit.gpgsign=false", *args], cwd=root, check=True)
             git("init")
             git("config", "user.name", "Fixture")
             git("config", "user.email", "fixture@example.invalid")

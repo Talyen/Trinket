@@ -21,7 +21,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-from script_test_support import ROOT, load_script
+from script_test_support import ROOT, load_script, run_captured, write_executable
 
 NATIVE = load_script('native_proof_test', 'native-test-results.py')
 BUDGET = load_script('ci_budget_test', 'ci-run-budget.py')
@@ -201,15 +201,11 @@ class CIImprovementsTests(unittest.TestCase):
             for name in ('test-ci-packages.sh', 'build-inputs.env'):
                 shutil.copy(ROOT / 'Scripts' / name, root / 'Scripts' / name)
             for name, mode in (('test-package-host.sh', 'native'), ('test-package.sh', 'ios')):
-                path = root / 'Scripts' / name
-                path.write_text('#!/bin/bash\nprintf "' + mode + ':%s\\n" "$*"\n')
-                path.chmod(0o755)
+                write_executable(root / 'Scripts' / name, '#!/bin/bash\nprintf "' + mode + ':%s\\n" "$*"\n')
             packages = ['BattleEngine', 'TrinketCore', 'TrinketPersistence', 'TrinketAppState']
             for event, expected in [('push', ['native:BattleEngine TrinketCore', 'ios:TrinketPersistence TrinketAppState']),
                                     ('workflow_dispatch', ['ios:' + ' '.join(packages)])]:
-                result = subprocess.run(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
-                                        env={**os.environ, 'GITHUB_EVENT_NAME': event}, capture_output=True, text=True)
-                self.assertEqual(result.returncode, 0, result.stderr)
+                result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root, env={**os.environ, 'GITHUB_EVENT_NAME': event}, expected=0)
                 self.assertEqual(result.stdout.splitlines(), expected)
 
     def test_native_cache_omits_simulator_products_and_selected_identity_keeps_compatible_keys(self):

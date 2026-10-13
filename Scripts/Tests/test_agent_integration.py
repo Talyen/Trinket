@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import tempfile
 
-from script_test_support import ROOT, ScriptRegressionTestCase
+from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, write_executable
 
 
 class AgentIntegrationTests(ScriptRegressionTestCase):
@@ -31,9 +31,7 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         scripts.mkdir()
         for name in ('agent-worktree.mjs', 'agent-integrate.py'):
             shutil.copy2(ROOT / 'Scripts' / name, scripts / name)
-        handoff = scripts / 'handoff.sh'
-        handoff.write_text('#!/bin/sh\nexit 0\n')
-        handoff.chmod(0o755)
+        write_executable(scripts / 'handoff.sh', '#!/bin/sh\nexit 0\n')
         (self.root / '.gitignore').write_text('.worktrees/\nignored\n')
         (self.root / 'shared').write_text('baseline\n')
         self.commit(self.root)
@@ -47,8 +45,7 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         self.git(root, 'commit', '-qm', 'fixture')
 
     def helper(self, root: Path, *args: str) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(['node', str(root / 'Scripts/agent-worktree.mjs'), *args],
-                              env=self.env, capture_output=True, text=True, timeout=30)
+        return run_captured(['node', str(root / 'Scripts/agent-worktree.mjs'), *args], env=self.env, timeout=30)
 
     def create(self, name: str, root: Path | None = None) -> Path:
         result = self.helper(root or self.root, 'create', '--task', name)
