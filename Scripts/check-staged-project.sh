@@ -4,15 +4,24 @@ export GIT_OPTIONAL_LOCKS=0
 cd "$(git rev-parse --show-toplevel)"
 ROOT="$PWD"
 source Scripts/lib/project-generation.sh
+source Scripts/lib/generated-paths.sh
 # shellcheck source=Scripts/lib/tempdir.sh
 source Scripts/lib/tempdir.sh
 
+project_outputs=()
+while IFS='|' read -r kind path; do
+  [[ "$kind" != project ]] || project_outputs+=("$path")
+done < <(trinket_generated_registry_rows Scripts/config/generated-paths.tsv)
+
 needed=false
 while IFS= read -r -d '' path; do
-  if [[ "$path" == Trinket.xcodeproj/project.pbxproj ]] || trinket_is_project_generation_input "$path"; then
+  if trinket_is_project_generation_input "$path"; then
     needed=true
-    break
   fi
+  for output in "${project_outputs[@]}"; do
+    [[ "$path" != "$output" && "$path" != "$output/"* ]] || needed=true
+  done
+  [[ "$needed" != true ]] || break
 done < <(git diff --cached --name-only --no-renames -z)
 [[ "$needed" == true ]] || exit 0
 
@@ -35,6 +44,9 @@ tool_paths=(
   Scripts/lib/tools.sh
   Scripts/lib/tool-install.sh
   Scripts/lib/project-generation.sh
+  Scripts/lib/generated-paths.sh
+  Scripts/config/generated-paths.tsv
+  Scripts/apply-scheme-storekit.py
   Scripts/check-testplan-sync.py
   Scripts/internal/cli.py
   Scripts/internal/ui_registration.py
@@ -72,4 +84,12 @@ for plan in Smoke FullUI; do
     exit 1
   fi
 done
+generated_status="$(git --work-tree="$snapshot/repo" diff --name-only -- "${project_outputs[@]}")"
+generated_untracked="$(git --work-tree="$snapshot/repo" ls-files --others --exclude-standard -- "${project_outputs[@]}")"
+if [[ -n "$generated_status$generated_untracked" ]]; then
+  echo "Project check: staged generated project outputs do not match staged inputs." >&2
+  printf '%s\n' "$generated_status" "$generated_untracked" >&2
+  echo "Run ./Scripts/generate.sh and stage the canonical project outputs with their inputs." >&2
+  exit 1
+fi
 echo "Staged project matches staged inputs."

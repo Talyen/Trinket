@@ -48,6 +48,8 @@ class ProjectGenerationTests(unittest.TestCase):
         self.env['PROJECT_CALLS'] = str(self.root / 'calls')
         for path in ('Scripts/build-inputs.env', '.githooks/pre-commit', 'Scripts/check-staged-project.sh',
                      'Scripts/apply-scheme-storekit.py',
+                     'Scripts/assert-generated-output.sh', 'Scripts/config/generated-paths.tsv',
+                     'Scripts/lib/generated-paths.sh',
                      'Scripts/lib/project-generation.sh', 'Scripts/lib/tools.sh', 'Scripts/lib/args.sh',
                      'Scripts/lib/tempdir.sh', 'Scripts/lib/lock.sh'):
             target = self.root / path
@@ -166,6 +168,49 @@ printf cached > "$cache"
         self.git('add', 'code.swift')
         self.git('commit', '-qm', 'code change')
         self.assertFalse((self.root / 'calls').exists())
+
+    def test_generated_schemes_cannot_bypass_staged_or_committed_output_checks(self):
+        scheme = 'Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme'
+        self.write(scheme, 'canonical\n')
+        self.git('add', scheme)
+        self.git('-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'scheme fixture')
+        generator = self.root / '.tools/xcodegen'
+        with generator.open('a') as stream:
+            stream.write('mkdir -p "$root/Trinket.xcodeproj/xcshareddata/xcschemes"\n'
+                         'printf "canonical\\n" > "$root/' + scheme + '"\n')
+
+        # A scheme-only edit must trigger generation even when the project is unchanged.
+        self.write(scheme, 'missing StoreKit configuration\n')
+        self.git('add', scheme)
+        index = (self.root / '.git/index').read_bytes()
+        rejected = self.run_command('bash', '.githooks/pre-commit', expected=1)
+        self.assertIn('staged generated project outputs do not match', rejected.stderr)
+        self.assertEqual((self.root / '.git/index').read_bytes(), index)
+        self.assertEqual((self.root / scheme).read_text(), 'missing StoreKit configuration\n')
+
+        # The CI committed-output check must also see a scheme repaired by generation.
+        self.write(scheme, 'canonical\n')
+        rejected = self.run_command('bash', '-ec',
+                                   'source Scripts/assert-generated-output.sh; '
+                                   'trinket_set_generated_tracked_paths false true; '
+                                   'trinket_assert_committed_output', expected=1)
+        self.assertIn('Generated output is stale or uncommitted', rejected.stderr)
+        self.git('add', scheme)
+        self.run_command('bash', '.githooks/pre-commit')
+
+        # A newly generated scheme omitted from the index is equally stale.
+        added = 'Trinket.xcodeproj/xcshareddata/xcschemes/New.xcscheme'
+        with generator.open('a') as stream:
+            stream.write('printf "new scheme\\n" > "$root/' + added + '"\n')
+        self.write('project.yml', 'new project\n')
+        self.write('Trinket.xcodeproj/project.pbxproj', 'new project\n')
+        self.git('add', 'project.yml', 'Trinket.xcodeproj/project.pbxproj')
+        rejected = self.run_command('bash', '.githooks/pre-commit', expected=1)
+        self.assertIn('New.xcscheme', rejected.stderr)
+        self.assertFalse((self.root / added).exists())
+        self.write(added, 'new scheme\n')
+        self.git('add', added)
+        self.run_command('bash', '.githooks/pre-commit')
 
     def test_storekit_references_resolve_from_xcode_workspace(self):
         self.write('project.yml', '''schemes:

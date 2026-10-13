@@ -26,7 +26,7 @@ for failure in \
   "Test Case '-[Example example]' failed (0.1 seconds)." \
   "Example.swift:12: error: XCTAssertEqual failed" \
   "Restarting after unexpected exit, crash, or test timeout; summary will include totals from previous launches."; do
-  printf '%s\n' "$failure" "✔ Test run with 2 tests passed after 0.1 seconds." > "$TMP_DIR/mixed-results.log"
+  printf '%s\n' "$failure" "✔ Test run with 2 tests passed after 0.1 seconds." "** TEST SUCCEEDED **" > "$TMP_DIR/mixed-results.log"
   [[ "$(xcode_runner_infer_exit_from_log "$TMP_DIR/mixed-results.log")" == 65 ]]
 done
 
@@ -88,6 +88,13 @@ case "$WATCHDOG_CASE" in
     count=1
     [[ "$WATCHDOG_CASE" != zero && "$WATCHDOG_CASE" != zero-options ]] || count=0
     echo " Executed $count tests, with 0 failures (0 unexpected) in 1.0 seconds" ;;
+  mixed-incomplete)
+    echo "Test Suite 'All tests' passed."
+    echo "Executed 1 test, with 0 failures"
+    echo "◇ Test run started."
+    echo "◇ Test neverFinishes() started." ;;
+  swift-summary)
+    echo "✔ Test run with 1 test passed after 0.1 seconds." ;;
   failure)
     echo "Restarting after unexpected exit, crash, or test timeout; summary will include totals from previous launches."
     echo "✔ Test run with 2 tests in 1 suite passed after 0.1 seconds." ;;
@@ -214,8 +221,10 @@ run_watchdog_case() (
     finalization)
       unset TRINKET_XCODE_IDLE_TIMEOUT_SECONDS
       completion=process-exit ;;
-    zero|zero-options) expected=1 ;;
-    split-marker) export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=10 ;;
+    selected|split-marker|zero|zero-options|mixed-incomplete|swift-summary)
+      expected=124
+      completion=process-exit
+      [[ "$mode" != split-marker ]] || export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=10 ;;
     failure|late-failure) expected=65 ;;
     silent|growing)
       export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=2
@@ -241,18 +250,19 @@ import json, sys
 manifest = json.load(open(sys.argv[1]))
 assert manifest["exit_code"] == int(sys.argv[2]), manifest
 assert manifest["completion_source"] == sys.argv[3], manifest
-if sys.argv[4] in {"success", "selected", "split-marker"}:
+if sys.argv[4] in {"success", "selected", "split-marker", "mixed-incomplete"}:
     assert manifest["test_execution_proven"] and not manifest["result_bundle_complete"], manifest
 PY_MANIFEST
   case "$mode" in
     selected) ! grep -F -- "** TEST SUCCEEDED **" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
     split-marker) grep -F -- "idle log" "$results/terminal.log" || return 1 ;;
-    zero|zero-options) grep -F -- "proved that any tests executed" "$results/terminal.log" || return 1 ;;
+    zero|zero-options|mixed-incomplete|swift-summary)
+      grep -F -- "treating as timeout (exit 124)" "$results/terminal.log" || return 1 ;;
     late-failure) grep -F -- "XCTAssertEqual failed" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
   esac
 )
 
-watchdog_cases=(finalization success selected split-marker zero zero-options failure late-failure silent growing)
+watchdog_cases=(finalization success selected split-marker zero zero-options mixed-incomplete swift-summary failure late-failure silent growing)
 watchdog_pids=()
 for mode in "${watchdog_cases[@]}"; do
   mkdir -p "$TMP_DIR/watchdog-$mode"

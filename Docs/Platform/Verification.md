@@ -111,6 +111,13 @@ validation and push safeguards follow
 output completeness, while CI runs forced generation and compares its result
 with committed output.
 
+The project-output registry includes the workspace descriptor, shared schemes,
+Info.plist, and entitlements alongside the project file. Staged validation checks
+those outputs and generated UI-plan selections, including newly generated files
+omitted from the index.
+The committed-output and idempotence gates also cover the shared schemes used by
+build runners that skip generation.
+
 ## Local simulator budget
 
 ### Choosing UI verification

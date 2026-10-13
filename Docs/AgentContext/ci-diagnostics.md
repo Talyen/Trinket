@@ -79,9 +79,12 @@ before treating finalization as stalled; `TRINKET_XCODE_IDLE_TIMEOUT_SECONDS`
 overrides that limit. Local tests use the same allowance as CI: healthy exports
 can take longer than 10 seconds after the suite passes. A passed suite can still
 hang during result finalization, leaving an incomplete `.xcresult`. The watchdog bounds that wait and
-can report log-proven test success; this does not prove the bundle finalized or
+can report success only after an authoritative `** TEST SUCCEEDED **` or
+`** BUILD SUCCEEDED **` action marker. XCTest suite and Swift Testing run summaries
+can appear before later tests finish; without a full-action marker, a watchdog kill
+returns timeout exit 124. Log-proven success does not prove the bundle finalized or
 that motion was correct. Earlier test failures and process crashes still override
-later passing summaries, and zero executed tests cannot establish a test pass.
+later success markers, and zero executed tests cannot establish a test pass.
 The watchdog remains a fallback for other export stalls; routine runs should finish
 with `completion_source=process-exit` and `result_bundle_complete=true`.
 

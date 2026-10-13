@@ -1,5 +1,7 @@
 # kind|path
 project|Trinket.xcodeproj/project.pbxproj
+project|Trinket.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+project|Trinket.xcodeproj/xcshareddata/xcschemes
 project|Trinket/Info.plist
 project|Trinket/Trinket.entitlements
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift

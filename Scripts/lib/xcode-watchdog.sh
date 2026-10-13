@@ -58,7 +58,9 @@ xcode_runner_infer_exit_from_log() {
     printf '65'
     return
   fi
-  if grep -Eq "\\*\\* (TEST|BUILD) SUCCEEDED \\*\\*|✔ Test run with |Test Suite '(Selected tests|All tests)' passed" "$log_file"; then
+  # Suite and Swift Testing summaries can precede unfinished later test runs.
+  # Only xcodebuild's full-action marker proves success after killing it.
+  if grep -Eq "\\*\\* (TEST|BUILD) SUCCEEDED \\*\\*" "$log_file"; then
     printf '0'
     return
   fi
