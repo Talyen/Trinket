@@ -20,16 +20,12 @@ package enum EffectHandlers {
         case .deathsDoor: DeathsDoorHandler()
         case .thorns, .nextBurnBonus: StackingAmountBuffHandler()
         case .thornsFromBlockFraction: ThornsFromBlockFractionHandler()
-        case .marked: MarkedHandler()
-        case .criticalChanceBonus: CriticalChanceBonusHandler()
-        case .restoreManaOnHit: RestoreManaOnHitHandler()
-        case .damageKeywordOverride: DamageKeywordOverrideHandler()
-        case .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .evadeNextHit, .nextStrikeCritical,
-             .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .freezeNextAttacker: FlagEffectHandler()
+        case .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride, .onHitDamage, .hemorrhage,
+             .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .evadeNextHit, .nextStrikeCritical,
+             .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .freezeNextAttacker: StoredEffectHandler()
         case .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: ShieldFromResourceHandler()
         case .maximumManaBonus: MaximumManaBonusHandler()
         case .partyDamageBonus: PartyDamageBonusHandler()
-        case .onHitDamage: OnHitDamageHandler()
         case .multiplyControlMeter: MultiplyControlMeterHandler()
         case .multiplyDoT: MultiplyDoTHandler()
         case .detonateDoT: DetonateDoTHandler()
@@ -38,7 +34,6 @@ package enum EffectHandlers {
         case .blessedAegis: BlessedAegisHandler()
         case .revive: ReviveHandler()
         case .damageReductionPercent, .damageReductionFlat, .healingReductionPercent: TimedDebuffHandler()
-        case .hemorrhage: HemorrhageHandler()
         }
     }
 }

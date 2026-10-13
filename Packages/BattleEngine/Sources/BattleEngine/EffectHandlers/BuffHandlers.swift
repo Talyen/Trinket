@@ -66,230 +66,126 @@ struct ThornsFromBlockFractionHandler: BattleEffectHandler {
     }
 }
 
-struct OnHitDamageHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let amount = TimedBuffSummary.maxAmount(in: stacks) { effect in
-            if case let .onHitDamage(_, value) = effect {
-                return value
-            }
-            return nil
-        }
-        guard amount > 0 else { return nil }
-        let label = keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward"
-        return EffectSummary(keyword: keyword, text: "\(label): Deals \(amount) \(keyword.rawValue) damage to the next attacker.")
-    }
-
+struct StoredEffectHandler: BattleEffectHandler {
     func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
+        _ effect: Effect, ability: Ability, source: Combatant, target: Combatant, in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard case let .onHitDamage(keyword, amount) = effect, amount > 0 else {
+        let event: (kind: ActionEvent.EffectOutcome, amount: Int, keyword: Keyword)
+        switch effect {
+        case let .onHitDamage(keyword, amount) where amount > 0:
+            event = (.wardApplied, amount, keyword)
+        case let .marked(bonus, _):
+            event = (.markedApplied, bonus, .physical)
+        case let .criticalChanceBonus(percent, _):
+            event = (.criticalChanceApplied, CombatRounding.rounded((percent * 100).rounded(.towardZero)), .physical)
+        case let .damageKeywordOverride(keyword, bonus, _):
+            event = (.damageKeywordOverrideApplied, bonus, keyword)
+        case let .hemorrhage(amount) where amount > 0:
+            event = (.hemorrhageApplied, amount, .bleed)
+        case .nextHolyStrike: event = (.nextHolyStrikeApplied, 0, effect.keyword)
+        case .nextStrikeDouble: event = (.nextStrikeDoubleApplied, 0, effect.keyword)
+        case .playNextCardTwice: event = (.playNextCardTwiceApplied, 0, effect.keyword)
+        case .evadeNextHit: event = (.evadeNextHitApplied, 0, effect.keyword)
+        case .nextStrikeCritical: event = (.criticalChanceApplied, 100, effect.keyword)
+        case .nextStrikeLeech: event = (.leechApplied, 0, effect.keyword)
+        case .nextStrikeDamageKeywordOverride: event = (.damageKeywordOverrideApplied, 0, effect.keyword)
+        case .freezeNextAttacker: event = (.controlApplied, 0, effect.keyword)
+        case let .restoreManaOnHit(amount, turns):
+            context.appendEffect(effect, to: target, sourceID: source.id, remainingTurns: turns)
+            return EffectApplyOutcome(events: [context.nextEvent(
+                kind: .effect(.manaShieldApplied), source: .init(source),
+                abilityID: ability.id, abilityName: ability.name, target: target,
+                amount: amount, keyword: .mana, origin: .direct,
+            )], didApply: true)
+        default:
             return EffectApplyOutcome(events: [], didApply: false)
         }
         return ActiveEffectMutation.replaceAndEmit(
-            .onHitDamage(keyword, amount),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
+            effect, to: target, source: source, ability: ability, in: &context,
             replacing: {
-                if case let .onHitDamage(existingKeyword, _) = $0 {
-                    return existingKeyword == keyword
+                switch effect {
+                case .onHitDamage: $0.kind == effect.kind && $0.keyword == effect.keyword
+                case .marked, .criticalChanceBonus, .damageKeywordOverride, .hemorrhage: $0.kind == effect.kind
+                default: $0 == effect
                 }
-                return false
             },
-            event: (.wardApplied, amount, keyword),
+            event: event,
         )
     }
-}
 
-struct MarkedHandler: BattleEffectHandler {
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        guard !stacks.isEmpty else { return nil }
-        let bonus = TimedBuffSummary.maxAmount(in: stacks) { effect in
-            if case let .marked(value, _) = effect {
+        guard let first = stacks.first?.effect else { return nil }
+        switch first {
+        case .onHitDamage:
+            let amount = TimedBuffSummary.maxAmount(in: stacks) { effect in
+                guard case let .onHitDamage(_, value) = effect else { return nil }
                 return value
             }
-            return nil
-        }
-        guard bonus > 0 else {
-            return EffectSummary(keyword: keyword, text: "Marked: The next attack deals extra damage and removes Marked.")
-        }
-        let suffix = TimedBuffSummary.durationSuffix(in: stacks, separator: ";")
-        return EffectSummary(
-            keyword: keyword,
-            text: "Marked: The next attack deals +\(bonus) damage and removes Marked\(suffix).",
-        )
-    }
+            guard amount > 0 else { return nil }
+            let label = keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward"
+            return EffectSummary(keyword: keyword, text: "\(label): Deals \(amount) \(keyword.rawValue) damage to the next attacker.")
 
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        guard case let .marked(bonus, durationTurns) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        return ActiveEffectMutation.replaceAndEmit(
-            .marked(bonus, durationTurns),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
-            replacing: { $0.kind == .marked },
-            event: (.markedApplied, bonus, .physical),
-        )
-    }
-}
-
-struct CriticalChanceBonusHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let percent = TimedBuffSummary.maxPercent(in: stacks) { effect in
-            if case let .criticalChanceBonus(value, _) = effect {
+        case .marked:
+            let bonus = TimedBuffSummary.maxAmount(in: stacks) { effect in
+                guard case let .marked(value, _) = effect else { return nil }
                 return value
             }
-            return nil
+            guard bonus > 0 else {
+                return EffectSummary(keyword: keyword, text: "Marked: The next attack deals extra damage and removes Marked.")
+            }
+            let suffix = TimedBuffSummary.durationSuffix(in: stacks, separator: ";")
+            return EffectSummary(
+                keyword: keyword,
+                text: "Marked: The next attack deals +\(bonus) damage and removes Marked\(suffix).",
+            )
+
+        case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
+            return timedSummary(for: stacks, keyword: keyword)
+
+        case .hemorrhage:
+            let amount = TimedBuffSummary.maxAmount(in: stacks) { effect in
+                guard case let .hemorrhage(value) = effect else { return nil }
+                return value
+            }
+            guard amount > 0 else { return nil }
+            return EffectSummary(keyword: keyword, text: "Hemorrhage: Takes \(amount) Bleed damage on next attack.")
+
+        case .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .evadeNextHit, .nextStrikeCritical,
+             .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .freezeNextAttacker:
+            guard let text = EffectPresentation.battleSummaryPhrase(for: first) else { return nil }
+            return EffectSummary(keyword: keyword, text: text)
+
+        default: return nil
         }
-        guard percent > 0 else { return nil }
+    }
+
+    private func timedSummary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        guard let first = stacks.first?.effect else { return nil }
         let suffix = TimedBuffSummary.durationSuffix(in: stacks)
-        return EffectSummary(
-            keyword: keyword,
-            text: "Focused: Increases Critical chance by +\(CombatRounding.rounded((percent * 100).rounded(.towardZero)))%\(suffix).",
-        )
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        guard case let .criticalChanceBonus(percent, durationTurns) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        return ActiveEffectMutation.replaceAndEmit(
-            .criticalChanceBonus(percent, durationTurns),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
-            replacing: { $0.kind == .criticalChanceBonus },
-            event: (.criticalChanceApplied, CombatRounding.rounded((percent * 100).rounded(.towardZero)), .physical),
-        )
-    }
-}
-
-struct RestoreManaOnHitHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let amount = TimedBuffSummary.summedAmount(in: stacks) { effect in
-            if case let .restoreManaOnHit(value, _) = effect {
+        let text: String
+        switch first {
+        case .criticalChanceBonus:
+            let percent = TimedBuffSummary.maxPercent(in: stacks) { effect in
+                guard case let .criticalChanceBonus(value, _) = effect else { return nil }
                 return value
             }
-            return nil
-        }
-        guard amount > 0 else { return nil }
-        let suffix = TimedBuffSummary.durationSuffix(in: stacks)
-        return EffectSummary(
-            keyword: keyword,
-            text: "Mana Shield: Restores \(amount) Mana when hit\(suffix).",
-        )
-    }
+            guard percent > 0 else { return nil }
+            text = "Focused: Increases Critical chance by +\(CombatRounding.rounded((percent * 100).rounded(.towardZero)))%\(suffix)."
 
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        guard case let .restoreManaOnHit(amount, durationTurns) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        context.appendEffect(.restoreManaOnHit(amount, durationTurns), to: target, sourceID: source.id, remainingTurns: durationTurns)
-        let event = context.nextEvent(
-            kind: .effect(.manaShieldApplied),
-            source: .init(source),
-            abilityID: ability.id, abilityName: ability.name,
-            target: target,
-            amount: amount,
-            keyword: .mana,
-            origin: .direct,
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
-struct DamageKeywordOverrideHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        guard let active = stacks.first,
-              case let .damageKeywordOverride(overrideKeyword, bonus, _) = active.effect
-        else { return nil }
-        let suffix = TimedBuffSummary.durationSuffix(in: stacks)
-        return EffectSummary(
-            keyword: keyword,
-            text: "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus))\(suffix).",
-        )
-    }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        guard case let .damageKeywordOverride(keyword, bonus, durationTurns) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
-        }
-        return ActiveEffectMutation.replaceAndEmit(
-            .damageKeywordOverride(keyword, bonus, durationTurns),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
-            replacing: { $0.kind == .damageKeywordOverride },
-            event: (.damageKeywordOverrideApplied, bonus, keyword),
-        )
-    }
-}
-
-struct HemorrhageHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let amount = TimedBuffSummary.maxAmount(in: stacks) { effect in
-            if case let .hemorrhage(value) = effect {
+        case .restoreManaOnHit:
+            let amount = TimedBuffSummary.summedAmount(in: stacks) { effect in
+                guard case let .restoreManaOnHit(value, _) = effect else { return nil }
                 return value
             }
-            return nil
-        }
-        guard amount > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Hemorrhage: Takes \(amount) Bleed damage on next attack.")
-    }
+            guard amount > 0 else { return nil }
+            text = "Mana Shield: Restores \(amount) Mana when hit\(suffix)."
 
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        guard case let .hemorrhage(amount) = effect, amount > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+        case let .damageKeywordOverride(overrideKeyword, bonus, _):
+            text = "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus))\(suffix)."
+
+        default: return nil
         }
-        return ActiveEffectMutation.replaceAndEmit(
-            .hemorrhage(amount),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
-            replacing: { $0.kind == .hemorrhage },
-            event: (.hemorrhageApplied, amount, .bleed),
-        )
+        return EffectSummary(keyword: keyword, text: text)
     }
 }
 

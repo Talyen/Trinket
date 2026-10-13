@@ -70,8 +70,10 @@ with selective duration rules supply an extractor.
 
 `EffectHandlers.handler(for:)` exhaustively selects a handler for every `EffectKind`;
 there is no optional registration or missing-handler recovery. Handlers implement
-behavior without declaring a second kind. Shared next-hit flag, Cleanse/Purge and resource-to-Block
-handlers select their operation from the incoming effect rather than a configured mode.
+behavior without declaring a second kind. `StoredEffectHandler` shares storage and
+feedback for next-hit flags, wards, Marked, critical bonuses, Mana Shield,
+keyword overrides and Hemorrhage, preserving each effect's replacement or stacking rule.
+Cleanse/Purge and resource-to-Block handlers likewise select from the incoming effect.
 Thorns and Kindled share `StackingAmountBuffHandler`; additions and summary totals
 saturate while retaining their distinct effects, keywords and events.
 For a new effect kind, add its dispatch case. Existing handler and turn-processing

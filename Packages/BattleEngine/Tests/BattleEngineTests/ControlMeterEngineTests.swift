@@ -65,126 +65,56 @@ struct ControlMeterEngineTests {
         try #expect(events.contains { $0.effectKind == .controlTriggered && $0.keyword == keyword })
     }
 
-    @Test(arguments: [Keyword.stun, Keyword.freeze])
-    func `party members resist incoming control`(keyword: Keyword) throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
+    @Test(arguments: [Keyword.stun, .freeze], [BattleParticipant.hero, .companion, .enemy])
+    func `incoming control resists party charges and leaves enemy charges unchanged`(
+        keyword: Keyword,
+        recipient: BattleParticipant,
+    ) throws {
         var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50),
         )
-
-        for target in [hero, companion] {
-            _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-                4,
-                keyword: keyword,
-                to: target,
-                sourceActorID: enemy.id,
-                applyFightPacing: false,
-                in: &context,
-            ) }
-
-            let meter = try #require(
-                context.roster.activeEffects(for: target).first { $0.keyword == keyword },
-            )
-            let values = try #require(meter.effect.controlMeterValues)
-            try #expect(values.amount == 3)
-        }
-    }
-
-    @Test(arguments: [Keyword.stun, Keyword.freeze])
-    func `enemy receives unmodified incoming control`(keyword: Keyword) throws {
-        var context = BattleTestFixtures.makePipelineContext()
-        let target = context.roster.enemy.combatant
-
+        let target = context.roster[recipient].combatant
         _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            4,
-            keyword: keyword,
-            to: target,
-            sourceActorID: "source",
-            applyFightPacing: false,
-            in: &context,
+            4, keyword: keyword, to: target, sourceActorID: recipient == .enemy ? context.hero.id : context.enemy.id,
+            applyFightPacing: false, in: &context,
         ) }
-
-        let meter = try #require(
-            context.roster.activeEffects(for: target).first { $0.keyword == keyword },
-        )
-        let values = try #require(meter.effect.controlMeterValues)
-        try #expect(values.amount == 4)
+        let meter = try #require(context.roster.activeEffects(for: target).first { $0.keyword == keyword })
+        #expect(meter.effect.controlMeterValues?.amount == (recipient == .enemy ? 4 : 3))
     }
 
-    @Test(arguments: [Keyword.stun, Keyword.freeze])
+    @Test(arguments: [Keyword.stun, .freeze])
     func `stronger existing party resistance takes precedence`(keyword: Keyword) throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
-        let block = ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)
         var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            heroEffects: [block],
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50),
+            heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
             heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
                 mitigation: MitigationTriggers(blockedControlBurnResistance: 0.5),
             )),
         )
-
         _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            4,
-            keyword: keyword,
-            to: hero,
-            sourceActorID: enemy.id,
-            applyFightPacing: false,
-            in: &context,
+            4, keyword: keyword, to: context.hero, sourceActorID: context.enemy.id,
+            applyFightPacing: false, in: &context,
         ) }
-
-        let meter = try #require(
-            context.roster.activeEffects(for: hero).first { $0.keyword == keyword },
-        )
-        let values = try #require(meter.effect.controlMeterValues)
-        try #expect(values.amount == 2)
+        let meter = try #require(context.roster.activeEffects(for: context.hero).first { $0.keyword == keyword })
+        #expect(meter.effect.controlMeterValues?.amount == 2)
     }
 
-    @Test func `apply buildup no duplicate when same keyword skip pending`() throws {
+    @Test(arguments: [0, BattleTiming.controlStatusLingerTurns])
+    func `control charge cannot retrigger a pending or lingering status`(remainingTurns: Int) {
         var context = BattleTestFixtures.makePipelineContext(
-            targetEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0),
-            ],
-        )
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            15,
-            keyword: .stun,
-            to: context.roster.enemy.combatant,
-            sourceActorID: "source",
-            in: &context,
-        ) }
-        try #expect(events.isEmpty)
-    }
-
-    @Test func `apply buildup no duplicate during control status linger`() throws {
-        var context = BattleTestFixtures.makePipelineContext(
-            targetEffects: [
-                ActiveEffect(
-                    id: 1,
-                    effect: .controlMeter(.stun, 10, 10),
-                    remainingTurns: BattleTiming.controlStatusLingerTurns,
-                ),
-            ],
+            targetEffects: [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: remainingTurns)],
         )
         let target = context.roster.enemy.combatant
-        try #expect(!(context.roster.hasPendingActionSkip(for: target, keyword: .stun)))
-        try #expect(context.roster.hasControlStatus(for: target, keyword: .stun))
-
+        #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun) == (remainingTurns == 0))
+        #expect(context.roster.hasControlStatus(for: target, keyword: .stun))
         let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            15,
-            keyword: .stun,
-            to: target,
-            sourceActorID: "source",
-            in: &context,
+            15, keyword: .stun, to: target, sourceActorID: "source", in: &context,
         ) }
-        try #expect(events.isEmpty)
+        #expect(events.isEmpty)
     }
 
     @Test func `apply buildup accumulates other keyword while skip pending`() throws {
@@ -278,112 +208,45 @@ struct ControlMeterEngineTests {
         try #expect(meter.amount == baseThreshold, "a full meter reads as full against its stored basis")
     }
 
-    @Test func `stun extend chance zero grants no extra skip`() throws {
-        var context = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(stunExtendChancePercent: 0),
-            )),
-            seed: 0,
-        )
-        let enemy = context.roster.enemy.combatant
-        let threshold = ControlMeterEngine.threshold(for: enemy, in: context)
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            threshold, keyword: .stun, to: enemy, sourceActorID: "source",
-            applyFightPacing: false, in: &context,
-        ) }
-        try #expect(preventedActions(in: &context, for: enemy) == 1)
+    @Test(arguments: [
+        (Keyword.stun, 0.0, UInt64(0), 1),
+        (.stun, 1.0, 0, 2),
+        (.freeze, 0.20, 0, 2),
+        (.freeze, 0.20, 1, 1),
+        (.stun, 1.5, 0, 3),
+        (.stun, 1.5, 1, 2),
+    ])
+    func `control extension combines guaranteed skips and seeded fractional chances`(
+        keyword: Keyword, chance: Double, seed: UInt64, expectedSkips: Int,
+    ) {
+        var triggers = CombatTraitTriggers()
+        if keyword == .stun {
+            triggers.stunExtendChancePercent = chance
+        } else {
+            triggers.freezeExtendChancePercent = chance
+        }
+        assertControlSkips(keyword: keyword, triggers: triggers, seed: seed, expected: expectedSkips)
     }
 
-    @Test func `stun extend chance one guarantees extra skip`() throws {
-        var context = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(stunExtendChancePercent: 1.0),
-            )),
-            seed: 0,
+    @Test func `legacy freeze extra action skips maps to twenty percent`() {
+        assertControlSkips(
+            keyword: .freeze,
+            triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtraActionSkips: 1)),
+            seed: 0, expected: 2,
         )
-        let enemy = context.roster.enemy.combatant
-        let threshold = ControlMeterEngine.threshold(for: enemy, in: context)
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            threshold, keyword: .stun, to: enemy, sourceActorID: "source",
-            applyFightPacing: false, in: &context,
-        ) }
-        try #expect(preventedActions(in: &context, for: enemy) == 2)
     }
 
-    @Test func `freeze extend chance respects seed`() throws {
-        var hitContext = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(freezeExtendChancePercent: 0.20),
-            )),
-            seed: 0,
-        )
-        let hitEnemy = hitContext.roster.enemy.combatant
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            ControlMeterEngine.threshold(for: hitEnemy, in: hitContext),
-            keyword: .freeze, to: hitEnemy, sourceActorID: "source",
-            applyFightPacing: false, in: &hitContext,
-        ) }
-        try #expect(preventedActions(in: &hitContext, for: hitEnemy) == 2)
-
-        var missContext = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(freezeExtendChancePercent: 0.20),
-            )),
-            seed: 1,
-        )
-        let missEnemy = missContext.roster.enemy.combatant
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            ControlMeterEngine.threshold(for: missEnemy, in: missContext),
-            keyword: .freeze, to: missEnemy, sourceActorID: "source",
-            applyFightPacing: false, in: &missContext,
-        ) }
-        try #expect(preventedActions(in: &missContext, for: missEnemy) == 1)
-    }
-
-    @Test func `legacy freeze extra action skips maps to twenty percent`() throws {
+    private func assertControlSkips(keyword: Keyword, triggers: CombatTraitTriggers, seed: UInt64, expected: Int) {
         var context = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(freezeExtraActionSkips: 1),
-            )),
-            seed: 0,
+            heroModifiers: .init(triggers: triggers), seed: seed,
         )
         let enemy = context.roster.enemy.combatant
         _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             ControlMeterEngine.threshold(for: enemy, in: context),
-            keyword: .freeze, to: enemy, sourceActorID: "source",
+            keyword: keyword, to: enemy, sourceActorID: "source",
             applyFightPacing: false, in: &context,
         ) }
-        try #expect(preventedActions(in: &context, for: enemy) == 2)
-    }
-
-    @Test func `chance above one grants fractional second skip deterministically`() throws {
-        var hitContext = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(stunExtendChancePercent: 1.5),
-            )),
-            seed: 0,
-        )
-        let hitEnemy = hitContext.roster.enemy.combatant
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            ControlMeterEngine.threshold(for: hitEnemy, in: hitContext),
-            keyword: .stun, to: hitEnemy, sourceActorID: "source",
-            applyFightPacing: false, in: &hitContext,
-        ) }
-        try #expect(preventedActions(in: &hitContext, for: hitEnemy) == 3)
-
-        var missContext = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(stunExtendChancePercent: 1.5),
-            )),
-            seed: 1,
-        )
-        let missEnemy = missContext.roster.enemy.combatant
-        _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            ControlMeterEngine.threshold(for: missEnemy, in: missContext),
-            keyword: .stun, to: missEnemy, sourceActorID: "source",
-            applyFightPacing: false, in: &missContext,
-        ) }
-        try #expect(preventedActions(in: &missContext, for: missEnemy) == 2)
+        #expect(preventedActions(in: &context, for: enemy) == expected)
     }
 }
 

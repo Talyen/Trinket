@@ -5,6 +5,11 @@ import TrinketCore
 @testable import BattleEngine
 
 struct CleanseIntegrationTests {
+    private let cleanseAll = Ability(
+        id: "cleanse-all", name: "Cleanse All", tier: .basic,
+        description: "Cleanse all debuffs.", effects: [.cleanse(nil)],
+    )
+
     private func makeCleanseBattle(
         heroAbility: Ability = .panaceaPotion,
         heroMaxHealth: Int = 20,
@@ -13,16 +18,8 @@ struct CleanseIntegrationTests {
         heroModifiers: CombatModifierProfile = .zero,
         dealOpeningHand: Bool = true,
     ) -> BattleState {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            name: "Hero",
-            role: .hero,
-            maxHealth: heroMaxHealth,
-            abilities: [heroAbility],
-        )
-        return BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: CombatantFixtures.passiveCompanion(),
+        BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: heroMaxHealth, abilities: [heroAbility]),
             enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: enemyMaxHealth),
             activeHeroEffects: activeHeroEffects,
             heroModifiers: heroModifiers,
@@ -94,61 +91,34 @@ struct CleanseIntegrationTests {
         #expect(battle.health(of: battle.enemy) == health)
     }
 
-    @Test func `panacea cleanses most debuffed and heals lowest as one action`() throws {
-        var battle = makeCleanseBattle(
-            activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
-                ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTurns: 6),
-            ],
-        )
+    @Test(arguments: [
+        (10, 11, true, true, 16, 11),
+        (14, 6, true, false, 14, 12),
+        (10, 15, false, false, 16, 15),
+    ])
+    func `panacea cleanses most debuffed and heals lowest including an empty cleanse`(
+        heroHealth: Int, companionHealth: Int, debuffed: Bool, shielded: Bool,
+        expectedHero: Int, expectedCompanion: Int,
+    ) throws {
+        let debuffs: [ActiveEffect] = debuffed ? [
+            ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
+            ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
+        ] : []
+        let buffs = shielded ? [ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTurns: 6)] : []
+        var battle = makeCleanseBattle(activeHeroEffects: debuffs + buffs)
         battle.appliesFightPacing = false
-        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
-        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 11 }
+        battle.roster.hero.currentHealth = heroHealth
+        battle.roster.companion.currentHealth = companionHealth
 
         let events = try #require(try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle))
-        try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
-        try #expect(events.first?.effectKind == .cleanseApplied)
-        try #expect(battle.hasHeroEffect {
-            if case .shield = $0 {
-                return true
-            }; return false
-        })
-        let heroHealth = battle.health(of: battle.hero)
-        let companionHealth = battle.health(of: battle.companion)
-        try #expect(heroHealth == 16, "hero health: \(heroHealth)")
-        try #expect(companionHealth == 11, "companion health: \(companionHealth)")
-        try #expect(events.count(where: { $0.effectKind == .instantHeal }) == 1)
-    }
-
-    @Test func `panacea cleanses most debuffed but heals lowest when split`() throws {
-        var battle = makeCleanseBattle(
-            activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
-            ],
-        )
-        battle.appliesFightPacing = false
-        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 14 }
-        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 6 }
-
-        _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
-
-        try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
-        try #expect(battle.health(of: battle.hero) == 14)
-        try #expect(battle.health(of: battle.companion) == 12)
-    }
-
-    @Test func `panacea heals base amount when no debuffs present`() throws {
-        var battle = makeCleanseBattle()
-        battle.appliesFightPacing = false
-        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
-        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 15 }
-
-        _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
-
-        try #expect(battle.health(of: battle.hero) == 16)
-        try #expect(battle.health(of: battle.companion) == 15)
+        #expect(!battle.activeEffects(of: battle.hero).contains(where: \.effect.isRemovableDebuff))
+        #expect(battle.health(of: battle.hero) == expectedHero)
+        #expect(battle.health(of: battle.companion) == expectedCompanion)
+        if shielded {
+            #expect(events.first?.effectKind == .cleanseApplied)
+            #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .shield })
+            #expect(events.count { $0.effectKind == .instantHeal } == 1)
+        }
     }
 
     @Test func `cleanse specific keyword removes matching debuffs on use`() throws {
@@ -156,7 +126,6 @@ struct CleanseIntegrationTests {
             id: "cleanse-poison",
             name: "Cleanse Poison",
             tier: .basic,
-            directDamage: 0,
             description: "Cleanse Poisoned.",
             effects: [.cleanse(.poison)],
         )
@@ -188,7 +157,6 @@ struct CleanseIntegrationTests {
             id: "test-cleanse",
             name: "Test Cleanse",
             tier: .basic,
-            directDamage: 0,
             description: "Cleanse Stunned.",
             targetedEffects: [TargetedEffect(.cleanse(.stun))],
         )
@@ -207,14 +175,6 @@ struct CleanseIntegrationTests {
     }
 
     @Test func `cleanse all debuffs triggers toxic backlash trait damage when curing poison`() throws {
-        let cleanseAll = Ability(
-            id: "cleanse-all",
-            name: "Cleanse All",
-            tier: .basic,
-            directDamage: 0,
-            description: "Cleanse all debuffs.",
-            effects: [.cleanse(nil)],
-        )
         var triggers = CombatTraitTriggers()
         triggers.onCleansePoisonDealDamagePerStack = 5
         var battle = makeCleanseBattle(
@@ -235,54 +195,22 @@ struct CleanseIntegrationTests {
         try #expect(battle.health(of: battle.enemy) == 90)
     }
 
-    @Test func `cleanse all applies party cleanse block once across mixed debuffs`() throws {
-        let cleanseAll = Ability(
-            id: "cleanse-all",
-            name: "Cleanse All",
-            tier: .basic,
-            directDamage: 0,
-            description: "Cleanse all debuffs.",
-            effects: [.cleanse(nil)],
-        )
-        let triggers = CombatTraitTriggers(cleanse: CleanseTriggers(cleansePartyBlock: 2))
+    @Test(arguments: [false, true])
+    func `cleanse party block rewards one successful removal across mixed debuffs`(hasDebuffs: Bool) throws {
+        let debuffs = [Effect.poison(4), .burn(4), .bleed(4)].enumerated().map {
+            ActiveEffect(id: $0.offset + 1, effect: $0.element, remainingTurns: 0)
+        }
         var battle = makeCleanseBattle(
-            heroAbility: cleanseAll,
-            heroMaxHealth: 50,
-            activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
-                ActiveEffect(id: 3, effect: .bleed(4), remainingTurns: 0),
-            ],
-            heroModifiers: CombatModifierProfile(triggers: triggers),
+            heroAbility: cleanseAll, heroMaxHealth: 50,
+            activeHeroEffects: hasDebuffs ? debuffs : [],
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleansePartyBlock: 2))),
         )
-
         let events = try BattleTestFixtures.playCardNamed("Cleanse All", owner: .hero, on: &battle)
-
-        try #expect(events.first?.effectKind == .cleanseApplied)
-        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 2)
-        try #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
-    }
-
-    @Test func `cleanse party block does not grant block on empty cleanse`() throws {
-        let cleanseAll = Ability(
-            id: "cleanse-all",
-            name: "Cleanse All",
-            tier: .basic,
-            directDamage: 0,
-            description: "Cleanse all debuffs.",
-            effects: [.cleanse(nil)],
-        )
-        let triggers = CombatTraitTriggers(cleanse: CleanseTriggers(cleansePartyBlock: 2))
-        var battle = makeCleanseBattle(
-            heroAbility: cleanseAll,
-            heroMaxHealth: 50,
-            heroModifiers: CombatModifierProfile(triggers: triggers),
-        )
-
-        _ = try BattleTestFixtures.playCardNamed("Cleanse All", owner: .hero, on: &battle)
-
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
-        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 0)
+        if hasDebuffs {
+            #expect(events.first?.effectKind == .cleanseApplied)
+        }
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == (hasDebuffs ? 2 : 0))
+        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == (hasDebuffs ? 2 : 0))
     }
 
     @Test func `purifying wisdom does not draw or consume claim on empty cleanse`() {
@@ -290,22 +218,11 @@ struct CleanseIntegrationTests {
             id: "cleanse-one",
             name: "Cleanse",
             tier: .basic,
-            directDamage: 0,
             effects: [.cleanse(nil)],
         )
-        let hero = CombatantFixtures.combatant(
-            id: "hero", name: "Hero", role: .hero, maxHealth: 50,
-            abilities: [cleanseAbility, .slash, .smite, .block, .apple, .heal],
-        )
-        let companion = CombatantFixtures.passiveCompanion()
-        let enemy = CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        let triggers = CombatTraitTriggers(cleanse: CleanseTriggers(cleanseBonusDraw: 1))
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            activeHeroEffects: [],
-            heroModifiers: CombatModifierProfile(triggers: triggers),
+        var battle = makeCleanseBattle(
+            heroAbility: cleanseAbility, heroMaxHealth: 50,
+            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseBonusDraw: 1))),
             dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck(abilities: [.slash, .smite, .block])

@@ -5,6 +5,15 @@ import TrinketCore
 @testable import BattleEngine
 
 struct EffectHandlersApplyTests {
+    private func drawBattle(heroAbilities: [Ability], companionAbilities: [Ability]? = nil) -> BattleState {
+        BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50, abilities: heroAbilities),
+            companion: companionAbilities.map {
+                CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50, abilities: $0)
+            },
+        )
+    }
+
     @Test(arguments: [false, true])
     func `companion auto play draws its own card even after hero defeat`(heroDefeated: Bool) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
@@ -37,208 +46,100 @@ struct EffectHandlersApplyTests {
         #expect(battle.companionDeck.abilities.isEmpty)
     }
 
-    @Test func `burn handler applies burn effect`() throws {
+    @Test(arguments: [(Effect.burn(3), BattleParticipant.enemy), (.shield(.block, 5), .hero)])
+    func `basic status handlers apply their effect`(effect: Effect, recipient: BattleParticipant) {
         var battle = BattleStateTestFactory.makeBattle()
-        let enemy = battle.enemy
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .burn(3),
-            target: enemy,
-            battle: &battle,
-        )
-        try #expect(outcome.didApply)
-        try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
+        let target = battle.roster[recipient].combatant
+        let outcome = EffectHandlersTestSupport.dispatch(effect, target: target, battle: &battle)
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: target)
+            .contains { recipient == .enemy ? $0.effect.isDecayingDoT && $0.keyword == .burn : $0.effect == effect })
+        if recipient == .hero {
+            #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
+        }
     }
 
-    @Test func `shield handler applies and emits events`() throws {
-        var battle = BattleStateTestFactory.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .shield(.block, 5),
-            battle: &battle,
-        )
-        try #expect(outcome.didApply)
-        try #expect(battle.activeEffects(of: battle.hero).contains { ae in
-            if case .shield(.block, 5) = ae.effect {
-                return true
-            }
-            return false
-        })
-        try #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
-    }
-
-    @Test func `draw cards handler draws into hand and emits event`() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 50,
-                abilities: [.slash, .heal, .smite, .darkPact],
-            ),
-        )
+    @Test(arguments: [false, true])
+    func `draw cards fills available hand space and buffers overflow`(fullHand: Bool) {
+        var battle = drawBattle(heroAbilities: fullHand ? [.slash, .heal, .smite] : [.slash, .heal, .smite, .darkPact])
         battle.heroDeck.putOnBottom(.smite)
         battle.heroDeck.putOnBottom(.heal)
-        while battle.hand.count > 1 {
-            _ = battle.hand.remove(id: battle.hand.cards[0].id)
+        if fullHand {
+            while battle.hand.count < BattleHand.maxSize {
+                battle.nextCardID += 1
+                battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
+            }
+        } else {
+            while battle.hand.count > 1 {
+                _ = battle.hand.remove(id: battle.hand.cards[0].id)
+            }
         }
+        #expect(battle.hand.buffer.isEmpty)
         let handBefore = battle.hand.count
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .drawCards(2),
-            ability: .darkPact,
-            battle: &battle,
-        )
-        try #expect(outcome.didApply)
-        try #expect(battle.hand.count == handBefore + 2)
-        try #expect(battle.hand.buffer.isEmpty)
-        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
+        let outcome = EffectHandlersTestSupport.dispatch(.drawCards(2), ability: .darkPact, battle: &battle)
+        #expect(outcome.didApply)
+        #expect(battle.hand.count == (fullHand ? BattleHand.maxSize : handBefore + 2))
+        #expect(battle.hand.bufferCount == (fullHand ? 2 : 0))
+        #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
     }
 
-    @Test func `draw and play cards handler draws and plays hero and companion cards`() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 50,
-                abilities: [.slash, .heal],
-            ),
-            companion: CombatantFixtures.combatant(
-                id: "companion",
-                role: .companion,
-                maxHealth: 50,
-                abilities: [.bash, .smite],
-            ),
-        )
-        while battle.hand.count > 1 {
-            _ = battle.hand.remove(id: battle.hand.cards[0].id)
-        }
-        battle.heroDeck = CombatDeck(abilities: [.slash])
-        battle.companionDeck = CombatDeck(abilities: [.smite])
-
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .drawAndPlayCards(2),
-            ability: .packTactics,
-            battle: &battle,
-        )
-
-        try #expect(outcome.didApply)
-        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
-        try #expect(outcome.events.contains {
-            $0.kind == .abilityDamage && $0.abilityName == Ability.slash.name
-        })
+    private enum AutomaticDrawScenario: CaseIterable {
+        case alternating, fullHand, stunnedHero
     }
 
-    @Test func `draw and play cards handler plays buffered card when hand is full`() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 50,
-                abilities: [.heal],
-            ),
-            companion: CombatantFixtures.combatant(
-                id: "companion",
-                role: .companion,
-                maxHealth: 50,
-                abilities: [],
-            ),
-        )
-        while battle.hand.count < BattleHand.maxSize {
-            battle.nextCardID += 1
-            battle.hand.append(BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero))
+    @Test(arguments: AutomaticDrawScenario.allCases)
+    private func `automatic draws preserve hand contents and skip controlled owners`(scenario: AutomaticDrawScenario) {
+        let (heroAbilities, companionAbilities): ([Ability], [Ability]) = switch scenario {
+        case .alternating: ([.slash, .heal], [.bash, .smite])
+        case .fullHand: ([.heal], [])
+        case .stunnedHero: ([.slash], [.smite])
         }
-        let preexistingHandIDs = Set(battle.hand.cards.map(\.id))
-        battle.heroDeck = CombatDeck(abilities: [.slash])
-        battle.companionDeck = CombatDeck()
-
-        let packTactics = Ability(
-            id: "pack-tactics",
-            name: "Pack Tactics",
-            tier: .ultimate,
-            targetedEffects: [TargetedEffect(.drawAndPlayCards(1))],
-        )
-
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .drawAndPlayCards(1),
-            ability: packTactics,
-            battle: &battle,
-        )
-
-        try #expect(outcome.didApply)
-        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 1 })
-        try #expect(outcome.events.contains {
-            $0.kind == .abilityDamage && $0.abilityName == Ability.slash.name
-        })
-        try #expect(Set(battle.hand.cards.map(\.id)) == preexistingHandIDs)
-        try #expect(battle.hand.buffer.isEmpty)
-    }
-
-    @Test func `draw and play cards handler skips stunned owner and plays companion`() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 50,
-                abilities: [.slash],
-            ),
-            companion: CombatantFixtures.combatant(
-                id: "companion",
-                role: .companion,
-                maxHealth: 50,
-                abilities: [.smite],
-            ),
-        )
-        while battle.hand.count > 1 {
-            _ = battle.hand.remove(id: battle.hand.cards[0].id)
+        var battle = drawBattle(heroAbilities: heroAbilities, companionAbilities: companionAbilities)
+        if scenario == .fullHand {
+            while battle.hand.count < BattleHand.maxSize {
+                battle.nextCardID += 1
+                battle.hand.append(BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero))
+            }
+        } else {
+            while battle.hand.count > 1 {
+                _ = battle.hand.remove(id: battle.hand.cards[0].id)
+            }
         }
-        battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)],
-            for: battle.hero,
-        )
-        battle.ownersSkippingThisPlayerTurn = [.hero]
+        if scenario == .stunnedHero {
+            battle.roster.setActiveEffects(
+                [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)], for: battle.hero,
+            )
+            battle.ownersSkippingThisPlayerTurn = [.hero]
+        }
+        let handIDs = Set(battle.hand.cards.map(\.id))
         battle.heroDeck = CombatDeck(abilities: [.slash])
-        battle.companionDeck = CombatDeck(abilities: [.smite, .bash])
+        battle.companionDeck = CombatDeck(abilities: scenario == .fullHand ? [] : scenario == .stunnedHero ? [.smite, .bash] : [.smite])
         let heroDeckCount = battle.heroDeck.count
-
+        let count = scenario == .fullHand ? 1 : 2
         let outcome = EffectHandlersTestSupport.dispatch(
-            .drawAndPlayCards(2),
-            ability: Ability(
-                id: "pack-tactics",
-                name: "Pack Tactics",
-                tier: .ultimate,
-                targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
-            ),
-            battle: &battle,
+            .drawAndPlayCards(count), ability: scenario == .alternating ? .packTactics : automaticDrawAbility(count), battle: &battle,
         )
+        #expect(outcome.didApply)
+        #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == count })
+        let attack = scenario == .stunnedHero ? Ability.smite : .slash
+        #expect(outcome.events.contains { $0.kind == .abilityDamage && $0.abilityName == attack.name })
+        if scenario == .fullHand {
+            #expect(Set(battle.hand.cards.map(\.id)) == handIDs)
+            #expect(battle.hand.buffer.isEmpty)
+        } else if scenario == .stunnedHero {
+            #expect(outcome.events.contains { $0.kind == .ability && $0.abilityName == Ability.bash.name })
+            #expect(battle.heroDeck.count == heroDeckCount)
+        }
+    }
 
-        try #expect(outcome.didApply)
-        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
-        try #expect(outcome.events.contains {
-            $0.kind == .abilityDamage && $0.abilityName == Ability.smite.name
-        })
-        try #expect(outcome.events.contains { $0.kind == .ability && $0.abilityName == Ability.bash.name })
-        try #expect(battle.heroDeck.count == heroDeckCount)
+    private func automaticDrawAbility(_ count: Int) -> Ability {
+        Ability(id: "pack-tactics", name: "Pack Tactics", tier: .ultimate, targetedEffects: [TargetedEffect(.drawAndPlayCards(count))])
     }
 
     @Test(arguments: [false, true])
     func `draw and play cards does not replay nested draw and play forever`(recordsPlayback: Bool) throws {
-        let packTactics = Ability(
-            id: "pack-tactics",
-            name: "Pack Tactics",
-            tier: .ultimate,
-            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
-        )
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 50,
-                abilities: [packTactics],
-            ),
-            companion: CombatantFixtures.combatant(
-                id: "companion",
-                role: .companion,
-                maxHealth: 50,
-                abilities: [packTactics],
-            ),
-        )
+        let packTactics = automaticDrawAbility(2)
+        var battle = drawBattle(heroAbilities: [packTactics], companionAbilities: [packTactics])
         while battle.hand.count > 1 {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
         }
@@ -255,20 +156,8 @@ struct EffectHandlersApplyTests {
     }
 
     @Test func `draw and play depth cap does not leave unplayed drawn cards`() throws {
-        let packTactics = Ability(
-            id: "pack-tactics",
-            name: "Pack Tactics",
-            tier: .ultimate,
-            targetedEffects: [TargetedEffect(.drawAndPlayCards(2))],
-        )
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 50,
-                abilities: [packTactics],
-            ),
-        )
+        let packTactics = automaticDrawAbility(2)
+        var battle = drawBattle(heroAbilities: [packTactics])
         while !battle.hand.isEmpty {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
         }
@@ -290,34 +179,6 @@ struct EffectHandlersApplyTests {
         try #expect(idsAfter == idsBefore)
         try #expect(battle.heroDeck.count == heroDeckCount)
         try #expect(battle.resolution.depth(.draw) == BattleState.maxDrawAndPlayDepth)
-    }
-
-    @Test func `draw cards handler overflow goes to buffer`() throws {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 50,
-                abilities: [.slash, .heal, .smite],
-            ),
-        )
-        battle.heroDeck.putOnBottom(.smite)
-        battle.heroDeck.putOnBottom(.heal)
-        while battle.hand.count < BattleHand.maxSize {
-            battle.nextCardID += 1
-            battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
-        }
-        try #expect(battle.hand.buffer.isEmpty)
-
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .drawCards(2),
-            ability: .darkPact,
-            battle: &battle,
-        )
-        try #expect(outcome.didApply)
-        try #expect(battle.hand.count == BattleHand.maxSize)
-        try #expect(battle.hand.bufferCount == 2)
-        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
     }
 }
 
