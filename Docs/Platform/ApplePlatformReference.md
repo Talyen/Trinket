@@ -78,7 +78,7 @@ clearances. Preserve prepared artwork and the shared interaction hierarchy.
 
 ## Apple skill references
 
-Two repository skills incorporate Apple's Xcode guidance:
+Two SwiftUI skills incorporate Apple's Xcode guidance:
 
 - [swiftui-specialist](../../.agents/skills/swiftui-specialist/SKILL.md): SwiftUI
   implementation, observation, environment, identity, animation, and localization.
@@ -100,6 +100,11 @@ When refreshing for a new Xcode build, export to a temporary directory, compare
 only the two selected skills while preserving local adaptations, then
 update the snapshot version here; do not export directly over `.agents/skills/`.
 Validate skill frontmatter, local links, and the scoped documentation handoff.
+
+The [device-interaction skill](../../.agents/skills/device-interaction/SKILL.md#apple-source)
+owns a separate Apple snapshot, tool mapping, and refresh procedure for native
+device inspection. Its export date and repository adaptation are independent of
+the SwiftUI references above.
 
 ## Design reference routing
 

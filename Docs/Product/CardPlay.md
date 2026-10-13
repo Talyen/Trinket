@@ -15,8 +15,9 @@ Touch-down immediately lifts the card with a small enlargement and shadow.
 Movement follows the finger from its original grab position in a stable hand
 coordinate space; the tap-versus-drag threshold does not delay visual pickup.
 Only lift and return animate independently of the finger's movement.
-A restrained edge marks playable cards, with one settling accent when a card
-becomes playable. Crossing the drag-to-play threshold adds no border animation,
+A restrained steady edge marks playable cards, with an animated visibility
+transition. Becoming playable or dismissing inspection does not pulse the border.
+Crossing the drag-to-play threshold adds no border animation,
 glow, enlargement, or haptic. Availability cues never dim the artwork, repeat
 continuously, or delay an action.
 

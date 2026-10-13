@@ -18,7 +18,7 @@ there to verify and land into local `main` under the shared integration lock.
 failure recovery, authorization, and the quiet communication policy. Push separately
 only when requested. Read-only investigations do not need a new worktree.
 
-Start indexed concerns with `python3 Scripts/agent-brief.py --task <concern>`
+Start indexed concerns with `python3 Scripts/agent-brief.py --status --task <concern>`
 for scoped status, safeguards, initial guidance, and source/test pointers. Find a
 concern with `agent-search.py '<concern>' --task`; unindexed work starts with
 filename discovery. The [AgentContext quickstart](../Docs/AgentContext/README.md#quickstart)

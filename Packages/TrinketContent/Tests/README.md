@@ -11,7 +11,7 @@ Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 | Art catalog cross-references | `ArtCatalogIntegrationTests` | Ability/item/stage wiring and artwork for every player combatant and enemy |
 | Combatant catalog graph | `CombatantCatalogTests` | Hero/companion loadouts, health/mana |
 | Homestead rules | `HomesteadStateTests` | Production timing and fractional credit, wallet/material overflow, collection, and build costs without save fixtures |
-| Homestead node catalog | `HomesteadCatalogTests` | Node IDs, tiers, unlock graph, tier effects |
+| Homestead catalog and reward bonuses | `HomesteadCatalogTests` | Unique node IDs, four increasing tiers, production sources, and once-only percentage/fractional reward adjustments |
 | Contracts | `ContractGeneratorTests` | Exclusions, exhausted-pool fallback, saved offers, and independent identities for repeated targets |
 | Voyage | `VoyageTests` | Regional route generation, chapter keyword affinity, and completion-bonus rounding/saturation |
 | Content access policy | `ContentAccessPolicyTests` | Free/full chapter/labyrinth/spire gates |

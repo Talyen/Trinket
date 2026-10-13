@@ -77,9 +77,10 @@ key, end it on completion, failure, or cancellation, and confirm the close befor
 releasing the simulator lease. Do not create replacement sessions alongside an
 unresponsive one. A warm Simulator/Device Hub window and the user's play session
 are separate from the expensive native interaction runtime; preserve them.
-Trinket's simulator pool does not coordinate memory with Lantern or Alchemy
-browser sessions. If host memory pressure is high, coordinate those expensive
-inspections before starting another build; source editing can continue.
+Trinket's simulator pool does not coordinate memory with other projects' sessions.
+If host memory pressure is high, defer another expensive inspection or build;
+source editing can continue. Preserve foreign sessions under the
+[workspace safeguards](../../AGENTS.md#protect-the-workspace).
 
 ### Optional evidence capture
 
@@ -147,7 +148,7 @@ Custom, Relative to Workspace:
 - Products: `.DerivedData/Build/Products`
 - Intermediates: `.DerivedData/Build/Intermediates.noindex`
 
-Routine verification uses lightweight handoff; expressly requested package or
+Routine verification uses lightweight handoff; bounded, task-relevant package or
 test diagnostics follow [execution limits](Verification.md#execution-limits).
 Avoid asset generation during Swift-only work,
 and avoid opening both the app project and a nested package in separate Xcode

@@ -28,7 +28,7 @@ is a lookup aid, not a reading checklist.
 | Style and boundary checker split | [Platform/Verification.md](Platform/Verification.md#style-and-boundary-ownership) |
 | AccessibilityID rubric vs launch details | Rubric [Platform/Testing.md](Platform/Testing.md#ui-keep-drop-rubric); launch/helpers `TrinketUITests/README.md`; placement in `swiftui-features.md` |
 | Artwork pin lifecycle vs numbers | Lifecycle [AgentContext/ui-performance.md](AgentContext/ui-performance.md); numbers in Playbook Artwork Budgets |
-| Balance numbers | [AgentContext/battle-balance.md](AgentContext/battle-balance.md) (defers to Decisions PD-016–021 and prior audit verdicts first) |
+| Balance rules and tuning | [AgentContext/battle-balance.md](AgentContext/battle-balance.md), subject to current [Product decisions](Product/Decisions.md) and their linked mode contracts |
 | Audio routing and playback behavior | `Packages/TrinketAppState/README.md` (routed via [AgentContext/audio.md](AgentContext/audio.md)) |
 | Game surfaces and modes | [Product/Overview.md](Product/Overview.md) |
 | Art direction and delivery constraints | [Product/ArtworkStyleGuide.md](Product/ArtworkStyleGuide.md) |

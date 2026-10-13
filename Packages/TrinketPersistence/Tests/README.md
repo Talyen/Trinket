@@ -8,7 +8,8 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 
 | Concern | Owner | Notes |
 |---------|-------|-------|
-| SwiftData graph / hub | `PlayerSaveStoreTests` | Root creation, reset, seed, relaunch, independent records, snapshot validation, deferred flush |
+| SwiftData graph / hub | `PlayerSaveStoreTests` | Root creation, reset, seed, relaunch, independent records, snapshot validation, and failed-write rollback |
+| Durable local recovery and action retries | `PendingSaveRecoveryTests` | Recovery-file acceptance/relaunch, reset ordering, background persistence retry, and nested/stale action isolation |
 | Save schema | `PlayerSaveStoreTests` | Current-schema reload and rejection of unsupported development saves without replacement |
 | Complete-save sync | `CloudSaveSyncTests` | Snapshot coding, conflict backups, account separation, reset epochs, server claims/retries, late imports, and disk recovery with a fake transport |
 | Concurrent-save reconciliation | `CloudSaveMergeTests` plus `CloudSaveMerge*Tests` | Shared-base progress, economy, talents/loadouts, claims, Contract refreshes, and Voyage terminal-claim deduplication (pure; no live CloudKit I/O) |

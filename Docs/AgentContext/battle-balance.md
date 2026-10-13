@@ -2,7 +2,11 @@
 
 Load only for balance numbers, encounter scaling, pacing, rounding, talents, auras, or balance-sweep work.
 
-Before retuning combat or persistence behavior, check `Docs/Product/Decisions.md` for locked decisions and `Docs/Audits/Proposals.md` for prior audit verdicts.
+Before retuning combat or persistence behavior, read the applicable locked
+[product decisions](../Product/Decisions.md) and their linked mode contracts.
+[Audit proposals](../Audits/Proposals.md) preserve unresolved decisions and unique
+current rationale; past verdicts do not override current product rules or serve
+as permanent exceptions.
 
 Headless balance sweeps: `./Scripts/balance-sweep.sh`; operating details and evidence interpretation are below. Default stdout and `.md` are a findings brief; read that, not the JSON dump. `--full-markdown` writes the old table report. `--samples` is n per identity enemy and pairs per contrast focus.
 
