@@ -26,6 +26,10 @@ encounter plans from captured party, Homestead, loot, and eligibility values.
 AppState and Persistence adapt those inputs; they do not calculate parallel reward
 plans. `RewardExperiencePolicy.battleExperienceAward` owns recipient catch-up,
 percentage bonuses, and the normal XP cap, including for progression simulations.
+Battle launch captures the selected party’s victory Gold Talent percentage alongside
+Homestead Gold bonuses; both apply additively to encounter and earned combat Gold
+before spending. Later party changes or Companion defeat do not revoke the captured
+bonus. Defeat and noncombat rewards do not receive it.
 Battle launch captures reward quantities, recipients, bonuses, and Gold-overflow
 XP in that plan. `RewardSettlementInputs` projects wallet reservations
 and recipient progression at a recorded production date. Content's pure settlement

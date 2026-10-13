@@ -62,7 +62,7 @@ package extension BattleState {
             origin: isDirectCardGain ? .direct : .automatic,
         )]
         if isTheft, granted > 0 {
-            await events.append(contentsOf: CombatTriggerEngine.afterGoldTheft(by: combatant, in: &self))
+            await events.append(contentsOf: CombatTriggerEngine.afterGoldTheft(by: combatant, amount: granted, in: &self))
         }
         await events.append(contentsOf: CombatTriggerEngine.goldGainTriggerEvents(
             granted: granted,
@@ -95,7 +95,7 @@ package extension BattleState {
     }
 
     @discardableResult
-    mutating func restoreMana(_ amount: Int, to combatant: Combatant) -> Int {
+    mutating func restoreMana(_ amount: Int, to combatant: Combatant, isResolved: Bool = false) -> Int {
         let standalone = resolution.beginStandaloneRestoration()
         defer {
             if standalone {
@@ -106,7 +106,7 @@ package extension BattleState {
         let profile = modifiers(for: combatant.id)
         let deepRoots = amount > 0 && profile.triggers.deepRoots &&
             roster.activeEffects(for: combatant).contains { $0.effect.kind == .thorns }
-        let requested = amount > 0
+        let requested = amount > 0 && !isResolved
             ? SaturatedArithmetic.saturatingAdd(
                 CombatRounding.scaled(
                     SaturatedArithmetic.saturatingAdd(amount, profile.manaRestoredBonus),
@@ -116,13 +116,13 @@ package extension BattleState {
         let actual = runtime.restoreMana(requested)
         var total = actual
         var overflow = max(0, requested - actual)
-        if actual > 0, profile.triggers.manaGainDoubleChancePercent > 0,
+        if !isResolved, actual > 0, profile.triggers.manaGainDoubleChancePercent > 0,
            BattleChance.succeeds(probability: profile.triggers.manaGainDoubleChancePercent, using: &rng) {
             let doubled = runtime.restoreMana(requested)
             total += doubled
             overflow = SaturatedArithmetic.saturatingAdd(overflow, max(0, requested - doubled))
         }
-        if actual > 0, profile.triggers.manaRestorationDoubleChancePercent > 0,
+        if !isResolved, actual > 0, profile.triggers.manaRestorationDoubleChancePercent > 0,
            claimTalentAbility(.arcaneReservoir, actorID: combatant.id),
            BattleChance.succeeds(probability: profile.triggers.manaRestorationDoubleChancePercent, using: &rng) {
             let doubled = runtime.restoreMana(requested)
@@ -151,6 +151,7 @@ package extension BattleState {
         abilityID: String = "",
         abilityName: String,
         source: Combatant? = nil,
+        isResolved: Bool = false,
     ) async -> [ActionEvent] {
         let standalone = resolution.beginStandaloneRestoration()
         defer {
@@ -158,7 +159,7 @@ package extension BattleState {
                 resolution.endStandaloneRestoration()
             }
         }
-        let restored = restoreMana(amount, to: combatant)
+        let restored = restoreMana(amount, to: combatant, isResolved: isResolved)
         let overflowEvents = await CombatTriggerEngine.consumeManaOverflowTalents(
             for: combatant, restoredMana: restored > 0, in: &self,
         )

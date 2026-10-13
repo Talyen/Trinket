@@ -1,5 +1,6 @@
 import BattleEngine
 import TrinketContent
+import TrinketCore
 import TrinketFeatureContracts
 import TrinketPersistence
 
@@ -33,6 +34,10 @@ enum BattleRewardAssembly {
             ),
             experienceEarnedPercent: input.experienceBonusPercent,
             victoryOnlyExperienceBonusPercent: input.victoryOnlyExperienceBonusPercent,
+            victoryGoldBonusPercent: SaturatedArithmetic.saturatingAdd(
+                heroMember.modifiers.triggers.victoryGoldBonusPercent,
+                companionMember.modifiers.triggers.victoryGoldBonusPercent,
+            ),
             rewardsAlreadyClaimed: input.stageRewardsAlreadyClaimed,
             completionBonus: input.completionBonus,
         )

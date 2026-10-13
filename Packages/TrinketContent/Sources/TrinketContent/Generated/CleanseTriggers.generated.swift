@@ -41,6 +41,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     public var onPurgeGainBlock: Int = 0
     public var onPurgeDealHolyDamage: Int = 0
     public var purgeDrawBelowHalf: Bool = false
+    public var cleanseHolyDamage: Int = 0
 
     public init(
         interdict: Bool = false,
@@ -79,7 +80,8 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         onCleanseRestoreMana: Int = 0,
         onPurgeGainBlock: Int = 0,
         onPurgeDealHolyDamage: Int = 0,
-        purgeDrawBelowHalf: Bool = false
+        purgeDrawBelowHalf: Bool = false,
+        cleanseHolyDamage: Int = 0
     ) {
         self.interdict = interdict
         self.lessonLearned = lessonLearned
@@ -118,6 +120,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.onPurgeGainBlock = onPurgeGainBlock
         self.onPurgeDealHolyDamage = onPurgeDealHolyDamage
         self.purgeDrawBelowHalf = purgeDrawBelowHalf
+        self.cleanseHolyDamage = cleanseHolyDamage
     }
 
     /// Fields where `self` differs from `other`.
@@ -160,6 +163,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         if self.onPurgeGainBlock != other.onPurgeGainBlock { fields.append(.onPurgeGainBlock) }
         if self.onPurgeDealHolyDamage != other.onPurgeDealHolyDamage { fields.append(.onPurgeDealHolyDamage) }
         if self.purgeDrawBelowHalf != other.purgeDrawBelowHalf { fields.append(.purgeDrawBelowHalf) }
+        if self.cleanseHolyDamage != other.cleanseHolyDamage { fields.append(.cleanseHolyDamage) }
         return fields
     }
 }
@@ -203,6 +207,7 @@ extension CleanseTriggers {
         onPurgeGainBlock += other.onPurgeGainBlock
         onPurgeDealHolyDamage += other.onPurgeDealHolyDamage
         purgeDrawBelowHalf = purgeDrawBelowHalf || other.purgeDrawBelowHalf
+        cleanseHolyDamage += other.cleanseHolyDamage
     }
 }
 
@@ -246,7 +251,8 @@ extension CleanseTriggers {
             onCleanseRestoreMana: values.decode(Int.self, "onCleanseRestoreMana", default: 0),
             onPurgeGainBlock: values.decode(Int.self, "onPurgeGainBlock", default: 0),
             onPurgeDealHolyDamage: values.decode(Int.self, "onPurgeDealHolyDamage", default: 0),
-            purgeDrawBelowHalf: values.decode(Bool.self, "purgeDrawBelowHalf", default: false)
+            purgeDrawBelowHalf: values.decode(Bool.self, "purgeDrawBelowHalf", default: false),
+            cleanseHolyDamage: values.decode(Int.self, "cleanseHolyDamage", default: 0)
         )
     }
 
@@ -288,5 +294,6 @@ extension CleanseTriggers {
         try container.encodeNonDefault(onPurgeGainBlock, "onPurgeGainBlock", default: 0)
         try container.encodeNonDefault(onPurgeDealHolyDamage, "onPurgeDealHolyDamage", default: 0)
         try container.encodeNonDefault(purgeDrawBelowHalf, "purgeDrawBelowHalf", default: false)
+        try container.encodeNonDefault(cleanseHolyDamage, "cleanseHolyDamage", default: 0)
     }
 }

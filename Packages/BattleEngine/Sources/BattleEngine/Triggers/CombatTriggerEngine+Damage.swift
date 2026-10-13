@@ -364,6 +364,7 @@ package extension CombatTriggerEngine {
         to enemy: Combatant,
         source: Combatant,
         targetWasStunnedAtHit: Bool,
+        isAttackHit: Bool = false,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
         guard source.role != .enemy else { return [] }
@@ -388,6 +389,14 @@ package extension CombatTriggerEngine {
             }
         }
 
+        if isAttackHit, source.role == .hero, context.allowsHeroTalentReaction,
+           profile.triggers.criticalGoldStealFlat > 0, context.roster.health(for: source) > 0 {
+            await events.append(contentsOf: context.grantGold(
+                profile.triggers.criticalGoldStealFlat, to: source,
+                abilityName: triggerAbilityName(.criticalGoldStealFlat, for: source, fallback: "Light Fingers", in: context),
+                isTheft: true,
+            ).events)
+        }
         if profile.triggers.criticalGoldFlat > 0, context.roster.health(for: source) > 0 {
             await events.append(contentsOf: emitGold(
                 .criticalGoldFlat, "Cutpurse", amount: profile.triggers.criticalGoldFlat, to: source, in: &context,

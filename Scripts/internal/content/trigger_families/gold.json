@@ -385,6 +385,24 @@
       "type": "Bool",
       "default": "false",
       "merge": "or"
+    },
+    {
+      "name": "victoryGoldBonusPercent",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
+    },
+    {
+      "name": "goldTheftAllyBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
+    },
+    {
+      "name": "dodgeGoldIsTheft",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
     }
   ]
 }

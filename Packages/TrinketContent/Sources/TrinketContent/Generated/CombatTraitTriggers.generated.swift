@@ -213,6 +213,7 @@ public enum CombatTriggerField: String, CaseIterable, Sendable {
     case redHarvestPhysicalCriticalDetonatesBleed
     case huntsmasterPhysicalCriticalDrawsCompanion
     case attackPurgeCount
+    case loadedStrike
     case sealedSarcophagus
     case retainAllBlockBetweenTurns
     case blockedAttackBasicOncePerTurn
@@ -407,6 +408,12 @@ public enum CombatTriggerField: String, CaseIterable, Sendable {
     case onDamageBurnRetaliationDamage
     case burnPreventDecayChancePercent
     case bleedPoisonOncePerTurn
+    case enemyPoisonDecaySlowPercent
+    case enemyPoisonPreventDecayChancePercent
+    case enemyPoisonDecayIncreaseChance
+    case enemyBurnDecaySlowPercent
+    case enemyBurnDecaySlowVsBleedingPercent
+    case enemyBurnPreventDecayChancePercent
     case stunDamageAddsEnemyBlock
     case stunRetainedBuildupPercent
     case freezeExtraActionSkips
@@ -459,6 +466,7 @@ public enum CombatTriggerField: String, CaseIterable, Sendable {
     case onStunExpirePoisonDamage
     case onStunNextAttackGuaranteedCritical
     case stunBuildupMultiplier
+    case holyCriticalPreventsBlock
     case wintersWake
     case killingGrace
     case dodgeNextHitPoisonAndBleedPercent
@@ -674,6 +682,9 @@ public enum CombatTriggerField: String, CaseIterable, Sendable {
     case goldTheftNextAttackCriticalBonus
     case goldTheftStealEnemyBlockChancePercent
     case blockedAttackFirstRandomCard
+    case victoryGoldBonusPercent
+    case goldTheftAllyBlock
+    case dodgeGoldIsTheft
     case contagiousJoy
     case livingArchive
     case marrowmend
@@ -783,6 +794,9 @@ public enum CombatTriggerField: String, CaseIterable, Sendable {
     case physicalAttackLeechBelowHalfHealth
     case leechStunBelowHalfHealth
     case attackLeechPercent
+    case excessLeechRestoresMana
+    case providedOverhealConvertsToBlock
+    case providedOverhealToBlockPercent
     case undyingEmber
     case borrowedLife
     case onceDeathReviveHealth
@@ -844,6 +858,7 @@ public enum CombatTriggerField: String, CaseIterable, Sendable {
     case onPurgeGainBlock
     case onPurgeDealHolyDamage
     case purgeDrawBelowHalf
+    case cleanseHolyDamage
     case negateFirstEnemyAttack
     case attackDelayEnemyTurnChancePercent
     case bleedingEnemyActionSkipChancePercent

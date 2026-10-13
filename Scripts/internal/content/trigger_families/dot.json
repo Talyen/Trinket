@@ -481,6 +481,42 @@
       "affix_roll": {
         "reason": "Fixed per-turn activation limit."
       }
+    },
+    {
+      "name": "enemyPoisonDecaySlowPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "enemyPoisonPreventDecayChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "enemyPoisonDecayIncreaseChance",
+      "type": "Double",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "enemyBurnDecaySlowPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "enemyBurnDecaySlowVsBleedingPercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "max"
+    },
+    {
+      "name": "enemyBurnPreventDecayChancePercent",
+      "type": "Double",
+      "default": "0",
+      "merge": "max"
     }
   ]
 }

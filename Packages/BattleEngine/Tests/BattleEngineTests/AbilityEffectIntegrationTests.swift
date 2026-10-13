@@ -34,12 +34,14 @@ struct AbilityEffectIntegrationTests {
         }
     }
 
-    @Test func `a finishing hit cannot steal Gold again from the defeated enemy`() throws {
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `a finishing hit cannot steal Gold again from the defeated enemy`(owner: BattleParticipant) throws {
         var triggers = CombatTraitTriggers()
         triggers.criticalGoldStealFlat = 2
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 1,
-            companionModifiers: CombatModifierProfile(triggers: triggers),
+            heroModifiers: owner == .hero ? CombatModifierProfile(triggers: triggers) : .zero,
+            companionModifiers: owner == .companion ? CombatModifierProfile(triggers: triggers) : .zero,
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -49,12 +51,47 @@ struct AbilityEffectIntegrationTests {
             criticalChanceBonus: 1,
         )
 
-        let card = BattleCardCombatEngine.deal(attack, owner: .companion, context: &battle)
+        let card = BattleCardCombatEngine.deal(attack, owner: owner, context: &battle)
         let events = try battle.playCard(cardID: card.id).events
 
         #expect(battle.isEnemyDefeated)
         #expect(events.count { $0.kind == .abilityDamage && $0.abilityID == attack.id } == 1)
         #expect(battle.gold == 2)
+    }
+
+    @Test(arguments: [false, true])
+    func `Dodge Gold theft uses theft modifiers without changing legacy Gold`(isTheft: Bool) {
+        var profile = CombatantTalentCatalog.profile(for: ["fox_gold_t1_1"])
+        profile.triggers.dodgeGoldChancePercent = 1
+        profile.triggers.dodgeGoldIsTheft = isTheft
+        profile.triggers.goldStealFlatBonus = 3
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: profile, dealOpeningHand: false,
+        )
+        _ = CombatExecutor.run {
+            await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle)
+        }
+        #expect(battle.gold == (isTheft ? 7 : 4))
+    }
+
+    @Test(arguments: [false, true])
+    func `War Chest converts actual stolen Gold to resolved Hero Block`(ownerDefeated: Bool) {
+        var profile = CombatantTalentCatalog.profile(for: ["golden_retriever_gold_t4_1"])
+        profile.triggers.goldStealFlatBonus = 2
+        profile.goldGainedPercent = 0.5
+        profile.blockGainedPercent = 1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: profile, dealOpeningHand: false,
+        )
+        if ownerDefeated {
+            battle.roster.companion.currentHealth = 0
+        }
+        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
+        let before = battle.gold
+        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
+        #expect(battle.gold - before == (ownerDefeated ? 3 : 6))
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == (ownerDefeated ? 0 : 6))
     }
 
     @Test(arguments: [Keyword.burn, .poison, .bleed])

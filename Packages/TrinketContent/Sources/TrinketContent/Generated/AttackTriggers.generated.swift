@@ -115,6 +115,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var redHarvestPhysicalCriticalDetonatesBleed: Bool = false
     public var huntsmasterPhysicalCriticalDrawsCompanion: Bool = false
     public var attackPurgeCount: Int = 0
+    public var loadedStrike: Bool = false
 
     public init(
         firstCriticalHitRepeatsPerTurn: Bool = false,
@@ -227,7 +228,8 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         firstHolyHitAllyBlockPerTurn: Int = 0,
         redHarvestPhysicalCriticalDetonatesBleed: Bool = false,
         huntsmasterPhysicalCriticalDrawsCompanion: Bool = false,
-        attackPurgeCount: Int = 0
+        attackPurgeCount: Int = 0,
+        loadedStrike: Bool = false
     ) {
         self.firstCriticalHitRepeatsPerTurn = firstCriticalHitRepeatsPerTurn
         self.heldCardNextAttackDamage = heldCardNextAttackDamage
@@ -340,6 +342,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.redHarvestPhysicalCriticalDetonatesBleed = redHarvestPhysicalCriticalDetonatesBleed
         self.huntsmasterPhysicalCriticalDrawsCompanion = huntsmasterPhysicalCriticalDrawsCompanion
         self.attackPurgeCount = attackPurgeCount
+        self.loadedStrike = loadedStrike
     }
 
     /// Fields where `self` differs from `other`.
@@ -456,6 +459,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         if self.redHarvestPhysicalCriticalDetonatesBleed != other.redHarvestPhysicalCriticalDetonatesBleed { fields.append(.redHarvestPhysicalCriticalDetonatesBleed) }
         if self.huntsmasterPhysicalCriticalDrawsCompanion != other.huntsmasterPhysicalCriticalDrawsCompanion { fields.append(.huntsmasterPhysicalCriticalDrawsCompanion) }
         if self.attackPurgeCount != other.attackPurgeCount { fields.append(.attackPurgeCount) }
+        if self.loadedStrike != other.loadedStrike { fields.append(.loadedStrike) }
         return fields
     }
 }
@@ -573,6 +577,7 @@ extension AttackTriggers {
         redHarvestPhysicalCriticalDetonatesBleed = redHarvestPhysicalCriticalDetonatesBleed || other.redHarvestPhysicalCriticalDetonatesBleed
         huntsmasterPhysicalCriticalDrawsCompanion = huntsmasterPhysicalCriticalDrawsCompanion || other.huntsmasterPhysicalCriticalDrawsCompanion
         attackPurgeCount += other.attackPurgeCount
+        loadedStrike = loadedStrike || other.loadedStrike
     }
 }
 
@@ -690,7 +695,8 @@ extension AttackTriggers {
             firstHolyHitAllyBlockPerTurn: values.decode(Int.self, "firstHolyHitAllyBlockPerTurn", default: 0),
             redHarvestPhysicalCriticalDetonatesBleed: values.decode(Bool.self, "redHarvestPhysicalCriticalDetonatesBleed", default: false),
             huntsmasterPhysicalCriticalDrawsCompanion: values.decode(Bool.self, "huntsmasterPhysicalCriticalDrawsCompanion", default: false),
-            attackPurgeCount: values.decode(Int.self, "attackPurgeCount", default: 0)
+            attackPurgeCount: values.decode(Int.self, "attackPurgeCount", default: 0),
+            loadedStrike: values.decode(Bool.self, "loadedStrike", default: false)
         )
     }
 
@@ -806,5 +812,6 @@ extension AttackTriggers {
         try container.encodeNonDefault(redHarvestPhysicalCriticalDetonatesBleed, "redHarvestPhysicalCriticalDetonatesBleed", default: false)
         try container.encodeNonDefault(huntsmasterPhysicalCriticalDrawsCompanion, "huntsmasterPhysicalCriticalDrawsCompanion", default: false)
         try container.encodeNonDefault(attackPurgeCount, "attackPurgeCount", default: 0)
+        try container.encodeNonDefault(loadedStrike, "loadedStrike", default: false)
     }
 }

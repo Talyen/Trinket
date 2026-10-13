@@ -4,6 +4,46 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
+    @Test(arguments: [UInt64(1), 2, 3, 4])
+    func `loaded strike shares an attack roll without amplifying raw damage`(seed: UInt64) throws {
+        let attack = Ability(
+            id: "loaded-pair", name: "Physical Pair", tier: .basic,
+            damageComponents: [DamageComponent(5), DamageComponent(5)], criticalChanceBonus: -1,
+        )
+        var battle = heroTalentBattle("wildcard_physical_t1_2", seed: seed)
+        let events = try playHeroTalentCard(attack, in: &battle)
+        let hits = events.filter { $0.kind == .abilityDamage }
+        #expect(hits.count == 2)
+        #expect(hits[0].amount == hits[1].amount)
+        #expect([3, 10].contains(hits[0].amount))
+
+        let raw = battle.resolveDamage(DamageRequest(
+            amount: 5, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: .reaction(),
+        ))
+        #expect(raw.healthLost == 5)
+        let periodic = battle.resolveDamage(.doTTick(
+            amount: 5, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+        ))
+        #expect(periodic.healthLost == 5)
+    }
+
+    @Test func `loaded strike counterattack rolls independently of its parent action`() {
+        var battle = heroTalentBattle("wildcard_physical_t1_2", seed: 7)
+        var expectedRNG = battle.rng
+        let parent = Bool.random(using: &expectedRNG)
+        let counter = Bool.random(using: &expectedRNG)
+        let action = BattleActionContext(actor: battle.hero, in: battle)
+        battle.resolution.beginAction(action, origin: .ability)
+        #expect(battle.resolution.loadedStrikeDouble(for: battle.hero.id, using: &battle.rng) == parent)
+        battle.resolution.beginAction(action, origin: .counterattack)
+        #expect(battle.resolution.loadedStrikeDouble(for: battle.hero.id, using: &battle.rng) == counter)
+        battle.resolution.endAction()
+        #expect(battle.resolution.loadedStrikeDouble(for: battle.hero.id, using: &battle.rng) == parent)
+        battle.resolution.endAction()
+        #expect(battle.rng.next() == expectedRNG.next())
+    }
+
     @Test func `prismatic edge gets one chance across all hits of a card`() throws {
         let attack = Ability(
             id: "prismatic-pair",

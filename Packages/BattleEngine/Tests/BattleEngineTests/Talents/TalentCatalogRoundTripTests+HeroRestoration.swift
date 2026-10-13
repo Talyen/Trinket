@@ -57,7 +57,7 @@ extension TalentCatalogRoundTripTests {
     }
 
     @Test(arguments: [4, 20])
-    func `vampiric touch leeches blocked damage and activates soul drain`(block: Int) {
+    func `vampiric touch leeches blocked damage without Soul Drain before overflow`(block: Int) {
         var battle = capstoneBattle(hero: ["warlock_leech_t1_1", "warlock_leech_t2_2"])
         battle.roster.hero.currentHealth = 10
         battle.roster.hero.currentMana = 0
@@ -73,6 +73,6 @@ extension TalentCatalogRoundTripTests {
         #expect(hit.healthLost == max(0, 8 - block))
         #expect(battle.roster.hero.currentHealth == unblocked.roster.hero.currentHealth)
         #expect(battle.roster.hero.currentHealth > 10)
-        #expect(battle.roster.hero.currentMana == 1)
+        #expect(battle.roster.hero.currentMana == 0)
     }
 }

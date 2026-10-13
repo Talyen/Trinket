@@ -34,7 +34,7 @@ enum DecayingDoT {
     }
 }
 
-/// Captures the original stack owner's rules before damage reactions mutate the battle.
+/// Captures source rules and living-party enemy-pool modifiers before damage reactions.
 struct DecayingDoTProgression {
     let type: DecayingDoT
     let ticksPerTurn: Int
@@ -45,18 +45,26 @@ struct DecayingDoTProgression {
     init(type: DecayingDoT, sourceActorID: String?, target: Combatant, in context: BattleState) {
         self.type = type
         let triggers = sourceActorID.map { context.modifiers(for: $0).triggers }
+        let partyTriggers = target.role == .enemy
+            ? [BattleParticipant.hero, .companion].compactMap { owner -> CombatTraitTriggers? in
+                let member = context.roster[owner]
+                return member.currentHealth > 0 ? context.modifiers(for: member.id).triggers : nil
+            } : []
+        func strongest(_ field: KeyPath<CombatTraitTriggers, Double>) -> Double {
+            partyTriggers.map { $0[keyPath: field] }.max() ?? 0
+        }
         switch type {
         case .burn:
-            slowPercent = (triggers?.burnDecaySlowPercent ?? 0)
+            slowPercent = (triggers?.burnDecaySlowPercent ?? 0) + strongest(\.enemyBurnDecaySlowPercent)
                 + (context.roster.hasAffliction(.bleed, on: target)
-                    ? (triggers?.burnDecaySlowVsBleedingPercent ?? 0) : 0)
-            preventDecayChance = triggers?.burnPreventDecayChancePercent ?? 0
+                    ? (triggers?.burnDecaySlowVsBleedingPercent ?? 0) + strongest(\.enemyBurnDecaySlowVsBleedingPercent) : 0)
+            preventDecayChance = max(triggers?.burnPreventDecayChancePercent ?? 0, strongest(\.enemyBurnPreventDecayChancePercent))
             increaseChance = triggers?.burnIncreaseChancePercent ?? 0
             ticksPerTurn = triggers?.burnTicksTwicePerTurn == true ? 2 : 1
         case .poison:
-            slowPercent = triggers?.poisonDecaySlowPercent ?? 0
-            preventDecayChance = triggers?.poisonPreventDecayChancePercent ?? 0
-            increaseChance = triggers?.poisonDecayIncreaseChance ?? 0
+            slowPercent = (triggers?.poisonDecaySlowPercent ?? 0) + strongest(\.enemyPoisonDecaySlowPercent)
+            preventDecayChance = max(triggers?.poisonPreventDecayChancePercent ?? 0, strongest(\.enemyPoisonPreventDecayChancePercent))
+            increaseChance = max(triggers?.poisonDecayIncreaseChance ?? 0, strongest(\.enemyPoisonDecayIncreaseChance))
             ticksPerTurn = 1
         }
     }

@@ -62,12 +62,17 @@ extension TalentCatalogRoundTripTests {
         })
     }
 
-    @Test(arguments: [Effect.purge(nil), .purgeRandom])
-    func `interdict blocks purged block but permits healing and resource gains`(effect: Effect) throws {
+    @Test func `interdict blocks new Block without purging existing Block or preventing other buffs`() throws {
         var battle = capstoneBattle(companion: ["library_owl_holy_t4_1"])
         seedHeroTalentEffect(.shield(.block, 6), on: .enemy, in: &battle, source: .enemy)
-        let purge = Ability(id: "purge-block", name: "Purge", tier: .skill, targetedEffects: [TargetedEffect(effect, target: .enemy)])
-        try playHeroTalentCard(purge, owner: .companion, in: &battle)
+        let attack = Ability(
+            id: "holy-critical", name: "Holy Critical", tier: .basic,
+            damageComponents: [DamageComponent(1, keyword: .holy)], guaranteedCriticalCondition: .enemyFullHealth,
+        )
+        try playHeroTalentCard(attack, owner: .companion, in: &battle)
+        #expect(talentPoints(.shield, on: .enemy, in: battle) > 0)
+        #expect(battle.effectSummaries(of: battle.enemy).contains { $0.text.contains("Interdict") && $0.text.contains("Block") })
+        #expect(battle.appendEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0))
         #expect(battle.applyBlock(7, to: battle.enemy, source: battle.enemy, abilityName: "Block").isEmpty)
         #expect(DefensePoolEngine.add(7, to: battle.enemy, in: &battle) == 0)
         battle.roster.enemy.currentHealth = 100
@@ -80,8 +85,11 @@ extension TalentCatalogRoundTripTests {
         #expect(DefensePoolEngine.add(7, to: battle.enemy, in: &battle) == 7)
     }
 
-    @Test func `interdict prevents purged avatar from dealing damage or granting block`() throws {
-        var battle = capstoneBattle(companion: ["library_owl_holy_t4_1"])
+    @Test func `legacy purge protection prevents purged avatar from dealing damage or granting block`() throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.interdict = true
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
+        battle.appliesFightPacing = false
         let avatar = Effect.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1)
         seedHeroTalentEffect(avatar, on: .enemy, in: &battle, source: .enemy)
         let purge = Ability(id: "purge-avatar", name: "Purge", tier: .skill, targetedEffects: [TargetedEffect(.purge(nil), target: .enemy)])

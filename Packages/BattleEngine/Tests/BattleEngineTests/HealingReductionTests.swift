@@ -23,7 +23,7 @@ struct HealingReductionTests {
             abilityHasLeech: true, damageKeyword: .physical, in: &battle,
         ) }
         #expect(outcome.flags.contains(.leeched))
-        #expect(battle.roster.hero.currentMana == 1)
+        #expect(battle.roster.hero.currentMana == 0)
         #expect(battle.roster.hero.currentHealth == 40)
         #expect(battle.roster.companion.currentHealth == 1 + 4 - missingHealth)
     }

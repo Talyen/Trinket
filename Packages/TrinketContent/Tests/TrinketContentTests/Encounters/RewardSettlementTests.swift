@@ -111,6 +111,25 @@ struct RewardSettlementTests {
         #expect(replay.goldDelta == 11)
     }
 
+    @Test func `victory Gold Talent adds to Homestead bonus before spending and retains fractions`() {
+        let plan = BattleRewardPlan.forEncounter(
+            party: (.at(level: 1), .at(level: 1)), highestLevels: (1, 1),
+            encounterLevel: 1,
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 2]),
+            stageGold: 7, materials: [], items: [], victoryGoldBonusPercent: 10,
+        )
+        let goldFlow = BattleGoldFlow(gained: 6, spent: 4)
+        let first = plan.resolve(battleGold: goldFlow)
+        #expect(first.goldDelta == 11)
+        let second = plan.resolve(battleGold: goldFlow, rewardRemainders: first.rewardRemainders)
+        #expect(second.goldDelta == 12)
+        let defeat = plan.settleDefeat(
+            progress: .init(remainingHealth: 0, maximumHealth: 100), inputs: inputs(),
+        )
+        #expect(defeat.award.goldDelta == 0)
+        #expect(defeat.award.rewardRemainders == inputs().rewardRemainders)
+    }
+
     @Test func `resolve splits stage gold from battle gains`() {
         let plan = BattleRewardPlan(
             stageGold: 100,

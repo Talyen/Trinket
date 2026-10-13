@@ -458,7 +458,12 @@ package extension CombatTriggerEngine {
     }
 
     static func preventsPurgedEffect(_ effect: Effect, on target: Combatant, in context: BattleState) -> Bool {
-        effect.isRemovableBuff && context.roster.runtime(for: target)?.talents.turn.purgedEffectProtection.contains(effect.kind) == true
+        if case .shield(.block, _) = effect,
+           context.roster.runtime(for: target)?.talents.turn.blockGainPrevented == true {
+            return true
+        }
+        return effect.isRemovableBuff && context.roster.runtime(for: target)?.talents.turn.purgedEffectProtection
+            .contains(effect.kind) == true
     }
 
     static func crownfallDamage(

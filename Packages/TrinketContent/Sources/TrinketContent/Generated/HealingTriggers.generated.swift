@@ -113,6 +113,9 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var physicalAttackLeechBelowHalfHealth: Bool = false
     public var leechStunBelowHalfHealth: Int = 0
     public var attackLeechPercent: Double = 0
+    public var excessLeechRestoresMana: Bool = false
+    public var providedOverhealConvertsToBlock: Bool = false
+    public var providedOverhealToBlockPercent: Double = 0
 
     public init(
         contagiousJoy: Bool = false,
@@ -223,7 +226,10 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         leechThornsWithoutThorns: Int = 0,
         physicalAttackLeechBelowHalfHealth: Bool = false,
         leechStunBelowHalfHealth: Int = 0,
-        attackLeechPercent: Double = 0
+        attackLeechPercent: Double = 0,
+        excessLeechRestoresMana: Bool = false,
+        providedOverhealConvertsToBlock: Bool = false,
+        providedOverhealToBlockPercent: Double = 0
     ) {
         self.contagiousJoy = contagiousJoy
         self.livingArchive = livingArchive
@@ -334,6 +340,9 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         self.physicalAttackLeechBelowHalfHealth = physicalAttackLeechBelowHalfHealth
         self.leechStunBelowHalfHealth = leechStunBelowHalfHealth
         self.attackLeechPercent = attackLeechPercent
+        self.excessLeechRestoresMana = excessLeechRestoresMana
+        self.providedOverhealConvertsToBlock = providedOverhealConvertsToBlock
+        self.providedOverhealToBlockPercent = providedOverhealToBlockPercent
     }
 
     /// Fields where `self` differs from `other`.
@@ -448,6 +457,9 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
         if self.physicalAttackLeechBelowHalfHealth != other.physicalAttackLeechBelowHalfHealth { fields.append(.physicalAttackLeechBelowHalfHealth) }
         if self.leechStunBelowHalfHealth != other.leechStunBelowHalfHealth { fields.append(.leechStunBelowHalfHealth) }
         if self.attackLeechPercent != other.attackLeechPercent { fields.append(.attackLeechPercent) }
+        if self.excessLeechRestoresMana != other.excessLeechRestoresMana { fields.append(.excessLeechRestoresMana) }
+        if self.providedOverhealConvertsToBlock != other.providedOverhealConvertsToBlock { fields.append(.providedOverhealConvertsToBlock) }
+        if self.providedOverhealToBlockPercent != other.providedOverhealToBlockPercent { fields.append(.providedOverhealToBlockPercent) }
         return fields
     }
 }
@@ -563,6 +575,9 @@ extension HealingTriggers {
         physicalAttackLeechBelowHalfHealth = physicalAttackLeechBelowHalfHealth || other.physicalAttackLeechBelowHalfHealth
         leechStunBelowHalfHealth += other.leechStunBelowHalfHealth
         attackLeechPercent += other.attackLeechPercent
+        excessLeechRestoresMana = excessLeechRestoresMana || other.excessLeechRestoresMana
+        providedOverhealConvertsToBlock = providedOverhealConvertsToBlock || other.providedOverhealConvertsToBlock
+        providedOverhealToBlockPercent = max(providedOverhealToBlockPercent, other.providedOverhealToBlockPercent)
     }
 }
 
@@ -678,7 +693,10 @@ extension HealingTriggers {
             leechThornsWithoutThorns: values.decode(Int.self, "leechThornsWithoutThorns", default: 0),
             physicalAttackLeechBelowHalfHealth: values.decode(Bool.self, "physicalAttackLeechBelowHalfHealth", default: false),
             leechStunBelowHalfHealth: values.decode(Int.self, "leechStunBelowHalfHealth", default: 0),
-            attackLeechPercent: values.decode(Double.self, "attackLeechPercent", default: 0)
+            attackLeechPercent: values.decode(Double.self, "attackLeechPercent", default: 0),
+            excessLeechRestoresMana: values.decode(Bool.self, "excessLeechRestoresMana", default: false),
+            providedOverhealConvertsToBlock: values.decode(Bool.self, "providedOverhealConvertsToBlock", default: false),
+            providedOverhealToBlockPercent: values.decode(Double.self, "providedOverhealToBlockPercent", default: 0)
         )
     }
 
@@ -792,5 +810,8 @@ extension HealingTriggers {
         try container.encodeNonDefault(physicalAttackLeechBelowHalfHealth, "physicalAttackLeechBelowHalfHealth", default: false)
         try container.encodeNonDefault(leechStunBelowHalfHealth, "leechStunBelowHalfHealth", default: 0)
         try container.encodeNonDefault(attackLeechPercent, "attackLeechPercent", default: 0)
+        try container.encodeNonDefault(excessLeechRestoresMana, "excessLeechRestoresMana", default: false)
+        try container.encodeNonDefault(providedOverhealConvertsToBlock, "providedOverhealConvertsToBlock", default: false)
+        try container.encodeNonDefault(providedOverhealToBlockPercent, "providedOverhealToBlockPercent", default: 0)
     }
 }

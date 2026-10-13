@@ -235,6 +235,12 @@
       "type": "Bool",
       "default": "false",
       "merge": "or"
+    },
+    {
+      "name": "cleanseHolyDamage",
+      "type": "Int",
+      "default": "0",
+      "merge": "add"
     }
   ]
 }

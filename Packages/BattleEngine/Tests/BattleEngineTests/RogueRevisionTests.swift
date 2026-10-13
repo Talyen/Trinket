@@ -65,6 +65,24 @@ struct RogueRevisionTests {
         }
     }
 
+    @Test func `Light Fingers excludes critical effects while preserving generic Critical Gold`() {
+        var profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t1_1"])
+        profile.triggers.criticalGoldFlat = 2
+        var battle = battleWithHandCard(.slash, heroModifiers: profile)
+        battle.appliesFightPacing = false
+        let hit = battle.resolveDamage(DamageRequest(
+            amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: .effect(scaling: .flat, guaranteedCritical: true),
+        ))
+        #expect(hit.isCritical)
+        #expect(battle.gold == 2)
+        _ = battle.resolveDamage(DamageRequest(
+            amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
+        ))
+        #expect(battle.gold == 5)
+    }
+
     @Test(arguments: [false, true])
     func `Light Fingers rewards a Critical Hit only after its Rogue survives Thorns`(finallyDefeated: Bool) {
         let thorns = ActiveEffect(id: 100, effect: .thorns(8), remainingTurns: 0, sourceActorID: "enemy")
@@ -86,7 +104,7 @@ struct RogueRevisionTests {
         #expect(hit.healthLost == 8)
         #expect(battle.health(of: battle.enemy) == 92)
         #expect(battle.health(of: battle.hero) == (finallyDefeated ? 0 : 1))
-        #expect(battle.gold == (finallyDefeated ? 0 : 2))
-        #expect(hit.events.contains { $0.keyword == .gold && $0.amount == 2 } == !finallyDefeated)
+        #expect(battle.gold == (finallyDefeated ? 0 : 1))
+        #expect(hit.events.contains { $0.keyword == .gold && $0.amount == 1 } == !finallyDefeated)
     }
 }

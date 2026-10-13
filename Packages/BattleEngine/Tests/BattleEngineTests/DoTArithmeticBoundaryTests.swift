@@ -39,6 +39,45 @@ struct DoTArithmeticBoundaryTests {
         #expect(progression.turnPotency(from: Int.max, using: &battle.rng) == Int.max)
     }
 
+    @Test(arguments: [Keyword.burn, .poison])
+    func `enemy pool uses strongest living ally decay modifier regardless of applier`(keyword: Keyword) {
+        let hero = CombatModifierProfile(triggers: CombatTraitTriggers(dot: DotTriggers(
+            enemyPoisonDecaySlowPercent: 0.25, enemyBurnDecaySlowPercent: 0.25,
+        )))
+        let companion = CombatModifierProfile(triggers: CombatTraitTriggers(dot: DotTriggers(
+            enemyPoisonDecaySlowPercent: 0.4, enemyBurnDecaySlowPercent: 0.4,
+        )))
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, companionModifiers: companion)
+        let type: DecayingDoT = keyword == .burn ? .burn : .poison
+        for sourceID in [battle.hero.id, battle.companion.id] {
+            let progression = DecayingDoTProgression(type: type, sourceActorID: sourceID, target: battle.enemy, in: battle)
+            #expect(progression.decayedPotency(from: 100) == type.effect(potency: 100).potencyAfterTurn(
+                burnDecaySlowPercent: 0.4, poisonDecaySlowPercent: 0.4,
+            ))
+        }
+        battle.roster.companion.currentHealth = 0
+        let surviving = DecayingDoTProgression(type: type, sourceActorID: battle.companion.id, target: battle.enemy, in: battle)
+        #expect(surviving.decayedPotency(from: 100) == type.effect(potency: 100).potencyAfterTurn(
+            burnDecaySlowPercent: 0.25, poisonDecaySlowPercent: 0.25,
+        ))
+        let friendly = DecayingDoTProgression(type: type, sourceActorID: battle.hero.id, target: battle.hero, in: battle)
+        #expect(friendly.decayedPotency(from: 100) == type.effect(potency: 100).potencyAfterTurn())
+    }
+
+    @Test func `party poison preservation precedes growth and detonation does not roll`() {
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .init(triggers: CombatTraitTriggers(
+            dot: DotTriggers(enemyPoisonDecayIncreaseChance: 1),
+        )), companionModifiers: .init(triggers: CombatTraitTriggers(
+            dot: DotTriggers(enemyPoisonPreventDecayChancePercent: 1),
+        )))
+        let preserved = DecayingDoTProgression(type: .poison, sourceActorID: battle.hero.id, target: battle.enemy, in: battle)
+        #expect(preserved.turnPotency(from: 10, using: &battle.rng) == 10)
+        #expect(preserved.decayedPotency(from: 10) == Effect.poison(10).potencyAfterTurn())
+        battle.roster.companion.currentHealth = 0
+        let growing = DecayingDoTProgression(type: .poison, sourceActorID: battle.companion.id, target: battle.enemy, in: battle)
+        #expect(growing.turnPotency(from: 10, using: &battle.rng) == 11)
+    }
+
     @Test(arguments: [Keyword.burn, .bleed])
     func `DoT details saturate the combined potency of multiple stacks`(keyword: Keyword) throws {
         let effects = [Int.max, 1].enumerated().map { index, potency in

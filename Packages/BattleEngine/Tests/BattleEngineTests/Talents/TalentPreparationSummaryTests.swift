@@ -105,10 +105,12 @@ struct TalentPreparationSummaryTests {
         (Effect.shield(.block, 6), "Block"), (.thorns(3), "Thorns"),
         (.avatar(holyDamage: 6, blockPerTurn: 4, turns: 1), "Avatar"),
     ])
-    func `Interdict details name the buff that cannot return until protection expires`(effect: Effect, name: String) throws {
-        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_holy_t4_1")
+    func `legacy purge protection details name the buff that cannot return until protection expires`(effect: Effect, name: String) throws {
+        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl")
+        var profile = CombatModifierProfile.zero
+        profile.triggers.interdict = true
         var battle = BattleStateTestFactory.makeBattle(
-            companion: owl.combatant, companionModifiers: owl.modifiers, dealOpeningHand: false,
+            companion: owl.combatant, companionModifiers: profile, dealOpeningHand: false,
         )
         battle.appendEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)
         _ = CombatExecutor.run { await EffectRemovalOperation.resolvePurge(

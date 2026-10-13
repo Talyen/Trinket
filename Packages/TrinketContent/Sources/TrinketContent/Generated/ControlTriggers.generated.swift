@@ -56,6 +56,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var onStunExpirePoisonDamage: Int = 0
     public var onStunNextAttackGuaranteedCritical: Bool = false
     public var stunBuildupMultiplier: Double = 1
+    public var holyCriticalPreventsBlock: Bool = false
 
     public init(
         stunDamageAddsEnemyBlock: Bool = false,
@@ -109,7 +110,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         onFreezeEnemyGainBlock: Int = 0,
         onStunExpirePoisonDamage: Int = 0,
         onStunNextAttackGuaranteedCritical: Bool = false,
-        stunBuildupMultiplier: Double = 1
+        stunBuildupMultiplier: Double = 1,
+        holyCriticalPreventsBlock: Bool = false
     ) {
         self.stunDamageAddsEnemyBlock = stunDamageAddsEnemyBlock
         self.stunRetainedBuildupPercent = stunRetainedBuildupPercent
@@ -163,6 +165,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         self.onStunExpirePoisonDamage = onStunExpirePoisonDamage
         self.onStunNextAttackGuaranteedCritical = onStunNextAttackGuaranteedCritical
         self.stunBuildupMultiplier = stunBuildupMultiplier
+        self.holyCriticalPreventsBlock = holyCriticalPreventsBlock
     }
 
     /// Fields where `self` differs from `other`.
@@ -220,6 +223,7 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
         if self.onStunExpirePoisonDamage != other.onStunExpirePoisonDamage { fields.append(.onStunExpirePoisonDamage) }
         if self.onStunNextAttackGuaranteedCritical != other.onStunNextAttackGuaranteedCritical { fields.append(.onStunNextAttackGuaranteedCritical) }
         if self.stunBuildupMultiplier != other.stunBuildupMultiplier { fields.append(.stunBuildupMultiplier) }
+        if self.holyCriticalPreventsBlock != other.holyCriticalPreventsBlock { fields.append(.holyCriticalPreventsBlock) }
         return fields
     }
 }
@@ -278,6 +282,7 @@ extension ControlTriggers {
         onStunExpirePoisonDamage += other.onStunExpirePoisonDamage
         onStunNextAttackGuaranteedCritical = onStunNextAttackGuaranteedCritical || other.onStunNextAttackGuaranteedCritical
         stunBuildupMultiplier *= other.stunBuildupMultiplier
+        holyCriticalPreventsBlock = holyCriticalPreventsBlock || other.holyCriticalPreventsBlock
     }
 }
 
@@ -336,7 +341,8 @@ extension ControlTriggers {
             onFreezeEnemyGainBlock: values.decode(Int.self, "onFreezeEnemyGainBlock", default: 0),
             onStunExpirePoisonDamage: values.decode(Int.self, "onStunExpirePoisonDamage", default: 0),
             onStunNextAttackGuaranteedCritical: values.decode(Bool.self, "onStunNextAttackGuaranteedCritical", default: false),
-            stunBuildupMultiplier: values.decode(Double.self, "stunBuildupMultiplier", default: 1)
+            stunBuildupMultiplier: values.decode(Double.self, "stunBuildupMultiplier", default: 1),
+            holyCriticalPreventsBlock: values.decode(Bool.self, "holyCriticalPreventsBlock", default: false)
         )
     }
 
@@ -393,5 +399,6 @@ extension ControlTriggers {
         try container.encodeNonDefault(onStunExpirePoisonDamage, "onStunExpirePoisonDamage", default: 0)
         try container.encodeNonDefault(onStunNextAttackGuaranteedCritical, "onStunNextAttackGuaranteedCritical", default: false)
         try container.encodeNonDefault(stunBuildupMultiplier, "stunBuildupMultiplier", default: 1)
+        try container.encodeNonDefault(holyCriticalPreventsBlock, "holyCriticalPreventsBlock", default: false)
     }
 }

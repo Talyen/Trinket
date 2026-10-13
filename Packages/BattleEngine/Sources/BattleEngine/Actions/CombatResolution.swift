@@ -44,6 +44,7 @@ struct CombatResolution {
         var outcome: ResolvedActionFacts?
         var talents: TalentActionFacts?
         var didCriticalHit = false
+        var loadedStrikeDouble: Bool?
     }
 
     private struct Card {
@@ -255,6 +256,24 @@ struct CombatResolution {
             talents.blindingReduction -= reduction
             return reduction
         } ?? 0
+    }
+
+    mutating func loadedStrikeDouble(for actorID: String, using rng: inout some RandomNumberGenerator) -> Bool {
+        guard let index = frames.lastIndex(where: {
+            if case .action = $0 {
+                return true
+            }
+            return false
+        }), case var .action(action) = frames[index], action.context.actor.id == actorID else {
+            return Bool.random(using: &rng)
+        }
+        if let stored = action.loadedStrikeDouble {
+            return stored
+        }
+        let doubled = Bool.random(using: &rng)
+        action.loadedStrikeDouble = doubled
+        frames[index] = .action(action)
+        return doubled
     }
 
     mutating func consumeGoldDamage(for actorID: String?) -> Int {

@@ -32,6 +32,7 @@ struct CombatantTalentState: Hashable, Sendable {
         var cleansedKeywordProtection: Set<Keyword> = []
         var negativeStatusImmune = false
         var purgedEffectProtection: Set<EffectKind> = []
+        var blockGainPrevented = false
         var subzeroMistActive = false
         var tookAttackHit = false
         var blockedFaeWard = false

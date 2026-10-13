@@ -4,8 +4,10 @@ Use with [engine ownership](battle-engine.md) for healing, overflow, bounded gai
 
 `HealingResult` carries `HealingAllocation`: resolved healing, direct restoration,
 transferred overflow, maximum-Health and Block allocations, and unspent overflow.
-Each consuming consequence allocates from the remainder. Barrier Blessing converts
-the remainder to resolved Block, without repeating Block bonuses or fight pacing.
+Each consuming consequence allocates from the remainder, including Soul Drain's
+resolved Mana conversion after partner sharing. Barrier Blessing converts
+the healer's remaining excess to recipient resolved Block, without repeating Block bonuses or fight pacing. Reclaimed Reagents converts half
+instead; full conversion takes precedence when both apply.
 Transfers offer at most the recipient's missing Health so nested healing cannot convert overflow already
 owned by the parent. Echoes and Leech success read actual restoration. Independent
 observers such as Wishspring read original overflow without consuming it.
@@ -49,7 +51,7 @@ field remains unchanged. Shares apply recipient healing reduction without
 repeating healer bonuses, and cannot trigger another Leech share.
 Heartshock reacts only to direct Leech restoration below half Health. Its Stun
 follow-up cannot Leech, so it cannot trigger another Heartshock hit.
-Taste for Blood, Necrotic Bleed, Toxic Touch, Armor Pierce, and Vitality Infusion
+Taste for Blood, Necrotic Bleed, Toxic Touch, Soulpiercer, and Vitality Infusion
 recognize Leech granted by equipment and talents as well as abilities. Guaranteed grants qualify at the
 attack checkpoint, before restoration can change the source's Health; a full-Health
 attacker still has a Leech attack. Chance-based Leech retains its restoration roll.

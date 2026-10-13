@@ -5,7 +5,7 @@ import TrinketCore
 
 struct SharedUniqueDamageRegressionTests {
     @Test(arguments: [UInt64(1), 2, 3, 4])
-    func `oathkeeper shares Standard Deviation with holy damage`(seed: UInt64) throws {
+    func `oathkeeper shares Loaded Strike with holy attacks`(seed: UInt64) throws {
         let fixtures = UniqueCollectionTests()
         let profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t1_2"])
         var shared = try fixtures.battle(["oathkeeper"], extra: profile)

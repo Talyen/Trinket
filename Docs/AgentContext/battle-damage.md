@@ -29,10 +29,9 @@ Stunned enemies. Stalk the Wound also amplifies its owner's Bleed ticks against
 Bleeding enemies below half Health.
 Multiple partial Block bypasses
 use the strongest applicable fraction. Partial bypass scales each defense before
-subtracting it and clamping damage. Burn detonation preserves the original
-source's decay rate and ticks per turn. Blackfletch's Poison detonation likewise
-preserves the original source's slower decay. Resolution depth limits recursion, never changes
-the meaning of a request.
+subtracting it and clamping damage. Burn and Poison detonations preserve source-owned
+decay and tick rules, plus applicable living-party enemy-pool decay Talents.
+Resolution depth limits recursion, never changes the meaning of a request.
 DoT amplification multiplies every matching stack, retaining each stack's source
 and duration; its feedback reports the combined amplified potency.
 Card preparations, DoT attachment/growth/detonation, and triggered Thorns gains
@@ -55,12 +54,14 @@ Cauterize's Burn hit leaves Burn equal to its Health damage, like Infected and
 Ashen Wake's Poison hits.
 Later damage components skip a target already defeated by the same action, so
 post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
-`DecayingDoTProgression` captures the original stack owner’s decay and tick rules
-for Burn and Poison. Turn handlers and `DecayingDoTDetonation` use that same
-policy and `Effect.potencyAfterTurn`; adding potency to an existing pool retains
-its original source, decay rules, and tick credit. Preservation and growth rolls
-remain exclusive to live turns. Ability and critical-hit detonations share the executor; callers
-commit stack removal and own recursion scope before executing damage.
+`DecayingDoTProgression` captures the original stack owner’s legacy decay and tick
+rules plus the strongest matching enemy-pool Talent modifiers from living allies.
+Enemy-pool Talents apply regardless of the original applier; defeated owners cease
+contributing. Turn handlers and `DecayingDoTDetonation` use that same policy and
+`Effect.potencyAfterTurn`; adding potency retains original source and tick credit.
+Preservation and growth rolls remain exclusive to live turns. Ability and critical-hit
+detonations share the executor; callers commit stack removal and own recursion scope
+before executing damage.
 
 Burn and Poison attached by damaging attacks or effect applications store the
 actual Health damage dealt by that damage instance, after offensive bonuses,
@@ -88,8 +89,13 @@ event once, including a stored tick; Venomtrail retains its per-event rule below
 Oathkeeper and Bloodember share keyword percentage bonuses as well as flat bonuses,
 counting universal bonuses once, including companion status multipliers, Critical
 damage bonuses, and chance-based damage multipliers such as Supernova and Standard
-Deviation. Shared numeric bonuses include damage to Block: Shatterguard applies to
-Oathkeeper Holy damage, while Flaming Arrows and Armor Shred apply to the other
+Deviation. Loaded Strike shares Physical eligibility too, but rolls only for attack
+hits: all Physical hits in one action share an equal-odds double/half result,
+including upward rounding when halving. Counterattacks have independent actions;
+ongoing and raw reaction damage cannot roll. Legacy Standard Deviation retains its
+existing damage eligibility and card-scoped roll. Shared numeric bonuses include
+damage to Block: Shatterguard applies to Oathkeeper Holy damage, while Flaming Arrows
+and Armor Shred apply to the other
 Bloodember keyword. Block absorption and attack-only eligibility remain unchanged. Thermal
 Shock and Frostfire apply once per new hit.
 Searing Body attaches Burn after attack Health damage, never after periodic or
@@ -142,7 +148,7 @@ Removal events report what was actually removed: one event per removed buff for
 purge, one per distinct keyword for cleanse. Empty purge reports `didApply:false`;
 empty cleanse still reports any heal and side-effect events as applied
 (`didApply` reflects emitted events).
-Reflective Ward returns a triggered Stun or Freeze at the recipient's control
+Legacy debuff reflection returns a triggered Stun or Freeze at the recipient's control
 threshold, so a larger enemy Health pool cannot turn the reflected status into
 partial buildup. Untriggered buildup retains its removed amount.
 `DoTApplication.reflection` preserves the

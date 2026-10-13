@@ -159,4 +159,67 @@ struct HealingGainBoundaryTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == gain.applied)
         #expect(battle.roster.companion.talents.pending.nextBlockGainMultiplier?.value == (resolved ? 2 : nil))
     }
+
+    @Test(arguments: [false, true], [0, 8, 10])
+    func `Soul Drain shares before restoring resolved Mana and converts only unused overflow`(leech: Bool, mana: Int) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.excessLeechRestoresMana = true
+        profile.triggers.leechOverhealTransfersToCompanion = true
+        profile.triggers.providedOverhealConvertsToBlock = true
+        profile.manaRestoredBonus = 7
+        profile.manaRestoredPercent = 1
+        profile.triggers.manaGainDoubleChancePercent = 1
+        profile.triggers.gainManaBlockFlat = 2
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxHealth: 10, heroMaxMana: 10,
+            heroModifiers: profile, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.companion.currentHealth = 7
+        battle.roster.hero.currentMana = mana
+        var request = HealRequest(
+            amount: 10, target: battle.hero, sourceActorID: battle.hero.id,
+            origin: leech ? .leech : .restoration(.health), logAs: .silent,
+        )
+        request.amountBasis = .resolved
+
+        let result = CombatExecutor.run { await HealingEngine.resolveHealing(request, in: &battle) }
+
+        let restoredMana = leech ? min(7, 10 - mana) : 0
+        let convertedBlock = leech ? 7 - restoredMana : 10
+        #expect(result.allocation.transferred == (leech ? 3 : 0))
+        #expect(result.allocation.mana == restoredMana)
+        #expect(result.allocation.block == convertedBlock)
+        #expect(result.allocation.remaining == 0)
+        #expect(battle.roster.hero.currentMana == mana + restoredMana)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == convertedBlock + (restoredMana > 0 ? 2 : 0))
+        #expect(result.events.filter { $0.keyword == .mana }.map(\.amount) == (restoredMana > 0 ? [restoredMana] : []))
+    }
+
+    @Test(arguments: [false, true], [false, true])
+    func `healer owned overflow conversion shares first and respects living ownership`(full: Bool, alive: Bool) {
+        var sourceProfile = CombatModifierProfile.zero
+        sourceProfile.triggers.sharedPrescription = true
+        sourceProfile.triggers.providedOverhealConvertsToBlock = full
+        sourceProfile.triggers.providedOverhealToBlockPercent = 0.5
+        sourceProfile.blockGainedBonus = 9
+        var targetProfile = CombatModifierProfile.zero
+        targetProfile.triggers.overhealToBlockPercent = 0.25
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxHealth: 10,
+            heroModifiers: sourceProfile, companionModifiers: targetProfile,
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        battle.roster.hero.currentHealth = alive ? battle.roster.hero.maxHealth - 2 : 0
+        var request = HealRequest(amount: 10, target: battle.companion, sourceActorID: battle.hero.id)
+        request.amountBasis = .resolved
+
+        let result = CombatExecutor.run { await HealingEngine.resolveHealing(request, in: &battle) }
+
+        #expect(result.allocation.transferred == (alive ? 2 : 0))
+        #expect(result.allocation.block == (alive ? (full ? 8 : 4) : 3))
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == result.allocation.block)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 0)
+    }
 }

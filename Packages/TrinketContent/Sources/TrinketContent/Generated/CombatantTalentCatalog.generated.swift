@@ -49,8 +49,8 @@ public extension CombatantTalentCatalog {
             "ranger_burn_t1_2": CombatantTalentEffect(
                 name: "Slow Burn",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Burn fades 30% slower on Bleeding enemies",
-                triggers: CombatTraitTriggers(dot: DotTriggers(burnDecaySlowVsBleedingPercent: 0.30))
+                description: "Burn fades 30% slower on Bleeding enemies.",
+                triggers: CombatTraitTriggers(dot: DotTriggers(enemyBurnDecaySlowVsBleedingPercent: 0.30))
             ),
             "ranger_burn_t2_1": CombatantTalentEffect(
                 name: "Woundfire",
@@ -119,7 +119,7 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(damage: DamageTriggers(toxicTransfusion: true))
             ),
             "ranger_bleed_t4_1": CombatantTalentEffect(
-                name: "Shatterpoint",
+                name: "Pin and Rend",
                 iconID: "sf:burst.fill",
                 description: "Stunning a Bleeding enemy doubles its next Bleed damage",
                 triggers: CombatTraitTriggers(dot: DotTriggers(shatterpoint: true))
@@ -271,8 +271,8 @@ public extension CombatantTalentCatalog {
             "rogue_poison_t1_2": CombatantTalentEffect(
                 name: "Lingering Toxin",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Poison fades 25% slower",
-                triggers: CombatTraitTriggers(dot: DotTriggers(poisonDecaySlowPercent: 0.25))
+                description: "Enemy Poison fades 25% slower.",
+                triggers: CombatTraitTriggers(dot: DotTriggers(enemyPoisonDecaySlowPercent: 0.25))
             ),
             "rogue_poison_t2_1": CombatantTalentEffect(
                 name: "Noxious Reaction",
@@ -289,8 +289,8 @@ public extension CombatantTalentCatalog {
             "rogue_poison_t3_1": CombatantTalentEffect(
                 name: "Contagion",
                 iconID: "sf:arrow.clockwise",
-                description: "Each turn, Poison has a 25% chance to grow instead of fading.",
-                triggers: CombatTraitTriggers(dot: DotTriggers(poisonDecayIncreaseChance: 0.25))
+                description: "Enemy Poison has a 25% chance to grow instead of fading.",
+                triggers: CombatTraitTriggers(dot: DotTriggers(enemyPoisonDecayIncreaseChance: 0.25))
             ),
             "rogue_poison_t3_2": CombatantTalentEffect(
                 name: "Deadly Dose",
@@ -337,8 +337,8 @@ public extension CombatantTalentCatalog {
             "rogue_gold_t1_1": CombatantTalentEffect(
                 name: "Light Fingers",
                 iconID: "sf:hand.pinch.fill",
-                description: "Gain 2 Gold when you Critically Hit.",
-                triggers: CombatTraitTriggers(gold: GoldTriggers(criticalGoldFlat: 2))
+                description: "Critical Hits steal 1 Gold",
+                triggers: CombatTraitTriggers(attack: AttackTriggers(criticalGoldStealFlat: 1))
             ),
             "rogue_gold_t1_2": CombatantTalentEffect(
                 name: "Coinmail",
@@ -436,8 +436,8 @@ public extension CombatantTalentCatalog {
             "wizard_burn_t1_2": CombatantTalentEffect(
                 name: "Smoldering",
                 iconID: "sf:flame.fill",
-                description: "Burn fades 25% slower",
-                triggers: CombatTraitTriggers(dot: DotTriggers(burnDecaySlowPercent: 0.25))
+                description: "Enemy Burn fades 25% slower.",
+                triggers: CombatTraitTriggers(dot: DotTriggers(enemyBurnDecaySlowPercent: 0.25))
             ),
             "wizard_burn_t2_1": CombatantTalentEffect(
                 name: "Searing Heat",
@@ -583,7 +583,7 @@ public extension CombatantTalentCatalog {
             "druid_poison_t2_2": CombatantTalentEffect(
                 name: "Returning Bloom",
                 iconID: "sf:camera.macro",
-                description: "Poison fading completely restores 3 Health to the lowest-Health living ally",
+                description: "Your Poison naturally expiring heals the lowest-Health ally for 3.",
                 triggers: CombatTraitTriggers(healing: HealingTriggers(returningBloomHeal: 3))
             ),
             "druid_poison_t3_1": CombatantTalentEffect(
@@ -692,7 +692,7 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(healing: HealingTriggers(leechOnBlockDamage: true))
             ),
             "warlock_leech_t1_2": CombatantTalentEffect(
-                name: "Armor Pierce",
+                name: "Soulpiercer",
                 iconID: "sf:shield.slash.fill",
                 description: "Leech attacks ignore half enemy Block",
                 triggers: CombatTraitTriggers(block: BlockTriggers(leechAttackBlockIgnorePercent: 0.5))
@@ -700,14 +700,14 @@ public extension CombatantTalentCatalog {
             "warlock_leech_t2_1": CombatantTalentEffect(
                 name: "Blood Link",
                 iconID: "sf:link",
-                description: "Excess Health restored from Leech is transferred to your Companion.",
+                description: "Excess Leech healing restores your Companion’s Health.",
                 triggers: CombatTraitTriggers(healing: HealingTriggers(leechOverhealTransfersToCompanion: true))
             ),
             "warlock_leech_t2_2": CombatantTalentEffect(
                 name: "Soul Drain",
                 iconID: "sf:moon.stars.fill",
-                description: "Leeching Health restores 1 Mana.",
-                triggers: CombatTraitTriggers(mana: ManaTriggers(leechRestoreManaFlat: 1))
+                description: "Excess Leech healing restores equal Mana.",
+                triggers: CombatTraitTriggers(healing: HealingTriggers(excessLeechRestoresMana: true))
             ),
             "warlock_leech_t3_1": CombatantTalentEffect(
                 name: "Sanguine Overflow",
@@ -770,9 +770,9 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(attack: AttackTriggers(burnAttackCritDrawCard: true))
             ),
             "warlock_burn_t4_2": CombatantTalentEffect(
-                name: "Temper Cycle",
+                name: "Bloodkindling",
                 iconID: "sf:repeat",
-                description: "Burn attacks add 1 bonus damage to your next Bleed attack",
+                description: "Burn attacks add 1 damage to your next Bleed attack.",
                 triggers: CombatTraitTriggers(attack: AttackTriggers(burnPreparesBleedDamageBonus: 1))
             ),
             "warlock_leech_t4_1": CombatantTalentEffect(
@@ -805,7 +805,7 @@ public extension CombatantTalentCatalog {
             "alchemist_poison_t2_2": CombatantTalentEffect(
                 name: "Spent Reagents",
                 iconID: "sf:flask.fill",
-                description: "Poison fading completely restores 2 Mana",
+                description: "Your Poison naturally expiring restores 2 Mana.",
                 triggers: CombatTraitTriggers(mana: ManaTriggers(poisonExpiryManaRestore: 2))
             ),
             "alchemist_poison_t3_1": CombatantTalentEffect(
@@ -817,7 +817,7 @@ public extension CombatantTalentCatalog {
             "alchemist_poison_t3_2": CombatantTalentEffect(
                 name: "Unstable Culture",
                 iconID: "sf:microbe.fill",
-                description: "When Poison fades, your next Poison attack deals double damage",
+                description: "Your Poison naturally expiring doubles your next Poison attack.",
                 triggers: CombatTraitTriggers(dot: DotTriggers(unstableCulture: true))
             ),
             "alchemist_poison_t4_1": CombatantTalentEffect(
@@ -865,7 +865,7 @@ public extension CombatantTalentCatalog {
             "alchemist_cleanse_t4_1": CombatantTalentEffect(
                 name: "Perfect Purity",
                 iconID: "sf:sparkles",
-                description: "Cleanse grants its target 1 turn of debuff immunity",
+                description: "Cleansing debuffs prevents new debuffs until your next turn.",
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(perfectPurity: true))
             ),
             "alchemist_health_t1_1": CombatantTalentEffect(
@@ -889,13 +889,13 @@ public extension CombatantTalentCatalog {
             "alchemist_health_t2_2": CombatantTalentEffect(
                 name: "Reclaimed Reagents",
                 iconID: "sf:arrow.3.trianglepath",
-                description: "Half of excess Health restoration becomes Block",
-                triggers: CombatTraitTriggers(healing: HealingTriggers(overhealToBlockPercent: 0.5))
+                description: "Half your excess healing becomes Block for its recipient.",
+                triggers: CombatTraitTriggers(healing: HealingTriggers(providedOverhealToBlockPercent: 0.5))
             ),
             "alchemist_health_t3_1": CombatantTalentEffect(
                 name: "Shared Prescription",
                 iconID: "sf:heart.fill",
-                description: "Excess Health restoration heals your ally",
+                description: "Your excess healing restores Health to the recipient’s partner.",
                 triggers: CombatTraitTriggers(healing: HealingTriggers(sharedPrescription: true))
             ),
             "alchemist_health_t3_2": CombatantTalentEffect(
@@ -1004,10 +1004,10 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(attack: AttackTriggers(physicalElementChancePercent: 0.10, physicalElementDamage: 3))
             ),
             "wildcard_physical_t1_2": CombatantTalentEffect(
-                name: "Standard Deviation",
+                name: "Loaded Strike",
                 iconID: "sf:burst.fill",
-                description: "Physical damage you deal is either doubled or halved",
-                triggers: CombatTraitTriggers(attack: AttackTriggers(standardDeviation: true))
+                description: "Physical attacks randomly deal double or half damage.",
+                triggers: CombatTraitTriggers(attack: AttackTriggers(loadedStrike: true))
             ),
             "wildcard_physical_t2_1": CombatantTalentEffect(
                 name: "Clean Cut",
@@ -1468,8 +1468,8 @@ public extension CombatantTalentCatalog {
             "lizard_scout_poison_t3_2": CombatantTalentEffect(
                 name: "Venom Spores",
                 iconID: "sf:camera.macro",
-                description: "Poison has a 20% chance to not decay",
-                triggers: CombatTraitTriggers(dot: DotTriggers(poisonPreventDecayChancePercent: 0.20))
+                description: "Enemy Poison has a 20% chance to avoid fading.",
+                triggers: CombatTraitTriggers(dot: DotTriggers(enemyPoisonPreventDecayChancePercent: 0.20))
             ),
             "lizard_scout_bleed_t1_1": CombatantTalentEffect(
                 name: "Barbed Tail",
@@ -1714,8 +1714,8 @@ public extension CombatantTalentCatalog {
             "phoenix_burn_t1_2": CombatantTalentEffect(
                 name: "Ignition Spark",
                 iconID: "sf:sparkles",
-                description: "Burn has a 20% chance to not decay",
-                triggers: CombatTraitTriggers(dot: DotTriggers(burnPreventDecayChancePercent: 0.20))
+                description: "Enemy Burn has a 20% chance to avoid fading.",
+                triggers: CombatTraitTriggers(dot: DotTriggers(enemyBurnPreventDecayChancePercent: 0.20))
             ),
             "phoenix_burn_t2_1": CombatantTalentEffect(
                 name: "Flame Shield",
@@ -1843,8 +1843,8 @@ public extension CombatantTalentCatalog {
             "golden_retriever_gold_t1_2": CombatantTalentEffect(
                 name: "Dig for Treasure",
                 iconID: "sf:circle.circle.fill",
-                description: "Gain 2 Gold every 3 turns.",
-                triggers: CombatTraitTriggers(gold: GoldTriggers(goldEveryNTurnsInterval: 3, goldEveryNTurnsAmount: 2))
+                description: "Gain 10% more Gold on victory",
+                triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldBonusPercent: 10))
             ),
             "golden_retriever_gold_t2_1": CombatantTalentEffect(
                 name: "Haggler",
@@ -1945,8 +1945,8 @@ public extension CombatantTalentCatalog {
             "golden_retriever_gold_t4_1": CombatantTalentEffect(
                 name: "War Chest",
                 iconID: "sf:circle.circle.fill",
-                description: "Your ally gains Critical Hit chance equal to Gold gained this combat",
-                triggers: CombatTraitTriggers(gold: GoldTriggers(allyCriticalChancePerCombatGold: 0.01))
+                description: "Gold stolen grants equal Block to your Hero.",
+                triggers: CombatTraitTriggers(gold: GoldTriggers(goldTheftAllyBlock: true))
             ),
             "golden_retriever_block_t4_1": CombatantTalentEffect(
                 name: "Shield Relay",
@@ -1957,7 +1957,7 @@ public extension CombatantTalentCatalog {
             "golden_retriever_health_t4_1": CombatantTalentEffect(
                 name: "Contagious Joy",
                 iconID: "sf:face.smiling.fill",
-                description: "Excess Health restoration on you is shared with your ally",
+                description: "Excess healing you receive restores your Hero’s Health.",
                 triggers: CombatTraitTriggers(healing: HealingTriggers(excessHealthShareAlly: true))
             )
     ]
@@ -2024,10 +2024,10 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseAffectsBothHeroAndCompanion: true))
             ),
             "library_owl_cleanse_t3_1": CombatantTalentEffect(
-                name: "Reflective Ward",
+                name: "Reproving Light",
                 iconID: "sf:arrow.uturn.backward",
-                description: "Cleansing a debuff reflects it onto the enemy who applied it.",
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseReflectDebuffToEnemy: true))
+                description: "Cleansing debuffs deals 3 Holy damage.",
+                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseHolyDamage: 3))
             ),
             "library_owl_cleanse_t3_2": CombatantTalentEffect(
                 name: "Sanctified Scroll",
@@ -2074,8 +2074,8 @@ public extension CombatantTalentCatalog {
             "library_owl_holy_t4_1": CombatantTalentEffect(
                 name: "Interdict",
                 iconID: "sf:nosign",
-                description: "Purging with Holy prevents that buff from returning next turn",
-                triggers: CombatTraitTriggers(cleanse: CleanseTriggers(interdict: true))
+                description: "Holy Critical Hits prevent enemy Block until your next turn.",
+                triggers: CombatTraitTriggers(control: ControlTriggers(holyCriticalPreventsBlock: true))
             ),
             "library_owl_cleanse_t4_1": CombatantTalentEffect(
                 name: "Lesson Learned",
@@ -2320,8 +2320,8 @@ public extension CombatantTalentCatalog {
             "mana_moth_burn_t3_1": CombatantTalentEffect(
                 name: "Ember Persistence",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Burn has a 20% chance to not decay",
-                triggers: CombatTraitTriggers(dot: DotTriggers(burnPreventDecayChancePercent: 0.20))
+                description: "Enemy Burn has a 20% chance to avoid fading.",
+                triggers: CombatTraitTriggers(dot: DotTriggers(enemyBurnPreventDecayChancePercent: 0.20))
             ),
             "mana_moth_burn_t3_2": CombatantTalentEffect(
                 name: "Scorching Dust",
@@ -2425,8 +2425,8 @@ public extension CombatantTalentCatalog {
             "pixie_health_t3_2": CombatantTalentEffect(
                 name: "Barrier Blessing",
                 iconID: "sf:shield.fill",
-                description: "Excess Health restored is converted into Block for that ally.",
-                triggers: CombatTraitTriggers(healing: HealingTriggers(overhealConvertsToBlock: true))
+                description: "Excess healing you provide becomes Block for its recipient.",
+                triggers: CombatTraitTriggers(healing: HealingTriggers(providedOverhealConvertsToBlock: true))
             ),
             "pixie_holy_t1_1": CombatantTalentEffect(
                 name: "Dazzle",
@@ -2465,7 +2465,7 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(attack: AttackTriggers(firstHolyAttackBonusPerTurn: 2))
             ),
             "pixie_holy_t4_1": CombatantTalentEffect(
-                name: "Unbroken Vow",
+                name: "Starlit Mantle",
                 iconID: "sf:checkmark.seal.fill",
                 description: "While you have Block, Holy attacks ignore enemy Block",
                 triggers: CombatTraitTriggers(block: BlockTriggers(unbrokenVow: true))
@@ -2479,7 +2479,7 @@ public extension CombatantTalentCatalog {
             "pixie_health_t4_1": CombatantTalentEffect(
                 name: "Wishspring",
                 iconID: "sf:wand.and.stars",
-                description: "Excess Health restoration makes your next Mana empowerment free",
+                description: "Your excess healing makes your next Mana empowerment free.",
                 triggers: CombatTraitTriggers(healing: HealingTriggers(excessHealthNextManaEmpowerFree: true))
             )
     ]
@@ -2600,7 +2600,7 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(attack: AttackTriggers(firstHolyHitDamageMultiplierPerTurn: 1.5))
             ),
             "shield_scarab_block_t4_1": CombatantTalentEffect(
-                name: "Sealed Sarcophagus",
+                name: "Adamant Carapace",
                 iconID: "sf:lock.shield.fill",
                 description: "Your Block absorbs twice as much damage",
                 triggers: CombatTraitTriggers(block: BlockTriggers(doubleAllBlockAbsorption: true))
@@ -2617,8 +2617,8 @@ public extension CombatantTalentCatalog {
             "fox_gold_t1_1": CombatantTalentEffect(
                 name: "Palmed Coin",
                 iconID: "sf:hand.pinch.fill",
-                description: "Dodging has a 20% chance to gain 4 Gold",
-                triggers: CombatTraitTriggers(gold: GoldTriggers(dodgeGoldAmount: 4, dodgeGoldChancePercent: 0.20))
+                description: "Dodging has a 20% chance to steal 4 Gold",
+                triggers: CombatTraitTriggers(gold: GoldTriggers(dodgeGoldAmount: 4, dodgeGoldChancePercent: 0.20, dodgeGoldIsTheft: true))
             ),
             "fox_gold_t1_2": CombatantTalentEffect(
                 name: "Snatch",

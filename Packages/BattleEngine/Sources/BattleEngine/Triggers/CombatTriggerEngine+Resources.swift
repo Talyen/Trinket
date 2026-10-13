@@ -2,10 +2,11 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    static func afterGoldTheft(by actor: Combatant, in context: inout BattleState) async -> [ActionEvent] {
+    static func afterGoldTheft(by actor: Combatant, amount: Int, in context: inout BattleState) async -> [ActionEvent] {
         guard context.roster.health(for: actor) > 0 else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        var events = await afterCompanionGoldTheft(by: actor, in: &context)
+        var events = goldTheftAllyBlock(amount, by: actor, in: &context)
+        await events.append(contentsOf: afterCompanionGoldTheft(by: actor, in: &context))
         if triggers.goldTheftBlockAmount > 0, triggers.goldTheftBlockChancePercent > 0,
            context.claimTalentAbility(.hoardArmor, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.goldTheftBlockChancePercent, using: &context.rng) {
@@ -56,6 +57,19 @@ package extension CombatTriggerEngine {
             ))
         }
         return events
+    }
+
+    private static func goldTheftAllyBlock(
+        _ amount: Int,
+        by actor: Combatant,
+        in context: inout BattleState,
+    ) -> [ActionEvent] {
+        guard actor.role == .companion, context.roster.hero.isAlive,
+              context.modifiers(for: actor.id).triggers.goldTheftAllyBlock else { return [] }
+        return context.applyBlock(
+            amount, to: context.roster.hero.combatant, source: actor,
+            abilityName: "War Chest", amountBasis: .resolved,
+        )
     }
 
     private static func prepareGoldTheftDamageBonuses(

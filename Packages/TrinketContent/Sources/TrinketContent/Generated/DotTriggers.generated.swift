@@ -77,6 +77,12 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var onDamageBurnRetaliationDamage: Int = 0
     public var burnPreventDecayChancePercent: Double = 0
     public var bleedPoisonOncePerTurn: Bool = false
+    public var enemyPoisonDecaySlowPercent: Double = 0
+    public var enemyPoisonPreventDecayChancePercent: Double = 0
+    public var enemyPoisonDecayIncreaseChance: Double = 0
+    public var enemyBurnDecaySlowPercent: Double = 0
+    public var enemyBurnDecaySlowVsBleedingPercent: Double = 0
+    public var enemyBurnPreventDecayChancePercent: Double = 0
 
     public init(
         redline: Bool = false,
@@ -151,7 +157,13 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         onDamageBurnRetaliationChancePercent: Double = 0,
         onDamageBurnRetaliationDamage: Int = 0,
         burnPreventDecayChancePercent: Double = 0,
-        bleedPoisonOncePerTurn: Bool = false
+        bleedPoisonOncePerTurn: Bool = false,
+        enemyPoisonDecaySlowPercent: Double = 0,
+        enemyPoisonPreventDecayChancePercent: Double = 0,
+        enemyPoisonDecayIncreaseChance: Double = 0,
+        enemyBurnDecaySlowPercent: Double = 0,
+        enemyBurnDecaySlowVsBleedingPercent: Double = 0,
+        enemyBurnPreventDecayChancePercent: Double = 0
     ) {
         self.redline = redline
         self.bleedHalvesAfterExpiration = bleedHalvesAfterExpiration
@@ -226,6 +238,12 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.onDamageBurnRetaliationDamage = onDamageBurnRetaliationDamage
         self.burnPreventDecayChancePercent = burnPreventDecayChancePercent
         self.bleedPoisonOncePerTurn = bleedPoisonOncePerTurn
+        self.enemyPoisonDecaySlowPercent = enemyPoisonDecaySlowPercent
+        self.enemyPoisonPreventDecayChancePercent = enemyPoisonPreventDecayChancePercent
+        self.enemyPoisonDecayIncreaseChance = enemyPoisonDecayIncreaseChance
+        self.enemyBurnDecaySlowPercent = enemyBurnDecaySlowPercent
+        self.enemyBurnDecaySlowVsBleedingPercent = enemyBurnDecaySlowVsBleedingPercent
+        self.enemyBurnPreventDecayChancePercent = enemyBurnPreventDecayChancePercent
     }
 
     /// Fields where `self` differs from `other`.
@@ -304,6 +322,12 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         if self.onDamageBurnRetaliationDamage != other.onDamageBurnRetaliationDamage { fields.append(.onDamageBurnRetaliationDamage) }
         if self.burnPreventDecayChancePercent != other.burnPreventDecayChancePercent { fields.append(.burnPreventDecayChancePercent) }
         if self.bleedPoisonOncePerTurn != other.bleedPoisonOncePerTurn { fields.append(.bleedPoisonOncePerTurn) }
+        if self.enemyPoisonDecaySlowPercent != other.enemyPoisonDecaySlowPercent { fields.append(.enemyPoisonDecaySlowPercent) }
+        if self.enemyPoisonPreventDecayChancePercent != other.enemyPoisonPreventDecayChancePercent { fields.append(.enemyPoisonPreventDecayChancePercent) }
+        if self.enemyPoisonDecayIncreaseChance != other.enemyPoisonDecayIncreaseChance { fields.append(.enemyPoisonDecayIncreaseChance) }
+        if self.enemyBurnDecaySlowPercent != other.enemyBurnDecaySlowPercent { fields.append(.enemyBurnDecaySlowPercent) }
+        if self.enemyBurnDecaySlowVsBleedingPercent != other.enemyBurnDecaySlowVsBleedingPercent { fields.append(.enemyBurnDecaySlowVsBleedingPercent) }
+        if self.enemyBurnPreventDecayChancePercent != other.enemyBurnPreventDecayChancePercent { fields.append(.enemyBurnPreventDecayChancePercent) }
         return fields
     }
 }
@@ -383,6 +407,12 @@ extension DotTriggers {
         onDamageBurnRetaliationDamage += other.onDamageBurnRetaliationDamage
         burnPreventDecayChancePercent += other.burnPreventDecayChancePercent
         bleedPoisonOncePerTurn = bleedPoisonOncePerTurn || other.bleedPoisonOncePerTurn
+        enemyPoisonDecaySlowPercent = max(enemyPoisonDecaySlowPercent, other.enemyPoisonDecaySlowPercent)
+        enemyPoisonPreventDecayChancePercent = max(enemyPoisonPreventDecayChancePercent, other.enemyPoisonPreventDecayChancePercent)
+        enemyPoisonDecayIncreaseChance = max(enemyPoisonDecayIncreaseChance, other.enemyPoisonDecayIncreaseChance)
+        enemyBurnDecaySlowPercent = max(enemyBurnDecaySlowPercent, other.enemyBurnDecaySlowPercent)
+        enemyBurnDecaySlowVsBleedingPercent = max(enemyBurnDecaySlowVsBleedingPercent, other.enemyBurnDecaySlowVsBleedingPercent)
+        enemyBurnPreventDecayChancePercent = max(enemyBurnPreventDecayChancePercent, other.enemyBurnPreventDecayChancePercent)
     }
 }
 
@@ -462,7 +492,13 @@ extension DotTriggers {
             onDamageBurnRetaliationChancePercent: values.decode(Double.self, "onDamageBurnRetaliationChancePercent", default: 0),
             onDamageBurnRetaliationDamage: values.decode(Int.self, "onDamageBurnRetaliationDamage", default: 0),
             burnPreventDecayChancePercent: values.decode(Double.self, "burnPreventDecayChancePercent", default: 0),
-            bleedPoisonOncePerTurn: values.decode(Bool.self, "bleedPoisonOncePerTurn", default: false)
+            bleedPoisonOncePerTurn: values.decode(Bool.self, "bleedPoisonOncePerTurn", default: false),
+            enemyPoisonDecaySlowPercent: values.decode(Double.self, "enemyPoisonDecaySlowPercent", default: 0),
+            enemyPoisonPreventDecayChancePercent: values.decode(Double.self, "enemyPoisonPreventDecayChancePercent", default: 0),
+            enemyPoisonDecayIncreaseChance: values.decode(Double.self, "enemyPoisonDecayIncreaseChance", default: 0),
+            enemyBurnDecaySlowPercent: values.decode(Double.self, "enemyBurnDecaySlowPercent", default: 0),
+            enemyBurnDecaySlowVsBleedingPercent: values.decode(Double.self, "enemyBurnDecaySlowVsBleedingPercent", default: 0),
+            enemyBurnPreventDecayChancePercent: values.decode(Double.self, "enemyBurnPreventDecayChancePercent", default: 0)
         )
     }
 
@@ -540,5 +576,11 @@ extension DotTriggers {
         try container.encodeNonDefault(onDamageBurnRetaliationDamage, "onDamageBurnRetaliationDamage", default: 0)
         try container.encodeNonDefault(burnPreventDecayChancePercent, "burnPreventDecayChancePercent", default: 0)
         try container.encodeNonDefault(bleedPoisonOncePerTurn, "bleedPoisonOncePerTurn", default: false)
+        try container.encodeNonDefault(enemyPoisonDecaySlowPercent, "enemyPoisonDecaySlowPercent", default: 0)
+        try container.encodeNonDefault(enemyPoisonPreventDecayChancePercent, "enemyPoisonPreventDecayChancePercent", default: 0)
+        try container.encodeNonDefault(enemyPoisonDecayIncreaseChance, "enemyPoisonDecayIncreaseChance", default: 0)
+        try container.encodeNonDefault(enemyBurnDecaySlowPercent, "enemyBurnDecaySlowPercent", default: 0)
+        try container.encodeNonDefault(enemyBurnDecaySlowVsBleedingPercent, "enemyBurnDecaySlowVsBleedingPercent", default: 0)
+        try container.encodeNonDefault(enemyBurnPreventDecayChancePercent, "enemyBurnPreventDecayChancePercent", default: 0)
     }
 }

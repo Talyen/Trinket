@@ -99,6 +99,9 @@ package extension CombatTriggerEngine {
         let sourceID = actor.id
         let triggers = context.modifiers(for: sourceID).triggers
         var events: [ActionEvent] = []
+        if keyword == .holy, triggers.holyCriticalPreventsBlock, context.roster.enemy.isAlive {
+            context.roster.mutateRuntime(for: context.enemy) { $0.talents.turn.blockGainPrevented = true }
+        }
         if keyword == .freeze, triggers.freezeCriticalRestoreMana > 0 {
             await events.append(contentsOf: heroTalentMana(to: actor, source: actor, name: "Frost Circuit", in: &context))
         }
@@ -299,7 +302,7 @@ package extension CombatTriggerEngine {
               context.roster.health(for: source) > 0, context.roster.health(for: target) > 0 else { return [] }
         let triggers = context.modifiers(for: source.id).triggers
         var events: [ActionEvent] = []
-        if triggers.perfectPurity {
+        if !removed.isEmpty, triggers.perfectPurity {
             context.roster.mutateRuntime(for: target) { $0.talents.turn.negativeStatusImmune = true }
         }
         if removed.contains(.burn), triggers.heatRecovery {
@@ -317,6 +320,13 @@ package extension CombatTriggerEngine {
             }
         }
         if !removed.isEmpty {
+            if triggers.cleanseHolyDamage > 0 {
+                await events.append(contentsOf: heroTalentDamage(
+                    .holy, amount: triggers.cleanseHolyDamage, source: source,
+                    name: triggerAbilityName(.cleanseHolyDamage, for: source, fallback: "Reproving Light", in: context),
+                    in: &context,
+                ))
+            }
             if triggers.freshBatch {
                 let healTarget = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
                 await events.append(contentsOf: heroTalentHeal(

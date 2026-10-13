@@ -182,6 +182,29 @@ struct PlayBattleLaunchTests {
         #expect(launch.presentation.stageRewardsAlreadyClaimed)
     }
 
+    @Test func `launch captures selected party victory Gold Talent`() throws {
+        let hero = try #require(GameContent.heroes.first)
+        let retriever = try #require(GameContent.companions.first { $0.id == "golden_retriever" })
+        var roster = PlayerRosterState.testSeed
+        roster.unlockedTalents[retriever.id] = ["golden_retriever_gold_t1_2"]
+        let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 2])
+        let input = BattleLaunchInput(
+            origin: .journey(stageID: "talent-reward"), hero: hero, companion: retriever,
+        )
+        let launch = PlayBattleLaunchTestSupport.assemble(
+            input: input, rngSeed: 0, rosterState: roster, inventoryState: .testSeed,
+            homesteadState: homestead,
+        )
+        #expect(launch.rewardPlan.goldFindPercent == homestead.effects.goldFindPercent + 10)
+        roster.unlockedTalents[retriever.id] = []
+        #expect(launch.rewardPlan.resolve(battleGold: .init(gained: 10)).goldDelta == 12)
+        let laterLaunch = PlayBattleLaunchTestSupport.assemble(
+            input: input, rngSeed: 0, rosterState: roster, inventoryState: .testSeed,
+            homesteadState: homestead,
+        )
+        #expect(laterLaunch.rewardPlan.resolve(battleGold: .init(gained: 10)).goldDelta == 11)
+    }
+
     @Test func `assembly uses the resolved encounter build`() throws {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter(\.encounter.isCombat)

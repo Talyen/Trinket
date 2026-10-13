@@ -143,6 +143,7 @@ package extension DamagePipeline {
             to: state.combatant,
             source: source.combatant,
             targetWasStunnedAtHit: state.targetStatus.isStunned,
+            isAttackHit: state.options.isAttackHit,
             in: &context,
         )
     }

@@ -2,6 +2,7 @@ struct HealingAllocation {
     enum Destination {
         case transfer
         case maximumHealth
+        case mana
         case block
     }
 
@@ -10,13 +11,14 @@ struct HealingAllocation {
     private(set) var transferred = 0
     private(set) var maximumHealth = 0
     private(set) var block = 0
+    private(set) var mana = 0
 
     var overflow: Int {
         max(0, resolvedAmount - directRestoration)
     }
 
     var remaining: Int {
-        overflow - transferred - maximumHealth - block
+        overflow - transferred - maximumHealth - block - mana
     }
 
     @discardableResult
@@ -26,6 +28,7 @@ struct HealingAllocation {
         case .transfer: transferred += applied
         case .maximumHealth: maximumHealth += applied
         case .block: block += applied
+        case .mana: mana += applied
         }
         return applied
     }

@@ -50,9 +50,11 @@ struct CleanseIntegrationTests {
         ActiveEffect(id: 90, effect: .bleed(5), remainingTurns: 1),
         ActiveEffect(id: 90, effect: .damageReductionFlat(3, 3), remainingTurns: 2),
     ])
-    func `reflective ward preserves removed effect`(cleanse: Effect, debuff: ActiveEffect) throws {
-        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_cleanse_t3_1")
-        var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: owl.modifiers)
+    func `legacy reflection preserves removed effect`(cleanse: Effect, debuff: ActiveEffect) throws {
+        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl")
+        var reflection = CombatModifierProfile.zero
+        reflection.triggers.cleanseReflectDebuffToEnemy = true
+        var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: reflection)
         var applied = debuff
         applied.sourceActorID = battle.enemy.id
         battle.roster.hero.activeEffects = [applied]
@@ -333,12 +335,14 @@ struct CleanseIntegrationTests {
 
 extension CleanseIntegrationTests {
     @Test(arguments: [Keyword.stun, .freeze])
-    func `Reflective Ward returns triggered control to a tougher enemy`(keyword: Keyword) throws {
-        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl", talents: "library_owl_cleanse_t3_1")
+    func `legacy reflection returns triggered control to a tougher enemy`(keyword: Keyword) throws {
+        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl")
+        var reflection = CombatModifierProfile.zero
+        reflection.triggers.cleanseReflectDebuffToEnemy = true
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20),
             companion: owl.combatant, enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: owl.modifiers, dealOpeningHand: false,
+            companionModifiers: reflection, dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
         let hero = battle.hero
@@ -359,5 +363,67 @@ extension CleanseIntegrationTests {
         let skipped = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
         #expect(skipped.contains { $0.effectKind == .controlActionSkipped && $0.keyword == keyword })
         #expect(!battle.roster.hasPendingActionSkip(for: enemy, keyword: keyword))
+    }
+}
+
+extension CleanseIntegrationTests {
+    @Test(arguments: [0, 1, 2])
+    func `reproving light rewards successful removal rather than debuff count`(removedCount: Int) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: CombatantTalentCatalog.profile(for: ["library_owl_cleanse_t3_1"]),
+            dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        for effect in [Effect.poison(2), .burn(2)].prefix(removedCount) {
+            battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        }
+        let before = battle.health(of: battle.enemy)
+        let outcome = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+            .all(nil), source: battle.companion, target: battle.hero, abilityName: "Cleanse", in: &battle,
+        ) }
+        #expect(before - battle.health(of: battle.enemy) == (removedCount > 0 ? 3 : 0))
+        #expect(outcome.events.count { $0.kind == .abilityDamage && $0.abilityName == "Reproving Light" } == (removedCount > 0 ? 1 : 0))
+        #expect(!battle.hasTalentDebuff(on: battle.hero))
+    }
+
+    @Test func `reproving light cannot recursively reward a Holy damage Cleanse`() {
+        var profile = CombatantTalentCatalog.profile(for: ["library_owl_cleanse_t3_1"])
+        profile.triggers.holyDamageCleanseCount = 1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
+        battle.appliesFightPacing = false
+        for recipient in [battle.hero, battle.companion] {
+            battle.appendEffect(.poison(2), to: recipient, sourceID: battle.enemy.id, remainingTurns: 0)
+        }
+        let before = battle.health(of: battle.enemy)
+        let outcome = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+            .all(nil), source: battle.companion, target: battle.hero, abilityName: "Cleanse", in: &battle,
+        ) }
+        #expect(before - battle.health(of: battle.enemy) == 3)
+        #expect(outcome.events.count { $0.kind == .abilityDamage && $0.abilityName == "Reproving Light" } == 1)
+        #expect(!battle.hasTalentDebuff(on: battle.companion))
+    }
+
+    @Test func `perfect purity requires removal and prevents debuffs without preventing damage`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: CombatantTalentCatalog.profile(for: ["alchemist_cleanse_t4_1"]), dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        func cleanse(_ battle: inout BattleState) {
+            _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+                .all(nil), source: battle.companion, target: battle.hero, abilityName: "Cleanse", in: &battle,
+            ) }
+        }
+        cleanse(&battle)
+        #expect(!battle.roster.hero.talents.turn.negativeStatusImmune)
+        battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        cleanse(&battle)
+        #expect(battle.roster.hero.talents.turn.negativeStatusImmune)
+        let damage = battle.resolveDamage(DamageRequest(
+            amount: 3, target: battle.hero, keyword: .poison, sourceActorID: battle.enemy.id, options: .reaction(),
+        ))
+        #expect(damage.healthLost == 3)
+        #expect(!battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0))
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        #expect(battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0))
     }
 }

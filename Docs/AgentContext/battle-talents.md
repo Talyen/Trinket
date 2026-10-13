@@ -17,6 +17,40 @@ helper's fallback display name may describe an older, distinct trigger.
 
 ## Balance cadence
 
+### Victory Gold and theft
+
+Dig for Treasure adds 10 percentage points to victory Gold scaling over encounter
+Gold plus combat gains, before spending. The selected party's bonus is captured
+at launch and survives Companion defeat. It uses ordinary reward remainders,
+capacity, and receipt handling; noncombat rewards and defeat payouts exclude it.
+Light Fingers steals 1 Gold on attack Critical Hits, including fully Blocked hits
+and full Basic counterattacks, after the source survives retaliation. Critical
+healing, ongoing damage, and raw reactions do not qualify. Palmed Coin retains its
+20% Dodge chance and 4 Gold amount, now as theft. Both use ordinary theft reactions;
+there is no enemy Gold purse or new activation allowance.
+
+### Shared Poison and Burn pools
+
+Contagion, Lingering Toxin, Venom Spores, Smoldering, Slow Burn, Ignition Spark,
+and Ember Persistence affect enemy pools while their owners live, independently
+of the original applier. Each property takes the strongest living Talent value;
+matching preservation Talents do not add. Legacy source-owned fields and original
+damage credit remain separate. Preservation precedes growth (+1 potency), and
+natural-turn rolls never run during detonation.
+
+### Reproving Light, Perfect Purity, and Loaded Strike
+
+Reproving Light deals one ordinary 3 Holy damage reaction per successful Cleanse
+operation, regardless of removed debuff count. Empty removals and nested
+Hero-Talent reactions do not grant another hit. Legacy debuff-reflection profiles
+retain their existing rules.
+Perfect Purity requires an actual debuff removal and protects the cleansed
+recipient until the next player turn; it does not prevent associated damage.
+Loaded Strike rolls equal double/half odds once per Physical attack action,
+sharing the outcome across that action's Physical hits. Counterattacks own their
+roll; ongoing and raw reaction damage do not qualify. Halving keeps ordinary
+round-up behavior. Legacy `standardDeviation` remains a separate supported rule.
+
 ### Golden Opportunity and Lucky Charm
 
 Fox's Golden Opportunity doubles its first positive Gold steal each combat. Wildcard's
@@ -80,10 +114,10 @@ damage. Existing Poison is not required, and ongoing ticks do not activate it.
 Haggler adds Gold only to a positive steal by a living Retriever; an empty
 steal grants no Gold. Flawless Bounty converts only unallocated excess Leech
 restoration on Lizard Scout into Gold, one for one. The gain cannot restore
-Health or start another Leech. War Chest adds one percentage point of Hero
-Critical Hit chance per Gold gained this combat, subject to the
-existing global chance ceiling. Treasure Hoard cannot draw after the enemy
-dies.
+Health or start another Leech. War Chest grants the living Hero resolved Block
+equal to the living Retriever's actual Gold stolen, after theft modifiers;
+Block bonuses and pacing do not scale that conversion again. Treasure Hoard cannot
+draw after the enemy dies.
 
 ### Loyal Companion
 
@@ -256,7 +290,7 @@ Hallowguard and ordinary Holy damage rewards; Critical Basic counterattacks reta
 Light Fingers and ordinary Critical Hit rewards. Raw retaliation and damage repeats
 keep their existing reaction guards.
 
-Temper Cycle also readies its Bleed bonus after a Burn Basic counterattack.
+Bloodkindling also readies its Bleed bonus after a Burn Basic counterattack.
 Toxic Transfusion requires the Companion to survive the Critical Hit's retaliation
 before preparing the Hero's doubled Poison attack.
 
@@ -359,6 +393,18 @@ ability. Mana Moth's Prismatic Scales strengthens existing Burn and Freeze
 damage during Mana empowerment, without adding hits or another Mana payment.
 
 ## Healing and overflow
+
+### Soul Drain and healer-provided Block
+
+Soul Drain converts remaining excess Leech healing after partner sharing into
+resolved Mana up to the owner's missing capacity. Only actual Mana restored is
+allocated; unused excess remains for later conversions. Resolved conversion does
+not repeat restoration bonuses or doubling rolls; ordinary Mana feedback and
+reactions remain. Legacy flat Leech Mana grants retain their separate behavior.
+Barrier Blessing and Reclaimed Reagents convert the healer's excess into recipient
+Block after sharing. Full conversion precedes half conversion, and one allocation
+prevents duplicate source/recipient spending. Shared Prescription, Contagious Joy,
+Blood Link, and Wishspring retain their existing targeting and preparation rules.
 
 ### Campfire Comfort
 
@@ -464,7 +510,7 @@ Death's Door, including its ongoing Burn damage.
 
 Block theft transfers only available Block without multiplying the amount.
 Fox's Light-Fingered rolls once per stealing ability to steal all available enemy
-Block. Sealed Sarcophagus doubles its owner's Block absorption for all damage
+Block. Adamant Carapace doubles its owner's Block absorption for all damage
 types through the ordinary absorption calculation.
 
 ### Stolen Thunder
@@ -480,8 +526,10 @@ Stun damage and reaction damage do not receive this attack bonus.
 
 ### Interdict, Blinding Light, and Subzero Mist
 
-Interdict prevents reapplication of the buff kinds actually Purged until the
-next party turn, including Block but excluding instant healing and resources.
+Interdict prevents new enemy Block after a Holy attack Critical Hit until the
+next party turn. Existing Block remains; no Purge is required and other buffs,
+healing, and resources remain available. Legacy `interdict` profiles retain their
+distinct purged-buff protection contract.
 Steadfast and Perfect Purity also stop control-multiplication effects from
 increasing existing Freeze build-up while their protection applies.
 Blinding Light prepares the authored miss chance for the enemy's next attack

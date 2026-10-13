@@ -13,6 +13,7 @@ public extension BattleRewardPlan {
         items: [InventoryItem],
         experienceEarnedPercent: Int = 0,
         victoryOnlyExperienceBonusPercent: Int = 0,
+        victoryGoldBonusPercent: Int = 0,
         grantsCombatExperience: Bool = true,
         rewardsAlreadyClaimed: Bool = false,
         flatExperienceBonus: Int = 0,
@@ -32,7 +33,7 @@ public extension BattleRewardPlan {
         }
         return Self(
             stageGold: rewardsAlreadyClaimed ? 0 : stageGold,
-            goldFindPercent: effects.goldFindPercent,
+            goldFindPercent: SaturatedArithmetic.saturatingAdd(effects.goldFindPercent, victoryGoldBonusPercent),
             goldFindFlat: effects.goldFindFlat,
             gemsFindBonus: effects.gemsFindBonus,
             gemsFindPercent: effects.gemsFindPercent,

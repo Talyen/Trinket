@@ -63,6 +63,9 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var goldTheftNextAttackCriticalBonus: Double = 0
     public var goldTheftStealEnemyBlockChancePercent: Double = 0
     public var blockedAttackFirstRandomCard: Bool = false
+    public var victoryGoldBonusPercent: Int = 0
+    public var goldTheftAllyBlock: Bool = false
+    public var dodgeGoldIsTheft: Bool = false
 
     public init(
         carrionClaim: Bool = false,
@@ -123,7 +126,10 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         firstGoldTheftDoubleBattle: Bool = false,
         goldTheftNextAttackCriticalBonus: Double = 0,
         goldTheftStealEnemyBlockChancePercent: Double = 0,
-        blockedAttackFirstRandomCard: Bool = false
+        blockedAttackFirstRandomCard: Bool = false,
+        victoryGoldBonusPercent: Int = 0,
+        goldTheftAllyBlock: Bool = false,
+        dodgeGoldIsTheft: Bool = false
     ) {
         self.carrionClaim = carrionClaim
         self.lightFingered = lightFingered
@@ -184,6 +190,9 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.goldTheftNextAttackCriticalBonus = goldTheftNextAttackCriticalBonus
         self.goldTheftStealEnemyBlockChancePercent = goldTheftStealEnemyBlockChancePercent
         self.blockedAttackFirstRandomCard = blockedAttackFirstRandomCard
+        self.victoryGoldBonusPercent = victoryGoldBonusPercent
+        self.goldTheftAllyBlock = goldTheftAllyBlock
+        self.dodgeGoldIsTheft = dodgeGoldIsTheft
     }
 
     /// Fields where `self` differs from `other`.
@@ -248,6 +257,9 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         if self.goldTheftNextAttackCriticalBonus != other.goldTheftNextAttackCriticalBonus { fields.append(.goldTheftNextAttackCriticalBonus) }
         if self.goldTheftStealEnemyBlockChancePercent != other.goldTheftStealEnemyBlockChancePercent { fields.append(.goldTheftStealEnemyBlockChancePercent) }
         if self.blockedAttackFirstRandomCard != other.blockedAttackFirstRandomCard { fields.append(.blockedAttackFirstRandomCard) }
+        if self.victoryGoldBonusPercent != other.victoryGoldBonusPercent { fields.append(.victoryGoldBonusPercent) }
+        if self.goldTheftAllyBlock != other.goldTheftAllyBlock { fields.append(.goldTheftAllyBlock) }
+        if self.dodgeGoldIsTheft != other.dodgeGoldIsTheft { fields.append(.dodgeGoldIsTheft) }
         return fields
     }
 }
@@ -313,6 +325,9 @@ extension GoldTriggers {
         goldTheftNextAttackCriticalBonus += other.goldTheftNextAttackCriticalBonus
         goldTheftStealEnemyBlockChancePercent += other.goldTheftStealEnemyBlockChancePercent
         blockedAttackFirstRandomCard = blockedAttackFirstRandomCard || other.blockedAttackFirstRandomCard
+        victoryGoldBonusPercent += other.victoryGoldBonusPercent
+        goldTheftAllyBlock = goldTheftAllyBlock || other.goldTheftAllyBlock
+        dodgeGoldIsTheft = dodgeGoldIsTheft || other.dodgeGoldIsTheft
     }
 }
 
@@ -378,7 +393,10 @@ extension GoldTriggers {
             firstGoldTheftDoubleBattle: values.decode(Bool.self, "firstGoldTheftDoubleBattle", default: false),
             goldTheftNextAttackCriticalBonus: values.decode(Double.self, "goldTheftNextAttackCriticalBonus", default: 0),
             goldTheftStealEnemyBlockChancePercent: values.decode(Double.self, "goldTheftStealEnemyBlockChancePercent", default: 0),
-            blockedAttackFirstRandomCard: values.decode(Bool.self, "blockedAttackFirstRandomCard", default: false)
+            blockedAttackFirstRandomCard: values.decode(Bool.self, "blockedAttackFirstRandomCard", default: false),
+            victoryGoldBonusPercent: values.decode(Int.self, "victoryGoldBonusPercent", default: 0),
+            goldTheftAllyBlock: values.decode(Bool.self, "goldTheftAllyBlock", default: false),
+            dodgeGoldIsTheft: values.decode(Bool.self, "dodgeGoldIsTheft", default: false)
         )
     }
 
@@ -442,5 +460,8 @@ extension GoldTriggers {
         try container.encodeNonDefault(goldTheftNextAttackCriticalBonus, "goldTheftNextAttackCriticalBonus", default: 0)
         try container.encodeNonDefault(goldTheftStealEnemyBlockChancePercent, "goldTheftStealEnemyBlockChancePercent", default: 0)
         try container.encodeNonDefault(blockedAttackFirstRandomCard, "blockedAttackFirstRandomCard", default: false)
+        try container.encodeNonDefault(victoryGoldBonusPercent, "victoryGoldBonusPercent", default: 0)
+        try container.encodeNonDefault(goldTheftAllyBlock, "goldTheftAllyBlock", default: false)
+        try container.encodeNonDefault(dodgeGoldIsTheft, "dodgeGoldIsTheft", default: false)
     }
 }

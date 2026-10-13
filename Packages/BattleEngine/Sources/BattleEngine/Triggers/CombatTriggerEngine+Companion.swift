@@ -422,6 +422,7 @@ package extension CombatTriggerEngine {
            BattleChance.succeeds(probability: triggers.dodgeGoldChancePercent, using: &context.rng) {
             await events.append(contentsOf: context.grantGold(
                 triggers.dodgeGoldAmount, to: actor, abilityName: "Palmed Coin",
+                isTheft: triggers.dodgeGoldIsTheft,
             ).events)
         }
         if triggers.belowHalfFirstDodgeHealPerTurn > 0,

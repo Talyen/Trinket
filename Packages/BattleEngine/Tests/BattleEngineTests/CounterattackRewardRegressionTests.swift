@@ -88,16 +88,20 @@ struct CounterattackRewardRegressionTests {
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 3)
     }
 
-    @Test func `Light Fingers rewards a Critical Basic counterattack once`() {
-        var battle = makeBattle(talents: ["rogue_gold_t1_1"])
+    @Test(arguments: [0, 2], [false, true])
+    func `Light Fingers steals Gold on a Critical Basic counterattack`(theftBonus: Int, fullyBlocked: Bool) {
+        var battle = makeBattle(talents: ["rogue_gold_t1_1"]) { $0.triggers.goldStealFlatBonus = theftBonus }
         battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        if fullyBlocked {
+            DefensePoolEngine.set(100, on: battle.enemy, in: &battle)
+        }
 
         _ = counter(.slash, in: &battle)
 
-        #expect(battle.health(of: battle.enemy) == 94)
-        #expect(battle.gold == 2)
+        #expect(battle.health(of: battle.enemy) == (fullyBlocked ? 100 : 94))
+        #expect(battle.gold == 1 + theftBonus)
         _ = counter(.slash, in: &battle)
-        #expect(battle.gold == 2)
+        #expect(battle.gold == 1 + theftBonus)
     }
 
     private func makeBattle(

@@ -350,6 +350,12 @@
       "type": "Double",
       "default": "1",
       "merge": "mul"
+    },
+    {
+      "name": "holyCriticalPreventsBlock",
+      "type": "Bool",
+      "default": "false",
+      "merge": "or"
     }
   ]
 }

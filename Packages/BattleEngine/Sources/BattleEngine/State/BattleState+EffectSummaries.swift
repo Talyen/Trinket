@@ -32,6 +32,9 @@ package extension BattleState {
                 summaries.append(EffectSummary(keyword: keyword, text: "Immune to \(keyword.rawValue) debuffs until next turn."))
             }
         }
+        if talents.turn.blockGainPrevented {
+            summaries.append(EffectSummary(keyword: .holy, text: "Interdict: Cannot gain Block until next turn."))
+        }
         let purgedBuffs = talents.turn.purgedEffectProtection.compactMap { purgedBuffName($0) }.sorted()
         if !purgedBuffs.isEmpty {
             summaries.append(EffectSummary(
