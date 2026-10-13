@@ -101,7 +101,7 @@ package extension CombatTriggerEngine {
         in context: BattleState,
     ) -> Int {
         context.roster.activeEffects(for: combatant).reduce(0) { sum, active in
-            sum + (active.effect.keyword == keyword ? (active.effect.potency ?? 0) : 0)
+            SaturatedArithmetic.saturatingAdd(sum, active.effect.keyword == keyword ? (active.effect.potency ?? 0) : 0)
         }
     }
 
@@ -440,7 +440,7 @@ package extension CombatTriggerEngine {
         if profile.triggers.onCritDoubleBleedDuration {
             var effects = context.roster.activeEffects(for: enemy)
             for index in effects.indices where effects[index].effect.isBleed {
-                effects[index].remainingTurns = min(10, effects[index].remainingTurns * 2)
+                effects[index].remainingTurns = min(10, SaturatedArithmetic.saturatingMul(effects[index].remainingTurns, 2))
             }
             context.roster.setActiveEffects(effects, for: enemy)
         }

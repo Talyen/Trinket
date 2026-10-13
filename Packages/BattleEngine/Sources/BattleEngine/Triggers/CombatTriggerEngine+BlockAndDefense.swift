@@ -338,7 +338,7 @@ package extension CombatTriggerEngine {
         if !purge.removed.isEmpty, context.roster.health(for: enemy) > 0 {
             await events.append(contentsOf: context.resolveDamage(
                 DamageRequest(
-                    amount: perEffectHolyDamage * purge.removed.count,
+                    amount: SaturatedArithmetic.saturatingMul(perEffectHolyDamage, purge.removed.count),
                     target: enemy,
                     keyword: .holy,
                     sourceActorID: actor.id,

@@ -173,6 +173,79 @@ struct BattleBoundaryRegressionTests {
         #expect(summary.text.contains("+\(Int.max)%"))
     }
 
+    @Test func `stacked Burn potency saturates before damage bonuses read it`() {
+        var battle = makeBattle(profile: .zero)
+        for potency in [Int.max, 1] {
+            battle.appendEffect(.burn(potency), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        }
+
+        #expect(CombatTriggerEngine.totalPotency(of: .burn, on: battle.enemy, in: battle) == Int.max)
+    }
+
+    @Test func `critical Bleed extensions cap before duration multiplication can overflow`() throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.onCritDoubleBleedDuration = true
+        var battle = makeBattle(profile: profile)
+        battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: Int.max)
+
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterCriticalHit(
+            to: battle.enemy, source: battle.hero, targetWasStunnedAtHit: false, in: &battle,
+        ) }
+
+        let bleed = try #require(battle.activeEffects(of: battle.enemy).first { $0.effect.isBleed })
+        #expect(bleed.remainingTurns == 10)
+    }
+
+    @Test(arguments: [0, 10])
+    func `damage ramps safely apply capped and uncapped growth at integer limits`(cap: Int) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.burnDamageRampPerRound = Int.max
+        profile.triggers.burnDamageRampCap = cap
+        profile.triggers.bleedDamageRampPerRound = Int.max
+        profile.triggers.bleedDamageRampCap = cap
+        var battle = makeBattle(profile: profile)
+        battle.roster.hero.talents.battle.keywordDamageRamp = [.burn: 1, .bleed: 1]
+
+        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+
+        for keyword in [Keyword.burn, .bleed] {
+            #expect(battle.roster.hero.talents.battle.keywordDamageRamp[keyword] == (cap > 0 ? cap : Int.max))
+        }
+    }
+
+    @Test func `Stun purge damage resolves multiple removed buffs without overflowing`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.stunPurgeDealHolyPerEffect = Int.max
+        var battle = makeBattle(profile: profile)
+        battle.appendEffect(.shield(.block, 1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(
+            sourceActorID: battle.hero.id, in: &battle,
+        ) }
+
+        #expect(battle.isEnemyDefeated)
+        #expect(battle.activeEffects(of: battle.enemy).isEmpty)
+    }
+
+    @Test func `Stored Impact continues absorbing damage at accumulated capacity`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.storedImpact = true
+        var battle = makeBattle(profile: profile)
+        battle.storedBlockedDamageByActorID[battle.hero.id] = Int.max
+        DefensePoolEngine.set(2, on: battle.hero, in: &battle)
+
+        let outcome = battle.resolveDamage(DamageRequest(
+            amount: 1, target: battle.hero, keyword: .physical,
+            sourceActorID: battle.enemy.id, options: .reaction(),
+        ))
+
+        #expect(outcome.healthLost == 0)
+        #expect(battle.health(of: battle.hero) == 20)
+        #expect(battle.storedBlockedDamageByActorID[battle.hero.id] == Int.max)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 1)
+    }
+
     private func makeBattle(profile: CombatModifierProfile) -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 4),

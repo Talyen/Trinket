@@ -177,7 +177,9 @@ package extension DamagePipeline {
         else { return [] }
         var events: [ActionEvent] = []
         if partyTrigger(\.storedImpact, defender: defender, in: context) {
-            context.storedBlockedDamageByActorID[defender.id, default: 0] += absorbed
+            context.storedBlockedDamageByActorID[defender.id] = SaturatedArithmetic.saturatingAdd(
+                context.storedBlockedDamageByActorID[defender.id, default: 0], absorbed,
+            )
         }
         if blockBroken, context.modifiers(for: defender.id).triggers.seismicReversal {
             await events.append(contentsOf: resolveNestedDamage(

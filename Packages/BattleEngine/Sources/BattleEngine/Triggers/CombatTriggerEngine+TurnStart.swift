@@ -216,7 +216,8 @@ package extension CombatTriggerEngine {
             context.roster.mutateRuntime(for: actor) { runtime in
                 let current: Int = runtime.talents.battle.keywordDamageRamp[keyword, default: 0]
                 var ramp: [Keyword: Int] = runtime.talents.battle.keywordDamageRamp
-                ramp[keyword] = cap > 0 ? min(current + perRound, cap) : current + perRound
+                let increased = SaturatedArithmetic.saturatingAdd(current, perRound)
+                ramp[keyword] = cap > 0 ? min(increased, cap) : increased
                 runtime.talents.battle.keywordDamageRamp = ramp
             }
         }
