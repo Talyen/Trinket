@@ -422,8 +422,10 @@ extension CleanseIntegrationTests {
             amount: 3, target: battle.hero, keyword: .poison, sourceActorID: battle.enemy.id, options: .reaction(),
         ))
         #expect(damage.healthLost == 3)
-        #expect(!battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0))
+        let prevented = battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        #expect(!prevented)
         _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        #expect(battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0))
+        let reapplied = battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        #expect(reapplied)
     }
 }

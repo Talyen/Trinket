@@ -72,7 +72,8 @@ extension TalentCatalogRoundTripTests {
         try playHeroTalentCard(attack, owner: .companion, in: &battle)
         #expect(talentPoints(.shield, on: .enemy, in: battle) > 0)
         #expect(battle.effectSummaries(of: battle.enemy).contains { $0.text.contains("Interdict") && $0.text.contains("Block") })
-        #expect(battle.appendEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0))
+        let addedThorns = battle.appendEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        #expect(addedThorns)
         #expect(battle.applyBlock(7, to: battle.enemy, source: battle.enemy, abilityName: "Block").isEmpty)
         #expect(DefensePoolEngine.add(7, to: battle.enemy, in: &battle) == 0)
         battle.roster.enemy.currentHealth = 100
