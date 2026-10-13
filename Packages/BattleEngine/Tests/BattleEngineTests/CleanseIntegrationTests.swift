@@ -111,7 +111,7 @@ struct CleanseIntegrationTests {
         battle.roster.companion.currentHealth = companionHealth
 
         let events = try #require(try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle))
-        #expect(!battle.activeEffects(of: battle.hero).contains(where: \.effect.isRemovableDebuff))
+        #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect.isRemovableDebuff })
         #expect(battle.health(of: battle.hero) == expectedHero)
         #expect(battle.health(of: battle.companion) == expectedCompanion)
         if shielded {
