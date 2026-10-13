@@ -48,10 +48,10 @@ struct DecayingDoTHandler: BattleEffectHandler {
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, active in
             if case let .burn(potency) = active.effect, keyword == .burn {
-                return sum + potency
+                return SaturatedArithmetic.saturatingAdd(sum, potency)
             }
             if case let .poison(potency) = active.effect, keyword == .poison {
-                return sum + potency
+                return SaturatedArithmetic.saturatingAdd(sum, potency)
             }
             return sum
         }
@@ -145,7 +145,7 @@ struct BleedHandler: BattleEffectHandler {
             guard case let .bleed(potency) = activeEffect.effect, activeEffect.remainingTurns > 0 else {
                 return sum
             }
-            return sum + potency
+            return SaturatedArithmetic.saturatingAdd(sum, potency)
         }
         guard total > 0 else { return nil }
         let alias = keyword.statusAlias ?? keyword.rawValue

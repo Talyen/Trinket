@@ -433,7 +433,7 @@ package extension CombatTriggerEngine {
         return await withHeroReaction(in: &context) { context in
             let total = context.roster.activeEffects(for: target).reduce(amount) { sum, active in
                 if case let .thorns(amount) = active.effect {
-                    return sum + amount
+                    return SaturatedArithmetic.saturatingAdd(sum, amount)
                 }
                 return sum
             }

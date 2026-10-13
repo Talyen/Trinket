@@ -5,6 +5,47 @@ import TrinketCore
 @testable import BattleEngine
 
 struct HealingGainBoundaryTests {
+    @Test func `flat healing talents preserve a saturated restoration`() {
+        var profile = CombatantTalentCatalog.profile(for: ["alchemist_health_t1_1"])
+        profile.healthRestoredBonus = Int.max
+        profile.triggers.firstHealthRestorationBonusPerTurn = 2
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: Int.max),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroHealth: 1, heroModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+
+        let outcome = battle.resolveHeal(HealRequest(amount: 1, target: battle.hero, sourceActorID: battle.hero.id))
+
+        #expect(outcome.healthRestored == Int.max - 1)
+        #expect(battle.health(of: battle.hero) == Int.max)
+    }
+
+    @Test func `maximum Health conversion spends only the remaining capacity`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.overhealConvertsToMaxHealth = true
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: Int.max - 1),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroModifiers: profile,
+        )
+        battle.appliesFightPacing = false
+
+        let result = CombatExecutor.run { await HealingEngine.resolveHealing(
+            HealRequest(amount: 3, target: battle.hero, sourceActorID: battle.hero.id), in: &battle,
+        ) }
+
+        #expect(battle.maxHealth(of: battle.hero) == Int.max)
+        #expect(battle.health(of: battle.hero) == Int.max)
+        #expect(result.allocation.maximumHealth == 1)
+        #expect(result.allocation.remaining == 2)
+    }
+
     @Test(arguments: [false, true])
     func `healing with a saturated flat bonus fills available Health without overflowing`(critical: Bool) throws {
         var profile = CombatModifierProfile(healthRestoredBonus: Int.max)

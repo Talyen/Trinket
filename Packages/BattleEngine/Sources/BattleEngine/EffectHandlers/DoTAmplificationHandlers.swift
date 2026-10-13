@@ -91,7 +91,7 @@ struct DetonateDoTHandler: BattleEffectHandler {
     ) async -> [ActionEvent] {
         if active.effect.isBleed {
             var amplified = active
-            amplified.effect = .bleed((active.effect.potency ?? 0) * factor)
+            amplified.effect = .bleed(SaturatedArithmetic.saturatingMul(active.effect.potency ?? 0, factor))
             return await CombatTriggerEngine.detonateBleedStacks(
                 [amplified], on: target, sourceActorID: source.id,
                 provenance: context.resolution.damageProvenance(for: source.id), in: &context,

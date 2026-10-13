@@ -60,7 +60,7 @@ package extension HealingEngine {
         let profile = context.modifiers(for: sourceActorID)
         var baseDamage = damage
         if profile.triggers.leechOnBlockDamage, blockedAmount > 0 {
-            baseDamage += blockedAmount
+            baseDamage = SaturatedArithmetic.saturatingAdd(baseDamage, blockedAmount)
         }
         guard baseDamage > 0 else { return .empty }
 
@@ -106,15 +106,15 @@ package extension HealingEngine {
         }
 
         var restored = CombatRounding.scaled(baseDamage, multiplier: leechPct)
-        restored += profile.leechHealingBonus
+        restored = SaturatedArithmetic.saturatingAdd(restored, profile.leechHealingBonus)
         if let target, profile.triggers.leechBonusHealVsLowHealthEnemies > 0,
            context.roster.maxHealth(for: target) > 0,
            context.roster.isBelowHalfHealth(for: target) {
-            restored += profile.triggers.leechBonusHealVsLowHealthEnemies
+            restored = SaturatedArithmetic.saturatingAdd(restored, profile.triggers.leechBonusHealVsLowHealthEnemies)
         }
         if let target, profile.triggers.leechBonusHealVsStunned > 0,
            context.roster.hasControlStatus(for: target, keyword: .stun) {
-            restored += profile.triggers.leechBonusHealVsStunned
+            restored = SaturatedArithmetic.saturatingAdd(restored, profile.triggers.leechBonusHealVsStunned)
         }
         restored = CombatRounding.scaled(restored, multiplier: 1 + profile.leechHealingPercent)
         if let target, profile.triggers.leechHealingVsAfflictedMultiplier > 1 {

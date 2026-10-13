@@ -325,10 +325,12 @@ package enum HealingEngine {
     static func resolveHealingEchoes(in context: inout BattleState) async -> [ActionEvent] {
         var events: [ActionEvent] = []
         for owner in [BattleParticipant.hero, .companion] {
+            guard !context.isBattleOver else { break }
             let target = context.roster[owner].combatant
             let echoes = context.roster[owner].talents.pending.healingEchoes
             context.roster.mutateRuntime(for: target) { $0.talents.pending.healingEchoes.removeAll() }
             for echo in echoes {
+                guard !context.isBattleOver else { break }
                 guard let source = context.roster.combatant(for: echo.sourceActorID) else { continue }
                 var request = HealRequest(
                     amount: echo.amount, target: target, sourceActorID: source.id,

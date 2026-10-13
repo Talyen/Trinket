@@ -96,7 +96,7 @@ extension BattleTurnEngine {
             if BattleConditionEvaluator.isMet(
                 condition, actor: action.actor, abilityTarget: action.selectedTarget, in: context,
             ) {
-                amount += component.bonusAmount
+                amount = SaturatedArithmetic.saturatingAdd(amount, component.bonusAmount)
             } else if component.bonusAmount == 0 {
                 return nil
             }
@@ -126,7 +126,7 @@ extension BattleTurnEngine {
         var logDamageKeyword: Keyword?
         if amount > 0, !isSelfHealthCost, let override = keywordOverride {
             keyword = override.keyword
-            amount += override.bonus
+            amount = SaturatedArithmetic.saturatingAdd(amount, override.bonus)
             if component.target == .abilityTarget {
                 logDamageKeyword = override.keyword
             }
@@ -137,10 +137,10 @@ extension BattleTurnEngine {
             effects: context.roster.activeEffects(for: actor),
         )
         let nextStrike = preparation.consumption
-        amount += preparation.burnBonus
+        amount = SaturatedArithmetic.saturatingAdd(amount, preparation.burnBonus)
         let holyStrikeBurnPotency = amount
         if nextStrike.contains(.holyStrike) || nextStrike.contains(.double) {
-            amount *= 2
+            amount = SaturatedArithmetic.saturatingMul(amount, 2)
         }
 
         // Consume before request preparation, which may start nested reactions.
@@ -290,7 +290,7 @@ extension BattleTurnEngine {
             case .nextStrikeLeech:
                 consumption.insert(.leech)
             case let .nextBurnBonus(bonus) where damageKeyword == .burn:
-                burnBonus += bonus
+                burnBonus = SaturatedArithmetic.saturatingAdd(burnBonus, bonus)
             default:
                 break
             }

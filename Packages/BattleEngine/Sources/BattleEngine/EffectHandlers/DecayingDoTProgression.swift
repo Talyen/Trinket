@@ -74,7 +74,7 @@ struct DecayingDoTProgression {
             return potency
         }
         if BattleChance.succeeds(probability: increaseChance, using: &rng) {
-            return potency + 1
+            return SaturatedArithmetic.saturatingAdd(potency, 1)
         }
         return decayedPotency(from: potency)
     }
@@ -101,7 +101,7 @@ enum DecayingDoTDetonation {
             guard potency > 0 else { break }
             for _ in 0 ..< progression.ticksPerTurn where context.roster.health(for: target) > 0 {
                 await events.append(contentsOf: DoTDamage.resolveDamage(
-                    basePotency: potency * factor,
+                    basePotency: SaturatedArithmetic.saturatingMul(potency, factor),
                     keyword: type.keyword,
                     target: target,
                     sourceActorID: sourceActorID,

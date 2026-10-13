@@ -35,6 +35,9 @@ preserves the original source's slower decay. Resolution depth limits recursion,
 the meaning of a request.
 DoT amplification multiplies every matching stack, retaining each stack's source
 and duration; its feedback reports the combined amplified potency.
+Card preparations, DoT attachment/growth/detonation, and triggered Thorns gains
+and retaliation saturate at integer limits, including when an existing effect
+has already reached its maximum magnitude.
 Loose Rubble readies a non-stacking one-point reduction on positive Health damage,
 including periodic and retaliation damage, excluding Health costs. The next positive
 outgoing packet consumes it after outgoing calculations and before flat mitigation

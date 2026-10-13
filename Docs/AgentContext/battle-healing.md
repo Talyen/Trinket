@@ -15,6 +15,8 @@ restoration events, battle-log totals, and healing triggers still use actual res
 `CombatGain` owns bounded applied gains; proportional effects use `CombatRounding`
 without an implicit minimum-one grant. Lingering Blessing stores its amount,
 source, and remaining duration together.
+Flat healing bonuses preserve saturation. Maximum-Health conversion allocates
+only the remaining Health capacity, leaving unconvertible overflow unspent.
 Mana restoration requires a living recipient; defeated recipients receive neither
 Mana nor overflow rewards.
 Turn start consumes due Lingering Blessing repeats before restoration reactions

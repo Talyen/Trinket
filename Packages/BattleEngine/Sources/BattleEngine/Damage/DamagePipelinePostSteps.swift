@@ -300,9 +300,9 @@ package extension DamagePipeline {
         for active in effects {
             switch active.effect {
             case let .thorns(amount):
-                totals.thornsStacks += amount
+                totals.thornsStacks = SaturatedArithmetic.saturatingAdd(totals.thornsStacks, amount)
             case let .onHitDamage(keyword, amount):
-                totals.onHitDamage[keyword, default: 0] += amount
+                totals.onHitDamage[keyword] = SaturatedArithmetic.saturatingAdd(totals.onHitDamage[keyword, default: 0], amount)
             case .freezeNextAttacker:
                 totals.shouldFreezeAttacker = true
             default:
@@ -402,9 +402,14 @@ package extension DamagePipeline {
         }
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         let blocked = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0
-        let baseRetaliation = amount + max(0, defenderTriggers.thornsDamageFlat)
-            + (blocked ? max(0, defenderTriggers.thornsDamageFlatWhileBlocked) : 0)
-        var retaliation = defenderTriggers.thornsDamageDoubleWhileBlocked && blocked ? baseRetaliation * 2 : baseRetaliation
+        let baseRetaliation = SaturatedArithmetic.saturatingAdd(
+            amount, SaturatedArithmetic.saturatingAdd(
+                max(0, defenderTriggers.thornsDamageFlat),
+                blocked ? max(0, defenderTriggers.thornsDamageFlatWhileBlocked) : 0,
+            ),
+        )
+        var retaliation = defenderTriggers.thornsDamageDoubleWhileBlocked && blocked
+            ? SaturatedArithmetic.saturatingMul(baseRetaliation, 2) : baseRetaliation
         if blocked, defenderTriggers.thornsDamageMultiplierWhileBlocked > 1 {
             retaliation = CombatRounding.scaled(
                 retaliation, multiplier: defenderTriggers.thornsDamageMultiplierWhileBlocked,

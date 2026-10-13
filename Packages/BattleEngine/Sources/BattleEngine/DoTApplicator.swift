@@ -94,7 +94,10 @@ package enum DoTApplicator {
         guard !context.interceptDebuff(appliedEffect, on: effectTarget) else { return collected }
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
-            currentEffects[index].effect = Effect.decayingDoT(keyword: keyword, potency: existingPotency + appliedPotency)
+            currentEffects[index].effect = Effect.decayingDoT(
+                keyword: keyword,
+                potency: SaturatedArithmetic.saturatingAdd(existingPotency, appliedPotency),
+            )
         } else {
             currentEffects.append(
                 ActiveEffect(

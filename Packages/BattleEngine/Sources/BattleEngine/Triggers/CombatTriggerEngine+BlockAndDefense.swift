@@ -36,11 +36,11 @@ package extension CombatTriggerEngine {
         let effects = context.roster.activeEffects(for: actor)
         let existing = effects.reduce(0) { total, active in
             if case let .thorns(stacks) = active.effect {
-                return total + stacks
+                return SaturatedArithmetic.saturatingAdd(total, stacks)
             }
             return total
         }
-        let total = existing + gained
+        let total = SaturatedArithmetic.saturatingAdd(existing, gained)
         guard context.insertEffect(
             .thorns(total), to: actor, sourceID: actor.id, remainingTurns: 0,
             replacing: { $0.kind == .thorns },

@@ -141,11 +141,17 @@ extension HealingEngine {
             let already = context.roster.runtime(for: target)?.talents.battle.maximumHealthBonus ?? 0
             gain = CombatGain.amount(gain, current: already, cap: cap)
         }
+        if let runtime = context.roster.runtime(for: target) {
+            gain = CombatGain.amount(gain, current: runtime.maxHealth, cap: Int.max)
+        }
         gain = allocation.allocate(gain, to: .maximumHealth)
         if gain > 0 {
             context.roster.mutateRuntime(for: target) { runtime in
-                runtime.talents.battle.maximumHealthBonus += gain
-                runtime.currentHealth = min(runtime.maxHealth, runtime.currentHealth + gain)
+                runtime.talents.battle.maximumHealthBonus = SaturatedArithmetic.saturatingAdd(
+                    runtime.talents.battle.maximumHealthBonus,
+                    gain,
+                )
+                runtime.currentHealth = min(runtime.maxHealth, SaturatedArithmetic.saturatingAdd(runtime.currentHealth, gain))
             }
         }
     }
@@ -238,7 +244,7 @@ extension HealingEngine {
                     let toAdd = min(bonus, allowed)
                     if toAdd > 0 {
                         runtime.talents.battle.leechOverhealDamageBonus += toAdd
-                        runtime.talents.battle.damageBonus += toAdd
+                        runtime.talents.battle.damageBonus = SaturatedArithmetic.saturatingAdd(runtime.talents.battle.damageBonus, toAdd)
                     }
                 }
             }
