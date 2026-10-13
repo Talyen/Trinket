@@ -277,7 +277,10 @@ without encoding or copying accumulated history. Pending requests freeze a prefi
 account archives and pending requests retain their referenced rows. A receipt
 rebases only remaining actions and prunes unreferenced rows in the same transaction.
 Missing or unreadable referenced rows disable sync and preserve opaque metadata
-while local play continues. Immutable in-memory history also shares prefixes.
+while local play continues. Immutable in-memory history shares prefixes through balanced record blocks.
+Replay, receipt inspection, equality and journal coding stream those blocks without
+flattening the full action history into temporary arrays; iteration keeps only a
+logarithmic traversal stack, so replay can check cancellation between actions.
 Reconciliation restores snapshot inputs and explicit receipts one action at a time;
 the approved concurrent-spending and selection policies remain unchanged. Changed snapshot fields are stored as
 replacement values; a Gold edit does not repeat Inventory or Labyrinth maps.

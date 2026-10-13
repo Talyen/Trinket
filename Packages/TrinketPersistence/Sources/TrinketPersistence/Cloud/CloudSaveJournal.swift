@@ -17,26 +17,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
     private(set) var id: String
     private(set) var checkpoint: CloudSaveSnapshot?
     private(set) var lastSnapshot: CloudSaveSnapshot?
-    private var tail: Node?
-
-    private final class Node: Sendable {
-        let records: [Record]
-        let previous: Node?
-        let count: Int
-
-        init(_ record: Record, previous: Node?) {
-            count = (previous?.count ?? 0) + 1
-            // Bounded blocks keep append copies small and avoid one recursive
-            // ARC release frame per offline action when a journal is retired.
-            if let previous, previous.records.count < 64 {
-                records = previous.records + [record]
-                self.previous = previous.previous
-            } else {
-                records = [record]
-                self.previous = previous
-            }
-        }
-    }
+    private var history = CloudSaveJournalRecords()
 
     init(_ mutations: [CloudSaveMutation] = []) {
         id = UUID().uuidString
@@ -46,15 +27,15 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
     }
 
     var count: Int {
-        tail?.count ?? 0
+        history.count
     }
 
     var isEmpty: Bool {
-        tail == nil
+        history.isEmpty
     }
 
-    var records: [Record] {
-        suffix(after: 0).map(\.record)
+    var records: CloudSaveJournalRecords {
+        history
     }
 
     var first: CloudSaveMutation? {
@@ -68,47 +49,42 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
             checkpoint = mutation.before
         }
         let gap = CloudSaveSnapshotDelta(from: previous, to: mutation.before)
-        tail = Node(Record(
+        history.append(Record(
             id: mutation.id, changedSliceMask: mutation.changedSliceMask,
             before: gap.changes.isEmpty ? nil : gap,
             after: CloudSaveSnapshotDelta(from: mutation.before, to: mutation.after),
             economy: mutation.economy,
             receipts: mutation.receipts,
             collectionPositions: mutation.collectionPositions,
-        ), previous: tail)
+        ))
         lastSnapshot = mutation.after
     }
 
     /// Only newly appended records are visited on the gameplay write path.
     func suffix(after count: Int) -> [(index: Int, record: Record)] {
-        var suffix: [(index: Int, record: Record)] = []
-        var node = tail
-        while let current = node, current.count > count {
-            let start = current.count - current.records.count
-            for (offset, record) in current.records.enumerated().reversed() where start + offset >= count {
-                suffix.append((start + offset, record))
-            }
-            node = current.previous
-        }
-        return Array(suffix.reversed())
+        history.suffix(after: count)
     }
 
     static func == (lhs: Self, rhs: Self) -> Bool {
-        if lhs.tail === rhs.tail, lhs.id == rhs.id {
+        if lhs.history.sharesStorage(with: rhs.history), lhs.id == rhs.id {
             return true
         }
-        return lhs.id == rhs.id && lhs.checkpoint == rhs.checkpoint && lhs.records == rhs.records
+        return lhs.id == rhs.id && lhs.checkpoint == rhs.checkpoint && lhs.records.elementsEqual(rhs.records)
     }
 
     mutating func acknowledge(_ ids: Set<String>) {
         guard records.contains(where: { ids.contains($0.id) }) else { return }
         // Rebase only after receipt; old prefixes remain immutable if an archive
         // still references them. Separate domain action IDs survive the rebase.
-        self = Self(filter { !ids.contains($0.id) })
+        var remaining = Self()
+        for mutation in self where !ids.contains(mutation.id) {
+            remaining.append(mutation)
+        }
+        self = remaining
     }
 
     struct Iterator: IteratorProtocol {
-        var records: IndexingIterator<[Record]>
+        var records: CloudSaveJournalRecords.Iterator
         var snapshot: CloudSaveSnapshot?
 
         mutating func next() -> CloudSaveMutation? {
@@ -143,11 +119,10 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
             legacyContainer = nil
         }
         if var legacy = legacyContainer {
-            var mutations: [CloudSaveMutation] = []
+            self.init()
             while !legacy.isAtEnd {
-                try mutations.append(legacy.decode(CloudSaveMutation.self))
+                try append(legacy.decode(CloudSaveMutation.self))
             }
-            self.init(mutations)
             return
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -155,43 +130,36 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
         let id = try container.decode(String.self, forKey: .id)
         let count = try container.decode(Int.self, forKey: .count)
         guard count >= 0 else { throw CloudSaveError.unsupportedSave }
-        let checkpoint: CloudSaveSnapshot?
-        let records: [Record]
+        self.init()
+        self.id = id
         if container.contains(.records) {
             checkpoint = try container.decodeIfPresent(CloudSaveSnapshot.self, forKey: .checkpoint)
-            records = try container.decode([Record].self, forKey: .records)
-            guard records.count == count else { throw CloudSaveError.unsupportedSave }
+            lastSnapshot = checkpoint
+            var records = try container.nestedUnkeyedContainer(forKey: .records)
+            while !records.isAtEnd {
+                try appendDecoded(records.decode(Record.self))
+            }
+            guard history.count == count else { throw CloudSaveError.unsupportedSave }
         } else if count > 0 {
             guard let key = Self.rowsKey, let rows = decoder.userInfo[key] as? [String: [Int: Data]],
                   let journal = rows[id], let checkpointData = journal[-1], count <= journal.count - 1
             else { throw CloudSaveError.unsupportedSave }
             checkpoint = try JSONDecoder().decode(CloudSaveSnapshot.self, from: checkpointData)
-            var loaded: [Record] = []
+            lastSnapshot = checkpoint
             for index in 0 ..< count {
                 guard let data = journal[index] else { throw CloudSaveError.unsupportedSave }
-                try loaded.append(JSONDecoder().decode(Record.self, from: data))
+                try appendDecoded(JSONDecoder().decode(Record.self, from: data))
             }
-            records = loaded
-        } else {
-            checkpoint = nil
-            records = []
         }
         guard (count == 0 && checkpoint == nil) || (count > 0 && checkpoint != nil) else { throw CloudSaveError.unsupportedSave }
-        self.init(id: id, checkpoint: checkpoint, records: records)
     }
 
-    private init(id: String, checkpoint: CloudSaveSnapshot?, records: [Record]) {
-        self.id = id
-        self.checkpoint = checkpoint
-        var snapshot = checkpoint
-        for record in records {
-            tail = Node(record, previous: tail)
-            if let current = snapshot {
-                let before = record.before?.applying(to: current) ?? current
-                snapshot = record.after.applying(to: before)
-            }
+    private mutating func appendDecoded(_ record: Record) {
+        history.append(record)
+        if let current = lastSnapshot {
+            let before = record.before?.applying(to: current) ?? current
+            lastSnapshot = record.after.applying(to: before)
         }
-        lastSnapshot = snapshot
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -203,6 +171,9 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
             return
         }
         try container.encodeIfPresent(checkpoint, forKey: .checkpoint)
-        try container.encode(records, forKey: .records)
+        var recordsContainer = container.nestedUnkeyedContainer(forKey: .records)
+        for record in records {
+            try recordsContainer.encode(record)
+        }
     }
 }

@@ -121,7 +121,7 @@ enum CloudSaveReconciler {
     }
 
     private static func validateEffects(in request: CloudSaveRequest) throws {
-        for mutation in request.mutations?.records ?? [] {
+        for mutation in request.mutations?.records ?? CloudSaveJournalRecords() {
             try Task.checkCancellation()
             try mutation.economy?.validate()
             for receipt in mutation.receipts ?? [] {
