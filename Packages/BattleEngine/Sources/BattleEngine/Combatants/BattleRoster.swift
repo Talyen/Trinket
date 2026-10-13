@@ -52,12 +52,24 @@ public struct BattleRoster {
         }
     }
 
+    /// A role describes content; only a matching roster identity grants access to live state.
     public func participant(for combatant: Combatant) -> BattleParticipant? {
-        switch combatant.role {
-        case .hero: .hero
-        case .companion: .companion
-        case .enemy: .enemy
+        guard let participant = participant(for: combatant.id),
+              self[participant].combatant.role == combatant.role else { return nil }
+        return participant
+    }
+
+    package func participant(for id: String) -> BattleParticipant? {
+        if hero.id == id {
+            return .hero
         }
+        if companion.id == id {
+            return .companion
+        }
+        if enemy.id == id {
+            return .enemy
+        }
+        return nil
     }
 
     public func runtime(for combatant: Combatant) -> CombatantRuntime? {
@@ -65,16 +77,7 @@ public struct BattleRoster {
     }
 
     public func combatant(for id: String) -> CombatantRuntime? {
-        if hero.id == id {
-            return hero
-        }
-        if companion.id == id {
-            return companion
-        }
-        if enemy.id == id {
-            return enemy
-        }
-        return nil
+        participant(for: id).map { self[$0] }
     }
 
     package mutating func update(_ runtime: CombatantRuntime) {

@@ -9,6 +9,11 @@ log lifecycle are the public mutation boundary; handler dispatch and turn/card e
 drivers stay package-scoped. Consumers that inspect future RNG values must copy the
 generator rather than advance the live battle's generator.
 
+`BattleRoster` owns participant identity. Combatant reads and runtime writes require
+an exact roster ID and matching role; role alone cannot address live battle state.
+Modifier lookup uses the same roster ID resolver, without reserved role-name aliases.
+Unknown combatants return empty read projections and cannot replace a roster member.
+
 `CombatExecutor` drains each synchronous command on its calling thread. Internal
 rules use async continuations; entering damage, healing, or automatic card play
 suspends before child resolution so parent state lives on the heap. Await child

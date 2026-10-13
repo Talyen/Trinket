@@ -70,17 +70,12 @@ public extension BattleState {
     }
 
     func modifiers(for combatantID: String) -> CombatModifierProfile {
-        if combatantID == roster.hero.id || combatantID == "hero" {
-            return heroModifiers
+        switch roster.participant(for: combatantID) {
+        case .hero: heroModifiers
+        case .companion: companionModifiers
+        case .enemy: enemyModifiers
+        case nil: .zero
         }
-        if combatantID == roster.companion.id || combatantID == "companion" {
-            return companionModifiers
-        }
-        if combatantID == roster.enemy.id || combatantID == "enemy" {
-            return enemyModifiers
-        }
-        assertionFailure("BattleState.modifiers fallback to .zero for unknown combatantID: \(combatantID)")
-        return .zero
     }
 
     var talentAdjustedEnemyTarget: Combatant {

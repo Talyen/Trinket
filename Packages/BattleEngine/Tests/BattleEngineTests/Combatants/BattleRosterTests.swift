@@ -29,6 +29,55 @@ struct BattleRosterTests {
         )
     }
 
+    @Test(arguments: [Combatant.Role.hero, .companion, .enemy])
+    func `foreign combatants cannot read or overwrite a live participant`(role: Combatant.Role) {
+        var roster = makeRoster()
+        var foreign = runtime(id: "foreign", role: role)
+        foreign.takeRawDamage(999)
+
+        #expect(roster.participant(for: foreign.combatant) == nil)
+        #expect(roster.runtime(for: foreign.combatant) == nil)
+        #expect(roster.health(for: foreign.combatant) == 0)
+        roster.update(foreign)
+        roster.mutateRuntime(for: foreign.combatant) { $0.takeRawDamage(999) }
+        #expect(roster.hero.currentHealth == 20)
+        #expect(roster.companion.currentHealth == 20)
+        #expect(roster.enemy.currentHealth == 20)
+    }
+
+    @Test func `identity selects the live runtime and rejects a mismatched role`() {
+        var roster = makeRoster()
+        let wrongRole = runtime(id: "hero", role: .enemy)
+        roster.update(wrongRole)
+        #expect(roster.runtime(for: wrongRole.combatant) == nil)
+        #expect(roster.hero.combatant.role == .hero)
+        #expect(roster.enemy.id == "enemy")
+
+        var wounded = roster.hero
+        wounded.takeRawDamage(7)
+        roster.update(wounded)
+        #expect(roster.health(for: roster.hero.combatant) == 13)
+        #expect(roster.combatant(for: "hero")?.currentHealth == 13)
+    }
+
+    @Test func `modifier lookup cannot confuse a real ID with a role alias`() {
+        let hero = runtime(id: "selected-hero", role: .hero).combatant
+        let companion = runtime(id: "selected-companion", role: .companion).combatant
+        let enemy = runtime(id: "hero", role: .enemy).combatant
+        let battle = BattleState(
+            hero: hero, companion: companion, enemy: enemy,
+            heroModifiers: .init(maximumHealthBonus: 10),
+            companionModifiers: .init(maximumHealthBonus: 20),
+            enemyModifiers: .init(maximumHealthBonus: 30),
+            dealOpeningHand: false,
+        )
+        #expect(battle.modifiers(for: hero.id).maximumHealthBonus == 10)
+        #expect(battle.modifiers(for: companion.id).maximumHealthBonus == 20)
+        #expect(battle.modifiers(for: enemy.id).maximumHealthBonus == 30)
+        #expect(battle.modifiers(for: "companion") == .zero)
+        #expect(battle.modifiers(for: "enemy") == .zero)
+    }
+
     @Test func `enemy attack target covers alive dead and health priority`() throws {
         let aliveRoster = makeRoster()
         try #expect(aliveRoster.enemyAttackTarget.id == "hero")
