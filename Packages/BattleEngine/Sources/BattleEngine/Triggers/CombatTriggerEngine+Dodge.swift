@@ -16,7 +16,9 @@ package extension CombatTriggerEngine {
 
         context.roster.mutateRuntime(for: combatant) { runtime in
             if triggers.damageAfterDodgeBonus > 0 {
-                runtime.talents.pending.damageAfterDodge += triggers.damageAfterDodgeBonus
+                runtime.talents.pending.damageAfterDodge = SaturatedArithmetic.saturatingAdd(
+                    runtime.talents.pending.damageAfterDodge, triggers.damageAfterDodgeBonus,
+                )
             }
             if triggers.nextAttackDoubleAfterDodge {
                 runtime.talents.pending.doubleDamageAfterDodge = true

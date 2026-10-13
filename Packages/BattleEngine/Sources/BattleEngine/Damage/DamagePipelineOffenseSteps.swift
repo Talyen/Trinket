@@ -324,14 +324,14 @@ package extension DamagePipeline {
             where context.roster.health(for: opponent) > 0 {
             let t = context.modifiers(for: opponent.id).triggers
             if sourceIsFrozen {
-                reductionFlat += t.frozenEnemyDamageReductionFlat
+                reductionFlat = SaturatedArithmetic.saturatingAdd(reductionFlat, t.frozenEnemyDamageReductionFlat)
             }
             if sourceIsBleeding {
-                reductionFlat += t.bleedingEnemyDamageReductionFlat
+                reductionFlat = SaturatedArithmetic.saturatingAdd(reductionFlat, t.bleedingEnemyDamageReductionFlat)
                 reductionMultiplier *= t.bleedingEnemyOutgoingDamageMultiplier
             }
             if sourceIsBurning {
-                reductionFlat += t.burningEnemyDamageReductionFlat
+                reductionFlat = SaturatedArithmetic.saturatingAdd(reductionFlat, t.burningEnemyDamageReductionFlat)
             }
             if sourceIsPoisoned {
                 reductionMultiplier *= (1 - min(1, t.poisonedEnemyAccuracyPenaltyPercent))
@@ -346,7 +346,7 @@ package extension DamagePipeline {
             case let .damageReductionPercent(percent, _):
                 reductionMultiplier *= (1 - min(1, percent))
             case let .damageReductionFlat(amount, _):
-                reductionFlat += amount
+                reductionFlat = SaturatedArithmetic.saturatingAdd(reductionFlat, amount)
             default:
                 continue
             }
@@ -436,8 +436,8 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
         else { return }
         let bonus = context.modifiers(for: sourceActorID).triggers.poisonDamageVsBleedingFlat
-        state.remaining += bonus
-        state.itemBonus += bonus
+        state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+        state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
     }
 
     static func applyHallowbreak(to state: inout DamageResolutionState, in context: BattleState) {
@@ -458,8 +458,8 @@ package extension DamagePipeline {
         guard state.options.isAttackHit, state.sourceActorID != nil else { return }
         for active in context.roster.activeEffects(for: state.combatant) {
             if case let .marked(bonus, _) = active.effect {
-                state.remaining += bonus
-                state.dealt += bonus
+                state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+                state.dealt = SaturatedArithmetic.saturatingAdd(state.dealt, bonus)
                 state.markedBonusApplied = true
                 break
             }

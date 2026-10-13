@@ -63,13 +63,13 @@ extension UniqueCombatEngine {
     }
 
     static func applyStoredDamage(to damage: inout DamageResolutionState, in context: inout BattleState) {
-        damage.remaining += damage.unique.enemyBlock
-        damage.remaining += damage.options.partnerFirstAttackBonus
+        damage.remaining = SaturatedArithmetic.saturatingAdd(damage.remaining, damage.unique.enemyBlock)
+        damage.remaining = SaturatedArithmetic.saturatingAdd(damage.remaining, damage.options.partnerFirstAttackBonus)
         guard damage.options.isOrdinaryUniqueCardDamage, damage.damageKeyword == .holy,
               let source = damage.partySource(in: context),
               let owner = context.roster.participant(for: source.combatant)
         else { return }
-        damage.remaining += context.uniques.owners[owner]?.goldDamage ?? 0
+        damage.remaining = SaturatedArithmetic.saturatingAdd(damage.remaining, context.uniques.owners[owner]?.goldDamage ?? 0)
         context.uniques.owners[owner, default: .init()].goldDamage = 0
     }
 
