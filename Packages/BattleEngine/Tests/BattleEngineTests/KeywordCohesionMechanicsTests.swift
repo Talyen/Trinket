@@ -95,13 +95,7 @@ struct KeywordCohesionMechanicsTests {
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: fangs, owner: .hero)])
         let heroBefore = battle.roster.health(for: battle.hero)
         // Damage Hero first to create missing Health for Leech to restore.
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 6,
-            target: battle.hero,
-            keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .effect(),
-        ))
+        _ = battle.resolveTestDamage(6, from: .enemy, to: .hero, options: .effect())
         let missing = battle.roster.maxHealth(for: battle.hero) - battle.roster.health(for: battle.hero)
         try #expect(missing > 0)
         _ = try BattleTestFixtures.playCardNamed("Fangs", owner: .hero, on: &battle)
@@ -142,13 +136,7 @@ struct KeywordCohesionMechanicsTests {
     @Test func `sunburst heals each living ally without reviving`() throws {
         var battle = makeCohesionBattle()
         // Damage Hero, defeat Companion directly (bypass Death's Door) to test no revive.
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 10,
-            target: battle.hero,
-            keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .effect(),
-        ))
+        _ = battle.resolveTestDamage(10, from: .enemy, to: .hero, options: .effect())
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 0 }
         try #require(battle.roster.health(for: battle.companion) <= 0)
         let heroBefore = battle.roster.health(for: battle.hero)
@@ -182,21 +170,9 @@ extension KeywordCohesionMechanicsTests {
         var battle = makeCohesionBattle(companionModifiers: profile)
         // Companion takes Physical (reduced) vs Burn (not reduced). Use companion as defender via enemy targeting companion.
         let companion = battle.companion
-        let physical = battle.resolveDamage(DamageRequest(
-            amount: 5,
-            target: companion,
-            keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .attack(),
-        ))
+        let physical = battle.resolveTestDamage(5, from: .enemy, to: .companion)
         try #expect(physical.healthLost == 3)
-        let burn = battle.resolveDamage(DamageRequest(
-            amount: 5,
-            target: companion,
-            keyword: .burn,
-            sourceActorID: battle.enemy.id,
-            options: .attack(),
-        ))
+        let burn = battle.resolveTestDamage(5, from: .enemy, to: .companion, keyword: .burn)
         // Burn takes full (no Block, no mitigation) = 5, modulo enemy scaling? Use healthLost relative.
         try #expect(burn.healthLost == 5)
     }
@@ -206,31 +182,13 @@ extension KeywordCohesionMechanicsTests {
             CombatModifierProfile(triggers: CombatTraitTriggers(damage: DamageTriggers(firstPhysicalAttackGuaranteedCritical: true)))
         var battle = makeCohesionBattle(enemyMaxHealth: 200, companionModifiers: profile)
         // Non-Physical first does not consume or crit (Burn, no guaranteed crit).
-        let first = battle.resolveDamage(DamageRequest(
-            amount: 4,
-            target: battle.enemy,
-            keyword: .burn,
-            sourceActorID: battle.companion.id,
-            options: .attack(),
-        ))
+        let first = battle.resolveTestDamage(4, from: .companion, keyword: .burn)
         try #expect(!first.isCritical)
         // First Physical Crits.
-        let physical = battle.resolveDamage(DamageRequest(
-            amount: 4,
-            target: battle.enemy,
-            keyword: .physical,
-            sourceActorID: battle.companion.id,
-            options: .attack(),
-        ))
+        let physical = battle.resolveTestDamage(4, from: .companion)
         try #expect(physical.isCritical)
         // Second Physical does not Crit (allowance spent).
-        let second = battle.resolveDamage(DamageRequest(
-            amount: 4,
-            target: battle.enemy,
-            keyword: .physical,
-            sourceActorID: battle.companion.id,
-            options: .attack(),
-        ))
+        let second = battle.resolveTestDamage(4, from: .companion)
         try #expect(!second.isCritical)
     }
 
@@ -252,23 +210,11 @@ extension KeywordCohesionMechanicsTests {
         var battle = makeCohesionBattle(companionModifiers: profile)
         DefensePoolEngine.set(2, on: battle.companion, in: &battle)
         // 3 Physical with 2 Block (doubled capacity 4) absorbs all 3, consumes 2 (rounded 1.5->2).
-        let physical = battle.resolveDamage(DamageRequest(
-            amount: 3,
-            target: battle.companion,
-            keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .attack(),
-        ))
+        let physical = battle.resolveTestDamage(3, from: .enemy, to: .companion)
         try #expect(physical.healthLost == 0)
         // Non-Physical with same Block uses normal efficiency.
         DefensePoolEngine.set(2, on: battle.companion, in: &battle)
-        let burn = battle.resolveDamage(DamageRequest(
-            amount: 3,
-            target: battle.companion,
-            keyword: .burn,
-            sourceActorID: battle.enemy.id,
-            options: .attack(),
-        ))
+        let burn = battle.resolveTestDamage(3, from: .enemy, to: .companion, keyword: .burn)
         try #expect(burn.healthLost == 1)
     }
 
@@ -288,18 +234,12 @@ extension KeywordCohesionMechanicsTests {
         let protected = companionProtectsHero ? battle.hero : battle.companion
         DefensePoolEngine.set(10, on: protector, in: &battle)
 
-        let borrowed = battle.resolveDamage(DamageRequest(
-            amount: 3, target: protected, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .attack(),
-        ))
+        let borrowed = battle.resolveTestDamage(3, to: protected, keyword: .physical, sourceActorID: battle.enemy.id)
 
         #expect(borrowed.healthLost == 0)
         #expect(BattleTestFixtures.shieldPoints(for: protector, in: battle) == 4)
         DefensePoolEngine.set(10, on: protector, in: &battle)
-        let direct = battle.resolveDamage(DamageRequest(
-            amount: 3, target: protector, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .attack(),
-        ))
+        let direct = battle.resolveTestDamage(3, to: protector, keyword: .physical, sourceActorID: battle.enemy.id)
         #expect(direct.healthLost == 0)
         #expect(BattleTestFixtures.shieldPoints(for: protector, in: battle) == 4)
     }
@@ -313,11 +253,12 @@ extension KeywordCohesionMechanicsTests {
         )
         DefensePoolEngine.set(10, on: battle.companion, in: &battle)
 
-        let damage = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id,
+        let damage = battle.resolveTestDamage(
+            8,
+            from: .enemy,
+            to: .companion,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(damage.healthLost == 0)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
@@ -336,10 +277,7 @@ extension KeywordCohesionMechanicsTests {
         DefensePoolEngine.set(1, on: battle.hero, in: &battle)
         DefensePoolEngine.set(recipientBlock, on: battle.companion, in: &battle)
 
-        let damage = battle.resolveDamage(DamageRequest(
-            amount: 3, target: battle.companion, keyword: .poison,
-            sourceActorID: battle.enemy.id, options: .attack(),
-        ))
+        let damage = battle.resolveTestDamage(3, from: .enemy, to: .companion, keyword: .poison)
 
         #expect(damage.healthLost == 3 - recipientBlock)
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
@@ -352,13 +290,7 @@ extension KeywordCohesionMechanicsTests {
             heroAbilities: [.heal], heroModifiers: profile,
         )
         battle.appliesFightPacing = false
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 5,
-            target: battle.companion,
-            keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .effect(),
-        ))
+        _ = battle.resolveTestDamage(5, from: .enemy, to: .companion, options: .effect())
         let deckBefore = battle.companionDeck.count
         battle.nextCardID += 1
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero)])
@@ -366,13 +298,7 @@ extension KeywordCohesionMechanicsTests {
         // Heal targets lowestHealthAlly (companion, damaged) with 6, restores 5 (missing), draws 1 Companion card (claimed before draw).
         try #expect(battle.companionDeck.count == max(0, deckBefore - 1))
         // Second heal same turn does not draw again (once per turn).
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1,
-            target: battle.companion,
-            keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .effect(),
-        ))
+        _ = battle.resolveTestDamage(1, from: .enemy, to: .companion, options: .effect())
         battle.nextCardID += 1
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero)])
         let deckMid = battle.companionDeck.count
@@ -540,13 +466,7 @@ extension KeywordCohesionMechanicsTests {
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(blockPreparesCritical: true)))
         var battle = makeCohesionBattle(heroModifiers: profile)
         DefensePoolEngine.set(5, on: battle.hero, in: &battle)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 3,
-            target: battle.hero,
-            keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .attack(),
-        ))
+        _ = battle.resolveTestDamage(3, from: .enemy, to: .hero)
         try #expect(battle.uniques.owners[.hero]?.patientEdgeReady == true)
     }
 

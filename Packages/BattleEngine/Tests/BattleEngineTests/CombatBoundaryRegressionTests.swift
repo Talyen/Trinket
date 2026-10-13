@@ -12,8 +12,6 @@ struct CombatBoundaryRegressionTests {
         profile.triggers.gainManaBlockFlat = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 3),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: 0, heroMana: 0, heroModifiers: profile,
         )
 

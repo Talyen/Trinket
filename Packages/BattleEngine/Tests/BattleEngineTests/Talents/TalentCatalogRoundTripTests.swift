@@ -30,10 +30,7 @@ struct TalentCatalogRoundTripTests {
         battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         DefensePoolEngine.set(4, on: battle.companion, in: &battle)
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.companion, keyword: keyword, sourceActorID: battle.enemy.id,
-            options: .effect(scaling: .flat),
-        ))
+        let result = battle.resolveTestDamage(8, from: .enemy, to: .companion, keyword: keyword, options: .effect(scaling: .flat))
         #expect(result.healthLost == healthLost)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == heroBlock)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == companionBlock)
@@ -49,10 +46,7 @@ struct TalentCatalogRoundTripTests {
         battle.appliesFightPacing = false
         _ = battle.applyBlock(3, to: battle.hero, source: battle.hero, abilityName: "Block")
         for amount in [1, 3] {
-            _ = battle.resolveDamage(DamageRequest(
-                amount: amount, target: battle.companion, keyword: .physical,
-                sourceActorID: battle.enemy.id, options: .reaction(),
-            ))
+            _ = battle.resolveTestDamage(amount, from: .enemy, to: .companion, options: .reaction())
             #expect(talentPoints(.shield, on: .hero, in: battle) == 2)
         }
         #expect(battle.roster.companion.currentHealth == battle.roster.companion.maxHealth - 1)
@@ -124,26 +118,22 @@ struct TalentCatalogRoundTripTests {
             companionModifiers: build.modifiers,
         )
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 5 }
-        _ = battle.resolveDamage(
-            DamageRequest(
-                amount: 40,
-                target: hero,
-                keyword: .physical,
-                sourceActorID: "enemy",
-                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
-            ),
+        _ = battle.resolveTestDamage(
+            40,
+            to: hero,
+            keyword: .physical,
+            sourceActorID: "enemy",
+            options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
         )
         #expect(battle.roster.health(for: hero) == 5)
         #expect(battle.roster.runtime(for: build.combatant)?.hasTriggeredPhoenixGift == true)
 
-        _ = battle.resolveDamage(
-            DamageRequest(
-                amount: 40,
-                target: hero,
-                keyword: .physical,
-                sourceActorID: "enemy",
-                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
-            ),
+        _ = battle.resolveTestDamage(
+            40,
+            to: hero,
+            keyword: .physical,
+            sourceActorID: "enemy",
+            options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
         )
         #expect(battle.roster.health(for: hero) == 1)
 
@@ -152,14 +142,12 @@ struct TalentCatalogRoundTripTests {
             $0.hasConsumedDeathsDoor = true
             $0.deathsDoorExpiredAtTurn = -1
         }
-        _ = battle.resolveDamage(
-            DamageRequest(
-                amount: 40,
-                target: hero,
-                keyword: .physical,
-                sourceActorID: "enemy",
-                options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
-            ),
+        _ = battle.resolveTestDamage(
+            40,
+            to: hero,
+            keyword: .physical,
+            sourceActorID: "enemy",
+            options: DamageOperation.effect(scaling: .flat, accuracy: .unavoidable),
         )
         #expect(battle.roster.health(for: hero) == 0)
     }

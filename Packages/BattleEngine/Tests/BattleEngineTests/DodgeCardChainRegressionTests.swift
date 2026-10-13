@@ -59,10 +59,9 @@ struct DodgeCardChainRegressionTests {
         var profile = CombatantTalentCatalog.profile(for: ["frost_whelp_dodge_t1_2"])
         profile.triggers.onDodgeDrawAndPlayCardChainOnCrit = true
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionHealth: 1, companionModifiers: profile,
+            companionHealth: 1,
+            companionModifiers: profile,
         )
         battle.appliesFightPacing = false
         battle.roster.companion.hasConsumedDeathsDoor = true

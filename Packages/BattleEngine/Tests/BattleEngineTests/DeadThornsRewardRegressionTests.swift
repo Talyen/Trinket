@@ -25,10 +25,12 @@ struct DeadThornsRewardRegressionTests {
         battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
         battle.appendEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
+        let outcome = battle.resolveTestDamage(
+            1,
+            from: .enemy,
+            to: .hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(battle.roster.enemy.currentHealth == 92)
         #expect(battle.roster.hero.currentHealth == (finallyDefeated ? 0 : 3))
@@ -58,10 +60,12 @@ struct DeadThornsRewardRegressionTests {
             battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
+        let hit = battle.resolveTestDamage(
+            10,
+            from: .enemy,
+            to: .hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(battle.health(of: battle.companion) == 7)
         #expect(hit.events.count(where: { $0.abilityName == "Spiteful" && $0.effectKind == .instantHeal }) == 1)
@@ -78,17 +82,18 @@ struct DeadThornsRewardRegressionTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: profile,
         )
         battle.appliesFightPacing = false
         DefensePoolEngine.set(enemyBlock, on: battle.enemy, in: &battle)
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
+        _ = battle.resolveTestDamage(
+            10,
+            from: .enemy,
+            to: .hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(battle.health(of: battle.enemy) == (enemyBlock == 0 ? 98 : 100))
         #expect(battle.roster.hasAffliction(.poison, on: battle.enemy) == (enemyBlock == 0))

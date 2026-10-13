@@ -131,14 +131,12 @@ struct FightPacingTests {
         try #expect(doublePaced != expectedOnce)
         try #expect(expectedOnce < ControlMeterEngine.threshold(for: enemy, in: context))
 
-        _ = context.applyTestDamage(
+        _ = context.resolveTestDamage(
             authored,
             to: context.roster.enemy.combatant,
             keyword: .stun,
             sourceActorID: "source",
-            applyStatBonus: false,
-            applyItemBonus: false,
-            applyDodge: false,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
         )
 
         let amount = context.roster.enemy.activeEffects

@@ -35,10 +35,7 @@ extension BattleCardCombatTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         battle.appliesFightPacing = false
         DefensePoolEngine.set(block, on: battle.hero, in: &battle)
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 5, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ))
+        let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
         let event = try #require(outcome.events.first { $0.effectKind == .shieldAbsorbed })
         #expect(event.isFullyBlocked == (block >= 5))
     }

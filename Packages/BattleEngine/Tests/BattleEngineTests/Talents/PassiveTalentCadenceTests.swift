@@ -67,7 +67,6 @@ struct PassiveTalentCadenceTests {
         )))
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 5),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 10, heroMana: 0, heroModifiers: profile,
         )

@@ -24,7 +24,7 @@ struct BattleStateTests {
         try #expect(!(battle.isCompanionAlive))
 
         let heroID = battle.hero
-        _ = battle.applyTestDamage(5, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = battle.resolveTestDamage(5, to: heroID, options: .attack(scaling: .flat, accuracy: .unavoidable))
         try #expect(battle.health(of: battle.hero) == 1)
         try #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .deathsDoor })
         try #expect(!(battle.isPartyDefeated))
@@ -39,23 +39,23 @@ struct BattleStateTests {
         let heroID = battle.hero
         let companionID = battle.companion
 
-        _ = battle.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        _ = battle.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = battle.resolveTestDamage(3, to: heroID, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        _ = battle.resolveTestDamage(3, to: companionID, options: .attack(scaling: .flat, accuracy: .unavoidable))
         try #expect(!(battle.isPartyDefeated))
 
         for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
             _ = battle.endTurn()
         }
 
-        _ = battle.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        _ = battle.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = battle.resolveTestDamage(3, to: heroID, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        _ = battle.resolveTestDamage(3, to: companionID, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         try #expect(!(battle.isPartyDefeated))
 
         _ = battle.endTurn()
 
-        _ = battle.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        _ = battle.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = battle.resolveTestDamage(3, to: heroID, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        _ = battle.resolveTestDamage(3, to: companionID, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         try #expect(battle.isPartyDefeated)
     }

@@ -14,16 +14,17 @@ struct ThornsFeedbackRegressionTests {
         trinket.basic.triggers.apply(to: &profile, abilityName: trinket.title)
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 10),
             heroModifiers: profile,
         )
         battle.appliesFightPacing = false
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
+        let outcome = battle.resolveTestDamage(
+            10,
+            from: .enemy,
+            to: .hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(outcome.healthLost == 10)
         #expect(battle.roster.enemy.currentHealth == 8)

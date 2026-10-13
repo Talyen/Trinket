@@ -38,10 +38,12 @@ struct AshenVitalityActionPreparationTests {
         let target = battle.enemy
         battle.appendEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
 
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 3, target: actor, keyword: .physical, sourceActorID: target.id,
+        let result = battle.resolveTestDamage(
+            3,
+            from: .enemy,
+            to: .companion,
             options: .attack(tier: .basic, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(result.flags.contains(.dodged))
         #expect(result.events.filter { $0.kind == .abilityDamage && $0.abilityID == basic.id }.map(\.amount) == [4, 4])

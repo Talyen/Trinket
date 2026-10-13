@@ -13,10 +13,13 @@ struct ResolvedDamageRegressionTests {
         )
         battle.appliesFightPacing = false
         battle.appendEffect(.controlMeter(.freeze, 100, 100), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 100, target: battle.enemy, keyword: .burn, sourceActorID: battle.roster[owner].id,
+        let result = battle.resolveTestDamage(
+            100,
+            to: battle.enemy,
+            keyword: .burn,
+            sourceActorID: battle.roster[owner].id,
             options: .attack(tier: .basic, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(result.healthLost == (owner == .hero ? 150 : 125))
     }
 
@@ -45,9 +48,7 @@ struct ResolvedDamageRegressionTests {
         battle.appendEffect(.thorns(1), to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         var options = operation
         options.abilityCriticalChanceBonus = -1
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 100, target: battle.enemy, keyword: .stun, sourceActorID: battle.companion.id, options: options,
-        ))
+        let result = battle.resolveTestDamage(100, from: .companion, keyword: .stun, options: options)
         #expect(result.healthLost == (operation.isAttackHit ? 125 : 100))
     }
 
@@ -58,10 +59,12 @@ struct ResolvedDamageRegressionTests {
         )
         battle.appliesFightPacing = false
         battle.appendEffect(.poison(20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+        _ = battle.resolveTestDamage(
+            1,
+            from: .enemy,
+            to: .companion,
             options: .attack(tier: .basic, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         let first = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 10, keyword: .poison, target: battle.enemy, sourceActorID: battle.hero.id,
             operation: .resolvedPeriodic, in: &battle,

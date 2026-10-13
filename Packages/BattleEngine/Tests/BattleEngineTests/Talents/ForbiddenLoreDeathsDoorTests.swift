@@ -11,7 +11,6 @@ struct ForbiddenLoreDeathsDoorTests {
         let enemy = CombatantFixtures.passiveEnemy(maxHealth: 40)
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: enemy,
             heroHealth: initialHealth,
             heroMana: 0,
@@ -19,10 +18,7 @@ struct ForbiddenLoreDeathsDoorTests {
         )
         battle.appliesFightPacing = false
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1, target: hero, keyword: .physical, sourceActorID: enemy.id,
-            options: .attack(accuracy: .unavoidable),
-        ))
+        _ = battle.resolveTestDamage(1, to: hero, keyword: .physical, sourceActorID: enemy.id, options: .attack(accuracy: .unavoidable))
 
         #expect(battle.roster.hero.currentHealth == 1)
         #expect(battle.roster.hero.currentMana == 1)

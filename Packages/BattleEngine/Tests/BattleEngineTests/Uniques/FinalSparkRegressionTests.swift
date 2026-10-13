@@ -32,10 +32,7 @@ struct FinalSparkRegressionTests {
         DefensePoolEngine.set(4, on: battle.enemy, in: &battle)
         var options = DamageOperation.attack(scaling: .resolved, accuracy: .unavoidable)
         options.capturesCardRepeat = true
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id,
-            options: options,
-        ))
+        let outcome = battle.resolveTestDamage(10, keyword: keyword, options: options)
 
         #expect(outcome.healthLost == 6)
         #expect(battle.roster.hero.talents.pending.doubleNextPoisonDamage)

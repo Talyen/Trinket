@@ -13,7 +13,6 @@ struct AlchemyAffixPortTests {
     ) -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroEffects: heroEffects,
             enemyEffects: enemyEffects,
@@ -32,11 +31,7 @@ struct AlchemyAffixPortTests {
             modifiers: profile,
         )
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.hero, keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable),
-        ))
+        _ = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable))
         #expect(battle.health(of: battle.enemy) == 35)
         #expect(battle.roster.hasAffliction(.poison, on: battle.enemy))
     }
@@ -61,11 +56,7 @@ struct AlchemyAffixPortTests {
         profile.triggers.physicalAttackLeechBelowHalfHealth = true
         func strike(at health: Int, keyword: Keyword) -> Int {
             var battle = makeAffixBattle(heroHealth: health, modifiers: profile)
-            _ = battle.resolveDamage(DamageRequest(
-                amount: 8, target: battle.enemy, keyword: keyword,
-                sourceActorID: battle.hero.id,
-                options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable),
-            ))
+            _ = battle.resolveTestDamage(8, keyword: keyword, options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable))
             return battle.health(of: battle.hero)
         }
         #expect(strike(at: 10, keyword: .physical) > 10)
@@ -102,10 +93,7 @@ struct AlchemyAffixPortTests {
                 enemyEffects: bleeding ? [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)] : [],
                 modifiers: profile,
             )
-            _ = battle.resolveDamage(DamageRequest(
-                amount: 4, target: battle.enemy, keyword: .poison,
-                sourceActorID: battle.hero.id, options: operation,
-            ))
+            _ = battle.resolveTestDamage(4, keyword: .poison, options: operation)
             return 40 - battle.health(of: battle.enemy)
         }
         let attack = DamageOperation.attack(
@@ -123,10 +111,7 @@ struct AlchemyAffixPortTests {
             let effects = initialBlock > 0
                 ? [ActiveEffect(id: 1, effect: .shield(.block, initialBlock), remainingTurns: 2)] : []
             var battle = makeAffixBattle(heroEffects: effects, modifiers: profile)
-            _ = battle.resolveDamage(DamageRequest(
-                amount: 4, target: battle.enemy, keyword: .holy,
-                sourceActorID: battle.hero.id, options: operation,
-            ))
+            _ = battle.resolveTestDamage(4, keyword: .holy, options: operation)
             return DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.hero))
         }
         let attack = DamageOperation.attack(
@@ -148,11 +133,11 @@ struct AlchemyAffixPortTests {
                     sourceActorID: battle.hero.id, applyFightPacing: false, in: &battle,
                 ) }
             }
-            _ = battle.resolveDamage(DamageRequest(
-                amount: 8, target: battle.enemy, keyword: .holy,
-                sourceActorID: battle.hero.id,
+            _ = battle.resolveTestDamage(
+                8,
+                keyword: .holy,
                 options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-            ))
+            )
             return 40 - battle.health(of: battle.enemy)
         }
         #expect(holyDamage(stunned: false) == 8)

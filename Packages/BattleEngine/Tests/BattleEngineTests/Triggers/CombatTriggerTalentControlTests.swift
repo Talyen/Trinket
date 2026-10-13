@@ -55,9 +55,7 @@ struct CombatTriggerTalentControlTests {
             dealOpeningHand: false,
         )
         let companion = battle.roster.companion.combatant
-        _ = battle.resolveDamage(
-            DamageRequest(amount: 11, target: companion, keyword: .physical, sourceActorID: "enemy"),
-        )
+        _ = battle.resolveTestDamage(11, to: companion, keyword: .physical, sourceActorID: "enemy")
         #expect(battle.roster.hasControlStatus(for: battle.roster.enemy.combatant, keyword: .stun))
     }
 
@@ -88,9 +86,7 @@ struct CombatTriggerTalentControlTests {
             dealOpeningHand: false,
         )
         let companion = battle.roster.companion.combatant
-        _ = battle.resolveDamage(
-            DamageRequest(amount: 3, target: companion, keyword: .physical, sourceActorID: "enemy"),
-        )
+        _ = battle.resolveTestDamage(3, to: companion, keyword: .physical, sourceActorID: "enemy")
         let poisoned = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .contains { $0.effect.keyword == .poison }
         #expect(poisoned)
@@ -104,10 +100,11 @@ struct CombatTriggerTalentControlTests {
         )
         battle.appliesFightPacing = false
         for amount in [6, 2, 4] {
-            _ = battle.resolveDamage(DamageRequest(
-                amount: amount, target: battle.enemy, keyword: .holy, sourceActorID: battle.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
-            ))
+            _ = battle.resolveTestDamage(
+                amount,
+                keyword: .holy,
+                options: DamageOperation.attack(scaling: .flat, accuracy: .unavoidable),
+            )
             #expect(battle.heroTalents.history[battle.enemy.id]?.blindingReduction == 3)
         }
         #expect(!battle.roster.activeEffects(for: battle.enemy).contains { $0.effect == .evadeNextHit })
@@ -267,14 +264,12 @@ struct CombatTriggerTalentControlTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        let outcome = battle.resolveDamage(
-            DamageRequest(
-                amount: 5,
-                target: battle.roster.enemy.combatant,
-                keyword: .physical,
-                sourceActorID: battle.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .items, accuracy: .unavoidable),
-            ),
+        let outcome = battle.resolveTestDamage(
+            5,
+            to: battle.roster.enemy.combatant,
+            keyword: .physical,
+            sourceActorID: battle.roster.hero.id,
+            options: DamageOperation.attack(scaling: .items, accuracy: .unavoidable),
         )
         #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 94)
         let poisons = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
@@ -316,14 +311,12 @@ struct CombatTriggerTalentControlTests {
             heroModifiers: harvest,
             dealOpeningHand: false,
         )
-        _ = hitBattle.resolveDamage(
-            DamageRequest(
-                amount: 3,
-                target: hitBattle.roster.enemy.combatant,
-                keyword: .physical,
-                sourceActorID: hitBattle.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
-            ),
+        _ = hitBattle.resolveTestDamage(
+            3,
+            to: hitBattle.roster.enemy.combatant,
+            keyword: .physical,
+            sourceActorID: hitBattle.roster.hero.id,
+            options: DamageOperation.attack(scaling: .flat, accuracy: .unavoidable),
         )
         #expect(DefensePoolEngine.blockPoints(
             in: hitBattle.roster.activeEffects(for: hitBattle.roster.hero.combatant),
@@ -336,14 +329,12 @@ struct CombatTriggerTalentControlTests {
             heroModifiers: harvest,
             dealOpeningHand: false,
         )
-        _ = retaliation.resolveDamage(
-            DamageRequest(
-                amount: 3,
-                target: retaliation.roster.enemy.combatant,
-                keyword: .physical,
-                sourceActorID: retaliation.roster.hero.id,
-                options: DamageOperation.reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable),
-            ),
+        _ = retaliation.resolveTestDamage(
+            3,
+            to: retaliation.roster.enemy.combatant,
+            keyword: .physical,
+            sourceActorID: retaliation.roster.hero.id,
+            options: DamageOperation.reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable),
         )
         #expect(DefensePoolEngine.blockPoints(
             in: retaliation.roster.activeEffects(for: retaliation.roster.hero.combatant),

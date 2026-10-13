@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -15,9 +14,7 @@ struct LeechAttackQualificationTests {
         battle.roster.hero.currentHealth = 1
         let operation: DamageOperation = attack
             ? .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1) : .periodic
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: .poison, sourceActorID: battle.hero.id, options: operation,
-        ))
+        _ = battle.resolveTestDamage(8, keyword: .poison, options: operation)
         #expect((battle.health(of: battle.hero) > 1) == attack)
     }
 
@@ -31,10 +28,7 @@ struct LeechAttackQualificationTests {
             battle.appliesFightPacing = false
             battle.roster.hero.currentHealth = 10
             battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
-            let result = battle.resolveDamage(DamageRequest(
-                amount: 8, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-                options: .attack(accuracy: .unavoidable),
-            ))
+            let result = battle.resolveTestDamage(8, options: .attack(accuracy: .unavoidable))
             criticals += result.isCritical ? 1 : 0
         }
         #expect(criticals > 0)
@@ -48,10 +42,7 @@ struct LeechAttackQualificationTests {
         var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile)
         battle.appliesFightPacing = false
         battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: .bleed, sourceActorID: battle.companion.id,
-            options: .attack(accuracy: .unavoidable),
-        ))
+        let result = battle.resolveTestDamage(8, from: .companion, keyword: .bleed, options: .attack(accuracy: .unavoidable))
         #expect(result.healthLost == (bloodfire ? 10 : 8))
     }
 
@@ -62,10 +53,12 @@ struct LeechAttackQualificationTests {
         var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile)
         battle.appliesFightPacing = false
         let before = battle.health(of: battle.enemy)
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .bleed, sourceActorID: battle.companion.id,
+        let result = battle.resolveTestDamage(
+            4,
+            from: .companion,
+            keyword: .bleed,
             options: .attack(accuracy: .unavoidable, guaranteedCritical: true),
-        ))
+        )
         #expect(result.healthLost == 8)
         #expect(before - battle.health(of: battle.enemy) == (bloodfire ? 11 : 8))
         #expect(result.events.contains { $0.abilityName == "Toxic Touch" } == bloodfire)

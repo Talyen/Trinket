@@ -93,8 +93,6 @@ struct BattleLogProjectionTests {
     func `Mana Potion logs only Mana actually restored`(initialMana: Int, automatic: Bool) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 12),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroMana: initialMana,
         )
         battle.appliesFightPacing = false
@@ -149,8 +147,6 @@ struct BattleLogProjectionTests {
     private func makeSupportBattle() -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 5),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroMana: 0,
         )
         battle.appliesFightPacing = false

@@ -20,10 +20,7 @@ extension UniqueCollectionTests {
         var context = try battle([id])
         let actor = context.hero
         context.appendEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
-        _ = context.resolveDamage(DamageRequest(
-            amount: 1, target: actor, keyword: .physical, sourceActorID: context.enemy.id,
-            options: .attack(tier: .basic),
-        ))
+        _ = context.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(tier: .basic))
         let label = id == "vipers_courtesy" ? "Viper’s Courtesy" : "Wildheart’s Favor"
         #expect(context.effectSummaries(of: actor).contains { $0.keyword == .poison && $0.text.contains(label) })
         try play(attack(.poison), in: &context)

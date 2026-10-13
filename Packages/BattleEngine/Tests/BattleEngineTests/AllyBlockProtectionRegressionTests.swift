@@ -83,11 +83,13 @@ struct AllyBlockProtectionRegressionTests {
     }
 
     private func hit(_ amount: Int, target: BattleParticipant, in battle: inout BattleState) -> CombatOutcome {
-        battle.resolveDamage(DamageRequest(
-            amount: amount, target: battle.roster[target].combatant, keyword: .physical,
+        battle.resolveTestDamage(
+            amount,
+            to: battle.roster[target].combatant,
+            keyword: .physical,
             sourceActorID: battle.enemy.id,
-            options: .attack(tier: .skill, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+            options: .attack(scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        )
     }
 
     private func block(for owner: BattleParticipant, in battle: BattleState) -> Int {

@@ -10,8 +10,6 @@ struct FallenSupportRewardRegressionTests {
         var profile = CombatantTalentCatalog.profile(for: ["knight_holy_t2_1", "knight_holy_t4_1"])
         profile.triggers.sunwallChancePercent = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: survives ? 2 : 1,
             heroModifiers: profile,
@@ -20,10 +18,7 @@ struct FallenSupportRewardRegressionTests {
         battle.roster.hero.hasConsumedDeathsDoor = true
         battle.appendEffect(.thorns(4), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ))
+        let outcome = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         #expect(battle.health(of: battle.hero) == (survives ? 1 : 0))
         #expect(battle.health(of: battle.enemy) == 96)
@@ -36,8 +31,6 @@ struct FallenSupportRewardRegressionTests {
         var hero = CombatantTalentCatalog.profile(for: ["ranger_poison_t4_1"])
         hero.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: survives ? 5 : 1,
             heroModifiers: hero,
@@ -46,17 +39,15 @@ struct FallenSupportRewardRegressionTests {
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,
+        _ = battle.resolveTestDamage(
+            2,
+            from: .companion,
             options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
-        ))
+        )
 
         #expect(battle.health(of: battle.companion) == (survives ? 1 : 0))
         #expect(battle.roster.hero.talents.pending.doubleNextPoisonAttack == survives)
-        let poison = battle.resolveDamage(DamageRequest(
-            amount: 3, target: battle.enemy, keyword: .poison, sourceActorID: battle.hero.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ))
+        let poison = battle.resolveTestDamage(3, keyword: .poison, options: .attack(scaling: .flat, accuracy: .unavoidable))
         #expect(poison.healthLost == (survives ? 6 : 3))
     }
 }

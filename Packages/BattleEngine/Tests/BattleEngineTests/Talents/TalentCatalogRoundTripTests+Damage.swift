@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -14,9 +13,7 @@ extension TalentCatalogRoundTripTests {
         battle.roster.hero.currentHealth = 10
         DefensePoolEngine.set(6, on: battle.companion, in: &battle)
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id, options: .reaction(),
-        ))
+        _ = battle.resolveTestDamage(4, from: .enemy, to: .hero, options: .reaction())
 
         #expect(battle.roster.hero.currentHealth == 10)
         #expect(battle.roster.companion.currentHealth == battle.roster.companion.maxHealth)

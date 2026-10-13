@@ -46,10 +46,13 @@ extension UniqueCollectionTests {
             accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
         )
 
-        let outcome = context.resolveDamage(DamageRequest(
-            amount: 10, target: context.roster.enemy.combatant, keyword: keyword,
-            sourceActorID: context.roster.hero.id, options: options,
-        ))
+        let outcome = context.resolveTestDamage(
+            10,
+            to: context.roster.enemy.combatant,
+            keyword: keyword,
+            sourceActorID: context.roster.hero.id,
+            options: options,
+        )
 
         #expect(outcome.healthLost == 10)
         #expect(before - context.roster.enemy.currentHealth == 11)
@@ -178,13 +181,7 @@ extension UniqueCollectionTests {
         var context = try battle(["vipers_courtesy"], extra: CombatModifierProfile(damageDealtBonus: [.poison: 2, .bleed: 3]))
         let actor = context.roster.hero.combatant
         _ = CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(by: actor, attackerID: context.roster.enemy.id, in: &context) }
-        _ = context.resolveDamage(DamageRequest(
-            amount: 1,
-            target: context.roster.enemy.combatant,
-            keyword: .physical,
-            sourceActorID: actor.id,
-            options: .reaction(),
-        ))
+        _ = context.resolveTestDamage(1, options: .reaction())
         #expect(context.uniques.owners[.hero]?.viperReady == true)
         block(10, owner: .enemy, in: &context)
         try play(attack(.holy), in: &context)

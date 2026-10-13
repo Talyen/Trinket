@@ -19,11 +19,12 @@ struct HealthThresholdSurvivalRegressionTests {
         battle.roster.mutateRuntime(for: hero) { $0.hasConsumedDeathsDoor = finallyDefeated }
         #expect(battle.roster.health(for: hero) * 2 >= battle.roster.maxHealth(for: hero))
 
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: battle.roster.maxHealth(for: hero) + 100,
-            target: hero, keyword: .physical, sourceActorID: battle.enemy.id,
+        let hit = battle.resolveTestDamage(
+            battle.roster.maxHealth(for: hero) + 100,
+            from: .enemy,
+            to: .hero,
             options: .attack(accuracy: .unavoidable),
-        ))
+        )
 
         #expect(battle.roster.health(for: hero) == (finallyDefeated ? 0 : 1))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: hero)) == (finallyDefeated ? 0 : 6))
@@ -44,11 +45,12 @@ struct HealthThresholdSurvivalRegressionTests {
         battle.roster.mutateRuntime(for: companion) { $0.hasConsumedDeathsDoor = finallyDefeated }
         #expect(battle.roster.health(for: companion) * 2 >= battle.roster.maxHealth(for: companion))
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: battle.roster.maxHealth(for: companion) + 100,
-            target: companion, keyword: .physical, sourceActorID: battle.enemy.id,
+        _ = battle.resolveTestDamage(
+            battle.roster.maxHealth(for: companion) + 100,
+            from: .enemy,
+            to: .companion,
             options: .attack(accuracy: .unavoidable),
-        ))
+        )
 
         #expect(battle.roster.health(for: companion) == (finallyDefeated ? 0 : 1))
         #expect((battle.roster.companion.talents.pending.doubleNextBleedAttack != nil) == !finallyDefeated)
@@ -63,9 +65,12 @@ struct HealthThresholdSurvivalRegressionTests {
     }
 
     private func bleedAttack(from source: Combatant, in battle: inout BattleState) -> CombatOutcome {
-        battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: .bleed, sourceActorID: source.id,
+        battle.resolveTestDamage(
+            10,
+            to: battle.enemy,
+            keyword: .bleed,
+            sourceActorID: source.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
     }
 }

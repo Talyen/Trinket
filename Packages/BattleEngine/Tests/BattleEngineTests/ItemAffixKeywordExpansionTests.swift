@@ -12,8 +12,6 @@ struct ItemAffixKeywordExpansionTests {
         profile.triggers.onCleanseRestoreMana = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40, maxMana: 10),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroEffects: [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 0)],
             heroHealth: 10,
             heroMana: 0,
@@ -39,7 +37,6 @@ struct ItemAffixKeywordExpansionTests {
         profile.triggers.onPurgeDealHolyDamage = 2
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40, maxMana: 10),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             enemyEffects: [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 2)],
             heroModifiers: profile,
@@ -77,17 +74,13 @@ struct ItemAffixKeywordExpansionTests {
         }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             enemyEffects: [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 2)],
             heroModifiers: profile,
         )
         battle.appliesFightPacing = false
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
-        ))
+        let outcome = battle.resolveTestDamage(1, options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true))
 
         #expect(outcome.isCritical)
         #expect(outcome.healthLost == 0)
@@ -105,7 +98,6 @@ struct ItemAffixKeywordExpansionTests {
         profile.triggers.affixDeathsDoorSurviveHealFlat = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroHealth: 5,
             heroModifiers: profile,
@@ -113,19 +105,12 @@ struct ItemAffixKeywordExpansionTests {
         battle.appliesFightPacing = false
         let hero = battle.hero
 
-        _ = battle.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = battle.resolveTestDamage(5, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
         #expect(battle.roster.isDeathsDoorActive(for: hero))
         #expect(battle.roster.activeEffects(for: battle.enemy).contains {
-            if case .burn = $0.effect {
-                return true
-            }
-            return false
+            $0.effect.kind == .burn
         })
-        let attack = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .physical,
-            sourceActorID: hero.id,
-            options: DamageOperation.attack(tier: .basic, scaling: .flat, accuracy: .unavoidable),
-        ))
+        let attack = battle.resolveTestDamage(2, options: DamageOperation.attack(tier: .basic, scaling: .flat, accuracy: .unavoidable))
         #expect(attack.isCritical)
 
         let expiry = CombatExecutor.run { await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &battle) }
@@ -140,7 +125,6 @@ struct ItemAffixKeywordExpansionTests {
         profile.triggers.firstThornsDamageHealPerTurn = 2
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 2)],
             heroHealth: 10,
@@ -157,12 +141,8 @@ struct ItemAffixKeywordExpansionTests {
             return false
         })
         for _ in 0 ..< 2 {
-            _ = battle.resolveDamage(DamageRequest(
-                amount: 1, target: hero, keyword: .physical,
-                sourceActorID: battle.enemy.id,
-                options: DamageOperation.attack(
-                    tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-                ),
+            _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: DamageOperation.attack(
+                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
             ))
             _ = CombatExecutor.run { await CombatTriggerEngine.heroTalentThorns(
                 to: hero, source: hero, amount: 1, name: "Test Thorns", in: &battle,

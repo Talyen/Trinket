@@ -72,8 +72,6 @@ struct ManaArithmeticBoundaryTests {
     ) -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 4),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroMana: 0, heroModifiers: heroModifiers, companionModifiers: companionModifiers,
         )
         battle.appliesFightPacing = false

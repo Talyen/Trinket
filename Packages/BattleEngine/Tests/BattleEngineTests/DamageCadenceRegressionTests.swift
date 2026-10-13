@@ -11,7 +11,6 @@ struct DamageCadenceRegressionTests {
         let build = CombatBuildResolver.build(enemy: enemy)
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: build.combatant, enemyModifiers: build.modifiers,
         )
         battle.appliesFightPacing = false
@@ -19,14 +18,9 @@ struct DamageCadenceRegressionTests {
         battle.appendEffect(.burn(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.appendEffect(.controlMeter(.stun, 20, 20), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
         DefensePoolEngine.set(1, on: battle.enemy, in: &battle)
-        let tick = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.hero, keyword: .bleed, sourceActorID: battle.enemy.id, options: .periodic,
-        ))
+        let tick = battle.resolveTestDamage(4, from: .enemy, to: .hero, keyword: .bleed, options: .periodic)
         #expect(tick.healthLost == 4)
-        let attack = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.hero, keyword: .bleed, sourceActorID: battle.enemy.id,
-            options: .attack(accuracy: .unavoidable),
-        ))
+        let attack = battle.resolveTestDamage(4, from: .enemy, to: .hero, keyword: .bleed, options: .attack(accuracy: .unavoidable))
         #expect(attack.healthLost == 5)
     }
 

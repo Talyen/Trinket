@@ -141,10 +141,7 @@ struct BattleCardCombatTests {
 
         try #expect(battle.health(of: battle.hero) == 19)
         let shield = battle.activeEffects(of: battle.hero).first {
-            if case .shield = $0.effect {
-                return true
-            }
-            return false
+            $0.effect.kind == .shield
         }
         guard case let .shield(_, buffer) = shield?.effect else {
             Issue.record("Block should survive Dark Pact's Health cost")
@@ -351,8 +348,6 @@ extension BattleCardCombatTests {
         profile.triggers.everyNTurnsStunBuildupInterval = 1
         profile.triggers.everyNTurnsStunBuildupAmount = 100
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1),
             heroModifiers: profile,
         )
@@ -370,9 +365,6 @@ extension BattleCardCombatTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.autoCleanseTeamPerTurn = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroEffects: [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)],
             companionModifiers: profile,
         )

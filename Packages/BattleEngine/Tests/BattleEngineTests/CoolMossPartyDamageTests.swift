@@ -25,10 +25,12 @@ struct CoolMossPartyDamageTests {
             battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 0 }
         }
 
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: .freeze, sourceActorID: battle.companion.id,
+        let result = battle.resolveTestDamage(
+            10,
+            from: .companion,
+            keyword: .freeze,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(result.healthLost == expectedDamage)
     }

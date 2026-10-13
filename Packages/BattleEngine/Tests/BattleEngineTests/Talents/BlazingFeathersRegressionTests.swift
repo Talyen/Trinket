@@ -15,10 +15,12 @@ struct BlazingFeathersRegressionTests {
         DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
         let enemyHealth = battle.roster.enemy.currentHealth
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+        let outcome = battle.resolveTestDamage(
+            1,
+            from: .enemy,
+            to: .companion,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         let expectedDamage = 4 - block
         let burns = battle.roster.enemy.activeEffects.filter { $0.effect.kind == .burn }

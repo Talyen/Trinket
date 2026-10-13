@@ -11,10 +11,7 @@ struct CombatExecutorTests {
         battle.appliesFightPacing = false
         battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let start = battle.events.count
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 5, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .attack(accuracy: .unavoidable),
-        ))
+        let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
         #expect(outcome.healthLost == 5)
         #expect(outcome.events.contains { $0.effectKind == .thornsTriggered })
         #expect(outcome.events.map(\.id) == outcome.events.map(\.id).sorted())

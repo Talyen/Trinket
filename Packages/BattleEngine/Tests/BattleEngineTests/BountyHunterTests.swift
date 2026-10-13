@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -9,10 +8,13 @@ struct BountyHunterTests {
     func `Bounty Hunter rewards only the owner of the critical killing blow`(killer: BattleParticipant) {
         var battle = makeBattle()
         let source = battle.roster[killer].combatant
-        let damage = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: .physical, sourceActorID: source.id,
+        let damage = battle.resolveTestDamage(
+            10,
+            to: battle.enemy,
+            keyword: .physical,
+            sourceActorID: source.id,
             options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
-        ))
+        )
         #expect(damage.isCritical)
         #expect(battle.roster.isEnemyDefeated)
         let rewards = battle.appendDefeatMilestonesIfNeeded().filter { $0.abilityName == "Bounty Hunter" }
@@ -25,10 +27,7 @@ struct BountyHunterTests {
 
     @Test func `Bounty Hunter does not reward a noncritical killing blow`() {
         var battle = makeBattle()
-        let damage = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable),
-        ))
+        let damage = battle.resolveTestDamage(10, options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable))
         #expect(!damage.isCritical)
         #expect(battle.roster.isEnemyDefeated)
         let rewards = battle.appendDefeatMilestonesIfNeeded().filter { $0.abilityName == "Bounty Hunter" }
@@ -40,9 +39,6 @@ struct BountyHunterTests {
         var profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t3_1"])
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             enemyHealth: 5,
             heroModifiers: profile,
         )

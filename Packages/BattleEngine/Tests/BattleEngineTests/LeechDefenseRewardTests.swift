@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -33,10 +32,7 @@ struct LeechDefenseRewardTests {
         battle.appliesFightPacing = false
         battle.roster.companion.currentHealth = 5
         battle.appendEffect(.healingReductionPercent(1, 2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,
-            options: .attack(accuracy: .unavoidable, guaranteedCritical: true),
-        ))
+        let result = battle.resolveTestDamage(4, from: .companion, options: .attack(accuracy: .unavoidable, guaranteedCritical: true))
         #expect(result.healthLost == 8)
         #expect(battle.health(of: battle.companion) == 5)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 3)
@@ -48,10 +44,11 @@ struct LeechDefenseRewardTests {
             companionModifiers: CombatantTalentCatalog.profile(for: ["panther_leech_t2_1"]),
         )
         battle.appliesFightPacing = false
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,
+        let result = battle.resolveTestDamage(
+            4,
+            from: .companion,
             options: .attack(accuracy: .unavoidable, guaranteedCritical: true, abilityHasLeech: true),
-        ))
+        )
         #expect(result.healthLost == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 0)
     }

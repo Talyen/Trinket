@@ -8,9 +8,6 @@ struct AbilityEffectIntegrationTests {
     @Test(arguments: [0, 2, 8])
     func `hemorrhage preserves Block and lethal protection events in feedback and history`(block: Int) throws {
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: 3,
         )
         battle.appliesFightPacing = false

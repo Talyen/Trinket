@@ -21,20 +21,26 @@ extension TalentCatalogRoundTripTests {
         seedHeroTalentEffect(.thorns(4), on: defender, in: &battle)
         DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
         let before = battle.roster.enemy.currentHealth
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.roster[defender].combatant, keyword: .physical, sourceActorID: battle.enemy.id,
+        let outcome = battle.resolveTestDamage(
+            1,
+            to: battle.roster[defender].combatant,
+            keyword: .physical,
+            sourceActorID: battle.enemy.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         let poison = defender == .hero && block < 4 ? 2 : 0
         #expect(before - battle.roster.enemy.currentHealth == 4 - block + poison)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == poison)
         #expect(talentPoints(.thorns, on: defender, in: battle) == 0)
         #expect(outcome.events.filter { $0.effectKind == .thornsTriggered }.reduce(0) { $0 + $1.amount } == 4 - block)
         seedHeroTalentEffect(.thorns(8), on: defender, in: &battle)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.roster[defender].combatant, keyword: .physical, sourceActorID: battle.enemy.id,
+        _ = battle.resolveTestDamage(
+            1,
+            to: battle.roster[defender].combatant,
+            keyword: .physical,
+            sourceActorID: battle.enemy.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(talentPoints(.poison, on: .enemy, in: battle) == (defender == .hero ? 2 : 0))
     }
 
@@ -43,10 +49,12 @@ extension TalentCatalogRoundTripTests {
         var battle = capstoneBattle(companion: ["lizard_scout_poison_t1_2"])
         DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
         let before = battle.roster.enemy.currentHealth
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+        _ = battle.resolveTestDamage(
+            1,
+            from: .enemy,
+            to: .companion,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(before - battle.roster.enemy.currentHealth == (block == 0 ? 1 : 0))
         #expect(talentPoints(.poison, on: .enemy, in: battle) == (block == 0 ? 1 : 0))
         #expect(talentPoints(.shield, on: .enemy, in: battle) == max(0, block - 1))

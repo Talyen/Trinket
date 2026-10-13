@@ -219,20 +219,11 @@ struct ControlMeterIntegrationTests {
             activeHeroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 3)],
         )
         let hero = battle.hero
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 5,
-            target: hero,
-            keyword: .stun,
-            sourceActorID: battle.enemy.id,
-            options: .reaction(),
-        ))
+        _ = battle.resolveTestDamage(5, from: .enemy, to: .hero, keyword: .stun, options: .reaction())
         try #expect(battle.health(of: hero) == 20)
         try #expect(!battle.roster.hasControlStatus(for: hero, keyword: .stun))
         let meter = battle.roster.activeEffects(for: hero).first {
-            if case .controlMeter = $0.effect {
-                return true
-            }
-            return false
+            $0.effect.kind == .controlMeter
         }
         try #expect(meter == nil)
     }

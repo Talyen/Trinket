@@ -12,8 +12,6 @@ struct HealingGainBoundaryTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: Int.max),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: 1, heroModifiers: profile,
         )
         battle.appliesFightPacing = false
@@ -30,8 +28,6 @@ struct HealingGainBoundaryTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: Int.max - 1),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroModifiers: profile,
         )
         battle.appliesFightPacing = false
@@ -52,8 +48,6 @@ struct HealingGainBoundaryTests {
         profile.triggers.criticalChanceBonus = critical ? 1 : -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: Int.max),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: 1, heroModifiers: profile,
         )
         battle.appliesFightPacing = false
@@ -141,11 +135,10 @@ struct HealingGainBoundaryTests {
     @Test(arguments: [false, true])
     func `resolved Block preserves its amount and does not spend a prepared gain`(resolved: Bool) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            enemy: CombatantFixtures.passiveEnemy(),
             companionHealth: 10,
-            companionModifiers: CombatantTalentCatalog.profile(for: ["bear_block_t3_2"]),
+            companionModifiers: CombatantTalentCatalog
+                .profile(for: ["bear_block_t3_2"]),
         )
         battle.appliesFightPacing = false
         battle.roster.companion.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(value: 2)

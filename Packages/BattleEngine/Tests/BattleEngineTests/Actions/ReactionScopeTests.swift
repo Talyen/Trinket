@@ -55,7 +55,6 @@ struct ReactionScopeTests {
         let hero = CombatantFixtures.passiveHero(maxHealth: 100)
         var state = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
         )
         let target = state.roster.hero.combatant
@@ -75,18 +74,11 @@ struct ReactionScopeTests {
     @Test func `ward retaliation emits thorns decorator`() {
         var state = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroEffects: [ActiveEffect(id: 1, effect: .thorns(4), remainingTurns: 2)],
         )
-        let outcome = state.resolveDamage(DamageRequest(
-            amount: 10,
-            target: state.roster.hero.combatant,
-            keyword: .physical,
-            sourceActorID: state.roster.enemy.combatant.id,
-            options: DamageOperation.attack(
-                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-            ),
+        let outcome = state.resolveTestDamage(10, from: .enemy, to: .hero, options: DamageOperation.attack(
+            tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
         ))
         #expect(outcome.healthLost == 10)
         #expect(state.roster.health(for: state.roster.enemy.combatant) == 96)
@@ -101,18 +93,11 @@ struct ReactionScopeTests {
         heroProfile.triggers.basicAttackFreezeBuildup = 3
         var state = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: heroProfile,
         )
-        let outcome = state.resolveDamage(DamageRequest(
-            amount: 10,
-            target: state.roster.enemy.combatant,
-            keyword: .physical,
-            sourceActorID: state.roster.hero.combatant.id,
-            options: DamageOperation.attack(
-                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-            ),
+        let outcome = state.resolveTestDamage(10, options: DamageOperation.attack(
+            tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
         ))
         #expect(outcome.healthLost == 10)
         #expect(state.roster.health(for: state.roster.enemy.combatant) == 87)
@@ -126,21 +111,14 @@ struct ReactionScopeTests {
         heroProfile.triggers.attackBurstBlock = 5
         var state = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 3),
             heroModifiers: heroProfile,
         )
         let hero = state.roster.hero.combatant
         let enemy = state.roster.enemy.combatant
 
-        let outcome = state.resolveDamage(DamageRequest(
-            amount: 1,
-            target: enemy,
-            keyword: .physical,
-            sourceActorID: hero.id,
-            options: DamageOperation.attack(
-                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-            ),
+        let outcome = state.resolveTestDamage(1, options: DamageOperation.attack(
+            tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
         ))
 
         #expect(outcome.healthLost == 1)

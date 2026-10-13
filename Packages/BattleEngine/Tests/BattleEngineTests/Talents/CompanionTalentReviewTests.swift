@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -22,10 +21,13 @@ struct CompanionTalentReviewTests {
         let source = owner == .hero ? battle.hero : battle.companion
         let healthBefore = battle.roster.enemy.currentHealth
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: .bleed, sourceActorID: source.id,
+        _ = battle.resolveTestDamage(
+            8,
+            to: battle.enemy,
+            keyword: .bleed,
+            sourceActorID: source.id,
             options: .attack(tier: .basic, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         let expectedDamage = owner == .companion && targetIsBleeding ? 10 : 8
         #expect(battle.roster.enemy.currentHealth == healthBefore - expectedDamage)

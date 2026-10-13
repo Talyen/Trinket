@@ -17,10 +17,7 @@ struct BattleArithmeticBoundaryTests {
         battle.storedBlockedDamageByActorID[battle.companion.id] = Int.max
         var options = DamageOperation.attack(accuracy: .unavoidable, guaranteedCritical: true)
         options.capturesCardRepeat = true
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: Int.max, target: battle.enemy, keyword: keyword,
-            sourceActorID: battle.hero.id, options: options,
-        ))
+        let outcome = battle.resolveTestDamage(Int.max, keyword: keyword, options: options)
         #expect(outcome.healthLost == 20)
         #expect(battle.isEnemyDefeated)
     }
@@ -102,7 +99,6 @@ struct BattleArithmeticBoundaryTests {
     ) -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: heroMaxHealth, maxMana: 4),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyMaxHealth),
             heroMana: 0, heroModifiers: profile,
         )

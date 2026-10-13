@@ -16,11 +16,13 @@ struct BlockTalentOwnershipRegressionTests {
         let defender = heroBlocks ? battle.hero : battle.companion
         DefensePoolEngine.set(5, on: defender, in: &battle)
 
-        let damage = battle.resolveDamage(DamageRequest(
-            amount: 5, target: defender, keyword: .physical,
+        let damage = battle.resolveTestDamage(
+            5,
+            to: defender,
+            keyword: .physical,
             sourceActorID: battle.enemy.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(damage.healthLost == 0)
         #expect(battle.health(of: battle.enemy) == (heroBlocks ? 97 : 100))
@@ -31,17 +33,23 @@ struct BlockTalentOwnershipRegressionTests {
             return false
         } == heroBlocks)
         DefensePoolEngine.set(5, on: defender, in: &battle)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 5, target: defender, keyword: .physical, sourceActorID: battle.enemy.id,
+        _ = battle.resolveTestDamage(
+            5,
+            to: defender,
+            keyword: .physical,
+            sourceActorID: battle.enemy.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(battle.health(of: battle.enemy) == (heroBlocks ? 97 : 100))
         battle.turnCount += 1
         DefensePoolEngine.set(5, on: defender, in: &battle)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 5, target: defender, keyword: .physical, sourceActorID: battle.enemy.id,
+        _ = battle.resolveTestDamage(
+            5,
+            to: defender,
+            keyword: .physical,
+            sourceActorID: battle.enemy.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(battle.health(of: battle.enemy) == (heroBlocks ? 94 : 100))
     }
 
@@ -55,11 +63,12 @@ struct BlockTalentOwnershipRegressionTests {
         DefensePoolEngine.set(2, on: battle.hero, in: &battle)
         DefensePoolEngine.set(3, on: battle.companion, in: &battle)
 
-        let damage = battle.resolveDamage(DamageRequest(
-            amount: 5, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id,
+        let damage = battle.resolveTestDamage(
+            5,
+            from: .enemy,
+            to: .companion,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(damage.healthLost == 0)
         #expect(battle.health(of: battle.enemy) == 97)
@@ -84,10 +93,7 @@ struct BlockTalentOwnershipRegressionTests {
         battle.appliesFightPacing = false
         DefensePoolEngine.set(2, on: battle.companion, in: &battle)
 
-        let damage = battle.resolveDamage(DamageRequest(
-            amount: 6, target: battle.companion, keyword: .bleed,
-            sourceActorID: battle.enemy.id, options: operation,
-        ))
+        let damage = battle.resolveTestDamage(6, from: .enemy, to: .companion, keyword: .bleed, options: operation)
 
         #expect(damage.healthLost == expectedHealthLoss)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 0)
@@ -105,11 +111,12 @@ struct BlockTalentOwnershipRegressionTests {
         battle.appliesFightPacing = false
         DefensePoolEngine.set(8, on: battle.companion, in: &battle)
 
-        let damage = battle.resolveDamage(DamageRequest(
-            amount: 6, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id,
+        let damage = battle.resolveTestDamage(
+            6,
+            from: .enemy,
+            to: .companion,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(damage.healthLost == 2)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 4)

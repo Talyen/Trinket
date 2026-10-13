@@ -79,10 +79,7 @@ struct CounterattackRewardRegressionTests {
     @Test func `Hallowguard grants Block after a Holy Basic counterattack but not raw retaliation`() {
         var battle = makeBattle(talents: []) { $0.triggers.holyAttackBlockIfNone = 3 }
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 3, target: battle.enemy, keyword: .holy, sourceActorID: battle.hero.id,
-            options: .reaction(),
-        ))
+        _ = battle.resolveTestDamage(3, keyword: .holy, options: .reaction())
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
         _ = counter(.smite, in: &battle)
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 3)

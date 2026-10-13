@@ -40,10 +40,7 @@ struct TalentPreparationSummaryTests {
         var context = try fixtures.battle([], owner: .companion, extra: CombatantTalentCatalog.profile(for: [talentID]))
         let actor = context.companion
         context.appendEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
-        let hit = context.resolveDamage(DamageRequest(
-            amount: 1, target: actor, keyword: .physical,
-            sourceActorID: context.enemy.id, options: .attack(),
-        ))
+        let hit = context.resolveTestDamage(1, from: .enemy, to: .companion)
         #expect(hit.isDodged)
         let keyword: Keyword = switch talentID {
         case "frost_whelp_dodge_t4_1": .freeze

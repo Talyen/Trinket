@@ -50,7 +50,6 @@ struct OffensiveCriticalHealingTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: 10,
             heroModifiers: CombatantTalentCatalog.profile(for: talents),
             rngSeed: 9,
@@ -66,7 +65,6 @@ struct OffensiveCriticalHealingTests {
         var ordinary = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: 1, companionHealth: 10, heroModifiers: profile, rngSeed: rngSeed,
         )
         ordinary.appliesFightPacing = false
@@ -85,10 +83,7 @@ struct OffensiveCriticalHealingTests {
         // Seed 9 draws 0.2208; seed 4 draws 0.4156 and catches a duplicated 20% attack bonus.
         #expect(lastlightHeal.isCritical == (rngSeed == 9))
         #expect(lastlightHeal.healthRestored == (rngSeed == 9 ? 10 : 5))
-        let attack = attacking.resolveDamage(DamageRequest(
-            amount: 5, target: attacking.enemy, keyword: .physical, sourceActorID: attacking.hero.id,
-            options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable),
-        ))
+        let attack = attacking.resolveTestDamage(5, options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable))
         #expect(attack.isCritical == (rngSeed == 9))
         #expect(attack.healthLost == (rngSeed == 9 ? 10 : 5))
     }

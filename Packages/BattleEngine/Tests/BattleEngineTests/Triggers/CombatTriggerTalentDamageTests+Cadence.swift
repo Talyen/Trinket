@@ -36,11 +36,13 @@ extension CombatTriggerTalentDamageTests {
         )
         battle.appliesFightPacing = false
         for options in [DamageOperation.periodic, .healthCost, .reaction()] {
-            let outcome = battle.resolveDamage(DamageRequest(
-                amount: 2, target: battle.companion, keyword: .bleed,
+            let outcome = battle.resolveTestDamage(
+                2,
+                to: battle.companion,
+                keyword: .bleed,
                 sourceActorID: options.isHealthCost ? battle.companion.id : battle.enemy.id,
                 options: options,
-            ))
+            )
             #expect(outcome.healthLost == 2)
             #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == 0)
         }
@@ -49,7 +51,7 @@ extension CombatTriggerTalentDamageTests {
                 6,
                 from: .enemy,
                 to: .companion,
-                options: .attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
+                options: .attack(scaling: .flat, accuracy: .unavoidable),
             )
             #expect(outcome.healthLost == 6 - min(hit, 4))
             #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == min(hit + 1, 4))
@@ -70,7 +72,7 @@ extension CombatTriggerTalentDamageTests {
                 6,
                 from: .enemy,
                 to: .companion,
-                options: .attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
+                options: .attack(scaling: .flat, accuracy: .unavoidable),
             )
         }
         #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == 4)
@@ -86,10 +88,13 @@ extension CombatTriggerTalentDamageTests {
         )
         battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 5 }
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 4, target: options.isHealthCost ? battle.companion : battle.enemy,
-            keyword: .bleed, sourceActorID: battle.companion.id, options: options,
-        ))
+        let outcome = battle.resolveTestDamage(
+            4,
+            to: options.isHealthCost ? battle.companion : battle.enemy,
+            keyword: .bleed,
+            sourceActorID: battle.companion.id,
+            options: options,
+        )
         #expect(outcome.healthLost == 4)
         #expect(battle.health(of: battle.hero) == (options.isHealthCost ? 5 : 7))
     }

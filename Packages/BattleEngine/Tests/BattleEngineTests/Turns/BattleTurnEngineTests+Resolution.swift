@@ -39,8 +39,6 @@ extension BattleTurnEngineTests {
         try #expect(ability.outcomeBranches == nil)
         try #expect(ability.summary == "Deal 3 Stun damage\nSteal 2 Gold")
         var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
         )
         context.appliesFightPacing = false

@@ -159,13 +159,13 @@ extension UniqueCollectionTests {
         #expect(context.uniques.owners[.hero]?.goldDamage == 0)
         _ = context.grantGoldEvent(3, to: context.roster.hero.combatant, abilityName: "Grant")
         #expect(context.uniques.owners[.hero]?.goldDamage == 5)
-        _ = context.resolveDamage(DamageRequest(
-            amount: 1,
-            target: context.roster.enemy.combatant,
+        _ = context.resolveTestDamage(
+            1,
+            to: context.roster.enemy.combatant,
             keyword: .holy,
             sourceActorID: context.roster.hero.id,
             options: .reaction(),
-        ))
+        )
         #expect(context.uniques.owners[.hero]?.goldDamage == 5)
         #expect(context.effectSummaries(of: context.hero).contains {
             $0.keyword == .holy && $0.text.contains("manually played card") && $0.text.contains("5")

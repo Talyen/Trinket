@@ -114,12 +114,7 @@ extension UniqueCollectionTests {
         let actor = context.roster[owner].combatant
         block(9, owner: owner, in: &context)
         context.appendEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
-        let hit = context.resolveDamage(DamageRequest(
-            amount: 10,
-            target: actor,
-            keyword: .physical,
-            sourceActorID: context.roster.enemy.id,
-        ))
+        let hit = context.resolveTestDamage(10, to: actor, keyword: .physical, sourceActorID: context.roster.enemy.id)
         #expect(hit.isDodged)
         #expect(context.roster.enemy.currentHealth == 1994)
         #expect(blockAmount(owner, in: context) == 9)
@@ -141,10 +136,7 @@ extension UniqueCollectionTests {
         ) }
 
         #expect(context.health(of: context.enemy) == 895)
-        let hit = context.resolveDamage(DamageRequest(
-            amount: 4, target: context.enemy, keyword: .physical, sourceActorID: context.companion.id,
-            options: .attack(accuracy: .unavoidable),
-        ))
+        let hit = context.resolveTestDamage(4, from: .companion, options: .attack(accuracy: .unavoidable))
         #expect(hit.healthLost == 6)
     }
 
@@ -244,10 +236,11 @@ extension UniqueCollectionTests {
         context.roster.hero.hasConsumedDeathsDoor = finallyDefeated
         context.appendEffect(.thorns(8), to: context.enemy, sourceID: context.enemy.id, remainingTurns: 0)
 
-        let outcome = context.resolveDamage(DamageRequest(
-            amount: 4, target: context.enemy, keyword: .freeze, sourceActorID: context.hero.id,
+        let outcome = context.resolveTestDamage(
+            4,
+            keyword: .freeze,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(context.health(of: context.enemy) == 1996)
         #expect(context.health(of: context.hero) == (finallyDefeated ? 0 : 1))
@@ -266,10 +259,13 @@ extension UniqueCollectionTests {
             $0.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(value: 2)
         }
 
-        let outcome = context.resolveDamage(DamageRequest(
-            amount: 8, target: context.enemy, keyword: .freeze, sourceActorID: actor.id,
+        let outcome = context.resolveTestDamage(
+            8,
+            to: context.enemy,
+            keyword: .freeze,
+            sourceActorID: actor.id,
             options: .effect(scaling: .flat),
-        ))
+        )
 
         #expect(outcome.healthLost == 8)
         #expect(blockAmount(owner, in: context) == outcome.healthLost)

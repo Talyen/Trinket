@@ -115,10 +115,7 @@ extension AbilityEffectIntegrationTests {
         )
         battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 10
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id,
-            options: .effect(abilityHasLeech: alreadyLeeches),
-        ))
+        _ = battle.resolveTestDamage(8, keyword: keyword, options: .effect(abilityHasLeech: alreadyLeeches))
         #expect(battle.roster.hero.currentHealth == 15)
         #expect(battle.roster.hero.currentMana == 2)
     }
@@ -130,9 +127,7 @@ extension AbilityEffectIntegrationTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
         battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = 1
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: .holy, sourceActorID: battle.hero.id, options: .reaction(),
-        ))
+        _ = battle.resolveTestDamage(8, keyword: .holy, options: .reaction())
         #expect(battle.roster.hero.currentHealth == 1)
     }
 }

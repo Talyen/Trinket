@@ -63,12 +63,12 @@ struct UniqueCollectionTests {
     }
 
     func enemyHit(_ amount: Int, target: BattleParticipant = .hero, in context: inout BattleState) -> CombatOutcome {
-        context.resolveDamage(DamageRequest(
-            amount: amount,
-            target: context.roster[target].combatant,
+        context.resolveTestDamage(
+            amount,
+            to: context.roster[target].combatant,
             keyword: .physical,
             sourceActorID: context.roster.enemy.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable),
-        ))
+            options: DamageOperation.attack(accuracy: .unavoidable),
+        )
     }
 }

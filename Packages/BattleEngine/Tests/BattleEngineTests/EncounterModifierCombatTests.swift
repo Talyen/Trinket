@@ -21,24 +21,15 @@ struct EncounterModifierCombatTests {
         let hero = CombatModifierProfile(triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeChanceBonus: -1)))
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy)
         battle.appliesFightPacing = false
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .attack(scaling: .flat),
-        ))
+        _ = battle.resolveTestDamage(10, options: .attack(scaling: .flat))
         let enemyBefore = battle.health(of: battle.enemy)
 
-        let attack = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .attack(scaling: .flat),
-        ))
+        let attack = battle.resolveTestDamage(8, from: .enemy, to: .hero, options: .attack(scaling: .flat))
         #expect(attack.healthLost > 0)
         #expect(battle.health(of: battle.enemy) == enemyBefore + CombatRounding.scaled(attack.healthLost, multiplier: 0.5))
 
         let afterAttack = battle.health(of: battle.enemy)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .effect(scaling: .flat),
-        ))
+        _ = battle.resolveTestDamage(4, from: .enemy, to: .hero, options: .effect(scaling: .flat))
         #expect(battle.health(of: battle.enemy) == afterAttack)
     }
 
@@ -48,10 +39,7 @@ struct EncounterModifierCombatTests {
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy)
         battle.appliesFightPacing = false
         DefensePoolEngine.set(6, on: battle.hero, in: &battle)
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 5, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .attack(scaling: .flat),
-        ))
+        let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(scaling: .flat))
         #expect(outcome.healthLost == 1)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 0)
         #expect(outcome.events.contains { $0.effectKind == .blockStripped && $0.amount == 2 })
@@ -63,10 +51,7 @@ struct EncounterModifierCombatTests {
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy)
         battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .attack(scaling: .flat),
-        ))
+        let outcome = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .attack(scaling: .flat))
         #expect(outcome.healthLost == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 0)
         #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.abilityName == "Unbinding Strike" })
@@ -85,10 +70,7 @@ struct EncounterModifierCombatTests {
             [ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 2)],
             for: battle.companion, on: &battle,
         )
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ))
+        let outcome = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .attack(scaling: .flat, accuracy: .unavoidable))
         #expect(battle.health(of: battle.enemy) == 0)
         #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.abilityName == "Unbinding Strike" })
         #expect(!battle.activeEffects(of: battle.companion).contains { $0.effect == .thorns(3) })
@@ -103,10 +85,7 @@ struct EncounterModifierCombatTests {
             enemyModifiers: CombatModifierProfile(modifiers: [.damageTakenPercent(keyword, 0.5)]),
         )
         battle.appliesFightPacing = false
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id,
-            options: .attack(scaling: .flat),
-        ))
+        let outcome = battle.resolveTestDamage(8, keyword: keyword, options: .attack(scaling: .flat))
         #expect(outcome.healthLost == 4)
     }
 
@@ -116,10 +95,7 @@ struct EncounterModifierCombatTests {
             enemyModifiers: CombatModifierProfile(modifiers: [.damageTakenPercent(keyword, 0.5)]),
         )
         battle.appliesFightPacing = false
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id,
-            options: .periodic,
-        ))
+        let outcome = battle.resolveTestDamage(8, keyword: keyword, options: .periodic)
         #expect(outcome.healthLost == 4)
     }
 }

@@ -77,19 +77,13 @@ extension TalentCatalogRoundTripTests {
         let attack = DamageOperation.attack(
             scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
         )
-        let first = battle.resolveDamage(DamageRequest(
-            amount: 6, target: battle.enemy, keyword: .holy,
-            sourceActorID: battle.companion.id, options: attack,
-        ))
+        let first = battle.resolveTestDamage(6, from: .companion, keyword: .holy, options: attack)
         #expect(first.healthLost == 1)
         #expect(talentPoints(.shield, on: .enemy, in: battle) == 5)
 
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
         DefensePoolEngine.set(2, on: battle.companion, in: &battle)
-        let vow = battle.resolveDamage(DamageRequest(
-            amount: 6, target: battle.enemy, keyword: .holy,
-            sourceActorID: battle.companion.id, options: attack,
-        ))
+        let vow = battle.resolveTestDamage(6, from: .companion, keyword: .holy, options: attack)
         #expect(vow.healthLost == 6)
         #expect(talentPoints(.shield, on: .enemy, in: battle) == 10)
     }
@@ -126,10 +120,7 @@ extension TalentCatalogRoundTripTests {
         battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.companion, in: &battle)
         let enemyHealth = battle.health(of: battle.enemy)
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ))
+        let result = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .attack(scaling: .flat, accuracy: .unavoidable))
         #expect(result.healthLost == 0)
         #expect(talentPoints(.shield, on: .companion, in: battle) == 6)
         #expect(battle.health(of: battle.enemy) == enemyHealth - 4)
@@ -138,10 +129,7 @@ extension TalentCatalogRoundTripTests {
     @Test func `sealed sarcophagus doubles block absorption without protecting block from purge`() {
         var battle = capstoneBattle(companion: ["shield_scarab_block_t4_1"])
         DefensePoolEngine.set(3, on: battle.companion, in: &battle)
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.companion, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .reaction(),
-        ))
+        let result = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .reaction())
         #expect(result.healthLost == 0)
         #expect(talentPoints(.shield, on: .companion, in: battle) == 1)
         let purge = EffectHandlers.handler(for: .purge)
@@ -176,10 +164,7 @@ extension TalentCatalogRoundTripTests {
         var battle = capstoneBattle(companion: ["risen_skeleton_leech_t1_1"])
         var leech = DamageOperation.attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
         leech.abilityHasLeech = true
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .physical,
-            sourceActorID: battle.companion.id, options: leech,
-        ))
+        _ = battle.resolveTestDamage(4, from: .companion, options: leech)
         let enemyHit = DamageRequest(
             amount: 8, target: battle.companion, keyword: .physical,
             sourceActorID: battle.enemy.id,

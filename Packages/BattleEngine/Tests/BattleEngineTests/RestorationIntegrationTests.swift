@@ -9,7 +9,6 @@ struct RestorationIntegrationTests {
     func `healing reports overflow without inflating restoration`(missingHealth: Int) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
         )
         battle.roster.hero.currentHealth = battle.hero.maxHealth - missingHealth
         var request = HealRequest(
@@ -31,7 +30,6 @@ struct RestorationIntegrationTests {
     @Test func `full health leech emits overflow without triggering leech success`() {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
         )
         battle.appliesFightPacing = false
         let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
@@ -207,7 +205,6 @@ extension RestorationIntegrationTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: 10, companionHealth: 10,
             companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t1_1"]),
         )
@@ -230,7 +227,6 @@ extension RestorationIntegrationTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroModifiers: profile,
         )
         battle.appliesFightPacing = false

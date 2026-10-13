@@ -7,9 +7,6 @@ import TrinketCore
 struct DeathsDoorEngineTests {
     @Test func `a fully Sapped Phoenix Gift cannot suppress Deaths Door protection`() {
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroEffects: [ActiveEffect(id: 1, effect: .healingReductionPercent(1, 2), remainingTurns: 2)],
             heroHealth: 0,
             companionModifiers: CombatantTalentCatalog.profile(for: ["phoenix_health_t3_1"]),
@@ -44,33 +41,29 @@ struct DeathsDoorEngineTests {
     @Test func `trigger on first lethal hit`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
-        let (lost, events) = context.applyTestDamage(
+        let outcome = context.resolveTestDamage(
             40,
             to: hero,
-            applyStatBonus: false,
-            applyItemBonus: false,
-            applyDodge: false,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
         )
 
-        try #expect(lost == 5)
+        try #expect(outcome.healthLost == 5)
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
         try #expect(context.roster.isDeathsDoorActive(for: hero))
         try #expect(
             context.roster.activeEffects(for: hero).first?.remainingTurns == BattleTiming.deathsDoorDurationTurns,
         )
-        try #expect(events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
+        try #expect(outcome.events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
     }
 
     @Test func `enemy never triggers`() throws {
         var context = makeContext(enemyHP: 5)
         let enemy = context.roster.enemy.combatant
-        _ = context.applyTestDamage(
+        _ = context.resolveTestDamage(
             5,
             to: enemy,
-            applyStatBonus: false,
-            applyItemBonus: false,
-            applyDodge: false,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
         )
 
         try #expect(context.roster.health(for: enemy) == 0)
@@ -80,8 +73,8 @@ struct DeathsDoorEngineTests {
     @Test func `protection clamps to one while active`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
-        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        _ = context.applyTestDamage(20, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.resolveTestDamage(5, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        _ = context.resolveTestDamage(20, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(context.roster.isDeathsDoorActive(for: hero))
@@ -90,7 +83,7 @@ struct DeathsDoorEngineTests {
     @Test func `expiry round do T does not kill`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
-        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.resolveTestDamage(5, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
         var effects = context.roster.activeEffects(for: hero)
         let burnID = (effects.map(\.id).max() ?? 0) + 1
         effects.append(ActiveEffect(id: burnID, effect: .burn(8), remainingTurns: 0, sourceActorID: context.enemy.id))
@@ -109,7 +102,7 @@ struct DeathsDoorEngineTests {
     @Test func `do T kills on the round after deaths door expires`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
-        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.resolveTestDamage(5, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
         var effects = context.roster.activeEffects(for: hero)
         let burnID = (effects.map(\.id).max() ?? 0) + 1
         effects.append(ActiveEffect(id: burnID, effect: .burn(8), remainingTurns: 0, sourceActorID: context.enemy.id))
@@ -137,13 +130,11 @@ struct DeathsDoorEngineTests {
             )),
         )
         let hero = context.roster.hero.combatant
-        let (_, events) = context.applyTestDamage(
+        let events = context.resolveTestDamage(
             5,
             to: hero,
-            applyStatBonus: false,
-            applyItemBonus: false,
-            applyDodge: false,
-        )
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ).events
 
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
@@ -157,8 +148,8 @@ struct DeathsDoorEngineTests {
         let hero = context.roster.hero.combatant
         let companion = context.roster.companion.combatant
 
-        _ = context.applyTestDamage(3, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        _ = context.applyTestDamage(3, to: companion, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.resolveTestDamage(3, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        _ = context.resolveTestDamage(3, to: companion, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
         try #expect(context.roster.hasConsumedDeathsDoor(for: companion))
@@ -174,7 +165,7 @@ struct DeathsDoorEngineTests {
             )),
         )
         let hero = context.roster.hero.combatant
-        _ = context.applyTestDamage(10, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.resolveTestDamage(10, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
@@ -190,7 +181,7 @@ struct DeathsDoorEngineTests {
             for: hero,
         )
 
-        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.resolveTestDamage(5, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         let effects = context.roster.activeEffects(for: hero)
         try #expect(effects.count == 2)
@@ -230,9 +221,9 @@ struct DeathsDoorEngineTests {
         battle.roster.companion.currentHealth = 1
         let companion = battle.roster.companion.combatant
 
-        let (_, entryEvents) = battle.applyTestDamage(
-            1, to: companion, applyStatBonus: false, applyItemBonus: false, applyDodge: false,
-        )
+        let entryEvents = battle.resolveTestDamage(
+            1, to: companion, options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ).events
 
         #expect(battle.roster.hero.currentHealth == 1)
         #expect(battle.roster.companion.currentHealth == 1)
@@ -254,8 +245,6 @@ struct DeathsDoorEngineTests {
     private func makeLegionContext(heroHealth: Int) -> BattleState {
         BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: heroHealth,
             heroModifiers: CombatModifierProfile(
                 triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorExpiredHealFlat: 10)),
@@ -298,7 +287,7 @@ struct DeathsDoorEngineTests {
         battle.roster.mutateRuntime(for: target) { $0.currentHealth = 1 }
         battle.appendEffect(.poison(8), to: target, sourceID: battle.roster.enemy.id, remainingTurns: 0)
 
-        _ = battle.applyTestDamage(1, to: target, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = battle.resolveTestDamage(1, to: target, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         #expect(battle.roster.health(for: target) == min(9, battle.roster.maxHealth(for: target)))
         #expect(battle.roster.activeEffects(for: target).contains { $0.effect.isRemovableDebuff })

@@ -26,13 +26,7 @@ struct OpeningTraitBlockTests {
 
         #expect(BattleTestFixtures.shieldPoints(for: battle.enemy, in: battle) == 1)
         #expect(battle.events.count(where: { $0.abilityName == "Watchful Guard" }) == 1)
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 1,
-            target: battle.enemy,
-            keyword: .physical,
-            sourceActorID: battle.hero.id,
-            options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        let hit = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1))
         #expect(hit.healthLost == 0)
         #expect(BattleTestFixtures.shieldPoints(for: battle.enemy, in: battle) == 0)
 

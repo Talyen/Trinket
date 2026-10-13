@@ -235,10 +235,7 @@ struct BattleBoundaryRegressionTests {
         battle.storedBlockedDamageByActorID[battle.hero.id] = Int.max
         DefensePoolEngine.set(2, on: battle.hero, in: &battle)
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.hero, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .reaction(),
-        ))
+        let outcome = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .reaction())
 
         #expect(outcome.healthLost == 0)
         #expect(battle.health(of: battle.hero) == 20)
@@ -249,7 +246,6 @@ struct BattleBoundaryRegressionTests {
     private func makeBattle(profile: CombatModifierProfile) -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 4),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20), heroModifiers: profile,
         )
         battle.appliesFightPacing = false

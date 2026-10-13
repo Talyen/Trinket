@@ -16,8 +16,6 @@ struct SunGlyphRegressionTests {
             profile.triggers.blockHolyReflectChancePercent = 1
         }
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyHealth),
             companionModifiers: profile,
         )
@@ -25,11 +23,12 @@ struct SunGlyphRegressionTests {
         let outcome: CombatOutcome
         if reflected {
             DefensePoolEngine.set(4, on: battle.companion, in: &battle)
-            outcome = battle.resolveDamage(DamageRequest(
-                amount: 4, target: battle.companion, keyword: .physical,
-                sourceActorID: battle.enemy.id,
+            outcome = battle.resolveTestDamage(
+                4,
+                from: .enemy,
+                to: .companion,
                 options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-            ))
+            )
             #expect(outcome.healthLost == 0)
         } else {
             outcome = holyHit(in: &battle)
@@ -51,19 +50,18 @@ struct SunGlyphRegressionTests {
     }
 
     private func holyHit(in battle: inout BattleState) -> CombatOutcome {
-        battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .holy,
-            sourceActorID: battle.companion.id,
+        battle.resolveTestDamage(
+            4,
+            from: .companion,
+            keyword: .holy,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
     }
 
     @Test(arguments: [false, true], [false, true])
     func `Sun Glyph and Vitality Infusion require surviving their hit's retaliation`(holy: Bool, survives: Bool) {
         let talent = holy ? "shield_scarab_holy_t2_1" : "panther_leech_t2_1"
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: survives ? 5 : 1,
             companionModifiers: CombatantTalentCatalog.profile(for: [talent]),
@@ -74,11 +72,12 @@ struct SunGlyphRegressionTests {
         // Vitality Infusion qualifies through guaranteed Leech even when Sapped prevents restoration.
         battle.appendEffect(.healingReductionPercent(1, 2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
 
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: holy ? .holy : .physical,
-            sourceActorID: battle.companion.id,
+        let result = battle.resolveTestDamage(
+            2,
+            from: .companion,
+            keyword: holy ? .holy : .physical,
             options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true, abilityHasLeech: !holy),
-        ))
+        )
 
         #expect(result.healthLost == 4)
         #expect(battle.health(of: battle.companion) == (survives ? 1 : 0))

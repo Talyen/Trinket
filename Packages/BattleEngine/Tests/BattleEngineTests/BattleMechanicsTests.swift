@@ -18,10 +18,7 @@ struct BattleMechanicsTests {
         battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.hero) { $0.hasConsumedDeathsDoor = true }
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.hero, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .attack(accuracy: .unavoidable),
-        ))
+        _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
         _ = battle.appendDefeatMilestonesIfNeeded()
 
         #expect(battle.isPartyDefeated && battle.isEnemyDefeated)
@@ -65,11 +62,7 @@ struct BattleMechanicsTests {
     }
 
     @Test func `advancing a copied battle expires talent bonuses without changing the original`() {
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
-        )
+        var battle = BattleStateTestFactory.makeMinimalBattle()
         battle.roster.hero.talents.battle.damageBonus = 2
         battle.roster.hero.talents.pending.nextAttackHolyBonus = 4
         battle.roster.hero.talents.turn.cleansedKeywordProtection = [.burn]
@@ -97,10 +90,7 @@ struct BattleMechanicsTests {
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
         battle.appliesFightPacing = false
         battle.roster.hero.talents.pending.nextAttackHolyBonus = 3
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: operation.repeated(),
-        ))
+        let result = battle.resolveTestDamage(4, options: operation.repeated())
         #expect(result.healthLost == 4)
         #expect(battle.roster.enemy.currentHealth == 46)
         #expect(battle.roster.hero.talents.pending.nextAttackHolyBonus == 3)
@@ -143,10 +133,7 @@ struct BattleMechanicsTests {
 
         try #expect(dotOutcome.healthLost == 3)
         try #expect(context.roster.activeEffects(for: enemy).contains {
-            if case .marked = $0.effect {
-                return true
-            }
-            return false
+            $0.effect.kind == .marked
         })
 
         let attackOutcome = context.resolveDamage(
@@ -156,10 +143,7 @@ struct BattleMechanicsTests {
         try #expect(attackOutcome.healthLost == 5)
         try #expect(
             !context.roster.activeEffects(for: enemy).contains {
-                if case .marked = $0.effect {
-                    return true
-                }
-                return false
+                $0.effect.kind == .marked
             },
         )
     }
@@ -217,10 +201,7 @@ struct BattleMechanicsTests {
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
         try #expect(damageEvent.isCritical)
         try #expect(!(context.roster.activeEffects(for: hero).contains {
-            if case .nextStrikeCritical = $0.effect {
-                return true
-            }
-            return false
+            $0.effect.kind == .nextStrikeCritical
         }))
     }
 
@@ -271,13 +252,7 @@ struct BattleMechanicsTests {
 
         // The strip lands before absorption, so a packet larger than the
         // defender's Block reaches Health in full.
-        let penetrated = blocking.resolveDamage(DamageRequest(
-            amount: 5,
-            target: blocking.hero,
-            keyword: .poison,
-            sourceActorID: blocking.enemy.id,
-            options: .attack(accuracy: .unavoidable),
-        ))
+        let penetrated = blocking.resolveTestDamage(5, from: .enemy, to: .hero, keyword: .poison, options: .attack(accuracy: .unavoidable))
         try #expect(penetrated.healthLost == 5)
         try #expect(BattleTestFixtures.shieldPoints(for: blocking.hero, in: blocking) == 0)
 
@@ -291,13 +266,7 @@ struct BattleMechanicsTests {
         )
         absorbed.appliesFightPacing = false
 
-        let stopped = absorbed.resolveDamage(DamageRequest(
-            amount: 3,
-            target: absorbed.hero,
-            keyword: .poison,
-            sourceActorID: absorbed.enemy.id,
-            options: .attack(accuracy: .unavoidable),
-        ))
+        let stopped = absorbed.resolveTestDamage(3, from: .enemy, to: .hero, keyword: .poison, options: .attack(accuracy: .unavoidable))
         try #expect(stopped.healthLost == 0)
         // Absorb 3, strip 1: Block drops by exactly absorbed + strip.
         try #expect(BattleTestFixtures.shieldPoints(for: absorbed.hero, in: absorbed) == 6)

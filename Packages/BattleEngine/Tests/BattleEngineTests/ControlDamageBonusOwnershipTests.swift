@@ -32,14 +32,8 @@ struct ControlDamageBonusOwnershipTests {
         let partner = companionOwnsPower ? battle.hero : battle.companion
         let attack = DamageOperation.attack(scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
 
-        let ownerDamage = battle.resolveDamage(DamageRequest(
-            amount: 5, target: battle.enemy, keyword: .physical,
-            sourceActorID: owner.id, options: attack,
-        ))
-        let partnerDamage = battle.resolveDamage(DamageRequest(
-            amount: 5, target: battle.enemy, keyword: .physical,
-            sourceActorID: partner.id, options: attack,
-        ))
+        let ownerDamage = battle.resolveTestDamage(5, to: battle.enemy, keyword: .physical, sourceActorID: owner.id, options: attack)
+        let partnerDamage = battle.resolveTestDamage(5, to: battle.enemy, keyword: .physical, sourceActorID: partner.id, options: attack)
 
         #expect(ownerDamage.healthLost == 5 + bonus)
         #expect(partnerDamage.healthLost == 5)

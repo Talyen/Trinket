@@ -17,10 +17,7 @@ extension TalentCatalogRoundTripTests {
         #expect(hits[0].amount == hits[1].amount)
         #expect([3, 10].contains(hits[0].amount))
 
-        let raw = battle.resolveDamage(DamageRequest(
-            amount: 5, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .reaction(),
-        ))
+        let raw = battle.resolveTestDamage(5, options: .reaction())
         #expect(raw.healthLost == 5)
         let periodic = battle.resolveDamage(.doTTick(
             amount: 5, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
@@ -88,10 +85,12 @@ extension TalentCatalogRoundTripTests {
         var exceededFive = false
         for _ in 0 ..< 60 {
             let previous = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth ?? 0
-            let outcome = battle.resolveDamage(DamageRequest(
-                amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .normal),
-            ))
+            let outcome = battle.resolveTestDamage(
+                1,
+                from: .enemy,
+                to: .hero,
+                options: DamageOperation.attack(scaling: .flat),
+            )
             let growth = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth ?? 0
             #expect(growth == (outcome.flags.contains(.dodged) ? 0 : previous + 5))
             #expect(outcome.healthLost == 0)
@@ -100,10 +99,12 @@ extension TalentCatalogRoundTripTests {
         }
         #expect(exceededFive)
         let before = battle.heroTalents.history[battle.hero.id]?.dodgeGrowth
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable),
-        ))
+        _ = battle.resolveTestDamage(
+            1,
+            from: .enemy,
+            to: .hero,
+            options: DamageOperation.attack(accuracy: .unavoidable),
+        )
         #expect(battle.heroTalents.history[battle.hero.id]?.dodgeGrowth == before)
     }
 
@@ -112,7 +113,7 @@ extension TalentCatalogRoundTripTests {
         seedHeroTalentEffect(.shield(.block, 30), on: .enemy, in: &battle)
         for _ in 0 ..< 2 {
             seedHeroTalentEffect(.evadeNextHit, on: .hero, in: &battle)
-            _ = battle.resolveDamage(DamageRequest(amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id))
+            _ = battle.resolveTestDamage(1, from: .enemy, to: .hero)
         }
         try playHeroTalentCard(.block, in: &battle)
         try playHeroTalentCard(.stab, owner: .companion, in: &battle)

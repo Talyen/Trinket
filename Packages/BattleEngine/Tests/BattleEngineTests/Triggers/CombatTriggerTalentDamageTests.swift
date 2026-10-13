@@ -33,9 +33,7 @@ struct CombatTriggerTalentDamageTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        let outcome = battle.resolveDamage(
-            DamageRequest(amount: 4, target: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source"),
-        )
+        let outcome = battle.resolveTestDamage(4, to: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source")
         #expect(outcome.healthLost == 7)
     }
 
@@ -50,9 +48,7 @@ struct CombatTriggerTalentDamageTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        let outcome = battle.resolveDamage(
-            DamageRequest(amount: 4, target: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source"),
-        )
+        let outcome = battle.resolveTestDamage(4, to: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source")
         #expect(outcome.healthLost == 8)
     }
 
@@ -67,9 +63,7 @@ struct CombatTriggerTalentDamageTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        let outcome = battle.resolveDamage(
-            DamageRequest(amount: 6, target: battle.roster.enemy.combatant, keyword: .holy, sourceActorID: "source"),
-        )
+        let outcome = battle.resolveTestDamage(6, to: battle.roster.enemy.combatant, keyword: .holy, sourceActorID: "source")
         #expect(outcome.healthLost == 6)
         let block = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.enemy.combatant))
         #expect(block == 10)
@@ -86,14 +80,10 @@ struct CombatTriggerTalentDamageTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        let holyOutcome = battle.resolveDamage(
-            DamageRequest(amount: 6, target: battle.roster.enemy.combatant, keyword: .holy, sourceActorID: "source"),
-        )
+        let holyOutcome = battle.resolveTestDamage(6, to: battle.roster.enemy.combatant, keyword: .holy, sourceActorID: "source")
         #expect(holyOutcome.healthLost == 6)
 
-        let physicalOutcome = battle.resolveDamage(
-            DamageRequest(amount: 4, target: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source"),
-        )
+        let physicalOutcome = battle.resolveTestDamage(4, to: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source")
         #expect(physicalOutcome.healthLost == 0)
         let block = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.enemy.combatant))
         #expect(block == 6)
@@ -105,9 +95,7 @@ struct CombatTriggerTalentDamageTests {
                 damage: DamageTriggers(burnDamageVsNoBlockMultiplier: 2),
             )),
         )
-        let outcome = battle.resolveDamage(
-            DamageRequest(amount: 3, target: battle.roster.enemy.combatant, keyword: .burn, sourceActorID: "source"),
-        )
+        let outcome = battle.resolveTestDamage(3, to: battle.roster.enemy.combatant, keyword: .burn, sourceActorID: "source")
         #expect(outcome.healthLost == 6)
     }
 
@@ -192,7 +180,7 @@ struct CombatTriggerTalentDamageTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        let outcome = battle.resolveTestDamage(5, from: .companion, options: .attack(tier: .skill, scaling: .items, accuracy: .unavoidable))
+        let outcome = battle.resolveTestDamage(5, from: .companion, options: .attack(scaling: .items, accuracy: .unavoidable))
         #expect(outcome.healthLost == 9)
     }
 
@@ -312,7 +300,7 @@ extension CombatTriggerTalentDamageTests {
             target: target,
             keyword: .physical,
             sourceActorID: sourceID,
-            options: DamageOperation.attack(tier: .skill, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+            options: DamageOperation.attack(scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
         ) : DamageRequest.doTTick(amount: 5, target: target, keyword: .burn, sourceActorID: sourceID)
         let outcome = battle.resolveDamage(request)
         #expect(outcome.healthLost == expectedDamage)
@@ -337,9 +325,7 @@ extension CombatTriggerTalentDamageTests {
             for: battle.roster.hero.combatant,
             on: &battle,
         )
-        let dodgedOutcome = battle.resolveDamage(
-            DamageRequest(amount: 6, target: battle.roster.hero.combatant, keyword: .holy, sourceActorID: "target"),
-        )
+        let dodgedOutcome = battle.resolveTestDamage(6, to: battle.roster.hero.combatant, keyword: .holy, sourceActorID: "target")
         #expect(dodgedOutcome.healthLost == 0)
         #expect(dodgedOutcome.isDodged)
 
@@ -348,9 +334,7 @@ extension CombatTriggerTalentDamageTests {
             for: battle.roster.hero.combatant,
             on: &battle,
         )
-        let blockedOutcome = battle.resolveDamage(
-            DamageRequest(amount: 6, target: battle.roster.hero.combatant, keyword: .holy, sourceActorID: "target"),
-        )
+        let blockedOutcome = battle.resolveTestDamage(6, to: battle.roster.hero.combatant, keyword: .holy, sourceActorID: "target")
         #expect(blockedOutcome.healthLost == 0)
         #expect(!blockedOutcome.isDodged)
         let heroBlock = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.hero.combatant))

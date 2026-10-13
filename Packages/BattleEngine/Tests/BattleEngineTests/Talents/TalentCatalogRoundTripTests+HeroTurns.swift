@@ -109,11 +109,8 @@ extension TalentCatalogRoundTripTests {
             for: &ability, actor: battle.hero, context: &battle,
         ) }
         #expect(battle.roster.companion.talents.pending.cardDamageBonus == 2)
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 3, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,
-            options: DamageOperation.attack(
-                tier: .basic, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-            ),
+        let hit = battle.resolveTestDamage(3, from: .companion, options: DamageOperation.attack(
+            tier: .basic, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
         ))
         #expect(hit.healthLost == 5)
         #expect(battle.roster.companion.talents.pending.cardDamageBonus == 0)

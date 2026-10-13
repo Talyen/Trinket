@@ -71,19 +71,23 @@ struct FoxRecoveryVictoryTests {
             companionModifiers: profile, dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
-        let firstHit = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: .stun, sourceActorID: battle.companion.id,
+        let firstHit = battle.resolveTestDamage(
+            10,
+            from: .companion,
+            keyword: .stun,
             options: .attack(tier: .basic, guaranteedCritical: true),
-        ))
+        )
         #expect(firstHit.isCritical)
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
         #expect(battle.gold == 0)
         #expect(battle.roster.companion.talents.pending.nextAttackCriticalBonus == nil)
         for expectedGold in [6, 9] {
-            let outcome = battle.resolveDamage(DamageRequest(
-                amount: 2, target: battle.enemy, keyword: .stun, sourceActorID: battle.companion.id,
+            let outcome = battle.resolveTestDamage(
+                2,
+                from: .companion,
+                keyword: .stun,
                 options: .attack(tier: .basic, guaranteedCritical: true),
-            ))
+            )
             #expect(outcome.isCritical)
             #expect(battle.gold == expectedGold)
             #expect(battle.roster.companion.talents.pending.nextAttackCriticalBonus?.value == 0.20)

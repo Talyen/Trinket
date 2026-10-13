@@ -63,10 +63,12 @@ struct SharedPreparedDamageRegressionTests {
         let profile = CombatantTalentCatalog.profile(for: [talentID])
         var battle = try fixtures.battle(shared ? [item] : [], owner: .companion, extra: profile)
         battle.appendEffect(.evadeNextHit, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
-        let avoided = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+        let avoided = battle.resolveTestDamage(
+            1,
+            from: .enemy,
+            to: .companion,
             options: .attack(tier: .basic, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(avoided.flags.contains(.dodged))
         let prepared = nimble ? battle.roster.companion.talents.pending.nextBleedAttackMultiplier?.value
             : battle.roster.companion.talents.pending.nextPhysicalAttackMultiplier?.value
@@ -110,13 +112,7 @@ struct SharedPreparedDamageRegressionTests {
         var battle = try fixtures.battle(shared ? ["bloodember_pendant"] : [], owner: .companion, extra: profile)
         battle.roster.companion.talents.action.empoweredByMana = true
         let options = DamageOperation.attack(scaling: .flat, accuracy: .unavoidable)
-        battle.resolveDamage(DamageRequest(
-            amount: 10,
-            target: battle.enemy,
-            keyword: .bleed,
-            sourceActorID: battle.companion.id,
-            options: options,
-        ))
+        battle.resolveTestDamage(10, from: .companion, keyword: .bleed, options: options)
         #expect(battle.health(of: battle.enemy) == (shared ? 1980 : 1990))
     }
 

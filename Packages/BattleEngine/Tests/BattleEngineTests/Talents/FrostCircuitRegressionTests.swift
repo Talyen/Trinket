@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -46,10 +45,7 @@ struct FrostCircuitRegressionTests {
         )
         var operation: DamageOperation = periodic ? .periodic : .effect()
         operation.guaranteedCritical = true
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .freeze,
-            sourceActorID: battle.hero.id, options: operation,
-        ))
+        let outcome = battle.resolveTestDamage(2, keyword: .freeze, options: operation)
         #expect(outcome.flags.contains(.critical))
         #expect(battle.roster.hero.currentMana == 0)
         #expect(!outcome.events.contains { $0.abilityName == "Frost Circuit" })

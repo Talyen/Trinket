@@ -95,13 +95,11 @@ struct BattleTurnEngineTests {
         )
         let hero = context.hero
 
-        let (_, events) = context.applyTestDamage(
+        let events = context.resolveTestDamage(
             40,
             to: hero,
-            applyStatBonus: false,
-            applyItemBonus: false,
-            applyDodge: false,
-        )
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ).events
 
         try #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
         let expectedBlock = context.paced(8, sourceActorID: hero.id)
@@ -161,10 +159,7 @@ struct BattleTurnEngineTests {
         try #expect(damageEvent.amount == 4)
         try #expect(context.roster.health(for: context.enemy) == healthBefore - 4)
         try #expect(!(context.roster.activeEffects(for: hero).contains {
-            if case .nextStrikeDouble = $0.effect {
-                return true
-            }
-            return false
+            $0.effect.kind == .nextStrikeDouble
         }))
     }
 
@@ -249,10 +244,7 @@ struct BattleTurnEngineTests {
             try #expect(context.gold == 3)
         } else {
             try #expect(!(context.roster.activeEffects(for: enemy).contains {
-                if case .marked = $0.effect {
-                    return true
-                }
-                return false
+                $0.effect.kind == .marked
             }))
             let abilityEvent = try #require(events.first { $0.kind == .ability })
             try #expect(!(abilityEvent.appliedEffectSummaries.contains {
@@ -308,10 +300,7 @@ struct BattleTurnEngineBurnBonusTests {
         try #expect(damageEvent.amount == 3)
         try #expect(context.roster.health(for: context.enemy) == healthBefore - 3)
         try #expect(!(context.roster.activeEffects(for: context.hero).contains {
-            if case .nextBurnBonus = $0.effect {
-                return true
-            }
-            return false
+            $0.effect.kind == .nextBurnBonus
         }))
     }
 
@@ -357,10 +346,7 @@ struct BattleTurnEngineBurnBonusTests {
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
         try #expect(damageEvent.amount == 4)
         try #expect(!context.roster.activeEffects(for: context.hero).contains {
-            if case .nextBurnBonus = $0.effect {
-                return true
-            }
-            return false
+            $0.effect.kind == .nextBurnBonus
         })
         try #expect(!events.contains { $0.effectKind == .nextBurnBonusApplied })
     }
@@ -381,10 +367,7 @@ struct BattleTurnEngineBurnBonusTests {
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
         try #expect(damageEvent.amount == 5)
         try #expect(!context.roster.activeEffects(for: context.hero).contains {
-            if case .nextBurnBonus = $0.effect {
-                return true
-            }
-            return false
+            $0.effect.kind == .nextBurnBonus
         })
     }
 }

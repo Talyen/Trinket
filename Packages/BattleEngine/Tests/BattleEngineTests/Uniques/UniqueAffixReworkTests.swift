@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -68,20 +67,24 @@ extension UniqueCollectionTests {
         let target = context.roster.enemy.combatant
 
         for keyword in [Keyword.burn, .freeze, .holy] {
-            _ = context.resolveDamage(DamageRequest(
-                amount: 5, target: target, keyword: keyword,
+            _ = context.resolveTestDamage(
+                5,
+                to: target,
+                keyword: keyword,
                 sourceActorID: context.roster[attacker].id,
                 options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-            ))
+            )
         }
         #expect(context.roster[owner].currentMana == 3)
         #expect(context.roster[attacker].currentMana == 0)
 
-        _ = context.resolveDamage(DamageRequest(
-            amount: 5, target: target, keyword: .physical,
+        _ = context.resolveTestDamage(
+            5,
+            to: target,
+            keyword: .physical,
             sourceActorID: context.roster[attacker].id,
             options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(context.roster[owner].currentMana == 3)
     }
 
@@ -92,11 +95,13 @@ extension UniqueCollectionTests {
         let target = context.roster.enemy.combatant
         let threshold = ControlMeterEngine.threshold(for: target, in: context)
 
-        let outcome = context.resolveDamage(DamageRequest(
-            amount: threshold, target: target, keyword: .holy,
+        let outcome = context.resolveTestDamage(
+            threshold,
+            to: target,
+            keyword: .holy,
             sourceActorID: context.roster.hero.id,
             options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(context.roster.hasControlStatus(for: target, keyword: .stun))
         #expect(context.gold == 3)

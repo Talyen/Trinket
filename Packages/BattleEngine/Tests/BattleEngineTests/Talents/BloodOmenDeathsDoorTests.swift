@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -14,14 +13,10 @@ struct BloodOmenDeathsDoorTests {
             dealOpeningHand: false,
         )
         let hero = battle.hero
-        let enemy = battle.enemy
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = initialHealth }
         battle.appliesFightPacing = false
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1, target: hero, keyword: .physical, sourceActorID: enemy.id,
-            options: .attack(accuracy: .unavoidable),
-        ))
+        _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
 
         #expect(battle.roster.hero.currentHealth == 1)
         #expect(battle.hand.cards.count == 1)

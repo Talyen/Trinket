@@ -31,8 +31,6 @@ struct HealingReductionTests {
     @Test func `healing logging cannot change leech rules or randomness`() {
         var silent = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(),
             heroHealth: 10,
             heroModifiers: .init(triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: 0.5))),
         )
@@ -225,10 +223,7 @@ extension HealingReductionTests {
         battle.appliesFightPacing = false
         battle.roster.enemy.currentHealth = 8
         battle.roster.enemy.hasConsumedDeathsDoor = true
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,
-            options: .effect(abilityHasLeech: true),
-        ))
+        let outcome = battle.resolveTestDamage(8, from: .companion, options: .effect(abilityHasLeech: true))
 
         #expect(outcome.healthLost == 8)
         #expect(battle.health(of: battle.enemy) == 0)

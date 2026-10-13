@@ -12,7 +12,6 @@ struct ImportedAffixBattleTests {
     ) -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroEffects: heroEffects,
             heroHealth: heroHealth,
@@ -55,12 +54,8 @@ struct ImportedAffixBattleTests {
             modifiers: profile,
         )
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.hero, keyword: .physical,
-            sourceActorID: battle.enemy.id,
-            options: DamageOperation.attack(
-                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-            ),
+        let outcome = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: DamageOperation.attack(
+            tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
         ))
         #expect(outcome.events.contains { $0.effectKind == .thornsTriggered && $0.amount == 4 })
         #expect(battle.health(of: battle.enemy) == 36)
@@ -102,10 +97,7 @@ struct ImportedAffixBattleTests {
         battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.appendEffect(.thorns(8), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .holy, sourceActorID: battle.hero.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ))
+        _ = battle.resolveTestDamage(4, keyword: .holy, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         #expect(battle.health(of: battle.enemy) == 96)
         #expect(battle.health(of: battle.hero) == (finallyDefeated ? 0 : 12))

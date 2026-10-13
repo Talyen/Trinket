@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -13,10 +12,11 @@ struct AttackOnlyBonusRegressionTests {
         battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
 
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 3, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,
+        let result = battle.resolveTestDamage(
+            3,
+            from: .companion,
             options: attack ? .attack(scaling: .flat, accuracy: .unavoidable) : .reaction(),
-        ))
+        )
 
         #expect(result.healthLost == 0)
         #expect(BattleTestFixtures.shieldPoints(for: battle.enemy, in: battle) == (attack ? 4 : 7))
@@ -29,10 +29,7 @@ struct AttackOnlyBonusRegressionTests {
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         battle.appendEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
-        let result = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        let result = battle.resolveTestDamage(1, options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1))
 
         #expect(result.healthLost == 1)
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 7)
@@ -47,10 +44,7 @@ struct AttackOnlyBonusRegressionTests {
         battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 3, target: battle.enemy, keyword: keyword, sourceActorID: battle.companion.id,
-            options: .reaction(),
-        ))
+        _ = battle.resolveTestDamage(3, from: .companion, keyword: keyword, options: .reaction())
 
         #expect(BattleTestFixtures.shieldPoints(for: battle.enemy, in: battle) == 4)
     }

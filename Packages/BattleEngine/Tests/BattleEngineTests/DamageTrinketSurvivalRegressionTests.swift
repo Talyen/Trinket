@@ -44,10 +44,12 @@ struct DamageTrinketSurvivalRegressionTests {
         battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
         battle.appendEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
+        let outcome = battle.resolveTestDamage(
+            1,
+            from: .enemy,
+            to: .hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(battle.roster.enemy.currentHealth == 92)
         #expect(battle.roster.hero.currentHealth == (finallyDefeated ? 0 : 1))

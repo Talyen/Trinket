@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -12,13 +11,11 @@ struct HeroTalentReworkRegressionTests {
         )
         battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 8, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id,
-            options: DamageOperation.attack(
-                tier: .skill, scaling: .items, accuracy: .unavoidable,
-                abilityCriticalChanceBonus: -1, abilityHasLeech: true,
-            ),
-        ))
+        let outcome = battle.resolveTestDamage(
+            8,
+            keyword: keyword,
+            options: DamageOperation.attack(scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1, abilityHasLeech: true),
+        )
         #expect(outcome.healthLost == 3)
     }
 
@@ -41,17 +38,19 @@ struct HeroTalentReworkRegressionTests {
         )
         battle.appliesFightPacing = false
         let serial = battle.resolution.beginCard(actorID: battle.hero.id)
-        let poison = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .poison, sourceActorID: battle.hero.id,
+        let poison = battle.resolveTestDamage(
+            2,
+            keyword: .poison,
             options: .attack(tier: .basic, origin: .card, scaling: .items, accuracy: .unavoidable, guaranteedCritical: true),
-        ))
+        )
         #expect(poison.isCritical)
         #expect(battle.roster.hero.talents.pending.guaranteedBleedCritical)
         battle.resolution.endCard(serial)
-        let bleed = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .bleed, sourceActorID: battle.hero.id,
+        let bleed = battle.resolveTestDamage(
+            2,
+            keyword: .bleed,
             options: .attack(tier: .basic, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(bleed.isCritical)
         #expect(!battle.roster.hero.talents.pending.guaranteedBleedCritical)
     }
@@ -66,12 +65,8 @@ struct HeroTalentReworkRegressionTests {
                     heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"]), seed: seed,
                 )
                 battle.appliesFightPacing = false
-                return battle.resolveDamage(DamageRequest(
-                    amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-                    options: .attack(
-                        tier: .skill, scaling: .items, accuracy: .unavoidable, abilityHasLeech: hasLeech,
-                    ),
-                )).isCritical
+                return battle.resolveTestDamage(2, options: .attack(scaling: .items, accuracy: .unavoidable, abilityHasLeech: hasLeech))
+                    .isCritical
             }
             leechCriticals += critical(hasLeech: true) ? 1 : 0
             ordinaryCriticals += critical(hasLeech: false) ? 1 : 0

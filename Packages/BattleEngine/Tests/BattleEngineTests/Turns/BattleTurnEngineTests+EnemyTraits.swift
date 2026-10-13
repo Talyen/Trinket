@@ -13,10 +13,7 @@ extension BattleTurnEngineTests {
             context.appendEffect(.controlMeter(.freeze, 10, 10), to: actor, sourceID: context.enemy.id, remainingTurns: 1)
         }
 
-        let outcome = context.resolveDamage(DamageRequest(
-            amount: 5, target: context.enemy, keyword: .poison, sourceActorID: actor.id,
-            options: .periodic,
-        ))
+        let outcome = context.resolveTestDamage(5, keyword: .poison, options: .periodic)
 
         #expect(outcome.healthLost == (frozen ? 4 : 5))
     }
@@ -28,10 +25,13 @@ extension BattleTurnEngineTests {
         let enemyProfile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true)))
         var context = try enemyTraitContext("pyromancer", heroModifiers: defenses, enemyModifiers: enemyProfile)
 
-        let outcome = context.resolveDamage(DamageRequest(
-            amount: 10, target: context.hero, keyword: keyword, sourceActorID: context.enemy.id,
+        let outcome = context.resolveTestDamage(
+            10,
+            from: .enemy,
+            to: .hero,
+            keyword: keyword,
             options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(outcome.healthLost == (keyword == .burn ? 10 : 2))
     }
@@ -76,10 +76,13 @@ extension BattleTurnEngineTests {
         let enemy = context.enemy
         context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 5 }
 
-        _ = context.resolveDamage(DamageRequest(
-            amount: 2, target: context.hero, keyword: .holy, sourceActorID: enemy.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        _ = context.resolveTestDamage(
+            2,
+            from: .enemy,
+            to: .hero,
+            keyword: .holy,
+            options: DamageOperation.attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        )
 
         #expect(context.roster.enemy.currentHealth == 6)
         #expect(context.roster.hero.currentHealth == 38)
@@ -89,10 +92,13 @@ extension BattleTurnEngineTests {
     @Test(arguments: [Keyword.holy, .stun])
     func `paladin gains block from its damage`(keyword: Keyword) throws {
         var context = try enemyTraitContext("paladin")
-        _ = context.resolveDamage(DamageRequest(
-            amount: 2, target: context.hero, keyword: keyword, sourceActorID: context.enemy.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        _ = context.resolveTestDamage(
+            2,
+            from: .enemy,
+            to: .hero,
+            keyword: keyword,
+            options: DamageOperation.attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        )
 
         #expect(DefensePoolEngine.blockPoints(in: context.roster.enemy.activeEffects) == 1)
     }
@@ -100,15 +106,11 @@ extension BattleTurnEngineTests {
     @Test func `zealot holy damage strengthens its next attack`() throws {
         var context = try enemyTraitContext("zealot")
         let target = context.hero
-        let options = DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
-        _ = context.resolveDamage(DamageRequest(
-            amount: 2, target: target, keyword: .holy, sourceActorID: context.enemy.id, options: options,
-        ))
+        let options = DamageOperation.attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
+        _ = context.resolveTestDamage(2, from: .enemy, to: .hero, keyword: .holy, options: options)
 
         let healthBefore = context.roster.health(for: target)
-        _ = context.resolveDamage(DamageRequest(
-            amount: 2, target: target, keyword: .physical, sourceActorID: context.enemy.id, options: options,
-        ))
+        _ = context.resolveTestDamage(2, from: .enemy, to: .hero, options: options)
 
         #expect(healthBefore - context.roster.health(for: target) == 3)
         #expect(context.roster.enemy.talents.pending.nextAttackHolyBonus == 0)
@@ -135,10 +137,12 @@ extension BattleTurnEngineTests {
             .controlMeter(.stun, 10, 10), to: target, sourceID: context.enemy.id, remainingTurns: 1,
         )
 
-        let outcome = context.resolveDamage(DamageRequest(
-            amount: 2, target: target, keyword: .physical, sourceActorID: context.enemy.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        let outcome = context.resolveTestDamage(
+            2,
+            from: .enemy,
+            to: .hero,
+            options: DamageOperation.attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        )
 
         #expect(outcome.healthLost == 3)
     }
@@ -152,10 +156,10 @@ extension BattleTurnEngineTests {
         )
         battle.appliesFightPacing = false
         let heroHealthBefore = battle.roster.hero.currentHealth
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+        let outcome = battle.resolveTestDamage(
+            1,
             options: DamageOperation.attack(tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(outcome.healthLost == 1)
         #expect(!outcome.events.contains { $0.effectKind == .thornsTriggered })
         #expect(battle.roster.hero.currentHealth == heroHealthBefore)
@@ -167,9 +171,7 @@ extension BattleTurnEngineTests {
         let options = DamageOperation.attack(tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
         for expectedDamage in [4, 2] {
             let healthBefore = context.health(of: target)
-            _ = context.resolveDamage(DamageRequest(
-                amount: 2, target: target, keyword: .physical, sourceActorID: context.enemy.id, options: options,
-            ))
+            _ = context.resolveTestDamage(2, from: .enemy, to: .hero, options: options)
             #expect(healthBefore - context.health(of: target) == expectedDamage)
         }
     }
@@ -177,10 +179,7 @@ extension BattleTurnEngineTests {
     @Test func `searing body retaliates while cold shocked remains a separate weakness`() throws {
         var context = try enemyTraitContext("fire_elemental")
         let hero = context.hero
-        _ = context.resolveDamage(DamageRequest(
-            amount: 1, target: context.enemy, keyword: .physical, sourceActorID: hero.id,
-            options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        _ = context.resolveTestDamage(1, options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1))
         #expect(context.roster.hasAffliction(.burn, on: hero))
         #expect(context.enemyModifiers.damageTakenVulnerability[.freeze] == 0.30)
     }
@@ -188,10 +187,11 @@ extension BattleTurnEngineTests {
     @Test(arguments: [false, true])
     func `searing body responds to attacks rather than ongoing damage`(attack: Bool) throws {
         var context = try enemyTraitContext("fire_elemental")
-        _ = context.resolveDamage(DamageRequest(
-            amount: 1, target: context.enemy, keyword: .bleed, sourceActorID: context.hero.id,
+        _ = context.resolveTestDamage(
+            1,
+            keyword: .bleed,
             options: attack ? .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1) : .periodic,
-        ))
+        )
         #expect(context.roster.hasAffliction(.burn, on: context.hero) == attack)
     }
 
@@ -202,10 +202,13 @@ extension BattleTurnEngineTests {
             triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true)),
         ))
         context.appendEffect(.thorns(2), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
-        let result = context.resolveDamage(DamageRequest(
-            amount: 20, target: context.hero, keyword: keyword, sourceActorID: context.enemy.id,
+        let result = context.resolveTestDamage(
+            20,
+            from: .enemy,
+            to: .hero,
+            keyword: keyword,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(result.healthLost == (keyword == .burn ? 20 : 15))
     }
 
@@ -221,10 +224,13 @@ extension BattleTurnEngineTests {
         )
         context.roster.companion.currentMana = 1
         context.roster.companion.talents.pending.nextIncomingDamageMultiplier = PreparedTalentBonus(value: 0.5)
-        let result = context.resolveDamage(DamageRequest(
-            amount: 20, target: context.companion, keyword: keyword, sourceActorID: context.enemy.id,
+        let result = context.resolveTestDamage(
+            20,
+            from: .enemy,
+            to: .companion,
+            keyword: keyword,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(result.healthLost == (keyword == .burn ? 20 : 8))
         #expect((context.roster.companion.talents.pending.nextIncomingDamageMultiplier != nil) == (keyword == .burn))
     }
@@ -235,10 +241,13 @@ extension BattleTurnEngineTests {
         context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 5 }
         let blockEvents = CombatTriggerEngine.turnBlock(for: enemy, in: &context)
         #expect(blockEvents.contains { $0.abilityName == "Watchful Guard" && $0.targetID == enemy.id })
-        let outcome = context.resolveDamage(DamageRequest(
-            amount: 2, target: context.hero, keyword: .holy, sourceActorID: enemy.id,
+        let outcome = context.resolveTestDamage(
+            2,
+            from: .enemy,
+            to: .hero,
+            keyword: .holy,
             options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
         #expect(outcome.events.contains { $0.abilityName == "Restoring Light" && $0.targetID == enemy.id })
     }
 

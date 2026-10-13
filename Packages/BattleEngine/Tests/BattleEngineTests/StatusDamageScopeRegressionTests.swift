@@ -35,10 +35,12 @@ struct StatusDamageScopeRegressionTests {
         DefensePoolEngine.set(1, on: battle.companion, in: &battle)
         battle.appendEffect(.thorns(8), to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
+        let outcome = battle.resolveTestDamage(
+            2,
+            from: .enemy,
+            to: .companion,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        ))
+        )
 
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
         #expect(battle.roster.enemy.currentHealth == 89)

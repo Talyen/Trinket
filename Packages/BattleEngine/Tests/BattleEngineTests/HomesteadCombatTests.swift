@@ -13,10 +13,10 @@ struct HomesteadCombatTests {
             heroModifiers: .init(modifiers: [.criticalDamage(4)]),
         )
         battle.appliesFightPacing = false
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+        let outcome = battle.resolveTestDamage(
+            10,
             options: .effect(scaling: .items, abilityCriticalChanceBonus: critical ? 0 : -1, guaranteedCritical: critical),
-        ))
+        )
         #expect(outcome.healthLost == (critical ? 24 : 10))
     }
 
@@ -48,10 +48,13 @@ struct HomesteadCombatTests {
                 heroModifiers: ranged ? build.modifiers : .zero, companionModifiers: ranged ? .zero : build.modifiers,
             )
             battle.appliesFightPacing = false
-            let outcome = battle.resolveDamage(DamageRequest(
-                amount: 20, target: battle.enemy, keyword: .physical, sourceActorID: actor.id,
+            let outcome = battle.resolveTestDamage(
+                20,
+                to: battle.enemy,
+                keyword: .physical,
+                sourceActorID: actor.id,
                 options: .effect(scaling: .items, abilityCriticalChanceBonus: critical ? 0 : -1, guaranteedCritical: critical),
-            ))
+            )
             #expect(outcome.healthLost == (critical ? 81 : 29))
         }
         let unarmed = CombatBuildResolver.build(
@@ -80,10 +83,7 @@ struct HomesteadCombatTests {
             heroModifiers: .init(modifiers: [.criticalDamage(4), .criticalDamagePercent(0.4)]),
         )
         battle.appliesFightPacing = false
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 10, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .effect(scaling: .items, guaranteedCritical: true),
-        ))
+        let outcome = battle.resolveTestDamage(10, options: .effect(scaling: .items, guaranteedCritical: true))
         #expect(outcome.healthLost == 34)
     }
 
@@ -115,7 +115,6 @@ struct HomesteadCombatTests {
         modifiers.triggers.leechBonusHealVsLowHealthEnemies = 5
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100), heroHealth: 10,
             heroModifiers: modifiers,
         )

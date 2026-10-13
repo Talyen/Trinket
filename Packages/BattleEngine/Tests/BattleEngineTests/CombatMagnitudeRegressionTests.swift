@@ -16,10 +16,7 @@ struct CombatMagnitudeRegressionTests {
         }
         #expect(battle.roster.hero.talents.pending.damageAfterDodge == Int.max)
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.enemy, keyword: .physical,
-            sourceActorID: battle.hero.id, options: .attack(accuracy: .unavoidable),
-        ))
+        let outcome = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
 
         #expect(outcome.healthLost == 3)
         #expect(battle.roster.hero.talents.pending.damageAfterDodge == 0)
@@ -29,10 +26,7 @@ struct CombatMagnitudeRegressionTests {
         var battle = makeBattle()
         battle.appendEffect(.marked(Int.max, 2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.enemy, keyword: .physical,
-            sourceActorID: battle.hero.id, options: .attack(accuracy: .unavoidable),
-        ))
+        let outcome = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
 
         #expect(outcome.healthLost == 3)
         #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .marked })
@@ -45,10 +39,7 @@ struct CombatMagnitudeRegressionTests {
             battle.appendEffect(.damageReductionFlat(amount, 2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
         }
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 6, target: battle.enemy, keyword: .physical,
-            sourceActorID: battle.hero.id, options: .attack(accuracy: .unavoidable),
-        ))
+        let outcome = battle.resolveTestDamage(6, options: .attack(accuracy: .unavoidable))
 
         #expect(outcome.healthLost == 0)
         #expect(battle.health(of: battle.enemy) == 20)
@@ -74,10 +65,7 @@ struct CombatMagnitudeRegressionTests {
         var battle = makeBattle(profile: profile)
         DefensePoolEngine.set(Int.max, on: battle.enemy, in: &battle)
 
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.enemy, keyword: .stun,
-            sourceActorID: battle.hero.id, options: .attack(accuracy: .unavoidable),
-        ))
+        let outcome = battle.resolveTestDamage(1, keyword: .stun, options: .attack(accuracy: .unavoidable))
 
         #expect(outcome.healthLost == 3)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == Int.max)
@@ -89,10 +77,9 @@ struct CombatMagnitudeRegressionTests {
         var enemyProfile = CombatModifierProfile.zero
         enemyProfile.triggers.maxDamagePerHitCap = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
-            heroModifiers: heroProfile, enemyModifiers: enemyProfile,
+            heroModifiers: heroProfile,
+            enemyModifiers: enemyProfile,
         )
         battle.appliesFightPacing = false
         return battle

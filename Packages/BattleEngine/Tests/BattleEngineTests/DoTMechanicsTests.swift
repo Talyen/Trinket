@@ -41,10 +41,7 @@ struct DoTMechanicsTests {
             ) }
         }
         #expect(battle.roster.hasControlStatus(for: enemy, keyword: .freeze) == frozen)
-        let initialHit = battle.resolveDamage(DamageRequest(
-            amount: 4, target: enemy, keyword: keyword,
-            sourceActorID: battle.roster.hero.id, options: .attack(),
-        ))
+        let initialHit = battle.resolveTestDamage(4, to: enemy, keyword: keyword, sourceActorID: battle.roster.hero.id)
         #expect(initialHit.healthLost == (keyword == .burn && frozen ? 8 : 4))
         let effect: Effect = keyword == .burn ? .burn(4) : .poison(4)
         let active = ActiveEffect(id: 100, effect: effect, remainingTurns: 0, sourceActorID: battle.roster.hero.id)
@@ -219,10 +216,7 @@ struct DoTMechanicsTests {
         battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = health }
-        let events = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.roster.enemy.combatant, keyword: .poison,
-            sourceActorID: hero.id, options: .reaction(),
-        )).events
+        let events = battle.resolveTestDamage(4, keyword: .poison, options: .reaction()).events
 
         #expect(battle.roster.hero.currentMana == (health == 10 ? 2 : 0))
         #expect(battle.roster.hero.currentHealth == (health == 10 ? 12 : health))
@@ -241,10 +235,7 @@ struct DoTMechanicsTests {
         let enemy = battle.roster.enemy.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 20 }
 
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 8, target: enemy, keyword: .poison, sourceActorID: hero.id,
-            options: .attack(),
-        ))
+        _ = battle.resolveTestDamage(8, keyword: .poison)
         #expect(battle.health(of: hero) == 24)
 
         _ = battle.applyDecayingDoT(
@@ -426,13 +417,8 @@ extension DoTMechanicsTests {
 
     @Test func `direct burn damage restores mana up to the per-turn cap`() {
         var battle = Self.makeBurnManaBattle(perTurnCap: 2)
-        let hero = battle.roster.hero.combatant
-        let enemy = battle.roster.enemy.combatant
         for expected in [1, 2, 2] {
-            let outcome = battle.resolveDamage(DamageRequest(
-                amount: 3, target: enemy, keyword: .burn,
-                sourceActorID: hero.id, options: .attack(),
-            ))
+            let outcome = battle.resolveTestDamage(3, keyword: .burn)
             #expect(outcome.healthLost == 3)
             #expect(battle.roster.hero.currentMana == expected)
         }
@@ -442,11 +428,7 @@ extension DoTMechanicsTests {
     @Test(arguments: [(3, 0), (5, 1)])
     func `direct burn damage honors the mana restore threshold`(damage: Int, expectedMana: Int) {
         var battle = Self.makeBurnManaBattle(threshold: 4)
-        let hero = battle.roster.hero.combatant
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: damage, target: battle.roster.enemy.combatant, keyword: .burn,
-            sourceActorID: hero.id, options: .attack(),
-        ))
+        let outcome = battle.resolveTestDamage(damage, keyword: .burn)
         #expect(outcome.healthLost == damage)
         #expect(battle.roster.hero.currentMana == expectedMana)
     }

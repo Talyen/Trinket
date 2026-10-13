@@ -35,14 +35,12 @@ extension CombatTriggerTalentControlTests {
             )),
             dealOpeningHand: false,
         )
-        _ = battle.resolveDamage(
-            DamageRequest(
-                amount: 5,
-                target: battle.roster.enemy.combatant,
-                keyword: .holy,
-                sourceActorID: battle.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
-            ),
+        _ = battle.resolveTestDamage(
+            5,
+            to: battle.roster.enemy.combatant,
+            keyword: .holy,
+            sourceActorID: battle.roster.hero.id,
+            options: DamageOperation.attack(scaling: .flat, accuracy: .unavoidable),
         )
         #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 93)
         let burns = battle.roster.activeEffects(for: battle.roster.enemy.combatant)

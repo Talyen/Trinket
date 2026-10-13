@@ -36,11 +36,11 @@ struct DefeatedSourceDoTRegressionTests {
     func `Blood Money rewards a lethal Bleed tick only while its Rogue survives`(survives: Bool) {
         let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 4),
-            enemyEffects: [bleed], heroHealth: survives ? 10 : 0,
-            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_2"]),
+            enemyEffects: [bleed],
+            heroHealth: survives ? 10 : 0,
+            heroModifiers: CombatantTalentCatalog
+                .profile(for: ["rogue_bleed_t2_2"]),
         )
         battle.appliesFightPacing = false
 
@@ -69,10 +69,10 @@ struct DefeatedSourceDoTRegressionTests {
         }
         let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            enemyEffects: [bleed], heroHealth: 0, heroModifiers: profile,
+            enemyEffects: [bleed],
+            heroHealth: 0,
+            heroModifiers: profile,
         )
         battle.appliesFightPacing = false
 

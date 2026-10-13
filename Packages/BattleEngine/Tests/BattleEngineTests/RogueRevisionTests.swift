@@ -70,16 +70,10 @@ struct RogueRevisionTests {
         profile.triggers.criticalGoldFlat = 2
         var battle = battleWithHandCard(.slash, heroModifiers: profile)
         battle.appliesFightPacing = false
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .effect(scaling: .flat, guaranteedCritical: true),
-        ))
+        let hit = battle.resolveTestDamage(2, options: .effect(scaling: .flat, guaranteedCritical: true))
         #expect(hit.isCritical)
         #expect(battle.gold == 2)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
-        ))
+        _ = battle.resolveTestDamage(2, options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true))
         #expect(battle.gold == 5)
     }
 
@@ -87,19 +81,16 @@ struct RogueRevisionTests {
     func `Light Fingers rewards a Critical Hit only after its Rogue survives Thorns`(finallyDefeated: Bool) {
         let thorns = ActiveEffect(id: 100, effect: .thorns(8), remainingTurns: 0, sourceActorID: "enemy")
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            enemyEffects: [thorns], heroHealth: 1,
-            heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_gold_t1_1"]),
+            enemyEffects: [thorns],
+            heroHealth: 1,
+            heroModifiers: CombatantTalentCatalog
+                .profile(for: ["rogue_gold_t1_1"]),
         )
         battle.appliesFightPacing = false
         battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
 
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
-        ))
+        let hit = battle.resolveTestDamage(4, options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true))
 
         #expect(hit.healthLost == 8)
         #expect(battle.health(of: battle.enemy) == 92)

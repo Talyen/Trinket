@@ -12,10 +12,7 @@ struct HealthRestorationTargetingTests {
         var battle = battle(heroModifiers: profile)
         DefensePoolEngine.set(1, on: battle.hero, in: &battle)
         battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1, target: battle.hero, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .attack(accuracy: .unavoidable),
-        ))
+        _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
         #expect(battle.health(of: battle.companion) == 3)
         #expect(battle.health(of: battle.hero) == 20)
     }
@@ -123,10 +120,7 @@ struct HealthRestorationTargetingTests {
         ))
         var battle = battle(heroModifiers: profile)
         DefensePoolEngine.set(1, on: battle.hero, in: &battle)
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 2, target: battle.hero, keyword: .physical,
-            sourceActorID: battle.enemy.id, options: .effect(),
-        ))
+        _ = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .effect())
         #expect(battle.health(of: battle.companion) == 7)
     }
 }

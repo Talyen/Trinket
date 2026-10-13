@@ -107,9 +107,9 @@ enum BattleStateTestFactory {
     }
 
     static func makeMinimalBattle(
-        hero: Combatant,
-        companion: Combatant,
-        enemy: Combatant,
+        hero: Combatant = CombatantFixtures.passiveHero(),
+        companion: Combatant = CombatantFixtures.passiveCompanion(),
+        enemy: Combatant = CombatantFixtures.passiveEnemy(),
         heroEffects: [ActiveEffect] = [],
         companionEffects: [ActiveEffect] = [],
         enemyEffects: [ActiveEffect] = [],

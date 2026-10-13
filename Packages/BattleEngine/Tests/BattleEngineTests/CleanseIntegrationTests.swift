@@ -428,9 +428,7 @@ extension CleanseIntegrationTests {
         battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         cleanse(&battle)
         #expect(battle.roster.hero.talents.turn.negativeStatusImmune)
-        let damage = battle.resolveDamage(DamageRequest(
-            amount: 3, target: battle.hero, keyword: .poison, sourceActorID: battle.enemy.id, options: .reaction(),
-        ))
+        let damage = battle.resolveTestDamage(3, from: .enemy, to: .hero, keyword: .poison, options: .reaction())
         #expect(damage.healthLost == 3)
         let prevented = battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         #expect(!prevented)

@@ -11,8 +11,6 @@ struct DodgeCounterDamageEventsTests {
             control: ControlTriggers(dodgeDealStunFlat: 3),
         ))
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: profile,
         )
