@@ -85,161 +85,109 @@ its explicit coordinate taps prepare the sampler, wait for `ready`, then establi
 and its animation tail; a watchdog result is invalid coverage.
 Assert a journey’s return destination before using helpers that navigate elsewhere.
 
-## Speed
+## Speed and synchronization
 
-- Prefer `-launch-screen` / `-selectedTab` deep links; do not re-navigate a screen launch args already opened.
-- Prefer one launch per test with explicit per-test args. For persistence, use
-  `relaunchApp(arguments:)`: it reuses the test store and takes destination arguments
-  without reset, seeding, starting resources, or onboarding bypass.
-- StoreKit registers the app once per XCTest runner process, skipping the artwork
-  wait for that registration-only launch. Each test still creates a fresh StoreKit
-  session and isolated save, and its actual launch waits for artwork preparation.
-- Prefer one launch + `TabBar` for round-trips that must exercise the tab bar itself.
-- Prefer `-completed-stages` over scrolling Stage Select lists when seeding progress.
-- Filter inventory/search with `replaceText` instead of grid scroll loops.
-- Prefer `AccessibilityID` selectors over visible labels for primary CTAs (Aspect Begin Floor, Labyrinth node actions).
-- Mid-battle exhaustive tests enter through the Play map with
-  `TestLaunchArg.allForMidBattle()`; do not deep-link into a live battle when
-  setup timing matters.
-- Campaign entry, manual card play, earned victory, and Continue navigation belong
-  to [SmokeBattleTests](Smoke/SmokeBattleTests.swift).
-  Performance measurements use `BattlePerformance.xctestplan` under the
-  [performance playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md);
-  that plan measures explicit interaction windows, including victory and Mystery reveals.
-  `performance.sh --list` lists scenarios and groups; its default is one pass.
-- In performance journeys, capture and verify scroll probes outside `measured`.
-  Establish a newly opened scroll surface before capturing its probes; measure
-  its gestures separately when the scroll itself needs a frame report.
-- Required Full Game coverage includes purchase access to an already-recruited premium character
-  and a chapter offer-entry check. Existing-entitlement cold launch is asserted
-  before Restore in the populated-save journey; restore-failure recovery remains
-  a separate FullUI journey. Tapping Restore while already unlocked does not prove
-  restoration; real App Store restore still needs service/device evidence.
-- The cold-launch metric uses production timing and audio without the Debug frame sampler.
-  Launch-animation and interaction scenarios retain full frame instrumentation.
-  Compare cold-launch timings only with runs using the same launch arguments.
-- Use the timeout and tick defaults from `TrinketUITestCase` and its helpers;
-  do not copy their numeric values into this guide.
-- Wait for alternative successful outcomes together. Battle entry accepts the
-  hand or victory in one wait, so a fast victory does not exhaust a hand-only wait.
-- PD-014 permits the bounded critical-control settings profiles described in [Player coverage](../Docs/Platform/PlayerCoverage.md). Use stable selectors and meaningful outcomes; [Testing.md](../Docs/Platform/Testing.md#ui-keep-drop-rubric) owns when copy, layout, or gesture behavior merits regression coverage.
-- Completed xcresult test exports are reused by filter validation, timing,
-  diagnostics, and infrastructure retry only while bundle identity matches.
-  Missing, damaged, or replaced evidence triggers a fresh bounded export.
-- UI tests are CI-owned and run serially on each job's managed simulator. Local diagnostics require explicit opt-in under Verification.md. Hotspots: `python3 ./Scripts/test-timing.py report --top 30`.
-- Success-path screenshots are opt-in (`TRINKET_UI_SUCCESS_SCREENSHOTS=1`); failure screenshots stay unconditional.
+- Prefer deep links, seeded progress, and one launch per test. Use `relaunchApp`
+  only for same-store persistence; it omits reset, seeding, starting resources,
+  and onboarding bypass. Preserve real tab round-trips where tab wiring is the outcome.
+- Readiness taps own existence, enablement, finite nonempty geometry, and
+  hittability. A successful snapshot proves existence without a preceding query.
+  Keep the final geometry/hittability recheck for animation races. Avoid an
+  existence assertion immediately before tapping the same control.
+- `PlayScreen.startBattle` taps the stage action. Each caller waits for its actual
+  next interaction: battle hand, card, Actions, or Auto-Battle. Do not add a generic
+  battle-entry wait before that destination wait. Mid-battle tests still enter
+  through Campaign with `allForMidBattle()` when setup timing matters.
+- Use shared timeout defaults. Wait for alternative successful outcomes together;
+  Contract return accepts earned talent choices or the board with a hittable Play tab.
+- Scroll helpers resolve a container per reveal and return the final visibility
+  result. Reuse that result. Filter inventory with `replaceText` instead of grid
+  scroll loops; use stable IDs for primary actions.
+- Read numeric values and fallback labels from one snapshot. Homestead accounting
+  reads each wallet/cost subtree once and waits for every resource balance.
+  Coverage/audio waits retain the report that satisfied the condition; StoreKit
+  deferred-transaction waits likewise retain the observed transaction.
+- StoreKit registers the app once per runner, skipping artwork preparation only
+  for that registration launch. Tests retain fresh sessions, transactions, and saves.
+- Success screenshots require `TRINKET_UI_SUCCESS_SCREENSHOTS=1`; failures always
+  retain a screenshot and bounded accessibility context. Profile evidence remains explicit.
+- Completed xcresult exports are shared by filter validation, timing, diagnostics,
+  and infrastructure retry only while bundle identity matches. Missing, damaged,
+  or replaced evidence requires a fresh bounded export.
+- UI runs remain serial on managed simulators. Specialized Performance, Profiles,
+  and Soak source-only changes retain their manual/nightly/weekly cadence; shared
+  support and unknown UI paths still trigger smoke. Local diagnostics follow
+  [Verification](../Docs/Platform/Verification.md#local-simulator-budget).
+  Inspect recorded hotspots with `python3 ./Scripts/test-timing.py report --top 30`.
+- Same-runner smoke and FullUI reuse local products. Transfers use the retained
+  build artifact without a duplicate per-run archive cache. Simulator timing
+  separates boot from bounded guest discovery; unavailable baselines forbid cleanup.
 
-Shared tap helpers use one caller-bounded readiness wait and a final geometry/hittability
-check. Scrolling resolves its container once per reveal operation. Numeric reads use
-one element snapshot; successful reads do not request a diagnostic hierarchy. Merchant
-smoke pins one offer, compares its board and detail prices, then retains the purchase,
-gold-debit, and return assertions. Entitlement assertions reuse an already selected
-Collection tab and visible Warlock card.
+## Coverage ownership
 
-Simulator timing separates boot from guest-process discovery. Process discovery is
-bounded and fails closed: an unavailable baseline never permits guest cleanup.
-Specialized Performance, Profiles, and Soak source-only changes use their existing
-manual/nightly/weekly cadence; shared support and unknown UI paths still trigger smoke.
-Transferred products use the retained build artifact; the duplicate per-run archive
-cache is removed. Same-runner smoke and FullUI continue to use local products.
+- `SmokeBattleTests` owns Campaign entry, manual play, earned victory, duplicate
+  claim protection, background return, and Continue navigation. The termination
+  journey uses the Chapter 1 victory fixture, taps the real claim, terminates at
+  its committed checkpoint, then verifies persisted progression and next-stage entry.
+- `BattleFlowUITests` shares one launch for inspection, dismissal, cancelled drag,
+  and committed drag, retaining hand membership and sheet assertions. Production-speed
+  rapid plays, drag, background return, and a usable exit share another battle.
+- Onboarding and recruitment verify earned characters remain unlocked in Collection.
+  Full Game smoke owns character detail entry; equipment owns item detail/picker,
+  equip, and unequip-control wiring. The equipment fixture keeps the target weapon
+  visible. Reload/failed-write equipment semantics remain package-owned by
+  `PresentationModelTests`.
+- Merchant smoke pins one offer and compares board/detail prices, purchase, Gold
+  debit, and return to Play. The fixed purchase footer signals detail readiness;
+  avoid scrolling while artwork prepares. `ShopPurchaseApplierTests` and
+  `AppStateShopEncounterTests` own item ownership and sold-stock rejection.
+- Labyrinth boss/Continue retains battle and floor-selection interactions. FullUI
+  also covers Voyage embark/abandon, Spires locked-floor/detail wiring, and
+  Labyrinth inspector selection/dismissal.
+- Homestead accounting verifies displayed debit and tier after same-store reload;
+  accessibility audits stop after the tier change. Haptics toggle/reload is the
+  approved narrow medium-value exception proving the native control binding.
+- Full Game smoke enters the locked Campaign chapter through its owned Debug
+  fixture and taps the real offer entry. It purchases access to independently
+  recruited Warlock and opens his detail. Populated Restore first checks cold-launch
+  access, then Restore and retained progress. Restore-failure recovery stays separate.
+  Cancellation retries in the same offer; declined Ask to Buy retries from the
+  locked character. Debug entitlement observations avoid repeated Collection trips
+  where purchase/unlock wiring already has a UI owner. Tapping Restore while already
+  unlocked does not prove service restoration; live App Store evidence remains separate.
+  The refund journey allows its initial StoreKit purchase up to 60 seconds; the
+  offer must dismiss and earned-character access must succeed before refund begins.
+- [Player coverage](../Docs/Platform/PlayerCoverage.md) owns settings profiles,
+  twenty-Contract real-audio soak, interrupted settlement, and deferred live checks.
+  Audio observations prove backend scheduling/start results, not audibility.
+  Accessibility audits exclude only the opt-in nonshipping diagnostics label, whose
+  clipped one-point frame avoids covering controls at large text sizes. Each iOS audit
+  type runs separately with one retry for a native timeout; violations and repeated
+  timeouts fail with bounded element diagnostics.
+- Reward and talent confirmation checkpoints hold presentation only in owned,
+  cloud-disabled Debug stores. Background/disappearance uses ordinary finish paths;
+  holds never authorize rewards or writes and are absent from Release.
 
-Performance captures resolve reusable sampler coordinates before measuring. Audio,
-animation tails, completion checks, and measured gestures retain their existing budgets.
+## Performance measurements
 
-## Coverage consolidation
+Use `performance.sh --list` for scenarios/groups; the default is one pass.
+`BattlePerformance.xctestplan` and the
+[performance playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md)
+own explicit interaction windows, including victory and Mystery reveals.
 
-The committed-reward termination journey starts at the existing Chapter 1 victory
-fixture, then taps the real claim, terminates at the committed checkpoint, and checks
-persisted progression and next-stage entry after relaunch. `SmokeBattleTests` retains
-the earned-victory combat path; FullUI avoids repeating that setup battle.
+Exit unselected tests before launch/probe setup. In multi-step equipment and talent
+journeys, run only prerequisites for selected steps and skip trailing actions.
+Resolve sampler coordinates and gesture setup before capture. Snapshot scroll probes
+outside `measured`, using one resolved surface for both snapshots and gestures;
+failed movement retains the hierarchy and shared failure screenshot.
 
-The hand-card inspection, dismissal, cancelled-drag, and committed-drag checks share
-one battle launch in `BattleFlowUITests`. Each gesture retains its hand-count and
-detail-sheet assertions; the test ends after the committed play.
+Sampler controls explicitly establish `ready`, then `measuring`, and freeze the
+report after the interaction and animation tail. A watchdog report is invalid.
+Keep Battle's short polling cadence, card-count assertions, real audio, and existing
+animation-tail budgets. State/report waits check immediately before bounded waiting.
 
-Onboarding and recruitment finish by checking that the earned characters are
-present and unlocked in Collection. Shopping verifies the purchase control,
-Gold debit, and return to Play; item ownership remains package-owned as described
-above. Repeated detail-sheet openings are removed. Collection
-character-detail entry remains covered by `FullGamePurchaseSmokeTests`, and item
-detail entry by `CollectionLoadoutUITests`. Character lock labels express the
-unlock contract because locked character cards remain enabled for inspection.
-
-Full Game's smoke purchase journey owns Warlock detail entry.
-Existing-entitlement cold launch shares the populated-restore journey, asserting
-Warlock access before Restore. Restore-failure recovery stops at the accessible
-Collection card instead of repeating detail navigation. These fixtures seed recruitment
-independently of StoreKit ownership. The shared assertion checks the card's lock
-label, which combines recruitment and purchase access. Purchase preserves the earned
-recruitment and progression rules in [Monetization](../Docs/Product/Monetization.md#access).
-The refund journey gives its initial StoreKit purchase up to 60 seconds to finish;
-the offer must dismiss and earned-character access must succeed before refund begins.
-
-## Real-player coverage
-
-[Player coverage](../Docs/Platform/PlayerCoverage.md) owns the expanded portfolio,
-CI cadence, evidence boundaries, and deferred live checks. FullUI now restores
-Voyage embark/abandon, Spires locked-floor/detail wiring, Labyrinth inspector
-selection/dismissal, Homestead upgrade/debit/reload, Haptics toggle/reload,
-Ask to Buy, and failed-write Defeat Leave. Haptics is the explicitly approved
-narrow medium-value exception; it proves the native control binding that the
-Options defaults tests cannot establish.
-
-The Campaign smoke journey holds at the opt-in Debug reward checkpoint after the
-real claim commits, then backgrounds and returns to the map. Collection and
-Talent confirmation checkpoints never authorize rewards or writes: backgrounding
-and disappearance execute the ordinary finish paths. Only owned, cloud-disabled
-Debug stores may hold presentation completion. Release builds contain no holds.
-
-Production-timing journeys omit the tick override; audio journeys omit audio
-suppression. `Coverage Diagnostics` is an opt-in Debug label; the native audit
-excludes only this nonshipping observation element. All product controls remain
-audited. Its clipped one-point frame avoids covering controls at large text sizes.
-Every iOS audit type runs separately with one retry for a native audit timeout;
-violations and repeated timeouts fail, retaining bounded element diagnostics.
-Captured backend counts establish scheduling/start results, not audibility.
-
-
-The Full Game smoke fixture enters the active Campaign chapter directly through
-`-purchase-chapter-fixture` in an owned, cloud-disabled Debug store. It still taps
-the real locked chapter action. Cancellation retries in the same offer; declined Ask to Buy retries from the offer
-opened by the locked character. Cancellation and populated Restore use the Debug
-entitlement observation to avoid repeated Collection traversal; purchase,
-cold-launch access, and Warlock unlock wiring remain exercised. Merchant detail
-waits for its fixed purchase footer before reading price or buying, without scrolling
-a sheet that is still preparing artwork. Contract return waits for either an earned
-talent sheet or the board with a hittable Play tab, avoiding an unconditional optional
-sheet delay while respecting pending talent presentation. Class-filtered performance
-runs exit unselected methods before app launch or scroll-probe setup. Shared scroll
-measurements resolve one surface and keep both probe snapshots outside the capture.
-Multi-step equipment and talent journeys explicitly skip trailing unselected actions;
-only prerequisites for a selected step run without measurement. Background-return
-and normal-speed rapid-card/drag checks share one battle and retain the usable exit.
-
-Performance state/report waits check immediately before installing a bounded wait.
-Scroll-probe comparison groups anchors by identity once; failures reuse the shared
-failure screenshot and retain the scroll hierarchy. Cold-launch metrics run with the
-launch-animation selection, including the default matrix.
-
-Readiness taps own their existence wait; avoid a second existence assertion immediately
-before the same tap. Tap readiness reads enablement and geometry from one snapshot.
-Numeric reads resolve value and fallback label from the same snapshot. Scroll helpers
-return the visibility result from their last check; callers reuse it instead of querying
-existence and hittability again. Forward and reverse reveal budgets are unchanged.
-Coverage diagnostics use one snapshot per report. Audio waits retain the report that
-satisfied the condition for subsequent checks, including each of the twenty soak cycles.
-Battle performance keeps gesture setup before capture and its existing short polling
-cadence, card-count assertions, and animation tail without a separate gesture model.
-
-Audio lifecycle and the twenty-Contract soak share one Contract journey helper.
-The Fight control's readiness wait owns entry; return-to-board, real-audio, and
-per-offer claim assertions remain intact. Scroll reveal reuses the existence wait's
-result instead of querying existence again after each gesture. Immediate existence
-checks before native waits remain intentional fast paths. Homestead audits stop
-after the tier change; the accounting journey always verifies same-store reload.
-
-Homestead accounting reads each wallet and upgrade-cost subtree once per successful
-read, then checks every resource locally. Wallet reads retain a bounded wait for all
-eight balances; missing amounts still fail. Plain Collection/Options readiness uses
-`assertExists` directly; the merchant journey keeps its selectors beside its sole
-consumer. Smoke checks destination controls without first checking their parent screen.
+Cold-launch metrics run with launch-animation selection, including the default matrix,
+using production timing/audio without the Debug frame sampler. Launch-animation and
+interaction scenarios keep instrumentation. Compare cold-launch results only when
+launch arguments match. Production-timing journeys omit the tick override; audio
+journeys omit audio suppression.

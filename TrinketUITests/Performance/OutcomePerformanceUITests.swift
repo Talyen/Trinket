@@ -51,7 +51,7 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg.allForAppPerformance() + ["-performance-talent-reward", "-performance-outcome-victory"])
             play.openCampaign()
             play.startBattle(chapter: 1, stage: 1)
-            battle.autoBattleToggle.tap()
+            tapWhenReady(battle.autoBattleToggle)
             assertExists(AccessibilityID.Battle.victory, timeout: 30)
             reveal(button(AccessibilityID.Battle.continueButton))
             measured("postbattle-talent-reveal", iteration: iteration) {

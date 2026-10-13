@@ -43,12 +43,5 @@ struct PlayScreen {
             return
         }
         start.trinketTapWhenReady()
-
-        let hand = app.descendants(matching: .any)[AccessibilityID.Battle.hand]
-        let victory = app.descendants(matching: .any)[AccessibilityID.Battle.victory]
-        let launched = trinketWaitUntil(timeout: TrinketUITestCase.defaultTimeout + 2) {
-            hand.exists || victory.exists
-        }
-        XCTAssertTrue(launched, "Start did not launch battle chrome")
     }
 }

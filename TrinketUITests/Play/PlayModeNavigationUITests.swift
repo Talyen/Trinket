@@ -105,7 +105,8 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         let selected = action.identifier
         let locked = any(AccessibilityID.Play.labyrinthFloor1LockedNode)
         scrollUntilVisible(locked, swipingUp: true, requireHittable: true)
-        XCTAssertTrue(locked.label.hasSuffix(", locked"), locked.label)
+        let label = locked.label
+        XCTAssertTrue(label.hasSuffix(", locked"), label)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertExists(selected)
         let entry = any(AccessibilityID.Play.labyrinthFloor1EntryNode)

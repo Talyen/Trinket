@@ -389,15 +389,7 @@ class TrinketUITestCase: XCTestCase {
                     break
                 }
             }
-            if entries.isEmpty {
-                return "\(message)\nAccessibility snapshot:\nAX: (no identified elements)"
-            }
-            var lines: [String] = []
-            for start in stride(from: 0, to: entries.count, by: 4) {
-                let end = min(start + 4, entries.count)
-                lines.append("AX: " + entries[start ..< end].joined(separator: "; "))
-            }
-            let description = lines.joined(separator: "\n")
+            let description = entries.isEmpty ? "AX: (no identified elements)" : entries.map { "AX: " + $0 }.joined(separator: "\n")
             let bounded = description.count > 2400 ? String(description.prefix(2399)) + "…" : description
             return "\(message)\nAccessibility snapshot:\n\(bounded)"
         }
@@ -517,7 +509,7 @@ extension XCUIElement {
     ) {
         func isReady(_ element: XCUIElement) -> Bool {
             trinketOnMainActor {
-                guard element.exists, let snapshot = try? element.snapshot(), snapshot.isEnabled else { return false }
+                guard let snapshot = try? element.snapshot(), snapshot.isEnabled else { return false }
                 let bounds = snapshot.frame
                 guard !bounds.isEmpty,
                       bounds.minX.isFinite, bounds.minY.isFinite,

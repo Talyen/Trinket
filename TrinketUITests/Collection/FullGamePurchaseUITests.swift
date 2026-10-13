@@ -155,15 +155,18 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
     }
 
     private func pendingTransaction(in session: SKTestSession) throws -> SKTestTransaction {
+        var pending: SKTestTransaction?
         waitUntil("Ask to Buy must create a deferred transaction") {
-            session.allTransactions().contains { $0.pendingAskToBuyConfirmation }
+            pending = session.allTransactions().first { $0.pendingAskToBuyConfirmation }
+            return pending != nil
         }
-        return try XCTUnwrap(session.allTransactions().first { $0.pendingAskToBuyConfirmation })
+        return try XCTUnwrap(pending)
     }
 
     private func assertWarlockLocked() {
         revealWarlock()
         let card = button(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
-        XCTAssertTrue(card.label.hasSuffix(", locked"), "Expected locked Warlock, found: \(card.label)")
+        let label = card.label
+        XCTAssertTrue(label.hasSuffix(", locked"), "Expected locked Warlock, found: \(label)")
     }
 }
