@@ -6,7 +6,7 @@ import TrinketCore
 struct EffectHandlersTurnTests {
     @Test(arguments: [false, true])
     func `enemy avatar targets surviving companion`(onTurn: Bool) {
-        var battle = BattleStateTestFactory.makeBattle(, appliesFightPacing: false)
+        var battle = BattleStateTestFactory.makeBattle(appliesFightPacing: false)
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 0 }
         let before = battle.health(of: battle.companion)
         let effect = Effect.avatar(holyDamage: 2, blockPerTurn: 2, turns: 2)

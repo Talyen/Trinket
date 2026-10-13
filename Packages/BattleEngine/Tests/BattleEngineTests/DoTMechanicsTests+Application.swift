@@ -100,7 +100,7 @@ extension DoTMechanicsTests {
     @Test(arguments: [Keyword.burn, .poison])
     func `repeated attacks cannot attach stacks through block or dodge`(keyword: Keyword) {
         for dodged in [false, true] {
-            var battle = BattleTestFixtures.makePipelineContext(, appliesFightPacing: false)
+            var battle = BattleTestFixtures.makePipelineContext(appliesFightPacing: false)
             let target = battle.hero
             if dodged {
                 battle.appendEffect(.evadeNextHit, to: target, sourceID: target.id, remainingTurns: 0)

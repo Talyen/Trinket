@@ -93,7 +93,7 @@ struct DoTArithmeticBoundaryTests {
 
     @Test(arguments: [Keyword.burn, .bleed])
     func `detonation of capped potency resolves lethal damage without overflowing`(keyword: Keyword) {
-        var battle = BattleTestFixtures.makePipelineContext(, appliesFightPacing: false)
+        var battle = BattleTestFixtures.makePipelineContext(appliesFightPacing: false)
         battle.appendEffect(
             keyword == .burn ? .burn(Int.max) : .bleed(Int.max),
             to: battle.enemy, sourceID: battle.hero.id,
