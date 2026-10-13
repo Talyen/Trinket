@@ -62,7 +62,7 @@ public extension PlayerSaveStore {
         for combatantID: String,
     ) -> RosterEditResult {
         persistRosterEdit(logging: "Failed to unlock talent") { save in
-            save.applyTalentUnlock(nodeID: nodeID, treeID: treeID, for: combatantID, access: contentAccess)
+            save.roster.applyTalentUnlock(nodeID: nodeID, treeID: treeID, for: combatantID, access: contentAccess)
         }
     }
 }

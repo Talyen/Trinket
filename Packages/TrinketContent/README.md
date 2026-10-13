@@ -10,7 +10,7 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 - **Abilities/** — Ability models, validation, and authored `AbilityCatalog+Basic/Skill/Ultimate.swift` tier catalogs with ordered tier lists.
 - **Equipment/** — Item and affix models, Unique catalogs, loot generation, Corruption, and Salvage rules.
 - **Encounters/** — Journey, Spire, Contracts, Voyage, and shops; `Labyrinth/`, `Mystery/`, and `Rewards/` group their larger families.
-- **Roster/** — Combatant models, equipment/keyword projections, and talent/trait lookup.
+- **Roster/** — Combatant models, player roster state and edit rules, equipment/keyword projections, and talent/trait lookup.
 - **Homestead/** — Player value state, production/collection and upgrade rules, effects, and content lookup.
 - **Media/** — Authored art, music, and sound lookup support.
 - **Generated/** — Auto-generated catalogs from manifests, ability shorthand, talent dictionaries, and trigger-family structs (do not edit directly)
@@ -126,6 +126,17 @@ on stdout. `--full` alone writes no artifact; combining it with `--output` does 
 The 2,000-row report covers levels 1–40, both profiles, all Sanctum bonuses, category
 exhaustion, shops, and guaranteed Astral rewards. Its cumulative chances assume
 unchanged inputs and pool availability across the displayed reward count.
+
+## Roster rules
+
+`PlayerRosterState` owns party selection, selected abilities, equipment ownership,
+progression, and talents. Its ID-based edits accept explicit access and owned
+inventory values; rejected edits leave the roster unchanged. `EquipmentLoadout`'s
+shared ownership rule transfers a physical item to the edited combatant and resolves
+repair ties by combatant ID and slot order. These rules have no save-store dependency.
+Persistence supplies current transaction inputs, maps the saved graph, migrates
+retired ability IDs, sanitizes loaded state, and durably commits accepted edits.
+Roster rule tests live here; storage failure and reload proofs stay in Persistence.
 
 ## Homestead rules
 

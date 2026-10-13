@@ -21,6 +21,9 @@ transaction outcomes, observation and reload evidence. Detailed contracts live i
 Mode loot policy and seeded generation live in Content's
 `BattleLootContext` / `BattleLoot` / `LootRequest`; `BattleLootContext+Save` and
 `RewardOwnership+Save` adapt saved values without defining loot policy.
+Roster value state and party/loadout/talent rules live in Content; store commands
+supply current access and inventory inside the transaction. Roster hydration retains
+save compatibility mapping and delegates physical-item ownership to Content.
 Homestead value state and production/build rules live in Content; store commands
 apply them to saved Gold and retain transaction and receipt ownership.
 Store methods are `@MainActor`; completion and reward appliers (`StageCompletion`,

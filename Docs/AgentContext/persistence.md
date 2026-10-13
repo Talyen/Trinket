@@ -31,9 +31,11 @@ There is one commit model: every mutation is durable before publication.
 lifecycle and synchronization checkpoints; it never publishes an uncommitted edit.
 
 Roster edits carry combatant, ability, and physical item IDs, never caller-owned
-catalog or Inventory snapshots. Candidate-value rules in `Models/RosterEdits.swift`
-resolve those IDs against current content, unlocks, purchase access, and Inventory
-before mutation. Loadout, party, and talent commands return `RosterEditResult`;
+catalog or Inventory snapshots. Content owns `PlayerRosterState` and its candidate-value
+rules in `Roster/RosterEdits.swift`; they resolve those IDs against current content,
+unlocks, purchase access, and the inventory supplied by Persistence inside the
+transaction. Persistence owns admission, hydration/migration, and durable publication.
+Loadout, party, and talent commands return `RosterEditResult`;
 only `persistenceFailed` schedules a save retry. Unavailable intents do not write
 or silently select a fallback; save hydration still repairs older data.
 

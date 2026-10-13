@@ -92,41 +92,6 @@ enum RosterHydration {
             guard let combatant = GameContent.combatant(matching: combatantID) else { continue }
             resolved[combatantID] = loadout.sanitized(for: combatant, inventory: equippedInventory)
         }
-        return enforceUniqueEquippedItems(resolved)
-    }
-
-    static func enforceUniqueEquippedItems(
-        _ loadouts: [String: EquipmentLoadout],
-        prioritizing combatantID: String? = nil,
-    ) -> [String: EquipmentLoadout] {
-        var orderedIDs = loadouts.keys.sorted()
-        if let combatantID {
-            orderedIDs.removeAll { $0 == combatantID }
-            orderedIDs.insert(combatantID, at: 0)
-        }
-        var claimedItemIDs = Set<String>()
-        var unique: [String: EquipmentLoadout] = [:]
-        for combatantID in orderedIDs {
-            guard let loadout = loadouts[combatantID] else { continue }
-            var slots: [ItemSlot: String] = [:]
-            for slot in ItemSlot.allCases {
-                guard let itemID = loadout.itemID(for: slot), claimedItemIDs.insert(itemID).inserted else { continue }
-                slots[slot] = itemID
-            }
-            unique[combatantID] = EquipmentLoadout(itemIDsBySlot: slots)
-        }
-        return unique
-    }
-
-    static func applyLoadout(
-        _ loadout: EquipmentLoadout,
-        for combatantID: String,
-        in loadouts: [String: EquipmentLoadout],
-    ) -> [String: EquipmentLoadout] {
-        // The edited combatant claims items first; untouched loadouts retain
-        // the same catalog-slot and combatant-ID precedence as sanitization.
-        var updated = loadouts
-        updated[combatantID] = loadout
-        return enforceUniqueEquippedItems(updated, prioritizing: combatantID)
+        return EquipmentLoadout.enforcingUniqueItems(in: resolved)
     }
 }

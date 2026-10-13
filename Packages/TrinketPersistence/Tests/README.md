@@ -23,7 +23,8 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Starter selection | `StarterSelectionTests` | Draft/complete reload and invalid-draft repair |
 | Homestead store API | `PlayerHomesteadStoreTests` | `buildOrUpgradeNode` / `collectProduction` through the hub |
 | Homestead save integration | `HomesteadStateTests` | Sanitized production overflow and reward settlement; pure production/build rules live in TrinketContent |
-| Roster / inventory state | `PlayerRosterStateTests` | Loadouts, equipment, gold, equipped-item lookup |
+| Saved inventory and wallet values | `PlayerInventoryStateTests` | Reward-item deduplication and signed saved-Gold deltas; pure roster rules live in TrinketContent |
+| Roster edit durability | `RosterEditPersistenceTests` | Rejected/stale choices, write-failure compensation, retry, and reload |
 | Unique items | `UniqueItemRuleTests` | Unique affix-power reload; altar exclusion; trinket catalog refresh from stale rows |
 | Talents | `TalentPersistenceTests` | Sanitizer filter, unlock API, reload |
 | Journey progression | `JourneyProgressTests` | Unlock chain and campaign end, pin/progress reload, duplicate-stage repair |

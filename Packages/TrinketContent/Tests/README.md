@@ -9,6 +9,7 @@ Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 | Ability catalog and descriptions | `AbilityCatalogTests` | IDs, authored operations, and player-facing card text |
 | Ability validation | `AbilityValidationTests` | Base, random, and conditional paths; target rules, tier damage, and description overrides |
 | Art catalog cross-references | `ArtCatalogIntegrationTests` | Ability/item/stage wiring and artwork for every player combatant and enemy |
+| Player roster rules | `PlayerRosterStateTests` | Party selection, ability loadouts, equipment transfer, Gold bounds, progression, and talent gates without save fixtures |
 | Combatant catalog graph | `CombatantCatalogTests` | Hero/companion loadouts, health/mana |
 | Homestead rules | `HomesteadStateTests` | Production timing and fractional credit, wallet/material overflow, collection, and build costs without save fixtures |
 | Homestead catalog and reward bonuses | `HomesteadCatalogTests` | Unique node IDs, four increasing tiers, production sources, and once-only percentage/fractional reward adjustments |
@@ -39,5 +40,5 @@ Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 
 **Not here:** Encounter art presentation wiring
 (`Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/StageMapPresentationTests.swift`)
-or `PlayerRosterState` battle-config logic
-(`Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Inventory/PlayerRosterStateTests.swift`).
+or durable roster edits
+(`Packages/TrinketPersistence/Tests/TrinketPersistenceTests/Inventory/RosterEditPersistenceTests.swift`).

@@ -1,4 +1,3 @@
-import TrinketContent
 import TrinketCore
 
 public struct PlayerRosterState: Equatable, Sendable {
@@ -166,11 +165,8 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
-        equipmentLoadouts = RosterHydration.applyLoadout(
-            loadout,
-            for: combatant.id,
-            in: equipmentLoadouts,
-        )
+        equipmentLoadouts[combatant.id] = loadout
+        equipmentLoadouts = EquipmentLoadout.enforcingUniqueItems(in: equipmentLoadouts, prioritizing: combatant.id)
     }
 
     @discardableResult

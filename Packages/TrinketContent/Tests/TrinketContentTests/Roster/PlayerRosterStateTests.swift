@@ -1,7 +1,6 @@
 import Testing
 import TrinketContent
 import TrinketCore
-@testable import TrinketPersistence
 
 struct PlayerRosterStateTests {
     @Test func `party average preserves the encounter level of extreme saved progressions`() {
@@ -90,18 +89,8 @@ struct PlayerRosterStateTests {
         #expect(roster.gold == 10)
     }
 
-    @Test func `signed gold delta cannot reduce balance below zero`() {
-        var save = PlayerSave.fresh
-        save.roster.gold = 2
-
-        let applied = save.applyGoldDelta(-3)
-
-        #expect(applied == -2)
-        #expect(save.roster.gold == 0)
-    }
-
     @Test func `equipment loadout equip and unequip`() throws {
-        let item = try #require(PlayerInventoryState.testSeed.item(matching: "wand-basic"))
+        let item = try #require(GameContent.sampleInventoryItems.first { $0.id == "wand-basic" })
         var loadout = EquipmentLoadout()
 
         loadout.equip(item, inventory: [item])
@@ -134,7 +123,7 @@ struct PlayerRosterStateTests {
         var roster = PlayerRosterState.testSeed
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
-        let wand = try #require(PlayerInventoryState.testSeed.item(matching: "wand-basic"))
+        let wand = try #require(GameContent.sampleInventoryItems.first { $0.id == "wand-basic" })
 
         var wizardLoadout = roster.equipmentLoadout(for: wizard)
         wizardLoadout.equip(wand, inventory: [wand])
@@ -213,18 +202,6 @@ struct PlayerRosterStateTests {
         }
         try #expect(roster.highestHeroLevel == 20)
         try #expect(roster.highestCompanionLevel == 20)
-    }
-
-    @Test func `add reward item ignores duplicate ID`() throws {
-        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
-        let stage = GameContent.chapters[0].stages[0]
-        var inventory = PlayerInventoryState.freshStart
-
-        inventory.addRewardItem(from: template, for: stage)
-        inventory.addRewardItem(from: template, for: stage)
-
-        try #expect(inventory.items.count == 1)
-        try #expect(inventory.items.first?.id == "chapter-1-stage-1-shortsword-basic")
     }
 
     @Test func `unlock talent respects points and row gates`() throws {
