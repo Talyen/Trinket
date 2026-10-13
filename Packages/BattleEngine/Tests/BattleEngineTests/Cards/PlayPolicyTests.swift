@@ -213,8 +213,6 @@ extension PlayPolicyTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyHealth),
             heroModifiers: profile, enemyModifiers: enemyModifiers, dealOpeningHand: false,
         )

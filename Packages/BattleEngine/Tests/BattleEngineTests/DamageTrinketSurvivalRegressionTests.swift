@@ -11,8 +11,6 @@ struct DamageTrinketSurvivalRegressionTests {
         var profile = CombatModifierProfile.zero
         affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: wearerDefeated ? 0 : 20,
             heroModifiers: profile,
@@ -34,8 +32,6 @@ struct DamageTrinketSurvivalRegressionTests {
         var profile = CombatModifierProfile.zero
         affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 1,
             heroModifiers: profile,

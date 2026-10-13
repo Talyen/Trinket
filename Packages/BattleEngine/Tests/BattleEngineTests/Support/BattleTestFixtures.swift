@@ -110,11 +110,6 @@ enum BattleTestFixtures {
         return try battle.playCard(cardID: card.id).events
     }
 
-    @discardableResult
-    static func endTurn(on battle: inout BattleState) -> [ActionEvent] {
-        battle.endTurn().events
-    }
-
     static func playUntilAbility(
         _ abilityName: String,
         owner: BattleParticipant = .hero,
@@ -128,7 +123,7 @@ enum BattleTestFixtures {
                 return try battle.playCard(cardID: card.id).events
             }
             if try playFirstPlayableCard(owner: owner, on: &battle) == nil {
-                _ = endTurn(on: &battle)
+                _ = battle.endTurn()
             }
             if battle.isBattleOver {
                 break
@@ -166,15 +161,6 @@ extension BattleTestFixtures {
 
     static func burnPotency(on battle: BattleState) -> Int? {
         battle.activeEffects(of: battle.enemy).first { $0.effect.isDecayingDoT && $0.keyword == .burn }?.effect.potency
-    }
-}
-
-extension Effect {
-    var isControlMeter: Bool {
-        if case .controlMeter = self {
-            return true
-        }
-        return false
     }
 }
 

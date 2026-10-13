@@ -14,8 +14,6 @@ struct DeadThornsRewardRegressionTests {
         affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 1,
             companionHealth: 5,

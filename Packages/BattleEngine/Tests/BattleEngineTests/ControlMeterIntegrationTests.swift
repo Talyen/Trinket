@@ -52,7 +52,7 @@ struct ControlMeterIntegrationTests {
     func `action skip prevents damage`(keyword: Keyword) throws {
         var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: keyword)
         let hero = battle.hero
-        let events = BattleTestFixtures.endTurn(on: &battle)
+        let events = battle.endTurn().events
 
         try #expect(battle.health(of: hero) == hero.maxHealth, "keyword=\(keyword)")
         try #expect(
@@ -69,7 +69,7 @@ struct ControlMeterIntegrationTests {
 
         try #expect(!(battle.activeEffects(of: enemy)).isEmpty)
 
-        let events = BattleTestFixtures.endTurn(on: &battle)
+        let events = battle.endTurn().events
         #expect(events.contains {
             $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == enemy.id
         })
@@ -83,7 +83,7 @@ struct ControlMeterIntegrationTests {
         let enemy = battle.enemy
         let hero = battle.hero
 
-        let firstEnd = BattleTestFixtures.endTurn(on: &battle)
+        let firstEnd = battle.endTurn().events
         #expect(firstEnd.contains {
             $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == enemy.id
         })
@@ -93,7 +93,7 @@ struct ControlMeterIntegrationTests {
 
         try #expect(!(battle.roster.hasPendingActionSkip(for: enemy)))
 
-        let secondEnd = BattleTestFixtures.endTurn(on: &battle)
+        let secondEnd = battle.endTurn().events
         try #expect(!(secondEnd.contains(effectKind: .controlActionSkipped, keyword: .stun)))
         try #expect(secondEnd.contains { $0.kind == .ability && $0.actorID == enemy.id })
         try #expect(!(battle.roster.hasControlStatus(for: enemy, keyword: .stun)))
@@ -119,7 +119,7 @@ struct ControlMeterIntegrationTests {
                 break
             }
         }
-        events.append(contentsOf: BattleTestFixtures.endTurn(on: &battle))
+        events.append(contentsOf: battle.endTurn().events)
 
         try #expect(events.contains(effectKind: .controlTriggered, keyword: .stun))
         #expect(events.contains {
@@ -134,7 +134,7 @@ struct ControlMeterIntegrationTests {
         _ = try BattleTestFixtures.playCardNamed("Shield Bash", owner: .hero, on: &battle)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 1)
 
-        let events = BattleTestFixtures.endTurn(on: &battle)
+        let events = battle.endTurn().events
         #expect(events.contains {
             $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == battle.enemy.id
         })
@@ -161,7 +161,7 @@ struct ControlMeterIntegrationTests {
             Issue.record("Expected ownerSkipping error")
         } catch BattlePlayError.ownerSkipping {}
 
-        let events = BattleTestFixtures.endTurn(on: &battle)
+        let events = battle.endTurn().events
         #expect(events.contains {
             $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == battle.hero.id
         })

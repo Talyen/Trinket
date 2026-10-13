@@ -140,7 +140,7 @@ struct FightPacingTests {
         )
 
         let amount = context.roster.enemy.activeEffects
-            .first(where: \.effect.isControlMeter)?
+            .first { $0.effect.kind == .controlMeter }?
             .effect.controlMeterValues?.amount
         try #expect(amount == expectedOnce)
         try #expect(amount != doublePaced)

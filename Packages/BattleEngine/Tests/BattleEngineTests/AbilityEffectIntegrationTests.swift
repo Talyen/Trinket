@@ -156,11 +156,7 @@ struct AbilityEffectIntegrationTests {
             dealOpeningHand: false,
         )
         if frozenEnemy {
-            BattleStateTestFactory.seedActiveEffects(
-                [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
-                for: battle.enemy,
-                on: &battle,
-            )
+            battle.seedActiveEffects([ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)], for: battle.enemy)
         }
         return battle
     }

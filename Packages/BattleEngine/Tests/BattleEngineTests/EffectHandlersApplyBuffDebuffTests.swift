@@ -1,7 +1,6 @@
 import BattleEngine
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 
 struct EffectHandlersApplyBuffDebuffTests {
@@ -97,11 +96,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     func `halve shield handler applies only when block present`(seedBlock: Bool) throws {
         var battle = BattleStateTestFactory.makeBattle()
         if seedBlock {
-            BattleStateTestFactory.seedActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 3), remainingTurns: 0)],
-                for: battle.enemy,
-                on: &battle,
-            )
+            battle.seedActiveEffects([ActiveEffect(id: 1, effect: .shield(.block, 3), remainingTurns: 0)], for: battle.enemy)
         }
         let outcome = EffectHandlersTestSupport.dispatch(
             .halveShield(.block),

@@ -66,7 +66,6 @@ struct DoTMechanicsTests {
                 maxHealth: 20,
                 abilities: heroAbilities,
             ),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: enemyEffects,
             activeHeroEffects: heroEffects,
@@ -101,17 +100,11 @@ struct DoTMechanicsTests {
         try #expect(statusAmounts(from: applyEvents, keyword: .burn) == [4])
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 4)
 
-        let tickOne = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(statusAmounts(from: tickOne, keyword: .burn) == [2])
-        try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
-
-        let tickTwo = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(statusAmounts(from: tickTwo, keyword: .burn) == [1])
-        try #expect(BattleTestFixtures.burnPotency(on: battle) == 1)
-
-        let tickThree = BattleTestFixtures.endTurn(on: &battle)
-        try #expect(statusAmounts(from: tickThree, keyword: .burn).isEmpty)
-        try #expect(BattleTestFixtures.burnPotency(on: battle) == nil)
+        for potency in [2, 1, 0] {
+            let events = battle.endTurn().events
+            try #expect(statusAmounts(from: events, keyword: .burn) == (potency > 0 ? [potency] : []))
+            try #expect(BattleTestFixtures.burnPotency(on: battle) == (potency > 0 ? potency : nil))
+        }
     }
 
     @Test func `burn stacks merge and decay together`() throws {
@@ -120,13 +113,13 @@ struct DoTMechanicsTests {
             enemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)],
         )
 
-        _ = BattleTestFixtures.endTurn(on: &battle)
+        _ = battle.endTurn()
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 4)
 
-        _ = BattleTestFixtures.endTurn(on: &battle)
+        _ = battle.endTurn()
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
     }
 
@@ -137,7 +130,7 @@ struct DoTMechanicsTests {
 
         var amounts: [Int] = []
         for _ in 0 ..< 8 {
-            let events = BattleTestFixtures.endTurn(on: &battle)
+            let events = battle.endTurn().events
             amounts.append(contentsOf: statusAmounts(from: events, keyword: .poison))
             if battle.activeEffects(of: battle.enemy).contains(where: { $0.keyword == .poison }) == false {
                 break
@@ -166,7 +159,7 @@ struct DoTMechanicsTests {
 
         var amounts: [Int] = []
         for _ in 0 ..< 2 {
-            let events = BattleTestFixtures.endTurn(on: &battle)
+            let events = battle.endTurn().events
             amounts.append(contentsOf: statusAmounts(from: events, keyword: .bleed))
         }
 
@@ -195,7 +188,7 @@ struct DoTMechanicsTests {
         )
 
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        _ = BattleTestFixtures.endTurn(on: &battle)
+        _ = battle.endTurn()
 
         try #expect(battle.health(of: battle.enemy) == 100)
     }
@@ -294,23 +287,17 @@ struct DoTMechanicsTests {
         )
     }
 
-    @Test func `damage ramp grows each round up to cap`() throws {
-        var battle = makeRampBattle(cap: 4)
-        for expected in [1, 2, 3, 4, 4] {
+    @Test(arguments: [(4, [1, 2, 3, 4, 4]), (0, [1, 2, 3, 4, 5])])
+    func `damage ramp grows each round with optional cap`(cap: Int, amounts: [Int]) throws {
+        var battle = makeRampBattle(cap: cap)
+        for expected in amounts {
             _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-            let runtime = try #require(battle.roster.runtime(for: battle.roster.hero.combatant))
+            let runtime = try #require(battle.roster.runtime(for: battle.hero))
             #expect(runtime.talents.battle.keywordDamageRamp[.burn] == expected)
         }
-        let companion = try #require(battle.roster.runtime(for: battle.roster.companion.combatant))
-        #expect(companion.talents.battle.keywordDamageRamp[.burn, default: 0] == 0)
-    }
-
-    @Test func `damage ramp grows uncapped without a cap`() throws {
-        var battle = makeRampBattle(cap: 0)
-        for expected in [1, 2, 3, 4, 5] {
-            _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-            let runtime = try #require(battle.roster.runtime(for: battle.roster.hero.combatant))
-            #expect(runtime.talents.battle.keywordDamageRamp[.burn] == expected)
+        if cap > 0 {
+            let companion = try #require(battle.roster.runtime(for: battle.companion))
+            #expect(companion.talents.battle.keywordDamageRamp[.burn, default: 0] == 0)
         }
     }
 

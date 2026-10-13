@@ -22,113 +22,59 @@ struct CombatTriggerTalentDamageTests {
         #expect(DamagePipeline.dodgeChance(for: hit, in: battle) == (health > 10 ? 0.25 : 0.10))
     }
 
-    @Test func `damage vs bleeding bonus applies when target is bleeding`() {
-        var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(damageVsBleedingBonus: 3),
-            )),
-        )
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
-            for: battle.roster.enemy.combatant,
-            on: &battle,
-        )
-        let outcome = battle.resolveTestDamage(4, to: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source")
-        #expect(outcome.healthLost == 7)
-    }
-
-    @Test func `damage vs frozen multiplier doubles damage`() {
-        var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(damageVsFrozenMultiplier: 2),
-            )),
-        )
-        BattleStateTestFactory.seedActiveEffects(
+    @Test(arguments: [
+        (DamageTriggers(damageVsBleedingBonus: 3), [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)], 4, Keyword.physical, 7),
+        (
+            DamageTriggers(damageVsFrozenMultiplier: 2),
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
-            for: battle.roster.enemy.combatant,
-            on: &battle,
-        )
-        let outcome = battle.resolveTestDamage(4, to: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source")
-        #expect(outcome.healthLost == 8)
-    }
-
-    @Test func `holy damage ignores enemy block`() {
+            4,
+            .physical,
+            8,
+        ),
+        (DamageTriggers(burnDamageVsNoBlockMultiplier: 2), [], 3, .burn, 6),
+    ])
+    func `damage bonuses honor their target status and keyword`(
+        triggers: DamageTriggers, effects: [ActiveEffect], amount: Int, keyword: Keyword, expected: Int,
+    ) {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(holyIgnoresBlock: true),
-            )),
+            targetEffects: effects, heroModifiers: .init(triggers: CombatTraitTriggers(damage: triggers)),
         )
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
-            for: battle.roster.enemy.combatant,
-            on: &battle,
-        )
-        let outcome = battle.resolveTestDamage(6, to: battle.roster.enemy.combatant, keyword: .holy, sourceActorID: "source")
-        #expect(outcome.healthLost == 6)
-        let block = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.enemy.combatant))
-        #expect(block == 10)
+        let outcome = battle.resolveTestDamage(amount, to: battle.enemy, keyword: keyword, sourceActorID: "source")
+        #expect(outcome.healthLost == expected)
     }
 
-    @Test func `piercing starlight ignores block only for holy damage`() {
+    @Test(arguments: [false, true])
+    func `holy block bypass preserves block for physical followups`(piercingStarlight: Bool) {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(holyIgnoresBlockAndDodge: true),
-            )),
+            targetEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
+            heroModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(
+                holyIgnoresBlock: !piercingStarlight, holyIgnoresBlockAndDodge: piercingStarlight,
+            ))),
         )
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
-            for: battle.roster.enemy.combatant,
-            on: &battle,
-        )
-        let holyOutcome = battle.resolveTestDamage(6, to: battle.roster.enemy.combatant, keyword: .holy, sourceActorID: "source")
-        #expect(holyOutcome.healthLost == 6)
-
-        let physicalOutcome = battle.resolveTestDamage(4, to: battle.roster.enemy.combatant, keyword: .physical, sourceActorID: "source")
-        #expect(physicalOutcome.healthLost == 0)
-        let block = DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.roster.enemy.combatant))
-        #expect(block == 6)
+        let holy = battle.resolveTestDamage(6, to: battle.enemy, keyword: .holy, sourceActorID: "source")
+        #expect(holy.healthLost == 6)
+        if piercingStarlight {
+            let physical = battle.resolveTestDamage(4, to: battle.enemy, keyword: .physical, sourceActorID: "source")
+            #expect(physical.healthLost == 0)
+        }
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == (piercingStarlight ? 6 : 10))
     }
 
-    @Test func `burn damage vs no block multiplier applies`() {
-        var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(burnDamageVsNoBlockMultiplier: 2),
-            )),
-        )
-        let outcome = battle.resolveTestDamage(3, to: battle.roster.enemy.combatant, keyword: .burn, sourceActorID: "source")
-        #expect(outcome.healthLost == 6)
-    }
-
-    @Test func `bane of evil doubles holy against undead`() {
-        let triggers = CombatTraitTriggers(
-            damage: DamageTriggers(holyDamageVsUndeadOrCorruptedMultiplier: 2),
-        )
-        var undead = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
+    @Test(arguments: [EnemyFaction.undead, .mortal])
+    func `bane of evil doubles holy against undead`(faction: EnemyFaction) {
+        var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroModifiers: .init(triggers: triggers),
-            enemyFaction: .undead,
-            dealOpeningHand: false,
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                damage: DamageTriggers(holyDamageVsUndeadOrCorruptedMultiplier: 2),
+            )),
+            enemyFaction: faction, dealOpeningHand: false,
         )
-        let vsUndead = undead.resolveTestDamage(4, keyword: .holy, options: .effect(scaling: .items, accuracy: .unavoidable))
-        var mortal = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroModifiers: .init(triggers: triggers),
-            enemyFaction: .mortal,
-            dealOpeningHand: false,
-        )
-        let vsMortal = mortal.resolveTestDamage(4, keyword: .holy, options: .effect(scaling: .items, accuracy: .unavoidable))
-        #expect(vsUndead.healthLost == 8)
-        #expect(vsMortal.healthLost == 4)
+        let outcome = battle.resolveTestDamage(4, keyword: .holy, options: .effect(scaling: .items, accuracy: .unavoidable))
+        #expect(outcome.healthLost == (faction == .undead ? 8 : 4))
     }
 
     @Test func `stalker precision caps crit multiplier`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 dodge: DodgeTriggers(critMultiplierPerDodge: 0.5),
@@ -151,8 +97,6 @@ struct CombatTriggerTalentDamageTests {
             block: BlockTriggers(onAnyHealthLossGainBlock: 1),
         ))
         var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: harvest,
             dealOpeningHand: false,
@@ -169,16 +113,13 @@ struct CombatTriggerTalentDamageTests {
             damage: DamageTriggers(damageWhileTargetStunnedBonus: 4),
         ))
         var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             companionModifiers: scarabProfile,
             dealOpeningHand: false,
         )
-        BattleStateTestFactory.seedActiveEffects(
+        battle.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.stun, 100, 100), remainingTurns: 1)],
             for: battle.roster.enemy.combatant,
-            on: &battle,
         )
         let outcome = battle.resolveTestDamage(5, from: .companion, options: .attack(scaling: .items, accuracy: .unavoidable))
         #expect(outcome.healthLost == 9)
@@ -186,8 +127,6 @@ struct CombatTriggerTalentDamageTests {
 
     @Test func `keyword reactions skip retaliation holy pings`() {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 mitigation: MitigationTriggers(blindingLight: true),
@@ -199,64 +138,38 @@ struct CombatTriggerTalentDamageTests {
         #expect(battle.heroTalents.history[battle.enemy.id]?.blindingReduction ?? 0 == 0)
     }
 
-    @Test func `afflicted damage auras stack additively`() {
-        var stacked = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
+    @Test(arguments: [false, true])
+    func `afflicted damage auras stack additively`(heroHasAura: Bool) {
+        func aura(named name: String) -> CombatModifierProfile {
+            .init(
+                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBurningMultiplier: 1.25)),
+                triggerAbilityNames: [.damageVsBurningMultiplier: name],
+            )
+        }
+        var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             activeEnemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)],
-            heroModifiers: .init(
-                triggers: CombatTraitTriggers(
-                    damage: DamageTriggers(damageVsBurningMultiplier: 1.25),
-                ),
-                triggerAbilityNames: [.damageVsBurningMultiplier: "Damnation"],
-            ),
-            companionModifiers: .init(
-                triggers: CombatTraitTriggers(
-                    damage: DamageTriggers(damageVsBurningMultiplier: 1.25),
-                ),
-                triggerAbilityNames: [.damageVsBurningMultiplier: "Intense Heat"],
-            ),
-            dealOpeningHand: false,
+            heroModifiers: heroHasAura ? aura(named: "Damnation") : .zero,
+            companionModifiers: aura(named: "Intense Heat"), dealOpeningHand: false,
         )
-        let stackedHit = stacked.resolveTestDamage(20, options: .effect(scaling: .items, accuracy: .unavoidable))
-        #expect(stackedHit.healthLost == 30)
-        #expect(stackedHit.events.contains { $0.abilityName == "Damnation" && $0.kind == .ability })
-        #expect(stackedHit.events.contains { $0.abilityName == "Intense Heat" && $0.kind == .ability })
-
-        var companionAura = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            activeEnemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)],
-            companionModifiers: .init(
-                triggers: CombatTraitTriggers(
-                    damage: DamageTriggers(damageVsBurningMultiplier: 1.25),
-                ),
-                triggerAbilityNames: [.damageVsBurningMultiplier: "Intense Heat"],
-            ),
-            dealOpeningHand: false,
-        )
-        let auraHit = companionAura.resolveTestDamage(20, options: .effect(scaling: .items, accuracy: .unavoidable))
-        #expect(auraHit.healthLost == 25)
-        #expect(auraHit.events.contains { $0.abilityName == "Intense Heat" && $0.kind == .ability })
+        let hit = battle.resolveTestDamage(20, options: .effect(scaling: .items, accuracy: .unavoidable))
+        #expect(hit.healthLost == (heroHasAura ? 30 : 25))
+        #expect(hit.events.contains { $0.abilityName == "Intense Heat" && $0.kind == .ability })
+        if heroHasAura {
+            #expect(hit.events.contains { $0.abilityName == "Damnation" && $0.kind == .ability })
+        }
     }
 
     @Test func `prey on the weak uses hero talent on companion hits`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 damage: DamageTriggers(companionDamageVsPoisonedBonus: 2),
             )),
             dealOpeningHand: false,
         )
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2)],
-            for: battle.roster.enemy.combatant,
-            on: &battle,
-        )
+        battle.seedActiveEffects([ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2)], for: battle.roster.enemy.combatant)
         let outcome = battle.resolveTestDamage(5, from: .companion, options: .effect(scaling: .items, accuracy: .unavoidable))
         #expect(outcome.healthLost == 7)
     }
@@ -264,7 +177,6 @@ struct CombatTriggerTalentDamageTests {
     @Test func `radiant health buffs hero hits while companion is full health`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 attack: AttackTriggers(partyDamageBonusWhileCompanionFullHealth: 2),
@@ -281,7 +193,6 @@ extension CombatTriggerTalentDamageTests {
     func `enrage boosts only party attacks`(enemySource: Bool, attackHit: Bool, expectedDamage: Int) {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 damage: DamageTriggers(
@@ -312,28 +223,19 @@ extension CombatTriggerTalentDamageTests {
                 block: BlockTriggers(unbrokenVow: true),
             )),
         )
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
-            for: battle.roster.enemy.combatant,
-            on: &battle,
-        )
-        BattleStateTestFactory.seedActiveEffects(
+        battle.seedActiveEffects([ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)], for: battle.roster.enemy.combatant)
+        battle.seedActiveEffects(
             [
                 ActiveEffect(id: 2, effect: .shield(.block, 10), remainingTurns: 0),
                 ActiveEffect(id: 3, effect: .evadeNextHit, remainingTurns: 0),
             ],
             for: battle.roster.hero.combatant,
-            on: &battle,
         )
         let dodgedOutcome = battle.resolveTestDamage(6, to: battle.roster.hero.combatant, keyword: .holy, sourceActorID: "target")
         #expect(dodgedOutcome.healthLost == 0)
         #expect(dodgedOutcome.isDodged)
 
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 4, effect: .shield(.block, 10), remainingTurns: 0)],
-            for: battle.roster.hero.combatant,
-            on: &battle,
-        )
+        battle.seedActiveEffects([ActiveEffect(id: 4, effect: .shield(.block, 10), remainingTurns: 0)], for: battle.roster.hero.combatant)
         let blockedOutcome = battle.resolveTestDamage(6, to: battle.roster.hero.combatant, keyword: .holy, sourceActorID: "target")
         #expect(blockedOutcome.healthLost == 0)
         #expect(!blockedOutcome.isDodged)

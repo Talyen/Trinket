@@ -19,7 +19,7 @@ struct RogueRevisionTests {
         battle.nextCardID += 1
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: ability, owner: .hero)])
         if !activeEnemyEffects.isEmpty {
-            BattleStateTestFactory.seedActiveEffects(activeEnemyEffects, for: battle.enemy, on: &battle)
+            battle.seedActiveEffects(activeEnemyEffects, for: battle.enemy)
         }
         return battle
     }

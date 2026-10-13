@@ -16,7 +16,6 @@ struct DefeatedSourceDoTRegressionTests {
         let burn = ActiveEffect(id: 100, effect: .burn(6), remainingTurns: 0, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 3),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             enemyEffects: [burn], heroHealth: survives ? 20 : 0, companionHealth: 5,
             heroMana: 0, heroModifiers: profile, companionModifiers: companionProfile,

@@ -6,22 +6,19 @@ import TrinketCore
 extension TalentCatalogRoundTripTests {
     @Test func `fae ward spends its first cleanse allowance even without another effect`() {
         var battle = capstoneBattle(companion: ["pixie_cleanse_t3_1"])
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)],
-            for: battle.hero, on: &battle,
-        )
+        battle.seedActiveEffects([ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)], for: battle.hero)
         let first = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .randomDebuff, source: battle.companion, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
         ) }
         #expect(first.removed.count == 1)
 
-        BattleStateTestFactory.seedActiveEffects(
+        battle.seedActiveEffects(
             [
                 ActiveEffect(id: 2, effect: .burn(2), remainingTurns: 0),
                 ActiveEffect(id: 3, effect: .bleed(2), remainingTurns: 0),
             ],
-            for: battle.hero, on: &battle,
+            for: battle.hero,
         )
         let second = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .randomDebuff, source: battle.companion, target: battle.hero,
@@ -35,13 +32,13 @@ extension TalentCatalogRoundTripTests {
         for seed in 0 ..< 8 {
             var battle = capstoneBattle(companion: ["pixie_cleanse_t2_1", "pixie_cleanse_t3_1"])
             battle.rng = SeededRandomNumberGenerator(seed: UInt64(seed))
-            BattleStateTestFactory.seedActiveEffects(
+            battle.seedActiveEffects(
                 [
                     ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0),
                     ActiveEffect(id: 2, effect: .controlMeter(.freeze, 3, 10), remainingTurns: 0),
                     ActiveEffect(id: 3, effect: .burn(2), remainingTurns: 0),
                 ],
-                for: battle.hero, on: &battle,
+                for: battle.hero,
             )
             let result = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
                 .all(.poison), source: battle.companion, target: battle.hero,

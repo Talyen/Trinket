@@ -60,10 +60,9 @@ struct TalentCatalogRoundTripTests {
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
             heroModifiers: build.modifiers,
         )
-        BattleStateTestFactory.seedActiveEffects(
+        battle.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
             for: battle.roster.enemy.combatant,
-            on: &battle,
         )
         let blockEvents = battle.applyBlock(
             5,
@@ -88,10 +87,9 @@ struct TalentCatalogRoundTripTests {
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 40),
             heroModifiers: build.modifiers,
         )
-        BattleStateTestFactory.seedActiveEffects(
+        battle.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
             for: battle.roster.hero.combatant,
-            on: &battle,
         )
         let blockEvents = battle.applyBlock(
             5,

@@ -13,7 +13,6 @@ struct ColdSnapControlProtectionTests {
         var heroModifiers = CombatModifierProfile.zero
         heroModifiers.triggers.blockedControlPrevention = true
         var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.coldSnap]),
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 4), remainingTurns: 0),
@@ -35,7 +34,6 @@ struct ColdSnapControlProtectionTests {
 
     @Test func `Perfect Purity blocks control multiplication from doubling existing Freeze buildup`() throws {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.coldSnap]),
             activeHeroEffects: [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 4), remainingTurns: 0)],
             dealOpeningHand: false,

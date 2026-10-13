@@ -4,18 +4,18 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentMigrationTests {
-    @Test func `storedImpact stores blocked and empowers next physical`() {
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `stored impact converts either allies blocked damage into the next hero attack`(recipient: BattleParticipant) {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(storedImpact: true)))
-        battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
-            for: battle.roster.hero.combatant,
-        )
-        _ = battle.resolveTestDamage(10, from: .enemy, to: .hero, options: .reaction())
-        let heroID = battle.hero.id
-        let stored = battle.storedBlockedDamageByActorID[heroID] ?? 0
-        #expect(stored > 0)
-        let second = battle.resolveTestDamage(10)
-        #expect(second.healthLost > 10)
+        let target = battle.roster[recipient].combatant
+        battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)], for: target)
+        _ = battle.resolveTestDamage(10, from: .enemy, to: recipient, options: .reaction())
+        #expect(battle.storedBlockedDamageByActorID[target.id, default: 0] > 0)
+        let outcome = battle.resolveTestDamage(10)
+        #expect(outcome.healthLost > 10)
+        if recipient == .companion {
+            #expect(battle.storedBlockedDamageByActorID.isEmpty)
+        }
     }
 
     @Test func `seismicReversal returns blocked as stun`() {
@@ -41,61 +41,38 @@ extension TalentMigrationTests {
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 9)
     }
 
-    @Test func `storedImpact cross-owner companion block empowers hero`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(storedImpact: true)))
-        battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
-            for: battle.roster.companion.combatant,
+    @Test(arguments: [(BattleParticipant.hero, 6), (.companion, 2)])
+    func `stun block rewards go to their talent owner`(owner: BattleParticipant, amount: Int) {
+        let triggers = CombatTraitTriggers(block: BlockTriggers(onStunEnemyGainBlock: amount))
+        var battle = makeBattle(
+            heroTriggers: owner == .hero ? triggers : .init(),
+            companionTriggers: owner == .companion ? triggers : .init(),
         )
-        _ = battle.resolveTestDamage(10, from: .enemy, to: .companion, options: .reaction())
-        let companionID = battle.companion.id
-        let storedCompanion = battle.storedBlockedDamageByActorID[companionID] ?? 0
-        #expect(storedCompanion > 0)
-        let outcome = battle.resolveTestDamage(10)
-        #expect(outcome.healthLost > 10)
-        #expect(battle.storedBlockedDamageByActorID.isEmpty)
-    }
-
-    @Test func `stalwart oath grants 6 block on stun`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(onStunEnemyGainBlock: 6)))
         battle.appliesFightPacing = false
-        _ = battle.resolveTestDamage(20, keyword: .stun)
-        #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
-    }
-
-    @Test func `gilded carapace grants 2 block on stun`() {
-        var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: BlockTriggers(onStunEnemyGainBlock: 2)))
-        battle.appliesFightPacing = false
-        _ = battle.resolveTestDamage(20, from: .companion, keyword: .stun)
-        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
+        _ = battle.resolveTestDamage(20, from: owner, keyword: .stun)
+        if owner == .hero {
+            #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
+        }
+        #expect(BattleTestFixtures.shieldPoints(for: battle.roster[owner].combatant, in: battle) == amount)
     }
 
     @Test func `slip away dodges the first attack each combat`() {
         var battle = makeBattle(companionTriggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeFirstAttackEachCombat: true)))
         _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        #expect(battle.roster.activeEffects(for: battle.companion).contains {
-            if case .evadeNextHit = $0.effect {
-                return true
-            }
-            return false
-        })
+        #expect(battle.activeEffects(of: battle.companion).contains { $0.effect == .evadeNextHit })
     }
 
-    @Test func `golden guard grants block while carrying enough gold`() {
+    @Test(arguments: [0, 10])
+    func `golden guard grants block while carrying enough gold`(gold: Int) {
         var battle = makeBattle(
             heroTriggers: CombatTraitTriggers(block: BlockTriggers(blockWhileGoldThreshold: 10, blockWhileGoldAmount: 2)),
-            initialGold: 10,
+            initialGold: gold,
         )
         let events = CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 2)
-        #expect(events.contains(where: { $0.abilityName == "Golden Guard" }))
-
-        var poor = makeBattle(
-            heroTriggers: CombatTraitTriggers(block: BlockTriggers(blockWhileGoldThreshold: 10, blockWhileGoldAmount: 2)),
-        )
-        _ = CombatTriggerEngine.turnBlock(for: poor.hero, in: &poor)
-        #expect(BattleTestFixtures.shieldPoints(for: poor.hero, in: poor) == 0)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == (gold == 10 ? 2 : 0))
+        if gold == 10 {
+            #expect(events.contains { $0.abilityName == "Golden Guard" })
+        }
     }
 
     @Test func `rimewind deals freeze damage on dodge`() {
@@ -134,27 +111,23 @@ extension TalentMigrationTests {
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
     }
 
-    @Test func `spiked shell grows thorns from retained block`() {
-        var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: BlockTriggers(retainedBlockGainThornsPercent: 0.5)))
+    @Test(arguments: [
+        (BlockTriggers(retainedBlockGainThornsPercent: 0.5), 8, true, 2),
+        (BlockTriggers(blockRetainsHalf: true), 50, false, 25),
+    ])
+    func `companion block decay honors retention and thorns talents`(
+        triggers: BlockTriggers, initialBlock: Int, checksThorns: Bool, expected: Int,
+    ) {
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: triggers))
         battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
-            for: battle.roster.companion.combatant,
+            [ActiveEffect(id: 1, effect: .shield(.block, initialBlock), remainingTurns: 0)],
+            for: battle.companion,
         )
-        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.roster.companion.combatant, in: &battle) }
-        let thorns = battle.activeEffects(of: battle.companion).reduce(0) { sum, active in
+        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.companion, in: &battle) }
+        let amount = checksThorns ? battle.activeEffects(of: battle.companion).reduce(0) { sum, active in
             guard case let .thorns(stacks) = active.effect else { return sum }
             return sum + stacks
-        }
-        #expect(thorns == 2)
-    }
-
-    @Test func `enduring shell retains half block`() {
-        var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: BlockTriggers(blockRetainsHalf: true)))
-        battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTurns: 0)],
-            for: battle.roster.companion.combatant,
-        )
-        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.roster.companion.combatant, in: &battle) }
-        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 25)
+        } : BattleTestFixtures.shieldPoints(for: battle.companion, in: battle)
+        #expect(amount == expected)
     }
 }

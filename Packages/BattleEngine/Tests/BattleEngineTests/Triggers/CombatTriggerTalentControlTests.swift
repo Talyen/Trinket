@@ -7,10 +7,9 @@ import TrinketCore
 struct CombatTriggerTalentControlTests {
     @Test func `freeze buildup does not decay`() {
         var battle = BattleTestFixtures.makePipelineContext()
-        BattleStateTestFactory.seedActiveEffects(
+        battle.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 4, 10), remainingTurns: 0, sourceActorID: "source")],
             for: battle.roster.enemy.combatant,
-            on: &battle,
         )
         _ = battle.endTurn()
         let meter = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
@@ -44,7 +43,6 @@ struct CombatTriggerTalentControlTests {
     @Test func `seismic roar stuns enemy when companion drops below half`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 control: ControlTriggers(
@@ -78,7 +76,6 @@ struct CombatTriggerTalentControlTests {
     @Test func `venomous skin poisons attacker`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 onHit: OnHitTriggers(onHitAttackerPoison: 1),
@@ -110,159 +107,91 @@ struct CombatTriggerTalentControlTests {
         #expect(!battle.roster.activeEffects(for: battle.enemy).contains { $0.effect == .evadeNextHit })
     }
 
-    @Test func `pinning strike and paralytic poison require living owner`() {
-        func bleedBattle(heroAlive: Bool) -> BattleState {
-            var battle = BattleStateTestFactory.makeBattle(
-                hero: CombatantFixtures.passiveHero(maxHealth: 50),
-                companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
-                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-                activeEnemyEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
-                heroModifiers: .init(triggers: CombatTraitTriggers(
-                    mitigation: MitigationTriggers(bleedingEnemyAttackDealDamage: 5),
-                )),
-                dealOpeningHand: false,
-            )
-            if !heroAlive {
-                battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = 0 }
-            }
-            return battle
-        }
-
-        var livingPin = bleedBattle(heroAlive: true)
-        _ = CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &livingPin) }
-        #expect(livingPin.roster.health(for: livingPin.roster.enemy.combatant) == 35)
-
-        var deadPin = bleedBattle(heroAlive: false)
-        _ = CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &deadPin) }
-        #expect(deadPin.roster.health(for: deadPin.roster.enemy.combatant) == 40)
-
-        func poisonBattle(heroAlive: Bool) -> BattleState {
-            var battle = BattleStateTestFactory.makeBattle(
-                hero: CombatantFixtures.passiveHero(maxHealth: 50),
-                companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
-                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-                activeEnemyEffects: [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)],
-                heroModifiers: .init(triggers: CombatTraitTriggers(
-                    mitigation: MitigationTriggers(poisonedEnemyMissChancePercent: 1),
-                )),
-                dealOpeningHand: false,
-            )
-            if !heroAlive {
-                battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = 0 }
-            }
-            return battle
-        }
-
-        var livingMiss = poisonBattle(heroAlive: true)
-        #expect(CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &livingMiss) }.cancelled)
-
-        var deadMiss = poisonBattle(heroAlive: false)
-        #expect(!CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &deadMiss) }.cancelled)
-    }
-
-    @Test func `frozen cannot block aura requires living owner`() {
-        func makeBattle() -> BattleState {
-            var battle = BattleStateTestFactory.makeBattle(
-                hero: CombatantFixtures.passiveHero(),
-                companion: CombatantFixtures.passiveCompanion(),
-                enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-                companionModifiers: .init(triggers: CombatTraitTriggers(
-                    control: ControlTriggers(frozenEnemyCannotBlockOrHeal: true),
-                )),
-                dealOpeningHand: false,
-            )
-            BattleStateTestFactory.seedActiveEffects(
-                [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
-                for: battle.roster.enemy.combatant,
-                on: &battle,
-            )
-            return battle
-        }
-
-        var livingOwner = makeBattle()
-        let blocked = livingOwner.applyBlock(
-            4,
-            to: livingOwner.roster.enemy.combatant,
-            source: livingOwner.roster.hero.combatant,
-            abilityName: "Test",
-        )
-        #expect(blocked.isEmpty)
-
-        var deadOwner = makeBattle()
-        deadOwner.roster.mutateRuntime(for: deadOwner.roster.companion.combatant) { $0.currentHealth = 0 }
-        let applied = deadOwner.applyBlock(
-            4,
-            to: deadOwner.roster.enemy.combatant,
-            source: deadOwner.roster.hero.combatant,
-            abilityName: "Test",
-        )
-        #expect(!applied.isEmpty)
-        #expect(DefensePoolEngine.blockPoints(
-            in: deadOwner.roster.activeEffects(for: deadOwner.roster.enemy.combatant),
-        ) > 0)
-    }
-
-    @Test func `hexing rune applies affliction only when hero spends mana`() {
-        func enemyIsAfflicted(_ battle: BattleState) -> Bool {
-            battle.roster.activeEffects(for: battle.roster.enemy.combatant).contains {
-                $0.effect.keyword == .bleed || $0.effect.keyword == .burn || $0.effect.keyword == .poison
-            }
-        }
-
-        var companionSpend = BattleStateTestFactory.makeBattle(
+    @Test(arguments: [false, true])
+    func `pinning strike and paralytic poison require living owner`(heroAlive: Bool) {
+        var pin = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true),
-            )),
-            dealOpeningHand: false,
-        )
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
-            ManaPayment(
-                payer: companionSpend.roster.companion.combatant,
-                balanceBefore: companionSpend.mana(of: companionSpend.roster.companion.combatant) + 2,
-                balanceAfter: companionSpend.mana(of: companionSpend.roster.companion.combatant),
-            ),
-            in: &companionSpend,
-        ) }
-        #expect(!enemyIsAfflicted(companionSpend))
-
-        var heroSpend = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
+            activeEnemyEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
             heroModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true),
+                mitigation: MitigationTriggers(bleedingEnemyAttackDealDamage: 5),
             )),
             dealOpeningHand: false,
         )
+        var miss = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
+            activeEnemyEffects: [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)],
+            heroModifiers: .init(triggers: CombatTraitTriggers(
+                mitigation: MitigationTriggers(poisonedEnemyMissChancePercent: 1),
+            )),
+            dealOpeningHand: false,
+        )
+        if !heroAlive {
+            pin.roster.hero.currentHealth = 0
+            miss.roster.hero.currentHealth = 0
+        }
+        _ = CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &pin) }
+        #expect(pin.health(of: pin.enemy) == (heroAlive ? 35 : 40))
+        #expect(CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &miss) }.cancelled == heroAlive)
+    }
+
+    @Test(arguments: [false, true])
+    func `frozen cannot block aura requires living owner`(ownerAlive: Bool) {
+        var battle = BattleStateTestFactory.makeBattle(
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
+            activeEnemyEffects: [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
+            companionModifiers: .init(triggers: CombatTraitTriggers(
+                control: ControlTriggers(frozenEnemyCannotBlockOrHeal: true),
+            )),
+            dealOpeningHand: false,
+        )
+        if !ownerAlive {
+            battle.roster.companion.currentHealth = 0
+        }
+        let events = battle.applyBlock(4, to: battle.enemy, source: battle.hero, abilityName: "Test")
+        #expect(events.isEmpty == ownerAlive)
+        #expect((DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) > 0) == !ownerAlive)
+    }
+
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `hexing rune applies affliction only when hero spends mana`(owner: BattleParticipant) {
+        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
+            mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true),
+        ))
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 50),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroModifiers: owner == .hero ? profile : .zero,
+            companionModifiers: owner == .companion ? profile : .zero,
+            dealOpeningHand: false,
+        )
+        let payer = battle.roster[owner].combatant
         _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
-            ManaPayment(
-                payer: heroSpend.roster.hero.combatant,
-                balanceBefore: heroSpend.mana(of: heroSpend.roster.hero.combatant) + 2,
-                balanceAfter: heroSpend.mana(of: heroSpend.roster.hero.combatant),
-            ),
-            in: &heroSpend,
+            ManaPayment(payer: payer, balanceBefore: battle.mana(of: payer) + 2, balanceAfter: battle.mana(of: payer)),
+            in: &battle,
         ) }
-        #expect(enemyIsAfflicted(heroSpend))
-        #expect(heroSpend.roster.health(for: heroSpend.roster.enemy.combatant) == 99)
+        let afflicted = battle.activeEffects(of: battle.enemy).contains {
+            [.bleed, .burn, .poison].contains($0.effect.keyword)
+        }
+        #expect(afflicted == (owner == .hero))
+        if owner == .hero {
+            #expect(battle.health(of: battle.enemy) == 99)
+        }
     }
 
     @Test func `spit poison applies from companion when hero attacks poisoned enemy`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: .init(triggers: CombatTraitTriggers(
                 attack: AttackTriggers(onHeroAttackPoisonedEnemyApplyPoison: 1),
             )),
             dealOpeningHand: false,
         )
-        BattleStateTestFactory.seedActiveEffects(
+        battle.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2, sourceActorID: battle.roster.hero.id)],
             for: battle.roster.enemy.combatant,
-            on: &battle,
         )
         let outcome = battle.resolveTestDamage(
             5,
@@ -282,62 +211,21 @@ struct CombatTriggerTalentControlTests {
         })
     }
 
-    @Test func `harvest essence ignores do T and retaliation`() {
-        let harvest = CombatModifierProfile(triggers: CombatTraitTriggers(
-            block: BlockTriggers(onAnyHealthLossGainBlock: 1),
-        ))
-        var dotBattle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
+    @Test(arguments: [DamageOperation.periodic, .attack(scaling: .flat, accuracy: .unavoidable),
+                      .reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable)])
+    func `harvest essence ignores do T and retaliation`(operation: DamageOperation) {
+        var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroModifiers: harvest,
+            heroModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(onAnyHealthLossGainBlock: 1))),
             dealOpeningHand: false,
         )
-        _ = dotBattle.applyDecayingDoT(
-            keyword: .poison,
-            potency: 3,
-            to: dotBattle.roster.enemy.combatant,
-            sourceActorID: dotBattle.roster.hero.id,
-            application: .ability,
-        )
-        #expect(DefensePoolEngine.blockPoints(
-            in: dotBattle.roster.activeEffects(for: dotBattle.roster.hero.combatant),
-        ) == 0)
-
-        var hitBattle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroModifiers: harvest,
-            dealOpeningHand: false,
-        )
-        _ = hitBattle.resolveTestDamage(
-            3,
-            to: hitBattle.roster.enemy.combatant,
-            keyword: .physical,
-            sourceActorID: hitBattle.roster.hero.id,
-            options: DamageOperation.attack(scaling: .flat, accuracy: .unavoidable),
-        )
-        #expect(DefensePoolEngine.blockPoints(
-            in: hitBattle.roster.activeEffects(for: hitBattle.roster.hero.combatant),
-        ) == 1)
-
-        var retaliation = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(),
-            companion: CombatantFixtures.passiveCompanion(),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroModifiers: harvest,
-            dealOpeningHand: false,
-        )
-        _ = retaliation.resolveTestDamage(
-            3,
-            to: retaliation.roster.enemy.combatant,
-            keyword: .physical,
-            sourceActorID: retaliation.roster.hero.id,
-            options: DamageOperation.reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable),
-        )
-        #expect(DefensePoolEngine.blockPoints(
-            in: retaliation.roster.activeEffects(for: retaliation.roster.hero.combatant),
-        ) == 0)
+        if operation.isPeriodic {
+            _ = battle.applyDecayingDoT(
+                keyword: .poison, potency: 3, to: battle.enemy, sourceActorID: battle.hero.id, application: .ability,
+            )
+        } else {
+            _ = battle.resolveTestDamage(3, options: operation)
+        }
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == (operation.isAttackHit ? 1 : 0))
     }
 }

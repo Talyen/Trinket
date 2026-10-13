@@ -40,14 +40,6 @@ enum BattleStateTestFactory {
         )
     }
 
-    static func seedActiveEffects(
-        _ effects: [ActiveEffect],
-        for combatant: Combatant,
-        on battle: inout BattleState,
-    ) {
-        battle.seedActiveEffects(effects, for: combatant)
-    }
-
     static func makeBattleWithAbilities(
         heroAbilities: [Ability] = [],
         companionAbilities: [Ability] = [],

@@ -4,93 +4,47 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentMigrationTests {
-    @Test func `purifyingWaters cleanse heals per effect`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(purifyingWaters: true)))
-        battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = 10 }
-        battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 1), ActiveEffect(id: 2, effect: .burn(1), remainingTurns: 1)],
-            for: battle.roster.hero.combatant,
-        )
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterCleanseAction(
-            source: battle.roster.hero.combatant,
-            target: battle.roster.hero.combatant,
-            removedCount: 2,
-            in: &battle,
-        ) }
-        #expect(battle.health(of: battle.hero) > 10)
-    }
-
-    @Test func `cleanSlate overheal cleanses`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(cleanSlate: true)))
-        battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 1)], for: battle.roster.hero.combatant)
-        battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = $0.maxHealth - 1 }
-        _ = battle.healEmitting(
-            amount: 10,
-            target: battle.roster.hero.combatant,
-            source: battle.roster.hero.combatant,
-            abilityName: "test-heal",
-        )
-        #expect(!battle.activeEffects(of: battle.hero).contains {
-            if case .poison = $0.effect {
-                true
-            } else {
-                false
-            }
-        })
-    }
-
-    @Test func `purifyingWaters triggers via living party not just source`() {
+    @Test(arguments: [
+        (BattleParticipant.hero, BattleParticipant.hero, 2),
+        (.companion, .hero, 1),
+        (.hero, .enemy, 1),
+    ])
+    func `purifying waters heals cleansed allies from either living party owner`(
+        owner: BattleParticipant, recipient: BattleParticipant, removed: Int,
+    ) {
+        let triggers = CombatTraitTriggers(healing: HealingTriggers(purifyingWaters: true))
         var battle = makeBattle(
-            companionTriggers: CombatTraitTriggers(healing: HealingTriggers(purifyingWaters: true)),
+            heroTriggers: owner == .hero ? triggers : .init(),
+            companionTriggers: owner == .companion ? triggers : .init(),
         )
-        battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = 10 }
-        battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 1)], for: battle.roster.hero.combatant)
+        let target = battle.roster[recipient].combatant
+        battle.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
+        battle.roster.setActiveEffects(
+            Array([ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 1),
+                   ActiveEffect(id: 2, effect: .burn(1), remainingTurns: 1)].prefix(removed)), for: target,
+        )
         _ = CombatExecutor.run { await CombatTriggerEngine.afterCleanseAction(
-            source: battle.roster.hero.combatant,
-            target: battle.roster.hero.combatant,
-            removedCount: 1,
-            in: &battle,
+            source: target, target: target, removedCount: removed, in: &battle,
         ) }
-        #expect(battle.health(of: battle.hero) > 10)
+        if recipient == .enemy {
+            #expect(battle.health(of: target) == 10)
+        } else {
+            #expect(battle.health(of: target) > 10)
+        }
     }
 
-    @Test func `cleanSlate cleanses once per excess restoration`() {
+    @Test(arguments: [1, 2])
+    func `clean slate cleanses once per excess restoration`(restorations: Int) {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(cleanSlate: true)))
-        battle.roster.setActiveEffects([
-            ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 2),
-            ActiveEffect(id: 2, effect: .burn(1), remainingTurns: 2),
-        ], for: battle.roster.hero.combatant)
-        battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentHealth = $0.maxHealth - 1 }
-        _ = battle.healEmitting(
-            amount: 10,
-            target: battle.roster.hero.combatant,
-            source: battle.roster.hero.combatant,
-            abilityName: "first",
+        battle.roster.setActiveEffects(
+            Array([ActiveEffect(id: 1, effect: .poison(1), remainingTurns: restorations),
+                   ActiveEffect(id: 2, effect: .burn(1), remainingTurns: restorations)].prefix(restorations)), for: battle.hero,
         )
-        _ = battle.healEmitting(
-            amount: 10,
-            target: battle.roster.hero.combatant,
-            source: battle.roster.hero.combatant,
-            abilityName: "second",
-        )
-        let remainingDebuffs = battle.activeEffects(of: battle.hero).count(
-            where: { $0.effect.keyword == .poison || $0.effect.keyword == .burn },
-        )
-        #expect(remainingDebuffs == 0)
-    }
-
-    @Test func `purifyingWaters does not heal when enemy cleanses`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(healing: HealingTriggers(purifyingWaters: true)))
-        battle.roster.mutateRuntime(for: battle.roster.enemy.combatant) { $0.currentHealth = 10 }
-        battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 1)], for: battle.roster.enemy.combatant)
-        let enemyHealthBefore = battle.health(of: battle.enemy)
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterCleanseAction(
-            source: battle.roster.enemy.combatant,
-            target: battle.roster.enemy.combatant,
-            removedCount: 1,
-            in: &battle,
-        ) }
-        #expect(battle.health(of: battle.enemy) == enemyHealthBefore)
+        battle.roster.hero.currentHealth = battle.roster.hero.maxHealth - 1
+        for index in 0 ..< restorations {
+            _ = battle.healEmitting(amount: 10, target: battle.hero, source: battle.hero, abilityName: "heal-\(index)")
+        }
+        #expect(!battle.activeEffects(of: battle.hero).contains { $0.keyword == .poison || $0.keyword == .burn })
     }
 
     @Test func `cleanSlate does not cleanse when enemy overheals`() {
@@ -106,14 +60,7 @@ extension TalentMigrationTests {
             source: battle.roster.enemy.combatant,
             abilityName: "test-heal",
         )
-        let buffRemains = battle.activeEffects(of: battle.enemy).contains {
-            if case .shield = $0.effect {
-                true
-            } else {
-                false
-            }
-        }
-        #expect(buffRemains)
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .shield })
     }
 
     @Test func `bloodprice heals on attacks against bleeding enemies`() {

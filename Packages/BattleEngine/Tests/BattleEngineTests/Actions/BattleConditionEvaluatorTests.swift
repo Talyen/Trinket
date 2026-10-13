@@ -23,9 +23,9 @@ struct BattleConditionEvaluatorTests {
     @Test(arguments: [Effect.nextBurnBonus(1), .onHitDamage(.burn, 3)])
     func `burn buffs do not satisfy burning conditions`(buff: Effect) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        BattleStateTestFactory.seedActiveEffects([
+        battle.seedActiveEffects([
             ActiveEffect(id: 1, effect: buff, remainingTurns: 0),
-        ], for: battle.enemy, on: &battle)
+        ], for: battle.enemy)
         #expect(!BattleConditionEvaluator.isMet(.enemyBurning, actor: battle.hero, in: battle))
         #expect(BattleConditionEvaluator.isMet(.enemyNotBurning, actor: battle.hero, in: battle))
         #expect(!battle.roster.hasAffliction(.burn, on: battle.enemy))
@@ -40,13 +40,13 @@ struct BattleConditionEvaluatorTests {
         let fallen = battle.roster[defeated].combatant
         let survivor = defeated == .hero ? battle.companion : battle.hero
         battle.roster.mutateRuntime(for: fallen) { $0.currentHealth = 0 }
-        BattleStateTestFactory.seedActiveEffects([
+        battle.seedActiveEffects([
             ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
             ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
-        ], for: fallen, on: &battle)
-        BattleStateTestFactory.seedActiveEffects([
+        ], for: fallen)
+        battle.seedActiveEffects([
             ActiveEffect(id: 3, effect: .poison(2), remainingTurns: 0),
-        ], for: survivor, on: &battle)
+        ], for: survivor)
 
         _ = EffectHandlersTestSupport.dispatch(
             .panacea(baseHeal: 3, healPerDebuff: 2),

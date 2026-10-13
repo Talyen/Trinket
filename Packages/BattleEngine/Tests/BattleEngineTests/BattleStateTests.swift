@@ -64,7 +64,6 @@ struct BattleStateTests {
         let goldHero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [.steal])
         var battle = BattleStateTestFactory.makeBattle(
             hero: goldHero,
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: defaultEnemy,
             initialGold: 10,
         )
@@ -73,7 +72,6 @@ struct BattleStateTests {
 
         var initialGoldBattle = BattleStateTestFactory.makeBattle(
             hero: goldHero,
-            companion: CombatantFixtures.passiveCompanion(),
             enemy: defaultEnemy,
             initialGold: 5,
         )
@@ -161,7 +159,6 @@ struct BattleStateTests {
     @Test func `faustian bargain self damage does not wipe party when companion survives`() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "warlock", role: .hero, maxHealth: 3, abilities: [.faustianBargain]),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 50),
         )
 

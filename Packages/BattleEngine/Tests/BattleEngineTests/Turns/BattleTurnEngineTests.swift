@@ -5,28 +5,24 @@ import TrinketCore
 @testable import BattleEngine
 
 private func makeTurnContext(
-    hero: Combatant? = nil,
     heroAbilities: [Ability] = [.slash],
     heroMaxHealth: Int = 20,
     heroHealth: Int? = nil,
     heroEffects: [ActiveEffect] = [],
     heroModifiers: CombatModifierProfile = .zero,
-    companion: Combatant? = nil,
-    enemy: Combatant? = nil,
     enemyAbilities: [Ability] = [.slash],
     enemyMaxHealth: Int = 100,
-    enemyHealth: Int? = nil,
     actorEffects: [ActiveEffect] = [],
     seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
 ) -> BattleState {
-    let resolvedHero = hero ?? CombatantFixtures.combatant(
+    let resolvedHero = CombatantFixtures.combatant(
         id: "hero",
         role: .hero,
         maxHealth: heroMaxHealth,
         abilities: heroAbilities,
     )
-    let resolvedCompanion = companion ?? CombatantFixtures.combatant(id: "companion", role: .companion)
-    let resolvedEnemy = enemy ?? CombatantFixtures.combatant(
+    let resolvedCompanion = CombatantFixtures.combatant(id: "companion", role: .companion)
+    let resolvedEnemy = CombatantFixtures.combatant(
         id: "enemy",
         role: .enemy,
         maxHealth: enemyMaxHealth,
@@ -39,10 +35,8 @@ private func makeTurnContext(
         heroEffects: heroEffects,
         enemyEffects: actorEffects,
         heroHealth: heroHealth,
-        enemyHealth: enemyHealth,
         heroModifiers: heroModifiers,
         rngSeed: seed,
-        nextEventID: 0,
     )
 }
 
@@ -64,22 +58,6 @@ struct BattleTurnEngineTests {
         })
         try #expect(try #require(context.roster.runtime(for: enemy)?.actionCount) == before + 1)
         try #expect(context.actionCount == 1)
-    }
-
-    @Test func `perform action resolves when no skip pending`() throws {
-        var context = makeTurnContext()
-        let enemy = context.roster.enemy.combatant
-        let ability = try #require(enemy.abilityLoadout.basic)
-
-        let events = BattleTurnEngine.performAction(
-            ability: ability,
-            actor: enemy,
-            abilityTarget: context.roster.enemyAttackTarget,
-            context: &context,
-        )
-
-        try #expect(events.contains { $0.kind == .ability })
-        try #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
     }
 
     @Test func `deathgrip grants block when entering deaths door`() throws {
@@ -128,39 +106,37 @@ struct BattleTurnEngineTests {
         )
         let abilityEvent = try #require(events.first { $0.kind == .ability })
 
+        #expect(!events.contains { $0.effectKind == .controlActionSkipped })
         #expect(abilityEvent.actorID == enemy.id)
         #expect(abilityEvent.abilityID == Ability.slash.id)
         #expect(abilityEvent.abilityName == Ability.slash.name)
         #expect(abilityEvent.abilityTier == Ability.slash.tier)
     }
 
-    @Test func `next strike double doubles outgoing damage and consumes`() throws {
-        let ability = Ability(
-            id: "test-strike",
-            name: "Test Strike",
-            tier: .basic,
-            damageComponents: [DamageComponent(2, keyword: .physical)],
-        )
+    @Test(arguments: [
+        (Effect.nextStrikeDouble, Keyword.physical, 4, true),
+        (.nextBurnBonus(1), .burn, 3, true),
+        (.nextBurnBonus(1), .physical, 2, false),
+    ])
+    func `next hit bonuses match their keyword and consume only on a qualifying attack`(
+        effect: Effect, keyword: Keyword, damage: Int, consumed: Bool,
+    ) throws {
+        let ability = Ability(id: "test-bonus", name: "Test Bonus", tier: .basic, damageComponents: [DamageComponent(2, keyword: keyword)])
         var context = makeTurnContext(
-            heroAbilities: [ability],
-            heroEffects: [ActiveEffect(id: 1, effect: .nextStrikeDouble, remainingTurns: 0)],
+            heroAbilities: [ability], heroEffects: [ActiveEffect(id: 1, effect: effect, remainingTurns: 0)],
         )
-        let hero = context.hero
-        let healthBefore = context.roster.health(for: context.enemy)
-
+        let healthBefore = context.health(of: context.enemy)
         let events = BattleTurnEngine.performAction(
-            ability: ability,
-            actor: hero,
-            abilityTarget: context.enemy,
-            context: &context,
+            ability: ability, actor: context.hero, abilityTarget: context.enemy, context: &context,
         )
-
-        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
-        try #expect(damageEvent.amount == 4)
-        try #expect(context.roster.health(for: context.enemy) == healthBefore - 4)
-        try #expect(!(context.roster.activeEffects(for: hero).contains {
-            $0.effect.kind == .nextStrikeDouble
-        }))
+        let hit = try #require(events.first { $0.kind == .abilityDamage })
+        #expect(hit.amount == damage)
+        if consumed {
+            #expect(context.health(of: context.enemy) == healthBefore - damage)
+        }
+        #expect(context.activeEffects(of: context.hero).contains {
+            consumed ? $0.effect.kind == effect.kind : $0.effect == effect
+        } == !consumed)
     }
 
     @Test func `mixed damage components emit exact feedback events and one log summary`() {
@@ -276,99 +252,21 @@ struct BattleTurnEngineTests {
 }
 
 struct BattleTurnEngineBurnBonusTests {
-    @Test func `next burn bonus applies to burn and consumes`() throws {
-        let ability = Ability(
-            id: "test-burn",
-            name: "Test Burn",
-            tier: .basic,
-            damageComponents: [DamageComponent(2, keyword: .burn)],
-        )
+    @Test(arguments: [false, true])
+    func `kindling doubles against an unburning enemy and consumes any existing burn bonus`(hasBonus: Bool) throws {
         var context = makeTurnContext(
-            heroAbilities: [ability],
-            heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
+            heroAbilities: [.kindling],
+            heroEffects: hasBonus ? [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)] : [],
         )
-        let healthBefore = context.roster.health(for: context.enemy)
-
         let events = BattleTurnEngine.performAction(
-            ability: ability,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
+            ability: .kindling, actor: context.hero, abilityTarget: context.enemy, context: &context,
         )
-
-        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
-        try #expect(damageEvent.amount == 3)
-        try #expect(context.roster.health(for: context.enemy) == healthBefore - 3)
-        try #expect(!(context.roster.activeEffects(for: context.hero).contains {
-            $0.effect.kind == .nextBurnBonus
-        }))
-    }
-
-    @Test func `next burn bonus ignores non burn and persists`() throws {
-        let ability = Ability(
-            id: "test-physical",
-            name: "Test Physical",
-            tier: .basic,
-            damageComponents: [DamageComponent(2, keyword: .physical)],
-        )
-        var context = makeTurnContext(
-            heroAbilities: [ability],
-            heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-        )
-
-        let events = BattleTurnEngine.performAction(
-            ability: ability,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
-
-        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
-        try #expect(damageEvent.amount == 2)
-        try #expect(context.roster.activeEffects(for: context.hero).contains {
-            if case let .nextBurnBonus(amount) = $0.effect {
-                return amount == 1
-            }
-            return false
-        })
-    }
-
-    @Test func `kindling doubles against an unburning enemy`() throws {
-        var context = makeTurnContext(heroAbilities: [Ability.kindling])
-
-        let events = BattleTurnEngine.performAction(
-            ability: Ability.kindling,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
-
-        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
-        try #expect(damageEvent.amount == 4)
-        try #expect(!context.roster.activeEffects(for: context.hero).contains {
-            $0.effect.kind == .nextBurnBonus
-        })
-        try #expect(!events.contains { $0.effectKind == .nextBurnBonusApplied })
-    }
-
-    @Test func `kindling consumes an existing next burn bonus`() throws {
-        var context = makeTurnContext(
-            heroAbilities: [Ability.kindling],
-            heroEffects: [ActiveEffect(id: 1, effect: .nextBurnBonus(1), remainingTurns: 0)],
-        )
-
-        let events = BattleTurnEngine.performAction(
-            ability: Ability.kindling,
-            actor: context.hero,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
-
-        let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
-        try #expect(damageEvent.amount == 5)
-        try #expect(!context.roster.activeEffects(for: context.hero).contains {
-            $0.effect.kind == .nextBurnBonus
-        })
+        let hit = try #require(events.first { $0.kind == .abilityDamage })
+        #expect(hit.amount == (hasBonus ? 5 : 4))
+        #expect(!context.activeEffects(of: context.hero).contains { $0.effect.kind == .nextBurnBonus })
+        if !hasBonus {
+            #expect(!events.contains { $0.effectKind == .nextBurnBonusApplied })
+        }
     }
 }
 

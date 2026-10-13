@@ -8,7 +8,6 @@ extension CombatTriggerTalentControlTests {
     @Test func `poisonous dash deals damage and attaches dot on dodge`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 dodge: DodgeTriggers(onDodgeApplyPoisonOrBleed: 2),
@@ -28,7 +27,6 @@ extension CombatTriggerTalentControlTests {
     @Test func `stun flare deals burn damage on holy attack`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 attack: AttackTriggers(holyAttackApplyBurnAndStunBuildup: 2),
@@ -51,7 +49,6 @@ extension CombatTriggerTalentControlTests {
     @Test func `solar brand deals burn damage when enemy is stunned`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: .init(triggers: CombatTraitTriggers(
                 control: ControlTriggers(onStunEnemyApplyBurn: 2),

@@ -16,50 +16,41 @@ extension TalentMigrationTests {
         #expect(outcome.isCritical == (gold >= 50))
     }
 
-    @Test func `pressurePoint doubles physical crit vs poisoned`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(pressurePoint: true)))
-        battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2)], for: battle.roster.enemy.combatant)
-        let crit = battle.resolveTestDamage(
+    @Test(arguments: [
+        (
+            CombatTraitTriggers(damage: DamageTriggers(pressurePoint: true)),
+            BattleParticipant.hero,
+            Effect.poison(3),
+            2,
             10,
-            options: .attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
+            Keyword.physical,
+            DamageOperation.attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
+        ),
+        (
+            CombatTraitTriggers(dot: DotTriggers(poisonDamageVsStunnedMultiplier: 1.2)),
+            .companion,
+            .controlMeter(.stun, 100, 10),
+            0,
+            8,
+            .poison,
+            .reaction(),
+        ),
+        (CombatTraitTriggers(damage: DamageTriggers(septicemia: true)), .hero, .poison(2), 2, 6, .bleed, .reaction()),
+        (CombatTraitTriggers(damage: DamageTriggers(elementalParadox: true)), .hero, .burn(2), 2, 8, .freeze, .reaction()),
+    ])
+    func `status damage talents amplify their owners qualifying hits`(
+        triggers: CombatTraitTriggers, owner: BattleParticipant, effect: Effect, turns: Int,
+        amount: Int, keyword: Keyword, operation: DamageOperation,
+    ) {
+        var afflicted = makeBattle(
+            heroTriggers: owner == .hero ? triggers : .init(),
+            companionTriggers: owner == .companion ? triggers : .init(),
         )
-        var noPoisonBattle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(pressurePoint: true)))
-        let noPoison = noPoisonBattle.resolveTestDamage(
-            10,
-            options: .attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
-        )
-        #expect(crit.healthLost > noPoison.healthLost)
-    }
-
-    @Test func `toxic coma increases companion poison damage against stunned enemies`() {
-        let triggers = CombatTraitTriggers(dot: DotTriggers(poisonDamageVsStunnedMultiplier: 1.2))
-        var battle = makeBattle(companionTriggers: triggers)
-        battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .controlMeter(Keyword.stun, 100, 10), remainingTurns: 0)],
-            for: battle.roster.enemy.combatant,
-        )
-        let withStun = battle.resolveTestDamage(8, from: .companion, keyword: .poison, options: .reaction())
-        var plain = makeBattle(companionTriggers: triggers)
-        let without = plain.resolveTestDamage(8, from: .companion, keyword: .poison, options: .reaction())
-        #expect(withStun.healthLost > without.healthLost)
-    }
-
-    @Test func `septicemia doubles bleed vs poisoned`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(septicemia: true)))
-        battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 2)], for: battle.roster.enemy.combatant)
-        let withPoison = battle.resolveTestDamage(6, keyword: .bleed, options: .reaction())
-        var plain = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(septicemia: true)))
-        let without = plain.resolveTestDamage(6, keyword: .bleed, options: .reaction())
-        #expect(withPoison.healthLost > without.healthLost)
-    }
-
-    @Test func `elementalParadox doubles freeze vs burning`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(elementalParadox: true)))
-        battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .burn(2), remainingTurns: 2)], for: battle.roster.enemy.combatant)
-        let withBurn = battle.resolveTestDamage(8, keyword: .freeze, options: .reaction())
-        var plain = makeBattle(heroTriggers: CombatTraitTriggers(damage: DamageTriggers(elementalParadox: true)))
-        let without = plain.resolveTestDamage(8, keyword: .freeze, options: .reaction())
-        #expect(withBurn.healthLost > without.healthLost)
+        var plain = afflicted
+        afflicted.roster.setActiveEffects([ActiveEffect(id: 1, effect: effect, remainingTurns: turns)], for: afflicted.enemy)
+        let withStatus = afflicted.resolveTestDamage(amount, from: owner, keyword: keyword, options: operation)
+        let without = plain.resolveTestDamage(amount, from: owner, keyword: keyword, options: operation)
+        #expect(withStatus.healthLost > without.healthLost)
     }
 
     @Test func `companion critical prepares doubled hero poison attack`() {

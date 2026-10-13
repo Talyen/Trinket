@@ -171,7 +171,7 @@ struct CleanseIntegrationTests {
 
         _ = try BattleTestFixtures.playCardNamed("Test Cleanse", owner: .hero, on: &battle)
 
-        try #expect(!battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup")
+        try #expect(!battle.hasHeroEffect { $0.kind == .controlMeter }, "Cleanse removed buildup")
     }
 
     @Test func `cleanse all debuffs triggers toxic backlash trait damage when curing poison`() throws {

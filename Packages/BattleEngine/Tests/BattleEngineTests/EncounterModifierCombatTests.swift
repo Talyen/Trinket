@@ -66,10 +66,7 @@ struct EncounterModifierCombatTests {
             enemyModifiers: CombatModifierProfile(modifiers: [.attackPurgeCount(1)]),
         )
         battle.appliesFightPacing = false
-        BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 2)],
-            for: battle.companion, on: &battle,
-        )
+        battle.seedActiveEffects([ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 2)], for: battle.companion)
         let outcome = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .attack(scaling: .flat, accuracy: .unavoidable))
         #expect(battle.health(of: battle.enemy) == 0)
         #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.abilityName == "Unbinding Strike" })

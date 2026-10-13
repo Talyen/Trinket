@@ -61,7 +61,7 @@ struct RestorationIntegrationTests {
             ],
         )
 
-        _ = BattleTestFixtures.endTurn(on: &battle)
+        _ = battle.endTurn()
         try #expect(battle.health(of: battle.hero) == 8)
 
         let events = try BattleTestFixtures.playCardNamed("Heal", owner: .hero, on: &battle)
@@ -91,7 +91,7 @@ struct RestorationIntegrationTests {
             ],
         )
 
-        _ = BattleTestFixtures.endTurn(on: &battle)
+        _ = battle.endTurn()
         try #expect(battle.health(of: battle.hero) == 8)
 
         let events = try BattleTestFixtures.playCardNamed("Leech Slash", owner: .hero, on: &battle)
@@ -123,7 +123,7 @@ struct RestorationIntegrationTests {
 
         battle.roster.mutateRuntime(for: enemy) { $0.currentHealth = 16 }
 
-        let events = BattleTestFixtures.endTurn(on: &battle)
+        let events = battle.endTurn().events
 
         try #expect(events.contains { $0.effectKind == .instantHeal && $0.amount > 0 })
         try #expect(battle.health(of: battle.enemy) >= 16)

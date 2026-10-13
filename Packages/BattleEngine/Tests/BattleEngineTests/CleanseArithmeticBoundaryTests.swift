@@ -15,7 +15,6 @@ struct CleanseArithmeticBoundaryTests {
         profile.triggers.onCleansePoisonDealDamagePerStack = Int.max
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 4),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
             companionEffects: [
                 ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 0),

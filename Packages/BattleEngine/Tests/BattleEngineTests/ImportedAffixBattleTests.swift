@@ -85,8 +85,6 @@ struct ImportedAffixBattleTests {
         }
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 20),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: finallyDefeated ? 1 : 20,
             companionHealth: 5,
