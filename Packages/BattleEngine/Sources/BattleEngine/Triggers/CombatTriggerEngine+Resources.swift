@@ -165,6 +165,7 @@ package extension CombatTriggerEngine {
         combatant: Combatant,
         in context: inout BattleState,
     ) async -> [ActionEvent] {
+        guard granted > 0 else { return [] }
         let triggers = context.modifiers(for: combatant.id).triggers
         let wasBelowHalfHealth = context.roster.isBelowHalfHealth(for: combatant)
         let restoration = await beginGoldRestoration(granted: granted, combatant: combatant, triggers: triggers, in: &context)

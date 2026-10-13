@@ -396,8 +396,8 @@ extension BattleTurnEngine {
                     in: &context,
                 )
                 events.append(contentsOf: outcome.events)
-                grantedGold += outcome.grantedGold
-                restoredMana += outcome.restoredMana
+                grantedGold = SaturatedArithmetic.saturatingAdd(grantedGold, outcome.grantedGold)
+                restoredMana = SaturatedArithmetic.saturatingAdd(restoredMana, outcome.restoredMana)
                 didApply = didApply || outcome.didApply
             }
             if didApply, let summary = appliedEffectSummary(

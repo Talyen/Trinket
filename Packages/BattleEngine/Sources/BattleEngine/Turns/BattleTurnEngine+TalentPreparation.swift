@@ -105,15 +105,19 @@ extension BattleTurnEngine {
             components = components.map { component in
                 guard component.keyword == .poison, component.target != .actor else { return component }
                 return DamageComponent(
-                    component.amount * 2, keyword: .poison, target: component.target,
-                    bonusAmount: component.bonusAmount * 2, condition: component.condition,
+                    SaturatedArithmetic.saturatingMul(component.amount, 2), keyword: .poison, target: component.target,
+                    bonusAmount: SaturatedArithmetic.saturatingMul(component.bonusAmount, 2), condition: component.condition,
                 )
             }
             effects = effects.map { targeted in
                 let effect: Effect
                 switch targeted.effect {
-                case let .poison(amount): effect = .poison(amount * 2)
-                case let .recurringDamage(.poison, amount, turns): effect = .recurringDamage(.poison, amount * 2, turns)
+                case let .poison(amount): effect = .poison(SaturatedArithmetic.saturatingMul(amount, 2))
+                case let .recurringDamage(.poison, amount, turns): effect = .recurringDamage(
+                        .poison,
+                        SaturatedArithmetic.saturatingMul(amount, 2),
+                        turns,
+                    )
                 default: return targeted
                 }
                 guard targeted.target != .actor else { return targeted }
@@ -129,7 +133,7 @@ extension BattleTurnEngine {
         }) {
             let component = components[index]
             components[index] = DamageComponent(
-                component.amount + amount, keyword: keyword, target: component.target,
+                SaturatedArithmetic.saturatingAdd(component.amount, amount), keyword: keyword, target: component.target,
                 bonusAmount: component.bonusAmount,
             )
         } else {

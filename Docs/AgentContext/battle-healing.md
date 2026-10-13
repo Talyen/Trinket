@@ -14,6 +14,7 @@ observers such as Wishspring read original overflow without consuming it.
 Healing emits original overflow as an `overheal` event, including at full Health.
 Floating feedback combines it with restored Health in the existing healing number;
 restoration events, battle-log totals, and healing triggers still use actual restoration.
+Gold-gain reactions require a positive actual grant, including when the Gold ledger is saturated.
 `CombatGain` owns bounded applied gains; proportional effects use `CombatRounding`
 without an implicit minimum-one grant. Lingering Blessing stores its amount,
 source, and remaining duration together.

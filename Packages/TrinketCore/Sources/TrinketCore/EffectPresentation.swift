@@ -111,15 +111,15 @@ public enum EffectPresentation {
         case .marked:
             "mark the enemy"
         case let .criticalChanceBonus(percent, _):
-            "gain +\(Int(percent * 100))% Critical chance"
+            "gain +\(CombatRounding.rounded((percent * 100).rounded(.towardZero)))% Critical chance"
         case let .restoreManaOnHit(amount, _):
             "restore \(amount) Mana when you take damage"
         case let .damageKeywordOverride(keyword, bonus, durationTurns):
             "your attacks become \(keyword.rawValue) damage and deal +\(bonus) damage \(durationPhrase(turns: durationTurns))"
         case let .damageReductionPercent(percent, durationTurns):
-            "reduces damage dealt by \(Int((percent * 100).rounded()))% \(durationPhrase(turns: durationTurns))"
+            "reduces damage dealt by \(CombatRounding.rounded(percent * 100))% \(durationPhrase(turns: durationTurns))"
         case let .healingReductionPercent(percent, durationTurns):
-            "reduces the Health restored to enemies by \(Int((percent * 100).rounded()))% \(durationPhrase(turns: durationTurns))"
+            "reduces the Health restored to enemies by \(CombatRounding.rounded(percent * 100))% \(durationPhrase(turns: durationTurns))"
         case let .damageReductionFlat(amount, durationTurns):
             "reduces damage dealt by \(amount) \(durationPhrase(turns: durationTurns))"
         }

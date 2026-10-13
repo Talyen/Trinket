@@ -69,8 +69,12 @@ package extension CombatTriggerEngine {
         if context.health(of: source) > 0,
            profile.triggers.holyDamageNextHitBonus > 0 || profile.triggers.holyDamageNextAttackHolyBonus > 0 {
             context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.nextHitBonus += profile.triggers.holyDamageNextHitBonus
-                $0.talents.pending.nextAttackHolyBonus += profile.triggers.holyDamageNextAttackHolyBonus
+                $0.talents.pending.nextHitBonus = SaturatedArithmetic.saturatingAdd(
+                    $0.talents.pending.nextHitBonus, profile.triggers.holyDamageNextHitBonus,
+                )
+                $0.talents.pending.nextAttackHolyBonus = SaturatedArithmetic.saturatingAdd(
+                    $0.talents.pending.nextAttackHolyBonus, profile.triggers.holyDamageNextAttackHolyBonus,
+                )
             }
         }
         if profile.triggers.holyDamageReduceTargetDamage > 0, context.roster.health(for: enemy) > 0 {

@@ -97,6 +97,81 @@ struct BattleBoundaryRegressionTests {
         #expect(battle.activeEffects(of: battle.hero).isEmpty)
     }
 
+    @Test(arguments: [false, true])
+    func `zero actual Gold grants do not trigger restoration`(atCapacity: Bool) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.gainGoldBonusHealSelf = 2
+        profile.triggers.criticalChanceBonus = -1
+        var battle = makeBattle(profile: profile)
+        battle.roster.hero.currentHealth = 10
+        if atCapacity {
+            _ = battle.recordGoldGain(Int.max)
+        }
+
+        let gain = CombatExecutor.run { await battle.grantGold(
+            atCapacity ? 1 : 0, to: battle.hero, abilityName: "Gold",
+        ) }
+
+        #expect(gain.applied == 0)
+        #expect(battle.health(of: battle.hero) == 10)
+        #expect(!gain.events.contains { $0.effectKind == .instantHeal })
+        if !atCapacity {
+            _ = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Gold")
+            #expect(battle.health(of: battle.hero) == 12)
+        }
+    }
+
+    @Test func `party Mana summaries saturate without reducing either recipient's gain`() throws {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxMana: Int.max),
+            companion: CombatantFixtures.passiveCompanion(maxMana: Int.max),
+            enemy: CombatantFixtures.passiveEnemy(), heroMana: 0, companionMana: 0,
+        )
+        battle.appliesFightPacing = false
+        let ability = Ability(
+            id: "party-mana", name: "Party Mana", tier: .skill,
+            operations: [.effect(TargetedEffect(.resourceGain(.mana, Int.max), target: .eachAlly))],
+        )
+
+        let events = BattleTurnEngine.performAction(
+            ability: ability, actor: battle.hero, abilityTarget: battle.enemy, context: &battle,
+        )
+
+        #expect(battle.mana(of: battle.hero) == Int.max)
+        #expect(battle.mana(of: battle.companion) == Int.max)
+        #expect(events.filter { $0.effectKind == .resourceGain }.map(\.amount) == [Int.max, Int.max])
+        let summary = try #require(events.last { $0.kind == .ability })
+        #expect(summary.appliedEffectSummaries == ["restore \(Int.max) Mana"])
+    }
+
+    @Test func `Holy damage preparations preserve saturated bonuses`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.holyDamageNextHitBonus = 1
+        profile.triggers.holyDamageNextAttackHolyBonus = 1
+        var battle = makeBattle(profile: profile)
+        battle.roster.hero.talents.pending.nextHitBonus = Int.max
+        battle.roster.hero.talents.pending.nextAttackHolyBonus = Int.max
+
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
+            to: battle.enemy, source: battle.hero, in: &battle,
+        ) }
+
+        #expect(battle.roster.hero.talents.pending.nextHitBonus == Int.max)
+        #expect(battle.roster.hero.talents.pending.nextAttackHolyBonus == Int.max)
+    }
+
+    @Test func `large Focused bonuses safely publish their percentage and details`() throws {
+        var battle = makeBattle(profile: .zero)
+        let outcome = EffectHandlersTestSupport.dispatch(.criticalChanceBonus(1e20, 2), battle: &battle)
+        let event = try #require(outcome.events.first { $0.effectKind == .criticalChanceApplied })
+        #expect(event.amount == Int.max)
+        #expect(Effect.criticalChanceBonus(1e20, 2).summary.contains("+\(Int.max)%"))
+        #expect(Effect.damageReductionPercent(1e20, 2).summary.contains("\(Int.max)%"))
+        #expect(Effect.healingReductionPercent(1e20, 2).summary.contains("\(Int.max)%"))
+        let summary = try #require(EffectSummaryBuilder.build(for: battle.activeEffects(of: battle.hero)).first)
+        #expect(summary.text.contains("+\(Int.max)%"))
+    }
+
     private func makeBattle(profile: CombatModifierProfile) -> BattleState {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 4),

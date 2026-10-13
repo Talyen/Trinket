@@ -159,7 +159,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
         let suffix = TimedBuffSummary.durationSuffix(in: stacks)
         return EffectSummary(
             keyword: keyword,
-            text: "Focused: Increases Critical chance by +\(Int(percent * 100))%\(suffix).",
+            text: "Focused: Increases Critical chance by +\(CombatRounding.rounded((percent * 100).rounded(.towardZero)))%\(suffix).",
         )
     }
 
@@ -180,7 +180,7 @@ struct CriticalChanceBonusHandler: BattleEffectHandler {
             ability: ability,
             in: &context,
             replacing: { $0.kind == .criticalChanceBonus },
-            event: (.criticalChanceApplied, Int(percent * 100), .physical),
+            event: (.criticalChanceApplied, CombatRounding.rounded((percent * 100).rounded(.towardZero)), .physical),
         )
     }
 }
