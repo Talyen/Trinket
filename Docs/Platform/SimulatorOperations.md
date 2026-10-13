@@ -29,6 +29,11 @@ cleanup releases locks and leases (process safety: [AGENTS.md](../../AGENTS.md#p
 left by a crashed run is reaped when its pid is dead. Age alone never revokes
 a live owner’s lease; an ambiguous lease remains reserved for inspection.
 
+Stale lock recovery is serialized by an adjacent `.reclaim` directory in
+[`Scripts/lib/lock.sh`](../../Scripts/lib/lock.sh). Missing or malformed cleanup
+lock owners also remain reserved. Interrupted recovery leaves its claim in place;
+inspect the claim's `pid` and confirm recovery has stopped before removing it manually.
+
 ## Inspection lease and capture
 
 For interactive inspection, use one persistent terminal session:

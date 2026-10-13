@@ -23,7 +23,8 @@ jobs:
     steps:
       # release.sh runs test-deploy.sh before tagging and the main push runs
       # the full CI suite, so re-running tests here is redundant. Instead,
-      # require the tagged commit to be on main with a green Trinket CI run.
+      # require the tagged commit to be on main with a green push CI run.
+      # Manual qualification runs intentionally skip standard build checks.
       # main and the tag are typically pushed together, so wait for that run
       # to conclude rather than failing while it is still in progress.
       - name: Assert tag is on main with green Trinket CI
@@ -46,9 +47,9 @@ jobs:
           while :; do
             # Ignore cancelled runs so a cancel-in-progress race on main does not
             # fail the release; keep waiting for an in-progress or newer run.
-            run="$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?head_sha=${sha}&per_page=10" \
+            run="$(gh api "repos/${REPO}/actions/workflows/ci.yml/runs?event=push&branch=main&head_sha=${sha}&per_page=100" \
               --jq '[.workflow_runs[]
-                | select(.event == "push" or .event == "workflow_dispatch")
+                | select(.event == "push" and .head_branch == "main")
                 | select(.conclusion != "cancelled")
               ] | first // empty')"
             if [ -n "$run" ]; then
@@ -60,12 +61,8 @@ jobs:
                   echo "Trinket CI is green for ${sha}: ${url}"
                   exit 0
                 fi
-                if [ "$conclusion" = "cancelled" ]; then
-                  echo "Trinket CI for ${sha} was cancelled; waiting for a newer run..."
-                else
-                  echo "::error::Trinket CI for ${sha} concluded ${conclusion}: ${url}"
-                  exit 1
-                fi
+                echo "::error::Trinket CI for ${sha} concluded ${conclusion}: ${url}"
+                exit 1
               else
                 echo "Trinket CI for ${sha} is ${run_status}; waiting..."
               fi

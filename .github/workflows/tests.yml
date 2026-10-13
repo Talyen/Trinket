@@ -94,7 +94,7 @@ jobs:
         with:
           name: asset-budget-${{ github.run_id }}-${{ github.run_attempt }}
           path: .DerivedData/TestResults/verification-budget-*
-          retention-days: 14
+          retention-days: 1
           if-no-files-found: ignore
 
   build:
@@ -250,7 +250,7 @@ jobs:
           name: ${{ inputs.artifact-prefix }}release-device-failure-${{ github.run_id }}-${{ github.run_attempt }}
           path: .DerivedData/TestResults
           include-hidden-files: true
-          retention-days: 14
+          retention-days: 1
           if-no-files-found: ignore
 
   unit:
@@ -338,7 +338,7 @@ jobs:
             .DerivedData/TestResults/timing-log.jsonl
             .DerivedData/TestResults/raw/native-*
             .DerivedData/NativeQualification-artifact
-          retention-days: 14
+          retention-days: 1
       - name: Clean retained comparator diagnostics
         if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
         run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults

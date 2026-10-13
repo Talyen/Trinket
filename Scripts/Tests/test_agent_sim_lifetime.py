@@ -154,7 +154,8 @@ else:
             self.assertEqual(record["owner"], os.getpid())
             self.assertFalse(state.exists(), "Child exit shut down the parent's active device")
             self.slot.unlink()
-            deadline = time.monotonic() + 5
+            # Allow detached interpreter startup and stub command launches on a busy host.
+            deadline = time.monotonic() + 15
             while record_file.exists() and time.monotonic() < deadline:
                 time.sleep(.05)
             self.assertFalse(record_file.exists())

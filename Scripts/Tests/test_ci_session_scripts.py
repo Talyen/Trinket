@@ -684,6 +684,81 @@ trinket_dir_lock_acquire "$2" 0
             self.assertFalse(first.exists())
             self.assertFalse(second.exists())
 
+    def test_stale_lock_observer_preserves_a_replacement_owner(self) -> None:
+        script = r'''
+source Scripts/lib/lock.sh
+source Scripts/lib/slots.sh
+kind="$1"
+lock_path="$2/run.slot"
+pid_path="$lock_path"
+if [[ "$kind" == directory ]]; then
+  mkdir "$lock_path"
+  pid_path="$lock_path/pid"
+fi
+printf '99999999\n' > "$pid_path"
+replaced=0
+trinket_lock_pid_is_stale() {
+  [[ "$1" =~ ^[0-9]+$ ]] && ! kill -0 "$1" 2>/dev/null || return 1
+  if [[ "$replaced" == 0 ]]; then
+    replaced=1
+    # A second reclaimer replaces the stale lock while this observer is
+    # paused after reading its dead owner. The replacement is a live parent.
+    if [[ "$kind" == directory ]]; then
+      rm -rf "$lock_path"
+      mkdir "$lock_path"
+    fi
+    printf '%s\n' "$PPID" > "$pid_path"
+  fi
+  return 0
+}
+if [[ "$kind" == directory ]]; then
+  if trinket_dir_lock_acquire "$lock_path" 0; then
+    echo 'acquired a live replacement lock' >&2
+    exit 1
+  fi
+else
+  trinket_slot_reap_dir "$2"
+fi
+read -r owner _ < "$pid_path"
+[[ "$owner" == "$PPID" ]]
+'''
+        for kind in ("directory", "slot"):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
+                result = subprocess.run(["bash", "-eu", "-c", script, "_", kind, directory],
+                                        cwd=ROOT, capture_output=True, text=True, timeout=5)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertTrue((Path(directory) / "run.slot").exists())
+
+    def test_claimed_lock_recovery_fails_closed_with_diagnostic(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            lock = Path(directory) / "generation.lock"
+            lock.mkdir()
+            (lock / "pid").write_text("99999999\n")
+            claim = Path(str(lock) + ".reclaim")
+            claim.mkdir()
+            result = subprocess.run(["bash", "-eu", "-c",
+                                     'source Scripts/lib/lock.sh; trinket_dir_lock_acquire "$1" 0',
+                                     "_", str(lock)], cwd=ROOT, capture_output=True, text=True, timeout=5)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Stale-lock recovery is already claimed", result.stderr)
+            self.assertEqual((lock / "pid").read_text(), "99999999\n")
+            self.assertTrue(claim.is_dir())
+
+    def test_cleanup_lock_preserves_unknown_owners_during_publication(self) -> None:
+        for contents in ("", "unknown fixture\n"):
+            with self.subTest(contents=contents), tempfile.TemporaryDirectory() as directory:
+                lock = Path(directory) / ".simulator-cleanup.lock"
+                lock.write_text(contents)
+                script = '''
+source Scripts/lib/lock.sh
+source Scripts/lib/simctl.sh
+! trinket_sim_cleanup_lock_try_acquire "$1"
+'''
+                result = subprocess.run(["bash", "-eu", "-c", script, "_", directory],
+                                        cwd=ROOT, capture_output=True, text=True, timeout=5)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual(lock.read_text(), contents)
+
 
     def test_failed_guest_process_query_never_publishes_an_empty_baseline(self):
         with tempfile.TemporaryDirectory() as temporary:

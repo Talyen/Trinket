@@ -192,7 +192,7 @@ their own process groups; existing simulator guest/lease cleanup remains in forc
 | Gate | Composition |
 |---|---|
 | `handoff.sh` | Locally: scoped style, fast selected script regressions, docs, cheap static slices and selected prepared-asset integrity; reports content/project generation, compilation, package and UI work as CI-owned |
-| `ci-gate.sh` | Pinned-tool ensure, generate/stamp alignment, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget |
+| `ci-gate.sh` | Pinned-tool ensure, generation and idempotence, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Check committed prepared assets and manifest/resource integrity without Asset Library |
 | `test-deploy.sh` | Full CI/release test sequence; local execution uses the deliberate heavy-local flag and diagnostic limits. Keep release/TestFlight evidence requirements intact |

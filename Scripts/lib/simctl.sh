@@ -249,20 +249,11 @@ trinket_preview_sims_reclaim() {
 trinket_sim_cleanup_lock_try_acquire() {
   local shared_root="$1"
   local lock_path="$shared_root/.simulator-cleanup.lock"
-  local lock_pid=""
   mkdir -p "$shared_root"
 
-  if [[ -e "$lock_path" ]]; then
-    read -r lock_pid _ < "$lock_path" || true
-    # Deliberately fail-open (unlike trinket_lock_pid_is_stale): an
-    # unparseable pid here means hygiene already lost track of its owner,
-    # so reclaim the cleanup lock instead of stalling simulator hygiene.
-    if [[ ! "$lock_pid" =~ ^[0-9]+$ ]] || ! kill -0 "$lock_pid" 2>/dev/null; then
-      rm -f "$lock_path"
-    else
-      return 1
-    fi
-  fi
+  # Unknown owners include the noclobber creator's brief empty-file window.
+  # Fail closed so another cleanup cannot remove its live lock in that gap.
+  trinket_lock_reclaim_stale "$lock_path" || true
 
   if ! trinket_lock_claim_file "$lock_path" "$$ ${TRINKET_RUN_ID:-shared}"; then
     return 1

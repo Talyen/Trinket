@@ -132,8 +132,9 @@ This compile check does not validate signing or App Store distribution. Use
 `--version X.Y.Z` to select a version explicitly; `--skip-tests` remains emergency-only.
 
 A pushed `v*` tag triggers the GitHub release workflow. It confirms that the
-tagged commit is on `main` with green CI, then creates a GitHub Release whose
-body is `ReleaseNotes/en-US.txt` plus a pointer to `CHANGELOG.md` and uploads that file as an artifact. It does
+tagged commit is on `main` with green push CI for that exact commit, then creates
+a GitHub Release whose body is `ReleaseNotes/en-US.txt` plus a pointer to
+`CHANGELOG.md` and uploads that file as an artifact. It does
 not repeat the full suite already run by the release command and main CI.
 
 Apple's What's New field is required for updates after the first version, is

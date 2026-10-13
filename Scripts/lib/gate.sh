@@ -12,17 +12,16 @@
 # uses internal/change_routing.py for its plan; this owns the
 # full-tree order only.
 
-# Run the full local gate: pinned tools, generation, committed-output assert,
-# style, script regressions, and cheap slices (style already checked).
+# Run the full gate: pinned tools, generation, committed-output and idempotence
+# checks, style, script regressions, and cheap slices (style already checked).
 trinket_run_full_gate() {
   trinket_gate_ensure_tools
 
   trinket_log_section "Generating Xcode project / catalogs"
   ./Scripts/generate.sh
 
-  # Align with build.sh / test.sh stamp so subsequent test.sh skips a second generate.
+  # Share the result tenant with the generated-output checks and later wrappers.
   trinket_run_env_init
-  touch_generate_stamp "$RESULTS_DIR"
 
   trinket_log_section "Assert generated output is committed"
   if ! ./Scripts/assert-generated-output.sh; then
@@ -31,6 +30,9 @@ trinket_run_full_gate() {
     fi
     return 1
   fi
+
+  trinket_log_section "Check generation idempotence"
+  ./Scripts/assert-generated-output.sh --idempotent
 
   trinket_log_section "Style check"
   ./Scripts/test.sh style

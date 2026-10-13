@@ -91,4 +91,4 @@ jobs:
         with:
           name: ui-diagnostic-${{ github.run_id }}-${{ github.run_attempt }}
           path: .DerivedData/TestResults-artifact
-          retention-days: 14
+          retention-days: 1

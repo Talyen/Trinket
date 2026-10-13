@@ -76,7 +76,7 @@ REGENERATE=false
 INCLUDE_ASSETS=false
 STRICT_ASSETS=false
 # committed: fail when tracked generated paths differ from HEAD (CI / pre-push).
-# idempotent: regenerate once and fail if tracked outputs still change (local handoff).
+# idempotent: regenerate once and fail if tracked outputs still change (CI/heavy handoff).
 MODE="committed"
 
 usage() {
@@ -89,7 +89,7 @@ Modes:
   (default)        Commit completeness — tracked generated paths must match HEAD.
                    Use after generate on a clean checkout (CI, pre-push, ci-gate).
   --idempotent     Consistency — run generate once more; tracked outputs must not
-                   change again. Use after generate in handoff (local/agent).
+                   change again. Use after generate in CI or a heavy handoff.
 
 Options:
   --regenerate     Run ./Scripts/generate.sh before the committed-mode check
@@ -99,8 +99,8 @@ Options:
   --idempotent     Consistency check (see Modes); implies a regenerate pass
   -h, --help       Show this help
 
-CI runs ./Scripts/generate.sh first, then this script without --regenerate.
-handoff runs generate, then this script with --idempotent.
+CI runs generate, checks committed output, then checks --idempotent.
+Lightweight local handoff defers generation and idempotence to CI.
 EOF
 }
 

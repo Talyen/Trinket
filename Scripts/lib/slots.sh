@@ -8,22 +8,13 @@ trinket_slot_owner_token() {
 # trinket_lock_claim_file lives in lib/lock.sh next to the other file-lock
 # primitives; run-env.sh sources lock.sh before this file.
 
-trinket_slot_entry_is_stale() {
-  local slot="$1"
-  local pid=""
-  read -r pid _ < "$slot" 2>/dev/null || true
-  trinket_lock_pid_is_stale "$pid"
-}
-
 trinket_slot_reap_dir() {
   local active_dir="$1"
   [[ -d "$active_dir" ]] || return 0
   local slot
   for slot in "$active_dir"/*.slot; do
     [[ -e "$slot" ]] || continue
-    if trinket_slot_entry_is_stale "$slot"; then
-      rm -f "$slot"
-    fi
+    trinket_lock_reclaim_stale "$slot" || true
   done
 }
 
@@ -183,20 +174,14 @@ trinket_shared_sim_lease_acquire() {
 trinket_ui_slot_acquire() {
   local max="${TRINKET_MAX_CONCURRENT_UI:-2}"
   local active_dir="${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-ui}"
-  local slot_name count lock_path lock_pid owner_pid owner_token
+  local slot_name count lock_path owner_pid owner_token
   owner_pid="${BASHPID:-$$}"
   trinket_slot_owner_token owner_token
   mkdir -p "$active_dir"
   trinket_ui_slot_reap
 
   lock_path="$active_dir/.acquire.lock"
-  if [[ -e "$lock_path" ]]; then
-    lock_pid=""
-    read -r lock_pid _ < "$lock_path" || true
-    if trinket_lock_pid_is_stale "$lock_pid"; then
-      rm -f "$lock_path"
-    fi
-  fi
+  trinket_lock_reclaim_stale "$lock_path" || true
   if ! trinket_lock_claim_file "$lock_path" "$owner_pid ${TRINKET_RUN_ID:-shared}"; then
     echo "UI/smoke concurrency reservation is busy; retry after the peer finishes." >&2
     return 1

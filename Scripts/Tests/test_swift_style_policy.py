@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 SCRIPT_INPUTS = (
+    '.swiftformat',
+    'Scripts/tool-versions.env',
     'Scripts/check-accessibility-ids.py',
     'Scripts/check-agent-invariants.sh',
     'Scripts/check-api-bans.sh',
@@ -35,6 +37,9 @@ class SwiftStylePolicyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.policy = load_script("swift_policy", "internal/swift_policy.py")
+        pinned = ROOT / ".tools/swiftformat"
+        cls.formatter = str(pinned) if pinned.is_file() else shutil.which("swiftformat")
+        cls.policy.formatter_tokens("let value = 1\n", ROOT)
 
     def scan(self, source: str, check: str = "api-bans", path: str = "Trinket/Probe.swift"):
         tokens = self.policy.formatter_tokens(source, ROOT)
@@ -155,7 +160,7 @@ class Probe: XCTestCase {
                     with self.assertRaisesRegex(RuntimeError, "Policy search failed"):
                         self.policy.candidate_paths("api-bans", ["Trinket"], ROOT)
         valid = self.policy.formatter_tokens("let value = 1\n", ROOT)
-        version = subprocess.check_output([str(ROOT / ".tools/swiftformat"), "--version"], text=True).strip()
+        version = subprocess.check_output([self.formatter, "--version"], text=True).strip()
         exports = (
             (1, "", "tokenizer failed"),
             (0, "not json", ""),
@@ -173,7 +178,7 @@ class Probe: XCTestCase {
                   'enum Persisted: String { case sample = "sample" }\n'
                   '// swiftformat:enable redundantRawValues\n')
         result = subprocess.run(
-            [str(ROOT / ".tools/swiftformat"), "stdin", "--config", str(ROOT / ".swiftformat"),
+            [self.formatter, "stdin", "--config", str(ROOT / ".swiftformat"),
              "--cache", "ignore", "--quiet"], input=source, capture_output=True, text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)

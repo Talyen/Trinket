@@ -4,8 +4,10 @@ from __future__ import annotations
 
 SCRIPT_INPUTS = (
     '.github/workflows/ci.yml',
+    '.github/workflows/release.yml',
     '.githooks/pre-push',
     'Scripts/pre-push-paths.py',
+    'Scripts/assert-generated-output.sh',
     'Scripts/ci-gate.sh', 'Scripts/ci-run-budget.py',
     'Scripts/config/cheap-slices.txt',
     'Scripts/handoff.sh',
@@ -29,6 +31,64 @@ import tempfile
 from pathlib import Path
 
 class CIGateScriptTests(ScriptRegressionTestCase):
+    def test_full_gate_rejects_a_failed_second_generation_pass(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_repo_fixture(directory, ('Scripts/lib/gate.sh',))
+            for name in ('generate.sh', 'test.sh', 'test-scripts.sh', 'assert-generated-output.sh'):
+                script = root / 'Scripts' / name
+                script.write_text('#!/bin/bash\n'
+                                  'if [[ "${1:-}" == --idempotent ]]; then '
+                                  'exit "${IDEMPOTENCE_STATUS:-0}"; fi\n')
+                script.chmod(0o755)
+            command = '''
+source Scripts/lib/gate.sh
+trinket_gate_ensure_tools() { :; }
+trinket_run_env_init() { RESULTS_DIR=results; }
+touch_generate_stamp() { :; }
+trinket_log_section() { :; }
+trinket_run_gate_slices() { :; }
+trinket_run_full_gate
+'''
+            for status in (0, 17):
+                with self.subTest(idempotence_status=status):
+                    result = subprocess.run(['bash', '-eu', '-c', command], cwd=root,
+                        capture_output=True, text=True,
+                        env=self.verification_environment(IDEMPOTENCE_STATUS=str(status)))
+                    self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+
+    @unittest.skipUnless(shutil.which('jq'), 'Release verification requires jq')
+    def test_release_requires_green_push_ci_on_main(self):
+        workflow = (ROOT / '.github/workflows/release.yml').read_text()
+        command = workflow.split('        run: |\n', 1)[1].split('\n  github-release:', 1)[0]
+        command = '\n'.join(line[10:] for line in command.splitlines())
+        failed_push = dict(event='push', head_branch='main', status='completed',
+                           conclusion='failure', html_url='https://example.com/main')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            gh = root / 'gh'
+            gh.write_text('#!/usr/bin/env python3\n'
+                          'import json, os, subprocess, sys\n'
+                          'endpoint = sys.argv[2]\n'
+                          'if "/commits/" in endpoint: data = {"sha": "abc"}\n'
+                          'elif "/compare/" in endpoint: data = {"status": "identical"}\n'
+                          'else: data = json.loads(os.environ["RUNS"])\n'
+                          'result = subprocess.run([os.environ["JQ"], "-r", sys.argv[-1]], '
+                          'input=json.dumps(data), text=True)\n'
+                          'sys.exit(result.returncode)\n')
+            gh.chmod(0o755)
+            for newest, expected in (
+                ({**failed_push, 'event': 'workflow_dispatch', 'conclusion': 'success'}, 1),
+                ({**failed_push, 'head_branch': 'other', 'conclusion': 'success'}, 1),
+                ({**failed_push, 'conclusion': 'success'}, 0),
+            ):
+                with self.subTest(newest=newest):
+                    result = subprocess.run(['bash', '-c', command], capture_output=True, text=True,
+                        timeout=10, env={**os.environ, 'PATH': f'{root}:{os.environ["PATH"]}',
+                            'REPO': 'owner/repo', 'TAG': 'v1.0.0', 'JQ': shutil.which('jq'),
+                            'RUNS': json.dumps({'workflow_runs': [newest, failed_push]})})
+                    self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                    self.assertIn('Trinket CI', result.stdout)
+
     def test_every_unit_package_in_exactly_one_shard(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
         from internal.cli import read_env_arrays

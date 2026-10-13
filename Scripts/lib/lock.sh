@@ -71,12 +71,50 @@ trinket_dir_lock_chain_trap() {
 }
 
 # True when <pid> is a numeric pid with no live process. A missing or
-# non-numeric pid is NOT stale here: dir locks fail closed and wait out the
-# timeout rather than force-removing a lock whose owner is unknown.
-# (The simulator-cleanup lock in simctl.sh deliberately differs: hygiene
-# may fail open, so it treats unparseable pids as stale. See its comment.)
+# non-numeric pid is NOT stale here: preserve locks whose owner is unknown.
 trinket_lock_pid_is_stale() {
   [[ "${1:-}" =~ ^[0-9]+$ ]] && ! kill -0 "$1" 2>/dev/null
+}
+
+# Reclaim a stale file lock, or a directory lock with a separate pid file.
+# The adjacent claim serializes stale observers across removal/recreation of
+# the lock itself. Never reap this claim: interrupted recovery must fail closed.
+trinket_lock_reclaim_stale() {
+  local lock_path="$1" pid_path="${2:-$1}"
+  local claim_path="$lock_path.reclaim" observed_pid="" current_pid="" result=1
+  if [[ -f "$pid_path" ]]; then
+    if [[ "$lock_path" == "$pid_path" ]]; then
+      read -r observed_pid _ < "$pid_path" 2>/dev/null || true
+    else
+      read -r observed_pid < "$pid_path" 2>/dev/null || true
+    fi
+  fi
+  trinket_lock_pid_is_stale "$observed_pid" || return 1
+  mkdir "$claim_path" 2>/dev/null || return 1
+  local owner_pid="${BASHPID:-}"
+  [[ -n "$owner_pid" ]] || owner_pid="$(exec /bin/sh -c 'echo "$PPID"')"
+  if ! printf '%s\n' "$owner_pid" > "$claim_path/pid"; then
+    rm -f "$claim_path/pid"
+    rmdir "$claim_path" 2>/dev/null || true
+    return 1
+  fi
+  if [[ -f "$pid_path" ]]; then
+    if [[ "$lock_path" == "$pid_path" ]]; then
+      read -r current_pid _ < "$pid_path" 2>/dev/null || true
+    else
+      read -r current_pid < "$pid_path" 2>/dev/null || true
+    fi
+  fi
+  if [[ "$current_pid" == "$observed_pid" ]] && trinket_lock_pid_is_stale "$current_pid"; then
+    if [[ "$lock_path" == "$pid_path" ]]; then
+      rm -f "$lock_path" && result=0
+    else
+      rm -rf "$lock_path" && result=0
+    fi
+  fi
+  rm -f "$claim_path/pid"
+  rmdir "$claim_path" 2>/dev/null || true
+  return "$result"
 }
 
 # Acquires a directory lock, records its owner, and chains release onto EXIT.
@@ -98,16 +136,18 @@ trinket_dir_lock_acquire() {
   trinket_dir_lock_chain_trap "$cleanup"
 
   while ! mkdir "$lock_dir" 2>/dev/null; do
+    if trinket_lock_reclaim_stale "$lock_dir" "$lock_dir/pid"; then
+      continue
+    fi
     lock_pid=""
     if [[ -f "$lock_dir/pid" ]]; then
       read -r lock_pid < "$lock_dir/pid" 2>/dev/null || true
     fi
-    if trinket_lock_pid_is_stale "$lock_pid"; then
-      rm -rf "$lock_dir"
-      continue
-    fi
     if (( SECONDS - started_at >= timeout_seconds )); then
       echo "Lock timed out after ${timeout_seconds}s at $lock_dir." >&2
+      if [[ -d "$lock_dir.reclaim" ]]; then
+        echo "Stale-lock recovery is already claimed at $lock_dir.reclaim; refusing another recovery." >&2
+      fi
       if [[ "$lock_pid" =~ ^[0-9]+$ ]]; then
         echo "Held by pid $lock_pid. Do not kill foreign processes." >&2
       fi
