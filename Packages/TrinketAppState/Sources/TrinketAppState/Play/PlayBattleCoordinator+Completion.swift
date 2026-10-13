@@ -76,19 +76,24 @@ extension PlayBattleCoordinator {
             ) else { return .unavailable }
             guard settlement == nil || settlement == resolved else { return .staleSettlement(resolved) }
             let origin = route?.origin
-            let result: BattleCompletionResult = if let route {
-                route.complete(
-                    configuration,
-                    launch: run.launch,
-                    award: settlement ?? resolved,
-                    materialRewards: baseMaterials,
-                    playerSave: playerSave,
-                    makeContractOffer: makeContractOffer,
+            let earnedVoyageRewards: BattleRewardAward? = if case .voyage = route {
+                run.launch.rewardPlan.resolve(
+                    battleGold: resolved.award.goldFlow,
+                    materials: baseMaterials,
+                    includingCompletionBonus: false,
                 )
             } else {
-                playerSave.claimStandaloneVictory(
-                    resolved, hero: configuration.hero.combatant, companion: configuration.companion.combatant,
-                ) ? .completed : .persistenceFailed
+                nil
+            }
+            let committed = playerSave.completeBattle(
+                run.rewardClaim, award: settlement ?? resolved,
+                enemyEncounterLevel: configuration.enemyEncounterLevel,
+                earnedVoyageRewards: earnedVoyageRewards, makeContractOffer: makeContractOffer,
+            )
+            let result: BattleCompletionResult = switch committed {
+            case .committed: .completed
+            case .rejected: .unavailable
+            case .persistFailed: .persistenceFailed
             }
             if result.didComplete {
                 recordTalentProgressions(settlement ?? resolved, configuration: configuration)
@@ -143,7 +148,7 @@ extension PlayBattleCoordinator {
         _ configuration: BattleRunConfiguration,
         settlement: BattleRewardSettlement,
     ) -> BattleCompletionResult {
-        guard activeRegistration(for: configuration) != nil,
+        guard let run = activeRegistration(for: configuration),
               battle.resolvedDefeatProgress != nil else { return .unavailable }
         switch claimState {
         case .victory:
@@ -156,10 +161,11 @@ extension PlayBattleCoordinator {
         guard let resolved = settleDefeat(configuration, at: settlement.inputs.productionDate)
         else { return .unavailable }
         guard resolved == settlement else { return .staleSettlement(resolved) }
-        let didPersist = playerSave.claimDefeatExperience(
-            resolved, hero: configuration.hero.combatant, companion: configuration.companion.combatant,
-        )
-        guard didPersist else { return .persistenceFailed }
+        switch playerSave.claimDefeatExperience(run.rewardClaim, award: resolved) {
+        case .committed: break
+        case .rejected: return .unavailable
+        case .persistFailed: return .persistenceFailed
+        }
         claimState = .defeat(configurationID: configuration.id)
         recordTalentProgressions(resolved, configuration: configuration)
         return .completed
@@ -167,7 +173,8 @@ extension PlayBattleCoordinator {
 
     func activeRegistration(for configuration: BattleRunConfiguration) -> PlayBattleRunRegistration? {
         guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id,
-              let activeRun, activeRun.launch.configuration.id == configuration.id else { return nil }
+              let activeRun, activeRun.launch.configuration.id == configuration.id,
+              activeRun.rewardClaim.isCurrent(in: playerSave) else { return nil }
         return activeRun
     }
 

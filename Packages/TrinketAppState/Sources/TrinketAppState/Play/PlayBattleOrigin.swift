@@ -2,6 +2,7 @@ import BattleEngine
 import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
+import TrinketPersistence
 
 public enum PlayBattleMode: String, Hashable, CaseIterable, Sendable {
     case journey
@@ -52,6 +53,7 @@ public enum PlayBattleOrigin: Hashable, Sendable {
 struct PlayBattleRunRegistration {
     let route: PlayBattleRoute?
     let launch: BattleLaunchAssembly
+    let rewardClaim: BattleRewardClaim
     var presentation: BattlePresentationContext {
         launch.presentation
     }

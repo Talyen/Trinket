@@ -17,10 +17,14 @@ enum PlayBattleLaunchTestSupport {
         inventoryState: PlayerInventoryState,
         homesteadState: PlayerHomesteadState = .freshStart,
         worldSeed: UInt64 = 0,
+        sessionGeneration: UInt64 = 0,
     ) -> BattleLaunchAssembly {
         PlayBattleCoordinator.assembleLaunch(BattlePreparationInputs(
             launch: input,
-            party: PlayBattlePartySnapshot(roster: rosterState, inventory: inventoryState, homestead: homesteadState, worldSeed: worldSeed),
+            party: PlayBattlePartySnapshot(
+                roster: rosterState, inventory: inventoryState, homestead: homesteadState,
+                worldSeed: worldSeed, sessionGeneration: sessionGeneration,
+            ),
             rngSeed: rngSeed,
         ))
     }

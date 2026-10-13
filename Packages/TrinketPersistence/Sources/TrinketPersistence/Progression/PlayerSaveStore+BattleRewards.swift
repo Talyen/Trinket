@@ -3,17 +3,27 @@ import TrinketCore
 
 @MainActor
 public extension PlayerSaveStore {
+    func prepareBattleRewardClaim(
+        at destination: BattleCompletionDestination?, heroID: String, companionID: String,
+    ) -> BattleRewardClaim {
+        BattleRewardClaim(store: self, destination: destination, heroID: heroID, companionID: companionID)
+    }
+
     func completeBattle(
-        at destination: BattleCompletionDestination,
-        party: (hero: Combatant, companion: Combatant),
+        _ claim: BattleRewardClaim,
         award: BattleRewardSettlement,
-        enemyEncounterLevel: Int,
+        enemyEncounterLevel: Int?,
         earnedVoyageRewards: BattleRewardAward? = nil,
         makeContractOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
-        persistTransaction(logging: "Failed to complete battle encounter") { save, recordReceipt in
-            let result: EncounterCompletion
+        persistBattleReward(claim, award: award, logging: "Failed to complete battle encounter") { save, party, recordReceipt in
             let (hero, companion) = party
+            guard let destination = claim.destination else {
+                VictoryRewardApplier.apply(award, hero: hero, companion: companion, save: &save, recordReceipt: recordReceipt)
+                return .success(())
+            }
+            guard let enemyEncounterLevel else { return .failure(.unavailable) }
+            let result: EncounterCompletion
             let rewards = EncounterRewards.settled(award, encounterLevel: enemyEncounterLevel)
             switch destination {
             case let .journey(stage):
@@ -47,17 +57,13 @@ public extension PlayerSaveStore {
         }
     }
 
-    @discardableResult
-    func claimStandaloneVictory(_ award: BattleRewardSettlement, hero: Combatant, companion: Combatant) -> Bool {
-        persistBatch(logging: "Failed to persist battle rewards") { save, recordReceipt in
-            VictoryRewardApplier.apply(award, hero: hero, companion: companion, save: &save, recordReceipt: recordReceipt)
-        }
-    }
-
-    @discardableResult
-    func claimDefeatExperience(_ award: BattleRewardSettlement, hero: Combatant, companion: Combatant) -> Bool {
-        persistBatch(logging: "Failed to persist defeat experience") { save, recordReceipt in
+    func claimDefeatExperience(
+        _ claim: BattleRewardClaim, award: BattleRewardSettlement,
+    ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
+        persistBattleReward(claim, award: award, logging: "Failed to persist defeat experience") { save, party, recordReceipt in
+            let (hero, companion) = party
             BattleExperienceReward.apply(award, hero: hero, companion: companion, save: &save, recordReceipt: recordReceipt)
+            return .success(())
         }
     }
 
@@ -74,5 +80,32 @@ public extension PlayerSaveStore {
                 )
             }
         }
+    }
+}
+
+private extension PlayerSaveStore {
+    func persistBattleReward(
+        _ claim: BattleRewardClaim, award: BattleRewardSettlement, logging message: String,
+        _ mutation: (inout PlayerSave, (hero: Combatant, companion: Combatant), (SaveEconomicReceipt) -> Void) -> Result<
+            Void,
+            EncounterCompletionFailure,
+        >,
+    ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
+        guard claim.isCurrent(in: self), !claim.isConsumed else { return .rejected(.unavailable) }
+        let result: SaveTransactionResult<Void, EncounterCompletionFailure> = persistTransaction(logging: message) { save, recordReceipt in
+            guard let party = claim.party(in: save),
+                  award.inputs == RewardSettlementInputs(
+                      save: save,
+                      hero: party.hero,
+                      companion: party.companion,
+                      at: award.inputs.productionDate,
+                  )
+            else { return .failure(.unavailable) }
+            return mutation(&save, party, recordReceipt)
+        }
+        if case .committed = result {
+            claim.consume()
+        }
+        return result
     }
 }

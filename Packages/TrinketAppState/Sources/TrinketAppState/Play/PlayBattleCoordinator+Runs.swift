@@ -27,7 +27,7 @@ extension PlayBattleCoordinator {
         }
         preparedRuns[runKey]?.handle.invalidate()
         preparedRuns[runKey] = PreparedRun(
-            registration: PlayBattleRunRegistration(route: route, launch: launch), handle: handle,
+            registration: makeRegistration(launch, route: route), handle: handle,
         )
         publishPreparedPreview()
         return true
@@ -36,7 +36,8 @@ extension PlayBattleCoordinator {
     func activatePrepared(_ configuration: BattleRunConfiguration) -> Bool {
         guard battle.lifecyclePhase != .active,
               let runKey = configuration.runKey,
-              let run = preparedRuns[runKey], run.registration.launch.configuration.id == configuration.id
+              let run = preparedRuns[runKey], run.registration.launch.configuration.id == configuration.id,
+              run.registration.rewardClaim.isCurrent(in: playerSave)
         else { return false }
         guard battle.activatePreparedBattle(run.handle, presentation: run.registration.presentation) else { return false }
         activeRun = run.registration
@@ -49,7 +50,7 @@ extension PlayBattleCoordinator {
     func activateStandalone(_ launch: BattleLaunchAssembly) -> Bool {
         guard battle.lifecyclePhase != .active, launch.configuration.runKey == nil else { return false }
         guard battle.activate(launch.configuration, presentation: launch.presentation) else { return false }
-        activeRun = PlayBattleRunRegistration(route: nil, launch: launch)
+        activeRun = makeRegistration(launch, route: nil)
         discardPreparations()
         claimState = .unclaimed
         return true
@@ -58,10 +59,11 @@ extension PlayBattleCoordinator {
     func restart(_ launch: BattleLaunchAssembly, route: PlayBattleRoute?) -> Bool {
         guard battle.lifecyclePhase == .active,
               battle.activeBattle?.runKey == launch.configuration.runKey,
+              activeRun?.rewardClaim.isCurrent(in: playerSave) == true,
               PlayBattleRoute.matches(route, runKey: launch.configuration.runKey, missingLog: "Missing route for battle restart")
         else { return false }
         guard battle.restart(launch.configuration, presentation: launch.presentation) else { return false }
-        activeRun = PlayBattleRunRegistration(route: route, launch: launch)
+        activeRun = makeRegistration(launch, route: route)
         discardPreparations()
         claimState = .unclaimed
         return true
@@ -71,6 +73,16 @@ extension PlayBattleCoordinator {
         guard preferredPreparedRunKey != key else { return }
         preferredPreparedRunKey = key
         publishPreparedPreview()
+    }
+
+    private func makeRegistration(_ launch: BattleLaunchAssembly, route: PlayBattleRoute?) -> PlayBattleRunRegistration {
+        PlayBattleRunRegistration(
+            route: route, launch: launch,
+            rewardClaim: playerSave.prepareBattleRewardClaim(
+                at: route, heroID: launch.configuration.hero.combatant.id,
+                companionID: launch.configuration.companion.combatant.id,
+            ),
+        )
     }
 
     func publishPreparedPreview() {

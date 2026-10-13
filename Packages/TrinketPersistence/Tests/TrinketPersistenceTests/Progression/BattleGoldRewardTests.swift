@@ -38,16 +38,29 @@ struct BattleGoldRewardTests {
         let hero = store.roster.activeHero
         let companion = store.roster.activeCompanion
         let before = store.currentSave
-        let settlement = BattleRewardPlan(
+        let plan = BattleRewardPlan(
             stageGold: 100, goldFindPercent: 100, goldOverflowExperience: 100,
             heroExperience: 40, companionExperience: 30, materials: [], items: [],
-        ).settleDefeat(
+        )
+        let settlement = plan.settleDefeat(
             progress: .init(remainingHealth: 10, maximumHealth: 100),
             inputs: RewardSettlementInputs(save: before, hero: hero, companion: companion),
         )
-        try #require(store.persistFixtureBatch(logging: "Save defeat experience") { save in
-            BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save, recordReceipt: { _ in })
-        })
+        let claim = store.prepareBattleRewardClaim(at: nil, heroID: hero.id, companionID: companion.id)
+        guard case .committed = store.claimDefeatExperience(claim, award: settlement) else {
+            Issue.record("Expected defeat experience to commit")
+            return
+        }
+        // A duplicate delivery or conflicting victory cannot use the same claim.
+        let duplicate = plan.settleDefeat(
+            progress: .init(remainingHealth: 10, maximumHealth: 100),
+            inputs: RewardSettlementInputs(save: store.currentSave, hero: hero, companion: companion),
+        )
+        guard case .rejected = store.claimDefeatExperience(claim, award: duplicate),
+              case .rejected = store.completeBattle(claim, award: duplicate, enemyEncounterLevel: nil) else {
+            Issue.record("A consumed claim granted another outcome")
+            return
+        }
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.progression(for: hero) == settlement.heroProgressionAfter)
         #expect(reloaded.roster.progression(for: companion) == settlement.companionProgressionAfter)

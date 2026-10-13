@@ -431,6 +431,7 @@ extension BattleSessionAppIntegrationTests {
                 configuration: original.launch.configuration, rewardPlan: original.launch.rewardPlan,
                 presentation: .empty, inputs: original.launch.inputs,
             ),
+            rewardClaim: original.rewardClaim,
         )
         if retries {
             #expect(play.playerSave.persistFixtureBatch(logging: "Advance progression before Retry") { save in

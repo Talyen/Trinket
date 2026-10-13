@@ -7,7 +7,7 @@ Use with the [common runtime contract](battle-runtime.md) for preparation, activ
 `PlaySession` stays in the environment for shell navigation and adapts battle actions
 into `PlayBattleCoordinator`. The coordinator owns launch/access policy, prepared
 registrations, the active run, claims, save-action retries, and keyed reward exits.
-Each registration retains the exact launch inputs, configuration, reward plan, and
+Each registration retains the exact launch inputs, configuration, reward plan, save-issued reward claim, and
 optional completion route; standalone runs retain the same record without a route.
 BattleRuntime creates opaque simulation handles; the coordinator stores them
 with their application metadata and publishes a read-only preview projection.
@@ -41,7 +41,9 @@ Prepared activation compares that complete value with current inputs and require
 the registered configuration ID as well as matching party/enemy identities.
 Prewarming and activation share the same snapshot comparison in `PlayBattleCoordinator`;
 modes select eligible encounters and prune their runs without separate freshness caches.
-Changed inputs refresh only that run, retaining its combat seed and sibling
+Save generation participates in preparation freshness. Activation, reward lookup,
+and Retry reject registrations from replaced progress even if presentation cleanup
+has not run. Changed inputs refresh only that run, retaining its combat seed and sibling
 preparations. Unchanged inputs, including revisiting a previously warmed encounter,
 reuse the original configuration and simulation;
 missing registration or changed identities fail closed until explicitly prepared.
@@ -69,9 +71,11 @@ completion can authorize the award. Stale settlement refreshes the reveal, stora
 failure retains the chosen action for retry, and already-claimed victories use the
 same delegate without waiting for an overlay. BattleFeature never imports
 Persistence or AppState. Unconnected preview sessions cannot commit rewards.
-`PlayBattleCoordinator` owns one claim state: unclaimed, committed defeat, or
+`PlayBattleCoordinator` owns one presentation claim state: unclaimed, committed defeat, or
 committed victory awaiting its keyed exit. A configuration cannot claim both
-outcomes. Failed writes do not advance this state; failed Retry retains its
+outcomes. Persistence independently enforces source identity, settlement freshness,
+and single-outcome consumption through the registration's `BattleRewardClaim`.
+Failed writes do not advance either state; failed Retry retains its
 committed defeat so Leave cannot award XP again. It also privately retains the
 earliest saved progression baseline across defeat retries and victory. Every
 reward exit consumes that baseline once to queue Talent choices, including an

@@ -7,12 +7,20 @@ struct PlayBattlePartySnapshot: Equatable {
     let inventory: PlayerInventoryState
     let homestead: PlayerHomesteadState
     let worldSeed: UInt64
+    let sessionGeneration: UInt64
 
-    init(roster: PlayerRosterState, inventory: PlayerInventoryState, homestead: PlayerHomesteadState, worldSeed: UInt64) {
+    init(
+        roster: PlayerRosterState,
+        inventory: PlayerInventoryState,
+        homestead: PlayerHomesteadState,
+        worldSeed: UInt64,
+        sessionGeneration: UInt64,
+    ) {
         self.roster = roster
         self.inventory = inventory
         self.homestead = homestead
         self.worldSeed = worldSeed
+        self.sessionGeneration = sessionGeneration
     }
 
     @MainActor
@@ -21,6 +29,7 @@ struct PlayBattlePartySnapshot: Equatable {
         inventory = playerSave.inventory
         homestead = playerSave.homestead
         worldSeed = playerSave.worldSeed
+        sessionGeneration = playerSave.sessionGeneration
     }
 }
 

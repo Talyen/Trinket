@@ -659,3 +659,36 @@ private final class PreparedThenRejectingBattleRuntime: RejectingBattleRuntime {
         return true
     }
 }
+
+extension AppStatePlayFlowTests {
+    @Test(arguments: [false, true])
+    func `external save generation invalidates prepared and active battles`(activates: Bool) throws {
+        let state = try context.makePlaySession()
+        let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
+        let key = PlayBattleOrigin.journey(stageID: stage.id).runKey
+        state.journey.prepareBattle(for: stage)
+        let prepared = try #require(state.battleRegistration(for: key))
+        let configuration = prepared.launch.configuration
+        if activates {
+            try #require(state.battleCoordinator.activatePrepared(configuration))
+        }
+        var incoming = state.playerSave.currentSave
+        incoming.corruptionAltarCooldownRemaining += 1
+        // Keep all party/launch inputs identical; replacing progress changes generation.
+        try state.playerSave.commitCloudState(state.playerSave.cloudDeviceState, replacing: incoming)
+        let before = state.playerSave.currentSave
+        if activates {
+            #expect(state.settleBattleRewards(configuration, battleGold: .init()) == nil)
+            #expect(!state.completeActiveBattle(configuration, battleGold: .init()).didComplete)
+            #expect(!state.battleCoordinator.restartActiveBattle(configuration))
+            #expect(state.playerSave.currentSave == before)
+        } else {
+            #expect(!state.battleCoordinator.activatePrepared(configuration))
+            state.journey.prepareBattle(for: stage)
+            let refreshed = try #require(state.battleRegistration(for: key))
+            #expect(refreshed.launch.configuration.id != configuration.id)
+            #expect(refreshed.launch.configuration.rngSeed == configuration.rngSeed)
+            #expect(state.battleCoordinator.activatePrepared(refreshed.launch.configuration))
+        }
+    }
+}

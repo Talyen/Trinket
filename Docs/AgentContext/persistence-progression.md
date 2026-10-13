@@ -52,9 +52,18 @@ Contract victories record the completed offer ID before replacement; refreshing 
 without creating a claim. Voyage victories record completed run IDs before
 dismissing their cleared routes.
 
+Battle registrations retain one `BattleRewardClaim` issued by their `PlayerSaveStore`.
+The claim captures the store, save generation, world identity, destination,
+and recipient IDs. Persistence validates that source and the settlement's recorded
+economic inputs before writing; stale or foreign claims reject without publishing.
+Victory and defeat share consumption, which advances only after a durable commit.
+Storage failures leave the claim retryable. Cloud metadata updates that preserve
+the local save generation preserve its claims. These claims are transient and add no
+battle-resume or player-save schema.
+
 Persistence-owned battle commands invoke completion appliers and collect explicit
 committed economic receipts, including one claim identity per award in a batch.
-AppState supplies completion inputs and handles presentation after commitment;
+AppState supplies the retained claim and award and handles presentation after commitment;
 it cannot open a save mutation closure. Standalone victories
 and defeat XP carry unclaimed effects; normal battle/Salvage claims retain their
 domain identities. Failed or rejected transactions publish neither awards nor receipts.
