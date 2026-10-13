@@ -6,76 +6,38 @@ import TrinketCore
 
 struct ControlMeterIntegrationTests {
     private func makeControlBattle(
-        heroAbilities: [Ability] = [.slash],
-        heroMaxHealth: Int = 20,
-        companionAbilities: [Ability] = [],
-        companionMaxHealth: Int = 20,
-        enemyAbilities: [Ability] = [.slash],
-        enemyMaxHealth: Int = 100,
-        actionIntervalTurns: Int? = nil,
-        activeHeroEffects: [ActiveEffect] = [],
-        activeEnemyEffects: [ActiveEffect] = [],
-        heroModifiers: CombatModifierProfile = .zero,
-        dealOpeningHand: Bool = true,
+        heroAbilities: [Ability] = [.slash], companionAbilities: [Ability] = [],
+        enemyMaxHealth: Int = 100, actionIntervalTurns: Int? = nil,
+        activeHeroEffects: [ActiveEffect] = [], activeEnemyEffects: [ActiveEffect] = [],
+        heroModifiers: CombatModifierProfile = .zero, dealOpeningHand: Bool = true,
     ) -> BattleState {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            maxHealth: heroMaxHealth,
-            actionIntervalTurns: actionIntervalTurns,
-            abilities: heroAbilities,
-        )
-        let companion = CombatantFixtures.combatant(
-            id: "companion",
-            role: .companion,
-            maxHealth: companionMaxHealth,
-            abilities: companionAbilities,
-        )
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: enemyMaxHealth,
-            abilities: enemyAbilities,
-        )
-        return BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            activeEnemyEffects: activeEnemyEffects,
-            activeHeroEffects: activeHeroEffects,
-            heroModifiers: heroModifiers,
-            dealOpeningHand: dealOpeningHand,
+        BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(
+                id: "hero", role: .hero, actionIntervalTurns: actionIntervalTurns, abilities: heroAbilities,
+            ),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, abilities: companionAbilities),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: enemyMaxHealth, abilities: [.slash]),
+            activeEnemyEffects: activeEnemyEffects, activeHeroEffects: activeHeroEffects,
+            heroModifiers: heroModifiers, dealOpeningHand: dealOpeningHand,
         )
     }
 
-    @Test(arguments: [Keyword.stun, Keyword.freeze])
-    func `action skip prevents damage`(keyword: Keyword) throws {
+    @Test(arguments: [Keyword.stun, .freeze])
+    func `pending control prevents the enemy action and is consumed`(keyword: Keyword) {
         var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: keyword)
         let hero = battle.hero
-        let events = battle.endTurn().events
-
-        try #expect(battle.health(of: hero) == hero.maxHealth, "keyword=\(keyword)")
-        try #expect(
-            events.contains {
-                $0.effectKind == .controlActionSkipped && $0.keyword == keyword && $0.targetID == battle.enemy.id
-            },
-            "keyword=\(keyword)",
-        )
-    }
-
-    @Test func `action skip consumes on enemy turn`() throws {
-        var battle = BattleTestFixtures.partyWithPendingActionSkip(keyword: .stun)
         let enemy = battle.enemy
-
-        try #expect(!(battle.activeEffects(of: enemy)).isEmpty)
-
+        if keyword == .stun {
+            #expect(!battle.activeEffects(of: enemy).isEmpty)
+        }
         let events = battle.endTurn().events
-        #expect(events.contains {
-            $0.effectKind == .controlActionSkipped && $0.keyword == .stun && $0.targetID == enemy.id
-        })
-        try #expect(!(events.contains { $0.kind == .ability && $0.actorID == enemy.id }))
-        try #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
-        try #expect(!(battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
+        #expect(battle.health(of: hero) == hero.maxHealth)
+        #expect(events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == keyword && $0.targetID == enemy.id })
+        if keyword == .stun {
+            #expect(!events.contains { $0.kind == .ability && $0.actorID == enemy.id })
+            #expect(battle.roster.hasControlStatus(for: enemy, keyword: .stun))
+            #expect(!battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
+        }
     }
 
     @Test func `stun status lingers through following player turn without second skip`() throws {

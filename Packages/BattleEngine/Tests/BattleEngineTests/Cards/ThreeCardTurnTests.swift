@@ -18,13 +18,7 @@ struct ThreeCardTurnTests {
     }
 
     private func attack(_ damage: Int = 2) -> Ability {
-        Ability(
-            id: "test-strike",
-            name: "Test Strike",
-            tier: .basic,
-            directDamage: damage,
-            criticalChanceBonus: -1,
-        )
+        Ability(id: "test-strike", name: "Test Strike", tier: .basic, directDamage: damage, criticalChanceBonus: -1)
     }
 
     @Test func `draw effects never advance scheduled owner and exhausted piles never refill mid turn`() throws {

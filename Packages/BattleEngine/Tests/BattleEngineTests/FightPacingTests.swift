@@ -25,13 +25,10 @@ struct FightPacingTests {
         turnCount: Int = 0,
         enemyID: String = "goblin",
     ) -> BattleState {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
-        let enemy = CombatantFixtures.combatant(id: enemyID, role: .enemy, maxHealth: 50)
         var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50),
+            enemy: CombatantFixtures.combatant(id: enemyID, role: .enemy, maxHealth: 50),
             heroHealth: heroHP,
             companionHealth: companionHP,
             enemyHealth: enemyHP,

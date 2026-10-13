@@ -10,13 +10,7 @@ struct FrostCircuitRegressionTests {
         blocked: Bool,
     ) throws {
         let fixtures = UniqueCollectionTests()
-        let basic = Ability(
-            id: "freeze-basic",
-            name: "Freeze Basic",
-            tier: .basic,
-            directDamage: 4,
-            damageKeyword: .freeze,
-        )
+        let basic = Ability(id: "freeze-basic", name: "Freeze Basic", tier: .basic, directDamage: 4, damageKeyword: .freeze)
         let profile = CombatantTalentCatalog.profile(for: ["wizard_mana_t4_1"])
         var battle = try fixtures.battle(
             counterattack ? ["the_knights_answer"] : [], extra: profile, heroBasic: basic,

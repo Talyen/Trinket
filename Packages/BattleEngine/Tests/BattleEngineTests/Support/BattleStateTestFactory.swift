@@ -72,12 +72,7 @@ enum BattleStateTestFactory {
             maxMana: companionMaxMana,
             abilities: companionAbilities,
         )
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: enemyMaxHealth,
-            abilities: enemyAbilities,
-        )
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: enemyMaxHealth, abilities: enemyAbilities)
         var battle = makeBattle(
             hero: hero,
             companion: companion,

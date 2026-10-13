@@ -185,11 +185,7 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `damage component applies do T stack without immediate tick`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            abilities: [.kindling],
-        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.kindling])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         var context = BattleStateTestFactory.makeBattle(

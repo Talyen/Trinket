@@ -7,10 +7,7 @@ import TrinketCore
 extension BattleCardCombatTests {
     @Test func `enemy block protects against player attack before decaying`() throws {
         let guardAbility = Ability(id: "guard", name: "Guard", tier: .basic, effects: [.shield(.block, 11)])
-        let strike = Ability(
-            id: "strike", name: "Strike", tier: .basic,
-            damageComponents: [DamageComponent(6, keyword: .physical)],
-        )
+        let strike = Ability(id: "strike", name: "Strike", tier: .basic, damageComponents: [DamageComponent(6, keyword: .physical)])
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [strike], enemyAbilities: [guardAbility],
         )

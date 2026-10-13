@@ -250,9 +250,7 @@ struct BattleCardAssessmentTests {
         DefensePoolEngine.set(10, on: state.hero, in: &state)
         let ability = Ability(
             id: "scaled-cost", name: "Scaled Cost", tier: .basic,
-            damageComponents: [DamageComponent(
-                0, target: .actor, scaling: .actorBlockFraction(divisor: 2, minimum: 1),
-            )],
+            damageComponents: [DamageComponent(0, target: .actor, scaling: .actorBlockFraction(divisor: 2, minimum: 1))],
         )
         let card = deal(ability, in: &state)
         let assessment = state.assessCard(card)

@@ -97,55 +97,35 @@ struct BattleMechanicsTests {
         #expect(battle.gold == 0)
     }
 
-    private func makeContext(
-        hero: Combatant,
-        companion: Combatant,
-        enemy: Combatant,
-        heroMana: Int? = nil,
-        enemyEffects: [ActiveEffect] = [],
-    ) -> BattleState {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            activeEnemyEffects: enemyEffects,
+    @Test(arguments: [(0, 2), (50, 5)])
+    func `Marked waits for an attack and is consumed even when Block absorbs the hit`(block: Int, bonus: Int) {
+        var context = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30),
+            enemyEffects: [ActiveEffect(id: 2, effect: .marked(bonus, 6), remainingTurns: 6, sourceActorID: "hero")],
+            nextEffectID: 3,
         )
-        if let heroMana {
-            battle.roster.hero.currentMana = heroMana
+        if block == 0 {
+            let dot = context.resolveDamage(.doTTick(amount: 3, target: context.enemy, keyword: .burn, sourceActorID: context.hero.id))
+            #expect(dot.healthLost == 3)
+            #expect(context.roster.activeEffects(for: context.enemy).contains { $0.effect.kind == .marked })
+        } else {
+            context.roster.enemy.activeEffects.insert(
+                ActiveEffect(id: 1, effect: .shield(.block, block), remainingTurns: 6, sourceActorID: context.hero.id), at: 0,
+            )
         }
-        return battle
-    }
-
-    @Test func `marked bonus adds damage and consumes mark`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        var context = makeContext(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            enemyEffects: [ActiveEffect(id: 1, effect: .marked(2, 6), remainingTurns: 6, sourceActorID: hero.id)],
-        )
-
-        let dotOutcome = context.resolveDamage(
-            .doTTick(amount: 3, target: enemy, keyword: .burn, sourceActorID: hero.id),
-        )
-
-        try #expect(dotOutcome.healthLost == 3)
-        try #expect(context.roster.activeEffects(for: enemy).contains {
-            $0.effect.kind == .marked
-        })
-
-        let attackOutcome = context.resolveDamage(
-            .directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id),
-        )
-
-        try #expect(attackOutcome.healthLost == 5)
-        try #expect(
-            !context.roster.activeEffects(for: enemy).contains {
-                $0.effect.kind == .marked
-            },
-        )
+        let outcome = context.resolveDamage(.directAbilityHit(
+            amount: 3,
+            target: context.enemy,
+            keyword: .physical,
+            sourceActorID: context.hero.id,
+        ))
+        #expect(outcome.healthLost == (block == 0 ? 5 : 0))
+        #expect(!context.roster.activeEffects(for: context.enemy).contains { $0.effect.kind == .marked })
+        if block > 0 {
+            #expect(outcome.events.contains { $0.effectKind == .markedConsumed })
+        }
     }
 
     @Test func `predators focus applies leech preparation`() throws {
@@ -159,7 +139,7 @@ struct BattleMechanicsTests {
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        var context = makeContext(hero: hero, companion: wolf, enemy: enemy)
+        var context = BattleStateTestFactory.makeBattle(hero: hero, companion: wolf, enemy: enemy)
         let ability = try #require(wolf.abilityLoadout.skill)
 
         _ = BattleTurnEngine.performAction(
@@ -203,35 +183,6 @@ struct BattleMechanicsTests {
         try #expect(!(context.roster.activeEffects(for: hero).contains {
             $0.effect.kind == .nextStrikeCritical
         }))
-    }
-
-    @Test func `marked consumed when fully shielded`() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTurns: 6, sourceActorID: hero.id)
-        let mark = ActiveEffect(id: 2, effect: .marked(5, 6), remainingTurns: 6, sourceActorID: hero.id)
-
-        var context = BattleStateTestFactory.makeMinimalBattle(
-            hero: hero,
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
-            enemy: enemy,
-            enemyEffects: [shield, mark],
-            nextEffectID: 3,
-        )
-
-        let outcome = context.resolveDamage(
-            DamageRequest.directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id),
-        )
-
-        try #expect(outcome.healthLost == 0)
-        try #expect(
-            !context.roster.activeEffects(for: enemy).contains {
-                if case .marked = $0.effect {
-                    return true
-                }; return false
-            },
-        )
-        try #expect(outcome.events.contains { $0.effectKind == .markedConsumed })
     }
 
     @Test func `corrosive venom strips block before the poison packet is absorbed`() throws {

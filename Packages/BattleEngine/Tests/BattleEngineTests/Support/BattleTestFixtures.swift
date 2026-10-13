@@ -14,13 +14,9 @@ enum BattleTestFixtures {
         seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
     ) -> BattleState {
         BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.combatant(
-                id: "source", role: .hero, maxHealth: 50,
-            ),
+            hero: CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
-            enemy: CombatantFixtures.combatant(
-                id: "target", role: .enemy, maxHealth: targetMaxHealth,
-            ),
+            enemy: CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: targetMaxHealth),
             enemyEffects: targetEffects,
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,

@@ -193,30 +193,17 @@ struct BattleStateTests {
         #expect(initial.defeatProgress.experienceAward(from: 100) == 0)
     }
 
-    @Test func `battle state seeds party starting health`() {
+    @Test(arguments: [false, true])
+    func `party starting Health uses the supplied values or full Health`(custom: Bool) {
         let state = BattleState(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
-            heroStartingHealth: 17,
-            companionStartingHealth: 9,
+            heroStartingHealth: custom ? 17 : nil, companionStartingHealth: custom ? 9 : nil,
             dealOpeningHand: false,
         )
-
-        #expect(state.roster.hero.currentHealth == 17)
-        #expect(state.roster.companion.currentHealth == 9)
+        #expect(state.roster.hero.currentHealth == (custom ? 17 : 50))
+        #expect(state.roster.companion.currentHealth == (custom ? 9 : 40))
         #expect(state.roster.enemy.currentHealth == 30)
-    }
-
-    @Test func `battle state defaults party to full health`() {
-        let state = BattleState(
-            hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
-            dealOpeningHand: false,
-        )
-
-        #expect(state.roster.hero.currentHealth == 50)
-        #expect(state.roster.companion.currentHealth == 40)
     }
 }

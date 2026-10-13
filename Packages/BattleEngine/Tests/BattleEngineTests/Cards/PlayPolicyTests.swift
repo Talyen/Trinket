@@ -36,12 +36,8 @@ struct PlayPolicyTests {
         battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.hand = BattleHand()
 
-        battle.nextCardID += 1
-        let blackjack = BattleCard(id: battle.nextCardID, ability: .blackjack, owner: .companion)
-        battle.hand.append(blackjack)
-        battle.nextCardID += 1
-        let cinderbloom = BattleCard(id: battle.nextCardID, ability: .cinderbloom, owner: .hero)
-        battle.hand.append(cinderbloom)
+        let blackjack = BattleCardCombatEngine.deal(.blackjack, owner: .companion, context: &battle)
+        let cinderbloom = BattleCardCombatEngine.deal(.cinderbloom, owner: .hero, context: &battle)
 
         var unsafeBattle = battle
         _ = try unsafeBattle.playCard(cardID: blackjack.id)
@@ -85,7 +81,7 @@ extension PlayPolicyTests {
         if ability.id == Ability.shieldBash.id {
             DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         }
-        BattleCardCombatEngine.deal(.heal, owner: .hero, context: &battle)
+        _ = BattleCardCombatEngine.deal(.heal, owner: .hero, context: &battle)
         let attack = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
         var proof = battle
         _ = try proof.playCard(cardID: attack.id)

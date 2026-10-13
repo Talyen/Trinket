@@ -46,12 +46,7 @@ struct EffectTurnEngineTests {
     }
 
     @Test func `do T tick preserves shield depletion through tick all`() throws {
-        let shield = ActiveEffect(
-            id: 1,
-            effect: .shield(.block, 5),
-            remainingTurns: 5,
-            sourceActorID: "caster",
-        )
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 5, sourceActorID: "caster")
         let burn = ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0)
         var context = makeContext(enemyHP: 50, enemyEffects: [shield, burn])
         let enemy = context.roster.enemy.combatant

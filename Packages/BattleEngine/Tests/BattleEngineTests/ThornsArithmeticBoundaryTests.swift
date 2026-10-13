@@ -13,11 +13,7 @@ struct ThornsArithmeticBoundaryTests {
         profile.triggers.thornsDamageDoubleWhileBlocked = true
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroEffects: [ActiveEffect(
-                id: 1,
-                effect: .thorns(Int.max),
-                remainingTurns: 0,
-            )],
+            heroEffects: [ActiveEffect(id: 1, effect: .thorns(Int.max), remainingTurns: 0)],
             heroModifiers: profile,
         )
         battle.appliesFightPacing = false

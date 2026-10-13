@@ -18,10 +18,7 @@ struct DodgeCardChainRegressionTests {
         battle.heroDeck = CombatDeck(abilities: [.block])
         battle.companionDeck = CombatDeck(abilities: [.stab])
         battle.appendEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
-        let ability = Ability(
-            id: "nested-draw", name: "Nested Draw", tier: .skill,
-            effects: [.drawAndPlayCards(2)],
-        )
+        let ability = Ability(id: "nested-draw", name: "Nested Draw", tier: .skill, effects: [.drawAndPlayCards(2)])
         let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
         let result = try CombatExecutor.run {
             try await BattleCardCombatEngine.resolveDrawnCard(card, context: &battle)

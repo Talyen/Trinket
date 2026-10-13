@@ -46,19 +46,22 @@ struct ControlMeterEngineTests {
         #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
     }
 
-    @Test(arguments: [Keyword.stun, Keyword.freeze])
-    func `apply buildup triggers control at threshold`(keyword: Keyword) throws {
-        var context = BattleTestFixtures.makePipelineContext()
+    @Test(arguments: [(Keyword.stun, 50, 15), (.freeze, 50, 15), (.stun, 100, 50)])
+    func `control triggers at its threshold and consumes overflow`(keyword: Keyword, maximumHealth: Int, charge: Int) {
+        var context = BattleTestFixtures.makePipelineContext(targetMaxHealth: maximumHealth)
         let target = context.roster.enemy.combatant
         let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            15,
-            keyword: keyword,
-            to: target,
-            sourceActorID: "source",
-            applyFightPacing: false,
-            in: &context,
+            charge, keyword: keyword, to: target, sourceActorID: "source",
+            applyFightPacing: charge == 50, in: &context,
         ) }
-        try #expect(events.contains { $0.effectKind == .controlTriggered && $0.keyword == keyword })
+        #expect(events.contains { $0.effectKind == .controlTriggered && $0.keyword == keyword })
+        if charge == 50 {
+            #expect(!context.roster.activeEffects(for: target).contains {
+                guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
+                return amount < threshold
+            }, "Partial build-up should be consumed on trigger")
+            #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+        }
     }
 
     @Test(arguments: [Keyword.stun, .freeze], [BattleParticipant.hero, .companion, .enemy])
@@ -147,29 +150,6 @@ struct ControlMeterEngineTests {
         let target = context.roster.enemy.combatant
         let meters = context.roster.activeEffects(for: target).compactMap(\.effect.controlMeterValues)
         try #expect(meters.count == 2)
-    }
-
-    @Test func `overflow charge is consumed on trigger`() throws {
-        var context = BattleTestFixtures.makePipelineContext(targetMaxHealth: 100)
-        let target = context.roster.enemy.combatant
-
-        let events = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-            50,
-            keyword: .stun,
-            to: target,
-            sourceActorID: "source",
-            in: &context,
-        ) }
-
-        try #expect(events.contains { $0.effectKind == .controlTriggered })
-        try #expect(
-            !context.roster.activeEffects(for: target).contains {
-                guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
-                return amount < threshold
-            },
-            "Partial build-up should be consumed on trigger",
-        )
-        try #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
     }
 
     @Test func `reduced stun threshold still registers full meter and skip`() throws {

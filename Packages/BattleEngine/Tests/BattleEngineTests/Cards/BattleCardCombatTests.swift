@@ -5,52 +5,25 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleCardCombatTests {
-    @Test func `paced opening hand matches immediate draw for same seed`() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            maxHealth: 50,
-            abilities: [.slash, .heal, .smite],
-        )
-        let companion = CombatantFixtures.combatant(
-            id: "companion",
-            role: .companion,
-            maxHealth: 50,
-            abilities: [.bash, .fangs, .bloodthorn],
-        )
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 100,
-        )
-        let seed: UInt64 = 42
-        let immediate = BattleState(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            rngSeed: seed,
-            tracksLog: false,
-        )
-        var paced = BattleState(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            rngSeed: seed,
-            tracksLog: false,
-            dealOpeningHand: false,
-        )
-        try #expect(paced.hand.isEmpty)
-
+    @Test func `paced opening hand matches immediate draw for same seed`() {
+        func makeBattle(dealOpeningHand: Bool) -> BattleState {
+            BattleStateTestFactory.makeBattleWithAbilities(
+                heroAbilities: [.slash, .heal, .smite], companionAbilities: [.bash, .fangs, .bloodthorn],
+                heroMaxHealth: 50, companionMaxHealth: 50, rngSeed: 42, dealOpeningHand: dealOpeningHand,
+            )
+        }
+        let immediate = makeBattle(dealOpeningHand: true)
+        var paced = makeBattle(dealOpeningHand: false)
+        #expect(paced.hand.isEmpty)
         var draws = 0
         while paced.drawNextOpeningHandCard(rebuildLog: false) {
             draws += 1
         }
         paced.finalizeOpeningHand()
-
-        try #expect(draws == 3)
-        try #expect(paced.hand.cards.map(\.ability.id) == immediate.hand.cards.map(\.ability.id))
-        try #expect(paced.hand.cards.map(\.owner) == immediate.hand.cards.map(\.owner))
-        try #expect(paced.ownersSkippingThisPlayerTurn == immediate.ownersSkippingThisPlayerTurn)
+        #expect(draws == 3)
+        #expect(paced.hand.cards.map(\.ability.id) == immediate.hand.cards.map(\.ability.id))
+        #expect(paced.hand.cards.map(\.owner) == immediate.hand.cards.map(\.owner))
+        #expect(paced.ownersSkippingThisPlayerTurn == immediate.ownersSkippingThisPlayerTurn)
     }
 
     @Test func `play discards card without making it drawable`() throws {
@@ -59,9 +32,7 @@ struct BattleCardCombatTests {
             companionAbilities: [.bash, .serratedEdge, .bloodthorn],
         )
         battle.hand = BattleHand()
-        battle.nextCardID += 1
-        let card = BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero)
-        battle.hand.append(card)
+        let card = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
         let deckBefore = battle.heroDeck.count
 
         _ = try battle.playCard(cardID: card.id)
@@ -107,12 +78,9 @@ struct BattleCardCombatTests {
         battle.heroDeck.putOnBottom(.smite)
 
         battle.hand = BattleHand()
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .darkPact, owner: .hero))
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .bash, owner: .companion))
+        _ = BattleCardCombatEngine.deal(.darkPact, owner: .hero, context: &battle)
+        _ = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
+        _ = BattleCardCombatEngine.deal(.bash, owner: .companion, context: &battle)
 
         let events = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 
@@ -134,8 +102,7 @@ struct BattleCardCombatTests {
             for: battle.roster.hero.combatant,
         )
         battle.hand = BattleHand()
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .darkPact, owner: .hero))
+        _ = BattleCardCombatEngine.deal(.darkPact, owner: .hero, context: &battle)
 
         _ = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 
@@ -158,11 +125,8 @@ struct BattleCardCombatTests {
             enemyMaxHealth: 500,
         )
         while battle.hand.count < BattleHand.maxSize {
-            battle.nextCardID += 1
             let owner: BattleParticipant = battle.hand.count.isMultiple(of: 2) ? .hero : .companion
-            battle.hand.append(
-                BattleCard(id: battle.nextCardID, ability: .slash, owner: owner),
-            )
+            _ = BattleCardCombatEngine.deal(.slash, owner: owner, context: &battle)
         }
         battle.heroDeck.putOnBottom(.slash)
         battle.companionDeck.putOnBottom(.bash)
@@ -186,12 +150,9 @@ struct BattleCardCombatTests {
         let firstBuffered = BattleCard(id: battle.nextCardID, ability: .fangs, owner: .companion)
         battle.nextCardID += 1
         let secondBuffered = BattleCard(id: battle.nextCardID, ability: .bloodthorn, owner: .companion)
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero))
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .smite, owner: .hero))
+        _ = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
+        _ = BattleCardCombatEngine.deal(.heal, owner: .hero, context: &battle)
+        _ = BattleCardCombatEngine.deal(.smite, owner: .hero, context: &battle)
         battle.hand.append(firstBuffered)
         battle.hand.append(secondBuffered)
 
@@ -287,24 +248,13 @@ struct BattleCardCombatTests {
 
     @Test func `Pack Tactics draws ally card manually and stays discarded`() throws {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 50,
-                abilities: [.packTactics],
-            ),
-            companion: CombatantFixtures.combatant(
-                id: "companion",
-                role: .companion,
-                maxHealth: 50,
-                abilities: [.slash],
-            ),
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50, abilities: [.packTactics]),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50, abilities: [.slash]),
             dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck()
         battle.companionDeck = CombatDeck(abilities: [.slash])
-        battle.nextCardID += 1
-        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .packTactics, owner: .hero))
+        _ = BattleCardCombatEngine.deal(.packTactics, owner: .hero, context: &battle)
 
         let packTacticsID = try #require(battle.hand.cards.first?.id)
         let events = try battle.playCard(cardID: packTacticsID).events

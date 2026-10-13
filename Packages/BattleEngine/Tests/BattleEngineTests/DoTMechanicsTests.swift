@@ -61,12 +61,7 @@ struct DoTMechanicsTests {
         heroEffects: [ActiveEffect] = [],
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(
-                id: "hero",
-                role: .hero,
-                maxHealth: 20,
-                abilities: heroAbilities,
-            ),
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: heroAbilities),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: enemyEffects,
             activeHeroEffects: heroEffects,

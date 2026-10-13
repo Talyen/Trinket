@@ -15,19 +15,9 @@ private func makeTurnContext(
     actorEffects: [ActiveEffect] = [],
     seed: UInt64 = CombatantFixtures.deterministicBattleSeed,
 ) -> BattleState {
-    let resolvedHero = CombatantFixtures.combatant(
-        id: "hero",
-        role: .hero,
-        maxHealth: heroMaxHealth,
-        abilities: heroAbilities,
-    )
+    let resolvedHero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: heroMaxHealth, abilities: heroAbilities)
     let resolvedCompanion = CombatantFixtures.combatant(id: "companion", role: .companion)
-    let resolvedEnemy = CombatantFixtures.combatant(
-        id: "enemy",
-        role: .enemy,
-        maxHealth: enemyMaxHealth,
-        abilities: enemyAbilities,
-    )
+    let resolvedEnemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: enemyMaxHealth, abilities: enemyAbilities)
     return BattleStateTestFactory.makeMinimalBattle(
         hero: resolvedHero,
         companion: resolvedCompanion,
@@ -236,12 +226,7 @@ struct BattleTurnEngineTests {
         let basic = Ability(id: "basic", name: "Basic", tier: .basic, directDamage: 1, description: "Basic")
         let skill = Ability(id: "skill", name: "Skill", tier: .skill, directDamage: 5, description: "Skill")
         let ultimate = Ability(id: "ult", name: "Ult", tier: .ultimate, directDamage: 9, description: "Ult")
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 30,
-            abilities: [basic, skill, ultimate],
-        )
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30, abilities: [basic, skill, ultimate])
         try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 3)?.id == skill.id)
         try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 6)?.id == ultimate.id)
     }
@@ -268,12 +253,7 @@ struct BattleTurnEngineBurnBonusTests {
 
 struct BattleTurnEngineComponentTests {
     @Test func `next holy strike burn uses authored not doubled potency`() throws {
-        let ability = Ability(
-            id: "holy-strike",
-            name: "Holy Strike",
-            tier: .basic,
-            damageComponents: [DamageComponent(10, keyword: .holy)],
-        )
+        let ability = Ability(id: "holy-strike", name: "Holy Strike", tier: .basic, damageComponents: [DamageComponent(10, keyword: .holy)])
         var context = makeTurnContext(
             heroAbilities: [ability],
             heroEffects: [ActiveEffect(id: 1, effect: .nextHolyStrike, remainingTurns: 0)],
@@ -349,13 +329,7 @@ struct BattleTurnEngineComponentTests {
             tier: .basic,
             damageComponents: [DamageComponent(5, keyword: .burn)],
         )
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            maxHealth: 50,
-            maxMana: 10,
-            abilities: [burnAbility],
-        )
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50, maxMana: 10, abilities: [burnAbility])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         var context = BattleStateTestFactory.makeBattle(

@@ -212,12 +212,7 @@ struct CleanseIntegrationTests {
     }
 
     @Test func `purifying wisdom does not draw or consume claim on empty cleanse`() {
-        let cleanseAbility = Ability(
-            id: "cleanse-one",
-            name: "Cleanse",
-            tier: .basic,
-            effects: [.cleanse(nil)],
-        )
+        let cleanseAbility = Ability(id: "cleanse-one", name: "Cleanse", tier: .basic, effects: [.cleanse(nil)])
         var battle = makeCleanseBattle(
             heroAbility: cleanseAbility, heroMaxHealth: 50,
             heroModifiers: CombatModifierProfile.withTriggers { $0.cleanseBonusDraw = 1 },

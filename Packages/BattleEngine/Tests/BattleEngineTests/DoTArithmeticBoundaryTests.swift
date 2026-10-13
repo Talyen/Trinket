@@ -83,11 +83,7 @@ struct DoTArithmeticBoundaryTests {
     @Test(arguments: [Keyword.burn, .bleed])
     func `DoT details saturate the combined potency of multiple stacks`(keyword: Keyword) throws {
         let effects = [Int.max, 1].enumerated().map { index, potency in
-            ActiveEffect(
-                id: index,
-                effect: keyword == .burn ? .burn(potency) : .bleed(potency),
-                remainingTurns: keyword == .bleed ? 1 : 0,
-            )
+            ActiveEffect(id: index, effect: keyword == .burn ? .burn(potency) : .bleed(potency), remainingTurns: keyword == .bleed ? 1 : 0)
         }
 
         let summary = try #require(EffectSummaryBuilder.build(for: effects).first)

@@ -118,10 +118,7 @@ struct BattleLogProjectionTests {
     @Test(arguments: [false, true])
     func `direct Gold and Mana gains remain in the action summary without duplicate lines`(automatic: Bool) {
         var battle = makeSupportBattle()
-        let ability = Ability(
-            id: "supplies", name: "Supplies", tier: .skill,
-            effects: [.resourceGain(.gold, 3), .resourceGain(.mana, 3)],
-        )
+        let ability = Ability(id: "supplies", name: "Supplies", tier: .skill, effects: [.resourceGain(.gold, 3), .resourceGain(.mana, 3)])
         let events: [ActionEvent] = if automatic {
             battle.withAutomaticPlay { context in
                 BattleTurnEngine.performAction(
