@@ -232,7 +232,10 @@ extension BattleTurnEngine {
         let criticalDurationBonus = keyword == .bleed && isCritical
             ? profile.triggers.bleedDurationFromCriticalBonus : 0
         let duration = criticalDurationBonus > 0
-            ? Effect.bleedDoTTurnCount + profile.bleedDurationBonus + criticalDurationBonus : nil
+            ? SaturatedArithmetic.saturatingAdd(
+                SaturatedArithmetic.saturatingAdd(Effect.bleedDoTTurnCount, profile.bleedDurationBonus),
+                criticalDurationBonus,
+            ) : nil
         return await DoTApplicator.applyDoT(
             keyword: keyword,
             potency: potency,

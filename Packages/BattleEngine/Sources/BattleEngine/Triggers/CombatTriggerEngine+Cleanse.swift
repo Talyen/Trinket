@@ -58,7 +58,7 @@ package extension CombatTriggerEngine {
             }
             if triggers.cleanseSelfBlockFlat > 0 {
                 events.append(contentsOf: context.applyBlock(
-                    triggers.cleanseSelfBlockFlat * removedCount,
+                    SaturatedArithmetic.saturatingMul(triggers.cleanseSelfBlockFlat, removedCount),
                     to: source, source: source,
                     abilityName: triggerAbilityName(.cleanseSelfBlockFlat, for: source, fallback: "Clearheaded", in: context),
                 ))
@@ -66,7 +66,8 @@ package extension CombatTriggerEngine {
             if triggers.onCleanseRestoreMana > 0 {
                 await events.append(contentsOf: emitMana(
                     .onCleanseRestoreMana, "Solace",
-                    amount: triggers.onCleanseRestoreMana * removedCount, to: source, in: &context,
+                    amount: SaturatedArithmetic.saturatingMul(triggers.onCleanseRestoreMana, removedCount),
+                    to: source, in: &context,
                 ))
             }
             events.append(contentsOf: cleanseShieldBonuses(
@@ -90,7 +91,7 @@ package extension CombatTriggerEngine {
         if source.role != .enemy, Self.hasLivingPartyTrigger(\.purifyingWaters, in: context), removedCount > 0 {
             let healTarget = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
             await events.append(contentsOf: context.healEmitting(
-                amount: 4 * removedCount,
+                amount: SaturatedArithmetic.saturatingMul(4, removedCount),
                 target: healTarget,
                 source: source,
                 abilityName: "Purifying Waters",
@@ -130,7 +131,8 @@ package extension CombatTriggerEngine {
         if triggers.cleanseBlockPerStack > 0 {
             events.append(contentsOf: emitBlock(
                 .cleanseBlockPerStack, "Spellbreak Shield",
-                amount: triggers.cleanseBlockPerStack * removedCount, to: target, source: source, in: &context,
+                amount: SaturatedArithmetic.saturatingMul(triggers.cleanseBlockPerStack, removedCount),
+                to: target, source: source, in: &context,
             ))
         }
         if triggers.cleanseTargetBlockFlat > 0 {
@@ -186,7 +188,7 @@ package extension CombatTriggerEngine {
         else { return [] }
         return await context.resolveDamage(
             DamageRequest(
-                amount: triggers.onCleansePoisonDealDamagePerStack * removedCount,
+                amount: SaturatedArithmetic.saturatingMul(triggers.onCleansePoisonDealDamagePerStack, removedCount),
                 target: context.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: source.id,

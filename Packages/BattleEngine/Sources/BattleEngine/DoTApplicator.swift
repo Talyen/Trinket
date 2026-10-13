@@ -176,8 +176,10 @@ package enum DoTApplicator {
             .bleed(potency),
             to: effectTarget,
             sourceID: sourceActorID,
-            remainingTurns: (durationTurns ?? (Effect.bleedDoTTurnCount + sourceProfile.bleedDurationBonus))
-                + poisonDurationBonus,
+            remainingTurns: SaturatedArithmetic.saturatingAdd(
+                durationTurns ?? SaturatedArithmetic.saturatingAdd(Effect.bleedDoTTurnCount, sourceProfile.bleedDurationBonus),
+                poisonDurationBonus,
+            ),
         )
         return collected
     }

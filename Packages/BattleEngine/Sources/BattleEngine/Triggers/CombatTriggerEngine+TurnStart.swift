@@ -287,12 +287,14 @@ package extension CombatTriggerEngine {
                 amount: triggers.startBattleBonusMana, to: actor, in: &context,
             ))
         }
+        guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if triggers.startBattleBlock > 0 {
             events.append(contentsOf: emitBlock(
                 .startBattleBlock, "Watchful Eye",
                 amount: triggers.startBattleBlock, to: actor, source: actor, in: &context,
             ))
         }
+        guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if triggers.startBattleThorns > 0 {
             await events.append(contentsOf: heroTalentThorns(
                 to: actor, source: actor, amount: triggers.startBattleThorns,
@@ -300,12 +302,14 @@ package extension CombatTriggerEngine {
                 in: &context,
             ))
         }
+        guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if triggers.startBattleBonusGold > 0 {
             await events.append(contentsOf: emitGold(
                 .startBattleBonusGold, "Deep Pockets",
                 amount: triggers.startBattleBonusGold, to: actor, in: &context,
             ))
         }
+        guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if triggers.dodgeFirstAttackEachCombat {
             context.prependEffect(.evadeNextHit, to: actor, remainingTurns: 0)
         }
@@ -368,6 +372,7 @@ package extension CombatTriggerEngine {
                 amount: triggers.goldEveryNTurnsAmount, to: actor, in: &context,
             ))
         }
+        guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if triggers.healthRegenFirstTurnsDuration > 0,
            context.turnCount < triggers.healthRegenFirstTurnsDuration {
             await events.append(contentsOf: emitHeal(
@@ -375,6 +380,7 @@ package extension CombatTriggerEngine {
                 amount: triggers.healthRegenFirstTurnsAmount, to: actor, source: actor, in: &context,
             ))
         }
+        guard !context.isBattleOver, context.health(of: actor) > 0 else { return events }
         if triggers.healthRegenAboveHalfHealth > 0,
            context.roster.maxHealth(for: actor) > 0,
            context.roster.isAboveHalfHealth(for: actor) {

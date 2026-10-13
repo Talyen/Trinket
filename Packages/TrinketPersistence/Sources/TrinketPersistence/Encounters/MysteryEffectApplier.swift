@@ -184,8 +184,8 @@ public enum MysteryEffectApplier {
             let hero = save.roster.activeHero
             let companion = save.roster.activeCompanion
             let award = RewardExperiencePolicy.sharedAward(amount, roster: save.roster)
-            result.heroProgressionBefore = save.roster.progression(for: hero)
-            result.companionProgressionBefore = save.roster.progression(for: companion)
+            result.heroProgressionBefore = result.heroProgressionBefore ?? save.roster.progression(for: hero)
+            result.companionProgressionBefore = result.companionProgressionBefore ?? save.roster.progression(for: companion)
             result.heroGrantedExperience += save.roster.grantExperience(award, to: hero)
             result.companionGrantedExperience += save.roster.grantExperience(award, to: companion)
             result.heroProgressionAfter = save.roster.progression(for: hero)

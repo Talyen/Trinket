@@ -59,6 +59,32 @@ struct MysteryEffectApplierTests {
         )
     }
 
+    @Test func `gold overflow and experience report the complete progression change`() {
+        var save = SaveTestSupport.makeSave()
+        save.roster.gold = 995
+        let hero = save.roster.activeHero
+        let companion = save.roster.activeCompanion
+        let heroBefore = save.roster.progression(for: hero)
+        let companionBefore = save.roster.progression(for: companion)
+        var rng = SeededRandomNumberGenerator(seed: 1)
+
+        let result = MysteryEffectApplier.apply(
+            [.gainGold(20), .gainExperience],
+            stageID: "chapter-1-stage-2", choiceID: "harvest",
+            encounterLevel: 1, rewardLevel: 1,
+            save: &save, using: &rng,
+        )
+
+        #expect(result.heroGrantedExperience > 7)
+        #expect(result.companionGrantedExperience > 7)
+        #expect(result.heroProgressionBefore == heroBefore)
+        #expect(result.companionProgressionBefore == companionBefore)
+        #expect(result.heroProgressionAfter == heroBefore.addingExperience(result.heroGrantedExperience))
+        #expect(result.companionProgressionAfter == companionBefore.addingExperience(result.companionGrantedExperience))
+        #expect(result.heroProgressionAfter == save.roster.progression(for: hero))
+        #expect(result.companionProgressionAfter == save.roster.progression(for: companion))
+    }
+
     @Test func `mystery reward percent bonuses scale grants`() throws {
         let effects: [MysteryEffect] = [.gainGold(20), .gainMaterial(.herbs), .gainExperience]
 

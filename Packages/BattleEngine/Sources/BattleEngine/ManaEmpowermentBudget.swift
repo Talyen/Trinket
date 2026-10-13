@@ -40,8 +40,10 @@ struct ManaEmpowermentBudget {
         preparedDiscount = max(0, runtime?.talents.pending.nextManaEmpowerDiscount ?? 0)
         baseCost = max(
             0,
-            BattleTurnEngine.manaEmpowermentCost - max(0, reduction)
-                - max(0, burnReduction),
+            SaturatedArithmetic.saturatingSub(
+                SaturatedArithmetic.saturatingSub(BattleTurnEngine.manaEmpowermentCost, max(0, reduction)),
+                max(0, burnReduction),
+            ),
         )
         let maxMana = SaturatedArithmetic.saturatingAdd(runtime?.maxMana ?? 0, patron?.maxMana ?? 0)
         hasCapacity = maxMana > 0 || blockRate > 0
@@ -55,7 +57,9 @@ struct ManaEmpowermentBudget {
 
     mutating func nextPayment() -> Payment? {
         guard hasCapacity else { return nil }
-        let cost = max(0, baseCost - preparedDiscount - (hasEmpowered ? 0 : firstDiscount))
+        let cost = max(0, SaturatedArithmetic.saturatingSub(
+            SaturatedArithmetic.saturatingSub(baseCost, preparedDiscount), hasEmpowered ? 0 : firstDiscount,
+        ))
         let own = min(cost, ownMana)
         let shared = min(cost - own, partnerMana)
         let shortfall = cost - own - shared

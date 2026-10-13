@@ -111,7 +111,9 @@ enum EffectRemovalOperation {
            !context.roster.hasPendingActionSkip(for: target) {
             context.ownersSkippingThisPlayerTurn.remove(owner)
         }
-        let healAmount = baseHeal + healPerDebuff * removed.count
+        let healAmount = SaturatedArithmetic.saturatingAdd(
+            baseHeal, SaturatedArithmetic.saturatingMul(healPerDebuff, removed.count),
+        )
         // Empty-removal still reports heal/side-effect events as applied
         // (Panacea heal-only case). Purge has no such side effects, so its
         // empty path reports didApply:false. The asymmetry is intentional.

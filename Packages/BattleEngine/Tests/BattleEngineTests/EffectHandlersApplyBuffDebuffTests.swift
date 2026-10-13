@@ -45,6 +45,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     @Test(arguments: [
         ([Effect.damageReductionPercent(0.25, 3), .damageReductionPercent(0.20, 3)], "40%"),
         ([Effect.damageReductionFlat(2, 3), .damageReductionFlat(3, 3)], "by 5,"),
+        ([Effect.damageReductionFlat(Int.max, 3), .damageReductionFlat(1, 3)], "by \(Int.max),"),
         ([Effect.healingReductionPercent(0.20, 3), .healingReductionPercent(0.50, 3)], "50%"),
     ])
     func `debuff summaries reflect combined combat penalties`(effects: [Effect], expected: String) throws {

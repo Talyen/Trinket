@@ -12,7 +12,7 @@ package extension CombatTriggerEngine {
     ) -> Int {
         var bonus = 0
         if source.role != .enemy, state.options.isAttackHit {
-            bonus += enrageAuraBonus(in: context)
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, enrageAuraBonus(in: context))
         }
         let living = livingAllyModifiers(in: context)
         let companion = context.roster.companion.combatant
@@ -27,25 +27,25 @@ package extension CombatTriggerEngine {
             let triggers = profile.triggers
             if source.role == .companion {
                 if targetIsPoisoned {
-                    bonus += triggers.companionDamageVsPoisonedBonus
+                    bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.companionDamageVsPoisonedBonus)
                 }
                 if targetIsBurning {
-                    bonus += triggers.companionDamageVsBurningBonus
+                    bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.companionDamageVsBurningBonus)
                 }
             }
             if source.role != .enemy, damageKeyword == .physical || sharedKeyword == .physical,
                triggers.partyPhysicalDamageBonusFirstTurns > 0,
                context.turnCount < triggers.partyPhysicalDamageBonusFirstTurnCount {
-                bonus += triggers.partyPhysicalDamageBonusFirstTurns
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.partyPhysicalDamageBonusFirstTurns)
             }
             if companionFullHealth {
-                bonus += triggers.partyDamageBonusWhileCompanionFullHealth
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.partyDamageBonusWhileCompanionFullHealth)
                 if damageKeyword == .holy {
-                    bonus += triggers.partyHolyDamageBonusWhileCompanionFullHealth
+                    bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.partyHolyDamageBonusWhileCompanionFullHealth)
                 }
             }
             if state.options.isBasicAttackHit, source.role != .enemy, damageKeyword == .holy {
-                bonus += triggers.partyBasicAttackHolyBonus
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.partyBasicAttackHolyBonus)
             }
         }
         return bonus
@@ -60,7 +60,7 @@ package extension CombatTriggerEngine {
                 let percent = Double(context.roster.health(for: combatant))
                     / Double(context.roster.maxHealth(for: combatant))
                 if percent < aura.partyAllStatsBonusBelowHealthThreshold {
-                    bonus += aura.partyAllStatsBonusBelowHealthAmount
+                    bonus = SaturatedArithmetic.saturatingAdd(bonus, aura.partyAllStatsBonusBelowHealthAmount)
                 }
             }
         }

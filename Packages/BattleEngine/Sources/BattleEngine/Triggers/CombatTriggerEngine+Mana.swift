@@ -136,7 +136,9 @@ package extension CombatTriggerEngine {
         if companionTriggers.onHeroSpendManaCompanionNextAttackBonus > 0,
            context.roster.health(for: actor) > 0, context.roster.companion.isAlive {
             context.roster.mutateRuntime(for: context.roster.companion.combatant) {
-                $0.talents.pending.cardDamageBonus += companionTriggers.onHeroSpendManaCompanionNextAttackBonus
+                $0.talents.pending.cardDamageBonus = SaturatedArithmetic.saturatingAdd(
+                    $0.talents.pending.cardDamageBonus, companionTriggers.onHeroSpendManaCompanionNextAttackBonus,
+                )
             }
         }
         return events
@@ -286,7 +288,10 @@ package extension CombatTriggerEngine {
         guard triggers.spendManaDamageBonusPerMana > 0,
               amountSpent >= BattleTurnEngine.manaEmpowermentCost else { return [] }
         context.roster.mutateRuntime(for: actor) {
-            $0.talents.pending.cardDamageBonus += amountSpent * triggers.spendManaDamageBonusPerMana
+            $0.talents.pending.cardDamageBonus = SaturatedArithmetic.saturatingAdd(
+                $0.talents.pending.cardDamageBonus,
+                SaturatedArithmetic.saturatingMul(amountSpent, triggers.spendManaDamageBonusPerMana),
+            )
         }
         return []
     }
@@ -371,12 +376,17 @@ package extension CombatTriggerEngine {
     ) async -> [ActionEvent] {
         let threshold = context.modifiers(for: actor.id).triggers.spendManaThresholdAutoPlayCard
         guard threshold > 0, amountSpent > 0, !context.resolution.isAutomaticPlay else { return [] }
-        let totalSpent = (context.roster.runtime(for: actor)?.talents.battle.manaSpentTowardAutoPlay ?? 0) + amountSpent
-        context.roster.mutateRuntime(for: actor) { $0.talents.battle.manaSpentTowardAutoPlay = totalSpent % threshold }
-        guard totalSpent >= threshold else { return [] }
+        // Keep the exact remainder without constructing an overflowing lifetime total.
+        let previous = context.roster.runtime(for: actor)?.talents.battle.manaSpentTowardAutoPlay ?? 0
+        let remainder = amountSpent % threshold
+        let crossesThreshold = remainder >= threshold - previous
+        let remaining = crossesThreshold ? remainder - (threshold - previous) : previous + remainder
+        let automaticPlays = amountSpent / threshold + (crossesThreshold ? 1 : 0)
+        context.roster.mutateRuntime(for: actor) { $0.talents.battle.manaSpentTowardAutoPlay = remaining }
+        guard automaticPlays > 0 else { return [] }
         return await context.withAutomaticPlay { context in
             var events: [ActionEvent] = []
-            for _ in 0 ..< totalSpent / threshold {
+            for _ in 0 ..< automaticPlays {
                 guard context.roster.health(for: actor) > 0, !context.isBattleOver else { break }
                 let outcome = await DrawAndPlayCardsHandler().apply(
                     .drawAndPlayCards(1),
@@ -448,7 +458,7 @@ package extension CombatTriggerEngine {
         let overflow = context.roster.runtime(for: actor)?.talents.pending.manaOverflowThorns ?? 0
         let block = context.roster.runtime(for: actor)?.talents.pending.manaOverflowBlock ?? 0
         let arcane = restoredMana ? context.modifiers(for: actor.id).triggers.arcaneThornsOnManaRestore : 0
-        let amount = overflow + arcane
+        let amount = SaturatedArithmetic.saturatingAdd(overflow, arcane)
         guard amount > 0 || block > 0 else { return [] }
         context.roster.mutateRuntime(for: actor) {
             $0.talents.pending.manaOverflowThorns = 0

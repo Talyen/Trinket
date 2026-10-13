@@ -30,9 +30,9 @@ struct TimedDebuffHandler: BattleEffectHandler {
                 text: "Weakened: Outgoing damage reduced by \(percentInt)%\(durationSuffix).",
             )
         case .damageReductionFlat:
-            let amount = stacks.reduce(0) { result, active in
-                guard case let .damageReductionFlat(amount, _) = active.effect else { return result }
-                return result + amount
+            let amount = TimedBuffSummary.summedAmount(in: stacks) { effect in
+                guard case let .damageReductionFlat(amount, _) = effect else { return nil }
+                return amount
             }
             return EffectSummary(
                 keyword: keyword,

@@ -98,7 +98,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
             target: target,
-            amount: max(amount, restored),
+            amount: restored,
             keyword: .mana,
             origin: .direct,
         )
