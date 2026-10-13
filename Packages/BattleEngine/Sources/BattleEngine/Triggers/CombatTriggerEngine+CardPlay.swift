@@ -144,7 +144,7 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         if keywords.contains(.burn) {
             for (keyword, enabled) in repeatPairs(triggers: triggers) where enabled {
-                context.primedRepeatKeywords.insert(keyword)
+                context.roster.mutateRuntime(for: actor) { $0.talents.turn.primedRepeatKeywords.insert(keyword) }
             }
         }
         return []
@@ -161,8 +161,10 @@ package extension CombatTriggerEngine {
               !context.resolution.isAutomaticPlay
         else { return [] }
         let triggers = context.modifiers(for: actor.id).triggers
-        for (keyword, enabled) in repeatPairs(triggers: triggers) where keywords.contains(keyword) && enabled
-            && context.primedRepeatKeywords.remove(keyword) != nil {
+        for (keyword, enabled) in repeatPairs(triggers: triggers) where keywords.contains(keyword) && enabled {
+            var prepared = false
+            context.roster.mutateRuntime(for: actor) { prepared = $0.talents.turn.primedRepeatKeywords.remove(keyword) != nil }
+            guard prepared else { continue }
             context.resolution.enter(.damage)
             defer { context.resolution.leave(.damage) }
             return await BattleTurnEngine.performAction(

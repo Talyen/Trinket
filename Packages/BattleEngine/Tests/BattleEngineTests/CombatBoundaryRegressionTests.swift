@@ -5,6 +5,27 @@ import TrinketCore
 @testable import BattleEngine
 
 struct CombatBoundaryRegressionTests {
+    @Test func `Mana restoration cannot reward a defeated recipient`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.livingConduit = true
+        profile.triggers.excessManaRestorationBlock = true
+        profile.triggers.gainManaBlockFlat = 3
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxMana: 3),
+            companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(),
+            heroHealth: 0, heroMana: 0, heroModifiers: profile,
+        )
+
+        let events = CombatExecutor.run { await battle.restoreManaEmitting(5, to: battle.hero, abilityName: "Restore") }
+
+        #expect(battle.mana(of: battle.hero) == 0)
+        #expect(battle.activeEffects(of: battle.hero).isEmpty)
+        #expect(battle.roster.hero.talents.pending.manaOverflowThorns == 0)
+        #expect(battle.roster.hero.talents.pending.manaOverflowBlock == 0)
+        #expect(events.isEmpty)
+    }
+
     @Test(arguments: [false, true])
     func `phoenix feather revival retains card feedback identity`(automatic: Bool) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(

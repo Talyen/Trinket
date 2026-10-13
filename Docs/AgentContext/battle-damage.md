@@ -33,6 +33,8 @@ subtracting it and clamping damage. Burn detonation preserves the original
 source's decay rate and ticks per turn. Blackfletch's Poison detonation likewise
 preserves the original source's slower decay. Resolution depth limits recursion, never changes
 the meaning of a request.
+DoT amplification multiplies every matching stack, retaining each stack's source
+and duration; its feedback reports the combined amplified potency.
 Loose Rubble readies a non-stacking one-point reduction on positive Health damage,
 including periodic and retaliation damage, excluding Health costs. The next positive
 outgoing packet consumes it after outgoing calculations and before flat mitigation
@@ -105,8 +107,10 @@ Thorns resistance, including Briar Ward; ordinary Physical damage does not.
 Retaliatory reflection can trigger Spitebloom and earn Spiteful after positive
 Health damage, sharing Spiteful's once-per-turn allowance with a consumed Thorns stack.
 Its Physical reflection also observes Thorns resistance.
-Committed Thorns and lingering Bleed still deal damage after their source falls.
-Their personal rewards require a living owner: Martial Guard's Block, both
+Committed Thorns, lingering Bleed, and lingering Burn still deal damage after
+their source falls. Burn retains living allies' Ember Shield reactions, while its
+fallen source cannot earn healing, Block, or Mana rewards.
+Other personal rewards require a living owner: Martial Guard's Block, both
 Blood Money rewards, Golden Verdict's Stun theft, and Critical Hit Gold stop after
 final defeat.
 Red Harvest detonates Bleed and Huntsmaster’s Call draws a Companion card only

@@ -36,6 +36,7 @@ struct CombatantTalentState: Hashable, Sendable {
         var tookAttackHit = false
         var blockedFaeWard = false
         var triggeredBlockBreak = false
+        var primedRepeatKeywords: Set<Keyword> = []
     }
 
     struct Pending: Hashable, Sendable {

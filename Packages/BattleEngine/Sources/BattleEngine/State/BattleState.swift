@@ -93,7 +93,10 @@ public struct BattleState {
     public static let maxDrawAndPlayDepth = 4
     public let enemyFaction: EnemyFaction
     public package(set) var storedBlockedDamageByActorID: [String: Int] = [:]
-    public package(set) var primedRepeatKeywords: Set<Keyword> = []
+    public var primedRepeatKeywords: Set<Keyword> {
+        roster.hero.talents.turn.primedRepeatKeywords.union(roster.companion.talents.turn.primedRepeatKeywords)
+    }
+
     var resolution = CombatResolution()
     var heroTalents = HeroTalentState()
     var uniques = UniqueBattleState()

@@ -189,7 +189,8 @@ extension UniqueCollectionTests {
         #expect(context.uniques.owners[.hero]?.goldDamage == 2)
     }
 
-    @Test func `winter credit empowers freeze for a wearer without mana capacity`() throws {
+    @Test(arguments: [false, true])
+    func `winter credit funds every affordable Freeze empowerment without mana capacity`(repeats: Bool) throws {
         var context = try battle(["winters_credit"])
         let knight = try #require(GameContent.hero(matching: "knight"))
         let wearer = Combatant(
@@ -201,14 +202,17 @@ extension UniqueCollectionTests {
         )
         context.roster.hero = CombatantRuntime(combatant: wearer)
         #expect(context.roster.hero.maxMana == 0)
-        block(9, owner: .hero, in: &context)
-        var ability = attack(.freeze)
+        block(repeats ? 27 : 9, owner: .hero, in: &context)
+        var ability = Ability(
+            id: "freeze", name: "Freeze", tier: .basic,
+            directDamage: 10, damageKeyword: .freeze, repeatsManaEmpowerment: repeats,
+        )
         _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability,
             actor: wearer,
             context: &context,
         ) }
         #expect(blockAmount(.hero, in: context) == 0)
-        #expect(ability.damageComponents.first?.amount == 11)
+        #expect(ability.damageComponents.first?.amount == (repeats ? 13 : 11))
     }
 }

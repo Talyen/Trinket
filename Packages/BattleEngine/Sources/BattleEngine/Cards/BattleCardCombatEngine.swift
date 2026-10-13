@@ -210,7 +210,9 @@ package enum BattleCardCombatEngine {
         }
 
         _ = await CombatTriggerEngine.atPlayerEndTurn(in: &context)
-        context.primedRepeatKeywords.removeAll()
+        for owner in [BattleParticipant.hero, .companion] {
+            context.roster.mutateRuntime(for: context.roster[owner].combatant) { $0.talents.turn.primedRepeatKeywords.removeAll() }
+        }
         if await finishRoundIfBattleOver(context: &context) {
             return
         }

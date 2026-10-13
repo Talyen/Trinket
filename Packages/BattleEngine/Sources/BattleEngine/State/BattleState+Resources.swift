@@ -102,7 +102,7 @@ package extension BattleState {
                 resolution.endStandaloneRestoration()
             }
         }
-        guard var runtime = roster.runtime(for: combatant) else { return 0 }
+        guard var runtime = roster.runtime(for: combatant), runtime.isAlive else { return 0 }
         let profile = modifiers(for: combatant.id)
         let deepRoots = amount > 0 && profile.triggers.deepRoots &&
             roster.activeEffects(for: combatant).contains { $0.effect.kind == .thorns }

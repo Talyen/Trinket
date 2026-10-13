@@ -5,6 +5,32 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentMigrationTests {
+    @Test(arguments: [Keyword.physical, .freeze])
+    func `each party member owns its prepared elemental repeat`(keyword: Keyword) throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.furnaceRhythm = keyword == .physical
+        profile.triggers.temperCycle = keyword == .freeze
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 1000, heroModifiers: profile, companionModifiers: profile, dealOpeningHand: false,
+        )
+        battle.appliesFightPacing = false
+        let burn = Ability(id: "burn", name: "Burn", tier: .basic, directDamage: 1, damageKeyword: .burn)
+        let followup = Ability(id: "followup", name: "Followup", tier: .basic, directDamage: 2, damageKeyword: keyword)
+
+        let prime = BattleCardCombatEngine.deal(burn, owner: .hero, context: &battle)
+        _ = try battle.playCard(cardID: prime.id)
+        let partner = BattleCardCombatEngine.deal(followup, owner: .companion, context: &battle)
+        let partnerEvents = try battle.playCard(cardID: partner.id).events
+        #expect(partnerEvents.count { $0.kind == .abilityDamage && $0.abilityID == followup.id } == 1)
+        #expect(battle.primedRepeatKeywords.contains(keyword))
+
+        let own = BattleCardCombatEngine.deal(followup, owner: .hero, context: &battle)
+        let ownEvents = try battle.playCard(cardID: own.id).events
+        #expect(ownEvents.count { $0.kind == .abilityDamage && $0.abilityID == followup.id } == 2)
+        #expect(!battle.primedRepeatKeywords.contains(keyword))
+    }
+
     @Test func `closedCircuit spends mana deals stun`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(closedCircuit: true)))
         let enemyHealthBefore = battle.health(of: battle.enemy)

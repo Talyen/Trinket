@@ -288,15 +288,16 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) async -> [ActionEvent] {
         let triggers = context.modifiers(for: source.id).triggers
-        var events = await burnDamageHeals(triggers: triggers, source: source, in: &context)
-        if triggers.onBurnDamageGainBlock > 0 {
+        var events = context.health(of: source) > 0
+            ? await burnDamageHeals(triggers: triggers, source: source, in: &context) : []
+        if triggers.onBurnDamageGainBlock > 0, context.health(of: source) > 0 {
             events.append(contentsOf: emitBlock(
                 .onBurnDamageGainBlock, "Flame Shield",
                 amount: triggers.onBurnDamageGainBlock, to: source, source: source, in: &context,
             ))
         }
         events.append(contentsOf: emberShieldIfNeeded(source: source, in: &context))
-        if triggers.onBurnDamageRestoreManaFlat > 0,
+        if triggers.onBurnDamageRestoreManaFlat > 0, context.health(of: source) > 0,
            healthLost >= triggers.burnDamageManaRestoreThreshold {
             await events.append(contentsOf: restoreManaFromBurnDamage(
                 sourceActorID: source.id,

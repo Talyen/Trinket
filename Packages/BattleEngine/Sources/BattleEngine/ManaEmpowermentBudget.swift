@@ -48,8 +48,9 @@ struct ManaEmpowermentBudget {
         let repeats = ability.repeatsManaEmpowerment
             || (ability.hasManaEmpowerableBurnDamage && triggers.repeatManaEmpowerment)
         let discountPurchase = preparedDiscount > 0 || (!hasEmpowered && firstDiscount > 0) ? 1 : 0
+        let capacity = SaturatedArithmetic.saturatingAdd(maxMana, blockRate > 0 ? block / blockRate : 0)
         purchaseLimit = repeats && baseCost > 0
-            ? max(1, SaturatedArithmetic.saturatingAdd(maxMana / baseCost, discountPurchase)) : 1
+            ? max(1, SaturatedArithmetic.saturatingAdd(capacity / baseCost, discountPurchase)) : 1
     }
 
     mutating func nextPayment() -> Payment? {
@@ -58,9 +59,10 @@ struct ManaEmpowermentBudget {
         let own = min(cost, ownMana)
         let shared = min(cost - own, partnerMana)
         let shortfall = cost - own - shared
-        guard shortfall == 0 || blockRate > 0 else { return nil }
-        let blockCost = shortfall * blockRate
-        guard block >= blockCost else { return nil }
+        if shortfall > 0 {
+            guard blockRate > 0, shortfall <= block / blockRate else { return nil }
+        }
+        let blockCost = shortfall > 0 ? shortfall * blockRate : 0
         ownMana -= own
         partnerMana -= shared
         block -= blockCost

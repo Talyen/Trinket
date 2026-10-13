@@ -18,22 +18,22 @@ struct MultiplyDoTHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         var effects = context.roster.activeEffects(for: target)
-        guard let index = effects.firstIndex(where: {
-            isDetonatableDoT($0.effect, keyword: keyword)
-        }) else {
+        let indices = effects.indices.filter {
+            isDetonatableDoT(effects[$0].effect, keyword: keyword)
+        }
+        guard !indices.isEmpty else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let potency = effects[index].effect.potency ?? 0
-        let multiplied = potency * factor
-        switch keyword {
-        case .burn:
-            effects[index].effect = .burn(multiplied)
-        case .poison:
-            effects[index].effect = .poison(multiplied)
-        case .bleed:
-            effects[index].effect = .bleed(multiplied)
-        default:
-            return EffectApplyOutcome(events: [], didApply: false)
+        var total = 0
+        for index in indices {
+            let multiplied = SaturatedArithmetic.saturatingMul(effects[index].effect.potency ?? 0, factor)
+            switch keyword {
+            case .burn: effects[index].effect = .burn(multiplied)
+            case .poison: effects[index].effect = .poison(multiplied)
+            case .bleed: effects[index].effect = .bleed(multiplied)
+            default: return EffectApplyOutcome(events: [], didApply: false)
+            }
+            total = SaturatedArithmetic.saturatingAdd(total, multiplied)
         }
         context.roster.setActiveEffects(effects, for: target)
         let event = context.nextEvent(
@@ -41,7 +41,7 @@ struct MultiplyDoTHandler: BattleEffectHandler {
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
             target: target,
-            amount: multiplied,
+            amount: total,
             keyword: keyword,
         )
         return EffectApplyOutcome(events: [event], didApply: true)

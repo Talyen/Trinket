@@ -4,6 +4,24 @@ import TrinketCore
 @testable import BattleEngine
 
 extension DoTMechanicsTests {
+    @Test func `Bleed amplification multiplies every stack without replacing its source or duration`() {
+        var battle = BattleTestFixtures.makePipelineContext()
+        battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        battle.appendEffect(.bleed(3), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 1)
+        let before = battle.activeEffects(of: battle.enemy)
+
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .multiplyDoT(.bleed, 2), source: battle.hero, target: battle.enemy, battle: &battle,
+        )
+
+        let after = battle.activeEffects(of: battle.enemy)
+        #expect(after.map(\.effect) == [.bleed(4), .bleed(6)])
+        #expect(after.map(\.id) == before.map(\.id))
+        #expect(after.map(\.sourceActorID) == before.map(\.sourceActorID))
+        #expect(after.map(\.remainingTurns) == before.map(\.remainingTurns))
+        #expect(outcome.events.first { $0.effectKind == .dotAmplified }?.amount == 10)
+    }
+
     @Test(arguments: [Keyword.burn, .poison], [0, 2, 6])
     func `attack stacks equal health damage for both sides`(keyword: Keyword, block: Int) {
         for enemyAttacks in [false, true] {

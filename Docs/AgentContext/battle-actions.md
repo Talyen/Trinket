@@ -25,6 +25,8 @@ uses the preparation without carrying it forward to another card.
 Immediate card damage carries action/card provenance independently of damage
 mechanics, including the first pulse of a recurring effect. Later ticks and
 reaction damage cannot spend that reservation.
+The supported `furnaceRhythm` and `temperCycle` repeat preparations belong to the
+combatant that played the priming card. Partner cards cannot consume them; End Turn clears them.
 
 ## Action identity and selected outcomes
 
@@ -119,6 +121,8 @@ read receipts even after refunds or nested actions. A prepared empowerment disco
 applies to one purchase; Meteor and Falling Star can then buy their normal paid
 repeats. A reaction that ends combat stops further empowerment purchases.
 Permanently free empowerment remains bounded to one purchase.
+Repeated Freeze empowerment includes Winter's Credit's available Block in its
+purchase budget, including for a wearer with no Maximum Mana.
 The `spendManaThresholdAutoPlayCard` trigger keeps excess Mana-spend progress
 across cards and turns separately from cadence claims. Mana Moth's current
 [Arcane Burst](battle-talents.md#dark-recovery-and-arcane-burst) instead rolls a

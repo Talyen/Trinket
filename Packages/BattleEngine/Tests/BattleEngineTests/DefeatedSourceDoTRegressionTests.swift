@@ -6,6 +6,33 @@ import TrinketCore
 
 struct DefeatedSourceDoTRegressionTests {
     @Test(arguments: [false, true])
+    func `lingering Burn rewards only its living source while preserving ally reactions`(survives: Bool) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.onBurnDamageHealLowestAllyFlat = 2
+        profile.triggers.onBurnDamageGainBlock = 3
+        profile.triggers.onBurnDamageRestoreManaFlat = 1
+        var companionProfile = CombatModifierProfile.zero
+        companionProfile.triggers.onAllyBurnDamageGainBlock = 1
+        let burn = ActiveEffect(id: 100, effect: .burn(6), remainingTurns: 0, sourceActorID: "hero")
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 3),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            enemyEffects: [burn], heroHealth: survives ? 20 : 0, companionHealth: 5,
+            heroMana: 0, heroModifiers: profile, companionModifiers: companionProfile,
+        )
+        battle.appliesFightPacing = false
+
+        _ = CombatExecutor.run { await EffectHandlers.handler(for: .burn).advanceTurn(burn, on: battle.enemy, in: &battle) }
+
+        #expect(battle.health(of: battle.enemy) == 96)
+        #expect(battle.health(of: battle.companion) == (survives ? 7 : 5))
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == (survives ? 3 : 0))
+        #expect(battle.mana(of: battle.hero) == (survives ? 1 : 0))
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == 1)
+    }
+
+    @Test(arguments: [false, true])
     func `Blood Money rewards a lethal Bleed tick only while its Rogue survives`(survives: Bool) {
         let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeMinimalBattle(
