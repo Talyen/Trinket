@@ -53,7 +53,8 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 return HeroHeaderScrollMetrics(
                     baseHeight: baseHeight,
                     titleOpacity: opacity,
-                    overscroll: max(-offsetY, 0),
+                    // Include the top inset so artwork also covers space introduced by pinned navigation chrome.
+                    overscroll: max(-geometry.contentOffset.y, 0),
                 )
             } action: { _, metrics in
                 if headerBaseHeight != metrics.baseHeight {
