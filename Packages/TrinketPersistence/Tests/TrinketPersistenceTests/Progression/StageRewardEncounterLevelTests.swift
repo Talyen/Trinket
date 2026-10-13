@@ -77,53 +77,6 @@ struct StageRewardEncounterLevelTests {
         #expect(save.roster.gold == goldAfterFirst)
     }
 
-    @Test func `combat loot resolves at provided encounter level instead of node depth`() throws {
-        let node = LabyrinthNode(
-            id: "level-override-node",
-            type: .battle,
-            enemyID: "goblin",
-            depth: 2,
-            clusterID: "labyrinth-test",
-        )
-        let atDepth = try #require(
-            LabyrinthCompletion.resolveCombatLoot(
-                for: node,
-                effects: .zero,
-                worldSeed: 5,
-                ownedTrinketIDs: [],
-                ownedUniqueIDs: [],
-            ),
-        )
-        let explicit = try #require(
-            LabyrinthCompletion.resolveCombatLoot(
-                for: node,
-                effects: .zero,
-                encounterLevel: 2,
-                worldSeed: 5,
-                ownedTrinketIDs: [],
-                ownedUniqueIDs: [],
-            ),
-        )
-        #expect(explicit.gold == atDepth.gold)
-        #expect(explicit.materials == atDepth.materials)
-
-        let raised = try #require(
-            LabyrinthCompletion.resolveCombatLoot(
-                for: node,
-                effects: .zero,
-                encounterLevel: 40,
-                worldSeed: 5,
-                ownedTrinketIDs: [],
-                ownedUniqueIDs: [],
-            ),
-        )
-        for (boosted, base) in zip(raised.materials, atDepth.materials) {
-            #expect(boosted.resource == base.resource)
-            #expect(boosted.quantity > base.quantity)
-        }
-        #expect(raised.gold > atDepth.gold)
-    }
-
     @Test func `combat completion honors overridden encounter level for experience`() {
         func grantedHeroXP(enemyEncounterLevel: Int?) -> Int {
             var save = PlayerSave.fresh
@@ -203,7 +156,7 @@ struct StageRewardEncounterLevelTests {
         switch mode {
         case .journey:
             let deepStage = try deepJourneyStage()
-            return StageCompletion.resolvedEncounterLevel(for: deepStage, in: GameContent.chapters) - 3
+            return EncounterLevelResolver.journeyEnemyLevel(for: deepStage, in: GameContent.chapters) - 3
         case .spire:
             let topFloor = try ironVeinTopFloor()
             return topFloor.floor * 2
@@ -214,7 +167,7 @@ struct StageRewardEncounterLevelTests {
         try #require(
             GameContent.chapters.flatMap(\.stages).last(where: {
                 $0.encounter.isCombat
-                    && StageCompletion.resolvedEncounterLevel(for: $0, in: GameContent.chapters) > 5
+                    && EncounterLevelResolver.journeyEnemyLevel(for: $0, in: GameContent.chapters) > 5
             }),
         )
     }

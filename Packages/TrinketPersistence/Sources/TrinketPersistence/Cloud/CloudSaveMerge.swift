@@ -124,7 +124,7 @@ enum CloudSaveMerge {
         }
         merged.contracts = merged.contracts.sanitized()
         if !offers.isEmpty {
-            merged.contracts.ensureBoard(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: merged.inventory))
+            merged.contracts.ensureBoard(eligibleModifiers: RewardOwnership(merged.inventory).eligibleModifiers)
         }
     }
 

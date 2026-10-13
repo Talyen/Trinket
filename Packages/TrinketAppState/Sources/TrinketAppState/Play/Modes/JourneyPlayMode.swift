@@ -125,27 +125,14 @@ public final class JourneyPlayMode {
 }
 
 extension JourneyPlayMode {
-    private func battleLoot(
-        for stage: Stage,
-        encounter: ScaledEncounter,
-    ) -> BattleLootResult {
-        let loot = BattleLootContext(playerSave: playerSave)
-        return StageCompletion.resolveLoot(
-            for: stage,
-            encounterLevel: encounter.level,
-            enemyIsBoss: VictoryRewardApplier.isBoss(enemyID: encounter.combatant.id),
-            worldSeed: loot.worldSeed,
-            ownedTrinketIDs: loot.ownedTrinketIDs,
-            ownedUniqueIDs: loot.ownedUniqueIDs,
-            astralChanceBonusPercent: loot.astralChanceBonusPercent,
-        )
-    }
-
     private func combatRequest(
         for stage: Stage,
         encounter: ScaledEncounter,
     ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
-        let loot = battleLoot(for: stage, encounter: encounter)
+        let loot = BattleLootContext(playerSave: playerSave).journey(
+            for: stage, encounterLevel: encounter.level,
+            enemyIsBoss: GameContent.enemy(matching: encounter.combatant.id)?.isBoss == true,
+        )
         let input = ModeBattleSpec.launchInput(
             origin: .journey(stageID: stage.id),
             encounter: encounter,

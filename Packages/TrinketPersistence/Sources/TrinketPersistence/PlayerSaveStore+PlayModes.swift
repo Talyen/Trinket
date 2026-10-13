@@ -15,7 +15,7 @@ public extension PlayerSaveStore {
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> Bool {
         persistBatch(logging: "Failed to open Contracts") { save in
-            save.contracts.ensureBoard(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: save.inventory), makeOffer: makeOffer)
+            save.contracts.ensureBoard(eligibleModifiers: RewardOwnership(save.inventory).eligibleModifiers, makeOffer: makeOffer)
         }
     }
 
@@ -24,7 +24,7 @@ public extension PlayerSaveStore {
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> Bool {
         persistBatch(logging: "Failed to refresh Contracts") { save in
-            _ = save.contracts.refresh(eligibleModifiers: ContractsCompletion.eligibleModifiers(in: save.inventory), makeOffer: makeOffer)
+            _ = save.contracts.refresh(eligibleModifiers: RewardOwnership(save.inventory).eligibleModifiers, makeOffer: makeOffer)
         }
     }
 

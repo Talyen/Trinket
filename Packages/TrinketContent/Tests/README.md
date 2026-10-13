@@ -24,6 +24,7 @@ Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 | Enemy kits and Health | `EnemyCatalogTests` | Normal HP band, complete kits, canonical ability references; Journey/Spire tests own boss placement |
 | Loadout selection | `AbilityLoadoutTests` | Tier ordering, canonical selection/fallback, preserved empty tiers |
 | Battle loot | `BattleLootTests` | Quantity bands and saturation, distinct materials, modifier isolation, and seed stability without save fixtures |
+| Mode loot policy | `EncounterLootTests`, `VoyageLootTests` | Shared guarantees, captured levels/Sanctum, Spire seed selection, and final destination composition/collectible exhaustion without Persistence |
 | Item generation | `ItemGeneratorTests`, `ThemedGearGeneratorTests` | Seeded RNG, affix counts |
 | Item affix magnitude rolls | `ItemAffixMagnitudeRollTests` | Seeded magnitude ranges |
 | Shop offers | `ShopOfferGeneratorTests` | Offer count, price/rarity rules, seed stability |

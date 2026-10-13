@@ -77,17 +77,13 @@ public final class ContractsPlayMode {
         for offer: ContractOffer,
         encounter: ScaledEncounter,
     ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
-        let loot = ContractsCompletion.resolveLoot(
-            for: offer,
-            encounterLevel: encounter.level,
-            save: playerSave.currentSave,
-        )
+        let loot = BattleLootContext(playerSave: playerSave).contract(for: offer, encounterLevel: encounter.level)
         let input = ModeBattleSpec.launchInput(
             origin: .contract(offerID: offer.id),
             encounter: encounter,
             loot: loot,
             roster: playerSave.roster,
-            experienceBonusPercent: ContractsCompletion.effectiveModifier(for: offer, inventory: playerSave.inventory)
+            experienceBonusPercent: RewardOwnership(playerSave.inventory).resolved(offer.rewardModifier)
                 .experienceBonusPercent,
         )
         return (input, .contract(offerID: offer.id))

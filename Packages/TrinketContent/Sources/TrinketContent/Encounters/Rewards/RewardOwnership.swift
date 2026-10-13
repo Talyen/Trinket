@@ -1,4 +1,8 @@
 public struct RewardOwnership: Equatable, Sendable {
+    public func resolved(_ modifier: RewardModifier) -> RewardModifier {
+        modifier.resolved(ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs)
+    }
+
     public var eligibleModifiers: [RewardModifier] {
         RewardModifier.eligible(ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs)
     }

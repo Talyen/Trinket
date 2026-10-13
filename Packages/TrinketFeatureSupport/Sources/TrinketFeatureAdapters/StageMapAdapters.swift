@@ -173,7 +173,7 @@ public extension StageSelectRowPresentation where Item == ContractOffer {
                 actionAccessibilityID: AccessibilityID.Play.contractFight(offer.difficulty.rawValue),
                 activeDetailAccessibilityID: AccessibilityID.Play.contractDetail(offer.difficulty.rawValue),
                 partyControlAccessibilityID: AccessibilityID.Play.contractParty(offer.difficulty.rawValue),
-                modifiers: [ModifierCaptionPresentation(ContractsCompletion.effectiveModifier(for: offer, inventory: inventory))],
+                modifiers: [ModifierCaptionPresentation(RewardOwnership(inventory).resolved(offer.rewardModifier))],
             )
         }
     }

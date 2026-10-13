@@ -2,35 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public enum SpireCompletion {
-    public static func resolveLoot(
-        for floor: SpireFloor,
-        encounterLevel: Int? = nil,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String> = [],
-        astralChanceBonusPercent: Int = 0,
-        modifier: NodeModifierDefinition? = nil,
-    ) -> BattleLootResult {
-        let level = encounterLevel ?? EncounterLevelResolver.spireEnemyLevel(for: floor)
-        let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: floor.enemyID)
-        let ownership = RewardOwnership(
-            ownedTrinketIDs: ownedTrinketIDs,
-            ownedUniqueIDs: ownedUniqueIDs,
-        )
-        let selected = modifier ?? GameContent.spireModifier(for: floor, worldSeed: worldSeed)
-        let definitions = ownership.modifiers(ids: selected.map { [$0.id] } ?? [])
-        let effects = NodeModifierEffects.combining(definitions)
-        return BattleLoot.resolve(
-            .spire(floor: floor, rewardModifier: effects.rewardModifier),
-            encounterLevel: level,
-            enemyIsBoss: enemyIsBoss,
-            worldSeed: worldSeed,
-            ownership: ownership,
-            astralChanceBonusPercent: astralChanceBonusPercent,
-        )
-    }
-
+enum SpireCompletion {
     @discardableResult
     static func complete(
         floor: SpireFloor,
@@ -58,14 +30,7 @@ public enum SpireCompletion {
         let scaling = EncounterScaling.spire(authoredLevel: EncounterLevelResolver.spireEnemyLevel(for: floor))
         let encounterLevel = rewards.encounterLevel(or: scaling.resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level)
         let settlement = rewards.resolve { overrides in
-            let resolvedLoot = overrides.loot ?? resolveLoot(
-                for: floor,
-                encounterLevel: encounterLevel,
-                worldSeed: save.worldSeed,
-                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-                ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-                astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-            )
+            let resolvedLoot = overrides.loot ?? BattleLootContext(save: save).spire(for: floor, encounterLevel: encounterLevel)
             return VictoryRewardApplier.settleVictoryRewards(
                 party: (hero, companion),
                 encounterLevel: encounterLevel,

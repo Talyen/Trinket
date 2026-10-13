@@ -50,7 +50,7 @@ struct ContractBoardTests {
         save.journey.complete(lastStage, in: GameContent.chapters)
         let late = CampaignRewardLevel.resolve(in: save)
         #expect(late > early)
-        #expect(late == min(40, StageCompletion.resolvedEncounterLevel(for: lastStage, in: GameContent.chapters)))
+        #expect(late == min(40, EncounterLevelResolver.journeyEnemyLevel(for: lastStage, in: GameContent.chapters)))
         save.journey.activeStageID = nil
         #expect(CampaignRewardLevel.resolve(in: save) == late)
         save.contracts.recordVictory(encounterLevel: 60)
@@ -90,12 +90,12 @@ struct ContractBoardTests {
         let companion = save.roster.activeCompanion
         let level = EncounterScaling.contract(difficulty)
             .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level
-        let loot = ContractsCompletion.resolveLoot(for: offer, encounterLevel: level, save: save)
+        let loot = BattleLootContext(save: save).contract(for: offer, encounterLevel: level)
         var expected = before
         VictoryRewardApplier.grantVictoryRewards(
             party: (hero, companion), encounterLevel: level, stageGold: loot.gold,
             battleGold: .init(gained: 5),
-            experienceEarnedPercent: ContractsCompletion.effectiveModifier(for: offer, inventory: before.inventory).experienceBonusPercent,
+            experienceEarnedPercent: RewardOwnership(before.inventory).resolved(offer.rewardModifier).experienceBonusPercent,
             materialRewards: loot.materials, item: loot.item, save: &expected,
             recordReceipt: { _ in },
         )
@@ -208,7 +208,7 @@ struct ContractsPersistenceTests {
         let hero = store.roster.activeHero
         let companion = store.roster.activeCompanion
         let level = store.roster.activePartyAverageLevel
-        let loot = ContractsCompletion.resolveLoot(for: offer, encounterLevel: level, save: store.currentSave)
+        let loot = BattleLootContext(save: store.currentSave).contract(for: offer, encounterLevel: level)
         let before = store.currentSave
         store.forcesNextSaveFailure = true
         let failed = store.persistFixtureBatch(logging: "Contracts test") { save in

@@ -16,9 +16,9 @@ struct StageMapPresentationTests {
         let caption = try #require(rows.first?.modifiers.first)
         #expect(caption.id == RewardModifier.gold.rawValue)
         let goldOffer = ContractOffer(id: offer.id, difficulty: offer.difficulty, enemyID: offer.enemyID, rewardModifier: .gold)
-        #expect(ContractsCompletion.resolveLoot(for: offer, encounterLevel: 10, save: save)
-            == ContractsCompletion.resolveLoot(for: goldOffer, encounterLevel: 10, save: save))
-        #expect(!ContractsCompletion.eligibleModifiers(in: save.inventory).contains(modifier))
+        #expect(BattleLootContext(save: save).contract(for: offer, encounterLevel: 10)
+            == BattleLootContext(save: save).contract(for: goldOffer, encounterLevel: 10))
+        #expect(!RewardOwnership(save.inventory).eligibleModifiers.contains(modifier))
     }
 
     @Test func `stage select rows omit completed stages`() {

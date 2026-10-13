@@ -296,7 +296,7 @@ struct MysteryEffectApplierTests {
 
     @Test func `resolved encounter level preserves campaign minimum`() throws {
         let lateStage = try #require(GameContent.chapters.last?.stages.first)
-        let authoredLevel = StageCompletion.resolvedEncounterLevel(
+        let authoredLevel = EncounterLevelResolver.journeyEnemyLevel(
             for: lateStage,
             in: GameContent.chapters,
         )

@@ -103,7 +103,7 @@ public final class LabyrinthPlayMode {
                 let labyrinth = playerSave.labyrinth
                 guard let node = labyrinth.node(id: nodeID), node.type.isCombat,
                       let encounter = resolvedEncounter(for: node) else { return .missing }
-                let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter)
+                guard let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter) else { return .missing }
                 return .ready(input: request.input, route: request.route)
             },
         )
@@ -141,7 +141,7 @@ public final class LabyrinthPlayMode {
     ) -> Bool {
         guard let encounter = resolvedEncounter(for: node) else { return false }
         guard battle.lifecyclePhase != .active else { return false }
-        let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter)
+        guard let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter) else { return false }
         return battleCoordinator.prepareCombat(request.input, route: request.route)
     }
 }
@@ -151,8 +151,10 @@ extension LabyrinthPlayMode {
         node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,
         encounter: ScaledEncounter,
-    ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
-        let loot = battleLoot(for: node, labyrinth: labyrinth, encounterLevel: encounter.level)
+    ) -> (input: BattleLaunchInput, route: PlayBattleRoute)? {
+        guard let loot = BattleLootContext(playerSave: playerSave).labyrinth(
+            for: node, effects: labyrinth.effects(for: node.id), encounterLevel: encounter.level,
+        ) else { return nil }
         let modifiers = ModeBattleModifiers(
             definitions: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
         )
@@ -164,22 +166,5 @@ extension LabyrinthPlayMode {
             modifiers: modifiers,
         )
         return (input, .labyrinth(nodeID: node.id, access: playerSave.contentAccess))
-    }
-
-    private func battleLoot(
-        for node: LabyrinthNode,
-        labyrinth: PlayerLabyrinthState,
-        encounterLevel: Int,
-    ) -> BattleLootResult {
-        let loot = BattleLootContext(playerSave: playerSave)
-        let effects = labyrinth.effects(for: node.id)
-        return BattleLoot.resolve(
-            .labyrinth(node: node, effects: effects),
-            encounterLevel: encounterLevel,
-            enemyIsBoss: VictoryRewardApplier.isBoss(enemyID: node.enemyID),
-            worldSeed: loot.worldSeed,
-            ownership: loot.ownership,
-            astralChanceBonusPercent: loot.astralChanceBonusPercent,
-        )
     }
 }

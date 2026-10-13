@@ -172,6 +172,10 @@ public struct StageReward: Hashable, Sendable {
     public let itemTemplateIDs: [String]
     public let materialRewards: [ResourceAmount]
 
+    public var resolvedMaterials: [ResourceAmount] {
+        materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
+    }
+
     public static let empty = Self(gold: 0, itemTemplateIDs: [], materialRewards: [])
 
     public init(gold: Int, itemTemplateIDs: [String], materialRewards: [ResourceAmount] = []) {

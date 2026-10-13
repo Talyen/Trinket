@@ -28,7 +28,7 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Talents | `TalentPersistenceTests` | Sanitizer filter, unlock API, reload |
 | Journey progression | `JourneyProgressTests` | Unlock chain and campaign end, pin/progress reload, duplicate-stage repair |
 | Stage rewards | `StageRewardTests` | Claim policy, gold/XP, party-adjusted claim fallback (journey + spire) |
-| Combat loot integration | `BattleLootTests` | Mode adapters, captured levels, ownership, and duplicate-item compensation; pure roll coverage lives in TrinketContent |
+| Combat loot integration | `BattleLootTests` | Saved reward levels, authored items, and duplicate-item compensation; mode policy and pure roll coverage live in TrinketContent |
 | Shop | `ShopPurchaseApplierTests` | Purchase rules; one cross-applier reload proof |
 | Mystery apply | `MysteryEffectApplierTests` | Gold/materials/XP/items/recruits |
 | Mystery pins | `MysteryEventPinTests` | Journey/labyrinth pin idempotency |
@@ -36,13 +36,13 @@ Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, n
 | Content access | `ContentAccessPersistenceTests` | Transient policy never serialized; reload resets to free |
 | Contracts board | `ContractBoardTests` in `ContractsTests.swift` | Generation, repair, refresh, claim policy (pure) |
 | Contracts persistence | `ContractsPersistenceTests` in `ContractsTests.swift` | Lazy board open, reload survival, failure rollback |
-| Voyage persistence | `VoyagePersistenceTests` | Board/run lifecycle, saved destination modifiers, boss reward composition, stock/Mystery reload, and unreadable-payload preservation |
+| Voyage persistence | `VoyagePersistenceTests` | Board/run lifecycle, saved destination modifiers, earned-total saturation, stock/Mystery reload, and unreadable-payload preservation |
 | Salvage | `ItemSalvageApplierTests` | Yields, unequip, trinket/unique ineligibility, one reload |
 | Corruption | `ItemCorruptionTests` | Affix rules, eligibility, one reload |
 | Spires progress | `SpiresProgressTests` | Floor unlock/clear; XP override |
 | Slice reload proofs | `SlicesReloadTests` | Spire clamp, ability loadouts, invalid companion equipment |
 | Labyrinth map / completion | `LabyrinthProgressTests` | Generation, clear, sanitize, completion, map+run-health reload |
-| Labyrinth encounter level | `StageRewardEncounterLevelTests` | Loot/XP at overridden levels (pure; durable proof via slice reloads) |
+| Labyrinth encounter level | `StageRewardEncounterLevelTests` | Completion XP at overridden levels (pure; durable proof via slice reloads) |
 | Labyrinth unreadable blob | `LabyrinthSaveRecoveryTests` | Rebuild unreadable maps with the saved seed and retain the repaired map across reload |
 | Transport error mapping | `CloudTransportErrorMappingTests` | Conflict vs surfacing classification (pure; no live CloudKit I/O) |
 | Item degradation | `ItemResolutionTests` | Unknown-base drop, keyword strip, rarity fallback across codecs (pure) |

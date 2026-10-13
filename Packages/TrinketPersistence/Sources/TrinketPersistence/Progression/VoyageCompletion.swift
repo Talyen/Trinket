@@ -1,76 +1,9 @@
 import TrinketContent
 import TrinketCore
 
-public struct VoyageResolvedLoot: Sendable {
-    public let primary: BattleLootResult
-    public let additionalItem: InventoryItem?
-}
-
-public enum VoyageCompletion {
-    public static func resolveLoot(node: VoyageNode, encounterLevel: Int, save: PlayerSave) -> BattleLootResult {
-        let ownership = RewardOwnership(save)
-        let effects = NodeModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
-        return BattleLoot.resolve(
-            .voyage(node: node, effects: effects),
-            encounterLevel: encounterLevel, enemyIsBoss: node.type == .boss,
-            worldSeed: save.worldSeed, ownership: ownership,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-        )
-    }
-
-    public static func resolveFinalLoot(
-        node: VoyageNode, offer: VoyageOffer, encounterLevel: Int, save: PlayerSave,
-    ) -> VoyageResolvedLoot {
-        let ownership = RewardOwnership(save)
-        let effects = NodeModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
-        let destination = offer.rewardModifier.resolved(
-            ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
-        )
-        var primary = BattleLoot.resolve(
-            .voyage(
-                node: node,
-                effects: effects, additionalRewardModifier: destination,
-            ),
-            encounterLevel: encounterLevel, enemyIsBoss: true,
-            worldSeed: save.worldSeed, ownership: ownership,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-        )
-        guard effects.rewardModifier?.isItemFocused == true, destination.isItemFocused else {
-            return VoyageResolvedLoot(primary: primary, additionalItem: nil)
-        }
-        var secondOwnership = ownership
-        if primary.item.isTrinket {
-            secondOwnership.ownedTrinketIDs.insert(primary.item.templateID)
-        }
-        if primary.item.rarity == .unique {
-            secondOwnership.ownedUniqueIDs.insert(primary.item.templateID)
-        }
-        let secondModifier = destination.resolved(
-            ownedTrinketIDs: secondOwnership.ownedTrinketIDs,
-            ownedUniqueIDs: secondOwnership.ownedUniqueIDs,
-        )
-        guard secondModifier.isItemFocused else {
-            let gold = SaturatedArithmetic.saturatingAdd(
-                primary.gold,
-                max(0, CombatRounding.scaled(primary.gold, byPercent: RewardModifier.bonusPercent) - primary.gold),
-            )
-            primary = BattleLootResult(item: primary.item, gold: gold, materials: primary.materials)
-            return VoyageResolvedLoot(primary: primary, additionalItem: nil)
-        }
-        let second = BattleLoot.resolve(
-            LootRequest(
-                seedSalt: "\(node.id)-destination", itemID: "voyage-\(node.id)-destination",
-                rewardModifier: secondModifier,
-            ),
-            encounterLevel: encounterLevel, enemyIsBoss: true,
-            worldSeed: save.worldSeed, ownership: secondOwnership,
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-        )
-        return VoyageResolvedLoot(primary: primary, additionalItem: second.item)
-    }
-
+enum VoyageCompletion {
     @discardableResult
-    public static func completeNode(runID: String, nodeID: String, save: inout PlayerSave) -> Bool {
+    static func completeNode(runID: String, nodeID: String, save: inout PlayerSave) -> Bool {
         guard save.voyage.isPlayable(runID: runID, nodeID: nodeID),
               let node = save.voyage.node(runID: runID, nodeID: nodeID), !node.type.isCombat else { return false }
         save.voyage.updateNode(runID: runID, nodeID: nodeID) { $0.isCleared = true }

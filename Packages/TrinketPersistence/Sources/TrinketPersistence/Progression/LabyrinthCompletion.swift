@@ -20,31 +20,6 @@ public enum LabyrinthCompletion {
         }
     }
 
-    public static func resolveCombatLoot(
-        for node: LabyrinthNode,
-        effects: NodeModifierEffects,
-        encounterLevel: Int? = nil,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String>,
-        astralChanceBonusPercent: Int = 0,
-    ) -> BattleLootResult? {
-        guard node.type.isCombat else { return nil }
-        let level = encounterLevel ?? EncounterLevelResolver.labyrinthEnemyLevel(for: node)
-        let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: node.enemyID)
-        return BattleLoot.resolve(
-            .labyrinth(node: node, effects: effects),
-            encounterLevel: level,
-            enemyIsBoss: enemyIsBoss,
-            worldSeed: worldSeed,
-            ownership: RewardOwnership(
-                ownedTrinketIDs: ownedTrinketIDs,
-                ownedUniqueIDs: ownedUniqueIDs,
-            ),
-            astralChanceBonusPercent: astralChanceBonusPercent,
-        )
-    }
-
     @discardableResult
     static func complete(
         nodeID: String,
@@ -70,15 +45,7 @@ public enum LabyrinthCompletion {
         let settlement = rewards.resolve { overrides in
             let effects = save.labyrinth.effects(for: nodeID)
             let resolvedLoot = isCombat
-                ? overrides.loot ?? resolveCombatLoot(
-                    for: node,
-                    effects: effects,
-                    encounterLevel: encounterLevel,
-                    worldSeed: save.worldSeed,
-                    ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-                    ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-                    astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-                )
+                ? overrides.loot ?? BattleLootContext(save: save).labyrinth(for: node, effects: effects, encounterLevel: encounterLevel)
                 : overrides.loot
             return VictoryRewardApplier.settleVictoryRewards(
                 party: (hero, companion),

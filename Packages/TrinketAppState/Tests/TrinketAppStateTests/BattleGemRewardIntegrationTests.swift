@@ -18,7 +18,7 @@ struct BattleGemRewardIntegrationTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         let seed = try #require((1 ... 64).first { candidate in
-            StageCompletion.resolveLoot(for: stage, worldSeed: UInt64(candidate)).materials.contains { $0.resource == .gems }
+            BattleLootContext(worldSeed: UInt64(candidate)).journey(for: stage).materials.contains { $0.resource == .gems }
         })
         #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { save in
             save.worldSeed = UInt64(seed)

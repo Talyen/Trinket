@@ -4,8 +4,13 @@ Use with [persistence ownership](persistence.md) for domain commands, rewards an
 
 ## Reward levels
 
-Content's `BattleLoot.resolve` owns seeded battle drops for every mode. `LootRequest` carries
-mode identity and bonuses; the captured encounter level drives both item quality
+Content's `BattleLootContext` owns loot selection for every mode from explicit
+world seed, collectible ownership, and Sanctum bonus values. Launch and unsettled
+completion use the same policy, including Spire modifiers and Voyage's independent
+final destination roll and collectible exhaustion. Persistence supplies a save-value
+adapter and commits awards; completion appliers do not expose loot-planning APIs.
+`BattleLoot.resolve` rolls its `LootRequest` mode identity and bonuses;
+the captured encounter level drives both item quality
 and currency quantities. Item-tier odds clamp at loot level 40; currency quantities
 continue to scale beyond it. Noncombat item offers and Blacksmith forging use the
 highest won encounter level through `CampaignRewardLevel`, rather than the current

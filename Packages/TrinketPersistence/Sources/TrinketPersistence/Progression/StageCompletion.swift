@@ -11,52 +11,13 @@ public enum EncounterCompletion: Equatable, Sendable {
     case unavailable
 }
 
-public enum StageCompletion {
-    public static func resolvedMaterialRewards(
-        stageReward: StageReward,
-        override: [ResourceAmount]? = nil,
-    ) -> [ResourceAmount] {
-        override ?? stageReward.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
-    }
-
-    public static func resolveLoot(
-        for stage: Stage,
-        encounterLevel: Int? = nil,
-        enemyIsBoss: Bool? = nil,
-        worldSeed: UInt64,
-        ownedTrinketIDs: Set<String> = [],
-        ownedUniqueIDs: Set<String> = [],
-        astralChanceBonusPercent: Int = 0,
-        in chapters: [Chapter] = GameContent.chapters,
-    ) -> BattleLootResult {
-        let level = encounterLevel ?? resolvedEncounterLevel(for: stage, in: chapters)
-        let isBoss = enemyIsBoss ?? VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
-        return BattleLoot.resolve(
-            .journey(stage: stage),
-            encounterLevel: level,
-            enemyIsBoss: isBoss,
-            worldSeed: worldSeed,
-            ownership: RewardOwnership(
-                ownedTrinketIDs: ownedTrinketIDs,
-                ownedUniqueIDs: ownedUniqueIDs,
-            ),
-            astralChanceBonusPercent: astralChanceBonusPercent,
-        )
-    }
-
-    public static func resolvedEncounterLevel(for stage: Stage, in chapters: [Chapter]) -> Int {
-        guard let chapter = chapters.first(where: { $0.id == stage.chapterID }) else {
-            return 1
-        }
-        return EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-    }
-
-    public static func partyAdjustedEncounterLevel(
+enum StageCompletion {
+    static func partyAdjustedEncounterLevel(
         for stage: Stage,
         in chapters: [Chapter] = GameContent.chapters,
         save: PlayerSave,
     ) -> Int {
-        EncounterScaling.journey(authoredLevel: resolvedEncounterLevel(for: stage, in: chapters))
+        EncounterScaling.journey(authoredLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapters))
             .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level
     }
 
@@ -100,8 +61,6 @@ public enum StageCompletion {
         let encounterLevel = rewards.encounterLevel(or: partyAdjustedEncounterLevel(for: stage, save: save))
         var grantsAuthoredItems = false
         let settlement = rewards.resolve { overrides in
-            let enemyIsBoss = VictoryRewardApplier.isBoss(enemyID: stage.encounter.battleEnemyID)
-
             let resolvedLoot: BattleLootResult? = {
                 if let loot = overrides.loot {
                     return loot
@@ -109,15 +68,7 @@ public enum StageCompletion {
                 guard stage.encounter.isCombat else {
                     return nil
                 }
-                return resolveLoot(
-                    for: stage,
-                    encounterLevel: encounterLevel,
-                    enemyIsBoss: enemyIsBoss,
-                    worldSeed: save.worldSeed,
-                    ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-                    ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-                    astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-                )
+                return BattleLootContext(save: save).journey(for: stage, encounterLevel: encounterLevel)
             }()
 
             let stageGold: Int
@@ -131,7 +82,7 @@ public enum StageCompletion {
                 materialFallback = []
             } else {
                 stageGold = stage.rewards.gold
-                materialFallback = resolvedMaterialRewards(stageReward: stage.rewards)
+                materialFallback = stage.rewards.resolvedMaterials
             }
             let item = overrides.rewardItem ?? resolvedLoot?.item
             grantsAuthoredItems = item == nil

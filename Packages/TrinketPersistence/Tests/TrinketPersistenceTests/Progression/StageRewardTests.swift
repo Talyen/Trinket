@@ -254,7 +254,7 @@ struct StageRewardTests {
         let battleStages = GameContent.chapters.flatMap(\.stages).filter(\.encounter.isCombat)
         let deepStage = try #require(
             battleStages.last {
-                StageCompletion.resolvedEncounterLevel(for: $0, in: GameContent.chapters) > 3
+                EncounterLevelResolver.journeyEnemyLevel(for: $0, in: GameContent.chapters) > 3
             },
         )
 
@@ -451,13 +451,10 @@ extension StageRewardTests {
         )
         let node = try #require(save.labyrinth.nodes.values.first { $0.type.isCombat })
         let effects = save.labyrinth.effects(for: node.id)
-        let loot = try #require(LabyrinthCompletion.resolveCombatLoot(
-            for: node,
-            effects: effects,
+        let loot = try #require(BattleLootContext(
             worldSeed: save.worldSeed,
-            ownedTrinketIDs: [],
-            ownedUniqueIDs: [],
-        ))
+            ownership: RewardOwnership(ownedTrinketIDs: [], ownedUniqueIDs: []),
+        ).labyrinth(for: node, effects: effects))
 
         LabyrinthCompletion.complete(
             nodeID: node.id,

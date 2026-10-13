@@ -26,7 +26,7 @@ enum BattleRewardAssembly {
             encounterLevel: enemyLevel,
             homestead: inputs.party.homestead,
             stageGold: input.stageReward?.gold ?? 0,
-            materials: StageCompletion.resolvedMaterialRewards(stageReward: input.stageReward ?? .empty),
+            materials: input.stageReward?.resolvedMaterials ?? [],
             items: resolvedRewardItems(
                 stageReward: input.stageReward, pendingRewardItem: input.pendingRewardItem,
                 additionalRewardItems: input.additionalRewardItems,

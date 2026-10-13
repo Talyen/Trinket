@@ -1,33 +1,7 @@
 import TrinketContent
 import TrinketCore
 
-public enum ContractsCompletion {
-    public static func effectiveModifier(for offer: ContractOffer, inventory: PlayerInventoryState) -> RewardModifier {
-        offer.rewardModifier.resolved(ownedTrinketIDs: inventory.ownedTrinketIDs, ownedUniqueIDs: inventory.ownedUniqueIDs)
-    }
-
-    public static func eligibleModifiers(in inventory: PlayerInventoryState) -> [RewardModifier] {
-        RewardModifier.eligible(ownedTrinketIDs: inventory.ownedTrinketIDs, ownedUniqueIDs: inventory.ownedUniqueIDs)
-    }
-
-    public static func resolveLoot(
-        for offer: ContractOffer,
-        encounterLevel: Int,
-        save: PlayerSave,
-    ) -> BattleLootResult {
-        BattleLoot.resolve(
-            .contract(
-                offerID: offer.id,
-                modifier: effectiveModifier(for: offer, inventory: save.inventory),
-            ),
-            encounterLevel: encounterLevel,
-            enemyIsBoss: VictoryRewardApplier.isBoss(enemyID: offer.enemyID),
-            worldSeed: save.worldSeed,
-            ownership: RewardOwnership(save),
-            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
-        )
-    }
-
+enum ContractsCompletion {
     @discardableResult
     static func complete(
         offerID: String,
@@ -43,8 +17,8 @@ public enum ContractsCompletion {
         let encounterLevel = rewards.encounterLevel(or: EncounterScaling.contract(offer.difficulty)
             .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level)
         let settlement = rewards.resolve { overrides in
-            let loot = overrides.loot ?? resolveLoot(for: offer, encounterLevel: encounterLevel, save: save)
-            let modifier = effectiveModifier(for: offer, inventory: save.inventory)
+            let loot = overrides.loot ?? BattleLootContext(save: save).contract(for: offer, encounterLevel: encounterLevel)
+            let modifier = RewardOwnership(save).resolved(offer.rewardModifier)
             return VictoryRewardApplier.settleVictoryRewards(
                 party: (hero, companion),
                 encounterLevel: encounterLevel,
@@ -62,7 +36,7 @@ public enum ContractsCompletion {
         )
         save.contracts.recordVictory(encounterLevel: encounterLevel)
         save.contracts.replace(
-            offerID: offerID, eligibleModifiers: eligibleModifiers(in: save.inventory), makeOffer: makeOffer,
+            offerID: offerID, eligibleModifiers: RewardOwnership(save).eligibleModifiers, makeOffer: makeOffer,
         )
         save.contracts.earnRefresh()
         return .completed

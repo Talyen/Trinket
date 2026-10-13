@@ -130,18 +130,15 @@ public final class VoyagePlayMode {
         let modifiers = ModeBattleModifiers(
             definitions: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
         )
-        let finalLoot = node.type == .boss ? VoyageCompletion.resolveFinalLoot(
-            node: node, offer: run.offer, encounterLevel: encounter.level, save: playerSave.currentSave,
-        ) : nil
+        let lootContext = BattleLootContext(playerSave: playerSave)
+        let finalLoot = node.type == .boss ? lootContext.finalVoyage(node: node, offer: run.offer, encounterLevel: encounter.level) : nil
         let loot = finalLoot?.primary
-            ?? VoyageCompletion.resolveLoot(node: node, encounterLevel: encounter.level, save: playerSave.currentSave)
+            ?? lootContext.voyage(node: node, encounterLevel: encounter.level)
         let origin = PlayBattleOrigin.voyage(runID: runID, nodeID: node.id)
         let input = ModeBattleSpec.launchInput(
             origin: origin, encounter: encounter, loot: loot, roster: playerSave.roster,
-            victoryOnlyExperienceBonusPercent: node.type == .boss ? run.offer.rewardModifier.resolved(
-                ownedTrinketIDs: playerSave.inventory.ownedTrinketIDs,
-                ownedUniqueIDs: playerSave.inventory.ownedUniqueIDs,
-            ).experienceBonusPercent : 0,
+            victoryOnlyExperienceBonusPercent: node.type == .boss ? lootContext.ownership.resolved(run.offer.rewardModifier)
+                .experienceBonusPercent : 0,
             modifiers: modifiers,
             completionBonus: node.type == .boss ? VoyageCompletionBonus(gold: run.earnedGold, materials: run.earnedMaterials) : nil,
             additionalRewardItems: finalLoot?.additionalItem.map { [$0] } ?? [],

@@ -30,23 +30,14 @@ public struct ScaledEncounter: Equatable {
     }
 }
 
-/// Shared loot tail for battle modes: world seed, ownership, and astral bonus
-/// read from the same save slice. Modes keep only their `resolveLoot`
-/// selection; this removes the copied tail.
-@MainActor
-struct BattleLootContext {
-    let worldSeed: UInt64
-    let ownedTrinketIDs: Set<String>
-    let ownedUniqueIDs: Set<String>
-    let astralChanceBonusPercent: Int
-    let ownership: RewardOwnership
-
+extension BattleLootContext {
+    @MainActor
     init(playerSave: PlayerSaveStore) {
-        worldSeed = playerSave.worldSeed
-        ownedTrinketIDs = playerSave.inventory.ownedTrinketIDs
-        ownedUniqueIDs = playerSave.inventory.ownedUniqueIDs
-        astralChanceBonusPercent = playerSave.homestead.effects.astralChanceBonusPercent
-        ownership = RewardOwnership(playerSave.inventory)
+        self.init(
+            worldSeed: playerSave.worldSeed,
+            ownership: RewardOwnership(playerSave.inventory),
+            astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
+        )
     }
 }
 

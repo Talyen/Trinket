@@ -194,10 +194,12 @@ resolve to Bonus Gold without changing the saved ID.
 
 Generation excludes exhausted Trinket/Unique rewards. A saved exhausted reward
 resolves to Bonus Gold for presentation and payout without rewriting its ID.
-Content's `BattleLoot`, `LootRequest`, and `RewardOwnership` own seeded Gold,
-material, and item generation for every battle mode, using content values only.
-Persistence adapts saved Inventory into ownership and commits awards and claims;
-battle launch captures the result for settlement. All modes reuse the same concise
+Content's `BattleLootContext` owns mode-specific loot selection from a captured
+world seed, `RewardOwnership`, and Sanctum bonus. `BattleLoot` rolls its `LootRequest`
+for seeded Gold, materials, and items. Voyage's final destination composition,
+second item roll, and last-collectible Gold conversion live in that same value-only
+owner. Persistence adapts saved inputs and commits awards and claims; battle launch
+captures the result for settlement. All modes reuse the same concise
 reward descriptions and keyword/resource icons and colors.
 
 ## Labyrinth floor layout

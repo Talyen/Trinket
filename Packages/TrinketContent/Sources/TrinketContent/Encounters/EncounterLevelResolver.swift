@@ -28,6 +28,11 @@ public enum EncounterLevelResolver {
         return max(minimum, partyCeiling)
     }
 
+    public static func journeyEnemyLevel(for stage: Stage, in chapters: [Chapter]) -> Int {
+        guard let chapter = chapters.first(where: { $0.id == stage.chapterID }) else { return 1 }
+        return journeyEnemyLevel(for: stage, in: chapter)
+    }
+
     public static func journeyEnemyLevel(for stage: Stage, in chapter: Chapter) -> Int {
         let chapterBaseLevel = (chapter.number - 1) * 5 + 1
         guard stage.encounter.isCombat else {

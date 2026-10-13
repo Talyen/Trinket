@@ -217,13 +217,10 @@ struct LabyrinthProgressTests {
 
         let effects = save.labyrinth.effects(for: bossID)
         let pendingLoot = try #require(
-            LabyrinthCompletion.resolveCombatLoot(
-                for: boss,
-                effects: effects,
+            BattleLootContext(
                 worldSeed: save.labyrinth.worldSeed,
-                ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-                ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-            ),
+                ownership: RewardOwnership(ownedTrinketIDs: save.inventory.ownedTrinketIDs, ownedUniqueIDs: save.inventory.ownedUniqueIDs),
+            ).labyrinth(for: boss, effects: effects),
         )
         let pending = pendingLoot.item
         if pending.isTrinket || pending.rarity == .unique {
