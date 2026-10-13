@@ -92,20 +92,26 @@ private extension PlayerSaveStore {
         >,
     ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
         guard claim.isCurrent(in: self), !claim.isConsumed else { return .rejected(.unavailable) }
-        let result: SaveTransactionResult<Void, EncounterCompletionFailure> = persistTransaction(logging: message) { save, recordReceipt in
-            guard let party = claim.party(in: save),
-                  award.inputs == RewardSettlementInputs(
-                      save: save,
-                      hero: party.hero,
-                      companion: party.companion,
-                      at: award.inputs.productionDate,
-                  )
-            else { return .failure(.unavailable) }
-            return mutation(&save, party, recordReceipt)
+        let candidate = SaveEconomicMutation(currentSave)
+        guard let party = claim.party(in: candidate.save),
+              award.inputs == RewardSettlementInputs(
+                  save: candidate.save,
+                  hero: party.hero,
+                  companion: party.companion,
+                  at: award.inputs.productionDate,
+              )
+        else { return .rejected(.unavailable) }
+        switch mutation(&candidate.save, party, candidate.record) {
+        case let .failure(error): return .rejected(error)
+        case .success:
+            do {
+                try commit(candidate.save, accounting: .receipts(candidate.receipts))
+                claim.consume()
+                return .committed(())
+            } catch {
+                notePersistenceFailure(error, logging: message)
+                return .persistFailed(PlayerSavePersistenceError.mapped(error))
+            }
         }
-        if case .committed = result {
-            claim.consume()
-        }
-        return result
     }
 }

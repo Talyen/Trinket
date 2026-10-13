@@ -33,8 +33,9 @@ feedback, audio, timing, and cache/pinning contracts.
 Initial deployment candidate source: `02489412b9c494a7d117e84d485ee8c179a2b231`.
 Build 25 has not been archived or uploaded. Record the final clean commit and
 exact distributed build before phone measurement; a retained harness change
-requires a new build reservation. This investigation has changed no application
-code; current main includes separately integrated changes listed below.
+requires a new build reservation. Through build 29, this investigation changed
+tests and documentation only; current main includes separately integrated changes
+listed below. Build 30 recovery below includes a private receipt-wrapper compile repair.
 Phone: Ryan’s iPhone 14 Pro, UDID `00008120-00024DCC213B401E`, iOS 27.0.1 (24A446).
 Live device connection succeeded over local network on October 12.
 TestFlight doctor passed for Trinket! / Personal Testing on Xcode 27.1 (27A9275).
@@ -134,6 +135,22 @@ operation attempt. Preserve terminal invalid-save, exact attempt count, unchange
 current save and disk reload assertions. Retain hosted raw evidence under
 ci-23b2-state/. The corrected complete Persistence suite passed 391/391;
 raw local evidence is retained under retry-watchdog-verification/.
+
+Build 30 at 83cb9ab23 was interrupted before archive/upload after hosted CI
+38350359125 identified two compile failures in newly integrated main changes.
+The battle reward wrapper forwarded a nonescaping receipt callback through an
+unknown mutation closure while borrowing the candidate save. Keep the existing
+claim checks and durable commit, but let that private wrapper own the
+SaveEconomicMutation and pass its bound receipt recorder directly. Consume only
+after commit; failed/rejected candidates and receipts remain unpublished.
+Engine test tuples also require an explicit replacement Effect and Set values;
+retain every case and assertion. One AppState test still called the removed route
+completion helper; submit its retained registration claim again instead and
+require rejection without save changes. Corrected Engine passed 919 discovered
+tests, Persistence passed 394, and AppState passed 194 with its opt-in playthrough
+worker skipped because no worker request was supplied. Hosted failure evidence is under
+ci-83cb-build/ and ci-83cb-engine/. This is compilation recovery, not a measured
+performance improvement. Original build 30 receipt remains retained.
 
 ## Phone preparation and restoration
 

@@ -32,8 +32,8 @@ struct EffectHandlersApplyStatusTests {
 
     @Test(arguments: [
         (Effect.purge(.block), [Self.block, Self.thorns], [Self.thorns], Set([Keyword.block])),
-        (.purge(nil), [Self.block, Self.poison], [Self.poison], [.block]),
-        (.purge(nil), [Self.block, Self.thorns], [], [.block, .thorns]),
+        (.purge(nil), [Self.block, Self.poison], [Self.poison], Set([Keyword.block])),
+        (.purge(nil), [Self.block, Self.thorns], [], Set([Keyword.block, .thorns])),
     ])
     private func `purge removes selected buffs and emits per-keyword feedback`(
         effect: Effect, stacks: [ActiveEffect], remaining: [ActiveEffect], feedback: Set<Keyword>,

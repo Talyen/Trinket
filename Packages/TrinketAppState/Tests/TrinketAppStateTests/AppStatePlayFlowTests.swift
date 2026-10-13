@@ -220,15 +220,17 @@ struct AppStatePlayFlowTests {
 
     private func checkDuplicateDelivery(state: PlaySession) throws {
         let configuration = try #require(state.battle.activeBattle)
-        let launch = try #require(state.battleRegistration(for: configuration.runKey)?.launch)
+        let registration = try #require(state.battleRegistration(for: configuration.runKey))
         let settlement = try #require(state.settleBattleRewards(configuration, battleGold: .init(gained: 5)))
-        let route = try #require(state.route(for: configuration.runKey))
 
         #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 5)).didComplete)
         let saveAfterVictory = state.playerSave.currentSave
-        #expect(route.complete(
-            configuration, launch: launch, award: settlement, materialRewards: nil, playerSave: state.playerSave,
-        ) == .unavailable)
+        guard case .rejected(.unavailable) = state.playerSave.completeBattle(
+            registration.rewardClaim, award: settlement, enemyEncounterLevel: configuration.enemyEncounterLevel,
+        ) else {
+            Issue.record("A completed registration must reject another reward claim")
+            return
+        }
         #expect(state.playerSave.currentSave == saveAfterVictory)
     }
 

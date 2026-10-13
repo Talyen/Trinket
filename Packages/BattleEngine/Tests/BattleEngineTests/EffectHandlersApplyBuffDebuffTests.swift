@@ -155,7 +155,7 @@ struct EffectHandlersApplyBuffDebuffTests {
 
     @Test(arguments: [
         (
-            Effect.marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration), .marked(5, Effect.standardMarkedDuration),
+            Effect.marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration), Effect.marked(5, Effect.standardMarkedDuration),
             BattleParticipant.enemy, ActionEvent.EffectOutcome.markedApplied, Effect.standardMarkedBonus, 5,
         ),
         (.criticalChanceBonus(0.15, 6), .criticalChanceBonus(0.20, 4), .hero, .criticalChanceApplied, 15, 20),
