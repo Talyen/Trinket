@@ -123,15 +123,7 @@ struct CombatTriggerTalentDamageTests {
             enemyFaction: .undead,
             dealOpeningHand: false,
         )
-        let vsUndead = undead.resolveDamage(
-            DamageRequest(
-                amount: 4,
-                target: undead.roster.enemy.combatant,
-                keyword: .holy,
-                sourceActorID: undead.roster.hero.id,
-                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
-            ),
-        )
+        let vsUndead = undead.resolveTestDamage(4, keyword: .holy, options: .effect(scaling: .items, accuracy: .unavoidable))
         var mortal = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(),
             companion: CombatantFixtures.passiveCompanion(),
@@ -140,15 +132,7 @@ struct CombatTriggerTalentDamageTests {
             enemyFaction: .mortal,
             dealOpeningHand: false,
         )
-        let vsMortal = mortal.resolveDamage(
-            DamageRequest(
-                amount: 4,
-                target: mortal.roster.enemy.combatant,
-                keyword: .holy,
-                sourceActorID: mortal.roster.hero.id,
-                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
-            ),
-        )
+        let vsMortal = mortal.resolveTestDamage(4, keyword: .holy, options: .effect(scaling: .items, accuracy: .unavoidable))
         #expect(vsUndead.healthLost == 8)
         #expect(vsMortal.healthLost == 4)
     }
@@ -186,15 +170,7 @@ struct CombatTriggerTalentDamageTests {
             dealOpeningHand: false,
         )
 
-        _ = battle.resolveDamage(
-            DamageRequest(
-                amount: 3,
-                target: battle.roster.enemy.combatant,
-                keyword: .physical,
-                sourceActorID: battle.roster.hero.id,
-                options: DamageOperation.attack(origin: .counterattack, scaling: .flat, accuracy: .unavoidable),
-            ),
-        )
+        _ = battle.resolveTestDamage(3, options: .attack(origin: .counterattack, scaling: .flat, accuracy: .unavoidable))
         #expect(DefensePoolEngine.blockPoints(
             in: battle.roster.activeEffects(for: battle.roster.hero.combatant),
         ) == 0)
@@ -216,13 +192,7 @@ struct CombatTriggerTalentDamageTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        let outcome = battle.resolveDamage(DamageRequest(
-            amount: 5,
-            target: battle.roster.enemy.combatant,
-            keyword: .physical,
-            sourceActorID: battle.roster.companion.id,
-            options: DamageOperation.attack(tier: .skill, scaling: .items, accuracy: .unavoidable),
-        ))
+        let outcome = battle.resolveTestDamage(5, from: .companion, options: .attack(tier: .skill, scaling: .items, accuracy: .unavoidable))
         #expect(outcome.healthLost == 9)
     }
 
@@ -237,13 +207,7 @@ struct CombatTriggerTalentDamageTests {
             )),
             dealOpeningHand: false,
         )
-        _ = battle.resolveDamage(DamageRequest(
-            amount: 1,
-            target: battle.roster.enemy.combatant,
-            keyword: .holy,
-            sourceActorID: battle.roster.hero.id,
-            options: DamageOperation.reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable),
-        ))
+        _ = battle.resolveTestDamage(1, keyword: .holy, options: .reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable))
         #expect(battle.heroTalents.history[battle.enemy.id]?.blindingReduction ?? 0 == 0)
     }
 
@@ -267,13 +231,7 @@ struct CombatTriggerTalentDamageTests {
             ),
             dealOpeningHand: false,
         )
-        let stackedHit = stacked.resolveDamage(DamageRequest(
-            amount: 20,
-            target: stacked.roster.enemy.combatant,
-            keyword: .physical,
-            sourceActorID: stacked.roster.hero.id,
-            options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
-        ))
+        let stackedHit = stacked.resolveTestDamage(20, options: .effect(scaling: .items, accuracy: .unavoidable))
         #expect(stackedHit.healthLost == 30)
         #expect(stackedHit.events.contains { $0.abilityName == "Damnation" && $0.kind == .ability })
         #expect(stackedHit.events.contains { $0.abilityName == "Intense Heat" && $0.kind == .ability })
@@ -291,13 +249,7 @@ struct CombatTriggerTalentDamageTests {
             ),
             dealOpeningHand: false,
         )
-        let auraHit = companionAura.resolveDamage(DamageRequest(
-            amount: 20,
-            target: companionAura.roster.enemy.combatant,
-            keyword: .physical,
-            sourceActorID: companionAura.roster.hero.id,
-            options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
-        ))
+        let auraHit = companionAura.resolveTestDamage(20, options: .effect(scaling: .items, accuracy: .unavoidable))
         #expect(auraHit.healthLost == 25)
         #expect(auraHit.events.contains { $0.abilityName == "Intense Heat" && $0.kind == .ability })
     }
@@ -317,15 +269,7 @@ struct CombatTriggerTalentDamageTests {
             for: battle.roster.enemy.combatant,
             on: &battle,
         )
-        let outcome = battle.resolveDamage(
-            DamageRequest(
-                amount: 5,
-                target: battle.roster.enemy.combatant,
-                keyword: .physical,
-                sourceActorID: battle.roster.companion.id,
-                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
-            ),
-        )
+        let outcome = battle.resolveTestDamage(5, from: .companion, options: .effect(scaling: .items, accuracy: .unavoidable))
         #expect(outcome.healthLost == 7)
     }
 
@@ -339,15 +283,7 @@ struct CombatTriggerTalentDamageTests {
             )),
             dealOpeningHand: false,
         )
-        let outcome = battle.resolveDamage(
-            DamageRequest(
-                amount: 5,
-                target: battle.roster.enemy.combatant,
-                keyword: .physical,
-                sourceActorID: battle.roster.hero.id,
-                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
-            ),
-        )
+        let outcome = battle.resolveTestDamage(5, options: .effect(scaling: .items, accuracy: .unavoidable))
         #expect(outcome.healthLost == 7)
     }
 }

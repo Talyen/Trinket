@@ -123,9 +123,7 @@ struct RestorationIntegrationTests {
             ],
         )
 
-        battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 16 }
-        }
+        battle.roster.mutateRuntime(for: enemy) { $0.currentHealth = 16 }
 
         let events = BattleTestFixtures.endTurn(on: &battle)
 
@@ -142,9 +140,7 @@ struct RestorationIntegrationTests {
         )
         battle.roster.companion.currentHealth -= 5
         let healthBefore = battle.roster.companion.currentHealth
-        let events = battle.withEngineContext { context in
-            CombatExecutor.run { await HealingEngine.shareLeechWithAlly(restored: 1, source: context.hero, in: &context) }
-        }
+        let events = CombatExecutor.run { await HealingEngine.shareLeechWithAlly(restored: 1, source: battle.hero, in: &battle) }
         #expect(events.isEmpty)
         #expect(battle.roster.companion.currentHealth == healthBefore)
     }

@@ -16,10 +16,7 @@ extension CombatTriggerTalentDamageTests {
         DefensePoolEngine.set(block, on: battle.companion, in: &battle)
         let enemyHealth = battle.health(of: battle.enemy)
 
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ))
+        let hit = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
         #expect(hit.healthLost == (block == 0 ? 4 : 0))
         #expect(battle.health(of: battle.enemy) == enemyHealth - (block == 0 ? 4 : 0))
@@ -48,10 +45,12 @@ extension CombatTriggerTalentDamageTests {
             #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == 0)
         }
         for hit in 0 ..< 6 {
-            let outcome = battle.resolveDamage(DamageRequest(
-                amount: 6, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
-            ))
+            let outcome = battle.resolveTestDamage(
+                6,
+                from: .enemy,
+                to: .companion,
+                options: .attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
+            )
             #expect(outcome.healthLost == 6 - min(hit, 4))
             #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == min(hit + 1, 4))
         }
@@ -67,10 +66,12 @@ extension CombatTriggerTalentDamageTests {
         )
         battle.appliesFightPacing = false
         for _ in 0 ..< 2 {
-            _ = battle.resolveDamage(DamageRequest(
-                amount: 6, target: battle.companion, keyword: .physical, sourceActorID: battle.enemy.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
-            ))
+            _ = battle.resolveTestDamage(
+                6,
+                from: .enemy,
+                to: .companion,
+                options: .attack(tier: .skill, scaling: .flat, accuracy: .unavoidable),
+            )
         }
         #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == 4)
     }
@@ -120,18 +121,12 @@ extension CombatTriggerTalentDamageTests {
         battle.roster.setActiveEffects(
             [ActiveEffect(id: 100, effect: .shield(.block, 5), remainingTurns: 0)], for: battle.hero,
         )
-        let absorbed = battle.resolveDamage(DamageRequest(
-            amount: 5, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
-            options: .reaction(),
-        ))
+        let absorbed = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .reaction())
         #expect(absorbed.healthLost == 0)
         for turn in 0 ... 1 {
             battle.turnCount = turn
             for expectedBlock in [1, 1] {
-                let outcome = battle.resolveDamage(DamageRequest(
-                    amount: 1, target: battle.hero, keyword: .bleed, sourceActorID: battle.hero.id,
-                    options: .healthCost,
-                ))
+                let outcome = battle.resolveTestDamage(1, to: .hero, keyword: .bleed, options: .healthCost)
                 #expect(outcome.healthLost == 1)
                 let block = outcome.events.filter { $0.effectKind == .shieldApplied }.reduce(0) { $0 + $1.amount }
                 #expect(block == expectedBlock)
@@ -175,9 +170,7 @@ extension CombatTriggerTalentDamageTests {
         profile.triggers.physicalStunBuildupPercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
         battle.appliesFightPacing = false
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id, options: operation,
-        ))
+        let hit = battle.resolveTestDamage(4, options: operation)
         #expect(hit.healthLost == 4)
         #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == .controlMeter(.stun, 4, 20) })
     }
@@ -188,9 +181,7 @@ extension CombatTriggerTalentDamageTests {
         profile.triggers.physicalDamageBlockPercent = 0.5
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
         battle.appliesFightPacing = false
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 4, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id, options: operation,
-        ))
+        let hit = battle.resolveTestDamage(4, options: operation)
         #expect(hit.healthLost == 4)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 2)
     }
@@ -241,10 +232,7 @@ extension CombatTriggerTalentDamageTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroModifiers: profile, dealOpeningHand: false)
         battle.appliesFightPacing = false
         battle.roster.enemy.currentHealth = 4
-        let hit = battle.resolveDamage(DamageRequest(
-            amount: 20, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
-            options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ))
+        let hit = battle.resolveTestDamage(20, options: .attack(scaling: .flat, accuracy: .unavoidable))
         #expect(hit.healthLost == 4)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 2)
     }

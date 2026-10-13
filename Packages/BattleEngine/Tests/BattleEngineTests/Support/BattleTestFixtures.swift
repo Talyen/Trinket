@@ -155,9 +155,7 @@ extension BattleTestFixtures {
         )
     }
 
-    /// In-context effect dispatch core. Callers must already hold an open
-    /// engine context (`withEngineContext`); see `EffectHandlersTestSupport.dispatch`
-    /// for the wrapping entry point used outside one.
+    /// Effect dispatch for tests that already have a battle and an ability.
     static func apply(
         _ effect: Effect,
         ability: Ability,

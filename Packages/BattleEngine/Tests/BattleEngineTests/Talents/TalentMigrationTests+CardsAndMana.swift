@@ -1,6 +1,5 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -34,33 +33,21 @@ extension TalentMigrationTests {
     @Test func `closedCircuit spends mana deals stun`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(closedCircuit: true)))
         let enemyHealthBefore = battle.health(of: battle.enemy)
-        _ = battle.withEngineContext { ctx in
-            CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
-                ManaPayment(
-                    payer: ctx.roster.hero.combatant,
-                    balanceBefore: ctx.mana(of: ctx.roster.hero.combatant) + 3,
-                    balanceAfter: ctx.mana(of: ctx.roster.hero.combatant),
-                ),
-                in: &ctx,
-            ) }
-        }
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
+            ManaPayment(
+                payer: battle.roster.hero.combatant,
+                balanceBefore: battle.mana(of: battle.roster.hero.combatant) + 3,
+                balanceAfter: battle.mana(of: battle.roster.hero.combatant),
+            ),
+            in: &battle,
+        ) }
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }
 
     @Test func `eyeOfTheStorm stun restores mana`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(eyeOfTheStorm: true)))
-        battle.withEngineContext { ctx in
-            ctx.roster.mutateRuntime(for: ctx.roster.hero.combatant) { $0.currentMana = 0 }
-        }
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 6,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.stun,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
+        battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentMana = 0 }
+        _ = battle.resolveTestDamage(6, keyword: .stun)
         #expect(battle.mana(of: battle.hero) > 0)
     }
 
@@ -73,23 +60,19 @@ extension TalentMigrationTests {
             ],
         )
         let burnAbility = Ability(id: "x", name: "X", tier: .basic, directDamage: 1, damageKeyword: Keyword.burn)
-        _ = battle.withEngineContext { ctx in
-            cardReactions(
-                burnAbility,
-                in: &ctx,
-            )
-        }
-        #expect(battle.withEngineContext { $0.primedRepeatKeywords.contains(Keyword.physical) })
+        _ = cardReactions(
+            burnAbility,
+            in: &battle,
+        )
+        #expect(battle.primedRepeatKeywords.contains(Keyword.physical))
         let physical = Ability(id: "phys", name: "Phys", tier: .basic, directDamage: 5, damageKeyword: Keyword.physical)
         let healthBefore = battle.health(of: battle.enemy)
-        _ = battle.withEngineContext { ctx in
-            cardReactions(
-                physical,
-                in: &ctx,
-            )
-        }
+        _ = cardReactions(
+            physical,
+            in: &battle,
+        )
         #expect(battle.health(of: battle.enemy) < healthBefore)
-        #expect(!battle.withEngineContext { $0.primedRepeatKeywords.contains(Keyword.physical) })
+        #expect(!battle.primedRepeatKeywords.contains(Keyword.physical))
     }
 
     @Test func `phantom counter plays a drawn card without consuming ordinary card rewards`() {
@@ -144,56 +127,46 @@ extension TalentMigrationTests {
             heroTriggers: CombatTraitTriggers(mana: ManaTriggers(furnaceRhythm: true)),
             heroAbilities: [.slash],
         )
-        _ = battle.withEngineContext { ctx in
-            cardReactions(
-                Ability(id: "burn-x", name: "Burn X", tier: .basic, directDamage: 1, damageKeyword: Keyword.burn),
-                in: &ctx,
-            )
-        }
-        #expect(battle.withEngineContext { $0.primedRepeatKeywords.contains(Keyword.physical) })
+        _ = cardReactions(
+            Ability(id: "burn-x", name: "Burn X", tier: .basic, directDamage: 1, damageKeyword: Keyword.burn),
+            in: &battle,
+        )
+        #expect(battle.primedRepeatKeywords.contains(Keyword.physical))
         _ = battle.endTurn()
-        #expect(!battle.withEngineContext { $0.primedRepeatKeywords.contains(Keyword.physical) })
+        #expect(!battle.primedRepeatKeywords.contains(Keyword.physical))
     }
 
     @Test func `pyromancer restores mana on burn empowerment`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(onEmpowerBurnRestoreMana: 1)))
         var ability = Ability.meteor
-        _ = battle.withEngineContext { ctx in
-            _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
-                for: &ability, actor: ctx.roster.hero.combatant, context: &ctx,
-            ) }
-        }
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: battle.roster.hero.combatant, context: &battle,
+        ) }
         #expect(battle.roster.runtime(for: battle.roster.hero.combatant)?.currentMana == 3)
     }
 
     @Test func `frost guard adds freeze damage to empowerment`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(empowerFreezeDamageBonus: 1)))
         var ability = Ability.frostbolt
-        _ = battle.withEngineContext { ctx in
-            _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
-                for: &ability, actor: ctx.roster.hero.combatant, context: &ctx,
-            ) }
-        }
+        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &ability, actor: battle.roster.hero.combatant, context: &battle,
+        ) }
         #expect(ability.damageComponents.first(where: { $0.keyword == .freeze })?.amount == 6)
     }
 
     @Test func `dark recovery deals stun when spending last mana`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mana: ManaTriggers(spendLastManaStunDamage: 3)))
         battle.appliesFightPacing = false
-        battle.withEngineContext { ctx in
-            ctx.roster.mutateRuntime(for: ctx.roster.hero.combatant) { $0.currentMana = 0 }
-        }
+        battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentMana = 0 }
         let before = battle.health(of: battle.enemy)
-        _ = battle.withEngineContext { ctx in
-            _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
-                ManaPayment(
-                    payer: ctx.roster.hero.combatant,
-                    balanceBefore: ctx.mana(of: ctx.roster.hero.combatant) + 1,
-                    balanceAfter: ctx.mana(of: ctx.roster.hero.combatant),
-                ),
-                in: &ctx,
-            ) }
-        }
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
+            ManaPayment(
+                payer: battle.roster.hero.combatant,
+                balanceBefore: battle.mana(of: battle.roster.hero.combatant) + 1,
+                balanceAfter: battle.mana(of: battle.roster.hero.combatant),
+            ),
+            in: &battle,
+        ) }
         #expect(before - battle.health(of: battle.enemy) == 3)
     }
 

@@ -257,12 +257,10 @@ struct ControlMeterIntegrationTests {
         var battle = makeControlBattle(heroAbilities: [.slash, .heal, .smite])
         battle.hand = BattleHand()
         battle.heroDeck = CombatDeck(abilities: [.slash, .heal, .smite])
-        battle.withEngineContext { context in
-            context.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .controlMeter(keyword, 10, 10), remainingTurns: 0)],
-                for: context.hero,
-            )
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .controlMeter(keyword, 10, 10), remainingTurns: 0)],
+            for: battle.hero,
+        )
 
         let deckBefore = battle.heroDeck
         try #expect(BattleCardCombatEngine.drawCards(count: 2, for: .hero, context: &battle) == 0)
@@ -272,12 +270,10 @@ struct ControlMeterIntegrationTests {
         try #expect(battle.heroDeck == deckBefore)
         try #expect(battle.hand.cards.allSatisfy { $0.owner != .hero })
 
-        battle.withEngineContext { context in
-            context.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .controlMeter(keyword, 10, 10), remainingTurns: 1)],
-                for: context.hero,
-            )
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .controlMeter(keyword, 10, 10), remainingTurns: 1)],
+            for: battle.hero,
+        )
         try #expect(BattleCardCombatEngine.drawCards(count: 1, for: .hero, context: &battle) == 1)
     }
 

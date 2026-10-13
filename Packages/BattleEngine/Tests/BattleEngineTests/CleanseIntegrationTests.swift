@@ -100,11 +100,9 @@ struct CleanseIntegrationTests {
                 ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTurns: 6),
             ],
         )
-        battle.withEngineContext { context in
-            context.appliesFightPacing = false
-            context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = 10 }
-            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 11 }
-        }
+        battle.appliesFightPacing = false
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 11 }
 
         let events = try #require(try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle))
         try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
@@ -128,11 +126,9 @@ struct CleanseIntegrationTests {
                 ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
             ],
         )
-        battle.withEngineContext { context in
-            context.appliesFightPacing = false
-            context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = 14 }
-            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 6 }
-        }
+        battle.appliesFightPacing = false
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 14 }
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 6 }
 
         _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
 
@@ -143,11 +139,9 @@ struct CleanseIntegrationTests {
 
     @Test func `panacea heals base amount when no debuffs present`() throws {
         var battle = makeCleanseBattle()
-        battle.withEngineContext { context in
-            context.appliesFightPacing = false
-            context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = 10 }
-            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 15 }
-        }
+        battle.appliesFightPacing = false
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 15 }
 
         _ = try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle)
 

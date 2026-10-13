@@ -1,147 +1,64 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
 extension TalentMigrationTests {
     @Test func `shatterpoint doubles the next bleed damage after stun`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(dot: DotTriggers(shatterpoint: true)))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects([ActiveEffect(id: 1, effect: .bleed(6), remainingTurns: 2)], for: ctx.roster.enemy.combatant)
-        }
-        let first = battle.withEngineContext { ctx in
-            _ = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: ctx.roster.hero.id, in: &ctx) }
-            return ctx.resolveDamage(DamageRequest(
-                amount: 4,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.bleed,
-                sourceActorID: ctx.roster.hero.id,
-                options: .reaction(),
-            ))
-        }
-        let second = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 4, target: ctx.roster.enemy.combatant, keyword: .bleed,
-                sourceActorID: ctx.roster.hero.id, options: .reaction(),
-            ))
-        }
+        battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .bleed(6), remainingTurns: 2)], for: battle.roster.enemy.combatant)
+        _ = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: battle.roster.hero.id, in: &battle) }
+        let first = battle.resolveTestDamage(4, keyword: .bleed, options: .reaction())
+        let second = battle.resolveTestDamage(4, keyword: .bleed, options: .reaction())
         #expect(first.healthLost == 8)
         #expect(second.healthLost == 4)
     }
 
-    @Test func `cryostasis preserves bleed on frozen`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(dot: DotTriggers(cryostasis: true)))
-        let cryoOutcome = battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects([
-                ActiveEffect(id: 1, effect: .controlMeter(Keyword.freeze, 100, 10), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
-            ], for: ctx.roster.enemy.combatant)
-            return EffectHandlersTestSupport.dispatchTick(
-                ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
-                target: ctx.roster.enemy.combatant,
-                battle: &ctx,
-            )
-        }
-        #expect(cryoOutcome.currentEffect?.remainingTurns == 1)
-        #expect(cryoOutcome.currentEffect != nil)
-
-        var noCryoBattle = makeBattle()
-        let plainOutcome = noCryoBattle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects([
-                ActiveEffect(id: 1, effect: .controlMeter(Keyword.freeze, 100, 10), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
-            ], for: ctx.roster.enemy.combatant)
-            return EffectHandlersTestSupport.dispatchTick(
-                ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
-                target: ctx.roster.enemy.combatant,
-                battle: &ctx,
-            )
-        }
-        #expect((plainOutcome.currentEffect?.remainingTurns ?? 0) == 0)
-        #expect(plainOutcome.currentEffect == nil)
-    }
-
-    @Test func `crownfall purge deals holy per effect`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(cleanse: CleanseTriggers(crownfall: true)))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
-                for: ctx.roster.enemy.combatant,
-            )
-        }
-        let enemyHealthBefore = battle.health(of: battle.enemy)
-        _ = battle.withEngineContext { ctx in
-            let outcome = BattleTestFixtures.apply(
-                .purge(nil),
-                abilityName: "purge",
-                source: ctx.roster.hero.combatant,
-                target: ctx.roster.enemy.combatant,
-                in: &ctx,
-            )
-            _ = outcome
-        }
-        #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
-    }
-
-    @Test func `crownfall triggers via living party`() {
-        var battle = makeBattle(
-            companionTriggers: CombatTraitTriggers(cleanse: CleanseTriggers(crownfall: true)),
+    @Test(arguments: [(true, BattleParticipant.enemy), (false, .enemy), (true, .hero)])
+    func `cryostasis preserves frozen enemy bleed only when equipped`(equipped: Bool, target: BattleParticipant) {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers(dot: DotTriggers(cryostasis: equipped)))
+        let combatant = battle.roster[target].combatant
+        battle.roster.setActiveEffects([
+            ActiveEffect(id: 1, effect: .controlMeter(Keyword.freeze, 100, 10), remainingTurns: 0),
+            ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
+        ], for: combatant)
+        let outcome = EffectHandlersTestSupport.dispatchTick(
+            ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1), target: combatant, battle: &battle,
         )
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
-                for: ctx.roster.enemy.combatant,
-            )
-        }
-        let enemyHealthBefore = battle.health(of: battle.enemy)
-        _ = battle.withEngineContext { ctx in
-            _ = BattleTestFixtures.apply(
-                .purge(nil),
-                abilityName: "purge",
-                source: ctx.roster.hero.combatant,
-                target: ctx.roster.enemy.combatant,
-                in: &ctx,
-            )
-        }
-        #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
+        let preserved = equipped && target == .enemy
+        #expect((outcome.currentEffect?.remainingTurns ?? 0) == (preserved ? 1 : 0))
+        #expect((outcome.currentEffect != nil) == preserved)
     }
 
-    @Test func `cryostasis does not preserve bleed on frozen ally`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers(dot: DotTriggers(cryostasis: true)))
-        let outcome = battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects([
-                ActiveEffect(id: 1, effect: .controlMeter(Keyword.freeze, 100, 10), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
-            ], for: ctx.roster.hero.combatant)
-            return EffectHandlersTestSupport.dispatchTick(
-                ActiveEffect(id: 2, effect: .bleed(4), remainingTurns: 1),
-                target: ctx.roster.hero.combatant,
-                battle: &ctx,
-            )
-        }
-        #expect((outcome.currentEffect?.remainingTurns ?? 0) == 0)
-        #expect(outcome.currentEffect == nil)
+    @Test(arguments: [BattleParticipant.hero, .companion])
+    func `crownfall purge deals holy from either living party owner`(owner: BattleParticipant) {
+        let triggers = CombatTraitTriggers(cleanse: CleanseTriggers(crownfall: true))
+        var battle = makeBattle(
+            heroTriggers: owner == .hero ? triggers : .init(),
+            companionTriggers: owner == .companion ? triggers : .init(),
+        )
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)], for: battle.enemy,
+        )
+        let enemyHealthBefore = battle.health(of: battle.enemy)
+        _ = BattleTestFixtures.apply(.purge(nil), abilityName: "purge", source: battle.hero, target: battle.enemy, in: &battle)
+        #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }
 
     @Test func `crownfall does not damage when enemy purges ally buff`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(cleanse: CleanseTriggers(crownfall: true)))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
-                for: ctx.roster.hero.combatant,
-            )
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
+            for: battle.roster.hero.combatant,
+        )
         let heroHealthBefore = battle.health(of: battle.hero)
-        _ = battle.withEngineContext { ctx in
-            _ = BattleTestFixtures.apply(
-                .purge(nil),
-                abilityName: "enemy-purge",
-                source: ctx.roster.enemy.combatant,
-                target: ctx.roster.hero.combatant,
-                in: &ctx,
-            )
-        }
+        _ = BattleTestFixtures.apply(
+            .purge(nil),
+            abilityName: "enemy-purge",
+            source: battle.roster.enemy.combatant,
+            target: battle.roster.hero.combatant,
+            in: &battle,
+        )
         #expect(battle.health(of: battle.hero) == heroHealthBefore)
     }
 
@@ -149,18 +66,16 @@ extension TalentMigrationTests {
         for burning in [false, true] {
             var battle = makeBattle(heroTriggers: CombatTraitTriggers(control: ControlTriggers(stunExtendVsBurning: true)))
             battle.appliesFightPacing = false
-            _ = battle.withEngineContext { ctx in
-                if burning {
-                    ctx.roster.setActiveEffects(
-                        [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
-                        for: ctx.roster.enemy.combatant,
-                    )
-                }
-                _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
-                    20, keyword: .stun, to: ctx.roster.enemy.combatant,
-                    sourceActorID: ctx.roster.hero.id, applyFightPacing: false, in: &ctx,
-                ) }
+            if burning {
+                battle.roster.setActiveEffects(
+                    [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
+                    for: battle.roster.enemy.combatant,
+                )
             }
+            _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
+                20, keyword: .stun, to: battle.roster.enemy.combatant,
+                sourceActorID: battle.roster.hero.id, applyFightPacing: false, in: &battle,
+            ) }
             #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
             _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
             #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == burning)

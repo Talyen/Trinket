@@ -11,7 +11,7 @@ struct EffectHandlersApplyTests {
         battle.heroDeck = CombatDeck(abilities: [.block])
         battle.companionDeck = CombatDeck(abilities: [.smite])
         if heroDefeated {
-            battle.withEngineContext { $0.roster.hero.currentHealth = 0 }
+            battle.roster.hero.currentHealth = 0
         }
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawAndPlayCards(1), source: battle.companion, target: battle.companion, battle: &battle,
@@ -197,12 +197,10 @@ struct EffectHandlersApplyTests {
         while battle.hand.count > 1 {
             _ = battle.hand.remove(id: battle.hand.cards[0].id)
         }
-        battle.withEngineContext { context in
-            context.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)],
-                for: context.hero,
-            )
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)],
+            for: battle.hero,
+        )
         battle.ownersSkippingThisPlayerTurn = [.hero]
         battle.heroDeck = CombatDeck(abilities: [.slash])
         battle.companionDeck = CombatDeck(abilities: [.smite, .bash])

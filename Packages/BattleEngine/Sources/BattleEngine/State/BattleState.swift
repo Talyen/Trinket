@@ -251,12 +251,6 @@ public struct BattleState {
         logProjection?.entries ?? []
     }
 
-    package mutating func withEngineContext<R>(_ body: (inout Self) throws -> R) rethrows -> R {
-        let result = try body(&self)
-        finishMutation(rebuildLog: true)
-        return result
-    }
-
     package mutating func seedActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
         roster.setActiveEffects(effects, for: combatant)
     }

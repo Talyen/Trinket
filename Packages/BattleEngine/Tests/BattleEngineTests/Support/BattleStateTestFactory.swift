@@ -98,14 +98,10 @@ enum BattleStateTestFactory {
             dealOpeningHand: dealOpeningHand,
         )
         if let heroMana {
-            battle.withEngineContext { context in
-                context.roster.mutateRuntime(for: hero) { $0.currentMana = heroMana }
-            }
+            battle.roster.mutateRuntime(for: hero) { $0.currentMana = heroMana }
         }
         if let companionMana {
-            battle.withEngineContext { context in
-                context.roster.mutateRuntime(for: companion) { $0.currentMana = companionMana }
-            }
+            battle.roster.mutateRuntime(for: companion) { $0.currentMana = companionMana }
         }
         return battle
     }

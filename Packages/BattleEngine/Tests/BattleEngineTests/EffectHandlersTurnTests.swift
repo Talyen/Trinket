@@ -7,10 +7,8 @@ struct EffectHandlersTurnTests {
     @Test(arguments: [false, true])
     func `enemy avatar targets surviving companion`(onTurn: Bool) {
         var battle = BattleStateTestFactory.makeBattle()
-        battle.withEngineContext { context in
-            context.appliesFightPacing = false
-            context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = 0 }
-        }
+        battle.appliesFightPacing = false
+        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 0 }
         let before = battle.health(of: battle.companion)
         let effect = Effect.avatar(holyDamage: 2, blockPerTurn: 2, turns: 2)
         if onTurn {
@@ -36,13 +34,11 @@ struct EffectHandlersTurnTests {
             heroModifiers: CombatModifierProfile(blockGainedBonus: 3, triggers: triggers),
             dealOpeningHand: false,
         )
-        battle.withEngineContext { $0.appliesFightPacing = false }
+        battle.appliesFightPacing = false
         let effect = Effect.avatar(holyDamage: 1, blockPerTurn: 2, turns: 2)
         if fromTalent {
-            battle.withEngineContext { context in
-                _ = CombatTriggerEngine.turnBlock(for: context.hero, in: &context)
-                _ = CombatTriggerEngine.turnBlock(for: context.hero, in: &context)
-            }
+            _ = CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
+            _ = CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
         } else {
             _ = EffectHandlersTestSupport.dispatch(
                 effect, source: battle.hero, target: battle.hero, battle: &battle,
@@ -78,7 +74,7 @@ struct EffectHandlersTurnTests {
     @Test(arguments: [Keyword.freeze, .stun])
     func `recurring control damage builds control on application and subsequent turns`(keyword: Keyword) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 200, dealOpeningHand: false)
-        battle.withEngineContext { $0.appliesFightPacing = false }
+        battle.appliesFightPacing = false
         let effect = Effect.recurringDamage(keyword, 2, 2)
         _ = EffectHandlersTestSupport.dispatch(
             effect, source: battle.hero, target: battle.enemy, battle: &battle,

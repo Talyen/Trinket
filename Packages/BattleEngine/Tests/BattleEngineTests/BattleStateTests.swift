@@ -20,15 +20,11 @@ struct BattleStateTests {
             enemy: BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 100),
         )
 
-        battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 0 }
-        }
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 0 }
         try #expect(!(battle.isCompanionAlive))
 
         let heroID = battle.hero
-        battle.withEngineContext { context in
-            _ = context.applyTestDamage(5, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        }
+        _ = battle.applyTestDamage(5, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         try #expect(battle.health(of: battle.hero) == 1)
         try #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .deathsDoor })
         try #expect(!(battle.isPartyDefeated))
@@ -43,29 +39,23 @@ struct BattleStateTests {
         let heroID = battle.hero
         let companionID = battle.companion
 
-        battle.withEngineContext { context in
-            _ = context.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            _ = context.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        }
+        _ = battle.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = battle.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         try #expect(!(battle.isPartyDefeated))
 
         for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
             _ = battle.endTurn()
         }
 
-        battle.withEngineContext { context in
-            _ = context.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            _ = context.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        }
+        _ = battle.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = battle.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         try #expect(!(battle.isPartyDefeated))
 
         _ = battle.endTurn()
 
-        battle.withEngineContext { context in
-            _ = context.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            _ = context.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        }
+        _ = battle.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = battle.applyTestDamage(3, to: companionID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         try #expect(battle.isPartyDefeated)
     }

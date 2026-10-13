@@ -4,6 +4,20 @@ import TrinketCore
 
 extension BattleState {
     @discardableResult
+    mutating func resolveTestDamage(
+        _ amount: Int,
+        from source: BattleParticipant = .hero,
+        to target: BattleParticipant = .enemy,
+        keyword: Keyword = .physical,
+        options: DamageOperation = .attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
+    ) -> CombatOutcome {
+        resolveDamage(DamageRequest(
+            amount: amount, target: roster[target].combatant, keyword: keyword,
+            sourceActorID: roster[source].id, options: options,
+        ))
+    }
+
+    @discardableResult
     mutating func applyTestDamage(
         _ amount: Int,
         to target: Combatant,

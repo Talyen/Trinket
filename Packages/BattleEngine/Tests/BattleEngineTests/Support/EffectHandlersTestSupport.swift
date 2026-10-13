@@ -15,15 +15,11 @@ enum EffectHandlersTestSupport {
         target: Combatant,
         battle: inout BattleState,
     ) -> EffectApplyOutcome {
-        battle.withEngineContext { context in
-            BattleTestFixtures.apply(
-                effect,
-                ability: ability,
-                source: source,
-                target: target,
-                in: &context,
-            )
+        let outcome = BattleTestFixtures.apply(effect, ability: ability, source: source, target: target, in: &battle)
+        if battle.tracksLog {
+            battle.syncLog()
         }
+        return outcome
     }
 
     static func dispatchTick(
@@ -32,17 +28,18 @@ enum EffectHandlersTestSupport {
         battle: inout BattleState,
     ) -> TickObservation {
         let handler = EffectHandlers.handler(for: active.effect.kind)
-        return battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: target) {
-                $0.activeEffects.removeAll { $0.id == active.id }
-                $0.activeEffects.append(active)
-            }
-            context.nextEffectID = max(context.nextEffectID, active.id + 1)
-            let outcome = CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &context) }
-            return TickObservation(
-                events: outcome,
-                currentEffect: context.roster.activeEffects(for: target).first { $0.id == active.id },
-            )
+        battle.roster.mutateRuntime(for: target) {
+            $0.activeEffects.removeAll { $0.id == active.id }
+            $0.activeEffects.append(active)
         }
+        battle.nextEffectID = max(battle.nextEffectID, active.id + 1)
+        let outcome = CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
+        if battle.tracksLog {
+            battle.syncLog()
+        }
+        return TickObservation(
+            events: outcome,
+            currentEffect: battle.roster.activeEffects(for: target).first { $0.id == active.id },
+        )
     }
 }

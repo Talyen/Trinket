@@ -1,127 +1,65 @@
 import Testing
 import TrinketContent
-import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
 extension TalentMigrationTests {
     @Test func `storedImpact stores blocked and empowers next physical`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(storedImpact: true)))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
-                for: ctx.roster.hero.combatant,
-            )
-        }
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 10,
-                target: ctx.roster.hero.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.enemy.id,
-                options: .reaction(),
-            ))
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
+            for: battle.roster.hero.combatant,
+        )
+        _ = battle.resolveTestDamage(10, from: .enemy, to: .hero, options: .reaction())
         let heroID = battle.hero.id
-        let stored = battle.withEngineContext { $0.storedBlockedDamageByActorID[heroID] ?? 0 }
+        let stored = battle.storedBlockedDamageByActorID[heroID] ?? 0
         #expect(stored > 0)
-        let second = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 10,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
+        let second = battle.resolveTestDamage(10)
         #expect(second.healthLost > 10)
     }
 
     @Test func `seismicReversal returns blocked as stun`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(seismicReversal: true)))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
-                for: ctx.roster.hero.combatant,
-            )
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
+            for: battle.roster.hero.combatant,
+        )
         let enemyHealthBefore = battle.health(of: battle.enemy)
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 10,
-                target: ctx.roster.hero.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.enemy.id,
-                options: .reaction(),
-            ))
-        }
+        _ = battle.resolveTestDamage(10, from: .enemy, to: .hero, options: .reaction())
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }
 
     @Test func `sunwall grants companion block equal to holy health damage`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(sunwallChancePercent: 1)))
         battle.appliesFightPacing = false
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 9,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.holy,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(
-                    tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable,
-                    abilityCriticalChanceBonus: -1,
-                ),
-            ))
-        }
+        _ = battle.resolveTestDamage(
+            9,
+            keyword: .holy,
+            options: .attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        )
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 9)
     }
 
     @Test func `storedImpact cross-owner companion block empowers hero`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(storedImpact: true)))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
-                for: ctx.roster.companion.combatant,
-            )
-        }
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 10,
-                target: ctx.roster.companion.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.enemy.id,
-                options: .reaction(),
-            ))
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
+            for: battle.roster.companion.combatant,
+        )
+        _ = battle.resolveTestDamage(10, from: .enemy, to: .companion, options: .reaction())
         let companionID = battle.companion.id
-        let storedCompanion = battle.withEngineContext { $0.storedBlockedDamageByActorID[companionID] ?? 0 }
+        let storedCompanion = battle.storedBlockedDamageByActorID[companionID] ?? 0
         #expect(storedCompanion > 0)
-        let outcome = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 10,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
+        let outcome = battle.resolveTestDamage(10)
         #expect(outcome.healthLost > 10)
-        #expect(battle.withEngineContext { $0.storedBlockedDamageByActorID.isEmpty })
+        #expect(battle.storedBlockedDamageByActorID.isEmpty)
     }
 
     @Test func `stalwart oath grants 6 block on stun`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(block: BlockTriggers(onStunEnemyGainBlock: 6)))
         battle.appliesFightPacing = false
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 20,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.stun,
-                sourceActorID: ctx.roster.hero.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
+        _ = battle.resolveTestDamage(20, keyword: .stun)
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
     }
@@ -129,15 +67,7 @@ extension TalentMigrationTests {
     @Test func `gilded carapace grants 2 block on stun`() {
         var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: BlockTriggers(onStunEnemyGainBlock: 2)))
         battle.appliesFightPacing = false
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 20,
-                target: ctx.roster.enemy.combatant,
-                keyword: Keyword.stun,
-                sourceActorID: ctx.roster.companion.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
+        _ = battle.resolveTestDamage(20, from: .companion, keyword: .stun)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
     }
 
@@ -189,48 +119,28 @@ extension TalentMigrationTests {
     @Test func `scorched earth weakens burning attackers`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers(mitigation: MitigationTriggers(burningEnemyDamageReductionFlat: 1)))
         battle.appliesFightPacing = false
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
-                for: ctx.roster.enemy.combatant,
-            )
-        }
-        let outcome = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 5,
-                target: ctx.roster.hero.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.enemy.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
+            for: battle.roster.enemy.combatant,
+        )
+        let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero)
         #expect(outcome.healthLost == 4)
     }
 
     @Test func `plated hide grants block when hit`() {
         var battle = makeBattle(companionTriggers: CombatTraitTriggers(onHit: OnHitTriggers(onHitGainBlock: 2)))
         battle.appliesFightPacing = false
-        _ = battle.withEngineContext { ctx in
-            ctx.resolveDamage(DamageRequest(
-                amount: 3,
-                target: ctx.roster.companion.combatant,
-                keyword: Keyword.physical,
-                sourceActorID: ctx.roster.enemy.id,
-                options: DamageOperation.attack(tier: .skill, scaling: .statsAndItems, accuracy: .normal),
-            ))
-        }
+        _ = battle.resolveTestDamage(3, from: .enemy, to: .companion)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
     }
 
     @Test func `spiked shell grows thorns from retained block`() {
         var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: BlockTriggers(retainedBlockGainThornsPercent: 0.5)))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
-                for: ctx.roster.companion.combatant,
-            )
-            _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: ctx.roster.companion.combatant, in: &ctx) }
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
+            for: battle.roster.companion.combatant,
+        )
+        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.roster.companion.combatant, in: &battle) }
         let thorns = battle.activeEffects(of: battle.companion).reduce(0) { sum, active in
             guard case let .thorns(stacks) = active.effect else { return sum }
             return sum + stacks
@@ -240,13 +150,11 @@ extension TalentMigrationTests {
 
     @Test func `enduring shell retains half block`() {
         var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: BlockTriggers(blockRetainsHalf: true)))
-        battle.withEngineContext { ctx in
-            ctx.roster.setActiveEffects(
-                [ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTurns: 0)],
-                for: ctx.roster.companion.combatant,
-            )
-            _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: ctx.roster.companion.combatant, in: &ctx) }
-        }
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTurns: 0)],
+            for: battle.roster.companion.combatant,
+        )
+        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.roster.companion.combatant, in: &battle) }
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 25)
     }
 }

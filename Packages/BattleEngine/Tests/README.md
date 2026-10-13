@@ -59,6 +59,8 @@ helpers live in `Support/`. All remain in the same test target.
 - Use `BattleStateTestFactory.makeMinimalBattle(...)` for pipeline tests that must skip deck bootstrap.
 - Dispatch effects through `EffectHandlers.handler(for:)`.
 - Public facade: reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package`.
+- Mutate package-visible battle state directly in tests. Use `syncLog()` when
+  assertions inspect logs after internal rule calls.
 
 Package commands and the balance-tool target opt-in live in the
 [package testing guide](../README.md#testing). Local execution follows
