@@ -386,7 +386,7 @@ extension CleanseIntegrationTests {
         #expect(!battle.hasTalentDebuff(on: battle.hero))
     }
 
-    @Test func `reproving light cannot recursively reward a Holy damage Cleanse`() {
+    @Test func `reproving light does not reopen Holy rewards or reward a nested Cleanse`() {
         var profile = CombatantTalentCatalog.profile(for: ["library_owl_cleanse_t3_1"])
         profile.triggers.holyDamageCleanseCount = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(companionModifiers: profile, dealOpeningHand: false)
@@ -400,7 +400,17 @@ extension CleanseIntegrationTests {
         ) }
         #expect(before - battle.health(of: battle.enemy) == 3)
         #expect(outcome.events.count { $0.kind == .abilityDamage && $0.abilityName == "Reproving Light" } == 1)
+        #expect(battle.hasTalentDebuff(on: battle.companion))
+        let nested = CombatExecutor.run { await CombatTriggerEngine.withHeroReaction(in: &battle) { context in
+            await EffectRemovalOperation.resolveCleanse(
+                .all(nil), source: context.companion, target: context.companion,
+                abilityName: "Nested Cleanse", in: &context,
+            ).events
+        } }
         #expect(!battle.hasTalentDebuff(on: battle.companion))
+        #expect(nested.contains { $0.effectKind == .cleanseApplied })
+        #expect(!nested.contains { $0.abilityName == "Reproving Light" })
+        #expect(before - battle.health(of: battle.enemy) == 3)
     }
 
     @Test func `perfect purity requires removal and prevents debuffs without preventing damage`() {
