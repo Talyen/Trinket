@@ -50,7 +50,7 @@ struct AppStatePlayFlowTests {
         #expect(battle.preparedBattlePresentationRevision == preparedRevision)
     }
 
-    @Test func `journey reward claim change replaces launch prepared battle`() throws {
+    @Test func `journey reward claim change refreshes metadata and retains prepared battle`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let battle = try #require(context.lastBattle)
@@ -58,6 +58,7 @@ struct AppStatePlayFlowTests {
 
         state.journey.prepareBattle(for: stage)
         let preparedRevision = battle.preparedBattlePresentationRevision
+        let prepared = try #require(state.battleCoordinator.preparedRuns[runKey])
         #expect(state.battlePresentation(for: runKey)?.stageRewardsAlreadyClaimed == false)
 
         try state.playerSave.performFixtureMutation { save in
@@ -65,7 +66,10 @@ struct AppStatePlayFlowTests {
         }
         state.journey.prepareBattle(for: stage)
 
-        #expect(battle.preparedBattlePresentationRevision == preparedRevision + 1)
+        #expect(battle.preparedBattlePresentationRevision == preparedRevision)
+        let refreshed = try #require(state.battleCoordinator.preparedRuns[runKey])
+        #expect(refreshed.handle === prepared.handle)
+        #expect(refreshed.registration.launch.configuration.id == prepared.registration.launch.configuration.id)
         #expect(state.battlePresentation(for: runKey)?.stageRewardsAlreadyClaimed == true)
     }
 

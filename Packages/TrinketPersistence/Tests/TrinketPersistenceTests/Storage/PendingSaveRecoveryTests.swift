@@ -380,7 +380,7 @@ extension PendingSaveRecoveryTests {
             $0.roster.gold = 73
             $0.roster.progressions[$0.roster.activeHeroID] = .at(level: 4)
         } == true)
-        let record = try #require(original?.pendingSaveRecovery?.read())
+        let record = try #require(try original?.pendingSaveRecovery?.read())
         #expect(record.unreadableLabyrinthPayload == opaque)
         #expect(try record.restoredSave().roster.gold == 73)
         // Keep cloud admission strict; local recovery is a separate boundary.
