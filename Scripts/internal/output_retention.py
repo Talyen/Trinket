@@ -12,7 +12,7 @@ import subprocess
 import tempfile
 import time
 
-from internal.cli import write_json_atomic
+from internal.cli import legacy_runtime_owner, primary_worktree_root, write_json_atomic
 
 OWNER = '.retention-owner.json'
 KEEP = '.retention-keep'
@@ -145,9 +145,14 @@ def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) ->
     # Existing tenant slots and directory locks remain authoritative; PID reuse
     # conservatively preserves output rather than reclaiming a foreign job.
     derived = root / '.DerivedData'
+    legacy_owner = legacy_runtime_owner(root, ('.active-sim', '.active-ui', '.simulator-cleanup.lock'))
+    if legacy_owner is not None and path.is_relative_to(derived):
+        return f'active or unknown legacy lease {legacy_owner}'
     slots = []
-    for directory in (derived / '.active-sim', derived / '.active-ui'):
-        if safe_path(directory, root) and directory.is_dir():
+    lease_root = primary_worktree_root(root)
+    lease_state = lease_root / '.DerivedData'
+    for directory in (lease_state / '.active-sim', lease_state / '.active-ui'):
+        if safe_path(directory, lease_root) and directory.is_dir():
             slots.extend(p for p in directory.glob("*.slot") if p.is_file())
     for lock in (derived / '.performance.lock', derived / '.generate.lock', derived / 'testflight/.deploy.lock'):
         if lock.exists():
@@ -298,8 +303,9 @@ def expire_run_caches(root: Path, *, apply: bool, now: float, processes: dict,
         return expire()
     # Slot allocation uses this same directory lock. A newly allocated agent
     # cannot start writing a run cache between the last protection check and removal.
-    lock = root / '.DerivedData/.active-sim/.sim-lifecycle.lock'
-    if not safe_path(lock, root):
+    lease_root = primary_worktree_root(root)
+    lock = lease_root / '.DerivedData/.active-sim/.sim-lifecycle.lock'
+    if not safe_path(lock, lease_root):
         return 0, 0
     lock.parent.mkdir(parents=True, exist_ok=True)
     try:

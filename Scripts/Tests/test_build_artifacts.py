@@ -89,6 +89,7 @@ class BuildArtifactTests(unittest.TestCase):
             shutil.copy2(ROOT / "Scripts/lib/derived-data.sh", scripts / "derived-data.sh")
             (scripts / "run-env.sh").write_text(
                 'source Scripts/derived-data.sh\ntrinket_derived_data_age_prune() { :; }\n'
+                'trinket_run_env_simulator_state_root() { printf "%s/.DerivedData" "$PWD"; }\n'
                 'trinket_ui_slot_reap() { :; }\ntrinket_sim_slot_reap() { :; }\n'
             )
             kept = ("Build/Products/app", "Build/Intermediates.noindex/build.db", "CompilationCache.noindex/cache",

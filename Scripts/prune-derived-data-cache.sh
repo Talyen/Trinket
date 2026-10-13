@@ -102,14 +102,15 @@ echo "=== Age-pruning bulky DerivedData artifacts (max age ${RUN_MAX_AGE_DAYS}d)
 trinket_derived_data_age_prune
 
 # Dead UI / sim concurrency slots (pid no longer alive).
-if [[ -d "$SHARED_ROOT/.active-ui" ]]; then
+simulator_state="$(trinket_run_env_simulator_state_root)"
+if [[ -d "$simulator_state/.active-ui" ]]; then
   echo "=== Reaping dead UI concurrency slots ==="
-  TRINKET_UI_ACTIVE_DIR="$SHARED_ROOT/.active-ui"
+  TRINKET_UI_ACTIVE_DIR="$simulator_state/.active-ui"
   trinket_ui_slot_reap
 fi
-if [[ -d "$SHARED_ROOT/.active-sim" ]]; then
+if [[ -d "$simulator_state/.active-sim" ]]; then
   echo "=== Reaping dead agent simulator slots ==="
-  TRINKET_SIM_ACTIVE_DIR="$SHARED_ROOT/.active-sim"
+  TRINKET_SIM_ACTIVE_DIR="$simulator_state/.active-sim"
   trinket_sim_slot_reap
 fi
 

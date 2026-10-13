@@ -11,7 +11,12 @@
 - Erase is a recovery operation after a failed cold boot, not routine cleanup.
 
 `Scripts/run-env.sh` leases a simulator and a corresponding
-`.DerivedData/runs/agent-N/` tree. Agent simulator launches automatically record
+`.DerivedData/runs/agent-N/` tree. Linked Git worktrees share simulator leases,
+UI concurrency reservations, and simulator cleanup locks in the primary checkout's
+`.DerivedData`; build products and generation locks stay in each checkout.
+Live or ambiguous checkout-local reservations and lifetime watchers from older
+script versions block new claims until their owning runs finish.
+Agent simulator launches automatically record
 their lease owner and device identity, including launches from nested commands.
 A detached watcher waits for lease release or owner exit (OS notifications on
 macOS), then allows 60 seconds for warm reuse.

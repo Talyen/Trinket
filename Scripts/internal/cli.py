@@ -4,8 +4,11 @@
 from __future__ import annotations
 
 import importlib.util
+from functools import lru_cache
 import json
+import os
 import shlex
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -13,6 +16,55 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@lru_cache(maxsize=32)
+def worktree_roots(root: Path) -> tuple[Path, ...]:
+    """Git lists the primary checkout first; preserve paths containing whitespace."""
+    root = root.resolve()
+    if not (root / ".git").exists():
+        return (root,)
+    listing = subprocess.check_output(
+        ["git", "-C", str(root), "worktree", "list", "--porcelain", "-z"],
+        timeout=10,
+    )
+    roots = tuple(Path(os.fsdecode(field[len(b"worktree "):])).resolve()
+                  for field in listing.split(b"\0") if field.startswith(b"worktree "))
+    if not roots:
+        raise ValueError("Cannot resolve the primary worktree for shared runtime state")
+    return roots
+
+
+def primary_worktree_root(root: Path) -> Path:
+    """Share host resources across linked checkouts while keeping build caches local."""
+    return worktree_roots(root)[0]
+
+
+def legacy_runtime_owner(root: Path, directories: tuple[str, ...]) -> Path | None:
+    """Respect live or ambiguous owners left by checkout-local script versions."""
+    for checkout in worktree_roots(root)[1:]:
+        for directory in directories:
+            state = checkout / '.DerivedData' / directory
+            owners = [*state.glob('*.slot'), *state.glob('*.lifetime.json'), *state.glob('*.lock/pid')]
+            owners.extend(path for path in state.glob('*.lock') if path.is_file())
+            if state.name.endswith('.lock') and state.exists():
+                owners.append(state if state.is_file() else state / 'pid')
+            for owner in owners:
+                try:
+                    if owner.suffix == '.json':
+                        data = json.loads(owner.read_text())
+                        pid = data.get('guardian', data.get('owner'))
+                    else:
+                        pid = int(owner.read_text().split()[0])
+                    if type(pid) is not int or pid <= 0:
+                        return owner
+                    os.kill(pid, 0)
+                    return owner
+                except ProcessLookupError:
+                    continue
+                except (OSError, ValueError, TypeError, AttributeError, IndexError):
+                    return owner
+    return None
 
 
 def load_sibling(name: str, filename: str) -> object:

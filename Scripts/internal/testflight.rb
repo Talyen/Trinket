@@ -110,6 +110,7 @@ module TrinketTestFlight
 
     def initialize(root, settings, config, portal, options)
       @root, @settings, @config, @portal, @options = File.realpath(root), settings, config, portal, options
+      @state_root = File.expand_path(ENV.fetch('TRINKET_TESTFLIGHT_STATE_ROOT', File.join(@root, '.DerivedData/testflight')))
     end
 
     def clean_commit
@@ -127,8 +128,10 @@ module TrinketTestFlight
     def start
       if @options[:resume]
         @run_dir = File.realpath(@options[:resume])
-        expected_root = File.realpath(File.join(@root, '.DerivedData/testflight'))
-        raise Failure, 'Resume requires a run directory under this checkout’s .DerivedData/testflight.' unless within_directory?(@run_dir, expected_root)
+        roots = [@state_root, File.join(@root, '.DerivedData/testflight')].uniq.select { |path| File.directory?(path) }
+        unless roots.any? { |path| within_directory?(@run_dir, File.realpath(path)) }
+          raise Failure, 'Resume requires a retained TestFlight run from this repository.'
+        end
         @receipt = JSON.parse(File.read(File.join(@run_dir, 'receipt.json')))
         raise Failure, 'Unsupported deployment receipt.' unless @receipt['schema'] == 1
         %w[bundle_id team].each do |field|
@@ -140,7 +143,15 @@ module TrinketTestFlight
       else
         commit = clean_commit
         builds = @portal.builds(@settings.fetch('version')).map(&:version)
-        previous = Dir.glob(File.join(@root, '.DerivedData/testflight/*/receipt.json')).map do |path|
+        # Legacy receipts may still live in a linked checkout. Keep their build
+        # numbers reserved while new runs share durable primary-checkout state.
+        roots = [@state_root, File.join(@root, '.DerivedData/testflight')]
+        if File.exist?(File.join(@root, '.git'))
+          worktrees = TrinketTestFlight.capture('git', '-C', @root, 'worktree', 'list', '--porcelain', '-z')
+          roots.concat(worktrees.split("\0").select { |field| field.start_with?('worktree ') }
+            .map { |field| File.join(field.delete_prefix('worktree '), '.DerivedData/testflight') })
+        end
+        previous = roots.uniq.flat_map { |path| Dir.glob(File.join(path, '*/receipt.json')) }.map do |path|
           JSON.parse(File.read(path))
         end.select { |item| item['bundle_id'] == @settings['bundle_id'] && item['version'] == @settings['version'] }
         numbers = builds + previous.map { |item| item.fetch('build').to_s } + [@settings.fetch('base_build').to_s]
@@ -148,7 +159,7 @@ module TrinketTestFlight
           raise Failure, 'Unrecognized Apple build number; inspect App Store Connect before allocating a build.'
         end
         number = numbers.map { |value| value.split('.').first.to_i }.max + 1
-        @run_dir = File.join(@root, '.DerivedData/testflight', "#{Time.now.utc.strftime('%Y%m%dT%H%M%SZ')}-#{number}-#{SecureRandom.hex(3)}")
+        @run_dir = File.join(@state_root, "#{Time.now.utc.strftime('%Y%m%dT%H%M%SZ')}-#{number}-#{SecureRandom.hex(3)}")
         FileUtils.mkdir_p(@run_dir, mode: 0o700)
         @receipt = @settings.merge('schema' => 1, 'commit' => commit, 'build' => number,
           'app_id' => @portal.app.id, 'group_id' => @portal.group.id,

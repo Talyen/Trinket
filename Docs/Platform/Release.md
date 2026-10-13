@@ -163,7 +163,11 @@ deploy verification can execute. Doctor and dry-run need no heavy-local opt-in.
 The command preserves the marketing version and allocates a build number above
 Apple's existing builds for that version, the project baseline, and retained
 local reservations. It passes the number to Xcode without modifying tracked
-files. Local deployments are serialized; concurrent uploads from another Mac
+files. Linked worktrees share the deployment lock and new run receipts in the
+primary checkout's `.DerivedData/testflight`; existing receipts in registered
+worktrees also reserve their build numbers. A live or ambiguous checkout-local
+deployment lock from an older script version blocks new deployments until that run
+finishes. Concurrent uploads from another Mac
 can still collide and require a fresh run. Failed reservations are not reused.
 It never commits, tags, pushes, or stashes. `release.sh` remains the separate
 formal version/changelog/tag workflow and does not upload to Apple.
@@ -226,8 +230,9 @@ have been satisfied; `--cloud-sync NO` makes an explicit local-only build. The
 export checks the effective flag, existing app identity, build/version, signature,
 Production iCloud/push entitlements, and export-compliance declaration.
 
-Each run retains its receipt, archive, IPA, symbols, and logs under
-`.DerivedData/testflight/`. The receipt links command logs and records the source
+Each new run retains its receipt, archive, IPA, symbols, and logs under the primary
+checkout's `.DerivedData/testflight/`. Legacy receipts in the invoking checkout
+remain resumable. The receipt links command logs and records the source
 commit, Xcode, build number, cloud setting, IPA checksum, and Apple build ID.
 Keep these artifacts through the beta's debugging window; do not delete them
 while a run needs recovery. This directory is outside routine simulator-run

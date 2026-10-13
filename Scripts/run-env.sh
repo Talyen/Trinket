@@ -20,6 +20,27 @@ trinket_run_env_shared_root() {
   printf '%s/.DerivedData' "$(trinket_run_env_repo_root)"
 }
 
+trinket_run_env_simulator_state_root() {
+  local root
+  root="$(trinket_run_env_repo_root)"
+  # Standalone fixtures have no Git metadata and keep their state local.
+  if [[ ! -e "$root/.git" ]]; then
+    printf '%s/.DerivedData' "$root"
+    return
+  fi
+  python3 - "$root" "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" <<'PY'
+from pathlib import Path
+import sys
+sys.path.insert(0, sys.argv[2])
+from internal.cli import legacy_runtime_owner, primary_worktree_root
+root = Path(sys.argv[1])
+owner = legacy_runtime_owner(root, ('.active-sim', '.active-ui', '.simulator-cleanup.lock'))
+if owner is not None:
+    sys.exit(f'Legacy checkout-local simulator reservation preserved: {owner}. Finish that run before retrying.')
+print(primary_worktree_root(root) / '.DerivedData')
+PY
+}
+
 _TRINKET_RUN_ENV_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib"
 # shellcheck source=lib/args.sh
 source "$_TRINKET_RUN_ENV_LIB_DIR/args.sh"
@@ -85,13 +106,15 @@ trinket_run_env_ensure_diagnostics_session() {
 }
 
 trinket_run_env_init() {
-  local root shared
+  local root shared simulator_state
   local derived_explicit=0
   local sim_explicit=0
   root="$(trinket_run_env_repo_root)"
   TRINKET_REPO_ROOT="$root"
   shared="$(trinket_run_env_shared_root)"
   TRINKET_SHARED_DERIVED_DATA="$shared"
+  simulator_state="$(trinket_run_env_simulator_state_root)" || return $?
+  TRINKET_SIM_STATE_ROOT="$simulator_state"
 
   if [[ -z "${TRINKET_ISOLATE:-}" && -n "${TRINKET_RUN_ID:-}" ]]; then
     TRINKET_ISOLATE=1
@@ -101,8 +124,8 @@ trinket_run_env_init() {
   [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]] && sim_explicit=1
 
   TRINKET_GENERATE_LOCK_DIR="${TRINKET_GENERATE_LOCK_DIR:-$shared/.generate.lock}"
-  TRINKET_UI_ACTIVE_DIR="${TRINKET_UI_ACTIVE_DIR:-$shared/.active-ui}"
-  TRINKET_SIM_ACTIVE_DIR="${TRINKET_SIM_ACTIVE_DIR:-$shared/.active-sim}"
+  TRINKET_UI_ACTIVE_DIR="${TRINKET_UI_ACTIVE_DIR:-$simulator_state/.active-ui}"
+  TRINKET_SIM_ACTIVE_DIR="${TRINKET_SIM_ACTIVE_DIR:-$simulator_state/.active-sim}"
   TRINKET_MAX_CONCURRENT_UI="${TRINKET_MAX_CONCURRENT_UI:-2}"
   TRINKET_MAX_AGENT_SIMS="${TRINKET_MAX_AGENT_SIMS:-1}"
   TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS="${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}"
@@ -148,6 +171,7 @@ trinket_run_env_init() {
   mkdir -p "$DERIVED_DATA_PATH" "$RESULTS_DIR" "$shared"
 
   export TRINKET_REPO_ROOT TRINKET_SHARED_DERIVED_DATA
+  export TRINKET_SIM_STATE_ROOT
   export TRINKET_ISOLATE TRINKET_RUN_ID DERIVED_DATA_PATH RESULTS_DIR
   export TRINKET_SIMULATOR_NAME TRINKET_GENERATE_LOCK_DIR
   export TRINKET_UI_ACTIVE_DIR TRINKET_SIM_ACTIVE_DIR

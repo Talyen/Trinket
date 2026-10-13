@@ -19,15 +19,15 @@ trinket_slot_reap_dir() {
 }
 
 trinket_sim_slot_reap() {
-  trinket_slot_reap_dir "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
+  trinket_slot_reap_dir "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-sim}"
 }
 
 trinket_ui_slot_reap() {
-  trinket_slot_reap_dir "${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-ui}"
+  trinket_slot_reap_dir "${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-ui}"
 }
 
 trinket_ui_slot_count() {
-  local active_dir="${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-ui}"
+  local active_dir="${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-ui}"
   local count=0
   local slot
   [[ -d "$active_dir" ]] || { printf '0'; return; }
@@ -91,7 +91,7 @@ trinket_bind_agent_slot() {
 }
 
 trinket_sim_slot_acquire() {
-  local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
+  local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-sim}"
   local lock="$active_dir/.sim-lifecycle.lock" result=0 owner_pid="${BASHPID:-}"
   [[ -n "$owner_pid" ]] || owner_pid="$(exec /bin/sh -c 'echo "$PPID"')"
   mkdir -p "$active_dir"
@@ -103,7 +103,7 @@ trinket_sim_slot_acquire() {
 
 trinket_sim_slot_acquire_locked() {
   local max="${TRINKET_MAX_AGENT_SIMS:-1}"
-  local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
+  local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-sim}"
   local n slot_path owner_pid owner_token
   owner_pid="${BASHPID:-$$}"
   trinket_slot_owner_token owner_token
@@ -134,7 +134,7 @@ trinket_sim_slot_acquire_locked() {
   echo "Agent simulator slot pool full (0/$max free; TRINKET_MAX_AGENT_SIMS=$max)." >&2
   echo "Another agent or local isolated run is using a Trinket Agent simulator." >&2
   echo "Do not kill foreign xcodebuild/simctl processes." >&2
-  echo "Options: retry after a peer finishes, use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>), or raise TRINKET_MAX_AGENT_SIMS only with measured headroom." >&2
+  echo "Options: retry after the active run finishes, or raise TRINKET_MAX_AGENT_SIMS only with measured headroom. Linked worktrees share this pool." >&2
   return 1
 }
 
@@ -151,18 +151,18 @@ trinket_sim_slot_ensure() {
 }
 
 trinket_shared_sim_lease_acquire() {
-  local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}"
+  local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-sim}"
   local path="$active_dir/run.slot"
   mkdir -p "$active_dir"
   trinket_sim_slot_reap
   if [[ -e "$path" ]]; then
     echo "Trinket Run is busy: shared simulator lease held by another run." >&2
-    echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>)." >&2
+    echo "Options: wait for the active run to finish, or use --isolate for an agent-slot run. Linked worktrees share this lease." >&2
     return 1
   fi
   if ! trinket_lock_claim_file "$path" "${BASHPID:-$$} ${TRINKET_RUN_ID:-shared} $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
     echo "Trinket Run is busy: another run claimed the shared simulator lease." >&2
-    echo "Options: wait for the peer to finish, use --isolate for an agent-slot run, or use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>)." >&2
+    echo "Options: wait for the active run to finish, or use --isolate for an agent-slot run. Linked worktrees share this lease." >&2
     return 1
   fi
   TRINKET_SHARED_SIM_SLOT_PATH="$path"
@@ -173,7 +173,7 @@ trinket_shared_sim_lease_acquire() {
 
 trinket_ui_slot_acquire() {
   local max="${TRINKET_MAX_CONCURRENT_UI:-2}"
-  local active_dir="${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-ui}"
+  local active_dir="${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-ui}"
   local slot_name count lock_path owner_pid owner_token
   owner_pid="${BASHPID:-$$}"
   trinket_slot_owner_token owner_token
@@ -193,7 +193,7 @@ trinket_ui_slot_acquire() {
     echo "UI/smoke concurrency cap reached ($count/$max active)." >&2
     echo "Another agent or local run is using the simulator lane." >&2
     echo "Do not kill foreign xcodebuild/simctl processes." >&2
-    echo "Options: retry after a peer finishes, use a git worktree (node Scripts/agent-worktree.mjs create --task <slug>), or raise TRINKET_MAX_CONCURRENT_UI only with measured headroom." >&2
+    echo "Options: retry after the active run finishes, or raise TRINKET_MAX_CONCURRENT_UI only with measured headroom. Linked worktrees share this cap." >&2
     return 1
   fi
 

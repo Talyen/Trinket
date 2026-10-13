@@ -39,13 +39,13 @@ trinket_watch_agent_simulator() {
 trinket_simulator_is_active_agent_name() {
   local name="$1"
   [[ "$name" =~ ^Trinket\ Agent\ ([0-9]+)$ ]] \
-    && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}/${BASH_REMATCH[1]}.slot" ]]
+    && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-sim}/${BASH_REMATCH[1]}.slot" ]]
 }
 
 trinket_simulator_is_leased_name() {
   trinket_simulator_is_active_agent_name "$1" || {
     trinket_simulator_is_shared_name "$1" \
-      && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_shared_root)/.active-sim}/run.slot" ]]
+      && [[ -e "${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-sim}/run.slot" ]]
   }
 }
 
@@ -268,7 +268,7 @@ trinket_sim_cleanup_lock_release() {
 trinket_simulator_enforce_single_warm_booted() {
   [[ "${TRINKET_CLEANUP_SINGLE_WARMED:-1}" == "1" ]] || return 0
 
-  local shared_root="${TRINKET_SHARED_DERIVED_DATA:-$(trinket_run_env_shared_root)}"
+  local shared_root="${TRINKET_SIM_STATE_ROOT:-$(trinket_run_env_simulator_state_root)}"
   if ! trinket_sim_cleanup_lock_try_acquire "$shared_root"; then
     return 0
   fi

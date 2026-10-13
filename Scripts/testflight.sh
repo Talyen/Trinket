@@ -20,10 +20,25 @@ if [[ "$doctor" == true ]]; then
   exec "$TRINKET_BUNDLE" _4.0.15_ exec ruby Scripts/internal/testflight.rb "$@"
 fi
 source Scripts/lib/lock.sh
-trinket_dir_lock_acquire "$PWD/.DerivedData/testflight/.deploy.lock" 1
-mkdir -p .DerivedData/testflight/commands
+testflight_state_root() {
+  PYTHONPATH=Scripts python3 - <<'PY'
+from internal.cli import ROOT, legacy_runtime_owner, primary_worktree_root
+import sys
+owner = legacy_runtime_owner(ROOT, ('testflight/.deploy.lock',))
+if owner is not None:
+    sys.exit(f'Legacy checkout-local deployment lock preserved: {owner}. Finish that deployment before retrying.')
+print(primary_worktree_root(ROOT) / '.DerivedData/testflight')
+PY
+}
+shared_state="$(testflight_state_root)"
+export TRINKET_TESTFLIGHT_STATE_ROOT="$shared_state"
+trinket_dir_lock_acquire "$TRINKET_TESTFLIGHT_STATE_ROOT/.deploy.lock" 1
+# Recheck after acquiring the shared lock: a legacy deployment may have started
+# while this invocation was waiting. Never release another checkout's lock.
+testflight_state_root >/dev/null
+mkdir -p "$TRINKET_TESTFLIGHT_STATE_ROOT/commands"
 export TRINKET_TESTFLIGHT_COMMAND_LOG
-TRINKET_TESTFLIGHT_COMMAND_LOG="$(mktemp "$PWD/.DerivedData/testflight/commands/deploy.XXXXXX")"
+TRINKET_TESTFLIGHT_COMMAND_LOG="$(mktemp "$TRINKET_TESTFLIGHT_STATE_ROOT/commands/deploy.XXXXXX")"
 trinket_output_retention_begin "$TRINKET_TESTFLIGHT_COMMAND_LOG"
 chmod 600 "$TRINKET_TESTFLIGHT_COMMAND_LOG"
 echo "Command log: $TRINKET_TESTFLIGHT_COMMAND_LOG"

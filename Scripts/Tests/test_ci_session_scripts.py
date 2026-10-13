@@ -54,6 +54,85 @@ import shutil
 import signal
 
 class CISessionScriptTests(ScriptRegressionTestCase):
+    def test_linked_worktrees_share_simulator_reservations_and_protect_active_caches(self) -> None:
+        from internal import output_retention as retention
+
+        with tempfile.TemporaryDirectory() as directory:
+            primary = Path(directory) / 'primary checkout'
+            linked = Path(directory) / 'linked checkout'
+            environment = {key: value for key, value in os.environ.items()
+                           if not key.startswith(('TRINKET_', 'GIT_'))
+                           and key not in {'DERIVED_DATA_PATH', 'RESULTS_DIR'}}
+            for command in (
+                ['git', 'init', '-q', str(primary)],
+                ['git', '-C', str(primary), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                 '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '--allow-empty', '-qm', 'fixture'],
+                ['git', '-C', str(primary), 'worktree', 'add', '-qb', 'linked', str(linked)],
+            ):
+                subprocess.run(command, env=environment, check=True, capture_output=True)
+            setup = '''
+set -euo pipefail
+source "$3/Scripts/run-env.sh"
+export TRINKET_REPO_ROOT="$1" TRINKET_MAX_CONCURRENT_UI=1
+case "$2" in agent) export TRINKET_ISOLATE=1 ;; esac
+trinket_run_env_init
+case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acquire ;; esac
+'''
+            for kind in ('agent', 'shared', 'ui'):
+                with self.subTest(kind=kind):
+                    owner = subprocess.Popen(
+                        ['bash', '-c', setup + '\nprintf "ready\\n"\nread -r release\n',
+                         '_', str(linked), kind, str(ROOT)],
+                        env=environment, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                    )
+                    try:
+                        self.assertEqual(owner.stdout.readline(), 'ready\n')
+                        challenger = subprocess.run(
+                            ['bash', '-c', setup, '_', str(primary), kind, str(ROOT)],
+                            env=environment, capture_output=True, text=True, timeout=15,
+                        )
+                        self.assertNotEqual(challenger.returncode, 0, challenger.stdout + challenger.stderr)
+                        cache = linked / '.DerivedData/runs/agent-1'
+                        cache.mkdir(parents=True, exist_ok=True)
+                        with patch.dict(os.environ, environment, clear=True):
+                            reason = retention.protection(cache, linked, {owner.pid: ('fixture', 'fixture owner')})
+                        self.assertIn('active lease', reason)
+                        # Hygiene from either checkout sees the same live reservations.
+                        probe = subprocess.run(
+                            ['bash', '-eu', '-c', 'source "$2/Scripts/run-env.sh"; TRINKET_REPO_ROOT="$1"; '
+                             'trinket_run_env_init; trinket_simulator_is_leased_name "Trinket Run"',
+                             '_', str(primary), str(ROOT)],
+                            env=environment, capture_output=True, text=True, timeout=15,
+                        ) if kind == 'shared' else None
+                        if probe is not None:
+                            self.assertEqual(probe.returncode, 0, probe.stderr)
+                    finally:
+                        stdout, stderr = owner.communicate('release\n', timeout=15)
+                        self.assertEqual(owner.returncode, 0, stdout + stderr)
+                    retry = subprocess.run(
+                        ['bash', '-c', setup, '_', str(primary), kind, str(ROOT)],
+                        env=environment, capture_output=True, text=True, timeout=15,
+                    )
+                    self.assertEqual(retry.returncode, 0, retry.stdout + retry.stderr)
+            # An older checkout may still own a local lease or its detached
+            # lifetime watcher. Neither may be treated as an unleased device.
+            legacy = linked / '.DerivedData/.active-sim'
+            legacy.mkdir(parents=True)
+            for name, contents in (('1.slot', f'{os.getpid()} legacy\n'),
+                                   ('1.lifetime.json', json.dumps({'guardian': os.getpid()}))):
+                owner = legacy / name
+                owner.write_text(contents)
+                try:
+                    blocked = subprocess.run(
+                        ['bash', '-c', setup, '_', str(primary), 'agent', str(ROOT)],
+                        env=environment, capture_output=True, text=True, timeout=15,
+                    )
+                    self.assertNotEqual(blocked.returncode, 0, blocked.stdout + blocked.stderr)
+                    self.assertIn('Legacy checkout-local simulator reservation preserved', blocked.stderr)
+                    self.assertEqual(owner.read_text(), contents)
+                finally:
+                    owner.unlink()
+
     def test_gate_artifact_keeps_failure_logs_with_size_bounds(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -378,6 +457,10 @@ class CISessionScriptTests(ScriptRegressionTestCase):
 
     def test_shared_runs_receive_distinct_sessions_and_nested_retains_parent(self) -> None:
         run_env = ROOT / "Scripts" / "run-env.sh"
+        fixture = tempfile.TemporaryDirectory()
+        self.addCleanup(fixture.cleanup)
+        environment = {key: value for key, value in os.environ.items() if not key.startswith('TRINKET_')}
+        environment['TRINKET_REPO_ROOT'] = fixture.name
         self.assertIn(
             "trinket_run_env_ensure_diagnostics_session",
             run_env.read_text(encoding="utf-8"),
@@ -395,7 +478,7 @@ class CISessionScriptTests(ScriptRegressionTestCase):
                     str(run_env),
                 ],
                 cwd=ROOT,
-                env={**os.environ, **extra_env},
+                env={**environment, **extra_env},
                 capture_output=True,
                 text=True,
                 check=False,
@@ -421,6 +504,7 @@ class CISessionScriptTests(ScriptRegressionTestCase):
                 str(run_env),
             ],
             cwd=ROOT,
+            env=environment,
             capture_output=True,
             text=True,
             check=False,

@@ -9,6 +9,7 @@ module TrinketTestFlight
     def capture(*args)
       return 'Xcode fixture' if args == ['xcodebuild', '-version']
       return '' if args[0, 3] == ['plutil', '-convert', 'xml1']
+      return original_capture({ 'DEVELOPER_DIR' => nil }, *args) if args.first == 'git'
       original_capture(*args)
     end
   end
@@ -172,6 +173,34 @@ begin
     portal.remote << FakePortal.build(deploy.receipt['build'])
     factory.call(resume: deploy.run_dir).execute
     assert(portal.calls == [:upload, :distribute])
+  end
+
+  fixture do |_deploy, portal, _factory, settings, root|
+    TrinketTestFlight.capture('git', '-C', root, 'init', '--quiet')
+    TrinketTestFlight.capture('git', '-C', root, '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                             '-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-qm', 'Fixture')
+    linked = File.join(root, 'linked checkout')
+    TrinketTestFlight.capture('git', '-C', root, 'worktree', 'add', '-qb', 'linked', linked)
+    legacy = FixtureDeployment.new(linked, settings, {}, portal, { timeout: 0 })
+    legacy.start
+    assert(legacy.receipt['build'] == 7)
+    begin
+      ENV['TRINKET_TESTFLIGHT_STATE_ROOT'] = File.join(root, '.DerivedData/testflight')
+      failed = FixtureDeployment.new(root, settings, {}, portal, { timeout: 0 })
+      failed.fail_gate = true
+      rejects('gate failed') { failed.execute }
+      assert(failed.receipt['build'] == 8, 'legacy linked-worktree reservation must remain consumed')
+      next_run = FixtureDeployment.new(linked, settings, {}, portal, { timeout: 0 })
+      next_run.start
+      assert(next_run.receipt['build'] == 9, 'failed shared reservation must remain consumed across worktrees')
+      assert(File.dirname(next_run.run_dir) == ENV['TRINKET_TESTFLIGHT_STATE_ROOT'])
+      resumed = FixtureDeployment.new(linked, settings, {}, portal, { timeout: 0, resume: legacy.run_dir })
+      resumed.start
+      assert(resumed.receipt['build'] == 7, 'legacy receipts must remain resumable')
+      assert(portal.calls.empty?)
+    ensure
+      ENV.delete('TRINKET_TESTFLIGHT_STATE_ROOT')
+    end
   end
 
   fixture do |deploy, portal, factory|
