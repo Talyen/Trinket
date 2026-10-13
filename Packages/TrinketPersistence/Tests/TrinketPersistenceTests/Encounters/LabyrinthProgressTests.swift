@@ -346,7 +346,7 @@ extension LabyrinthProgressTests {
 }
 
 extension LabyrinthProgressTests {
-    @Test func `corrupt map payload heals on sanitize rebuild`() {
+    @Test func `corrupt map payload heals on sanitize rebuild`() throws {
         let model = LabyrinthProgressModel()
         model.worldSeed = 55
         model.hasEntered = true

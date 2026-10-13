@@ -11,10 +11,12 @@ struct ContractBoardTests {
         var board = PlayerContractsState()
         board.ensureBoard()
         let original = board
-        #expect(!board.refresh())
+        let unavailableRefresh = board.refresh()
+        #expect(!unavailableRefresh)
         #expect(board == original)
         board.earnRefresh()
-        #expect(board.refresh())
+        let refreshed = board.refresh()
+        #expect(refreshed)
         #expect(!board.refreshAvailable)
         #expect(board.offers != original.offers)
     }
