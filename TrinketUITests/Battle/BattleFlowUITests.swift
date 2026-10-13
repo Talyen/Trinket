@@ -30,16 +30,18 @@ final class BattleFlowUITests: TrinketUITestCase {
         combatantDetail.assertLoaded(for: "Ranger")
         dismissSheet(AccessibilityID.CombatantDetail.header(name: "Ranger"))
 
-        let tapCountBefore = cards.count
-        battle.frontmostHandCard.tap()
-        waitUntil("The first tap after dismissing details must play the card") { cards.count == tapCountBefore - 1 }
+        let tapCard = battle.frontmostHandCard
+        let tapCardID = tapCard.identifier
+        tapCard.tap()
+        // Draw effects can replace a played card without reducing the hand size.
+        waitUntil("The first tap after dismissing details must play the card") { !self.any(tapCardID).exists }
         let dragCard = battle.frontmostHandCard
         assertExists(dragCard)
-        let dragCountBefore = cards.count
+        let dragCardID = dragCard.identifier
         let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         assertCancelledDrag(from: origin, cards: cards)
         origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
-        waitUntil("A successful drag must remove exactly one card") { cards.count == dragCountBefore - 1 }
+        waitUntil("A successful drag must play the selected card") { !self.any(dragCardID).exists }
     }
 
     private func assertCancelledDrag(from origin: XCUICoordinate, cards: XCUIElementQuery) {

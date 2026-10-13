@@ -161,10 +161,14 @@ struct PendingSaveRecoveryTests {
         let store = try context.makeSaveStore()
         let before = store.currentSave
         var attempts = 0
-        var finished = false
+        let expectedAttempts = transientFirst ? 2 : 1
         let pending = Task { () -> PlayerSavePersistenceError? in
             let result = await store.retryingSaveTransaction {
                 attempts += 1
+                // Bound a broken retry policy without timing shared-actor scheduling.
+                if attempts > expectedAttempts {
+                    withUnsafeCurrentTask { $0?.cancel() }
+                }
                 if transientFirst, attempts == 1 {
                     throw PlayerSavePersistenceError.writeFailed
                 }
@@ -178,25 +182,12 @@ struct PendingSaveRecoveryTests {
             }
             return nil
         }
-        // A broken retry policy must fail the test instead of retaining it forever.
-        let timeout = Task {
-            let clock = ContinuousClock()
-            let deadline = clock.now.advanced(by: .seconds(3))
-            while !finished, clock.now < deadline {
-                try await Task.sleep(for: .milliseconds(10))
-            }
-            if !finished {
-                pending.cancel()
-            }
-        }
-        defer { timeout.cancel() }
         let result = await pending.value
-        finished = true
+        #expect(attempts == expectedAttempts)
         guard case .invalidSave = result else {
-            Issue.record("Expected a terminal validation failure")
+            Issue.record("Expected a terminal validation failure; got \(String(describing: result))")
             return
         }
-        #expect(attempts == (transientFirst ? 2 : 1))
         #expect(store.currentSave == before)
         #expect(try context.makeReloadedStore().currentSave == before)
     }

@@ -134,6 +134,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - `BattleFlowUITests` shares one launch for inspection, dismissal, cancelled drag,
   and committed drag, retaining hand membership and sheet assertions. Production-speed
   rapid plays, drag, background return, and a usable exit share another battle.
+  Successful plays check the selected ability's departure: draw effects can keep
+  the total hand size unchanged.
 - Onboarding and recruitment verify earned characters remain unlocked in Collection.
   Full Game smoke owns character detail entry; equipment owns item detail/picker,
   equip, and unequip-control wiring. The equipment fixture keeps the target weapon

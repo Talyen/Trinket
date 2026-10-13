@@ -113,6 +113,28 @@ No gameplay code changed. The corrected Persistence suite passed 401/401.
 Retain the failed/successful raw evidence and rerun the complete deployment gate
 from a new clean commit. Phone coverage remains pending.
 
+Build 29 at 23b2e18e4 completed all eight package suites and 21/22 FullUI
+journeys. Audio/reward and Labyrinth returns passed; this does not resolve the
+earlier intermittent activation finding. The sole failure required the hand
+size to shrink after playing Pack Tactics, which draws a replacement. The
+failure screenshot shows Pack Tactics departed and another card present.
+Correct the existing tap/committed-drag assertions to check the selected ability's
+departure, retaining single gestures, inspection, and cancelled-drag assertions.
+The corrected focused journey passed three times (2m26s, 39.2s, 58.4s runner
+durations, including compilation on the first invocation). Retained raw results
+are under hand-membership-verification/.
+No game code or performance behavior changes. Preserve the original failure
+bundle and screenshot under hand-membership-failure/.
+
+Hosted CI 38347389726 passed smoke, Engine, Content and Battle but failed one
+Persistence parameter: the validation-retry test's three-second watchdog cancelled
+its pending task during shared-actor scheduling delays (case duration 41.279s).
+Replace that wall-clock cancellation with cancellation on an unexpected extra
+operation attempt. Preserve terminal invalid-save, exact attempt count, unchanged
+current save and disk reload assertions. Retain hosted raw evidence under
+ci-23b2-state/. The corrected complete Persistence suite passed 391/391;
+raw local evidence is retained under retry-watchdog-verification/.
+
 ## Phone preparation and restoration
 
 Wi-Fi only per user. Native Xcode device input rejected the phone; the exclusive
@@ -127,11 +149,16 @@ Wi-Fi transport attempt only. Try an app-specific capture after exact baseline
 installation and recheck thermal state during gameplay.
 
 Settings: Low Power Mode off, Limit Frame Rate off, Reduce Motion off. Battery
-97% and charging (Slow Charger) at preparation; Maximum Capacity 77%, battery
+97% and charging (Slow Charger) at initial preparation; Maximum Capacity 77%, battery
 Service message and dynamic performance-management description. This is a
 condition, not an attributed hitch cause. Thermal state was Nominal during
 the successful readiness trace; gameplay thermal state remains unmeasured.
 Brightness approximately 45% after temporarily disabling Auto-Brightness.
+At 21:46–21:48 PDT October 12, the user-requested Wi-Fi retry confirmed unlocked,
+responsive Settings input, battery 98% Charging without Slow Charger text,
+brightness approximately 43–45%, and the same power/motion settings. Auto-Lock
+had drifted to five minutes; the operator restored and verified Never.
+Current thermal state remains unknown until another trace.
 
 Use a freshly unique named save without `-reset-state` on the physical phone;
 that flag also clears global Options defaults. Seed only the first launch,
@@ -140,8 +167,8 @@ preferences. A fresh named save needs no reset.
 
 **Restore at campaign end:** Auto-Brightness on; Auto-Lock 30 seconds (temporarily
 Never). Record changes/rechecks in the ledger. Screen sharing is currently stopped;
-Device Hub was last selected to the managed StoreKit simulator for a diagnostic
-video. Re-select Ryan’s physical phone before any phone input.
+Device Hub was last selected to Ryan's physical phone and View Screen verified.
+Reconfirm the selected device and current conditions before measurement.
 
 Retained deployment: primary checkout `.DerivedData/testflight/20261013T005540Z-25-adc54d`.
 Raw evidence ledger/protocol/coverage/run CSV and successful audio video: primary
