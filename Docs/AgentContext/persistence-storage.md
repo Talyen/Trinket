@@ -108,6 +108,15 @@ Pending legacy server receipts remain replay-safe. Total device write refusal ca
 survival of an uncommitted action across process termination; do not report that
 an action completed before a durable write succeeds.
 
+Awaited Homestead commands (building, production collection, and forging) own
+their retries inside Persistence. `retryingSaveTransaction` accepts only a
+synchronous transaction attempt and uses its typed storage error; validation and
+domain rejections terminate immediately. It captures session generation before
+yielding for pending feedback and rechecks it before each attempt, so reset or
+account replacement cannot interleave between that check and the commit. Views
+await the command's terminal result and clear pending feedback on every outcome;
+they do not supply retry predicates or infer purchase success from a changed tier.
+
 ## CloudKit preparation
 
 ### Local sync configuration

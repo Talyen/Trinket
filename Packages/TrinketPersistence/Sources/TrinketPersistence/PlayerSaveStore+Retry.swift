@@ -42,17 +42,29 @@ public extension PlayerSaveStore {
         let value = action()
         return (value, attempt.failure)
     }
+}
 
-    func retryingTransientOperation<Value>(
-        _ operation: @MainActor () async -> Value,
-        while shouldRetry: (Value) -> Bool,
-    ) async -> Value? {
-        let generation = currentSave.sessionGeneration
+@MainActor
+extension PlayerSaveStore {
+    /// Domain commands own their retries. Each attempt is synchronous, so reset
+    /// or account replacement cannot interleave between its generation check and commit.
+    /// Only the operation's typed storage failure can request another attempt.
+    func retryingSaveTransaction<Value, Failure: Error>(
+        _ operation: () throws -> SaveTransactionResult<Value, Failure>,
+    ) async -> SaveTransactionResult<Value, Failure>? {
+        let generation = sessionGeneration
+        // Let the caller display pending feedback before entering the save graph.
+        await Task.yield()
         var delay = SaveRetryPolicy.initialDelay
-        while !Task.isCancelled, currentSave.sessionGeneration == generation {
-            let result = await operation()
-            guard !Task.isCancelled, currentSave.sessionGeneration == generation else { return nil }
-            guard shouldRetry(result) else { return result }
+        while !Task.isCancelled, sessionGeneration == generation {
+            let result: SaveTransactionResult<Value, Failure>
+            do {
+                result = try operation()
+            } catch {
+                result = .persistFailed(PlayerSavePersistenceError.mapped(error))
+            }
+            guard !Task.isCancelled, sessionGeneration == generation else { return nil }
+            guard case let .persistFailed(error) = result, error.isRetryable else { return result }
             do { try await Task.sleep(for: .seconds(delay)) } catch { return nil }
             delay = SaveRetryPolicy.nextDelay(after: delay)
         }

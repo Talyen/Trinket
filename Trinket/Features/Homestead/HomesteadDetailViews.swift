@@ -264,19 +264,8 @@ struct HomesteadNodeDetailView: View {
         )
         build.isPending = true
         Task {
-            guard let result = await playerSave.retryingTransientOperation({ () async -> HomesteadBuildResult in
-                let result = await playerSave.buildOrUpgradeNode(definition, targetTier: expectedTier)
-                if result == .notAvailable, status.currentTier >= expectedTier {
-                    return .success
-                }
-                return result
-            }, while: {
-                $0 == .persistFailed
-            }) else {
-                build.isPending = false
-                return
-            }
-            build.isPending = result == .persistFailed
+            let result = await playerSave.buildOrUpgradeNode(definition, targetTier: expectedTier)
+            build.isPending = false
             guard result == .success else { return }
             build.upgradeEventCount += 1
             purchasePresentation = presentation

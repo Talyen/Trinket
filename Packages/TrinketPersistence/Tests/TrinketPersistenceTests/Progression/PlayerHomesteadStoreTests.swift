@@ -6,6 +6,57 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct PlayerHomesteadStoreTests {
+    @Test @MainActor func `awaited homestead commands retry refused writes and settle once across reload`() async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+        let start = Date(timeIntervalSince1970: 0)
+        let collectionDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
+        try store.performFixtureMutation { save in
+            save.homestead = PlayerHomesteadState(
+                resources: [.wood: 20, .herbs: 10], nodeTiers: [:], lastProductionAt: start,
+            )
+        }
+
+        store.forcesNextSaveFailure = true
+        #expect(await store.buildOrUpgradeNode(definition, targetTier: 1, at: start) == .success)
+        store.forcesNextSaveFailure = true
+        #expect(await store.collectProduction(at: collectionDate) == .success([ResourceAmount(.food, 1)]))
+
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.homestead.tier(for: .wheatField) == 1)
+        #expect(reloaded.homestead.resources[.wood] == 16)
+        #expect(reloaded.homestead.resources[.herbs] == 5)
+        #expect(reloaded.homestead.resources[.food] == 1)
+        #expect(await reloaded.collectProduction(at: collectionDate) == .noProduction)
+    }
+
+    @Test(arguments: [false, true]) @MainActor
+    func `cancelled homestead command cannot commit after its initial yield`(collecting: Bool) async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+        let start = Date(timeIntervalSince1970: 0)
+        let collectionDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
+        try store.performFixtureMutation { save in
+            save.homestead = PlayerHomesteadState(
+                resources: [.wood: 20, .herbs: 10], nodeTiers: [:],
+                pendingProduction: [.food: 1], lastProductionAt: start,
+            )
+        }
+        let before = store.currentSave
+        let pending = Task {
+            if collecting {
+                return await store.collectProduction(at: collectionDate) == .invalidated
+            }
+            return await store.buildOrUpgradeNode(definition, targetTier: 1, at: start) == .invalidated
+        }
+        pending.cancel()
+        #expect(await pending.value)
+        #expect(store.currentSave == before)
+        #expect(try context.makeReloadedStore().currentSave == before)
+    }
+
     @Test @MainActor func `runesmith builds without other buildings and survives reload`() async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()

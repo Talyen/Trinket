@@ -179,15 +179,8 @@ struct HomesteadView: View {
         guard depositEvent == nil, !isCollecting else { return }
         isCollecting = true
         Task {
-            guard let result = await playerSave.retryingTransientOperation({
-                await playerSave.collectProduction(at: date)
-            }, while: {
-                $0 == .persistFailed
-            }) else {
-                isCollecting = false
-                return
-            }
-            isCollecting = result == .persistFailed
+            let result = await playerSave.collectProduction(at: date)
+            isCollecting = false
             if case let .success(amounts) = result {
                 presentCollection(amounts)
             }

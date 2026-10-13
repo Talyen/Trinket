@@ -156,6 +156,52 @@ struct PendingSaveRecoveryTests {
     }
 
     @Test(arguments: [false, true])
+    func `awaited transaction stops at validation failure even after a transient failure`(transientFirst: Bool) async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let before = store.currentSave
+        var attempts = 0
+        var finished = false
+        let pending = Task { () -> PlayerSavePersistenceError? in
+            let result = await store.retryingSaveTransaction {
+                attempts += 1
+                if transientFirst, attempts == 1 {
+                    throw PlayerSavePersistenceError.writeFailed
+                }
+                return store.persistTransaction(logging: "Invalid awaited command fixture") { save -> Result<Void, Never> in
+                    save.schemaVersion = 0
+                    return .success(())
+                }
+            }
+            if case let .persistFailed(error) = result {
+                return error
+            }
+            return nil
+        }
+        // A broken retry policy must fail the test instead of retaining it forever.
+        let timeout = Task {
+            let clock = ContinuousClock()
+            let deadline = clock.now.advanced(by: .seconds(3))
+            while !finished, clock.now < deadline {
+                try await Task.sleep(for: .milliseconds(10))
+            }
+            if !finished {
+                pending.cancel()
+            }
+        }
+        defer { timeout.cancel() }
+        let result = await pending.value
+        finished = true
+        guard case .invalidSave = result else {
+            Issue.record("Expected a terminal validation failure")
+            return
+        }
+        #expect(attempts == (transientFirst ? 2 : 1))
+        #expect(store.currentSave == before)
+        #expect(try context.makeReloadedStore().currentSave == before)
+    }
+
+    @Test(arguments: [false, true])
     func `pending action retries once and cannot cross reset`(reset: Bool) async throws {
         let store = try PlayerSaveStore(inMemoryOnly: true)
         var attempts = 0

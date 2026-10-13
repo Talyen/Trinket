@@ -66,9 +66,9 @@ extension PlayerSaveStore {
         }
     }
 
-    func prepareLocalProduction() -> Bool {
-        guard !isCloudSyncEnabled else { return true }
-        guard let accountID = cloudDeviceState.activeAccountID else { return true }
+    func prepareLocalProduction() throws {
+        guard !isCloudSyncEnabled else { return }
+        guard let accountID = cloudDeviceState.activeAccountID else { return }
         var state = cloudDeviceState
         state.archiving(
             CloudAccountArchive(snapshot: CloudSaveSnapshot(currentSave), state: state.account),
@@ -76,11 +76,6 @@ extension PlayerSaveStore {
         )
         state.activeAccountID = nil
         state.account = CloudAccountState()
-        do {
-            try commitCloudState(state)
-            return true
-        } catch {
-            return false
-        }
+        try commitCloudState(state)
     }
 }
