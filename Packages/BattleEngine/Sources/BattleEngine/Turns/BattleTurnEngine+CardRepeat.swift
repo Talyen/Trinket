@@ -25,7 +25,7 @@ extension BattleTurnEngine {
     ) async -> [ActionEvent] {
         let actor = facts.action.actor
         guard !context.isBattleOver, facts.action.canContinue(in: context),
-              BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context)
+              BattleAbilityRules.canPayHealthCost(ability, action: facts.action, in: context)
         else { return [] }
         let origin: DamageOperation.AttackOrigin = actor.role == .enemy ? .repeatedAttack : .cardRepeat
         let actionID = context.resolution.beginAction(facts.action, origin: origin)

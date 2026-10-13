@@ -34,10 +34,11 @@ public extension BattleState {
         guard denial == nil else {
             return BattleCardAssessment(actorID: actor.id, denial: denial, targets: [], resources: [])
         }
-        let selected = BattleAbilityRules.resolveConditionalOutcome(card.ability, actor: actor, in: self)
-        let outcomes = BattleAbilityRules.eligibleOutcomes(selected, actor: actor, in: self)
         // Assessment never mutates combat, so every branch shares the same participants and override.
         let action = BattleActionContext(actor: actor, in: self)
+        let possibilities = BattleAbilityRules.possibleOutcomes(card.ability, action: action, in: self)
+        let selected = possibilities.ability
+        let outcomes = possibilities.branches
         let keywordOverride = BattleTurnEngine.activeDamageKeywordOverride(for: actor, in: self)?.keyword
         let candidates = outcomes.map {
             assessmentTargets($0, action: action, abilityID: selected.id, keywordOverride: keywordOverride)
@@ -81,8 +82,7 @@ private extension BattleState {
         let damageComponents = branch.damageComponents
         var targets: [BattleCardAssessment.Target] = []
         for component in damageComponents {
-            let conditionMet = component.condition.map { BattleConditionEvaluator.isMet($0, actor: actor, in: self) } ?? true
-            guard conditionMet || component.bonusAmount != 0,
+            guard BattleDamageRules.isEnabled(component, action: action, in: self),
                   component.hasPotentialDamage else { continue }
             let target = action.target(component.target, in: self)
             guard target.id != actor.id else { continue }

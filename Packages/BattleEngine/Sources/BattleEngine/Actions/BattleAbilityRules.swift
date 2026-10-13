@@ -2,61 +2,64 @@ import TrinketContent
 import TrinketCore
 
 enum BattleAbilityRules {
-    static func canPayHealthCost(_ ability: Ability, actor: Combatant, in context: BattleState) -> Bool {
-        let selected = resolveConditionalOutcome(ability, actor: actor, in: context)
-        let componentSets = eligibleOutcomes(selected, actor: actor, in: context).map(\.damageComponents)
-        let cost = componentSets.map { healthCost($0, actor: actor, in: context) }.max() ?? 0
-        return context.roster.health(for: actor) > cost
-    }
+    struct Outcomes {
+        let ability: Ability
+        let branches: [AbilityOutcomeBranch]
 
-    static func healthCost(_ components: [DamageComponent], actor: Combatant, in context: BattleState) -> Int {
-        let action = BattleActionContext(actor: actor, in: context)
-        return components.reduce(0) { total, component in
-            let target = action.target(component.target, in: context)
-            guard target.id == actor.id else { return total }
-            var amount = component.amount
-            if let condition = component.condition {
-                if BattleConditionEvaluator.isMet(condition, actor: actor, in: context) {
-                    amount = SaturatedArithmetic.saturatingAdd(amount, component.bonusAmount)
-                } else if component.bonusAmount == 0 {
-                    return total
-                }
-            }
-            return SaturatedArithmetic.saturatingAdd(total, max(0, amount))
+        func resolve(using rng: inout some RandomNumberGenerator) -> Ability {
+            guard ability.outcomeBranches != nil,
+                  let selected = branches.randomElement(using: &rng) else { return ability }
+            return ability.resolving(branch: selected, using: &rng)
         }
     }
 
-    static func resolveConditionalOutcome(_ ability: Ability, actor: Combatant, in context: BattleState) -> Ability {
-        guard let conditional = ability.conditionalOutcome else { return ability }
-        let selected = BattleConditionEvaluator.isMet(conditional.condition, actor: actor, in: context)
-        return ability.replacingOperations(
-            selected ? conditional.operations : ability.operations,
-            blockCost: selected ? conditional.blockCost : ability.blockCost,
-            resolveCondition: true,
-        )
+    static func possibleOutcomes(_ ability: Ability, action: BattleActionContext, in context: BattleState) -> Outcomes {
+        let selected: Ability
+        if let conditional = ability.conditionalOutcome {
+            let matches = BattleConditionEvaluator.isMet(conditional.condition, action: action, in: context)
+            selected = ability.replacingOperations(
+                matches ? conditional.operations : ability.operations,
+                blockCost: matches ? conditional.blockCost : ability.blockCost,
+                resolveCondition: true,
+            )
+        } else {
+            selected = ability
+        }
+        let branches = selected.outcomeBranches ?? [AbilityOutcomeBranch(operations: selected.operations)]
+        let eligible = branches.filter { branch in
+            branch.condition.map { BattleConditionEvaluator.isMet($0, action: action, in: context) } ?? true
+        }
+        // Execution's fallback is part of the possible outcome set. Quotes and
+        // affordability must include it too, without consuming a random value.
+        return Outcomes(ability: selected, branches: eligible.isEmpty ? branches : eligible)
+    }
+
+    static func resolveOutcome(_ ability: Ability, actor: Combatant, in context: inout BattleState) -> Ability {
+        let action = BattleActionContext(actor: actor, in: context)
+        let outcomes = possibleOutcomes(ability, action: action, in: context)
+        return outcomes.resolve(using: &context.rng)
+    }
+
+    static func canPayHealthCost(_ ability: Ability, actor: Combatant, in context: BattleState) -> Bool {
+        canPayHealthCost(ability, action: BattleActionContext(actor: actor, in: context), in: context)
+    }
+
+    static func canPayHealthCost(_ ability: Ability, action: BattleActionContext, in context: BattleState) -> Bool {
+        let outcomes = possibleOutcomes(ability, action: action, in: context)
+        let cost = outcomes.branches.map { healthCost($0.damageComponents, action: action, in: context) }.max() ?? 0
+        return context.roster.health(for: action.actor) > cost
+    }
+
+    static func healthCost(_ components: [DamageComponent], action: BattleActionContext, in context: BattleState) -> Int {
+        components.reduce(0) { total, component in
+            guard action.target(component.target, in: context).id == action.actor.id,
+                  let amount = BattleDamageRules.amount(component, action: action, in: context) else { return total }
+            return SaturatedArithmetic.saturatingAdd(total, max(0, amount))
+        }
     }
 
     static func preparationRecipient(for actor: Combatant, in context: BattleState) -> Combatant {
         BattleActionContext(actor: actor, in: context).allies(in: context)
             .first { $0.id != actor.id && context.health(of: $0) > 0 } ?? actor
-    }
-
-    static func eligibleOutcomes(_ ability: Ability, actor: Combatant, in context: BattleState) -> [AbilityOutcomeBranch] {
-        let branches = ability.outcomeBranches ?? [AbilityOutcomeBranch(operations: ability.operations)]
-        return branches.filter { branch in
-            branch.condition.map { BattleConditionEvaluator.isMet($0, actor: actor, in: context) } ?? true
-        }
-    }
-
-    static func resolveOutcome(_ ability: Ability, actor: Combatant, in context: inout BattleState) -> Ability {
-        let ability = resolveConditionalOutcome(ability, actor: actor, in: context)
-        guard ability.outcomeBranches != nil else { return ability }
-        let branches = eligibleOutcomes(ability, actor: actor, in: context)
-        guard let selected = branches.randomElement(using: &context.rng)
-            ?? ability.outcomeBranches?.randomElement(using: &context.rng)
-        else {
-            return ability
-        }
-        return ability.resolving(branch: selected, using: &context.rng)
     }
 }

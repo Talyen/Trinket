@@ -77,33 +77,6 @@ extension BattleTurnEngine {
         return await resolveDamageComponent(prepared, ability: ability, actor: actor, context: &context)
     }
 
-    private static func damageAmount(
-        for component: DamageComponent,
-        action: BattleActionContext,
-        in context: BattleState,
-    ) -> Int? {
-        var amount: Int
-        if let scaling = component.scaling {
-            switch scaling {
-            case let .actorBlockFraction(divisor, minimum):
-                let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: action.actor))
-                amount = max(minimum, block / divisor)
-            }
-        } else {
-            amount = component.amount
-        }
-        if let condition = component.condition {
-            if BattleConditionEvaluator.isMet(
-                condition, actor: action.actor, abilityTarget: action.selectedTarget, in: context,
-            ) {
-                amount = SaturatedArithmetic.saturatingAdd(amount, component.bonusAmount)
-            } else if component.bonusAmount == 0 {
-                return nil
-            }
-        }
-        return amount
-    }
-
     private static func prepareDamageComponent(
         _ component: DamageComponent,
         ability: Ability,
@@ -113,7 +86,7 @@ extension BattleTurnEngine {
         reservedKeywordOverride: inout Keyword?,
         context: inout BattleState,
     ) -> PreparedDamageComponent? {
-        guard var amount = damageAmount(for: component, action: action, in: context) else { return nil }
+        guard var amount = BattleDamageRules.amount(component, action: action, in: context) else { return nil }
         let actor = action.actor
 
         let isSelfHealthCost = target.id == actor.id

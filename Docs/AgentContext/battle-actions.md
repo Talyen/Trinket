@@ -56,7 +56,15 @@ empowerment, descriptions, and execution. Deterministic conditional outcomes res
 once at action preparation, without RNG, and card assessment uses the same selection
 before quoting costs.
 Random outcomes remain separate. Branch eligibility is checked before sampling,
-and assessment and Health-cost quotes use the same eligible branches without RNG.
+and `BattleAbilityRules.possibleOutcomes` supplies the same branches to execution,
+assessment and Health-cost quotes without RNG. If no branch qualifies, all authored
+branches remain possible under the existing execution fallback; their costs must
+still pass affordability. `BattleDamageRules` owns component condition and Block
+scaling evaluation for execution and cost quotes, plus component eligibility for
+assessment and prepared action facts. Pass the bound action target to these rules.
+Evaluate amounts at each operation checkpoint, rather than caching them before
+earlier effects and reactions. Health costs require strictly more Health than the
+largest possible branch cost.
 Blackjack evaluates its Stun-conditioned theft after damage: existing Stun and
 Stun newly caused by that hit both qualify.
 Paid in Full banks one bonus after theft for the next attack of any damage type;

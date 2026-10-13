@@ -243,6 +243,60 @@ struct BattleCardAssessmentTests {
         #expect(state.assessCard(card).denial == .cardNotInHand)
     }
 
+    @Test(arguments: [5, 6])
+    func `scaled Health costs share affordability quotes and execution`(health: Int) throws {
+        var state = battle()
+        state.roster.hero.currentHealth = health
+        DefensePoolEngine.set(10, on: state.hero, in: &state)
+        let ability = Ability(
+            id: "scaled-cost", name: "Scaled Cost", tier: .basic,
+            damageComponents: [DamageComponent(
+                0, target: .actor, scaling: .actorBlockFraction(divisor: 2, minimum: 1),
+            )],
+        )
+        let card = deal(ability, in: &state)
+        let assessment = state.assessCard(card)
+        if health == 5 {
+            #expect(assessment.denial == .insufficientHealth)
+            #expect(throws: BattlePlayError.insufficientHealth) { try state.playCard(cardID: card.id) }
+            #expect(state.health(of: state.hero) == health)
+            #expect(state.hand.card(id: card.id) == card)
+        } else {
+            #expect(assessment.resources.first { $0.keyword == .health }?.amount == 5)
+            _ = try state.playCard(cardID: card.id)
+            #expect(state.health(of: state.hero) == 1)
+        }
+    }
+
+    @Test(arguments: [2, 3])
+    func `fallback random outcomes cannot bypass Health affordability`(health: Int) throws {
+        var state = battle()
+        state.turnCount = 1
+        state.roster.hero.currentHealth = health
+        let ability = Ability(
+            id: "fallback-cost", name: "Fallback Cost", tier: .basic,
+            outcomeBranches: [AbilityOutcomeBranch(
+                damageComponents: [DamageComponent(2, target: .actor), DamageComponent(1)],
+                condition: .firstTurn,
+            )],
+            criticalChanceBonus: -1,
+        )
+        let card = deal(ability, in: &state)
+        let rng = state.rng
+        let assessment = state.assessCard(card)
+        #expect(state.rng == rng)
+        if health == 2 {
+            #expect(assessment.denial == .insufficientHealth)
+            #expect(throws: BattlePlayError.insufficientHealth) { try state.playCard(cardID: card.id) }
+            #expect(state.health(of: state.hero) == health)
+        } else {
+            #expect(assessment.targets.contains { $0.combatantID == state.enemy.id })
+            #expect(assessment.resources.first { $0.keyword == .health }?.amount == 2)
+            _ = try state.playCard(cardID: card.id)
+            #expect(state.health(of: state.hero) == 1)
+        }
+    }
+
     private func battle(
         heroMana: Int = 0, companionMana: Int = 0,
         heroModifiers: CombatModifierProfile = .zero, companionModifiers: CombatModifierProfile = .zero,

@@ -30,16 +30,18 @@ final class ResolvedActionFacts: Sendable {
         var keywords: Set<Keyword> = []
         var cleanses = false
         for operation in resolved.operations {
-            let eligible = operation.condition.map { BattleConditionEvaluator.isMet($0, action: action, in: context) } ?? true
             switch operation {
             case let .damage(component):
                 guard component.target != .actor else { continue }
-                guard eligible || component.bonusAmount > 0 else { continue }
+                guard BattleDamageRules.isEnabled(component, action: action, in: context) else { continue }
                 if component.hasPotentialDamage {
                     keywords.insert(component.keyword)
                 }
             case let .effect(targeted):
-                guard eligible else { continue }
+                if let condition = targeted.condition,
+                   !BattleConditionEvaluator.isMet(condition, action: action, in: context) {
+                    continue
+                }
                 if let keyword = operation.damageKeyword {
                     keywords.insert(keyword)
                 }

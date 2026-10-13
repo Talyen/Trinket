@@ -11,7 +11,7 @@ extension BattleState {
             resources.append(resourceUse(.block, amount: original.blockCost, actor: actor))
         }
         let damageComponents = branch.damageComponents
-        let healthCost = BattleAbilityRules.healthCost(damageComponents, actor: actor, in: self)
+        let healthCost = BattleAbilityRules.healthCost(damageComponents, action: action, in: self)
         if healthCost > 0 {
             resources.append(resourceUse(.health, amount: healthCost, actor: actor))
         }
