@@ -21,6 +21,16 @@ extension PlayBattleCoordinator {
               let runKey = launch.configuration.runKey,
               PlayBattleRoute.matches(route, runKey: runKey, missingLog: "Missing route for prepared battle registration")
         else { return false }
+        if let run = preparedRuns[runKey],
+           run.registration.launch.configuration.id == launch.configuration.id,
+           run.registration.rewardClaim.isCurrent(in: playerSave) {
+            // Refresh application metadata without tearing down the simulation or
+            // its preview. Activation receives this current presentation explicitly.
+            preparedRuns[runKey] = PreparedRun(
+                registration: makeRegistration(launch, route: route), handle: run.handle,
+            )
+            return true
+        }
         guard let handle = battle.createPreparedRun(launch.configuration) else {
             keepPreparedRuns(Set(preparedRuns.keys).subtracting([runKey]))
             return false

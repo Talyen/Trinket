@@ -41,9 +41,15 @@ Prepared activation compares that complete value with current inputs and require
 the registered configuration ID as well as matching party/enemy identities.
 Prewarming and activation share the same snapshot comparison in `PlayBattleCoordinator`;
 modes select eligible encounters and prune their runs without separate freshness caches.
+The complete snapshot refreshes application rewards, Inventory, settlement inputs and
+completion routes independently of simulation resources. `BattleRunConfiguration`
+owns comparison of its configuration inputs separately from launch identity. If those
+inputs and the save-issued claim remain current, keep the configuration and opaque
+handle while replacing application metadata; wallet, unequipped Inventory and
+reward-only changes must not discard warmed combat or republish its preview.
 Save generation participates in preparation freshness. Activation, reward lookup,
 and Retry reject registrations from replaced progress even if presentation cleanup
-has not run. Changed inputs refresh only that run, retaining its combat seed and sibling
+has not run. Changed configuration inputs replace only that simulation, retaining its combat seed and sibling
 preparations. Unchanged inputs, including revisiting a previously warmed encounter,
 reuse the original configuration and simulation;
 missing registration or changed identities fail closed until explicitly prepared.

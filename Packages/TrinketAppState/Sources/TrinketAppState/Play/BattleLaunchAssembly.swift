@@ -15,7 +15,10 @@ struct BattleLaunchAssembly {
 }
 
 extension PlayBattleCoordinator {
-    static func assembleLaunch(_ inputs: BattlePreparationInputs) -> BattleLaunchAssembly {
+    static func assembleLaunch(
+        _ inputs: BattlePreparationInputs,
+        reusing previous: BattleLaunchAssembly? = nil,
+    ) -> BattleLaunchAssembly {
         let input = inputs.launch
         let rosterState = inputs.party.roster
         let inventoryState = inputs.party.inventory
@@ -35,7 +38,7 @@ extension PlayBattleCoordinator {
         let enemyBuild = input.encounter?.build ?? CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
         var enemyModifiers = enemyBuild.modifiers
         enemyModifiers.merge(input.universalModifiers)
-        let configuration = BattleRunConfiguration(
+        var configuration = BattleRunConfiguration(
             runKey: input.origin?.runKey,
             rngSeed: inputs.rngSeed,
             hero: heroMember,
@@ -45,6 +48,14 @@ extension PlayBattleCoordinator {
             enemyModifiers: enemyModifiers,
             enemyFaction: input.encounter?.faction ?? .mortal,
         )
+        // A new save generation cannot inherit prepared resources or claim identity,
+        // even if reset progress happens to resolve to the same combat build.
+        if let previous,
+           inputs.party.sessionGeneration == previous.inputs.party.sessionGeneration,
+           inputs.party.worldSeed == previous.inputs.party.worldSeed,
+           configuration.hasSameInputs(as: previous.configuration) {
+            configuration = previous.configuration
+        }
         let rewardPlan = BattleRewardAssembly.makePlan(inputs: inputs, configuration: configuration)
         return BattleLaunchAssembly(
             configuration: configuration,

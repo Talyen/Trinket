@@ -59,10 +59,11 @@ extension PlayBattleCoordinator {
             // The registered snapshot owns freshness and RNG for this run.
             // Refreshing inputs must not reroll combat or rebuild sibling runs.
             let inputs = preparationInputs(input, rngSeed: registration.launch.inputs.rngSeed)
-            if inputs == registration.launch.inputs {
-                return true
+            let canReuse = registration.rewardClaim.isCurrent(in: playerSave)
+            if canReuse, inputs == registration.launch.inputs {
+                return prepare(registration.launch, route: route)
             }
-            launch = Self.assembleLaunch(inputs)
+            launch = Self.assembleLaunch(inputs, reusing: canReuse ? registration.launch : nil)
         } else {
             launch = makeBattleLaunch(input)
         }
