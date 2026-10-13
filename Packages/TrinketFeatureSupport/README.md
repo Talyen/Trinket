@@ -62,10 +62,12 @@ owns scroll-driven prefetch. Launch retention follows
 the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
 
 `HeroHeaderLayout` and `DetailHeroScrollShell` share full-bleed 4:3 detail heroes,
-overscroll, and scrim blending. One geometry source drives header height and
-pinned-title opacity. `DetailTraitRow` and `DetailHeroHeader` accept optional
-`DetailChangeIndicator` values for inline icons with explicit accessible meanings;
-features own the mapping from gameplay outcomes to those indicators.
+overscroll, and scrim blending. The shell’s scroll geometry drives header height,
+pinned-title opacity, and artwork overscroll zoom even after the hero scrolls
+offscreen. Overscroll is supplied only to the header subtree. `DetailTraitRow` and
+`DetailHeroHeader` accept optional `DetailChangeIndicator` values for inline icons
+with explicit accessible meanings; features own the mapping from gameplay outcomes
+to those indicators.
 
 `Shine` owns text and border palettes; `ItemCard` falls back to rarity/Astral
 when no override is supplied. `displayTextShine` derives title colors

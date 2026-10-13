@@ -2,6 +2,8 @@ import SwiftUI
 import TrinketDesignSystem
 
 public struct DetailHeroHeader<Art: View, Footer: View>: View {
+    @Environment(\.detailHeroOverscroll) private var overscroll
+
     let eyebrow: String?
     let eyebrowIndicators: [DetailChangeIndicator]
     let title: String
@@ -48,13 +50,8 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                     .allowsHitTesting(false)
                     .clipped()
                     .trinketBottomArtworkBlend()
-                    .visualEffect { content, proxy in
-                        let overscroll = max(proxy.frame(in: .scrollView(axis: .vertical)).minY, 0)
-                        let stretch = baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1
-                        return content
-                            .scaleEffect(stretch, anchor: .top)
-                            .offset(y: -overscroll)
-                    }
+                    .scaleEffect(baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1, anchor: .top)
+                    .offset(y: -overscroll)
             }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading) {

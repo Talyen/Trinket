@@ -24,6 +24,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
 
     @State private var headerBaseHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
     @State private var titleOpacity: CGFloat = 0
+    @State private var overscroll: CGFloat = 0
     @State private var showsPinnedScrollEdgeEffect = false
 
     public var body: some View {
@@ -31,6 +32,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             ScrollView {
                 VStack(spacing: 0) {
                     header(headerBaseHeight)
+                        .environment(\.detailHeroOverscroll, overscroll)
 
                     VStack(alignment: .leading, spacing: 0) {
                         bodyContent()
@@ -48,13 +50,20 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 let threshold = baseHeight - topInset
                 let offsetY = geometry.contentOffset.y + topInset
                 let opacity = min(max((offsetY - threshold) / 32, 0), 1)
-                return HeroHeaderScrollMetrics(baseHeight: baseHeight, titleOpacity: opacity)
+                return HeroHeaderScrollMetrics(
+                    baseHeight: baseHeight,
+                    titleOpacity: opacity,
+                    overscroll: max(-offsetY, 0),
+                )
             } action: { _, metrics in
                 if headerBaseHeight != metrics.baseHeight {
                     headerBaseHeight = metrics.baseHeight
                 }
                 if titleOpacity != metrics.titleOpacity {
                     titleOpacity = metrics.titleOpacity
+                }
+                if overscroll != metrics.overscroll {
+                    overscroll = metrics.overscroll
                 }
                 let isPinned = metrics.titleOpacity >= 0.5
                 if showsPinnedScrollEdgeEffect != isPinned {
@@ -87,9 +96,15 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     }
 }
 
+extension EnvironmentValues {
+    /// Scroll geometry keeps updating even when the hero artwork is offscreen.
+    @Entry var detailHeroOverscroll: CGFloat = 0
+}
+
 private struct HeroHeaderScrollMetrics: Equatable {
     let baseHeight: CGFloat
     let titleOpacity: CGFloat
+    let overscroll: CGFloat
 }
 
 private struct DetailScrollNavigationTitle: View {
