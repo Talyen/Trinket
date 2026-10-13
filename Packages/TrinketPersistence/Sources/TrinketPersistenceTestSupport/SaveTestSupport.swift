@@ -120,7 +120,7 @@ public enum SaveTestSupport {
         additionalInserts: ((ModelContext) throws -> Void)? = nil,
     ) throws {
         let context = try ModelContext(makeContainer(storeURL: storeURL, schema: schema))
-        context.insert(PlayerSaveRoot(save: save))
+        try context.insert(PlayerSaveRoot(save: save))
         try additionalInserts?(context)
         try context.save()
     }

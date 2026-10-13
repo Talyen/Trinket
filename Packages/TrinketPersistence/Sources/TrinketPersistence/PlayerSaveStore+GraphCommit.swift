@@ -22,6 +22,8 @@ extension PlayerSaveStore {
         let interval = Self.performanceSignposter.beginInterval("ModelContextSave")
         defer { Self.performanceSignposter.endInterval("ModelContextSave", interval) }
         do {
+            let graphWrite = try PlayerSaveGraphWrite(save: candidate, slices: slices)
+            let compensation = PlayerSaveGraphWrite(restoring: snapshot, slices: slices, root: root)
             let update: CloudSaveOutbox.Update?
             if preservesUnreadableCloudState {
                 update = nil
@@ -34,7 +36,7 @@ extension PlayerSaveStore {
                 cloudOutbox?.apply(update)
                 root.cloudStatePayload = update.metadata
             }
-            root.apply(candidate, slices: slices, context: context)
+            root.apply(graphWrite, context: context)
             do {
                 #if DEBUG
                 if forcesNextSaveFailure {
@@ -56,7 +58,7 @@ extension PlayerSaveStore {
                     cloudOutbox?.compensate(update)
                 }
                 root.cloudStatePayload = previousPayload
-                root.apply(snapshot, slices: slices, context: context)
+                root.apply(compensation, context: context)
                 throw error
             }
             cloudDeviceState = cloudState

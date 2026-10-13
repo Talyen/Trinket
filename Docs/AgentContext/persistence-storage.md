@@ -77,11 +77,15 @@ Previous snapshots are never restored automatically after reset. This does not
 change the SwiftData or CloudKit schema.
 
 Gameplay, cloud transitions and resets share `PlayerSaveStore.commitGraph` as
-one durable publication boundary. Prepare cloud metadata and outbox additions
-before mutating the graph; retain removed row payloads for nonthrowing compensation.
+one durable publication boundary. `PlayerSaveGraphWrite` serializes selected map,
+item-power, Contract and Voyage payloads before graph or outbox mutation. Encoding
+failure rejects the transaction as invalid input; mappers cannot log and discard
+payloads or terminate the process. Prepare cloud metadata and outbox additions
+before mutating the graph; retain original graph payload bytes and removed outbox
+rows for nonthrowing compensation.
 Publish cloud state and observed save slices only after the graph or recovery file
 accepts the candidate. A refused write restores affected graph slices, the exact
-prior metadata bytes and outbox payloads without re-encoding old journal history.
+prior metadata bytes and graph/outbox payloads without re-encoding prior values.
 Compensation stays unsaved until a later successful write; do not use
 `ModelContext.rollback()` because restoring deleted relationship rows can crash
 SwiftData on the iOS 27 simulator. Resets, including replacement of degraded

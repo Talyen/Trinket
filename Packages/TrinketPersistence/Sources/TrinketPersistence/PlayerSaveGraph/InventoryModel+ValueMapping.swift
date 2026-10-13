@@ -4,31 +4,11 @@ import SwiftData
 import TrinketContent
 import TrinketCore
 
-/// Single logger for the inventory item codec (encode + decode).
+/// Diagnostics for unreadable inventory values.
 let inventoryMappingLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
     category: "InventoryMapping",
 )
-
-/// Inventory item codec: `applyAffixPowers` (encode) lives beside
-/// `restoredItem` (decode) so the drop-vs-fallback-vs-overwrite policy table
-/// stays in one place. See `restoredItem` for the read policy.
-extension InventoryItemModel {
-    func applyAffixPowers(from item: InventoryItem) {
-        if let powers = item.affixPowers {
-            do {
-                affixPowersJSON = try ItemAffixPowerCoding.encode(powers)
-            } catch {
-                inventoryMappingLogger.error(
-                    "Failed to encode affix powers for inventory item \(item.id, privacy: .public): \(error.localizedDescription, privacy: .public)",
-                )
-                affixPowersJSON = nil
-            }
-        } else {
-            affixPowersJSON = nil
-        }
-    }
-}
 
 extension InventoryModel {
     func toPlayerInventoryState() -> PlayerInventoryState {
@@ -74,14 +54,14 @@ extension InventoryModel {
 }
 
 extension InventoryItemModel {
-    func update(from item: InventoryItem, context: ModelContext?) {
+    func update(from item: InventoryItem, powerPayload: Data?, context: ModelContext?) {
         id = item.id
         templateID = item.templateID
         baseTypeID = item.baseType.id
         rarityID = item.rarity.rawValue
         displayName = item.displayName
         isCorrupted = item.isCorrupted
-        applyAffixPowers(from: item)
+        affixPowersJSON = powerPayload
         affixes = reconcileModels(
             existing: affixes ?? [],
             values: Array(item.affixes.enumerated()),
@@ -123,7 +103,7 @@ extension InventoryModel {
     /// by `PlayerSaveSanitizer` (`InventoryDuplicatePolicy.deduplicated`) and
     /// detected on load by `repairSlices`; reconcile must not drop rows with
     /// distinct IDs or a sanitize-then-write round trip would diverge.
-    func update(from inventory: PlayerInventoryState, context: ModelContext?) {
+    func update(from inventory: PlayerInventoryState, powerPayloads: [String: Data], context: ModelContext?) {
         items = reconcileModels(
             existing: items ?? [],
             values: Array(inventory.items.enumerated()),
@@ -131,7 +111,7 @@ extension InventoryModel {
             valueKey: { $0.element.id },
             make: { InventoryItemModel() },
             update: { model, value in
-                model.update(from: value.element, context: context)
+                model.update(from: value.element, powerPayload: powerPayloads[value.element.id], context: context)
                 model.sortIndex = value.offset
             },
             link: { $0.inventory = self },

@@ -170,6 +170,7 @@ final class PendingSaveRecovery {
         // A completed reset advanced the graph generation before pending-file
         // cleanup. An older sidecar must not undo that durable reset on relaunch.
         guard recovered.sessionGeneration >= persisted.sessionGeneration else { return }
+        let graphWrite = try PlayerSaveGraphWrite(save: recovered, slices: .all)
         if preservesPrevious, persisted.hasDomainDifference(from: recovered) {
             try preservePrevious(save: persisted, cloudState: root.cloudStatePayload, outboxRecords: outbox?.storedRecords)
         }
@@ -177,7 +178,7 @@ final class PendingSaveRecovery {
             guard let outbox else { throw CloudSaveError.unavailable }
             try outbox.restore(records)
         }
-        root.apply(recovered, slices: .all, context: context)
+        root.apply(graphWrite, context: context)
         if let cloudState = record.cloudState {
             root.cloudStatePayload = cloudState
         }

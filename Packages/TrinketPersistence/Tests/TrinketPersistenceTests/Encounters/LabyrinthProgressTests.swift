@@ -245,10 +245,10 @@ struct LabyrinthProgressTests {
         let model = LabyrinthProgressModel()
         var state = PlayerLabyrinthState.freshStart
         state.ensureMap(seed: 77)
-        model.update(from: state)
+        try model.update(from: state)
         let firstPayload = try #require(model.mapPayload)
 
-        model.update(from: state)
+        try model.update(from: state)
         let secondPayload = try #require(model.mapPayload)
         let firstMap = try JSONDecoder().decode(LabyrinthMapPayload.self, from: firstPayload)
         let secondMap = try JSONDecoder().decode(LabyrinthMapPayload.self, from: secondPayload)
@@ -365,7 +365,7 @@ extension LabyrinthProgressTests {
         #expect(!sanitized.isMapPayloadUnreadable)
         #expect(sanitized.worldSeed == 55)
 
-        model.update(from: sanitized)
+        try model.update(from: sanitized)
         #expect(model.mapPayload != corruptBlob)
         #expect(!model.toPlayerLabyrinthState().isMapPayloadUnreadable)
     }

@@ -11,7 +11,7 @@ struct PlayerSaveStoreCleanupTests {
         let original = try context.makeSaveStore()
         #expect(original.persistFixtureBatch(logging: "Test setup") { $0.roster.gold = 99 })
         let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
-        let other = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
+        let other = try PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
         other.modifiedAt = .distantPast
         sideContext.insert(other)
         try sideContext.save()
@@ -127,7 +127,7 @@ struct PlayerSaveStoreCleanupTests {
         }
 
         let sideContext = try SaveTestSupport.makeSideContext(storeURL: storeURL)
-        let stale = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
+        let stale = try PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
         stale.modifiedAt = .distantPast
         sideContext.insert(stale)
         try sideContext.save()
@@ -156,7 +156,7 @@ struct PlayerSaveStoreCleanupTests {
         keeper.modifiedAt = timestamp
         keeper.sessionGeneration = 4
 
-        let stale = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
+        let stale = try PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
         stale.modifiedAt = timestamp
         stale.sessionGeneration = 1
         sideContext.insert(stale)

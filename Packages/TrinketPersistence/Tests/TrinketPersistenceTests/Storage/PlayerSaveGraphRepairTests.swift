@@ -4,16 +4,16 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct PlayerSaveGraphRepairTests {
-    @Test func `canonical graph needs no bootstrap repair`() {
+    @Test func `canonical graph needs no bootstrap repair`() throws {
         let save = PlayerSave.testSeed
-        let root = PlayerSaveRoot(save: save)
+        let root = try PlayerSaveRoot(save: save)
 
         #expect(root.repairSlices(for: save).isEmpty)
     }
 
-    @Test func `missing top level model repairs only its slice`() {
+    @Test func `missing top level model repairs only its slice`() throws {
         let save = PlayerSave.fresh
-        let root = PlayerSaveRoot(save: save)
+        let root = try PlayerSaveRoot(save: save)
         root.inventory = nil
 
         #expect(root.repairSlices(for: save) == .inventory)
@@ -22,7 +22,7 @@ struct PlayerSaveGraphRepairTests {
     @Test func `duplicate child rows request owning slice repair`() throws {
         var save = PlayerSave.fresh
         save.journey.completedStageIDs.insert("chapter-1-stage-1")
-        let root = PlayerSaveRoot(save: save)
+        let root = try PlayerSaveRoot(save: save)
         let stage = try #require(root.journey?.stages?.first)
         root.journey?.stages?.append(
             JourneyStageProgressModel(
@@ -36,11 +36,11 @@ struct PlayerSaveGraphRepairTests {
         #expect(root.repairSlices(for: save).contains(.journey))
     }
 
-    @Test func `dangling roster rows request repair though values read clean`() {
+    @Test func `dangling roster rows request repair though values read clean`() throws {
         // These rows are dropped by the value read, so value-level `changed()`
         // sees a clean save: repair must detect them at the graph level.
         let save = PlayerSave.testSeed
-        let root = PlayerSaveRoot(save: save)
+        let root = try PlayerSaveRoot(save: save)
         #expect(root.repairSlices(for: save).isEmpty)
 
         root.roster?.abilityLoadouts?.append(AbilityLoadoutModel(combatantID: "ghost-combatant"))
@@ -52,9 +52,9 @@ struct PlayerSaveGraphRepairTests {
         #expect(root.repairSlices(for: save).contains(.roster))
     }
 
-    @Test func `dangling inventory and homestead rows request repair`() {
+    @Test func `dangling inventory and homestead rows request repair`() throws {
         let save = PlayerSave.testSeed
-        let root = PlayerSaveRoot(save: save)
+        let root = try PlayerSaveRoot(save: save)
         #expect(root.repairSlices(for: save).isEmpty)
 
         let ghost = InventoryItemModel()
@@ -69,9 +69,9 @@ struct PlayerSaveGraphRepairTests {
         #expect(root.repairSlices(for: save).contains(.homestead))
     }
 
-    @Test func `empty spire id and bad starter phase request repair`() {
+    @Test func `empty spire id and bad starter phase request repair`() throws {
         let save = PlayerSave.testSeed
-        let root = PlayerSaveRoot(save: save)
+        let root = try PlayerSaveRoot(save: save)
         root.spires?.floors?.append(SpireFloorProgressModel(spireID: "", highestClearedFloor: 1))
         #expect(root.repairSlices(for: save).contains(.spires))
 
@@ -84,7 +84,7 @@ struct PlayerSaveGraphRepairTests {
         var save = PlayerSave.testSeed
         let voyage = PlayerVoyageState()
         save.voyage = voyage
-        let root = PlayerSaveRoot(save: save)
+        let root = try PlayerSaveRoot(save: save)
         #expect(root.repairSlices(for: save).isEmpty)
 
         let encoder = JSONEncoder()

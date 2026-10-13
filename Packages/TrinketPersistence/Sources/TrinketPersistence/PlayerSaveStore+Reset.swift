@@ -43,7 +43,7 @@ public extension PlayerSaveStore {
             try replacementContext.delete(model: PlayerSaveRoot.self)
             var save = PlayerSaveSanitizer.sanitize(.fresh)
             save.sessionGeneration = currentSave.sessionGeneration &+ 1
-            let replacementRoot = PlayerSaveRoot(save: save)
+            let replacementRoot = try PlayerSaveRoot(save: save)
             replacementContext.insert(replacementRoot)
             container = replacement
             context = replacementContext

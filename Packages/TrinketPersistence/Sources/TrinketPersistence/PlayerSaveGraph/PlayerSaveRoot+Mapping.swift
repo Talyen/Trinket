@@ -2,9 +2,9 @@ import SwiftData
 import TrinketCore
 
 extension PlayerSaveRoot {
-    package convenience init(save: PlayerSave, id: String = "primary") {
+    package convenience init(save: PlayerSave, id: String = "primary") throws {
         self.init(id: id)
-        update(from: save)
+        try update(from: save)
     }
 
     func toPlayerSave() -> PlayerSave {
@@ -29,12 +29,13 @@ extension PlayerSaveRoot {
 }
 
 extension PlayerSaveRoot {
-    func update(from save: PlayerSave, context: ModelContext? = nil) {
-        apply(save, slices: .all, context: context)
+    func update(from save: PlayerSave, context: ModelContext? = nil) throws {
+        try apply(PlayerSaveGraphWrite(save: save, slices: .all), context: context)
     }
 
-    func apply(_ save: PlayerSave, slices: PlayerSaveSlice, context: ModelContext? = nil) {
-        for section in slices.sections {
+    func apply(_ write: PlayerSaveGraphWrite, context: ModelContext? = nil) {
+        let save = write.save
+        for section in write.slices.sections {
             switch section {
             case .root:
                 schemaVersion = save.schemaVersion
@@ -56,7 +57,7 @@ extension PlayerSaveRoot {
                 model.root = self
             case .inventory:
                 let model = inventory ?? InventoryModel()
-                model.update(from: save.inventory, context: context)
+                model.update(from: save.inventory, powerPayloads: write.itemPowerPayloads, context: context)
                 inventory = model
                 model.root = self
             case .homestead:
@@ -71,13 +72,13 @@ extension PlayerSaveRoot {
                 model.root = self
             case .labyrinth:
                 let model = labyrinth ?? LabyrinthProgressModel()
-                model.update(from: save.labyrinth, context: context)
+                model.apply(save.labyrinth, payload: write.labyrinthPayload, preservingPayload: write.preservesLabyrinthPayload)
                 labyrinth = model
                 model.root = self
             case .contracts:
-                contractsPayload = save.contracts.encodedPayload
+                contractsPayload = write.contractsPayload
             case .voyage:
-                voyagePayload = save.voyage.encodedPayload
+                voyagePayload = write.voyagePayload
             }
         }
     }

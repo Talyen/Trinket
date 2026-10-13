@@ -37,23 +37,16 @@ extension LabyrinthProgressModel {
         return state
     }
 
-    func update(from state: PlayerLabyrinthState, context _: ModelContext? = nil) {
+    func update(from state: PlayerLabyrinthState, context _: ModelContext? = nil) throws {
+        try apply(state, payload: PlayerSaveGraphWrite.encodeLabyrinth(state), preservingPayload: state.isMapPayloadUnreadable)
+    }
+
+    func apply(_ state: PlayerLabyrinthState, payload: Data?, preservingPayload: Bool) {
         worldSeed = state.worldSeed
         mapVersion = state.mapVersion
         hasEntered = state.hasEntered
-        if state.isMapPayloadUnreadable {
-            return
-        }
-        let payload = LabyrinthMapPayload(
-            clusters: state.clusters,
-            nodes: Array(state.nodes.values).sorted { $0.id < $1.id },
-        )
-        do {
-            mapPayload = try JSONEncoder().encode(payload)
-        } catch {
-            labyrinthMapLogger.error(
-                "Failed to encode labyrinth map payload: \(error.localizedDescription, privacy: .public)",
-            )
+        if !preservingPayload {
+            mapPayload = payload
         }
     }
 }

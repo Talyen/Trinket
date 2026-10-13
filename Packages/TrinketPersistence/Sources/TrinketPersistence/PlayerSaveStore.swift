@@ -269,7 +269,7 @@ public final class PlayerSaveStore {
         ) {
             return (root, true, false)
         }
-        let root = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
+        let root = try PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
         context.insert(root)
         do {
             try context.save()

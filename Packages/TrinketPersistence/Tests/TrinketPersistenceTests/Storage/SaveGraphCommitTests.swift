@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import TrinketContent
 @testable import TrinketPersistence
 
 struct SaveGraphCommitTests {
@@ -84,6 +85,73 @@ struct SaveGraphCommitTests {
         #expect(store.usesMemoryFallback)
         #expect(try recovery.read()?.restoredSave().roster.gold == 42)
         #expect(try fixture.makeReloadedStore().roster.gold == 42)
+    }
+
+    @Test(arguments: [false, true])
+    @MainActor func `unencodable item powers reject every graph write before mutation`(reset: Bool) throws {
+        let fixture = try PersistenceTestContext()
+        let store = try fixture.makeSaveStore()
+        try installJournal(in: store)
+        let before = store.currentSave
+        let metadata = store.root.cloudStatePayload
+        let records = try payloads(in: #require(store.cloudOutbox))
+        let template = try #require(PlayerSave.testSeed.inventory.items.first)
+        var candidate = before
+        candidate.roster.gold += 10
+        candidate.inventory.items.append(InventoryItem(
+            id: "invalid-power", baseType: template.baseType, rarity: template.rarity,
+            displayName: template.displayName, affixes: [],
+            affixPowers: [ItemAffixPower(description: "Invalid", modifiers: [.goldGainedPercent(.infinity)])],
+        ))
+        var replacement = store.cloudDeviceState
+        replacement.account.journal = nil
+        replacement.account.pending = nil
+
+        #expect(throws: PlayerSavePersistenceError.invalidSave("The action could not be saved. Your progress is preserved.")) {
+            try store.commitGraph(
+                candidate, replacing: before, slices: .all, cloudState: replacement,
+                durability: reset ? .primaryOnly : .recoverable,
+            )
+        }
+        #expect(store.currentSave == before)
+        #expect(store.root.toPlayerSave() == before)
+        #expect(store.root.cloudStatePayload == metadata)
+        #expect(try payloads(in: #require(store.cloudOutbox)) == records)
+        #expect(store.pendingSaveRecovery?.hasPendingSave == false)
+        // A later context save must not leak a rejected partial graph or prune its journal.
+        try store.context.save()
+        let reloaded = try fixture.makeReloadedStore()
+        #expect(reloaded.currentSave == before)
+        #expect(reloaded.cloudDeviceState == store.cloudDeviceState)
+    }
+
+    @Test @MainActor func `refused graph write restores original opaque item power bytes`() throws {
+        let fixture = try PersistenceTestContext()
+        let store = try fixture.makeSaveStore()
+        let template = try #require(PlayerSave.testSeed.inventory.items.first { !$0.isTrinket && $0.rarity != .unique })
+        var initial = store.currentSave
+        initial.inventory.items = [InventoryItem(
+            id: "preserved-powers", baseType: template.baseType, rarity: template.rarity,
+            displayName: template.displayName, affixes: [],
+        )]
+        try store.commitCloudState(store.cloudDeviceState, replacing: initial)
+        let before = store.currentSave
+        let item = try #require(store.root.inventory?.items?.first)
+        let itemID = item.id
+        let opaque = Data("unreadable-item-powers".utf8)
+        item.affixPowersJSON = opaque
+        var candidate = before
+        candidate.inventory.items.removeAll()
+        store.forcesNextSaveFailure = true
+
+        #expect(throws: PlayerSavePersistenceError.writeFailed) {
+            try store.commitGraph(candidate, replacing: before, slices: .inventory, cloudState: store.cloudDeviceState)
+        }
+        #expect(store.currentSave == before)
+        #expect(store.root.inventory?.items?.first(where: { $0.id == itemID })?.affixPowersJSON == opaque)
+        try store.context.save()
+        let reloaded = try fixture.makeReloadedStore()
+        #expect(reloaded.root.inventory?.items?.first(where: { $0.id == itemID })?.affixPowersJSON == opaque)
     }
 
     @MainActor private func installJournal(in store: PlayerSaveStore) throws {
