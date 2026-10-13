@@ -45,7 +45,12 @@ journeys, but failed different reward exits (Labyrinth boss return, then audio
 contract return). Focused reruns passed unchanged. A successful-run video and
 three temporary Debug claim traces showed completed claims and keyed exit callbacks;
 this does not explain the failed runs. Temporary logging was removed completely.
-A third full gate is running from the retained build-25 receipt; do not bypass it.
+The third full gate failed the first audio contract return again; the task-owned
+run was then interrupted, so its cancellation failure is not a separate product
+finding. Fresh uninstrumented targeted tests passed both affected journeys
+(`ui-20261013T021318Z-22835-30365`). A fourth full gate now uses the same retained
+build-25 receipt and explicit fresh DerivedData directory. No cache/build-mode
+cause is established; do not bypass or manually mark the gate verified.
 
 The architecture and five-bug branch patches already exist in main. The dirty
 `ios18-runtime` helper visibility change also already exists in main and was left
