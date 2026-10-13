@@ -8,14 +8,6 @@ public enum VictoryRewardApplier {
         return GameContent.enemy(matching: enemyID)?.isBoss == true
     }
 
-    /// Campaign adjustment for completion callers without a captured encounter level.
-    public static func partyAdjustedEncounterLevel(authoredLevel: Int, save: PlayerSave) -> Int {
-        EncounterLevelResolver.campaignAdjusted(
-            authoredLevel,
-            partyAverageLevel: save.roster.activePartyAverageLevel,
-        )
-    }
-
     public static func resolvedGoldReward(
         stageGold: Int,
         battleGold: BattleGoldFlow,

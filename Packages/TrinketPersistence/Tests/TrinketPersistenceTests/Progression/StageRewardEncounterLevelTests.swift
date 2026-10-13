@@ -19,7 +19,7 @@ struct StageRewardEncounterLevelTests {
         var pinned = SaveTestSupport.makeSave()
         pinned.roster.progressions[hero.id] = .at(level: 3)
         pinned.roster.progressions[companion.id] = .at(level: 2)
-        let level = try expectedClaimLevel(mode: mode, in: pinned)
+        let level = try expectedClaimLevel(mode: mode)
         try completeForClaimFallback(
             mode: mode,
             hero: hero,
@@ -41,9 +41,9 @@ struct StageRewardEncounterLevelTests {
             enemyEncounterLevel: nil,
         )
 
-        try assertClaimModeExpectations(mode: mode, level: level)
         #expect(fallback.roster.progression(for: hero) == pinnedXP)
         #expect(fallback.roster.gold == pinnedGold)
+        #expect(fallback.contracts.highestWonEncounterLevel == level)
     }
 
     @Test func `duplicate stage completion grants nothing further`() throws {
@@ -199,28 +199,14 @@ struct StageRewardEncounterLevelTests {
         }
     }
 
-    private func expectedClaimLevel(mode: ClaimFallbackMode, in save: PlayerSave) throws -> Int {
+    private func expectedClaimLevel(mode: ClaimFallbackMode) throws -> Int {
         switch mode {
         case .journey:
             let deepStage = try deepJourneyStage()
-            return StageCompletion.partyAdjustedEncounterLevel(for: deepStage, save: save)
+            return StageCompletion.resolvedEncounterLevel(for: deepStage, in: GameContent.chapters) - 3
         case .spire:
             let topFloor = try ironVeinTopFloor()
-            return SpireCompletion.partyAdjustedEncounterLevel(for: topFloor, save: save)
-        }
-    }
-
-    private func assertClaimModeExpectations(mode: ClaimFallbackMode, level: Int) throws {
-        switch mode {
-        case .journey:
-            let stage = try deepJourneyStage()
-            #expect(level == StageCompletion.resolvedEncounterLevel(for: stage, in: GameContent.chapters) - 3)
-        case .spire:
-            let topFloor = try ironVeinTopFloor()
-            #expect(level == EncounterLevelResolver.campaignAdjusted(
-                EncounterLevelResolver.spireEnemyLevel(for: topFloor),
-                partyAverageLevel: 2,
-            ))
+            return topFloor.floor * 2
         }
     }
 

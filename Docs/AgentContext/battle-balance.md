@@ -21,13 +21,16 @@ The health tail slows fight-length growth after equipment and talent kits mature
 raw damage continues to rise against the party's growing HP. These curves have
 no designed upper plateau; numeric representation remains finite.
 
-Encounter levels are owned by `EncounterLevelResolver`: Campaign can drop at most
+Content's `EncounterScaling` selects the encounter level and enemy power profile
+together for previews, launch, reward fallbacks, and progression simulations.
+`EncounterLevelResolver` supplies authored levels; its adjustment arithmetic is
+internal to Content. Campaign can drop at most
 three below authored level and otherwise targets the active party average plus
 three; Spires keep twice the floor number; Labyrinth uses party average plus
 three within five-depth bands with minimum levels 1/6/11/16/…. Adjusted levels
 never exceed authored level. Labyrinth keeps generating floors indefinitely.
 Previews, launch, reward fallbacks, and progression simulations use these same
-mode rules. Contracts uses party-average offsets through the same resolver;
+mode rules. Contracts uses party-average offsets through the same policy;
 [Contracts.md](../Product/Contracts.md) owns its board and reward rules. Keep
 role-specific roster catch-up XP unchanged. Product direction:
 [Decisions.md](../Product/Decisions.md), PD-016 through PD-021.

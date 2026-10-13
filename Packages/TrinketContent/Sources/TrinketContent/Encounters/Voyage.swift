@@ -24,7 +24,7 @@ public enum VoyageDifficulty: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    public func encounterLevel(partyLevel: Int) -> Int {
+    func encounterLevel(partyLevel: Int) -> Int {
         max(1, SaturatedArithmetic.saturatingAdd(max(1, partyLevel), levelOffset))
     }
 }

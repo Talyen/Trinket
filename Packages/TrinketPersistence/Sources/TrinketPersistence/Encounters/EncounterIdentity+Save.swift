@@ -56,13 +56,12 @@ public extension EncounterIdentity {
             return StageCompletion.partyAdjustedEncounterLevel(for: stage, save: save)
         case let .labyrinth(nodeID):
             guard let node = save.labyrinth.nodes[nodeID] else { return nil }
-            return EncounterLevelResolver.labyrinthAdjusted(
-                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-                partyAverageLevel: save.roster.activePartyAverageLevel,
-            )
+            return EncounterScaling.labyrinth(authoredLevel: EncounterLevelResolver.labyrinthEnemyLevel(for: node))
+                .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level
         case let .voyage(runID, _):
             guard let run = save.voyage.activeRun, run.id == runID else { return nil }
-            return run.offer.difficulty.encounterLevel(partyLevel: save.roster.activePartyAverageLevel)
+            return EncounterScaling.voyage(run.offer.difficulty)
+                .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level
         }
     }
 }

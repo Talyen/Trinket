@@ -56,10 +56,8 @@ public enum StageCompletion {
         in chapters: [Chapter] = GameContent.chapters,
         save: PlayerSave,
     ) -> Int {
-        EncounterLevelResolver.campaignAdjusted(
-            resolvedEncounterLevel(for: stage, in: chapters),
-            partyAverageLevel: save.roster.activePartyAverageLevel,
-        )
+        EncounterScaling.journey(authoredLevel: resolvedEncounterLevel(for: stage, in: chapters))
+            .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level
     }
 
     @discardableResult

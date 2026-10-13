@@ -70,7 +70,8 @@ public final class VoyagePlayMode {
         guard let run = playerSave.voyage.activeRun else { return nil }
         return PlayBattlePreparation.scaledEncounter(
             enemyID: node.enemyID,
-            level: run.offer.difficulty.encounterLevel(partyLevel: playerSave.roster.activePartyAverageLevel),
+            scaling: .voyage(run.offer.difficulty),
+            partyAverageLevel: playerSave.roster.activePartyAverageLevel,
         )
     }
 

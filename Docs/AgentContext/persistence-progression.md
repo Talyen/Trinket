@@ -10,6 +10,8 @@ and currency quantities. Item-tier odds clamp at loot level 40; currency quantit
 continue to scale beyond it. Noncombat item offers and Blacksmith forging use the
 highest won encounter level through `CampaignRewardLevel`, rather than the current
 party or battle level.
+Unsettled completion uses Content's `EncounterScaling` mode policy; Spires retain
+their fixed floor level even when the active party is below it.
 `VictoryRewardApplier` owns reward application to the save.
 
 ## Victory settlement

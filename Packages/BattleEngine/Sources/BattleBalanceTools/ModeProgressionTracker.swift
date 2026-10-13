@@ -8,14 +8,6 @@ public enum SimulationGameMode: String, CaseIterable, Codable, Sendable {
     case labyrinth
     case contract
 
-    var enemyPowerProfile: EnemyPowerCurve.Profile {
-        switch self {
-        case .spire: .spire
-        case .contract: .recovery
-        case .campaign, .labyrinth: .standard
-        }
-    }
-
     public var displayName: String {
         switch self {
         case .campaign: "Campaign"
@@ -37,6 +29,16 @@ public struct ModeProgressionStep: Identifiable, Equatable, Hashable, Codable, S
     public var enemyLevel: Int
     public var isBoss: Bool
     public var keywordBias: Keyword?
+
+    var scaling: EncounterScaling {
+        switch mode {
+        case .campaign: .journey(authoredLevel: enemyLevel)
+        case .spire: .spire(authoredLevel: enemyLevel)
+        case .labyrinth: .labyrinth(authoredLevel: enemyLevel)
+        // Progression uses Easy Contracts exclusively as recovery jobs.
+        case .contract: .contract(.easy)
+        }
+    }
 }
 
 public struct ModeProgressionTracker: Sendable {

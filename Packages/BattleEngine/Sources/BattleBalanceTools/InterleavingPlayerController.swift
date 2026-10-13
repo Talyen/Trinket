@@ -100,7 +100,7 @@ final class InterleavingPlayerController {
             let offer = ContractGenerator.makeOffer(
                 difficulty: .easy, eligibleModifiers: [.gold], using: &rng, id: "recovery-\(state.totalBattles)",
             )
-            let level = EncounterLevelResolver.contractEnemyLevel(difficulty: .easy, partyAverageLevel: partyAverageLevel)
+            let level = EncounterScaling.contract(.easy).resolve(partyAverageLevel: partyAverageLevel).level
             let step = ModeProgressionStep(
                 id: "contract-easy-\(offer.enemyID)-\(level)", mode: .contract,
                 containerID: "easy", containerTitle: "Contracts", stepIndex: level,
@@ -182,6 +182,7 @@ final class InterleavingPlayerController {
         // Preserve draw order: both talent kits precede either starter-gear roll.
         let heroTalents = SimulationMatchupBuilder.legalTalentKit(for: hero.id, level: state.heroLevel, using: &rng)
         let companionTalents = SimulationMatchupBuilder.legalTalentKit(for: companion.id, level: state.companionLevel, using: &rng)
+        let scaling = step.scaling.resolve(partyAverageLevel: partyAverageLevel)
 
         return SimulationMatchupBuilder.build(
             hero: hero,
@@ -190,8 +191,8 @@ final class InterleavingPlayerController {
             tier: powerTier,
             heroLevel: state.heroLevel,
             companionLevel: state.companionLevel,
-            enemyLevel: encounterLevel(for: step),
-            enemyPowerProfile: step.mode.enemyPowerProfile,
+            enemyLevel: scaling.level,
+            enemyPowerProfile: scaling.profile,
             heroLoadout: loadouts.hero,
             companionLoadout: loadouts.companion,
             seed: seed,
@@ -232,15 +233,6 @@ final class InterleavingPlayerController {
     }
 
     func encounterLevel(for step: ModeProgressionStep) -> Int {
-        switch step.mode {
-        case .campaign:
-            EncounterLevelResolver.campaignAdjusted(step.enemyLevel, partyAverageLevel: partyAverageLevel)
-        case .spire:
-            step.enemyLevel
-        case .labyrinth:
-            EncounterLevelResolver.labyrinthAdjusted(step.enemyLevel, partyAverageLevel: partyAverageLevel)
-        case .contract:
-            EncounterLevelResolver.contractEnemyLevel(difficulty: .easy, partyAverageLevel: partyAverageLevel)
-        }
+        step.scaling.resolve(partyAverageLevel: partyAverageLevel).level
     }
 }

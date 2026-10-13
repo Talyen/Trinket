@@ -31,13 +31,6 @@ public enum SpireCompletion {
         )
     }
 
-    public static func partyAdjustedEncounterLevel(for floor: SpireFloor, save: PlayerSave) -> Int {
-        VictoryRewardApplier.partyAdjustedEncounterLevel(
-            authoredLevel: EncounterLevelResolver.spireEnemyLevel(for: floor),
-            save: save,
-        )
-    }
-
     @discardableResult
     static func complete(
         floor: SpireFloor,
@@ -62,7 +55,8 @@ public enum SpireCompletion {
             return .unavailable
         }
 
-        let encounterLevel = rewards.encounterLevel(or: partyAdjustedEncounterLevel(for: floor, save: save))
+        let scaling = EncounterScaling.spire(authoredLevel: EncounterLevelResolver.spireEnemyLevel(for: floor))
+        let encounterLevel = rewards.encounterLevel(or: scaling.resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level)
         let settlement = rewards.resolve { overrides in
             let resolvedLoot = overrides.loot ?? resolveLoot(
                 for: floor,

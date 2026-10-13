@@ -40,9 +40,8 @@ public enum ContractsCompletion {
     ) -> EncounterCompletion {
         guard !(save.contracts.completedOfferIDs ?? []).contains(offerID),
               let offer = save.contracts.offers.first(where: { $0.id == offerID }) else { return .alreadyCompleted }
-        let encounterLevel = rewards.encounterLevel(or: EncounterLevelResolver.contractEnemyLevel(
-            difficulty: offer.difficulty, partyAverageLevel: save.roster.activePartyAverageLevel,
-        ))
+        let encounterLevel = rewards.encounterLevel(or: EncounterScaling.contract(offer.difficulty)
+            .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level)
         let settlement = rewards.resolve { overrides in
             let loot = overrides.loot ?? resolveLoot(for: offer, encounterLevel: encounterLevel, save: save)
             let modifier = effectiveModifier(for: offer, inventory: save.inventory)

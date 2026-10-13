@@ -60,6 +60,7 @@ compilation, content tests, and idempotence proof to CI under
 | `Ability` / `TargetedEffect` | Ability model with effect declarations |
 | `Combatant` | Hero/Companion model (stats, ability loadout) |
 | `Enemy` | Enemy model |
+| `EncounterScaling` | Shared mode-specific encounter level and enemy power-profile policy |
 | `ItemGenerator` | Random item generation from base + affix pools |
 | `ThemedGearGenerator` | Legal worn equipment for headless balance simulations |
 | `ShopOfferGenerator` | Procedural Merchant's Shop shelves (rarity + gold prices) |

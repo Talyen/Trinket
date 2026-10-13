@@ -27,6 +27,11 @@ struct PlayBattleLaunchTests {
     func `enemy preview and launch use the same mode power curve`(mode: PlayBattleMode) throws {
         let enemy = try #require(GameContent.enemy(matching: "the_iron_bear"))
         let party = try knightAndWolf()
+        let scaling: EncounterScaling = switch mode {
+        case .spire: .spire(authoredLevel: 40)
+        case .contract: .contract(.easy)
+        default: .journey(authoredLevel: 40)
+        }
         let profile: EnemyPowerCurve.Profile = switch mode {
         case .spire: .spire
         case .contract: .recovery
@@ -37,7 +42,9 @@ struct PlayBattleLaunchTests {
         case .contract: .contract(offerID: "easy")
         default: .journey(stageID: "test")
         }
-        let preview = try #require(PlayBattlePreparation.scaledEncounter(enemyID: enemy.id, level: 40, profile: profile))
+        let preview = try #require(PlayBattlePreparation.scaledEncounter(
+            enemyID: enemy.id, scaling: scaling, partyAverageLevel: 43,
+        ))
         let launch = makeLaunch(BattleLaunchInput(
             origin: origin, hero: party.knight, companion: party.wolf, encounter: preview,
         ))

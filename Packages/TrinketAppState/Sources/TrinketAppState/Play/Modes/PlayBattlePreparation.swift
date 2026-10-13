@@ -105,27 +105,22 @@ enum ModeBattleSpec {
 enum PlayBattlePreparation {
     static func scaledEncounter(
         enemyID: String?,
-        level: Int,
-        profile: EnemyPowerCurve.Profile = .standard,
+        scaling: EncounterScaling,
+        partyAverageLevel: Int,
     ) -> ScaledEncounter? {
         guard let enemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID)
         else { return nil }
-        return ScaledEncounter(combatant: catalogEnemy.combatant, level: level, profile: profile)
+        let resolved = scaling.resolve(partyAverageLevel: partyAverageLevel)
+        return ScaledEncounter(combatant: catalogEnemy.combatant, level: resolved.level, profile: resolved.profile)
     }
 
-    /// One home for per-mode encounter math. The level curves stay distinct by
-    /// design (contracts track party level, journey/labyrinth blend authored
-    /// and party levels, spires stay fixed); only the lookup-and-scale tail
-    /// is shared.
+    /// Adapt mode content to Content's shared scaling policy and build the enemy.
     static func contractEncounter(for offer: ContractOffer, partyAverageLevel: Int) -> ScaledEncounter? {
         scaledEncounter(
             enemyID: offer.enemyID,
-            level: EncounterLevelResolver.contractEnemyLevel(
-                difficulty: offer.difficulty,
-                partyAverageLevel: partyAverageLevel,
-            ),
-            profile: offer.difficulty == .easy ? .recovery : .standard,
+            scaling: .contract(offer.difficulty),
+            partyAverageLevel: partyAverageLevel,
         )
     }
 
@@ -134,28 +129,24 @@ enum PlayBattlePreparation {
         else { return nil }
         return scaledEncounter(
             enemyID: stage.resolvedBattleEnemyID(worldSeed: worldSeed),
-            level: EncounterLevelResolver.campaignAdjusted(
-                EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter),
-                partyAverageLevel: partyAverageLevel,
-            ),
+            scaling: .journey(authoredLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)),
+            partyAverageLevel: partyAverageLevel,
         )
     }
 
     static func labyrinthEncounter(for node: LabyrinthNode, partyAverageLevel: Int) -> ScaledEncounter? {
         scaledEncounter(
             enemyID: node.enemyID,
-            level: EncounterLevelResolver.labyrinthAdjusted(
-                EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-                partyAverageLevel: partyAverageLevel,
-            ),
+            scaling: .labyrinth(authoredLevel: EncounterLevelResolver.labyrinthEnemyLevel(for: node)),
+            partyAverageLevel: partyAverageLevel,
         )
     }
 
     static func spireEncounter(for floor: SpireFloor) -> ScaledEncounter? {
         scaledEncounter(
             enemyID: floor.enemyID,
-            level: EncounterLevelResolver.spireEnemyLevel(for: floor),
-            profile: .spire,
+            scaling: .spire(authoredLevel: EncounterLevelResolver.spireEnemyLevel(for: floor)),
+            partyAverageLevel: 1,
         )
     }
 }

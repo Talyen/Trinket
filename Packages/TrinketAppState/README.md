@@ -24,6 +24,9 @@ encounter orchestration plus `Modes/`; `Purchases/` owns StoreKit access;
   Retry uses that retained launch request with current saved party inputs and a fresh
   combat seed; completion settles its reward plan against the current save.
   Neither reads presentation fields for gameplay inputs.
+- `PlayBattlePreparation`: adapts mode content into Content's `EncounterScaling`
+  policy, then builds one enemy for inspection and launch. Mode level adjustments
+  and enemy power-profile selection stay in Content.
 - Mode coordinators (`JourneyPlayMode`, `LabyrinthPlayMode`, `SpiresPlayMode`,
   `ContractsPlayMode`, `VoyagePlayMode`, `EncounterPlayMode`): constructor-injected
   collaborators, no `PlaySession` back-pointer

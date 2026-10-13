@@ -64,10 +64,8 @@ public enum LabyrinthCompletion {
         guard let node = save.labyrinth.node(id: nodeID) else { return .unavailable }
         guard !node.isCleared else { return .alreadyCompleted }
 
-        let encounterLevel = rewards.encounterLevel(or: EncounterLevelResolver.labyrinthAdjusted(
-            EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-            partyAverageLevel: save.roster.activePartyAverageLevel,
-        ))
+        let scaling = EncounterScaling.labyrinth(authoredLevel: EncounterLevelResolver.labyrinthEnemyLevel(for: node))
+        let encounterLevel = rewards.encounterLevel(or: scaling.resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level)
         let isCombat = node.type.isCombat
         let settlement = rewards.resolve { overrides in
             let effects = save.labyrinth.effects(for: nodeID)

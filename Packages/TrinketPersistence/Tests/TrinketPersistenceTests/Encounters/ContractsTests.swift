@@ -88,9 +88,8 @@ struct ContractBoardTests {
         let before = save
         let hero = save.roster.activeHero
         let companion = save.roster.activeCompanion
-        let level = EncounterLevelResolver.contractEnemyLevel(
-            difficulty: difficulty, partyAverageLevel: save.roster.activePartyAverageLevel,
-        )
+        let level = EncounterScaling.contract(difficulty)
+            .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level
         let loot = ContractsCompletion.resolveLoot(for: offer, encounterLevel: level, save: save)
         var expected = before
         VictoryRewardApplier.grantVictoryRewards(
