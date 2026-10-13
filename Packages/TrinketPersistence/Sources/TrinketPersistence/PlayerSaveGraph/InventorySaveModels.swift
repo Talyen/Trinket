@@ -29,14 +29,6 @@ final class InventoryItemModel {
     var affixes: [ItemAffixModel]?
 
     init() {}
-
-    /// Detached convenience init for encoding outside a `ModelContext`.
-    /// Passes `context: nil` because a fresh model has no orphans to delete;
-    /// `reconcileModels` with `existing: []` only appends.
-    convenience init(item: InventoryItem) {
-        self.init()
-        update(from: item, context: nil)
-    }
 }
 
 @Model
