@@ -40,10 +40,12 @@ New player flows need a stable `AccessibilityID` from `TrinketFeatureSupport` (o
 existing appropriate one). Add or retire UI coverage per the [keep/drop rubric](../Platform/Testing.md#ui-keep-drop-rubric);
 a view change alone does not require a test. IDs are selectors, not substitutes for
 player-facing semantics: preserve native labels and add a concise label/value when a
-custom control is ambiguous. Accessibility uses basic explicit semantics by policy (PD-014,
-[Decisions](../Product/Decisions.md)): keep what SwiftUI provides for free and do not
-add Reduce Motion, Dynamic Type re-layout, or contrast accommodation branches. `TrinketUITests/README.md` owns
-launch args, screen helpers, and speed rules. PD-014 allows bounded critical-control settings tests without changing the visual-first product scope.
+custom control is ambiguous. Accessibility follows [PD-014](../Product/Decisions.md):
+preserve native text scaling and existing shared motion/contrast accommodations;
+do not add bespoke accessibility modes or setting-specific layout branches.
+`TrinketUITests/README.md` owns launch args, screen helpers, and speed rules.
+PD-014 allows bounded critical-control settings tests without establishing complete
+VoiceOver gameplay or changing the visual-first product scope.
 
 Use `trinketPresentationVisibility` for retained and reveal content: semantic
 visibility owns opacity, hit testing, and accessibility exposure together, without

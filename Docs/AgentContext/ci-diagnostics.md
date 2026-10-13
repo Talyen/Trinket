@@ -152,8 +152,12 @@ Run (the current diagnostics session is selected automatically):
 ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
 
 # Isolated agent run — use the RESULTS_DIR printed by run-env:
-./Scripts/ci-diagnostics.sh .DerivedData/runs/<TRINKET_RUN_ID>/TestResults
+./Scripts/ci-diagnostics.sh "$RESULTS_DIR"
 ```
+
+In a separate shell, set `RESULTS_DIR` to that printed path first. Default isolated
+directories are keyed by agent slot, not by `TRINKET_RUN_ID`; a run ID alone does
+not identify the results directory.
 
 The command aggregates only the current session's completion manifests and failure reports into
 `<RESULTS_DIR>/ci-diagnostics.json`; in CI it also writes the actionable

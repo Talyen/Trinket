@@ -32,7 +32,8 @@ while [[ $# -gt 0 ]]; do
 Usage: ./Scripts/run-simulator.sh [--isolate] [--agent N] [--inspect]
 
 Builds Trinket and launches it. By default targets Trinket Run (human).
-Use --isolate for the current agent slot, or --agent N for Trinket Agent N.
+Use --isolate to acquire an available agent lease or reuse an inherited lease.
+Use --agent N only under an existing parent lease for Trinket Agent N; it does not acquire one.
 Use --inspect in a terminal to hold the lease after launch; type stop to release it.
 USAGE
       exit 0

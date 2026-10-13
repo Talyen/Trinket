@@ -82,9 +82,9 @@ Matching effects consolidate across actions; critical contributions accent their
 typed total. Layout, typography, motion, and merge lifetimes follow the
 [floating combat feedback contract](../../Docs/AgentContext/battle-presentation.md#floating-combat-feedback).
 
-Only direct card benefits, damage, healing, fully blocked hits, Dodge, control
-outcomes, and Death's Door float. Automatic resource/buff gains, partial Block
-absorption, and routine DoT application/amplification stay quiet. Active statuses
+The linked contract owns floating-chip eligibility and suppression. Freeze and
+Stun use dedicated animations and sounds; their activation, buildup, and
+skipped-action reminders do not float. Active statuses
 and pending talent benefits remain inspectable in the combatant detail sheet;
 there are no portrait status counters or gain strips. Engine event origin and
 feedback-group identity drive this policy, never display names.
