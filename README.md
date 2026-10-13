@@ -22,7 +22,8 @@ holds device preferences without gating play or progress behind an account.
 - Swift 6 language mode; package toolchain minimums live in `Packages/*/Package.swift`
 - [Platform support](Docs/Platform/ApplePlatformReference.md#platform-support) distinguishes the iOS deployment target from the build toolchain; [toolchain selection](Scripts/Reference.md#toolchain-ladder) explains local and CI selection
 - Pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify via `./Scripts/ensure-ci-tools.sh` (versions in `Scripts/tool-versions.env`)
-- Python 3 (content codegen)
+- Python 3 (repository tooling and content codegen)
+- Node.js (isolated worktree/Git safety helpers and script syntax checks)
 
 ## Setup
 

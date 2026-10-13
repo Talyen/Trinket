@@ -110,7 +110,7 @@ for their required deploy suites; doctor and dry-run need no opt-in. See
 | `./Scripts/setup-testflight.sh` | Install local Ruby/Bundler/Fastlane tooling with locked gems; [configuration](../Docs/Platform/Release.md#one-time-testflight-setup) stays outside Git |
 | `./Scripts/testflight.sh [--doctor \| --dry-run \| --resume RUN] [--config FILE] [--notes FILE] [--cloud-sync YES\|NO] [--timeout SECONDS]` | Verify a clean checkout, archive/sign, upload, and confirm internal TestFlight availability; retain evidence for recovery; no Git mutations or review submission |
 | `./Scripts/test-deploy.sh [--mode smoke\|ui] [--no-build]` | CI-owned full deploy suites (deliberate local diagnostic opt-in required); `--mode smoke` is an optional canary |
-| `./Scripts/release.sh [--version X.Y.Z] [--since-tag TAG] [--skip-tests] [--dry-run] [--no-tag]` | Preview or execute a release (`--version` pins semver, `--since-tag` sets the notes range, `--skip-tests` skips deploy verification, `--no-tag` commits without tagging) |
+| `./Scripts/release.sh [--version X.Y.Z] [--since-tag TAG] [--skip-tests] [--dry-run] [--no-tag]` | Preview or prepare a release (`--version` pins semver, `--since-tag` sets the notes range, `--skip-tests` skips deploy verification); isolated release preparation uses `--no-tag`, then tags the verified integrated commit under [the release procedure](../Docs/Platform/Release.md#produce-release-artifacts) |
 
 ### Diagnostics
 

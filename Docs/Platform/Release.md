@@ -39,7 +39,8 @@ Before adopting a new major iOS release, complete the
 artifacts use an explicitly selected, Apple-supported Xcode; [toolchain selection](../../Scripts/Reference.md#toolchain-ladder)
 owns command setup and bisection. The
 [platform support policy](ApplePlatformReference.md#platform-support) owns the
-rolling support window; verify both supported majors before claiming readiness.
+supported OS window; verify the minimum supported runtime and current release,
+plus the affected availability branches, before claiming readiness.
 
 Before App Store submission, complete the
 [purchase release prerequisites](Purchases.md#before-release), including the
@@ -86,11 +87,37 @@ do not create another app or change the bundle ID to match the display name.
 
 ### Produce release artifacts
 
+Prepare the release in its isolated task worktree. Defer tagging until after
+integration because integration may rebase the release commit:
+
 ```sh
 ./Scripts/release.sh --dry-run
-TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/release.sh
-git push origin main --tags
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/release.sh --no-tag
+node Scripts/agent-worktree.mjs integrate --keep-worktree
 ```
+
+Review the integrated release commit. If integration incorporated changes beyond
+the source already covered by deploy verification, rerun the required deploy and
+unsigned device Release checks on that combined revision. Lightweight integration
+handoff does not replace release verification.
+
+When publication is requested, tag the verified integrated commit explicitly and
+push only that release tag with its commit. From the retained, clean task worktree
+at that commit (substitute the actual version and commit below):
+
+```sh
+git tag -a vX.Y.Z <integrated-release-commit> -m 'Release vX.Y.Z'
+git push --atomic origin HEAD:refs/heads/main refs/tags/vX.Y.Z
+```
+
+Every outgoing source ref must resolve to the checked-out commit for pre-push
+validation. A non-fast-forward rejection requires reconciling newer main and
+reverifying before publication; the atomic push keeps the tag unpublished when
+the main update fails. Inspect any existing unpushed tag before preparing a
+replacement, and never move a published release tag or force the push. Do not use
+`--tags`, which also selects unrelated local tags. Keep the release worktree while its requested
+publication and hosted verification remain in flight; cleanup follows the
+[isolated workflow](#isolated-chat-workflow).
 
 The local opt-in is for an expressly requested release run because this command
 invokes the full deploy suites. Dry-run needs no opt-in. See the
@@ -100,9 +127,9 @@ still use lightweight handoff and hosted CI.
 The release command runs deploy verification, chooses or accepts a semantic
 version, increments the build number, generates changelog and store notes,
 checks unsigned device Release compilation after updating the version, commits
-release artifacts, and creates a tag. This compile check does not validate signing
-or App Store distribution. Useful exceptions include
-`--version X.Y.Z`, `--no-tag`, and emergency-only `--skip-tests`.
+release artifacts, and creates a tag unless `--no-tag` is supplied as above.
+This compile check does not validate signing or App Store distribution. Use
+`--version X.Y.Z` to select a version explicitly; `--skip-tests` remains emergency-only.
 
 A pushed `v*` tag triggers the GitHub release workflow. It confirms that the
 tagged commit is on `main` with green CI, then creates a GitHub Release whose
@@ -360,8 +387,13 @@ staged-project validation, and pre-push checks. Generation and idempotence polic
 lives in [Verification.md](Verification.md#generated-project-consistency); the hooks
 enforce staged-project completeness at commit time. Pre-push styles Swift files in
 the commits being pushed (platform bans stay full-tree) and checks committed
-generated-output completeness. It does not regenerate assets or run package tests;
-CI owns freshness, idempotence, compilation, and game/UI suites. A requested push still requires a green path-scoped
+generated-output completeness. Asset-routed pushes also check selected Asset Library
+sources for freshness; other pushes check prepared outputs without the library.
+Prepare changed media and download offloaded sources before an asset-routed push;
+[media preparation](../AgentContext/content-and-manifests.md#media-assets) owns that workflow.
+Pre-push does not regenerate assets or run package tests;
+CI owns content generation freshness, idempotence, compilation, and game/UI suites.
+A requested push still requires a green path-scoped
 handoff before commit. Review and include only task-related authored and
 generated files; stage individual hunks when task and unrelated changes share a file.
 
@@ -376,7 +408,8 @@ Pre-push invokes `agent-push-gate.sh` internally with that outgoing scope; do no
 run it manually after commit. Landing policy remains in [AGENTS.md](../../AGENTS.md#protect-the-workspace).
 
 Direct pushes to `main` retain inexpensive pre-push safeguards: scoped style and
-committed generated-output completeness. A local handoff is lightweight evidence;
+committed generated-output completeness, plus the asset checks described above.
+A local handoff is lightweight evidence;
 watch CI for the deferred compile, package, and UI checks. There is no receipt reuse. The hook implements `SKIP_TRINKET_PREPUSH=1` as a
 manual bypass, but it does not satisfy the required verification or authorize
 skipping checks during routine agent work. Report blocked checks under
