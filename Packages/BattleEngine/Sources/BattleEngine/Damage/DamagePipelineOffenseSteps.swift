@@ -302,7 +302,7 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceID) else { return }
         context.roster.mutateRuntime(for: source.combatant) { runtime in
             let bonuses = runtime.talents.pending.reserveAttackBonuses()
-            state.pendingAttackBonus = bonuses.damage + runtime.talents.battle.damageBonus
+            state.pendingAttackBonus = SaturatedArithmetic.saturatingAdd(bonuses.damage, runtime.talents.battle.damageBonus)
             state.pendingHolyBonus = bonuses.holy
         }
     }

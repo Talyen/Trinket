@@ -65,11 +65,11 @@ package extension DamagePipeline {
         guard state.options.isAttackHit else { return }
         let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
         if let bonus = context.consumeTalentPreparation(\.nextManaSpendAttackBonus, for: source) {
-            state.remaining += bonus
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
         }
         if state.damageKeyword == .holy, triggers.firstHolyAttackBonusPerTurn > 0,
            context.claimHeroTalent(.sunlightSpark, actorID: source.id) {
-            state.remaining += triggers.firstHolyAttackBonusPerTurn
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.firstHolyAttackBonusPerTurn)
         }
         if state.damageKeyword == .physical || sharedKeyword == .physical, triggers.firstPhysicalAttackBattleMultiplier > 1,
            context.claimHeroTalent(.alphaStrike, actorID: source.id, battle: true) {

@@ -101,7 +101,7 @@ struct CombatantTalentState: Hashable, Sendable {
         var attackBonusOnFullHealth = 0
 
         mutating func reserveAttackBonuses() -> (damage: Int, holy: Int) {
-            let bonuses = (nextHitBonus + attackBonusOnFullHealth, nextAttackHolyBonus)
+            let bonuses = (SaturatedArithmetic.saturatingAdd(nextHitBonus, attackBonusOnFullHealth), nextAttackHolyBonus)
             nextHitBonus = 0
             attackBonusOnFullHealth = 0
             nextAttackHolyBonus = 0

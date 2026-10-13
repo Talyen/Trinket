@@ -180,7 +180,8 @@ package extension DamagePipeline {
         abilityBonus += consumePendingCriticalChanceBonus(for: state, actor: actor.combatant, in: &context)
         abilityBonus += consumeSanctifiedCriticalBonus(for: state, actor: actor.combatant, in: &context)
         if state.options.isAttackHit,
-           state.options.abilityHasLeech || HealingEngine.grantsLeech(
+           state.options.abilityHasLeech || context.modifiers(for: sourceActorID).triggers.attackLeechPercent > 0
+           || HealingEngine.grantsLeech(
                to: actor, keyword: state.damageKeyword, criticalAttack: false,
                attackHit: true, in: context,
            ),

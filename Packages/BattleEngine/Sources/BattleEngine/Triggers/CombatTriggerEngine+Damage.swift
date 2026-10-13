@@ -124,13 +124,13 @@ package extension CombatTriggerEngine {
         var bonus = 0
 
         if damageKeyword == .freeze, status.isBurning {
-            bonus += triggers.freezeDamageWhileBurningBonus
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.freezeDamageWhileBurningBonus)
         }
         if status.isFrozen {
-            bonus += triggers.damageWhileTargetFrozenBonus
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.damageWhileTargetFrozenBonus)
         }
         if status.isStunned, source.role != .enemy || state.options.isAttackHit {
-            bonus += triggers.damageWhileTargetStunnedBonus
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.damageWhileTargetStunnedBonus)
         }
 
         if state.options.isAttackHit, triggers.damageBelowHealthPercentBonus > 0,
@@ -141,58 +141,63 @@ package extension CombatTriggerEngine {
             let percent = Double(context.roster.health(for: target)) /
                 Double(context.roster.maxHealth(for: target))
             if percent < triggers.damageBelowHealthPercentThreshold {
-                bonus += triggers.damageBelowHealthPercentBonus
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.damageBelowHealthPercentBonus)
             }
         }
 
         if status.isBleeding, source.role != .enemy || state.options.isAttackHit {
-            bonus += triggers.damageVsBleedingBonus
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.damageVsBleedingBonus)
         }
         if damageKeyword == .physical || sharedKeyword == .physical,
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target)) > 0 {
-            bonus += triggers.physicalDamageVsBlockedBonus
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.physicalDamageVsBlockedBonus)
         }
         if status.isBurning, triggers.damagePerBurnPotencyPercent > 0 {
-            bonus += CombatRounding.scaled(
-                totalPotency(of: .burn, on: target, in: context),
-                multiplier: triggers.damagePerBurnPotencyPercent,
+            bonus = SaturatedArithmetic.saturatingAdd(
+                bonus, CombatRounding.scaled(
+                    totalPotency(of: .burn, on: target, in: context),
+                    multiplier: triggers.damagePerBurnPotencyPercent,
+                ),
             )
         }
-        bonus += partyAuraDamageBonus(
-            for: state,
-            source: source,
-            damageKeyword: damageKeyword,
-            targetIsPoisoned: status.isPoisoned,
-            targetIsBurning: status.isBurning,
-            in: context,
+        bonus = SaturatedArithmetic.saturatingAdd(
+            bonus, partyAuraDamageBonus(
+                for: state,
+                source: source,
+                damageKeyword: damageKeyword,
+                targetIsPoisoned: status.isPoisoned,
+                targetIsBurning: status.isBurning,
+                in: context,
+            ),
         )
         if damageKeyword == .holy, status.isStunned {
-            bonus += triggers.holyDamageVsStunnedBonus
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.holyDamageVsStunnedBonus)
         }
         if damageKeyword == .burn || sharedKeyword == .burn, status.isFrozen {
-            bonus += triggers.burnDamageVsFrozenBonusPhysical
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.burnDamageVsFrozenBonusPhysical)
         }
         if damageKeyword == .freeze, status.isFrozen {
-            bonus += triggers.frostDamageVsFrozenBonus
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.frostDamageVsFrozenBonus)
         }
         if sourceHasBlock, source.role != .enemy || state.options.isAttackHit {
-            bonus += triggers.shieldDamageBonusWhileBlocked
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.shieldDamageBonusWhileBlocked)
         }
         if context.roster.health(for: target) < context.roster.health(for: source.combatant) {
-            bonus += triggers.damageVsLowerHealthEnemyBonus
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.damageVsLowerHealthEnemyBonus)
         }
         if triggers.damagePerMissingHealthEvery > 0,
            context.roster.maxHealth(for: source.combatant) > 0 {
             let missing = max(0, context.roster.maxHealth(for: source.combatant) - context.roster.health(for: source.combatant))
-            bonus += missing / triggers.damagePerMissingHealthEvery
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, missing / triggers.damagePerMissingHealthEvery)
         }
         if triggers.goldReservesDamageEvery > 0 {
             let uncapped = context.gold / triggers.goldReservesDamageEvery
-            bonus += triggers.goldReservesDamageCap > 0
-                ? min(triggers.goldReservesDamageCap, uncapped)
-                : uncapped
+            bonus = SaturatedArithmetic.saturatingAdd(
+                bonus, triggers.goldReservesDamageCap > 0
+                    ? min(triggers.goldReservesDamageCap, uncapped)
+                    : uncapped,
+            )
         }
-
         return bonus
     }
 

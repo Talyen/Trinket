@@ -158,8 +158,10 @@ package extension CombatTriggerEngine {
                 in: &context,
             ))
         }
-        let companionCards = triggers.companionCardsPerTurn
-            + (context.isPlayerTurn(every: 2, startingAt: 1) ? triggers.companionCardsEveryOtherTurn : 0)
+        let companionCards = SaturatedArithmetic.saturatingAdd(
+            triggers.companionCardsPerTurn,
+            context.isPlayerTurn(every: 2, startingAt: 1) ? triggers.companionCardsEveryOtherTurn : 0,
+        )
         guard companionCards > 0 else { return events }
         events.append(contentsOf: drawCards(
             companionCards,

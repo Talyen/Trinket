@@ -5,6 +5,66 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleBoundaryRegressionTests {
+    @Test func `combined Companion draw bonuses saturate and draw only available cards`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.companionCardsPerTurn = Int.max
+        profile.triggers.companionCardsEveryOtherTurn = 1
+        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: profile, appliesFightPacing: false)
+        battle.companionDeck = CombatDeck(abilities: [.slash, .block])
+
+        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+
+        #expect(battle.hand.totalCount == 2)
+        #expect(events.filter { $0.effectKind == .cardsDrawn }.map(\.amount) == [2])
+    }
+
+    @Test func `combined personal and party damage bonuses saturate before the hit`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.damageWhileTargetFrozenBonus = Int.max
+        profile.triggers.partyDamageBonusWhileCompanionFullHealth = 1
+        profile.triggers.criticalChanceBonus = -1
+        var battle = makeBattle(profile: profile)
+        let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
+        battle.appendEffect(.controlMeter(.freeze, threshold, threshold), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+
+        let outcome = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
+
+        #expect(outcome.healthLost == 20)
+        #expect(battle.isEnemyDefeated)
+    }
+
+    @Test func `stacked readied attack bonuses saturate when combined with battle bonuses`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.criticalChanceBonus = -1
+        var battle = makeBattle(profile: profile)
+        battle.roster.hero.talents.pending.nextHitBonus = Int.max
+        battle.roster.hero.talents.pending.attackBonusOnFullHealth = 1
+        battle.roster.hero.talents.battle.damageBonus = 1
+
+        let outcome = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
+
+        #expect(outcome.healthLost == 20)
+        #expect(battle.isEnemyDefeated)
+        #expect(battle.roster.hero.talents.pending.nextHitBonus == 0)
+        #expect(battle.roster.hero.talents.pending.attackBonusOnFullHealth == 0)
+    }
+
+    @Test(arguments: [false, true])
+    func `prepared flat attack bonuses saturate the outgoing packet`(holy: Bool) {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.criticalChanceBonus = -1
+        profile.triggers.firstHolyAttackBonusPerTurn = holy ? Int.max : 0
+        var battle = makeBattle(profile: profile)
+        if !holy {
+            battle.roster.hero.talents.pending.nextManaSpendAttackBonus = PreparedTalentBonus(value: Int.max)
+        }
+
+        let outcome = battle.resolveTestDamage(1, keyword: .holy, options: .attack(accuracy: .unavoidable))
+
+        #expect(outcome.healthLost == 20)
+        #expect(battle.isEnemyDefeated)
+    }
+
     @Test(arguments: [false, true])
     func `combined empowerment discounts remain a free payment at integer limits`(prepared: Bool) throws {
         var profile = CombatModifierProfile.zero

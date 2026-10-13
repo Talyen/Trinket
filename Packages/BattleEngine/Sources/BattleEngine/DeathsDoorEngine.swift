@@ -165,7 +165,9 @@ package enum DeathsDoorEngine {
         }
 
         let triggers = context.modifiers(for: combatant.id).triggers
-        let duration = BattleTiming.deathsDoorDurationTurns + triggers.deathsDoorDurationBonusTurns
+        let duration = SaturatedArithmetic.saturatingAdd(
+            BattleTiming.deathsDoorDurationTurns, triggers.deathsDoorDurationBonusTurns,
+        )
         context.prependEffect(
             .deathsDoor,
             to: combatant,

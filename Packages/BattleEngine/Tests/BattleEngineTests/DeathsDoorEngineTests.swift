@@ -5,6 +5,18 @@ import TrinketCore
 @testable import BattleEngine
 
 struct DeathsDoorEngineTests {
+    @Test func `Death's Door duration saturates when its bonus reaches the integer limit`() throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.deathsDoorDurationBonusTurns = Int.max
+        var battle = makeContext(heroHP: 1, heroModifiers: profile)
+
+        _ = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .reaction())
+
+        #expect(battle.health(of: battle.hero) == 1)
+        let door = try #require(battle.activeEffects(of: battle.hero).first { $0.effect.kind == .deathsDoor })
+        #expect(door.remainingTurns == Int.max)
+    }
+
     @Test func `a fully Sapped Phoenix Gift cannot suppress Deaths Door protection`() {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             heroEffects: [ActiveEffect(id: 1, effect: .healingReductionPercent(1, 2), remainingTurns: 2)],
