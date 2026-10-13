@@ -53,13 +53,11 @@ struct EffectHandlersTurnTests {
     }
 
     @Test func `frozen enemy avatar cannot gain block`() {
-        var triggers = CombatTraitTriggers()
-        triggers.frozenEnemyCannotBlockOrHeal = true
         var battle = BattleStateTestFactory.makeBattle(
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0),
             ],
-            heroModifiers: CombatModifierProfile(triggers: triggers),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.frozenEnemyCannotBlockOrHeal = true },
         )
         _ = EffectHandlersTestSupport.dispatchTick(
             ActiveEffect(
@@ -125,11 +123,7 @@ struct EffectHandlersTurnTests {
         try #expect(baseline.currentEffect?.effect.potency == 5)
 
         var slowedBattle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(
-                    dot: DotTriggers(burnDecaySlowPercent: 0.4),
-                ),
-            ),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.burnDecaySlowPercent = 0.4 },
         )
         let slowedBurn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 2, sourceActorID: "source")
         let slowed = EffectHandlersTestSupport.dispatchTick(

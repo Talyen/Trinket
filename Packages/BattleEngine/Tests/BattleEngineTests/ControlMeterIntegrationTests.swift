@@ -170,47 +170,26 @@ struct ControlMeterIntegrationTests {
         try #expect(!(battle.roster.hasPendingActionSkip(for: battle.hero, keyword: .stun)))
     }
 
-    @Test func `shatter and dazed apply during control status linger`() throws {
-        let jab = Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1, damageKeyword: .physical)
-        var frozenBattle = makeControlBattle(
+    @Test(arguments: [(Keyword.freeze, 2), (.stun, 1)])
+    func `shatter and dazed apply during control status linger`(keyword: Keyword, bonus: Int) throws {
+        let jab = Ability(id: "jab", name: "Jab", tier: .basic, directDamage: 1)
+        var triggers = CombatTraitTriggers()
+        if keyword == .freeze {
+            triggers.damageWhileTargetFrozenBonus = bonus
+        } else {
+            triggers.damageWhileTargetStunnedBonus = bonus
+        }
+        var battle = makeControlBattle(
             heroAbilities: [jab],
-            activeEnemyEffects: [
-                ActiveEffect(
-                    id: 1,
-                    effect: .controlMeter(.freeze, 1, 1),
-                    remainingTurns: BattleTiming.controlStatusLingerTurns,
-                ),
-            ],
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(
-                    damageWhileTargetFrozenBonus: 2,
-                ),
-            )),
+            activeEnemyEffects: [ActiveEffect(
+                id: 1, effect: .controlMeter(keyword, 1, 1), remainingTurns: BattleTiming.controlStatusLingerTurns,
+            )],
+            heroModifiers: .init(triggers: triggers),
         )
-        try #expect(!(frozenBattle.roster.hasPendingActionSkip(for: frozenBattle.enemy, keyword: .freeze)))
-        try #expect(frozenBattle.roster.hasControlStatus(for: frozenBattle.enemy, keyword: .freeze))
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &frozenBattle)
-        try #expect(100 - frozenBattle.health(of: frozenBattle.enemy) == 3)
-
-        var stunnedBattle = makeControlBattle(
-            heroAbilities: [jab],
-            activeEnemyEffects: [
-                ActiveEffect(
-                    id: 1,
-                    effect: .controlMeter(.stun, 1, 1),
-                    remainingTurns: BattleTiming.controlStatusLingerTurns,
-                ),
-            ],
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(
-                    damageWhileTargetStunnedBonus: 1,
-                ),
-            )),
-        )
-        try #expect(!(stunnedBattle.roster.hasPendingActionSkip(for: stunnedBattle.enemy, keyword: .stun)))
-        try #expect(stunnedBattle.roster.hasControlStatus(for: stunnedBattle.enemy, keyword: .stun))
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &stunnedBattle)
-        try #expect(100 - stunnedBattle.health(of: stunnedBattle.enemy) == 2)
+        #expect(!battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: keyword))
+        #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: keyword))
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+        #expect(100 - battle.health(of: battle.enemy) == 1 + bonus)
     }
 
     @Test func `blocked stun damage does not charge control meter`() throws {

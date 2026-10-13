@@ -28,9 +28,10 @@ struct DoTArithmeticBoundaryTests {
 
     @Test(arguments: [Keyword.burn, .poison])
     func `live growth at capped potency preserves the cap`(keyword: Keyword) {
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .init(triggers: CombatTraitTriggers(
-            dot: DotTriggers(poisonDecayIncreaseChance: 1, burnIncreaseChancePercent: 1),
-        )))
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+            $0.poisonDecayIncreaseChance = 1
+            $0.burnIncreaseChancePercent = 1
+        }))
         let progression = DecayingDoTProgression(
             type: keyword == .burn ? .burn : .poison,
             sourceActorID: battle.hero.id, target: battle.enemy, in: battle,
@@ -41,12 +42,14 @@ struct DoTArithmeticBoundaryTests {
 
     @Test(arguments: [Keyword.burn, .poison])
     func `enemy pool uses strongest living ally decay modifier regardless of applier`(keyword: Keyword) {
-        let hero = CombatModifierProfile(triggers: CombatTraitTriggers(dot: DotTriggers(
-            enemyPoisonDecaySlowPercent: 0.25, enemyBurnDecaySlowPercent: 0.25,
-        )))
-        let companion = CombatModifierProfile(triggers: CombatTraitTriggers(dot: DotTriggers(
-            enemyPoisonDecaySlowPercent: 0.4, enemyBurnDecaySlowPercent: 0.4,
-        )))
+        let hero = CombatModifierProfile.withTriggers {
+            $0.enemyPoisonDecaySlowPercent = 0.25
+            $0.enemyBurnDecaySlowPercent = 0.25
+        }
+        let companion = CombatModifierProfile.withTriggers {
+            $0.enemyPoisonDecaySlowPercent = 0.4
+            $0.enemyBurnDecaySlowPercent = 0.4
+        }
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, companionModifiers: companion)
         let type: DecayingDoT = keyword == .burn ? .burn : .poison
         for sourceID in [battle.hero.id, battle.companion.id] {
@@ -65,11 +68,10 @@ struct DoTArithmeticBoundaryTests {
     }
 
     @Test func `party poison preservation precedes growth and detonation does not roll`() {
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .init(triggers: CombatTraitTriggers(
-            dot: DotTriggers(enemyPoisonDecayIncreaseChance: 1),
-        )), companionModifiers: .init(triggers: CombatTraitTriggers(
-            dot: DotTriggers(enemyPoisonPreventDecayChancePercent: 1),
-        )))
+        var battle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.enemyPoisonDecayIncreaseChance = 1 }),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.enemyPoisonPreventDecayChancePercent = 1 }),
+        )
         let preserved = DecayingDoTProgression(type: .poison, sourceActorID: battle.hero.id, target: battle.enemy, in: battle)
         #expect(preserved.turnPotency(from: 10, using: &battle.rng) == 10)
         #expect(preserved.decayedPotency(from: 10) == Effect.poison(10).potencyAfterTurn())

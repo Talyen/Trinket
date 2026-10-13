@@ -120,14 +120,10 @@ struct DeathsDoorEngineTests {
     @Test func `second wind does not preempt deaths door on lethal hit`() throws {
         var context = makeContext(
             heroHP: 5,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                control: ControlTriggers(
-                    onceBelowHealthPercentThreshold: 0.25,
-                ),
-                healing: HealingTriggers(
-                    onceBelowHealthPercentHeal: 3,
-                ),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers {
+                $0.onceBelowHealthPercentThreshold = 0.25
+                $0.onceBelowHealthPercentHeal = 3
+            },
         )
         let hero = context.roster.hero.combatant
         let events = context.resolveTestDamage(
@@ -160,9 +156,7 @@ struct DeathsDoorEngineTests {
     @Test func `block only revive does not trigger without health`() throws {
         var context = makeContext(
             heroHP: 5,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                revival: RevivalTriggers(onceDeathReviveBlock: 10),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.onceDeathReviveBlock = 10 },
         )
         let hero = context.roster.hero.combatant
         _ = context.resolveTestDamage(10, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
@@ -246,9 +240,7 @@ struct DeathsDoorEngineTests {
         BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             heroHealth: heroHealth,
-            heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(revival: RevivalTriggers(deathsDoorExpiredHealFlat: 10)),
-            ),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.deathsDoorExpiredHealFlat = 10 },
         )
     }
 

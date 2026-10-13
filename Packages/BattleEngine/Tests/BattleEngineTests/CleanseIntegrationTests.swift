@@ -175,8 +175,6 @@ struct CleanseIntegrationTests {
     }
 
     @Test func `cleanse all debuffs triggers toxic backlash trait damage when curing poison`() throws {
-        var triggers = CombatTraitTriggers()
-        triggers.onCleansePoisonDealDamagePerStack = 5
         var battle = makeCleanseBattle(
             heroAbility: cleanseAll,
             heroMaxHealth: 50,
@@ -185,7 +183,7 @@ struct CleanseIntegrationTests {
                 ActiveEffect(id: 2, effect: .poison(4), remainingTurns: 0),
                 ActiveEffect(id: 3, effect: .burn(4), remainingTurns: 0),
             ],
-            heroModifiers: CombatModifierProfile(triggers: triggers),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.onCleansePoisonDealDamagePerStack = 5 },
         )
 
         let events = try BattleTestFixtures.playCardNamed("Cleanse All", owner: .hero, on: &battle)
@@ -203,7 +201,7 @@ struct CleanseIntegrationTests {
         var battle = makeCleanseBattle(
             heroAbility: cleanseAll, heroMaxHealth: 50,
             activeHeroEffects: hasDebuffs ? debuffs : [],
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleansePartyBlock: 2))),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.cleansePartyBlock = 2 },
         )
         let events = try BattleTestFixtures.playCardNamed("Cleanse All", owner: .hero, on: &battle)
         if hasDebuffs {
@@ -222,7 +220,7 @@ struct CleanseIntegrationTests {
         )
         var battle = makeCleanseBattle(
             heroAbility: cleanseAbility, heroMaxHealth: 50,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(cleanse: CleanseTriggers(cleanseBonusDraw: 1))),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.cleanseBonusDraw = 1 },
             dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck(abilities: [.slash, .smite, .block])

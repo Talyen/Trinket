@@ -9,9 +9,7 @@ struct CombatTriggerTalentDamageTests {
     func `high altitude only adds dodge above half health`(health: Int) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 20,
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                dodge: DodgeTriggers(dodgeChanceAboveHalfHealthBonus: 0.15),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.dodgeChanceAboveHalfHealthBonus = 0.15 }),
             dealOpeningHand: false,
         )
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = health }
@@ -47,9 +45,10 @@ struct CombatTriggerTalentDamageTests {
     func `holy block bypass preserves block for physical followups`(piercingStarlight: Bool) {
         var battle = BattleTestFixtures.makePipelineContext(
             targetEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
-            heroModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(
-                holyIgnoresBlock: !piercingStarlight, holyIgnoresBlockAndDodge: piercingStarlight,
-            ))),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.holyIgnoresBlock = !piercingStarlight
+                $0.holyIgnoresBlockAndDodge = piercingStarlight
+            }),
         )
         let holy = battle.resolveTestDamage(6, to: battle.enemy, keyword: .holy, sourceActorID: "source")
         #expect(holy.healthLost == 6)
@@ -64,9 +63,7 @@ struct CombatTriggerTalentDamageTests {
     func `bane of evil doubles holy against undead`(faction: EnemyFaction) {
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(holyDamageVsUndeadOrCorruptedMultiplier: 2),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.holyDamageVsUndeadOrCorruptedMultiplier = 2 }),
             enemyFaction: faction, dealOpeningHand: false,
         )
         let outcome = battle.resolveTestDamage(4, keyword: .holy, options: .effect(scaling: .items, accuracy: .unavoidable))
@@ -76,9 +73,7 @@ struct CombatTriggerTalentDamageTests {
     @Test func `stalker precision caps crit multiplier`() {
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                dodge: DodgeTriggers(critMultiplierPerDodge: 0.5),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.critMultiplierPerDodge = 0.5 }),
             dealOpeningHand: false,
         )
         let companion = battle.roster.companion.combatant
@@ -93,9 +88,7 @@ struct CombatTriggerTalentDamageTests {
     }
 
     @Test func `nested damage beyond depth two is retaliation`() {
-        let harvest = CombatModifierProfile(triggers: CombatTraitTriggers(
-            block: BlockTriggers(onAnyHealthLossGainBlock: 1),
-        ))
+        let harvest = CombatModifierProfile.withTriggers { $0.onAnyHealthLossGainBlock = 1 }
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroModifiers: harvest,
@@ -109,9 +102,7 @@ struct CombatTriggerTalentDamageTests {
     }
 
     @Test func `shield scarab companion deals bonus damage to stunned enemies`() {
-        let scarabProfile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            damage: DamageTriggers(damageWhileTargetStunnedBonus: 4),
-        ))
+        let scarabProfile = CombatModifierProfile.withTriggers { $0.damageWhileTargetStunnedBonus = 4 }
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             companionModifiers: scarabProfile,
@@ -128,10 +119,10 @@ struct CombatTriggerTalentDamageTests {
     @Test func `keyword reactions skip retaliation holy pings`() {
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(blindingLight: true),
-                dot: DotTriggers(onBurnTickHolyDamage: 1),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.blindingLight = true
+                $0.onBurnTickHolyDamage = 1
+            }),
             dealOpeningHand: false,
         )
         _ = battle.resolveTestDamage(1, keyword: .holy, options: .reaction(cause: .talent, scaling: .flat, accuracy: .unavoidable))
@@ -142,7 +133,7 @@ struct CombatTriggerTalentDamageTests {
     func `afflicted damage auras stack additively`(heroHasAura: Bool) {
         func aura(named name: String) -> CombatModifierProfile {
             .init(
-                triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBurningMultiplier: 1.25)),
+                triggers: CombatTraitTriggers.configured { $0.damageVsBurningMultiplier = 1.25 },
                 triggerAbilityNames: [.damageVsBurningMultiplier: name],
             )
         }
@@ -164,9 +155,7 @@ struct CombatTriggerTalentDamageTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(companionDamageVsPoisonedBonus: 2),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.companionDamageVsPoisonedBonus = 2 }),
             dealOpeningHand: false,
         )
         battle.seedActiveEffects([ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2)], for: battle.roster.enemy.combatant)
@@ -178,9 +167,7 @@ struct CombatTriggerTalentDamageTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                attack: AttackTriggers(partyDamageBonusWhileCompanionFullHealth: 2),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.partyDamageBonusWhileCompanionFullHealth = 2 }),
             dealOpeningHand: false,
         )
         let outcome = battle.resolveTestDamage(5, options: .effect(scaling: .items, accuracy: .unavoidable))
@@ -194,12 +181,10 @@ extension CombatTriggerTalentDamageTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(
-                    partyAllStatsBonusBelowHealthThreshold: 0.5,
-                    partyAllStatsBonusBelowHealthAmount: 3,
-                ),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.partyAllStatsBonusBelowHealthThreshold = 0.5
+                $0.partyAllStatsBonusBelowHealthAmount = 3
+            }),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -219,9 +204,7 @@ extension CombatTriggerTalentDamageTests {
 
     @Test func `unbroken vow does not give enemies block or dodge ignore`() {
         var battle = BattleTestFixtures.makePipelineContext(
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(unbrokenVow: true),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.unbrokenVow = true }),
         )
         battle.seedActiveEffects([ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)], for: battle.roster.enemy.combatant)
         battle.seedActiveEffects(
@@ -245,9 +228,7 @@ extension CombatTriggerTalentDamageTests {
 
     @Test func `damage cap applies to periodic hits`() {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                block: BlockTriggers(maxDamagePerHitCap: 12),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.maxDamagePerHitCap = 12 }),
         )
         let outcome = battle.resolveDamage(
             DamageRequest.doTTick(amount: 20, target: battle.roster.hero.combatant, keyword: .burn, sourceActorID: "target"),

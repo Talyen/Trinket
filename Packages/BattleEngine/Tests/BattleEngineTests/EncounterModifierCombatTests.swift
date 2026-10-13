@@ -18,7 +18,7 @@ struct EncounterModifierCombatTests {
     @Test func `enemy attack leeches health damage but effects do not`() {
         var enemy = CombatModifierProfile(modifiers: [.attackLeechPercent(0.5)])
         enemy.triggers.criticalChanceBonus = -1
-        let hero = CombatModifierProfile(triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeChanceBonus: -1)))
+        let hero = CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 }
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy)
         battle.appliesFightPacing = false
         _ = battle.resolveTestDamage(10, options: .attack(scaling: .flat))
@@ -34,7 +34,7 @@ struct EncounterModifierCombatTests {
     }
 
     @Test func `landed enemy attacks strip block before damage`() {
-        let hero = CombatModifierProfile(triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeChanceBonus: -1)))
+        let hero = CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 }
         let enemy = CombatModifierProfile(modifiers: [.attackBlockRemoval(2)])
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy)
         battle.appliesFightPacing = false
@@ -46,7 +46,7 @@ struct EncounterModifierCombatTests {
     }
 
     @Test func `landed enemy attacks purge one surviving buff`() {
-        let hero = CombatModifierProfile(triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeChanceBonus: -1)))
+        let hero = CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 }
         let enemy = CombatModifierProfile(modifiers: [.attackPurgeCount(1)])
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy)
         battle.appliesFightPacing = false

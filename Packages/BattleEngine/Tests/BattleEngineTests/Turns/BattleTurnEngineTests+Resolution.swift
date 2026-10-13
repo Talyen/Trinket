@@ -14,9 +14,7 @@ extension BattleTurnEngineTests {
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
             enemy: build.combatant,
             enemyHealth: 1,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                block: BlockTriggers(blockBrokenSaintfallPower: 6),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.blockBrokenSaintfallPower = 6 },
             enemyModifiers: build.modifiers,
         )
         context.appliesFightPacing = false

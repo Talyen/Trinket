@@ -125,7 +125,7 @@ extension TalentCatalogRoundTripTests {
     @Test func `blinding light reserves one attack miss roll and leaves damage over time unchanged`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxHealth: 40,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeChanceBonus: -1))),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 },
             companionModifiers: CombatantTalentCatalog.profile(for: ["library_owl_holy_t2_1"]),
             dealOpeningHand: false,
         )

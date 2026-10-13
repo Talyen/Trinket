@@ -64,11 +64,7 @@ struct BattleTurnEngineTests {
         var context = makeTurnContext(
             heroMaxHealth: 50,
             heroHealth: 5,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                healing: HealingTriggers(
-                    blockOnDeathsDoor: 8,
-                ),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.blockOnDeathsDoor = 8 },
             seed: 0,
         )
         let hero = context.hero
@@ -366,14 +362,10 @@ struct BattleTurnEngineComponentTests {
             hero: hero,
             companion: companion,
             enemy: enemy,
-            heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(
-                    mana: ManaTriggers(
-                        repeatManaEmpowerment: true,
-                        empowermentCostReduction: 10,
-                    ),
-                ),
-            ),
+            heroModifiers: CombatModifierProfile.withTriggers {
+                $0.repeatManaEmpowerment = true
+                $0.empowermentCostReduction = 10
+            },
             dealOpeningHand: false,
         )
         context.roster.mutateRuntime(for: hero) {

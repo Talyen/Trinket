@@ -71,7 +71,7 @@ struct ThreeCardTurnTests {
     }
 
     @Test func `Gale moves the played copy despite an identical held ability and cannot return repeatedly`() throws {
-        var state = battle(triggers: CombatTraitTriggers(attack: AttackTriggers(thirdCardReturnsToHand: true)))
+        var state = battle(triggers: CombatTraitTriggers.configured { $0.thirdCardReturnsToHand = true })
         let played = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &state)
         _ = try state.playCard(cardID: played.id)
         let duplicate = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &state)
@@ -116,7 +116,7 @@ struct ThreeCardTurnTests {
 
     @Test(arguments: [BattleParticipant.hero, .companion], [0, 1])
     func `Clear Mind draws once for a real multi effect Cleanse at zero Mana`(target: BattleParticipant, mana: Int) {
-        var state = battle(triggers: CombatTraitTriggers(cleanse: CleanseTriggers(clearMind: true)))
+        var state = battle(triggers: CombatTraitTriggers.configured { $0.clearMind = true })
         state.roster.hero.currentMana = mana
         state.heroDeck = CombatDeck(abilities: [.block, .heal])
         let recipient = state.roster[target].combatant
@@ -143,7 +143,7 @@ struct ThreeCardTurnTests {
 
     @Test(arguments: [49, 50])
     func `Smite the Wicked draws once on successful Purge strictly below half Health`(health: Int) {
-        var state = battle(triggers: CombatTraitTriggers(cleanse: CleanseTriggers(purgeDrawBelowHalf: true)))
+        var state = battle(triggers: CombatTraitTriggers.configured { $0.purgeDrawBelowHalf = true })
         state.roster.hero.currentHealth = health
         state.heroDeck = CombatDeck(abilities: [.block, .heal])
         state.appendEffect(.shield(.block, 3), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
@@ -169,7 +169,7 @@ struct ThreeCardTurnTests {
 
     @Test(arguments: [49, 50, 51])
     func `Resourceful reads Health after the enemy hit breaks Block`(health: Int) {
-        var state = battle(triggers: CombatTraitTriggers(block: BlockTriggers(blockBreakDrawBelowHalf: true)))
+        var state = battle(triggers: CombatTraitTriggers.configured { $0.blockBreakDrawBelowHalf = true })
         state.roster.hero.currentHealth = health
         state.heroDeck = CombatDeck(abilities: [.block, .heal])
         state.appendEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
@@ -179,7 +179,7 @@ struct ThreeCardTurnTests {
     }
 
     @Test func `Consolation Prize is seeded once per combat and its generated copy cycles`() throws {
-        let triggers = CombatTraitTriggers(gold: GoldTriggers(blockedAttackFirstRandomCard: true))
+        let triggers = CombatTraitTriggers.configured { $0.blockedAttackFirstRandomCard = true }
         var state = battle(triggers: triggers)
         var peer = battle(triggers: triggers)
         func trigger(_ context: inout BattleState) throws {
@@ -211,10 +211,11 @@ struct ThreeCardTurnTests {
     }
 
     @Test func `guaranteed theft draws with both return Uniques still exhaust finite cards`() throws {
-        let triggers = CombatTraitTriggers(
-            attack: AttackTriggers(thirdCardReturnsToHand: true, recoverLastAttackCardEachTurn: true),
-            gold: GoldTriggers(goldTheftDrawChancePercent: 1),
-        )
+        let triggers = CombatTraitTriggers.configured {
+            $0.thirdCardReturnsToHand = true
+            $0.recoverLastAttackCardEachTurn = true
+            $0.goldTheftDrawChancePercent = 1
+        }
         var state = battle(triggers: triggers)
         state.heroDeck = CombatDeck(abilities: [.steal, .steal, .steal])
         _ = BattleCardCombatEngine.drawOne(for: .hero, context: &state)
@@ -233,7 +234,7 @@ struct ThreeCardTurnTests {
     }
 
     @Test func `Resourceful has no turn allowance and ignores voluntary and self damage breaks`() {
-        var state = battle(triggers: CombatTraitTriggers(block: BlockTriggers(blockBreakDrawBelowHalf: true)))
+        var state = battle(triggers: CombatTraitTriggers.configured { $0.blockBreakDrawBelowHalf = true })
         state.roster.hero.currentHealth = 40
         state.heroDeck = CombatDeck(abilities: [.block, .heal, .slash])
         for _ in 0 ..< 2 {
@@ -250,7 +251,7 @@ struct ThreeCardTurnTests {
 
     @Test(arguments: [0.0, 1.0])
     func `theft draw rolls once per successful ability without a turn limit`(chance: Double) {
-        var state = battle(triggers: CombatTraitTriggers(gold: GoldTriggers(goldTheftDrawChancePercent: chance)))
+        var state = battle(triggers: CombatTraitTriggers.configured { $0.goldTheftDrawChancePercent = chance })
         state.heroDeck = CombatDeck(abilities: [.block, .heal, .slash])
         let theft = Ability(
             id: "double-theft", name: "Double Theft", tier: .skill,

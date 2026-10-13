@@ -35,9 +35,7 @@ struct HealthRestorationTargetingTests {
     }
 
     @Test func `holy and dodge affixes restore the lowest ally`() {
-        let holy = CombatModifierProfile(triggers: CombatTraitTriggers(
-            healing: HealingTriggers(holyDamageHealFlat: 3),
-        ))
+        let holy = CombatModifierProfile.withTriggers { $0.holyDamageHealFlat = 3 }
         var holyBattle = battle(heroModifiers: holy)
         _ = CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
             to: holyBattle.enemy, source: holyBattle.hero, in: &holyBattle,
@@ -45,9 +43,7 @@ struct HealthRestorationTargetingTests {
         #expect(holyBattle.health(of: holyBattle.companion) == 4)
         #expect(holyBattle.health(of: holyBattle.hero) == 20)
 
-        let dodge = CombatModifierProfile(triggers: CombatTraitTriggers(
-            dodge: DodgeTriggers(dodgeHealFlat: 3),
-        ))
+        let dodge = CombatModifierProfile.withTriggers { $0.dodgeHealFlat = 3 }
         var dodgeBattle = battle(heroModifiers: dodge)
         _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: dodgeBattle.hero, attackerID: dodgeBattle.enemy.id,
@@ -58,9 +54,11 @@ struct HealthRestorationTargetingTests {
     }
 
     @Test func `gold affix and talent restoration reach a wounded partner`() {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            gold: GoldTriggers(gainGoldBonusHealSelf: 2, goldGainHealChancePercent: 1, goldGainHealAmount: 3),
-        ))
+        let profile = CombatModifierProfile.withTriggers {
+            $0.gainGoldBonusHealSelf = 2
+            $0.goldGainHealChancePercent = 1
+            $0.goldGainHealAmount = 3
+        }
         var battle = battle(heroModifiers: profile)
         _ = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Test Gold")
         #expect(battle.health(of: battle.companion) == 6)
@@ -68,9 +66,7 @@ struct HealthRestorationTargetingTests {
     }
 
     @Test func `hibernation uses the bear's Block to heal its lower Health ally`() {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            healing: HealingTriggers(endTurnWithBlockHealFlat: 2),
-        ))
+        let profile = CombatModifierProfile.withTriggers { $0.endTurnWithBlockHealFlat = 2 }
         var battle = battle(companionModifiers: profile, heroHealth: 1, companionHealth: 20)
         DefensePoolEngine.set(3, on: battle.companion, in: &battle)
         _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
@@ -79,11 +75,13 @@ struct HealthRestorationTargetingTests {
     }
 
     @Test func `cleanse restoration can heal a different ally`() {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            damage: DamageTriggers(criticalChanceBonus: -1),
-            healing: HealingTriggers(cleanseSelfHeal: 2, cleanseBonusHeal: 2, purifyingWaters: true),
-            cleanse: CleanseTriggers(freshBatch: true),
-        ))
+        let profile = CombatModifierProfile.withTriggers {
+            $0.criticalChanceBonus = -1
+            $0.cleanseSelfHeal = 2
+            $0.cleanseBonusHeal = 2
+            $0.purifyingWaters = true
+            $0.freshBatch = true
+        }
         var battle = battle(heroModifiers: profile)
         battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 1)
         _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
@@ -113,9 +111,7 @@ struct HealthRestorationTargetingTests {
     }
 
     @Test func `saintfall heals the lowest ally after Block breaks`() {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            block: BlockTriggers(blockBrokenSaintfallPower: 6),
-        ))
+        let profile = CombatModifierProfile.withTriggers { $0.blockBrokenSaintfallPower = 6 }
         var battle = battle(heroModifiers: profile)
         DefensePoolEngine.set(1, on: battle.hero, in: &battle)
         _ = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .effect())

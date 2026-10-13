@@ -32,7 +32,7 @@ struct HealingReductionTests {
         var silent = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             heroHealth: 10,
-            heroModifiers: .init(triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: 0.5))),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.criticalChanceBonus = 0.5 }),
         )
         var visible = silent
         let silentResult = silent.resolveHeal(HealRequest(
@@ -99,7 +99,7 @@ struct HealingReductionTests {
             heroModifiers: CombatModifierProfile(blockGainedBonus: 7),
             companionModifiers: CombatModifierProfile(
                 blockGainedBonus: 3,
-                triggers: CombatTraitTriggers(healing: HealingTriggers(onHealGrantBlock: 2)),
+                triggers: CombatTraitTriggers.configured { $0.onHealGrantBlock = 2 },
             ),
         )
         battle.appliesFightPacing = false
@@ -115,9 +115,10 @@ struct HealingReductionTests {
 
     @Test func `healing triggered cleanse rewards the healer`() {
         var battle = BattleStateTestFactory.makeBattle(
-            companionModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                healing: HealingTriggers(cleanseSelfHeal: 3, onHealCleanseTargetChance: 1),
-            )),
+            companionModifiers: CombatModifierProfile.withTriggers {
+                $0.cleanseSelfHeal = 3
+                $0.onHealCleanseTargetChance = 1
+            },
         )
         battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant

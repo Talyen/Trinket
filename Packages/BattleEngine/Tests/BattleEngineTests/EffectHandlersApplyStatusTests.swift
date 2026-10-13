@@ -69,9 +69,7 @@ struct EffectHandlersApplyStatusTests {
     }
 
     @Test func `intercepted timed debuff reports not applied`() throws {
-        let warded = CombatModifierProfile(
-            triggers: CombatTraitTriggers(cleanse: CleanseTriggers(blockFirstDebuffPerTurn: true)),
-        )
+        let warded = CombatModifierProfile.withTriggers { $0.blockFirstDebuffPerTurn = true }
         // Fae Ward lives on the target's own profile: seed the debuff target as hero with ward.
         var battle = BattleStateTestFactory.makeBattle(
             heroModifiers: warded,

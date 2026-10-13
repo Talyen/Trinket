@@ -8,9 +8,7 @@ struct ControlMeterEngineTests {
     @Test func `stun buildup displays the threshold used by seismic impact`() throws {
         var context = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 100,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                control: ControlTriggers(enemyStunThresholdReductionPercent: 0.25),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.enemyStunThresholdReductionPercent = 0.25 },
         )
         let target = context.roster.enemy.combatant
         _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
@@ -30,9 +28,7 @@ struct ControlMeterEngineTests {
     @Test func `reduced stun threshold triggers from another attackers buildup`() {
         var context = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 100,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                control: ControlTriggers(enemyStunThresholdReductionPercent: 0.25),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.enemyStunThresholdReductionPercent = 0.25 },
         )
         let target = context.roster.enemy.combatant
         _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
@@ -91,9 +87,7 @@ struct ControlMeterEngineTests {
             companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50),
             heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(blockedControlBurnResistance: 0.5),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.blockedControlBurnResistance = 0.5 },
         )
         _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(
             4, keyword: keyword, to: context.hero, sourceActorID: context.enemy.id,
@@ -181,9 +175,7 @@ struct ControlMeterEngineTests {
     @Test func `reduced stun threshold still registers full meter and skip`() throws {
         var context = BattleTestFixtures.makePipelineContext(
             targetMaxHealth: 100,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                control: ControlTriggers(enemyStunThresholdReductionPercent: 0.25),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.enemyStunThresholdReductionPercent = 0.25 },
         )
         let target = context.roster.enemy.combatant
         let baseThreshold = ControlMeterEngine.threshold(for: target, in: context)
@@ -231,7 +223,7 @@ struct ControlMeterEngineTests {
     @Test func `legacy freeze extra action skips maps to twenty percent`() {
         assertControlSkips(
             keyword: .freeze,
-            triggers: CombatTraitTriggers(control: ControlTriggers(freezeExtraActionSkips: 1)),
+            triggers: CombatTraitTriggers.configured { $0.freezeExtraActionSkips = 1 },
             seed: 0, expected: 2,
         )
     }

@@ -29,9 +29,10 @@ extension CombatTriggerTalentDamageTests {
     @Test func `dense bones gains reduction only from attack hits up to four`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 100,
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(toughnessOnHit: 1, toughnessOnHitCap: 4),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.toughnessOnHit = 1
+                $0.toughnessOnHitCap = 4
+            }),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -61,9 +62,10 @@ extension CombatTriggerTalentDamageTests {
     @Test func `dense bones clamps a stacked step to its cap`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 100,
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(toughnessOnHit: 3, toughnessOnHitCap: 4),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.toughnessOnHit = 3
+                $0.toughnessOnHitCap = 4
+            }),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -81,9 +83,7 @@ extension CombatTriggerTalentDamageTests {
     @Test(arguments: [DamageOperation.healthCost, .periodic, .reaction()])
     func `soul sharing heals from enemy damage but not skeleton health costs`(options: DamageOperation) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                healing: HealingTriggers(companionDamageLeechesToHeroPercent: 0.5),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.companionDamageLeechesToHeroPercent = 0.5 }),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -101,7 +101,7 @@ extension CombatTriggerTalentDamageTests {
 
     @Test func `bloodrush draws only physical cards on bleed ticks`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: .init(triggers: CombatTraitTriggers(dot: DotTriggers(bleedTickDrawChancePercent: 1.0))),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.bleedTickDrawChancePercent = 1.0 }),
             dealOpeningHand: false,
         )
         battle.companionDeck = CombatDeck(abilities: [.kindling, .slash])
@@ -119,7 +119,7 @@ extension CombatTriggerTalentDamageTests {
 
     @Test func `bone armor grants block on every health loss except absorbed damage`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(onSelfHealthLossGainBlock: 1))),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.onSelfHealthLossGainBlock = 1 }),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -144,7 +144,7 @@ extension CombatTriggerTalentDamageTests {
         var successes = 0
         for seed in UInt64(1) ... 32 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroModifiers: .init(triggers: CombatTraitTriggers(dot: DotTriggers(crossContamination: true))),
+                heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.crossContamination = true }),
                 rngSeed: seed, dealOpeningHand: false,
             )
             battle.appliesFightPacing = false

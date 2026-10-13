@@ -185,7 +185,7 @@ struct BattleLogProjectionTests {
     }
 
     private func makeActionDamageLogBattle() -> BattleState {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: -1)))
+        let profile = CombatModifierProfile.withTriggers { $0.criticalChanceBonus = -1 }
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.bloodOffering, .bloodthorn], heroModifiers: profile, dealOpeningHand: false,
         )

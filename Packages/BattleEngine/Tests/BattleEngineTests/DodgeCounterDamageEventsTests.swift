@@ -7,9 +7,7 @@ import TrinketCore
 struct DodgeCounterDamageEventsTests {
     @Test(arguments: [false, true])
     func `Whiplash reports its damage once even when the hit Stuns`(triggersStun: Bool) throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            control: ControlTriggers(dodgeDealStunFlat: 3),
-        ))
+        let profile = CombatModifierProfile.withTriggers { $0.dodgeDealStunFlat = 3 }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: profile,

@@ -12,7 +12,7 @@ struct ResolvedHealingReductionTests {
         let affix = try #require(GameContent.itemAffixDefinition(matching: "symbiosis"))
         let saved = ItemAffixPower(
             description: "Companions gain 65% of your Leech.", modifiers: [],
-            triggers: CombatTraitTriggers(healing: HealingTriggers(companionLeechSharePercent: savedShare)),
+            triggers: CombatTraitTriggers.configured { $0.companionLeechSharePercent = savedShare },
         )
         let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([saved]))
         let item = try ItemFixtures.makeBareItem(

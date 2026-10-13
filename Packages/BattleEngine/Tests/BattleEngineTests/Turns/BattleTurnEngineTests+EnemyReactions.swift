@@ -37,15 +37,13 @@ extension BattleTurnEngineTests {
     }
 
     @Test func `attack avoidance preserves enemy support actions and warning bark`() {
-        var heroTriggers = CombatTraitTriggers()
-        heroTriggers.poisonedEnemyMissChancePercent = 1
-        var companionTriggers = CombatTraitTriggers()
-        companionTriggers.negateFirstEnemyAttack = true
-        companionTriggers.swapAndDodgeForHeroChance = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [.block],
-            heroModifiers: CombatModifierProfile(triggers: heroTriggers),
-            companionModifiers: CombatModifierProfile(triggers: companionTriggers),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.poisonedEnemyMissChancePercent = 1 },
+            companionModifiers: CombatModifierProfile.withTriggers {
+                $0.negateFirstEnemyAttack = true
+                $0.swapAndDodgeForHeroChance = 1
+            },
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false

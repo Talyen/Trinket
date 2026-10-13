@@ -68,9 +68,10 @@ struct ControlExtensionLifecycleTests {
 
     private func extendedControlBattle() -> BattleState {
         BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(freezeExtendChancePercent: 1, stunExtendChancePercent: 1),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.freezeExtendChancePercent = 1
+                $0.stunExtendChancePercent = 1
+            }),
         )
     }
 

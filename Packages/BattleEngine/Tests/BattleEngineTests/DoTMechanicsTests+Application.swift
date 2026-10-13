@@ -27,9 +27,10 @@ extension DoTMechanicsTests {
         for enemyAttacks in [false, true] {
             let profile = CombatModifierProfile(
                 damageDealtBonus: [keyword: 2],
-                triggers: CombatTraitTriggers(
-                    damage: DamageTriggers(criticalChanceBonus: -1), dodge: DodgeTriggers(dodgeChanceBonus: -1),
-                ),
+                triggers: CombatTraitTriggers.configured {
+                    $0.criticalChanceBonus = -1
+                    $0.dodgeChanceBonus = -1
+                },
             )
             var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, enemyModifiers: profile)
             battle.appliesFightPacing = false
@@ -140,7 +141,7 @@ extension DoTMechanicsTests {
 
     @Test func `combustion detonates fresh health damage without counting bonuses twice`() {
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .init(
-            damageDealtBonus: [.burn: 2], triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: -1)),
+            damageDealtBonus: [.burn: 2], triggers: CombatTraitTriggers.configured { $0.criticalChanceBonus = -1 },
         ))
         battle.appliesFightPacing = false
         let before = battle.health(of: battle.enemy)
@@ -152,7 +153,7 @@ extension DoTMechanicsTests {
     }
 
     @Test func `defender on hit attacker bleed applies reaction damage to attacker`() {
-        let defenderTriggers = CombatTraitTriggers(onHit: OnHitTriggers(onHitAttackerBleedPotency: 3))
+        let defenderTriggers = CombatTraitTriggers.configured { $0.onHitAttackerBleedPotency = 3 }
         var battle = BattleTestFixtures.makePipelineContext(enemyModifiers: CombatModifierProfile(triggers: defenderTriggers))
         battle.appliesFightPacing = false
         let heroBefore = battle.health(of: battle.hero)

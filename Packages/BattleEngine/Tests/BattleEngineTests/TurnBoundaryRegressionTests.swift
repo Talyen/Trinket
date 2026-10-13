@@ -57,9 +57,7 @@ struct TurnBoundaryRegressionTests {
     @Test func `loyal companion draws for companion on alternating turns`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionAbilities: [.slash],
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(companionCardsEveryOtherTurn: 1),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.companionCardsEveryOtherTurn = 1 }),
             dealOpeningHand: false,
         )
         for turn in 0 ... 3 {

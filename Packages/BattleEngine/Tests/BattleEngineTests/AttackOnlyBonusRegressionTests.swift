@@ -37,9 +37,10 @@ struct AttackOnlyBonusRegressionTests {
 
     @Test(arguments: [Keyword.physical, .holy])
     func `general Sundering and Holy Block damage multipliers still apply to reactions`(keyword: Keyword) {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(
-            sunderingBlockMultiplier: 1, holyBlockBreakMultiplier: 2,
-        )))
+        let profile = CombatModifierProfile.withTriggers {
+            $0.sunderingBlockMultiplier = 1
+            $0.holyBlockBreakMultiplier = 2
+        }
         var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile)
         battle.appliesFightPacing = false
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)

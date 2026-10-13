@@ -38,9 +38,10 @@ struct TalentCatalogRoundTripTests {
 
     @Test func `intercede triggers cascading only when hero block breaks`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(
-                blockBrokenBlockFlat: 2, blockAbsorbsCompanionDamage: true,
-            ))),
+            heroModifiers: CombatModifierProfile.withTriggers {
+                $0.blockBrokenBlockFlat = 2
+                $0.blockAbsorbsCompanionDamage = true
+            },
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false

@@ -9,7 +9,7 @@ struct BattleOutcomeBranchTests {
         for seed in UInt64(1) ... 192 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
                 heroAbilities: [.slash], companionAbilities: [.slash], enemyMaxHealth: 500,
-                heroModifiers: .init(triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: -1))),
+                heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.criticalChanceBonus = -1 }),
                 rngSeed: seed, dealOpeningHand: false,
             )
             battle.appliesFightPacing = false

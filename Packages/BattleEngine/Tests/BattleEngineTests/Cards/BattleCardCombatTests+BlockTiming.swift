@@ -34,9 +34,10 @@ extension BattleCardCombatTests {
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(),
             activeEnemyEffects: effects,
-            enemyModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(
-                blockPerTurn: 7, blockRetainsThreeQuarters: retainsMore,
-            ))),
+            enemyModifiers: CombatModifierProfile.withTriggers {
+                $0.blockPerTurn = 7
+                $0.blockRetainsThreeQuarters = retainsMore
+            },
         )
         DefensePoolEngine.set(45, on: battle.enemy, in: &battle)
         let events = battle.endTurn().events

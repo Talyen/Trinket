@@ -131,9 +131,7 @@ struct RestorationIntegrationTests {
 
     @Test func `hero leech share skips zero-rounded shares instead of fabricating healing`() {
         var battle = BattleStateTestFactory.makeBattle(
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                healing: HealingTriggers(companionLeechSharePercent: 0.1),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.companionLeechSharePercent = 0.1 },
             dealOpeningHand: false,
         )
         battle.roster.companion.currentHealth -= 5
@@ -147,9 +145,11 @@ struct RestorationIntegrationTests {
     func `overheal transfer consumes only recipient space before converting the remainder`(companionHealth: Int) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 10, heroMaxMana: 10,
-            heroModifiers: .init(triggers: CombatTraitTriggers(healing: HealingTriggers(
-                wishspring: true, overhealConvertsToBlock: true, leechOverhealTransfersToCompanion: true,
-            ))),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.wishspring = true
+                $0.overhealConvertsToBlock = true
+                $0.leechOverhealTransfersToCompanion = true
+            }),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -183,9 +183,10 @@ struct RestorationIntegrationTests {
     @Test func `aether shield waits for overflow remaining after blood link`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 20,
-            heroModifiers: .init(triggers: CombatTraitTriggers(healing: HealingTriggers(
-                leechOverhealTransfersToCompanion: true, overhealFirstBlockPerTurn: 3,
-            ))),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.leechOverhealTransfersToCompanion = true
+                $0.overhealFirstBlockPerTurn = 3
+            }),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false

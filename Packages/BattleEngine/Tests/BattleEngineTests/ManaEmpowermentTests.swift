@@ -46,9 +46,7 @@ struct ManaEmpowermentTests {
     @Test func `persistent free empowerment remains limited to one Meteor purchase`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 9, heroMana: 9,
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(empowermentCostReduction: 3),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.empowermentCostReduction = 3 }),
         )
         #expect(ManaEmpowermentBudget(ability: .meteor, actor: battle.hero, in: battle).purchaseLimit == 1)
         var ability = Ability.meteor
@@ -108,9 +106,7 @@ struct ManaEmpowermentTests {
     @Test func `recurring freeze empowerment draws the opposite element`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 3, heroMana: 3,
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(empoweredElementDrawOpposite: true),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.empoweredElementDrawOpposite = true }),
         )
         battle.heroDeck = CombatDeck(abilities: [.kindling])
         var ability = Ability.rayOfFrost
@@ -125,9 +121,7 @@ struct ManaEmpowermentTests {
     @Test func `dragon spark discounts only first empowerment and preserves its effect`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 4, heroMana: 4,
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(firstEmpowermentCostReduction: 2),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.firstEmpowermentCostReduction = 2 }),
         )
         for expectedMana in [3, 0] {
             var ability = Ability.frostbolt
@@ -142,9 +136,7 @@ struct ManaEmpowermentTests {
     @Test func `dragon spark does not consume discount without enough mana`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 4, heroMana: 0,
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(firstEmpowermentCostReduction: 2),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.firstEmpowermentCostReduction = 2 }),
         )
         var ability = Ability.frostbolt
         _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
@@ -163,9 +155,10 @@ struct ManaEmpowermentTests {
     func `arcane breath adds flat damage even with discounted empowerment`(discount: Int) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [], heroMaxMana: 3, heroMana: 3,
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(empowermentDamageBonus: 3, empowermentCostReduction: discount),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.empowermentDamageBonus = 3
+                $0.empowermentCostReduction = discount
+            }),
         )
         var ability = Ability.frostbolt
         _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
@@ -278,11 +271,7 @@ struct ManaEmpowermentTests {
             heroAbilities: [.frostbolt],
             heroMaxMana: 3,
             heroMana: 3,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                mana: ManaTriggers(
-                    spendManaBlockFlat: 2,
-                ),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.spendManaBlockFlat = 2 },
         )
         let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.frostbolt.id })
         let events = try battle.playCard(cardID: card.id).events

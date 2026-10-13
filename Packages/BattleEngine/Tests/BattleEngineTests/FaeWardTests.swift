@@ -5,9 +5,7 @@ import TrinketCore
 @testable import BattleEngine
 
 struct FaeWardTests {
-    private static let faeWard = CombatModifierProfile(
-        triggers: CombatTraitTriggers(cleanse: CleanseTriggers(blockFirstDebuffPerTurn: true)),
-    )
+    private static let faeWard = CombatModifierProfile.withTriggers { $0.blockFirstDebuffPerTurn = true }
 
     private func makeWardedHeroBattle(
         heroModifiers: CombatModifierProfile = Self.faeWard,
@@ -82,9 +80,7 @@ struct FaeWardTests {
 
     @Test func `marked from stun reaction is blocked once`() {
         var battle = makeWardedHeroBattle(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(enemyStunnedApplyMarked: true),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.enemyStunnedApplyMarked = true }),
             enemyModifiers: Self.faeWard,
         )
         let events = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: battle.roster.hero.id, in: &battle) }
@@ -142,13 +138,11 @@ struct FaeWardTests {
     }
 
     @Test func `blocked bleed does not tick existing bleeds or trigger poison`() {
-        var battle = makeWardedHeroBattle(enemyModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-            dot: DotTriggers(
-                onBleedApplyPoison: 3,
-                bleedApplicationTicksExisting: true,
-                onBleedAppliedToBleedingDealDamage: 2,
-            ),
-        )))
+        var battle = makeWardedHeroBattle(enemyModifiers: CombatModifierProfile.withTriggers {
+            $0.onBleedApplyPoison = 3
+            $0.bleedApplicationTicksExisting = true
+            $0.onBleedAppliedToBleedingDealDamage = 2
+        })
         let target = battle.roster.hero.combatant
         let existing = ActiveEffect(id: 99, effect: .bleed(1), remainingTurns: 2)
         battle.roster.setActiveEffects([existing], for: target)

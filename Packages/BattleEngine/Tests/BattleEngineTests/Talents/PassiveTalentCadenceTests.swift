@@ -62,9 +62,7 @@ struct PassiveTalentCadenceTests {
     }
 
     private func makeBattle() -> BattleState {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(
-            healthOrManaRestoreDrawChancePercent: 1,
-        )))
+        let profile = CombatModifierProfile.withTriggers { $0.healthOrManaRestoreDrawChancePercent = 1 }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 5),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),

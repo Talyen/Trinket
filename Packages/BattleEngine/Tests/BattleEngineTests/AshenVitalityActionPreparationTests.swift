@@ -60,9 +60,7 @@ struct AshenVitalityActionPreparationTests {
             companion: CombatantFixtures.passiveCompanion(abilities: [basic]),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: profile,
-            enemyModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                dodge: DodgeTriggers(dodgeChanceBonus: -1),
-            )),
+            enemyModifiers: CombatModifierProfile.withTriggers { $0.dodgeChanceBonus = -1 },
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false

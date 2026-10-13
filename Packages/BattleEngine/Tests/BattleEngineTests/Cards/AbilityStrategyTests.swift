@@ -6,9 +6,7 @@ import TrinketCore
 
 struct AbilityStrategyTests {
     private func battle(mana: Int = 0) -> BattleState {
-        var triggers = CombatTraitTriggers()
-        triggers.criticalChanceBonus = -1
-        let profile = CombatModifierProfile(triggers: triggers)
+        let profile = CombatModifierProfile.withTriggers { $0.criticalChanceBonus = -1 }
         var state = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: mana, heroMana: mana,
             heroModifiers: profile, companionModifiers: profile, dealOpeningHand: false,
@@ -48,11 +46,11 @@ struct AbilityStrategyTests {
     }
 
     @Test func `enemy shield bash gains block before its stun damage`() {
-        var triggers = CombatTraitTriggers()
-        triggers.bleedingEnemyAttackDealDamage = 1
-        triggers.criticalChanceBonus = -1
         var state = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: CombatModifierProfile(triggers: triggers), dealOpeningHand: false,
+            heroModifiers: CombatModifierProfile.withTriggers {
+                $0.bleedingEnemyAttackDealDamage = 1
+                $0.criticalChanceBonus = -1
+            }, dealOpeningHand: false,
         )
         state.appliesFightPacing = false
         DefensePoolEngine.set(2, on: state.enemy, in: &state)
@@ -68,10 +66,8 @@ struct AbilityStrategyTests {
     }
 
     @Test func `cancelled enemy shield bash refunds reserved block`() {
-        var triggers = CombatTraitTriggers()
-        triggers.negateFirstEnemyAttack = true
         var state = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: CombatModifierProfile(triggers: triggers), dealOpeningHand: false,
+            companionModifiers: CombatModifierProfile.withTriggers { $0.negateFirstEnemyAttack = true }, dealOpeningHand: false,
         )
         DefensePoolEngine.set(2, on: state.enemy, in: &state)
         let result = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(

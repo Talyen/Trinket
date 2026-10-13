@@ -27,9 +27,10 @@ struct DoTMechanicsTests {
     @Test(arguments: [Keyword.burn, .poison], [false, true])
     func `flashover doubles the burn hit but not stored ticks`(keyword: Keyword, frozen: Bool) {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(criticalChanceBonus: -1, burnDoubleVsFrozenChancePercent: 1),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.criticalChanceBonus = -1
+                $0.burnDoubleVsFrozenChancePercent = 1
+            }),
         )
         battle.appliesFightPacing = false
         let enemy = battle.roster.enemy.combatant
@@ -199,11 +200,11 @@ struct DoTMechanicsTests {
             enemyMaxHealth: 100,
             heroMaxMana: 5,
             heroMana: 0,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(criticalChanceBonus: -1),
-                dot: DotTriggers(poisonDamageLeechChancePercent: 1),
-                mana: ManaTriggers(leechRestoreManaFlat: 2),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.poisonDamageLeechChancePercent = 1
+                $0.leechRestoreManaFlat = 2
+            },
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -218,10 +219,10 @@ struct DoTMechanicsTests {
 
     @Test func `poison leech heals once for attacks applications and ticks`() throws {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(criticalChanceBonus: -1),
-                dot: DotTriggers(poisonDamageLeechChancePercent: 1),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.criticalChanceBonus = -1
+                $0.poisonDamageLeechChancePercent = 1
+            }),
         )
         battle.appliesFightPacing = false
         let hero = battle.roster.hero.combatant
@@ -249,10 +250,10 @@ struct DoTMechanicsTests {
     func `bleed rewards require health loss from cards and ticks`(isTick: Bool, blocked: Bool) {
         let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                attack: AttackTriggers(onBleedDamageNextBasicCritBonus: 0.35),
-                dot: DotTriggers(onBleedDamageHealSelf: 2),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers {
+                $0.onBleedDamageNextBasicCritBonus = 0.35
+                $0.onBleedDamageHealSelf = 2
+            },
             dealOpeningHand: false,
         )
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
@@ -277,12 +278,10 @@ struct DoTMechanicsTests {
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
-            heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(dot: DotTriggers(
-                    burnDamageRampPerRound: 1,
-                    burnDamageRampCap: cap,
-                )),
-            ),
+            heroModifiers: CombatModifierProfile.withTriggers {
+                $0.burnDamageRampPerRound = 1
+                $0.burnDamageRampCap = cap
+            },
             dealOpeningHand: false,
         )
     }
@@ -322,10 +321,11 @@ extension DoTMechanicsTests {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(
                 damageDealtBonus: [.burn: 2],
-                triggers: CombatTraitTriggers(
-                    damage: DamageTriggers(criticalChanceBonus: -1, burnDamageDoubleChancePercent: 1),
-                    dot: DotTriggers(burnTicksTwicePerTurn: true),
-                ),
+                triggers: CombatTraitTriggers.configured {
+                    $0.criticalChanceBonus = -1
+                    $0.burnDamageDoubleChancePercent = 1
+                    $0.burnTicksTwicePerTurn = true
+                },
             ),
         )
         battle.appliesFightPacing = false
@@ -349,10 +349,10 @@ extension DoTMechanicsTests {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(
                 damageDealtBonus: [.bleed: 2],
-                triggers: CombatTraitTriggers(damage: DamageTriggers(
-                    criticalChanceBonus: 1,
-                    bleedTickCritChancePercent: specialCrit ? 1 : 0,
-                )),
+                triggers: CombatTraitTriggers.configured {
+                    $0.criticalChanceBonus = 1
+                    $0.bleedTickCritChancePercent = specialCrit ? 1 : 0
+                },
             ),
         )
         battle.appliesFightPacing = false
@@ -388,14 +388,12 @@ extension DoTMechanicsTests {
             enemyMaxHealth: 100,
             heroMaxMana: 5,
             heroMana: 0,
-            heroModifiers: CombatModifierProfile(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(criticalChanceBonus: -1),
-                dot: DotTriggers(
-                    burnDamageManaRestoreThreshold: threshold,
-                    onBurnDamageRestoreManaPerTurnCap: perTurnCap,
-                ),
-                mana: ManaTriggers(onBurnDamageRestoreManaFlat: 1),
-            )),
+            heroModifiers: CombatModifierProfile.withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.burnDamageManaRestoreThreshold = threshold
+                $0.onBurnDamageRestoreManaPerTurnCap = perTurnCap
+                $0.onBurnDamageRestoreManaFlat = 1
+            },
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false

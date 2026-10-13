@@ -166,7 +166,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `thick hide reduces only physical`() throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(mitigation: MitigationTriggers(passivePhysicalMitigationFlat: 2)))
+        let profile = CombatModifierProfile.withTriggers { $0.passivePhysicalMitigationFlat = 2 }
         var battle = makeCohesionBattle(companionModifiers: profile)
         // Companion takes Physical (reduced) vs Burn (not reduced). Use companion as defender via enemy targeting companion.
         let companion = battle.companion
@@ -179,7 +179,7 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `surprise strike crits first physical only`() throws {
         let profile =
-            CombatModifierProfile(triggers: CombatTraitTriggers(damage: DamageTriggers(firstPhysicalAttackGuaranteedCritical: true)))
+            CombatModifierProfile.withTriggers { $0.firstPhysicalAttackGuaranteedCritical = true }
         var battle = makeCohesionBattle(enemyMaxHealth: 200, companionModifiers: profile)
         // Non-Physical first does not consume or crit (Burn, no guaranteed crit).
         let first = battle.resolveTestDamage(4, from: .companion, keyword: .burn)
@@ -193,7 +193,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `guardian grants block once per attack`() throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(guardianHeroBlockFlat: 2)))
+        let profile = CombatModifierProfile.withTriggers { $0.guardianHeroBlockFlat = 2 }
         var battle = makeCohesionBattle(companionModifiers: profile)
         // Multi-hit attack (two components in one action) grants Block once, not per component.
         let multi = Ability(id: "multi", name: "Multi", tier: .basic, damageComponents: [
@@ -206,7 +206,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `dense bones doubles physical block`() throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(doublePhysicalBlockAbsorption: true)))
+        let profile = CombatModifierProfile.withTriggers { $0.doublePhysicalBlockAbsorption = true }
         var battle = makeCohesionBattle(companionModifiers: profile)
         DefensePoolEngine.set(2, on: battle.companion, in: &battle)
         // 3 Physical with 2 Block (doubled capacity 4) absorbs all 3, consumes 2 (rounded 1.5->2).
@@ -221,10 +221,10 @@ extension KeywordCohesionMechanicsTests {
     @Test(arguments: [false, true])
     func `shieldbreaker strips borrowed block as well as direct block`(companionProtectsHero: Bool) throws {
         let ogre = try #require(GameContent.enemies.first { $0.id == "ogre" })
-        let protection = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(
-            blockAbsorbsCompanionDamage: !companionProtectsHero,
-            companionBlockAbsorbsHeroDamage: companionProtectsHero,
-        )))
+        let protection = CombatModifierProfile.withTriggers {
+            $0.blockAbsorbsCompanionDamage = !companionProtectsHero
+            $0.companionBlockAbsorbsHeroDamage = companionProtectsHero
+        }
         var battle = makeCohesionBattle(
             heroModifiers: companionProtectsHero ? .zero : protection,
             companionModifiers: companionProtectsHero ? protection : .zero,
@@ -267,9 +267,7 @@ extension KeywordCohesionMechanicsTests {
     @Test(arguments: [0, 1])
     func `corrosive venom strips borrowed block once before absorbing poison`(recipientBlock: Int) throws {
         let snake = try #require(GameContent.enemies.first { $0.id == "giant_snake" })
-        let protection = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(
-            blockAbsorbsCompanionDamage: true,
-        )))
+        let protection = CombatModifierProfile.withTriggers { $0.blockAbsorbsCompanionDamage = true }
         var battle = makeCohesionBattle(
             heroModifiers: protection,
             enemyModifiers: CombatBuildResolver.build(enemy: snake).modifiers,
@@ -285,7 +283,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `loyal companion draws on real heal once per turn`() throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(mana: ManaTriggers(healCompanionDrawsCompanionCard: true)))
+        let profile = CombatModifierProfile.withTriggers { $0.healCompanionDrawsCompanionCard = true }
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.heal], heroModifiers: profile,
         )
@@ -307,7 +305,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `forbidden knowledge pays health before drawing on cadence`() throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true)))
+        let profile = CombatModifierProfile.withTriggers { $0.forbiddenKnowledge = true }
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash, .bash, .block],
             heroModifiers: profile,
@@ -332,10 +330,10 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `a forbidden knowledge death stops Purifying Aura`() {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            mana: ManaTriggers(forbiddenKnowledge: true),
-            cleanse: CleanseTriggers(purifyingAura: true),
-        ))
+        let profile = CombatModifierProfile.withTriggers {
+            $0.forbiddenKnowledge = true
+            $0.purifyingAura = true
+        }
         var battle = makeCohesionBattle(
             heroMaxHealth: 10,
             companionMaxHealth: 10,
@@ -353,7 +351,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `turn start death releases hand slots for a living ally`() {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true)))
+        let profile = CombatModifierProfile.withTriggers { $0.forbiddenKnowledge = true }
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash], companionAbilities: [.bash, .block],
             heroModifiers: profile, dealOpeningHand: false,
@@ -378,10 +376,11 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `a turn start victory stops later ally Gold gains`() {
-        let healing = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(
-            healthRestoredPoisonPercent: 1, healthPerTurn: 2,
-        )))
-        let gold = CombatModifierProfile(triggers: CombatTraitTriggers(gold: GoldTriggers(goldPerTurn: 1)))
+        let healing = CombatModifierProfile.withTriggers {
+            $0.healthRestoredPoisonPercent = 1
+            $0.healthPerTurn = 2
+        }
+        let gold = CombatModifierProfile.withTriggers { $0.goldPerTurn = 1 }
         var battle = makeCohesionBattle(
             heroMaxHealth: 10,
             companionMaxHealth: 10,
@@ -399,7 +398,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `verdant renewal restores health on alternate player turns`() {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2)))
+        let profile = CombatModifierProfile.withTriggers { $0.healthPerTurn = 2 }
         var battle = makeCohesionBattle(
             heroHealth: 10, companionHealth: 5, heroModifiers: profile,
         )
@@ -415,7 +414,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `campfire comfort heals the lowest ally on alternate player turns`() {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(healing: HealingTriggers(endOfTurnHealLowestAlly: 2)))
+        let profile = CombatModifierProfile.withTriggers { $0.endOfTurnHealLowestAlly = 2 }
         var battle = makeCohesionBattle(
             companionHealth: 10, companionModifiers: profile,
         )
@@ -432,7 +431,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `mimic deals one opening bleed bonus`() throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(damage: DamageTriggers(firstAttackBleedBonus: 2)))
+        let profile = CombatModifierProfile.withTriggers { $0.firstAttackBleedBonus = 2 }
         var battle = makeCohesionBattle(heroMaxHealth: 50, enemyModifiers: profile)
         let attack = Ability(id: "hit", name: "Hit", tier: .basic, directDamage: 4, damageKeyword: .physical)
         let before = battle.roster.health(for: battle.hero)
@@ -448,9 +447,7 @@ extension KeywordCohesionMechanicsTests {
     @Test func `everkeen requires physical crit and does not spend on other`() throws {
         var battle = makeCohesionBattle(
             enemyMaxHealth: 200,
-            heroModifiers: CombatModifierProfile(
-                triggers: CombatTraitTriggers(attack: AttackTriggers(firstCriticalHitRepeatsPerTurn: true)),
-            ),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.firstCriticalHitRepeatsPerTurn = true },
         )
         // Non-Physical Crit does not spend allowance or repeat.
         battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
@@ -463,7 +460,7 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `patient edge block prepares crit and refreshes`() throws {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(blockPreparesCritical: true)))
+        let profile = CombatModifierProfile.withTriggers { $0.blockPreparesCritical = true }
         var battle = makeCohesionBattle(heroModifiers: profile)
         DefensePoolEngine.set(5, on: battle.hero, in: &battle)
         _ = battle.resolveTestDamage(3, from: .enemy, to: .hero)
@@ -471,10 +468,10 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `companion cards per turn draws alongside draw every other turn`() {
-        let heroProfile = CombatModifierProfile(triggers: CombatTraitTriggers(mana: ManaTriggers(
-            drawEveryOtherTurn: 1,
-            companionCardsPerTurn: 1,
-        )))
+        let heroProfile = CombatModifierProfile.withTriggers {
+            $0.drawEveryOtherTurn = 1
+            $0.companionCardsPerTurn = 1
+        }
         var battle = makeCohesionBattle(heroModifiers: heroProfile)
         battle.hand = BattleHand()
         battle.heroDeck = CombatDeck(abilities: [.slash, .smite, .block])

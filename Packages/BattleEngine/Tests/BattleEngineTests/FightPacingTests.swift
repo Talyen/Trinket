@@ -57,41 +57,24 @@ struct FightPacingTests {
         #expect(context.paced(10, sourceActorID: context.hero.id) == 10)
     }
 
-    @Test func `party behind grants party comeback at least ten percent`() throws {
-        let context = makeContext(heroHP: 15, companionHP: 15, enemyHP: 45, turnCount: 4)
+    @Test(arguments: [false, true])
+    func `the trailing side receives the comeback bonus`(partyBehind: Bool) {
+        let context = makeContext(
+            heroHP: partyBehind ? 15 : 45, companionHP: partyBehind ? 15 : 45,
+            enemyHP: partyBehind ? 45 : 10, turnCount: 4,
+        )
         let isBoss = FightPacing.isBossEnemy(in: context)
-        let partyMult = FightPacing.comebackMultiplier(side: .party, isBoss: isBoss, in: context)
-        let enemyMult = FightPacing.comebackMultiplier(side: .enemy, isBoss: isBoss, in: context)
-        try #expect(partyMult >= 1.10)
-        try #expect(enemyMult == 1.0)
+        let party = FightPacing.comebackMultiplier(side: .party, isBoss: isBoss, in: context)
+        let enemy = FightPacing.comebackMultiplier(side: .enemy, isBoss: isBoss, in: context)
+        #expect((partyBehind ? party : enemy) >= 1.10)
+        #expect((partyBehind ? enemy : party) == 1)
     }
 
-    @Test func `enemy behind grants enemy comeback at least ten percent`() throws {
-        let context = makeContext(heroHP: 45, companionHP: 45, enemyHP: 10, turnCount: 4)
-        let isBoss = FightPacing.isBossEnemy(in: context)
-        let partyMult = FightPacing.comebackMultiplier(side: .party, isBoss: isBoss, in: context)
-        let enemyMult = FightPacing.comebackMultiplier(side: .enemy, isBoss: isBoss, in: context)
-        try #expect(partyMult == 1.0)
-        try #expect(enemyMult >= 1.10)
-    }
-
-    @Test func `stalled fight activates clock early`() throws {
-        let context = makeContext(heroHP: 48, companionHP: 48, enemyHP: 48, turnCount: 8, enemyID: "the_blight_treant")
-        let isBoss = FightPacing.isBossEnemy(in: context)
-        let clock = FightPacing.clockMultiplier(isBoss: isBoss, in: context)
-        try #expect(clock >= 1.10)
-    }
-
-    @Test func `fast fight stays off clock`() throws {
-        let context = makeContext(heroHP: 30, companionHP: 30, enemyHP: 10, turnCount: 6, enemyID: "the_blight_treant")
-        try #expect(FightPacing.clockMultiplier(isBoss: FightPacing.isBossEnemy(in: context), in: context) == 1.0)
-    }
-
-    @Test func `turn backstop escalates past max rounds`() throws {
-        let context = makeContext(heroHP: 30, companionHP: 30, enemyHP: 25, turnCount: 24, enemyID: "the_blight_treant")
-        let isBoss = FightPacing.isBossEnemy(in: context)
-        let clock = FightPacing.clockMultiplier(isBoss: isBoss, in: context)
-        try #expect(clock >= 1.10)
+    @Test(arguments: [(48, 48, 8, true), (30, 10, 6, false), (30, 25, 24, true)])
+    func `clock accelerates stalled fights and the turn backstop`(partyHP: Int, enemyHP: Int, turn: Int, accelerates: Bool) {
+        let context = makeContext(heroHP: partyHP, companionHP: partyHP, enemyHP: enemyHP, turnCount: turn, enemyID: "the_blight_treant")
+        let clock = FightPacing.clockMultiplier(isBoss: FightPacing.isBossEnemy(in: context), in: context)
+        #expect(accelerates ? clock >= 1.10 : clock == 1)
     }
 
     @Test func `paced scales authored damage for party source`() throws {

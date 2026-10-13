@@ -20,9 +20,7 @@ struct CombatTriggerTalentControlTests {
 
     @Test func `enemy stun extra action skips extend stun`() {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(stunExtendChancePercent: 1.0),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.stunExtendChancePercent = 1.0 }),
         )
         let enemy = battle.roster.enemy.combatant
         let threshold = ControlMeterEngine.threshold(for: enemy, in: battle)
@@ -44,12 +42,10 @@ struct CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(
-                    onceBelowHealthPercentStunAllEnemies: true,
-                    onceBelowHealthPercentThreshold: 0.5,
-                ),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.onceBelowHealthPercentStunAllEnemies = true
+                $0.onceBelowHealthPercentThreshold = 0.5
+            }),
             dealOpeningHand: false,
         )
         let companion = battle.roster.companion.combatant
@@ -60,9 +56,10 @@ struct CombatTriggerTalentControlTests {
     @Test(arguments: [(1.0, UInt64(1772), true), (0.0, 1772, true), (0.4, 0, true), (0.4, 1, false)])
     func `paralysis rolls its chance on a living poison tick`(chance: Double, seed: UInt64, stunned: Bool) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                dot: DotTriggers(poisonStunChancePercent: chance, poisonThresholdStunAmount: 6),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.poisonStunChancePercent = chance
+                $0.poisonThresholdStunAmount = 6
+            }),
             dealOpeningHand: false,
         )
         battle.rng = SeededRandomNumberGenerator(seed: seed)
@@ -77,9 +74,7 @@ struct CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                onHit: OnHitTriggers(onHitAttackerPoison: 1),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.onHitAttackerPoison = 1 }),
             dealOpeningHand: false,
         )
         let companion = battle.roster.companion.combatant
@@ -91,9 +86,10 @@ struct CombatTriggerTalentControlTests {
 
     @Test func `blinding light stores the strongest reduction from resolved holy hits`() {
         var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(criticalChanceBonus: -1), mitigation: MitigationTriggers(blindingLight: true),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured {
+                $0.criticalChanceBonus = -1
+                $0.blindingLight = true
+            }),
         )
         battle.appliesFightPacing = false
         for amount in [6, 2, 4] {
@@ -113,18 +109,14 @@ struct CombatTriggerTalentControlTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             activeEnemyEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(bleedingEnemyAttackDealDamage: 5),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.bleedingEnemyAttackDealDamage = 5 }),
             dealOpeningHand: false,
         )
         var miss = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             activeEnemyEffects: [ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)],
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(poisonedEnemyMissChancePercent: 1),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.poisonedEnemyMissChancePercent = 1 }),
             dealOpeningHand: false,
         )
         if !heroAlive {
@@ -141,9 +133,7 @@ struct CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             activeEnemyEffects: [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(frozenEnemyCannotBlockOrHeal: true),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.frozenEnemyCannotBlockOrHeal = true }),
             dealOpeningHand: false,
         )
         if !ownerAlive {
@@ -156,9 +146,7 @@ struct CombatTriggerTalentControlTests {
 
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `hexing rune applies affliction only when hero spends mana`(owner: BattleParticipant) {
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            mana: ManaTriggers(onHeroSpendManaApplyRandomAffliction: true),
-        ))
+        let profile = CombatModifierProfile.withTriggers { $0.onHeroSpendManaApplyRandomAffliction = true }
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
@@ -184,9 +172,7 @@ struct CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: .init(triggers: CombatTraitTriggers(
-                attack: AttackTriggers(onHeroAttackPoisonedEnemyApplyPoison: 1),
-            )),
+            companionModifiers: .init(triggers: CombatTraitTriggers.configured { $0.onHeroAttackPoisonedEnemyApplyPoison = 1 }),
             dealOpeningHand: false,
         )
         battle.seedActiveEffects(
@@ -216,7 +202,7 @@ struct CombatTriggerTalentControlTests {
     func `harvest essence ignores do T and retaliation`(operation: DamageOperation) {
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroModifiers: .init(triggers: CombatTraitTriggers(block: BlockTriggers(onAnyHealthLossGainBlock: 1))),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.onAnyHealthLossGainBlock = 1 }),
             dealOpeningHand: false,
         )
         if operation.isPeriodic {

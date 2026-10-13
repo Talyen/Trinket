@@ -9,9 +9,7 @@ extension CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                dodge: DodgeTriggers(onDodgeApplyPoisonOrBleed: 2),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.onDodgeApplyPoisonOrBleed = 2 }),
             dealOpeningHand: false,
         )
         _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
@@ -28,9 +26,7 @@ extension CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                attack: AttackTriggers(holyAttackApplyBurnAndStunBuildup: 2),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.holyAttackApplyBurnAndStunBuildup = 2 }),
             dealOpeningHand: false,
         )
         _ = battle.resolveTestDamage(
@@ -50,9 +46,7 @@ extension CombatTriggerTalentControlTests {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                control: ControlTriggers(onStunEnemyApplyBurn: 2),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.onStunEnemyApplyBurn = 2 }),
             dealOpeningHand: false,
         )
         _ = CombatExecutor.run { await ControlMeterEngine.applyMeterCharge(

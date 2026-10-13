@@ -9,9 +9,7 @@ struct CombatBuildResolverTests {
     func `shredding ignores only its share of mitigation`(ignored: Double) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
-            heroModifiers: .init(triggers: CombatTraitTriggers(
-                damage: DamageTriggers(ignoreEnemyMitigationPercent: ignored),
-            )),
+            heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.ignoreEnemyMitigationPercent = ignored }),
             enemyModifiers: .init(incomingDamageReductionPercent: 0.8),
         )
         battle.appliesFightPacing = false
@@ -69,9 +67,7 @@ struct CombatBuildResolverTests {
         func makeBattle(leechPierce: Bool) -> BattleState {
             var battle = BattleStateTestFactory.makeMinimalBattle(
                 enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
-                heroModifiers: .init(triggers: CombatTraitTriggers(
-                    damage: DamageTriggers(leechIgnoresMitigation: leechPierce),
-                )),
+                heroModifiers: .init(triggers: CombatTraitTriggers.configured { $0.leechIgnoresMitigation = leechPierce }),
                 enemyModifiers: .init(incomingDamageReductionPercent: 0.8),
             )
             battle.appliesFightPacing = false

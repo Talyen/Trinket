@@ -22,7 +22,7 @@ extension BattleTurnEngineTests {
     func `unquenchable flame bypasses flat and percentage defenses only with burn`(keyword: Keyword) throws {
         var defenses = CombatModifierProfile(damageTakenReduction: [.burn: 0.5, .physical: 0.5], damageTakenFlat: [.burn: 2, .physical: 2])
         defenses.triggers.passiveMitigationFlat = 2
-        let enemyProfile = CombatModifierProfile(triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true)))
+        let enemyProfile = CombatModifierProfile.withTriggers { $0.burnIgnoresBlockAndMitigation = true }
         var context = try enemyTraitContext("pyromancer", heroModifiers: defenses, enemyModifiers: enemyProfile)
 
         let outcome = context.resolveTestDamage(
@@ -149,9 +149,7 @@ extension BattleTurnEngineTests {
 
     @Test func `trait thorns skips zero-rounded reflection`() {
         var battle = BattleStateTestFactory.makeBattle(
-            enemyModifiers: .init(triggers: CombatTraitTriggers(
-                mitigation: MitigationTriggers(thornsPercent: 0.1),
-            )),
+            enemyModifiers: .init(triggers: CombatTraitTriggers.configured { $0.thornsPercent = 0.1 }),
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
@@ -199,7 +197,7 @@ extension BattleTurnEngineTests {
     func `unquenchable flame bypasses Verdant Shelter only for Burn`(keyword: Keyword) throws {
         let profile = CombatantTalentCatalog.profile(for: ["druid_health_t4_1"])
         var context = try enemyTraitContext("pyromancer", heroModifiers: profile, enemyModifiers: .init(
-            triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true)),
+            triggers: CombatTraitTriggers.configured { $0.burnIgnoresBlockAndMitigation = true },
         ))
         context.appendEffect(.thorns(2), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
         let result = context.resolveTestDamage(
@@ -220,7 +218,7 @@ extension BattleTurnEngineTests {
             [],
             owner: .companion,
             extra: profile,
-            enemyExtra: .init(triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true))),
+            enemyExtra: .init(triggers: CombatTraitTriggers.configured { $0.burnIgnoresBlockAndMitigation = true }),
         )
         context.roster.companion.currentMana = 1
         context.roster.companion.talents.pending.nextIncomingDamageMultiplier = PreparedTalentBonus(value: 0.5)
@@ -297,12 +295,12 @@ extension BattleTurnEngineTests {
     func `decaying pulses attach only their actual health damage`(keyword: Keyword, block: Int) {
         let profile = CombatModifierProfile(
             damageDealtBonus: [keyword: 5],
-            triggers: CombatTraitTriggers(damage: DamageTriggers(
-                turnRandomDamageAllEnemiesKeywordA: keyword,
-                turnRandomDamageAllEnemiesKeywordB: keyword,
-                turnRandomDamageAllEnemiesAmount: 4,
-                turnRandomDamageAllEnemiesInterval: 2,
-            )),
+            triggers: CombatTraitTriggers.configured {
+                $0.turnRandomDamageAllEnemiesKeywordA = keyword
+                $0.turnRandomDamageAllEnemiesKeywordB = keyword
+                $0.turnRandomDamageAllEnemiesAmount = 4
+                $0.turnRandomDamageAllEnemiesInterval = 2
+            },
         )
         var context = BattleStateTestFactory.makeBattle(enemyModifiers: profile, dealOpeningHand: false)
         context.appliesFightPacing = false

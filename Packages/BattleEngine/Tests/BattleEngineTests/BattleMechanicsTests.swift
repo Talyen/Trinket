@@ -6,7 +6,7 @@ import TrinketCore
 
 struct BattleMechanicsTests {
     @Test func `mutual knockout is a defeat without victory Gold`() {
-        let gold = CombatModifierProfile(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldFlat: 4)))
+        let gold = CombatModifierProfile.withTriggers { $0.victoryGoldFlat = 4 }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 10),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
@@ -46,7 +46,7 @@ struct BattleMechanicsTests {
     }
 
     @Test func `a defeated ally does not grant victory Gold`() {
-        let gold = CombatModifierProfile(triggers: CombatTraitTriggers(gold: GoldTriggers(victoryGoldFlat: 4)))
+        let gold = CombatModifierProfile.withTriggers { $0.victoryGoldFlat = 4 }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 10),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 10),
@@ -235,9 +235,7 @@ struct BattleMechanicsTests {
     }
 
     @Test func `corrosive venom strips block before the poison packet is absorbed`() throws {
-        let venom = CombatModifierProfile(triggers: CombatTraitTriggers(
-            block: BlockTriggers(poisonStripsBlockBeforeHealth: 1),
-        ))
+        let venom = CombatModifierProfile.withTriggers { $0.poisonStripsBlockBeforeHealth = 1 }
         let hero = CombatantFixtures.passiveHero(maxHealth: 30)
 
         var blocking = BattleStateTestFactory.makeMinimalBattle(
