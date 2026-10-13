@@ -103,6 +103,16 @@ verification passed all 921 discovered tests with the correction. New clean-comm
 hosted CI and the complete deployment gate remain required.
 No performance fix or phone gameplay result is established.
 
+Build 28 at cd31cd430 passed generation, idempotence, style, all 59 script suites,
+app/eight-package compilation, and seven package test suites. Persistence found
+an old collection case expecting immediate failure/manual retry after awaiting
+a command that now retries internally. Update the existing pending-Food case to
+require awaited success, no duplicate collection, and the final 910 Food across
+reload; the obsolete post-terminal intermediate-state assertions are removed.
+No gameplay code changed. The corrected Persistence suite passed 401/401.
+Retain the failed/successful raw evidence and rerun the complete deployment gate
+from a new clean commit. Phone coverage remains pending.
+
 ## Phone preparation and restoration
 
 Wi-Fi only per user. Native Xcode device input rejected the phone; the exclusive

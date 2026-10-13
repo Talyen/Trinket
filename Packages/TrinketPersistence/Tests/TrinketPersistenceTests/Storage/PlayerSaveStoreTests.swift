@@ -340,7 +340,7 @@ struct PlayerSaveStoreTests {
 
 #if DEBUG
 extension PlayerSaveStoreTests {
-    @Test @MainActor func `failed collection preserves persisted pending food and can retry exactly once`() async throws {
+    @Test @MainActor func `pending food collection retries a refused write and commits once across reload`() async throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
@@ -350,14 +350,7 @@ extension PlayerSaveStoreTests {
             save.homestead.pendingProduction = [.food: 10]
             save.homestead.lastProductionAt = date
         }
-        let snapshot = store.currentSave
         store.forcesNextSaveFailure = true
-
-        #expect(await store.collectProduction(at: date) == .persistFailed)
-        #expect(store.currentSave == snapshot)
-        #expect(store.lastPersistenceError == .writeFailed)
-        let failedReload = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        #expect(failedReload.currentSave == snapshot)
 
         #expect(await store.collectProduction(at: date) == .success([ResourceAmount(.food, 10)]))
         #expect(await store.collectProduction(at: date) == .noProduction)
