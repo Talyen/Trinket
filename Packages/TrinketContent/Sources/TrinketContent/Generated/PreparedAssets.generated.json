@@ -12,9 +12,9 @@
     }
   },
   "art": {
-    "input_hash": "95af512b6351b7693ac4ed5279edafb48a6601b6e0bccbb3013054121bc02e57",
+    "input_hash": "dc5b1d5c1fa5239259839389a4b3d986122ad30cc508fc0267911ac9f08349e4",
     "outputs": {
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift": "4ea94184c3c9da46e476e1c26c4f29dd45a968c4936e409eda62302f7868911c",
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift": "4b52eebee8e7bb6299ada9b6872fbee570a4ac3b26cb401ad97510a4587b7db8",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv": "33269145fc82fd9539df826c88b677fe940122837f5cf2dc5d9561590bb0d82a",
       "Trinket/Assets.xcassets/Contents.json": "0fd49ba3c3585c709678e0046a821c3c60685ec7063720d30d3a3448be3a208b",
       "Trinket/Assets.xcassets/ability_acid_potion.imageset/Contents.json": "33d9d4529898b7bf97cd2a08923cdefd63ac25aeae014438c8a275ea36bb6436",

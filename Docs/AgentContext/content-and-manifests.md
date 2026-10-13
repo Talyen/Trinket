@@ -97,6 +97,10 @@ lazy eligibility filter. Preserve this order and the existing numeric/save forma
 
 ## Media assets
 
+Art references derive thumbnail names with the `_thumb` suffix; full-only resource
+and slot-background references expose only the full image. Catalog kind metadata
+in `prepare-art-assets.sh` owns reference types, crop fields, and full dimensions.
+
 Shared media-pipeline rules: raw source folders in the external Asset Library are not in Xcode target membership; processed outputs under
 `Trinket/` are. Hash-based media pipelines re-encode when source bytes or encode settings
 change; set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.

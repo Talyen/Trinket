@@ -159,34 +159,25 @@ JSON
   rm -rf "$backup"
 }
 
-# Catalog usage drives which variants we ship (single home for this rule is
-# trinket_asset_needs_thumb in lib/media-assets.sh; check-unused-assets.py
-# KINDS_REQUIRING_THUMB must match it):
-# - every kind emits a full-size image
-# - resource / slot_background: full only
-# - combatant / ability / item / encounter / background: full + thumb
-emit_thumb_for_kind() {
-  trinket_asset_needs_thumb "$1"
-}
-
-full_dimension_for_kind() {
-  case "$1" in
-    combatant) printf '%s\n' "$combatant_dimension" ;;
-    ability) printf '%s\n' "$ability_dimension" ;;
-    item) printf '%s\n' "$item_dimension" ;;
-    slot_background) printf '%s\n' "$slot_background_dimension" ;;
-    portrait_background) printf '%s\n' "$portrait_background_dimension" ;;
-    background) printf '%s\n' "$background_dimension" ;;
-    encounter) printf '%s\n' "$encounter_dimension" ;;
-    resource) printf '%s\n' "$resource_dimension" ;;
-    talent) printf '%s\n' "$talent_dimension" ;;
-  esac
-}
+# Kind-specific catalog metadata; conversion policy stays in the media helpers.
+# kind | scratch file | reference type | dictionary key | crop metadata | full dimension
+catalog_schema="combatant combatants CombatantArtReference String focal $combatant_dimension
+ability abilities AbilityArtReference String none $ability_dimension
+item items ItemArtReference String none $item_dimension
+slot_background slot_backgrounds SlotBackgroundArtReference ItemSlot none $slot_background_dimension
+background backgrounds BackgroundArtReference String aspect $background_dimension
+portrait_background portrait_backgrounds BackgroundArtReference String aspect $portrait_background_dimension
+encounter encounters EncounterArtReference String none $encounter_dimension
+resource resources ResourceArtReference String none $resource_dimension
+talent talents TalentArtReference Keyword aspect $talent_dimension"
 
 while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n "${kind:-}" ]]; do
   [[ -z "${kind:-}" || "$kind" == \#* ]] && continue
 
-  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" && "$kind" != "portrait_background" && "$kind" != "encounter" && "$kind" != "resource" && "$kind" != "talent" ]]; then
+  while read -r catalog_kind catalog_file catalog_type catalog_key catalog_crop full_dimension; do
+    [[ "$catalog_kind" != "$kind" ]] || break
+  done <<< "$catalog_schema"
+  if [[ "$catalog_kind" != "$kind" ]]; then
     echo "Unsupported art kind '$kind' for id '$id'." >&2
     exit 1
   fi
@@ -223,12 +214,10 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
       ;;
   esac
 
-  want_full=true
   want_thumb=false
-  if emit_thumb_for_kind "$kind"; then
+  if trinket_asset_needs_thumb "$kind"; then
     want_thumb=true
   fi
-  full_dimension="$(full_dimension_for_kind "$kind")"
   selected_thumb_dimension="$thumb_dimension"
   [[ "$kind" != "portrait_background" ]] || selected_thumb_dimension="$portrait_thumb_dimension"
 
@@ -238,9 +227,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
   thumb_imageset="$asset_catalog/${thumb_asset}.imageset"
   thumb_output_file="$thumb_imageset/${thumb_asset}.heic"
 
-  if $want_full; then
-    printf '%s\n' "$asset_name" >> "$scratch/active_assets"
-  fi
+  printf '%s\n' "$asset_name" >> "$scratch/active_assets"
   if $want_thumb; then
     printf '%s\n' "$thumb_asset" >> "$scratch/active_assets"
   fi
@@ -260,40 +247,22 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
   trinket_asset_read_recorded_state recorded_hash recorded_profile "$asset_name"
   printf '%s\t%s\t%s\n' "$asset_name" "$source_hash" "$encode_profile" >> "$scratch/source_hashes"
 
-  needs_convert=false
-  if [[ "${FORCE_ASSET_REENCODE:-0}" == "1" ]]; then
-    needs_convert=true
-  elif [[ -z "$recorded_hash" || "$recorded_hash" != "$source_hash" ]]; then
-    needs_convert=true
-  else
-    if $want_full && [[ ! -f "$output_file" ]]; then
-      needs_convert=true
-    fi
-    if $want_thumb && [[ ! -f "$thumb_output_file" ]]; then
-      needs_convert=true
-    fi
-  fi
-
-  if $needs_convert; then
-    if $want_full; then
-      write_imageset "$imageset" "$asset_name" "$output_file" "$source_file" "$full_dimension"
-      full_count=$((full_count + 1))
-    fi
+  if [[ "${FORCE_ASSET_REENCODE:-0}" == "1" || "$recorded_hash" != "$source_hash" || ! -f "$output_file" ]] \
+    || { $want_thumb && [[ ! -f "$thumb_output_file" ]]; }; then
+    write_imageset "$imageset" "$asset_name" "$output_file" "$source_file" "$full_dimension"
+    full_count=$((full_count + 1))
     if $want_thumb; then
       write_imageset "$thumb_imageset" "$thumb_asset" "$thumb_output_file" "$source_file" "$selected_thumb_dimension"
       thumb_count=$((thumb_count + 1))
     fi
   fi
 
-  # Remove the variant we no longer ship for this kind.
-  if ! $want_full && [[ -d "$imageset" ]]; then
-    rm -rf "$imageset"
-  fi
+  # Remove thumbnails for kinds that ship only the full-size variant.
   if ! $want_thumb && [[ -d "$thumb_imageset" ]]; then
     rm -rf "$thumb_imageset"
   fi
 
-  if [[ "$kind" == "background" || "$kind" == "portrait_background" || "$kind" == "talent" ]]; then
+  if [[ "$catalog_crop" == aspect ]]; then
     source_aspect_ratio="$(sips -g pixelWidth -g pixelHeight "$output_file" | awk '/pixelWidth:/{w=$2} /pixelHeight:/{h=$2} END {printf "%.12f", w/h}')"
     if [[ ! "$source_aspect_ratio" =~ ^[0-9]+\.[0-9]+$ ]]; then
       echo "Could not determine aspect ratio for '$id' from '$output_file'." >&2
@@ -303,30 +272,7 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y || [[ -n 
 
   escaped_id="$(trinket_asset_escape_swift_string "$id")"
   escaped_asset="$(trinket_asset_escape_swift_string "$asset_name")"
-  escaped_thumb="$(trinket_asset_escape_swift_string "$thumb_asset")"
-  if [[ "$kind" == "combatant" ]]; then
-    cat >> "$scratch/combatants" <<SWIFT
-        dict["$escaped_id"] = CombatantArtReference(
-            imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb",
-            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
-        )
-SWIFT
-  elif [[ "$kind" == "ability" ]]; then
-    cat >> "$scratch/abilities" <<SWIFT
-        dict["$escaped_id"] = AbilityArtReference(
-            imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb"
-        )
-SWIFT
-  elif [[ "$kind" == "item" ]]; then
-    cat >> "$scratch/items" <<SWIFT
-        dict["$escaped_id"] = ItemArtReference(
-            imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb"
-        )
-SWIFT
-  elif [[ "$kind" == "slot_background" ]]; then
+  if [[ "$kind" == "slot_background" ]]; then
     case "$id" in
       weapon|armor|accessory|trinket) ;;
       *)
@@ -334,52 +280,20 @@ SWIFT
         exit 1
         ;;
     esac
-    cat >> "$scratch/slot_backgrounds" <<SWIFT
-        dict[.$id] = SlotBackgroundArtReference(
-            imageName: "$escaped_asset"
-        )
-SWIFT
-  elif [[ "$kind" == "background" ]]; then
-    cat >> "$scratch/backgrounds" <<SWIFT
-        dict["$escaped_id"] = BackgroundArtReference(
-            imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb",
-            sourceAspectRatio: $source_aspect_ratio,
-            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
-        )
-SWIFT
-  elif [[ "$kind" == "portrait_background" ]]; then
-    cat >> "$scratch/portrait_backgrounds" <<SWIFT
-        dict["$escaped_id"] = BackgroundArtReference(
-            imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb",
-            sourceAspectRatio: $source_aspect_ratio,
-            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
-        )
-SWIFT
-  elif [[ "$kind" == "resource" ]]; then
-    cat >> "$scratch/resources" <<SWIFT
-        dict["$escaped_id"] = ResourceArtReference(
-            imageName: "$escaped_asset"
-        )
-SWIFT
-  elif [[ "$kind" == "encounter" ]]; then
-    cat >> "$scratch/encounters" <<SWIFT
-        dict["$escaped_id"] = EncounterArtReference(
-            imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb"
-        )
-SWIFT
-  elif [[ "$kind" == "talent" ]]; then
-    cat >> "$scratch/talents" <<SWIFT
-        dict[.$id] = TalentArtReference(
-            imageName: "$escaped_asset",
-            thumbnailImageName: "$escaped_thumb",
-            sourceAspectRatio: $source_aspect_ratio,
-            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y)
-        )
-SWIFT
   fi
+  key="\"$escaped_id\""
+  [[ "$catalog_key" == String ]] || key=".$id"
+  {
+    printf '        %s: %s(\n' "$key" "$catalog_type"
+    printf '            imageName: "%s"' "$escaped_asset"
+    if [[ "$catalog_crop" == aspect ]]; then
+      printf ',\n            sourceAspectRatio: %s' "$source_aspect_ratio"
+    fi
+    if [[ "$catalog_crop" != none ]]; then
+      printf ',\n            focalPoint: ArtFocalPoint(x: %s, y: %s)' "$focal_x" "$focal_y"
+    fi
+    printf '\n        ),\n'
+  } >> "$scratch/$catalog_file"
 
   processed_count=$((processed_count + 1))
 done < "$manifest"
@@ -403,109 +317,44 @@ public struct ArtFocalPoint: Hashable, Sendable {
 }
 SWIFT_HEADER
 
-  cat <<SWIFT
+  seen_reference_types=" "
+  while read -r catalog_kind catalog_file catalog_type catalog_key catalog_crop full_dimension; do
+    [[ "$seen_reference_types" != *" $catalog_type "* ]] || continue
+    seen_reference_types+="$catalog_type "
+    printf '\npublic struct %s: Hashable, Sendable {\n    public let imageName: String\n' "$catalog_type"
+    if [[ "$catalog_crop" == aspect ]]; then
+      printf '    public let sourceAspectRatio: Double\n'
+    fi
+    if [[ "$catalog_crop" != none ]]; then
+      printf '    public let focalPoint: ArtFocalPoint\n'
+    fi
+    if [[ "$catalog_kind" != resource && "$catalog_kind" != slot_background ]]; then
+      cat <<'SWIFT_THUMB'
 
-public struct CombatantArtReference: Hashable, Sendable {
-    public let imageName: String
-    public let thumbnailImageName: String?
-    public let focalPoint: ArtFocalPoint
-}
+    public var thumbnailImageName: String? {
+        "\(imageName)_thumb"
+    }
+SWIFT_THUMB
+    fi
+    printf '}\n'
+  done <<< "$catalog_schema"
 
-public struct AbilityArtReference: Hashable, Sendable {
-    public let imageName: String
-    public let thumbnailImageName: String?
-}
+  printf '\npublic enum ArtCatalog {\n'
+  while read -r catalog_kind catalog_file catalog_type catalog_key catalog_crop full_dimension; do
+    property="${catalog_kind}ArtByID"
+    [[ "$catalog_kind" != slot_background ]] || property=slotBackgroundArtByID
+    [[ "$catalog_kind" != portrait_background ]] || property=portraitBackgroundArtByID
+    if [[ -s "$scratch/$catalog_file" ]]; then
+      printf '    public static let %s: [%s: %s] = [\n' "$property" "$catalog_key" "$catalog_type"
+      cat "$scratch/$catalog_file"
+      printf '    ]\n\n'
+    else
+      printf '    public static let %s: [%s: %s] = [:]\n\n' "$property" "$catalog_key" "$catalog_type"
+    fi
+  done <<< "$catalog_schema"
+  printf '}\n\n'
 
-public struct ItemArtReference: Hashable, Sendable {
-    public let imageName: String
-    public let thumbnailImageName: String?
-}
-
-public struct SlotBackgroundArtReference: Hashable, Sendable {
-    public let imageName: String
-}
-
-public struct BackgroundArtReference: Hashable, Sendable {
-    public let imageName: String
-    public let thumbnailImageName: String?
-    public let sourceAspectRatio: Double
-    public let focalPoint: ArtFocalPoint
-}
-
-public struct ResourceArtReference: Hashable, Sendable {
-    public let imageName: String
-}
-
-public struct EncounterArtReference: Hashable, Sendable {
-    public let imageName: String
-    public let thumbnailImageName: String?
-}
-
-public struct TalentArtReference: Hashable, Sendable {
-    public let imageName: String
-    public let thumbnailImageName: String?
-    public let sourceAspectRatio: Double
-    public let focalPoint: ArtFocalPoint
-}
-
-
-public enum ArtCatalog {
-    public static let combatantArtByID: [String: CombatantArtReference] = {
-        var dict = [String: CombatantArtReference]()
-$(cat "$scratch/combatants")
-        return dict
-    }()
-
-    public static let abilityArtByID: [String: AbilityArtReference] = {
-        var dict = [String: AbilityArtReference]()
-$(cat "$scratch/abilities")
-        return dict
-    }()
-
-    public static let itemArtByID: [String: ItemArtReference] = {
-        var dict = [String: ItemArtReference]()
-$(cat "$scratch/items")
-        return dict
-    }()
-
-    public static let slotBackgroundArtByID: [ItemSlot: SlotBackgroundArtReference] = {
-        var dict = [ItemSlot: SlotBackgroundArtReference]()
-$(cat "$scratch/slot_backgrounds")
-        return dict
-    }()
-
-    public static let backgroundArtByID: [String: BackgroundArtReference] = {
-        var dict = [String: BackgroundArtReference]()
-$(cat "$scratch/backgrounds")
-        return dict
-    }()
-
-    public static let portraitBackgroundArtByID: [String: BackgroundArtReference] = {
-        var dict = [String: BackgroundArtReference]()
-$(cat "$scratch/portrait_backgrounds")
-        return dict
-    }()
-
-    public static let encounterArtByID: [String: EncounterArtReference] = {
-        var dict = [String: EncounterArtReference]()
-$(cat "$scratch/encounters")
-        return dict
-    }()
-
-    public static let resourceArtByID: [String: ResourceArtReference] = {
-        var dict = [String: ResourceArtReference]()
-$(cat "$scratch/resources")
-        return dict
-    }()
-
-    public static let talentArtByID: [Keyword: TalentArtReference] = {
-        var dict = [Keyword: TalentArtReference]()
-$(cat "$scratch/talents")
-        return dict
-    }()
-
-}
-
+  cat <<'SWIFT'
 extension Combatant {
     public var artReference: CombatantArtReference? {
         ArtCatalog.combatantArtByID[id]
@@ -545,49 +394,28 @@ extension ItemSlot {
     }
 }
 
+SWIFT_EXTENSIONS
+  cat <<'SWIFT_NAMES'
 public extension ArtCatalog {
     static let allImageNames: [String] = {
         var names = Set<String>()
-        for reference in combatantArtByID.values {
-            names.insert(reference.imageName)
-            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
-        }
-        for reference in abilityArtByID.values {
-            names.insert(reference.imageName)
-            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
-        }
-        for reference in itemArtByID.values {
-            names.insert(reference.imageName)
-            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
-        }
-        for reference in slotBackgroundArtByID.values {
-            names.insert(reference.imageName)
-        }
-        for reference in backgroundArtByID.values {
-            names.insert(reference.imageName)
-            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
-        }
-        for reference in portraitBackgroundArtByID.values {
-            names.insert(reference.imageName)
-            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
-        }
-        for reference in encounterArtByID.values {
-            names.insert(reference.imageName)
-            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
-        }
-        for reference in resourceArtByID.values {
-            names.insert(reference.imageName)
-        }
-        for reference in talentArtByID.values {
-            names.insert(reference.imageName)
-            if let thumb = reference.thumbnailImageName { names.insert(thumb) }
-        }
+SWIFT_NAMES
+  while read -r catalog_kind catalog_file catalog_type catalog_key catalog_crop full_dimension; do
+    property="${catalog_kind}ArtByID"
+    [[ "$catalog_kind" != slot_background ]] || property=slotBackgroundArtByID
+    [[ "$catalog_kind" != portrait_background ]] || property=portraitBackgroundArtByID
+    printf '        names.formUnion(%s.values.map(\\.imageName))\n' "$property"
+    if [[ "$catalog_kind" != resource && "$catalog_kind" != slot_background ]]; then
+      printf '        names.formUnion(%s.values.compactMap(\\.thumbnailImageName))\n' "$property"
+    fi
+  done <<< "$catalog_schema"
+  cat <<'SWIFT_NAMES'
         return names.sorted()
     }()
 
     static let allImageNamesSet: Set<String> = Set(allImageNames)
 }
-SWIFT_EXTENSIONS
+SWIFT_NAMES
 } > "$scratch/generated"
 
 trinket_asset_commit_generated "$scratch/generated" "$generated_swift"

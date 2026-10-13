@@ -278,10 +278,10 @@ trinket_asset_cleanup_tracked
                 "resourceArtByID", "talentArtByID",
             ):
                 self.assertIn(section, catalog)
-            self.assertIn('thumbnailImageName: "bg_field_portrait_thumb"', catalog)
+            self.assertIn('"\\(imageName)_thumb"', catalog)
             self.assertIn("sourceAspectRatio: 0.558139534884", catalog)
-            self.assertIn("dict[.burn]", catalog)
-            self.assertIn("dict[.weapon]", catalog)
+            self.assertIn(".burn: TalentArtReference(", catalog)
+            self.assertIn(".weapon: SlotBackgroundArtReference(", catalog)
             state = (
                 root
                 / "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv"
