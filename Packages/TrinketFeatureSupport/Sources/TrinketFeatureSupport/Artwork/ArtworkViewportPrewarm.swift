@@ -9,19 +9,34 @@ public enum ArtworkViewportPrewarm {
 
     public struct Window<Item: Identifiable> where Item.ID: Hashable {
         public let orderedItems: [Item]
-        private let indicesByID: [Item.ID: [Int]]
+        private let firstIndicesByID: [Item.ID: Int]
+        private let nextIndices: [Int]
 
         public init(orderedItems: [Item]) {
             self.orderedItems = orderedItems
-            var indices: [Item.ID: [Int]] = [:]
-            for (index, item) in orderedItems.enumerated() {
-                indices[item.id, default: []].append(index)
+            var firstIndices: [Item.ID: Int] = [:]
+            firstIndices.reserveCapacity(orderedItems.count)
+            // A contiguous chain preserves repeated IDs without allocating an array per item.
+            var nextIndices = [Int](repeating: -1, count: orderedItems.count)
+            for index in orderedItems.indices.reversed() {
+                nextIndices[index] = firstIndices.updateValue(index, forKey: orderedItems[index].id) ?? -1
             }
-            indicesByID = indices
+            firstIndicesByID = firstIndices
+            self.nextIndices = nextIndices
         }
 
         fileprivate func visibleIndices(matching ids: Set<Item.ID>) -> [Int] {
-            ids.flatMap { indicesByID[$0] ?? [] }.sorted()
+            var indices: [Int] = []
+            indices.reserveCapacity(ids.count)
+            for id in ids {
+                var index = firstIndicesByID[id] ?? -1
+                while index != -1 {
+                    indices.append(index)
+                    index = nextIndices[index]
+                }
+            }
+            indices.sort()
+            return indices
         }
     }
 

@@ -215,7 +215,11 @@ final class CombatFeedbackChipBridge {
                 resolved[resolutionKey] = chips
             }
             // Applying another fragment can synchronously evict chips from this lane.
-            view.apply(chips: chips.filter { !evictedIDs.contains($0.item.id) }, motionTracks: motionTracks)
+            if evictedIDs.isEmpty {
+                view.apply(chips: chips, motionTracks: motionTracks)
+            } else {
+                view.apply(chips: chips.filter { !evictedIDs.contains($0.item.id) }, motionTracks: motionTracks)
+            }
         }
     }
 
@@ -224,8 +228,8 @@ final class CombatFeedbackChipBridge {
         at now: Date,
     ) -> [ResolvedChip] {
         let targetItems = itemsByTarget[entry.combatantID] ?? [:]
-        let visible = targetItems.values.filter { item in
-            !evictedIDs.contains(item.id) && now >= item.availableAt && (item.pausedAt ?? now) < item.expiresAt
+        let visible = targetItems.values.lazy.filter { item in
+            !self.evictedIDs.contains(item.id) && now >= item.availableAt && (item.pausedAt ?? now) < item.expiresAt
         }
         let chipsToDraw = CombatFeedbackOrdering.orderedChips(from: visible.sorted {
             if $0.availableAt == $1.availableAt {

@@ -171,22 +171,19 @@ final class CombatFeedbackRasterUIView: UIView {
             )
         }
 
-        let validChips = chips.compactMap { chip -> (CombatFeedbackItem, CombatFeedbackRaster)? in
-            guard let raster = chip.raster else { return nil }
-            return (chip.item, raster)
-        }
         #if DEBUG
         debugApplyCount += 1
-        debugLastAppliedChips = validChips.map(\.0)
+        debugLastAppliedChips = chips.compactMap { $0.raster == nil ? nil : $0.item }
         #endif
-        let nextIDs = Set(validChips.map(\.0.id))
+        let nextIDs = Set(chips.lazy.compactMap { $0.raster == nil ? nil : $0.item.id })
         var orderChanged = false
         for id in Array(layersByID.keys) where !nextIDs.contains(id) {
             recycleLayer(id: id)
             orderChanged = true
         }
 
-        for (item, raster) in validChips {
+        for (item, candidate) in chips {
+            guard let raster = candidate else { continue }
             if let existing = layersByID[item.id] {
                 if existing.item.region != item.region {
                     stationaryLayoutNeedsUpdate = true
