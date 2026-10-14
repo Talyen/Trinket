@@ -12,12 +12,12 @@ extension PlayerSaveStore {
         logging message: String,
         _ mutation: (inout PlayerSave, (SaveEconomicReceipt) -> Void) -> Result<Value, Failure>,
     ) -> SaveTransactionResult<Value, Failure> {
-        let candidate = SaveEconomicMutation(currentSave)
+        let candidate = makeMutation()
         switch mutation(&candidate.save, candidate.record) {
         case let .failure(error): return .rejected(error)
         case let .success(value):
             do {
-                try commit(candidate.save, accounting: .receipts(candidate.receipts))
+                try commit(candidate)
                 return .committed(value)
             } catch {
                 notePersistenceFailure(error, logging: message)
@@ -31,10 +31,10 @@ extension PlayerSaveStore {
         logging message: String,
         _ mutation: (inout PlayerSave, (SaveEconomicReceipt) -> Void) -> Void,
     ) -> Bool {
-        let candidate = SaveEconomicMutation(currentSave)
+        let candidate = makeMutation()
         mutation(&candidate.save, candidate.record)
         do {
-            try commit(candidate.save, accounting: .receipts(candidate.receipts))
+            try commit(candidate)
             return true
         } catch {
             notePersistenceFailure(error, logging: message)
@@ -47,18 +47,6 @@ extension PlayerSaveStore {
         logging message: String,
         _ mutation: (inout PlayerSave) -> Result<Value, Failure>,
     ) -> SaveTransactionResult<Value, Failure> {
-        let (candidate, result) = proposedSave(by: mutation)
-        switch result {
-        case let .failure(error):
-            return .rejected(error)
-        case let .success(value):
-            do {
-                try commit(candidate)
-            } catch {
-                notePersistenceFailure(error, logging: message)
-                return .persistFailed(PlayerSavePersistenceError.mapped(error))
-            }
-            return .committed(value)
-        }
+        persistTransaction(logging: message) { save, _ in mutation(&save) }
     }
 }

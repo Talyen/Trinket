@@ -10,7 +10,11 @@ Domain commands return a committed value, a domain rejection, or a storage failu
 `SaveTransactionResult.persistFailed` carries that operation's typed error, so callers
 can distinguish transient writes from validation failures without reading shared diagnostics.
 The internal `persistTransaction`, `persistBatch`, and `performBatchMutation` share
-candidate validation, slice reconciliation, and commit. Economic commands collect
+candidate validation, slice reconciliation, and commit. Every candidate captures
+the store's in-memory commit revision before domain work; a nested durable command
+or reset makes that candidate obsolete. Commit rejects it before graph or journal
+writes, preserving the newer progress. The revision is transient and does not
+change serialized saves. Economic commands collect
 required `SaveEconomicReceipt` values in a synchronous `SaveEconomicMutation`;
 AppState neither mutates the candidate nor forwards receipts. Before any graph or
 journal write, commit verifies that receipt replay accounts for the candidate's

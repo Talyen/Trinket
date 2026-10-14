@@ -7,17 +7,16 @@ import TrinketPersistence
 
 extension PlayBattleCoordinator {
     func finishPresentation(configurationID: UUID) {
-        guard case let .victory(pendingExit) = claimState,
-              pendingExit.configurationID == configurationID else { return }
-        guard battle.activeBattle?.id == configurationID else { return }
-        claimState = .unclaimed
-        restoreOrigin(pendingExit.origin)
+        guard let activeBattle,
+              activeBattle.registration.launch.configuration.id == configurationID,
+              case let .victory(onFinished) = activeBattle.claimState,
+              battle.activeBattle?.id == configurationID else { return }
+        restoreOrigin(activeBattle.registration.route?.origin)
         endBattle()
-        pendingExit.onFinished()
+        onFinished()
     }
 
     func reset() {
-        claimState = .unclaimed
         talentProgressionsBefore.removeAll()
     }
 
@@ -41,11 +40,11 @@ extension PlayBattleCoordinator {
     }
 
     private func canClaimVictory(configurationID: UUID) -> Bool {
-        switch claimState {
-        case .unclaimed: true
-        case let .defeat(claimedID): claimedID != configurationID
-        case .victory: false
+        guard let activeBattle, activeBattle.registration.launch.configuration.id == configurationID else { return false }
+        if case .unclaimed = activeBattle.claimState {
+            return true
         }
+        return false
     }
 
     @discardableResult
@@ -75,7 +74,6 @@ extension PlayBattleCoordinator {
                 at: settlement?.inputs.productionDate ?? Date(),
             ) else { return .unavailable }
             guard settlement == nil || settlement == resolved else { return .staleSettlement(resolved) }
-            let origin = route?.origin
             let earnedVoyageRewards: BattleRewardAward? = if case .voyage = route {
                 run.launch.rewardPlan.resolve(
                     battleGold: resolved.award.goldFlow,
@@ -97,10 +95,7 @@ extension PlayBattleCoordinator {
             }
             if result.didComplete {
                 recordTalentProgressions(settlement ?? resolved, configuration: configuration)
-                claimState = .victory(PendingExit(
-                    configurationID: configuration.id, origin: origin,
-                    onFinished: onFinished,
-                ))
+                activeBattle?.claimState = .victory(onFinished: onFinished)
                 if !run.launch.inputs.launch.stageRewardsAlreadyClaimed {
                     onClaimed()
                 }
@@ -150,13 +145,11 @@ extension PlayBattleCoordinator {
     ) -> BattleCompletionResult {
         guard let run = activeRegistration(for: configuration),
               battle.resolvedDefeatProgress != nil else { return .unavailable }
-        switch claimState {
-        case .victory:
-            return .unavailable
-        case let .defeat(claimedID) where claimedID == configuration.id:
-            return .completed
-        case .unclaimed, .defeat:
-            break
+        guard let activeBattle else { return .unavailable }
+        switch activeBattle.claimState {
+        case .victory: return .unavailable
+        case .defeat: return .completed
+        case .unclaimed: break
         }
         guard let resolved = settleDefeat(configuration, at: settlement.inputs.productionDate)
         else { return .unavailable }
@@ -166,7 +159,7 @@ extension PlayBattleCoordinator {
         case .rejected: return .unavailable
         case .persistFailed: return .persistenceFailed
         }
-        claimState = .defeat(configurationID: configuration.id)
+        activeBattle.claimState = .defeat
         recordTalentProgressions(resolved, configuration: configuration)
         return .completed
     }

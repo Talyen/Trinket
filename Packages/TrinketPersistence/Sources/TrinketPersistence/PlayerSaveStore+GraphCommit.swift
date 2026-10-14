@@ -61,6 +61,7 @@ extension PlayerSaveStore {
                 root.apply(compensation, context: context)
                 throw error
             }
+            commitRevision &+= 1
             cloudDeviceState = cloudState
             resetAffectsCloudProgress = cloudState.activeAccountID != nil
             installObservedSave(candidate, slices: slices)

@@ -5,37 +5,37 @@ import TrinketContent
 
 @MainActor
 extension PlayerSaveStore {
-    func performBatchMutation(
-        _ update: (inout PlayerSave) -> Void,
-    ) throws {
-        try commit(proposedSave(by: update))
+    func performBatchMutation(_ update: (inout PlayerSave) -> Void) throws {
+        let candidate = makeMutation()
+        update(&candidate.save)
+        try commit(candidate)
     }
 
-    /// Single commit path shared by `performBatchMutation` (throws),
-    /// `persistBatch` (Bool), and `persistTransaction` (tri-state): sanitize,
-    /// diff slices, reconcile, write. The public spellings differ only in how
-    /// they report failure.
+    func makeMutation() -> SaveEconomicMutation {
+        SaveEconomicMutation(currentSave, sourceRevision: commitRevision)
+    }
+
+    /// Every command commits against the revision it read before domain work.
+    /// A nested command or reset must not be overwritten by an older candidate.
     func commit(
-        _ proposed: PlayerSave,
-        accounting: SaveMutationAccounting = .receipts([]),
+        _ proposed: SaveEconomicMutation,
+        accounting: SaveMutationAccounting? = nil,
     ) throws {
         let mutationInterval = Self.performanceSignposter.beginInterval("PlayerSaveMutation")
         defer {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
         }
         do {
+            guard proposed.sourceRevision == commitRevision else {
+                throw PlayerSavePersistenceError.invalidSave("The save changed while preparing this action.")
+            }
             let snapshot = currentSave
-            let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed)
-            let receipts = accounting.receipts
+            let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed.save)
+            let receipts = (accounting ?? .receipts(proposed.receipts)).receipts
             if let receipts {
                 try SaveEconomicMutation.validate(from: snapshot, to: candidate, receipts: receipts)
             }
-            try applyCandidate(
-                candidate,
-                replacing: snapshot,
-                slices: changedSlices,
-                receipts: receipts,
-            )
+            try applyCandidate(candidate, replacing: snapshot, slices: changedSlices, receipts: receipts)
         } catch {
             saveActionAttempt?.record(PlayerSavePersistenceError.mapped(error))
             throw error
@@ -43,31 +43,8 @@ extension PlayerSaveStore {
     }
 
     @discardableResult
-    func persistBatch(
-        logging message: String,
-        _ mutation: (inout PlayerSave) -> Void,
-    ) -> Bool {
-        do {
-            try commit(proposedSave(by: mutation))
-            return true
-        } catch {
-            notePersistenceFailure(error, logging: message)
-            return false
-        }
-    }
-
-    private func proposedSave(by mutation: (inout PlayerSave) -> Void) -> PlayerSave {
-        var candidate = currentSave
-        mutation(&candidate)
-        return candidate
-    }
-
-    func proposedSave<Value, Failure: Error>(
-        by mutation: (inout PlayerSave) -> Result<Value, Failure>,
-    ) -> (candidate: PlayerSave, result: Result<Value, Failure>) {
-        var candidate = currentSave
-        let result = mutation(&candidate)
-        return (candidate, result)
+    func persistBatch(logging message: String, _ mutation: (inout PlayerSave) -> Void) -> Bool {
+        persistBatch(logging: message) { save, _ in mutation(&save) }
     }
 
     /// Single mapping from commit errors to `lastPersistenceError` + log.

@@ -6,8 +6,8 @@ extension PlayerSaveStore {
     func performFixtureMutation(
         _ mutation: (inout PlayerSave) -> Void,
     ) throws {
-        var candidate = currentSave
-        mutation(&candidate)
+        let candidate = makeMutation()
+        mutation(&candidate.save)
         try commit(candidate, accounting: .fixtureSnapshot)
     }
 

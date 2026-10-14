@@ -10,27 +10,21 @@ import TrinketPersistence
 /// BattleRuntime retains simulation resources; presentation is a projection only.
 @MainActor
 final class PlayBattleCoordinator {
-    struct PendingExit {
-        let configurationID: UUID
-        let origin: PlayBattleOrigin?
-        let onFinished: () -> Void
-    }
-
-    enum ClaimState {
-        case unclaimed
-        case defeat(configurationID: UUID)
-        case victory(PendingExit)
-    }
-
     let playerSave: PlayerSaveStore
     let shellSession: ShellSession
     let battle: any BattleRuntime
     let battlePerformanceScenario: BattlePerformanceScenario?
     var nextCombatSeed: () -> UInt64 = { UInt64.random(in: .min ... .max) }
-    var preparedRuns: [BattleRunKey: PreparedRun] = [:]
-    var preferredPreparedRunKey: BattleRunKey?
-    var activeRun: PlayBattleRunRegistration?
-    var claimState: ClaimState = .unclaimed
+    let preparations = PreparedBattleRegistry()
+    var activeBattle: ActivePlayBattle?
+    var preparedRuns: [BattleRunKey: PreparedBattleRegistry.Entry] {
+        preparations.entries
+    }
+
+    var activeRun: PlayBattleRunRegistration? {
+        activeBattle?.registration
+    }
+
     var talentProgressionsBefore: [String: CombatantProgression] = [:]
 
     init(

@@ -119,7 +119,7 @@ extension PlayBattleCoordinator {
     }
 
     func requestRestart(onFinished: () -> Void) -> StageMapMessage? {
-        if case .victory = claimState {
+        if let activeBattle, case .victory = activeBattle.claimState {
             return Self.activationFailureMessage
         }
         guard let configuration = battle.activeBattle,

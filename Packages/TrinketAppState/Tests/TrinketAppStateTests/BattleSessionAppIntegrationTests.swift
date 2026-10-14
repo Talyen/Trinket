@@ -425,14 +425,14 @@ extension BattleSessionAppIntegrationTests {
         #expect(play.battleCoordinator.activateBattle(request, route: initial.route))
         let original = try #require(play.battleCoordinator.activeRun)
         // Replace the entire display projection while retaining the gameplay record.
-        play.battleCoordinator.activeRun = PlayBattleRunRegistration(
+        play.battleCoordinator.activeBattle = ActivePlayBattle(PlayBattleRunRegistration(
             route: original.route,
             launch: BattleLaunchAssembly(
                 configuration: original.launch.configuration, rewardPlan: original.launch.rewardPlan,
                 presentation: .empty, inputs: original.launch.inputs,
             ),
             rewardClaim: original.rewardClaim,
-        )
+        ))
         if retries {
             #expect(play.playerSave.persistFixtureBatch(logging: "Advance progression before Retry") { save in
                 save.roster.grantExperience(1, to: request.hero)

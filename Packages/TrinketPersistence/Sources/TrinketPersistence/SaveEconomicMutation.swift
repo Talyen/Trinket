@@ -26,10 +26,12 @@ final class SaveEconomicMutation {
         case incompleteEffects
     }
 
+    let sourceRevision: UInt64
     var save: PlayerSave
     private(set) var receipts: [SaveEconomicReceipt] = []
 
-    init(_ save: PlayerSave) {
+    init(_ save: PlayerSave, sourceRevision: UInt64) {
+        self.sourceRevision = sourceRevision
         self.save = save
     }
 

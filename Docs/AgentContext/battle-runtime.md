@@ -11,8 +11,11 @@ bootstrap can launch a battle; the session holds that delegate weakly.
 App options and audio use `BattlePresentationDependencies` from FeatureContracts.
 
 `PlayBattleCoordinator` owns the sole prepared registry, launch metadata, claims,
-Retry, and reward exits. Each prepared registration holds an opaque simulation
-handle created by its runtime. Handles reject use after invalidation, consumption,
+Retry, and reward exits. `PreparedBattleRegistry` owns handle replacement,
+pruning, selection and preview projection, including invalidation on owner teardown.
+An `ActivePlayBattle` binds the active registration and claim state for one lifetime;
+ending or replacing a run retires both together. Each prepared registration holds an
+opaque simulation handle created by its runtime. Handles reject use after invalidation, consumption,
 or runtime teardown, and cannot activate on another runtime. BattleFeature receives
 only a `BattlePreparedPreview` projection for selected simulation display and all
 prepared artwork configurations. Repeated identical projections do not advance

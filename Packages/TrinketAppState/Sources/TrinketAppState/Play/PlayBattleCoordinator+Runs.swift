@@ -3,11 +3,6 @@ import Foundation
 import TrinketFeatureContracts
 
 extension PlayBattleCoordinator {
-    struct PreparedRun {
-        let registration: PlayBattleRunRegistration
-        let handle: any PreparedBattleRunHandle
-    }
-
     func registration(for runKey: BattleRunKey?) -> PlayBattleRunRegistration? {
         if let activeRun, activeRun.launch.configuration.runKey == runKey {
             return activeRun
@@ -26,19 +21,18 @@ extension PlayBattleCoordinator {
            run.registration.rewardClaim.isCurrent(in: playerSave) {
             // Refresh application metadata without tearing down the simulation or
             // its preview. Activation receives this current presentation explicitly.
-            preparedRuns[runKey] = PreparedRun(
+            preparations.install(.init(
                 registration: makeRegistration(launch, route: route), handle: run.handle,
-            )
+            ), for: runKey)
             return true
         }
         guard let handle = battle.createPreparedRun(launch.configuration) else {
             keepPreparedRuns(Set(preparedRuns.keys).subtracting([runKey]))
             return false
         }
-        preparedRuns[runKey]?.handle.invalidate()
-        preparedRuns[runKey] = PreparedRun(
+        preparations.install(.init(
             registration: makeRegistration(launch, route: route), handle: handle,
-        )
+        ), for: runKey)
         publishPreparedPreview()
         return true
     }
@@ -50,9 +44,8 @@ extension PlayBattleCoordinator {
               run.registration.rewardClaim.isCurrent(in: playerSave)
         else { return false }
         guard battle.activatePreparedBattle(run.handle, presentation: run.registration.presentation) else { return false }
-        activeRun = run.registration
-        preparedRuns[runKey] = nil
-        claimState = .unclaimed
+        activeBattle = ActivePlayBattle(run.registration)
+        preparations.consume(runKey)
         publishPreparedPreview()
         return true
     }
@@ -60,9 +53,8 @@ extension PlayBattleCoordinator {
     func activateStandalone(_ launch: BattleLaunchAssembly) -> Bool {
         guard battle.lifecyclePhase != .active, launch.configuration.runKey == nil else { return false }
         guard battle.activate(launch.configuration, presentation: launch.presentation) else { return false }
-        activeRun = makeRegistration(launch, route: nil)
+        activeBattle = ActivePlayBattle(makeRegistration(launch, route: nil))
         discardPreparations()
-        claimState = .unclaimed
         return true
     }
 
@@ -73,15 +65,13 @@ extension PlayBattleCoordinator {
               PlayBattleRoute.matches(route, runKey: launch.configuration.runKey, missingLog: "Missing route for battle restart")
         else { return false }
         guard battle.restart(launch.configuration, presentation: launch.presentation) else { return false }
-        activeRun = makeRegistration(launch, route: route)
+        activeBattle = ActivePlayBattle(makeRegistration(launch, route: route))
         discardPreparations()
-        claimState = .unclaimed
         return true
     }
 
     func selectPreparedRun(_ key: BattleRunKey?) {
-        guard preferredPreparedRunKey != key else { return }
-        preferredPreparedRunKey = key
+        guard preparations.select(key) else { return }
         publishPreparedPreview()
     }
 
@@ -96,12 +86,7 @@ extension PlayBattleCoordinator {
     }
 
     func publishPreparedPreview() {
-        let runs = preparedRuns.sorted { $0.key.rawValue < $1.key.rawValue }.map(\.value)
-        let selected = preferredPreparedRunKey.flatMap { preparedRuns[$0]?.handle }
-            ?? (runs.count == 1 ? runs.first?.handle : nil)
-        battle.publishPreparedPreview(BattlePreparedPreview(
-            configurations: runs.map(\.registration.launch.configuration), selected: selected,
-        ))
+        battle.publishPreparedPreview(preparations.preview)
     }
 
     /// Pruning belongs to the application registry; sibling modes retain their handles.
@@ -118,31 +103,20 @@ extension PlayBattleCoordinator {
         preservingWhere preserve: (PlayBattleOrigin) -> Bool = { _ in false },
     ) {
         guard battle.lifecyclePhase != .active else { return }
-        preparedRuns = preparedRuns.filter { key, run in
-            let keep = keys.contains(key) || run.registration.route.map { preserve($0.origin) } == true
-            if !keep {
-                run.handle.invalidate()
-            }
-            return keep
-        }
-        if let preferredPreparedRunKey, preparedRuns[preferredPreparedRunKey] == nil {
-            self.preferredPreparedRunKey = nil
+        preparations.retain { key, run in
+            keys.contains(key) || run.registration.route.map { preserve($0.origin) } == true
         }
         publishPreparedPreview()
     }
 
     private func discardPreparations() {
-        for run in preparedRuns.values {
-            run.handle.invalidate()
-        }
-        preparedRuns.removeAll(keepingCapacity: true)
-        preferredPreparedRunKey = nil
+        preparations.retain { _, _ in false }
         publishPreparedPreview()
     }
 
     func endBattle() {
         battle.endBattle()
-        activeRun = nil
+        activeBattle = nil
         discardPreparations()
     }
 }
