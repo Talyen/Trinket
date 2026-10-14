@@ -154,6 +154,8 @@ Artwork admission is shared across callers: at most two decodes run concurrently
 with at most one deferred catalog decode. Launch/imminent pins precede viewport
 requests, which precede deferred work; queued requests promote when demand changes.
 Cancellation removes abandoned queued demand without cancelling shared started work.
+An indexed priority heap retains original enqueue order within each priority; promotion
+and cancellation update queued priority without scanning the deferred catalog.
 Inventory and option-picker viewport tracking observes visible IDs separately from the
 grid body. Prewarm task identity includes ordered IDs and resolved artwork names so
 filtering, reordering, and artwork replacement refresh demand without scroll-driven

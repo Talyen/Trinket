@@ -106,10 +106,11 @@ final class CombatFeedbackRasterPool {
         _ requests: [CombatFeedbackChipComposer.RasterInputs],
     ) async -> [CombatFeedbackChipComposer.ComposedRaster?] {
         var prepared: [CombatFeedbackChipComposer.ComposedRaster?] = []
+        var context = CombatFeedbackChipComposer.CompositionContext()
         for request in requests {
             guard !Task.isCancelled else { return prepared }
             prepared.append(autoreleasepool {
-                CombatFeedbackChipComposer.render(request)
+                CombatFeedbackChipComposer.render(request, context: &context)
             })
         }
         return prepared
@@ -133,6 +134,16 @@ final class CombatFeedbackRasterPool {
         for item: CombatFeedbackItem,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
+    ) -> CombatFeedbackRaster? {
+        var context = CombatFeedbackChipComposer.CompositionContext()
+        return prepare(for: item, layoutDirection: layoutDirection, displayScale: displayScale, context: &context)
+    }
+
+    func prepare(
+        for item: CombatFeedbackItem,
+        layoutDirection: LayoutDirection,
+        displayScale: CGFloat,
+        context: inout CombatFeedbackChipComposer.CompositionContext,
     ) -> CombatFeedbackRaster? {
         let scale = max(1, displayScale)
         let key = CombatFeedbackRasterKey(
@@ -169,6 +180,7 @@ final class CombatFeedbackRasterPool {
             layoutDirection: layoutDirection,
             displayScale: scale,
             needsShineMask: true,
+            context: &context,
         ) else {
             return nil
         }

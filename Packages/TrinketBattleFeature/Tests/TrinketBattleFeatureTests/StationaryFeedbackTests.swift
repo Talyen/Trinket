@@ -1,6 +1,7 @@
 import BattleEngine
 import CoreGraphics
 import Foundation
+import QuartzCore
 import Testing
 @testable import TrinketBattleFeature
 
@@ -229,11 +230,13 @@ struct StationaryFeedbackTests {
                     )
                 }
                 if case .amount = label {
+                    let layoutCount = view.debugLayoutCount
                     item.label = .amount(99)
                     item.lastUpdatedAt = start.addingTimeInterval(0.05)
                     let merged = try #require(pool.prepare(for: item, displayScale: 1))
                     view.apply(chips: [(item, merged)])
                     view.debugTickMotion(at: start.addingTimeInterval(0.05))
+                    #expect(view.debugLayoutCount == layoutCount)
                     #expect(layer.position == center)
                     #expect(view.bounds.contains(layer.frame))
                     #expect(
@@ -360,5 +363,50 @@ struct StationaryFeedbackTests {
 
     private func event(_ id: Int, amount: Int) -> BattleEngine.ActionEvent {
         BattleSessionTestSupport.makeActionEvent(id: id, kind: .abilityDamage, amount: amount, keyword: .physical, actionID: id)
+    }
+}
+
+struct FeedbackGeometryCacheTests {
+    @Test @MainActor func `cached feedback geometry refreshes for resize inset and remounted fragments`() throws {
+        let start = Date.now.addingTimeInterval(10)
+        let pool = CombatFeedbackRasterPool()
+        var item = CombatFeedbackItem(
+            id: 1, sourceEventIDs: [1], actionGroupID: 1, presentationIndex: 0,
+            targetID: "test", feedbackClass: .buff, keyword: .poison,
+            visualRole: .beneficialStatus, label: .amount(9), availableAt: start,
+            expiresAt: start.addingTimeInterval(CombatFeedbackMotionSampler.lifetime),
+            reactionKind: .none,
+        )
+        item.pausedAt = start.addingTimeInterval(0.3)
+        let raster = try #require(pool.prepare(for: item, displayScale: 1))
+        let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 160, height: 220))
+        defer { view.apply(chips: []) }
+        view.apply(chips: [(item, raster)])
+        let chip = try #require(view.layer.sublayers?.first { $0.contents != nil })
+        let originalPosition = chip.position
+        let originalTransform = chip.transform
+        let originalOpacity = chip.opacity
+        let layoutCount = view.debugLayoutCount
+        view.apply(chips: [(item, raster)])
+        view.debugTickMotion(at: start.addingTimeInterval(20))
+        #expect(view.debugLayoutCount == layoutCount)
+        #expect(chip.position == originalPosition && chip.opacity == originalOpacity)
+        #expect(CATransform3DEqualToTransform(chip.transform, originalTransform))
+        #expect(!view.debugIsMotionRegistered)
+        view.bottomInset = 18
+        view.debugTickMotion(at: start)
+        #expect(abs(chip.position.y - (originalPosition.y - 18)) < 0.000001)
+        view.bounds = CGRect(x: 0, y: 0, width: 120, height: 180)
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        #expect(view.debugLayoutCount > layoutCount)
+        #expect(view.bounds.contains(chip.frame))
+        let fragment = CombatFeedbackRasterUIView(frame: view.bounds)
+        fragment.bottomInset = view.bottomInset
+        defer { fragment.apply(chips: []) }
+        fragment.apply(chips: [(item, raster)])
+        let fragmentChip = try #require(fragment.layer.sublayers?.first { $0.contents != nil })
+        #expect(fragmentChip.position == chip.position && fragmentChip.opacity == chip.opacity)
+        #expect(CATransform3DEqualToTransform(fragmentChip.transform, chip.transform))
     }
 }

@@ -174,8 +174,10 @@ Prewarm the single production vocabulary including glint masks; numeric cache ch
 cannot evict the prepared vocabulary within the existing raster capacity. Chip
 replacement refreshes changed recipients only and shares raster resolution between
 matching fragment hosts, while availability deadlines still reveal queued results.
-Frame updates change layer properties only, using fitting positions cached when layout
-changes.
+Frame updates change only unequal layer properties, using fitting positions cached
+until ordered chip membership, reservation geometry, portrait bounds, or bottom inset
+changes. Raster composition shares tinted glyphs within each bridge refresh or worker
+batch; these contexts retain their source images and release when the batch ends.
 Hosts unregister from the display clock on teardown and when eviction leaves no
 unpaused chips; publication resumes the clock for new or resumed feedback.
 Feedback expiration participates in outcome timing;

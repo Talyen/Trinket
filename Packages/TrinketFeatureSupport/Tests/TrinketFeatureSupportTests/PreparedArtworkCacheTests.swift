@@ -154,6 +154,49 @@ struct PreparedArtworkCacheTests {
         #expect(await probe.started.count(where: { $0 == "z" }) == 1)
     }
 
+    @Test func `promoted artwork keeps original order and canceled promotion restores priority`() async throws {
+        let probe = DecodeProbe()
+        defer { Task { await probe.releaseAll() } }
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["a", "z", "later"]) { name in
+            await probe.decode(name)
+        }
+        await cache.prepareAll(priorityImageNames: [])
+        try await waitUntil("the first deferred decode") { await probe.started.count == 1 }
+        let viewport = Task { await cache.prepare(names: ["b", "c"]) }
+        defer { viewport.cancel() }
+        try await waitUntil("the second occupied decode slot") { await probe.started.count == 2 }
+        let promoted = Task { _ = await cache.acquirePinnedArtwork(names: ["y", "z"]) }
+        defer { promoted.cancel() }
+        try await waitUntil("both imminent requests") {
+            cache.pinDemandCount(for: "y") == 1 && cache.pinDemandCount(for: "z") == 1
+        }
+        await probe.release("b")
+        try await waitUntil("the original earlier job wins the imminent tie") { await probe.started.count == 3 }
+        #expect(await probe.started == ["a", "b", "z"])
+        await probe.release("z")
+        try await waitUntil("the newly enqueued imminent job") { await probe.started.count == 4 }
+        #expect(await probe.started.last == "y")
+        let canceledPromotion = Task { _ = await cache.acquirePinnedArtwork(names: ["later"]) }
+        defer { canceledPromotion.cancel() }
+        try await waitUntil("later imminent demand") { cache.pinDemandCount(for: "later") == 1 }
+        canceledPromotion.cancel()
+        await canceledPromotion.value
+        #expect(cache.pinDemandCount(for: "later") == 0)
+        await probe.release("y")
+        try await waitUntil("viewport beats demoted deferred work") { await probe.started.count == 5 }
+        #expect(await probe.started.last == "c")
+        await probe.release("c")
+        #expect(await probe.started.count == 5)
+        await probe.release("a")
+        try await waitUntil("remaining deferred job") { await probe.started.count == 6 }
+        #expect(await probe.started.last == "later")
+        await probe.release("later")
+        await viewport.value
+        await promoted.value
+        await cache.waitForDeferredWarmup()
+        #expect(await probe.maximumActive == 2)
+    }
+
     @Test func `portrait backgrounds are prepared by their owning surface`() {
         let portraits = Set(ArtCatalog.portraitBackgroundArtByID.values.map(\.imageName))
         #expect(!portraits.isEmpty)

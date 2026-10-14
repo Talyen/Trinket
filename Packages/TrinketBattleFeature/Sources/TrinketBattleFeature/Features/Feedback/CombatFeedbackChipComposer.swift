@@ -42,11 +42,28 @@ enum CombatFeedbackChipComposer {
         atlas: CombatFeedbackGlyphAtlas = .shared,
         needsShineMask: Bool = false,
     ) -> ComposedRaster? {
+        var context = CompositionContext()
+        return compose(
+            presentation: presentation, feedbackClass: feedbackClass,
+            layoutDirection: layoutDirection, displayScale: displayScale,
+            atlas: atlas, needsShineMask: needsShineMask, context: &context,
+        )
+    }
+
+    static func compose(
+        presentation: CombatFeedbackChipPresentation,
+        feedbackClass: CombatFeedbackClass,
+        layoutDirection: LayoutDirection,
+        displayScale: CGFloat,
+        atlas: CombatFeedbackGlyphAtlas = .shared,
+        needsShineMask: Bool,
+        context: inout CompositionContext,
+    ) -> ComposedRaster? {
         guard let inputs = prepareInputs(
             presentation: presentation, feedbackClass: feedbackClass,
             layoutDirection: layoutDirection, displayScale: displayScale, atlas: atlas, needsShineMask: needsShineMask,
         ) else { return nil }
-        return render(inputs)
+        return render(inputs, context: &context)
     }
 
     static func prepareInputs(
@@ -123,13 +140,26 @@ enum CombatFeedbackChipComposer {
         )
     }
 
-    private struct TintedGlyph {
+    struct CompositionContext {
+        fileprivate var tintedGlyphs: [ObjectIdentifier: [TintedGlyph]] = [:]
+    }
+
+    fileprivate struct TintedGlyph {
+        // Keep identity valid for the entire batch, even after raster-pool eviction.
+        let source: CGImage
+        let displayScale: CGFloat
         let color: CGColor
+        let outline: CGColor?
         let image: UIImage
         let silhouette: UIImage?
     }
 
     nonisolated static func render(_ inputs: RasterInputs) -> ComposedRaster? {
+        var context = CompositionContext()
+        return render(inputs, context: &context)
+    }
+
+    nonisolated static func render(_ inputs: RasterInputs, context: inout CompositionContext) -> ComposedRaster? {
         let leading = inputs.leading
         let trailing = inputs.trailing
         let textGlyphs = inputs.textGlyphs
@@ -147,13 +177,12 @@ enum CombatFeedbackChipComposer {
             height: ceil(contentHeight + verticalPadding * 2 + shadowOffsetY),
         )
 
-        var tintedGlyphs: [ObjectIdentifier: [TintedGlyph]] = [:]
         guard let cgImage = renderImage(
             inputs,
             pointSize: pointSize,
             contentHeight: contentHeight,
             maskOnly: false,
-            tintedGlyphs: &tintedGlyphs,
+            tintedGlyphs: &context.tintedGlyphs,
         ) else { return nil }
         return ComposedRaster(
             image: cgImage, pointSize: pointSize,
@@ -163,7 +192,7 @@ enum CombatFeedbackChipComposer {
                     pointSize: pointSize,
                     contentHeight: contentHeight,
                     maskOnly: true,
-                    tintedGlyphs: &tintedGlyphs,
+                    tintedGlyphs: &context.tintedGlyphs,
                 ) : nil,
             textWidth: textWidth, maximumDigitWidth: inputs.maximumDigitWidth,
         )
@@ -301,13 +330,17 @@ enum CombatFeedbackChipComposer {
         let rect = CGRect(origin: origin, size: CGSize(width: glyph.width, height: glyph.height))
         let key = ObjectIdentifier(glyph.image)
         let images: TintedGlyph
-        if let cached = tintedGlyphs[key]?.first(where: { $0.color == tint.cgColor }) {
+        if let cached = tintedGlyphs[key]?
+            .first(where: { $0.displayScale == displayScale && $0.color == tint.cgColor && $0.outline == outline?.cgColor }) {
             images = cached
         } else {
-            let tinted = UIImage(cgImage: glyph.image, scale: displayScale, orientation: .up)
+            let tinted = tintedGlyphs[key]?.first(where: {
+                $0.displayScale == displayScale && $0.color == tint.cgColor
+            })?.image ?? UIImage(cgImage: glyph.image, scale: displayScale, orientation: .up)
                 .withTintColor(tint, renderingMode: .alwaysOriginal)
             images = TintedGlyph(
-                color: tint.cgColor,
+                source: glyph.image, displayScale: displayScale,
+                color: tint.cgColor, outline: outline?.cgColor,
                 image: tinted,
                 silhouette: outline.map { tinted.withTintColor($0, renderingMode: .alwaysOriginal) },
             )

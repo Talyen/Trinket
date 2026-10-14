@@ -106,7 +106,16 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     var onEvict: ((Set<Int>) -> Void)?
+    private struct LayoutInput: Equatable {
+        let id: Int
+        let region: CombatFeedbackRegion
+        let reservationSize: CGSize
+    }
+
     private var stationaryLayout = StationaryFeedbackLayout()
+    private var lastLayoutInputs: [LayoutInput] = []
+    private var lastLayoutBounds: CGRect?
+    private var lastLayoutBottomInset: CGFloat?
     private var riseDistance: CGFloat = 0
     private var shineLayers: [ObjectIdentifier: CALayer] = [:]
     private var layersByID: [Int: ChipLayer] = [:]
@@ -114,6 +123,7 @@ final class CombatFeedbackRasterUIView: UIView {
     private var reusableLayers: [CALayer] = []
     #if DEBUG
     private(set) var debugApplyCount = 0
+    private(set) var debugLayoutCount = 0
     var debugLastAppliedChips: [CombatFeedbackItem] = []
     var debugVisibleChipIDs: Set<Int> {
         Set(layersByID.keys)
@@ -211,13 +221,9 @@ final class CombatFeedbackRasterUIView: UIView {
         super.layoutSubviews()
         guard !bounds.isEmpty else { return }
         layoutStationary()
-        let center = CGPoint(x: bounds.midX, y: bounds.midY)
         withLayerActionsDisabled {
-            for layer in layersByID.values {
-                layer.layer.position = center
-                if layer.layer.isHidden {
-                    layer.layer.isHidden = false
-                }
+            for layer in layersByID.values where layer.layer.isHidden {
+                layer.layer.isHidden = false
             }
         }
         tickMotion(at: .now)
@@ -370,6 +376,16 @@ private extension CombatFeedbackRasterUIView {
     }
 
     private func layoutStationary() {
+        let inputs = orderedLayers.map {
+            LayoutInput(id: $0.item.id, region: $0.item.region, reservationSize: $0.reservationSize)
+        }
+        guard inputs != lastLayoutInputs || bounds != lastLayoutBounds || bottomInset != lastLayoutBottomInset else { return }
+        lastLayoutInputs = inputs
+        lastLayoutBounds = bounds
+        lastLayoutBottomInset = bottomInset
+        #if DEBUG
+        debugLayoutCount += 1
+        #endif
         riseDistance = min(CombatFeedbackMotionSampler.riseDistance, max(0, bounds.height / 2 - 12))
         stationaryLayout.retain(ids: Set(orderedLayers.map(\.item.id)), in: bounds)
         for chip in orderedLayers {
@@ -381,9 +397,10 @@ private extension CombatFeedbackRasterUIView {
             ), region: chip.item.region, bottomInset: bottomInset)
         }
         let date = Date.now
+        // Resolve after all placements, since new arrivals can push earlier slots.
+        let slotsByID = Dictionary(uniqueKeysWithValues: stationaryLayout.slots.map { ($0.id, $0) })
         for chip in orderedLayers {
-            // Resolve after every placement, since new arrivals can push earlier slots.
-            chip.slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id })
+            chip.slot = slotsByID[chip.item.id]
             guard let slot = chip.slot else { continue }
             // Fitting geometry stays fixed between layout updates; only push and rise vary per frame.
             chip.basePosition = stationaryLayout.position(for: slot, push: 0, rise: 0, bottomInset: bottomInset)
@@ -404,42 +421,69 @@ private extension CombatFeedbackRasterUIView {
                 x: chip.basePosition.x,
                 y: chip.basePosition.y - chip.lanePush.offset(at: elapsed) - riseDistance * state.riseProgress,
             )
-            chip.layer.position = position
             let edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: position.y, in: bounds)
             if edgeOpacity == 0 {
                 evicted.insert(chip.item.id)
             }
-            chip.layer.transform = CATransform3DMakeScale(scale, scale, 1)
-            chip.layer.opacity = Float(state.opacity * edgeOpacity)
-            if chip.layer.zPosition != CGFloat(index) {
-                chip.layer.zPosition = CGFloat(index)
-            }
+            updateLayer(chip.layer, position: position, scale: scale, opacity: Float(state.opacity * edgeOpacity), index: index)
             let criticalElapsed = chip.item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1
             let shadowOpacity = Float(1 - BattleMotion.smoothProgress(criticalElapsed / 0.48))
             if chip.layer.shadowOpacity != shadowOpacity {
                 chip.layer.shadowOpacity = shadowOpacity
             }
-            if let shine = shineLayers[ObjectIdentifier(chip.layer)], shine.mask?.contents != nil {
-                let flashOpacity = Float(0.8 * (1 - BattleMotion.smoothProgress(criticalElapsed / 0.14)))
-                let isFinished = state.shineProgress >= 1 && flashOpacity == 0
-                // Finished glints need no layer writes until a merge or critical hit restarts them.
-                if isFinished, shine.isHidden {
-                    continue
-                }
-                shine.isHidden = isFinished
-                shine.sublayers?.first?.isHidden = state.shineProgress >= 1
-                shine.sublayers?.last?.opacity = flashOpacity
-                let x = -0.35 + state.shineProgress * 1.7
-                shine.sublayers?.first?.position.x = x * chip.layer.bounds.width
-            }
+            updateShine(for: chip, state: state, criticalElapsed: criticalElapsed)
         }
         guard !evicted.isEmpty else { return }
         for id in evicted {
             recycleLayer(id: id)
         }
         orderedLayers.removeAll { evicted.contains($0.item.id) }
+        lastLayoutBounds = nil
         updateMotionClock()
         onEvict?(evicted)
+    }
+
+    private func updateLayer(_ layer: CALayer, position: CGPoint, scale: CGFloat, opacity: Float, index: Int) {
+        if layer.position != position {
+            layer.position = position
+        }
+        let transform = CATransform3DMakeScale(scale, scale, 1)
+        if !CATransform3DEqualToTransform(layer.transform, transform) {
+            layer.transform = transform
+        }
+        if layer.opacity != opacity {
+            layer.opacity = opacity
+        }
+        if layer.zPosition != CGFloat(index) {
+            layer.zPosition = CGFloat(index)
+        }
+    }
+
+    private func updateShine(for chip: ChipLayer, state: CombatFeedbackAnimationState, criticalElapsed: TimeInterval) {
+        if let shine = shineLayers[ObjectIdentifier(chip.layer)], shine.mask?.contents != nil {
+            let flashOpacity = Float(0.8 * (1 - BattleMotion.smoothProgress(criticalElapsed / 0.14)))
+            let isFinished = state.shineProgress >= 1 && flashOpacity == 0
+            // Finished glints need no layer writes until a merge or critical hit restarts them.
+            if isFinished, shine.isHidden {
+                return
+            }
+            if shine.isHidden != isFinished {
+                shine.isHidden = isFinished
+            }
+            if let gradient = shine.sublayers?.first {
+                let isHidden = state.shineProgress >= 1
+                if gradient.isHidden != isHidden {
+                    gradient.isHidden = isHidden
+                }
+                let x = (-0.35 + state.shineProgress * 1.7) * chip.layer.bounds.width
+                if gradient.position.x != x {
+                    gradient.position.x = x
+                }
+            }
+            if let flash = shine.sublayers?.last, flash.opacity != flashOpacity {
+                flash.opacity = flashOpacity
+            }
+        }
     }
 }
 

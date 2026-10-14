@@ -172,6 +172,7 @@ final class CombatFeedbackChipBridge {
             )
         }
         var resolved: [ResolutionKey: [ResolvedChip]] = [:]
+        var context = CombatFeedbackChipComposer.CompositionContext()
         for key in hostKeys ?? Array(hosts.keys) {
             guard let entry = hosts[key], targetIDs.contains(entry.combatantID) else { continue }
             guard let view = entry.view else {
@@ -187,7 +188,7 @@ final class CombatFeedbackChipBridge {
             if let cached = resolved[resolutionKey] {
                 chips = cached
             } else {
-                chips = resolveChips(for: entry, at: now)
+                chips = resolveChips(for: entry, at: now, context: &context)
                 resolved[resolutionKey] = chips
             }
             // Applying another fragment can synchronously evict chips from this lane.
@@ -195,7 +196,11 @@ final class CombatFeedbackChipBridge {
         }
     }
 
-    private func resolveChips(for entry: WeakHost, at now: Date) -> [ResolvedChip] {
+    private func resolveChips(
+        for entry: WeakHost,
+        at now: Date,
+        context: inout CombatFeedbackChipComposer.CompositionContext,
+    ) -> [ResolvedChip] {
         let targetItems = itemsByTarget[entry.combatantID] ?? [:]
         let visible = targetItems.values.filter { item in
             !evictedIDs.contains(item.id) && now >= item.availableAt && (item.pausedAt ?? now) < item.expiresAt
@@ -216,6 +221,7 @@ final class CombatFeedbackChipBridge {
                 for: item,
                 layoutDirection: entry.layoutDirection,
                 displayScale: entry.displayScale,
+                context: &context,
             )
             chips.append((item: item, raster: raster))
         }

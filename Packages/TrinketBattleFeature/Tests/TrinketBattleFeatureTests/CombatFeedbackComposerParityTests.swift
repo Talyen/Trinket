@@ -18,6 +18,7 @@ struct CombatFeedbackComposerParityTests {
             (.heal, .amount(1111), .beneficialStatus, .health),
             (.buff, .word(.cleanse(.poison)), .keyword, .poison),
         ]
+        var context = CombatFeedbackChipComposer.CompositionContext()
         for direction in [LayoutDirection.leftToRight, .rightToLeft] {
             for (feedbackClass, label, role, keyword) in cases {
                 let presentation = CombatFeedbackChipPresentation.resolve(
@@ -29,13 +30,16 @@ struct CombatFeedbackComposerParityTests {
                         layoutDirection: direction, displayScale: scale, atlas: atlas, needsShineMask: needsMask,
                     ))
                     let expected = try #require(ReferenceFeedbackComposer.render(inputs))
-                    let actual = try #require(CombatFeedbackChipComposer.render(inputs))
+                    let actual = try #require(CombatFeedbackChipComposer.render(inputs, context: &context))
                     #expect(actual.pointSize == expected.pointSize)
                     #expect(actual.textWidth == expected.textWidth)
                     #expect(actual.maximumDigitWidth == expected.maximumDigitWidth)
                     try expectEqualPixels(actual.image, expected.image)
+                    let reused = try #require(CombatFeedbackChipComposer.render(inputs, context: &context))
+                    try expectEqualPixels(reused.image, expected.image)
                     if needsMask {
                         try expectEqualPixels(#require(actual.shineMask), #require(expected.shineMask))
+                        try expectEqualPixels(#require(reused.shineMask), #require(expected.shineMask))
                     } else {
                         #expect(actual.shineMask == nil)
                     }
