@@ -74,6 +74,15 @@ final class CombatFeedbackRasterPool {
     private var protectedCatalogKeys: Set<CombatFeedbackRasterKey> = []
     private var lastUseEpoch: [CombatFeedbackRasterKey: Int] = [:]
     private var nextEpoch = 0
+    private struct EvictionLinks {
+        var previous: CombatFeedbackRasterKey?
+        var next: CombatFeedbackRasterKey?
+    }
+
+    private var evictionLinks: [CombatFeedbackRasterKey: EvictionLinks] = [:]
+    private var oldestEvictable: CombatFeedbackRasterKey?
+    private var newestEvictable: CombatFeedbackRasterKey?
+    private var compositionContext = CombatFeedbackChipComposer.CompositionContext()
     private var hitCount = 0
     private var missCount = 0
     private var buildCount = 0
@@ -135,16 +144,6 @@ final class CombatFeedbackRasterPool {
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
     ) -> CombatFeedbackRaster? {
-        var context = CombatFeedbackChipComposer.CompositionContext()
-        return prepare(for: item, layoutDirection: layoutDirection, displayScale: displayScale, context: &context)
-    }
-
-    func prepare(
-        for item: CombatFeedbackItem,
-        layoutDirection: LayoutDirection,
-        displayScale: CGFloat,
-        context: inout CombatFeedbackChipComposer.CompositionContext,
-    ) -> CombatFeedbackRaster? {
         let scale = max(1, displayScale)
         let key = CombatFeedbackRasterKey(
             item: item,
@@ -180,7 +179,7 @@ final class CombatFeedbackRasterPool {
             layoutDirection: layoutDirection,
             displayScale: scale,
             needsShineMask: true,
-            context: &context,
+            context: &compositionContext,
         ) else {
             return nil
         }
@@ -245,6 +244,7 @@ final class CombatFeedbackRasterPool {
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
             guard prepared.count == requests.count, prepared.allSatisfy({ $0 != nil }) else { return nil }
             protectedCatalogKeys = catalogKeys
+            rebuildEvictionOrder()
             // Numeric traffic may have evicted these entries while missing rasters baked.
             for (key, raster) in retainedCatalogRasters where rasters[key] == nil {
                 insert(raster, for: key)
@@ -298,6 +298,10 @@ final class CombatFeedbackRasterPool {
         protectedCatalogKeys.removeAll(keepingCapacity: true)
         rasters.removeAll(keepingCapacity: true)
         lastUseEpoch.removeAll(keepingCapacity: true)
+        evictionLinks.removeAll(keepingCapacity: true)
+        oldestEvictable = nil
+        newestEvictable = nil
+        compositionContext = CombatFeedbackChipComposer.CompositionContext()
         preparedCatalogKey = nil
     }
 
@@ -337,9 +341,8 @@ final class CombatFeedbackRasterPool {
 
     private func insert(_ raster: CombatFeedbackRaster, for key: CombatFeedbackRasterKey) {
         if rasters[key] == nil, rasters.count >= capacity {
-            guard let leastRecent = lastUseEpoch.lazy
-                .filter({ !protectedCatalogKeys.contains($0.key) })
-                .min(by: { $0.value < $1.value })?.key else { return }
+            guard let leastRecent = oldestEvictable else { return }
+            unlinkEvictable(leastRecent)
             rasters.removeValue(forKey: leastRecent)
             lastUseEpoch.removeValue(forKey: leastRecent)
             evictionCount += 1
@@ -351,5 +354,43 @@ final class CombatFeedbackRasterPool {
     private func markMostRecent(_ key: CombatFeedbackRasterKey) {
         nextEpoch += 1
         lastUseEpoch[key] = nextEpoch
+        guard !protectedCatalogKeys.contains(key) else { return }
+        unlinkEvictable(key)
+        appendEvictable(key)
+    }
+
+    private func unlinkEvictable(_ key: CombatFeedbackRasterKey) {
+        guard let links = evictionLinks.removeValue(forKey: key) else { return }
+        if let previous = links.previous {
+            evictionLinks[previous]?.next = links.next
+        } else {
+            oldestEvictable = links.next
+        }
+        if let next = links.next {
+            evictionLinks[next]?.previous = links.previous
+        } else {
+            newestEvictable = links.previous
+        }
+    }
+
+    private func appendEvictable(_ key: CombatFeedbackRasterKey) {
+        evictionLinks[key] = EvictionLinks(previous: newestEvictable, next: nil)
+        if let newestEvictable {
+            evictionLinks[newestEvictable]?.next = key
+        } else {
+            oldestEvictable = key
+        }
+        newestEvictable = key
+    }
+
+    private func rebuildEvictionOrder() {
+        evictionLinks.removeAll(keepingCapacity: true)
+        oldestEvictable = nil
+        newestEvictable = nil
+        // Protection changes only at catalog publication; ordinary hits/misses are O(1).
+        for (key, _) in lastUseEpoch.sorted(by: { $0.value < $1.value })
+            where !protectedCatalogKeys.contains(key) {
+            appendEvictable(key)
+        }
     }
 }

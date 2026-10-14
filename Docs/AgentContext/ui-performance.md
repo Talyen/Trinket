@@ -159,7 +159,10 @@ and cancellation update queued priority without scanning the deferred catalog.
 Inventory and option-picker viewport tracking observes visible IDs separately from the
 grid body. Prewarm task identity includes ordered IDs and resolved artwork names so
 filtering, reordering, and artwork replacement refresh demand without scroll-driven
-reconstruction of the item lists.
+reconstruction of the item lists. These observers retain an indexed artwork window
+with its ordered entries, rebuilding it only when entries change. Scroll updates
+resolve visible positions through the index while preserving the same prefetch
+windows, debounce, cancellation, and decode admission.
 Preparation and pin publication remain distinct from presentation readiness.
 Raw pin counts are internal to `TrinketFeatureSupport`. Fixed acquisitions use
 `PreparedArtworkLease`; explicit release and teardown release that acquisition at

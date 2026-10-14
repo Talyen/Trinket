@@ -7,6 +7,24 @@ public enum ArtworkViewportPrewarm {
     public static let backwardPrefetchRows = 1
     public static let viewportDebounceInterval: Duration = .milliseconds(50)
 
+    public struct Window<Item: Identifiable> where Item.ID: Hashable {
+        public let orderedItems: [Item]
+        private let indicesByID: [Item.ID: [Int]]
+
+        public init(orderedItems: [Item]) {
+            self.orderedItems = orderedItems
+            var indices: [Item.ID: [Int]] = [:]
+            for (index, item) in orderedItems.enumerated() {
+                indices[item.id, default: []].append(index)
+            }
+            indicesByID = indices
+        }
+
+        fileprivate func visibleIndices(matching ids: Set<Item.ID>) -> [Int] {
+            ids.flatMap { indicesByID[$0] ?? [] }.sorted()
+        }
+    }
+
     @MainActor
     public static func prewarm<Item: Identifiable>(
         orderedItems: [Item],
@@ -28,6 +46,42 @@ public enum ArtworkViewportPrewarm {
         )
         guard !names.isEmpty else { return }
         await PreparedArtworkCache.shared.prepare(names: names)
+    }
+
+    @MainActor
+    public static func prewarm<Item: Identifiable>(
+        window: Window<Item>,
+        visibleIDs: Set<Item.ID>,
+        currentVisibleIDs: (() -> Set<Item.ID>)? = nil,
+        thumbnailName: (Item) -> String?,
+        prefetchRows: Int = defaultPrefetchRows,
+        estimatedColumns: Int = collectionEstimatedColumns,
+    ) async where Item.ID: Hashable {
+        try? await Task.sleep(for: viewportDebounceInterval)
+        guard !Task.isCancelled else { return }
+        let latestIDs: Set<Item.ID> = currentVisibleIDs?() ?? visibleIDs
+        let names = windowNames(
+            window: window, visibleIDs: latestIDs, thumbnailName: thumbnailName,
+            prefetchRows: prefetchRows, estimatedColumns: estimatedColumns,
+        )
+        guard !names.isEmpty else { return }
+        await PreparedArtworkCache.shared.prepare(names: names)
+    }
+
+    public static func windowNames<Item: Identifiable>(
+        window: Window<Item>,
+        visibleIDs: Set<Item.ID>,
+        thumbnailName: (Item) -> String?,
+        prefetchRows: Int,
+        estimatedColumns: Int,
+    ) -> [String] where Item.ID: Hashable {
+        windowNames(
+            orderedItems: window.orderedItems,
+            visibleIndices: window.visibleIndices(matching: visibleIDs),
+            thumbnailName: thumbnailName,
+            prefetchRows: prefetchRows,
+            estimatedColumns: estimatedColumns,
+        )
     }
 
     public static func windowNames<Item: Identifiable>(

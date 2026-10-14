@@ -142,10 +142,34 @@ enum CombatFeedbackChipComposer {
 
     struct CompositionContext {
         fileprivate var tintedGlyphs: [ObjectIdentifier: [TintedGlyph]] = [:]
+        private var sourceOrder: [ObjectIdentifier] = []
+        private var nextSourceSlot = 0
+        private let maximumSources: Int
+
+        init(maximumSources: Int = 128) {
+            self.maximumSources = max(1, maximumSources)
+        }
+
+        fileprivate mutating func insert(_ glyph: TintedGlyph, for key: ObjectIdentifier) {
+            // Retain source identities, but bound old scales, colors, and atlas generations.
+            if tintedGlyphs[key] == nil {
+                if sourceOrder.count == maximumSources {
+                    tintedGlyphs.removeValue(forKey: sourceOrder[nextSourceSlot])
+                    sourceOrder[nextSourceSlot] = key
+                    nextSourceSlot = (nextSourceSlot + 1) % sourceOrder.count
+                } else {
+                    sourceOrder.append(key)
+                }
+            }
+            if tintedGlyphs[key]?.count == 8 {
+                tintedGlyphs[key]?.removeFirst()
+            }
+            tintedGlyphs[key, default: []].append(glyph)
+        }
     }
 
     fileprivate struct TintedGlyph {
-        // Keep identity valid for the entire batch, even after raster-pool eviction.
+        // Keep identity valid while cached, even after atlas or raster-pool replacement.
         let source: CGImage
         let displayScale: CGFloat
         let color: CGColor
@@ -182,7 +206,7 @@ enum CombatFeedbackChipComposer {
             pointSize: pointSize,
             contentHeight: contentHeight,
             maskOnly: false,
-            tintedGlyphs: &context.tintedGlyphs,
+            composition: &context,
         ) else { return nil }
         return ComposedRaster(
             image: cgImage, pointSize: pointSize,
@@ -192,7 +216,7 @@ enum CombatFeedbackChipComposer {
                     pointSize: pointSize,
                     contentHeight: contentHeight,
                     maskOnly: true,
-                    tintedGlyphs: &context.tintedGlyphs,
+                    composition: &context,
                 ) : nil,
             textWidth: textWidth, maximumDigitWidth: inputs.maximumDigitWidth,
         )
@@ -200,7 +224,7 @@ enum CombatFeedbackChipComposer {
 
     private nonisolated static func renderImage(
         _ inputs: RasterInputs, pointSize: CGSize, contentHeight: CGFloat, maskOnly: Bool,
-        tintedGlyphs: inout [ObjectIdentifier: [TintedGlyph]],
+        composition: inout CompositionContext,
     ) -> CGImage? {
         let leading = inputs.leading.map { ($0.0, resolvedColor($0.1)) }
         let trailing = (inputs.trailing.0, resolvedColor(inputs.trailing.1))
@@ -241,7 +265,7 @@ enum CombatFeedbackChipComposer {
                     glyph: glyph,
                     at: CGPoint(x: x, y: contentOrigin.y + (contentHeight - glyph.height) / 2),
                     tint: tint, outline: maskOnly ? nil : shadow, displayScale: displayScale,
-                    tintedGlyphs: &tintedGlyphs,
+                    composition: &composition,
                 )
             }
             if let leading {
@@ -325,16 +349,16 @@ enum CombatFeedbackChipComposer {
         tint: UIColor,
         outline: UIColor?,
         displayScale: CGFloat,
-        tintedGlyphs: inout [ObjectIdentifier: [TintedGlyph]],
+        composition: inout CompositionContext,
     ) {
         let rect = CGRect(origin: origin, size: CGSize(width: glyph.width, height: glyph.height))
         let key = ObjectIdentifier(glyph.image)
         let images: TintedGlyph
-        if let cached = tintedGlyphs[key]?
+        if let cached = composition.tintedGlyphs[key]?
             .first(where: { $0.displayScale == displayScale && $0.color == tint.cgColor && $0.outline == outline?.cgColor }) {
             images = cached
         } else {
-            let tinted = tintedGlyphs[key]?.first(where: {
+            let tinted = composition.tintedGlyphs[key]?.first(where: {
                 $0.displayScale == displayScale && $0.color == tint.cgColor
             })?.image ?? UIImage(cgImage: glyph.image, scale: displayScale, orientation: .up)
                 .withTintColor(tint, renderingMode: .alwaysOriginal)
@@ -344,7 +368,7 @@ enum CombatFeedbackChipComposer {
                 image: tinted,
                 silhouette: outline.map { tinted.withTintColor($0, renderingMode: .alwaysOriginal) },
             )
-            tintedGlyphs[key, default: []].append(images)
+            composition.insert(images, for: key)
         }
         if outline != nil, let silhouette = images.silhouette {
             for step in 0 ..< 8 {

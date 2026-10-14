@@ -188,17 +188,19 @@ private struct InventoryArtworkPrewarmObserver: View {
     }
 
     let entries: [Entry]
+    @State private var window = ArtworkViewportPrewarm.Window<Entry>(orderedItems: [])
     let viewport: InventoryViewportTracker
 
     var body: some View {
         Color.clear
             .frame(width: 0, height: 0)
             .onChange(of: entries, initial: true) { _, entries in
+                window = ArtworkViewportPrewarm.Window(orderedItems: entries)
                 viewport.visibleIDs.formIntersection(entries.map(\.id))
             }
-            .task(id: Key(visibleIDs: viewport.visibleIDs, entries: entries)) {
+            .task(id: Key(visibleIDs: viewport.visibleIDs, entries: window.orderedItems)) {
                 await ArtworkViewportPrewarm.prewarm(
-                    orderedItems: entries,
+                    window: window,
                     visibleIDs: viewport.visibleIDs,
                     currentVisibleIDs: { viewport.visibleIDs },
                     thumbnailName: { $0.name },

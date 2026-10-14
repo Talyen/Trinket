@@ -130,8 +130,8 @@ struct CombatFeedbackRasterCatalogTests {
         }
     }
 
-    @Test @MainActor func `pool evicts the least recently used raster at capacity`() {
-        let pool = CombatFeedbackRasterPool(capacity: 1)
+    @Test @MainActor func `pool evicts the least recently used raster at capacity`() throws {
+        let pool = CombatFeedbackRasterPool(capacity: 2)
         let date = Date()
         func numericItem(id: Int, amount: Int) -> CombatFeedbackItem {
             CombatFeedbackItem(
@@ -141,10 +141,18 @@ struct CombatFeedbackRasterCatalogTests {
                 reactionKind: .damage,
             )
         }
-        _ = pool.prepare(for: numericItem(id: 1, amount: 11), displayScale: 1)
-        _ = pool.prepare(for: numericItem(id: 2, amount: 22), displayScale: 1)
+        let first = numericItem(id: 1, amount: 11)
+        let second = numericItem(id: 2, amount: 22)
+        let third = numericItem(id: 3, amount: 33)
+        let firstRaster = try #require(pool.prepare(for: first, displayScale: 1))
+        _ = pool.prepare(for: second, displayScale: 1)
+        #expect(pool.cachedRaster(for: first, displayScale: 1) === firstRaster)
+        _ = pool.prepare(for: third, displayScale: 1)
+        #expect(pool.cachedRaster(for: second, displayScale: 1) == nil)
+        #expect(pool.cachedRaster(for: first, displayScale: 1) === firstRaster)
+        #expect(pool.cachedRaster(for: third, displayScale: 1) != nil)
         let snapshot = pool.snapshot()
-        #expect(snapshot.entryCount == 1)
+        #expect(snapshot.entryCount == 2)
         #expect(snapshot.evictionCount == 1)
     }
 }

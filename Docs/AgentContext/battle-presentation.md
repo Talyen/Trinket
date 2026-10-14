@@ -176,8 +176,12 @@ replacement refreshes changed recipients only and shares raster resolution betwe
 matching fragment hosts, while availability deadlines still reveal queued results.
 Frame updates change only unequal layer properties, using fitting positions cached
 until ordered chip membership, reservation geometry, portrait bounds, or bottom inset
-changes. Raster composition shares tinted glyphs within each bridge refresh or worker
-batch; these contexts retain their source images and release when the batch ends.
+changes. Live raster composition reuses a pool-owned bounded cache of tinted glyphs and
+outline silhouettes across publications; clearing the pool releases it. Worker
+batches keep separate contexts. Both retain source images to preserve identity;
+the draw sequence, sampling, masks, and feedback clocks are unchanged. Raster
+hits and evictions update an explicit LRU list of unprotected entries; changing
+catalog protection rebuilds that list in recency order.
 Hosts unregister from the display clock on teardown and when eviction leaves no
 unpaused chips; publication resumes the clock for new or resumed feedback.
 Feedback expiration participates in outcome timing;

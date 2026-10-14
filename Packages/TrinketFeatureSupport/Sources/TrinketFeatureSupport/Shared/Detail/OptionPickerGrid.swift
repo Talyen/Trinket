@@ -122,6 +122,7 @@ private struct PickerArtworkPrewarmObserver<ID: Hashable>: View {
     }
 
     let entries: [Entry]
+    @State private var window = ArtworkViewportPrewarm.Window<Entry>(orderedItems: [])
     let viewport: PickerViewportTracker<ID>
     let prefetchRows: Int
     let estimatedColumns: Int
@@ -130,14 +131,15 @@ private struct PickerArtworkPrewarmObserver<ID: Hashable>: View {
         Color.clear
             .frame(width: 0, height: 0)
             .onChange(of: entries, initial: true) { _, entries in
+                window = ArtworkViewportPrewarm.Window(orderedItems: entries)
                 viewport.visibleIDs.formIntersection(entries.map(\.id))
             }
             .task(id: Key(
-                visibleIDs: viewport.visibleIDs, entries: entries,
+                visibleIDs: viewport.visibleIDs, entries: window.orderedItems,
                 prefetchRows: prefetchRows, estimatedColumns: estimatedColumns,
             )) {
                 await ArtworkViewportPrewarm.prewarm(
-                    orderedItems: entries,
+                    window: window,
                     visibleIDs: viewport.visibleIDs,
                     currentVisibleIDs: { viewport.visibleIDs },
                     thumbnailName: { $0.name },
