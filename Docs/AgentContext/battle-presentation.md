@@ -165,6 +165,8 @@ preserving arrival order when all priority keys tie.
 
 Feedback hosts are composed with the artwork inside its attack and hit-reaction
 transforms, including the masked halves of the enemy split/dissolve death effect.
+The solid halves retire once their opacity reaches zero; the prepared masked halves
+remain mounted through the dissolve.
 They are not positioned by fixed battlefield anchors. Remounted death fragments
 replay the bridge's live items using original timestamps and cached rasters.
 
@@ -191,8 +193,10 @@ until ordered chip membership, reservation geometry, portrait bounds, or bottom 
 changes. Layout invalidates at membership, order, or region mutation rather than
 allocating comparison inputs on every publication. Glyph preparation reuses its
 typography fonts within each worker batch. Live raster composition reuses a
-pool-owned bounded cache of tinted glyphs and
-outline silhouettes across publications; clearing the pool releases it. Worker
+pool-owned bounded cache of tinted glyphs, outline silhouettes, and drawing geometry
+across publications; clearing the pool releases it. Color and mask passes share the
+resolved draw plan. Keep the original source-over outline draws instead of flattening
+them into a bitmap that changes alpha blending. Worker
 batches keep separate value contexts and merge prepared glyphs into the live cache
 only after the current generation succeeds, within its existing bounds. Both retain
 source images to preserve identity. Color and mask passes share a renderer within
@@ -204,6 +208,10 @@ Hosts unregister from the display clock on teardown and when eviction leaves no
 unpaused chips; publication resumes the clock for new or resumed feedback.
 Feedback expiration participates in outcome timing;
 suspension freezes every region and resume shifts its original clocks.
+Ordinary batches publish changed chips and permanent removals together. Full
+replacement remains for whole-lane suspension and visibility reconciliation. Merge
+candidates are indexed within a batch, preserving reverse arrival order and the
+existing semantic, width, and lifetime rules.
 
 ### Verification gap
 

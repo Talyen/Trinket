@@ -2,7 +2,7 @@ import SwiftUI
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-struct SliceBorderParticle: Identifiable {
+struct SliceBorderParticle: Identifiable, Equatable {
     let id: Int
     let origin: CGPoint
     let direction: CGVector
@@ -126,44 +126,23 @@ struct SliceBorderParticles: View {
     let cardSize: CGSize
     let particles: [SliceBorderParticle]
     var configuration = CardDissolveConfiguration()
+    @State private var planCache = SliceBorderParticlePlanCache()
 
     var body: some View {
         Canvas { context, size in
-            let origin = CGPoint(
-                x: (size.width - cardSize.width) * 0.5,
-                y: (size.height - cardSize.height) * 0.5,
-            )
             let color = TrinketDesign.Colors.battleSliceSpark
-            for particle in particles {
-                guard let sample = sample(for: particle, cardOrigin: origin) else { continue }
+            let plan = planCache.plan(particles: particles, cardSize: cardSize, canvasSize: size, configuration: configuration)
+            for particle in plan {
+                guard let motion = particle.motion.sample(progress: progress) else { continue }
                 context.fillParticle(
-                    center: sample.center,
-                    diameter: sample.diameter,
-                    opacity: sample.opacity,
+                    center: particle.position(motion: motion),
+                    diameter: motion.diameter,
+                    opacity: motion.opacity,
                     color: color,
                 )
             }
         }
         .allowsHitTesting(false)
-    }
-
-    private struct Sample {
-        let center: CGPoint
-        let diameter: CGFloat
-        let opacity: Double
-    }
-
-    private func sample(for particle: SliceBorderParticle, cardOrigin: CGPoint) -> Sample? {
-        guard let motion = configuration.sample(progress: progress, noise: particle.motionNoise) else { return nil }
-        let start = CGPoint(
-            x: cardOrigin.x + particle.origin.x * cardSize.width,
-            y: cardOrigin.y + particle.origin.y * cardSize.height,
-        )
-        let center = CGPoint(
-            x: start.x + particle.direction.dx * motion.distance * motion.easedAge,
-            y: start.y + particle.direction.dy * motion.distance * motion.easedAge,
-        )
-        return Sample(center: center, diameter: motion.diameter, opacity: motion.opacity)
     }
 }
 

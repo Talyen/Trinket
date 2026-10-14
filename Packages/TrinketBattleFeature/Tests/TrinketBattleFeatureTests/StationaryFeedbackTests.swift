@@ -35,6 +35,7 @@ struct StationaryFeedbackTests {
         lane.record([event(4, amount: 2)], at: start.addingTimeInterval(0.15))
         #expect(lane.activeItems.map(\.label) == [.amount(-99), .amount(-1), .amount(-2)])
         #expect(lane.activeItems.flatMap(\.sourceEventIDs) == [1, 2, 3, 4])
+        #expect(lane.chipBridge.debugItemIDs == [4])
     }
 
     @Test func `new arrivals push preceding labels upward while merges do not push`() throws {

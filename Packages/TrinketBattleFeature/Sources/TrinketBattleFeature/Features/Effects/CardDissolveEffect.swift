@@ -16,7 +16,7 @@ struct DissolveParticleSample {
     let opacity: Double
 }
 
-struct CardDissolveConfiguration {
+struct CardDissolveConfiguration: Equatable {
     var dissolveDuration: CGFloat = 0.35
     var dissolveShrink: CGFloat = 0.06
 
@@ -35,32 +35,6 @@ struct CardDissolveConfiguration {
     var particleSizeShrink: CGFloat = 0.30
     var particleFadeExponent: CGFloat = 1.35
     var particlePathControl: CGFloat = 0.45
-
-    func sample(progress: CGFloat, noise: DissolveParticleNoise) -> DissolveParticleSample? {
-        let delay = noise.delay * particleDelay
-        let lifetime = max(particleLifetime + noise.lifetime * particleLifetimeVariation, 0.01)
-        let age = min(max((progress - delay) / lifetime, 0), 1)
-        guard progress >= delay, age < 1 else { return nil }
-        let diameter = max(
-            0,
-            (particleSize + noise.size * particleSizeVariation)
-                * (1 - age * particleSizeShrink),
-        )
-        guard diameter > 0 else { return nil }
-        let resolvedFadeStart = min(max(fadeStart + noise.fade * fadeStartVariation, 0), 0.99)
-        let fadeProgress = max(0, (age - resolvedFadeStart) / (1 - resolvedFadeStart))
-        let opacity = Double(pow(1 - fadeProgress, max(particleFadeExponent, 0.01)))
-        guard opacity > 0 else { return nil }
-        // Keep visible samples exact; expired or not-yet-born particles need no motion math.
-        let distance = particleDistance + noise.distance * particleDistanceVariation
-        let easedAge = 1 - pow(1 - age, max(particleAgeEasePower, 0.01))
-        return DissolveParticleSample(
-            distance: distance,
-            easedAge: easedAge,
-            diameter: diameter,
-            opacity: opacity,
-        )
-    }
 }
 
 struct CardActivationParticle: Equatable {
@@ -100,82 +74,24 @@ struct CardActivationParticles: View {
     let cardSize: CGSize
     let particles: [CardActivationParticle]
     var configuration = CardDissolveConfiguration()
+    @State private var planCache = CardActivationParticlePlanCache()
 
     var body: some View {
         Canvas { context, size in
-            guard !keywords.isEmpty else { return }
-            for particle in particles {
-                guard let sample = sample(for: particle, size: size) else { continue }
+            let plan = planCache.plan(
+                particles: particles, keywords: keywords, cardSize: cardSize, canvasSize: size, configuration: configuration,
+            )
+            for particle in plan {
+                guard let motion = particle.motion.sample(progress: progress) else { continue }
                 context.fillParticle(
-                    center: sample.center,
-                    diameter: sample.diameter,
-                    opacity: sample.opacity,
-                    color: keywordColor(for: particle),
+                    center: particle.position(progress: motion.easedAge),
+                    diameter: motion.diameter,
+                    opacity: motion.opacity,
+                    color: particle.color,
                 )
             }
         }
         .allowsHitTesting(false)
-    }
-
-    private struct Sample {
-        let center: CGPoint
-        let diameter: CGFloat
-        let opacity: Double
-    }
-
-    private func sample(for particle: CardActivationParticle, size: CGSize) -> Sample? {
-        guard let motion = configuration.sample(progress: progress, noise: particle.motionNoise) else { return nil }
-        let curve = (particle.curveNoise - 0.5) * motion.distance * configuration.particleCurve
-        let center = curvedPosition(
-            from: particleOrigin(particle, size: size),
-            vector: particle.vector,
-            distance: motion.distance,
-            curve: curve,
-            progress: motion.easedAge,
-        )
-        return Sample(center: center, diameter: motion.diameter, opacity: motion.opacity)
-    }
-
-    private func keywordColor(for particle: CardActivationParticle) -> Color {
-        let index = min(Int(particle.colorNoise * CGFloat(keywords.count)), keywords.count - 1)
-        return keywords[index].visualStyle.color
-    }
-
-    private func particleOrigin(_ particle: CardActivationParticle, size: CGSize) -> CGPoint {
-        CGPoint(
-            x: size.width / 2 + (particle.originXNoise - 0.5)
-                * cardSize.width * configuration.particleOriginSpread,
-            y: size.height / 2 + (particle.originYNoise - 0.5)
-                * cardSize.height * configuration.particleOriginSpread,
-        )
-    }
-
-    private func curvedPosition(
-        from origin: CGPoint,
-        vector: CGVector,
-        distance: CGFloat,
-        curve: CGFloat,
-        progress: CGFloat,
-    ) -> CGPoint {
-        let perpendicular = CGVector(dx: -vector.dy, dy: vector.dx)
-        let pathControl = min(max(configuration.particlePathControl, 0), 1)
-        let end = CGPoint(
-            x: origin.x + vector.dx * distance,
-            y: origin.y + vector.dy * distance,
-        )
-        let control = CGPoint(
-            x: origin.x + vector.dx * distance * pathControl + perpendicular.dx * curve,
-            y: origin.y + vector.dy * distance * pathControl + perpendicular.dy * curve,
-        )
-        let remaining = 1 - progress
-        return CGPoint(
-            x: remaining * remaining * origin.x
-                + 2 * remaining * progress * control.x
-                + progress * progress * end.x,
-            y: remaining * remaining * origin.y
-                + 2 * remaining * progress * control.y
-                + progress * progress * end.y,
-        )
     }
 }
 

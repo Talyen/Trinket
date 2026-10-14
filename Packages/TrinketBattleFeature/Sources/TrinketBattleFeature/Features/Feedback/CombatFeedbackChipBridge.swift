@@ -10,6 +10,7 @@ final class CombatFeedbackChipBridge {
     private var suppressedTargets: Set<String> = []
     private let onEvict: ((Set<Int>) -> Void)?
     private var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
+    private var targetsByItemID: [Int: String] = [:]
     private var motionTracks: [Int: CombatFeedbackMotionTrack] = [:]
     private var liveRasters: [ResolutionKey: [Int: LiveRaster]] = [:]
     private let rasterPool: CombatFeedbackRasterPool
@@ -113,19 +114,9 @@ final class CombatFeedbackChipBridge {
         suppressedTargets.removeAll(keepingCapacity: true)
         switch update {
         case let .remove(ids):
-            releaseRasters(ids: ids)
-            evictedIDs.subtract(ids)
-            for id in ids {
-                motionTracks.removeValue(forKey: id)
-            }
-            for targetID in Array(itemsByTarget.keys) {
-                for id in ids where itemsByTarget[targetID]?.removeValue(forKey: id) != nil {
-                    affectedTargets.insert(targetID)
-                }
-                if itemsByTarget[targetID]?.isEmpty == true {
-                    itemsByTarget.removeValue(forKey: targetID)
-                }
-            }
+            removeItems(ids, affectedTargets: &affectedTargets)
+        case let .patch(items, removing):
+            patchItems(items, removing: removing, affectedTargets: &affectedTargets)
         case let .replace(items):
             let liveIDs = Set(items.map(\.id))
             let retiredIDs = Set(motionTracks.keys).subtracting(liveIDs)
@@ -138,8 +129,10 @@ final class CombatFeedbackChipBridge {
                 motionTracks[id] = CombatFeedbackMotionTrack()
             }
             var replacement: [String: [Int: CombatFeedbackItem]] = [:]
+            targetsByItemID.removeAll(keepingCapacity: true)
             for item in items {
                 replacement[item.targetID, default: [:]][item.id] = item
+                targetsByItemID[item.id] = item.targetID
             }
             affectedTargets.formUnion(Set(itemsByTarget.keys).union(replacement.keys).filter {
                 itemsByTarget[$0] != replacement[$0]
@@ -149,6 +142,7 @@ final class CombatFeedbackChipBridge {
             evictedIDs.removeAll()
             affectedTargets = Set(itemsByTarget.keys)
             itemsByTarget.removeAll(keepingCapacity: true)
+            targetsByItemID.removeAll(keepingCapacity: true)
             motionTracks.removeAll(keepingCapacity: true)
             liveRasters.removeAll(keepingCapacity: true)
             nextAvailabilityDate = nil
@@ -161,6 +155,41 @@ final class CombatFeedbackChipBridge {
         }
         refreshHosts(for: affectedTargets, at: now)
         updateAvailabilityWakeTime(considering: affectedTargets, at: now)
+    }
+
+    private func patchItems(_ items: [CombatFeedbackItem], removing: Set<Int>, affectedTargets: inout Set<String>) {
+        removeItems(removing, affectedTargets: &affectedTargets)
+        for item in items where !removing.contains(item.id) {
+            if let previousTarget = targetsByItemID[item.id], previousTarget != item.targetID {
+                itemsByTarget[previousTarget]?.removeValue(forKey: item.id)
+                if itemsByTarget[previousTarget]?.isEmpty == true {
+                    itemsByTarget.removeValue(forKey: previousTarget)
+                }
+                affectedTargets.insert(previousTarget)
+                releaseRasters(ids: [item.id])
+            }
+            guard itemsByTarget[item.targetID]?[item.id] != item else { continue }
+            itemsByTarget[item.targetID, default: [:]][item.id] = item
+            targetsByItemID[item.id] = item.targetID
+            if motionTracks[item.id] == nil {
+                motionTracks[item.id] = CombatFeedbackMotionTrack()
+            }
+            affectedTargets.insert(item.targetID)
+        }
+    }
+
+    private func removeItems(_ ids: Set<Int>, affectedTargets: inout Set<String>) {
+        releaseRasters(ids: ids)
+        evictedIDs.subtract(ids)
+        for id in ids {
+            motionTracks.removeValue(forKey: id)
+            guard let targetID = targetsByItemID.removeValue(forKey: id) else { continue }
+            itemsByTarget[targetID]?.removeValue(forKey: id)
+            affectedTargets.insert(targetID)
+            if itemsByTarget[targetID]?.isEmpty == true {
+                itemsByTarget.removeValue(forKey: targetID)
+            }
+        }
     }
 
     private func updateAvailabilityWakeTime(considering affectedTargets: Set<String>, at now: Date) {

@@ -4,11 +4,11 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
-enum CombatFeedbackRegion: CaseIterable {
+enum CombatFeedbackRegion: CaseIterable, Hashable {
     case impact, benefit, setback
 }
 
-enum CombatFeedbackVisualRole: Equatable {
+enum CombatFeedbackVisualRole: Hashable {
     case keyword
     case beneficialStatus
     case negativeStatus
@@ -119,6 +119,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
 enum CombatFeedbackUpdate {
     case remove(Set<Int>)
     case replace([CombatFeedbackItem])
+    case patch(items: [CombatFeedbackItem], removing: Set<Int>)
     case reset
 }
 

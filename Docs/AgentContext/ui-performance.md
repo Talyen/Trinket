@@ -191,3 +191,7 @@ ancestor's parked clocks. Scene inactivity also pauses those clocks. A parked pl
 shader subtree mounted for first-render preparation; Reduced Motion retains its
 static-gradient accommodation. Finite gameplay
 effects keep their existing timing and lifecycle contracts.
+Activation and slice particles cache configuration and geometry-dependent values
+for the mounted effect, refreshing when those inputs change. Frame sampling keeps
+the original equations, counts, and timings. Uniform dissolve masks use a constant
+texel with the same gray/alpha format; nonuniform masks retain their prepared detail.

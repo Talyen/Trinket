@@ -129,11 +129,18 @@ final class BattleFeedbackLane {
         )
         guard !prepared.isEmpty || !damage.isEmpty else { return }
 
+        var candidates = CombatFeedbackMergeCandidates(items: activeItems)
+        var changedIndices: Set<Int> = []
         for item in prepared {
-            recordStationary(item, at: date)
+            changedIndices.insert(recordStationary(item, at: date, candidates: &candidates))
         }
         limitCornerItems()
-        noteItemsChanged()
+        publish(.patch(
+            items: changedIndices.sorted().compactMap {
+                evictedItemIDs.contains(activeItems[$0].id) ? nil : activeItems[$0]
+            },
+            removing: evictedItemIDs,
+        ))
         applyHitReactions(for: prepared, damage: damage, at: date)
         updatePruneDate()
     }

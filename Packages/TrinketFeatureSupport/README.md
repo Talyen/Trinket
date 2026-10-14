@@ -115,6 +115,8 @@ the picker. Compact, icon-only equipment badges use a checkmark for the combatan
 being edited and a person for another wearer. Accessibility labels name the other
 wearer; the detail action says “Move from [name]” before transferring the item.
 Ownership comes from the live roster so the badge follows saved loadout changes.
+The picker indexes item wearers once per equipment-loadout change, sharing the
+lookup between badges and detail actions without scanning the roster per row.
 The currently equipped item's detail offers Unequip, which also closes
 the picker after a successful save. Failed edits preserve the detail for retry.
 Combatant details receive read-only loadouts and result-returning edit commands;

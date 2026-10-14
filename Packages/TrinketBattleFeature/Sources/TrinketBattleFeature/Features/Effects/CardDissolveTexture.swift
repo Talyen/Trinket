@@ -274,9 +274,10 @@ extension CardDissolveTexture {
         // uniformity without rescanning every pixel for each progress step.
         let firstAlpha = alphaByNoise[Int(noise.minimum)]
         if firstAlpha == alphaByNoise[Int(noise.maximum)] {
-            // Completed masks are identical across cuts and progress steps.
-            // Share their backing image without changing its pixels or format.
-            return cache.thresholdImage(for: .uniformAlpha(firstAlpha), make: makeImage)
+            // A constant mask stretches identically at every size; retain its gray/alpha format.
+            return cache.thresholdImage(for: .uniformAlpha(firstAlpha)) {
+                makeGrayAlphaImage(pixels: Data([255, firstAlpha]), width: 1, height: 1)
+            }
         }
         return makeImage()
     }

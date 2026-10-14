@@ -1,8 +1,9 @@
 import Foundation
+import TrinketCore
 
 extension BattleFeedbackLane {
-    func recordStationary(_ item: CombatFeedbackItem, at date: Date) {
-        let index = activeItems.indices.reversed().first { index in
+    func recordStationary(_ item: CombatFeedbackItem, at date: Date, candidates: inout CombatFeedbackMergeCandidates) -> Int {
+        let index = candidates.indices(for: item).reversed().first { index in
             let existing = activeItems[index]
             return existing.region == item.region && !evictedItemIDs.contains(existing.id)
                 && existing.targetID == item.targetID && existing.keyword == item.keyword
@@ -20,6 +21,7 @@ extension BattleFeedbackLane {
                     incoming.sourceEventIDs = activeItems[index].sourceEventIDs + item.sourceEventIDs
                 }
             } else {
+                let previous = activeItems[index]
                 activeItems[index].lastReceivedAt = date
                 activeItems[index].label = merged
                 activeItems[index].sourceEventIDs += item.sourceEventIDs
@@ -32,7 +34,8 @@ extension BattleFeedbackLane {
                         activeItems[index].criticalAt = date
                     }
                 }
-                return
+                candidates.didMerge(previous: previous, current: activeItems[index], at: index)
+                return index
             }
         }
         var scheduled = incoming.scheduled(at: date)
@@ -40,6 +43,9 @@ extension BattleFeedbackLane {
             scheduled.reservedDigitCount = incoming.label.displayString.count + 1
         }
         activeItems.append(scheduled)
+        let insertedIndex = activeItems.count - 1
+        candidates.append(scheduled, at: insertedIndex)
+        return insertedIndex
     }
 
     private func mergedLabel(_ existing: CombatFeedbackItem, with incoming: CombatFeedbackItem) -> CombatFeedbackChipLabel? {
@@ -81,6 +87,49 @@ extension BattleFeedbackLane {
                 winners[item.targetID] = pair
             }
         }
+    }
+}
+
+struct CombatFeedbackMergeCandidates {
+    private struct Key: Hashable {
+        let targetID: String
+        let region: CombatFeedbackRegion
+        let keyword: Keyword
+        let feedbackClass: CombatFeedbackClass
+        let visualRole: CombatFeedbackVisualRole
+
+        init(_ item: CombatFeedbackItem) {
+            targetID = item.targetID
+            region = item.region
+            keyword = item.keyword
+            feedbackClass = item.feedbackClass
+            visualRole = item.visualRole
+        }
+    }
+
+    private var positions: [Key: [Int]] = [:]
+
+    init(items: [CombatFeedbackItem]) {
+        for (index, item) in items.enumerated() {
+            append(item, at: index)
+        }
+    }
+
+    func indices(for item: CombatFeedbackItem) -> [Int] {
+        positions[Key(item)] ?? []
+    }
+
+    mutating func append(_ item: CombatFeedbackItem, at index: Int) {
+        positions[Key(item), default: []].append(index)
+    }
+
+    mutating func didMerge(previous: CombatFeedbackItem, current: CombatFeedbackItem, at index: Int) {
+        let oldKey = Key(previous)
+        let newKey = Key(current)
+        guard oldKey != newKey else { return }
+        positions[oldKey]?.removeAll { $0 == index }
+        positions[newKey, default: []].append(index)
+        positions[newKey]?.sort()
     }
 }
 

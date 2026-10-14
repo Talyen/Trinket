@@ -124,7 +124,11 @@ Mystery opening pins the chosen event and prepares any saved offers in one
 transaction; rejected offers leave no new pin, and the session appears only
 after the save commits. `prepareMysteryEncounter` and `resolveMysteryEncounter`
 own these transactions in Persistence. Event selection and preview use
-`EncounterIdentity.mysteryEvent(in:)` against the save and catalog. The prepared
+`EncounterIdentity.mysteryEvent(in:)` against the save and catalog. Labyrinth maps
+use Persistence's immutable `LabyrinthMysteryPreview`, which shares that selection
+policy while reading only map, seed/generation, unlock, inventory, cooldown, and
+access inputs. Cache a floor's resolved previews only while those inputs and its
+cluster remain equal. The prepared
 result supplies presentation; recruits also pin before opening. Saved pins win
 over later selection hints. Interrupted recruit pins use normal roster substitution
 when that combatant was unlocked elsewhere. Requests carry an expected event ID,

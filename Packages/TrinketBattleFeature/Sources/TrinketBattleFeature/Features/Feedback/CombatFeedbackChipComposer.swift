@@ -140,55 +140,6 @@ enum CombatFeedbackChipComposer {
         )
     }
 
-    struct CompositionContext {
-        fileprivate var tintedGlyphs: [ObjectIdentifier: [TintedGlyph]] = [:]
-        private var sourceOrder: [ObjectIdentifier] = []
-        private var nextSourceSlot = 0
-        private let maximumSources: Int
-
-        init(maximumSources: Int = 128) {
-            self.maximumSources = max(1, maximumSources)
-        }
-
-        fileprivate mutating func insert(_ glyph: TintedGlyph, for key: ObjectIdentifier) {
-            // Retain source identities, but bound old scales, colors, and atlas generations.
-            if tintedGlyphs[key] == nil {
-                if sourceOrder.count == maximumSources {
-                    tintedGlyphs.removeValue(forKey: sourceOrder[nextSourceSlot])
-                    sourceOrder[nextSourceSlot] = key
-                    nextSourceSlot = (nextSourceSlot + 1) % sourceOrder.count
-                } else {
-                    sourceOrder.append(key)
-                }
-            }
-            if tintedGlyphs[key]?.count == 8 {
-                tintedGlyphs[key]?.removeFirst()
-            }
-            tintedGlyphs[key, default: []].append(glyph)
-        }
-
-        mutating func merge(_ prepared: Self) {
-            for key in prepared.sourceOrder {
-                for glyph in prepared.tintedGlyphs[key] ?? [] {
-                    guard tintedGlyphs[key]?.contains(where: {
-                        $0.displayScale == glyph.displayScale && $0.color == glyph.color && $0.outline == glyph.outline
-                    }) != true else { continue }
-                    insert(glyph, for: key)
-                }
-            }
-        }
-    }
-
-    fileprivate struct TintedGlyph {
-        // Keep identity valid while cached, even after atlas or raster-pool replacement.
-        let source: CGImage
-        let displayScale: CGFloat
-        let color: CGColor
-        let outline: CGColor?
-        let image: UIImage
-        let silhouette: UIImage?
-    }
-
     nonisolated static func render(_ inputs: RasterInputs) -> ComposedRaster? {
         var context = CompositionContext()
         return render(inputs, context: &context)
@@ -216,82 +167,83 @@ enum CombatFeedbackChipComposer {
         format.scale = inputs.displayScale
         format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
+        let drawings = prepareDrawings(inputs, contentHeight: contentHeight, context: &context)
 
         guard let cgImage = renderImage(
-            inputs,
+            drawings,
             renderer: renderer,
-            contentHeight: contentHeight,
+            shadow: inputs.shadow,
             maskOnly: false,
-            composition: &context,
         ) else { return nil }
         return ComposedRaster(
             image: cgImage, pointSize: pointSize,
             shineMask: inputs
                 .needsShineMask ? renderImage(
-                    inputs,
+                    drawings,
                     renderer: renderer,
-                    contentHeight: contentHeight,
+                    shadow: inputs.shadow,
                     maskOnly: true,
-                    composition: &context,
                 ) : nil,
             textWidth: textWidth, maximumDigitWidth: inputs.maximumDigitWidth,
         )
     }
 
     private nonisolated static func renderImage(
-        _ inputs: RasterInputs, renderer: UIGraphicsImageRenderer, contentHeight: CGFloat, maskOnly: Bool,
-        composition: inout CompositionContext,
+        _ drawings: [GlyphDrawing], renderer: UIGraphicsImageRenderer, shadow: CGColor, maskOnly: Bool,
     ) -> CGImage? {
-        let leading = inputs.leading.map { ($0.0, resolvedColor($0.1)) }
-        let trailing = (inputs.trailing.0, resolvedColor(inputs.trailing.1))
-        let textGlyphs = inputs.textGlyphs
-        let textTint = resolvedColor(inputs.textTint)
-        let shadow = resolvedColor(inputs.shadow)
-        let displayScale = inputs.displayScale
-        let layoutDirection = inputs.layoutDirection
-        let leadingWidth = leading?.0.width ?? 0
-        let trailingWidth = trailing.0.width
-        let textWidth = textGlyphs.reduce(CGFloat(0)) { $0 + $1.width }
-        return renderer.image { _ in
-            let contentOrigin = CGPoint(x: horizontalPadding, y: verticalPadding)
-            let origins = horizontalOrigins(
-                contentX: contentOrigin.x,
-                leadingWidth: leadingWidth,
-                textWidth: textWidth,
-                trailingWidth: trailingWidth,
-                layoutDirection: layoutDirection,
-            )
-
+        renderer.image { _ in
             let context = UIGraphicsGetCurrentContext()
             if !maskOnly {
                 context?.setShadow(
                     offset: CGSize(width: 0, height: shadowOffsetY),
                     blur: 1.5,
-                    color: shadow.cgColor,
+                    color: shadow,
                 )
             }
             context?.beginTransparencyLayer(auxiliaryInfo: nil)
 
-            func drawContent(_ glyph: CombatFeedbackGlyphAtlas.Glyph, x: CGFloat, tint: UIColor) {
-                draw(
-                    glyph: glyph,
-                    at: CGPoint(x: x, y: contentOrigin.y + (contentHeight - glyph.height) / 2),
-                    tint: tint, outline: maskOnly ? nil : shadow, displayScale: displayScale,
-                    composition: &composition,
-                )
+            for drawing in drawings {
+                // Preserve the eight source-over outline draws; a flattened bitmap changes blending.
+                if !maskOnly, let silhouette = drawing.images.silhouette {
+                    for rect in drawing.frame.outlineRects {
+                        silhouette.draw(in: rect)
+                    }
+                }
+                drawing.images.image.draw(in: drawing.frame.rect)
             }
-            if let leading {
-                drawContent(leading.0, x: origins.leadingX, tint: leading.1)
-            }
-            var textX = origins.textX
-            for glyph in textGlyphs {
-                drawContent(glyph, x: textX, tint: textTint)
-                textX += glyph.width
-            }
-            drawContent(trailing.0, x: origins.trailingX, tint: trailing.1)
             context?.endTransparencyLayer()
             context?.setShadow(offset: .zero, blur: 0, color: nil)
         }.cgImage
+    }
+
+    private nonisolated static func prepareDrawings(
+        _ inputs: RasterInputs, contentHeight: CGFloat, context: inout CompositionContext,
+    ) -> [GlyphDrawing] {
+        let origins = horizontalOrigins(
+            contentX: horizontalPadding, leadingWidth: inputs.leading?.0.width ?? 0,
+            textWidth: inputs.textGlyphs.reduce(CGFloat(0)) { $0 + $1.width },
+            trailingWidth: inputs.trailing.0.width, layoutDirection: inputs.layoutDirection,
+        )
+        let shadow = resolvedColor(inputs.shadow)
+        let textTint = resolvedColor(inputs.textTint)
+        var drawings: [GlyphDrawing] = []
+        drawings.reserveCapacity(inputs.textGlyphs.count + 2)
+        func append(_ glyph: CombatFeedbackGlyphAtlas.Glyph, x: CGFloat, tint: UIColor) {
+            drawings.append(prepareDrawing(
+                glyph: glyph, at: CGPoint(x: x, y: verticalPadding + (contentHeight - glyph.height) / 2),
+                tint: tint, outline: shadow, displayScale: inputs.displayScale, composition: &context,
+            ))
+        }
+        if let leading = inputs.leading {
+            append(leading.0, x: origins.leadingX, tint: resolvedColor(leading.1))
+        }
+        var textX = origins.textX
+        for glyph in inputs.textGlyphs {
+            append(glyph, x: textX, tint: textTint)
+            textX += glyph.width
+        }
+        append(inputs.trailing.0, x: origins.trailingX, tint: resolvedColor(inputs.trailing.1))
+        return drawings
     }
 
     private nonisolated static func resolvedColor(_ color: CGColor) -> UIColor {
@@ -353,47 +305,5 @@ enum CombatFeedbackChipComposer {
             glyphs.append(glyph)
         }
         return glyphs
-    }
-
-    private nonisolated static func draw(
-        glyph: CombatFeedbackGlyphAtlas.Glyph,
-        at origin: CGPoint,
-        tint: UIColor,
-        outline: UIColor?,
-        displayScale: CGFloat,
-        composition: inout CompositionContext,
-    ) {
-        let rect = CGRect(origin: origin, size: CGSize(width: glyph.width, height: glyph.height))
-        let key = ObjectIdentifier(glyph.image)
-        let images: TintedGlyph
-        if let cached = composition.tintedGlyphs[key]?
-            .first(where: { $0.displayScale == displayScale && $0.color == tint.cgColor && $0.outline == outline?.cgColor }) {
-            images = cached
-        } else {
-            let tinted = composition.tintedGlyphs[key]?.first(where: {
-                $0.displayScale == displayScale && $0.color == tint.cgColor
-            })?.image ?? UIImage(cgImage: glyph.image, scale: displayScale, orientation: .up)
-                .withTintColor(tint, renderingMode: .alwaysOriginal)
-            images = TintedGlyph(
-                source: glyph.image, displayScale: displayScale,
-                color: tint.cgColor, outline: outline?.cgColor,
-                image: tinted,
-                silhouette: outline.map { tinted.withTintColor($0, renderingMode: .alwaysOriginal) },
-            )
-            composition.insert(images, for: key)
-        }
-        if outline != nil, let silhouette = images.silhouette {
-            for offset in outlineOffsets {
-                silhouette.draw(in: rect.offsetBy(dx: offset.x, dy: offset.y))
-            }
-        }
-        images.image.draw(in: rect)
-    }
-}
-
-private extension CombatFeedbackChipComposer {
-    nonisolated static let outlineOffsets: [CGPoint] = (0 ..< 8).map { step in
-        let angle = CGFloat(step) * .pi / 4
-        return CGPoint(x: cos(angle), y: sin(angle))
     }
 }

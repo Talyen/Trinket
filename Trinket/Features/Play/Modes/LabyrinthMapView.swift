@@ -14,6 +14,7 @@ struct LabyrinthMapView: View {
     @Environment(EncounterPlayMode.self) private var encounters
     @Environment(\.isBattleActive) private var isBattleActive
     @State private var retainedPresentation: LabyrinthMapSnapshot?
+    @State private var snapshotCache = LabyrinthMapSnapshotCache()
     @Environment(OptionsStore.self) private var options
     @Environment(PlayerSaveStore.self) private var playerSave
     @State private var nodeMessage: StageMapMessage?
@@ -50,9 +51,7 @@ struct LabyrinthMapView: View {
             if state.hasMap, let viewedCluster {
                 floorContent(
                     viewedCluster,
-                    snapshot: retainedPresentation ?? LabyrinthMapSnapshot(
-                        playerSave: playerSave, labyrinth: labyrinth, cluster: viewedCluster,
-                    ),
+                    snapshot: retainedPresentation ?? snapshotCache.snapshot(playerSave: playerSave, cluster: viewedCluster),
                 )
             } else if state.isMapPayloadUnreadable {
                 HStack {
@@ -250,26 +249,28 @@ struct LabyrinthMapView: View {
 struct LabyrinthMapSnapshot {
     let state: PlayerLabyrinthState
     let events: [String: MysteryEvent]
-    private let roster: PlayerRosterState
+    private let unlockedHeroIDs: Set<String>
+    private let unlockedCompanionIDs: Set<String>
     private let worldSeed: UInt64
     private let access: ContentAccessPolicy
 
-    init(playerSave: PlayerSaveStore, labyrinth: LabyrinthPlayMode, cluster: LabyrinthCluster) {
-        state = playerSave.labyrinth
-        roster = playerSave.roster
-        worldSeed = playerSave.worldSeed
-        access = playerSave.contentAccess
-        events = Dictionary(uniqueKeysWithValues: LabyrinthMapPresentation.floorNodes(for: cluster, in: state).compactMap { node in
-            labyrinth.previewMysteryEvent(for: node).map { (node.id, $0) }
-        })
+    init(preview: LabyrinthMysteryPreview, cluster: LabyrinthCluster) {
+        state = preview.labyrinth
+        unlockedHeroIDs = preview.unlockedHeroIDs
+        unlockedCompanionIDs = preview.unlockedCompanionIDs
+        worldSeed = preview.worldSeed
+        access = preview.access
+        events = preview.events(for: cluster.nodeIDs).filter { nodeID, event in
+            preview.labyrinth.nodes[nodeID]?.type != .recruit || !event.isRecruit
+        }
     }
 
     func recruitArtwork(for node: LabyrinthNode) -> EncounterArtReference? {
         LabyrinthMapPresentation.recruitEncounterArtReference(
             for: node,
             worldSeed: worldSeed,
-            unlockedHeroIDs: roster.unlockedHeroIDs,
-            unlockedCompanionIDs: roster.unlockedCompanionIDs,
+            unlockedHeroIDs: unlockedHeroIDs,
+            unlockedCompanionIDs: unlockedCompanionIDs,
             access: access,
         )
     }
@@ -278,9 +279,28 @@ struct LabyrinthMapSnapshot {
         LabyrinthMapPresentation.effectiveType(
             for: node,
             worldSeed: worldSeed,
-            unlockedHeroIDs: roster.unlockedHeroIDs,
-            unlockedCompanionIDs: roster.unlockedCompanionIDs,
+            unlockedHeroIDs: unlockedHeroIDs,
+            unlockedCompanionIDs: unlockedCompanionIDs,
             access: access,
         )
+    }
+}
+
+@MainActor
+private final class LabyrinthMapSnapshotCache {
+    private var inputs: LabyrinthMysteryPreview?
+    private var cluster: LabyrinthCluster?
+    private var cached: LabyrinthMapSnapshot?
+
+    func snapshot(playerSave: PlayerSaveStore, cluster: LabyrinthCluster) -> LabyrinthMapSnapshot {
+        let inputs = LabyrinthMysteryPreview(playerSave: playerSave)
+        if self.inputs == inputs, self.cluster == cluster, let cached {
+            return cached
+        }
+        let snapshot = LabyrinthMapSnapshot(preview: inputs, cluster: cluster)
+        self.inputs = inputs
+        self.cluster = cluster
+        cached = snapshot
+        return snapshot
     }
 }

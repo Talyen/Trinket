@@ -23,6 +23,7 @@ struct ItemSlotPickerView: View {
     @State private var detailArtworkLease: PreparedArtworkLease?
     @State private var requestedItem: InventoryItem?
     @State private var selectedItem: InventoryItem?
+    @State private var equipmentOwners = EquipmentOwnerIndex()
 
     init(
         slot: ItemSlot,
@@ -42,6 +43,7 @@ struct ItemSlotPickerView: View {
     }
 
     var body: some View {
+        let ownerNames = equipmentOwners.names(for: playerSave.roster.equipmentLoadouts)
         ItemPickerSearchScope(readyItem: $readyItem, onReady: presentReadyItem) {
             VStack(spacing: 0) {
                 if filter.isActive {
@@ -72,7 +74,7 @@ struct ItemSlotPickerView: View {
                                 shineLineWidth: isSelected ? 3 : 1.5,
                             )
                             .overlay(alignment: .topLeading) {
-                                equipmentBadge(for: item)
+                                equipmentBadge(for: item, ownerNames: ownerNames)
                             }
                         },
                     )
@@ -210,7 +212,7 @@ struct ItemSlotPickerView: View {
 
     private func otherWearerName(for item: InventoryItem) -> String? {
         guard !equipmentLoadout.itemIDsBySlot.values.contains(item.id) else { return nil }
-        return playerSave.roster.equippedCombatantName(for: item.id)
+        return equipmentOwners.names(for: playerSave.roster.equipmentLoadouts)[item.id]
     }
 
     private func actionTitle(for item: InventoryItem) -> String {
@@ -224,9 +226,9 @@ struct ItemSlotPickerView: View {
     }
 
     @ViewBuilder
-    private func equipmentBadge(for item: InventoryItem) -> some View {
+    private func equipmentBadge(for item: InventoryItem, ownerNames: [String: String]) -> some View {
         let isEquippedHere = equipmentLoadout.itemIDsBySlot.values.contains(item.id)
-        let otherWearer = otherWearerName(for: item)
+        let otherWearer = isEquippedHere ? nil : ownerNames[item.id]
         if isEquippedHere || otherWearer != nil {
             Image(systemName: isEquippedHere ? "checkmark" : "person.fill")
                 .trinketTypography(.badge)
@@ -236,6 +238,26 @@ struct ItemSlotPickerView: View {
                 .padding(TrinketDesign.Spacing.tight)
                 .accessibilityLabel(otherWearer.map { "Equipped by \($0)" } ?? "Equipped by this combatant")
         }
+    }
+}
+
+@MainActor
+private final class EquipmentOwnerIndex {
+    private var loadouts: [String: EquipmentLoadout]?
+    private var ownerNames: [String: String] = [:]
+
+    func names(for current: [String: EquipmentLoadout]) -> [String: String] {
+        guard loadouts != current else { return ownerNames }
+        var names: [String: String] = [:]
+        for (combatantID, loadout) in current {
+            let name = GameContent.combatant(matching: combatantID)?.name ?? combatantID
+            for itemID in loadout.itemIDsBySlot.values where names[itemID] == nil {
+                names[itemID] = name
+            }
+        }
+        loadouts = current
+        ownerNames = names
+        return names
     }
 }
 

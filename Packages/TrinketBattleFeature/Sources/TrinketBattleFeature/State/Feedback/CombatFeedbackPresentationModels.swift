@@ -3,7 +3,7 @@ import Foundation
 import SwiftUI
 import TrinketCore
 
-enum CombatFeedbackClass: String, CaseIterable, Equatable {
+enum CombatFeedbackClass: String, CaseIterable, Hashable {
     case directDamage
     case critical
     case dot

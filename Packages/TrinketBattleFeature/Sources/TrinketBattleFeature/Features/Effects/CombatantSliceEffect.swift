@@ -149,8 +149,10 @@ struct CombatantSliceEffect<Content: View>: View {
         let wipeProgress = max(dissolveProgress, 0.025)
 
         return ZStack {
-            halfCardContent(size: size, isPrimary: isPrimary)
-                .opacity(solidOpacity)
+            if solidOpacity > 0 {
+                halfCardContent(size: size, isPrimary: isPrimary)
+                    .opacity(solidOpacity)
+            }
 
             halfCardContent(size: size, isPrimary: isPrimary)
                 .mask {
