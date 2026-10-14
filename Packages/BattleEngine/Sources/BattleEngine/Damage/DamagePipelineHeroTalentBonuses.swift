@@ -72,8 +72,8 @@ package extension DamagePipeline {
         }
         if keyword == .poison, state.options.isAttackHit, state.targetStatus.isBleeding,
            triggers.poisonAttackVsBleedingBonus > 0 {
-            state.remaining += triggers.poisonAttackVsBleedingBonus
-            state.itemBonus += triggers.poisonAttackVsBleedingBonus
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.poisonAttackVsBleedingBonus)
+            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, triggers.poisonAttackVsBleedingBonus)
         }
         if keyword == .poison, state.targetStatus.isBleeding, triggers.poisonDamageVsBleedingMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.poisonDamageVsBleedingMultiplier)
@@ -83,8 +83,8 @@ package extension DamagePipeline {
         }
         if keyword == .freeze, state.targetStatus.isPoisoned, context.roster.hero.isAlive {
             let bonus = context.heroModifiers.triggers.coolMossFreezeBonus
-            state.remaining += bonus
-            state.itemBonus += bonus
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
         if keyword == .bleed || sharedKeyword == .bleed,
@@ -130,8 +130,8 @@ package extension DamagePipeline {
         if keyword == .bleed || sharedKeyword == .bleed, state.options.isAttackHit,
            let bonus = context.roster.runtime(for: source)?.talents.pending.nextBleedDamageBonus,
            bonus > 0 {
-            state.remaining += bonus
-            state.itemBonus += bonus
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
             context.roster.mutateRuntime(for: source) { $0.talents.pending.nextBleedDamageBonus = 0 }
         }
         if state.isCritical, triggers.manaEmpoweredCriticalMultiplier > 1,
@@ -157,8 +157,8 @@ package extension DamagePipeline {
     ) {
         guard state.options.isAttackHit,
               let bonus = context.consumeTalentPreparation(\.nextPoisonDamageBonus, for: source) else { return }
-        state.remaining += bonus
-        state.itemBonus += bonus
+        state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+        state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
     }
 
     private static func applyBlockAndAttackBonuses(
@@ -174,21 +174,21 @@ package extension DamagePipeline {
         if keyword == .physical || sharedKeyword == .physical,
            triggers.physicalDamageFromBlockPercent > 0, sourceBlock > 0 {
             let bonus = CombatRounding.scaled(sourceBlock, multiplier: triggers.physicalDamageFromBlockPercent)
-            state.remaining += bonus
-            state.itemBonus += bonus
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         if keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit,
            let bonus = context.roster.runtime(for: source)?.talents.pending.nextPhysicalDamageBonus,
            bonus > 0 {
-            state.remaining += bonus
-            state.itemBonus += bonus
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
             context.roster.mutateRuntime(for: source) { $0.talents.pending.nextPhysicalDamageBonus = 0 }
         }
         if state.options.isAttackHit,
            let bonus = context.roster.runtime(for: source)?.talents.pending.nextAttackDamageBonus,
            bonus > 0 {
-            state.remaining += bonus
-            state.itemBonus += bonus
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
             context.roster.mutateRuntime(for: source) { $0.talents.pending.nextAttackDamageBonus = 0 }
         }
         if keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit,
@@ -197,8 +197,8 @@ package extension DamagePipeline {
         }
         if keyword == .stun, triggers.lightningRod, sourceBlock > 0 {
             let bonus = sourceBlock / 2
-            state.remaining += bonus
-            state.itemBonus += bonus
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         if keyword == .stun, state.isCritical, triggers.stunCriticalDamageMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.stunCriticalDamageMultiplier)

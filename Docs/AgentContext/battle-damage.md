@@ -36,7 +36,10 @@ DoT amplification multiplies every matching stack, retaining each stack's source
 and duration; its feedback reports the combined amplified potency.
 Card preparations, DoT attachment/growth/detonation, and triggered Thorns gains
 and retaliation saturate at integer limits, including when an existing effect
-has already reached its maximum magnitude.
+has already reached its maximum magnitude. Equipment and talent damage additions,
+Backdraft snapshots, combined Block-breaking bonuses, and Golden Crucible storage
+also saturate. Effect-detail totals and percentage formatting use the same bounded
+arithmetic, so inspecting capped preparations cannot crash.
 Loose Rubble readies a non-stacking one-point reduction on positive Health damage,
 including periodic and retaliation damage, excluding Health costs. The next positive
 outgoing packet consumes it after outgoing calculations and before flat mitigation

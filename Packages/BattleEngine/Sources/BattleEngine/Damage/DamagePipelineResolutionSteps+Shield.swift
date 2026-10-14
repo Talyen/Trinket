@@ -244,37 +244,43 @@ package extension DamagePipeline {
             ? CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers?.sunderingBlockMultiplier ?? 0)
             : 0
         if isAttackHit, isPhysical, let sourceTriggers, sourceTriggers.physicalBlockBreakMultiplier > 0 {
-            extraRemoved += CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers.physicalBlockBreakMultiplier - 1)
+            extraRemoved = SaturatedArithmetic.saturatingAdd(
+                extraRemoved,
+                CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers.physicalBlockBreakMultiplier - 1),
+            )
         }
         if damageKeyword == .holy, let sourceTriggers, sourceTriggers.holyBlockBreakMultiplier > 0 {
-            extraRemoved += CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers.holyBlockBreakMultiplier - 1)
+            extraRemoved = SaturatedArithmetic.saturatingAdd(
+                extraRemoved,
+                CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers.holyBlockBreakMultiplier - 1),
+            )
         }
         if damageKeyword == .poison, let sourceTriggers, sourceTriggers.poisonStripsBlockBeforeHealth > 0 {
-            extraRemoved += sourceTriggers.poisonStripsBlockBeforeHealth
+            extraRemoved = SaturatedArithmetic.saturatingAdd(extraRemoved, sourceTriggers.poisonStripsBlockBeforeHealth)
         }
         if isAttackHit, damageKeyword == .poison, let sourceTriggers {
-            extraRemoved += sourceTriggers.poisonAttackExtraBlockRemoval
+            extraRemoved = SaturatedArithmetic.saturatingAdd(extraRemoved, sourceTriggers.poisonAttackExtraBlockRemoval)
         }
         if damageKeyword == .poison, let sourceTriggers,
            sourceTriggers.poisonDamageVsBlockMultiplier > 1 {
-            extraRemoved += CombatRounding.scaled(
+            extraRemoved = SaturatedArithmetic.saturatingAdd(extraRemoved, CombatRounding.scaled(
                 consumedBlock,
                 multiplier: sourceTriggers.poisonDamageVsBlockMultiplier - 1,
-            )
+            ))
         }
         if isAttackHit, damageKeyword == .burn || sharedKeyword == .burn, let sourceTriggers,
            sourceTriggers.burnAttackBlockBreakMultiplier > 1 {
-            extraRemoved += CombatRounding.scaled(
+            extraRemoved = SaturatedArithmetic.saturatingAdd(extraRemoved, CombatRounding.scaled(
                 consumedBlock,
                 multiplier: sourceTriggers.burnAttackBlockBreakMultiplier - 1,
-            )
+            ))
         }
         if isAttackHit, damageKeyword == .bleed || sharedKeyword == .bleed, let sourceTriggers,
            sourceTriggers.bleedAttackBlockBreakMultiplier > 1 {
-            extraRemoved += CombatRounding.scaled(
+            extraRemoved = SaturatedArithmetic.saturatingAdd(extraRemoved, CombatRounding.scaled(
                 consumedBlock,
                 multiplier: sourceTriggers.bleedAttackBlockBreakMultiplier - 1,
-            )
+            ))
         }
         return min(remainingBlock, max(0, extraRemoved))
     }

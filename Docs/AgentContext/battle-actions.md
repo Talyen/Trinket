@@ -181,7 +181,8 @@ Repeats cannot consume a freshly readied repeat; an action granting
 `playNextCardTwice` leaves that preparation for a later card. Stop repeating after
 combat ends, caster defeat, or an unaffordable Health cost. Other draw-and-play
 effects retain automatic play and their existing
-alternating-deck rules.
+alternating-deck rules. Draw-and-play collection stops when no candidate can draw;
+its work is bounded by available cards rather than the requested count.
 
 Unique returns move the exact physical copy from discard or draw pile into hand,
 never adding another deck copy. The Returning Flight returns the first Physical
@@ -228,7 +229,9 @@ playback and command readiness live in [battle presentation](battle-presentation
 `BattleState.assessCard(_:)` provides read-only availability, certain effect
 recipients, and resource-use quotes for the battle interaction cues. It shares
 affordability, possible outcomes, targeting, and the Mana empowerment budget with
-resolution. Assessment never advances RNG or consumes combat preparations.
+resolution. Quotes deduct the card’s Block cost before budgeting empowerment, then
+combine both Block spends against the original balance. Assessment never advances RNG
+or consumes combat preparations.
 Random damage elements retain a certain recipient with an unspecified damage
 keyword when every outcome damages that recipient. Automatic-play recipients
 remain unresolved until their drawn actions execute.
@@ -248,7 +251,8 @@ Auto Battle prioritizes a finishing card by resolving one play on a copy of the
 current battle, including its RNG. Conditions, scaling, defenses and interrupted
 multi-hit actions follow the ordinary engine; the live battle stays unchanged.
 A forecast win must leave its card owner alive. Non-finishing choices retain the
-policy's heuristic scoring. Forecasts skip log rebuilding and presentation recording.
+policy's heuristic scoring, with integer scores saturating instead of trapping.
+Forecasts skip log rebuilding and presentation recording.
 
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).
 

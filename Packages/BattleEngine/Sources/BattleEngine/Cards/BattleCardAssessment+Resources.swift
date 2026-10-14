@@ -20,7 +20,14 @@ extension BattleState {
             repeatsManaEmpowerment: original.repeatsManaEmpowerment,
             operations: branch.operations,
         )
-        resources.append(contentsOf: empowermentResourceUses(ability, actor: actor, randomKeywords: branch.randomizeDamageKeywords))
+        var paymentState = self
+        if original.blockCost > 0 {
+            let available = DefensePoolEngine.blockPoints(in: roster.activeEffects(for: actor))
+            DefensePoolEngine.set(max(0, available - original.blockCost), on: actor, in: &paymentState)
+        }
+        for use in paymentState.empowermentResourceUses(ability, actor: actor, randomKeywords: branch.randomizeDamageKeywords) {
+            mergeResource(use, into: &resources)
+        }
         for (effectIndex, targeted) in branch.targetedEffects.enumerated() where targeted.effect == .convertManaToBlock {
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, actor: actor, in: self) {
                 continue
@@ -110,10 +117,10 @@ private extension BattleState {
             return
         }
         let previous = resources[index]
-        let amount = previous.amount.flatMap { first in use.amount.map { first + $0 } }
+        let amount = previous.amount.flatMap { first in use.amount.map { SaturatedArithmetic.saturatingAdd(first, $0) } }
         resources[index] = .init(
             combatantID: use.combatantID, keyword: use.keyword, amount: amount,
-            balance: use.balance, capacity: use.capacity,
+            balance: previous.balance, capacity: previous.capacity,
         )
     }
 }

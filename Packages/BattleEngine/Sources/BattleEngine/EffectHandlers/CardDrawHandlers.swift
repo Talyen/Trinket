@@ -109,6 +109,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         let otherOwner: BattleParticipant = firstOwner == .hero ? .companion : .hero
 
         for index in 0 ..< targetCount {
+            let countBefore = drawnCards.count
             let owner = index.isMultiple(of: 2) ? firstOwner : otherOwner
             let fallback: BattleParticipant = owner == .hero ? .companion : .hero
             let candidates = allowFallback ? [owner, fallback] : [owner]
@@ -117,6 +118,8 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
                 drawnCards.append(card)
                 break
             }
+            // Collection does not resolve cards, so exhausted or blocked decks cannot recover here.
+            guard drawnCards.count > countBefore else { break }
         }
 
         return drawnCards

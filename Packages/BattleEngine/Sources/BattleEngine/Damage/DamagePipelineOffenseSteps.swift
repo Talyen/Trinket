@@ -372,21 +372,30 @@ package extension DamagePipeline {
         var bonus = profile.damageDealtBonus(for: keyword)
         let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: profile.triggers)
         if let sharedKeyword {
-            bonus += profile.damageDealtBonus(for: sharedKeyword)
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, profile.damageDealtBonus(for: sharedKeyword))
         }
         if sourceActorID == context.roster.companion.id {
-            bonus += context.heroModifiers.companionDamageDealtBonus + profile.companionDamageDealtBonus
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, context.heroModifiers.companionDamageDealtBonus)
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, profile.companionDamageDealtBonus)
             if keyword == .physical || sharedKeyword == .physical {
-                bonus += context.heroModifiers.companionPhysicalDamageDealtBonus + profile.companionPhysicalDamageDealtBonus
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, context.heroModifiers.companionPhysicalDamageDealtBonus)
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, profile.companionPhysicalDamageDealtBonus)
             }
             if keyword == .bleed || sharedKeyword == .bleed {
-                bonus += context.heroModifiers.companionBleedDamageDealtBonus + profile.companionBleedDamageDealtBonus
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, context.heroModifiers.companionBleedDamageDealtBonus)
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, profile.companionBleedDamageDealtBonus)
             }
         }
         if let source = context.roster.combatant(for: sourceActorID) {
-            bonus += context.roster.runtime(for: source.combatant)?.talents.battle.keywordDamageRamp[keyword, default: 0] ?? 0
+            bonus = SaturatedArithmetic.saturatingAdd(
+                bonus,
+                context.roster.runtime(for: source.combatant)?.talents.battle.keywordDamageRamp[keyword, default: 0] ?? 0,
+            )
             if let sharedKeyword {
-                bonus += context.roster.runtime(for: source.combatant)?.talents.battle.keywordDamageRamp[sharedKeyword, default: 0] ?? 0
+                bonus = SaturatedArithmetic.saturatingAdd(
+                    bonus,
+                    context.roster.runtime(for: source.combatant)?.talents.battle.keywordDamageRamp[sharedKeyword, default: 0] ?? 0,
+                )
             }
         }
         return bonus

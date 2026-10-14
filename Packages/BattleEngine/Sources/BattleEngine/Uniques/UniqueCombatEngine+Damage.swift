@@ -86,6 +86,6 @@ extension UniqueCombatEngine {
         guard amount > 0, context.modifiers(for: actor.id).triggers.goldGainedNextHolyDamage,
               let owner = context.roster.participant(for: actor), owner.isPartyMember
         else { return }
-        context.roster[owner].uniques.goldDamage += amount
+        context.roster[owner].uniques.goldDamage = SaturatedArithmetic.saturatingAdd(context.roster[owner].uniques.goldDamage, amount)
     }
 }

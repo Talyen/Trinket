@@ -60,7 +60,7 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.hero.currentMana == 4)
         battle.turnCount += 1
         seedHeroTalentEffect(.poison(1), on: .hero, in: &battle)
-        battle.removeTalentPoint(.poison, from: battle.hero)
+        battle.removeTalentPoints(1, kind: .poison, from: battle.hero)
         _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentMana == 4)
         #expect(battle.roster.companion.currentHealth == 7)

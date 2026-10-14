@@ -19,7 +19,10 @@ package extension BattleState {
         var summaries: [EffectSummary] = []
         let dodge = talents.dodgeChanceBonus(atTurn: turnCount)
         if dodge > 0 {
-            summaries.append(EffectSummary(keyword: .dodge, text: "Dodge Up: +\(Int((dodge * 100).rounded()))% Dodge chance."))
+            summaries.append(EffectSummary(
+                keyword: .dodge,
+                text: "Dodge Up: +\(CombatRounding.rounded((dodge * 100).rounded()))% Dodge chance.",
+            ))
         }
         if talents.turn.negativeStatusImmune {
             summaries.append(EffectSummary(
@@ -43,7 +46,10 @@ package extension BattleState {
             ))
         }
         if timed.damage.amount > 0, turnCount < timed.damage.expiresAtTurn {
-            summaries.append(EffectSummary(keyword: .physical, text: "Damage Up: +\(Int((timed.damage.amount * 100).rounded()))% damage."))
+            summaries.append(EffectSummary(
+                keyword: .physical,
+                text: "Damage Up: +\(CombatRounding.rounded((timed.damage.amount * 100).rounded()))% damage.",
+            ))
         }
         if let blessing = timed.lingeringBlessing, blessing.turnsRemaining > 0 {
             summaries.append(EffectSummary(
@@ -120,7 +126,7 @@ package extension BattleState {
         summaries.append(
             .dodge,
             when: state.wrenflightDodge > 0,
-            text: "Wrenflight: +\(Int((state.wrenflightDodge * 100).rounded()))% Dodge chance until your next turn.",
+            text: "Wrenflight: +\(CombatRounding.rounded((state.wrenflightDodge * 100).rounded()))% Dodge chance until your next turn.",
         )
         summaries.append(
             .physical,
@@ -177,7 +183,7 @@ private extension CombatantTalentState.Pending {
     }
 
     private func appendCardPreparations(to summaries: inout [EffectSummary], partyCardDamageBonus: Int, partyDamageBonus: Int) {
-        let preparedDamage = cardDamageBonus + feintStrikeDamageBonus
+        let preparedDamage = SaturatedArithmetic.saturatingAdd(cardDamageBonus, feintStrikeDamageBonus)
         summaries.append(
             .physical,
             when: partyCardDamageBonus > 0,
@@ -196,7 +202,7 @@ private extension CombatantTalentState.Pending {
         summaries.append(
             .physical,
             when: cardDamagePercent > 0,
-            text: "Prepared Damage: Your next attack deals \(Int((cardDamagePercent * 100).rounded()))% more damage.",
+            text: "Prepared Damage: Your next attack deals \(CombatRounding.rounded((cardDamagePercent * 100).rounded()))% more damage.",
         )
         summaries.append(.physical, when: nextHitBonus > 0, text: "Prepared Hit: Your next attack deals \(nextHitBonus) additional damage.")
         summaries.append(
@@ -235,7 +241,7 @@ private extension CombatantTalentState.Pending {
         summaries.append(
             .burn,
             when: nextBurnAttackPercent > 0,
-            text: "Your next Burn attack deals \(Int((nextBurnAttackPercent * 100).rounded()))% more damage.",
+            text: "Your next Burn attack deals \(CombatRounding.rounded((nextBurnAttackPercent * 100).rounded()))% more damage.",
         )
         summaries.append(
             .bleed,
@@ -255,13 +261,13 @@ private extension CombatantTalentState.Pending {
         summaries.append(
             .physical,
             when: criticalBonus > 0,
-            text: "Your next attack has +\(Int((criticalBonus * 100).rounded()))% Critical Hit chance.",
+            text: "Your next attack has +\(CombatRounding.rounded((criticalBonus * 100).rounded()))% Critical Hit chance.",
         )
         summaries.append(.physical, when: nextAttackGuaranteedCritical != nil, text: "Cracked Guard: Your next attack Critically Hits.")
         summaries.append(
             .physical,
             when: basicCriticalBonus > 0,
-            text: "Prepared Basic: Your next Basic attack has +\(Int((basicCriticalBonus * 100).rounded()))% Critical Hit chance.",
+            text: "Prepared Basic: Your next Basic attack has +\(CombatRounding.rounded((basicCriticalBonus * 100).rounded()))% Critical Hit chance.",
         )
         summaries.append(
             .physical,
@@ -300,22 +306,22 @@ private extension CombatantTalentState.Pending {
         summaries.append(
             .physical,
             when: overchargePercent > 0,
-            text: "Overcharge: Your next attack deals \(Int((overchargePercent * 100).rounded()))% more damage.",
+            text: "Overcharge: Your next attack deals \(CombatRounding.rounded((overchargePercent * 100).rounded()))% more damage.",
         )
         summaries.append(
             .bleed,
             when: nextBleedAttackMultiplier != nil,
-            text: "Nimble Fang: Your next Bleed attack deals \(Int((((nextBleedAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
+            text: "Nimble Fang: Your next Bleed attack deals \(CombatRounding.rounded((((nextBleedAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
         )
         summaries.append(
             .physical,
             when: nextPhysicalAttackMultiplier != nil,
-            text: "Phantom Counter: Your next Physical attack deals \(Int((((nextPhysicalAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
+            text: "Phantom Counter: Your next Physical attack deals \(CombatRounding.rounded((((nextPhysicalAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
         )
         summaries.append(
             .physical,
             when: nextCriticalHitMultiplier != nil,
-            text: "Perfect Tempo: Your next Critical Hit deals \(Int((((nextCriticalHitMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
+            text: "Perfect Tempo: Your next Critical Hit deals \(CombatRounding.rounded((((nextCriticalHitMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage.",
         )
         summaries.append(
             .physical,
@@ -325,22 +331,22 @@ private extension CombatantTalentState.Pending {
         summaries.append(
             .block,
             when: nextBlockGainMultiplier != nil,
-            text: "Your next Block gain is increased by \(Int((((nextBlockGainMultiplier?.value ?? 1) - 1) * 100).rounded()))%.",
+            text: "Your next Block gain is increased by \(CombatRounding.rounded((((nextBlockGainMultiplier?.value ?? 1) - 1) * 100).rounded()))%.",
         )
         summaries.append(
             .block,
             when: nextIncomingDamageMultiplier < 1,
-            text: "Warded Roost: Your next incoming damage is reduced by \(Int(((1 - nextIncomingDamageMultiplier) * 100).rounded()))%.",
+            text: "Warded Roost: Your next incoming damage is reduced by \(CombatRounding.rounded(((1 - nextIncomingDamageMultiplier) * 100).rounded()))%.",
         )
         summaries.append(
             .physical,
             when: nextOutgoingAttackMultiplier < 1,
-            text: "Weaken Soul: Your next attack deals \(Int(((1 - nextOutgoingAttackMultiplier) * 100).rounded()))% less damage.",
+            text: "Weaken Soul: Your next attack deals \(CombatRounding.rounded(((1 - nextOutgoingAttackMultiplier) * 100).rounded()))% less damage.",
         )
         summaries.append(
             .dodge,
             when: nextAttackMissChance > 0,
-            text: "\(nextAttackMissAbilityName ?? "Blinding Light"): Your next attack has a \(Int((nextAttackMissChance * 100).rounded()))% chance to miss.",
+            text: "\(nextAttackMissAbilityName ?? "Blinding Light"): Your next attack has a \(CombatRounding.rounded((nextAttackMissChance * 100).rounded()))% chance to miss.",
         )
     }
 }

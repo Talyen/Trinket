@@ -218,9 +218,9 @@ extension HealingEngine {
         else { return [] }
         var events: [ActionEvent] = []
         if sourceTriggers.pruningHealthRemoveEnemyThorns > 0 {
-            for _ in 0 ..< sourceTriggers.pruningHealthRemoveEnemyThorns {
-                context.removeTalentPoint(.thorns, from: context.roster.enemy.combatant)
-            }
+            context.removeTalentPoints(
+                sourceTriggers.pruningHealthRemoveEnemyThorns, kind: .thorns, from: context.roster.enemy.combatant,
+            )
         }
         if sourceTriggers.cleansingDew, context.roster.hasAffliction(.poison, on: request.target) {
             await events.append(contentsOf: EffectRemovalOperation.resolveCleanse(

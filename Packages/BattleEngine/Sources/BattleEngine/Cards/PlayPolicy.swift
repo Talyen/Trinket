@@ -60,22 +60,28 @@ private enum HeuristicCardScoring {
 
         let damage = ability.directDamage
         let selfDamage = ability.operations.lazy.compactMap(\.damageComponent).reduce(0) { total, component in
-            component.target == .actor ? total + component.amount : total
+            component.target == .actor ? SaturatedArithmetic.saturatingAdd(total, component.amount) : total
         }
         if selfDamage > 0, selfDamage >= actorHP {
             return -10000
         }
 
-        let selfDamagePenalty = (selfDamage > 0 && hpFraction < 0.5) ? (selfDamage * 10 + 50) : (selfDamage * 2)
-        var value = damage - selfDamagePenalty
+        let selfDamagePenalty = (selfDamage > 0 && hpFraction < 0.5) ? SaturatedArithmetic.saturatingAdd(
+            SaturatedArithmetic.saturatingMul(selfDamage, 10),
+            50,
+        ) : SaturatedArithmetic.saturatingMul(selfDamage, 2)
+        var value = SaturatedArithmetic.saturatingSub(damage, selfDamagePenalty)
 
         if ability.hasLeech {
-            value += 5
+            value = SaturatedArithmetic.saturatingAdd(value, 5)
         }
 
-        value += effectScore(ability: ability, enemyEffects: enemyEffects, setupAware: setupAware)
+        value = SaturatedArithmetic.saturatingAdd(value, effectScore(ability: ability, enemyEffects: enemyEffects, setupAware: setupAware))
         if let branches = ability.outcomeBranches, !branches.isEmpty {
-            value += branchScore(branches: branches, enemyEffects: enemyEffects, setupAware: setupAware)
+            value = SaturatedArithmetic.saturatingAdd(
+                value,
+                branchScore(branches: branches, enemyEffects: enemyEffects, setupAware: setupAware),
+            )
         }
         return value
     }
@@ -88,13 +94,16 @@ private enum HeuristicCardScoring {
         var total = 0
         for branch in branches {
             let branchDamage = branch.operations.lazy.compactMap(\.damageComponent).reduce(0) { sum, comp in
-                comp.target == .actor ? sum : sum + comp.amount
+                comp.target == .actor ? sum : SaturatedArithmetic.saturatingAdd(sum, comp.amount)
             }
             var branchEffects = 0
             for targeted in branch.operations.lazy.compactMap(\.targetedEffect) {
-                branchEffects += effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware)
+                branchEffects = SaturatedArithmetic.saturatingAdd(
+                    branchEffects,
+                    effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware),
+                )
             }
-            total += branchDamage + branchEffects
+            total = SaturatedArithmetic.saturatingAdd(total, SaturatedArithmetic.saturatingAdd(branchDamage, branchEffects))
         }
         return total / branches.count
     }
@@ -106,7 +115,10 @@ private enum HeuristicCardScoring {
     ) -> Int {
         var value = 0
         for targeted in ability.operations.lazy.compactMap(\.targetedEffect) {
-            value += effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware)
+            value = SaturatedArithmetic.saturatingAdd(
+                value,
+                effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware),
+            )
         }
         return value
     }
@@ -118,13 +130,13 @@ private enum HeuristicCardScoring {
     ) -> Int {
         switch effect {
         case let .drawCards(count):
-            setupAware ? count * 5 : count * 3
+            SaturatedArithmetic.saturatingMul(count, setupAware ? 5 : 3)
         case let .drawAndPlayCards(count):
-            count * 5
+            SaturatedArithmetic.saturatingMul(count, 5)
         case let .shield(_, amount):
             amount
         case let .blessedAegis(block, _):
-            block * 2 + 4
+            SaturatedArithmetic.saturatingAdd(SaturatedArithmetic.saturatingMul(block, 2), 4)
         case let .instantHeal(_, amount):
             amount
         case let .burn(amount):
@@ -134,7 +146,7 @@ private enum HeuristicCardScoring {
         case let .bleed(amount):
             dotScore(amount: amount, keyword: .bleed, enemyEffects: enemyEffects, setupAware: setupAware)
         case let .resourceGain(keyword, amount):
-            keyword == .mana ? amount * 2 : amount
+            keyword == .mana ? SaturatedArithmetic.saturatingMul(amount, 2) : amount
         case .convertManaToBlock:
             4
         case .controlMeter:
@@ -154,8 +166,8 @@ private enum HeuristicCardScoring {
         enemyEffects: [ActiveEffect],
         setupAware: Bool,
     ) -> Int {
-        guard setupAware else { return amount * 2 }
+        guard setupAware else { return SaturatedArithmetic.saturatingMul(amount, 2) }
         let hasDot = enemyEffects.contains { $0.effect.keyword == keyword }
-        return hasDot ? amount * 3 : amount * 5
+        return SaturatedArithmetic.saturatingMul(amount, hasDot ? 3 : 5)
     }
 }

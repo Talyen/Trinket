@@ -221,10 +221,11 @@ struct BattleCardAssessmentTests {
         #expect(DefensePoolEngine.blockPoints(in: state.roster.hero.activeEffects) == 2)
     }
 
-    @Test func `mana conversion previews the whole balance while an unempowered attack remains playable`() throws {
+    @Test func `mana conversion after Block gain stays uncertain while an unempowered attack remains playable`() throws {
         var state = battle(heroMana: 5)
         let conversion = deal(.manaShield, in: &state)
-        #expect(state.assessCard(conversion).resources.first?.amount == 5)
+        let manaUse = try #require(state.assessCard(conversion).resources.first { $0.keyword == .mana })
+        #expect(manaUse.amount == nil)
         _ = try state.playCard(cardID: conversion.id)
         #expect(state.roster.hero.currentMana == 0)
         let attack = deal(.frostbolt, in: &state)

@@ -20,8 +20,8 @@ package extension DamagePipeline {
               let source = state.partySource(in: context),
               context.modifiers(for: source.id).triggers.backdraft else { return }
         let burn = DoTApplicator.consume(.burn, on: state.combatant, in: &context)
-        state.remaining += burn
-        state.unique.outgoingDamage += burn
+        state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, burn)
+        state.unique.outgoingDamage = SaturatedArithmetic.saturatingAdd(state.unique.outgoingDamage, burn)
     }
 
     static func applyAttackerMirroredReactions(
