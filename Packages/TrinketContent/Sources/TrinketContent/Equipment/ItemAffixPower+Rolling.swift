@@ -193,7 +193,7 @@ private enum AffixMagnitude: Equatable {
     var text: String {
         switch self {
         case let .int(value): "\(value)"
-        case let .percent(value): "\(Int((value * 100).rounded()))%"
+        case let .percent(value): "\(CombatRounding.rounded(min(value, Double(Int.max) / 100) * 100))%"
         }
     }
 
@@ -226,7 +226,9 @@ private enum AffixMagnitude: Equatable {
             let bumped = SaturatedArithmetic.saturatingAdd(value, direction.intDelta)
             return bumped != value ? .int(bumped) : nil
         case let .percent(value):
-            return direction == .up || value > 0.01 + 1e-9 ? .percent(value + direction.percentDelta) : nil
+            guard value.isFinite, direction == .up || value > 0.01 + 1e-9 else { return nil }
+            let bumped = value + direction.percentDelta
+            return bumped.isFinite && bumped != value ? .percent(bumped) : nil
         }
     }
 }

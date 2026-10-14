@@ -69,7 +69,10 @@ enum EffectRemovalOperation {
         guard triggers.cleanseDodgeChanceBonus > 0 else { return }
         let duration = max(1, triggers.cleanseDodgeChanceBonusTurns)
         context.roster.mutateRuntime(for: target) {
-            $0.talents.grantTimedDodge(triggers.cleanseDodgeChanceBonus, untilTurn: context.turnCount + duration)
+            $0.talents.grantTimedDodge(
+                triggers.cleanseDodgeChanceBonus,
+                untilTurn: SaturatedArithmetic.saturatingAdd(context.turnCount, duration),
+            )
         }
     }
 

@@ -138,6 +138,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
 
         var soonest: TimeInterval?
         for (resource, rate) in rates where rate > 0 {
+            guard resource == .gold || projected.balance(for: resource, gold: gold) < Int.max else { continue }
             let pending = projected.pendingProduction[resource, default: 0]
             if resource == .gold {
                 let capacity = Double(GoldBalance.maximum)

@@ -54,6 +54,30 @@ struct ItemAffixMagnitudeRollTests {
         #expect(stored.rolledMax().modifiers == stored.modifiers)
     }
 
+    @Test(arguments: ["leeching", "shredding"])
+    func `large saved percentage powers remain inspectable`(affixID: String) throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: affixID))
+        var triggers = CombatTraitTriggers()
+        triggers.physicalIgnoreMitigationPercent = affixID == "shredding" ? 1e18 : 0
+        let modifiers: [AffixModifier] = affixID == "leeching" ? [.leechGainedPercent(1e18)] : []
+        let stored = ItemAffixPower(description: "Saved power", modifiers: modifiers, triggers: triggers)
+        let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([stored]))
+        let item = try ItemFixtures.makeBareItem(
+            "dagger", affixes: [definition.resolved(for: .basic)], affixPowers: decoded,
+        )
+        let power = try #require(item.resolvedPower(at: 0))
+        #expect(power.description.contains(String(Int.max)))
+        #expect(item.displayedAffixes.first?.description == power.description)
+        #expect(item.affixPowers == decoded)
+    }
+
+    @Test func `corruption rejects percentage bumps smaller than representable precision`() {
+        let stored = ItemAffixPower(description: "Increase Dodge by 100000000000000000000%.", modifiers: [.dodgeChanceBonus(1e18)])
+        #expect(stored.bumpCandidates(direction: .up).isEmpty)
+        #expect(stored.bumpCandidates(direction: .down).isEmpty)
+        #expect(stored.bumped(target: .modifier(0), direction: .up) == stored)
+    }
+
     @Test func `corruption bump to range max becomes perfect`() throws {
         let defenders = try #require(GameContent.itemAffixDefinition(matching: "defenders"))
         let affix = defenders.resolved(for: .basic)

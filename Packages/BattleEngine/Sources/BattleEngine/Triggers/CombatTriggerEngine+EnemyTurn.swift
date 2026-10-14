@@ -26,10 +26,11 @@ package extension CombatTriggerEngine {
     /// enemy-action gates, which differ only in the key they sum.
     private static func partyChanceAndSource<T: Numeric & Comparable>(
         _ chance: KeyPath<CombatTraitTriggers, T>,
+        adding: (T, T) -> T = (+),
         in context: BattleState,
     ) -> (chance: T, source: Combatant?) {
         let living = livingAllies(in: context)
-        let total = living.reduce(0) { $0 + $1.profile.triggers[keyPath: chance] }
+        let total = living.reduce(0) { adding($0, $1.profile.triggers[keyPath: chance]) }
         let source = living.first { $0.profile.triggers[keyPath: chance] > 0 }?.combatant
         return (total, source)
     }
@@ -68,7 +69,9 @@ package extension CombatTriggerEngine {
     static func beforeEnemyAttackBleedReactions(in context: inout BattleState) async -> [ActionEvent] {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive, context.roster.hasAffliction(.bleed, on: enemy) else { return [] }
-        let (damage, source) = partyChanceAndSource(\.bleedingEnemyAttackDealDamage, in: context)
+        let (damage, source) = partyChanceAndSource(
+            \.bleedingEnemyAttackDealDamage, adding: SaturatedArithmetic.saturatingAdd, in: context,
+        )
         guard damage > 0, let source else { return [] }
         return await context.resolveDamage(DamageRequest(
             amount: damage, target: enemy, keyword: .physical, sourceActorID: source.id, options: .reaction(),

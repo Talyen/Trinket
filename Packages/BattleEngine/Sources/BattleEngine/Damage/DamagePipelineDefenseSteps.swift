@@ -69,7 +69,10 @@ package extension DamagePipeline {
     ) {
         guard let damageKeyword = state.damageKeyword else { return }
         let thorns = state.options.isThornsDamage && damageKeyword != .thorns
-        let flat = profile.damageTakenFlat(for: damageKeyword) + (thorns ? profile.damageTakenFlat(for: .thorns) : 0)
+        let flat = SaturatedArithmetic.saturatingAdd(
+            profile.damageTakenFlat(for: damageKeyword),
+            thorns ? profile.damageTakenFlat(for: .thorns) : 0,
+        )
         let flatReduction = CombatRounding.scaled(flat, multiplier: reductionMultiplier)
         if flatReduction > 0 {
             state.remaining = max(0, state.remaining - flatReduction)

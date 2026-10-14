@@ -156,6 +156,17 @@ struct HomesteadStateTests {
         try #expect(homestead.pendingProduction.isEmpty)
     }
 
+    @Test func `full material storage does not schedule impossible collection wakeups`() throws {
+        let date = Date(timeIntervalSince1970: 1000)
+        var state = PlayerHomesteadState(
+            resources: [.food: Int.max], nodeTiers: [.wheatField: 1], lastProductionAt: date,
+        )
+        #expect(state.nextCollectibleDate(after: date, gold: 0) == nil)
+        var gold = 0
+        state.deductCost([ResourceAmount(.food, 1)], gold: &gold)
+        #expect(try #require(state.nextCollectibleDate(after: date, gold: gold)) > date)
+    }
+
     @Test func `next collectible date wakes at next whole unit`() throws {
         let start = Date(timeIntervalSince1970: 0)
         let homestead = PlayerHomesteadState(

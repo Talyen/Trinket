@@ -48,21 +48,21 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         guard amount > 0 else { return self }
 
         var nextLevel = level
-        // Saturates instead of trapping; preserves the previous
-        // overflow-to-Int.max behavior exactly.
-        var nextXP = SaturatedArithmetic.saturatingAdd(currentXP, amount)
+        // Two nonnegative Int balances fit in UInt. Keep their full sum until
+        // level costs are paid so saturation cannot discard earned XP.
+        var nextXP = UInt(max(0, currentXP)) + UInt(amount)
         var nextRequiredXP = requiredXP
 
-        while nextRequiredXP > 0, nextXP >= nextRequiredXP {
+        while nextRequiredXP > 0, nextXP >= UInt(nextRequiredXP) {
             guard nextLevel < Int.max else { break }
-            nextXP -= nextRequiredXP
+            nextXP -= UInt(nextRequiredXP)
             nextLevel += 1
             nextRequiredXP = Self.requiredXP(forLevel: nextLevel)
         }
 
         return Self(
             level: nextLevel,
-            currentXP: nextXP,
+            currentXP: Int(min(nextXP, UInt(Int.max))),
             requiredXP: nextRequiredXP,
         )
     }

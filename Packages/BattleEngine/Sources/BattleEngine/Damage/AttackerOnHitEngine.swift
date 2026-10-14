@@ -311,7 +311,7 @@ extension AttackerOnHitEngine {
         let target = state.combatant
         if state.damageKeyword != .holy {
             let holyBonus = CombatTriggerEngine.livingAllyModifiers(in: context)
-                .reduce(0) { $0 + $1.triggers.partyBasicAttackHolyBonus }
+                .reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.triggers.partyBasicAttackHolyBonus) }
             _ = await DamagePipeline.resolveNestedDamage(
                 amount: holyBonus,
                 keyword: .holy,
@@ -359,7 +359,9 @@ extension AttackerOnHitEngine {
         let targetIsBleeding = context.roster.hasAffliction(.bleed, on: target)
         if triggers.onAttackStealGold > 0 {
             _ = await context.grantGold(
-                triggers.onAttackStealGold + (targetIsPoisoned ? triggers.stealGoldBonusVsPoisoned : 0),
+                SaturatedArithmetic.saturatingAdd(
+                    triggers.onAttackStealGold, targetIsPoisoned ? triggers.stealGoldBonusVsPoisoned : 0,
+                ),
                 to: hit.source,
                 abilityName: "Pickpocket",
                 isTheft: true,

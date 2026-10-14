@@ -124,6 +124,18 @@ struct VoyageTests {
         #expect(defeat.award.materials.isEmpty)
     }
 
+    @Test func `completion bonus divides the full earned total before saturation`() {
+        let plan = BattleRewardPlan(
+            stageGold: 6, goldFindPercent: 0, heroExperience: 0, companionExperience: 0,
+            materials: [ResourceAmount(.wood, 6)], items: [],
+            completionBonus: VoyageCompletionBonus(gold: Int.max - 1, materials: [.wood: Int.max - 1]),
+        )
+        let award = plan.resolve(battleGold: .init())
+        let expected = 6 + Int.max / 5 + 1
+        #expect(award.goldGained == expected)
+        #expect(award.materials == [ResourceAmount(.wood, expected)])
+    }
+
     @Test func `completion bonus saturates gold and material totals`() {
         let plan = BattleRewardPlan(
             stageGold: Int.max, goldFindPercent: 0,

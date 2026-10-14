@@ -29,7 +29,7 @@ extension InventoryItem {
         case "shredding":
             let actual = max(triggers.ignoreEnemyMitigationPercent, triggers.physicalIgnoreMitigationPercent)
             guard actual > 0 else { return original }
-            description = "Your Physical damage ignores \(Int((actual * 100).rounded()))% of enemy damage reduction."
+            description = "Your Physical damage ignores \(CombatRounding.rounded(min(actual, Double(Int.max) / 100) * 100))% of enemy damage reduction."
             if triggers.physicalIgnoreMitigationPercent >= triggers.ignoreEnemyMitigationPercent, original.description == description {
                 return original
             }
@@ -73,7 +73,7 @@ extension InventoryItem {
             return false
         }), case let .leechGainedPercent(amount) = modifier else { return power }
         return ItemAffixPower(
-            description: "Leech restores an additional \(Int((amount * 100).rounded()))% of damage dealt.",
+            description: "Leech restores an additional \(CombatRounding.rounded(min(amount, Double(Int.max) / 100) * 100))% of damage dealt.",
             modifiers: power.modifiers, triggers: power.triggers,
         )
     }

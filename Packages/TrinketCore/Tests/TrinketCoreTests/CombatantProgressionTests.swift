@@ -32,6 +32,15 @@ struct CombatantProgressionTests {
         #expect(CombatantProgression.requiredXP(forLevel: Int.max) == Int.max)
     }
 
+    @Test func `XP crossing a saturated requirement preserves the grant remainder`() {
+        let level = 5000000000
+        let progression = CombatantProgression(level: level, currentXP: Int.max - 1, requiredXP: Int.max)
+        let advanced = progression.addingExperience(2)
+        #expect(advanced.level == level + 1)
+        #expect(advanced.currentXP == 1)
+        #expect(advanced.requiredXP == Int.max)
+    }
+
     @Test func `adding experience at max level retains accumulated experience`() {
         let maxLevelProgression = CombatantProgression(level: Int.max, currentXP: 50, requiredXP: 100)
         let result = maxLevelProgression.addingExperience(200)
