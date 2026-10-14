@@ -68,8 +68,15 @@ final class CombatFeedbackChipBridge {
         layoutDirection: LayoutDirection,
         displayScale: CGFloat,
     ) {
-        view.onEvict = { [weak self] ids in self?.suppress(ids) }
         let key = ObjectIdentifier(view)
+        if let previous = hosts[key],
+           previous.view === view,
+           previous.combatantID == combatantID,
+           previous.layoutDirection == layoutDirection,
+           previous.displayScale == displayScale {
+            return
+        }
+        view.onEvict = { [weak self] ids in self?.suppress(ids) }
         let previous = hosts[key]
         let metadataChanged = previous == nil
             || previous?.view !== view

@@ -337,6 +337,7 @@ final class CombatFeedbackRasterUIView: UIView {
             }
             layer.layer.transform = CATransform3DIdentity
             layer.layer.opacity = 1
+            layer.layer.shadowOpacity = 0
             layer.layer.isHidden = true
         }
         reusableLayers.append(layer.layer)

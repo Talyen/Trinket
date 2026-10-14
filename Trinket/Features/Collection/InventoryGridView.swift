@@ -46,6 +46,7 @@ enum CollectionItemCategory: String, CaseIterable, Identifiable {
         case .basicGear, .astralGear: []
         }
         guard !catalog.isEmpty else { return owned }
+        guard !owned.isEmpty else { return catalog }
         let ownedTemplates = Set(owned.lazy.map(\.templateID))
         return owned + catalog.filter { !ownedTemplates.contains($0.templateID) }
     }
