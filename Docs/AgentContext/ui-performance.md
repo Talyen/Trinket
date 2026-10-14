@@ -154,6 +154,10 @@ Artwork admission is shared across callers: at most two decodes run concurrently
 with at most one deferred catalog decode. Launch/imminent pins precede viewport
 requests, which precede deferred work; queued requests promote when demand changes.
 Cancellation removes abandoned queued demand without cancelling shared started work.
+Inventory and option-picker viewport tracking observes visible IDs separately from the
+grid body. Prewarm task identity includes ordered IDs and resolved artwork names so
+filtering, reordering, and artwork replacement refresh demand without scroll-driven
+reconstruction of the item lists.
 Preparation and pin publication remain distinct from presentation readiness.
 Raw pin counts are internal to `TrinketFeatureSupport`. Fixed acquisitions use
 `PreparedArtworkLease`; explicit release and teardown release that acquisition at

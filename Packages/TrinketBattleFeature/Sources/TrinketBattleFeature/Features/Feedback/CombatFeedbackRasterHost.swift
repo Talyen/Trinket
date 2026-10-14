@@ -113,6 +113,7 @@ final class CombatFeedbackRasterUIView: UIView {
     private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
     #if DEBUG
+    private(set) var debugApplyCount = 0
     var debugLastAppliedChips: [CombatFeedbackItem] = []
     var debugVisibleChipIDs: Set<Int> {
         Set(layersByID.keys)
@@ -165,6 +166,7 @@ final class CombatFeedbackRasterUIView: UIView {
             return (chip.item, raster)
         }
         #if DEBUG
+        debugApplyCount += 1
         debugLastAppliedChips = validChips.map(\.0)
         #endif
         let nextIDs = Set(validChips.map(\.0.id))

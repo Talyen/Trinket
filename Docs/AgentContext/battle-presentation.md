@@ -170,8 +170,12 @@ teardown unregisters from the bridge that registered it. Independent battles and
 debug previews may reuse combatant/event IDs without replacing or clearing each
 other's feedback. Publication follows lane lifetime rather than view mount order.
 The raster host, bridge, shared glyph/mask cache, and shared display clock own rendering.
-Prewarm the single production vocabulary including glint masks. Frame updates
-change layer properties only, using fitting positions cached when layout changes.
+Prewarm the single production vocabulary including glint masks; numeric cache churn
+cannot evict the prepared vocabulary within the existing raster capacity. Chip
+replacement refreshes changed recipients only and shares raster resolution between
+matching fragment hosts, while availability deadlines still reveal queued results.
+Frame updates change layer properties only, using fitting positions cached when layout
+changes.
 Hosts unregister from the display clock on teardown and when eviction leaves no
 unpaused chips; publication resumes the clock for new or resumed feedback.
 Feedback expiration participates in outcome timing;

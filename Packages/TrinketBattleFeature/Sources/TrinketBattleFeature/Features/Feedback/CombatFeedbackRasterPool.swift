@@ -71,6 +71,7 @@ final class CombatFeedbackRasterPool {
 
     private let capacity: Int
     private var rasters: [CombatFeedbackRasterKey: CombatFeedbackRaster] = [:]
+    private var protectedCatalogKeys: Set<CombatFeedbackRasterKey> = []
     private var lastUseEpoch: [CombatFeedbackRasterKey: Int] = [:]
     private var nextEpoch = 0
     private var hitCount = 0
@@ -222,10 +223,20 @@ final class CombatFeedbackRasterPool {
                 displayScale: displayScale,
             )
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
+            let catalogKeys = Set(CombatFeedbackClosedVocabulary.orderedChips().map {
+                CombatFeedbackRasterKey(item: $0, layoutDirection: .leftToRight, displayScale: displayScale)
+            })
+            guard catalogKeys.count <= capacity else { return nil }
+            let retainedCatalogRasters = rasters.filter { catalogKeys.contains($0.key) }
             let requests = rasterRequests(displayScale: displayScale)
             let prepared = await rasterize(requests.map(\.1))
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
             guard prepared.count == requests.count, prepared.allSatisfy({ $0 != nil }) else { return nil }
+            protectedCatalogKeys = catalogKeys
+            // Numeric traffic may have evicted these entries while missing rasters baked.
+            for (key, raster) in retainedCatalogRasters where rasters[key] == nil {
+                insert(raster, for: key)
+            }
             for (request, image) in zip(requests, prepared) {
                 guard rasters[request.0] == nil, let image else { continue }
                 let raster = CombatFeedbackRaster(
@@ -272,6 +283,7 @@ final class CombatFeedbackRasterPool {
         catalogWarmupGeneration &+= 1
         pendingCatalogWarmup?.task.cancel()
         pendingCatalogWarmup = nil
+        protectedCatalogKeys.removeAll(keepingCapacity: true)
         rasters.removeAll(keepingCapacity: true)
         lastUseEpoch.removeAll(keepingCapacity: true)
         preparedCatalogKey = nil
@@ -312,7 +324,10 @@ final class CombatFeedbackRasterPool {
     }
 
     private func insert(_ raster: CombatFeedbackRaster, for key: CombatFeedbackRasterKey) {
-        if rasters.count >= capacity, let leastRecent = lastUseEpoch.min(by: { $0.value < $1.value })?.key {
+        if rasters[key] == nil, rasters.count >= capacity {
+            guard let leastRecent = lastUseEpoch.lazy
+                .filter({ !protectedCatalogKeys.contains($0.key) })
+                .min(by: { $0.value < $1.value })?.key else { return }
             rasters.removeValue(forKey: leastRecent)
             lastUseEpoch.removeValue(forKey: leastRecent)
             evictionCount += 1

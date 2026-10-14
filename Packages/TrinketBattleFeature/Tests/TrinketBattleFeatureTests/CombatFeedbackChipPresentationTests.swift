@@ -59,11 +59,63 @@ struct CombatFeedbackChipPresentationTests {
 /// the pure resolution tests above run in parallel.
 @Suite(.serialized)
 struct CombatFeedbackBridgeSerializedTests {
+    @Test @MainActor func `replacement refreshes changed targets and shares split host rasters`() throws {
+        let bridge = CombatFeedbackChipBridge()
+        let hero = CombatFeedbackRasterUIView()
+        let enemy = CombatFeedbackRasterUIView()
+        let enemyFragment = CombatFeedbackRasterUIView()
+        for (view, id) in [(hero, "hero"), (enemy, "enemy"), (enemyFragment, "enemy")] {
+            bridge.register(view, combatantID: id, layoutDirection: .leftToRight, displayScale: 1)
+        }
+        let now = Date.now
+        let heroItem = makeTestItem(id: 1, targetID: "hero", amount: 3001, availableAt: now)
+        var enemyItem = makeTestItem(id: 2, targetID: "enemy", amount: 3002, availableAt: now)
+        bridge.publish(.replace([heroItem, enemyItem]))
+        let heroCount = hero.debugApplyCount
+        let enemyCount = enemy.debugApplyCount
+        bridge.publish(.replace([enemyItem, heroItem]))
+        #expect(hero.debugApplyCount == heroCount && enemy.debugApplyCount == enemyCount)
+
+        enemyItem.label = .amount(3003)
+        _ = try #require(CombatFeedbackRasterPool.shared.prepare(for: enemyItem, displayScale: 1))
+        CombatFeedbackRasterPool.shared.resetDiagnostics()
+        bridge.publish(.replace([heroItem, enemyItem]))
+        #expect(hero.debugApplyCount == heroCount)
+        #expect(enemy.debugApplyCount == enemyCount + 1)
+        #expect(enemyFragment.debugLastAppliedChips == [enemyItem])
+        #expect(enemy.debugLastAppliedChips == [enemyItem])
+        #expect(CombatFeedbackRasterPool.shared.snapshot().hitCount == 1)
+
+        enemyItem.pausedAt = now
+        bridge.publish(.replace([heroItem, enemyItem]))
+        #expect(enemy.debugLastAppliedChips.first?.pausedAt == now)
+        #expect(enemyFragment.debugLastAppliedChips.first?.pausedAt == now)
+        #expect(!enemy.debugIsMotionRegistered && !enemyFragment.debugIsMotionRegistered)
+        enemyItem.pausedAt = nil
+        enemyItem.expiresAt = now.addingTimeInterval(2)
+        bridge.publish(.replace([heroItem, enemyItem]))
+        #expect(enemy.debugIsMotionRegistered && enemyFragment.debugIsMotionRegistered)
+        #expect(hero.debugApplyCount == heroCount)
+
+        let queued = makeTestItem(id: 3, targetID: "enemy", amount: 3004, availableAt: now.addingTimeInterval(10))
+        bridge.publish(.replace([heroItem, enemyItem, queued]))
+        let queuedCount = enemy.debugApplyCount
+        bridge.publish(.replace([heroItem, enemyItem, queued]))
+        #expect(enemy.debugApplyCount == queuedCount)
+        #expect(bridge.debugNextAvailabilityDate == queued.availableAt)
+        bridge.publish(.replace([heroItem]))
+        #expect(enemy.debugLastAppliedChips.isEmpty && enemyFragment.debugLastAppliedChips.isEmpty)
+        #expect(bridge.debugNextAvailabilityDate == nil)
+        bridge.publish(.reset)
+    }
+
     @Test @MainActor func `evicted stationary results cannot reappear after a publication or host remount`() {
         var evicted: Set<Int> = []
         let bridge = CombatFeedbackChipBridge { evicted.formUnion($0) }
         let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
         bridge.register(view, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        let tallFragment = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 500))
+        bridge.register(tallFragment, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
         let now = Date.now
         let items = (1 ... 3).map { id in
             var item = makeTestItem(id: id, targetID: "hero", amount: 10, availableAt: now)
@@ -80,12 +132,13 @@ struct CombatFeedbackBridgeSerializedTests {
         #expect(view.debugVisibleChipIDs == survivingIDs)
         bridge.publish(.replace(items))
         #expect(view.debugVisibleChipIDs == survivingIDs)
+        #expect(tallFragment.debugVisibleChipIDs == survivingIDs)
         bridge.unregister(view)
         let replacement = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 300, height: 100))
         bridge.register(replacement, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
         #expect(replacement.debugVisibleChipIDs == survivingIDs)
         bridge.publish(.reset)
-        #expect(replacement.debugVisibleChipIDs.isEmpty)
+        #expect(replacement.debugVisibleChipIDs.isEmpty && tallFragment.debugVisibleChipIDs.isEmpty)
     }
 
     @Test @MainActor func `bridge preserves chip display order when cache misses occur`() {

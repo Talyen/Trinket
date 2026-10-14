@@ -95,6 +95,41 @@ struct CombatFeedbackRasterCatalogTests {
         #expect(snapshot.unexpectedClosedVocabularyBuildCount == 0)
     }
 
+    @Test @MainActor func `numeric churn cannot evict the prepared vocabulary or exceed capacity`() async throws {
+        let items = CombatFeedbackClosedVocabulary.orderedChips()
+        let keys = Set(items.map {
+            CombatFeedbackRasterKey(item: $0, layoutDirection: .leftToRight, displayScale: 1)
+        })
+        #expect(keys.count < CombatFeedbackRasterPool.defaultCapacity)
+        // One numeric slot exercises the same eviction contract without baking hundreds of amounts.
+        let capacity = keys.count + 1
+        let pool = CombatFeedbackRasterPool(capacity: capacity)
+        await pool.prewarmInfrastructureAndWait(displayScale: 1)
+        let before = try items.map { try #require(pool.cachedRaster(for: $0, displayScale: 1)) }
+        let now = Date.now
+        for amount in [11001, 11002, 11003] {
+            let numeric = CombatFeedbackItem(
+                id: amount, sourceEventIDs: [amount], actionGroupID: amount, presentationIndex: 0,
+                targetID: "hero", feedbackClass: .directDamage, keyword: .physical, visualRole: .keyword,
+                label: .amount(amount), availableAt: now, expiresAt: now.addingTimeInterval(1),
+                reactionKind: .damage,
+            )
+            _ = try #require(pool.prepare(for: numeric, displayScale: 1))
+            #expect(pool.snapshot().entryCount <= capacity)
+        }
+        for (item, raster) in zip(items, before) {
+            #expect(pool.cachedRaster(for: item, displayScale: 1) === raster)
+        }
+        #expect(pool.snapshot().unexpectedClosedVocabularyBuildCount == 0)
+        #expect(pool.snapshot().evictionCount == 2)
+        pool.removeAll()
+        #expect(pool.snapshot().entryCount == 0)
+        await pool.prewarmInfrastructureAndWait(displayScale: 1)
+        for item in items {
+            #expect(pool.cachedRaster(for: item, displayScale: 1) != nil)
+        }
+    }
+
     @Test @MainActor func `pool evicts the least recently used raster at capacity`() {
         let pool = CombatFeedbackRasterPool(capacity: 1)
         let date = Date()

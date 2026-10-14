@@ -1,3 +1,4 @@
+import Observation
 import SwiftUI
 import TrinketAppState
 import TrinketContent
@@ -75,7 +76,7 @@ struct InventoryGridView: View {
     @Environment(OptionsStore.self) private var options
     @State private var selectedFilter: InventoryFilter = .all
     @State private var salvageDetail = SalvageDetailState()
-    @State private var visibleItemIDs: Set<String> = []
+    @State private var viewport = InventoryViewportTracker()
 
     let category: CollectionItemCategory
 
@@ -98,22 +99,17 @@ struct InventoryGridView: View {
             ) {
                 salvageDetail.select(item, inventory: playerSave.inventory.items)
             }
-            .onAppear { visibleItemIDs.insert(item.id) }
-            .onDisappear { visibleItemIDs.remove(item.id) }
+            .onAppear { viewport.visibleIDs.insert(item.id) }
+            .onDisappear { viewport.visibleIDs.remove(item.id) }
         } emptyView: {
             inventoryEmptyState(categoryItems: categoryItems)
         }
-        .onChange(of: items.map(\.id)) { _, _ in
-            visibleItemIDs.formIntersection(items.lazy.map(\.id))
-        }
-        .task(id: visibleItemIDs) {
-            await ArtworkViewportPrewarm.prewarm(
-                orderedItems: items,
-                visibleIDs: visibleItemIDs,
-                currentVisibleIDs: { visibleItemIDs },
-                thumbnailName: { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
-                prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
-                estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
+        .background {
+            InventoryArtworkPrewarmObserver(
+                entries: items.map {
+                    .init(id: $0.id, name: $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName)
+                },
+                viewport: viewport,
             )
         }
         .trinketSoftTopScrollEdge()
@@ -171,5 +167,44 @@ struct InventoryGridView: View {
             )
             .accessibilityIdentifier(AccessibilityID.Collection.itemsEmptyState)
         }
+    }
+}
+
+@MainActor
+@Observable
+private final class InventoryViewportTracker {
+    var visibleIDs: Set<String> = []
+}
+
+private struct InventoryArtworkPrewarmObserver: View {
+    struct Entry: Identifiable, Equatable {
+        let id: String
+        let name: String?
+    }
+
+    private struct Key: Equatable {
+        let visibleIDs: Set<String>
+        let entries: [Entry]
+    }
+
+    let entries: [Entry]
+    let viewport: InventoryViewportTracker
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onChange(of: entries, initial: true) { _, entries in
+                viewport.visibleIDs.formIntersection(entries.map(\.id))
+            }
+            .task(id: Key(visibleIDs: viewport.visibleIDs, entries: entries)) {
+                await ArtworkViewportPrewarm.prewarm(
+                    orderedItems: entries,
+                    visibleIDs: viewport.visibleIDs,
+                    currentVisibleIDs: { viewport.visibleIDs },
+                    thumbnailName: { $0.name },
+                    prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
+                    estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
+                )
+            }
     }
 }

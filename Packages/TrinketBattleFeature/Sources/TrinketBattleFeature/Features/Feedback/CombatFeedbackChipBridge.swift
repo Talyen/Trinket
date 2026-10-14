@@ -6,6 +6,7 @@ import TrinketFeatureSupport
 final class CombatFeedbackChipBridge {
     private var hosts: [ObjectIdentifier: WeakHost] = [:]
     private var evictedIDs: Set<Int> = []
+    private var suppressedTargets: Set<String> = []
     private let onEvict: ((Set<Int>) -> Void)?
     private var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
     private lazy var availabilityTimer = FeedbackDeadlineTimer { [weak self] in
@@ -25,6 +26,14 @@ final class CombatFeedbackChipBridge {
         let layoutDirection: LayoutDirection
         let displayScale: CGFloat
     }
+
+    private struct ResolutionKey: Hashable {
+        let combatantID: String
+        let layoutDirection: LayoutDirection
+        let displayScale: CGFloat
+    }
+
+    private typealias ResolvedChip = (item: CombatFeedbackItem, raster: CombatFeedbackRaster?)
 
     func register(
         _ view: CombatFeedbackRasterUIView,
@@ -47,7 +56,7 @@ final class CombatFeedbackChipBridge {
             displayScale: displayScale,
         )
         if metadataChanged {
-            refresh(hostKey: key)
+            refreshHosts(for: [combatantID], hostKeys: [key], at: .now)
         }
     }
 
@@ -68,7 +77,9 @@ final class CombatFeedbackChipBridge {
             )
         }
 
-        var affectedTargets = Set<String>()
+        let now = Date.now
+        var affectedTargets = suppressedTargets
+        suppressedTargets.removeAll(keepingCapacity: true)
         switch update {
         case let .remove(ids):
             evictedIDs.subtract(ids)
@@ -83,10 +94,13 @@ final class CombatFeedbackChipBridge {
             }
         case let .replace(items):
             evictedIDs.formIntersection(Set(items.map(\.id)))
-            affectedTargets = Set(itemsByTarget.keys).union(items.map(\.targetID))
-            itemsByTarget = Dictionary(grouping: items, by: \.targetID).mapValues { targetItems in
+            let replacement = Dictionary(grouping: items, by: \.targetID).mapValues { targetItems in
                 Dictionary(uniqueKeysWithValues: targetItems.map { ($0.id, $0) })
             }
+            affectedTargets.formUnion(Set(itemsByTarget.keys).union(replacement.keys).filter {
+                itemsByTarget[$0] != replacement[$0]
+            })
+            itemsByTarget = replacement
         case .reset:
             evictedIDs.removeAll()
             affectedTargets = Set(itemsByTarget.keys)
@@ -95,12 +109,15 @@ final class CombatFeedbackChipBridge {
             nextAvailabilityTargetID = nil
         }
 
-        refreshHosts(for: affectedTargets)
-        updateAvailabilityWakeTime(considering: affectedTargets)
+        // An identical publication can arrive before a due timer gets its main-actor turn.
+        if let deadline = nextAvailabilityDate, deadline <= now {
+            affectedTargets.formUnion(availableTargets(at: now))
+        }
+        refreshHosts(for: affectedTargets, at: now)
+        updateAvailabilityWakeTime(considering: affectedTargets, at: now)
     }
 
-    private func updateAvailabilityWakeTime(considering affectedTargets: Set<String>) {
-        let now = Date()
+    private func updateAvailabilityWakeTime(considering affectedTargets: Set<String>, at now: Date) {
         var earliest: Date?
         var earliestTargetID: String?
         if let previous = nextAvailabilityDate,
@@ -127,16 +144,23 @@ final class CombatFeedbackChipBridge {
 
     private func availabilityTimerDidFire() {
         let now = Date.now
-        let targets = Set(itemsByTarget.compactMap { targetID, items in
+        refreshHosts(for: availableTargets(at: now), at: now)
+        updateAvailabilityWakeTime(considering: Set(itemsByTarget.keys), at: now)
+    }
+
+    private func availableTargets(at now: Date) -> Set<String> {
+        Set(itemsByTarget.compactMap { targetID, items in
             items.values.contains { $0.availableAt <= now && now < $0.expiresAt }
                 ? targetID
                 : nil
         })
-        refreshHosts(for: targets)
-        updateAvailabilityWakeTime(considering: Set(itemsByTarget.keys))
     }
 
-    private func refreshHosts(for targetIDs: Set<String>) {
+    private func refreshHosts(
+        for targetIDs: Set<String>,
+        hostKeys: [ObjectIdentifier]? = nil,
+        at now: Date,
+    ) {
         guard !targetIDs.isEmpty else { return }
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.chipFlush,
@@ -147,18 +171,31 @@ final class CombatFeedbackChipBridge {
                 intervalState,
             )
         }
-        for key in Array(hosts.keys) where hosts[key].map({ targetIDs.contains($0.combatantID) }) == true {
-            refresh(hostKey: key)
+        var resolved: [ResolutionKey: [ResolvedChip]] = [:]
+        for key in hostKeys ?? Array(hosts.keys) {
+            guard let entry = hosts[key], targetIDs.contains(entry.combatantID) else { continue }
+            guard let view = entry.view else {
+                hosts.removeValue(forKey: key)
+                continue
+            }
+            let resolutionKey = ResolutionKey(
+                combatantID: entry.combatantID,
+                layoutDirection: entry.layoutDirection,
+                displayScale: entry.displayScale,
+            )
+            let chips: [ResolvedChip]
+            if let cached = resolved[resolutionKey] {
+                chips = cached
+            } else {
+                chips = resolveChips(for: entry, at: now)
+                resolved[resolutionKey] = chips
+            }
+            // Applying another fragment can synchronously evict chips from this lane.
+            view.apply(chips: chips.filter { !evictedIDs.contains($0.item.id) })
         }
     }
 
-    private func refresh(hostKey: ObjectIdentifier) {
-        guard let entry = hosts[hostKey] else { return }
-        guard let view = entry.view else {
-            hosts.removeValue(forKey: hostKey)
-            return
-        }
-        let now = Date()
+    private func resolveChips(for entry: WeakHost, at now: Date) -> [ResolvedChip] {
         let targetItems = itemsByTarget[entry.combatantID] ?? [:]
         let visible = targetItems.values.filter { item in
             !evictedIDs.contains(item.id) && now >= item.availableAt && (item.pausedAt ?? now) < item.expiresAt
@@ -182,11 +219,14 @@ final class CombatFeedbackChipBridge {
             )
             chips.append((item: item, raster: raster))
         }
-        view.apply(chips: chips)
+        return chips
     }
 
     private func suppress(_ ids: Set<Int>) {
         evictedIDs.formUnion(ids)
+        suppressedTargets.formUnion(itemsByTarget.compactMap { targetID, items in
+            ids.contains(where: { items[$0] != nil }) ? targetID : nil
+        })
         onEvict?(ids)
     }
 

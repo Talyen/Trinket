@@ -1,3 +1,4 @@
+import Observation
 import SwiftUI
 import TrinketDesignSystem
 
@@ -14,7 +15,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     let viewportPrefetchRows: Int
     let viewportEstimatedColumns: Int
     @ViewBuilder let card: (Item, Bool) -> CardView
-    @State private var visibleIDs: Set<Item.ID> = []
+    @State private var viewport = PickerViewportTracker<Item.ID>()
 
     public init(
         items: [Item],
@@ -42,14 +43,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         self.card = card
     }
 
-    private struct PrewarmKey: Equatable {
-        let visibleIDs: Set<Item.ID>
-        let orderedIDs: [Item.ID]
-    }
-
     public var body: some View {
-        let itemIDs = items.map(\.id)
-
         ScrollView {
             LazyVGrid(
                 columns: TrinketDesign.Layout.partyPickerGridItems,
@@ -79,36 +73,77 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                     .id(item.id)
                     .onAppear {
                         guard artworkNameProvider != nil else { return }
-                        visibleIDs.insert(item.id)
+                        viewport.visibleIDs.insert(item.id)
                     }
                     .onDisappear {
                         guard artworkNameProvider != nil else { return }
-                        visibleIDs.remove(item.id)
+                        viewport.visibleIDs.remove(item.id)
                     }
                 }
             }
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
             .padding(.vertical, TrinketDesign.Spacing.medium)
         }
-        .onChange(of: itemIDs) { _, _ in
-            guard artworkNameProvider != nil else { return }
-            visibleIDs.formIntersection(itemIDs)
-        }
-        .task(id: PrewarmKey(visibleIDs: visibleIDs, orderedIDs: itemIDs)) {
-            guard let provider = artworkNameProvider else { return }
-            await ArtworkViewportPrewarm.prewarm(
-                orderedItems: items,
-                visibleIDs: visibleIDs,
-                currentVisibleIDs: { visibleIDs },
-                thumbnailName: provider,
-                prefetchRows: viewportPrefetchRows,
-                estimatedColumns: viewportEstimatedColumns,
-            )
+        .background {
+            if let provider = artworkNameProvider {
+                PickerArtworkPrewarmObserver(
+                    entries: items.map { .init(id: $0.id, name: provider($0)) },
+                    viewport: viewport,
+                    prefetchRows: viewportPrefetchRows,
+                    estimatedColumns: viewportEstimatedColumns,
+                )
+            }
         }
     }
 
     private func inspectAction(for item: Item, eligible: Bool) -> (() -> Void)? {
         guard eligible, let onLongPress else { return nil }
         return { onLongPress(item) }
+    }
+}
+
+@MainActor
+@Observable
+private final class PickerViewportTracker<ID: Hashable> {
+    var visibleIDs: Set<ID> = []
+}
+
+private struct PickerArtworkPrewarmObserver<ID: Hashable>: View {
+    struct Entry: Identifiable, Equatable {
+        let id: ID
+        let name: String?
+    }
+
+    private struct Key: Equatable {
+        let visibleIDs: Set<ID>
+        let entries: [Entry]
+        let prefetchRows: Int
+        let estimatedColumns: Int
+    }
+
+    let entries: [Entry]
+    let viewport: PickerViewportTracker<ID>
+    let prefetchRows: Int
+    let estimatedColumns: Int
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .onChange(of: entries, initial: true) { _, entries in
+                viewport.visibleIDs.formIntersection(entries.map(\.id))
+            }
+            .task(id: Key(
+                visibleIDs: viewport.visibleIDs, entries: entries,
+                prefetchRows: prefetchRows, estimatedColumns: estimatedColumns,
+            )) {
+                await ArtworkViewportPrewarm.prewarm(
+                    orderedItems: entries,
+                    visibleIDs: viewport.visibleIDs,
+                    currentVisibleIDs: { viewport.visibleIDs },
+                    thumbnailName: { $0.name },
+                    prefetchRows: prefetchRows,
+                    estimatedColumns: estimatedColumns,
+                )
+            }
     }
 }
