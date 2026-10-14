@@ -167,7 +167,7 @@ enum CombatFeedbackChipComposer {
         format.scale = inputs.displayScale
         format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
-        let drawings = prepareDrawings(inputs, contentHeight: contentHeight, context: &context)
+        let drawings = prepareDrawings(inputs, contentHeight: contentHeight, textWidth: textWidth, context: &context)
 
         guard let cgImage = renderImage(
             drawings,
@@ -217,11 +217,11 @@ enum CombatFeedbackChipComposer {
     }
 
     private nonisolated static func prepareDrawings(
-        _ inputs: RasterInputs, contentHeight: CGFloat, context: inout CompositionContext,
+        _ inputs: RasterInputs, contentHeight: CGFloat, textWidth: CGFloat, context: inout CompositionContext,
     ) -> [GlyphDrawing] {
         let origins = horizontalOrigins(
             contentX: horizontalPadding, leadingWidth: inputs.leading?.0.width ?? 0,
-            textWidth: inputs.textGlyphs.reduce(CGFloat(0)) { $0 + $1.width },
+            textWidth: textWidth,
             trailingWidth: inputs.trailing.0.width, layoutDirection: inputs.layoutDirection,
         )
         let shadow = resolvedColor(inputs.shadow)

@@ -7,8 +7,8 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
     var linkAccessibilityIdentifier: String?
     var sectionAccessibilityIdentifier: String?
     var totalCount: Int?
-    var previewLimit: Int
-    let artworkNames: [String]
+    let previewLimit: Int
+    private let artworkNamesProvider: () -> [String]
     @State private var requestID: UUID?
     @State private var artworkLease: PreparedArtworkLease?
     @State private var isPresented = false
@@ -23,7 +23,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         sectionAccessibilityIdentifier: String? = nil,
         totalCount: Int? = nil,
         previewLimit: Int = TrinketDesign.Layout.collectionShelfPreviewLimit,
-        artworkNames: [String] = [],
+        artworkNames: @autoclosure @escaping () -> [String] = [],
         @ViewBuilder destination: @escaping () -> Destination,
         @ViewBuilder content: @escaping () -> Content,
     ) {
@@ -32,7 +32,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         self.sectionAccessibilityIdentifier = sectionAccessibilityIdentifier
         self.totalCount = totalCount
         self.previewLimit = previewLimit
-        self.artworkNames = artworkNames
+        artworkNamesProvider = artworkNames
         self.destination = destination
         self.content = content
     }
@@ -55,7 +55,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         }
         .task(id: requestID) {
             guard let requestID else { return }
-            let lease = await PreparedArtworkLease(names: artworkNames)
+            let lease = await PreparedArtworkLease(names: artworkNamesProvider())
             guard !Task.isCancelled, self.requestID == requestID else { return }
             artworkLease = lease
             isPresented = true

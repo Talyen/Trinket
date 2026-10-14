@@ -49,16 +49,21 @@ private struct BorderTimeline: View {
     var body: some View {
         let motionEnabled = isMotionActive && isPresentationMotionActive && scenePhase == .active && !reduceMotion
         let gradient = Gradient(stops: gradientStops(for: colors, motionEnabled: motionEnabled))
-        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !motionEnabled)) { context in
-            let angle = motionEnabled
-                ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
-                : 0
-            KeywordShineBorderStroke(
-                gradient: gradient,
-                cornerRadius: cornerRadius,
-                lineWidth: lineWidth,
-                angle: angle,
-            )
+        let shape = TrinketDesign.shape(cornerRadius: cornerRadius)
+        ZStack {
+            shape
+                .strokeBorder(TrinketDesign.Colors.panel, lineWidth: lineWidth)
+
+            TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !motionEnabled)) { context in
+                let angle = motionEnabled
+                    ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
+                    : 0
+                shape
+                    .strokeBorder(
+                        AngularGradient(gradient: gradient, center: .center, angle: .degrees(angle)),
+                        lineWidth: lineWidth,
+                    )
+            }
         }
         .allowsHitTesting(false)
         .animation(nil, value: isMotionActive)
@@ -79,26 +84,6 @@ private struct BorderTimeline: View {
             stops.append(.init(color: looped[i], location: loc))
         }
         return stops
-    }
-}
-
-private struct KeywordShineBorderStroke: View {
-    let gradient: Gradient
-    let cornerRadius: CGFloat
-    let lineWidth: CGFloat
-    let angle: Double
-
-    var body: some View {
-        let shape = TrinketDesign.shape(cornerRadius: cornerRadius)
-        ZStack {
-            shape
-                .strokeBorder(TrinketDesign.Colors.panel, lineWidth: lineWidth)
-            shape
-                .strokeBorder(
-                    AngularGradient(gradient: gradient, center: .center, angle: .degrees(angle)),
-                    lineWidth: lineWidth,
-                )
-        }
     }
 }
 

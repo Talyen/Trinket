@@ -202,11 +202,12 @@ private struct InventoryArtworkPrewarmObserver: View {
 
     private struct Key: Equatable {
         let visibleIDs: Set<String>
-        let entries: [Entry]
+        let generation: Int
     }
 
     let entries: [Entry]
     @State private var window = ArtworkViewportPrewarm.Window<Entry>(orderedItems: [])
+    @State private var generation = 0
     let viewport: InventoryViewportTracker
 
     var body: some View {
@@ -215,8 +216,9 @@ private struct InventoryArtworkPrewarmObserver: View {
             .onChange(of: entries, initial: true) { _, entries in
                 window = ArtworkViewportPrewarm.Window(orderedItems: entries)
                 viewport.visibleIDs.formIntersection(entries.map(\.id))
+                generation &+= 1
             }
-            .task(id: Key(visibleIDs: viewport.visibleIDs, entries: window.orderedItems)) {
+            .task(id: Key(visibleIDs: viewport.visibleIDs, generation: generation)) {
                 await ArtworkViewportPrewarm.prewarm(
                     window: window,
                     visibleIDs: viewport.visibleIDs,
