@@ -66,8 +66,10 @@ enum BattleSessionTestSupport {
         return session
     }
 
+    /// Concurrent raster and session tests share the main actor; allow scheduling time
+    /// without lengthening the short gameplay intervals injected by these fixtures.
     static func waitUntil(
-        timeout: Duration = .seconds(2),
+        timeout: Duration = .seconds(10),
         condition: @MainActor () -> Bool,
     ) async throws -> Bool {
         let deadline = ContinuousClock.now.advanced(by: timeout)
