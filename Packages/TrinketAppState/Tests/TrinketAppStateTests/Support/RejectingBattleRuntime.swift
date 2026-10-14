@@ -1,5 +1,5 @@
-import BattleEngine
 import Foundation
+import TrinketContent
 import TrinketFeatureContracts
 
 @MainActor
