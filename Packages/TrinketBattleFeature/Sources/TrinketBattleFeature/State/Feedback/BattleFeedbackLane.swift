@@ -146,24 +146,18 @@ final class BattleFeedbackLane {
         guard suspendedAt == nil else { return }
         var removedItemIDs: Set<Int> = []
         var reactedTargetIDsToNotify: Set<String> = []
-        var remainingItems: [CombatFeedbackItem] = []
-        remainingItems.reserveCapacity(activeItems.count)
-
-        for item in activeItems {
-            if date >= item.expiresAt {
-                removedItemIDs.insert(item.id)
-                let clearedReaction = hitReactionsByTargetID[item.targetID].map { reaction in
-                    item.sourceEventIDs.contains(reaction.id)
-                } ?? false
-                if clearedReaction {
-                    hitReactionsByTargetID.removeValue(forKey: item.targetID)
-                    reactedTargetIDsToNotify.insert(item.targetID)
-                }
-            } else {
-                remainingItems.append(item)
+        activeItems.removeAll { item in
+            guard date >= item.expiresAt else { return false }
+            removedItemIDs.insert(item.id)
+            let clearedReaction = hitReactionsByTargetID[item.targetID].map { reaction in
+                item.sourceEventIDs.contains(reaction.id)
+            } ?? false
+            if clearedReaction {
+                hitReactionsByTargetID.removeValue(forKey: item.targetID)
+                reactedTargetIDsToNotify.insert(item.targetID)
             }
+            return true
         }
-        activeItems = remainingItems
         evictedItemIDs.subtract(removedItemIDs)
         for (targetID, expiry) in recordedHitExpirations where date >= expiry.date {
             recordedHitExpirations.removeValue(forKey: targetID)
@@ -273,14 +267,17 @@ final class BattleFeedbackLane {
     ) {
         let recordedTargets = Set(damage.lazy.filter { $0.reactionKind != nil }.map(\.targetID))
         var reactions: [String: CombatantHitReaction] = [:]
-        for (targetID, items) in Dictionary(grouping: due, by: \.targetID) {
-            let candidates = items.lazy.filter { item in
-                item.reactionKind != .none && (!recordedTargets.contains(targetID)
-                    || item.reactionKind == .heal || item.reactionKind == .celebrate)
+        var strongestItems: [String: CombatFeedbackItem] = [:]
+        for item in due {
+            guard item.reactionKind != .none,
+                  !recordedTargets.contains(item.targetID) || item.reactionKind == .heal || item.reactionKind == .celebrate
+            else { continue }
+            if let strongest = strongestItems[item.targetID], strongest.reactionPriority >= item.reactionPriority {
+                continue
             }
-            guard let item = candidates.max(by: {
-                $0.reactionPriority < $1.reactionPriority
-            }) else { continue }
+            strongestItems[item.targetID] = item
+        }
+        for (targetID, item) in strongestItems {
             reactions[targetID] = CombatantHitReaction(
                 id: item.id,
                 kind: item.isCritical && item.reactionKind == .damage ? .critical : item.reactionKind,

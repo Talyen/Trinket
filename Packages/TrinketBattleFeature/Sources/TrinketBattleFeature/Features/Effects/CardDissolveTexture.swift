@@ -261,9 +261,12 @@ extension CardDissolveTexture {
             return UInt8(clamping: Int((min(max(contrasted, 0), 1) * 255).rounded()))
         }
         let makeImage = {
-            var grayAlpha = [UInt8](repeating: 255, count: width * height * 2)
-            for index in 0 ..< (width * height) {
-                grayAlpha[index * 2 + 1] = alphaByNoise[Int(noise.bytes[index])]
+            var grayAlpha = Data(repeating: 255, count: width * height * 2)
+            grayAlpha.withUnsafeMutableBytes { bytes in
+                let pixels = bytes.bindMemory(to: UInt8.self)
+                for index in 0 ..< (width * height) {
+                    pixels[index * 2 + 1] = alphaByNoise[Int(noise.bytes[index])]
+                }
             }
             return makeGrayAlphaImage(pixels: grayAlpha, width: width, height: height)
         }
@@ -278,8 +281,8 @@ extension CardDissolveTexture {
         return makeImage()
     }
 
-    private static func makeGrayAlphaImage(pixels: [UInt8], width: Int, height: Int) -> CGImage? {
-        let data = Data(pixels) as CFData
+    private static func makeGrayAlphaImage(pixels: Data, width: Int, height: Int) -> CGImage? {
+        let data = pixels as CFData
         guard let provider = CGDataProvider(data: data) else {
             return nil
         }

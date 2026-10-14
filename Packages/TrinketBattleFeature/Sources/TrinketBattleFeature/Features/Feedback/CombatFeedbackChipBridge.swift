@@ -88,8 +88,7 @@ final class CombatFeedbackChipBridge {
                 motionTracks.removeValue(forKey: id)
             }
             for targetID in Array(itemsByTarget.keys) {
-                let removed = ids.filter { itemsByTarget[targetID]?.removeValue(forKey: $0) != nil }
-                if !removed.isEmpty {
+                for id in ids where itemsByTarget[targetID]?.removeValue(forKey: id) != nil {
                     affectedTargets.insert(targetID)
                 }
                 if itemsByTarget[targetID]?.isEmpty == true {
@@ -105,8 +104,9 @@ final class CombatFeedbackChipBridge {
             for id in liveIDs where motionTracks[id] == nil {
                 motionTracks[id] = CombatFeedbackMotionTrack()
             }
-            let replacement = Dictionary(grouping: items, by: \.targetID).mapValues { targetItems in
-                Dictionary(uniqueKeysWithValues: targetItems.map { ($0.id, $0) })
+            var replacement: [String: [Int: CombatFeedbackItem]] = [:]
+            for item in items {
+                replacement[item.targetID, default: [:]][item.id] = item
             }
             affectedTargets.formUnion(Set(itemsByTarget.keys).union(replacement.keys).filter {
                 itemsByTarget[$0] != replacement[$0]
