@@ -10,11 +10,14 @@ final class CombatFeedbackChipBridge {
     private let onEvict: ((Set<Int>) -> Void)?
     private var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
     private var motionTracks: [Int: CombatFeedbackMotionTrack] = [:]
+    private var liveRasters: [ResolutionKey: [Int: CombatFeedbackRaster]] = [:]
+    private let rasterPool: CombatFeedbackRasterPool
     private lazy var availabilityTimer = FeedbackDeadlineTimer { [weak self] in
         self?.availabilityTimerDidFire()
     }
 
-    init(onEvict: ((Set<Int>) -> Void)? = nil) {
+    init(rasterPool: CombatFeedbackRasterPool = .shared, onEvict: ((Set<Int>) -> Void)? = nil) {
+        self.rasterPool = rasterPool
         self.onEvict = onEvict
     }
 
@@ -57,6 +60,11 @@ final class CombatFeedbackChipBridge {
             displayScale: displayScale,
         )
         if metadataChanged {
+            // Retain unmounted fragments until remount, but discard obsolete scale/direction contexts.
+            let liveContexts = Set(hosts.values.map {
+                ResolutionKey(combatantID: $0.combatantID, layoutDirection: $0.layoutDirection, displayScale: $0.displayScale)
+            })
+            liveRasters = liveRasters.filter { liveContexts.contains($0.key) }
             refreshHosts(for: [combatantID], hostKeys: [key], at: .now)
         }
     }
@@ -83,6 +91,7 @@ final class CombatFeedbackChipBridge {
         suppressedTargets.removeAll(keepingCapacity: true)
         switch update {
         case let .remove(ids):
+            releaseRasters(ids: ids)
             evictedIDs.subtract(ids)
             for id in ids {
                 motionTracks.removeValue(forKey: id)
@@ -97,8 +106,10 @@ final class CombatFeedbackChipBridge {
             }
         case let .replace(items):
             let liveIDs = Set(items.map(\.id))
+            let retiredIDs = Set(motionTracks.keys).subtracting(liveIDs)
+            releaseRasters(ids: retiredIDs)
             evictedIDs.formIntersection(liveIDs)
-            for id in Array(motionTracks.keys) where !liveIDs.contains(id) {
+            for id in retiredIDs {
                 motionTracks.removeValue(forKey: id)
             }
             for id in liveIDs where motionTracks[id] == nil {
@@ -117,6 +128,7 @@ final class CombatFeedbackChipBridge {
             affectedTargets = Set(itemsByTarget.keys)
             itemsByTarget.removeAll(keepingCapacity: true)
             motionTracks.removeAll(keepingCapacity: true)
+            liveRasters.removeAll(keepingCapacity: true)
             nextAvailabilityDate = nil
             nextAvailabilityTargetID = nil
         }
@@ -222,27 +234,42 @@ final class CombatFeedbackChipBridge {
             return $0.availableAt < $1.availableAt
         })
         var chips: [(item: CombatFeedbackItem, raster: CombatFeedbackRaster?)] = []
+        let context = ResolutionKey(
+            combatantID: entry.combatantID, layoutDirection: entry.layoutDirection, displayScale: entry.displayScale,
+        )
         for item in chipsToDraw {
-            let raster = CombatFeedbackRasterPool.shared.cachedRaster(
-                for: item,
-                layoutDirection: entry.layoutDirection,
-                displayScale: entry.displayScale,
-            ) ?? CombatFeedbackRasterPool.shared.prepare(
-                for: item,
-                layoutDirection: entry.layoutDirection,
-                displayScale: entry.displayScale,
-            )
+            let key = CombatFeedbackRasterKey(item: item, layoutDirection: entry.layoutDirection, displayScale: entry.displayScale)
+            let raster: CombatFeedbackRaster?
+            if let retained = liveRasters[context]?[item.id], retained.key == key {
+                raster = retained
+            } else {
+                raster = rasterPool.prepare(for: item, layoutDirection: entry.layoutDirection, displayScale: entry.displayScale)
+                liveRasters[context, default: [:]][item.id] = raster
+            }
             chips.append((item: item, raster: raster))
         }
         return chips
     }
 
     private func suppress(_ ids: Set<Int>) {
+        releaseRasters(ids: ids)
         evictedIDs.formUnion(ids)
         suppressedTargets.formUnion(itemsByTarget.compactMap { targetID, items in
             ids.contains(where: { items[$0] != nil }) ? targetID : nil
         })
         onEvict?(ids)
+    }
+
+    private func releaseRasters(ids: Set<Int>) {
+        guard !ids.isEmpty else { return }
+        for context in Array(liveRasters.keys) {
+            for id in ids {
+                liveRasters[context]?.removeValue(forKey: id)
+            }
+            if liveRasters[context]?.isEmpty == true {
+                liveRasters.removeValue(forKey: context)
+            }
+        }
     }
 
     #if DEBUG

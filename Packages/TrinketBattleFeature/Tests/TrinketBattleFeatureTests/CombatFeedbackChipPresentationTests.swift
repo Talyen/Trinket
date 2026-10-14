@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import Testing
 import TrinketCore
@@ -59,6 +60,50 @@ struct CombatFeedbackChipPresentationTests {
 /// the pure resolution tests above run in parallel.
 @Suite(.serialized)
 struct CombatFeedbackBridgeSerializedTests {
+    @Test @MainActor func `live chips survive raster churn remount and updates without stale pixels or retained rasters`() throws {
+        let pool = CombatFeedbackRasterPool(capacity: 1)
+        let bridge = CombatFeedbackChipBridge(rasterPool: pool)
+        let view = CombatFeedbackRasterUIView()
+        bridge.register(view, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        defer {
+            bridge.publish(.reset)
+            bridge.unregister(view)
+        }
+        let now = Date.now
+        var item = makeTestItem(id: 1, targetID: "hero", amount: 11223, availableAt: now)
+        item.expiresAt = now.addingTimeInterval(60)
+        item.pausedAt = now
+        weak var original = pool.prepare(for: item, displayScale: 1)
+        let originalImage = try #require(original?.image)
+        bridge.publish(.replace([item]))
+        _ = pool.prepare(for: makeTestItem(id: 2, targetID: "hero", amount: 44556, availableAt: now), displayScale: 1)
+        #expect(pool.cachedRaster(for: item, displayScale: 1) == nil)
+        let builds = pool.snapshot().buildCount
+        bridge.unregister(view)
+        view.apply(chips: [])
+        let fragment = CombatFeedbackRasterUIView()
+        defer { bridge.unregister(fragment) }
+        bridge.register(fragment, combatantID: "hero", layoutDirection: .leftToRight, displayScale: 1)
+        item.sourceEventIDs.insert(3)
+        bridge.publish(.replace([item]))
+        #expect(pool.snapshot().buildCount == builds)
+        #expect(fragment.layer.sublayers?.contains { ($0.contents as? CGImage) === originalImage } == true)
+        #expect(fragment.debugLastAppliedChips == [item])
+
+        item.label = .amount(77889)
+        bridge.publish(.replace([item]))
+        let updatedImage = try #require(pool.cachedRaster(for: item, displayScale: 1)?.image)
+        #expect(updatedImage !== originalImage)
+        #expect(fragment.layer.sublayers?.contains { ($0.contents as? CGImage) === updatedImage } == true)
+        #expect(original == nil)
+        weak var updated = pool.cachedRaster(for: item, displayScale: 1)
+        pool.removeAll()
+        #expect(updated != nil)
+        bridge.publish(.reset)
+        #expect(updated == nil)
+        #expect(fragment.debugLastAppliedChips.isEmpty)
+    }
+
     @Test @MainActor func `replacement refreshes changed targets and shares split host rasters`() throws {
         let bridge = CombatFeedbackChipBridge()
         let hero = CombatFeedbackRasterUIView()

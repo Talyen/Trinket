@@ -236,17 +236,21 @@ final class CombatFeedbackGlyphAtlas {
     }
 
     nonisolated static func bake(_ requests: [PrewarmRequest]) -> [PreparedGlyph] {
-        requests.compactMap { request in
+        // Fonts depend on typography, not the icon/number or raster scale. Reuse within this worker batch.
+        var fonts: [CombatFeedbackTypographyTier: UIFont] = [:]
+        return requests.compactMap { request in
             guard !Task.isCancelled else { return nil }
             // Retain the CGImage result while releasing each bake's temporary UIKit objects.
             return autoreleasepool { () -> PreparedGlyph? in
                 switch request {
                 case let .icon(key, recipe):
-                    bakeIcon(key.icon, face: key.face, recipe: recipe)
-                        .map { .icon(key, $0) }
+                    let font = fonts[key.face.typography] ?? CombatFeedbackGlyphMetrics.uiFont(recipe: recipe)
+                    fonts[key.face.typography] = font
+                    return bakeIcon(key.icon, face: key.face, font: font).map { .icon(key, $0) }
                 case let .fragment(key, recipe):
-                    bakeFragment(key.text, face: key.face, recipe: recipe)
-                        .map { .fragment(key, $0) }
+                    let font = fonts[key.face.typography] ?? CombatFeedbackGlyphMetrics.uiFont(recipe: recipe)
+                    fonts[key.face.typography] = font
+                    return bakeFragment(key.text, face: key.face, font: font).map { .fragment(key, $0) }
                 }
             }
         }
@@ -257,9 +261,10 @@ final class CombatFeedbackGlyphAtlas {
         face: Face,
         recipe: CombatFeedbackChipStyle,
     ) -> Glyph? {
-        let font = CombatFeedbackGlyphMetrics.uiFont(
-            recipe: recipe,
-        )
+        bakeIcon(icon, face: face, font: CombatFeedbackGlyphMetrics.uiFont(recipe: recipe))
+    }
+
+    private nonisolated static func bakeIcon(_ icon: GameIcon, face: Face, font: UIFont) -> Glyph? {
         guard let image = UIImage(
             systemName: icon.symbolName,
             withConfiguration: UIImage.SymbolConfiguration(font: font),
@@ -287,9 +292,10 @@ final class CombatFeedbackGlyphAtlas {
         face: Face,
         recipe: CombatFeedbackChipStyle,
     ) -> Glyph? {
-        let font = CombatFeedbackGlyphMetrics.uiFont(
-            recipe: recipe,
-        )
+        bakeFragment(text, face: face, font: CombatFeedbackGlyphMetrics.uiFont(recipe: recipe))
+    }
+
+    private nonisolated static func bakeFragment(_ text: String, face: Face, font: UIFont) -> Glyph? {
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: UIColor.white,

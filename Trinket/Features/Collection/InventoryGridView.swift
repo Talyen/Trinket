@@ -28,7 +28,18 @@ enum CollectionItemCategory: String, CaseIterable, Identifiable {
     }
 
     func collectionItems(in inventory: [InventoryItem]) -> [InventoryItem] {
-        let owned = inventory.filter(contains)
+        includingCatalogItems(owned: inventory.filter(contains))
+    }
+
+    static func groupedCollectionItems(in inventory: [InventoryItem]) -> [Self: [InventoryItem]] {
+        var grouped = Dictionary(grouping: inventory, by: Self.category)
+        for category in allCases {
+            grouped[category] = category.includingCatalogItems(owned: grouped[category] ?? [])
+        }
+        return grouped
+    }
+
+    private func includingCatalogItems(owned: [InventoryItem]) -> [InventoryItem] {
         let catalog: [InventoryItem] = switch self {
         case .trinkets: GameContent.trinketItems
         case .uniqueGear: GameContent.uniqueItems
@@ -40,13 +51,17 @@ enum CollectionItemCategory: String, CaseIterable, Identifiable {
     }
 
     func contains(_ item: InventoryItem) -> Bool {
+        Self.category(for: item) == self
+    }
+
+    private static func category(for item: InventoryItem) -> Self {
         if item.isTrinket {
-            return self == .trinkets
+            return .trinkets
         }
         switch item.rarity {
-        case .basic: return self == .basicGear
-        case .astral: return self == .astralGear
-        case .unique: return self == .uniqueGear
+        case .basic: return .basicGear
+        case .astral: return .astralGear
+        case .unique: return .uniqueGear
         }
     }
 }
@@ -81,10 +96,12 @@ struct InventoryGridView: View {
     let category: CollectionItemCategory
 
     var body: some View {
-        let ownedIDs = Set(playerSave.inventory.items.map(\.id))
+        let ownedIDs = Set(playerSave.inventory.items.lazy.map(\.id))
         let categoryItems = category.collectionItems(in: salvageDetail.presentationItems(in: playerSave.inventory.items))
-        let items = categoryItems.filter { item in
-            selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
+        let items = if let slot = selectedFilter.slot {
+            categoryItems.filter { $0.baseType.slot == slot }
+        } else {
+            categoryItems
         }
 
         CollectionGridShell(items: items) { item in

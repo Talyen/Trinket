@@ -80,7 +80,7 @@ final class CombatFeedbackRasterUIView: UIView {
         let layer: CALayer
         var item: CombatFeedbackItem
         var motionTrack: CombatFeedbackMotionTrack
-        var rasterIdentity: ObjectIdentifier
+        var raster: CombatFeedbackRaster
         var reservationSize: CGSize = .zero
         var lanePush = StationaryFeedbackPush()
         var slot: StationaryFeedbackLayout.Slot?
@@ -89,12 +89,12 @@ final class CombatFeedbackRasterUIView: UIView {
         init(
             layer: CALayer,
             item: CombatFeedbackItem,
-            rasterIdentity: ObjectIdentifier,
+            raster: CombatFeedbackRaster,
             motionTrack: CombatFeedbackMotionTrack,
         ) {
             self.layer = layer
             self.item = item
-            self.rasterIdentity = rasterIdentity
+            self.raster = raster
             self.motionTrack = motionTrack
         }
     }
@@ -109,14 +109,8 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     var onEvict: ((Set<Int>) -> Void)?
-    private struct LayoutInput: Equatable {
-        let id: Int
-        let region: CombatFeedbackRegion
-        let reservationSize: CGSize
-    }
-
     private var stationaryLayout = StationaryFeedbackLayout()
-    private var lastLayoutInputs: [LayoutInput] = []
+    private var stationaryLayoutNeedsUpdate = true
     private var lastLayoutBounds: CGRect?
     private var lastLayoutBottomInset: CGFloat?
     private var riseDistance: CGFloat = 0
@@ -194,14 +188,17 @@ final class CombatFeedbackRasterUIView: UIView {
 
         for (item, raster) in validChips {
             if let existing = layersByID[item.id] {
+                if existing.item.region != item.region {
+                    stationaryLayoutNeedsUpdate = true
+                }
                 if existing.item.availableAt != item.availableAt || existing.item.presentationIndex != item.presentationIndex {
                     orderChanged = true
                 }
-                if existing.rasterIdentity != ObjectIdentifier(raster) {
+                if existing.raster !== raster {
                     withLayerActionsDisabled {
                         configureRaster(raster, on: existing.layer)
                     }
-                    existing.rasterIdentity = ObjectIdentifier(raster)
+                    existing.raster = raster
                 }
                 existing.item = item
                 if let sharedTrack = motionTracks[item.id] {
@@ -214,7 +211,11 @@ final class CombatFeedbackRasterUIView: UIView {
         }
 
         if orderChanged {
-            orderedLayers = layersByID.values.sorted(by: Self.chipLayerOrder)
+            let reordered = layersByID.values.sorted(by: Self.chipLayerOrder)
+            if orderedLayers.count != reordered.count || !zip(orderedLayers, reordered).allSatisfy({ $0.0 === $0.1 }) {
+                stationaryLayoutNeedsUpdate = true
+            }
+            orderedLayers = reordered
         }
         layoutStationary()
 
@@ -271,7 +272,6 @@ final class CombatFeedbackRasterUIView: UIView {
             chipLayer = makeLayer()
             layer.addSublayer(chipLayer)
         }
-        let rasterID = ObjectIdentifier(raster)
         let hasMeasuredBounds = !bounds.isEmpty
         let shadowColor = resolvedShadowColor
         withLayerActionsDisabled {
@@ -292,12 +292,13 @@ final class CombatFeedbackRasterUIView: UIView {
             }
         }
 
-        let chip = ChipLayer(layer: chipLayer, item: item, rasterIdentity: rasterID, motionTrack: motionTrack)
+        let chip = ChipLayer(layer: chipLayer, item: item, raster: raster, motionTrack: motionTrack)
         chip.reservationSize = CGSize(
             width: raster.pointSize.width + max(0, CGFloat(item.reservedDigitCount) * raster.maximumDigitWidth - raster.textWidth),
             height: raster.pointSize.height,
         )
         layersByID[item.id] = chip
+        stationaryLayoutNeedsUpdate = true
     }
 
     private func makeLayer() -> CALayer {
@@ -329,6 +330,7 @@ final class CombatFeedbackRasterUIView: UIView {
 
     private func recycleLayer(id: Int) {
         guard let layer = layersByID.removeValue(forKey: id) else { return }
+        stationaryLayoutNeedsUpdate = true
         withLayerActionsDisabled {
             layer.layer.removeAllAnimations()
             layer.layer.contents = nil
@@ -393,11 +395,9 @@ private extension CombatFeedbackRasterUIView {
     }
 
     private func layoutStationary() {
-        let inputs = orderedLayers.map {
-            LayoutInput(id: $0.item.id, region: $0.item.region, reservationSize: $0.reservationSize)
-        }
-        guard inputs != lastLayoutInputs || bounds != lastLayoutBounds || bottomInset != lastLayoutBottomInset else { return }
-        lastLayoutInputs = inputs
+        // Membership/order/region changes invalidate at mutation; numeric merges keep their reserved footprint.
+        guard stationaryLayoutNeedsUpdate || bounds != lastLayoutBounds || bottomInset != lastLayoutBottomInset else { return }
+        stationaryLayoutNeedsUpdate = false
         lastLayoutBounds = bounds
         lastLayoutBottomInset = bottomInset
         #if DEBUG
