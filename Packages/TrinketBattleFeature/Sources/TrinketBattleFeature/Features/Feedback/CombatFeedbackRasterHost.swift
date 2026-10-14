@@ -79,6 +79,7 @@ final class CombatFeedbackRasterUIView: UIView {
     private final class ChipLayer {
         let layer: CALayer
         var item: CombatFeedbackItem
+        var motionTrack: CombatFeedbackMotionTrack
         var rasterIdentity: ObjectIdentifier
         var reservationSize: CGSize = .zero
         var lanePush = StationaryFeedbackPush()
@@ -89,10 +90,12 @@ final class CombatFeedbackRasterUIView: UIView {
             layer: CALayer,
             item: CombatFeedbackItem,
             rasterIdentity: ObjectIdentifier,
+            motionTrack: CombatFeedbackMotionTrack,
         ) {
             self.layer = layer
             self.item = item
             self.rasterIdentity = rasterIdentity
+            self.motionTrack = motionTrack
         }
     }
 
@@ -160,7 +163,10 @@ final class CombatFeedbackRasterUIView: UIView {
     }
 
     @MainActor
-    func apply(chips: [(item: CombatFeedbackItem, raster: CombatFeedbackRaster?)]) {
+    func apply(
+        chips: [(item: CombatFeedbackItem, raster: CombatFeedbackRaster?)],
+        motionTracks: [Int: CombatFeedbackMotionTrack] = [:],
+    ) {
         let intervalState = BattleFramePacingSignposts.signposter.beginInterval(
             BattleFramePacingSignposts.Name.chipHostApply,
         )
@@ -180,12 +186,17 @@ final class CombatFeedbackRasterUIView: UIView {
         debugLastAppliedChips = validChips.map(\.0)
         #endif
         let nextIDs = Set(validChips.map(\.0.id))
+        var orderChanged = false
         for id in Array(layersByID.keys) where !nextIDs.contains(id) {
             recycleLayer(id: id)
+            orderChanged = true
         }
 
         for (item, raster) in validChips {
             if let existing = layersByID[item.id] {
+                if existing.item.availableAt != item.availableAt || existing.item.presentationIndex != item.presentationIndex {
+                    orderChanged = true
+                }
                 if existing.rasterIdentity != ObjectIdentifier(raster) {
                     withLayerActionsDisabled {
                         configureRaster(raster, on: existing.layer)
@@ -193,12 +204,18 @@ final class CombatFeedbackRasterUIView: UIView {
                     existing.rasterIdentity = ObjectIdentifier(raster)
                 }
                 existing.item = item
+                if let sharedTrack = motionTracks[item.id] {
+                    existing.motionTrack = sharedTrack
+                }
                 continue
             }
-            insert(item: item, raster: raster)
+            insert(item: item, raster: raster, motionTrack: motionTracks[item.id] ?? CombatFeedbackMotionTrack())
+            orderChanged = true
         }
 
-        orderedLayers = layersByID.values.sorted(by: Self.chipLayerOrder)
+        if orderChanged {
+            orderedLayers = layersByID.values.sorted(by: Self.chipLayerOrder)
+        }
         layoutStationary()
 
         tickMotion(at: .now)
@@ -246,7 +263,7 @@ final class CombatFeedbackRasterUIView: UIView {
         return lhsItem.availableAt < rhsItem.availableAt
     }
 
-    private func insert(item: CombatFeedbackItem, raster: CombatFeedbackRaster) {
+    private func insert(item: CombatFeedbackItem, raster: CombatFeedbackRaster, motionTrack: CombatFeedbackMotionTrack) {
         let chipLayer: CALayer
         if let reusable = reusableLayers.popLast() {
             chipLayer = reusable
@@ -275,7 +292,7 @@ final class CombatFeedbackRasterUIView: UIView {
             }
         }
 
-        let chip = ChipLayer(layer: chipLayer, item: item, rasterIdentity: rasterID)
+        let chip = ChipLayer(layer: chipLayer, item: item, rasterIdentity: rasterID, motionTrack: motionTrack)
         chip.reservationSize = CGSize(
             width: raster.pointSize.width + max(0, CGFloat(item.reservedDigitCount) * raster.maximumDigitWidth - raster.textWidth),
             height: raster.pointSize.height,
@@ -413,9 +430,9 @@ private extension CombatFeedbackRasterUIView {
         var evicted: Set<Int> = []
         for (index, chip) in orderedLayers.enumerated() {
             guard let slot = chip.slot else { continue }
-            let state = CombatFeedbackMotionSampler.state(for: chip.item, at: date)
-            let now = chip.item.pausedAt ?? date
-            let elapsed = now.timeIntervalSince(chip.item.firstScheduledAt)
+            let sample = chip.motionTrack.sample(for: chip.item, at: date)
+            let state = sample.animation
+            let elapsed = sample.elapsed
             let scale = slot.fitScale * state.scale
             let position = CGPoint(
                 x: chip.basePosition.x,
@@ -426,12 +443,11 @@ private extension CombatFeedbackRasterUIView {
                 evicted.insert(chip.item.id)
             }
             updateLayer(chip.layer, position: position, scale: scale, opacity: Float(state.opacity * edgeOpacity), index: index)
-            let criticalElapsed = chip.item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1
-            let shadowOpacity = Float(1 - BattleMotion.smoothProgress(criticalElapsed / 0.48))
+            let shadowOpacity = sample.shadowOpacity
             if chip.layer.shadowOpacity != shadowOpacity {
                 chip.layer.shadowOpacity = shadowOpacity
             }
-            updateShine(for: chip, state: state, criticalElapsed: criticalElapsed)
+            updateShine(for: chip, state: state, flashOpacity: sample.flashOpacity)
         }
         guard !evicted.isEmpty else { return }
         for id in evicted {
@@ -459,9 +475,8 @@ private extension CombatFeedbackRasterUIView {
         }
     }
 
-    private func updateShine(for chip: ChipLayer, state: CombatFeedbackAnimationState, criticalElapsed: TimeInterval) {
+    private func updateShine(for chip: ChipLayer, state: CombatFeedbackAnimationState, flashOpacity: Float) {
         if let shine = shineLayers[ObjectIdentifier(chip.layer)], shine.mask?.contents != nil {
-            let flashOpacity = Float(0.8 * (1 - BattleMotion.smoothProgress(criticalElapsed / 0.14)))
             let isFinished = state.shineProgress >= 1 && flashOpacity == 0
             // Finished glints need no layer writes until a merge or critical hit restarts them.
             if isFinished, shine.isHidden {

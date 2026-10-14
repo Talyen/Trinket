@@ -8,6 +8,52 @@ struct CombatFeedbackAnimationState: Equatable {
     var shineProgress = 1.0
 }
 
+/// Matching fragment hosts share timing math; fitting and lane pushes stay host-local.
+@MainActor
+final class CombatFeedbackMotionTrack {
+    struct Sample: Equatable {
+        let animation: CombatFeedbackAnimationState
+        let elapsed: TimeInterval
+        let criticalElapsed: TimeInterval
+        let shadowOpacity: Float
+        let flashOpacity: Float
+    }
+
+    private struct Key: Equatable {
+        let date: Date
+        let firstScheduledAt: Date
+        let expiresAt: Date
+        let lastUpdatedAt: Date?
+        let criticalAt: Date?
+        let isImpact: Bool
+    }
+
+    private var lastKey: Key?
+    private var lastSample: Sample?
+
+    func sample(for item: CombatFeedbackItem, at date: Date) -> Sample {
+        let now = item.pausedAt ?? date
+        let key = Key(
+            date: now, firstScheduledAt: item.firstScheduledAt, expiresAt: item.expiresAt,
+            lastUpdatedAt: item.lastUpdatedAt, criticalAt: item.criticalAt, isImpact: item.region == .impact,
+        )
+        if lastKey == key, let sample = lastSample {
+            return sample
+        }
+        let criticalElapsed = item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1
+        let sample = Sample(
+            animation: CombatFeedbackMotionSampler.state(for: item, at: date),
+            elapsed: now.timeIntervalSince(item.firstScheduledAt),
+            criticalElapsed: criticalElapsed,
+            shadowOpacity: Float(1 - BattleMotion.smoothProgress(criticalElapsed / 0.48)),
+            flashOpacity: Float(0.8 * (1 - BattleMotion.smoothProgress(criticalElapsed / 0.14))),
+        )
+        lastKey = key
+        lastSample = sample
+        return sample
+    }
+}
+
 enum CombatFeedbackMotionSampler {
     static let lifetime: TimeInterval = 0.92
     static let fadeDuration: TimeInterval = 0.34

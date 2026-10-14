@@ -99,12 +99,27 @@ final class CombatFeedbackRasterPool {
         let task: Task<CombatFeedbackGlyphAtlas.PresentationKey?, Never>
     }
 
-    private let rasterize: @Sendable ([CombatFeedbackChipComposer.RasterInputs]) async -> [CombatFeedbackChipComposer.ComposedRaster?]
+    // Concurrency-Safety: the worker returns a value cache of immutable glyph images/colors;
+    // its UIKit images are only drawn, never mutated, and no worker retains the returned cache.
+    struct PreparedBatch: @unchecked Sendable {
+        let rasters: [CombatFeedbackChipComposer.ComposedRaster?]
+        let composition: CombatFeedbackChipComposer.CompositionContext
+
+        init(
+            rasters: [CombatFeedbackChipComposer.ComposedRaster?],
+            composition: CombatFeedbackChipComposer.CompositionContext = .init(),
+        ) {
+            self.rasters = rasters
+            self.composition = composition
+        }
+    }
+
+    private let rasterize: @Sendable ([CombatFeedbackChipComposer.RasterInputs]) async -> PreparedBatch
 
     init(
         capacity: Int = defaultCapacity,
         rasterize: @escaping @Sendable ([CombatFeedbackChipComposer.RasterInputs]) async
-            -> [CombatFeedbackChipComposer.ComposedRaster?] = CombatFeedbackRasterPool.rasterize,
+            -> PreparedBatch = CombatFeedbackRasterPool.rasterize,
     ) {
         self.capacity = max(1, capacity)
         self.rasterize = rasterize
@@ -113,16 +128,16 @@ final class CombatFeedbackRasterPool {
     @concurrent
     private nonisolated static func rasterize(
         _ requests: [CombatFeedbackChipComposer.RasterInputs],
-    ) async -> [CombatFeedbackChipComposer.ComposedRaster?] {
+    ) async -> PreparedBatch {
         var prepared: [CombatFeedbackChipComposer.ComposedRaster?] = []
         var context = CombatFeedbackChipComposer.CompositionContext()
         for request in requests {
-            guard !Task.isCancelled else { return prepared }
+            guard !Task.isCancelled else { break }
             prepared.append(autoreleasepool {
                 CombatFeedbackChipComposer.render(request, context: &context)
             })
         }
-        return prepared
+        return PreparedBatch(rasters: prepared, composition: context)
     }
 
     func cachedRaster(
@@ -242,14 +257,15 @@ final class CombatFeedbackRasterPool {
             let requests = rasterRequests(displayScale: displayScale)
             let prepared = await rasterize(requests.map(\.1))
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
-            guard prepared.count == requests.count, prepared.allSatisfy({ $0 != nil }) else { return nil }
+            guard prepared.rasters.count == requests.count, prepared.rasters.allSatisfy({ $0 != nil }) else { return nil }
+            compositionContext.merge(prepared.composition)
             protectedCatalogKeys = catalogKeys
             rebuildEvictionOrder()
             // Numeric traffic may have evicted these entries while missing rasters baked.
             for (key, raster) in retainedCatalogRasters where rasters[key] == nil {
                 insert(raster, for: key)
             }
-            for (request, image) in zip(requests, prepared) {
+            for (request, image) in zip(requests, prepared.rasters) {
                 guard rasters[request.0] == nil, let image else { continue }
                 let raster = CombatFeedbackRaster(
                     key: request.0, image: image.image,

@@ -12,7 +12,7 @@ struct CombatFeedbackRasterCatalogTests {
         let pool = CombatFeedbackRasterPool { inputs in
             let image = inputs.first.flatMap { CombatFeedbackChipComposer.render($0) }
             await gate.pause()
-            return inputs.map { _ in image }
+            return CombatFeedbackRasterPool.PreparedBatch(rasters: inputs.map { _ in image })
         }
         let preparation = Task { await pool.prewarmInfrastructureAndWait(displayScale: 1) }
         await gate.waitForArrival()

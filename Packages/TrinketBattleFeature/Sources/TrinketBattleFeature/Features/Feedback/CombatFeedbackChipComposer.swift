@@ -166,6 +166,17 @@ enum CombatFeedbackChipComposer {
             }
             tintedGlyphs[key, default: []].append(glyph)
         }
+
+        mutating func merge(_ prepared: Self) {
+            for key in prepared.sourceOrder {
+                for glyph in prepared.tintedGlyphs[key] ?? [] {
+                    guard tintedGlyphs[key]?.contains(where: {
+                        $0.displayScale == glyph.displayScale && $0.color == glyph.color && $0.outline == glyph.outline
+                    }) != true else { continue }
+                    insert(glyph, for: key)
+                }
+            }
+        }
     }
 
     fileprivate struct TintedGlyph {
@@ -201,9 +212,14 @@ enum CombatFeedbackChipComposer {
             height: ceil(contentHeight + verticalPadding * 2 + shadowOffsetY),
         )
 
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = inputs.displayScale
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
+
         guard let cgImage = renderImage(
             inputs,
-            pointSize: pointSize,
+            renderer: renderer,
             contentHeight: contentHeight,
             maskOnly: false,
             composition: &context,
@@ -213,7 +229,7 @@ enum CombatFeedbackChipComposer {
             shineMask: inputs
                 .needsShineMask ? renderImage(
                     inputs,
-                    pointSize: pointSize,
+                    renderer: renderer,
                     contentHeight: contentHeight,
                     maskOnly: true,
                     composition: &context,
@@ -223,7 +239,7 @@ enum CombatFeedbackChipComposer {
     }
 
     private nonisolated static func renderImage(
-        _ inputs: RasterInputs, pointSize: CGSize, contentHeight: CGFloat, maskOnly: Bool,
+        _ inputs: RasterInputs, renderer: UIGraphicsImageRenderer, contentHeight: CGFloat, maskOnly: Bool,
         composition: inout CompositionContext,
     ) -> CGImage? {
         let leading = inputs.leading.map { ($0.0, resolvedColor($0.1)) }
@@ -236,10 +252,6 @@ enum CombatFeedbackChipComposer {
         let leadingWidth = leading?.0.width ?? 0
         let trailingWidth = trailing.0.width
         let textWidth = textGlyphs.reduce(CGFloat(0)) { $0 + $1.width }
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = inputs.displayScale
-        format.opaque = false
-        let renderer = UIGraphicsImageRenderer(size: pointSize, format: format)
         return renderer.image { _ in
             let contentOrigin = CGPoint(x: horizontalPadding, y: verticalPadding)
             let origins = horizontalOrigins(

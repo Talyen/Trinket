@@ -38,11 +38,16 @@ struct CombatFeedbackComposerParityTests {
                     try expectEqualPixels(actual.image, expected.image)
                     let reused = try #require(CombatFeedbackChipComposer.render(inputs, context: &context))
                     try expectEqualPixels(reused.image, expected.image)
+                    var transferredContext = CombatFeedbackChipComposer.CompositionContext()
+                    transferredContext.merge(context)
+                    let transferred = try #require(CombatFeedbackChipComposer.render(inputs, context: &transferredContext))
+                    try expectEqualPixels(transferred.image, expected.image)
                     let evicted = try #require(CombatFeedbackChipComposer.render(inputs, context: &evictingContext))
                     try expectEqualPixels(evicted.image, expected.image)
                     if needsMask {
                         try expectEqualPixels(#require(actual.shineMask), #require(expected.shineMask))
                         try expectEqualPixels(#require(reused.shineMask), #require(expected.shineMask))
+                        try expectEqualPixels(#require(transferred.shineMask), #require(expected.shineMask))
                         try expectEqualPixels(#require(evicted.shineMask), #require(expected.shineMask))
                     } else {
                         #expect(actual.shineMask == nil)

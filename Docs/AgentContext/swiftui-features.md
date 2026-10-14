@@ -28,6 +28,10 @@ Preserve first-screen artwork pins, launch prewarming, and mounted tab/battle
 surfaces. When changing artwork loading, launch covers, tab mounting, or first-frame
 performance, read [UI performance](ui-performance.md) before editing.
 
+Item-label shine derivation uses a bounded cache keyed by the full immutable item
+value, so changed affixes or powers cannot reuse stale appearance. Cached colors
+remain semantic values; resolve them in the rendering environment.
+
 Use current SwiftUI per [Current vs banned SwiftUI](../Platform/ApplePlatformReference.md#current-vs-banned-swiftui).
 Do not reintroduce the banned column. Keep the root tab bar fully expanded. Hidden toolbar chrome on Battle and detail-hero screens is an intentional art-forward choice.
 

@@ -174,12 +174,18 @@ Prewarm the single production vocabulary including glint masks; numeric cache ch
 cannot evict the prepared vocabulary within the existing raster capacity. Chip
 replacement refreshes changed recipients only and shares raster resolution between
 matching fragment hosts, while availability deadlines still reveal queued results.
-Frame updates change only unequal layer properties, using fitting positions cached
+Matching fragment hosts share each chip's animation samples for a display-clock tick;
+their fitting and lane pushes remain independent. Layer order refreshes only when
+membership or ordering inputs change. Frame updates change only unequal layer
+properties, using fitting positions cached
 until ordered chip membership, reservation geometry, portrait bounds, or bottom inset
 changes. Live raster composition reuses a pool-owned bounded cache of tinted glyphs and
 outline silhouettes across publications; clearing the pool releases it. Worker
-batches keep separate contexts. Both retain source images to preserve identity;
-the draw sequence, sampling, masks, and feedback clocks are unchanged. Raster
+batches keep separate value contexts and merge prepared glyphs into the live cache
+only after the current generation succeeds, within its existing bounds. Both retain
+source images to preserve identity. Color and mask passes share a renderer within
+each composition; the draw sequence, sampling, masks, and feedback clocks are
+unchanged. Raster
 hits and evictions update an explicit LRU list of unprotected entries; changing
 catalog protection rebuilds that list in recency order.
 Hosts unregister from the display clock on teardown and when eviction leaves no

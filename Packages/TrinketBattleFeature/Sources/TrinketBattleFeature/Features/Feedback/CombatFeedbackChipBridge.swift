@@ -9,6 +9,7 @@ final class CombatFeedbackChipBridge {
     private var suppressedTargets: Set<String> = []
     private let onEvict: ((Set<Int>) -> Void)?
     private var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
+    private var motionTracks: [Int: CombatFeedbackMotionTrack] = [:]
     private lazy var availabilityTimer = FeedbackDeadlineTimer { [weak self] in
         self?.availabilityTimerDidFire()
     }
@@ -83,6 +84,9 @@ final class CombatFeedbackChipBridge {
         switch update {
         case let .remove(ids):
             evictedIDs.subtract(ids)
+            for id in ids {
+                motionTracks.removeValue(forKey: id)
+            }
             for targetID in Array(itemsByTarget.keys) {
                 let removed = ids.filter { itemsByTarget[targetID]?.removeValue(forKey: $0) != nil }
                 if !removed.isEmpty {
@@ -93,7 +97,14 @@ final class CombatFeedbackChipBridge {
                 }
             }
         case let .replace(items):
-            evictedIDs.formIntersection(Set(items.map(\.id)))
+            let liveIDs = Set(items.map(\.id))
+            evictedIDs.formIntersection(liveIDs)
+            for id in Array(motionTracks.keys) where !liveIDs.contains(id) {
+                motionTracks.removeValue(forKey: id)
+            }
+            for id in liveIDs where motionTracks[id] == nil {
+                motionTracks[id] = CombatFeedbackMotionTrack()
+            }
             let replacement = Dictionary(grouping: items, by: \.targetID).mapValues { targetItems in
                 Dictionary(uniqueKeysWithValues: targetItems.map { ($0.id, $0) })
             }
@@ -105,6 +116,7 @@ final class CombatFeedbackChipBridge {
             evictedIDs.removeAll()
             affectedTargets = Set(itemsByTarget.keys)
             itemsByTarget.removeAll(keepingCapacity: true)
+            motionTracks.removeAll(keepingCapacity: true)
             nextAvailabilityDate = nil
             nextAvailabilityTargetID = nil
         }
@@ -191,7 +203,7 @@ final class CombatFeedbackChipBridge {
                 resolved[resolutionKey] = chips
             }
             // Applying another fragment can synchronously evict chips from this lane.
-            view.apply(chips: chips.filter { !evictedIDs.contains($0.item.id) })
+            view.apply(chips: chips.filter { !evictedIDs.contains($0.item.id) }, motionTracks: motionTracks)
         }
     }
 

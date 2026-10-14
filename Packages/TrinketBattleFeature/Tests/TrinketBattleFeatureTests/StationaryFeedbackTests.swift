@@ -367,6 +367,40 @@ struct StationaryFeedbackTests {
 }
 
 struct FeedbackGeometryCacheTests {
+    @Test @MainActor func `shared motion tracks preserve merges pause and independent timing`() {
+        let start = Date(timeIntervalSince1970: 100)
+        var item = CombatFeedbackItem(
+            id: 1, sourceEventIDs: [1], actionGroupID: 1, presentationIndex: 0,
+            targetID: "test", feedbackClass: .directDamage, keyword: .physical,
+            visualRole: .keyword, label: .amount(9), availableAt: start,
+            expiresAt: start.addingTimeInterval(CombatFeedbackMotionSampler.lifetime), reactionKind: .damage,
+        )
+        let track = CombatFeedbackMotionTrack()
+        let date = start.addingTimeInterval(0.4)
+        func check(_ item: CombatFeedbackItem, at date: Date) {
+            let sample = track.sample(for: item, at: date)
+            #expect(sample.animation == CombatFeedbackMotionSampler.state(for: item, at: date))
+            let now = item.pausedAt ?? date
+            #expect(sample.elapsed == now.timeIntervalSince(item.firstScheduledAt))
+            #expect(sample.criticalElapsed == (item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1))
+            #expect(sample.shadowOpacity == Float(1 - BattleMotion.smoothProgress(sample.criticalElapsed / 0.48)))
+            #expect(sample.flashOpacity == Float(0.8 * (1 - BattleMotion.smoothProgress(sample.criticalElapsed / 0.14))))
+        }
+        check(item, at: date)
+        check(item, at: date)
+        item.lastUpdatedAt = date
+        item.criticalAt = date
+        item.expiresAt = item.expiresAt.addingTimeInterval(0.12)
+        check(item, at: date)
+        item.pausedAt = date
+        check(item, at: date.addingTimeInterval(1))
+        item = item.scheduled(at: date)
+        item.pausedAt = nil
+        check(item, at: date)
+        item.label = .word(.cleanse(.poison))
+        check(item, at: date)
+    }
+
     @Test @MainActor func `cached feedback geometry refreshes for resize inset and remounted fragments`() throws {
         let start = Date.now.addingTimeInterval(10)
         let pool = CombatFeedbackRasterPool()
