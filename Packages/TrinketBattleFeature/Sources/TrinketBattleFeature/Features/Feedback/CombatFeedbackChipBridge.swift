@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
@@ -10,7 +11,7 @@ final class CombatFeedbackChipBridge {
     private let onEvict: ((Set<Int>) -> Void)?
     private var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
     private var motionTracks: [Int: CombatFeedbackMotionTrack] = [:]
-    private var liveRasters: [ResolutionKey: [Int: CombatFeedbackRaster]] = [:]
+    private var liveRasters: [ResolutionKey: [Int: LiveRaster]] = [:]
     private let rasterPool: CombatFeedbackRasterPool
     private lazy var availabilityTimer = FeedbackDeadlineTimer { [weak self] in
         self?.availabilityTimerDidFire()
@@ -35,6 +36,27 @@ final class CombatFeedbackChipBridge {
         let combatantID: String
         let layoutDirection: LayoutDirection
         let displayScale: CGFloat
+    }
+
+    private struct LiveRaster {
+        let label: CombatFeedbackChipLabel
+        let keyword: Keyword
+        let visualRole: CombatFeedbackVisualRole
+        let typography: CombatFeedbackTypographyTier
+        let raster: CombatFeedbackRaster
+
+        init(item: CombatFeedbackItem, raster: CombatFeedbackRaster) {
+            label = item.label
+            keyword = item.keyword
+            visualRole = item.visualRole
+            typography = item.feedbackClass.typographyTier
+            self.raster = raster
+        }
+
+        func matches(_ item: CombatFeedbackItem) -> Bool {
+            label == item.label && keyword == item.keyword
+                && visualRole == item.visualRole && typography == item.feedbackClass.typographyTier
+        }
     }
 
     private typealias ResolvedChip = (item: CombatFeedbackItem, raster: CombatFeedbackRaster?)
@@ -242,13 +264,14 @@ final class CombatFeedbackChipBridge {
             combatantID: entry.combatantID, layoutDirection: entry.layoutDirection, displayScale: entry.displayScale,
         )
         for item in chipsToDraw {
-            let key = CombatFeedbackRasterKey(item: item, layoutDirection: entry.layoutDirection, displayScale: entry.displayScale)
             let raster: CombatFeedbackRaster?
-            if let retained = liveRasters[context]?[item.id], retained.key == key {
-                raster = retained
+            // Timing, source IDs, and reservation changes cannot alter these pixels.
+            // Compare semantic inputs before formatting an unchanged numeric label.
+            if let retained = liveRasters[context]?[item.id], retained.matches(item) {
+                raster = retained.raster
             } else {
                 raster = rasterPool.prepare(for: item, layoutDirection: entry.layoutDirection, displayScale: entry.displayScale)
-                liveRasters[context, default: [:]][item.id] = raster
+                liveRasters[context, default: [:]][item.id] = raster.map { LiveRaster(item: item, raster: $0) }
             }
             chips.append((item: item, raster: raster))
         }

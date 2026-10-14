@@ -383,11 +383,17 @@ enum CombatFeedbackChipComposer {
             composition.insert(images, for: key)
         }
         if outline != nil, let silhouette = images.silhouette {
-            for step in 0 ..< 8 {
-                let angle = CGFloat(step) * .pi / 4
-                silhouette.draw(in: rect.offsetBy(dx: cos(angle), dy: sin(angle)))
+            for offset in outlineOffsets {
+                silhouette.draw(in: rect.offsetBy(dx: offset.x, dy: offset.y))
             }
         }
         images.image.draw(in: rect)
+    }
+}
+
+private extension CombatFeedbackChipComposer {
+    nonisolated static let outlineOffsets: [CGPoint] = (0 ..< 8).map { step in
+        let angle = CGFloat(step) * .pi / 4
+        return CGPoint(x: cos(angle), y: sin(angle))
     }
 }

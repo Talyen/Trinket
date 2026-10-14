@@ -188,14 +188,18 @@ final class CombatFeedbackRasterPool {
             )
         }
 
-        guard let composed = CombatFeedbackChipComposer.compose(
-            presentation: item.chipPresentation,
-            feedbackClass: item.feedbackClass,
-            layoutDirection: layoutDirection,
-            displayScale: scale,
-            needsShineMask: true,
-            context: &compositionContext,
-        ) else {
+        // Keep the result and bounded glyph cache; release temporary drawing objects per chip.
+        let composed = autoreleasepool {
+            CombatFeedbackChipComposer.compose(
+                presentation: key.presentation,
+                feedbackClass: item.feedbackClass,
+                layoutDirection: layoutDirection,
+                displayScale: scale,
+                needsShineMask: true,
+                context: &compositionContext,
+            )
+        }
+        guard let composed else {
             return nil
         }
 
