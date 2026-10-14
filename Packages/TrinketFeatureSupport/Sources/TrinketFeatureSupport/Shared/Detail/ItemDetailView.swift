@@ -200,7 +200,7 @@ public struct ItemDetailView: View {
             }
 
             if let equippedByName = salvage.equippedByName {
-                Text("This unequips it from \(equippedByName).")
+                Text("This unequips it from \(equippedByName)")
                     .trinketTypography(.secondaryBody)
             }
         }

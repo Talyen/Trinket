@@ -137,25 +137,25 @@ public enum EffectPresentation {
     public static func battleSummaryPhrase(for effect: Effect) -> String? {
         switch effect {
         case .nextHolyStrike:
-            "Holy Strike: Next attack deals double Holy damage and applies Burning."
+            "Holy Strike: Next attack deals double Holy damage and applies Burning"
         case .nextStrikeDouble:
-            "Double Strike: Next attack deals double damage."
+            "Double Strike: Next attack deals double damage"
         case .playNextCardTwice:
-            "Shadowstep: Next card or enemy ability resolves twice."
+            "Shadowstep: Next card or enemy ability resolves twice"
         case .evadeNextHit:
-            "Evasion: Dodges the next attack."
+            "Evasion: Dodges the next attack"
         case .nextStrikeCritical:
-            "Critical Focus: Next attack is a guaranteed Critical Hit."
+            "Critical Focus: Next attack is a guaranteed Critical Hit"
         case .nextStrikeLeech:
-            "Leech Focus: Next attack Leeches."
+            "Leech Focus: Next attack Leeches"
         case let .nextStrikeDamageKeywordOverride(keyword):
             keyword == .holy
-                ? "Avatar: Next attack deals Holy damage."
-                : "Next attack deals \(keyword.rawValue) damage."
+                ? "Avatar: Next attack deals Holy damage"
+                : "Next attack deals \(keyword.rawValue) damage"
         case .partyDamageBonus:
-            "Sniff Out: Partner's next damaging card deals additional damage."
+            "Sniff Out: Partner's next damaging card deals additional damage"
         case .freezeNextAttacker:
-            "Glacial Ward: Freezes the next attacker."
+            "Glacial Ward: Freezes the next attacker"
         default:
             nil
         }

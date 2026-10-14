@@ -22,7 +22,7 @@ struct ItemAffixMagnitudeRollTests {
         let multiplier = item.baseType.affixPowerMultiplier
         #expect(power.modifiers == old.scaled(by: multiplier).modifiers)
         #expect(power.triggers == old.scaled(by: multiplier).triggers)
-        #expect(power.description == "Leech restores an additional \(displayedPercent)% of damage dealt.")
+        #expect(power.description == "Leech restores an additional \(displayedPercent)% of damage dealt")
         #expect(item.displayedAffixes.first?.description == power.description)
         #expect(item.affixPowers == decoded)
     }
@@ -45,7 +45,7 @@ struct ItemAffixMagnitudeRollTests {
         let item = try ItemFixtures.makeBareItem(
             "double_axe", affixes: [definition.resolved(for: .basic)], affixPowers: powers,
         )
-        #expect(item.displayedAffixes.first?.description == stored.description)
+        #expect(item.displayedAffixes.first?.description == "Increase Physical damage by \(Int.max)")
         #expect(item.resolvedPower(at: 0)?.modifiers == stored.modifiers)
         #expect(item.isPerfectAffix(at: 0))
         #expect(stored.bumpCandidates(direction: .up).isEmpty)

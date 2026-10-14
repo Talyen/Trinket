@@ -10,7 +10,7 @@ struct AvatarHandler: BattleEffectHandler {
         let blockClause = blockPerTurn > 0 ? " and gains \(blockPerTurn) Block each turn" : " each turn"
         return EffectSummary(
             keyword: keyword,
-            text: "Avatar: Deals \(holyDamage) Holy damage\(blockClause), \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
+            text: "Avatar: Deals \(holyDamage) Holy damage\(blockClause), \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))",
         )
     }
 

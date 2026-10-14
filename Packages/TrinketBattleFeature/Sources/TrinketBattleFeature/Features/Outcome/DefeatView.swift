@@ -19,8 +19,8 @@ struct DefeatView: View {
             eyebrowAccessibilityIdentifier: nil,
             title: "Defeat",
             subtitle: didRetreat
-                ? "Your party retreated from \(configuration.enemy?.name ?? "Enemy")."
-                : "Your party fell to \(configuration.enemy?.name ?? "Enemy").",
+                ? "Your party retreated from \(configuration.enemy?.name ?? "Enemy")"
+                : "Your party fell to \(configuration.enemy?.name ?? "Enemy")",
             titleAccessibilityIdentifier: AccessibilityID.Battle.defeat,
             titleColor: TrinketDesign.Colors.accent,
             content: {

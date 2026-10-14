@@ -9,7 +9,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .wheatField,
             title: "Wheat Field",
-            summary: "A first field that turns quiet earth into dependable stores.",
+            summary: "A first field that turns quiet earth into dependable stores",
             iconID: "sf:leaf.fill",
             category: .farming,
             tiers: [
@@ -62,7 +62,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .herbGarden,
             title: "Herb Garden",
-            summary: "A small medicinal garden for tonics, reagents, and green magic.",
+            summary: "A small medicinal garden for tonics, reagents, and green magic",
             iconID: "sf:leaf.fill",
             category: .farming,
             tiers: [
@@ -115,7 +115,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .chickenCoop,
             title: "Chicken Coop",
-            summary: "A lively coop that keeps simple supplies moving between runs.",
+            summary: "A lively coop that keeps simple supplies moving between runs",
             iconID: "sf:bird.fill",
             category: .farming,
             tiers: [
@@ -168,7 +168,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .pasture,
             title: "Pasture",
-            summary: "Open grazing land for larger stores and slower, stronger support.",
+            summary: "Open grazing land for larger stores and slower, stronger support",
             iconID: "sf:leaf.fill",
             category: .farming,
             tiers: [
@@ -221,7 +221,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .culinaryArts,
             title: "Culinary Arts",
-            summary: "A warm kitchen that turns the harvest into lasting strength.",
+            summary: "A warm kitchen that turns the harvest into lasting strength",
             iconID: "sf:fork.knife",
             category: .crafting,
             tiers: [
@@ -274,7 +274,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .blacksmithForge,
             title: "Blacksmith",
-            summary: "A working forge for hardware, weapons, and stronger construction.",
+            summary: "A working forge for hardware, weapons, and stronger construction",
             iconID: "sf:hammer.fill",
             category: .crafting,
             tiers: [
@@ -327,7 +327,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .woolTailoring,
             title: "Wool Tailoring",
-            summary: "A loom shop that weaves padded wraps against winter chill.",
+            summary: "A loom shop that weaves padded wraps against winter chill",
             iconID: "sf:scissors",
             category: .crafting,
             tiers: [
@@ -380,7 +380,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .runesmithWorkshop,
             title: "Runesmith",
-            summary: "A careful workshop where metalwork and crystal study meet.",
+            summary: "A careful workshop where metalwork and crystal study meet",
             iconID: "sf:wand.and.stars",
             category: .crafting,
             tiers: [
@@ -433,7 +433,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .alchemyLab,
             title: "Alchemy Lab",
-            summary: "A precise workspace for reagents, tonics, and restorative experiments.",
+            summary: "A precise workspace for reagents, tonics, and restorative experiments",
             iconID: "sf:flask.fill",
             category: .alchemy,
             tiers: [
@@ -486,7 +486,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .crystalGarden,
             title: "Crystal Garden",
-            summary: "A luminous garden where rare formations grow around quiet magic.",
+            summary: "A luminous garden where rare formations grow around quiet magic",
             iconID: "sf:diamond.fill",
             category: .alchemy,
             tiers: [
@@ -539,7 +539,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .transmutationCrucible,
             title: "Crucible",
-            summary: "An alchemical blast furnace catalyzing raw ore into refined metals.",
+            summary: "An alchemical blast furnace catalyzing raw ore into refined metals",
             iconID: "sf:flame.fill",
             category: .alchemy,
             tiers: [
@@ -592,7 +592,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .mycologyCellar,
             title: "Mycology Cellar",
-            summary: "A shaded cellar cultivating parasitic fungi and potent reagents.",
+            summary: "A shaded cellar cultivating parasitic fungi and potent reagents",
             iconID: "sf:cross.vial.fill",
             category: .alchemy,
             tiers: [
@@ -645,7 +645,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .hunterLodge,
             title: "Hunter's Lodge",
-            summary: "A trail lodge for companion drills and field craft.",
+            summary: "A trail lodge for companion drills and field craft",
             iconID: "sf:figure.archery",
             category: .training,
             tiers: [
@@ -698,7 +698,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .agilityTraining,
             title: "Agility Training",
-            summary: "A practice yard that sharpens companion footwork and reflexes.",
+            summary: "A practice yard that sharpens companion footwork and reflexes",
             iconID: "sf:figure.run",
             category: .training,
             tiers: [
@@ -747,7 +747,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .sparringGrounds,
             title: "Sparring Grounds",
-            summary: "A sandy martial yard for close-quarters parrying and shield drills.",
+            summary: "A sandy martial yard for close-quarters parrying and shield drills",
             iconID: "sf:shield.checkered",
             category: .training,
             tiers: [
@@ -800,7 +800,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .archeryRange,
             title: "Archery Range",
-            summary: "Distance butts and fletching benches for long-range marksmanship.",
+            summary: "Distance butts and fletching benches for long-range marksmanship",
             iconID: "sf:figure.archery",
             category: .training,
             tiers: [
@@ -853,7 +853,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .moonlitSanctum,
             title: "Moonlit Sanctum",
-            summary: "A quiet sanctum for sensing rare finds and unnatural threats.",
+            summary: "A quiet sanctum for sensing rare finds and unnatural threats",
             iconID: "sf:moon.stars.fill",
             category: .arcana,
             tiers: [
@@ -902,7 +902,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .wishingWell,
             title: "Wishing Well",
-            summary: "A quiet landmark for late goals, rare finds, and lucky returns.",
+            summary: "A quiet landmark for late goals, rare finds, and lucky returns",
             iconID: "sf:water.waves",
             category: .arcana,
             tiers: [
@@ -955,7 +955,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .library,
             title: "Library",
-            summary: "Ancient knowledge turns hard-won experience into lasting insight.",
+            summary: "Ancient knowledge turns hard-won experience into lasting insight",
             iconID: "sf:books.vertical.fill",
             category: .arcana,
             tiers: [
@@ -1004,7 +1004,7 @@ enum GameContentHomesteadGenerated {
         list.append(HomesteadNodeDefinition(
             id: .leylineEnergy,
             title: "Leyline Energy",
-            summary: "Luminous subterranean fissures channeling raw planar magic up from deep leylines.",
+            summary: "Luminous subterranean fissures channeling raw planar magic up from deep leylines",
             iconID: "sf:bolt.fill",
             category: .arcana,
             tiers: [

@@ -35,7 +35,7 @@ struct FeintStrikeRegressionTests {
         )
         let preparedDamage = hasSharedCurrent ? 5 : 3
         #expect(battle.effectSummaries(of: battle.companion).contains {
-            $0.text == "Prepared Damage: Your next attack deals \(preparedDamage) additional damage."
+            $0.text == "Prepared Damage: Your next attack deals \(preparedDamage) additional damage"
         })
         #expect(battle.resolveDamage(request).healthLost == 3 + preparedDamage)
         #expect(battle.resolveDamage(request).healthLost == 3)

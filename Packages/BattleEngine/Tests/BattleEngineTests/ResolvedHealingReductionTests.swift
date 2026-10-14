@@ -20,7 +20,7 @@ struct ResolvedHealingReductionTests {
         )
         let power = try #require(item.resolvedPower(at: 0))
         #expect(power.triggers.companionLeechSharePercent == savedShare)
-        #expect(item.displayedAffixes.first?.description == "Your ally receives \(displayedPercent)% of the Health you restore with Leech.")
+        #expect(item.displayedAffixes.first?.description == "Your ally receives \(displayedPercent)% of the Health you restore with Leech")
         var profile = CombatModifierProfile.zero
         power.triggers.apply(to: &profile, abilityName: affix.title)
         profile.healthRestoredBonus = 4

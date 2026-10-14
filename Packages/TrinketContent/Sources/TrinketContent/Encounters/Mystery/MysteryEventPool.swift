@@ -66,7 +66,7 @@ enum MysteryEventPool {
     static let corruptionAltar = makeEvent(
         id: corruptionAltarID,
         title: "Corruption Altar",
-        narrative: "A violet altar remakes gear forever, offering corruption or escape.",
+        narrative: "A violet altar remakes gear forever, offering corruption or escape",
         artID: "destination-corruption-altar",
         choices: [
             ("corrupt-item", "Corrupt an Item", [.corruptItem]),

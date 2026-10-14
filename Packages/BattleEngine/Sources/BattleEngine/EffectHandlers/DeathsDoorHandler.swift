@@ -7,7 +7,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
         guard !stacks.isEmpty else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "Death's Door: Immune to fatal damage while active.",
+            text: "Death's Door: Immune to fatal damage while active",
         )
     }
 

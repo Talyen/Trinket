@@ -49,7 +49,7 @@ struct PreparedMagnitudeBoundaryTests {
 
         let summaries = battle.talentEffectSummaries(of: battle.hero)
 
-        #expect(summaries.contains { $0.keyword == .health && $0.text == "Living Archive: Restore \(Int.max) Health next round." })
+        #expect(summaries.contains { $0.keyword == .health && $0.text == "Living Archive: Restore \(Int.max) Health next round" })
         #expect(battle.roster.hero.talents.pending.healingEchoes == echoes)
     }
 }

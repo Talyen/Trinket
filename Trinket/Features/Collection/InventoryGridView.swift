@@ -156,14 +156,14 @@ struct InventoryGridView: View {
             ContentUnavailableView(
                 "No Matching Items",
                 systemImage: "line.3.horizontal.decrease",
-                description: Text("Try a different filter."),
+                description: Text("Try a different filter"),
             )
             .accessibilityIdentifier(AccessibilityID.Collection.itemsNoResults)
         } else {
             ContentUnavailableView(
                 "No \(category.rawValue) Yet",
                 systemImage: "shippingbox",
-                description: Text("Your \(category.rawValue.lowercased()) will appear here when you collect them."),
+                description: Text("Your \(category.rawValue.lowercased()) will appear here when you collect them"),
             )
             .accessibilityIdentifier(AccessibilityID.Collection.itemsEmptyState)
         }

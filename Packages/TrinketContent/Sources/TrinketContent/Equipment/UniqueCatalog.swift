@@ -8,7 +8,7 @@ enum UniqueCatalog {
             name: "Wardbreaker",
             base: "flail",
             keywords: [.stun, .holy],
-            description: "Purge all buffs when you Stun an enemy. Deal 2 Holy damage per buff removed.",
+            description: "Purge all buffs when you Stun an enemy\nDeal 2 Holy damage per buff removed",
             triggers: CombatTraitTriggers(
                 control: ControlTriggers(
                     stunPurgeDealHolyPerEffect: 2,
@@ -21,7 +21,7 @@ enum UniqueCatalog {
             name: "Dance of Blades",
             base: "leather_armor",
             keywords: [.dodge],
-            description: "When you Dodge, immediately draw and play a card. If it's a Critical Hit, repeat this effect.",
+            description: "When you Dodge, immediately draw and play a card\nIf it's a Critical Hit, repeat this effect",
             triggers: CombatTraitTriggers(
                 dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true),
             ),
@@ -34,7 +34,7 @@ enum UniqueCatalog {
             name: "Blackfletch",
             base: "crossbow",
             keywords: [.physical, .bleed, .poison],
-            description: "Critical Hits detonate and consume all remaining Bleed and Poison damage.",
+            description: "Critical Hits detonate and consume all remaining Bleed and Poison damage",
             triggers: CombatTraitTriggers(
                 dot: DotTriggers(criticalDetonateBleedAndPoison: true),
             ),
@@ -45,7 +45,7 @@ enum UniqueCatalog {
             name: "Twin Casting",
             base: "staff",
             keywords: [.burn, .freeze, .mana],
-            description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa.",
+            description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa",
             triggers: CombatTraitTriggers(
                 mana: ManaTriggers(empoweredElementDrawOpposite: true),
             ),
@@ -57,7 +57,7 @@ enum UniqueCatalog {
             name: "Golden Verdict",
             base: "topaz_ring",
             keywords: [.holy, .gold, .stun],
-            description: "Holy damage causes Stun build-up and steals 1 Gold when it Stuns an enemy.",
+            description: "Holy damage causes Stun build-up and steals 1 Gold when it Stuns an enemy",
             triggers: CombatTraitTriggers(
                 control: ControlTriggers(
                     holyStunBuildupPercent: 1,
@@ -74,7 +74,7 @@ enum UniqueCatalog {
         name: "Bloodfire Signet",
         base: "ruby_ring",
         keywords: [.burn, .bleed],
-        description: "Dealing Burn damage has a 20% chance to deal 1 Bleed damage, and vice versa. Burn and Bleed damage gain Leech.",
+        description: "Dealing Burn damage has a 20% chance to deal 1 Bleed damage, and vice versa\nBurn and Bleed damage gain Leech",
         triggers: CombatTraitTriggers(
             dot: DotTriggers(
                 burnProcsBleedChancePercent: 0.20,
@@ -92,7 +92,7 @@ enum UniqueCatalog {
         name: "Rimeheart Locket",
         base: "sapphire_amulet",
         keywords: [.freeze, .block, .mana],
-        description: "Dealing Freeze damage grants that amount of Block. Gain Mana equal to your Block when you Freeze an enemy.",
+        description: "Dealing Freeze damage grants that amount of Block\nGain Mana equal to your Block when you Freeze an enemy",
         triggers: CombatTraitTriggers(
             block: BlockTriggers(freezeDamageGrantsBlock: true),
             mana: ManaTriggers(onFreezeEnemyGainManaEqualBlock: true),
@@ -107,7 +107,7 @@ enum UniqueCatalog {
         name: "Saintfall Plate",
         base: "plate_armor",
         keywords: [.block, .health, .holy, .stun],
-        description: "The first time each round your Block is broken, deal 6 Holy and 6 Stun damage to the attacker, then restore 6 Health.",
+        description: "The first time each round your Block is broken, deal 6 Holy and 6 Stun damage to the attacker, then restore 6 Health",
         triggers: CombatTraitTriggers(
             block: BlockTriggers(blockBrokenSaintfallPower: 6),
         ),

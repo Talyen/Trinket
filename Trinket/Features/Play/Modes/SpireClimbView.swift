@@ -65,7 +65,7 @@ struct SpireClimbView: View {
         return StageSelectScreen(
             eyebrow: "SPIRE",
             title: spire.title,
-            subtitle: isPartyAttuned(to: spire) ? nil : "Both party members need a \(spire.keyword.rawValue) ability.",
+            subtitle: isPartyAttuned(to: spire) ? nil : "Both party members need a \(spire.keyword.rawValue) ability",
             titleAccessibilityIdentifier: AccessibilityID.Play.spireTitle(spire.id.rawValue),
         ) {
             spireHeroArtwork(for: spire)
@@ -118,7 +118,7 @@ struct SpireClimbView: View {
     private func completionState(for spire: SpireDefinition) -> some View {
         StageSelectCompletionPanel(
             title: "Spire Cleared",
-            description: "All \(spire.floorCount) floors are complete.",
+            description: "All \(spire.floorCount) floors are complete",
             buttonTitle: "Back to Spires",
             tint: spire.keyword.visualStyle.color,
             accessibilityIdentifier: AccessibilityID.Play.spireCompletionBack(spire.id.rawValue),

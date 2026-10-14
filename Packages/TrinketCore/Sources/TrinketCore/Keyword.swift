@@ -87,9 +87,9 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .burn:
             "Burn deals damage each round and fades quickly"
         case .stun:
-            "Stun builds a meter; filling it makes the enemy lose an action"
+            "Stun builds a meter\nFilling it makes the enemy lose an action"
         case .block:
-            "Block prevents Health damage. Remaining Block halves after the enemy's turn for your party, and before the enemy's turn for enemies"
+            "Block prevents Health damage\nRemaining Block halves after the enemy's turn for your party, and before the enemy's turn for enemies"
         case .health:
             "Health keeps you alive"
         case .gold:
@@ -103,7 +103,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .leech:
             "Leech damage heals the attacker"
         case .freeze:
-            "Freeze builds a meter; filling it makes the enemy lose an action"
+            "Freeze builds a meter\nFilling it makes the enemy lose an action"
         case .dodge:
             "Dodge avoids an attack completely"
         case .purge:
@@ -113,7 +113,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Codable, Send
         case .mana:
             // Cost lives in BattleTurnEngine.manaEmpowermentCost/Bonus; the +1
             // bonus is Effect.manaEmpowermentBonus. Update together.
-            "Mana regenerates +1 each round. Spend 3 Mana to add +1 Burn or Freeze on a card"
+            "Mana regenerates +1 each round\nSpend 3 Mana to add +1 Burn or Freeze on a card"
         case .deathsDoor:
             "Death's Door survives a fatal blow at 1 Health and is immune to fatal blows while it lasts"
         case .thorns:

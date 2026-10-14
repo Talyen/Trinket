@@ -59,7 +59,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         let alias = keyword.statusAlias ?? keyword.rawValue
         return EffectSummary(
             keyword: keyword,
-            text: "\(alias): \(total) \(keyword.rawValue) potency. Normally decays before each turn's damage.",
+            text: "\(alias): \(total) \(keyword.rawValue) potency\nNormally decays before each turn's damage",
         )
     }
 
@@ -149,7 +149,7 @@ struct BleedHandler: BattleEffectHandler {
         }
         guard total > 0 else { return nil }
         let alias = keyword.statusAlias ?? keyword.rawValue
-        return EffectSummary(keyword: keyword, text: "\(alias): Takes \(total) \(keyword.rawValue) damage each turn.")
+        return EffectSummary(keyword: keyword, text: "\(alias): Takes \(total) \(keyword.rawValue) damage each turn")
     }
 
     func apply(
@@ -215,7 +215,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
         else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "\(damageKeyword.rawValue): Deals \(potency) \(damageKeyword.rawValue) damage each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns)).",
+            text: "\(damageKeyword.rawValue): Deals \(potency) \(damageKeyword.rawValue) damage each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))",
         )
     }
 

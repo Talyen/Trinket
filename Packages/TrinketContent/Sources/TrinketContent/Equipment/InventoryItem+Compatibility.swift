@@ -2,6 +2,18 @@ import TrinketCore
 
 extension InventoryItem {
     static func normalizedPower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {
+        let power = normalizedRulePower(original, affixID: affixID)
+        var description = power.description
+            .replacingOccurrences(of: ". ", with: "\n")
+            .replacingOccurrences(of: "; ", with: "\n")
+        if description.hasSuffix(".") || description.hasSuffix(";") {
+            description.removeLast()
+        }
+        guard description != power.description else { return power }
+        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: power.triggers)
+    }
+
+    private static func normalizedRulePower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {
         // Migrate only the obsolete rule; rolled magnitudes and unrelated powers survive.
         var description = original.description
         var triggers = original.triggers
@@ -11,11 +23,11 @@ extension InventoryItem {
         case "symbiosis":
             let share = triggers.companionLeechSharePercent
             let percent = Int(((share.isNaN ? 0 : min(1, max(0, share))) * 100).rounded())
-            description = "Your ally receives \(percent)% of the Health you restore with Leech."
+            description = "Your ally receives \(percent)% of the Health you restore with Leech"
         case "smugglers_map":
             triggers.victoryGoldFlat = 0
             triggers.goldTheftDrawChancePercent = 0.20
-            description = "Stealing Gold has a 20% chance\nto draw a card."
+            description = "Stealing Gold has a 20% chance\nto draw a card"
         case "companions_collar":
             if !triggers.healCompanionDrawsCompanionCard {
                 guard triggers.companionCardsEveryOtherTurn > 0 || triggers.companionCardsPerTurn > 0 else { return original }
@@ -23,13 +35,13 @@ extension InventoryItem {
                 triggers.companionCardsEveryOtherTurn = 0
                 triggers.companionCardsPerTurn = 0
             }
-            description = "Once per turn, healing your Companion draws a Companion card."
+            description = "Once per turn, healing your Companion draws a Companion card"
         case "beastbond":
             return Self.normalizedBeastbond(original)
         case "shredding":
             let actual = max(triggers.ignoreEnemyMitigationPercent, triggers.physicalIgnoreMitigationPercent)
             guard actual > 0 else { return original }
-            description = "Your Physical damage ignores \(CombatRounding.rounded(min(actual, Double(Int.max) / 100) * 100))% of enemy damage reduction."
+            description = "Your Physical damage ignores \(CombatRounding.rounded(min(actual, Double(Int.max) / 100) * 100))% of enemy damage reduction"
             if triggers.physicalIgnoreMitigationPercent >= triggers.ignoreEnemyMitigationPercent, original.description == description {
                 return original
             }
@@ -37,7 +49,7 @@ extension InventoryItem {
             triggers.ignoreEnemyMitigationPercent = 0
         case "groves_favor":
             guard triggers.healthPerTurn > 0 else { return original }
-            description = "Restore 2 Health every other turn."
+            description = "Restore 2 Health every other turn"
         case "tattered_pages":
             if !triggers.forbiddenKnowledge {
                 guard triggers.drawEveryOtherTurn > 0 else { return original }
@@ -46,9 +58,9 @@ extension InventoryItem {
             }
             description = "Every other turn, lose 1 Health and draw a card"
         case "the_returning_gale":
-            description = "Once per turn, Dodging returns the last card you played to your hand."
+            description = "Once per turn, Dodging returns the last card you played to your hand"
         case "the_golden_crucible":
-            description = "Gold gained in combat adds equal damage to your next Holy hit from a manually played card."
+            description = "Gold gained in combat adds equal damage to your next Holy hit from a manually played card"
         case "the_patient_edge":
             if !triggers.blockPreparesCritical {
                 guard triggers.partnerFirstAttackDamage > 0 || triggers.heldCardNextAttackDamage > 0 else { return original }
@@ -56,7 +68,7 @@ extension InventoryItem {
                 triggers.partnerFirstAttackDamage = 0
                 triggers.heldCardNextAttackDamage = 0
             }
-            description = "Blocking an attack makes your next manually played attack Critically Hit."
+            description = "Blocking an attack makes your next manually played attack Critically Hit"
         case "red_harvest", "huntsmasters_call", "threefold_grace", "golden_verdict", "vipers_courtesy":
             return Self.normalizedReworkedUnique(original, affixID: affixID)
         default:
@@ -73,7 +85,7 @@ extension InventoryItem {
             return false
         }), case let .leechGainedPercent(amount) = modifier else { return power }
         return ItemAffixPower(
-            description: "Leech restores an additional \(CombatRounding.rounded(min(amount, Double(Int.max) / 100) * 100))% of damage dealt.",
+            description: "Leech restores an additional \(CombatRounding.rounded(min(amount, Double(Int.max) / 100) * 100))% of damage dealt",
             modifiers: power.modifiers, triggers: power.triggers,
         )
     }
@@ -113,7 +125,7 @@ extension InventoryItem {
         if newValue == nil {
             modifiers.append(.companionPhysicalDamageDealt(actual))
         }
-        let description = "Increase your Companion's Physical damage by \(actual)."
+        let description = "Increase your Companion's Physical damage by \(actual)"
         return ItemAffixPower(description: description, modifiers: modifiers, triggers: power.triggers)
     }
 }

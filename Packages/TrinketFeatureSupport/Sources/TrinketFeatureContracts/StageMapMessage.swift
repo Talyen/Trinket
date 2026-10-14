@@ -14,6 +14,6 @@ public struct StageMapMessage: Identifiable, Equatable, Sendable {
     }
 
     public static func fullGameRequired(_ origin: FullGameOfferOrigin) -> Self {
-        Self(title: "Full Game", message: "This content is included with Full Game.", fullGameOffer: origin)
+        Self(title: "Full Game", message: "This content is included with Full Game", fullGameOffer: origin)
     }
 }

@@ -9,6 +9,11 @@ incidental copy work.
   Homestead actions; vague labels such as Continue need an obvious next step.
   Keep the action's terminology consistent in its confirmation and visible
   result; do not describe a different operation after the player commits.
+- In-game descriptions use separate lines without sentence-ending periods or
+  semicolons. Preserve lowercase continuation lines within a sentence. Omit
+  minimum-amount qualifiers from effect descriptions while retaining gameplay
+  minimums and activation requirements. Reset-progress and abandon-Voyage
+  confirmation explanations keep their existing prose.
 - Keep fantasy character in narrative and rewards while making costs, eligibility,
   purchases, and recovery instructions precise. Remove filler and repetition before
   shrinking text to fit. Match existing capitalization for the kind of control.

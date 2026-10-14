@@ -136,7 +136,7 @@ struct LabyrinthMapView: View {
         ContentUnavailableView {
             Label("Labyrinth", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
         } description: {
-            Text("The path remembers. Descend when you are ready.")
+            Text("The path remembers\nDescend when you are ready")
         } actions: {
             Button("Enter") {
                 if let message = labyrinth.enter() {

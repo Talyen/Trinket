@@ -27,7 +27,7 @@ struct TimedDebuffHandler: BattleEffectHandler {
             let percentInt = Int(((1 - multiplier) * 100).rounded())
             return EffectSummary(
                 keyword: keyword,
-                text: "Weakened: Outgoing damage reduced by \(percentInt)%\(durationSuffix).",
+                text: "Weakened: Outgoing damage reduced by \(percentInt)%\(durationSuffix)",
             )
         case .damageReductionFlat:
             let amount = TimedBuffSummary.summedAmount(in: stacks) { effect in
@@ -36,7 +36,7 @@ struct TimedDebuffHandler: BattleEffectHandler {
             }
             return EffectSummary(
                 keyword: keyword,
-                text: "Dazzled: Outgoing damage reduced by \(amount)\(durationSuffix).",
+                text: "Dazzled: Outgoing damage reduced by \(amount)\(durationSuffix)",
             )
         case .healingReductionPercent:
             let percent = stacks.reduce(0.0) { result, active in
@@ -46,7 +46,7 @@ struct TimedDebuffHandler: BattleEffectHandler {
             let percentInt = Int((percent * 100).rounded())
             return EffectSummary(
                 keyword: keyword,
-                text: "Sapped: Health restoration reduced by \(percentInt)%\(durationSuffix).",
+                text: "Sapped: Health restoration reduced by \(percentInt)%\(durationSuffix)",
             )
         default:
             return nil

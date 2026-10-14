@@ -41,7 +41,7 @@ struct ItemAffixCatalogTests {
         )
         let power = try #require(item.resolvedPower(at: 0))
         #expect(power.triggers.healthPerTurn == 2)
-        #expect(power.description == "Restore 2 Health every other turn.")
+        #expect(power.description == "Restore 2 Health every other turn")
         #expect(item.displayedAffixes.first?.description == power.description)
     }
 
@@ -60,8 +60,8 @@ struct ItemAffixCatalogTests {
         #expect(power.triggers.companionCardsEveryOtherTurn == 0)
         #expect(power.triggers.healCompanionDrawsCompanionCard)
         #expect(power.triggers.spendManaBlockFlat == 2)
-        #expect(power.description == "Once per turn, healing your Companion draws a Companion card.")
-        #expect(item.displayedAffixes.first?.description == "Once per turn, healing your Companion draws a Companion card.")
+        #expect(power.description == "Once per turn, healing your Companion draws a Companion card")
+        #expect(item.displayedAffixes.first?.description == "Once per turn, healing your Companion draws a Companion card")
     }
 
     @Test func `saved patient edge power migrates to block crit without losing rolls`() throws {
@@ -85,7 +85,7 @@ struct ItemAffixCatalogTests {
         #expect(power.triggers.heldCardNextAttackDamage == 0)
         #expect(power.triggers.partnerFirstAttackDamage == 0)
         #expect(power.triggers.blockPreparesCritical)
-        #expect(power.description == "Blocking an attack makes your next manually played attack Critically Hit.")
+        #expect(power.description == "Blocking an attack makes your next manually played attack Critically Hit")
     }
 
     @Test func `nested affix reactions are ignored in favor of flat keys`() throws {
@@ -174,14 +174,14 @@ struct ItemAffixCatalogTests {
         let executionPower = try #require(item.resolvedPower(at: 0))
         try #expect(executionPower.triggers.damageBelowHealthPercentThreshold == 0.30)
         try #expect(executionPower.triggers.damageBelowHealthPercentBonus == 6)
-        try #expect(executionPower.description == "Deal 6 additional damage if the enemy is below 30% Health.")
+        try #expect(executionPower.description == "Deal 6 additional damage if the enemy is below 30% Health")
 
         let uncappedPower = try #require(item.resolvedPower(at: 1))
         try #expect(uncappedPower.triggers.companionLeechSharePercent == 2)
-        try #expect(uncappedPower.description == "Your ally receives 100% of the Health you restore with Leech.")
+        try #expect(uncappedPower.description == "Your ally receives 100% of the Health you restore with Leech")
         try #expect(item.displayedAffixes.map(\.description) == [
-            "Deal 6 additional damage if the enemy is below 30% Health.",
-            "Your ally receives 100% of the Health you restore with Leech.",
+            "Deal 6 additional damage if the enemy is below 30% Health",
+            "Your ally receives 100% of the Health you restore with Leech",
         ])
     }
 }

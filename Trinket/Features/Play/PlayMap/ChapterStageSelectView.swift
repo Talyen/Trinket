@@ -105,7 +105,7 @@ struct ChapterStageSelectView: View {
     private var campaignCompletionState: some View {
         StageSelectCompletionPanel(
             title: "Campaign Complete",
-            description: "Every chapter stage is complete.",
+            description: "Every chapter stage is complete",
             buttonTitle: "Back to Play",
             tint: chapter.theme.tint,
             accessibilityIdentifier: AccessibilityID.Play.campaignCompletionBack,

@@ -15,8 +15,8 @@ struct StackingAmountBuffHandler: BattleEffectHandler {
         guard total > 0 else { return nil }
         let text: String
         switch kind {
-        case .thorns: text = "Thorns: Deals \(total) Thorns damage to the next attacker."
-        case .nextBurnBonus: text = "Kindled: Next Burn attack deals +\(total) damage."
+        case .thorns: text = "Thorns: Deals \(total) Thorns damage to the next attacker"
+        case .nextBurnBonus: text = "Kindled: Next Burn attack deals +\(total) damage"
         default: return nil
         }
         return EffectSummary(keyword: keyword, text: text)
@@ -123,7 +123,7 @@ struct StoredEffectHandler: BattleEffectHandler {
             }
             guard amount > 0 else { return nil }
             let label = keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward"
-            return EffectSummary(keyword: keyword, text: "\(label): Deals \(amount) \(keyword.rawValue) damage to the next attacker.")
+            return EffectSummary(keyword: keyword, text: "\(label): Deals \(amount) \(keyword.rawValue) damage to the next attacker")
 
         case .marked:
             let bonus = TimedBuffSummary.maxAmount(in: stacks) { effect in
@@ -131,12 +131,12 @@ struct StoredEffectHandler: BattleEffectHandler {
                 return value
             }
             guard bonus > 0 else {
-                return EffectSummary(keyword: keyword, text: "Marked: The next attack deals extra damage and removes Marked.")
+                return EffectSummary(keyword: keyword, text: "Marked: The next attack deals extra damage and removes Marked")
             }
-            let suffix = TimedBuffSummary.durationSuffix(in: stacks, separator: ";")
+            let suffix = TimedBuffSummary.durationSuffix(in: stacks, separator: "\n")
             return EffectSummary(
                 keyword: keyword,
-                text: "Marked: The next attack deals +\(bonus) damage and removes Marked\(suffix).",
+                text: "Marked: The next attack deals +\(bonus) damage and removes Marked\(suffix)",
             )
 
         case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
@@ -148,7 +148,7 @@ struct StoredEffectHandler: BattleEffectHandler {
                 return value
             }
             guard amount > 0 else { return nil }
-            return EffectSummary(keyword: keyword, text: "Hemorrhage: Takes \(amount) Bleed damage on next attack.")
+            return EffectSummary(keyword: keyword, text: "Hemorrhage: Takes \(amount) Bleed damage on next attack")
 
         case .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .evadeNextHit, .nextStrikeCritical,
              .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .freezeNextAttacker:
@@ -170,7 +170,7 @@ struct StoredEffectHandler: BattleEffectHandler {
                 return value
             }
             guard percent > 0 else { return nil }
-            text = "Focused: Increases Critical chance by +\(CombatRounding.rounded((percent * 100).rounded(.towardZero)))%\(suffix)."
+            text = "Focused: Increases Critical chance by +\(CombatRounding.rounded((percent * 100).rounded(.towardZero)))%\(suffix)"
 
         case .restoreManaOnHit:
             let amount = TimedBuffSummary.summedAmount(in: stacks) { effect in
@@ -178,10 +178,10 @@ struct StoredEffectHandler: BattleEffectHandler {
                 return value
             }
             guard amount > 0 else { return nil }
-            text = "Mana Shield: Restores \(amount) Mana when hit\(suffix)."
+            text = "Mana Shield: Restores \(amount) Mana when hit\(suffix)"
 
         case let .damageKeywordOverride(overrideKeyword, bonus, _):
-            text = "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus))\(suffix)."
+            text = "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus))\(suffix)"
 
         default: return nil
         }

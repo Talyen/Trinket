@@ -23,7 +23,7 @@ struct VictoryView: View {
                 gold: summary.totalGold,
                 materials: summary.materialRewards,
                 showsIncreasePrefix: true,
-                emptyMessage: "No additional rewards.",
+                emptyMessage: "No additional rewards",
                 itemAccessibilityID: AccessibilityID.Battle.rewardItem,
                 lootAccessibilityIdentifier: AccessibilityID.Battle.rewards,
             ),
@@ -38,7 +38,7 @@ struct VictoryView: View {
                 BattleOutcomeRewardRow(
                     icon: .system("star.fill"),
                     tint: .secondary,
-                    text: "No experience awarded.",
+                    text: "No experience awarded",
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
             },

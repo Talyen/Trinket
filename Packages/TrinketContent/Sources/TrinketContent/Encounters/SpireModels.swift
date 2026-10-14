@@ -79,11 +79,11 @@ public enum SpireAttunement: Equatable, Sendable {
     public var message: String {
         switch self {
         case .ready:
-            "Party is attuned."
+            "Party is attuned"
         case .missingHeroAffinity:
-            "Hero needs an ability that matches this Spire."
+            "Hero needs an ability that matches this Spire"
         case .missingCompanionAffinity:
-            "Companion needs an ability that matches this Spire."
+            "Companion needs an ability that matches this Spire"
         }
     }
 

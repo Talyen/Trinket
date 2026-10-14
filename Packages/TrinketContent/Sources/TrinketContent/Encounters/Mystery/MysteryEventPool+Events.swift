@@ -5,7 +5,7 @@ extension MysteryEventPool {
     static let manaBerries = makeEvent(
         id: "mana-berries",
         title: "Mana Berries",
-        narrative: "Glowing berries surround {A}, and blue roots hum around {B}.",
+        narrative: "Glowing berries surround {A}, and blue roots hum around {B}",
         artID: "mystery-mana-berries",
         choices: [
             ("harvest-berries", "Pick Berries", [
@@ -22,7 +22,7 @@ extension MysteryEventPool {
     static let enchantedSpring = makeEvent(
         id: "enchanted-spring",
         title: "Enchanted Spring",
-        narrative: "Beneath the spring, crystal traps {A} while healing ripples reveal {B}.",
+        narrative: "Beneath the spring, crystal traps {A} while healing ripples reveal {B}",
         artID: "mystery-enchanted-spring",
         choices: [
             ("gather-the-moss", "Break Crust", [
@@ -39,7 +39,7 @@ extension MysteryEventPool {
     static let fungalGrotto = makeEvent(
         id: "fungal-grotto",
         title: "Fungal Grotto",
-        narrative: "Medicinal caps surround {A} as drifting spores gather above {B}.",
+        narrative: "Medicinal caps surround {A} as drifting spores gather above {B}",
         artID: "mystery-fungal-grotto",
         choices: [
             ("harvest-mushrooms", "Harvest Caps", [
@@ -56,7 +56,7 @@ extension MysteryEventPool {
     static let wisdomTree = makeEvent(
         id: "wisdom-tree",
         title: "Wisdom Tree",
-        narrative: "Fallen boughs shelter {A}, and carved rings whisper lessons around {B}.",
+        narrative: "Fallen boughs shelter {A}, and carved rings whisper lessons around {B}",
         artID: "mystery-wisdom-tree",
         choices: [
             ("collect-branches", "Gather Boughs", [
@@ -73,7 +73,7 @@ extension MysteryEventPool {
     static let fairyRing = makeEvent(
         id: "fairy-ring",
         title: "Fairy Ring",
-        narrative: "Coins glimmer beside {A} while fairy lights dance around {B}.",
+        narrative: "Coins glimmer beside {A} while fairy lights dance around {B}",
         artID: "mystery-fairy-ring",
         choices: [
             ("take-the-gold", "Take the Gift", [
@@ -90,7 +90,7 @@ extension MysteryEventPool {
     static let sacredGrove = makeEvent(
         id: "sacred-grove",
         title: "Sacred Grove",
-        narrative: "Medicinal blooms surround {A}, and exposed roots trace healing rites near {B}.",
+        narrative: "Medicinal blooms surround {A}, and exposed roots trace healing rites near {B}",
         artID: "mystery-sacred-grove",
         choices: [
             ("pick-the-blooms", "Gather Blooms", [
@@ -107,7 +107,7 @@ extension MysteryEventPool {
     static let mountainPass = makeEvent(
         id: "mountain-pass",
         title: "Mountain Pass",
-        narrative: "An iron seam reveals {A}, and fallen timber traps {B} nearby.",
+        narrative: "An iron seam reveals {A}, and fallen timber traps {B} nearby",
         artID: "mystery-mountain-pass",
         choices: [
             ("mine-the-cliffside", "Search Seam", [
@@ -124,7 +124,7 @@ extension MysteryEventPool {
     static let murkyPond = makeEvent(
         id: "murky-pond",
         title: "Murky Pond",
-        narrative: "A heavy net lies beside {A} while worn wishing stones surround {B}.",
+        narrative: "A heavy net lies beside {A} while worn wishing stones surround {B}",
         artID: "mystery-murky-pond",
         choices: [
             ("catch-fish", "Haul the Net", [
@@ -141,7 +141,7 @@ extension MysteryEventPool {
     static let medicinalHerbGarden = makeEvent(
         id: "medicinal-herb-garden",
         title: "Medicinal Herb Garden",
-        narrative: "Medicinal beds surround {A} as treatment notes lie beneath {B}.",
+        narrative: "Medicinal beds surround {A} as treatment notes lie beneath {B}",
         artID: "mystery-medicinal-herb-garden",
         choices: [
             ("harvest-remedies", "Gather Herbs", [
@@ -158,7 +158,7 @@ extension MysteryEventPool {
     static let crystalGarden = makeEvent(
         id: "crystal-garden",
         title: "Crystal Garden",
-        narrative: "Crystal blooms surround {A} while garden stones sing beside {B}.",
+        narrative: "Crystal blooms surround {A} while garden stones sing beside {B}",
         artID: "mystery-crystal-garden",
         choices: [
             ("harvest-shards", "Harvest Shards", [
@@ -175,7 +175,7 @@ extension MysteryEventPool {
     static let thePhoenix = makeEvent(
         id: "the-phoenix",
         title: "The Phoenix",
-        narrative: "Red crystals cradle {A} as phoenix embers warm {B}.",
+        narrative: "Red crystals cradle {A} as phoenix embers warm {B}",
         artID: "mystery-the-phoenix",
         choices: [
             ("claim-the-feather", "Search Nest", [
@@ -192,7 +192,7 @@ extension MysteryEventPool {
     static let theWolf = makeEvent(
         id: "the-wolf",
         title: "The Wolf",
-        narrative: "A wolf’s abandoned camp holds {A} while dried meat waits beside {B}.",
+        narrative: "A wolf’s abandoned camp holds {A} while dried meat waits beside {B}",
         artID: "mystery-the-wolf",
         choices: [
             ("search-the-den", "Search the Kit", [
@@ -209,7 +209,7 @@ extension MysteryEventPool {
     static let ancientAltar = makeEvent(
         id: "ancient-altar",
         title: "Ancient Altar",
-        narrative: "An offering bowl holds {A} while rusted chains bind {B} below.",
+        narrative: "An offering bowl holds {A} while rusted chains bind {B} below",
         artID: "mystery-ancient-altar",
         choices: [
             ("take-the-offering", "Take Tribute", [
@@ -226,7 +226,7 @@ extension MysteryEventPool {
     static let hiddenCache = makeEvent(
         id: "hidden-cache",
         title: "Hidden Cache",
-        narrative: "A coinpurse rests beneath {A} as torn leather conceals {B}.",
+        narrative: "A coinpurse rests beneath {A} as torn leather conceals {B}",
         artID: "mystery-hidden-cache",
         choices: [
             ("take-coinpurse", "Take the Purse", [
@@ -243,7 +243,7 @@ extension MysteryEventPool {
     static let overgrownTemple = makeEvent(
         id: "overgrown-temple",
         title: "Overgrown Temple",
-        narrative: "Burial coins surround {A} while fallen masonry pins {B} beside the crypt.",
+        narrative: "Burial coins surround {A} while fallen masonry pins {B} beside the crypt",
         artID: "mystery-overgrown-temple",
         choices: [
             ("search-the-crypt", "Search Crypt", [
@@ -260,7 +260,7 @@ extension MysteryEventPool {
     static let abandonedStudy = makeEvent(
         id: "abandoned-study",
         title: "Abandoned Study",
-        narrative: "An unfinished spell surrounds {A}, and a splintered cabinet hides {B}.",
+        narrative: "An unfinished spell surrounds {A}, and a splintered cabinet hides {B}",
         artID: "mystery-abandoned-study",
         choices: [
             ("search-scrolls", "Study Spell", [
@@ -277,7 +277,7 @@ extension MysteryEventPool {
     static let mysteriousTome = makeEvent(
         id: "mysterious-tome",
         title: "Mysterious Tome",
-        narrative: "Loose pages reveal {A} while a crystal seal imprisons {B}.",
+        narrative: "Loose pages reveal {A} while a crystal seal imprisons {B}",
         artID: "mystery-mysterious-tome",
         choices: [
             ("take-the-pages", "Study Pages", [
@@ -294,7 +294,7 @@ extension MysteryEventPool {
     static let crystalGeode = makeEvent(
         id: "crystal-geode",
         title: "Crystal Geode",
-        narrative: "Glittering crystals reveal {A} while thick stone grips {B}.",
+        narrative: "Glittering crystals reveal {A} while thick stone grips {B}",
         artID: "mystery-crystal-geode",
         choices: [
             ("collect-gems", "Collect Gems", [
@@ -311,7 +311,7 @@ extension MysteryEventPool {
     static let meteoriteCrash = makeEvent(
         id: "meteorite-crash",
         title: "Meteorite Crash",
-        narrative: "The meteorite’s core cradles {A} as its impact buries {B} in stone.",
+        narrative: "The meteorite’s core cradles {A} as its impact buries {B} in stone",
         artID: "mystery-meteorite-crash",
         choices: [
             ("take-a-fragment", "Open the Core", [
@@ -328,7 +328,7 @@ extension MysteryEventPool {
     static let forgottenHoard = makeEvent(
         id: "forgotten-hoard",
         title: "Forgotten Hoard",
-        narrative: "An ancient skeleton guards {A} while gold coins spill around {B}.",
+        narrative: "An ancient skeleton guards {A} while gold coins spill around {B}",
         artID: "mystery-forgotten-hoard",
         choices: [
             ("collect-the-bones", "Search Bones", [
@@ -345,7 +345,7 @@ extension MysteryEventPool {
     static let necromancersOffer = makeEvent(
         id: "necromancers-offer",
         title: "The Necromancer's Offer",
-        narrative: "A necromancer offers {A} beside forbidden lessons, while crystal salts cradle {B}.",
+        narrative: "A necromancer offers {A} beside forbidden lessons, while crystal salts cradle {B}",
         artID: "mystery-the-necromancers-offer",
         choices: [
             ("accept-rite", "Learn the Rite", [
@@ -362,7 +362,7 @@ extension MysteryEventPool {
     static let huntersLodge = makeEvent(
         id: "hunters-lodge",
         title: "Hunter's Lodge",
-        narrative: "A deserted lodge shelters {A}, and split logs surround {B} outside.",
+        narrative: "A deserted lodge shelters {A}, and split logs surround {B} outside",
         artID: "mystery-hunters-lodge",
         choices: [
             ("claim-the-bow", "Take Weapon", [
@@ -379,7 +379,7 @@ extension MysteryEventPool {
     static let roadsideCenser = makeEvent(
         id: "roadside-censer",
         title: "Roadside Censer",
-        narrative: "Incense herbs surround {A} while a censer shelters {B} among pilgrims’ coins.",
+        narrative: "Incense herbs surround {A} while a censer shelters {B} among pilgrims’ coins",
         artID: "mystery-roadside-censer",
         choices: [
             ("gather-incense", "Gather Incense", [

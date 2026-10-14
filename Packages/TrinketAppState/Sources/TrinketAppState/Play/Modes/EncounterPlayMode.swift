@@ -163,7 +163,7 @@ public final class EncounterPlayMode {
         )
         return StageMapMessage(
             title: "Shop Closed",
-            message: "The merchant has nothing left to sell. You continue on.",
+            message: "The merchant has nothing left to sell\nYou continue on",
         )
     }
 }

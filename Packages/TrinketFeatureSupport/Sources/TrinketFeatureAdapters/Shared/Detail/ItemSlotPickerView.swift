@@ -165,7 +165,7 @@ struct ItemSlotPickerView: View {
                 Label("No Matching Items", systemImage: "line.3.horizontal.decrease")
                     .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemsNoResults)
             } description: {
-                Text("Try a different search or filter.")
+                Text("Try a different search or filter")
             } actions: {
                 Button("Clear Filters") { filter = ItemPickerFilter() }
                     .accessibilityIdentifier(AccessibilityID.LoadoutPicker.clearItemFilters)

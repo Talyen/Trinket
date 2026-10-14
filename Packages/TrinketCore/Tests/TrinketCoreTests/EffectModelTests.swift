@@ -75,11 +75,11 @@ struct EffectModelTests {
         #expect(EffectPresentation.battleSummaryPhrase(for: .burn(2)) == nil)
         #expect(
             EffectPresentation.battleSummaryPhrase(for: .nextStrikeDamageKeywordOverride(.holy))
-                == "Avatar: Next attack deals Holy damage.",
+                == "Avatar: Next attack deals Holy damage",
         )
         #expect(
             EffectPresentation.battleSummaryPhrase(for: .nextStrikeDamageKeywordOverride(.burn))
-                == "Next attack deals Burn damage.",
+                == "Next attack deals Burn damage",
         )
     }
 

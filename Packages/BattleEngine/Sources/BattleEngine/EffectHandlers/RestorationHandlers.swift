@@ -70,7 +70,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = CombatantMaxValues.maximumManaBonus(in: stacks)
         guard total > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Maximum Mana: Increases Maximum Mana by +\(total).")
+        return EffectSummary(keyword: keyword, text: "Maximum Mana: Increases Maximum Mana by +\(total)")
     }
 
     func apply(
