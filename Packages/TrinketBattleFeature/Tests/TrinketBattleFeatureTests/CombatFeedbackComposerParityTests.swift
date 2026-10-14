@@ -8,7 +8,7 @@ import UIKit
 
 struct CombatFeedbackComposerParityTests {
     @Test(arguments: [CGFloat(1), 2, 3])
-    @MainActor func `glyph reuse preserves feedback pixels and masks`(scale: CGFloat) throws {
+    @MainActor func `glyph reuse preserves feedback pixels and masks`(scale: CGFloat) async throws {
         let atlas = CombatFeedbackGlyphAtlas()
         let cases: [(CombatFeedbackClass, CombatFeedbackChipLabel, CombatFeedbackVisualRole, Keyword)] = [
             (.directDamage, .amount(1111), .keyword, .physical),
@@ -18,8 +18,10 @@ struct CombatFeedbackComposerParityTests {
             (.heal, .amount(1111), .beneficialStatus, .health),
             (.buff, .word(.cleanse(.poison)), .keyword, .poison),
         ]
-        var context = CombatFeedbackChipComposer.CompositionContext()
-        var evictingContext = CombatFeedbackChipComposer.CompositionContext(maximumSources: 1)
+        var reusable = CombatFeedbackRasterPool.PreparedBatch(rasters: [])
+        var evicting = CombatFeedbackRasterPool.PreparedBatch(
+            rasters: [], composition: .init(maximumSources: 1),
+        )
         for direction in [LayoutDirection.leftToRight, .rightToLeft] {
             for (feedbackClass, label, role, keyword) in cases {
                 let presentation = CombatFeedbackChipPresentation.resolve(
@@ -30,34 +32,52 @@ struct CombatFeedbackComposerParityTests {
                         presentation: presentation, feedbackClass: feedbackClass,
                         layoutDirection: direction, displayScale: scale, atlas: atlas, needsShineMask: needsMask,
                     ))
-                    let expected = try #require(ReferenceFeedbackComposer.render(inputs))
-                    let actual = try #require(CombatFeedbackChipComposer.render(inputs, context: &context))
-                    #expect(actual.pointSize == expected.pointSize)
-                    #expect(actual.textWidth == expected.textWidth)
-                    #expect(actual.maximumDigitWidth == expected.maximumDigitWidth)
-                    try expectEqualPixels(actual.image, expected.image)
-                    let reused = try #require(CombatFeedbackChipComposer.render(inputs, context: &context))
-                    try expectEqualPixels(reused.image, expected.image)
-                    var transferredContext = CombatFeedbackChipComposer.CompositionContext()
-                    transferredContext.merge(context)
-                    let transferred = try #require(CombatFeedbackChipComposer.render(inputs, context: &transferredContext))
-                    try expectEqualPixels(transferred.image, expected.image)
-                    let evicted = try #require(CombatFeedbackChipComposer.render(inputs, context: &evictingContext))
-                    try expectEqualPixels(evicted.image, expected.image)
-                    if needsMask {
-                        try expectEqualPixels(#require(actual.shineMask), #require(expected.shineMask))
-                        try expectEqualPixels(#require(reused.shineMask), #require(expected.shineMask))
-                        try expectEqualPixels(#require(transferred.shineMask), #require(expected.shineMask))
-                        try expectEqualPixels(#require(evicted.shineMask), #require(expected.shineMask))
-                    } else {
-                        #expect(actual.shineMask == nil)
-                    }
+                    (reusable, evicting) = try await Self.compare(
+                        inputs, reusable: reusable, evicting: evicting,
+                    )
                 }
             }
         }
     }
 
-    private func expectEqualPixels(_ actual: CGImage, _ expected: CGImage) throws {
+    /// Raster work uses the production worker boundary so timer-driven tests can service the main actor.
+    @concurrent
+    private nonisolated static func compare(
+        _ inputs: CombatFeedbackChipComposer.RasterInputs,
+        reusable: CombatFeedbackRasterPool.PreparedBatch,
+        evicting: CombatFeedbackRasterPool.PreparedBatch,
+    ) async throws -> (CombatFeedbackRasterPool.PreparedBatch, CombatFeedbackRasterPool.PreparedBatch) {
+        var context = reusable.composition
+        var evictingContext = evicting.composition
+        let expected = try #require(ReferenceFeedbackComposer.render(inputs))
+        let actual = try #require(CombatFeedbackChipComposer.render(inputs, context: &context))
+        #expect(actual.pointSize == expected.pointSize)
+        #expect(actual.textWidth == expected.textWidth)
+        #expect(actual.maximumDigitWidth == expected.maximumDigitWidth)
+        try expectEqualPixels(actual.image, expected.image)
+        let reused = try #require(CombatFeedbackChipComposer.render(inputs, context: &context))
+        try expectEqualPixels(reused.image, expected.image)
+        var transferredContext = CombatFeedbackChipComposer.CompositionContext()
+        transferredContext.merge(context)
+        let transferred = try #require(CombatFeedbackChipComposer.render(inputs, context: &transferredContext))
+        try expectEqualPixels(transferred.image, expected.image)
+        let evicted = try #require(CombatFeedbackChipComposer.render(inputs, context: &evictingContext))
+        try expectEqualPixels(evicted.image, expected.image)
+        if inputs.needsShineMask {
+            try expectEqualPixels(#require(actual.shineMask), #require(expected.shineMask))
+            try expectEqualPixels(#require(reused.shineMask), #require(expected.shineMask))
+            try expectEqualPixels(#require(transferred.shineMask), #require(expected.shineMask))
+            try expectEqualPixels(#require(evicted.shineMask), #require(expected.shineMask))
+        } else {
+            #expect(actual.shineMask == nil)
+        }
+        return (
+            .init(rasters: [], composition: context),
+            .init(rasters: [], composition: evictingContext),
+        )
+    }
+
+    private nonisolated static func expectEqualPixels(_ actual: CGImage, _ expected: CGImage) throws {
         #expect(actual.width == expected.width && actual.height == expected.height)
         #expect(actual.bytesPerRow == expected.bytesPerRow)
         #expect(actual.bitmapInfo == expected.bitmapInfo)
