@@ -129,7 +129,7 @@ package enum DefensePoolEngine {
         // Replacing a retained pool is not a new gain, so buff prevention cannot erase it.
         let effectID = amount > 0 ? context.consumeNextEffectID() : nil
         context.roster.mutateRuntime(for: target) { runtime in
-            runtime.removeEffects { $0.kind == .shield }
+            runtime.removeEffects { $0.effect.kind == .shield }
             if let effectID {
                 runtime.activeEffects.append(ActiveEffect(
                     id: effectID, effect: .shield(.block, amount),
