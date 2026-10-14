@@ -1,4 +1,5 @@
 import Testing
+import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 

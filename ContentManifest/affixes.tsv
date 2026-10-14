@@ -76,7 +76,7 @@ stunned_pocketwatch	Concussive Pocketwatch	trinket	stun	1	Stun has a 20% chance 
 groves_favor	Verdant Renewal	trinket	health	1	Restore 2 Health every other turn	Restore 2 Health every other turn			health_per_turn:2	health_per_turn:2
 icy_heart	Cold Hunger	trinket	freeze,leech	1	Your Freeze damage has a 50% chance to Leech	Your Freeze damage has a 50% chance to Leech			freezeDamageLeechChancePercent:0.5	freezeDamageLeechChancePercent:0.5
 ironwood_buckler	Living Bulwark	trinket	block,physical	1	Gain Thorns equal to half the Block you gain	Gain Thorns equal to half the Block you gain			block_gain_thorns_percent:0.50	block_gain_thorns_percent:0.50
-lucky_clover	Fortunate Strike	trinket	gold	1	Gain 10% Critical chance\\nGain 1 Gold on Critical Hit	Gain 10% Critical chance\\nGain 1 Gold on Critical Hit			critical_chance_bonus:0.10|on_critical_action_gold:1	critical_chance_bonus:0.10|on_critical_action_gold:1
+lucky_clover	Fortunate Strike	trinket	gold	1	Gain 10% Critical chance\nGain 1 Gold on Critical Hit	Gain 10% Critical chance\nGain 1 Gold on Critical Hit			critical_chance_bonus:0.10|on_critical_action_gold:1	critical_chance_bonus:0.10|on_critical_action_gold:1
 merchants_favor	Passive Income	trinket	gold	1	Gain 1 Gold each turn	Gain 1 Gold each turn			gold_per_turn:1	gold_per_turn:1
 meteorite	Falling Star	trinket	burn,mana	1	Burn cards can spend additional Mana to deal more damage	Burn cards can spend additional Mana to deal more damage			repeat_mana_empowerment:true	repeat_mana_empowerment:true
 mortar_and_pestle	Toxic Remedy	trinket	health,poison	1	Deal Poison damage equal to half your Health restored	Deal Poison damage equal to half your Health restored			health_restored_poison_percent:0.50	health_restored_poison_percent:0.50

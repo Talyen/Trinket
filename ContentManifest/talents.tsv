@@ -417,7 +417,7 @@ wildcard_dodge_t1_2	Missed Opportunity	sf:shield.lefthalf.filled	Dodging below h
 wildcard_dodge_t2_1	Passing Luck	sf:suit.club.fill	Dodging makes your Companion’s next attack Critically Hit		passingLuck:true
 wildcard_dodge_t2_2	Scattered Caltrops	sf:asterisk	Dodging has a 20% chance to deal 3 Bleed damage		dodgeBleedChancePercent:0.20|dodgeBleedDamage:3
 wildcard_dodge_t3_1	Smoke Trick	sf:cloud.fog.fill	Dodging has a 20% chance to deal 3 Burn damage		dodgeBurnChancePercent:0.20|dodgeBurnDamage:3
-wildcard_dodge_t3_2	Improving Odds	sf:chart.bar.xaxis	Each undodged attack increases your Dodge chance by 5%\\nDodging resets this bonus		improvingOdds:true
+wildcard_dodge_t3_2	Improving Odds	sf:chart.bar.xaxis	Each undodged attack increases your Dodge chance by 5%\nDodging resets this bonus		improvingOdds:true
 wildcard_dodge_t4_1	Blind Spot	sf:eye.slash.fill	Dodging makes your next Physical attack ignore enemy Block		blindSpot:true
 wildcard_physical_t1_1	Prismatic Edge	sf:burst.fill	Physical attacks have a 10% chance to deal 3 Burn or Freeze damage		physicalElementChancePercent:0.10|physicalElementDamage:3
 wildcard_physical_t1_2	Loaded Strike	sf:burst.fill	Physical attacks randomly deal double or half damage		loadedStrike:true

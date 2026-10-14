@@ -988,7 +988,7 @@ public extension CombatantTalentCatalog {
             "wildcard_dodge_t3_2": CombatantTalentEffect(
                 name: "Improving Odds",
                 iconID: "sf:chart.bar.xaxis",
-                description: "Each undodged attack increases your Dodge chance by 5%\\\nDodging resets this bonus",
+                description: "Each undodged attack increases your Dodge chance by 5%\nDodging resets this bonus",
                 triggers: CombatTraitTriggers(dodge: DodgeTriggers(improvingOdds: true))
             ),
             "wildcard_dodge_t4_1": CombatantTalentEffect(

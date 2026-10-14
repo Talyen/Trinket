@@ -738,8 +738,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.gold],
             weight: 1,
-            basic: ItemAffixPower(description: "Gain 10% Critical chance\\\nGain 1 Gold on Critical Hit", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: 0.10), gold: GoldTriggers(criticalActionGoldFlat: 1))),
-            astral: ItemAffixPower(description: "Gain 10% Critical chance\\\nGain 1 Gold on Critical Hit", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: 0.10), gold: GoldTriggers(criticalActionGoldFlat: 1)))
+            basic: ItemAffixPower(description: "Gain 10% Critical chance\nGain 1 Gold on Critical Hit", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: 0.10), gold: GoldTriggers(criticalActionGoldFlat: 1))),
+            astral: ItemAffixPower(description: "Gain 10% Critical chance\nGain 1 Gold on Critical Hit", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers(criticalChanceBonus: 0.10), gold: GoldTriggers(criticalActionGoldFlat: 1)))
         ),
         ItemAffixCatalog.affix(
             id: "merchants_favor",
