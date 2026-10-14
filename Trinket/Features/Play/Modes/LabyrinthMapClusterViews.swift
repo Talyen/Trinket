@@ -104,17 +104,23 @@ private struct LabyrinthMapNodeSeal: View {
                     .strokeBorder(TrinketDesign.Colors.Overlay.ink.opacity(0.75), lineWidth: 1)
                     .opacity(visualState == .reachable ? 1 : 0)
 
-                LabyrinthHexagon()
+                let strokeShape = LabyrinthHexagon()
                     .stroke(
                         isSelected ? TrinketDesign.Colors.accent :
                             visualState == .reachable ? tint : TrinketDesign.Colors.subtleStroke.opacity(0.5),
                         lineWidth: isSelected ? 3 : visualState == .reachable ? 2 : 1,
                     )
                     .opacity(visualState == .cleared && !isSelected ? 0 : 1)
-                    .shadow(
-                        color: TrinketDesign.Colors.accent.opacity(isSelected ? 0.3 : 0),
-                        radius: 4,
-                    )
+
+                if isSelected {
+                    strokeShape
+                        .shadow(
+                            color: TrinketDesign.Colors.accent.opacity(0.3),
+                            radius: 4,
+                        )
+                } else {
+                    strokeShape
+                }
 
                 LabyrinthHexagon()
                     .stroke(TrinketDesign.Colors.accent, lineWidth: 3)

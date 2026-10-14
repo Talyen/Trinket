@@ -36,7 +36,9 @@ struct SalvageItemButton: View {
                 ItemArtwork(item: item, variant: .thumbnail)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
-                    .anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { [item.id: $0] }
+                    .anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { anchor in
+                        (isRetiring || isTransmuting) ? [item.id: anchor] : [:]
+                    }
             }
         }
         .trinketArtworkCardButtonStyle()

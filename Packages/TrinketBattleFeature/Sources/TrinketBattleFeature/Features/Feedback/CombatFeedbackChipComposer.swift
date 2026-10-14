@@ -136,7 +136,7 @@ enum CombatFeedbackChipComposer {
             layoutDirection: layoutDirection,
             displayScale: scale,
             needsShineMask: needsShineMask,
-            maximumDigitWidth: needsShineMask ? atlas.maximumDigitWidth(face: face, recipe: recipe) : 0,
+            maximumDigitWidth: atlas.maximumDigitWidth(face: face, recipe: recipe),
         )
     }
 

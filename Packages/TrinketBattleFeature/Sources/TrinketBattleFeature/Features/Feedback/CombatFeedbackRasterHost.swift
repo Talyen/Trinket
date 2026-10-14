@@ -412,9 +412,8 @@ private extension CombatFeedbackRasterUIView {
         }
         let date = Date.now
         // Resolve after all placements, since new arrivals can push earlier slots.
-        let slotsByID = Dictionary(uniqueKeysWithValues: stationaryLayout.slots.map { ($0.id, $0) })
         for chip in orderedLayers {
-            chip.slot = slotsByID[chip.item.id]
+            chip.slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id })
             guard let slot = chip.slot else { continue }
             // Fitting geometry stays fixed between layout updates; only push and rise vary per frame.
             chip.basePosition = stationaryLayout.position(for: slot, push: 0, rise: 0, bottomInset: bottomInset)
@@ -424,7 +423,7 @@ private extension CombatFeedbackRasterUIView {
     }
 
     private func tickStationary(at date: Date) {
-        var evicted: Set<Int> = []
+        var evicted: Set<Int>?
         for (index, chip) in orderedLayers.enumerated() {
             guard let slot = chip.slot else { continue }
             let sample = chip.motionTrack.sample(for: chip.item, at: date)
@@ -437,7 +436,10 @@ private extension CombatFeedbackRasterUIView {
             )
             let edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: position.y, in: bounds)
             if edgeOpacity == 0 {
-                evicted.insert(chip.item.id)
+                if evicted == nil {
+                    evicted = []
+                }
+                evicted?.insert(chip.item.id)
             }
             updateLayer(chip.layer, position: position, scale: scale, opacity: Float(state.opacity * edgeOpacity), index: index)
             let shadowOpacity = sample.shadowOpacity
@@ -446,7 +448,7 @@ private extension CombatFeedbackRasterUIView {
             }
             updateShine(for: chip, state: state, flashOpacity: sample.flashOpacity)
         }
-        guard !evicted.isEmpty else { return }
+        guard let evicted, !evicted.isEmpty else { return }
         for id in evicted {
             recycleLayer(id: id)
         }
@@ -543,6 +545,8 @@ private enum CombatFeedbackChipMotionClock {
     fileprivate static func handleTick() {
         let now = Date()
         var stale: [ObjectIdentifier] = []
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         for (key, entry) in hosts {
             guard let view = entry.view else {
                 stale.append(key)
@@ -550,6 +554,7 @@ private enum CombatFeedbackChipMotionClock {
             }
             view.tickMotion(at: now)
         }
+        CATransaction.commit()
         for key in stale {
             hosts.removeValue(forKey: key)
         }

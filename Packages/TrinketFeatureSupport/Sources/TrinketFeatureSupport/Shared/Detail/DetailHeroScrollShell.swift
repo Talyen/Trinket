@@ -1,5 +1,15 @@
+import Observation
 import SwiftUI
 import TrinketDesignSystem
+
+@MainActor
+@Observable
+private final class HeroScrollState {
+    var headerBaseHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
+    var titleOpacity: CGFloat = 0
+    var overscroll: CGFloat = 0
+    var isPinned = false
+}
 
 public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     let title: String
@@ -22,17 +32,16 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
         self.bodyContent = bodyContent
     }
 
-    @State private var headerBaseHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
-    @State private var titleOpacity: CGFloat = 0
-    @State private var overscroll: CGFloat = 0
-    @State private var showsPinnedScrollEdgeEffect = false
+    @State private var scrollState = HeroScrollState()
 
     public var body: some View {
         navigationBarConfigured {
             ScrollView {
                 VStack(spacing: 0) {
-                    header(headerBaseHeight)
-                        .environment(\.detailHeroOverscroll, overscroll)
+                    DetailHeroHeaderSection(
+                        header: header,
+                        scrollState: scrollState,
+                    )
 
                     VStack(alignment: .leading, spacing: 0) {
                         bodyContent()
@@ -43,7 +52,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             .trinketScreenBackground()
             .ignoresSafeArea(edges: .top)
             .scrollBounceBehavior(.always)
-            .trinketSoftTopScrollEdge(isHidden: !showsPinnedScrollEdgeEffect)
+            .modifier(DetailHeroSoftEdgeModifier(scrollState: scrollState))
             .onScrollGeometryChange(for: HeroHeaderScrollMetrics.self) { geometry in
                 let topInset = geometry.contentInsets.top
                 let baseHeight = heroHeightPolicy.height(forWidth: geometry.containerSize.width)
@@ -57,18 +66,18 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     overscroll: max(-geometry.contentOffset.y, 0),
                 )
             } action: { _, metrics in
-                if headerBaseHeight != metrics.baseHeight {
-                    headerBaseHeight = metrics.baseHeight
+                if scrollState.headerBaseHeight != metrics.baseHeight {
+                    scrollState.headerBaseHeight = metrics.baseHeight
                 }
-                if titleOpacity != metrics.titleOpacity {
-                    titleOpacity = metrics.titleOpacity
+                if scrollState.titleOpacity != metrics.titleOpacity {
+                    scrollState.titleOpacity = metrics.titleOpacity
                 }
-                if overscroll != metrics.overscroll {
-                    overscroll = metrics.overscroll
+                if scrollState.overscroll != metrics.overscroll {
+                    scrollState.overscroll = metrics.overscroll
                 }
                 let isPinned = metrics.titleOpacity >= 0.5
-                if showsPinnedScrollEdgeEffect != isPinned {
-                    showsPinnedScrollEdgeEffect = isPinned
+                if scrollState.isPinned != isPinned {
+                    scrollState.isPinned = isPinned
                 }
             }
         }
@@ -81,19 +90,48 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 .toolbar(.hidden, for: .navigationBar)
         } else {
             content()
-                .navigationTitle(titleOpacity >= 0.5 ? title : "")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(.clear, for: .navigationBar)
-                .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
-                .trinketToolbarBackgroundHidden {
-                    ToolbarItem(placement: .principal) {
-                        DetailScrollNavigationTitle(
-                            title: title,
-                            opacity: titleOpacity,
-                        )
-                    }
-                }
+                .modifier(DetailHeroNavBarModifier(title: title, scrollState: scrollState))
         }
+    }
+}
+
+private struct DetailHeroHeaderSection<Header: View>: View {
+    let header: (_ baseHeight: CGFloat) -> Header
+    let scrollState: HeroScrollState
+
+    var body: some View {
+        header(scrollState.headerBaseHeight)
+            .environment(\.detailHeroOverscroll, scrollState.overscroll)
+    }
+}
+
+private struct DetailHeroSoftEdgeModifier: ViewModifier {
+    let scrollState: HeroScrollState
+
+    func body(content: Content) -> some View {
+        content
+            .trinketSoftTopScrollEdge(isHidden: !scrollState.isPinned)
+    }
+}
+
+private struct DetailHeroNavBarModifier: ViewModifier {
+    let title: String
+    let scrollState: HeroScrollState
+
+    func body(content: Content) -> some View {
+        content
+            .navigationTitle(scrollState.isPinned ? title : "")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.clear, for: .navigationBar)
+            .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+            .trinketToolbarBackgroundHidden {
+                ToolbarItem(placement: .principal) {
+                    DetailScrollNavigationTitle(
+                        title: title,
+                        opacity: scrollState.titleOpacity,
+                    )
+                }
+            }
     }
 }
 
