@@ -56,4 +56,42 @@ struct MysteryRewardResolverTests {
             #expect(offer.item.baseType.id == "sapphire_amulet")
         }
     }
+
+    @Test func `legacy flat rewards and combined percentages saturate at integer limits`() throws {
+        func makeResolver(_ effects: HomesteadEffects) -> MysteryRewardResolver {
+            MysteryRewardResolver(
+                homesteadEffects: effects, ownership: RewardOwnership(),
+                inputs: RewardSettlementInputs(
+                    gold: 0, reservedGold: 0, goldLimit: GoldBalance.maximum,
+                    heroProgression: .at(level: Int.max), companionProgression: .at(level: Int.max),
+                    productionDate: Date(timeIntervalSince1970: 0),
+                ),
+            )
+        }
+        let saturated = makeResolver(HomesteadEffects(
+            goldFindFlat: 1, experienceBonus: 1, gemsFindBonus: 1, experienceBonusPercent: 1,
+        ))
+        for (effect, expected) in [
+            (MysteryEffect.gainGold(Int.max), MysteryRewardBonus.gold(Int.max)),
+            (.gainMaterial(.gems), .material(.gems, Int.max)),
+            (.gainExperience, .experience(Int.max)),
+        ] {
+            let reward = try #require(saturated.resolveReward(
+                effect, encounterLevel: Int.max,
+                goldPercent: Int.max, experiencePercent: Int.max, materialsPercent: Int.max,
+            ))
+            #expect(reward.bonus == expected)
+        }
+        let reduced = makeResolver(HomesteadEffects(
+            goldFindPercent: Int.min, goldFindFlat: 1, experienceBonus: 1, experienceBonusPercent: Int.min,
+        ))
+        #expect(reduced.resolveReward(
+            .gainGold(10), encounterLevel: 1,
+            goldPercent: -1, experiencePercent: 0, materialsPercent: 0,
+        )?.bonus == .gold(1))
+        #expect(reduced.resolveReward(
+            .gainExperience, encounterLevel: 1,
+            goldPercent: 0, experiencePercent: -1, materialsPercent: 0,
+        )?.bonus == .experience(1))
+    }
 }

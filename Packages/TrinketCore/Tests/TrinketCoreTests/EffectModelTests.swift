@@ -88,4 +88,25 @@ struct EffectModelTests {
         #expect(Effect.burn(-5).potencyAfterTurn() == 0)
         #expect(Effect.burn(Int.min).potencyAfterTurn() == 0)
     }
+
+    @Test func `slowed burn and poison exhaust instead of stalling detonation`() {
+        #expect(Effect.burn(8).potencyAfterTurn() == 4)
+        #expect(Effect.burn(8).potencyAfterTurn(burnDecaySlowPercent: 0.25) == 5)
+        #expect(Effect.poison(8).potencyAfterTurn() == 6)
+        #expect(Effect.poison(8).potencyAfterTurn(poisonDecaySlowPercent: 0.25) == 6)
+
+        for slowPercent in [0.55, 1.0] {
+            for initial in [Effect.burn(8), .poison(8)] {
+                var effect = initial
+                for _ in 0 ..< 8 {
+                    let next = effect.potencyAfterTurn(
+                        burnDecaySlowPercent: slowPercent,
+                        poisonDecaySlowPercent: slowPercent,
+                    )
+                    effect = Effect.decayingDoT(keyword: effect.keyword, potency: next)
+                }
+                #expect(effect.potency == 0)
+            }
+        }
+    }
 }

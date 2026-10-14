@@ -5,6 +5,42 @@ import TrinketCore
 @testable import BattleEngine
 
 struct HealingGainBoundaryTests {
+    @Test func `defeated Companion cannot gain Block or share a ghost Shield Bond`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.companionBlockSharesToHeroPercent = 1
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            companionHealth: 0, companionModifiers: profile, appliesFightPacing: false,
+        )
+        let gain = battle.applyBlockGain(4, to: battle.companion, source: battle.hero, abilityName: "Ally Block")
+        #expect(gain.applied == 0)
+        #expect(gain.events.isEmpty)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == 0)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 0)
+    }
+
+    @Test func `nonpositive Gold grants do not manufacture affix Gold or trigger Windfall`() {
+        var profile = CombatModifierProfile(goldGainedBonus: 3)
+        profile.triggers.gainGoldBonusHealSelf = 2
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            heroHealth: 5, heroModifiers: profile, appliesFightPacing: false,
+        )
+        for amount in [0, -1, Int.min] {
+            #expect(battle.grantGoldEvent(amount, to: battle.hero, abilityName: "Empty gain").isEmpty)
+        }
+        #expect(battle.gold == 0)
+        #expect(battle.health(of: battle.hero) == 5)
+    }
+
+    @Test func `negative Mana restoration preserves the balance and later restoration`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroMaxMana: 10, heroMana: 4, dealOpeningHand: false, appliesFightPacing: false,
+        )
+        #expect(battle.restoreMana(Int.min, to: battle.hero) == 0)
+        #expect(battle.mana(of: battle.hero) == 4)
+        #expect(battle.restoreMana(2, to: battle.hero) == 2)
+        #expect(battle.mana(of: battle.hero) == 6)
+    }
+
     @Test func `flat healing talents preserve a saturated restoration`() {
         var profile = CombatantTalentCatalog.profile(for: ["alchemist_health_t1_1"])
         profile.healthRestoredBonus = Int.max

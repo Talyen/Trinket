@@ -200,6 +200,7 @@ public struct CombatantRuntime: Hashable {
     }
 
     package mutating func restoreMana(_ amount: Int) -> Int {
+        guard amount > 0 else { return 0 }
         let space = max(0, maxMana - currentMana)
         let actual = min(amount, space)
         currentMana += actual

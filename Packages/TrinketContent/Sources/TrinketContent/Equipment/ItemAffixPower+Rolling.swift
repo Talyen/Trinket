@@ -156,20 +156,25 @@ public enum ItemAffixMagnitudeRoll: Sendable {
     }
 
     public static func percentValues(around value: Double) -> [Double] {
-        percentPoints(around: value).map { Double($0) / 100 }
+        percentPoints(around: value)?.map { Double($0) / 100 } ?? [value]
     }
 
     fileprivate static func percentMaximum(around value: Double) -> Double {
         // Perfect-roll checks need only the maximum, not an allocated choice array.
-        percentPoints(around: value).lazy.map { Double($0) / 100 }.max() ?? value
+        percentPoints(around: value)?.lazy.map { Double($0) / 100 }.max() ?? value
     }
 
-    private static func percentPoints(around value: Double) -> StrideThrough<Int> {
-        let points = Int((value * 100).rounded())
+    private static func percentPoints(around value: Double) -> StrideThrough<Int>? {
+        let roundedPoints = (value * 100).rounded()
+        // Preserve oversized powers instead of trapping or allocating an unbounded roll pool.
+        guard roundedPoints.isFinite, roundedPoints >= 0, roundedPoints < Double(Int.max) else { return nil }
+        let points = Int(roundedPoints)
         let delta = max(1, points / 4)
         let lower = max(1, points - delta)
-        let upper = points + delta
+        let (upper, overflow) = points.addingReportingOverflow(delta)
+        guard !overflow else { return nil }
         let step = delta < 5 ? 1 : 5
+        guard (upper - lower) / step <= 4095 else { return nil }
         let start = points - ((points - lower) / step) * step
         return stride(from: start, through: upper, by: step)
     }

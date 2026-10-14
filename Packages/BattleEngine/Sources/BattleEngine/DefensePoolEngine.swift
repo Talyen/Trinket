@@ -39,31 +39,34 @@ package enum DefensePoolEngine {
         _ amount: Int,
         in effects: [ActiveEffect],
     ) -> ShieldPoolReduction? {
-        guard amount > 0,
-              let index = effects.firstIndex(where: {
-                  if case .shield = $0.effect {
-                      return true
-                  }
-                  return false
-              }),
-              case let .shield(keyword, buffer) = effects[index].effect,
-              buffer > 0
-        else { return nil }
-        let absorbed = min(amount, buffer)
-        var updated = effects
-        var broken = false
-        if buffer - absorbed <= 0 {
-            updated.remove(at: index)
-            broken = true
-        } else {
-            updated[index] = ActiveEffect(
-                id: updated[index].id,
-                effect: .shield(keyword, buffer - absorbed),
-                remainingTurns: 0,
-                sourceActorID: updated[index].sourceActorID,
-            )
+        guard amount > 0 else { return nil }
+        var remaining = amount
+        var keyword: Keyword?
+        var updated: [ActiveEffect] = []
+        for active in effects {
+            guard remaining > 0, case let .shield(shieldKeyword, buffer) = active.effect, buffer > 0 else {
+                updated.append(active)
+                continue
+            }
+            if keyword == nil {
+                keyword = shieldKeyword
+            }
+            let removed = min(remaining, buffer)
+            remaining -= removed
+            if buffer > removed {
+                var retained = active
+                retained.effect = .shield(shieldKeyword, buffer - removed)
+                updated.append(retained)
+            }
         }
-        return ShieldPoolReduction(effects: updated, keyword: keyword, absorbed: absorbed, broken: broken)
+        guard let keyword else { return nil }
+        let broken = !updated.contains {
+            if case let .shield(_, buffer) = $0.effect {
+                return buffer > 0
+            }
+            return false
+        }
+        return ShieldPoolReduction(effects: updated, keyword: keyword, absorbed: amount - remaining, broken: broken)
     }
 
     @discardableResult

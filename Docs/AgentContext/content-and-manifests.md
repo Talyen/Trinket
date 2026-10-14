@@ -38,6 +38,7 @@ by forwarding every field, which can silently drop newly added mechanics.
 Generated descriptions, gameplay/identity keywords, and presentation keywords are cached lazily in that storage.
 Keep caches outside value equality/hashing; transformations must receive fresh storage
 so empowered or resolved cards cannot reuse the original card's text or keywords.
+Multi-hit direct-damage totals saturate, including after Mana empowerment.
 
 `AbilityValidator` inspects base, random-branch, and conditional operations through
 one traversal. Keep alternatives separate when totaling tier damage; both normal
@@ -93,7 +94,9 @@ rolling behavior, numeric text replacement, and gameplay remain authored.
 Affix scaling, rolling, and corruption share the ordered magnitude traversal in
 `ItemAffixPower+Rolling.swift`. Bind description numbers against the original text,
 including unchanged fields, so equal magnitudes and replacement collisions retain
-their field ownership. Corruption availability and candidate selection share one
+their field ownership. Percentage rolls retain an oversized original magnitude
+when its integer-point conversion or choice pool cannot be bounded safely; normal
+catalog roll grids stay unchanged. Corruption availability and candidate selection share one
 lazy eligibility filter. Preserve this order and the existing numeric/save formats.
 
 ## Media assets

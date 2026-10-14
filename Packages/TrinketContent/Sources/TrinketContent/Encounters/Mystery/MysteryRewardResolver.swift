@@ -119,22 +119,29 @@ public struct MysteryRewardResolver: Sendable {
         let bonus: MysteryRewardBonus
         switch effect {
         case let .gainGold(amount):
-            bonus = .gold(CombatRounding
-                .scaled(amount, byPercent: goldPercent + homesteadEffects.goldFindPercent) +
-                (amount > 0 ? homesteadEffects.goldFindFlat : 0))
+            bonus = .gold(SaturatedArithmetic.saturatingAdd(
+                CombatRounding.scaled(amount, byPercent: SaturatedArithmetic.saturatingAdd(
+                    goldPercent, homesteadEffects.goldFindPercent,
+                )),
+                amount > 0 ? homesteadEffects.goldFindFlat : 0,
+            ))
         case let .gainMaterial(resource):
             bonus = .material(
                 resource,
-                CombatRounding
-                    .scaled(Self.materialQuantity(forLevel: encounterLevel), byPercent: materialsPercent) +
-                    (resource == .gems ? homesteadEffects.gemsFindBonus : 0),
+                SaturatedArithmetic.saturatingAdd(
+                    CombatRounding.scaled(Self.materialQuantity(forLevel: encounterLevel), byPercent: materialsPercent),
+                    resource == .gems ? homesteadEffects.gemsFindBonus : 0,
+                ),
             )
         case .gainExperience:
-            bonus = .experience(RewardExperiencePolicy.encounterAward(
-                encounterLevel: encounterLevel,
-                hero: inputs.heroProgression, companion: inputs.companionProgression,
-                percent: experiencePercent + homesteadEffects.experienceBonusPercent,
-            ) + homesteadEffects.experienceBonus)
+            bonus = .experience(SaturatedArithmetic.saturatingAdd(
+                RewardExperiencePolicy.encounterAward(
+                    encounterLevel: encounterLevel,
+                    hero: inputs.heroProgression, companion: inputs.companionProgression,
+                    percent: SaturatedArithmetic.saturatingAdd(experiencePercent, homesteadEffects.experienceBonusPercent),
+                ),
+                homesteadEffects.experienceBonus,
+            ))
         default:
             return nil
         }

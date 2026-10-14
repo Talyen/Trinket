@@ -153,7 +153,8 @@ public struct PlayerSave: Equatable, Sendable {
         }
         homestead.settleProduction(at: date, gold: roster.gold)
         let balanceBefore = roster.gold
-        _ = roster.spendGold(min(-amount, roster.gold))
+        let debit = amount <= -roster.gold ? roster.gold : -amount
+        _ = roster.spendGold(debit)
         return roster.gold - balanceBefore
     }
 

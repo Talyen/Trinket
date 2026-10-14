@@ -17,6 +17,7 @@ package extension BattleState {
         isDirectCardGain: Bool = false,
         isLeechOverflow: Bool = false,
     ) async -> GoldGain {
+        guard amount > 0, roster.health(for: combatant) > 0 else { return GoldGain(applied: 0, events: []) }
         if isLeechOverflow {
             resolution.enter(.leechOverflowGold)
         }

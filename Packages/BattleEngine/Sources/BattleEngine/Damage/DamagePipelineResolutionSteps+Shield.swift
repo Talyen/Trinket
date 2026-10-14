@@ -36,10 +36,14 @@ package extension DamagePipeline {
     ) async -> Int {
         guard state.remaining > 0, !state.options.isHealthCost else { return 0 }
         let effects = context.roster.activeEffects(for: owner)
-        guard let shield = effects.first(where: { $0.effect.kind == .shield }),
-              case let .shield(keyword, points) = shield.effect, points > 0 else { return 0 }
+        guard let shield = effects.first(where: {
+            if case let .shield(_, points) = $0.effect {
+                return points > 0
+            }
+            return false
+        }), case let .shield(keyword, _) = shield.effect else { return 0 }
         let isBorrowed = owner.id != state.combatant.id
-        let buffer = isBorrowed ? DefensePoolEngine.blockPoints(in: effects) : points
+        let buffer = DefensePoolEngine.blockPoints(in: effects)
         guard isBorrowed || CombatRounding.scaled(buffer, multiplier: blockMultiplier) > 0 else { return 0 }
 
         var sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }

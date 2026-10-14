@@ -143,7 +143,7 @@ enum LabyrinthSanitizer {
             enemyID: enemyID,
             depth: depth,
             clusterID: node.clusterID,
-            gridPosition: node.gridPosition ?? fallbackGridPosition(for: node, in: cluster),
+            gridPosition: sanitizedGridPosition(for: node, in: cluster),
             modifierIDs: NodeModifierCatalog.resolvedModifierIDs(
                 for: type,
                 enemyID: enemyID,
@@ -167,6 +167,21 @@ enum LabyrinthSanitizer {
             seed: GameContent.encounterSeed(worldSeed, salt: "labyrinth-battle-\(nodeID)"),
         )
         return LabyrinthCatalog.pickTrashEnemyID(using: &random)
+    }
+
+    private static func sanitizedGridPosition(
+        for node: LabyrinthNode,
+        in cluster: LabyrinthCluster?,
+    ) -> LabyrinthGridPosition {
+        let nodeCount = max(1, cluster?.nodeIDs.count ?? 1)
+        // Covers generated axial positions and the legacy rectangular fallback,
+        // while keeping neighbor and map-projection arithmetic bounded.
+        if let position = node.gridPosition,
+           (0 ... nodeCount).contains(position.row),
+           (-(nodeCount / 2 + 1) ... LabyrinthMapLayout.maxProjectedHalfColumn).contains(position.column) {
+            return position
+        }
+        return fallbackGridPosition(for: node, in: cluster)
     }
 
     private static func fallbackGridPosition(

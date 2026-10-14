@@ -4,6 +4,15 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct ItemAffixMagnitudeRollTests {
+    @Test(arguments: [1e8, 1e18])
+    func `oversized percentage powers preserve strength when rolled`(magnitude: Double) {
+        let power = ItemAffixPower(description: "Saved power", modifiers: [.leechGainedPercent(magnitude)])
+        var rng = SeededRandomNumberGenerator(seed: 3)
+        #expect(power.rolled(using: &rng).modifiers == power.modifiers)
+        #expect(power.rolledMax().modifiers == power.modifiers)
+        #expect(ItemAffixMagnitudeRoll.percentValues(around: magnitude) == [magnitude])
+    }
+
     @Test(arguments: [("leeching", "double_axe", 26), ("vampiric", "ruby_ring", 13)])
     func `saved Leech powers describe their rolled damage fraction without changing strength`(
         affixID: String, baseID: String, displayedPercent: Int,

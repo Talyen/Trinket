@@ -3,6 +3,16 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityPresentationCacheTests {
+    @Test func `multi hit damage totals stay inspectable after saturated empowerment`() {
+        let ability = Ability(
+            id: "saturated-hits", name: "Saturated Hits", tier: .skill,
+            damageComponents: [DamageComponent(2, keyword: .burn), DamageComponent(3, keyword: .burn)],
+        )
+        #expect(ability.directDamage == 5)
+        #expect(ability.empoweredByMana(amount: Int.max).directDamage == Int.max)
+        #expect(ability.directDamage == 5)
+    }
+
     @Test func `warm caches stay isolated across transformations and value equality`() {
         let original = Ability(
             id: "cached-presentation", name: "Cached Presentation", tier: .basic,

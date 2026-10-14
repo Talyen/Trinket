@@ -16,6 +16,8 @@ fields, relationships, and schema versions; they do not require a save migration
 Labyrinth node decoding clamps negative saved depth before cleared-boss exit
 repair, which uses that depth to generate the next floor. Preserve the node's
 identity, cleared state and readable payloads when repairing damaged scalars.
+Readable grid coordinates outside the floor's bounded geometry use the existing
+fallback before neighbor or map-projection arithmetic.
 
 Reads use an in-memory projection with independently observed domain sections and
 root fields. Views read the narrow section or `sessionGeneration`; `currentSave`

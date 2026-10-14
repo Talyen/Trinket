@@ -69,6 +69,34 @@ struct LabyrinthSaveRecoveryTests {
         #expect(reloaded.labyrinth == loaded.labyrinth)
     }
 
+    @Test(arguments: [Int.min, Int.max]) @MainActor
+    func `saved grid extremes repair without losing readable nodes`(coordinate: Int) throws {
+        var save = PlayerSave.testSeed
+        save.labyrinth.ensureMap(seed: 55)
+        let original = try #require(save.labyrinth.nodes.values.first { $0.type == .shop })
+        let mysteryPayload = Data("{}".utf8)
+        save.labyrinth.nodes[original.id] = LabyrinthNode(
+            id: original.id, type: original.type, enemyID: original.enemyID,
+            depth: original.depth, clusterID: original.clusterID,
+            gridPosition: LabyrinthGridPosition(row: coordinate, column: coordinate),
+            modifierIDs: original.modifierIDs, mysteryOffersPayload: mysteryPayload,
+            outgoingIDs: original.outgoingIDs, isCleared: true, isRevealed: true,
+        )
+        let context = try PersistenceTestContext()
+        let loaded = try context.seedAndReload(save)
+        let repaired = try #require(loaded.labyrinth.node(id: original.id))
+        let position = try #require(repaired.gridPosition)
+        #expect(position.row != coordinate)
+        #expect(position.column != coordinate)
+        #expect(position.neighbors.count == 6)
+        #expect(position.projectedHalfColumn >= 0)
+        #expect(repaired.isCleared)
+        #expect(repaired.outgoingIDs == original.outgoingIDs)
+        #expect(repaired.mysteryOffersPayload == mysteryPayload)
+        #expect(!loaded.labyrinth.isMapPayloadUnreadable)
+        #expect(try context.makeReloadedStore().labyrinth == loaded.labyrinth)
+    }
+
     @Test func `enter rebuilds unreadable map`() {
         var save = PlayerSave.fresh
         let expectedSeed = save.worldSeed

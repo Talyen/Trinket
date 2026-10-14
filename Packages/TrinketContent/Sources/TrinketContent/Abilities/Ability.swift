@@ -184,7 +184,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     public var directDamage: Int {
         operations.lazy.compactMap(\.damageComponent)
             .filter { $0.target == .abilityTarget }
-            .reduce(0) { $0 + $1.amount }
+            .reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.amount) }
     }
 
     public var damageKeyword: Keyword {

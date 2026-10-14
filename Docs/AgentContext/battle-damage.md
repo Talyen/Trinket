@@ -10,7 +10,8 @@ recipient's defenses with outgoing scaling already resolved. `DamageDefensePolic
 owns mitigation and Block bypass multipliers, while the shield steps in
 `DamagePipeline` resolve borrowed Block before recipient Block through one
 owner-based absorption step, preserving each checkpoint's order and rounding.
-Commit each pool before its reactions and read the next pool from live state. Ally protection uses the actual
+Consume stacked shields as one Block pool in stored order; break reactions fire only
+after all positive shields are exhausted. Commit each pool before its reactions and read the next pool from live state. Ally protection uses the actual
 Block owner's absorption bonuses and records that owner for The Patient Edge and
 The Knight's Answer; borrowed Block does not claim the recipient's allowance.
 Incoming Block-breaking rules also apply to borrowed Block, including Corrosive
@@ -64,7 +65,8 @@ rules plus the strongest matching enemy-pool Talent modifiers from living allies
 Enemy-pool Talents apply regardless of the original applier; defeated owners cease
 contributing. Turn handlers and `DecayingDoTDetonation` use that same policy and
 `Effect.potencyAfterTurn`; adding potency retains original source and tick credit.
-Preservation and growth rolls remain exclusive to live turns. Ability and critical-hit
+Slowed decay still removes at least one positive potency per step, so detonations
+cannot stall against damage prevention. Preservation and growth rolls remain exclusive to live turns. Ability and critical-hit
 detonations share the executor; callers commit stack removal and own recursion scope
 before executing damage.
 

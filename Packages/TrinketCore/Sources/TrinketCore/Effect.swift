@@ -260,13 +260,16 @@ public enum Effect: Hashable, Sendable {
     public func potencyAfterTurn(burnDecaySlowPercent: Double = 0, poisonDecaySlowPercent: Double = 0) -> Int {
         switch self {
         case let .burn(potency):
+            guard potency > 0 else { return 0 }
             let normalNext = potency / 2
             let loss = potency - normalNext
-            let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - clamped01(burnDecaySlowPercent))
+            // Slowing decay must still exhaust a stack; preservation is a separate live-turn rule.
+            let adjustedLoss = max(1, CombatRounding.scaled(loss, multiplier: 1 - clamped01(burnDecaySlowPercent)))
             return max(0, SaturatedArithmetic.saturatingSub(potency, adjustedLoss))
         case let .poison(potency):
+            guard potency > 0 else { return 0 }
             let loss = Self.poisonDecayAmount(for: potency)
-            let adjustedLoss = CombatRounding.scaled(loss, multiplier: 1 - clamped01(poisonDecaySlowPercent))
+            let adjustedLoss = max(1, CombatRounding.scaled(loss, multiplier: 1 - clamped01(poisonDecaySlowPercent)))
             return max(0, SaturatedArithmetic.saturatingSub(potency, adjustedLoss))
         default:
             return 0

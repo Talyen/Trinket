@@ -6,6 +6,15 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BattleGoldRewardTests {
+    @Test func `minimum integer Gold debit spends the wallet without overflowing`() {
+        var save = PlayerSave.testSeed
+        save.roster.gold = 20
+        let before = save.homestead
+        #expect(save.applyGoldDelta(Int.min, at: before.lastProductionAt) == -20)
+        #expect(save.roster.gold == 0)
+        #expect(save.homestead == before)
+    }
+
     @Test @MainActor func `duplicate item consolation saturates a maximum Gold reward across reload`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()

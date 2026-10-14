@@ -60,6 +60,7 @@ package extension BattleState {
         amountBasis: BlockAmountBasis = .base,
         origin: ActionEvent.Origin = .automatic,
     ) -> BlockGain {
+        guard roster.health(for: target) > 0 else { return BlockGain(applied: 0, events: []) }
         if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(target, in: self)
             || CombatTriggerEngine.preventsPurgedEffect(.shield(.block, amount), on: target, in: self) {
             return BlockGain(applied: 0, events: [])
