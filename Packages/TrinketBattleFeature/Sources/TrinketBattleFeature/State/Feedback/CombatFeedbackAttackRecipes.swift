@@ -3,9 +3,9 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 enum CombatFeedbackAttackRecipes {
-    static let manualPreparation: TimeInterval = 0.025
-    static let manualSwing: TimeInterval = 0.075
-    static let manualRecovery: TimeInterval = 0.300
+    static let manualPreparation: TimeInterval = 0.10
+    static let manualSwing: TimeInterval = 0.15
+    static let manualRecovery: TimeInterval = 0.45
 
     struct Timing {
         let preparation: TimeInterval
@@ -15,7 +15,7 @@ enum CombatFeedbackAttackRecipes {
     }
 
     static let manualTiming = Timing(
-        preparation: manualPreparation, swing: manualSwing, recovery: manualRecovery, preparationCap: manualPreparation,
+        preparation: manualPreparation, swing: manualSwing, recovery: manualRecovery, preparationCap: 0.08,
     )
     static let automaticTiming = Timing(
         preparation: lungeCardAttack.windUpDuration, swing: lungeCardAttack.swingDuration,

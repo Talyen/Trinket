@@ -16,7 +16,6 @@ public struct GameFeelPreviewView: View {
     private let playSound: (String) -> Void
     @State private var fixture: BattleTransitionLabFixture
     @State private var surface = Surface.combat
-    @State private var baseline = false
     @State private var holdsSample = false
     @State private var muted = false
     @State private var soundFamily = Keyword.physical
@@ -73,7 +72,6 @@ public struct GameFeelPreviewView: View {
             artworkLease = lease
         }
         .onChange(of: surface) { _, _ in reset() }
-        .onChange(of: baseline) { _, _ in reset() }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {
                 reset()
@@ -114,9 +112,6 @@ public struct GameFeelPreviewView: View {
 
     private var combatControls: some View {
         VStack(spacing: TrinketDesign.Spacing.small) {
-            Toggle("Baseline Attack Timing", isOn: $baseline)
-                .padding(.horizontal)
-                .accessibilityIdentifier(AccessibilityID.GameFeel.baseline)
             HStack {
                 Button("Tap Attack") { attack(prepared: false) }
                     .accessibilityIdentifier(AccessibilityID.GameFeel.tap)
@@ -214,9 +209,9 @@ public struct GameFeelPreviewView: View {
         let heroID = fixture.session.heroID ?? "hero"
         // The simulation stays suspended; only its presentation clock is exercised.
         feedback.setSuspended(false)
-        let preparation = prepared ? 0 : (baseline ? 0.10 : CombatFeedbackAttackRecipes.manualPreparation)
-        let swing = baseline ? 0.15 : CombatFeedbackAttackRecipes.manualSwing
-        let recovery = baseline ? 0.45 : CombatFeedbackAttackRecipes.manualRecovery
+        let preparation = prepared ? 0 : CombatFeedbackAttackRecipes.manualPreparation
+        let swing = CombatFeedbackAttackRecipes.manualSwing
+        let recovery = CombatFeedbackAttackRecipes.manualRecovery
         feedback.publishAttack(
             prepared ? .swing : .windUp,
             for: heroID,

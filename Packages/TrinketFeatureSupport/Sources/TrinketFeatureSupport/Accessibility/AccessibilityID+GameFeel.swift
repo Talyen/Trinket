@@ -4,7 +4,6 @@ public extension AccessibilityID {
         public static let entry = "Game Feel Preview"
         public static let surface = "Game Feel Surface"
         public static let mute = "Mute Game Feel Preview"
-        public static let baseline = "Game Feel Baseline Timing"
         public static let tap = "Replay Tap Attack"
         public static let drag = "Replay Drag Release"
         public static let resetSample = "Reset Busy Combat Sample"
