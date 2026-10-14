@@ -285,52 +285,10 @@ private func drawStar(
     secondary: Color,
     opacity: Double,
 ) {
-    let spikes = 4
-    func appendVertex(
-        to path: inout Path,
-        center: CGPoint,
-        radius: CGFloat,
-        cosine: CGFloat,
-        sine: CGFloat,
-        isFirst: Bool,
-    ) {
-        let point = CGPoint(
-            x: center.x + cosine * radius,
-            y: center.y + sine * radius,
-        )
-        if isFirst {
-            path.move(to: point)
-        } else {
-            path.addLine(to: point)
-        }
-    }
-
-    var star = Path()
-    var shadow = Path()
-    var core = Path()
-    let shadowCenter = CGPoint(x: point.x, y: point.y + 1.2)
-    let coreRadius = size * 0.44
-    for index in 0 ..< (spikes * 2) {
-        let angle = CGFloat(index) * .pi / CGFloat(spikes) - .pi / 2 + rotation
-        let cosine = cos(angle)
-        let sine = sin(angle)
-        let isOuter = index.isMultiple(of: 2)
-        appendVertex(
-            to: &star, center: point, radius: isOuter ? size : size * 0.35,
-            cosine: cosine, sine: sine, isFirst: index == 0,
-        )
-        appendVertex(
-            to: &shadow, center: shadowCenter, radius: isOuter ? size : size * 0.35,
-            cosine: cosine, sine: sine, isFirst: index == 0,
-        )
-        appendVertex(
-            to: &core, center: point, radius: isOuter ? coreRadius : coreRadius * 0.35,
-            cosine: cosine, sine: sine, isFirst: index == 0,
-        )
-    }
-    star.closeSubpath()
-    shadow.closeSubpath()
-    core.closeSubpath()
+    let transform = StatusParticleGeometry.transform(at: point, radius: size, rotation: rotation)
+    let star = StatusParticleGeometry.star.applying(transform)
+    let shadow = star.applying(CGAffineTransform(translationX: 0, y: 1.2))
+    let core = StatusParticleGeometry.star.applying(CGAffineTransform(scaleX: 0.44, y: 0.44).concatenating(transform))
 
     // Dark under-shadow and outline for guaranteed contrast against bright card art
     context.fill(shadow, with: .color(TrinketDesign.Colors.Overlay.ink.opacity(0.45 * opacity)))
@@ -352,40 +310,56 @@ private func drawSnowflake(
     color: Color,
     secondary: Color,
 ) {
-    let petals = 6
-    var path = Path()
-    for petal in 0 ..< petals {
-        let angle = CGFloat(petal) / CGFloat(petals) * .pi * 2 + rotation
-        let cosine = cos(angle)
-        let sine = sin(angle)
-        let tip = CGPoint(
-            x: center.x + cosine * radius,
-            y: center.y + sine * radius,
-        )
-        let side = radius * 0.28
-        let perp = CGVector(dx: -sine, dy: cosine)
-        path.move(to: center)
-        path.addLine(to: CGPoint(
-            x: tip.x + perp.dx * side,
-            y: tip.y + perp.dy * side,
-        ))
-        path.addLine(to: tip)
-        path.addLine(to: CGPoint(
-            x: tip.x - perp.dx * side,
-            y: tip.y - perp.dy * side,
-        ))
-        path.closeSubpath()
-
-        let mid = CGPoint(
-            x: center.x + cosine * radius * 0.55,
-            y: center.y + sine * radius * 0.55,
-        )
-        let arm = radius * 0.22
-        path.move(to: CGPoint(x: mid.x + perp.dx * arm, y: mid.y + perp.dy * arm))
-        path.addLine(to: CGPoint(x: mid.x - perp.dx * arm, y: mid.y - perp.dy * arm))
-    }
+    let path = StatusParticleGeometry.snowflake.applying(
+        StatusParticleGeometry.transform(at: center, radius: radius, rotation: rotation),
+    )
     context.fill(path, with: .color(color))
     context.stroke(path, with: .color(secondary), lineWidth: 0.8)
+}
+
+private enum StatusParticleGeometry {
+    static let star: Path = {
+        var path = Path()
+        for index in 0 ..< 8 {
+            let angle = CGFloat(index) * .pi / 4 - .pi / 2
+            let radius: CGFloat = index.isMultiple(of: 2) ? 1 : 0.35
+            let point = CGPoint(x: cos(angle) * radius, y: sin(angle) * radius)
+            if index == 0 {
+                path.move(to: point)
+            } else {
+                path.addLine(to: point)
+            }
+        }
+        path.closeSubpath()
+        return path
+    }()
+
+    static let snowflake: Path = {
+        var path = Path()
+        for petal in 0 ..< 6 {
+            let angle = CGFloat(petal) / 6 * .pi * 2
+            let cosine = cos(angle)
+            let sine = sin(angle)
+            let tip = CGPoint(x: cosine, y: sine)
+            let perp = CGVector(dx: -sine, dy: cosine)
+            path.move(to: .zero)
+            path.addLine(to: CGPoint(x: tip.x + perp.dx * 0.28, y: tip.y + perp.dy * 0.28))
+            path.addLine(to: tip)
+            path.addLine(to: CGPoint(x: tip.x - perp.dx * 0.28, y: tip.y - perp.dy * 0.28))
+            path.closeSubpath()
+            let mid = CGPoint(x: cosine * 0.55, y: sine * 0.55)
+            path.move(to: CGPoint(x: mid.x + perp.dx * 0.22, y: mid.y + perp.dy * 0.22))
+            path.addLine(to: CGPoint(x: mid.x - perp.dx * 0.22, y: mid.y - perp.dy * 0.22))
+        }
+        return path
+    }()
+
+    static func transform(at center: CGPoint, radius: CGFloat, rotation: CGFloat) -> CGAffineTransform {
+        let cosine = cos(rotation) * radius
+        let sine = sin(rotation) * radius
+        // Transform geometry, not the drawing context, so all stroke widths stay in points.
+        return CGAffineTransform(a: cosine, b: sine, c: -sine, d: cosine, tx: center.x, ty: center.y)
+    }
 }
 
 struct CombatantStatusCardTransform: ViewModifier {

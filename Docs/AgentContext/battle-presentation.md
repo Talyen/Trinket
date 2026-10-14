@@ -84,6 +84,8 @@ Combatant artwork, feedback, Health and Mana bars, clipping, and borders compose
 before status motion, so the whole card moves together during Stun wobble.
 Attack and hit-reaction transforms wrap that composed card. Defeated enemy artwork
 retains its slice-owned clipping and border without an outer frame.
+Stun stars and Freeze snowflakes reuse fixed unit paths, transforming geometry for
+each sample while retaining point-sized strokes and the original draw order.
 
 Impact delivery groups results by the presentation beat, independent of the
 engine's broader feedback group. Recoil chooses the strongest result per recipient,
@@ -158,6 +160,8 @@ Permanently evict overflow through the lane's existing eviction mechanism; never
 queue stale notifications or resurrect evicted chips on publication/remount.
 Apply sound and hit reactions from committed results before visual culling can
 hide them. Card inputs and damage presentation remain immediate.
+Corner selection retains the best two candidates per recipient in one pass,
+preserving arrival order when all priority keys tie.
 
 Feedback hosts are composed with the artwork inside its attack and hit-reaction
 transforms, including the masked halves of the enemy split/dissolve death effect.

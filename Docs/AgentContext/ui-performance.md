@@ -163,6 +163,8 @@ reconstruction of the item lists. These observers retain an indexed artwork wind
 with its ordered entries, rebuilding it only when entries change. Scroll updates
 resolve visible positions through the index while preserving the same prefetch
 windows, debounce, cancellation, and decode admission.
+Before any visible IDs arrive, initial windows resolve only the configured prefix;
+they do not scan the full inventory to establish an empty visible range.
 Preparation and pin publication remain distinct from presentation readiness.
 Raw pin counts are internal to `TrinketFeatureSupport`. Fixed acquisitions use
 `PreparedArtworkLease`; explicit release and teardown release that acquisition at

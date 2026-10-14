@@ -91,7 +91,17 @@ public enum ArtworkViewportPrewarm {
         prefetchRows: Int,
         estimatedColumns: Int,
     ) -> [String] where Item.ID: Hashable {
-        windowNames(
+        // Initial presentation only needs the prefix, regardless of catalog size.
+        guard !orderedItems.isEmpty else { return [] }
+        guard !visibleIDs.isEmpty else {
+            return initialWindowNames(
+                orderedItems: orderedItems,
+                thumbnailName: thumbnailName,
+                prefetchRows: prefetchRows,
+                estimatedColumns: estimatedColumns,
+            )
+        }
+        return windowNames(
             orderedItems: orderedItems,
             visibleIndices: visibleIndices(for: orderedItems, matching: { visibleIDs.contains($0.id) }),
             thumbnailName: thumbnailName,

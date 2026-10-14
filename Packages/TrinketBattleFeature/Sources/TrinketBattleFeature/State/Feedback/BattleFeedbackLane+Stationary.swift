@@ -55,25 +55,55 @@ extension BattleFeedbackLane {
 
     func limitCornerItems() {
         for region in [CombatFeedbackRegion.benefit, .setback] {
-            let candidates = activeItems.indices.filter {
-                activeItems[$0].region == region && !evictedItemIDs.contains(activeItems[$0].id)
-            }
-            for indices in Dictionary(grouping: candidates, by: { activeItems[$0].targetID }).values {
-                let ranked = indices.sorted { lhs, rhs in
-                    let left = activeItems[lhs]
-                    let right = activeItems[rhs]
-                    let leftImportant = left.effectKind == .controlTriggered || left.feedbackClass == .deathsDoor
-                    let rightImportant = right.effectKind == .controlTriggered || right.feedbackClass == .deathsDoor
-                    if leftImportant != rightImportant {
-                        return leftImportant
-                    }
-                    if left.lastReceivedAt != right.lastReceivedAt {
-                        return left.lastReceivedAt > right.lastReceivedAt
-                    }
-                    return (left.sourceEventIDs.max() ?? left.id) > (right.sourceEventIDs.max() ?? right.id)
+            var winners: [String: (first: CornerCandidate, second: CornerCandidate?)] = [:]
+            for item in activeItems where item.region == region && !evictedItemIDs.contains(item.id) {
+                let candidate = CornerCandidate(item)
+                guard var pair = winners[item.targetID] else {
+                    winners[item.targetID] = (candidate, nil)
+                    continue
                 }
-                evictedItemIDs.formUnion(ranked.dropFirst(2).map { activeItems[$0].id })
+                // Keep the same stable top two without sorting or retaining the whole burst.
+                if candidate.outranks(pair.first) {
+                    if let displaced = pair.second {
+                        evictedItemIDs.insert(displaced.id)
+                    }
+                    pair = (candidate, pair.first)
+                } else if let second = pair.second {
+                    if candidate.outranks(second) {
+                        evictedItemIDs.insert(second.id)
+                        pair.second = candidate
+                    } else {
+                        evictedItemIDs.insert(candidate.id)
+                    }
+                } else {
+                    pair.second = candidate
+                }
+                winners[item.targetID] = pair
             }
         }
+    }
+}
+
+private struct CornerCandidate {
+    let id: Int
+    let isImportant: Bool
+    let lastReceivedAt: Date
+    let latestEventID: Int
+
+    init(_ item: CombatFeedbackItem) {
+        id = item.id
+        isImportant = item.effectKind == .controlTriggered || item.feedbackClass == .deathsDoor
+        lastReceivedAt = item.lastReceivedAt
+        latestEventID = item.sourceEventIDs.max() ?? item.id
+    }
+
+    func outranks(_ other: Self) -> Bool {
+        if isImportant != other.isImportant {
+            return isImportant
+        }
+        if lastReceivedAt != other.lastReceivedAt {
+            return lastReceivedAt > other.lastReceivedAt
+        }
+        return latestEventID > other.latestEventID
     }
 }
