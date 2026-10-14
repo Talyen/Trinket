@@ -294,6 +294,40 @@ struct BattleCardAssessmentTests {
         }
     }
 
+    @Test func `Mana conversion after restoration does not quote the old balance`() throws {
+        var state = battle(heroMana: 0)
+        let ability = Ability(
+            id: "restore-convert", name: "Restore and Convert", tier: .skill,
+            targetedEffects: [
+                TargetedEffect(.resourceGain(.mana, 4), target: .actor),
+                TargetedEffect(.convertManaToBlock, target: .actor),
+            ],
+        )
+        let card = deal(ability, in: &state)
+        let use = try #require(state.assessCard(card).resources.first { $0.keyword == .mana })
+        #expect(use.amount == nil)
+        #expect(use.combatantID == state.hero.id)
+        _ = try state.playCard(cardID: card.id)
+        #expect(state.mana(of: state.hero) == 0)
+        #expect(DefensePoolEngine.blockPoints(in: state.activeEffects(of: state.hero)) == 4)
+    }
+
+    @Test func `party Mana conversion includes both living payers`() throws {
+        var state = battle(heroMana: 3, companionMana: 5)
+        let ability = Ability(
+            id: "party-convert", name: "Party Conversion", tier: .skill,
+            targetedEffects: [TargetedEffect(.convertManaToBlock, target: .eachAlly)],
+        )
+        let card = deal(ability, in: &state)
+        let uses = state.assessCard(card).resources
+        #expect(Set(uses.map(\.combatantID)) == [state.hero.id, state.companion.id])
+        _ = try state.playCard(cardID: card.id)
+        #expect(state.mana(of: state.hero) == 0)
+        #expect(state.mana(of: state.companion) == 0)
+        #expect(DefensePoolEngine.blockPoints(in: state.activeEffects(of: state.hero)) == 3)
+        #expect(DefensePoolEngine.blockPoints(in: state.activeEffects(of: state.companion)) == 5)
+    }
+
     private func battle(
         heroMana: Int = 0, companionMana: Int = 0,
         heroModifiers: CombatModifierProfile = .zero, companionModifiers: CombatModifierProfile = .zero,

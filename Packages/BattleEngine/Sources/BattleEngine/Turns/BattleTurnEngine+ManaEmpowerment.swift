@@ -110,12 +110,12 @@ private extension BattleTurnEngine {
 
     static func empoweredAbility(_ original: Ability, triggers: CombatTraitTriggers) -> Ability {
         let ability = original.empoweredByMana(
-            amount: manaEmpowermentBonus + triggers.empowermentDamageBonus,
+            amount: SaturatedArithmetic.saturatingAdd(manaEmpowermentBonus, triggers.empowermentDamageBonus),
             includingBothElements: triggers.prismaticScales,
         )
         guard triggers.flashFreeze || triggers.empowerFreezeDamageBonus > 0
             || triggers.empowerBurnDamageBonus > 0 else { return ability }
-        let freezeBonus = (triggers.flashFreeze ? 2 : 0) + triggers.empowerFreezeDamageBonus
+        let freezeBonus = SaturatedArithmetic.saturatingAdd(triggers.flashFreeze ? 2 : 0, triggers.empowerFreezeDamageBonus)
         let operations = ability.operations.map {
             if $0.keyword == .freeze, freezeBonus > 0 {
                 return $0.empowered(by: freezeBonus)
@@ -134,16 +134,16 @@ private extension BattleTurnEngine {
             case let .damage(component):
                 guard component.target != .actor else { return operation }
                 return .damage(DamageComponent(
-                    component.amount * 2,
+                    SaturatedArithmetic.saturatingMul(component.amount, 2),
                     keyword: component.keyword,
                     target: component.target,
-                    bonusAmount: component.bonusAmount * 2,
+                    bonusAmount: SaturatedArithmetic.saturatingMul(component.bonusAmount, 2),
                     condition: component.condition,
                 ))
             case let .effect(targeted):
                 guard case let .recurringDamage(keyword, amount, turns) = targeted.effect else { return operation }
                 return .effect(TargetedEffect(
-                    .recurringDamage(keyword, amount * 2, turns),
+                    .recurringDamage(keyword, SaturatedArithmetic.saturatingMul(amount, 2), turns),
                     target: targeted.target,
                     condition: targeted.condition,
                 ))

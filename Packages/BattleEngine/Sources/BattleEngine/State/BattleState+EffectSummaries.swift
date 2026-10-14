@@ -271,7 +271,7 @@ private extension CombatantTalentState.Pending {
     }
 
     private func healingPreparationSummaries() -> [EffectSummary] {
-        let healing = healingEchoes.reduce(0) { $0 + $1.amount }
+        let healing = healingEchoes.reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.amount) }
         guard healing > 0 else { return [] }
         return [EffectSummary(keyword: .health, text: "Living Archive: Restore \(healing) Health next round.")]
     }

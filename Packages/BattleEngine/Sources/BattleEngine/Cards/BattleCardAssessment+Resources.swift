@@ -21,15 +21,18 @@ extension BattleState {
             operations: branch.operations,
         )
         resources.append(contentsOf: empowermentResourceUses(ability, actor: actor, randomKeywords: branch.randomizeDamageKeywords))
-        for targeted in branch.targetedEffects where targeted.effect == .convertManaToBlock {
+        for (effectIndex, targeted) in branch.targetedEffects.enumerated() where targeted.effect == .convertManaToBlock {
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, actor: actor, in: self) {
                 continue
             }
-            let target = action.target(targeted.target, in: self)
-            let mana = mana(of: target)
-            guard mana > 0 else { continue }
-            let isCertain = damageComponents.isEmpty
-            mergeResource(resourceUse(.mana, amount: isCertain ? mana : nil, actor: target), into: &resources)
+            for (targetIndex, target) in action.targets(targeted.target, in: self).enumerated() where health(of: target) > 0 {
+                // Earlier operations and another recipient's spending reactions can change this balance.
+                let isCertain = damageComponents.isEmpty && effectIndex == 0 && targetIndex == 0
+                    && !ability.hasManaEmpowerableBurnOrFreezeDamage
+                let mana = mana(of: target)
+                guard mana > 0 || !isCertain else { continue }
+                mergeResource(resourceUse(.mana, amount: isCertain ? mana : nil, actor: target), into: &resources)
+            }
         }
         return resources
     }
