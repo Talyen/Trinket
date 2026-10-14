@@ -59,9 +59,9 @@ extension EnemyTurnTriggers {
         bleedingEnemyActionSkipChancePercent += other.bleedingEnemyActionSkipChancePercent
         extraCardDrawWhileEnemyBleeding = extraCardDrawWhileEnemyBleeding || other.extraCardDrawWhileEnemyBleeding
         extraCardDrawBelowEnemyHealthPercent = max(extraCardDrawBelowEnemyHealthPercent, other.extraCardDrawBelowEnemyHealthPercent)
-        ultimateAppliesBurnPotency += other.ultimateAppliesBurnPotency
-        onHeroHolyAbilityCompanionHolyDamage += other.onHeroHolyAbilityCompanionHolyDamage
-        onHolyDamageRestoreMana += other.onHolyDamageRestoreMana
+        ultimateAppliesBurnPotency = SaturatedArithmetic.saturatingAdd(ultimateAppliesBurnPotency, other.ultimateAppliesBurnPotency)
+        onHeroHolyAbilityCompanionHolyDamage = SaturatedArithmetic.saturatingAdd(onHeroHolyAbilityCompanionHolyDamage, other.onHeroHolyAbilityCompanionHolyDamage)
+        onHolyDamageRestoreMana = SaturatedArithmetic.saturatingAdd(onHolyDamageRestoreMana, other.onHolyDamageRestoreMana)
         burnReducesEnemyHealingAndLeechPercent += other.burnReducesEnemyHealingAndLeechPercent
     }
 }

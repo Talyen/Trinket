@@ -17,4 +17,16 @@ struct TriggerCodingTests {
         #expect(Set(persisted.keys) == ["blockPerTurn", "goldDoubledWhileFullHealth", "burnProcsBleedChancePercent"])
         #expect(try JSONDecoder().decode(CombatTraitTriggers.self, from: encoded) == expected)
     }
+
+    @Test func `saved integer trigger rewards saturate when equipment combines`() throws {
+        let data = Data("{\"blockPerTurn\":\(Int.max),\"goldPerTurn\":\(Int.max)}".utf8)
+        var decoded = try JSONDecoder().decode(CombatTraitTriggers.self, from: data)
+        let contribution = CombatTraitTriggers(
+            block: BlockTriggers(blockPerTurn: 1), gold: GoldTriggers(goldPerTurn: 1),
+        )
+        decoded.merge(contribution)
+        #expect(decoded.blockPerTurn == Int.max)
+        #expect(decoded.goldPerTurn == Int.max)
+        #expect(try JSONDecoder().decode(CombatTraitTriggers.self, from: JSONEncoder().encode(decoded)) == decoded)
+    }
 }

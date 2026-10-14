@@ -16,6 +16,8 @@ The Knight's Answer; borrowed Block does not claim the recipient's allowance.
 Incoming Block-breaking rules also apply to borrowed Block, including Corrosive
 Venom stripping its owner's Block before absorption. Its fixed strip amount is
 shared by the borrowed and recipient Block pools within one damage packet.
+Halving, decay, and costs replace an existing Block pool without granting a new
+buff; prevention of Block gains cannot erase its remainder.
 Block-breaking multipliers scale the Block points consumed after the owner's
 absorption efficiency, capped at the remaining pool; absorbed damage stays unchanged.
 Glacial Reprieve deals three Freeze damage on its owner's first Block absorption
@@ -119,6 +121,9 @@ Thorns resistance, including Briar Ward; ordinary Physical damage does not.
 Retaliatory reflection can trigger Spitebloom and earn Spiteful after positive
 Health damage, sharing Spiteful's once-per-turn allowance with a consumed Thorns stack.
 Its Physical reflection also observes Thorns resistance.
+Periodic Burn grants its damage rewards through the damage pipeline, including
+detonation and direct tick commands. Natural-turn Holy pings and Bleed detonation
+riders remain exclusive to natural ticks.
 Committed Thorns, lingering Bleed, and lingering Burn still deal damage after
 their source falls. Burn retains living allies' Ember Shield reactions, while its
 fallen source cannot earn healing, Block, or Mana rewards.

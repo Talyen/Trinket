@@ -112,7 +112,8 @@ package enum DamagePipeline {
         }
         // Full Basic counterattacks retain damage rewards without reopening counterattack retaliation.
         if !state.options.isRetaliation || state.options.isCounterattack || state.damageKeyword == .freeze
-            || (state.options.isThornsDamage && state.damageKeyword == .holy) {
+            || (state.options.isThornsDamage && state.damageKeyword == .holy)
+            || (state.options.isPeriodic && state.damageKeyword == .burn) {
             await applyKeywordReactions(to: &state, in: &context)
         }
         applyFinalCompanionHolyHitRewards(to: &state, in: &context)

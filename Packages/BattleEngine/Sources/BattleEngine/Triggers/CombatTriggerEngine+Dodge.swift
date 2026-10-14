@@ -216,6 +216,7 @@ package extension CombatTriggerEngine {
             })
         }
 
+        guard context.health(of: combatant) > 0 else { return events }
         await events.append(contentsOf: afterCompanionDodge(by: combatant, in: &context))
         return events
     }
@@ -263,8 +264,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) async -> [ActionEvent] {
         guard context.roster.health(for: combatant) > 0 else { return [] }
-        let cascadeAbility = combatant.abilityLoadout.basic
-            ?? Ability(id: "dance-of-blades", name: "Dance of Blades", tier: .basic, directDamage: 0)
+        let cascadeAbility = Ability(id: "dance-of-blades", name: "Dance of Blades", tier: .basic)
         var events: [ActionEvent] = []
         for _ in 0 ..< BattleState.maxDrawAndPlayDepth {
             let played = await DrawAndPlayCardsHandler().apply(
@@ -314,9 +314,7 @@ package extension CombatTriggerEngine {
                 options: .reaction(cause: .dodge, accuracy: .normal),
             ),
         )
-        var events = outcome.events.map { event in
-            event.keyword == keyword ? event.with(abilityName: name) : event
-        }
+        var events = outcome.events
         if outcome.healthLost > 0 {
             if outcome.isCritical {
                 context.resolution.recordCardAttackCritical(by: combatant.id)

@@ -79,7 +79,7 @@ package enum DefensePoolEngine {
         let pacedAmount = applyFightPacing
             ? (sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount)
             : amount
-        let adjustedAmount: Int = if target.role == .enemy, context.roster.hero.isAlive,
+        let adjustedAmount: Int = if applyFightPacing, target.role == .enemy, context.roster.hero.isAlive,
                                      context.roster.hasAffliction(.burn, on: target) {
             CombatRounding.scaled(
                 pacedAmount,
@@ -123,21 +123,16 @@ package enum DefensePoolEngine {
         on target: Combatant,
         in context: inout BattleState,
     ) {
+        // Replacing a retained pool is not a new gain, so buff prevention cannot erase it.
+        let effectID = amount > 0 ? context.consumeNextEffectID() : nil
         context.roster.mutateRuntime(for: target) { runtime in
-            runtime.removeEffects {
-                if case .shield = $0.effect {
-                    return true
-                }
-                return false
+            runtime.removeEffects { $0.kind == .shield }
+            if let effectID {
+                runtime.activeEffects.append(ActiveEffect(
+                    id: effectID, effect: .shield(.block, amount),
+                    remainingTurns: 0, sourceActorID: target.id,
+                ))
             }
-        }
-        if amount > 0 {
-            context.appendEffect(
-                .shield(.block, amount),
-                to: target,
-                sourceID: target.id,
-                remainingTurns: 0,
-            )
         }
     }
 

@@ -43,7 +43,6 @@ package extension BattleCardCombatEngine {
     ) async {
         guard context.turnState.beginTurnStart(opening: false) else { return }
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
-        _ = await restoreManaAtPlayerTurnStart(context: &context)
         _ = await CombatTriggerEngine.atPlayerTurnStart(in: &context)
         for owner in [BattleParticipant.hero, .companion] {
             UniqueCombatEngine.recoverStunBeforeClearing(on: context.roster[owner].combatant, in: &context)

@@ -323,7 +323,12 @@ def generate_trigger_families() -> None:
         init_assigns = "\n".join(
             f"        self.{f['name']} = {f['name']}" for f in fields
         )
-        merges = "\n".join(merge_lines[f["merge"]](f["name"]) for f in fields)
+        merges = "\n".join(
+            f"        {f['name']} = SaturatedArithmetic.saturatingAdd({f['name']}, other.{f['name']})"
+            if f["type"] == "Int" and f["merge"] == "add"
+            else merge_lines[f["merge"]](f["name"])
+            for f in fields
+        )
         decode_args = ",\n".join(
             "            {name}: values.decode({typ}.self, \"{name}\", default: {default})".format(
                 name=f["name"], typ=f["type"], default=f["default"]

@@ -78,7 +78,8 @@ Validation checks Swift identifiers, typed defaults, type-compatible merge opera
 and 64-bit `Int` bounds before rendering trigger/modifier literals.
 Fields omit conventional `default`/`merge` pairs: `Int` and `Double` use `0`/`add`,
 `Bool` uses `false`/`or`, `Keyword?` uses `nil`/`coalesce`, and `[Int]` uses
-`[]`/`union`. The loader expands these before validation and generation. Keep
+`[]`/`union`. Integer additions saturate when saved powers combine. The loader
+expands these before validation and generation. Keep
 exceptions explicit, including multiplier defaults of `1` and `max` merge rules;
 changing a convention changes combat and flat save decoding for every omitted field.
 

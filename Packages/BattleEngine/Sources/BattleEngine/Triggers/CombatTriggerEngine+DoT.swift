@@ -81,13 +81,6 @@ package extension CombatTriggerEngine {
                     in: &context,
                 ))
             }
-            // Periodic damage skips pipeline keyword reactions; dispatch its
-            // damage rewards here once, only when the tick lost Health.
-            if healthLost > 0, let source = context.roster.combatant(for: sourceActorID) {
-                await events.append(contentsOf: afterBurnDamageDealt(
-                    to: target, source: source.combatant, healthLost: healthLost, in: &context,
-                ))
-            }
         }
         return events
     }

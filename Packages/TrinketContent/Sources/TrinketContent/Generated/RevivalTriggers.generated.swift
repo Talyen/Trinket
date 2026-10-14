@@ -117,27 +117,27 @@ extension RevivalTriggers {
         undyingEmber = undyingEmber || other.undyingEmber
         borrowedLife = borrowedLife || other.borrowedLife
         onceDeathReviveHealth = max(onceDeathReviveHealth, other.onceDeathReviveHealth)
-        onceDeathReviveBlock += other.onceDeathReviveBlock
-        deathsDoorDurationBonusTurns += other.deathsDoorDurationBonusTurns
-        reviveDealBurnDamage += other.reviveDealBurnDamage
+        onceDeathReviveBlock = SaturatedArithmetic.saturatingAdd(onceDeathReviveBlock, other.onceDeathReviveBlock)
+        deathsDoorDurationBonusTurns = SaturatedArithmetic.saturatingAdd(deathsDoorDurationBonusTurns, other.deathsDoorDurationBonusTurns)
+        reviveDealBurnDamage = SaturatedArithmetic.saturatingAdd(reviveDealBurnDamage, other.reviveDealBurnDamage)
         deathsDoorDodgeAndDebuffImmunity = deathsDoorDodgeAndDebuffImmunity || other.deathsDoorDodgeAndDebuffImmunity
-        onDeathDealPhysicalDamageAllEnemies += other.onDeathDealPhysicalDamageAllEnemies
+        onDeathDealPhysicalDamageAllEnemies = SaturatedArithmetic.saturatingAdd(onDeathDealPhysicalDamageAllEnemies, other.onDeathDealPhysicalDamageAllEnemies)
         guaranteedCritWhileOnDeathsDoor = guaranteedCritWhileOnDeathsDoor || other.guaranteedCritWhileOnDeathsDoor
         deathsDoorExpiredHealFlat = max(deathsDoorExpiredHealFlat, other.deathsDoorExpiredHealFlat)
         holyDamageReviveCompanionChancePercent += other.holyDamageReviveCompanionChancePercent
-        surviveDeathsDoorPartyHealFlat += other.surviveDeathsDoorPartyHealFlat
-        onHeroFatalReviveHealth += other.onHeroFatalReviveHealth
-        enterDeathsDoorHeal += other.enterDeathsDoorHeal
-        enterDeathsDoorBurnDamage += other.enterDeathsDoorBurnDamage
+        surviveDeathsDoorPartyHealFlat = SaturatedArithmetic.saturatingAdd(surviveDeathsDoorPartyHealFlat, other.surviveDeathsDoorPartyHealFlat)
+        onHeroFatalReviveHealth = SaturatedArithmetic.saturatingAdd(onHeroFatalReviveHealth, other.onHeroFatalReviveHealth)
+        enterDeathsDoorHeal = SaturatedArithmetic.saturatingAdd(enterDeathsDoorHeal, other.enterDeathsDoorHeal)
+        enterDeathsDoorBurnDamage = SaturatedArithmetic.saturatingAdd(enterDeathsDoorBurnDamage, other.enterDeathsDoorBurnDamage)
         surviveDeathsDoorNextAttackDouble = surviveDeathsDoorNextAttackDouble || other.surviveDeathsDoorNextAttackDouble
         deathsDoorIncomingDamageMultiplier *= other.deathsDoorIncomingDamageMultiplier
         deathsDoorNegativeStatusImmune = deathsDoorNegativeStatusImmune || other.deathsDoorNegativeStatusImmune
-        onAllyDeathsDoorRestoreHealth += other.onAllyDeathsDoorRestoreHealth
+        onAllyDeathsDoorRestoreHealth = SaturatedArithmetic.saturatingAdd(onAllyDeathsDoorRestoreHealth, other.onAllyDeathsDoorRestoreHealth)
         firstAllyFatalIntercept = firstAllyFatalIntercept || other.firstAllyFatalIntercept
         deathsDoorCriticalChanceBonus += other.deathsDoorCriticalChanceBonus
         enterDeathsDoorDrawCard = enterDeathsDoorDrawCard || other.enterDeathsDoorDrawCard
-        surviveDeathsDoorPartyBlockFlat += other.surviveDeathsDoorPartyBlockFlat
-        affixDeathsDoorSurviveHealFlat += other.affixDeathsDoorSurviveHealFlat
+        surviveDeathsDoorPartyBlockFlat = SaturatedArithmetic.saturatingAdd(surviveDeathsDoorPartyBlockFlat, other.surviveDeathsDoorPartyBlockFlat)
+        affixDeathsDoorSurviveHealFlat = SaturatedArithmetic.saturatingAdd(affixDeathsDoorSurviveHealFlat, other.affixDeathsDoorSurviveHealFlat)
     }
 }
 

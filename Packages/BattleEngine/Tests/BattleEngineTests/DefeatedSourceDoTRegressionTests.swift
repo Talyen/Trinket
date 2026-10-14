@@ -5,15 +5,16 @@ import TrinketCore
 @testable import BattleEngine
 
 struct DefeatedSourceDoTRegressionTests {
-    @Test(arguments: [false, true])
-    func `lingering Burn rewards only its living source while preserving ally reactions`(survives: Bool) {
+    @Test(arguments: [false, true], [false, true])
+    func `lingering Burn rewards only its living source while preserving ally reactions`(survives: Bool, detonates: Bool) {
         var profile = CombatModifierProfile.zero
+        profile.triggers.criticalChanceBonus = -1
         profile.triggers.onBurnDamageHealLowestAllyFlat = 2
         profile.triggers.onBurnDamageGainBlock = 3
         profile.triggers.onBurnDamageRestoreManaFlat = 1
         var companionProfile = CombatModifierProfile.zero
         companionProfile.triggers.onAllyBurnDamageGainBlock = 1
-        let burn = ActiveEffect(id: 100, effect: .burn(6), remainingTurns: 0, sourceActorID: "hero")
+        let burn = ActiveEffect(id: 100, effect: .burn(8), remainingTurns: 0, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 3),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
@@ -21,13 +22,51 @@ struct DefeatedSourceDoTRegressionTests {
             heroMana: 0, heroModifiers: profile, companionModifiers: companionProfile, appliesFightPacing: false,
         )
 
-        _ = CombatExecutor.run { await EffectHandlers.handler(for: .burn).advanceTurn(burn, on: battle.enemy, in: &battle) }
+        if detonates {
+            _ = EffectHandlersTestSupport.dispatch(
+                .detonateDoT(.burn, 1), source: battle.hero, target: battle.enemy, battle: &battle,
+            )
+        } else {
+            _ = CombatExecutor.run { await EffectHandlers.handler(for: .burn).advanceTurn(burn, on: battle.enemy, in: &battle) }
+        }
 
-        #expect(battle.health(of: battle.enemy) == 97)
-        #expect(battle.health(of: battle.companion) == (survives ? 7 : 5))
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == (survives ? 3 : 0))
-        #expect(battle.mana(of: battle.hero) == (survives ? 1 : 0))
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == 1)
+        let packets = detonates ? 3 : 1
+        #expect(battle.health(of: battle.enemy) == (detonates ? 93 : 96))
+        #expect(battle.health(of: battle.companion) == (survives ? 5 + 2 * packets : 5))
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == (survives ? 3 * packets : 0))
+        #expect(battle.mana(of: battle.hero) == (survives ? packets : 0))
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == packets)
+    }
+
+    @Test(arguments: [false, true])
+    func `Burn damage rewards do not replay natural turn riders`(detonates: Bool) {
+        let burn = ActiveEffect(id: 100, effect: .burn(8), remainingTurns: 0, sourceActorID: "hero")
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxMana: 10),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            enemyEffects: [burn], heroMana: 0,
+            heroModifiers: .withTriggers {
+                $0.onBurnDamageRestoreManaFlat = 1
+                $0.onBurnTickHolyDamage = 5
+                $0.onBurnDamageDetonateBleed = true
+            }, appliesFightPacing: false,
+        )
+        battle.appendEffect(.bleed(4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 1)
+
+        if detonates {
+            _ = EffectHandlersTestSupport.dispatch(
+                .detonateDoT(.burn, 1), source: battle.hero, target: battle.enemy, battle: &battle,
+            )
+            #expect(battle.health(of: battle.enemy) == 93)
+            #expect(battle.mana(of: battle.hero) == 3)
+        } else {
+            _ = battle.resolveDamage(.doTTick(
+                amount: 4, target: battle.enemy, keyword: .burn, sourceActorID: battle.hero.id,
+            ))
+            #expect(battle.health(of: battle.enemy) == 96)
+            #expect(battle.mana(of: battle.hero) == 1)
+        }
+        #expect(CombatTriggerEngine.totalPotency(of: .bleed, on: battle.enemy, in: battle) == 4)
     }
 
     @Test(arguments: [false, true])

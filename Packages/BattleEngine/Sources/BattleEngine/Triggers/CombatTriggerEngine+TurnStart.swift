@@ -39,6 +39,10 @@ package extension CombatTriggerEngine {
                 $0.talents.timed.lingeringBlessing = blessing.turnsRemaining > 0 ? blessing : nil
             }
         }
+        if context.turnCount > 0 {
+            await events.append(contentsOf: BattleCardCombatEngine.restoreManaAtPlayerTurnStart(context: &context))
+        }
+        guard !context.isBattleOver else { return events }
         await events.append(contentsOf: HealingEngine.resolveHealingEchoes(in: &context))
         guard !context.isBattleOver else { return events }
         await events.append(contentsOf: cleanseTeamIfNeeded(in: &context))

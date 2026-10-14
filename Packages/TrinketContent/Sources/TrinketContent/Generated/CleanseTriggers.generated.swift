@@ -172,22 +172,22 @@ extension CleanseTriggers {
     mutating func merge(_ other: Self) {
         interdict = interdict || other.interdict
         lessonLearned = lessonLearned || other.lessonLearned
-        cleanseBonusDraw += other.cleanseBonusDraw
-        holyDamageCleanseCount += other.holyDamageCleanseCount
-        holyDamagePurgeCount += other.holyDamagePurgeCount
+        cleanseBonusDraw = SaturatedArithmetic.saturatingAdd(cleanseBonusDraw, other.cleanseBonusDraw)
+        holyDamageCleanseCount = SaturatedArithmetic.saturatingAdd(holyDamageCleanseCount, other.holyDamageCleanseCount)
+        holyDamagePurgeCount = SaturatedArithmetic.saturatingAdd(holyDamagePurgeCount, other.holyDamagePurgeCount)
         holyDamagePurgeAll = holyDamagePurgeAll || other.holyDamagePurgeAll
-        cleanseBlockPerStack += other.cleanseBlockPerStack
+        cleanseBlockPerStack = SaturatedArithmetic.saturatingAdd(cleanseBlockPerStack, other.cleanseBlockPerStack)
         cleanseAffectsBothHeroAndCompanion = cleanseAffectsBothHeroAndCompanion || other.cleanseAffectsBothHeroAndCompanion
         cleanseReflectDebuffToEnemy = cleanseReflectDebuffToEnemy || other.cleanseReflectDebuffToEnemy
-        autoCleanseTeamPerTurn += other.autoCleanseTeamPerTurn
-        cleanseAlsoPurgesEnemyBuffs += other.cleanseAlsoPurgesEnemyBuffs
+        autoCleanseTeamPerTurn = SaturatedArithmetic.saturatingAdd(autoCleanseTeamPerTurn, other.autoCleanseTeamPerTurn)
+        cleanseAlsoPurgesEnemyBuffs = SaturatedArithmetic.saturatingAdd(cleanseAlsoPurgesEnemyBuffs, other.cleanseAlsoPurgesEnemyBuffs)
         cleanseDodgeChanceBonus += other.cleanseDodgeChanceBonus
         cleanseDodgeChanceBonusTurns = max(cleanseDodgeChanceBonusTurns, other.cleanseDodgeChanceBonusTurns)
-        cleansePartyBlock += other.cleansePartyBlock
+        cleansePartyBlock = SaturatedArithmetic.saturatingAdd(cleansePartyBlock, other.cleansePartyBlock)
         blockFirstDebuffPerTurn = blockFirstDebuffPerTurn || other.blockFirstDebuffPerTurn
         partyDebuffDurationHalved = partyDebuffDurationHalved || other.partyDebuffDurationHalved
         purifyingAura = purifyingAura || other.purifyingAura
-        onCleansePoisonDealDamagePerStack += other.onCleansePoisonDealDamagePerStack
+        onCleansePoisonDealDamagePerStack = SaturatedArithmetic.saturatingAdd(onCleansePoisonDealDamagePerStack, other.onCleansePoisonDealDamagePerStack)
         crownfall = crownfall || other.crownfall
         clearSolution = clearSolution || other.clearSolution
         freshBatch = freshBatch || other.freshBatch
@@ -200,14 +200,14 @@ extension CleanseTriggers {
         cleanseNextAttackCriticalBonus += other.cleanseNextAttackCriticalBonus
         cleansePurgeChancePercent += other.cleansePurgeChancePercent
         cleanseRemovesFreezeBuildup = cleanseRemovesFreezeBuildup || other.cleanseRemovesFreezeBuildup
-        cleanseTargetBlockFlat += other.cleanseTargetBlockFlat
-        firstCleanseExtraRemovalPerTurn += other.firstCleanseExtraRemovalPerTurn
-        cleanseSelfBlockFlat += other.cleanseSelfBlockFlat
-        onCleanseRestoreMana += other.onCleanseRestoreMana
-        onPurgeGainBlock += other.onPurgeGainBlock
-        onPurgeDealHolyDamage += other.onPurgeDealHolyDamage
+        cleanseTargetBlockFlat = SaturatedArithmetic.saturatingAdd(cleanseTargetBlockFlat, other.cleanseTargetBlockFlat)
+        firstCleanseExtraRemovalPerTurn = SaturatedArithmetic.saturatingAdd(firstCleanseExtraRemovalPerTurn, other.firstCleanseExtraRemovalPerTurn)
+        cleanseSelfBlockFlat = SaturatedArithmetic.saturatingAdd(cleanseSelfBlockFlat, other.cleanseSelfBlockFlat)
+        onCleanseRestoreMana = SaturatedArithmetic.saturatingAdd(onCleanseRestoreMana, other.onCleanseRestoreMana)
+        onPurgeGainBlock = SaturatedArithmetic.saturatingAdd(onPurgeGainBlock, other.onPurgeGainBlock)
+        onPurgeDealHolyDamage = SaturatedArithmetic.saturatingAdd(onPurgeDealHolyDamage, other.onPurgeDealHolyDamage)
         purgeDrawBelowHalf = purgeDrawBelowHalf || other.purgeDrawBelowHalf
-        cleanseHolyDamage += other.cleanseHolyDamage
+        cleanseHolyDamage = SaturatedArithmetic.saturatingAdd(cleanseHolyDamage, other.cleanseHolyDamage)
     }
 }
 

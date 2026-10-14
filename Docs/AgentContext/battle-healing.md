@@ -4,8 +4,10 @@ Use with [engine ownership](battle-engine.md) for healing, overflow, bounded gai
 
 `HealingResult` carries `HealingAllocation`: resolved healing, direct restoration,
 transferred overflow, maximum-Health and Block allocations, and unspent overflow.
-Each consuming consequence allocates from the remainder, including Soul Drain's
-resolved Mana conversion after partner sharing. Barrier Blessing converts
+Each consuming consequence allocates from the remainder. Block conversions spend
+only accepted Block, preserving rejected or capacity-limited overflow for later
+consequences. Soul Drain likewise allocates its resolved Mana conversion after
+partner sharing. Barrier Blessing converts
 the healer's remaining excess to recipient resolved Block, without repeating Block bonuses or fight pacing. Reclaimed Reagents converts half
 instead; full conversion takes precedence when both apply.
 Transfers offer at most the recipient's missing Health so nested healing cannot convert overflow already

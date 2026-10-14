@@ -122,12 +122,12 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
 
 extension MitigationTriggers {
     mutating func merge(_ other: Self) {
-        passiveMitigationFlat += other.passiveMitigationFlat
-        passivePhysicalMitigationFlat += other.passivePhysicalMitigationFlat
+        passiveMitigationFlat = SaturatedArithmetic.saturatingAdd(passiveMitigationFlat, other.passiveMitigationFlat)
+        passivePhysicalMitigationFlat = SaturatedArithmetic.saturatingAdd(passivePhysicalMitigationFlat, other.passivePhysicalMitigationFlat)
         thornsPercent += other.thornsPercent
         bleedResistance += other.bleedResistance
-        frozenEnemyDamageReductionFlat += other.frozenEnemyDamageReductionFlat
-        bleedingEnemyDamageReductionFlat += other.bleedingEnemyDamageReductionFlat
+        frozenEnemyDamageReductionFlat = SaturatedArithmetic.saturatingAdd(frozenEnemyDamageReductionFlat, other.frozenEnemyDamageReductionFlat)
+        bleedingEnemyDamageReductionFlat = SaturatedArithmetic.saturatingAdd(bleedingEnemyDamageReductionFlat, other.bleedingEnemyDamageReductionFlat)
         stunnedEnemyNextTurnDamageMultiplier *= other.stunnedEnemyNextTurnDamageMultiplier
         enemyBleedStacksDamageReductionStacks = max(enemyBleedStacksDamageReductionStacks, other.enemyBleedStacksDamageReductionStacks)
         enemyBleedStacksDamageReductionPercent += other.enemyBleedStacksDamageReductionPercent
@@ -135,15 +135,15 @@ extension MitigationTriggers {
         poisonedEnemyMissChancePercent += other.poisonedEnemyMissChancePercent
         subzeroMist = subzeroMist || other.subzeroMist
         blindingLight = blindingLight || other.blindingLight
-        holyDamageReduceTargetDamage += other.holyDamageReduceTargetDamage
-        bleedingEnemyAttackDealDamage += other.bleedingEnemyAttackDealDamage
-        onAllyDamageHeal += other.onAllyDamageHeal
+        holyDamageReduceTargetDamage = SaturatedArithmetic.saturatingAdd(holyDamageReduceTargetDamage, other.holyDamageReduceTargetDamage)
+        bleedingEnemyAttackDealDamage = SaturatedArithmetic.saturatingAdd(bleedingEnemyAttackDealDamage, other.bleedingEnemyAttackDealDamage)
+        onAllyDamageHeal = SaturatedArithmetic.saturatingAdd(onAllyDamageHeal, other.onAllyDamageHeal)
         damageReductionPerUnspentManaEvery = max(damageReductionPerUnspentManaEvery, other.damageReductionPerUnspentManaEvery)
-        toughnessOnHit += other.toughnessOnHit
+        toughnessOnHit = SaturatedArithmetic.saturatingAdd(toughnessOnHit, other.toughnessOnHit)
         toughnessOnHitCap = max(toughnessOnHitCap, other.toughnessOnHitCap)
         blockedControlBurnResistance += other.blockedControlBurnResistance
         afflictionResistance += other.afflictionResistance
-        burningEnemyDamageReductionFlat += other.burningEnemyDamageReductionFlat
+        burningEnemyDamageReductionFlat = SaturatedArithmetic.saturatingAdd(burningEnemyDamageReductionFlat, other.burningEnemyDamageReductionFlat)
         blockHalvesDoTDamage = blockHalvesDoTDamage || other.blockHalvesDoTDamage
         bleedingEnemyOutgoingDamageMultiplier *= other.bleedingEnemyOutgoingDamageMultiplier
         verdantShelterDamageMultiplier *= other.verdantShelterDamageMultiplier

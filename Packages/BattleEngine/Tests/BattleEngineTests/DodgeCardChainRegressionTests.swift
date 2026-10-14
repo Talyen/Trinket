@@ -59,9 +59,11 @@ struct DodgeCardChainRegressionTests {
         }
     }
 
-    @Test func `a defeated dance of blades owner cannot grant Tailwind afterward`() {
+    @Test(arguments: [false, true])
+    func `a defeated automatic Dodge attacker cannot grant Tailwind afterward`(phantomCounter: Bool) {
         var profile = CombatantTalentCatalog.profile(for: ["frost_whelp_dodge_t1_2"])
-        profile.triggers.onDodgeDrawAndPlayCardChainOnCrit = true
+        profile.triggers.onDodgeDrawAndPlayCardChainOnCrit = !phantomCounter
+        profile.triggers.phantomCounter = phantomCounter
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: 1,
@@ -80,5 +82,24 @@ struct DodgeCardChainRegressionTests {
         #expect(battle.health(of: battle.enemy) < 100)
         #expect(battle.heroDeck.abilities.map(\.id) == [Ability.block.id])
         #expect(!events.contains { $0.abilityName == "Tailwind" })
+    }
+
+    @Test func `Dance of Blades draws its wearers card even with Pack Tactics equipped`() {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.onDodgeDrawAndPlayCardChainOnCrit = true
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.packTactics], heroModifiers: profile,
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        battle.heroDeck = CombatDeck(abilities: [.slash])
+        battle.companionDeck = CombatDeck(abilities: [.block])
+
+        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+            by: battle.hero, attackerID: battle.enemy.id, in: &battle,
+        ) }
+
+        #expect(events.contains { $0.abilityID == Ability.slash.id && $0.kind == .abilityDamage })
+        #expect(battle.companionDeck.abilities.map(\.id) == [Ability.block.id])
+        #expect(battle.heroDeck.abilities.isEmpty)
     }
 }

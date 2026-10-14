@@ -133,28 +133,32 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         blockGainedPercent += other.blockGainedPercent
         companionDamageDealtPercent += other.companionDamageDealtPercent
         rangedDamageDealtPercent += other.rangedDamageDealtPercent
-        maximumHealthBonus += other.maximumHealthBonus
-        maximumManaBonus += other.maximumManaBonus
-        criticalDamageBonus += other.criticalDamageBonus
-        manaRestoredBonus += other.manaRestoredBonus
-        damageDealtBonus.merge(other.damageDealtBonus, uniquingKeysWith: +)
+        maximumHealthBonus = SaturatedArithmetic.saturatingAdd(maximumHealthBonus, other.maximumHealthBonus)
+        maximumManaBonus = SaturatedArithmetic.saturatingAdd(maximumManaBonus, other.maximumManaBonus)
+        criticalDamageBonus = SaturatedArithmetic.saturatingAdd(criticalDamageBonus, other.criticalDamageBonus)
+        manaRestoredBonus = SaturatedArithmetic.saturatingAdd(manaRestoredBonus, other.manaRestoredBonus)
+        damageDealtBonus.merge(other.damageDealtBonus, uniquingKeysWith: SaturatedArithmetic.saturatingAdd)
         poisonDamageDealtPercent += other.poisonDamageDealtPercent
-        healthRestoredBonus += other.healthRestoredBonus
+        healthRestoredBonus = SaturatedArithmetic.saturatingAdd(healthRestoredBonus, other.healthRestoredBonus)
         leechGainedBonus += other.leechGainedBonus
-        leechHealingBonus += other.leechHealingBonus
-        goldGainedBonus += other.goldGainedBonus
+        leechHealingBonus = SaturatedArithmetic.saturatingAdd(leechHealingBonus, other.leechHealingBonus)
+        goldGainedBonus = SaturatedArithmetic.saturatingAdd(goldGainedBonus, other.goldGainedBonus)
         goldGainedPercent += other.goldGainedPercent
-        blockGainedBonus += other.blockGainedBonus
-        bleedDurationBonus += other.bleedDurationBonus
+        blockGainedBonus = SaturatedArithmetic.saturatingAdd(blockGainedBonus, other.blockGainedBonus)
+        bleedDurationBonus = SaturatedArithmetic.saturatingAdd(bleedDurationBonus, other.bleedDurationBonus)
         damageTakenReduction.merge(other.damageTakenReduction, uniquingKeysWith: +)
-        damageTakenFlat.merge(other.damageTakenFlat, uniquingKeysWith: +)
+        damageTakenFlat.merge(other.damageTakenFlat, uniquingKeysWith: SaturatedArithmetic.saturatingAdd)
         damageTakenVulnerability.merge(other.damageTakenVulnerability, uniquingKeysWith: +)
-        companionDamageDealtBonus += other.companionDamageDealtBonus
-        companionPhysicalDamageDealtBonus += other.companionPhysicalDamageDealtBonus
-        companionBleedDamageDealtBonus += other.companionBleedDamageDealtBonus
+        companionDamageDealtBonus = SaturatedArithmetic.saturatingAdd(companionDamageDealtBonus, other.companionDamageDealtBonus)
+        companionPhysicalDamageDealtBonus = SaturatedArithmetic.saturatingAdd(
+            companionPhysicalDamageDealtBonus, other.companionPhysicalDamageDealtBonus,
+        )
+        companionBleedDamageDealtBonus = SaturatedArithmetic.saturatingAdd(
+            companionBleedDamageDealtBonus, other.companionBleedDamageDealtBonus,
+        )
         outgoingDamagePercent += other.outgoingDamagePercent
         incomingDamageReductionPercent += other.incomingDamageReductionPercent
-        rangedDamageDealtBonus += other.rangedDamageDealtBonus
+        rangedDamageDealtBonus = SaturatedArithmetic.saturatingAdd(rangedDamageDealtBonus, other.rangedDamageDealtBonus)
         maximumManaPercentBonus += other.maximumManaPercentBonus
         triggers.merge(other.triggers)
         triggerAbilityNames.merge(other.triggerAbilityNames) { existing, _ in existing }
@@ -176,9 +180,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         case let .maximumHealthPercent(amount):
             maximumHealthPercentBonus += amount
         case let .maximumHealth(amount):
-            maximumHealthBonus += amount
+            maximumHealthBonus = SaturatedArithmetic.saturatingAdd(maximumHealthBonus, amount)
         case let .maximumMana(amount):
-            maximumManaBonus += amount
+            maximumManaBonus = SaturatedArithmetic.saturatingAdd(maximumManaBonus, amount)
         case let .damageDealtPercent(keyword, amount):
             damageDealtPercents[keyword, default: 0] += amount
         case let .criticalDamagePercent(amount):
@@ -196,37 +200,37 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         case let .rangedDamageDealtPercent(amount):
             rangedDamageDealtPercent += amount
         case let .damageDealt(keyword, amount):
-            damageDealtBonus[keyword, default: 0] += amount
+            damageDealtBonus[keyword] = SaturatedArithmetic.saturatingAdd(damageDealtBonus[keyword, default: 0], amount)
         case let .poisonDamageDealtPercent(amount):
             poisonDamageDealtPercent += amount
         case let .criticalDamage(amount):
-            criticalDamageBonus += amount
+            criticalDamageBonus = SaturatedArithmetic.saturatingAdd(criticalDamageBonus, amount)
         case let .manaRestored(amount):
-            manaRestoredBonus += amount
+            manaRestoredBonus = SaturatedArithmetic.saturatingAdd(manaRestoredBonus, amount)
         case let .healthRestored(amount):
-            healthRestoredBonus += amount
+            healthRestoredBonus = SaturatedArithmetic.saturatingAdd(healthRestoredBonus, amount)
         case let .leechGainedPercent(amount):
             leechGainedBonus += amount
         case let .leechHealing(amount):
-            leechHealingBonus += amount
+            leechHealingBonus = SaturatedArithmetic.saturatingAdd(leechHealingBonus, amount)
         case let .goldGained(amount):
-            goldGainedBonus += amount
+            goldGainedBonus = SaturatedArithmetic.saturatingAdd(goldGainedBonus, amount)
         case let .goldGainedPercent(amount):
             goldGainedPercent += amount
         case let .blockGained(amount):
-            blockGainedBonus += amount
+            blockGainedBonus = SaturatedArithmetic.saturatingAdd(blockGainedBonus, amount)
         case let .damageTakenPercent(keyword, amount):
             damageTakenReduction[keyword, default: 0] += amount
         case let .damageTakenFlat(keyword, amount):
-            damageTakenFlat[keyword, default: 0] += amount
+            damageTakenFlat[keyword] = SaturatedArithmetic.saturatingAdd(damageTakenFlat[keyword, default: 0], amount)
         case let .damageTakenVulnerability(keyword, amount):
             damageTakenVulnerability[keyword, default: 0] += amount
         case let .companionDamageDealt(amount):
-            companionDamageDealtBonus += amount
+            companionDamageDealtBonus = SaturatedArithmetic.saturatingAdd(companionDamageDealtBonus, amount)
         case let .companionPhysicalDamageDealt(amount):
-            companionPhysicalDamageDealtBonus += amount
+            companionPhysicalDamageDealtBonus = SaturatedArithmetic.saturatingAdd(companionPhysicalDamageDealtBonus, amount)
         case let .companionBleedDamageDealt(amount):
-            companionBleedDamageDealtBonus += amount
+            companionBleedDamageDealtBonus = SaturatedArithmetic.saturatingAdd(companionBleedDamageDealtBonus, amount)
         case let .outgoingDamagePercent(amount):
             outgoingDamagePercent += amount
         case let .incomingDamageReductionPercent(amount):
@@ -234,19 +238,19 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         case let .dodgeChanceBonus(amount):
             triggers.dodgeChanceBonus += amount
         case let .rangedDamageDealt(amount):
-            rangedDamageDealtBonus += amount
+            rangedDamageDealtBonus = SaturatedArithmetic.saturatingAdd(rangedDamageDealtBonus, amount)
         case let .maximumManaPercent(amount):
             maximumManaPercentBonus += amount
         case let .startBattleBlock(amount):
-            triggers.startBattleBlock += amount
+            triggers.startBattleBlock = SaturatedArithmetic.saturatingAdd(triggers.startBattleBlock, amount)
         case let .attackLeechPercent(amount):
             triggers.attackLeechPercent += amount
         case let .attackBlockRemoval(amount):
-            triggers.attackBlockRemoval += amount
+            triggers.attackBlockRemoval = SaturatedArithmetic.saturatingAdd(triggers.attackBlockRemoval, amount)
         case let .attackPurgeCount(count):
-            triggers.attackPurgeCount += count
+            triggers.attackPurgeCount = SaturatedArithmetic.saturatingAdd(triggers.attackPurgeCount, count)
         case let .bleedDuration(amount):
-            bleedDurationBonus += amount
+            bleedDurationBonus = SaturatedArithmetic.saturatingAdd(bleedDurationBonus, amount)
         }
     }
 

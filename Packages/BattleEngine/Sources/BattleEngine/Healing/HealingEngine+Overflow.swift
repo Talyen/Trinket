@@ -86,14 +86,15 @@ extension HealingEngine {
         var events: [ActionEvent] = []
         convertOverhealToMaximumHealth(conversion, target: request.target, allocation: &allocation, in: &context)
         if conversion.overhealConvertsToBlock, allocation.remaining > 0 {
-            let converted = allocation.allocate(allocation.remaining, to: .block)
-            events.append(contentsOf: context.applyBlock(
-                converted,
+            let gain = context.applyBlockGain(
+                allocation.remaining,
                 to: request.target,
                 source: blockSource,
                 abilityName: "Barrier Blessing",
                 amountBasis: .resolved,
-            ))
+            )
+            allocation.allocate(gain.applied, to: .block)
+            events.append(contentsOf: gain.events)
         } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealFirstBlockPerTurn > 0,
                   allocation.remaining > 0,
                   context.claimTurnGuard(
@@ -115,8 +116,8 @@ extension HealingEngine {
                 in: &context,
             ))
         } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealShieldCap > 0 {
-            let shield = allocation.allocate(conversion.overhealShieldCap, to: .block)
-            events.append(contentsOf: context.applyBlock(
+            let shield = min(allocation.remaining, conversion.overhealShieldCap)
+            let gain = context.applyBlockGain(
                 shield,
                 to: request.target,
                 source: request.target,
@@ -124,7 +125,9 @@ extension HealingEngine {
                     .overhealShieldCap,
                     fallback: "Reclaimed Reagents",
                 ),
-            ))
+            )
+            allocation.allocate(min(shield, gain.applied), to: .block)
+            events.append(contentsOf: gain.events)
         }
         return events
     }
@@ -150,18 +153,17 @@ extension HealingEngine {
         percent: Double,
         in context: inout BattleState,
     ) -> [ActionEvent] {
-        let shield = allocation.allocate(
-            CombatRounding.scaled(allocation.remaining, multiplier: percent),
-            to: .block,
-        )
+        let shield = min(allocation.remaining, CombatRounding.scaled(allocation.remaining, multiplier: percent))
         guard shield > 0 else { return [] }
-        return context.applyBlock(
+        let gain = context.applyBlockGain(
             shield,
             to: target,
             source: source,
             abilityName: "Reclaimed Reagents",
             amountBasis: .resolved,
         )
+        allocation.allocate(gain.applied, to: .block)
+        return gain.events
     }
 
     private static func convertOverhealToMaximumHealth(
@@ -284,14 +286,14 @@ extension HealingEngine {
         if request.origin == .leech, sourceTriggers?.marrowmend == true,
            request.sourceActorID == request.target.id,
            context.claimHeroTalent(.marrowmend, actorID: request.target.id) {
-            let converted = allocation.allocate(
-                CombatRounding.scaled(allocation.remaining, multiplier: 0.5), to: .block,
-            )
+            let converted = CombatRounding.scaled(allocation.remaining, multiplier: 0.5)
             if converted > 0 {
-                events.append(contentsOf: context.applyBlock(
+                let gain = context.applyBlockGain(
                     converted, to: request.target, source: request.target,
                     abilityName: "Marrowmend", amountBasis: .resolved,
-                ))
+                )
+                allocation.allocate(gain.applied, to: .block)
+                events.append(contentsOf: gain.events)
             }
         }
         if request.origin == .leech,
