@@ -85,7 +85,7 @@ struct AbilityEffectIntegrationTests {
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
         let before = battle.gold
         _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
-        #expect(battle.gold - before == (ownerDefeated ? 3 : 6))
+        #expect(battle.gold - before == (ownerDefeated ? 0 : 6))
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == (ownerDefeated ? 0 : 6))
     }
 

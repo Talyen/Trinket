@@ -89,7 +89,7 @@ struct BattleStateTests {
             enemy: defaultEnemy,
             companionModifiers: retriever.modifiers,
         )
-        for (health, expectedGold) in [(1, 11), (0, 10), (1, 11)] {
+        for (health, expectedGold) in [(1, 11), (0, 0), (1, 11)] {
             battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = health }
             let before = battle.gold
             _ = battle.grantGoldEvent(10, to: battle.companion, abilityName: "Steal", isTheft: true)

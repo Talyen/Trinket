@@ -6,15 +6,16 @@ import TrinketCore
 struct PreparedMagnitudeBoundaryTests {
     @Test(arguments: [false, true])
     func `Mana empowerment saturates bonuses and doubled damage`(maximumBonus: Bool) {
-        var profile = CombatModifierProfile.withTriggers {
+        let profile = CombatModifierProfile.withTriggers {
             $0.manaEmpoweredAttackDoubleChancePercent = 1
             $0.empowermentDamageBonus = maximumBonus ? Int.max : 0
             $0.empowerFreezeDamageBonus = maximumBonus ? Int.max : 0
             $0.flashFreeze = maximumBonus
         }
-        profile.maximumManaBonus = 3
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
-        battle.roster.hero.currentMana = 3
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroMaxMana: 3, heroMana: 3, heroModifiers: profile,
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
         var ability = Ability(
             id: "empower-boundary", name: "Empower", tier: .skill,
             damageComponents: [DamageComponent(Int.max / 2 + 1, keyword: .freeze, bonusAmount: Int.max / 2 + 1)],
