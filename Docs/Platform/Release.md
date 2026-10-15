@@ -361,18 +361,23 @@ progress, or completion broadcasts or repeatedly poll peers. After completion,
 stop. Do not message, poll, or wake completed chats unless explicitly asked by the
 user to resume them; unsolicited routine messages do not reopen a task.
 
-Successful integration automatically archives and unregisters only the invoking
-task worktree under the same integration lock. Cleanup rechecks its registration,
+Successful integration automatically deletes and unregisters only the invoking
+task worktree under the same integration lock, including ignored files and build
+outputs. Cleanup rechecks its registration,
 branch, commit, clean state and Git operation state; locked worktrees and submodules
 are preserved. A failed handoff never cleans up. Cleanup failure reports after the
 completed integration; it does not roll main back.
 
-The entire checkout moves atomically to `~/.codex/worktree-archives/Trinket/`,
-including ignored assets, outputs and release state. The task branch is retained;
-`recovery.json` records its original path, branch and commit. Restore with
-`git worktree add <original-path> <branch>`, then copy needed archived files.
-Archives do not expire automatically. `CODEX_WORKTREE_ARCHIVE_ROOT` may select an
-external directory; a cross-filesystem move fails without deleting the source.
+The checkout first moves atomically to a temporary directory under
+`~/.codex/worktree-archives/Trinket/` so failed unregistration can restore it.
+After unregistration, the temporary directory is deleted immediately; successful
+integration retains no archived checkout or build output. The task branch remains
+available through `git worktree add <original-path> <branch>`; ignored and other
+local-only files are permanently deleted. Use `--keep-worktree` when those files
+are still needed. `CODEX_WORKTREE_ARCHIVE_ROOT` can select an external staging
+directory; a cross-filesystem move fails without deleting the source. If cleanup
+fails after integration, inspect the reported checkout or staging directory;
+`recovery.json` records the original path, branch and commit.
 
 Pass `node Scripts/agent-worktree.mjs integrate --keep-worktree` for intermediate
 integration when requested work, a preview or an experiment still needs the checkout.

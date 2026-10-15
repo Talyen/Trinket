@@ -156,17 +156,18 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         self.assert_stopped(other, main)
         self.assertEqual((self.root / 'local-only').read_text(), 'main evidence')
 
-    def test_automatic_cleanup_archives_ignored_evidence_and_preserves_peer(self) -> None:
+    def test_automatic_cleanup_deletes_local_outputs_and_preserves_peer(self) -> None:
         task = self.task('task')
         peer = self.task('peer')
-        (task / 'ignored').write_text('local evidence')
+        (task / 'ignored').mkdir()
+        (task / 'ignored/build-output').write_text('rebuildable')
+        (task / 'ignored/peer').symlink_to(peer, target_is_directory=True)
         (peer / 'unfinished').write_text('peer work')
         result = self.helper(task, 'integrate')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertFalse(task.exists())
-        snapshots = list(self.archive.glob('*/checkout/ignored'))
-        self.assertEqual(len(snapshots), 1)
-        self.assertEqual(snapshots[0].read_text(), 'local evidence')
+        self.assertEqual(list(self.archive.iterdir()), [])
+        self.assertNotIn(str(task), self.git(self.root, 'worktree', 'list', '--porcelain'))
         self.assertEqual((peer / 'unfinished').read_text(), 'peer work')
         self.git(self.root, 'show-ref', '--verify', 'refs/heads/codex/task')
 

@@ -10,6 +10,7 @@ import subprocess
 import sys
 import json
 import tempfile
+import shutil
 
 
 def git(root: Path, *args: str) -> str:
@@ -34,7 +35,7 @@ def preserve_ignored(root: Path, incoming: str) -> None:
 
 
 
-def archive_worktree(source: Path, target: Path, branch: str, head: str) -> None:
+def remove_integrated_worktree(source: Path, target: Path, branch: str, head: str) -> None:
     records = git(target, "worktree", "list", "--porcelain", "-z").split("\0\0")
     record = next((r.split("\0") for r in records if "worktree " + str(source) in r.split("\0")), [])
     if (source == target or source.is_symlink() or "branch refs/heads/" + branch not in record
@@ -54,8 +55,8 @@ def archive_worktree(source: Path, target: Path, branch: str, head: str) -> None
     recovery = Path(tempfile.mkdtemp(prefix=branch.replace('/', '-') + '-', dir=archive_root))
     (recovery / 'recovery.json').write_text(json.dumps(dict(main=str(target), task=str(source), branch=branch, head=head), indent=2))
     checkout = recovery / 'checkout'
-    # Rename retains ignored evidence and late writes without copying/deleting the
-    # source. Unregister only this missing path; never prune peers or use --force.
+    # Stage the checkout so failed unregistration can restore it. Delete only
+    # after Git releases this registration; never prune peers or use --force.
     os.chdir(target)
     source.rename(checkout)
     try:
@@ -65,7 +66,8 @@ def archive_worktree(source: Path, target: Path, branch: str, head: str) -> None
             checkout.rename(source)
         raise
     (checkout / '.git').unlink()
-    print(f'Archived completed worktree to {recovery}; retained branch {branch}.')
+    shutil.rmtree(recovery)
+    print(f'Removed completed worktree {source}, including local-only files; retained branch {branch}.')
 
 def integrate(source: Path, *, keep_worktree: bool = False) -> None:
     common = Path(git(source, "rev-parse", "--path-format=absolute", "--git-common-dir"))
@@ -101,7 +103,7 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         if head == base:
             print("Task already integrated; main unchanged.")
             if not keep_worktree:
-                archive_worktree(source, target, branch, head)
+                remove_integrated_worktree(source, target, branch, head)
             return
         paths = subprocess.check_output(
             ["git", "-C", str(source), "diff", "--name-only", "--no-renames", "-z", base, head]
@@ -125,7 +127,7 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         subprocess.run(["git", "-C", str(target), "merge", "--ff-only", "--no-overwrite-ignore", head], check=True)
         print(f"Integrated {branch} into local main at {head}. Nothing pushed; hosted checks remain pending.")
         if not keep_worktree:
-            archive_worktree(source, target, branch, head)
+            remove_integrated_worktree(source, target, branch, head)
 
 
 if __name__ == "__main__":
