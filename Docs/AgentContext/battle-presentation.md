@@ -17,6 +17,9 @@ Replacing or ending the display revokes its card, cue, inspection, toolbar and o
 callbacks. Auto Battle carries the same input through suspension and exits when it
 is retired, independently of SwiftUI task cancellation. Configuration and card IDs
 alone do not establish display lifetime.
+The Auto Battle task key includes command admission: a mounted inactive preview
+must start a fresh driver when its prepared run activates, even when its display
+and configuration identities stay the same.
 
 Victory chrome reads a settled award derived from launch-baked quantities; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
 

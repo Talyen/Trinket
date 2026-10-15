@@ -57,13 +57,28 @@ struct BattleSessionPreparationTests {
     }
 
     @Test func `prepared activation installs its snapshot and keeps the overlay identity`() throws {
-        let session = BattleSession()
+        let session = BattleSession(presentationEnvironment: .init(
+            playSFX: { _ in }, warmSFX: { _, _ in }, hapticsEnabled: { false },
+            rememberAutoBattlePreference: { true }, autoBattleEnabled: { true },
+        ))
         defer { session.endBattle() }
         let configuration = preparedConfiguration(key: "activate", seed: 17)
         let handle = try #require(session.createPreparedRun(configuration))
         session.publishPreparedPreview(.init(configurations: [configuration], selected: handle))
         let revision = session.preparedBattlePresentationRevision
+        let field = BattleFieldLane(
+            configuration: configuration, presentationContext: .empty,
+            battleSession: session, presentation: session.presentation,
+            interactionState: BattleInteractionState(), castPresentation: BattleCastPresentationState(),
+        )
+        let preparedAutoTaskID = field.autoBattleTaskID
+        #expect(!field.input.isCurrent)
         #expect(session.activatePreparedBattle(handle, presentation: .empty))
+        #expect(session.presentation === field.presentation)
+        #expect(session.isAutoBattleEnabled)
+        #expect(field.input.isCurrent)
+        // The prewarmed view stays mounted, so activation must restart its driver.
+        #expect(field.autoBattleTaskID != preparedAutoTaskID)
         #expect(session.activeBattle?.id == configuration.id)
         #expect(session.activeBattle?.rngSeed == 17)
         #expect(session.hasActiveSimulation)

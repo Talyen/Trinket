@@ -7,7 +7,7 @@ extension BattleFieldLane {
     }
 
     var autoBattleTaskID: String {
-        "\(battleSession.isAutoBattleEnabled)-\(configuration.id.uuidString)"
+        "\(input.isCurrent)-\(battleSession.isAutoBattleEnabled)-\(configuration.id.uuidString)"
     }
 
     func playAutoBattleCard(_ card: BattleCard, handFrame: CGRect) -> Bool {
