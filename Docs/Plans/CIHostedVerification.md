@@ -25,10 +25,12 @@ Pushes and workflow dispatches were authorized by the user on October 14.
   installed cleanup hook removes the stale registration before the intended
   pre-cleanup generation-fence test. Repair `3aa1a69e5` isolates that callback,
   explicitly requires the stale registration, and preserves every product assertion.
-- [ ] Verify the repair in push run `38683089222` at `3aa1a69e5`.
-- [ ] Finish exact-build standard run `38683100693`, requiring `27A9275` in every
-  lane. Superseded queued run `38681168733` was canceled before execution. A missing
-  candidate is a qualification blocker, never a fallback admission.
+- [x] Verify the repair in push run `38683089222` at `3aa1a69e5`: green; native Core,
+  Persistence, AppState, and all remaining required jobs pass.
+- [ ] Dispatch exact-build standard validation after publishing the diagnostic
+  follow-up, requiring `27A9275` in every lane. Superseded queued runs `38681168733`
+  and `38683100693` were canceled before execution. A missing candidate is a
+  qualification blocker, never a fallback admission.
 - [ ] Finish player coverage `38681171142`: critical phone/iPad profiles, iOS 18
   compatibility, and repeated-play/crash recovery. Review retained visual evidence
   for any UI failures before changing layout or gestures.
@@ -38,6 +40,13 @@ Pushes and workflow dispatches were authorized by the user on October 14.
   finish, all headless cohorts and settlement recovery complete. Keep the deadline
   unchanged until a focused exact-product diagnostic distinguishes battle duration
   from scheduling or UI observation delay. Artifact `11949007677` retains evidence.
+  iOS 18 smoke, purchases, recovery and all 394 Persistence tests pass. Largest-text
+  profiles fail an inaccessible-text audit on Defeat and reward Continue scrolling.
+  Logs prove the scroll helper selected a nested horizontal carousel rather than
+  the outer scroll view containing Continue. Repair target ancestry without changing
+  scroll counts or visibility assertions. Retain bounded accessibility hierarchies
+  alongside failure screenshots to identify the audit's missing semantic surface.
+  Artifact `11949777170` retains the original screenshots and raw traces.
 - [x] Repair the diagnostic workflow's relocated budget driver: retain its new
   `internal` and `config` dependencies before checking out the source revision.
   A regression executes the actual copy step and confirms failure classification

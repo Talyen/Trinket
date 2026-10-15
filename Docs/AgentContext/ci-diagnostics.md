@@ -115,9 +115,11 @@ Failed invocations also produce bounded sibling reports:
 - `*-diagnostics.annotations` with GitHub Actions annotations.
 - `*-diagnostics.attachments/` when a bounded attachment is needed.
 
-The UI test base attaches one screenshot directly to the first recorded failure,
+The UI test base attaches one screenshot and a bounded accessibility hierarchy
+directly to the first recorded failure,
 including XCTest framework exceptions. Warnings do not consume that capture;
-attaching it to the issue keeps the image in failures-only exports.
+attaching evidence to the issue keeps it in failures-only exports. Large hierarchies
+retain at most 12,000 characters from each end with an omission marker.
 
 Narrative budgets are intentionally small and live in
 `Scripts/config/diagnostic-limits.env` — read that file (or the report header)

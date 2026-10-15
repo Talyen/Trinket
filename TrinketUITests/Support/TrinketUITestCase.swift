@@ -180,6 +180,14 @@ class TrinketUITestCase: XCTestCase {
             attachment.name = "Failure Screenshot"
             attachment.lifetime = .keepAlways
             recordedIssue.attachments.append(attachment)
+            let description = trinketOnMainActor { app.debugDescription }
+            let bounded = description.count > 24000
+                ? String(description.prefix(12000)) + "\n… hierarchy middle omitted …\n" + String(description.suffix(12000))
+                : description
+            let hierarchy = XCTAttachment(string: bounded)
+            hierarchy.name = "Failure Accessibility Hierarchy"
+            hierarchy.lifetime = .keepAlways
+            recordedIssue.attachments.append(hierarchy)
         }
         super.record(recordedIssue)
     }
@@ -560,7 +568,7 @@ extension XCUIApplication {
         if element.exists, !requireHittable || element.isHittable {
             return true
         }
-        let container = scrollContainer()
+        let container = scrollContainer(containing: element)
         let visibleBounds = scrollGestureBounds(in: container)
         guard !visibleBounds.isNull, !visibleBounds.isEmpty,
               visibleBounds.minX.isFinite, visibleBounds.minY.isFinite,
@@ -575,8 +583,17 @@ extension XCUIApplication {
         return false
     }
 
-    private func scrollContainer() -> XCUIElement {
-        scrollViews.allElementsBoundByIndex.last { $0.isHittable }
+    private func scrollContainer(containing element: XCUIElement) -> XCUIElement {
+        let identifier = trinketOnMainActor { element.exists ? element.identifier : "" }
+        if !identifier.isEmpty {
+            // A visible nested carousel cannot scroll a sibling action into view.
+            for query in [scrollViews, collectionViews, tables] {
+                if let owner = query.containing(.any, identifier: identifier).allElementsBoundByIndex.last(where: { $0.isHittable }) {
+                    return owner
+                }
+            }
+        }
+        return scrollViews.allElementsBoundByIndex.last { $0.isHittable }
             ?? collectionViews.allElementsBoundByIndex.last { $0.isHittable }
             ?? tables.allElementsBoundByIndex.last { $0.isHittable }
             ?? self

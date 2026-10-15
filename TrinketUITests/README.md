@@ -105,6 +105,7 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - Scroll helpers resolve a container per reveal and return the final visibility
   result. Reuse that result. Filter inventory with `replaceText` instead of grid
   scroll loops; use stable IDs for primary actions.
+  Prefer the target control's containing scroll view over a nested sibling carousel.
   Scroll gestures stay within the visible container above the floating tab bar;
   starting a drag over a tab can navigate away from the requested screen.
 - Read numeric values and fallback labels from one snapshot. Homestead accounting
