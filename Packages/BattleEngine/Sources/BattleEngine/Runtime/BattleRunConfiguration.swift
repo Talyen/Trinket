@@ -2,8 +2,8 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct BattleRunConfiguration: Identifiable {
-    public struct PartyMember: Equatable {
+public struct BattleRunConfiguration: Identifiable, Sendable {
+    public struct PartyMember: Equatable, Sendable {
         public let combatant: Combatant
         public let progression: CombatantProgression
         public let equipmentLoadout: EquipmentLoadout

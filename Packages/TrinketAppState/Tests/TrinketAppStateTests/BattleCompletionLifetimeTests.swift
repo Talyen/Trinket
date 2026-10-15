@@ -88,14 +88,15 @@ struct BattleCompletionLifetimeTests {
         let battle = try #require(context.lastBattle)
         let configuration = try #require(battle.activeBattle)
         let probe = CompletionProbe()
-        #expect(play.battleCoordinator.completeActiveBattle(
+        let completion = play.battleCoordinator.completeActiveBattle(
             configuration, battleGold: .init(), defersPresentationExit: true,
             onFinished: {
                 probe.finishedCount += 1
                 #expect(play.journey.startBattle(for: stage) == nil)
                 #expect(battle.activeBattle == nil)
             }, onClaimed: {},
-        ).didComplete)
+        )
+        #expect(completion.didComplete)
         play.shellSession.playPath = []
         await confirmation("Route and both runtime exit publications are observed", expectedCount: 3) { published in
             withObservationTracking {
