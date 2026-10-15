@@ -120,17 +120,11 @@ struct CombatantTalentState: Hashable, Sendable {
         var lingeringBlessing: LingeringBlessing?
     }
 
-    struct Action: Hashable, Sendable {
-        var empoweredByMana = false
-        var arcaneBurst = false
-    }
-
     var history = CombatantTalentHistory()
     var battle = Battle()
     var turn = Turn()
     var pending = Pending()
     var timed = Timed()
-    var action = Action()
 
     mutating func grantDodgeUntilNextTurn(_ amount: Double) {
         turn.dodgeChanceBonus += amount
@@ -154,14 +148,5 @@ struct CombatantTalentState: Hashable, Sendable {
         if timed.damage.expiresAtTurn != 0, currentTurn >= timed.damage.expiresAtTurn {
             timed.damage = ExpiringBonus()
         }
-    }
-
-    mutating func beginAction() {
-        action = Action()
-    }
-
-    mutating func consumeActionEmpowerment() -> Bool {
-        defer { action.empoweredByMana = false }
-        return action.empoweredByMana
     }
 }

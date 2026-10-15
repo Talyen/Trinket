@@ -366,8 +366,7 @@ extension ControlMeterEngine {
             )
         }
         if keyword == .freeze, combatant.role == .enemy, let sourceActorID,
-           let source = context.roster.combatant(for: sourceActorID),
-           context.roster.runtime(for: source.combatant)?.talents.action.empoweredByMana == true {
+           context.resolution.actionTalents(for: sourceActorID)?.empoweredByMana == true {
             adjustedAmount = CombatRounding.scaled(
                 adjustedAmount,
                 multiplier: context.modifiers(for: sourceActorID).triggers.manaEmpowerFreezeBuildupMultiplier,

@@ -92,6 +92,12 @@ enum RosterHydration {
             guard let combatant = GameContent.combatant(matching: combatantID) else { continue }
             resolved[combatantID] = loadout.sanitized(for: combatant, inventory: equippedInventory)
         }
-        return EquipmentLoadout.enforcingUniqueItems(in: resolved)
+        var unique = EquipmentLoadout.enforcingUniqueItems(in: resolved)
+        for (combatantID, loadout) in unique where loadout != resolved[combatantID] {
+            guard let combatant = GameContent.combatant(matching: combatantID) else { continue }
+            // Losing a shared primary can also invalidate the retained quiver.
+            unique[combatantID] = loadout.sanitized(for: combatant, inventory: equippedInventory)
+        }
+        return unique
     }
 }

@@ -4,6 +4,22 @@ import TrinketContent
 import TrinketCore
 
 struct HomesteadStateTests {
+    @Test(arguments: [false, true])
+    func `extreme production credit remains collectible and survives reload`(overflowElapsed: Bool) throws {
+        let start = Date(timeIntervalSinceReferenceDate: overflowElapsed ? -Double.greatestFiniteMagnitude : 0)
+        let end = Date(timeIntervalSinceReferenceDate: Double.greatestFiniteMagnitude)
+        var state = PlayerHomesteadState(
+            resources: [:], nodeTiers: [.wheatField: 3],
+            pendingProduction: [.food: Double.greatestFiniteMagnitude], lastProductionAt: start,
+        )
+        state = try JSONDecoder().decode(PlayerHomesteadState.self, from: JSONEncoder().encode(state))
+
+        state.settleProduction(at: end, gold: 0)
+        let reloaded = try JSONDecoder().decode(PlayerHomesteadState.self, from: JSONEncoder().encode(state))
+        #expect(reloaded.pendingProduction[.food] == Double.greatestFiniteMagnitude)
+        #expect(reloaded.pendingProductionAmounts(at: end, gold: 0) == [ResourceAmount(.food, Int.max)])
+    }
+
     @Test func `crystal production survives reload and collects both resources once`() throws {
         let start = Date(timeIntervalSince1970: 1000)
         var state = PlayerHomesteadState(resources: [:], nodeTiers: [.crystalGarden: 4], lastProductionAt: start)

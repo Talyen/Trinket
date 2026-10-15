@@ -32,6 +32,7 @@ struct CombatResolution {
         var partyDamageBonus = 0
         var partnerAttackDamageBonus = 0
         var criticalAttackActorIDs: Set<String> = []
+        var empoweredByMana = false
         let id: Int
         let actorID: String
         var outcome: ResolvedActionFacts?
@@ -231,6 +232,29 @@ struct CombatResolution {
         precondition(action.talents == nil && action.context.actor.id == talents.actorID)
         action.talents = talents
         frames[frames.count - 1] = .action(action)
+    }
+
+    func actionTalents(for actorID: String) -> TalentActionFacts? {
+        guard currentAction?.context.actor.id == actorID else { return nil }
+        return currentAction?.talents
+    }
+
+    mutating func recordManaEmpowerment(by actorID: String, arcaneBurst: Bool) {
+        guard currentAction?.talents?.actorID == actorID else { return }
+        _ = mutateActionTalents(for: actorID) {
+            $0.empoweredByMana = true
+            $0.arcaneBurst = arcaneBurst
+        }
+        if let cardID = currentAction?.cardID,
+           let index = cards.indices.last, cards[index].id == cardID {
+            cards[index].empoweredByMana = true
+        }
+    }
+
+    mutating func consumeCardEmpowerment(by actorID: String) -> Bool {
+        guard let index = cards.indices.last, cards[index].actorID == actorID else { return false }
+        defer { cards[index].empoweredByMana = false }
+        return cards[index].empoweredByMana
     }
 
     mutating func consumeAttackReduction(for actorID: String?, damage: Int) -> Int {

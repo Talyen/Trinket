@@ -32,7 +32,8 @@ public extension EquipmentLoadout {
                 let itemID = itemID(for: slot),
                 !claimedItemIDs.contains(itemID),
                 let item = itemsByID[itemID],
-                slot.accepts(item.baseType.slot)
+                slot.accepts(item.baseType.slot),
+                sanitized.canEquip(item, in: slot, inventory: equippedItems)
             else {
                 continue
             }

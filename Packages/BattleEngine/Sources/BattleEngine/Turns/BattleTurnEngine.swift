@@ -133,7 +133,6 @@ package enum BattleTurnEngine {
         let actionID = context.resolution.beginAction(action, origin: origin)
         defer { context.resolution.endAction() }
         var events: [ActionEvent] = []
-        context.roster.mutateRuntime(for: actor) { $0.talents.beginAction() }
         guard BattleAbilityRules.canPayHealthCost(ability, action: action, in: context) else {
             if actor.role == .enemy {
                 recordAction(for: actor, context: &context)

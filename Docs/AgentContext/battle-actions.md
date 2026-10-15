@@ -4,14 +4,17 @@ Use with [engine ownership](battle-engine.md) for action identity, hands, prepar
 
 ## Shared action invariants
 
-`CombatantRuntime.talents` groups battle, turn, pending, timed, and action
-state explicitly behind copy-on-write storage. Turn start clears only turn state
+`CombatantRuntime.talents` groups battle, turn, pending, and timed
+state explicitly behind copy-on-write storage. `CombatResolution` owns action-scoped
+empowerment so nested actions restore their parent flags and completed actions cannot
+amplify later reactions. Turn start clears only turn state
 and expired timed bonuses; pending effects survive until their consuming operation.
 Card/action-scoped readied bonuses keep their value and provenance together in
 `PreparedTalentBonus`; `consumeTalentPreparation` checks provenance and clears the
 whole preparation. Callers own keyword and operation eligibility. Block bonuses
 clear only after a positive base gain. Keep an amount and its expiry/source
-together. The last-action empowerment receipt retains its existing checkpoint.
+together. The owning card retains its empowerment receipt through the Spell Echo checkpoint;
+prepared card repeats inherit their parent action's empowerment without another payment.
 Next-turn Dodge boosts from Pack Coordination and Smoke Screen live in turn
 state so a longer Cleanse bonus cannot extend them.
 

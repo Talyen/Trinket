@@ -35,11 +35,12 @@ enum CloudSaveReconciler {
             // Reset keeps the request's game content (gold/inventory included:
             // reset means fresh game, not wiped wallet) but zeroes the
             // production clock so no pre-reset pending production survives.
+            let resetCount = try incremented(head.resetCount)
             var resetSave = incomingSave
             resetSave.homestead.lastProductionAt = server.serverTime
             resetSave.homestead.pendingProduction = [:]
             head.epoch = request.id
-            head.resetCount += 1
+            head.resetCount = resetCount
             head.authoritySequence = 0
             head.productionClaims = nil
             head.retiredItemIDs = nil
@@ -66,7 +67,7 @@ enum CloudSaveReconciler {
                 head.revision.snapshot = CloudSaveSnapshot(oldSave)
                 return resolution(head, request: request, outcome: .progressChanged, backups: [])
             }
-            return applyProduction(request, head: head, save: oldSave, at: server.serverTime)
+            return try applyProduction(request, head: head, save: oldSave, at: server.serverTime)
         }
     }
 
@@ -215,7 +216,7 @@ enum CloudSaveReconciler {
         head: CloudSaveHead,
         save: PlayerSave,
         at date: Date,
-    ) -> Resolution {
+    ) throws -> Resolution {
         var head = head
         var save = save
         let outcome: CloudSaveReceipt.Outcome
@@ -224,13 +225,14 @@ enum CloudSaveReconciler {
             let collected = save.homestead.collectProduction(at: date, gold: &save.roster.gold)
             outcome = .collected(Dictionary(uniqueKeysWithValues: collected.map { ($0.resource, $0.quantity) }))
             if !collected.isEmpty {
-                head.authoritySequence += 1
+                head.authoritySequence = try incremented(head.authoritySequence)
                 var claims = head.productionClaims ?? CloudProductionClaims()
                 for amount in collected {
                     let start = claims.positions[amount.resource, default: 0]
-                    if !start.addingReportingOverflow(UInt64(amount.quantity)).overflow {
-                        _ = claims.claim(amount.resource, start: start, quantity: amount.quantity)
+                    guard !start.addingReportingOverflow(UInt64(amount.quantity)).overflow else {
+                        throw CloudSaveError.unsupportedSave
                     }
+                    _ = claims.claim(amount.resource, start: start, quantity: amount.quantity)
                 }
                 head.productionClaims = claims
                 head.formatVersion = 2
@@ -246,7 +248,7 @@ enum CloudSaveReconciler {
                 return resolution(head, request: request, outcome: .notAvailable, backups: [])
             }
             outcome = .upgraded
-            head.authoritySequence += 1
+            head.authoritySequence = try incremented(head.authoritySequence)
         case .upload, .reset:
             // Unreachable: uploads resolve in reconcileUpload, resets throw
             // conflict above. Defensive default keeps the switch exhaustive
@@ -255,6 +257,12 @@ enum CloudSaveReconciler {
         }
         head.revision.snapshot = CloudSaveSnapshot(save)
         return resolution(head, request: request, outcome: outcome, backups: [])
+    }
+
+    private static func incremented(_ counter: UInt64) throws -> UInt64 {
+        let (next, overflow) = counter.addingReportingOverflow(1)
+        guard !overflow else { throw CloudSaveError.unsupportedSave }
+        return next
     }
 
     private static func backup(

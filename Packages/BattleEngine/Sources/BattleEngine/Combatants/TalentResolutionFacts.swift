@@ -12,6 +12,8 @@ struct TalentActionFacts {
     var goldDamage = 0
     var blindingReduction = 0
     var burnAttackLeech = false
+    var empoweredByMana = false
+    var arcaneBurst = false
 }
 
 package struct HeroTalentCardFacts {

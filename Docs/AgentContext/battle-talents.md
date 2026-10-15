@@ -56,6 +56,9 @@ round-up behavior. Legacy `standardDeviation` remains a separate supported rule.
 Fox's Golden Opportunity doubles its first positive Gold steal each combat. Wildcard's
 Lucky Charm rolls once per Gold-gaining ability and Cleanses one negative status
 effect only when the roll succeeds and the owner has a removable effect.
+Last Wager and Health is Wealth share that cadence. Counterattack Basics retain
+one allowance across separate Critical Hit Gold and theft gains; standalone Gold
+rewards retain their independent reactions.
 Coinmail converts only its owner's Gold gains using ordinary combat rounding,
 including odd gains such as Fickle Fortune's 3 or 7 Gold.
 
@@ -369,6 +372,8 @@ operation still draws once; separate successful operations have no turn limit.
 Overcharge and Soul Burn prepare bonuses for a later attack. Their preparing
 ability cannot consume the bonus, even when it has multiple hits or is a
 Mana-empowered counterattack without a card frame.
+Arcane Surge likewise draws for last-Mana spending during a counterattack Basic,
+with one draw allowance per ability.
 
 ### Dark Recovery and Arcane Burst
 

@@ -27,10 +27,12 @@ enum CloudSaveTransitions {
         state original: CloudDeviceState,
         local: CloudSaveSnapshot,
         id: String,
-    ) -> (CloudDeviceState, CloudSaveRequest) {
+    ) throws -> (CloudDeviceState, CloudSaveRequest) {
+        let base = original.account.base
+        let (counter, overflow) = max(original.counter, base?.revision.clock[original.deviceID] ?? 0).addingReportingOverflow(1)
+        guard !overflow else { throw CloudSaveError.unsupportedSave }
         var state = original
-        let base = state.account.base
-        state.counter = max(state.counter, base?.revision.clock[state.deviceID] ?? 0) + 1
+        state.counter = counter
         var clock = base?.revision.clock ?? [:]
         clock[state.deviceID] = state.counter
         let request = CloudSaveRequest(

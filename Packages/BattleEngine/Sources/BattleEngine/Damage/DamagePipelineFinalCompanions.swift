@@ -155,8 +155,8 @@ package extension DamagePipeline {
         if context.roster.companion.isAlive, state.damageKeyword == .holy {
             multiplier *= context.companionModifiers.triggers.partyHolyDamageMultiplier
         }
-        if context.roster.runtime(for: source)?.talents.action.empoweredByMana == true {
-            if context.roster.runtime(for: source)?.talents.action.arcaneBurst == true {
+        if context.resolution.actionTalents(for: source.id)?.empoweredByMana == true {
+            if context.resolution.actionTalents(for: source.id)?.arcaneBurst == true {
                 multiplier *= triggers.manaEmpowerDamageMultiplier
             }
             if state.damageKeyword == .burn || sharedKeyword == .burn || state.damageKeyword == .freeze {

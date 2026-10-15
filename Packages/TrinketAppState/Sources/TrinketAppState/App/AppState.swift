@@ -24,7 +24,7 @@ public final class AppState {
     public let sfxPlayer: SFXPlayer
     public var options: OptionsStore
     public let play: PlaySession
-    public let fullGame = FullGameStore()
+    public let fullGame: FullGameStore
     var preparedContentAccess = ContentAccessPolicy.free
 
     private(set) var pendingCollectionPresentation: LaunchPresentation?
@@ -37,10 +37,12 @@ public final class AppState {
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
         userDefaults: UserDefaults? = nil,
+        fullGame: FullGameStore? = nil,
         makeBattleRuntime: (BattlePresentationDependencies) -> any BattleRuntime,
         battleRewardDate: @escaping @MainActor () -> Date = { Date() },
     ) throws {
         self.environment = environment
+        self.fullGame = fullGame ?? FullGameStore()
         let resolvedDefaults = userDefaults ?? .standard
 
         let dependencies = try Self.makeBootstrapDependencies(

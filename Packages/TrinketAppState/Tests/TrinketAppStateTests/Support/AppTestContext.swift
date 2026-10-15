@@ -69,6 +69,7 @@ final class AppTestContext {
         playerSave: PlayerSaveStore? = nil,
         battleRuntime: (any BattleRuntime)? = nil,
         contentAccess: ContentAccessPolicy = .fullGame,
+        fullGame: FullGameStore? = nil,
     ) throws -> AppState {
         let parsed = AppEnvironment.parse(
             arguments: Self.defaultTestArguments + arguments,
@@ -76,7 +77,10 @@ final class AppTestContext {
         )
         let battle = battleRuntime ?? BattleSession(presentationEnvironment: .silent)
         let resolvedSave = try playerSave ?? sharedPlayerSave(resetState: parsed.resetState)
-        return try buildAppState(environment: parsed, playerSave: resolvedSave, battle: battle, contentAccess: contentAccess)
+        return try buildAppState(
+            environment: parsed, playerSave: resolvedSave, battle: battle,
+            contentAccess: contentAccess, fullGame: fullGame,
+        )
     }
 
     @MainActor
@@ -122,6 +126,7 @@ final class AppTestContext {
         playerSave: PlayerSaveStore,
         battle: any BattleRuntime,
         contentAccess: ContentAccessPolicy = .fullGame,
+        fullGame: FullGameStore? = nil,
     ) throws -> AppState {
         let progressionDate = progressionDate
         playerSave.contentAccess = contentAccess
@@ -129,6 +134,7 @@ final class AppTestContext {
             environment: environment,
             playerSave: playerSave,
             userDefaults: userDefaults,
+            fullGame: fullGame,
             makeBattleRuntime: { _ in battle },
             battleRewardDate: progressionDate,
         )

@@ -201,7 +201,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
 
         for production in activeProduction {
             let pending = pendingProduction[production.resource, default: 0]
-            let generated = Double(production.quantity) * elapsed / Self.secondsPerDay
+            let generated = min(Double.greatestFiniteMagnitude, Double(production.quantity) * (elapsed / Self.secondsPerDay))
             if production.resource == .gold {
                 let capacity = Double(GoldBalance.maximum)
                     - Double(balance(for: .gold, gold: gold))
@@ -210,7 +210,9 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
                 pendingProduction[.gold] = pending + min(capacity, generated)
                 continue
             }
-            pendingProduction[production.resource] = pending + generated
+            // Decoded dates and retained credit can span the finite Double range.
+            // Preserve collectible credit without making the next save unencodable.
+            pendingProduction[production.resource] = min(Double.greatestFiniteMagnitude, pending + generated)
         }
         lastProductionAt = date
     }

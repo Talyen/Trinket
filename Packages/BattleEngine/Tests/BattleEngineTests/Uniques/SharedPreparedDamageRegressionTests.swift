@@ -110,7 +110,9 @@ struct SharedPreparedDamageRegressionTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.manaEmpowerBurnFreezeDamageMultiplier = 2.0
         var battle = try fixtures.battle(shared ? ["bloodember_pendant"] : [], owner: .companion, extra: profile)
-        battle.roster.companion.talents.action.empoweredByMana = true
+        battle.resolution.beginAction(BattleActionContext(actor: battle.companion, in: battle), origin: .ability)
+        battle.resolution.prepareActionTalents(TalentActionFacts(actorID: battle.companion.id, empoweredByMana: true))
+        defer { battle.resolution.endAction() }
         let options = DamageOperation.attack(scaling: .flat, accuracy: .unavoidable)
         battle.resolveTestDamage(10, from: .companion, keyword: .bleed, options: options)
         #expect(battle.health(of: battle.enemy) == (shared ? 1980 : 1990))

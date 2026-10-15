@@ -94,7 +94,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) -> [ActionEvent] {
         guard triggers.spendLastManaDrawCard, spentLastMana,
-              context.claimHeroCardBonus(.arcaneSurge, actorID: actor.id),
+              context.claimTalentAbility(.arcaneSurge, actorID: actor.id),
               let owner = context.roster.participant(for: actor)
         else { return [] }
         return drawCards(1, for: owner, actor: actor, abilityName: "Arcane Surge", in: &context)

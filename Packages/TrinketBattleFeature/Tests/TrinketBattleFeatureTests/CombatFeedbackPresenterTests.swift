@@ -9,6 +9,25 @@ import TrinketFeatureSupport
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackPresenterTests {
+    @Test(arguments: [false, true])
+    func `extreme damage and healing batches saturate without losing source events`(healing: Bool) throws {
+        let kind: ActionEvent.Kind = healing ? .effect(.instantHeal) : .abilityDamage
+        let keyword: Keyword = healing ? .health : .physical
+        let items = CombatFeedbackPresenter.makeItems(
+            from: [
+                BattleSessionTestSupport.makeActionEvent(id: 1, kind: kind, amount: Int.max, keyword: keyword, actionID: 1),
+                BattleSessionTestSupport.makeActionEvent(id: 2, kind: kind, amount: 1, keyword: keyword, isCritical: true, actionID: 1),
+            ],
+            at: .now,
+        )
+
+        let item = try #require(items.first)
+        #expect(items.count == 1)
+        #expect(item.label == .amount(healing ? Int.max : -Int.max))
+        #expect(item.sourceEventIDs == [1, 2])
+        #expect(item.isCritical)
+    }
+
     @Test func `stripped Block is a setback without an absorption reaction`() throws {
         let events = [
             feedbackEvent(1, .blockStripped, .block, origin: .automatic),

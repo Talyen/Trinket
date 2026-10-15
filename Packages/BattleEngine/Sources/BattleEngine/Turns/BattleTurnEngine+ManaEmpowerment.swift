@@ -82,10 +82,7 @@ private extension BattleTurnEngine {
     ) {
         let arcaneBurst = triggers.manaEmpowerDamageMultiplier > 1
             && BattleChance.succeeds(probability: triggers.manaEmpowerDamageChancePercent, using: &context.rng)
-        context.roster.mutateRuntime(for: actor) {
-            $0.talents.action.empoweredByMana = true
-            $0.talents.action.arcaneBurst = arcaneBurst
-        }
+        context.resolution.recordManaEmpowerment(by: actor.id, arcaneBurst: arcaneBurst)
     }
 
     static func grantDragonPatronageBlock(actor: Combatant, amount: Int, in context: inout BattleState) -> [ActionEvent] {

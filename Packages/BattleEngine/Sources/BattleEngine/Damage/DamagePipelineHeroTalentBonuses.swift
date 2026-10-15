@@ -135,7 +135,7 @@ package extension DamagePipeline {
             context.roster.mutateRuntime(for: source) { $0.talents.pending.nextBleedDamageBonus = 0 }
         }
         if state.isCritical, triggers.manaEmpoweredCriticalMultiplier > 1,
-           context.roster.runtime(for: source)?.talents.action.empoweredByMana == true {
+           context.resolution.actionTalents(for: source.id)?.empoweredByMana == true {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.manaEmpoweredCriticalMultiplier)
         }
         if keyword == .poison {

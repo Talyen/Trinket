@@ -28,6 +28,7 @@ extension BattleTurnEngine {
               BattleAbilityRules.canPayHealthCost(ability, action: facts.action, in: context)
         else { return [] }
         let origin: DamageOperation.AttackOrigin = actor.role == .enemy ? .repeatedAttack : .cardRepeat
+        let empowerment = context.resolution.actionTalents(for: actor.id)
         let actionID = context.resolution.beginAction(facts.action, origin: origin)
         defer { context.resolution.endAction() }
         let repeated = ResolvedActionFacts(
@@ -35,7 +36,11 @@ extension BattleTurnEngine {
             guaranteedCritical: facts.guaranteedCritical, in: context,
         )
         _ = context.resolution.prepareAction(repeated)
-        context.resolution.prepareActionTalents(TalentActionFacts(actorID: actor.id))
+        context.resolution.prepareActionTalents(TalentActionFacts(
+            actorID: actor.id,
+            empoweredByMana: empowerment?.empoweredByMana == true,
+            arcaneBurst: empowerment?.arcaneBurst == true,
+        ))
         context.commandOutput?.beginAction(
             id: actionID, actorID: actor.id, abilityID: ability.id,
             isAttack: ability.dealsCombatDamage, afterEventID: context.nextEventID,

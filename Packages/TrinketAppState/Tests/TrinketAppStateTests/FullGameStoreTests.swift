@@ -6,6 +6,28 @@ import Testing
 @Suite("Full Game StoreKit", .timeLimit(.minutes(1)))
 struct FullGameStoreTests {
     @Test @MainActor
+    func `unverified current ownership revokes previously published gameplay access`() async throws {
+        let backend = ControlledFullGameStorefront()
+        backend.ownership = .purchased
+        let store = FullGameStore(storefront: backend.storefront)
+        let context = try AppTestContext()
+        let state = try context.makeAppState(contentAccess: .free, fullGame: store)
+
+        await store.refreshOwnership()
+        state.synchronizePurchaseAccess()
+        #expect(state.playerSave.contentAccess.hasFullGame)
+        #expect(state.playerSave.contentAccess.allowsChapter(4))
+
+        backend.ownership = .unverified
+        await store.refreshOwnership()
+        state.synchronizePurchaseAccess()
+
+        #expect(!state.playerSave.contentAccess.hasFullGame)
+        #expect(!state.playerSave.contentAccess.allowsChapter(4))
+        #expect(!state.preparedContentAccess.hasFullGame)
+    }
+
+    @Test @MainActor
     func `an older entitlement refresh cannot revoke a newer restored purchase`() async throws {
         let backend = ControlledFullGameStorefront()
         let response = AsyncStream<FullGameStore.Ownership>.makeStream()

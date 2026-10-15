@@ -240,7 +240,7 @@ public final class PlayerSaveCloudSync {
 
     private func enqueue(_ action: CloudSaveRequest.Action, in store: PlayerSaveStore) throws -> CloudSaveRequest {
         store.flushPendingPersistence()
-        let (state, request) = CloudSaveTransitions.enqueue(
+        let (state, request) = try CloudSaveTransitions.enqueue(
             action, state: store.cloudDeviceState, local: CloudSaveSnapshot(store.currentSave), id: UUID().uuidString,
         )
         try store.commitCloudState(state)

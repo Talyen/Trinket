@@ -13,7 +13,7 @@ enum CombatFeedbackChipLabel: Hashable {
         switch (self, other) {
         case let (.amount(lhs, lhsAdditive), .amount(rhs, rhsAdditive)):
             guard lhsAdditive, rhsAdditive, (lhs >= 0) == (rhs >= 0) else { return nil }
-            return .amount(lhs + rhs)
+            return .amount(SaturatedArithmetic.saturatingAdd(lhs, rhs))
         case let (.word(lhsWord), .word(rhsWord)):
             return lhsWord == rhsWord ? .word(lhsWord) : nil
         default:

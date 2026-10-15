@@ -170,9 +170,9 @@ package extension CombatTriggerEngine {
         let wasBelowHalfHealth = context.roster.isBelowHalfHealth(for: combatant)
         let restoration = await beginGoldRestoration(granted: granted, combatant: combatant, triggers: triggers, in: &context)
         var events = restoration.events
+        let hasAbilityScope = context.resolution.actionID != nil || context.hasHeroCard(for: combatant.id)
         let wildcardGoldGain = granted > 0 && context.allowsHeroTalentReaction
-            && (!context.hasHeroCard(for: combatant.id)
-                || context.claimHeroCardBonus(.wildcardGoldGain, actorID: combatant.id))
+            && (!hasAbilityScope || context.claimTalentAbility(.wildcardGoldGain, actorID: combatant.id))
         if wildcardGoldGain {
             await events.append(contentsOf: healthIsWealthHealing(for: combatant, triggers: triggers, in: &context))
             if triggers.goldGainCleanseChancePercent > 0,

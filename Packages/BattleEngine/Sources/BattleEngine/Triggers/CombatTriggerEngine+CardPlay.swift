@@ -45,8 +45,7 @@ package extension CombatTriggerEngine {
         guard ability.tier == .skill, !context.isEchoingSkill else { return [] }
         let skillCount = context.turnCadence.skillCardsPlayed[owner, default: 0] + 1
         context.turnCadence.skillCardsPlayed[owner] = skillCount
-        var empowered = false
-        context.roster.mutateRuntime(for: actor) { empowered = $0.talents.consumeActionEmpowerment() }
+        let empowered = context.resolution.consumeCardEmpowerment(by: actor.id)
         guard empowered,
               context.modifiers(for: actor.id).triggers.empoweredSkillEchoes
         else { return [] }

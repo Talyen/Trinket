@@ -165,7 +165,7 @@ enum CombatFeedbackPresenter {
                 let representative = existingEvent.kind == .status && source.event.kind != .status
                     ? source.event : existingEvent
                 result[index].event = representative.with(
-                    amount: existingEvent.amount + source.event.amount,
+                    amount: SaturatedArithmetic.saturatingAdd(existingEvent.amount, source.event.amount),
                     isCritical: existingEvent.isCritical || source.event.isCritical,
                 )
                 result[index].sourceEventIDs.append(contentsOf: source.sourceEventIDs)

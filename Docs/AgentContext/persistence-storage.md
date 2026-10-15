@@ -40,6 +40,9 @@ Inventory admission and repair share ownership keys: physical item ID, Trinket
 template for Trinkets, and Unique template for Unique items. Repair retains the
 first accepted item in save order; a rejected record reserves no other keys.
 Normal equipment copies with distinct physical IDs remain valid.
+Equipment repair reserves physical IDs only after slot admission, preserving a valid
+secondary assignment when its earlier primary entry is invalid. Resolving shared
+equipment ownership also rechecks dependent weapon pairs before publication.
 
 Contracts decode independent fields separately: unreadable offers can regenerate
 without erasing earned encounter levels or completion receipts, and a damaged
@@ -190,6 +193,8 @@ and durable commits. It rechecks cancellation, account and pending-request ident
 before upload, and transition source state before local publication. New gameplay
 may extend a frozen upload prefix while planning runs; its later actions remain
 pending until their own receipt. Replay checks cancellation between actions.
+Exhausted revision counters, reset generations, or production authority sequences
+reject synchronization before publication; clocks never wrap or stop advancing silently.
 
 Approved reconciliation merges concurrent branches within the same reset epoch
 without player conflict prompts. Each durable game mutation records an

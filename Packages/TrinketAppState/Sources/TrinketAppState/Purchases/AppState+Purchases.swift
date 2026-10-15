@@ -7,7 +7,7 @@ public extension AppState {
     /// reference newly locked content; activation re-checks access and fails
     /// closed regardless.
     func synchronizePurchaseAccess() {
-        guard fullGame.ownership != .checking, fullGame.ownership != .unverified,
+        guard fullGame.ownership != .checking,
               !play.isGameplayActive else { return }
         playerSave.contentAccess = fullGame.ownership.access
         if preparedContentAccess != playerSave.contentAccess {

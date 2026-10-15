@@ -164,7 +164,7 @@ struct SaveGraphCommitTests {
             id: "earned-gold", changedSliceMask: PlayerSaveSlice.all.rawValue,
             before: CloudSaveSnapshot(before), after: CloudSaveSnapshot(after),
         )])
-        let (pending, _) = CloudSaveTransitions.enqueue(
+        let (pending, _) = try CloudSaveTransitions.enqueue(
             .upload, state: state, local: CloudSaveSnapshot(after), id: "pending-upload",
         )
         try store.commitCloudState(pending, replacing: after)

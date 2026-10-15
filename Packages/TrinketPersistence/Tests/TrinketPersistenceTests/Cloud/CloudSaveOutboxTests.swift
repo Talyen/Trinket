@@ -17,7 +17,7 @@ struct CloudSaveOutboxTests {
         var state = CloudDeviceState()
         state.activeAccountID = "player-a"
         state.account.journal = CloudSaveJournal(mutations)
-        let (pendingState, request) = CloudSaveTransitions.enqueue(
+        let (pendingState, request) = try CloudSaveTransitions.enqueue(
             .upload, state: state, local: CloudSaveSnapshot(first), id: "frozen-upload",
         )
         state = pendingState

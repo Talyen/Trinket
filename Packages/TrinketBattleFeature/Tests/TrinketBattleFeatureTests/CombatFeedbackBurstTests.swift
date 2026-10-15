@@ -5,6 +5,27 @@ import TrinketCore
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackBurstTests {
+    @Test(arguments: [false, true])
+    @MainActor func `extreme damage and healing chips merge safely across batches`(healing: Bool) throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        let kind: ActionEvent.Kind = healing ? .effect(.instantHeal) : .abilityDamage
+        let keyword: Keyword = healing ? .health : .physical
+        lane.record([
+            BattleSessionTestSupport.makeActionEvent(id: 1, kind: kind, amount: Int.max, keyword: keyword),
+        ], at: start)
+        lane.record([
+            BattleSessionTestSupport.makeActionEvent(id: 2, kind: kind, amount: Int.max, keyword: keyword),
+        ], at: start.addingTimeInterval(0.1))
+
+        let item = try #require(lane.activeItems.first)
+        #expect(lane.activeItems.count == 1)
+        #expect(item.label == .amount(healing ? Int.max : Int.min))
+        #expect(item.sourceEventIDs == [1, 2])
+        #expect(item.text == String((healing ? Int.max : Int.min).magnitude))
+    }
+
     @Test(arguments: [Keyword.freeze, .stun])
     @MainActor func `freeze and stun use dedicated animations without floating chips`(keyword: Keyword) {
         let lane = BattleFeedbackLane()
