@@ -66,9 +66,9 @@ struct BattleRosterTests {
         let enemy = runtime(id: "hero", role: .enemy).combatant
         let battle = BattleState(
             hero: hero, companion: companion, enemy: enemy,
-            heroModifiers: .init(maximumHealthBonus: 10),
-            companionModifiers: .init(maximumHealthBonus: 20),
-            enemyModifiers: .init(maximumHealthBonus: 30),
+            heroModifiers: .init(modifiers: [.maximumHealth(10)]),
+            companionModifiers: .init(modifiers: [.maximumHealth(20)]),
+            enemyModifiers: .init(modifiers: [.maximumHealth(30)]),
             dealOpeningHand: false,
         )
         #expect(battle.modifiers(for: hero.id).maximumHealthBonus == 10)
