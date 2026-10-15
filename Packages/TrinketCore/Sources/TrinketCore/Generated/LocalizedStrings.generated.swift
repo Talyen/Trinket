@@ -466,12 +466,20 @@ enum L10n {
         LocalizedStringResource("keyword.status.stun", defaultValue: "Stunned", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var label_accessory: LocalizedStringResource {
+        LocalizedStringResource("label.accessory", defaultValue: "Accessory", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var label_alchemy: LocalizedStringResource {
         LocalizedStringResource("label.alchemy", defaultValue: "Alchemy", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var label_arcana: LocalizedStringResource {
         LocalizedStringResource("label.arcana", defaultValue: "Arcana", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var label_armor: LocalizedStringResource {
+        LocalizedStringResource("label.armor", defaultValue: "Armor", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var label_astral: LocalizedStringResource {
@@ -542,12 +550,20 @@ enum L10n {
         LocalizedStringResource("label.treasure", defaultValue: "treasure", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var label_trinket: LocalizedStringResource {
+        LocalizedStringResource("label.trinket", defaultValue: "Trinket", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var label_ultimate: LocalizedStringResource {
         LocalizedStringResource("label.ultimate", defaultValue: "Ultimate", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var label_unique: LocalizedStringResource {
         LocalizedStringResource("label.unique", defaultValue: "Unique", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var label_weapon: LocalizedStringResource {
+        LocalizedStringResource("label.weapon", defaultValue: "Weapon", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
 }

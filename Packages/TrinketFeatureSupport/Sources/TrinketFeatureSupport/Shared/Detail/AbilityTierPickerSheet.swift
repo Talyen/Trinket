@@ -76,7 +76,7 @@ public struct AbilityTierPickerSheet: View {
             },
         )
         .accessibilityIdentifier(AccessibilityID.LoadoutPicker.abilityGrid(tier.rawValue))
-        .navigationTitle(tier.rawValue)
+        .navigationTitle(Text(CoreCopy.resource(tier.rawValue)))
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedAbility) { ability in
             AbilityDetailView(

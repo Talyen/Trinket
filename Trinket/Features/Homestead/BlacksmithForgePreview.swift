@@ -6,6 +6,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct BlacksmithForgePreview: View {
+    @Environment(\.locale) private var locale
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -92,7 +93,7 @@ struct BlacksmithForgePreview: View {
                 if let displayedItem {
                     ItemCardLabel(item: displayedItem, showsAffixCount: false)
                 } else {
-                    GameLabel(recipe.baseType.name, balanced: true)
+                    Text(balanced: recipe.baseType.localizedName(locale: locale))
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
@@ -101,7 +102,7 @@ struct BlacksmithForgePreview: View {
         }
         .trinketArtworkCardButtonStyle()
         .disabled(displayedItem == nil)
-        .gameAccessibilityLabel(displayedItem?.displayName ?? recipe.baseType.name)
+        .accessibilityLabel(displayedItem?.localizedDisplayName(locale: locale) ?? recipe.baseType.localizedName(locale: locale))
         .accessibilityIdentifier(AccessibilityID.Homestead.forgeResult)
     }
 

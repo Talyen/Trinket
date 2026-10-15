@@ -1,10 +1,12 @@
 import StoreKit
 import SwiftUI
 import TrinketAppState
+import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct FullGameOfferView: View {
+    @Environment(\.locale) private var locale
     @Environment(FullGameStore.self) private var store
     @Environment(\.dismiss) private var dismiss
 
@@ -71,7 +73,7 @@ struct FullGameOfferView: View {
                     .trinketPrimaryActionButton()
             } else if let product = store.product {
                 ProductView(product)
-                    .productViewStyle(FullGameProductStyle(isPurchasing: store.isPurchasing))
+                    .productViewStyle(FullGameProductStyle(isPurchasing: store.isPurchasing, locale: locale))
                     .disabled(store.isRestoring || store.ownership == .checking)
                     .onInAppPurchaseStart { _ in store.purchaseStarted() }
                     .onInAppPurchaseCompletion { _, result in await store.purchaseCompleted(result) }
@@ -136,6 +138,7 @@ struct FullGameOfferView: View {
 
 private struct FullGameProductStyle: ProductViewStyle {
     let isPurchasing: Bool
+    let locale: Locale
 
     func makeBody(configuration: Configuration) -> some View {
         if let product = configuration.product {
@@ -146,7 +149,10 @@ private struct FullGameProductStyle: ProductViewStyle {
                     if isPurchasing {
                         ProgressView()
                     }
-                    Text(L10n.ui_fullgameofferview_unlock_full_game_1_b6d50("\(product.displayPrice)"))
+                    Text(verbatim: LocalizedGameText(
+                        L10n.ui_fullgameofferview_unlock_full_game_1_b6d50(product.displayPrice),
+                        locale: locale,
+                    ).text)
                         .trinketTypography(.button)
                 }
                 .frame(maxWidth: .infinity)

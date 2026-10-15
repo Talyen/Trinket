@@ -4993,6 +4993,48 @@
         }
       }
     },
+    "label.accessory": {
+      "comment": "Equipment slot category noun displayed in empty slots, equipment pickers and item details. Trinket here is an equippable item type, not the game brand.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessoire"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessory"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessoire"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "装飾品"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "장신구"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配飾"
+          }
+        }
+      }
+    },
     "label.alchemy": {
       "comment": "Canonical game navigation/resource label; preserve raw data identities.",
       "extractionState": "manual",
@@ -5073,6 +5115,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "秘奧"
+          }
+        }
+      }
+    },
+    "label.armor": {
+      "comment": "Equipment slot category noun displayed in empty slots, equipment pickers and item details. Trinket here is an equippable item type, not the game brand.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rüstung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armor"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armure"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "防具"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "방어구"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "護甲"
           }
         }
       }
@@ -5791,6 +5875,48 @@
         }
       }
     },
+    "label.trinket": {
+      "comment": "Equipment slot category noun displayed in empty slots, equipment pickers and item details. Trinket here is an equippable item type, not the game brand.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schmuckstück"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bibelot"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トリンケット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트링킷"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "飾物"
+          }
+        }
+      }
+    },
     "label.ultimate": {
       "comment": "Game category or role label; ultimate",
       "extractionState": "manual",
@@ -5871,6 +5997,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "獨特"
+          }
+        }
+      }
+    },
+    "label.weapon": {
+      "comment": "Equipment slot category noun displayed in empty slots, equipment pickers and item details. Trinket here is an equippable item type, not the game brand.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weapon"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arme"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武器"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "무기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武器"
           }
         }
       }

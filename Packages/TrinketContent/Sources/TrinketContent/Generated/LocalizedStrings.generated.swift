@@ -3682,6 +3682,30 @@ enum L10n {
         LocalizedStringResource("combatants.wolf.name", defaultValue: "Wolf", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var difficulty_contract_easy_title: LocalizedStringResource {
+        LocalizedStringResource("difficulty.contract.easy.title", defaultValue: "Easy", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var difficulty_contract_hard_title: LocalizedStringResource {
+        LocalizedStringResource("difficulty.contract.hard.title", defaultValue: "Hard", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var difficulty_contract_standard_title: LocalizedStringResource {
+        LocalizedStringResource("difficulty.contract.standard.title", defaultValue: "Standard", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var difficulty_voyage_easy_title: LocalizedStringResource {
+        LocalizedStringResource("difficulty.voyage.easy.title", defaultValue: "Easy", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var difficulty_voyage_hard_title: LocalizedStringResource {
+        LocalizedStringResource("difficulty.voyage.hard.title", defaultValue: "Hard", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var difficulty_voyage_medium_title: LocalizedStringResource {
+        LocalizedStringResource("difficulty.voyage.medium.title", defaultValue: "Medium", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var enemies_bandit_name: LocalizedStringResource {
         LocalizedStringResource("enemies.bandit.name", defaultValue: "Bandit", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -5696,6 +5720,74 @@ enum L10n {
 
     static func rule_ability_random_damage(_ value1: Int) -> LocalizedStringResource {
         LocalizedStringResource("rule.ability.random_damage", defaultValue: "Deal <value id=\"damage\">\(value1)</value> Random damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_attunement_missingcompanionaffinity_message: LocalizedStringResource {
+        LocalizedStringResource("spire.attunement.missingcompanionaffinity.message", defaultValue: "Companion needs an ability that matches this Spire", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_attunement_missingheroaffinity_message: LocalizedStringResource {
+        LocalizedStringResource("spire.attunement.missingheroaffinity.message", defaultValue: "Hero needs an ability that matches this Spire", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_attunement_ready_message: LocalizedStringResource {
+        LocalizedStringResource("spire.attunement.ready.message", defaultValue: "Party is attuned", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_aureatechoir_epithet: LocalizedStringResource {
+        LocalizedStringResource("spire.aureatechoir.epithet", defaultValue: "Light that judges", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_aureatechoir_title: LocalizedStringResource {
+        LocalizedStringResource("spire.aureatechoir.title", defaultValue: "Aureate Choir", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_cinderspire_epithet: LocalizedStringResource {
+        LocalizedStringResource("spire.cinderspire.epithet", defaultValue: "Heat that refuses to die", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_cinderspire_title: LocalizedStringResource {
+        LocalizedStringResource("spire.cinderspire.title", defaultValue: "Cinder Spire", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_ironvein_epithet: LocalizedStringResource {
+        LocalizedStringResource("spire.ironvein.epithet", defaultValue: "Strike without ornament", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_ironvein_title: LocalizedStringResource {
+        LocalizedStringResource("spire.ironvein.title", defaultValue: "Iron Vein", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_resonancehall_epithet: LocalizedStringResource {
+        LocalizedStringResource("spire.resonancehall.epithet", defaultValue: "One blow that stops the world", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_resonancehall_title: LocalizedStringResource {
+        LocalizedStringResource("spire.resonancehall.title", defaultValue: "Resonance Hall", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_rimevault_epithet: LocalizedStringResource {
+        LocalizedStringResource("spire.rimevault.epithet", defaultValue: "Stillness that binds", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_rimevault_title: LocalizedStringResource {
+        LocalizedStringResource("spire.rimevault.title", defaultValue: "Rime Vault", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_sanguinecourt_epithet: LocalizedStringResource {
+        LocalizedStringResource("spire.sanguinecourt.epithet", defaultValue: "Every cut remembers", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_sanguinecourt_title: LocalizedStringResource {
+        LocalizedStringResource("spire.sanguinecourt.title", defaultValue: "Sanguine Court", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_serpenthollow_epithet: LocalizedStringResource {
+        LocalizedStringResource("spire.serpenthollow.epithet", defaultValue: "Slow certainty", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var spire_serpenthollow_title: LocalizedStringResource {
+        LocalizedStringResource("spire.serpenthollow.title", defaultValue: "Serpent Hollow", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var stages_chapter_1_chapter_title: LocalizedStringResource {

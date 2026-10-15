@@ -39121,6 +39121,258 @@
         }
       }
     },
+    "difficulty.contract.easy.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Contracts.swift: ContractDifficulty.easy, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leicht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Easy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facile"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "簡単"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "쉬움"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "簡單"
+          }
+        }
+      }
+    },
+    "difficulty.contract.hard.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Contracts.swift: ContractDifficulty.hard, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schwer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hard"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Difficile"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "難しい"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "어려움"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "困難"
+          }
+        }
+      }
+    },
+    "difficulty.contract.standard.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Contracts.swift: ContractDifficulty.standard, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標準"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보통"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標準"
+          }
+        }
+      }
+    },
+    "difficulty.voyage.easy.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Voyage.swift: VoyageDifficulty.easy, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leicht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Easy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facile"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "簡単"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "쉬움"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "簡單"
+          }
+        }
+      }
+    },
+    "difficulty.voyage.hard.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Voyage.swift: VoyageDifficulty.hard, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schwer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hard"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Difficile"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "難しい"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "어려움"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "困難"
+          }
+        }
+      }
+    },
+    "difficulty.voyage.medium.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Voyage.swift: VoyageDifficulty.medium, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mittel"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medium"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moyen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "普通"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "중간"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中等"
+          }
+        }
+      }
+    },
     "enemies.bandit.name": {
       "comment": "ContentManifest/enemies.tsv: bandit, name",
       "extractionState": "manual",
@@ -58556,7 +58808,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "후려치기"
+            "value": "대형 망치"
           }
         },
         "zh-Hant": {
@@ -60285,6 +60537,720 @@
           "stringUnit": {
             "state": "translated",
             "value": "造成<value id=\"damage\">%1$lld</value>點隨機傷害"
+          }
+        }
+      }
+    },
+    "spire.attunement.missingcompanionaffinity.message": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireModels.swift: Spire attunement missingCompanionAffinity, message",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Gefährte braucht eine Fähigkeit, die zu diesem Turm passt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion needs an ability that matches this Spire"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le Compagnon a besoin d’une capacité qui correspond à cette tour"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仲間にはこの尖塔に対応するアビリティが必要です"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동료에게 이 첨탑에 맞는 능력이 필요합니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夥伴需要具備與這座高塔相符的能力"
+          }
+        }
+      }
+    },
+    "spire.attunement.missingheroaffinity.message": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireModels.swift: Spire attunement missingHeroAffinity, message",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Held braucht eine Fähigkeit, die zu diesem Turm passt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hero needs an ability that matches this Spire"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le Héros a besoin d’une capacité qui correspond à cette tour"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヒーローにはこの尖塔に対応するアビリティが必要です"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영웅에게 이 첨탑에 맞는 능력이 필요합니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "英雄需要具備與這座高塔相符的能力"
+          }
+        }
+      }
+    },
+    "spire.attunement.ready.message": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireModels.swift: Spire attunement ready, message",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Gruppe ist eingestimmt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Party is attuned"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le groupe est harmonisé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パーティーの調律完了"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파티 조율 완료"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隊伍已完成調諧"
+          }
+        }
+      }
+    },
+    "spire.aureatechoir.epithet": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: aureateChoir, epithet",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licht, das richtet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light that judges"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une lumière qui juge"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裁きの光"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "심판하는 빛"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "審判之光"
+          }
+        }
+      }
+    },
+    "spire.aureatechoir.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: aureateChoir, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goldener Chor"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aureate Choir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chœur doré"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "黄金の聖歌隊"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "황금 성가대"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金色聖詠團"
+          }
+        }
+      }
+    },
+    "spire.cinderspire.epithet": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: cinderSpire, epithet",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hitze, die nicht vergehen will"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heat that refuses to die"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une chaleur qui refuse de mourir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消えることを拒む熱"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "꺼지기를 거부하는 열기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不肯消逝的熱力"
+          }
+        }
+      }
+    },
+    "spire.cinderspire.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: cinderSpire, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glutturm"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cinder Spire"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tour des braises"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "残り火の尖塔"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잿불 첨탑"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "餘燼高塔"
+          }
+        }
+      }
+    },
+    "spire.ironvein.epithet": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: ironVein, epithet",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Schlag ohne Schnörkel"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strike without ornament"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une frappe sans artifice"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "飾りなき一撃"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "꾸밈없는 일격"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "樸實無華的一擊"
+          }
+        }
+      }
+    },
+    "spire.ironvein.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: ironVein, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eisenader"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iron Vein"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filon de fer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鉄の鉱脈"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "철의 광맥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鐵脈"
+          }
+        }
+      }
+    },
+    "spire.resonancehall.epithet": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: resonanceHall, epithet",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Schlag, der die Welt anhält"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One blow that stops the world"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un coup qui arrête le monde"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "世界を止める一撃"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "세상을 멈추는 일격"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "令世界停頓的一擊"
+          }
+        }
+      }
+    },
+    "spire.resonancehall.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: resonanceHall, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resonanzhalle"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resonance Hall"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hall de résonance"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共鳴の大広間"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "공명의 전당"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共鳴殿堂"
+          }
+        }
+      }
+    },
+    "spire.rimevault.epithet": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: rimeVault, epithet",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stille, die fesselt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stillness that binds"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une immobilité qui entrave"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "縛りつける静寂"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "옭아매는 정적"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "禁錮的寂靜"
+          }
+        }
+      }
+    },
+    "spire.rimevault.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: rimeVault, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reifgewölbe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rime Vault"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voûte du givre"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "霧氷の宝庫"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "서리 금고"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "霜封寶庫"
+          }
+        }
+      }
+    },
+    "spire.sanguinecourt.epithet": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: sanguineCourt, epithet",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Schnitt erinnert sich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every cut remembers"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque entaille se souvient"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべての傷は記憶する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모든 상처는 기억한다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每道傷口皆有記憶"
+          }
+        }
+      }
+    },
+    "spire.sanguinecourt.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: sanguineCourt, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluthof"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sanguine Court"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cour écarlate"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鮮血の宮廷"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선혈의 궁정"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鮮血宮廷"
+          }
+        }
+      }
+    },
+    "spire.serpenthollow.epithet": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: serpentHollow, epithet",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langsame Gewissheit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slow certainty"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une lente certitude"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "緩やかなる必然"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "느리지만 확실하게"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "緩緩逼近的必然"
+          }
+        }
+      }
+    },
+    "spire.serpenthollow.title": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: serpentHollow, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlangensenke"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serpent Hollow"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creux du serpent"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "蛇の窪地"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "뱀의 골짜기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "蛇之幽谷"
           }
         }
       }

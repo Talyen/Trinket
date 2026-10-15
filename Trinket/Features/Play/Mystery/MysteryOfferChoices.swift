@@ -5,6 +5,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct MysteryOfferChoices: View {
+    @Environment(\.locale) private var locale
     let offers: [MysteryOffer]
     let choices: [MysteryChoice]
     let width: CGFloat
@@ -72,7 +73,7 @@ struct MysteryOfferChoices: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text(L10n.ui_mysteryofferchoices_inspect_1_c8b12("\(offer.item.displayName)")))
+        .accessibilityLabel(Text(L10n.ui_mysteryofferchoices_inspect_1_c8b12("\(offer.item.localizedDisplayName(locale: locale))")))
         .accessibilityIdentifier(AccessibilityID.Mystery.offerArtwork(choiceID: offer.choiceID))
         .disabled(isDisabled)
     }

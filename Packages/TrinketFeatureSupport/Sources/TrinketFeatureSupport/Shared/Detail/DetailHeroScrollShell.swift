@@ -1,5 +1,6 @@
 import Observation
 import SwiftUI
+import TrinketContent
 import TrinketDesignSystem
 
 @MainActor
@@ -115,12 +116,13 @@ private struct DetailHeroSoftEdgeModifier: ViewModifier {
 }
 
 private struct DetailHeroNavBarModifier: ViewModifier {
+    @Environment(\.locale) private var locale
     let title: String
     let scrollState: HeroScrollState
 
     func body(content: Content) -> some View {
         content
-            .navigationTitle(scrollState.isPinned ? title : "")
+            .navigationTitle(scrollState.isPinned ? ContentCopy.localized(title, locale: locale) : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.clear, for: .navigationBar)
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)

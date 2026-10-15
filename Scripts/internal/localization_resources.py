@@ -103,6 +103,12 @@ def generated_resources(root: Path, catalogs: dict) -> dict[Path, bytes]:
                 seen.add(entry['original'])
             lines.extend([f'        case {", ".join(aliases)}: L10n.{key.replace(".", "_")}{args}'])
         lines.extend(['        default: numericMatch(english)?.resource ?? CoreCopy.resource(english)', '        }', '    }', '',
+                 '    static func itemNameResource(_ baseID: String) -> LocalizedStringResource? {',
+                 '        switch baseID {'])
+        for key in sorted(sources):
+            if key.startswith('item_bases.') and key.endswith('.name'):
+                lines.append(f'        case {swift_string(key.split(".")[1])}: L10n.{key.replace(".", "_")}')
+        lines.extend(['        default: nil', '        }', '    }', '',
                  '    public static func localized(_ english: String, locale: Locale = .current) -> String {',
                  '        description(english, locale: locale).text', '    }', '',
                  '    public static func description(_ english: String, locale: Locale = .current) -> LocalizedGameText {',

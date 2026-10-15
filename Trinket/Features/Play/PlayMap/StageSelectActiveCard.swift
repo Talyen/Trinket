@@ -188,7 +188,7 @@ struct StageSelectActiveCard<
             labelColor: primaryActionLabelColor,
             accessibilityIdentifier: presentation.actionAccessibilityID,
         )
-        .accessibilityLabel(isLockedContent ? String(localized: L10n.ui_stageselectactivecard_unlock_4ac70) : presentation
+        .gameAccessibilityLabel(isLockedContent ? String(localized: L10n.ui_stageselectactivecard_unlock_4ac70) : presentation
             .primaryActionTitle)
         .disabled(isPrimaryActionDisabled)
         .trinketSensoryFeedback(

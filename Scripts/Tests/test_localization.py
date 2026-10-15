@@ -151,9 +151,9 @@ class LocalizationTests(unittest.TestCase):
         from internal.localization_sources import source_errors
         source = self.root / 'Packages/Example/Sources/Example/Screen.swift'
         source.parent.mkdir(parents=True, exist_ok=True)
-        source.write_text('Text("New untranslated button")\nText(L10n.missing_key)\n')
+        source.write_text('Text("New untranslated button")\nMenu("New untranslated menu") {}\n.accessibilityAction(named: "New untranslated action") {}\nText(L10n.missing_key)\n')
         errors = source_errors(self.root)
-        self.assertTrue(any('unlocalized literal' in error for error in errors))
+        self.assertEqual(sum('unlocalized literal' in error for error in errors), 3)
         self.assertTrue(any('unknown typed localization resource' in error for error in errors))
 
     def test_swift_authored_keys_survive_english_edits(self):
@@ -201,14 +201,19 @@ class LocalizationTests(unittest.TestCase):
         spec = importlib.util.spec_from_file_location('localization_build', script)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+        for key in ['%lld', '+%lld', '%lld/%lld', '·']:
+            self.assertTrue(module.nonlinguistic_key(key))
+        for key in ['Unregistered', '%lld damage', '%@']:
+            self.assertFalse(module.nonlinguistic_key(key))
         derived = self.root / 'DerivedData'
         extracted = derived / 'Build/Intermediates.noindex/Screen.stringsdata'
         extracted.parent.mkdir(parents=True)
-        extracted.write_bytes(encoded({'source': str(self.root / 'Packages/Example/Sources/Example/Screen.swift'), 'tables': {'Localizable': [{'key': 'deal.burn'}, {'key': 'Unregistered'}]}}))
+        extracted.write_bytes(encoded({'source': str(self.root / 'Packages/Example/Sources/Example/Screen.swift'), 'tables': {'Localizable': [{'key': key} for key in ['deal.burn', 'Unregistered', '%lld', '+%lld', '%lld/%lld', '·']]}}))
         app = self.root / 'Example.app'
         (app / 'Example_Example.bundle/en.lproj').mkdir(parents=True)
         errors = module.verify(self.root, derived, app)
         self.assertTrue(any('Unregistered' in error for error in errors))
+        self.assertEqual(sum('unregistered display key' in error for error in errors), 1)
         self.assertTrue(any('missing bundled language ja' in error for error in errors))
 
 

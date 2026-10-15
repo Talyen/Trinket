@@ -773,6 +773,10 @@ public enum ContentCopy {
         case "Wildcard": L10n.combatants_wildcard_name
         case "Wizard": L10n.combatants_wizard_name
         case "Wolf": L10n.combatants_wolf_name
+        case "Easy": L10n.difficulty_contract_easy_title
+        case "Hard": L10n.difficulty_contract_hard_title
+        case "Standard": L10n.difficulty_contract_standard_title
+        case "Medium": L10n.difficulty_voyage_medium_title
         case "Bandit": L10n.enemies_bandit_name
         case "Banshee": L10n.enemies_banshee_name
         case "Blood Cultist": L10n.enemies_blood_cultist_name
@@ -1130,6 +1134,23 @@ public enum ContentCopy {
         case "Vanguard's Crest": L10n.item_bases_vanguards_crest_name
         case "Wand": L10n.item_bases_wand_name
         case "Wishing Well Coin": L10n.item_bases_wishing_well_coin_name
+        case "Companion needs an ability that matches this Spire": L10n.spire_attunement_missingcompanionaffinity_message
+        case "Hero needs an ability that matches this Spire": L10n.spire_attunement_missingheroaffinity_message
+        case "Party is attuned": L10n.spire_attunement_ready_message
+        case "Light that judges": L10n.spire_aureatechoir_epithet
+        case "Aureate Choir": L10n.spire_aureatechoir_title
+        case "Heat that refuses to die": L10n.spire_cinderspire_epithet
+        case "Cinder Spire": L10n.spire_cinderspire_title
+        case "Strike without ornament": L10n.spire_ironvein_epithet
+        case "Iron Vein": L10n.spire_ironvein_title
+        case "One blow that stops the world": L10n.spire_resonancehall_epithet
+        case "Resonance Hall": L10n.spire_resonancehall_title
+        case "Stillness that binds": L10n.spire_rimevault_epithet
+        case "Rime Vault": L10n.spire_rimevault_title
+        case "Every cut remembers": L10n.spire_sanguinecourt_epithet
+        case "Sanguine Court": L10n.spire_sanguinecourt_title
+        case "Slow certainty": L10n.spire_serpenthollow_epithet
+        case "Serpent Hollow": L10n.spire_serpenthollow_title
         case "Forest": L10n.stages_chapter_1_chapter_title
         case "Dungeon": L10n.stages_chapter_2_chapter_title
         case "Desert": L10n.stages_chapter_3_chapter_title
@@ -2093,6 +2114,65 @@ public enum ContentCopy {
         case "Deals 1 Freeze damage every other turn to all enemies": L10n.traits_winters_grasp_description(1)
         case "Winter’s Grasp": L10n.traits_winters_grasp_name
         default: numericMatch(english)?.resource ?? CoreCopy.resource(english)
+        }
+    }
+
+    static func itemNameResource(_ baseID: String) -> LocalizedStringResource? {
+        switch baseID {
+        case "bone_charm": L10n.item_bases_bone_charm_name
+        case "brass_censer": L10n.item_bases_brass_censer_name
+        case "companions_collar": L10n.item_bases_companions_collar_name
+        case "crossbow": L10n.item_bases_crossbow_name
+        case "cutpurse_knife": L10n.item_bases_cutpurse_knife_name
+        case "dagger": L10n.item_bases_dagger_name
+        case "double_axe": L10n.item_bases_double_axe_name
+        case "emerald_amulet": L10n.item_bases_emerald_amulet_name
+        case "emerald_ring": L10n.item_bases_emerald_ring_name
+        case "flail": L10n.item_bases_flail_name
+        case "frozen_pocketwatch": L10n.item_bases_frozen_pocketwatch_name
+        case "greatsword": L10n.item_bases_greatsword_name
+        case "groves_favor": L10n.item_bases_groves_favor_name
+        case "hatchet": L10n.item_bases_hatchet_name
+        case "icy_heart": L10n.item_bases_icy_heart_name
+        case "ironwood_buckler": L10n.item_bases_ironwood_buckler_name
+        case "kite_shield": L10n.item_bases_kite_shield_name
+        case "leather_armor": L10n.item_bases_leather_armor_name
+        case "leather_buckler": L10n.item_bases_leather_buckler_name
+        case "longbow": L10n.item_bases_longbow_name
+        case "longsword": L10n.item_bases_longsword_name
+        case "lucky_clover": L10n.item_bases_lucky_clover_name
+        case "mace": L10n.item_bases_mace_name
+        case "maul": L10n.item_bases_maul_name
+        case "merchants_favor": L10n.item_bases_merchants_favor_name
+        case "meteorite": L10n.item_bases_meteorite_name
+        case "mortar_and_pestle": L10n.item_bases_mortar_and_pestle_name
+        case "obsidian_hammer": L10n.item_bases_obsidian_hammer_name
+        case "parasitic_bloom": L10n.item_bases_parasitic_bloom_name
+        case "plague_doctors_mask": L10n.item_bases_plague_doctors_mask_name
+        case "plate_armor": L10n.item_bases_plate_armor_name
+        case "quiver": L10n.item_bases_quiver_name
+        case "recurve_bow": L10n.item_bases_recurve_bow_name
+        case "resonant_chimes": L10n.item_bases_resonant_chimes_name
+        case "ruby_amulet": L10n.item_bases_ruby_amulet_name
+        case "ruby_ring": L10n.item_bases_ruby_ring_name
+        case "runic_quill": L10n.item_bases_runic_quill_name
+        case "sapphire_amulet": L10n.item_bases_sapphire_amulet_name
+        case "sapphire_ring": L10n.item_bases_sapphire_ring_name
+        case "shortbow": L10n.item_bases_shortbow_name
+        case "shortsword": L10n.item_bases_shortsword_name
+        case "sin_eaters_lantern": L10n.item_bases_sin_eaters_lantern_name
+        case "smugglers_map": L10n.item_bases_smugglers_map_name
+        case "spellbook": L10n.item_bases_spellbook_name
+        case "staff": L10n.item_bases_staff_name
+        case "sundering_charm": L10n.item_bases_sundering_charm_name
+        case "tattered_pages": L10n.item_bases_tattered_pages_name
+        case "thunderstone": L10n.item_bases_thunderstone_name
+        case "topaz_amulet": L10n.item_bases_topaz_amulet_name
+        case "topaz_ring": L10n.item_bases_topaz_ring_name
+        case "vanguards_crest": L10n.item_bases_vanguards_crest_name
+        case "wand": L10n.item_bases_wand_name
+        case "wishing_well_coin": L10n.item_bases_wishing_well_coin_name
+        default: nil
         }
     }
 
@@ -3638,6 +3718,14 @@ public enum ContentCopy {
             LocalizedGameText(L10n.combatants_wizard_name, locale: locale)
         case "Wolf":
             LocalizedGameText(L10n.combatants_wolf_name, locale: locale)
+        case "Easy":
+            LocalizedGameText(L10n.difficulty_contract_easy_title, locale: locale)
+        case "Hard":
+            LocalizedGameText(L10n.difficulty_contract_hard_title, locale: locale)
+        case "Standard":
+            LocalizedGameText(L10n.difficulty_contract_standard_title, locale: locale)
+        case "Medium":
+            LocalizedGameText(L10n.difficulty_voyage_medium_title, locale: locale)
         case "Bandit":
             LocalizedGameText(L10n.enemies_bandit_name, locale: locale)
         case "Banshee":
@@ -4352,6 +4440,40 @@ public enum ContentCopy {
             LocalizedGameText(L10n.item_bases_wand_name, locale: locale)
         case "Wishing Well Coin":
             LocalizedGameText(L10n.item_bases_wishing_well_coin_name, locale: locale)
+        case "Companion needs an ability that matches this Spire":
+            LocalizedGameText(L10n.spire_attunement_missingcompanionaffinity_message, locale: locale)
+        case "Hero needs an ability that matches this Spire":
+            LocalizedGameText(L10n.spire_attunement_missingheroaffinity_message, locale: locale)
+        case "Party is attuned":
+            LocalizedGameText(L10n.spire_attunement_ready_message, locale: locale)
+        case "Light that judges":
+            LocalizedGameText(L10n.spire_aureatechoir_epithet, locale: locale)
+        case "Aureate Choir":
+            LocalizedGameText(L10n.spire_aureatechoir_title, locale: locale)
+        case "Heat that refuses to die":
+            LocalizedGameText(L10n.spire_cinderspire_epithet, locale: locale)
+        case "Cinder Spire":
+            LocalizedGameText(L10n.spire_cinderspire_title, locale: locale)
+        case "Strike without ornament":
+            LocalizedGameText(L10n.spire_ironvein_epithet, locale: locale)
+        case "Iron Vein":
+            LocalizedGameText(L10n.spire_ironvein_title, locale: locale)
+        case "One blow that stops the world":
+            LocalizedGameText(L10n.spire_resonancehall_epithet, locale: locale)
+        case "Resonance Hall":
+            LocalizedGameText(L10n.spire_resonancehall_title, locale: locale)
+        case "Stillness that binds":
+            LocalizedGameText(L10n.spire_rimevault_epithet, locale: locale)
+        case "Rime Vault":
+            LocalizedGameText(L10n.spire_rimevault_title, locale: locale)
+        case "Every cut remembers":
+            LocalizedGameText(L10n.spire_sanguinecourt_epithet, locale: locale)
+        case "Sanguine Court":
+            LocalizedGameText(L10n.spire_sanguinecourt_title, locale: locale)
+        case "Slow certainty":
+            LocalizedGameText(L10n.spire_serpenthollow_epithet, locale: locale)
+        case "Serpent Hollow":
+            LocalizedGameText(L10n.spire_serpenthollow_title, locale: locale)
         case "Forest":
             LocalizedGameText(L10n.stages_chapter_1_chapter_title, locale: locale)
         case "Dungeon":

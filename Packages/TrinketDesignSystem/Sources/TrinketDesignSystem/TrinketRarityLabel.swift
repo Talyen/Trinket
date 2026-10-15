@@ -2,6 +2,7 @@ import SwiftUI
 import TrinketCore
 
 public struct TrinketRarityLabel: View {
+    @Environment(\.locale) private var locale
     private let rarity: Rarity
     private let labelOverride: String?
 
@@ -54,6 +55,6 @@ public struct TrinketRarityLabel: View {
     }
 
     private var displayLabel: String {
-        (labelOverride ?? rarity.label).uppercased(with: .current)
+        labelOverride ?? LocalizedGameText(CoreCopy.resource(rarity.label), locale: locale).text
     }
 }

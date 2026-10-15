@@ -39,4 +39,15 @@ struct LocalizedGameTextTests {
         }
         #expect(keyword.localizedName(locale: Locale(identifier: "en")) == english)
     }
+
+    @Test func `equipment labels localize while slot save identities stay canonical`() throws {
+        for slot in [ItemSlot.weapon, .armor, .accessory, .trinket] {
+            let canonical = try JSONEncoder().encode(slot)
+            for language in ["ja", "ko", "de", "zh-Hant", "fr"] {
+                let text = CoreCopy.description(slot.displayName, locale: Locale(identifier: language)).text
+                #expect(text != slot.displayName)
+                #expect(try JSONEncoder().encode(slot) == canonical)
+            }
+        }
+    }
 }

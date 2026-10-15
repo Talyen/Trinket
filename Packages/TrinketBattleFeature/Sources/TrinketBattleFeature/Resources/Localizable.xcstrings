@@ -43,6 +43,48 @@
         }
       }
     },
+    "ui.battleabilitycardview.inspect_card": {
+      "comment": "Accessibility action on a battle ability card; opens its detail sheet without playing it.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karte ansehen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspect card"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Examiner la carte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードの詳細を確認"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "카드 살펴보기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看卡牌詳情"
+          }
+        }
+      }
+    },
     "ui.battleabilitycardview.not_playable_1d955": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleAbilityCardView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
@@ -291,6 +333,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "啟用前請先連接戰鬥進程"
+          }
+        }
+      }
+    },
+    "ui.battletransitionlabview.battle_preview": {
+      "comment": "Debug battle transition preview menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kampfvorschau"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Battle Preview"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aperçu du combat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戦闘プレビュー"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전투 미리보기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戰鬥預覽"
           }
         }
       }
@@ -1173,6 +1257,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "你的隊伍從%1$@撤退"
+          }
+        }
+      }
+    },
+    "ui.gamefeelpreviewview.busy_combat": {
+      "comment": "Debug preview menu for playing busy combat presentation scenarios.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kampf mit vielen Effekten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Busy Combat"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combat riche en effets"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "演出の多い戦闘"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연출이 많은 전투"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密集戰鬥演出"
           }
         }
       }

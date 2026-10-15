@@ -31,7 +31,7 @@ public struct AbilityDetailView: View {
             title: ability.name,
             header: { baseHeight in
                 DetailHeroHeader(
-                    eyebrow: ability.tier.rawValue.uppercased(),
+                    eyebrow: ability.tier.rawValue,
                     title: ability.name,
                     baseHeight: baseHeight,
                 ) {

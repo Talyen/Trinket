@@ -15,6 +15,7 @@ struct SalvageTransmutationEvent: Identifiable {
 }
 
 struct SalvageItemButton: View {
+    @Environment(\.locale) private var locale
     @Environment(\.salvageZoomNamespace) private var zoomNamespace
     let item: InventoryItem
     var isLocked = false
@@ -40,8 +41,9 @@ struct SalvageItemButton: View {
         .disabled(isLocked)
         .trinketPresentationVisibility(!isRetiring, opacity: isTransmuting ? 0 : 1)
         .animation(nil, value: isTransmuting)
-        .accessibilityLabel(isLocked ? String(localized: L10n.ui_salvagedissolvepresentation_1_locked_1871c("\(item.displayName)")) :
-            ContentCopy.localized(item.displayName))
+        .accessibilityLabel(isLocked ?
+            String(localized: L10n.ui_salvagedissolvepresentation_1_locked_1871c("\(item.localizedDisplayName(locale: locale))")) :
+            item.localizedDisplayName(locale: locale))
         .accessibilityIdentifier(AccessibilityID.Collection.itemCard(itemID: item.id))
     }
 

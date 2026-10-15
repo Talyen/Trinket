@@ -7,18 +7,19 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryCorruptionRevealContent: View {
+    @Environment(\.locale) private var locale
     @Bindable var session: MysteryEncounterSession
     let result: ItemCorruptionDetail
     let onFinish: () -> Bool
 
     var body: some View {
         DetailHeroScrollShell(
-            title: result.item.displayName,
+            title: result.item.localizedDisplayName(locale: locale),
             header: { baseHeight in
                 DetailHeroHeader(
                     eyebrow: eyebrow(for: result.item),
                     eyebrowIndicators: result.effects.filter { $0 == .upgradedRarity }.map(\.indicator),
-                    title: result.item.displayName,
+                    title: result.item.localizedDisplayName(locale: locale),
                     titleShine: result.item.displayTextShine,
                     titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptionRevealTitle,
                     baseHeight: baseHeight,

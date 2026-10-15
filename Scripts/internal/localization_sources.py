@@ -15,7 +15,7 @@ MANIFEST_FIELDS = {
     'affixes': ('title', 'basic_description', 'astral_description'),
     'stages': ('chapter_title', 'encounter_art_title'),
 }
-DISPLAY_CALL = re.compile(r'\b(Text|Button|Label|Link|Toggle|Picker|Section|ProgressView|navigationTitle|accessibilityLabel|accessibilityValue|accessibilityHint)\(\s*(?:balanced:\s*)?"([^"\n]*)')
+DISPLAY_CALL = re.compile(r'\b(Text|Button|Menu|Label|Link|Toggle|Picker|Section|ProgressView|navigationTitle|accessibilityLabel|accessibilityValue|accessibilityHint|accessibilityAction)\(\s*(?:(?:balanced|named):\s*)?"([^"\n]*)')
 
 
 def manifest_entries(root: Path) -> dict:
@@ -55,8 +55,65 @@ def manifest_entries(root: Path) -> dict:
     return entries
 
 
+def spire_sources(root: Path) -> dict:
+    entries = {}
+    directory = root / 'Packages/TrinketContent/Sources/TrinketContent/Encounters'
+    literal = r'"(?:[^"\\]|\\.)*"'
+    path = directory / 'SpireCatalog.swift'
+    if path.exists():
+        declaration = re.search(r'static let spires:\s*\[SpireDefinition\]\s*=\s*\[(.*?)^\s*\]', path.read_text(), re.M | re.S)
+        if declaration is None:
+            raise ValueError(f'{path.relative_to(root)}: unsupported Spire catalog; extend localization inventory')
+        source = declaration[1]
+        matches = list(re.finditer(r'\bspire\(\s*\.(\w+),\s*(' + literal + r'),\s*(' + literal + r'),\s*\.\w+\s*\)', source))
+        if not matches or len(matches) != len(re.findall(r'\bspire\(', source)):
+            raise ValueError(f'{path.relative_to(root)}: unsupported Spire declaration; extend localization inventory')
+        for match in matches:
+            for field, value in zip(('title', 'epithet'), match.groups()[1:]):
+                key = f'spire.{match[1].lower()}.{field}'
+                if key in entries or '\\(' in value:
+                    raise ValueError(f'{path.relative_to(root)}: duplicate or interpolated Spire source {key}')
+                entries[key] = {'text': json.loads(value), 'context': f'{path.relative_to(root)}: {match[1]}, {field}'}
+    path = directory / 'SpireModels.swift'
+    if path.exists():
+        declaration = re.search(r'public var message: String \{\n(.*?)^    \}', path.read_text(), re.M | re.S)
+        if declaration is None:
+            raise ValueError(f'{path.relative_to(root)}: unsupported Spire attunement messages; extend localization inventory')
+        source = declaration[1]
+        matches = list(re.finditer(r'case\s+\.(\w+):\s*(' + literal + r')', source))
+        if not matches or len(matches) != len(re.findall(r'\bcase\b', source)):
+            raise ValueError(f'{path.relative_to(root)}: unsupported Spire attunement case; extend localization inventory')
+        for match in matches:
+            key = f'spire.attunement.{match[1].lower()}.message'
+            if key in entries or '\\(' in match[2]:
+                raise ValueError(f'{path.relative_to(root)}: duplicate or interpolated Spire source {key}')
+            entries[key] = {'text': json.loads(match[2]), 'context': f'{path.relative_to(root)}: Spire attunement {match[1]}, message'}
+    return entries
+
+
+def difficulty_sources(root: Path) -> dict:
+    entries = {}
+    directory = root / 'Packages/TrinketContent/Sources/TrinketContent/Encounters'
+    for filename, symbol, identity in [('Contracts.swift', 'ContractDifficulty', 'contract'), ('Voyage.swift', 'VoyageDifficulty', 'voyage')]:
+        path = directory / filename
+        if not path.exists():
+            continue
+        declaration = re.search(r'public enum ' + symbol + r':[^{]+\{(.*?)public var title: String \{\s*rawValue\.capitalized\s*\}', path.read_text(), re.S)
+        if declaration is None:
+            raise ValueError(f'{path.relative_to(root)}: unsupported difficulty titles; extend localization inventory')
+        cases = [case.strip() for row in re.findall(r'^\s*case ([^\n]+)', declaration[1], re.M) for case in row.split(',')]
+        if not cases or any(not re.fullmatch(r'[a-z]+', case) for case in cases):
+            raise ValueError(f'{path.relative_to(root)}: unsupported difficulty case; extend localization inventory')
+        for case in cases:
+            entries[f'difficulty.{identity}.{case}.title'] = {
+                'text': case.capitalize(), 'context': f'{path.relative_to(root)}: {symbol}.{case}, title'}
+    return entries
+
+
 def content_sources(root: Path, *, bootstrap_keys: dict | None = None) -> dict:
     entries = manifest_entries(root)
+    entries.update(spire_sources(root))
+    entries.update(difficulty_sources(root))
     aliases_path = root / 'Localization/source-keys.json'
     aliases = json.loads(aliases_path.read_text()) if aliases_path.exists() else {}
     anchors = {}

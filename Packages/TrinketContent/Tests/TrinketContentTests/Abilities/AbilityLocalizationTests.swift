@@ -4,6 +4,17 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityLocalizationTests {
+    @Test func `item nouns stay distinct from attacks with the same English name`() throws {
+        let base = try #require(GameContent.itemBaseType(matching: "maul"))
+        let item = InventoryItem(id: "localization-maul", baseType: base, rarity: .basic, displayName: base.name, affixes: [])
+        let locale = Locale(identifier: "ko")
+        #expect(item.localizedDisplayName(locale: locale) == "대형 망치")
+        #expect(base.localizedName(locale: locale) == "대형 망치")
+        #expect(ContentCopy.localized("Maul", locale: locale) == "후려치기")
+        #expect(item.displayName == "Maul")
+        #expect(item.baseType.id == "maul")
+    }
+
     @Test func `translated ability rules preserve typed quantities and canonical battle inputs`() throws {
         let ability = try #require(AbilityCatalog.ability(id: "bloodthorn"))
         let original = ability.summary

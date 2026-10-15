@@ -21,6 +21,10 @@ public enum CoreCopy {
             return keyword.nameResource
         }
         return switch english {
+        case "Weapon": L10n.label_weapon
+        case "Armor": L10n.label_armor
+        case "Accessory": L10n.label_accessory
+        case "Trinket": L10n.label_trinket
         case "Farming": L10n.label_farming
         case "Crafting": L10n.label_crafting
         case "Alchemy": L10n.label_alchemy

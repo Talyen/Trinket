@@ -354,7 +354,8 @@
       "Scripts/internal/localization_store.py"
     ],
     "tests": [
-      "Scripts/Tests/test_localization.py"
+      "Scripts/Tests/test_localization.py",
+      "Scripts/Tests/test_localization_content_inventory.py"
     ],
     "contracts": [
       "Docs/Platform/Localization.md"

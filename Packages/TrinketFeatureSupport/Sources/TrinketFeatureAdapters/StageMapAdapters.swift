@@ -109,7 +109,8 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
             else { return nil }
 
             let encounter = StageEncounter.battle(enemyID: floor.enemyID)
-            let encounterTypeTitle = enemy.isBoss ? String(localized: L10n.ui_stagemapadapters_boss_6a6ac) : encounter.title
+            let encounterTypeTitle = enemy.isBoss ? String(localized: L10n.ui_stagemapadapters_boss_6a6ac) :
+                String(localized: L10n.ui_stagemapadapters_battle_1b18e)
             let mapLabel = String(localized: L10n.ui_stagemapadapters_floor_1_699ae("\(floor.floor)"))
             let selected = floor.floor == activeFloor
                 ? GameContent.spireModifier(for: floor, worldSeed: worldSeed)

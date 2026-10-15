@@ -8,6 +8,7 @@ public enum ItemCardPresentation {
 }
 
 public struct ItemCard<Art: View>: View {
+    @Environment(\.locale) private var locale
     let item: InventoryItem
     var showsAffixCount: Bool
     var isLocked = false
@@ -74,7 +75,7 @@ public struct ItemCard<Art: View>: View {
             art: art,
             label: {
                 if isLocked {
-                    GameLabel(item.displayName, balanced: true)
+                    Text(balanced: item.localizedDisplayName(locale: locale))
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -109,7 +110,7 @@ public struct ItemCard<Art: View>: View {
                 labelOverride: item.isTrinket ? String(localized: L10n.ui_itemcard_trinket_ae23c) : nil,
             )
 
-            GameLabel(item.displayName, balanced: true)
+            Text(balanced: item.localizedDisplayName(locale: locale))
                 .trinketTypography(.sectionDisplay)
                 .shineText(shine ?? item.displayTextShine)
                 .multilineTextAlignment(.center)

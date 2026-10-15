@@ -127,14 +127,8 @@ struct OptionsView: View {
         Section(String(localized: L10n.ui_optionsview_game_data_15041)) {
             if isResetConfirmationPresented {
                 Text(
-                    appState.playerSave.resetAffectsCloudProgress ? """
-                    This permanently clears your game progress on this device and your synced devices when iCloud is available. \
-                    You'll choose a new starter Hero again. Options settings and Full Game ownership are kept.
-                    """ : """
-                    This permanently clears your Campaign stages, Explore runs, Heroes and Companions, \
-                    Items, and Homestead upgrades on this device. You'll choose a new starter Hero again. \
-                    Options settings are kept.
-                    """,
+                    appState.playerSave.resetAffectsCloudProgress
+                        ? L10n.ui_optionsview_reset_cloud_explanation : L10n.ui_optionsview_reset_local_explanation,
                 )
                 .trinketTypography(.secondaryBody)
                 Button(String(localized: L10n.ui_optionsview_cancel_19766)) { isResetConfirmationPresented = false }

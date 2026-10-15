@@ -3,6 +3,7 @@ import TrinketContent
 import TrinketDesignSystem
 
 public struct ItemCardLabel: View {
+    @Environment(\.locale) private var locale
     let item: InventoryItem
     let showsAffixCount: Bool
     let shine: Shine?
@@ -27,7 +28,7 @@ public struct ItemCardLabel: View {
                 .multilineTextAlignment(.center)
             }
 
-            GameLabel(item.displayName, balanced: true)
+            Text(balanced: item.localizedDisplayName(locale: locale))
                 .trinketTypography(.cardLabel)
                 .shineText(shine ?? item.displayTextShine)
                 .foregroundStyle(.primary)

@@ -56,6 +56,9 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         let purchase = button(AccessibilityID.FullGame.purchase)
         assertExists(purchase)
         XCTAssertTrue(purchase.isHittable, "The purchase action must remain reachable in \(label)")
+        if language != "en" {
+            XCTAssertFalse(purchase.label.contains("Unlock Full Game"), "StoreKit must preserve the app language in \(label)")
+        }
         capture(label, screen: "full-game")
     }
 

@@ -136,7 +136,7 @@ struct BattleAbilityCardView: View {
             String(localized: L10n.ui_battleabilitycardview_not_playable_1d955))
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { requestPlay(.tap) }
-        .accessibilityAction(named: "Inspect card") {
+        .accessibilityAction(named: Text(L10n.ui_battleabilitycardview_inspect_card)) {
             guard interactionResolution == .idle else { return }
             presentInspection()
         }

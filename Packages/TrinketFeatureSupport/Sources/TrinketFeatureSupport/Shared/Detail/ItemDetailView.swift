@@ -10,6 +10,7 @@ public enum ItemSalvageActionResult: Equatable, Sendable {
 }
 
 public struct ItemDetailView: View {
+    @Environment(\.locale) private var locale
     private struct SalvageConfiguration {
         let yields: [ResourceAmount]
         let equippedByName: String?
@@ -100,11 +101,11 @@ public struct ItemDetailView: View {
 
     public var body: some View {
         DetailHeroScrollShell(
-            title: item.displayName,
+            title: item.localizedDisplayName(locale: locale),
             header: { baseHeight in
                 DetailHeroHeader(
                     eyebrow: Self.eyebrow(for: item),
-                    title: item.displayName,
+                    title: item.localizedDisplayName(locale: locale),
                     titleShine: item.displayTextShine,
                     baseHeight: baseHeight,
                 ) {

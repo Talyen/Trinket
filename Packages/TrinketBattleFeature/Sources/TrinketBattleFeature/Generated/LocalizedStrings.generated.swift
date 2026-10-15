@@ -7,6 +7,10 @@ enum L10n {
         LocalizedStringResource("ui.battleabilitycardview.double_tap_to_play_this_card_03e9e", defaultValue: "Double tap to play this card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var ui_battleabilitycardview_inspect_card: LocalizedStringResource {
+        LocalizedStringResource("ui.battleabilitycardview.inspect_card", defaultValue: "Inspect card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var ui_battleabilitycardview_not_playable_1d955: LocalizedStringResource {
         LocalizedStringResource("ui.battleabilitycardview.not_playable_1d955", defaultValue: "Not playable", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -29,6 +33,10 @@ enum L10n {
 
     static var ui_battlesession_progression_connect_battle_progression_before_activation_670e5: LocalizedStringResource {
         LocalizedStringResource("ui.battlesession_progression.connect_battle_progression_before_activation_670e5", defaultValue: "Connect battle progression before activation", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_battletransitionlabview_battle_preview: LocalizedStringResource {
+        LocalizedStringResource("ui.battletransitionlabview.battle_preview", defaultValue: "Battle Preview", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var ui_battletransitionlabview_battle_transitions_fd4bd: LocalizedStringResource {
@@ -113,6 +121,10 @@ enum L10n {
 
     static func ui_defeatview_your_party_retreated_from_1_86965(_ value1: String) -> LocalizedStringResource {
         LocalizedStringResource("ui.defeatview.your_party_retreated_from_1_86965", defaultValue: "Your party retreated from \(ContentCopy.localized(value1))", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_gamefeelpreviewview_busy_combat: LocalizedStringResource {
+        LocalizedStringResource("ui.gamefeelpreviewview.busy_combat", defaultValue: "Busy Combat", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var ui_gamefeelpreviewview_critical_427dd: LocalizedStringResource {

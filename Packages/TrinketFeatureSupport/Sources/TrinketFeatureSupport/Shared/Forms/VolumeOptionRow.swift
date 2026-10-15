@@ -44,7 +44,7 @@ public struct VolumeOptionRow: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             HStack {
                 Label {
-                    GameLabel(title, balanced: true)
+                    Text(balanced: title)
                         .trinketTypography(.body)
                 } icon: {
                     Image(systemName: dynamicIconName)
@@ -72,7 +72,7 @@ public struct VolumeOptionRow: View {
                     }
                 },
             )
-            .gameAccessibilityLabel(title)
+            .accessibilityLabel(title)
             .accessibilityValue(percentageText)
             .onChange(of: draft) { _, newValue in
                 if isEditing {

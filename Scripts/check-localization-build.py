@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import sys
 
-from internal.localization import inventory
+from internal.localization import FORMAT, inventory
 
 
 def compiler_keys(directory: Path) -> dict[str, set[str]]:
@@ -26,6 +26,15 @@ def compiler_keys(directory: Path) -> dict[str, set[str]]:
     return found
 
 
+def nonlinguistic_key(key: str) -> bool:
+    # Compiler extraction also emits numeric-only Text interpolation and separators.
+    # String arguments remain inventoried: they can carry untranslated player copy.
+    if any(match[2] == '@' or match[2].startswith('#@') for match in FORMAT.finditer(key)):
+        return False
+    literal = FORMAT.sub('', key)
+    return '%' not in literal and not any(character.isalpha() for character in literal)
+
+
 def verify(root: Path, derived: Path, app: Path) -> list[str]:
     config, catalogs, _ = inventory(root)
     extracted = compiler_keys(derived / 'Build/Intermediates.noindex')
@@ -37,6 +46,7 @@ def verify(root: Path, derived: Path, app: Path) -> list[str]:
         prefixes = [parent] if parent.startswith('Packages/') else ['Trinket/App', 'Trinket/Features']
         observed = set().union(*(keys for source, keys in extracted.items()
                                  if any('/' + prefix + '/' in '/' + source for prefix in prefixes)))
+        observed = {key for key in observed if not nonlinguistic_key(key)}
         expected = set(catalog['strings'])
         if not observed:
             errors.append(f'{parent}: no compiler extraction evidence; build with SWIFT_EMIT_LOC_STRINGS=YES')

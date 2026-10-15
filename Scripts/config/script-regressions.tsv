@@ -215,7 +215,7 @@ Scripts/xcresult-report.py	test_build_artifacts.py,test_build_metadata.py,test_b
 Scripts/localization.py	test_localization.py
 Scripts/internal/localization.py	test_localization.py
 Scripts/internal/localization_resources.py	test_localization.py
-Scripts/internal/localization_sources.py	test_localization.py
+Scripts/internal/localization_sources.py	test_localization.py,test_localization_content_inventory.py
 Scripts/internal/localization_store.py	test_localization.py
 Localization/*.json	test_localization.py
 Localization/Store/*	test_localization.py

@@ -117,7 +117,7 @@ public struct GameFeelPreviewView: View {
                     .accessibilityIdentifier(AccessibilityID.GameFeel.tap)
                 Button(String(localized: L10n.ui_gamefeelpreviewview_drag_release_a271c)) { attack(prepared: true) }
                     .accessibilityIdentifier(AccessibilityID.GameFeel.drag)
-                Menu("Busy Combat") {
+                Menu(String(localized: L10n.ui_gamefeelpreviewview_busy_combat)) {
                     ForEach(GameFeelCombatScenario.allCases) { scenario in
                         Button(scenario.rawValue) { play(scenario) }
                     }

@@ -4,6 +4,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct BlacksmithForgeView: View {
+    @Environment(\.locale) private var locale
     @Namespace private var resultNamespace
     @State private var path: [BlacksmithForgeRoute] = []
     @State private var browsingDetent: PresentationDetent = .medium
@@ -63,7 +64,7 @@ struct BlacksmithForgeView: View {
                         BlacksmithBaseCard(recipe: recipe, thumbnail: true)
                     }
                     .trinketArtworkCardButtonStyle()
-                    .gameAccessibilityLabel(recipe.baseType.name)
+                    .accessibilityLabel(recipe.baseType.localizedName(locale: locale))
                     .accessibilityIdentifier(AccessibilityID.Homestead.forgeRecipe(recipe.id))
                     .onAppear { visibleIDs.insert(recipe.id) }
                     .onDisappear { visibleIDs.remove(recipe.id) }
@@ -88,6 +89,7 @@ struct BlacksmithForgeView: View {
 }
 
 struct BlacksmithBaseCard: View {
+    @Environment(\.locale) private var locale
     let recipe: BlacksmithRecipe
     var thumbnail = false
 
@@ -102,7 +104,7 @@ struct BlacksmithBaseCard: View {
                 PlaceholderArtwork(.item)
             }
         } label: {
-            GameLabel(recipe.baseType.name, balanced: true)
+            Text(balanced: recipe.baseType.localizedName(locale: locale))
                 .trinketTypography(.cardLabel)
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.center)

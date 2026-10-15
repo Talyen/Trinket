@@ -62,7 +62,7 @@ public struct BattleTransitionLabView<StagePicker: View>: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 if screen == .battle {
-                    Menu("Battle Preview") {
+                    Menu(String(localized: L10n.ui_battletransitionlabview_battle_preview)) {
                         Button(String(localized: L10n.ui_battletransitionlabview_return_to_stages_abc9c), action: returnToStages)
                             .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.returnToStages)
                         Button(String(localized: L10n.ui_battletransitionlabview_show_victory_2521f)) { start(.showVictory) }

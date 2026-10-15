@@ -283,7 +283,6 @@ public struct CombatantDetailPane: View {
 
         if !activeEffectSummaries.isEmpty {
             CombatantActiveEffectsSection(summaries: activeEffectSummaries)
-                .equatable()
         }
 
         DetailSection(String(localized: L10n.ui_combatantdetailpane_abilities_81932)) {
