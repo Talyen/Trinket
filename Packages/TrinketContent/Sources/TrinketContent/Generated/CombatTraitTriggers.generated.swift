@@ -881,21 +881,895 @@ public enum CombatTriggerField: String, CaseIterable, Sendable {
 @dynamicMemberLookup
 public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hashable {
     struct Fields: Equatable, Hashable, Sendable {
-        var damage: DamageTriggers
-        var attack: AttackTriggers
-        var block: BlockTriggers
-        var mitigation: MitigationTriggers
-        var dot: DotTriggers
-        var control: ControlTriggers
-        var dodge: DodgeTriggers
-        var mana: ManaTriggers
-        var gold: GoldTriggers
-        var healing: HealingTriggers
-        var revival: RevivalTriggers
-        var cleanse: CleanseTriggers
-        var enemyTurn: EnemyTurnTriggers
-        var onHit: OnHitTriggers
+        var damage = DamageTriggers()
+        var attack = AttackTriggers()
+        var block = BlockTriggers()
+        var mitigation = MitigationTriggers()
+        var dot = DotTriggers()
+        var control = ControlTriggers()
+        var dodge = DodgeTriggers()
+        var mana = ManaTriggers()
+        var gold = GoldTriggers()
+        var healing = HealingTriggers()
+        var revival = RevivalTriggers()
+        var cleanse = CleanseTriggers()
+        var enemyTurn = EnemyTurnTriggers()
+        var onHit = OnHitTriggers()
     }
+
+    private static let schema: [TriggerField<Fields>] = [
+        .init(\.damage.ghostfrost, .ghostfrost, default: false),
+        .init(\.damage.stolenThunder, .stolenThunder, default: false),
+        .init(\.damage.physicalBonusesApplyToHoly, .physicalBonusesApplyToHoly, default: false),
+        .init(\.damage.attacksIgnoreBlockWhileTargetPoisoned, .attacksIgnoreBlockWhileTargetPoisoned, default: false),
+        .init(\.damage.damageBelowHealthPercentThreshold, .damageBelowHealthPercentThreshold, default: 0),
+        .init(\.damage.damageBelowHealthPercentKeyword, .damageBelowHealthPercentKeyword, default: nil),
+        .init(\.damage.damageBelowHealthPercentBonus, .damageBelowHealthPercentBonus, default: 0),
+        .init(\.damage.damageAfterDodgeBonus, .damageAfterDodgeBonus, default: 0),
+        .init(\.damage.damageWhileTargetFrozenBonus, .damageWhileTargetFrozenBonus, default: 0),
+        .init(\.damage.damageWhileTargetStunnedBonus, .damageWhileTargetStunnedBonus, default: 0),
+        .init(\.damage.ignoreEnemyMitigationPercent, .ignoreEnemyMitigationPercent, default: 0),
+        .init(\.damage.leechIgnoresMitigation, .leechIgnoresMitigation, default: false),
+        .init(\.damage.firstHitDoubleDamage, .firstHitDoubleDamage, default: false),
+        .init(\.damage.firstPhysicalAttackGuaranteedCritical, .firstPhysicalAttackGuaranteedCritical, default: false),
+        .init(\.damage.firstAttackBleedBonus, .firstAttackBleedBonus, default: 0),
+        .init(\.damage.physicalIgnoreMitigationPercent, .physicalIgnoreMitigationPercent, default: 0),
+        .init(\.damage.turnRandomDamageAllEnemiesKeywordA, .turnRandomDamageAllEnemiesKeywordA, default: nil),
+        .init(\.damage.turnRandomDamageAllEnemiesKeywordB, .turnRandomDamageAllEnemiesKeywordB, default: nil),
+        .init(\.damage.turnRandomDamageAllEnemiesAmount, .turnRandomDamageAllEnemiesAmount, default: 0),
+        .init(\.damage.turnRandomDamageAllEnemiesInterval, .turnRandomDamageAllEnemiesInterval, default: 2),
+        .init(\.damage.holyDamagePoisonFlat, .holyDamagePoisonFlat, default: 0),
+        .init(\.damage.stunnedDamageMultiplier, .stunnedDamageMultiplier, default: 1),
+        .init(\.damage.criticalChanceBonus, .criticalChanceBonus, default: 0),
+        .init(\.damage.damageVsBleedingBonus, .damageVsBleedingBonus, default: 0),
+        .init(\.damage.damageVsPoisonedMultiplier, .damageVsPoisonedMultiplier, default: 1),
+        .init(\.damage.damageVsBurningMultiplier, .damageVsBurningMultiplier, default: 1),
+        .init(\.damage.damageVsFrozenMultiplier, .damageVsFrozenMultiplier, default: 1),
+        .init(\.damage.holyDamageVsStunnedOrBurningMultiplier, .holyDamageVsStunnedOrBurningMultiplier, default: 1),
+        .init(\.damage.holyDamageVsPoisonedOrBleedingMultiplier, .holyDamageVsPoisonedOrBleedingMultiplier, default: 1),
+        .init(\.damage.holyDamageVsStunnedBonus, .holyDamageVsStunnedBonus, default: 0),
+        .init(\.damage.holyDamageVsUndeadOrCorruptedMultiplier, .holyDamageVsUndeadOrCorruptedMultiplier, default: 1),
+        .init(\.damage.frostDamageVsFrozenBonus, .frostDamageVsFrozenBonus, default: 0),
+        .init(\.damage.burnDamageVsFrozenBonusPhysical, .burnDamageVsFrozenBonusPhysical, default: 0),
+        .init(\.damage.burnDamageVsNoBlockMultiplier, .burnDamageVsNoBlockMultiplier, default: 1),
+        .init(\.damage.physicalDamageVsBleedingMultiplier, .physicalDamageVsBleedingMultiplier, default: 1),
+        .init(\.damage.damagePerMissingHealthEvery, .damagePerMissingHealthEvery, default: 0),
+        .init(\.damage.gildedClaws, .gildedClaws, default: false),
+        .init(\.damage.goldReservesDamageEvery, .goldReservesDamageEvery, default: 0),
+        .init(\.damage.goldReservesDamageCap, .goldReservesDamageCap, default: 0),
+        .init(\.damage.damageVsLowerHealthEnemyBonus, .damageVsLowerHealthEnemyBonus, default: 0),
+        .init(\.damage.companionDamageVsPoisonedBonus, .companionDamageVsPoisonedBonus, default: 0),
+        .init(\.damage.companionDamageVsBurningBonus, .companionDamageVsBurningBonus, default: 0),
+        .init(\.damage.heroDamageVsStunnedMultiplier, .heroDamageVsStunnedMultiplier, default: 1),
+        .init(\.damage.poisonDamageBelowHealthThreshold, .poisonDamageBelowHealthThreshold, default: 0),
+        .init(\.damage.poisonDamageBelowHealthMultiplier, .poisonDamageBelowHealthMultiplier, default: 1),
+        .init(\.damage.bleedTickCritChancePercent, .bleedTickCritChancePercent, default: 0),
+        .init(\.damage.burnDamageDoubleChancePercent, .burnDamageDoubleChancePercent, default: 0),
+        .init(\.damage.partyCritChanceWhileCompanionAboveHealthThreshold, .partyCritChanceWhileCompanionAboveHealthThreshold, default: 0),
+        .init(\.damage.partyCritChanceWhileCompanionAboveHealthBonus, .partyCritChanceWhileCompanionAboveHealthBonus, default: 0),
+        .init(\.damage.heroCritChanceWhileCompanionAlive, .heroCritChanceWhileCompanionAlive, default: 0),
+        .init(\.damage.critChancePerBleedingEnemy, .critChancePerBleedingEnemy, default: 0),
+        .init(\.damage.partyCritChanceWhileGoldAbove, .partyCritChanceWhileGoldAbove, default: 0),
+        .init(\.damage.partyCritChanceWhileGoldAboveBonus, .partyCritChanceWhileGoldAboveBonus, default: 0),
+        .init(\.damage.partyAllStatsBonusBelowHealthThreshold, .partyAllStatsBonusBelowHealthThreshold, default: 0),
+        .init(\.damage.partyAllStatsBonusBelowHealthAmount, .partyAllStatsBonusBelowHealthAmount, default: 0),
+        .init(\.damage.toxicTransfusion, .toxicTransfusion, default: false),
+        .init(\.damage.pressurePoint, .pressurePoint, default: false),
+        .init(\.damage.warChest, .warChest, default: false),
+        .init(\.damage.nerveAgent, .nerveAgent, default: false),
+        .init(\.damage.septicemia, .septicemia, default: false),
+        .init(\.damage.firebrand, .firebrand, default: false),
+        .init(\.damage.butchersLedger, .butchersLedger, default: false),
+        .init(\.damage.frostfire, .frostfire, default: false),
+        .init(\.damage.elementalParadox, .elementalParadox, default: false),
+        .init(\.damage.burnDoubleVsFrozenChancePercent, .burnDoubleVsFrozenChancePercent, default: 0),
+        .init(\.damage.companionDamageVsBurningMultiplier, .companionDamageVsBurningMultiplier, default: 1),
+        .init(\.damage.physicalDamageVsBlockedBonus, .physicalDamageVsBlockedBonus, default: 0),
+        .init(\.damage.burnDamageVsFrozenMultiplier, .burnDamageVsFrozenMultiplier, default: 1),
+        .init(\.damage.criticalDamageVsBurningMultiplier, .criticalDamageVsBurningMultiplier, default: 1),
+        .init(\.damage.physicalDamageFromBlockPercent, .physicalDamageFromBlockPercent, default: 0),
+        .init(\.damage.holyDamageWhileBlockedMultiplier, .holyDamageWhileBlockedMultiplier, default: 1),
+        .init(\.damage.stunCriticalDamageMultiplier, .stunCriticalDamageMultiplier, default: 1),
+        .init(\.damage.thornsDealHoly, .thornsDealHoly, default: false),
+        .init(\.damage.poisonAttackVsBleedingBonus, .poisonAttackVsBleedingBonus, default: 0),
+        .init(\.damage.companionDamageVsPoisonedMultiplier, .companionDamageVsPoisonedMultiplier, default: 1),
+        .init(\.damage.companionAttackVsBleedingMultiplier, .companionAttackVsBleedingMultiplier, default: 1),
+        .init(\.damage.bleedAttackVsStunnedMultiplier, .bleedAttackVsStunnedMultiplier, default: 1),
+        .init(\.damage.burnDamageVsBleedingMultiplier, .burnDamageVsBleedingMultiplier, default: 1),
+        .init(\.damage.burnCriticalDamageBonus, .burnCriticalDamageBonus, default: 0),
+        .init(\.damage.companionCriticalVsBurningBonus, .companionCriticalVsBurningBonus, default: 0),
+        .init(\.damage.poisonDoubleAfterCompanionHurt, .poisonDoubleAfterCompanionHurt, default: false),
+        .init(\.damage.poisonDamageVsBleedingMultiplier, .poisonDamageVsBleedingMultiplier, default: 1),
+        .init(\.damage.bleedCriticalBelowHalfMultiplier, .bleedCriticalBelowHalfMultiplier, default: 1),
+        .init(\.damage.burnBelowHalfHealthMultiplier, .burnBelowHalfHealthMultiplier, default: 1),
+        .init(\.damage.zeroManaBurnMultiplier, .zeroManaBurnMultiplier, default: 1),
+        .init(\.damage.criticalVsBurningBonus, .criticalVsBurningBonus, default: 0),
+        .init(\.damage.poisonCriticalDamageBonus, .poisonCriticalDamageBonus, default: 0),
+        .init(\.damage.poisonVsBurningMultiplier, .poisonVsBurningMultiplier, default: 1),
+        .init(\.damage.barbedSporesThornsVsPoisonedMultiplier, .barbedSporesThornsVsPoisonedMultiplier, default: 1),
+        .init(\.damage.coolMossFreezeBonus, .coolMossFreezeBonus, default: 0),
+        .init(\.damage.bleedingEnemyPhysicalDamageMultiplier, .bleedingEnemyPhysicalDamageMultiplier, default: 1),
+        .init(\.damage.leechEnemyNextAttackDamageMultiplier, .leechEnemyNextAttackDamageMultiplier, default: 1),
+        .init(\.damage.thornsDamageFlat, .thornsDamageFlat, default: 0),
+        .init(\.damage.thornsDamageFlatWhileBlocked, .thornsDamageFlatWhileBlocked, default: 0),
+        .init(\.damage.poisonOnThornsDamage, .poisonOnThornsDamage, default: 0),
+        .init(\.damage.poisonDamageVsBleedingFlat, .poisonDamageVsBleedingFlat, default: 0),
+        .init(\.damage.holyDamageVsStunnedPercent, .holyDamageVsStunnedPercent, default: 0),
+        .init(\.attack.firstCriticalHitRepeatsPerTurn, .firstCriticalHitRepeatsPerTurn, default: false),
+        .init(\.attack.heldCardNextAttackDamage, .heldCardNextAttackDamage, default: 0),
+        .init(\.attack.partnerFirstAttackDamage, .partnerFirstAttackDamage, default: 0),
+        .init(\.attack.dazingSwipeChancePercent, .dazingSwipeChancePercent, default: 0),
+        .init(\.attack.dazingSwipeStunDamage, .dazingSwipeStunDamage, default: 0),
+        .init(\.attack.secondCardDrawAndDodgePercent, .secondCardDrawAndDodgePercent, default: 0),
+        .init(\.attack.thirdCardReturnsToHand, .thirdCardReturnsToHand, default: false),
+        .init(\.attack.recoverLastAttackCardEachTurn, .recoverLastAttackCardEachTurn, default: false),
+        .init(\.attack.attacksApplyPoison, .attacksApplyPoison, default: 0),
+        .init(\.attack.physicalAttackApplyBleed, .physicalAttackApplyBleed, default: 0),
+        .init(\.attack.physicalAttackApplyBleedAndStun, .physicalAttackApplyBleedAndStun, default: 0),
+        .init(\.attack.basicAttackApplyBleed, .basicAttackApplyBleed, default: 0),
+        .init(\.attack.basicAttackFreezeBuildup, .basicAttackFreezeBuildup, default: 0),
+        .init(\.attack.criticalApplyPoison, .criticalApplyPoison, default: 0),
+        .init(\.attack.criticalApplyBurn, .criticalApplyBurn, default: 0),
+        .init(\.attack.holyAttackApplyBurnAndStunBuildup, .holyAttackApplyBurnAndStunBuildup, default: 0),
+        .init(\.attack.onAttackStealGold, .onAttackStealGold, default: 0),
+        .init(\.attack.basicAttackStealGold, .basicAttackStealGold, default: 0),
+        .init(\.attack.onAttackFrozenEnemyGainMana, .onAttackFrozenEnemyGainMana, default: 0),
+        .init(\.attack.onAttackFrozenEnemyGainBlock, .onAttackFrozenEnemyGainBlock, default: 0),
+        .init(\.attack.onAttackStunnedEnemyGold, .onAttackStunnedEnemyGold, default: 0),
+        .init(\.attack.onAttackStunnedEnemyBlock, .onAttackStunnedEnemyBlock, default: 0),
+        .init(\.attack.holyDamageNextHitBonus, .holyDamageNextHitBonus, default: 0),
+        .init(\.attack.holyDamageNextAttackHolyBonus, .holyDamageNextAttackHolyBonus, default: 0),
+        .init(\.attack.onBleedDamageNextBasicGuaranteedCrit, .onBleedDamageNextBasicGuaranteedCrit, default: false),
+        .init(\.attack.onBleedDamageNextBasicCritBonus, .onBleedDamageNextBasicCritBonus, default: 0),
+        .init(\.attack.nextAttackBonusOnFullHealth, .nextAttackBonusOnFullHealth, default: 0),
+        .init(\.attack.leechOverhealDamageBonus, .leechOverhealDamageBonus, default: 0),
+        .init(\.attack.onHeroSpendManaCompanionNextAttackBonus, .onHeroSpendManaCompanionNextAttackBonus, default: 0),
+        .init(\.attack.partyBasicAttackHolyBonus, .partyBasicAttackHolyBonus, default: 0),
+        .init(\.attack.partyHolyDamageBonusWhileCompanionFullHealth, .partyHolyDamageBonusWhileCompanionFullHealth, default: 0),
+        .init(\.attack.partyDamageBonusWhileCompanionFullHealth, .partyDamageBonusWhileCompanionFullHealth, default: 0),
+        .init(\.attack.partyPhysicalDamageBonusFirstTurns, .partyPhysicalDamageBonusFirstTurns, default: 0),
+        .init(\.attack.partyPhysicalDamageBonusFirstTurnCount, .partyPhysicalDamageBonusFirstTurnCount, default: 0),
+        .init(\.attack.attackBurstChancePercent, .attackBurstChancePercent, default: 0),
+        .init(\.attack.attackBurstDamage, .attackBurstDamage, default: 0),
+        .init(\.attack.attackBurstBlock, .attackBurstBlock, default: 0),
+        .init(\.attack.directHitBleedChancePercent, .directHitBleedChancePercent, default: 0),
+        .init(\.attack.attackApplyBleed, .attackApplyBleed, default: 0),
+        .init(\.attack.onHeroAttackPoisonedEnemyApplyPoison, .onHeroAttackPoisonedEnemyApplyPoison, default: 0),
+        .init(\.attack.onPhysicalDamageGainBlock, .onPhysicalDamageGainBlock, default: 0),
+        .init(\.attack.critStealEnemyBlock, .critStealEnemyBlock, default: false),
+        .init(\.attack.criticalPurgeCount, .criticalPurgeCount, default: 0),
+        .init(\.attack.criticalPurgeAll, .criticalPurgeAll, default: false),
+        .init(\.attack.cleanCut, .cleanCut, default: false),
+        .init(\.attack.crackedGuard, .crackedGuard, default: false),
+        .init(\.attack.blockedAttackNextPhysicalDouble, .blockedAttackNextPhysicalDouble, default: false),
+        .init(\.attack.poisonCritPreparesBleedCrit, .poisonCritPreparesBleedCrit, default: false),
+        .init(\.attack.leechCriticalVsBleedingBonus, .leechCriticalVsBleedingBonus, default: 0),
+        .init(\.attack.burnAttackCritDrawCard, .burnAttackCritDrawCard, default: false),
+        .init(\.attack.burnPreparesBleedDamageBonus, .burnPreparesBleedDamageBonus, default: 0),
+        .init(\.attack.physicalElementChancePercent, .physicalElementChancePercent, default: 0),
+        .init(\.attack.physicalElementDamage, .physicalElementDamage, default: 0),
+        .init(\.attack.standardDeviation, .standardDeviation, default: false),
+        .init(\.attack.physicalVsFrozenCritBonus, .physicalVsFrozenCritBonus, default: 0),
+        .init(\.attack.blockBreakNextPhysicalBonus, .blockBreakNextPhysicalBonus, default: 0),
+        .init(\.attack.physicalDamageVsStunnedMultiplier, .physicalDamageVsStunnedMultiplier, default: 1),
+        .init(\.attack.physicalCritChanceBelowHalfBonus, .physicalCritChanceBelowHalfBonus, default: 0),
+        .init(\.attack.physicalCritRemoveEnemyBlock, .physicalCritRemoveEnemyBlock, default: false),
+        .init(\.attack.firstPhysicalAttackBlockDamagePercent, .firstPhysicalAttackBlockDamagePercent, default: 0),
+        .init(\.attack.poisonCriticalHasLeech, .poisonCriticalHasLeech, default: false),
+        .init(\.attack.poisonAttackStunChancePercent, .poisonAttackStunChancePercent, default: 0),
+        .init(\.attack.bleedCriticalPoisonDamage, .bleedCriticalPoisonDamage, default: 0),
+        .init(\.attack.bleedCriticalThorns, .bleedCriticalThorns, default: 0),
+        .init(\.attack.bleedCriticalDrawChancePercent, .bleedCriticalDrawChancePercent, default: 0),
+        .init(\.attack.criticalGoldStealFlat, .criticalGoldStealFlat, default: 0),
+        .init(\.attack.bleedAttackDamageBonus, .bleedAttackDamageBonus, default: 0),
+        .init(\.attack.bleedAttackCriticalBonus, .bleedAttackCriticalBonus, default: 0),
+        .init(\.attack.attackVsBleedingBelowHalfMultiplier, .attackVsBleedingBelowHalfMultiplier, default: 1),
+        .init(\.attack.bleedCriticalDamageMultiplier, .bleedCriticalDamageMultiplier, default: 1),
+        .init(\.attack.belowHalfHealthNextBleedDouble, .belowHalfHealthNextBleedDouble, default: false),
+        .init(\.attack.partyCritChanceWhileCompanionFullHealth, .partyCritChanceWhileCompanionFullHealth, default: 0),
+        .init(\.attack.holyCriticalAllyIgnoreBlock, .holyCriticalAllyIgnoreBlock, default: false),
+        .init(\.attack.holyAttackCriticalBonus, .holyAttackCriticalBonus, default: 0),
+        .init(\.attack.holyAttackEnemyMissChance, .holyAttackEnemyMissChance, default: 0),
+        .init(\.attack.holyAttackDrawChancePercent, .holyAttackDrawChancePercent, default: 0),
+        .init(\.attack.holyCriticalPurgeCount, .holyCriticalPurgeCount, default: 0),
+        .init(\.attack.holyAttackCleanseAllyChancePercent, .holyAttackCleanseAllyChancePercent, default: 0),
+        .init(\.attack.attackDamageVsStunnedMultiplier, .attackDamageVsStunnedMultiplier, default: 1),
+        .init(\.attack.bleedDamageVsPoisonedMultiplier, .bleedDamageVsPoisonedMultiplier, default: 1),
+        .init(\.attack.burnCriticalDamageMultiplier, .burnCriticalDamageMultiplier, default: 1),
+        .init(\.attack.burnCriticalIgnoreBlock, .burnCriticalIgnoreBlock, default: false),
+        .init(\.attack.firstBleedAttackLeechPerTurn, .firstBleedAttackLeechPerTurn, default: false),
+        .init(\.attack.firstHolyAttackBlockPerTurn, .firstHolyAttackBlockPerTurn, default: 0),
+        .init(\.attack.firstHolyAttackBonusPerTurn, .firstHolyAttackBonusPerTurn, default: 0),
+        .init(\.attack.firstHolyHitDamageMultiplierPerTurn, .firstHolyHitDamageMultiplierPerTurn, default: 1),
+        .init(\.attack.firstPhysicalAttackBattleMultiplier, .firstPhysicalAttackBattleMultiplier, default: 1),
+        .init(\.attack.firstPhysicalAttackBlockPerTurn, .firstPhysicalAttackBlockPerTurn, default: 0),
+        .init(\.attack.freezeAttackCriticalBonus, .freezeAttackCriticalBonus, default: 0),
+        .init(\.attack.freezeCriticalDamageMultiplier, .freezeCriticalDamageMultiplier, default: 1),
+        .init(\.attack.holyCriticalStunDamage, .holyCriticalStunDamage, default: 0),
+        .init(\.attack.holyDamageMultiplierWhileBlocked, .holyDamageMultiplierWhileBlocked, default: 1),
+        .init(\.attack.holyDamageVsStunnedMultiplier, .holyDamageVsStunnedMultiplier, default: 1),
+        .init(\.attack.leechAttackDamageVsBleedingMultiplier, .leechAttackDamageVsBleedingMultiplier, default: 1),
+        .init(\.attack.partyBleedCritChanceBonus, .partyBleedCritChanceBonus, default: 0),
+        .init(\.attack.partyFirstPhysicalCriticalBonus, .partyFirstPhysicalCriticalBonus, default: 0),
+        .init(\.attack.partyHolyAttackCriticalBonus, .partyHolyAttackCriticalBonus, default: 0),
+        .init(\.attack.partyHolyDamageMultiplier, .partyHolyDamageMultiplier, default: 1),
+        .init(\.attack.physicalAttackBurstChancePercent, .physicalAttackBurstChancePercent, default: 0),
+        .init(\.attack.physicalAttackBurstMultiplier, .physicalAttackBurstMultiplier, default: 1),
+        .init(\.attack.physicalCritVsBleedingBonus, .physicalCritVsBleedingBonus, default: 0),
+        .init(\.attack.physicalCriticalBleedDamage, .physicalCriticalBleedDamage, default: 0),
+        .init(\.attack.physicalCriticalDamageVsBleedingMultiplier, .physicalCriticalDamageVsBleedingMultiplier, default: 1),
+        .init(\.attack.physicalCriticalDamageVsPoisonedMultiplier, .physicalCriticalDamageVsPoisonedMultiplier, default: 1),
+        .init(\.attack.stunAttackCriticalBonus, .stunAttackCriticalBonus, default: 0),
+        .init(\.attack.stunCriticalIgnoreBlock, .stunCriticalIgnoreBlock, default: false),
+        .init(\.attack.stunDamageMultiplierWhileThorns, .stunDamageMultiplierWhileThorns, default: 1),
+        .init(\.attack.firstHolyHitAllyBlockPerTurn, .firstHolyHitAllyBlockPerTurn, default: 0),
+        .init(\.attack.redHarvestPhysicalCriticalDetonatesBleed, .redHarvestPhysicalCriticalDetonatesBleed, default: false),
+        .init(\.attack.huntsmasterPhysicalCriticalDrawsCompanion, .huntsmasterPhysicalCriticalDrawsCompanion, default: false),
+        .init(\.attack.attackPurgeCount, .attackPurgeCount, default: 0),
+        .init(\.attack.loadedStrike, .loadedStrike, default: false),
+        .init(\.block.sealedSarcophagus, .sealedSarcophagus, default: false),
+        .init(\.block.retainAllBlockBetweenTurns, .retainAllBlockBetweenTurns, default: false),
+        .init(\.block.blockedAttackBasicOncePerTurn, .blockedAttackBasicOncePerTurn, default: false),
+        .init(\.block.blockBrokenBlockFlat, .blockBrokenBlockFlat, default: 0),
+        .init(\.block.blockBrokenSaintfallPower, .blockBrokenSaintfallPower, default: 0),
+        .init(\.block.holyDamageBlockFlat, .holyDamageBlockFlat, default: 0),
+        .init(\.block.stunDamageBlockFlat, .stunDamageBlockFlat, default: 0),
+        .init(\.block.blockPerTurn, .blockPerTurn, default: 0),
+        .init(\.block.blockGainThornsPercent, .blockGainThornsPercent, default: 0),
+        .init(\.block.sunderingBlockMultiplier, .sunderingBlockMultiplier, default: 0),
+        .init(\.block.blockRetainsThreeQuarters, .blockRetainsThreeQuarters, default: false),
+        .init(\.block.blockAbsorbsCompanionDamage, .blockAbsorbsCompanionDamage, default: false),
+        .init(\.block.companionBlockAbsorbsHeroDamage, .companionBlockAbsorbsHeroDamage, default: false),
+        .init(\.block.onEnemyBlockBrokenDealPhysical, .onEnemyBlockBrokenDealPhysical, default: 0),
+        .init(\.block.postBlockOverflowDamageMultiplier, .postBlockOverflowDamageMultiplier, default: 1),
+        .init(\.block.maxDamagePerHitCap, .maxDamagePerHitCap, default: 0),
+        .init(\.block.guardianHeroBlockFlat, .guardianHeroBlockFlat, default: 0),
+        .init(\.block.doublePhysicalBlockAbsorption, .doublePhysicalBlockAbsorption, default: false),
+        .init(\.block.blockPreparesCritical, .blockPreparesCritical, default: false),
+        .init(\.block.shieldDamageBonusWhileBlocked, .shieldDamageBonusWhileBlocked, default: 0),
+        .init(\.block.physicalBlockBreakMultiplier, .physicalBlockBreakMultiplier, default: 1),
+        .init(\.block.holyBlockBreakMultiplier, .holyBlockBreakMultiplier, default: 1),
+        .init(\.block.physicalBlockIgnorePercent, .physicalBlockIgnorePercent, default: 0),
+        .init(\.block.physicalIgnoresBlockVsStunnedOrFrozen, .physicalIgnoresBlockVsStunnedOrFrozen, default: false),
+        .init(\.block.stunnedEnemyLoseAllBlock, .stunnedEnemyLoseAllBlock, default: false),
+        .init(\.block.holyIgnoresBlock, .holyIgnoresBlock, default: false),
+        .init(\.block.holyIgnoresBlockAndDodge, .holyIgnoresBlockAndDodge, default: false),
+        .init(\.block.burnIgnoresBlockAndMitigation, .burnIgnoresBlockAndMitigation, default: false),
+        .init(\.block.poisonStripsBlockBeforeHealth, .poisonStripsBlockBeforeHealth, default: 0),
+        .init(\.block.bleedStripsBlockPerTurn, .bleedStripsBlockPerTurn, default: 0),
+        .init(\.block.spellDamageTakenReductionWhileBlocked, .spellDamageTakenReductionWhileBlocked, default: 0),
+        .init(\.block.companionBlockSharesToHeroPercent, .companionBlockSharesToHeroPercent, default: 0),
+        .init(\.block.onBlockHitDealHoly, .onBlockHitDealHoly, default: 0),
+        .init(\.block.onBlockReduceAttackerAccuracyPercent, .onBlockReduceAttackerAccuracyPercent, default: 0),
+        .init(\.block.onBlockReduceAttackerAccuracyTurns, .onBlockReduceAttackerAccuracyTurns, default: 0),
+        .init(\.block.companionBlockProtectsHeroPercent, .companionBlockProtectsHeroPercent, default: 0),
+        .init(\.block.onAnyHealthLossGainBlock, .onAnyHealthLossGainBlock, default: 0),
+        .init(\.block.onSelfHealthLossGainBlock, .onSelfHealthLossGainBlock, default: 0),
+        .init(\.block.onEnemyFrozenGainBlock, .onEnemyFrozenGainBlock, default: 0),
+        .init(\.block.startBattleBlock, .startBattleBlock, default: 0),
+        .init(\.block.blockPerGoldEarnedEvery, .blockPerGoldEarnedEvery, default: 0),
+        .init(\.block.goldGainBlockPercent, .goldGainBlockPercent, default: 0),
+        .init(\.block.blockPerGoldCollectedEvery, .blockPerGoldCollectedEvery, default: 0),
+        .init(\.block.onBurnDamageGainBlock, .onBurnDamageGainBlock, default: 0),
+        .init(\.block.onAllyBurnDamageGainBlock, .onAllyBurnDamageGainBlock, default: 0),
+        .init(\.block.onHolyDamagePartyBlock, .onHolyDamagePartyBlock, default: 0),
+        .init(\.block.physicalDamageBlockPercent, .physicalDamageBlockPercent, default: 0),
+        .init(\.block.freezeDamageGrantsBlock, .freezeDamageGrantsBlock, default: false),
+        .init(\.block.seismicReversal, .seismicReversal, default: false),
+        .init(\.block.unbrokenVow, .unbrokenVow, default: false),
+        .init(\.block.storedImpact, .storedImpact, default: false),
+        .init(\.block.firstBlockFreezeDamagePerTurn, .firstBlockFreezeDamagePerTurn, default: 0),
+        .init(\.block.retainedBlockGainThornsPercent, .retainedBlockGainThornsPercent, default: 0),
+        .init(\.block.onStunEnemyGainBlock, .onStunEnemyGainBlock, default: 0),
+        .init(\.block.blockRetainsHalf, .blockRetainsHalf, default: false),
+        .init(\.block.blockWhileGoldThreshold, .blockWhileGoldThreshold, default: 0),
+        .init(\.block.blockWhileGoldAmount, .blockWhileGoldAmount, default: 0),
+        .init(\.block.burnIgnoresBlock, .burnIgnoresBlock, default: false),
+        .init(\.block.thornsDamageDoubleWhileBlocked, .thornsDamageDoubleWhileBlocked, default: false),
+        .init(\.block.blockAbsorptionMultiplierBelowHalfHealth, .blockAbsorptionMultiplierBelowHalfHealth, default: 1),
+        .init(\.block.holyBlockIgnorePercent, .holyBlockIgnorePercent, default: 0),
+        .init(\.block.sunwallChancePercent, .sunwallChancePercent, default: 0),
+        .init(\.block.bleedAttackBlockIgnorePercent, .bleedAttackBlockIgnorePercent, default: 0),
+        .init(\.block.burnAttackBlockBreakMultiplier, .burnAttackBlockBreakMultiplier, default: 1),
+        .init(\.block.burningEnemyBlockGainMultiplier, .burningEnemyBlockGainMultiplier, default: 1),
+        .init(\.block.poisonAttackExtraBlockRemoval, .poisonAttackExtraBlockRemoval, default: 0),
+        .init(\.block.bleedIgnoresEnemyBlock, .bleedIgnoresEnemyBlock, default: false),
+        .init(\.block.leechAttackBlockIgnorePercent, .leechAttackBlockIgnorePercent, default: 0),
+        .init(\.block.poisonDamageVsBlockMultiplier, .poisonDamageVsBlockMultiplier, default: 1),
+        .init(\.block.physicalMitigationWhileBlockedFlat, .physicalMitigationWhileBlockedFlat, default: 0),
+        .init(\.block.allyFirstBelowHalfBlock, .allyFirstBelowHalfBlock, default: 0),
+        .init(\.block.bleedDamageMultiplierWhileBlocked, .bleedDamageMultiplierWhileBlocked, default: 1),
+        .init(\.block.blockGainBelowHalfMultiplier, .blockGainBelowHalfMultiplier, default: 1),
+        .init(\.block.stunNextBlockGainMultiplier, .stunNextBlockGainMultiplier, default: 1),
+        .init(\.block.stunBlockIgnorePercent, .stunBlockIgnorePercent, default: 0),
+        .init(\.block.bleedAttackBlockBreakMultiplier, .bleedAttackBlockBreakMultiplier, default: 1),
+        .init(\.block.burnAttackBlockChancePercent, .burnAttackBlockChancePercent, default: 0),
+        .init(\.block.burnAttackBlockAmount, .burnAttackBlockAmount, default: 0),
+        .init(\.block.blockedControlPrevention, .blockedControlPrevention, default: false),
+        .init(\.block.blockBreakAllyBlockFlat, .blockBreakAllyBlockFlat, default: 0),
+        .init(\.block.blockAbsorptionMultiplierWhileMana, .blockAbsorptionMultiplierWhileMana, default: 1),
+        .init(\.block.blockAbsorptionVsBurningMultiplier, .blockAbsorptionVsBurningMultiplier, default: 1),
+        .init(\.block.blockBreakNextHolyHitDouble, .blockBreakNextHolyHitDouble, default: false),
+        .init(\.block.blockHolyReflectChancePercent, .blockHolyReflectChancePercent, default: 0),
+        .init(\.block.damageTakenMultiplierWhileBlocked, .damageTakenMultiplierWhileBlocked, default: 1),
+        .init(\.block.doubleAllBlockAbsorption, .doubleAllBlockAbsorption, default: false),
+        .init(\.block.firstBlockBreakNextStunDouble, .firstBlockBreakNextStunDouble, default: false),
+        .init(\.block.retainAllBlockDuringDeathsDoor, .retainAllBlockDuringDeathsDoor, default: false),
+        .init(\.block.thornsDamageMultiplierWhileBlocked, .thornsDamageMultiplierWhileBlocked, default: 1),
+        .init(\.block.startBattleThorns, .startBattleThorns, default: 0),
+        .init(\.block.blockBrokenThornsFlat, .blockBrokenThornsFlat, default: 0),
+        .init(\.block.retainedBlockThornsFlat, .retainedBlockThornsFlat, default: 0),
+        .init(\.block.holyAttackBlockIfNone, .holyAttackBlockIfNone, default: 0),
+        .init(\.block.attackBlockRemoval, .attackBlockRemoval, default: 0),
+        .init(\.block.blockBreakDrawBelowHalf, .blockBreakDrawBelowHalf, default: false),
+        .init(\.mitigation.passiveMitigationFlat, .passiveMitigationFlat, default: 0),
+        .init(\.mitigation.passivePhysicalMitigationFlat, .passivePhysicalMitigationFlat, default: 0),
+        .init(\.mitigation.thornsPercent, .thornsPercent, default: 0),
+        .init(\.mitigation.bleedResistance, .bleedResistance, default: 0),
+        .init(\.mitigation.frozenEnemyDamageReductionFlat, .frozenEnemyDamageReductionFlat, default: 0),
+        .init(\.mitigation.bleedingEnemyDamageReductionFlat, .bleedingEnemyDamageReductionFlat, default: 0),
+        .init(\.mitigation.stunnedEnemyNextTurnDamageMultiplier, .stunnedEnemyNextTurnDamageMultiplier, default: 1),
+        .init(\.mitigation.enemyBleedStacksDamageReductionStacks, .enemyBleedStacksDamageReductionStacks, default: 0),
+        .init(\.mitigation.enemyBleedStacksDamageReductionPercent, .enemyBleedStacksDamageReductionPercent, default: 0),
+        .init(\.mitigation.poisonedEnemyAccuracyPenaltyPercent, .poisonedEnemyAccuracyPenaltyPercent, default: 0),
+        .init(\.mitigation.poisonedEnemyMissChancePercent, .poisonedEnemyMissChancePercent, default: 0),
+        .init(\.mitigation.subzeroMist, .subzeroMist, default: false),
+        .init(\.mitigation.blindingLight, .blindingLight, default: false),
+        .init(\.mitigation.holyDamageReduceTargetDamage, .holyDamageReduceTargetDamage, default: 0),
+        .init(\.mitigation.bleedingEnemyAttackDealDamage, .bleedingEnemyAttackDealDamage, default: 0),
+        .init(\.mitigation.onAllyDamageHeal, .onAllyDamageHeal, default: 0),
+        .init(\.mitigation.damageReductionPerUnspentManaEvery, .damageReductionPerUnspentManaEvery, default: 0),
+        .init(\.mitigation.toughnessOnHit, .toughnessOnHit, default: 0),
+        .init(\.mitigation.toughnessOnHitCap, .toughnessOnHitCap, default: 0),
+        .init(\.mitigation.blockedControlBurnResistance, .blockedControlBurnResistance, default: 0),
+        .init(\.mitigation.afflictionResistance, .afflictionResistance, default: 0),
+        .init(\.mitigation.burningEnemyDamageReductionFlat, .burningEnemyDamageReductionFlat, default: 0),
+        .init(\.mitigation.blockHalvesDoTDamage, .blockHalvesDoTDamage, default: false),
+        .init(\.mitigation.bleedingEnemyOutgoingDamageMultiplier, .bleedingEnemyOutgoingDamageMultiplier, default: 1),
+        .init(\.mitigation.verdantShelterDamageMultiplier, .verdantShelterDamageMultiplier, default: 1),
+        .init(\.mitigation.onHealthLossNextDamageReduction, .onHealthLossNextDamageReduction, default: 0),
+        .init(\.dot.redline, .redline, default: false),
+        .init(\.dot.bleedHalvesAfterExpiration, .bleedHalvesAfterExpiration, default: false),
+        .init(\.dot.burnAndBleedShareDamageBonuses, .burnAndBleedShareDamageBonuses, default: false),
+        .init(\.dot.burnDecaySlowPercent, .burnDecaySlowPercent, default: 0),
+        .init(\.dot.poisonDecaySlowPercent, .poisonDecaySlowPercent, default: 0),
+        .init(\.dot.poisonDecayIncreaseChance, .poisonDecayIncreaseChance, default: 0),
+        .init(\.dot.onBleedApplyPoison, .onBleedApplyPoison, default: 0),
+        .init(\.dot.onBurnApplyPoison, .onBurnApplyPoison, default: 0),
+        .init(\.dot.onBleedDealBurnDamage, .onBleedDealBurnDamage, default: 0),
+        .init(\.dot.onBleedDealPoisonChancePercent, .onBleedDealPoisonChancePercent, default: 0),
+        .init(\.dot.onBurnDealPoisonChancePercent, .onBurnDealPoisonChancePercent, default: 0),
+        .init(\.dot.onBleedDealBurnChancePercent, .onBleedDealBurnChancePercent, default: 0),
+        .init(\.dot.onBurnDamageDetonateBleedChancePercent, .onBurnDamageDetonateBleedChancePercent, default: 0),
+        .init(\.dot.poisonStunChancePercent, .poisonStunChancePercent, default: 0),
+        .init(\.dot.freezeDamageWhileBurningBonus, .freezeDamageWhileBurningBonus, default: 0),
+        .init(\.dot.bleedConsumesPoison, .bleedConsumesPoison, default: false),
+        .init(\.dot.bleedApplicationTicksExisting, .bleedApplicationTicksExisting, default: false),
+        .init(\.dot.onBleedAppliedToBleedingDealDamage, .onBleedAppliedToBleedingDealDamage, default: 0),
+        .init(\.dot.bleedsIgnoreMitigation, .bleedsIgnoreMitigation, default: false),
+        .init(\.dot.onBleedDamageHealSelf, .onBleedDamageHealSelf, default: 0),
+        .init(\.dot.onBurnTickHolyDamage, .onBurnTickHolyDamage, default: 0),
+        .init(\.dot.burnTicksTwicePerTurn, .burnTicksTwicePerTurn, default: false),
+        .init(\.dot.damagePerBurnPotencyPercent, .damagePerBurnPotencyPercent, default: 0),
+        .init(\.dot.burnIncreaseChancePercent, .burnIncreaseChancePercent, default: 0),
+        .init(\.dot.poisonThresholdStunAmount, .poisonThresholdStunAmount, default: 0),
+        .init(\.dot.poisonDamageLeechChancePercent, .poisonDamageLeechChancePercent, default: 0),
+        .init(\.dot.onCritDoubleBleedDuration, .onCritDoubleBleedDuration, default: false),
+        .init(\.dot.criticalOnBleedingDetonateBleed, .criticalOnBleedingDetonateBleed, default: false),
+        .init(\.dot.criticalOnBleedingDetonateBleedChance, .criticalOnBleedingDetonateBleedChance, default: 0),
+        .init(\.dot.criticalDetonateBleedAndPoison, .criticalDetonateBleedAndPoison, default: false),
+        .init(\.dot.onBurnDamageDetonateBleed, .onBurnDamageDetonateBleed, default: false),
+        .init(\.dot.freezeDamageLeech, .freezeDamageLeech, default: false),
+        .init(\.dot.poisonAttackLeech, .poisonAttackLeech, default: false),
+        .init(\.dot.bleedDamageGoldFlat, .bleedDamageGoldFlat, default: 0),
+        .init(\.dot.burnDamageRampPerRound, .burnDamageRampPerRound, default: 0),
+        .init(\.dot.burnDamageRampCap, .burnDamageRampCap, default: 0),
+        .init(\.dot.bleedDamageRampPerRound, .bleedDamageRampPerRound, default: 0),
+        .init(\.dot.bleedDamageRampCap, .bleedDamageRampCap, default: 0),
+        .init(\.dot.burnDamageManaRestoreThreshold, .burnDamageManaRestoreThreshold, default: 0),
+        .init(\.dot.onBurnDamageRestoreManaPerTurnCap, .onBurnDamageRestoreManaPerTurnCap, default: 0),
+        .init(\.dot.burnProcsBleedChancePercent, .burnProcsBleedChancePercent, default: 0),
+        .init(\.dot.bleedProcsBurnChancePercent, .bleedProcsBurnChancePercent, default: 0),
+        .init(\.dot.burnDamageLeech, .burnDamageLeech, default: false),
+        .init(\.dot.firstBurnAttackLeech, .firstBurnAttackLeech, default: false),
+        .init(\.dot.bleedDamageLeech, .bleedDamageLeech, default: false),
+        .init(\.dot.shatterpoint, .shatterpoint, default: false),
+        .init(\.dot.cryostasis, .cryostasis, default: false),
+        .init(\.dot.crossContamination, .crossContamination, default: false),
+        .init(\.dot.backdraft, .backdraft, default: false),
+        .init(\.dot.ashenArsenal, .ashenArsenal, default: false),
+        .init(\.dot.arterialCascade, .arterialCascade, default: false),
+        .init(\.dot.steamExplosion, .steamExplosion, default: false),
+        .init(\.dot.safeHandling, .safeHandling, default: false),
+        .init(\.dot.unstableCulture, .unstableCulture, default: false),
+        .init(\.dot.sealedVial, .sealedVial, default: false),
+        .init(\.dot.barbedSpores, .barbedSpores, default: false),
+        .init(\.dot.livingBark, .livingBark, default: false),
+        .init(\.dot.rootPassage, .rootPassage, default: false),
+        .init(\.dot.firstThornsPoisonDamagePerTurn, .firstThornsPoisonDamagePerTurn, default: 0),
+        .init(\.dot.bleedTickDrawChancePercent, .bleedTickDrawChancePercent, default: 0),
+        .init(\.dot.burnAttackDoubleChancePercent, .burnAttackDoubleChancePercent, default: 0),
+        .init(\.dot.burnDecaySlowVsBleedingPercent, .burnDecaySlowVsBleedingPercent, default: 0),
+        .init(\.dot.bleedDurationFromCriticalBonus, .bleedDurationFromCriticalBonus, default: 0),
+        .init(\.dot.bleedDurationVsPoisonedBonus, .bleedDurationVsPoisonedBonus, default: 0),
+        .init(\.dot.burnAttackBleedChancePercent, .burnAttackBleedChancePercent, default: 0),
+        .init(\.dot.burnAttackBleedDamage, .burnAttackBleedDamage, default: 0),
+        .init(\.dot.poisonPreventDecayChancePercent, .poisonPreventDecayChancePercent, default: 0),
+        .init(\.dot.poisonDamageVsStunnedMultiplier, .poisonDamageVsStunnedMultiplier, default: 1),
+        .init(\.dot.bleedDamageBelowHalfMultiplier, .bleedDamageBelowHalfMultiplier, default: 1),
+        .init(\.dot.onDamageBurnRetaliationChancePercent, .onDamageBurnRetaliationChancePercent, default: 0),
+        .init(\.dot.onDamageBurnRetaliationDamage, .onDamageBurnRetaliationDamage, default: 0),
+        .init(\.dot.burnPreventDecayChancePercent, .burnPreventDecayChancePercent, default: 0),
+        .init(\.dot.bleedPoisonOncePerTurn, .bleedPoisonOncePerTurn, default: false),
+        .init(\.dot.enemyPoisonDecaySlowPercent, .enemyPoisonDecaySlowPercent, default: 0),
+        .init(\.dot.enemyPoisonPreventDecayChancePercent, .enemyPoisonPreventDecayChancePercent, default: 0),
+        .init(\.dot.enemyPoisonDecayIncreaseChance, .enemyPoisonDecayIncreaseChance, default: 0),
+        .init(\.dot.enemyBurnDecaySlowPercent, .enemyBurnDecaySlowPercent, default: 0),
+        .init(\.dot.enemyBurnDecaySlowVsBleedingPercent, .enemyBurnDecaySlowVsBleedingPercent, default: 0),
+        .init(\.dot.enemyBurnPreventDecayChancePercent, .enemyBurnPreventDecayChancePercent, default: 0),
+        .init(\.control.stunDamageAddsEnemyBlock, .stunDamageAddsEnemyBlock, default: false),
+        .init(\.control.stunRetainedBuildupPercent, .stunRetainedBuildupPercent, default: 0),
+        .init(\.control.freezeExtraActionSkips, .freezeExtraActionSkips, default: 0),
+        .init(\.control.freezeExtendChancePercent, .freezeExtendChancePercent, default: 0),
+        .init(\.control.stunExtendChancePercent, .stunExtendChancePercent, default: 0),
+        .init(\.control.physicalStunBuildupPercent, .physicalStunBuildupPercent, default: 0),
+        .init(\.control.holyStunBuildupPercent, .holyStunBuildupPercent, default: 0),
+        .init(\.control.holyTriggeredStunGoldFlat, .holyTriggeredStunGoldFlat, default: 0),
+        .init(\.control.frozenEnemyCannotBlockOrHeal, .frozenEnemyCannotBlockOrHeal, default: false),
+        .init(\.control.enemyStunExtraActionSkips, .enemyStunExtraActionSkips, default: 0),
+        .init(\.control.onEnemyStunRecoverDrawCard, .onEnemyStunRecoverDrawCard, default: 0),
+        .init(\.control.onEnemyStunRecoverApplyAfflictions, .onEnemyStunRecoverApplyAfflictions, default: 0),
+        .init(\.control.enemyStunThresholdReductionPercent, .enemyStunThresholdReductionPercent, default: 0),
+        .init(\.control.onStunEnemyApplyBurn, .onStunEnemyApplyBurn, default: 0),
+        .init(\.control.onceBelowHealthPercentStunAllEnemies, .onceBelowHealthPercentStunAllEnemies, default: false),
+        .init(\.control.freezeCardsPlayedThisTurnFreezeAll, .freezeCardsPlayedThisTurnFreezeAll, default: 0),
+        .init(\.control.flashFreeze, .flashFreeze, default: false),
+        .init(\.control.everyNTurnsFreezeAllEnemiesInterval, .everyNTurnsFreezeAllEnemiesInterval, default: 0),
+        .init(\.control.everyNTurnsFreezeAllEnemiesAmount, .everyNTurnsFreezeAllEnemiesAmount, default: 0),
+        .init(\.control.everyNTurnsStunBuildupInterval, .everyNTurnsStunBuildupInterval, default: 0),
+        .init(\.control.everyNTurnsStunBuildupAmount, .everyNTurnsStunBuildupAmount, default: 0),
+        .init(\.control.everyNTurnsTeamBlockAmount, .everyNTurnsTeamBlockAmount, default: 0),
+        .init(\.control.enemyStunnedApplyMarked, .enemyStunnedApplyMarked, default: false),
+        .init(\.control.enemyStunnedPurgeCount, .enemyStunnedPurgeCount, default: 0),
+        .init(\.control.enemyStunnedPurgeAll, .enemyStunnedPurgeAll, default: false),
+        .init(\.control.stunDealPhysicalFlat, .stunDealPhysicalFlat, default: 0),
+        .init(\.control.dodgeDealStunFlat, .dodgeDealStunFlat, default: 0),
+        .init(\.control.onDodgeAttackerStunBuildup, .onDodgeAttackerStunBuildup, default: 0),
+        .init(\.control.onceBelowHealthPercentThreshold, .onceBelowHealthPercentThreshold, default: 0),
+        .init(\.control.turnFreezeDamageAllEnemies, .turnFreezeDamageAllEnemies, default: 0),
+        .init(\.control.turnFreezeDamageAllEnemiesInterval, .turnFreezeDamageAllEnemiesInterval, default: 2),
+        .init(\.control.stunPurgeDealHolyPerEffect, .stunPurgeDealHolyPerEffect, default: 0),
+        .init(\.control.lightningRod, .lightningRod, default: false),
+        .init(\.control.stunExtendVsBurning, .stunExtendVsBurning, default: false),
+        .init(\.control.dodgeDealFreezeFlat, .dodgeDealFreezeFlat, default: 0),
+        .init(\.control.freezeBuildupMultiplier, .freezeBuildupMultiplier, default: 1),
+        .init(\.control.poisonedEnemyStunBuildupMultiplier, .poisonedEnemyStunBuildupMultiplier, default: 1),
+        .init(\.control.firstStunAttackBonusPerTurn, .firstStunAttackBonusPerTurn, default: 0),
+        .init(\.control.stunBuildupBelowHalfMultiplier, .stunBuildupBelowHalfMultiplier, default: 1),
+        .init(\.control.freezeAttackDrawChancePercent, .freezeAttackDrawChancePercent, default: 0),
+        .init(\.control.onDamageFreezeRetaliationChancePercent, .onDamageFreezeRetaliationChancePercent, default: 0),
+        .init(\.control.onDamageFreezeRetaliationDamage, .onDamageFreezeRetaliationDamage, default: 0),
+        .init(\.control.onFreezeEnemyRestoreMana, .onFreezeEnemyRestoreMana, default: 0),
+        .init(\.control.freezeCriticalBuildupMultiplier, .freezeCriticalBuildupMultiplier, default: 1),
+        .init(\.control.onFreezeEnemyDrawCard, .onFreezeEnemyDrawCard, default: false),
+        .init(\.control.freezeCritEnemyNextAttackMissChance, .freezeCritEnemyNextAttackMissChance, default: 0),
+        .init(\.control.holyCritEnemyNextAttackMissChance, .holyCritEnemyNextAttackMissChance, default: 0),
+        .init(\.control.onFreezeBurningEnemyBurnDamage, .onFreezeBurningEnemyBurnDamage, default: 0),
+        .init(\.control.onFreezeEnemyGainBlock, .onFreezeEnemyGainBlock, default: 0),
+        .init(\.control.onStunExpirePoisonDamage, .onStunExpirePoisonDamage, default: 0),
+        .init(\.control.onStunNextAttackGuaranteedCritical, .onStunNextAttackGuaranteedCritical, default: false),
+        .init(\.control.stunBuildupMultiplier, .stunBuildupMultiplier, default: 1),
+        .init(\.control.holyCriticalPreventsBlock, .holyCriticalPreventsBlock, default: false),
+        .init(\.dodge.wintersWake, .wintersWake, default: false),
+        .init(\.dodge.killingGrace, .killingGrace, default: false),
+        .init(\.dodge.dodgeNextHitPoisonAndBleedPercent, .dodgeNextHitPoisonAndBleedPercent, default: 0),
+        .init(\.dodge.dodgeSpendsHalfBlockAsPhysical, .dodgeSpendsHalfBlockAsPhysical, default: false),
+        .init(\.dodge.dodgeDrawPoisonAndReadyCritical, .dodgeDrawPoisonAndReadyCritical, default: false),
+        .init(\.dodge.dodgeChanceBonus, .dodgeChanceBonus, default: 0),
+        .init(\.dodge.dodgeBlockFlat, .dodgeBlockFlat, default: 0),
+        .init(\.dodge.dodgeApplyPoison, .dodgeApplyPoison, default: 0),
+        .init(\.dodge.dodgeGoldFlat, .dodgeGoldFlat, default: 0),
+        .init(\.dodge.dodgeHealFlat, .dodgeHealFlat, default: 0),
+        .init(\.dodge.dodgeChanceAboveHalfHealthBonus, .dodgeChanceAboveHalfHealthBonus, default: 0),
+        .init(\.dodge.dodgeChanceBelowHealthPercentThreshold, .dodgeChanceBelowHealthPercentThreshold, default: 0),
+        .init(\.dodge.dodgeChanceBelowHealthPercentBonus, .dodgeChanceBelowHealthPercentBonus, default: 0),
+        .init(\.dodge.onDodgeDrawCardForHero, .onDodgeDrawCardForHero, default: 0),
+        .init(\.dodge.nextAttackDoubleAfterDodge, .nextAttackDoubleAfterDodge, default: false),
+        .init(\.dodge.onDodgeDelayAttackerTurn, .onDodgeDelayAttackerTurn, default: false),
+        .init(\.dodge.onDodgeGrantHeroBlock, .onDodgeGrantHeroBlock, default: 0),
+        .init(\.dodge.onDodgePartyMana, .onDodgePartyMana, default: 0),
+        .init(\.dodge.onDodgeCounterDamage, .onDodgeCounterDamage, default: 0),
+        .init(\.dodge.onDodgeCounterBasicAttack, .onDodgeCounterBasicAttack, default: false),
+        .init(\.dodge.critMultiplierPerDodge, .critMultiplierPerDodge, default: 0),
+        .init(\.dodge.onDodgeNextPartyHitGuaranteedCritical, .onDodgeNextPartyHitGuaranteedCritical, default: false),
+        .init(\.dodge.onCompanionDodgeGrantHeroDodgePercent, .onCompanionDodgeGrantHeroDodgePercent, default: 0),
+        .init(\.dodge.autoDodgeAfterFirstHitPerTurn, .autoDodgeAfterFirstHitPerTurn, default: false),
+        .init(\.dodge.nextAttackBleedAfterDodge, .nextAttackBleedAfterDodge, default: 0),
+        .init(\.dodge.onDodgeApplyPoisonOrBleed, .onDodgeApplyPoisonOrBleed, default: 0),
+        .init(\.dodge.onDodgePartyNextCardDamageBonus, .onDodgePartyNextCardDamageBonus, default: 0),
+        .init(\.dodge.onApplyBurnDodgeChanceUntilNextTurn, .onApplyBurnDodgeChanceUntilNextTurn, default: 0),
+        .init(\.dodge.dodgeChanceVsBleedingEnemiesBonus, .dodgeChanceVsBleedingEnemiesBonus, default: 0),
+        .init(\.dodge.firstAttackGuaranteedCritical, .firstAttackGuaranteedCritical, default: false),
+        .init(\.dodge.swapAndDodgeForHeroChance, .swapAndDodgeForHeroChance, default: 0),
+        .init(\.dodge.untargetableAboveHealthPercent, .untargetableAboveHealthPercent, default: 0),
+        .init(\.dodge.onDodgeDrawAndPlayCardChainOnCrit, .onDodgeDrawAndPlayCardChainOnCrit, default: false),
+        .init(\.dodge.phantomCounter, .phantomCounter, default: false),
+        .init(\.dodge.perfectTempo, .perfectTempo, default: false),
+        .init(\.dodge.passingLuck, .passingLuck, default: false),
+        .init(\.dodge.improvingOdds, .improvingOdds, default: false),
+        .init(\.dodge.blindSpot, .blindSpot, default: false),
+        .init(\.dodge.onDodgeNextAttackGuaranteedCritical, .onDodgeNextAttackGuaranteedCritical, default: false),
+        .init(\.dodge.dodgeFirstAttackEachCombat, .dodgeFirstAttackEachCombat, default: false),
+        .init(\.dodge.partyDodgeVsBurningBonus, .partyDodgeVsBurningBonus, default: 0),
+        .init(\.dodge.quietGroveDodgeAtFullHealth, .quietGroveDodgeAtFullHealth, default: 0),
+        .init(\.dodge.groveReserveCompanionDodgeBonus, .groveReserveCompanionDodgeBonus, default: 0),
+        .init(\.dodge.dodgeNextAttackCritBonus, .dodgeNextAttackCritBonus, default: 0),
+        .init(\.dodge.dodgeBelowHalfDrawCard, .dodgeBelowHalfDrawCard, default: false),
+        .init(\.dodge.dodgeBleedChancePercent, .dodgeBleedChancePercent, default: 0),
+        .init(\.dodge.dodgeBleedDamage, .dodgeBleedDamage, default: 0),
+        .init(\.dodge.dodgeBurnChancePercent, .dodgeBurnChancePercent, default: 0),
+        .init(\.dodge.dodgeBurnDamage, .dodgeBurnDamage, default: 0),
+        .init(\.dodge.firstDodgeDrawForAlly, .firstDodgeDrawForAlly, default: false),
+        .init(\.dodge.dodgeNextManaEmpowerFree, .dodgeNextManaEmpowerFree, default: false),
+        .init(\.dodge.dodgeNextFreezeIgnoreBlock, .dodgeNextFreezeIgnoreBlock, default: false),
+        .init(\.dodge.dodgeDealBleedFlat, .dodgeDealBleedFlat, default: 0),
+        .init(\.dodge.firstDodgeDoubleNextAttack, .firstDodgeDoubleNextAttack, default: false),
+        .init(\.dodge.dodgeNextAttackIgnoreBlock, .dodgeNextAttackIgnoreBlock, default: false),
+        .init(\.dodge.dodgeDrawChancePercent, .dodgeDrawChancePercent, default: 0),
+        .init(\.dodge.dodgeAtFullHealthBonus, .dodgeAtFullHealthBonus, default: 0),
+        .init(\.dodge.belowHalfFirstDodgeHealPerTurn, .belowHalfFirstDodgeHealPerTurn, default: 0),
+        .init(\.dodge.dodgeAllyNextAttackCriticalBonus, .dodgeAllyNextAttackCriticalBonus, default: 0),
+        .init(\.dodge.dodgeNextBleedAttackMultiplier, .dodgeNextBleedAttackMultiplier, default: 1),
+        .init(\.dodge.dodgeNextCriticalDamageMultiplier, .dodgeNextCriticalDamageMultiplier, default: 1),
+        .init(\.dodge.dodgeNextPhysicalDamageMultiplier, .dodgeNextPhysicalDamageMultiplier, default: 1),
+        .init(\.dodge.dodgePhysicalChancePercent, .dodgePhysicalChancePercent, default: 0),
+        .init(\.dodge.dodgePhysicalDamage, .dodgePhysicalDamage, default: 0),
+        .init(\.dodge.dodgePoisonChancePercent, .dodgePoisonChancePercent, default: 0),
+        .init(\.dodge.dodgePoisonDamage, .dodgePoisonDamage, default: 0),
+        .init(\.dodge.dodgeStunChancePercent, .dodgeStunChancePercent, default: 0),
+        .init(\.dodge.dodgeStunDamage, .dodgeStunDamage, default: 0),
+        .init(\.dodge.firstDodgeAllyEvadeNextHit, .firstDodgeAllyEvadeNextHit, default: false),
+        .init(\.dodge.firstDodgeNextAttackBonusPerTurn, .firstDodgeNextAttackBonusPerTurn, default: 0),
+        .init(\.dodge.partyDodgeAtFullHealthBonus, .partyDodgeAtFullHealthBonus, default: 0),
+        .init(\.dodge.partyDodgeChanceBonus, .partyDodgeChanceBonus, default: 0),
+        .init(\.mana.dragonPatronage, .dragonPatronage, default: false),
+        .init(\.mana.prismaticScales, .prismaticScales, default: false),
+        .init(\.mana.freezeEmpowermentBlockPerMana, .freezeEmpowermentBlockPerMana, default: 0),
+        .init(\.mana.lastManaEmpowermentRepeatsDamage, .lastManaEmpowermentRepeatsDamage, default: false),
+        .init(\.mana.spendManaBlockFlat, .spendManaBlockFlat, default: 0),
+        .init(\.mana.empoweredElementDrawOpposite, .empoweredElementDrawOpposite, default: false),
+        .init(\.mana.spendManaRandomDoTFlat, .spendManaRandomDoTFlat, default: 0),
+        .init(\.mana.gainManaBlockFlat, .gainManaBlockFlat, default: 0),
+        .init(\.mana.leechRestoreManaFlat, .leechRestoreManaFlat, default: 0),
+        .init(\.mana.drawOnSpendMana, .drawOnSpendMana, default: 0),
+        .init(\.mana.repeatManaEmpowerment, .repeatManaEmpowerment, default: false),
+        .init(\.mana.unspentManaConvertsToBlock, .unspentManaConvertsToBlock, default: false),
+        .init(\.mana.spendManaRemovesAfflictions, .spendManaRemovesAfflictions, default: false),
+        .init(\.mana.spendManaEmpowerNextCardThreshold, .spendManaEmpowerNextCardThreshold, default: 0),
+        .init(\.mana.nextCardEmpowerPercent, .nextCardEmpowerPercent, default: 0),
+        .init(\.mana.startTurnFullManaDrawCards, .startTurnFullManaDrawCards, default: 0),
+        .init(\.mana.onReachZeroManaRestoreMana, .onReachZeroManaRestoreMana, default: 0),
+        .init(\.mana.spendManaRandomElementDamage, .spendManaRandomElementDamage, default: false),
+        .init(\.mana.onGainManaHealFlat, .onGainManaHealFlat, default: 0),
+        .init(\.mana.startBattleBonusMana, .startBattleBonusMana, default: 0),
+        .init(\.mana.empowermentDamageBonus, .empowermentDamageBonus, default: 0),
+        .init(\.mana.spendManaDamageBonusPerMana, .spendManaDamageBonusPerMana, default: 0),
+        .init(\.mana.onHeroSpendManaGainBlock, .onHeroSpendManaGainBlock, default: 0),
+        .init(\.mana.spendManaRefundChancePercent, .spendManaRefundChancePercent, default: 0),
+        .init(\.mana.firstEmpowermentCostReduction, .firstEmpowermentCostReduction, default: 0),
+        .init(\.mana.empowermentCostReduction, .empowermentCostReduction, default: 0),
+        .init(\.mana.healingEmpowermentCostReduction, .healingEmpowermentCostReduction, default: 0),
+        .init(\.mana.bonusManaOnTurns, .bonusManaOnTurns, default: []),
+        .init(\.mana.spendManaGrantsEqualBlock, .spendManaGrantsEqualBlock, default: false),
+        .init(\.mana.manaGainDoubleChancePercent, .manaGainDoubleChancePercent, default: 0),
+        .init(\.mana.spendManaThresholdAutoPlayCard, .spendManaThresholdAutoPlayCard, default: 0),
+        .init(\.mana.onSpendManaBurnBurningEnemies, .onSpendManaBurnBurningEnemies, default: 0),
+        .init(\.mana.onHeroSpendManaApplyRandomAffliction, .onHeroSpendManaApplyRandomAffliction, default: false),
+        .init(\.mana.cardsPlayedManaThreshold, .cardsPlayedManaThreshold, default: 0),
+        .init(\.mana.cardsPlayedManaFlat, .cardsPlayedManaFlat, default: 0),
+        .init(\.mana.onBurnDamageRestoreManaFlat, .onBurnDamageRestoreManaFlat, default: 0),
+        .init(\.mana.drawEveryOtherTurn, .drawEveryOtherTurn, default: 0),
+        .init(\.mana.healCompanionDrawsCompanionCard, .healCompanionDrawsCompanionCard, default: false),
+        .init(\.mana.forbiddenKnowledge, .forbiddenKnowledge, default: false),
+        .init(\.mana.drawOnHealthLoss, .drawOnHealthLoss, default: 0),
+        .init(\.mana.companionCardsEveryOtherTurn, .companionCardsEveryOtherTurn, default: 0),
+        .init(\.mana.companionCardsPerTurn, .companionCardsPerTurn, default: 0),
+        .init(\.mana.onFreezeEnemyGainManaEqualBlock, .onFreezeEnemyGainManaEqualBlock, default: false),
+        .init(\.mana.closedCircuit, .closedCircuit, default: false),
+        .init(\.mana.eyeOfTheStorm, .eyeOfTheStorm, default: false),
+        .init(\.mana.furnaceRhythm, .furnaceRhythm, default: false),
+        .init(\.mana.temperCycle, .temperCycle, default: false),
+        .init(\.mana.livingConduit, .livingConduit, default: false),
+        .init(\.mana.deepRoots, .deepRoots, default: false),
+        .init(\.mana.groveAccord, .groveAccord, default: false),
+        .init(\.mana.onEmpowerBurnRestoreMana, .onEmpowerBurnRestoreMana, default: 0),
+        .init(\.mana.empowerFreezeDamageBonus, .empowerFreezeDamageBonus, default: 0),
+        .init(\.mana.empoweredSkillEchoes, .empoweredSkillEchoes, default: false),
+        .init(\.mana.spendLastManaStunDamage, .spendLastManaStunDamage, default: 0),
+        .init(\.mana.empowerBurnDamageBonus, .empowerBurnDamageBonus, default: 0),
+        .init(\.mana.empowerBurnCostReduction, .empowerBurnCostReduction, default: 0),
+        .init(\.mana.manaEmpowerNextAttackPercent, .manaEmpowerNextAttackPercent, default: 0),
+        .init(\.mana.endTurnZeroManaCleanse, .endTurnZeroManaCleanse, default: false),
+        .init(\.mana.spendLastManaDrawCard, .spendLastManaDrawCard, default: false),
+        .init(\.mana.manaEmpoweredAttackDoubleChancePercent, .manaEmpoweredAttackDoubleChancePercent, default: 0),
+        .init(\.mana.freezeCriticalRestoreMana, .freezeCriticalRestoreMana, default: 0),
+        .init(\.mana.healthLossManaGain, .healthLossManaGain, default: 0),
+        .init(\.mana.manaEmpowerPurgeCount, .manaEmpowerPurgeCount, default: 0),
+        .init(\.mana.healthCostEmpowerDiscount, .healthCostEmpowerDiscount, default: 0),
+        .init(\.mana.manaEmpoweredCriticalMultiplier, .manaEmpoweredCriticalMultiplier, default: 1),
+        .init(\.mana.lastManaNextBurnPercent, .lastManaNextBurnPercent, default: 0),
+        .init(\.mana.poisonExpiryManaRestore, .poisonExpiryManaRestore, default: 0),
+        .init(\.mana.arcaneThornsOnManaRestore, .arcaneThornsOnManaRestore, default: 0),
+        .init(\.mana.barkweaveOnEmpowerBlock, .barkweaveOnEmpowerBlock, default: 0),
+        .init(\.mana.sharedCurrentCompanionNextAttackBonus, .sharedCurrentCompanionNextAttackBonus, default: 0),
+        .init(\.mana.spendManaDrawChancePercent, .spendManaDrawChancePercent, default: 0),
+        .init(\.mana.excessManaRestorationBlock, .excessManaRestorationBlock, default: false),
+        .init(\.mana.manaHeldDamageMultiplier, .manaHeldDamageMultiplier, default: 1),
+        .init(\.mana.manaEmpowerAllyBlock, .manaEmpowerAllyBlock, default: 0),
+        .init(\.mana.burnCriticalRestoreMana, .burnCriticalRestoreMana, default: 0),
+        .init(\.mana.firstManaSpendRefundPerTurn, .firstManaSpendRefundPerTurn, default: 0),
+        .init(\.mana.manaEmpowerBurnFreezeDamageMultiplier, .manaEmpowerBurnFreezeDamageMultiplier, default: 1),
+        .init(\.mana.manaEmpowerDamageChancePercent, .manaEmpowerDamageChancePercent, default: 0),
+        .init(\.mana.manaEmpowerDamageMultiplier, .manaEmpowerDamageMultiplier, default: 1),
+        .init(\.mana.manaEmpowerFreezeBuildupMultiplier, .manaEmpowerFreezeBuildupMultiplier, default: 1),
+        .init(\.mana.manaRestorationDoubleChancePercent, .manaRestorationDoubleChancePercent, default: 0),
+        .init(\.mana.manaRestorationDrawChancePercent, .manaRestorationDrawChancePercent, default: 0),
+        .init(\.mana.selfManaSpendNextAttackBonus, .selfManaSpendNextAttackBonus, default: 0),
+        .init(\.mana.threefoldElementalDamageManaChancePercent, .threefoldElementalDamageManaChancePercent, default: 0),
+        .init(\.gold.carrionClaim, .carrionClaim, default: false),
+        .init(\.gold.lightFingered, .lightFingered, default: false),
+        .init(\.gold.goldGainedNextHolyDamage, .goldGainedNextHolyDamage, default: false),
+        .init(\.gold.gainGoldBonusHealSelf, .gainGoldBonusHealSelf, default: 0),
+        .init(\.gold.defeatBleedingEnemyGold, .defeatBleedingEnemyGold, default: 0),
+        .init(\.gold.defeatEnemyGoldFlat, .defeatEnemyGoldFlat, default: 0),
+        .init(\.gold.leechGoldFlat, .leechGoldFlat, default: 0),
+        .init(\.gold.goldPerTurn, .goldPerTurn, default: 0),
+        .init(\.gold.victoryGoldFlat, .victoryGoldFlat, default: 0),
+        .init(\.gold.victoryGoldCoin, .victoryGoldCoin, default: false),
+        .init(\.gold.criticalGoldFlat, .criticalGoldFlat, default: 0),
+        .init(\.gold.criticalActionGoldFlat, .criticalActionGoldFlat, default: 0),
+        .init(\.gold.startBattleBonusGold, .startBattleBonusGold, default: 0),
+        .init(\.gold.onGainGoldHealParty, .onGainGoldHealParty, default: 0),
+        .init(\.gold.goldEveryNTurnsInterval, .goldEveryNTurnsInterval, default: 0),
+        .init(\.gold.goldEveryNTurnsAmount, .goldEveryNTurnsAmount, default: 0),
+        .init(\.gold.onEnemyAbilityGold, .onEnemyAbilityGold, default: 0),
+        .init(\.gold.criticalVsStunnedEnemyGold, .criticalVsStunnedEnemyGold, default: 0),
+        .init(\.gold.critOnDefeatGold, .critOnDefeatGold, default: 0),
+        .init(\.gold.partyGoldGainedPercent, .partyGoldGainedPercent, default: 0),
+        .init(\.gold.firstGoldTheftHeal, .firstGoldTheftHeal, default: 0),
+        .init(\.gold.goldDoubledWhileFullHealth, .goldDoubledWhileFullHealth, default: false),
+        .init(\.gold.firstGoldTheftDraw, .firstGoldTheftDraw, default: 0),
+        .init(\.gold.bountyBlade, .bountyBlade, default: false),
+        .init(\.gold.blockedAttackFirstGold, .blockedAttackFirstGold, default: 0),
+        .init(\.gold.stealGoldBonusVsPoisoned, .stealGoldBonusVsPoisoned, default: 0),
+        .init(\.gold.gainGoldDrawThreshold, .gainGoldDrawThreshold, default: 0),
+        .init(\.gold.stunCriticalStealGold, .stunCriticalStealGold, default: 0),
+        .init(\.gold.dodgePreparesDoubleGoldSteal, .dodgePreparesDoubleGoldSteal, default: false),
+        .init(\.gold.criticalGoldStealDrawCard, .criticalGoldStealDrawCard, default: false),
+        .init(\.gold.goldStealNextPhysicalBonus, .goldStealNextPhysicalBonus, default: 0),
+        .init(\.gold.goldStealNextAttackBonus, .goldStealNextAttackBonus, default: 0),
+        .init(\.gold.goldGainHealChancePercent, .goldGainHealChancePercent, default: 0),
+        .init(\.gold.goldGainHealAmount, .goldGainHealAmount, default: 0),
+        .init(\.gold.criticalGoldTheftBonus, .criticalGoldTheftBonus, default: 0),
+        .init(\.gold.goldGainCleanseChancePercent, .goldGainCleanseChancePercent, default: 0),
+        .init(\.gold.goldGainBelowHalfDrawCard, .goldGainBelowHalfDrawCard, default: false),
+        .init(\.gold.goldTheftDodgeBonus, .goldTheftDodgeBonus, default: 0),
+        .init(\.gold.goldGainDrawChancePercent, .goldGainDrawChancePercent, default: 0),
+        .init(\.gold.goldTheftBlockChancePercent, .goldTheftBlockChancePercent, default: 0),
+        .init(\.gold.goldTheftBlockAmount, .goldTheftBlockAmount, default: 0),
+        .init(\.gold.goldTheftDrawChancePercent, .goldTheftDrawChancePercent, default: 0),
+        .init(\.gold.goldStealFlatBonus, .goldStealFlatBonus, default: 0),
+        .init(\.gold.goldTheftNextBlockMultiplier, .goldTheftNextBlockMultiplier, default: 1),
+        .init(\.gold.firstGoldTheftDrawBattle, .firstGoldTheftDrawBattle, default: false),
+        .init(\.gold.allyCriticalChancePerCombatGold, .allyCriticalChancePerCombatGold, default: 0),
+        .init(\.gold.blockBreakStealGoldFlat, .blockBreakStealGoldFlat, default: 0),
+        .init(\.gold.goldTheftHealAllyFlat, .goldTheftHealAllyFlat, default: 0),
+        .init(\.gold.attackGoldStealAmount, .attackGoldStealAmount, default: 0),
+        .init(\.gold.attackGoldStealChancePercent, .attackGoldStealChancePercent, default: 0),
+        .init(\.gold.belowHalfFirstGoldGainHealPerTurn, .belowHalfFirstGoldGainHealPerTurn, default: 0),
+        .init(\.gold.criticalGoldStealAmount, .criticalGoldStealAmount, default: 0),
+        .init(\.gold.criticalGoldStealChancePercent, .criticalGoldStealChancePercent, default: 0),
+        .init(\.gold.dodgeGoldAmount, .dodgeGoldAmount, default: 0),
+        .init(\.gold.dodgeGoldChancePercent, .dodgeGoldChancePercent, default: 0),
+        .init(\.gold.firstGoldTheftDoubleBattle, .firstGoldTheftDoubleBattle, default: false),
+        .init(\.gold.goldTheftNextAttackCriticalBonus, .goldTheftNextAttackCriticalBonus, default: 0),
+        .init(\.gold.goldTheftStealEnemyBlockChancePercent, .goldTheftStealEnemyBlockChancePercent, default: 0),
+        .init(\.gold.blockedAttackFirstRandomCard, .blockedAttackFirstRandomCard, default: false),
+        .init(\.gold.victoryGoldBonusPercent, .victoryGoldBonusPercent, default: 0),
+        .init(\.gold.goldTheftAllyBlock, .goldTheftAllyBlock, default: false),
+        .init(\.gold.dodgeGoldIsTheft, .dodgeGoldIsTheft, default: false),
+        .init(\.healing.contagiousJoy, .contagiousJoy, default: false),
+        .init(\.healing.livingArchive, .livingArchive, default: false),
+        .init(\.healing.marrowmend, .marrowmend, default: false),
+        .init(\.healing.wishspring, .wishspring, default: false),
+        .init(\.healing.cleanseSelfHeal, .cleanseSelfHeal, default: 0),
+        .init(\.healing.cleanseBonusHeal, .cleanseBonusHeal, default: 0),
+        .init(\.healing.onceBelowHealthPercentHeal, .onceBelowHealthPercentHeal, default: 0),
+        .init(\.healing.blockOnDeathsDoor, .blockOnDeathsDoor, default: 0),
+        .init(\.healing.holyDamageHealFlat, .holyDamageHealFlat, default: 0),
+        .init(\.healing.healthRestoredPoisonPercent, .healthRestoredPoisonPercent, default: 0),
+        .init(\.healing.healthPerTurn, .healthPerTurn, default: 0),
+        .init(\.healing.overhealConvertsToBlock, .overhealConvertsToBlock, default: false),
+        .init(\.healing.overhealConvertsToMaxHealth, .overhealConvertsToMaxHealth, default: false),
+        .init(\.healing.overhealConvertsToMaxHealthCap, .overhealConvertsToMaxHealthCap, default: 0),
+        .init(\.healing.overhealConvertsToMaxHealthPerEvent, .overhealConvertsToMaxHealthPerEvent, default: 0),
+        .init(\.healing.overhealShieldCap, .overhealShieldCap, default: 0),
+        .init(\.healing.leechOverhealTransfersToCompanion, .leechOverhealTransfersToCompanion, default: false),
+        .init(\.healing.leechSharesToHeroPercent, .leechSharesToHeroPercent, default: 0),
+        .init(\.healing.onCompanionLeechRestoreHeroMana, .onCompanionLeechRestoreHeroMana, default: 0),
+        .init(\.healing.leechHealingVsAfflictedMultiplier, .leechHealingVsAfflictedMultiplier, default: 1),
+        .init(\.healing.leechPercentVsLowHealthEnemies, .leechPercentVsLowHealthEnemies, default: 0),
+        .init(\.healing.leechBonusHealVsLowHealthEnemies, .leechBonusHealVsLowHealthEnemies, default: 0),
+        .init(\.healing.leechChancePercent, .leechChancePercent, default: 0),
+        .init(\.healing.freezeDamageLeechChancePercent, .freezeDamageLeechChancePercent, default: 0),
+        .init(\.healing.healingBelowHealthPercentThreshold, .healingBelowHealthPercentThreshold, default: 0),
+        .init(\.healing.healingBelowHealthPercentMultiplier, .healingBelowHealthPercentMultiplier, default: 1),
+        .init(\.healing.healOverTimeOnHealTurns, .healOverTimeOnHealTurns, default: 0),
+        .init(\.healing.healOverTimeOnHealAmount, .healOverTimeOnHealAmount, default: 0),
+        .init(\.healing.onHealGrantBlock, .onHealGrantBlock, default: 0),
+        .init(\.healing.onHealCleanseTargetChance, .onHealCleanseTargetChance, default: 0),
+        .init(\.healing.onHealRestoreCasterMana, .onHealRestoreCasterMana, default: 0),
+        .init(\.healing.holyDamageHealLowestAllyFlat, .holyDamageHealLowestAllyFlat, default: 0),
+        .init(\.healing.holyDamageHealHeroFlat, .holyDamageHealHeroFlat, default: 0),
+        .init(\.healing.endTurnWithBlockHealFlat, .endTurnWithBlockHealFlat, default: 0),
+        .init(\.healing.endOfTurnHealLowestAlly, .endOfTurnHealLowestAlly, default: 0),
+        .init(\.healing.cardsPlayedHealPartyThreshold, .cardsPlayedHealPartyThreshold, default: 0),
+        .init(\.healing.cardsPlayedHealPartyAmount, .cardsPlayedHealPartyAmount, default: 0),
+        .init(\.healing.healthRegenFirstTurnsAmount, .healthRegenFirstTurnsAmount, default: 0),
+        .init(\.healing.healthRegenFirstTurnsDuration, .healthRegenFirstTurnsDuration, default: 0),
+        .init(\.healing.healthRegenAboveHalfHealth, .healthRegenAboveHalfHealth, default: 0),
+        .init(\.healing.onBurnDamageHealLowestAllyFlat, .onBurnDamageHealLowestAllyFlat, default: 0),
+        .init(\.healing.companionLeechSharePercent, .companionLeechSharePercent, default: 0),
+        .init(\.healing.onLeechApplyPoison, .onLeechApplyPoison, default: 0),
+        .init(\.healing.onLeechApplyBleed, .onLeechApplyBleed, default: 0),
+        .init(\.healing.onLeechReduceEnemyStrength, .onLeechReduceEnemyStrength, default: 0),
+        .init(\.healing.onLeechReduceEnemyStrengthTurns, .onLeechReduceEnemyStrengthTurns, default: 0),
+        .init(\.healing.companionDamageLeechesToHeroPercent, .companionDamageLeechesToHeroPercent, default: 0),
+        .init(\.healing.leechOnBlockDamage, .leechOnBlockDamage, default: false),
+        .init(\.healing.partyRegenPerRound, .partyRegenPerRound, default: 0),
+        .init(\.healing.purifyingWaters, .purifyingWaters, default: false),
+        .init(\.healing.cleanSlate, .cleanSlate, default: false),
+        .init(\.healing.fortifyingTonic, .fortifyingTonic, default: false),
+        .init(\.healing.coolingSalve, .coolingSalve, default: false),
+        .init(\.healing.sharedPrescription, .sharedPrescription, default: false),
+        .init(\.healing.cleansingDew, .cleansingDew, default: false),
+        .init(\.healing.onAttackBleedingEnemyHeal, .onAttackBleedingEnemyHeal, default: 0),
+        .init(\.healing.overhealFirstBlockPerTurn, .overhealFirstBlockPerTurn, default: 0),
+        .init(\.healing.leechBonusHealVsStunned, .leechBonusHealVsStunned, default: 0),
+        .init(\.healing.onHealDealHoly, .onHealDealHoly, default: 0),
+        .init(\.healing.bleedingEnemyHealingMultiplier, .bleedingEnemyHealingMultiplier, default: 1),
+        .init(\.healing.darkRecoveryMultiplier, .darkRecoveryMultiplier, default: 1),
+        .init(\.healing.leechToFullNextAttackBonus, .leechToFullNextAttackBonus, default: 0),
+        .init(\.healing.leechBlockBelowHalf, .leechBlockBelowHalf, default: false),
+        .init(\.healing.burningEnemyHealingMultiplier, .burningEnemyHealingMultiplier, default: 1),
+        .init(\.healing.healthRestoreDrawChancePercent, .healthRestoreDrawChancePercent, default: 0),
+        .init(\.healing.overhealToBlockPercent, .overhealToBlockPercent, default: 0),
+        .init(\.healing.healthRestoreNextPoisonBonus, .healthRestoreNextPoisonBonus, default: 0),
+        .init(\.healing.healthRestoreManaChancePercent, .healthRestoreManaChancePercent, default: 0),
+        .init(\.healing.springSapHealthBonus, .springSapHealthBonus, default: 0),
+        .init(\.healing.pruningHealthRemoveEnemyThorns, .pruningHealthRemoveEnemyThorns, default: 0),
+        .init(\.healing.shelterSeedBlock, .shelterSeedBlock, default: 0),
+        .init(\.healing.sharedRootsHealPercent, .sharedRootsHealPercent, default: 0),
+        .init(\.healing.returningBloomHeal, .returningBloomHeal, default: 0),
+        .init(\.healing.excessLeechHealthToGold, .excessLeechHealthToGold, default: false),
+        .init(\.healing.bleedAttackLeechBelowHealthThreshold, .bleedAttackLeechBelowHealthThreshold, default: 0),
+        .init(\.healing.leechOverflowShareAlly, .leechOverflowShareAlly, default: false),
+        .init(\.healing.leechCriticalAllyBlock, .leechCriticalAllyBlock, default: 0),
+        .init(\.healing.enemyCannotLeechFromTarget, .enemyCannotLeechFromTarget, default: false),
+        .init(\.healing.leechHealingVsBleedingMultiplier, .leechHealingVsBleedingMultiplier, default: 1),
+        .init(\.healing.allyAttackLeechChancePercent, .allyAttackLeechChancePercent, default: 0),
+        .init(\.healing.bleedCriticalHasLeech, .bleedCriticalHasLeech, default: false),
+        .init(\.healing.healBelowHalfMultiplier, .healBelowHalfMultiplier, default: 1),
+        .init(\.healing.burnAttackHealLowestChancePercent, .burnAttackHealLowestChancePercent, default: 0),
+        .init(\.healing.burnAttackHealLowestAmount, .burnAttackHealLowestAmount, default: 0),
+        .init(\.healing.overhealNextBurnBonus, .overhealNextBurnBonus, default: 0),
+        .init(\.healing.firstHealthRestorationDrawBattle, .firstHealthRestorationDrawBattle, default: false),
+        .init(\.healing.partyCritChanceWhileCompanionBelowHalf, .partyCritChanceWhileCompanionBelowHalf, default: 0),
+        .init(\.healing.healthRestorationCleansesOne, .healthRestorationCleansesOne, default: false),
+        .init(\.healing.excessHealthShareAlly, .excessHealthShareAlly, default: false),
+        .init(\.healing.healthRestoreNextIncomingDamageMultiplier, .healthRestoreNextIncomingDamageMultiplier, default: 1),
+        .init(\.healing.healingMultiplier, .healingMultiplier, default: 1),
+        .init(\.healing.healthRestoreBlockChancePercent, .healthRestoreBlockChancePercent, default: 0),
+        .init(\.healing.healthOrManaRestoreDrawChancePercent, .healthOrManaRestoreDrawChancePercent, default: 0),
+        .init(\.healing.healthRestoreThornsChancePercent, .healthRestoreThornsChancePercent, default: 0),
+        .init(\.healing.healthRestoreThornsAmount, .healthRestoreThornsAmount, default: 0),
+        .init(\.healing.excessHealthNextManaEmpowerFree, .excessHealthNextManaEmpowerFree, default: false),
+        .init(\.healing.firstBelowHalfHealthHeal, .firstBelowHalfHealthHeal, default: 0),
+        .init(\.healing.firstHealthRestorationBonusPerTurn, .firstHealthRestorationBonusPerTurn, default: 0),
+        .init(\.healing.firstLeechRestorationShareAlly, .firstLeechRestorationShareAlly, default: false),
+        .init(\.healing.healthRestorationRepeatNextTurnChancePercent, .healthRestorationRepeatNextTurnChancePercent, default: 0),
+        .init(\.healing.leechCriticalPoisonDamage, .leechCriticalPoisonDamage, default: 0),
+        .init(\.healing.leechHealingVsLowEnemyHealthMultiplier, .leechHealingVsLowEnemyHealthMultiplier, default: 1),
+        .init(\.healing.leechHealingVsPoisonedMultiplier, .leechHealingVsPoisonedMultiplier, default: 1),
+        .init(\.healing.leechBlockChancePercent, .leechBlockChancePercent, default: 0),
+        .init(\.healing.firstThornsDamageHealPerTurn, .firstThornsDamageHealPerTurn, default: 0),
+        .init(\.healing.leechThornsWithoutThorns, .leechThornsWithoutThorns, default: 0),
+        .init(\.healing.physicalAttackLeechBelowHalfHealth, .physicalAttackLeechBelowHalfHealth, default: false),
+        .init(\.healing.leechStunBelowHalfHealth, .leechStunBelowHalfHealth, default: 0),
+        .init(\.healing.attackLeechPercent, .attackLeechPercent, default: 0),
+        .init(\.healing.excessLeechRestoresMana, .excessLeechRestoresMana, default: false),
+        .init(\.healing.providedOverhealConvertsToBlock, .providedOverhealConvertsToBlock, default: false),
+        .init(\.healing.providedOverhealToBlockPercent, .providedOverhealToBlockPercent, default: 0),
+        .init(\.revival.undyingEmber, .undyingEmber, default: false),
+        .init(\.revival.borrowedLife, .borrowedLife, default: false),
+        .init(\.revival.onceDeathReviveHealth, .onceDeathReviveHealth, default: 0),
+        .init(\.revival.onceDeathReviveBlock, .onceDeathReviveBlock, default: 0),
+        .init(\.revival.deathsDoorDurationBonusTurns, .deathsDoorDurationBonusTurns, default: 0),
+        .init(\.revival.reviveDealBurnDamage, .reviveDealBurnDamage, default: 0),
+        .init(\.revival.deathsDoorDodgeAndDebuffImmunity, .deathsDoorDodgeAndDebuffImmunity, default: false),
+        .init(\.revival.onDeathDealPhysicalDamageAllEnemies, .onDeathDealPhysicalDamageAllEnemies, default: 0),
+        .init(\.revival.guaranteedCritWhileOnDeathsDoor, .guaranteedCritWhileOnDeathsDoor, default: false),
+        .init(\.revival.deathsDoorExpiredHealFlat, .deathsDoorExpiredHealFlat, default: 0),
+        .init(\.revival.holyDamageReviveCompanionChancePercent, .holyDamageReviveCompanionChancePercent, default: 0),
+        .init(\.revival.surviveDeathsDoorPartyHealFlat, .surviveDeathsDoorPartyHealFlat, default: 0),
+        .init(\.revival.onHeroFatalReviveHealth, .onHeroFatalReviveHealth, default: 0),
+        .init(\.revival.enterDeathsDoorHeal, .enterDeathsDoorHeal, default: 0),
+        .init(\.revival.enterDeathsDoorBurnDamage, .enterDeathsDoorBurnDamage, default: 0),
+        .init(\.revival.surviveDeathsDoorNextAttackDouble, .surviveDeathsDoorNextAttackDouble, default: false),
+        .init(\.revival.deathsDoorIncomingDamageMultiplier, .deathsDoorIncomingDamageMultiplier, default: 1),
+        .init(\.revival.deathsDoorNegativeStatusImmune, .deathsDoorNegativeStatusImmune, default: false),
+        .init(\.revival.onAllyDeathsDoorRestoreHealth, .onAllyDeathsDoorRestoreHealth, default: 0),
+        .init(\.revival.firstAllyFatalIntercept, .firstAllyFatalIntercept, default: false),
+        .init(\.revival.deathsDoorCriticalChanceBonus, .deathsDoorCriticalChanceBonus, default: 0),
+        .init(\.revival.enterDeathsDoorDrawCard, .enterDeathsDoorDrawCard, default: false),
+        .init(\.revival.surviveDeathsDoorPartyBlockFlat, .surviveDeathsDoorPartyBlockFlat, default: 0),
+        .init(\.revival.affixDeathsDoorSurviveHealFlat, .affixDeathsDoorSurviveHealFlat, default: 0),
+        .init(\.cleanse.interdict, .interdict, default: false),
+        .init(\.cleanse.lessonLearned, .lessonLearned, default: false),
+        .init(\.cleanse.cleanseBonusDraw, .cleanseBonusDraw, default: 0),
+        .init(\.cleanse.holyDamageCleanseCount, .holyDamageCleanseCount, default: 0),
+        .init(\.cleanse.holyDamagePurgeCount, .holyDamagePurgeCount, default: 0),
+        .init(\.cleanse.holyDamagePurgeAll, .holyDamagePurgeAll, default: false),
+        .init(\.cleanse.cleanseBlockPerStack, .cleanseBlockPerStack, default: 0),
+        .init(\.cleanse.cleanseAffectsBothHeroAndCompanion, .cleanseAffectsBothHeroAndCompanion, default: false),
+        .init(\.cleanse.cleanseReflectDebuffToEnemy, .cleanseReflectDebuffToEnemy, default: false),
+        .init(\.cleanse.autoCleanseTeamPerTurn, .autoCleanseTeamPerTurn, default: 0),
+        .init(\.cleanse.cleanseAlsoPurgesEnemyBuffs, .cleanseAlsoPurgesEnemyBuffs, default: 0),
+        .init(\.cleanse.cleanseDodgeChanceBonus, .cleanseDodgeChanceBonus, default: 0),
+        .init(\.cleanse.cleanseDodgeChanceBonusTurns, .cleanseDodgeChanceBonusTurns, default: 0),
+        .init(\.cleanse.cleansePartyBlock, .cleansePartyBlock, default: 0),
+        .init(\.cleanse.blockFirstDebuffPerTurn, .blockFirstDebuffPerTurn, default: false),
+        .init(\.cleanse.partyDebuffDurationHalved, .partyDebuffDurationHalved, default: false),
+        .init(\.cleanse.purifyingAura, .purifyingAura, default: false),
+        .init(\.cleanse.onCleansePoisonDealDamagePerStack, .onCleansePoisonDealDamagePerStack, default: 0),
+        .init(\.cleanse.crownfall, .crownfall, default: false),
+        .init(\.cleanse.clearSolution, .clearSolution, default: false),
+        .init(\.cleanse.freshBatch, .freshBatch, default: false),
+        .init(\.cleanse.heatRecovery, .heatRecovery, default: false),
+        .init(\.cleanse.antitoxinCoating, .antitoxinCoating, default: false),
+        .init(\.cleanse.clearMind, .clearMind, default: false),
+        .init(\.cleanse.cleanBreak, .cleanBreak, default: false),
+        .init(\.cleanse.perfectPurity, .perfectPurity, default: false),
+        .init(\.cleanse.purgePreparesDoubleHolyAttack, .purgePreparesDoubleHolyAttack, default: false),
+        .init(\.cleanse.cleanseNextAttackCriticalBonus, .cleanseNextAttackCriticalBonus, default: 0),
+        .init(\.cleanse.cleansePurgeChancePercent, .cleansePurgeChancePercent, default: 0),
+        .init(\.cleanse.cleanseRemovesFreezeBuildup, .cleanseRemovesFreezeBuildup, default: false),
+        .init(\.cleanse.cleanseTargetBlockFlat, .cleanseTargetBlockFlat, default: 0),
+        .init(\.cleanse.firstCleanseExtraRemovalPerTurn, .firstCleanseExtraRemovalPerTurn, default: 0),
+        .init(\.cleanse.cleanseSelfBlockFlat, .cleanseSelfBlockFlat, default: 0),
+        .init(\.cleanse.onCleanseRestoreMana, .onCleanseRestoreMana, default: 0),
+        .init(\.cleanse.onPurgeGainBlock, .onPurgeGainBlock, default: 0),
+        .init(\.cleanse.onPurgeDealHolyDamage, .onPurgeDealHolyDamage, default: 0),
+        .init(\.cleanse.purgeDrawBelowHalf, .purgeDrawBelowHalf, default: false),
+        .init(\.cleanse.cleanseHolyDamage, .cleanseHolyDamage, default: 0),
+        .init(\.enemyTurn.negateFirstEnemyAttack, .negateFirstEnemyAttack, default: false),
+        .init(\.enemyTurn.attackDelayEnemyTurnChancePercent, .attackDelayEnemyTurnChancePercent, default: 0),
+        .init(\.enemyTurn.bleedingEnemyActionSkipChancePercent, .bleedingEnemyActionSkipChancePercent, default: 0),
+        .init(\.enemyTurn.extraCardDrawWhileEnemyBleeding, .extraCardDrawWhileEnemyBleeding, default: false),
+        .init(\.enemyTurn.extraCardDrawBelowEnemyHealthPercent, .extraCardDrawBelowEnemyHealthPercent, default: 0),
+        .init(\.enemyTurn.ultimateAppliesBurnPotency, .ultimateAppliesBurnPotency, default: 0),
+        .init(\.enemyTurn.onHeroHolyAbilityCompanionHolyDamage, .onHeroHolyAbilityCompanionHolyDamage, default: 0),
+        .init(\.enemyTurn.onHolyDamageRestoreMana, .onHolyDamageRestoreMana, default: 0),
+        .init(\.enemyTurn.burnReducesEnemyHealingAndLeechPercent, .burnReducesEnemyHealingAndLeechPercent, default: 0),
+        .init(\.onHit.resonantShell, .resonantShell, default: false),
+        .init(\.onHit.onHitAttackerBurn, .onHitAttackerBurn, default: 0),
+        .init(\.onHit.onHitAttackerFreezeBuildup, .onHitAttackerFreezeBuildup, default: 0),
+        .init(\.onHit.onHitAttackerPoison, .onHitAttackerPoison, default: 0),
+        .init(\.onHit.onHitAttackerBleedPotency, .onHitAttackerBleedPotency, default: 0),
+        .init(\.onHit.onHitAttackerBleedTurns, .onHitAttackerBleedTurns, default: 0),
+        .init(\.onHit.onHitAttackerHoly, .onHitAttackerHoly, default: 0),
+        .init(\.onHit.onHitGainBlock, .onHitGainBlock, default: 0),
+    ]
 
     private final class Storage {
         var value: Fields
@@ -959,175 +1833,79 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         hasher.combine(fields)
     }
 
-    public subscript<T>(dynamicMember keyPath: KeyPath<DamageTriggers, T>) -> T {
-        _read { yield storage.value.damage[keyPath: keyPath] }
-    }
-
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<DamageTriggers, T>) -> T {
         _read { yield storage.value.damage[keyPath: keyPath] }
-        set {
-            fields.damage[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<AttackTriggers, T>) -> T {
-        _read { yield storage.value.attack[keyPath: keyPath] }
+        _modify { yield &fields.damage[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<AttackTriggers, T>) -> T {
         _read { yield storage.value.attack[keyPath: keyPath] }
-        set {
-            fields.attack[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<BlockTriggers, T>) -> T {
-        _read { yield storage.value.block[keyPath: keyPath] }
+        _modify { yield &fields.attack[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<BlockTriggers, T>) -> T {
         _read { yield storage.value.block[keyPath: keyPath] }
-        set {
-            fields.block[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<MitigationTriggers, T>) -> T {
-        _read { yield storage.value.mitigation[keyPath: keyPath] }
+        _modify { yield &fields.block[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<MitigationTriggers, T>) -> T {
         _read { yield storage.value.mitigation[keyPath: keyPath] }
-        set {
-            fields.mitigation[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<DotTriggers, T>) -> T {
-        _read { yield storage.value.dot[keyPath: keyPath] }
+        _modify { yield &fields.mitigation[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<DotTriggers, T>) -> T {
         _read { yield storage.value.dot[keyPath: keyPath] }
-        set {
-            fields.dot[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<ControlTriggers, T>) -> T {
-        _read { yield storage.value.control[keyPath: keyPath] }
+        _modify { yield &fields.dot[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<ControlTriggers, T>) -> T {
         _read { yield storage.value.control[keyPath: keyPath] }
-        set {
-            fields.control[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<DodgeTriggers, T>) -> T {
-        _read { yield storage.value.dodge[keyPath: keyPath] }
+        _modify { yield &fields.control[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<DodgeTriggers, T>) -> T {
         _read { yield storage.value.dodge[keyPath: keyPath] }
-        set {
-            fields.dodge[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<ManaTriggers, T>) -> T {
-        _read { yield storage.value.mana[keyPath: keyPath] }
+        _modify { yield &fields.dodge[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<ManaTriggers, T>) -> T {
         _read { yield storage.value.mana[keyPath: keyPath] }
-        set {
-            fields.mana[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<GoldTriggers, T>) -> T {
-        _read { yield storage.value.gold[keyPath: keyPath] }
+        _modify { yield &fields.mana[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<GoldTriggers, T>) -> T {
         _read { yield storage.value.gold[keyPath: keyPath] }
-        set {
-            fields.gold[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<HealingTriggers, T>) -> T {
-        _read { yield storage.value.healing[keyPath: keyPath] }
+        _modify { yield &fields.gold[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<HealingTriggers, T>) -> T {
         _read { yield storage.value.healing[keyPath: keyPath] }
-        set {
-            fields.healing[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<RevivalTriggers, T>) -> T {
-        _read { yield storage.value.revival[keyPath: keyPath] }
+        _modify { yield &fields.healing[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<RevivalTriggers, T>) -> T {
         _read { yield storage.value.revival[keyPath: keyPath] }
-        set {
-            fields.revival[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<CleanseTriggers, T>) -> T {
-        _read { yield storage.value.cleanse[keyPath: keyPath] }
+        _modify { yield &fields.revival[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<CleanseTriggers, T>) -> T {
         _read { yield storage.value.cleanse[keyPath: keyPath] }
-        set {
-            fields.cleanse[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<EnemyTurnTriggers, T>) -> T {
-        _read { yield storage.value.enemyTurn[keyPath: keyPath] }
+        _modify { yield &fields.cleanse[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<EnemyTurnTriggers, T>) -> T {
         _read { yield storage.value.enemyTurn[keyPath: keyPath] }
-        set {
-            fields.enemyTurn[keyPath: keyPath] = newValue
-        }
-    }
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<OnHitTriggers, T>) -> T {
-        _read { yield storage.value.onHit[keyPath: keyPath] }
+        _modify { yield &fields.enemyTurn[keyPath: keyPath] }
     }
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<OnHitTriggers, T>) -> T {
         _read { yield storage.value.onHit[keyPath: keyPath] }
-        set {
-            fields.onHit[keyPath: keyPath] = newValue
-        }
+        _modify { yield &fields.onHit[keyPath: keyPath] }
     }
 
     public var populatedFields: [CombatTriggerField] {
-        fields.damage.populatedFields(comparedTo: DamageTriggers())
-            + fields.attack.populatedFields(comparedTo: AttackTriggers())
-            + fields.block.populatedFields(comparedTo: BlockTriggers())
-            + fields.mitigation.populatedFields(comparedTo: MitigationTriggers())
-            + fields.dot.populatedFields(comparedTo: DotTriggers())
-            + fields.control.populatedFields(comparedTo: ControlTriggers())
-            + fields.dodge.populatedFields(comparedTo: DodgeTriggers())
-            + fields.mana.populatedFields(comparedTo: ManaTriggers())
-            + fields.gold.populatedFields(comparedTo: GoldTriggers())
-            + fields.healing.populatedFields(comparedTo: HealingTriggers())
-            + fields.revival.populatedFields(comparedTo: RevivalTriggers())
-            + fields.cleanse.populatedFields(comparedTo: CleanseTriggers())
-            + fields.enemyTurn.populatedFields(comparedTo: EnemyTurnTriggers())
-            + fields.onHit.populatedFields(comparedTo: OnHitTriggers())
+        let defaults = Fields()
+        return Self.schema.compactMap { $0.differs(fields, defaults) ? $0.field : nil }
     }
 
     public mutating func merge(_ other: Self) {
@@ -1154,40 +1932,18 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
     }
 
     public init(from decoder: Decoder) throws {
-        let values = try DefaultingTriggerDecoder(decoder)
-        try self.init(
-            damage: DamageTriggers(from: values),
-            attack: AttackTriggers(from: values),
-            block: BlockTriggers(from: values),
-            mitigation: MitigationTriggers(from: values),
-            dot: DotTriggers(from: values),
-            control: ControlTriggers(from: values),
-            dodge: DodgeTriggers(from: values),
-            mana: ManaTriggers(from: values),
-            gold: GoldTriggers(from: values),
-            healing: HealingTriggers(from: values),
-            revival: RevivalTriggers(from: values),
-            cleanse: CleanseTriggers(from: values),
-            enemyTurn: EnemyTurnTriggers(from: values),
-            onHit: OnHitTriggers(from: values)
-        )
+        let values = try decoder.container(keyedBy: TriggerCodingKey.self)
+        var decoded = Fields()
+        for field in Self.schema {
+            try field.decode(values, &decoded)
+        }
+        storage = Storage(decoded)
     }
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: TriggerCodingKey.self)
-        try fields.damage.encode(to: &container)
-        try fields.attack.encode(to: &container)
-        try fields.block.encode(to: &container)
-        try fields.mitigation.encode(to: &container)
-        try fields.dot.encode(to: &container)
-        try fields.control.encode(to: &container)
-        try fields.dodge.encode(to: &container)
-        try fields.mana.encode(to: &container)
-        try fields.gold.encode(to: &container)
-        try fields.healing.encode(to: &container)
-        try fields.revival.encode(to: &container)
-        try fields.cleanse.encode(to: &container)
-        try fields.enemyTurn.encode(to: &container)
-        try fields.onHit.encode(to: &container)
+        for field in Self.schema {
+            try field.encode(fields, &container)
+        }
     }
 }

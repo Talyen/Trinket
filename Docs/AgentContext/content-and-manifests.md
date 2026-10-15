@@ -71,10 +71,11 @@ names, Swift cases, numeric kinds and keyword arguments. It generates the
 `AffixModifier` enum and mechanical transforms; gameplay application, presentation,
 and magnitude bump policy remain authored. Preserve case names, associated-value
 shapes, and Codable representations when evolving these definitions.
-Generation derives `CombatTriggerField` identities and typed field descriptors from
-the same schema. Each descriptor shares its flat save key and neutral default across
-decoding, sparse encoding, and populated-field traversal. Gameplay reads and merges
-remain direct generated operations. Combat provenance and affix-roll policy use those typed identities;
+Generation derives `CombatTriggerField` identities and one root field registry from
+the same schema. Its typed descriptors address family storage directly and share
+flat save keys and neutral defaults across decoding, sparse encoding, and
+populated-field traversal. Families own gameplay values and direct generated merges;
+root dynamic-member mutations pass through its copy-on-write storage. Combat provenance and affix-roll policy use those typed identities;
 raw names remain the flat Codable keys. Renaming a field requires migrating its
 compiled consumers while preserving or migrating the stored key.
 Validation checks Swift identifiers, typed defaults, type-compatible merge operations,
