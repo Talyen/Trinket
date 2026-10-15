@@ -618,12 +618,21 @@ extension XCUIApplication {
             if let barTop, barTop > bounds.minY, barTop < bounds.maxY {
                 bounds.size.height = barTop - bounds.minY
             }
+            // safeAreaInset leaves the scroll view's frame behind its pinned action.
+            // Start gestures in the exposed content rather than on the purchase button.
+            for identifier in [AccessibilityID.FullGame.purchase, AccessibilityID.FullGame.retry] {
+                let action = buttons[identifier].firstMatch
+                if action.exists, action.isHittable,
+                   action.frame.minY > bounds.minY, action.frame.minY < bounds.maxY {
+                    bounds.size.height = action.frame.minY - bounds.minY
+                }
+            }
             return bounds
         }
     }
 }
 
-private extension XCUIElement {
+extension XCUIElement {
     func dragScroll(fromY: CGFloat, toY: CGFloat, within bounds: CGRect) {
         trinketOnMainActor {
             let origin = coordinate(withNormalizedOffset: .zero)

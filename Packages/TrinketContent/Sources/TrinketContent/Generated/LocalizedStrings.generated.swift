@@ -1742,6 +1742,10 @@ enum L10n {
         LocalizedStringResource("authored.0808ca57dd2cdb14", defaultValue: "An iron seam reveals “\(value1)”, and fallen timber traps “\(value2)” nearby", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_089013043262ce51: LocalizedStringResource {
+        LocalizedStringResource("authored.089013043262ce51", defaultValue: "Shop", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static func authored_08f41d507a8f1751(_ value1: String, _ value2: String) -> LocalizedStringResource {
         LocalizedStringResource("authored.08f41d507a8f1751", defaultValue: "Beneath the spring, crystal traps “\(value1)” while healing ripples reveal “\(value2)”", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -1888,6 +1892,10 @@ enum L10n {
 
     static var authored_17ddbd9a2690bcbf: LocalizedStringResource {
         LocalizedStringResource("authored.17ddbd9a2690bcbf", defaultValue: "The Necromancer's Offer", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var authored_18bcf4c278e097cf: LocalizedStringResource {
+        LocalizedStringResource("authored.18bcf4c278e097cf", defaultValue: "Recruit", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_199b171d36c4671f: LocalizedStringResource {
@@ -2446,6 +2454,10 @@ enum L10n {
         LocalizedStringResource("authored.5cb7d4a2fa94dcf5", defaultValue: "Drops <keyword id=\"thorns\">Thorns</keyword> items", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_5d10a3d56aca45ed: LocalizedStringResource {
+        LocalizedStringResource("authored.5d10a3d56aca45ed", defaultValue: "Enter", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_5d4584f13cf33e31: LocalizedStringResource {
         LocalizedStringResource("authored.5d4584f13cf33e31", defaultValue: "Better Astral Odds", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -2810,6 +2822,10 @@ enum L10n {
         LocalizedStringResource("authored.8f5cc65786406b0c", defaultValue: "Heal", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_8f69713de7bff898: LocalizedStringResource {
+        LocalizedStringResource("authored.8f69713de7bff898", defaultValue: "Shop", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_8f90c8a17ad46655: LocalizedStringResource {
         LocalizedStringResource("authored.8f90c8a17ad46655", defaultValue: "The shop could not be opened. Your progress is preserved.", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -2902,6 +2918,10 @@ enum L10n {
         LocalizedStringResource("authored.996b0c2fa20cc738", defaultValue: "Earthquake", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_9a3183a85a0956f7: LocalizedStringResource {
+        LocalizedStringResource("authored.9a3183a85a0956f7", defaultValue: "Approach", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_9a82a56aa5acbeb2: LocalizedStringResource {
         LocalizedStringResource("authored.9a82a56aa5acbeb2", defaultValue: "Drops <keyword id=\"stun\">Stun</keyword> items", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -2952,6 +2972,10 @@ enum L10n {
 
     static var authored_9f792e9698220dde: LocalizedStringResource {
         LocalizedStringResource("authored.9f792e9698220dde", defaultValue: "Quake", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var authored_9feb12717c7a2cef: LocalizedStringResource {
+        LocalizedStringResource("authored.9feb12717c7a2cef", defaultValue: "Approach", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_a0b4ec6a405074eb: LocalizedStringResource {
@@ -3016,6 +3040,10 @@ enum L10n {
 
     static var authored_a5a6b57f92ad68eb: LocalizedStringResource {
         LocalizedStringResource("authored.a5a6b57f92ad68eb", defaultValue: "Roadside Censer", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var authored_a5c5aa3264558152: LocalizedStringResource {
+        LocalizedStringResource("authored.a5c5aa3264558152", defaultValue: "Recruit", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_a5c66bb7054a3da8: LocalizedStringResource {
@@ -3414,6 +3442,10 @@ enum L10n {
         LocalizedStringResource("authored.e173022c8e43d822", defaultValue: "Dance of Blades", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_e1848aeb08aa125f: LocalizedStringResource {
+        LocalizedStringResource("authored.e1848aeb08aa125f", defaultValue: "Fight", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_e1890123b84952fa: LocalizedStringResource {
         LocalizedStringResource("authored.e1890123b84952fa", defaultValue: "Read the Notes", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -3596,6 +3628,10 @@ enum L10n {
 
     static var authored_fceb6fdb9529a2ea: LocalizedStringResource {
         LocalizedStringResource("authored.fceb6fdb9529a2ea", defaultValue: "<keyword id=\"burn\">Burn</keyword> and <keyword id=\"bleed\">Bleed</keyword> share their damage bonuses", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var authored_fe80ab7e556ba1f8: LocalizedStringResource {
+        LocalizedStringResource("authored.fe80ab7e556ba1f8", defaultValue: "Battle", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var combatants_alchemist_name: LocalizedStringResource {

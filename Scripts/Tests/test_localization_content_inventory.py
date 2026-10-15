@@ -12,6 +12,30 @@ class EncounterCopyInventoryTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
 
+    def test_computed_encounter_actions_are_current_and_unsupported_shapes_fail(self):
+        directory = self.root / 'Packages/TrinketContent/Sources/TrinketContent/Encounters'
+        directory.mkdir(parents=True)
+        keyword = self.root / 'Packages/TrinketCore/Sources/TrinketCore/Keyword.swift'
+        keyword.parent.mkdir(parents=True)
+        keyword.write_text('case burn = "Burn"')
+        path = directory / 'JourneyModels.swift'
+        path.write_text('''public enum StageEncounter {
+    public var primaryActionTitle: String {
+        switch self {
+        case .battle, .randomBattle: "Battle"
+        case .mysteryEvent: "Approach"
+        }
+    }
+}
+''')
+        initial = content_sources(self.root)
+        key = next(key for key, entry in initial.items() if entry['text'] == 'Approach')
+        path.write_text(path.read_text().replace('"Approach"', '"Approach cautiously"'))
+        self.assertEqual(content_sources(self.root)[key]['text'], 'Approach cautiously')
+        path.write_text(path.read_text().replace('"Approach cautiously"', 'actionTitle(for: self)'))
+        with self.assertRaisesRegex(ValueError, 'unsupported primaryActionTitle'):
+            content_sources(self.root)
+
     def test_spire_copy_uses_identity_keys_and_rejects_uninventoried_declarations(self):
         directory = self.root / 'Packages/TrinketContent/Sources/TrinketContent/Encounters'
         directory.mkdir(parents=True)

@@ -393,6 +393,7 @@ public enum ContentCopy {
         case "Arcana": L10n.authored_04ea228ec8761274
         case "Once per turn, spending your last Mana to empower a Burn or Freeze card repeats its damage": L10n.authored_0580f476b6077cea
         case "Your ally receives 1% of the Health you restore with Leech": L10n.authored_0690d4cc7132d673(1)
+        case "Shop": L10n.authored_089013043262ce51
         case "Drops Dodge items": L10n.authored_090301f751942b72
         case "Saintfall Plate": L10n.authored_091e9b979929164b
         case "Drops Bleed items": L10n.authored_0a45614b0da91d0c
@@ -423,6 +424,7 @@ public enum ContentCopy {
         case "Deal 1 Freeze damage, twice": L10n.authored_168295b2ac4c0f17(1)
         case "Predation": L10n.authored_1773dc680a9dddb1
         case "The Necromancer's Offer": L10n.authored_17ddbd9a2690bcbf
+        case "Recruit": L10n.authored_18bcf4c278e097cf
         case "Gather Boughs": L10n.authored_199b171d36c4671f
         case "Herbalist's Request": L10n.authored_19dea6fa4a1a8201
         case "Wrenflight": L10n.authored_1a2e98b8e26c968a
@@ -527,6 +529,7 @@ public enum ContentCopy {
         case "Corruption Altar": L10n.authored_5a78911bb276ef7d
         case "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa": L10n.authored_5c7a38e94657a628
         case "Drops Thorns items": L10n.authored_5cb7d4a2fa94dcf5
+        case "Enter": L10n.authored_5d10a3d56aca45ed
         case "Better Astral Odds": L10n.authored_5d4584f13cf33e31
         case "Drops a Trinket": L10n.authored_5db6029ad80ede1e
         case "This Voyage is no longer available", "This Voyage is no longer available.": L10n.authored_5dde6bb9698e762e
@@ -558,7 +561,6 @@ public enum ContentCopy {
         case "Drops a Unique item": L10n.authored_71edf5d3ebc42e34
         case "Drops a Ring": L10n.authored_72547da0933f5538
         case "Mana Resistance": L10n.authored_73d96c90389a4d5d
-        case "Shop": L10n.authored_755bbb516ff86ad8
         case "Illumination": L10n.authored_7565061d992d5184
         case "Block Resistance": L10n.authored_75ea284fd44615b1
         case "Increased Block": L10n.authored_77226c9177087703
@@ -586,7 +588,6 @@ public enum ContentCopy {
         case "Arms Hoard": L10n.authored_84aa5a2803ca4647
         case "When empowering a Freeze card, spend 3 Block per missing Mana": L10n.authored_84db54a03c7a660e(3)
         case "Study Spores": L10n.authored_85aa5b8a423af161
-        case "Recruit": L10n.authored_85ea82a2b5a42590
         case "Take the Salts": L10n.authored_8773896289988b23
         case "Harvest Caps": L10n.authored_8827054c3ac261de
         case "Ring Hoard": L10n.authored_88717baca9fcb852
@@ -620,6 +621,7 @@ public enum ContentCopy {
         case "Blocking an attack makes your next manually played attack Critically Hit": L10n.authored_97fd8651019497f7
         case "Collect Gems": L10n.authored_9831dc5403897fe1
         case "Increased Cleanse Damage": L10n.authored_991d9c05e7d050a5
+        case "Approach": L10n.authored_9a3183a85a0956f7
         case "Drops Stun items": L10n.authored_9a82a56aa5acbeb2
         case "Study Roots": L10n.authored_9b4a6687a8dd6d92
         case "Freeze Resistance": L10n.authored_9c17e5fcc67aef4d
@@ -720,6 +722,7 @@ public enum ContentCopy {
         case "The first time each round your Block is broken, deal 6 Holy and 6 Stun damage to the attacker, then restore 6 Health": L10n.authored_e027aff0c3f42240(6, 6, 6)
         case "Gather Blooms": L10n.authored_e0e59172b8c7aff8
         case "Dance of Blades": L10n.authored_e173022c8e43d822
+        case "Fight": L10n.authored_e1848aeb08aa125f
         case "Read the Notes": L10n.authored_e1890123b84952fa
         case "Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage": L10n.authored_e490f38a43edadca(5, 5, 5)
         case "Bonus XP": L10n.authored_e597157f439209e2
@@ -2958,6 +2961,8 @@ public enum ContentCopy {
             LocalizedGameText(L10n.authored_0580f476b6077cea, locale: locale)
         case "Your ally receives 1% of the Health you restore with Leech":
             LocalizedGameText(L10n.authored_0690d4cc7132d673(1), locale: locale, values: ["quantity_1": 1])
+        case "Shop":
+            LocalizedGameText(L10n.authored_089013043262ce51, locale: locale)
         case "Drops Dodge items":
             LocalizedGameText(L10n.authored_090301f751942b72, locale: locale)
         case "Saintfall Plate":
@@ -3018,6 +3023,8 @@ public enum ContentCopy {
             LocalizedGameText(L10n.authored_1773dc680a9dddb1, locale: locale)
         case "The Necromancer's Offer":
             LocalizedGameText(L10n.authored_17ddbd9a2690bcbf, locale: locale)
+        case "Recruit":
+            LocalizedGameText(L10n.authored_18bcf4c278e097cf, locale: locale)
         case "Gather Boughs":
             LocalizedGameText(L10n.authored_199b171d36c4671f, locale: locale)
         case "Herbalist's Request":
@@ -3226,6 +3233,8 @@ public enum ContentCopy {
             LocalizedGameText(L10n.authored_5c7a38e94657a628, locale: locale)
         case "Drops Thorns items":
             LocalizedGameText(L10n.authored_5cb7d4a2fa94dcf5, locale: locale)
+        case "Enter":
+            LocalizedGameText(L10n.authored_5d10a3d56aca45ed, locale: locale)
         case "Better Astral Odds":
             LocalizedGameText(L10n.authored_5d4584f13cf33e31, locale: locale)
         case "Drops a Trinket":
@@ -3288,8 +3297,6 @@ public enum ContentCopy {
             LocalizedGameText(L10n.authored_72547da0933f5538, locale: locale)
         case "Mana Resistance":
             LocalizedGameText(L10n.authored_73d96c90389a4d5d, locale: locale)
-        case "Shop":
-            LocalizedGameText(L10n.authored_755bbb516ff86ad8, locale: locale)
         case "Illumination":
             LocalizedGameText(L10n.authored_7565061d992d5184, locale: locale)
         case "Block Resistance":
@@ -3344,8 +3351,6 @@ public enum ContentCopy {
             LocalizedGameText(L10n.authored_84db54a03c7a660e(3), locale: locale, values: ["quantity_1": 3])
         case "Study Spores":
             LocalizedGameText(L10n.authored_85aa5b8a423af161, locale: locale)
-        case "Recruit":
-            LocalizedGameText(L10n.authored_85ea82a2b5a42590, locale: locale)
         case "Take the Salts":
             LocalizedGameText(L10n.authored_8773896289988b23, locale: locale)
         case "Harvest Caps":
@@ -3412,6 +3417,8 @@ public enum ContentCopy {
             LocalizedGameText(L10n.authored_9831dc5403897fe1, locale: locale)
         case "Increased Cleanse Damage":
             LocalizedGameText(L10n.authored_991d9c05e7d050a5, locale: locale)
+        case "Approach":
+            LocalizedGameText(L10n.authored_9a3183a85a0956f7, locale: locale)
         case "Drops Stun items":
             LocalizedGameText(L10n.authored_9a82a56aa5acbeb2, locale: locale)
         case "Study Roots":
@@ -3612,6 +3619,8 @@ public enum ContentCopy {
             LocalizedGameText(L10n.authored_e0e59172b8c7aff8, locale: locale)
         case "Dance of Blades":
             LocalizedGameText(L10n.authored_e173022c8e43d822, locale: locale)
+        case "Fight":
+            LocalizedGameText(L10n.authored_e1848aeb08aa125f, locale: locale)
         case "Read the Notes":
             LocalizedGameText(L10n.authored_e1890123b84952fa, locale: locale)
         case "Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage":

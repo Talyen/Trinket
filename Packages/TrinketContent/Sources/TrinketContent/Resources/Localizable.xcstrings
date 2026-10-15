@@ -18751,6 +18751,48 @@
         }
       }
     },
+    "authored.089013043262ce51": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/JourneyModels.swift: computed primaryActionTitle",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shop"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boutique"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "상점"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商店"
+          }
+        }
+      }
+    },
     "authored.08f41d507a8f1751": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/MysteryEventPool+Events.swift: narrative",
       "extractionState": "manual",
@@ -20301,6 +20343,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "死靈法師的提議"
+          }
+        }
+      }
+    },
+    "authored.18bcf4c278e097cf": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Labyrinth/LabyrinthModels.swift: computed primaryActionTitle",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekrutieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recruit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recruter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入させる"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영입"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "招募"
           }
         }
       }
@@ -26143,6 +26227,48 @@
         }
       }
     },
+    "authored.5d10a3d56aca45ed": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Labyrinth/LabyrinthModels.swift: computed primaryActionTitle",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betreten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入る"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "입장"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "進入"
+          }
+        }
+      }
+    },
     "authored.5d4584f13cf33e31": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Rewards/RewardModifier.swift: computed description",
       "extractionState": "manual",
@@ -29965,6 +30091,48 @@
         }
       }
     },
+    "authored.8f69713de7bff898": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Labyrinth/LabyrinthModels.swift: computed primaryActionTitle",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shop"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boutique"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "상점"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商店"
+          }
+        }
+      }
+    },
     "authored.8f90c8a17ad46655": {
       "comment": "Packages/TrinketAppState/Sources/TrinketAppState/Play/Modes/EncounterPlayMode.swift: player-facing failure message",
       "extractionState": "manual",
@@ -30931,6 +31099,48 @@
         }
       }
     },
+    "authored.9a3183a85a0956f7": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Labyrinth/LabyrinthModels.swift: computed primaryActionTitle",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sich nähern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approach"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S’approcher"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近づく"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다가가기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "靠近"
+          }
+        }
+      }
+    },
     "authored.9a82a56aa5acbeb2": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Rewards/RewardModifier.swift: computed description",
       "extractionState": "manual",
@@ -31473,6 +31683,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "巨震"
+          }
+        }
+      }
+    },
+    "authored.9feb12717c7a2cef": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/JourneyModels.swift: computed primaryActionTitle",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sich nähern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approach"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S’approcher"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近づく"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다가가기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "靠近"
           }
         }
       }
@@ -32145,6 +32397,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "路旁香爐"
+          }
+        }
+      }
+    },
+    "authored.a5c5aa3264558152": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/JourneyModels.swift: computed primaryActionTitle",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekrutieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recruit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recruter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入させる"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영입"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "招募"
           }
         }
       }
@@ -36307,6 +36601,48 @@
         }
       }
     },
+    "authored.e1848aeb08aa125f": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Labyrinth/LabyrinthModels.swift: computed primaryActionTitle",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kämpfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fight"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combattre"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戦う"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전투"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戰鬥"
+          }
+        }
+      }
+    },
     "authored.e1890123b84952fa": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/MysteryEventPool+Events.swift: Mystery choice label",
       "extractionState": "manual",
@@ -38235,6 +38571,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"burn\">燃燒</keyword>與<keyword id=\"bleed\">流血</keyword>共享彼此的傷害加成"
+          }
+        }
+      }
+    },
+    "authored.fe80ab7e556ba1f8": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/JourneyModels.swift: computed primaryActionTitle",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kämpfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Battle"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戦う"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전투"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戰鬥"
           }
         }
       }

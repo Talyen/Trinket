@@ -29,6 +29,7 @@ struct FullGameOfferView: View {
                 benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"))
                 benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"))
                 benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"))
+                purchaseSupport
             }
             .padding(TrinketDesign.Layout.contentMargin)
         }
@@ -88,44 +89,57 @@ struct FullGameOfferView: View {
             }
 
             FullGameOutcomeMessage(outcome: store.outcome)
-
-            HStack(spacing: TrinketDesign.Spacing.small) {
-                Button {
-                    Task { await store.restore() }
-                } label: {
-                    HStack {
-                        if store.isRestoring {
-                            ProgressView()
-                        }
-                        Text(L10n.ui_fullgameofferview_restore_purchases_16351)
-                    }
-                    .frame(minHeight: footerControlMinHeight)
-                    .contentShape(.rect)
-                }
-                .disabled(store.isRestoring || store.isPurchasing)
-                .accessibilityIdentifier(AccessibilityID.FullGame.restore)
-                if #available(iOS 26.0, *) {
-                    Text("·")
-                        .accessibilityHidden(true)
-                }
-                Link(destination: TrinketPublicPages.privacy) {
-                    Text(L10n.ui_fullgameofferview_privacy_54a57)
-                        .frame(minWidth: footerControlMinHeight, minHeight: footerControlMinHeight)
-                        .contentShape(.rect)
-                }
-                .accessibilityIdentifier(AccessibilityID.FullGame.privacy)
-            }
-            .trinketTypography(.caption)
-            .foregroundStyle(.secondary)
-            .padding(.top, TrinketDesign.Spacing.small)
-
-            Label(String(localized: L10n.ui_fullgameofferview_family_sharing_ba974), systemImage: "person.2")
-                .trinketTypography(.caption)
-                .foregroundStyle(.secondary)
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
         .trinketScreenBackground()
+    }
+
+    private var purchaseSupport: some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: TrinketDesign.Spacing.small) {
+                    restoreButton
+                    Text("·").accessibilityHidden(true)
+                    privacyLink
+                }
+                .fixedSize(horizontal: true, vertical: false)
+                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                    restoreButton
+                    privacyLink
+                }
+            }
+            Label(String(localized: L10n.ui_fullgameofferview_family_sharing_ba974), systemImage: "person.2")
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .trinketTypography(.caption)
+        .foregroundStyle(.secondary)
+    }
+
+    private var restoreButton: some View {
+        Button {
+            Task { await store.restore() }
+        } label: {
+            HStack {
+                if store.isRestoring {
+                    ProgressView()
+                }
+                Text(L10n.ui_fullgameofferview_restore_purchases_16351)
+            }
+            .frame(minHeight: footerControlMinHeight)
+            .contentShape(.rect)
+        }
+        .disabled(store.isRestoring || store.isPurchasing)
+        .accessibilityIdentifier(AccessibilityID.FullGame.restore)
+    }
+
+    private var privacyLink: some View {
+        Link(destination: TrinketPublicPages.privacy) {
+            Text(L10n.ui_fullgameofferview_privacy_54a57)
+                .frame(minWidth: footerControlMinHeight, minHeight: footerControlMinHeight)
+                .contentShape(.rect)
+        }
+        .accessibilityIdentifier(AccessibilityID.FullGame.privacy)
     }
 
     private var footerControlMinHeight: CGFloat? {
@@ -154,6 +168,7 @@ private struct FullGameProductStyle: ProductViewStyle {
                         locale: locale,
                     ).text)
                         .trinketTypography(.button)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity)
             }

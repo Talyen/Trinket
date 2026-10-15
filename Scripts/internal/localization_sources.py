@@ -202,7 +202,12 @@ def content_sources(root: Path, *, bootstrap_keys: dict | None = None) -> dict:
         if 'Generated' in path.parts or path.name.endswith(('Validator.swift', '+Localization.swift')):
             continue
         source = path.read_text()
-        for declaration in re.finditer(r'^(    )(?:public )?var (title|displayName|description): String \{\n(.*?)^    \}', source, re.M | re.S):
+        for declaration in re.finditer(r'^(    )(?:public )?var (title|displayName|description|primaryActionTitle): String \{\n(.*?)^    \}', source, re.M | re.S):
+            if declaration[2] == 'primaryActionTitle':
+                case = r'case\s+\.\w+(?:\s*,\s*\.\w+)*\s*:\s*"(?:[^"\\]|\\.)*"'
+                remainder = re.sub(case, '', declaration[3])
+                if not re.fullmatch(r'\s*switch self\s*\{\s*\}\s*', remainder):
+                    raise ValueError(f'{path.relative_to(root)}: unsupported primaryActionTitle; extend localization inventory')
             for literal in re.finditer(r'"(?:[^"\\]|\\.)*"', declaration[3]):
                 text = literal[0][1:-1]
                 if '\\(' in text:

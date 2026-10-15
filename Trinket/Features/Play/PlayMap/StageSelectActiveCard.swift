@@ -120,12 +120,19 @@ struct StageSelectActiveCard<
     }
 
     private var footerDock: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
-            titleBlock
-                .frame(maxWidth: .infinity, alignment: .leading)
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
+                titleBlock.fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: 0)
+                actionControls.fixedSize(horizontal: true, vertical: false)
+            }
 
-            actionControls
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                titleBlock
+                actionControls
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
         .background(TrinketDesign.Colors.surface)
@@ -156,8 +163,8 @@ struct StageSelectActiveCard<
                 partyPickerButton
             }
             primaryActionButton
+                .frame(maxWidth: .infinity)
         }
-        .fixedSize(horizontal: true, vertical: false)
     }
 
     private var primaryActionButton: some View {
@@ -178,8 +185,7 @@ struct StageSelectActiveCard<
                 }
             }
             .trinketTypography(.button)
-            .lineLimit(1)
-            .fixedSize(horizontal: true, vertical: false)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         }
         .trinketPrimaryActionButton(

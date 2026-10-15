@@ -75,28 +75,24 @@ public struct CombatantTalentsView: View {
     }
 
     public var body: some View {
-        DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .talentTree) { baseHeight in
-            DetailHeroHeader(
-                eyebrow: String(localized: L10n.ui_combatanttalentsview_talents_39430),
-                title: tree.name,
-                baseHeight: baseHeight,
-            ) {
-                talentArtwork
+        GeometryReader { geometry in
+            DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .talentTree) { baseHeight in
+                DetailHeroHeader(
+                    eyebrow: String(localized: L10n.ui_combatanttalentsview_talents_39430),
+                    title: tree.name,
+                    baseHeight: baseHeight,
+                ) {
+                    talentArtwork
+                }
+            } bodyContent: {
+                talentGrid
+                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                    .padding(.top, TrinketDesign.Spacing.medium)
+                    .padding(.bottom, TrinketDesign.Spacing.large)
             }
-        } bodyContent: {
-            talentGrid
-                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                .padding(.top, TrinketDesign.Spacing.medium)
-                .padding(.bottom, TrinketDesign.Spacing.large)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            inspectorContent
-                .padding(TrinketDesign.Layout.contentMargin)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .trinketMaterial(.bottomBar)
-                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                .padding(.bottom, TrinketDesign.Spacing.medium)
-                .trinketSheetChromeIgnoresDismissDrag()
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                inspector(maxDetailsHeight: geometry.size.height * 0.4)
+            }
         }
         .onChange(of: tree.id) { _, _ in
             selectedNodeID = displayedNodes.first?.id
@@ -279,44 +275,6 @@ public struct CombatantTalentsView: View {
         return keywords
     }
 
-    private var inspectorContent: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            if let selectedNode {
-                let isUnlocked = unlockedTalents.contains(selectedNode.id)
-                let canUnlock = canUnlock(selectedNode)
-                let style = selectedNode.keyword.visualStyle
-                let icon = selectedNode.iconID.map(GameIcon.init(id:)) ?? style.icon
-
-                HStack(spacing: TrinketDesign.Spacing.small) {
-                    GameIconImage(icon)
-                        .trinketTypography(.cardTitle)
-                        .foregroundStyle(style.color)
-                        .accessibilityHidden(true)
-
-                    GameLabel(selectedNode.name, balanced: true)
-                        .trinketTypography(.cardTitle)
-                        .foregroundStyle(style.color)
-                        .trinketFittedText()
-                }
-                .id(selectedNode.id)
-                .transition(.opacity)
-
-                KeywordDescriptionText(text: selectedNode.description)
-                    .trinketTypography(.body)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .id(selectedNode.id)
-                    .transition(.opacity)
-
-                unlockButton(
-                    for: selectedNode,
-                    isUnlocked: isUnlocked,
-                    canUnlock: canUnlock,
-                )
-            }
-        }
-    }
-
     @ViewBuilder
     private func unlockButton(for node: TalentNode, isUnlocked: Bool, canUnlock: Bool) -> some View {
         let title = buttonLabel(for: node, isUnlocked: isUnlocked, canUnlock: canUnlock)
@@ -368,6 +326,68 @@ public struct CombatantTalentsView: View {
             return String(localized: L10n.ui_combatanttalentsview_no_points_available_9bf52)
         }
         return String(localized: L10n.ui_combatanttalentsview_locked_a424e)
+    }
+}
+
+private extension CombatantTalentsView {
+    func inspector(maxDetailsHeight: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
+            ViewThatFits(in: .vertical) {
+                inspectorDetails
+                    .fixedSize(horizontal: false, vertical: true)
+                ScrollView {
+                    inspectorDetails
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .id(selectedNodeID)
+            }
+            .frame(maxHeight: maxDetailsHeight)
+            .fixedSize(horizontal: false, vertical: true)
+
+            if let selectedNode {
+                unlockButton(
+                    for: selectedNode,
+                    isUnlocked: unlockedTalents.contains(selectedNode.id),
+                    canUnlock: canUnlock(selectedNode),
+                )
+                .trinketSheetChromeIgnoresDismissDrag()
+            }
+        }
+        .padding(TrinketDesign.Layout.contentMargin)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .trinketMaterial(.bottomBar)
+        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+        .padding(.bottom, TrinketDesign.Spacing.medium)
+    }
+
+    var inspectorDetails: some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
+            if let selectedNode {
+                let style = selectedNode.keyword.visualStyle
+                let icon = selectedNode.iconID.map(GameIcon.init(id:)) ?? style.icon
+
+                HStack(spacing: TrinketDesign.Spacing.small) {
+                    GameIconImage(icon)
+                        .trinketTypography(.cardTitle)
+                        .foregroundStyle(style.color)
+                        .accessibilityHidden(true)
+
+                    GameLabel(selectedNode.name, balanced: true)
+                        .trinketTypography(.cardTitle)
+                        .foregroundStyle(style.color)
+                        .trinketFittedText()
+                }
+                .id(selectedNode.id)
+                .transition(.opacity)
+
+                KeywordDescriptionText(text: selectedNode.description)
+                    .trinketTypography(.body)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .id(selectedNode.id)
+                    .transition(.opacity)
+            }
+        }
     }
 }
 
