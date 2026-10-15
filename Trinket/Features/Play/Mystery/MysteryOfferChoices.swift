@@ -91,7 +91,7 @@ struct MysteryOfferChoices: View {
                 TrinketWalletResourcePill(title: "Gold", amount: gold, showsIncreasePrefix: true) {
                     HomesteadResourceArtwork(resource: .gold)
                 }
-                TrinketWalletResourcePill(title: "Experience", amount: experience, showsIncreasePrefix: true) {
+                TrinketWalletResourcePill(title: "Exp", amount: experience, showsIncreasePrefix: true) {
                     ExperienceArtwork()
                 }
             case let .material(resource, amount):
@@ -104,7 +104,7 @@ struct MysteryOfferChoices: View {
                 }
             case let .experience(amount):
                 TrinketWalletResourcePill(
-                    title: "Experience",
+                    title: "Exp",
                     amount: amount,
                     showsIncreasePrefix: true,
                 ) {
