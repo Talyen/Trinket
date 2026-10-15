@@ -575,6 +575,8 @@ extension AppStatePlayFlowTests {
     @Test(arguments: [false, true])
     func `external save generation invalidates prepared and active battles`(activates: Bool) throws {
         let state = try context.makePlaySession()
+        // Exercise the generation fence before presentation cleanup removes stale runs.
+        state.playerSave.onExternalProgressChange = nil
         let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
         let key = PlayBattleOrigin.journey(stageID: stage.id).runKey
         state.journey.prepareBattle(for: stage)
@@ -588,6 +590,7 @@ extension AppStatePlayFlowTests {
         // Keep all party/launch inputs identical; replacing progress changes generation.
         try state.playerSave.commitCloudState(state.playerSave.cloudDeviceState, replacing: incoming)
         let before = state.playerSave.currentSave
+        #expect(state.battleRegistration(for: key)?.launch.configuration.id == configuration.id)
         if activates {
             #expect(state.settleBattleRewards(configuration, battleGold: .init()) == nil)
             #expect(!state.completeActiveBattle(configuration, battleGold: .init()).didComplete)
