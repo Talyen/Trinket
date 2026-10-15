@@ -17,7 +17,7 @@ is a lookup aid, not a reading checklist.
 
 | Fact | Owner |
 |------|-------|
-| Toolchain versions, schemes, entitlements | `project.yml`, `Packages/*/Package.swift`, `Scripts/tool-versions.env`; required CI Xcode version/build in [`Scripts/config/ci-xcode.json`](../Scripts/config/ci-xcode.json) |
+| Toolchain versions, schemes, entitlements | [project.yml](../project.yml), `Packages/*/Package.swift`, [tool-versions.env](../Scripts/tool-versions.env); required CI Xcode version/build in [ci-xcode.json](../Scripts/config/ci-xcode.json) |
 | Commands and flags | script usage/option parsing and [command reference](../Scripts/Reference.md) |
 | When to run which gate | [Platform/Verification.md](Platform/Verification.md) |
 | What a good test is | [Platform/Testing.md](Platform/Testing.md) |
@@ -26,21 +26,20 @@ is a lookup aid, not a reading checklist.
 | iOS support window and native API adoption | [Platform/ApplePlatformReference.md](Platform/ApplePlatformReference.md) |
 | Current vs banned SwiftUI/observation APIs | [Platform/ApplePlatformReference.md](Platform/ApplePlatformReference.md#current-vs-banned-swiftui) (enforced by `check-api-bans.sh`) |
 | Style and boundary checker split | [Platform/Verification.md](Platform/Verification.md#style-and-boundary-ownership) |
-| AccessibilityID rubric vs launch details | Rubric [Platform/Testing.md](Platform/Testing.md#ui-keep-drop-rubric); launch/helpers `TrinketUITests/README.md`; placement in `swiftui-features.md` |
-| Artwork pin lifecycle vs numbers | Lifecycle [AgentContext/ui-performance.md](AgentContext/ui-performance.md); numbers in Playbook Artwork Budgets |
+| AccessibilityID rubric vs launch details | [Test rubric](Platform/Testing.md#ui-keep-drop-rubric), [launch arguments and helpers](../TrinketUITests/README.md), and [feature placement](AgentContext/swiftui-features.md) |
+| Artwork pins and memory budgets | [Pin lifecycle](AgentContext/ui-performance.md); [artwork budgets](Platform/PerformanceInvestigationPlaybook.md#artwork-budgets), enforced by [check-artwork-budget.sh](../Scripts/check-artwork-budget.sh) |
 | Balance rules and tuning | [AgentContext/battle-balance.md](AgentContext/battle-balance.md), subject to current [Product decisions](Product/Decisions.md) and their linked mode contracts |
-| Audio routing and playback behavior | `Packages/TrinketAppState/README.md` (routed via [AgentContext/audio.md](AgentContext/audio.md)) |
+| Audio routing and playback behavior | [TrinketAppState](../Packages/TrinketAppState/README.md) (routed via [audio context](AgentContext/audio.md)) |
 | Game surfaces and modes | [Product/Overview.md](Product/Overview.md) |
 | Art direction and delivery constraints | [Product/ArtworkStyleGuide.md](Product/ArtworkStyleGuide.md) |
 | Cross-package battle / persistence / content | matching [AgentContext](AgentContext/) card |
 | Manifest column formats | that manifest directory’s README |
 | Package public types / how to extend | that package README |
 | Agent workflow and safety hard stops | root and nested `AGENTS.md` |
-| Artwork memory budgets (numbers) | [Platform/PerformanceInvestigationPlaybook.md](Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets (enforced by `check-artwork-budget.sh`; `AGENTS.md` holds the one-line hard stop only) |
 | Simulator isolation and leases | [Platform/SimulatorOperations.md](Platform/SimulatorOperations.md) (leases and recovery); interaction technique in the [ios-simulator skill](../.agents/skills/ios-simulator/SKILL.md) |
-| StoreKit purchase prerequisites | [Platform/Purchases.md](Platform/Purchases.md) (infra checklist; product rules in `Product/Monetization.md`) |
-| App Store metadata draft (data, not policy) | [Platform/AppStoreMetadata.md](Platform/AppStoreMetadata.md) (field drafts; procedure in `Platform/Release.md`) |
-| CloudKit enablement gates | [Platform/CloudKitPreShipChecklist.md](Platform/CloudKitPreShipChecklist.md) (ordered gates; save contracts in `AgentContext/persistence-storage.md`) |
+| StoreKit purchase prerequisites | [Purchases](Platform/Purchases.md) (infra checklist); [Monetization](Product/Monetization.md) owns product rules |
+| App Store metadata draft (data, not policy) | [App Store field drafts](Platform/AppStoreMetadata.md); [Release](Platform/Release.md) owns the procedure |
+| CloudKit enablement gates | [CloudKit checklist](Platform/CloudKitPreShipChecklist.md) (ordered gates); [storage contract](AgentContext/persistence-storage.md) owns save behavior |
 | Commit format, hooks, and push preconditions | [Platform/Release.md](Platform/Release.md) |
 | Audit procedure | [Audits/README.md](Audits/README.md) plus the cited audit file |
 
