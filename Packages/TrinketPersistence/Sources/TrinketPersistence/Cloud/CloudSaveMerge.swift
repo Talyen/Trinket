@@ -214,7 +214,13 @@ enum CloudSaveMerge {
         }
         let abilityIDs = Set(branches.recent.roster.abilityLoadouts.keys).union(branches.other.roster.abilityLoadouts.keys)
         for id in abilityIDs {
-            merged.roster.abilityLoadouts[id] = branches.selected { $0.roster.abilityLoadouts[id] }
+            guard let combatant = GameContent.combatant(matching: id) else { continue }
+            // Resolve absent rows to catalog defaults before comparing independent tier edits.
+            merged.roster.abilityLoadouts[id] = AbilityLoadout(
+                basic: branches.selected { $0.roster.loadout(for: combatant).basic },
+                skill: branches.selected { $0.roster.loadout(for: combatant).skill },
+                ultimate: branches.selected { $0.roster.loadout(for: combatant).ultimate },
+            )
         }
     }
 

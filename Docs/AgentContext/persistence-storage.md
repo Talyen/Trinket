@@ -215,8 +215,11 @@ journal intact for the next fetch instead of replacing earned progress. Union ea
 items, unlocks, claims, and completion. Union talent purchases while honoring
 removals from the shared base, so a talent reset survives unrelated progress;
 unrelated saves without a shared base union talents. Use the latest valid party/loadout
-edit, retaining displaced gear in Inventory. A one-sided change to an existing item,
-including corruption or salvage, survives unrelated progress on the other branch.
+edit, retaining displaced gear in Inventory. Reconcile ability selections per tier against
+the shared base, treating an absent loadout as the catalog defaults, so independent
+Basic and Skill edits survive together; conflicting edits to one tier use the latest
+choice. A one-sided change to an existing item, including corruption or salvage,
+survives unrelated progress on the other branch.
 Restoring a newer valid weapon pair reclaims its primary from an older assignment
 on another combatant before enforcing unique equipped items.
 For a shared physical item, salvage on either branch retires the item even if
