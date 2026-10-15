@@ -34,6 +34,7 @@ struct MysteryCorruptionRevealContent: View {
                                 DetailTraitRow(
                                     title: affix.title,
                                     description: affix.description,
+                                    corruptedPower: result.item.affixPowers.flatMap { $0.indices.contains(index) ? $0[index] : nil },
                                     indicators: result.effects.filter { $0.affects(affix) }.map(\.indicator),
                                     titleShine: result.item.affixShine(at: index, affix: affix),
                                     titlePrefix: affix.isCorrupted ? "Corrupted " : nil,

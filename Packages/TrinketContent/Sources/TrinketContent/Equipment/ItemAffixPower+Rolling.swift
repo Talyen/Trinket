@@ -60,7 +60,10 @@ public extension ItemAffixPower {
                 text.bind(old, to: new)
             }
         }
-        return Self(description: text.rendered, modifiers: modifiers, triggers: triggers)
+        return Self(
+            description: text.rendered, modifiers: modifiers, triggers: triggers,
+            corruptionBaselineDescription: corruptionBaselineDescription,
+        )
     }
 
     func scaled(by multiplier: Int) -> Self {
@@ -125,9 +128,14 @@ public extension ItemAffixPower {
     }
 
     func bumped(target: BumpTarget, direction: ItemAffixPowerBumpDirection) -> Self {
-        transformingMagnitudes { candidate, value in
+        let power = transformingMagnitudes { candidate, value in
             candidate == target ? value.bumped(direction: direction) ?? value : value
         }
+        guard power.description != description else { return power }
+        return Self(
+            description: power.description, modifiers: power.modifiers, triggers: power.triggers,
+            corruptionBaselineDescription: corruptionBaselineDescription ?? description,
+        )
     }
 
     static func hasBumpableField(in powers: [ItemAffixPower], direction: ItemAffixPowerBumpDirection) -> Bool {

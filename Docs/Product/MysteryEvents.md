@@ -25,6 +25,10 @@ materials and Gold, and learning or practice for XP. The authored catalog is
 
 ## Reward rules
 
+The Corruption Altar colors changed affix numbers green for increases and red for
+decreases, preserving keyword colors. Newly corrupted items retain this comparison
+when inspected later; older saves without the original numbers keep neutral numbers.
+
 - Resolve offers before display. Basic/Astral gear uses the choice's fixed base;
   Trinkets and Uniques may only come from that choice's explicit thematic pool.
 - Offers use the shared [progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
