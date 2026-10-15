@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from internal.cli import ROOT
+from internal.policy_scan import candidates, report
 
 SCAN_ROOTS = [
     "Trinket",
@@ -106,34 +107,18 @@ RG_PATTERN = "|".join(
 
 
 def resolve_scan_paths(explicit: list[str] | None) -> list[str]:
-    if explicit:
-        paths: list[str] = []
-        for item in explicit:
-            path = Path(item)
-            if not path.is_absolute():
-                path = ROOT / path
-            if path.exists():
-                paths.append(str(path))
-        return paths
-    return [str(ROOT / root) for root in SCAN_ROOTS if (ROOT / root).exists()]
+    paths = [str(ROOT / item) for item in (explicit or SCAN_ROOTS)]
+    return [path for path in paths if Path(path).exists()]
 
 
 def candidate_files(scan_paths: list[str]) -> list[Path]:
     """Search with NUL-delimited paths, falling back only when rg is unavailable."""
-    if not scan_paths:
-        return []
     try:
-        result = subprocess.run(
-            ["rg", "--files-with-matches", "--null", "-g", "*.swift", RG_PATTERN, *scan_paths],
-            cwd=ROOT, capture_output=True, text=True, check=False,
-        )
+        return candidates(RG_PATTERN, scan_paths, ROOT)
     except FileNotFoundError:
         regex = re.compile(RG_PATTERN)
         return [path for path in fallback_list_swift_files(scan_paths)
                 if regex.search(path.read_text(encoding="utf-8"))]
-    if result.returncode not in (0, 1):
-        raise RuntimeError(f"rg failed (exit {result.returncode}): {result.stderr.strip()}")
-    return [ROOT / name for name in result.stdout.split("\0") if name]
 
 
 def is_allowed(
@@ -198,13 +183,12 @@ def scan_file(path: Path) -> tuple[list[str], str | None]:
     text = path.read_text(encoding="utf-8")
 
     violations: list[str] = []
-    previous_line = ""
-    context_lines: list[str] = []
-    recent_button_window = 0
-
-    for line_number, line in enumerate(text.splitlines(), start=1):
-        in_recent_button = recent_button_window > 0
-        previous_context = "\n".join(context_lines)
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        line_number = index + 1
+        previous_line = lines[index - 1] if index else ""
+        previous_context = "\n".join(lines[max(0, index - 5):index])
+        in_recent_button = any(BUTTON_RE.search(prior) for prior in lines[max(0, index - 24):index])
         pattern = classify_line(line, in_recent_button, previous_context)
         if pattern and not is_allowed(
             rel, line, previous_line, previous_context, pattern
@@ -220,16 +204,6 @@ def scan_file(path: Path) -> tuple[list[str], str | None]:
                 )
             violations.append(f"{rel}:{line_number}: {pattern} {guidance}")
 
-        if BUTTON_RE.search(line):
-            recent_button_window = 24
-        elif recent_button_window > 0:
-            recent_button_window -= 1
-
-        previous_line = line
-        context_lines.append(line)
-        if len(context_lines) > 5:
-            context_lines = context_lines[1:]
-
     hint = f"{rel}: inline animation without TrinketMotion reference" if (
         "TrinketMotion" not in text and MOTION_HINT_RE.search(text)
     ) else None
@@ -237,13 +211,13 @@ def scan_file(path: Path) -> tuple[list[str], str | None]:
 
 
 def fallback_list_swift_files(scan_paths: list[str]) -> list[Path]:
-    files: list[Path] = []
-    for root in scan_paths:
-        path = Path(root)
-        if path.is_file() and path.suffix == ".swift":
+    files = []
+    for item in scan_paths:
+        path = Path(item)
+        if path.is_file() and path.suffix == '.swift':
             files.append(path)
         elif path.is_dir():
-            files.extend(sorted(path.rglob("*.swift")))
+            files.extend(sorted(path.rglob('*.swift')))
     return files
 
 
@@ -264,23 +238,12 @@ def main(argv: list[str]) -> int:
         return 1
 
     if violations:
-        print("UI style guardrail found styling or artwork-sizing violations:")
-        for violation in violations:
-            print(f"  {violation}")
-        if os.environ.get("GITHUB_ACTIONS") == "true":
-            for violation in violations:
-                file, line, message = violation.split(":", 2)
-                message = message.strip()
-                print(
-                    f"::error file={file},line={line},title=UI Style Violation::{message}"
-                )
-        print()
-        print(
-            "Use shared TrinketDesign semantic roles for chrome. "
-            "Reserve UIStyleCheck: allow for narrowly scoped content/art "
-            "exceptions and explain the reason nearby."
+        return report(
+            violations, "UI style guardrail found styling or artwork-sizing violations:",
+            "UI style guardrail passed.", "UI Style Violation",
+            "Use shared TrinketDesign semantic roles for chrome. Reserve UIStyleCheck: allow "
+            "for narrowly scoped content/art exceptions and explain the reason nearby.", stream=sys.stdout,
         )
-        return 1
 
     for hint in hints:
         print(f"motion hint: {hint} (prefer a TrinketMotion recipe when the motion is shared)")

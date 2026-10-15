@@ -11,8 +11,7 @@ class SwiftInvariantsTests(ScriptRegressionTestCase):
         self.addCleanup(temporary.cleanup)
         self.root = self.make_repo_fixture(temporary.name, (
             "Scripts/check-agent-invariants.sh", "Scripts/check-exclusivity-footguns.sh",
-            "Scripts/lib/rg-check.sh", "Scripts/format-dirs.env", "Scripts/build-inputs.env",
-            "Scripts/internal/swift_policy.py", "Scripts/tool-versions.env",
+            "Scripts/build-inputs.env", "Scripts/tool-versions.env",
         ))
         (self.root / ".tools").symlink_to(ROOT / ".tools", target_is_directory=True)
         for package in (ROOT / "Packages").iterdir():

@@ -93,6 +93,14 @@ class ScriptRegressionTestCase(unittest.TestCase):
                 'Scripts/internal/markdown.py', 'Scripts/internal/cli.py',
                 'Scripts/internal/output_retention.py', 'Scripts/build-inputs.env',
                 'Scripts/config/ui-tests.tsv', 'Scripts/config/cheap-slices.txt')))
+        policy_entries = {f'Scripts/check-{name}.sh' for name in
+                          ('agent-invariants', 'exclusivity-footguns', 'module-boundaries', 'artwork-budget', 'api-bans')}
+        if set(files) & policy_entries:
+            files = tuple(dict.fromkeys((*files, 'Scripts/check-swift-policy.py', 'Scripts/internal/policy_scan.py',
+                'Scripts/internal/mechanical_policy.py', 'Scripts/internal/module_policy.py',
+                'Scripts/internal/swift_policy.py', 'Scripts/internal/cli.py')))
+        if 'Scripts/check-build-cache-paths.sh' in files:
+            files = (*files, 'Scripts/check-build-cache-paths.py', 'Scripts/internal/policy_scan.py', 'Scripts/internal/cli.py')
         for relative in files:
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)

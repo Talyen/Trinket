@@ -45,6 +45,7 @@ Scripts/check-accessibility-ids.py	test_swift_style_policy.py,test_ui_policy.py
 Scripts/check-agent-invariants.sh	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py
 Scripts/check-api-bans.sh	test_policy_scripts.py,test_swift_style_policy.py
 Scripts/check-artwork-budget.sh	test_swift_style_policy.py,test_ui_policy.py
+Scripts/check-build-cache-paths.py	test_ci_build_scripts.py
 Scripts/check-build-cache-paths.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py
 Scripts/check-docs.py	test_documentation.py
 Scripts/check-exclusivity-footguns.sh	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py
@@ -52,6 +53,7 @@ Scripts/check-links.py	test_agent_read.py,test_documentation.py,test_internal_cl
 Scripts/check-module-boundaries.sh	test_policy_scripts.py,test_swift_style_policy.py
 Scripts/check-plans.py	test_documentation.py
 Scripts/check-staged-project.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
+Scripts/check-swift-policy.py	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py,test_ui_policy.py
 Scripts/check-testplan-sync.py	test_documentation.py,test_project_generation.py,test_ui_registration.py
 Scripts/check-ui-style.py	test_swift_style_policy.py,test_ui_policy.py
 Scripts/check-unused-assets.py	test_check_unused_assets.py
@@ -123,10 +125,13 @@ Scripts/internal/diagnostics/xcresult_diagnostics.py	test_failure_diagnostics.py
 Scripts/internal/doc_diagnostics.py	test_documentation.py
 Scripts/internal/generated_summary.py	test_agent_diff.py
 Scripts/internal/markdown.py	test_agent_read.py,test_agent_search.py,test_content_inspect.py,test_documentation.py
+Scripts/internal/mechanical_policy.py	test_swift_invariants.py,test_ui_policy.py
 Scripts/internal/media_templates/*	test_asset_library.py,test_media_asset_scripts.py
+Scripts/internal/module_policy.py	test_policy_scripts.py
 Scripts/internal/output_retention.py	test_agent_read.py,test_agent_sim_lifetime.py,test_balance_report_retention.py,test_build_process.py,test_ci_session_scripts.py,test_documentation.py,test_failure_diagnostics.py,test_output_retention.py,test_performance_scenarios.py,test_playthrough_sweep.py,test_test_timing.py,test_testflight.py
 Scripts/internal/performance/performance_model.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
 Scripts/internal/playthrough_report.py	test_playthrough_sweep.py
+Scripts/internal/policy_scan.py	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py,test_ui_policy.py,test_ci_build_scripts.py
 Scripts/internal/source_declarations.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py
 Scripts/internal/swift_policy.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py,test_documentation.py,test_swift_invariants.py,test_swift_style_policy.py
 Scripts/internal/testflight.rb	test_testflight.py
@@ -144,7 +149,6 @@ Scripts/lib/lock.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.
 Scripts/lib/output-retention.sh	test_agent_read.py,test_balance_report_retention.py,test_ci_session_scripts.py,test_documentation.py,test_failure_diagnostics.py,test_output_retention.py,test_performance_scenarios.py,test_playthrough_sweep.py,test_test_timing.py,test_testflight.py
 Scripts/lib/project-generation.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/lib/promote.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
-Scripts/lib/rg-check.sh	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py
 Scripts/lib/simctl.sh	test-run-env.sh,test_agent_sim_lifetime.py,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py
 Scripts/lib/slots.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py
 Scripts/lib/tempdir.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py

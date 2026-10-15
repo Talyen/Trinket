@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Scan Swift policy candidates; shell entrypoints own violation reporting."""
+"""Token-aware Swift policies used by the shared source-policy gate."""
 
 from __future__ import annotations
 
-import argparse
 import json
 import re
 import shutil
 import subprocess
-import sys
 from pathlib import Path
+
+from internal.policy_scan import candidates
 
 ROOT = Path(__file__).resolve().parents[2]
 API_BANS = {
@@ -35,15 +35,9 @@ def candidate_paths(check: str, paths: list[str], root: Path) -> list[Path]:
         "|".join([*API_BANS, "XCTest", "XCTAssert", "XCTFail", "XCTUnwrap"])
         if check == "api-bans" else "swiftlint:disable"
     )
-    exclusions = ["--glob", "!**/Generated/**"] if check == "swiftlint-reasons" else []
-    result = subprocess.run(
-        ["rg", "--files-with-matches", "--null", "--glob", "*.swift", *exclusions, pattern, "--", *paths],
-        cwd=root, capture_output=True, text=True,
-    )
-    if result.returncode not in (0, 1):
-        raise RuntimeError(f"Policy search failed (rg exit {result.returncode}): {result.stderr.strip()}")
-    candidates = {root / path for path in result.stdout.split("\0") if path}
-    return sorted(path for path in candidates if "Generated" not in path.relative_to(root).parts
+    globs = ('*.swift', '!**/Generated/**') if check == 'swiftlint-reasons' else ('*.swift',)
+    found = candidates(pattern, paths, root, globs=globs)
+    return sorted(path for path in found if "Generated" not in path.relative_to(root).parts
                   or is_package_test(path.relative_to(root)))
 
 
@@ -114,27 +108,3 @@ def violations(check: str, tokens: list[dict], path: Path) -> list[tuple[int, st
     if check == "swiftlint-reasons" and line_comment is not None and DISABLE.match(line_comment) and not REASON.search(line_comment):
         findings.append((comment_line, REASON_MESSAGE))
     return sorted(set(findings))
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("check", choices=("api-bans", "swiftlint-reasons"))
-    parser.add_argument("paths", nargs="+")
-    args = parser.parse_args()
-    try:
-        for path in candidate_paths(args.check, args.paths, ROOT):
-            relative = path.relative_to(ROOT)
-            try:
-                tokens = formatter_tokens(path.read_text(encoding="utf-8"), ROOT)
-            except (OSError, RuntimeError, ValueError) as error:
-                raise RuntimeError(f"{relative}: {error}") from error
-            for line, message in violations(args.check, tokens, relative):
-                print(f"{relative}:{line}: {message}")
-    except (OSError, RuntimeError, ValueError) as error:
-        print(f"Swift policy scan failed: {error}", file=sys.stderr)
-        return 2
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

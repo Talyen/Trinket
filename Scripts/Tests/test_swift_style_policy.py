@@ -12,10 +12,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from script_test_support import ROOT, load_script, run_captured
+from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured
 
 
-class SwiftStylePolicyTests(unittest.TestCase):
+class SwiftStylePolicyTests(ScriptRegressionTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.policy = load_script("swift_policy", "internal/swift_policy.py")
@@ -103,11 +103,7 @@ class Probe: XCTestCase {
 
     def test_api_entrypoint_enforces_tokens_exclusions_and_diagnostics(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for name in ("check-api-bans.sh", "lib/rg-check.sh", "internal/swift_policy.py", "tool-versions.env"):
-                target = root / "Scripts" / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(ROOT / "Scripts" / name, target)
+            root = self.make_repo_fixture(directory, ("Scripts/check-api-bans.sh", "Scripts/tool-versions.env"))
             (root / ".tools").symlink_to(ROOT / ".tools", target_is_directory=True)
             for name in ("Trinket", "TrinketUITests", "Packages/Probe/Sources/Generated", "Packages/Probe/Tests"):
                 (root / name).mkdir(parents=True)

@@ -136,11 +136,7 @@ else:
             "let package = Package(name: \"Probe\", targets: [.target(name: \"Probe\")])\n"
         )
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for name in ("check-module-boundaries.sh", "lib/rg-check.sh"):
-                target = root / "Scripts" / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(ROOT / "Scripts" / name, target)
+            root = self.make_repo_fixture(directory, ("Scripts/check-module-boundaries.sh",))
             for package in ("TrinketDesignSystem", "BattleEngine", "TrinketPersistence",
                             "TrinketFeatureSupport", "TrinketBattleFeature", "TrinketAppState"):
                 (root / "Packages" / package / "Sources" / package).mkdir(parents=True)

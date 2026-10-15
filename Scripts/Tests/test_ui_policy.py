@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 from unittest.mock import patch
-import shutil
 import tempfile
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured, run_python
 
@@ -63,11 +62,7 @@ class UiPolicyTests(ScriptRegressionTestCase):
     def test_artwork_budget_enforces_process_constants_and_actual_cache_clamp(self) -> None:
         live = (ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift").read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            for name in ("check-artwork-budget.sh", "lib/rg-check.sh"):
-                target = root / "Scripts" / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(ROOT / "Scripts" / name, target)
+            root = self.make_repo_fixture(directory, ("Scripts/check-artwork-budget.sh",))
             fixture = root / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift"
             fixture.parent.mkdir(parents=True)
             cases = (
