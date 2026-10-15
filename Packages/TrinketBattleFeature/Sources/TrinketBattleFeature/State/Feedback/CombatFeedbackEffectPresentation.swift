@@ -112,6 +112,8 @@ enum CombatFeedbackEffectPresentation {
             Descriptor(.buff, isAdditive: true, labelRule: .amount)
         case .shieldAbsorbed:
             Descriptor(.block, isAdditive: true, labelRule: .negatedAmount)
+        case .damageReduced:
+            Descriptor(.buff, labelRule: .none, displayRule: .hidden)
         case .dodgeApplied:
             Descriptor(.dodge, labelRule: .dodgeWord)
         case .controlActionSkipped:

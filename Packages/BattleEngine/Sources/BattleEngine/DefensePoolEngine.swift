@@ -15,8 +15,25 @@ package enum DefensePoolEngine {
         let block = blockPoints(in: context.roster.activeEffects(for: target))
         let stolen = min(block, amount)
         guard stolen > 0 else { return }
-        set(block - stolen, on: target, in: &context)
+        strip(stolen, from: target, source: .init(actor), abilityName: abilityName, in: &context)
         context.applyBlockGain(stolen, to: actor, source: actor, abilityName: abilityName, amountBasis: .resolved)
+    }
+
+    package static func strip(
+        _ amount: Int,
+        from target: Combatant,
+        source: CombatEventSource,
+        abilityName: String,
+        in context: inout BattleState,
+    ) {
+        let current = blockPoints(in: context.roster.activeEffects(for: target))
+        let removed = min(current, max(0, amount))
+        guard removed > 0 else { return }
+        set(current - removed, on: target, in: &context)
+        context.nextEvent(
+            kind: .effect(.blockStripped), source: source, abilityName: abilityName,
+            target: target, amount: removed, keyword: .block,
+        )
     }
 
     package static func blockPoints(in effects: [ActiveEffect]) -> Int {

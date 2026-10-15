@@ -252,15 +252,30 @@ extension BattleTurnEngineTests {
     func `split boss auras keep their every other round cadence`(enemyID: String) throws {
         var context = try enemyTraitContext(enemyID)
         let enemy = context.enemy
+        let traitName = try #require([
+            "the_frostwarden": "Winter’s Grasp", "the_iron_bear": "Thunderous Tremor",
+            "the_blight_treant": "Blighted Pulse", "the_forge_golem": "Furnace Pulse",
+            "the_blood_countess": "Crimson Pulse", "the_seraph": "Radiant Judgment",
+            "the_stone_titan": "Seismic Pulse",
+        ][enemyID])
         for turn in 1 ... 4 {
             context.turnCount = turn
             let heroHealth = context.health(of: context.hero)
             let companionHealth = context.health(of: context.companion)
-            CombatExecutor.run { await EnemyTraitEngine.turnFreeze(for: enemy, context: &context) }
-            CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: enemy, context: &context) }
+            let events = context.recordingEvents { state in
+                await EnemyTraitEngine.turnFreeze(for: enemy, context: &state)
+                await EnemyTraitEngine.turnRandomDamageAllEnemies(for: enemy, context: &state)
+            }
             let expectedDamage = turn.isMultiple(of: 2) ? 1 : 0
             #expect(heroHealth - context.health(of: context.hero) == expectedDamage)
             #expect(companionHealth - context.health(of: context.companion) == expectedDamage)
+            let hits = events.filter { $0.kind == .abilityDamage }
+            let targets = expectedDamage > 0 ? [context.hero, context.companion] : []
+            #expect(hits.map(\.targetID) == targets.map(\.id))
+            #expect(hits.allSatisfy { $0.amount == expectedDamage && $0.actorID == enemy.id && $0.abilityName == traitName })
+            #expect(BattleLogProjection.entries(from: events).map(\.text) == hits.map {
+                "\(enemy.name) deals \($0.amount) \($0.keyword.rawValue) damage to \($0.targetName) (\(traitName))."
+            })
         }
     }
 
@@ -274,7 +289,13 @@ extension BattleTurnEngineTests {
         }
         context.turnCount = 2
 
-        CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context) }
+        let pulseEvents = context.recordingEvents { state in
+            await EnemyTraitEngine.turnRandomDamageAllEnemies(for: state.enemy, context: &state)
+        }
+        #expect(pulseEvents.count(where: { $0.kind == .abilityDamage }) == (block == 0 ? 2 : 0))
+        if block > 0 {
+            #expect(pulseEvents.count(where: { $0.effectKind == .shieldAbsorbed }) == 2)
+        }
 
         for (index, target) in targets.enumerated() {
             #expect(healthBefore[index] - context.health(of: target) == 1 - block)
@@ -282,10 +303,12 @@ extension BattleTurnEngineTests {
             #expect(bleed.effect.potency == 1)
             #expect(bleed.sourceActorID == context.enemy.id)
             let beforeTick = context.health(of: target)
-            CombatExecutor.run { await EffectHandlers.handler(for: bleed.effect.kind).advanceTurn(
-                bleed, on: target, in: &context,
-            ) }
+            let tickEvents = context.recordingEvents { state in
+                await EffectHandlers.handler(for: bleed.effect.kind).advanceTurn(bleed, on: target, in: &state)
+            }
             #expect(beforeTick - context.health(of: target) == 1)
+            #expect(tickEvents.count(where: { $0.kind == .status && $0.amount == 1 && $0.targetID == target.id }) == 1)
+            #expect(!tickEvents.contains { $0.kind == .abilityDamage })
         }
     }
 

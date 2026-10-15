@@ -21,6 +21,8 @@ Halving, decay, and costs replace an existing Block pool without granting a new
 buff; prevention of Block gains cannot erase its remainder.
 Block-breaking multipliers scale the Block points consumed after the owner's
 absorption efficiency, capped at the remaining pool; absorbed damage stays unchanged.
+Block theft, Pulverize, Bone-Crushing Bite, and Sunder Shield report actual removed
+Block as loss feedback, without creating absorption or Block-break reactions.
 Glacial Reprieve deals three Freeze damage on its owner's first Block absorption
 each turn, including borrowed Block. Ironhide reduces overflow only from an attack that breaks
 the recipient's Block; ongoing damage and bypass damage leaving Block intact do not qualify.
@@ -47,7 +49,8 @@ Loose Rubble readies a non-stacking one-point reduction on positive Health damag
 including periodic and retaliation damage, excluding Health costs. The next positive
 outgoing packet consumes it after outgoing calculations and before flat mitigation
 and Block; dodges and non-damaging actions preserve it. A redirected packet does
-not consume a second reduction. Seismic Pulse can consume it.
+not consume a second reduction. Seismic Pulse can consume it. Its prevented amount
+logs as damage reduction and does not contribute damage chips or hit sounds.
 Watchful Guard grants Block in the opening round as well as later rounds.
 Blood Scent, Bulwark Force, Dread Exploitation, and Fan the Flames amplify enemy
 attacks, not ongoing damage. Stormbreak's damage multiplier also applies to Bleed

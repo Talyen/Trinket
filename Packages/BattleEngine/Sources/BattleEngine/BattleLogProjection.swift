@@ -87,7 +87,8 @@ public struct BattleLogProjection {
         case .ability:
             return actionLine(for: event, damage: damage)
         case .abilityDamage:
-            return nil
+            guard event.abilityID.isEmpty, !event.abilityName.isEmpty, event.amount > 0 else { return nil }
+            return "\(event.actorName) deals \(event.amount) \(event.keyword.rawValue) damage to \(event.targetName) (\(event.abilityName))."
         case .status:
             guard event.amount > 0 else { return nil }
             return "\(event.targetName) takes \(event.amount) \(event.keyword.rawValue) damage."
@@ -106,7 +107,8 @@ public struct BattleLogProjection {
             "\(event.targetName) is \(event.keyword.statusAlias ?? event.keyword.rawValue)."
         case .shieldApplied where event.amount > 0 && !event.abilityName.isEmpty:
             "\(event.targetName) gains \(event.amount) Block (\(event.abilityName))."
-        case .instantHeal where event.amount > 0 && !event.abilityName.isEmpty:
+        case .instantHeal where event.amount > 0 && !event.abilityName.isEmpty,
+             .leechHeal where event.amount > 0 && !event.abilityName.isEmpty:
             "\(event.targetName) restores \(event.amount) Health (\(event.abilityName))."
         case .thornsTriggered where event.amount > 0 && !event.abilityName.isEmpty:
             "\(event.actorName) deals \(event.amount) \(event.keyword.rawValue) damage to \(event.targetName) (\(event.abilityName))."
@@ -118,6 +120,8 @@ public struct BattleLogProjection {
             "\(event.targetName)'s \(event.keyword.rawValue) is Purged (\(event.abilityName))."
         case .blockStripped where event.amount > 0:
             "\(event.actorName) removes \(event.amount) Block from \(event.targetName) (\(event.abilityName))."
+        case .damageReduced where event.amount > 0:
+            "\(event.actorName)'s damage is reduced by \(event.amount) (\(event.abilityName))."
         case .hemorrhageTriggered where event.amount > 0:
             "\(event.targetName) suffers \(event.amount) Bleed damage from Hemorrhage."
         default:

@@ -66,9 +66,13 @@ struct CloudProductionClaims: Codable, Equatable, Sendable {
         for (resource, amount) in receipt.collectionAmounts {
             guard let start = positions[resource] else { throw CloudSaveError.unsupportedSave }
             let alreadyCollected = covered(resource, after: start)
-            let available = max(0, credit.pendingProduction[resource, default: 0] - Double(alreadyCollected))
+            let available = PlayerHomesteadState.remainingProductionCredit(
+                credit.pendingProduction[resource, default: 0], afterCollecting: alreadyCollected,
+            )
             let accepted = claim(resource, start: start, quantity: amount)
-            let pending = max(save.homestead.pendingProduction[resource, default: 0], available) - Double(accepted)
+            let pending = PlayerHomesteadState.remainingProductionCredit(
+                max(save.homestead.pendingProduction[resource, default: 0], available), afterCollecting: UInt64(accepted),
+            )
             if pending > 0 {
                 save.homestead.pendingProduction[resource] = pending
             } else {

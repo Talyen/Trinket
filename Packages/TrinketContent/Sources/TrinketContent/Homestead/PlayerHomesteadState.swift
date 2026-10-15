@@ -185,10 +185,20 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
             } else {
                 resources[amount.resource, default: 0] += amount.quantity
             }
-            pendingProduction[amount.resource, default: 0] -= Double(amount.quantity)
+            pendingProduction[amount.resource] = Self.remainingProductionCredit(
+                pendingProduction[amount.resource, default: 0], afterCollecting: UInt64(amount.quantity),
+            )
         }
         pendingProduction = pendingProduction.filter { $0.value > 0 }
         return collected
+    }
+
+    /// Retains unpaid credit using the same exact collection debit locally and in cloud replay.
+    public static func remainingProductionCredit(_ pending: Double, afterCollecting quantity: UInt64) -> Double {
+        // Each chunk is exactly representable; a single conversion can round the debit up.
+        let high = Double(quantity >> 32) * 4294967296
+        let low = Double(quantity & 0xFFFF_FFFF)
+        return max(0, (pending - high) - low)
     }
 
     public mutating func settleProduction(at date: Date, gold: Int) {

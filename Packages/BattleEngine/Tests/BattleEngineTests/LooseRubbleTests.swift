@@ -23,6 +23,12 @@ struct LooseRubbleTests {
         for expected in [3, 4] {
             let hit = battle.resolveTestDamage(4, from: .enemy, to: .hero, options: .reaction())
             #expect(hit.healthLost == expected)
+            if expected == 3 {
+                let reduction = try #require(hit.events.first { $0.effectKind == .damageReduced })
+                #expect(reduction.amount == 1)
+                #expect(BattleLogProjection.line(for: reduction) == "\(battle.enemy.name)'s damage is reduced by 1 (Loose Rubble).")
+                #expect(!hit.events.contains { $0.kind == .status && $0.amount == 1 && $0.targetID == battle.hero.id })
+            }
         }
     }
 

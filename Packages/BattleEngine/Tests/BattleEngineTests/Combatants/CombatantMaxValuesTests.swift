@@ -43,6 +43,34 @@ struct CombatantMaxValuesTests {
         #expect(EffectSummaryBuilder.build(for: stacks).first?.text.contains(String(Int.max)) == true)
     }
 
+    @Test(arguments: [
+        (20, 4, 0.5, 36, 39),
+        (20, 4, -0.5, 12, 15),
+        (20, 4, -2.0, 0, 3),
+        (0, 4, 0.5, 0, 0),
+        (2, Int.max, 1.0, Int.max, Int.max),
+    ])
+    func `party battles start with build mana and add active effect capacity`(
+        baseMana: Int, flatBonus: Int, percentBonus: Double, startingMana: Int, capacity: Int,
+    ) {
+        let modifiers = CombatModifierProfile(maximumManaBonus: flatBonus, maximumManaPercentBonus: percentBonus)
+        let effects = [ActiveEffect(id: 1, effect: .maximumManaBonus(3), remainingTurns: 2)]
+        let state = BattleState(
+            hero: CombatantFixtures.passiveHero(maxMana: baseMana),
+            companion: CombatantFixtures.passiveCompanion(maxMana: baseMana),
+            activeHeroEffects: effects,
+            activeCompanionEffects: effects,
+            heroModifiers: modifiers,
+            companionModifiers: modifiers,
+            dealOpeningHand: false,
+        )
+
+        #expect(state.roster.hero.currentMana == startingMana)
+        #expect(state.roster.companion.currentMana == startingMana)
+        #expect(state.roster.hero.maxMana == capacity)
+        #expect(state.roster.companion.maxMana == capacity)
+    }
+
     @Test(arguments: [(0.25, 3), (-2.0, 0), (Double.greatestFiniteMagnitude / 4, Int.max), (Double.infinity, 0)])
     func `maximum mana uses safe combat rounding`(percent: Double, expected: Int) {
         let hero = CombatantFixtures.passiveHero(maxMana: 2)

@@ -60,7 +60,8 @@ Last Wager and Health is Wealth share that cadence. Counterattack Basics retain
 one allowance across separate Critical Hit Gold and theft gains; standalone Gold
 rewards retain their independent reactions.
 Coinmail converts only its owner's Gold gains using ordinary combat rounding,
-including odd gains such as Fickle Fortune's 3 or 7 Gold.
+including odd gains such as Fickle Fortune's 3 or 7 Gold. It does not suppress an
+independent Gold-earned Block threshold retained in saved equipment.
 
 ### Arcane Thorns, Living Conduit, and Grove Reserve
 

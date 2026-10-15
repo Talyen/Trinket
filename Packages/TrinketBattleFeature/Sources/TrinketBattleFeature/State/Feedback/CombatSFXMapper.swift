@@ -49,11 +49,12 @@ enum CombatSFXMapper {
         mutating func add(_ amount: Int, kind: NumericKind, keyword: Keyword, clip: String, order: Int, isCritical: Bool = false) {
             guard amount > 0 else { return }
             let key = NumericKey(kind: kind, keyword: keyword)
-            if numeric[key] != nil {
-                numeric[key]?.strength += amount
+            if var candidate = numeric[key] {
+                candidate.strength = SaturatedArithmetic.saturatingAdd(candidate.strength, amount)
                 if isCritical {
-                    numeric[key]?.clipID = clip
+                    candidate.clipID = clip
                 }
+                numeric[key] = candidate
             } else {
                 numeric[key] = Candidate(clipID: clip, priority: kind.priority, order: order, strength: amount)
             }

@@ -34,6 +34,7 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         case blockStripped
         case shieldApplied
         case shieldAbsorbed
+        case damageReduced
         case controlActionSkipped
         case controlApplied
         case controlTriggered

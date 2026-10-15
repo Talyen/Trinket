@@ -198,7 +198,7 @@ package enum DamagePipeline {
         context.roster.mutateRuntime(for: source) { $0.talents.pending.nextDamageReduction = 0 }
         state.remaining -= reduction
         context.nextEvent(
-            kind: .status, source: .init(source),
+            kind: .effect(.damageReduced), source: .init(source),
             abilityName: context.modifiers(for: sourceID).triggerAbilityName(
                 .onHealthLossNextDamageReduction, fallback: "Loose Rubble",
             ),

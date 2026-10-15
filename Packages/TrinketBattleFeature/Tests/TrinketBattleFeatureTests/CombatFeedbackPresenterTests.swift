@@ -9,6 +9,24 @@ import TrinketFeatureSupport
 @testable import TrinketBattleFeature
 
 struct CombatFeedbackPresenterTests {
+    @Test func `damage reduction stays silent while the reduced hit retains feedback`() throws {
+        let reduction = BattleSessionTestSupport.makeActionEvent(
+            id: 1, kind: .effect(.damageReduced), amount: 1, keyword: .physical, actionID: 1,
+        )
+        let hit = BattleSessionTestSupport.makeActionEvent(
+            id: 2, kind: .abilityDamage, amount: 3, keyword: .physical, actionID: 1,
+        )
+        #expect(CombatFeedbackPresenter.makeItems(from: [reduction], at: .now).isEmpty)
+        #expect(CombatSFXMapper.clipID(for: [reduction]) == nil)
+        let items = CombatFeedbackPresenter.makeItems(from: [reduction, hit], at: .now)
+        let item = try #require(items.first)
+        #expect(items.count == 1)
+        #expect(item.label == .amount(-3))
+        #expect(item.sourceEventIDs == [hit.id])
+        #expect(item.feedbackClass == .directDamage)
+        #expect(CombatSFXMapper.clipID(for: [reduction, hit]) == SFXID.hit)
+    }
+
     @Test(arguments: [false, true])
     func `extreme damage and healing batches saturate without losing source events`(healing: Bool) throws {
         let kind: ActionEvent.Kind = healing ? .effect(.instantHeal) : .abilityDamage

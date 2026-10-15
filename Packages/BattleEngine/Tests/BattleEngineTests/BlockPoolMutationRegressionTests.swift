@@ -4,6 +4,50 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BlockPoolMutationRegressionTests {
+    @Test(arguments: [false, true], [0, 7])
+    func `Block theft reports only actual loss while preserving protected pools`(protected: Bool, block: Int) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: .withTriggers { $0.goldTheftStealEnemyBlockChancePercent = 1 },
+            enemyModifiers: .withTriggers { $0.sealedSarcophagus = protected },
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
+        let events = battle.recordingEvents { state in
+            _ = await state.grantGold(2, to: state.companion, abilityName: "Steal", isTheft: true)
+        }
+        let stolen = protected ? 0 : block
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == block - stolen)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == stolen)
+        let losses = events.filter { $0.effectKind == .blockStripped }
+        #expect(losses.map(\.amount) == (stolen > 0 ? [stolen] : []))
+        #expect(losses
+            .allSatisfy { $0.actorID == battle.companion.id && $0.targetID == battle.enemy.id && $0.abilityName == "Light-Fingered" })
+        #expect(BattleLogProjection.entries(from: events).map(\.text).filter { $0.contains("removes") } == (stolen > 0
+                ? ["\(battle.companion.name) removes \(stolen) Block from \(battle.enemy.name) (Light-Fingered)."] : []))
+        #expect(!events.contains { $0.effectKind == .shieldAbsorbed })
+    }
+
+    @Test(arguments: [0, 7])
+    func `Sunder Shield reports stripped Block without absorption`(block: Int) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: CombatantTalentCatalog.profile(for: ["shield_scarab_stun_t1_1"]),
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
+        let events = battle.chargeTestControl(
+            ControlMeterEngine.threshold(for: battle.enemy, in: battle), keyword: .stun,
+            to: battle.enemy, sourceActorID: battle.companion.id, applyFightPacing: false,
+        )
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 0)
+        let losses = events.filter { $0.effectKind == .blockStripped }
+        #expect(losses.map(\.amount) == (block > 0 ? [block] : []))
+        #expect(losses
+            .allSatisfy { $0.actorID == battle.companion.id && $0.targetID == battle.enemy.id && $0.abilityName == "Sunder Shield" })
+        #expect(BattleLogProjection.entries(from: events).map(\.text).filter { $0.contains("removes") } == (block > 0
+                ? ["\(battle.companion.name) removes \(block) Block from \(battle.enemy.name) (Sunder Shield)."] : []))
+        #expect(!events.contains { $0.effectKind == .shieldAbsorbed })
+    }
+
     @Test func `preventing new Block does not erase retained or spent Block`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         DefensePoolEngine.set(12, on: battle.enemy, in: &battle)

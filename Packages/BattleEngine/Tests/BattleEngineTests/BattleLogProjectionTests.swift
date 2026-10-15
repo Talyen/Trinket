@@ -6,16 +6,24 @@ import TrinketCore
 
 struct BattleLogProjectionTests {
     @Test func `interleaved action packets survive split updates and history resets`() {
-        func event(_ kind: ActionEvent.Kind, action: Int, amount: Int, keyword: Keyword = .physical) -> ActionEvent {
+        func event(
+            _ kind: ActionEvent.Kind,
+            action: Int,
+            amount: Int,
+            keyword: Keyword = .physical,
+            abilityID: String = "strike",
+            abilityName: String = "Strike",
+        ) -> ActionEvent {
             ActionEvent(
                 id: action, actionID: action, kind: kind, actorID: "hero", actorName: "Hero",
-                abilityID: "strike", abilityName: "Strike", targetID: "enemy", targetName: "Enemy",
+                abilityID: abilityID, abilityName: abilityName, targetID: "enemy", targetName: "Enemy",
                 amount: amount, keyword: keyword,
             )
         }
         // Nested casts can use the same actor and ability while the outer action is unfinished.
         let events = [
             event(.abilityDamage, action: 1, amount: 2),
+            event(.abilityDamage, action: 1, amount: 3, abilityID: "", abilityName: "Everkeen"),
             event(.abilityDamage, action: 2, amount: 7),
             event(.ability, action: 2, amount: 7),
             event(.abilityDamage, action: 1, amount: 3),
@@ -23,6 +31,7 @@ struct BattleLogProjectionTests {
             event(.ability, action: 1, amount: 9),
         ]
         let expected = [
+            "Hero deals 3 Physical damage to Enemy (Everkeen).",
             "Hero uses Strike for 7 Physical damage to Enemy.",
             "Hero uses Strike for 5 Physical damage to Enemy and 4 Poison damage to Enemy.",
         ]
@@ -33,7 +42,7 @@ struct BattleLogProjectionTests {
             #expect(projection.entries == BattleLogProjection.entries(from: prefix))
         }
         #expect(projection.entries.map(\.text) == expected)
-        #expect(projection.entries.map(\.id) == [2, 5])
+        #expect(projection.entries.map(\.id) == [1, 3, 6])
         projection.sync(events: Array(events.prefix(1)))
         #expect(projection.entries.isEmpty)
         projection.sync(events: events)

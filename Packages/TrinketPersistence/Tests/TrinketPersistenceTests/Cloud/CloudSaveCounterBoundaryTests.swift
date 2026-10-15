@@ -5,6 +5,51 @@ import TrinketCore
 @testable import TrinketPersistence
 
 extension CloudSaveSyncTests {
+    @Test func `maximum collection retains unpaid credit through receipt replay and stale branch reconciliation`() throws {
+        let date = Date(timeIntervalSince1970: 2000000000)
+        var base = PlayerSave.testSeed
+        base.homestead = PlayerHomesteadState(
+            resources: [:], nodeTiers: [:], pendingProduction: [.stone: Double(Int.max)], lastProductionAt: date,
+        )
+        let receipt = SaveEconomicReceipt(
+            kind: .collection(.init(
+                positions: [.stone: 0],
+                pending: base.homestead.pendingProduction,
+                nodeTiers: [:],
+                date: date,
+                gold: 0,
+            )),
+            effects: .committed(materials: [.stone: Int.max]),
+        )
+        try receipt.validate()
+        var claims = CloudProductionClaims()
+        var collected = base
+        for _ in 0 ..< 2 {
+            try claims.replay(receipt, onto: &collected)
+            #expect(collected.homestead.resources[.stone] == Int.max)
+            #expect(collected.homestead.pendingProduction[.stone] == 1)
+        }
+        try claims.validate()
+
+        // A stale unrelated action must subtract the remote collection from its own credit.
+        collected.homestead.pendingProduction = [:]
+        let head = CloudSaveHead(
+            formatVersion: 2, epoch: "epoch", resetCount: 0, authoritySequence: 0,
+            revision: CloudSaveRevision(id: "collected", clock: ["device": 1], snapshot: CloudSaveSnapshot(collected)),
+            productionClaims: claims,
+        )
+        let mutation = CloudSaveMutation(
+            id: "stale", changedSliceMask: PlayerSaveSlice.all.rawValue,
+            before: CloudSaveSnapshot(base), after: CloudSaveSnapshot(base), receipts: [],
+        )
+        var replay = CloudReceiptReplay(head: head)
+        var merged = collected
+        try replay.apply([], mutation: mutation, before: base, after: base, existing: collected, merged: &merged)
+        let reloaded = try CloudSaveSnapshot(merged).restored()
+        #expect(reloaded.homestead.pendingProduction[.stone] == 1)
+        #expect(reloaded.homestead.resources[.stone] == Int.max)
+    }
+
     @Test func `collection refuses payment when its consumption identity cannot be retained`() throws {
         let date = Date(timeIntervalSince1970: 2000000000)
         var save = PlayerSave.testSeed

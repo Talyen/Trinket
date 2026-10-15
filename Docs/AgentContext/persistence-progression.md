@@ -201,7 +201,9 @@ identified and replayed by uploads carrying an acknowledged base snapshot;
 concurrent branches merge earned progress
 and the production cursor within the same reset epoch. Distinct upgrades survive
 even when their combined material spend exceeds the old balance; floor that
-balance at zero. Overlapping production collections count once.
+balance at zero. Overlapping production collections count once. Local and cloud
+collection debits retain unpaid production credit even when converting the
+collected integer to `Double` would round it upward.
 Reset epochs invalidate outstanding claims. Development and Production evidence
 is required by the [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
 

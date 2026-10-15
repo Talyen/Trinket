@@ -123,7 +123,11 @@ package extension CombatTriggerEngine {
     static func removeBlockAfterPhysicalCriticalHit(by sourceID: String?, in context: inout BattleState) {
         guard let sourceID, let source = context.roster.combatant(for: sourceID), source.isAlive,
               source.role != .enemy, context.modifiers(for: sourceID).triggers.physicalCritRemoveEnemyBlock else { return }
-        DefensePoolEngine.set(0, on: context.enemy, in: &context)
+        DefensePoolEngine.strip(
+            Int.max, from: context.enemy, source: .init(source),
+            abilityName: context.modifiers(for: sourceID).triggerAbilityName(.physicalCritRemoveEnemyBlock, fallback: "Pulverize"),
+            in: &context,
+        )
     }
 
     private static func prismaticEdgeDamage(

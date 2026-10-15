@@ -406,7 +406,7 @@ private struct ExperienceProgress: View, Animatable {
                     .foregroundStyle(isLevelUpHighlighted ? fillColor : .secondary)
                     .trinketFittedText()
                 Spacer(minLength: TrinketDesign.Spacing.small)
-                Text("\(Int(experience.rounded())) / \(requiredXP) XP")
+                Text("\(SaturatedArithmetic.rounded(experience)) / \(requiredXP) XP")
                     .monospacedDigit()
                     .trinketFittedText()
             }

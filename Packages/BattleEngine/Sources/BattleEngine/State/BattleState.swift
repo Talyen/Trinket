@@ -184,7 +184,6 @@ public struct BattleState {
         appliesFightPacing: Bool = true,
     ) {
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
-        let seed = rngSeed ?? Self.defaultRNGSeed
         let maxExistingEffectID = max(
             activeEnemyEffects.map(\.id).max() ?? 0,
             activeHeroEffects.map(\.id).max() ?? 0,
@@ -197,18 +196,22 @@ public struct BattleState {
                     initialHealth: heroStartingHealth,
                     initialActiveEffects: activeHeroEffects,
                     maximumHealthBonus: CombatantMaxValues.maxHealth(for: hero, modifiers: heroModifiers) - hero.maxHealth,
-                    maximumManaBonus: heroModifiers.maximumManaBonus,
+                    maximumManaBonus: SaturatedArithmetic.saturatingSub(
+                        CombatantMaxValues.maxMana(for: hero, modifiers: heroModifiers), hero.maxMana,
+                    ),
                 ),
                 companion: CombatantRuntime(
                     combatant: companion,
                     initialHealth: companionStartingHealth,
                     initialActiveEffects: activeCompanionEffects,
                     maximumHealthBonus: CombatantMaxValues.maxHealth(for: companion, modifiers: companionModifiers) - companion.maxHealth,
-                    maximumManaBonus: companionModifiers.maximumManaBonus,
+                    maximumManaBonus: SaturatedArithmetic.saturatingSub(
+                        CombatantMaxValues.maxMana(for: companion, modifiers: companionModifiers), companion.maxMana,
+                    ),
                 ),
                 enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects),
             ),
-            rng: SeededRandomNumberGenerator(seed: seed),
+            rng: SeededRandomNumberGenerator(seed: rngSeed ?? Self.defaultRNGSeed),
             nextEffectID: maxExistingEffectID + 1,
             nextEventID: 0,
             events: [],

@@ -28,8 +28,9 @@ struct CombatRuleAuditRegressionTests {
         #expect(later.filter { $0.kind == .abilityDamage && $0.actorID == battle.enemy.id }.map(\.amount) == [10])
     }
 
-    @Test func `Pulverize strips Block on a counterattacking Basic`() {
-        let profile = CombatantTalentCatalog.profile(for: ["bear_physical_t3_2"])
+    @Test(arguments: ["bear_physical_t3_2", "wolf_physical_t2_1"])
+    func `Physical Critical removal talents report remaining Block stripped on a counterattacking Basic`(talentID: String) throws {
+        let profile = CombatantTalentCatalog.profile(for: [talentID])
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionAbilities: [.slash], companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
@@ -41,6 +42,16 @@ struct CombatRuleAuditRegressionTests {
         ) }
         #expect(events.contains { $0.kind == .abilityDamage && $0.isCritical })
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 0)
+        let losses = events.filter { $0.effectKind == .blockStripped }
+        #expect(losses.count == 1)
+        let loss = try #require(losses.first)
+        let absorbed = events.filter { $0.effectKind == .shieldAbsorbed }.reduce(0) { $0 + $1.amount }
+        #expect(loss.amount == 20 - absorbed)
+        #expect(loss.actorID == battle.companion.id && loss.targetID == battle.enemy.id)
+        let name = talentID == "bear_physical_t3_2" ? "Pulverize" : "Bone-Crushing Bite"
+        #expect(BattleLogProjection.entries(from: events).count(where: {
+            $0.text == "\(battle.companion.name) removes \(loss.amount) Block from \(battle.enemy.name) (\(name))."
+        }) == 1)
     }
 
     @Test func `Volatile Remedy waits for the next attack after Poison Dagger Leech`() throws {

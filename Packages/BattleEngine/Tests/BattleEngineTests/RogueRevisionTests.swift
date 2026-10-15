@@ -52,6 +52,38 @@ struct RogueRevisionTests {
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == (gold == 3 ? 2 : 4))
     }
 
+    @Test func `Coinmail stacks with retained equipment Gold thresholds without repeating crossings`() throws {
+        let rogue = try #require(GameContent.hero(matching: "rogue"))
+        let affix = try #require(GameContent.itemAffixDefinition(matching: "gilded"))
+        let saved = ItemAffixPower(
+            description: "Gain 1 Block for every 3 Gold earned",
+            triggers: .configured { $0.blockPerGoldEarnedEvery = 3 },
+        )
+        let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([saved]))
+        let ring = try ItemFixtures.makeBareItem(
+            "ruby_ring", affixes: [affix.resolved(for: .basic)], affixPowers: decoded,
+        )
+        let build = CombatBuildResolver.build(
+            combatant: rogue,
+            equipmentLoadout: EquipmentLoadout(itemIDsBySlot: [.accessory: ring.id]),
+            inventory: [ring], unlockedTalents: ["rogue_gold_t1_2"],
+        )
+        #expect(build.modifiers.triggers.blockPerGoldEarnedEvery == 3)
+        #expect(build.modifiers.triggers.goldGainBlockPercent == 0.5)
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: build.combatant, heroModifiers: build.modifiers, appliesFightPacing: false,
+        )
+        for (owner, gold, block) in [
+            (BattleParticipant.hero, 3, 3),
+            (.companion, 2, 3),
+            (.hero, 1, 5),
+            (.companion, 3, 6),
+        ] {
+            battle.grantGoldEvent(gold, to: battle.roster[owner].combatant, abilityName: "Gold reward")
+            #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == block)
+        }
+    }
+
     @Test func `mortal wound halves healing received by bleeding enemies`() {
         let profile = CombatantTalentCatalog.profile(for: ["rogue_bleed_t3_2"])
         #expect(profile.triggers.bleedingEnemyHealingMultiplier == 0.5)

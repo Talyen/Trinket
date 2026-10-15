@@ -185,7 +185,15 @@ package extension CombatTriggerEngine {
         let triggers = sourceActorID.map { context.modifiers(for: $0).triggers }
         if let sourceActorID, let triggers, context.roster.enemy.isAlive {
             if triggers.stunnedEnemyLoseAllBlock {
-                DefensePoolEngine.set(0, on: context.roster.enemy.combatant, in: &context)
+                DefensePoolEngine.strip(
+                    Int.max, from: context.roster.enemy.combatant,
+                    source: context.eventSource(actorID: sourceActorID, fallback: context.roster.enemy.combatant),
+                    abilityName: context.modifiers(for: sourceActorID).triggerAbilityName(
+                        .stunnedEnemyLoseAllBlock,
+                        fallback: "Sunder Shield",
+                    ),
+                    in: &context,
+                )
             }
             if triggers.onStunNextAttackGuaranteedCritical,
                let source = context.roster.combatant(for: sourceActorID), source.isAlive {

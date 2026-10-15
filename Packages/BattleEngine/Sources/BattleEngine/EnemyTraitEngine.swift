@@ -90,6 +90,7 @@ package enum EnemyTraitEngine {
         await turnDamageAllEnemies(
             amount: profile.triggers.turnFreezeDamageAllEnemies,
             keyword: .freeze,
+            abilityName: profile.triggerAbilityName(.turnFreezeDamageAllEnemies, fallback: "Trait"),
             source: combatant,
             context: &context,
         )
@@ -99,7 +100,8 @@ package enum EnemyTraitEngine {
         for combatant: Combatant,
         context: inout BattleState,
     ) async {
-        let triggers = context.modifiers(for: combatant.id).triggers
+        let profile = context.modifiers(for: combatant.id)
+        let triggers = profile.triggers
         let interval = triggers.turnRandomDamageAllEnemiesInterval
         guard triggers.turnRandomDamageAllEnemiesAmount > 0,
               let first = triggers.turnRandomDamageAllEnemiesKeywordA,
@@ -111,12 +113,19 @@ package enum EnemyTraitEngine {
         else { return }
 
         let chosen = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? first : second
-        await turnDamageAllEnemies(amount: triggers.turnRandomDamageAllEnemiesAmount, keyword: chosen, source: combatant, context: &context)
+        await turnDamageAllEnemies(
+            amount: triggers.turnRandomDamageAllEnemiesAmount,
+            keyword: chosen,
+            abilityName: profile.triggerAbilityName(.turnRandomDamageAllEnemiesAmount, fallback: "Trait"),
+            source: combatant,
+            context: &context,
+        )
     }
 
     private static func turnDamageAllEnemies(
         amount: Int,
         keyword: Keyword,
+        abilityName: String,
         source: Combatant,
         context: inout BattleState,
     ) async {
@@ -125,7 +134,12 @@ package enum EnemyTraitEngine {
             guard !context.isBattleOver, action.canContinue(in: context) else { break }
             guard context.health(of: target) > 0 else { continue }
             let outcome = await context.dealReactionDamage(amount, to: target, keyword: keyword, sourceActorID: source.id)
-
+            if outcome.healthLost > 0 {
+                context.nextEvent(
+                    kind: .abilityDamage, source: .init(source), abilityName: abilityName,
+                    target: target, amount: outcome.healthLost, keyword: keyword, isCritical: outcome.isCritical,
+                )
+            }
             let stackPotency = keyword == .bleed ? amount : outcome.healthLost
             if await DoTApplicator.applyDoT(
                 keyword: keyword,

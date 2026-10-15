@@ -147,6 +147,15 @@ struct CombatSFXMapperTests {
         ]) == SFXID.hitFreeze)
     }
 
+    @Test func `saturated party healing keeps sound selection bounded and ties deterministic`() {
+        let healing = [
+            event(1, kind: .effect(.instantHeal), amount: Int.max, keyword: .health, target: "hero"),
+            event(2, kind: .effect(.instantHeal), amount: Int.max, keyword: .health, target: "companion"),
+        ]
+        #expect(CombatSFXMapper.clipID(for: healing + [event(3, amount: Int.max - 1, keyword: .holy)]) == SFXID.heal)
+        #expect(CombatSFXMapper.clipID(for: healing + [event(3, amount: Int.max, keyword: .holy)]) == SFXID.hitHoly)
+    }
+
     @Test func `structured impacts replace corresponding damage and absorption logs`() {
         let damage = BattleResolvedDamage(targetID: "enemy", keyword: .burn, impact: .landed(blocked: 5, healthLost: 3), isCritical: false)
         #expect(CombatSFXMapper.clipID(for: [

@@ -98,7 +98,7 @@ struct CloudReceiptReplay {
         localProduction.settleProduction(at: merged.homestead.lastProductionAt, gold: after.roster.gold)
         for (resource, credit) in localProduction.pendingProduction {
             let consumed = productionClaims.covered(resource, after: localPositions[resource, default: 0])
-            let retained = max(0, credit - Double(consumed))
+            let retained = PlayerHomesteadState.remainingProductionCredit(credit, afterCollecting: consumed)
             if retained > merged.homestead.pendingProduction[resource, default: 0] {
                 merged.homestead.pendingProduction[resource] = retained
             }

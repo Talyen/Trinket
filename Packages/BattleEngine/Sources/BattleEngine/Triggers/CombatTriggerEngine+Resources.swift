@@ -219,7 +219,6 @@ package extension CombatTriggerEngine {
                             amount: block, to: member.combatant, source: member.combatant, in: &context,
                         )
                     }
-                    continue
                 }
                 let every = memberTriggers.blockPerGoldEarnedEvery
                 guard every > 0 else { continue }
