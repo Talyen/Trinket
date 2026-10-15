@@ -39,13 +39,13 @@ extension BattleSessionAutoBattleTests {
             finished = true
         }
         defer { driver.cancel() }
-        #require(try await BattleSessionTestSupport.waitUntil { checkedGate })
+        try #require(try await BattleSessionTestSupport.waitUntil { checkedGate })
 
         session.endBattle()
         #expect(session.activate(configuration, presentation: context))
         session.isAutoBattleEnabled = true
         blocked = false
-        #require(try await BattleSessionTestSupport.waitUntil { finished })
+        try #require(try await BattleSessionTestSupport.waitUntil { finished })
         await driver.value
         #expect(!played)
         #expect(session.isAutoBattleEnabled)
