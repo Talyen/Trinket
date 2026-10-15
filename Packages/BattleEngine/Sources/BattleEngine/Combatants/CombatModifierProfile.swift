@@ -204,9 +204,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
 }
 
 public extension CombatModifierProfile {
-    init() {}
-
-    init(modifiers: [AffixModifier]) {
+    init(modifiers: [AffixModifier] = []) {
         self.init()
         merge(modifiers)
     }
