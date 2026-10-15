@@ -57,15 +57,26 @@ struct ItemLootPolicyTests {
         #expect(abs(actual[1] / actual[0] - 24 / 60) < 1e-12)
     }
 
-    @Test func `opening draws can reach every tier`() {
-        // Level-1 weights are all nonzero, so every tier is reachable; roll
-        // maps concentrated distributions deterministically for any draw.
-        #expect(probabilities(level: 1).allSatisfy { $0 > 0 })
-        var rng = SeededRandomNumberGenerator(seed: 42)
-        #expect(ItemLootPolicy.roll(probabilities: [1, 0, 0, 0], using: &rng) == .basic)
-        #expect(ItemLootPolicy.roll(probabilities: [0, 1, 0, 0], using: &rng) == .astral)
-        #expect(ItemLootPolicy.roll(probabilities: [0, 0, 1, 0], using: &rng) == .trinket)
-        #expect(ItemLootPolicy.roll(probabilities: [0, 0, 0, 1], using: &rng) == .unique)
+    @Test func `weighted draws respect cumulative boundaries and skip unavailable tiers`() throws {
+        let initial = SeededRandomNumberGenerator(seed: 42)
+        var probe = initial
+        let draw = Double.random(in: 0 ..< 1, using: &probe)
+        try #require(draw > 0 && draw < 1)
+        // Position nontrivial distributions around the exact seeded draw. This
+        // catches broken accumulation and inclusive boundaries without sampling
+        // generated items or depending on the RNG's bit-to-Double conversion.
+        let span = min(draw, 1 - draw) / 4
+        let cases: [([Double], ItemDropTier)] = [
+            ([draw.nextUp, 0, 0, 1 - draw.nextUp], .basic),
+            ([draw / 2, draw / 2 + span, 0, 1 - draw - span], .astral),
+            ([draw / 2, draw / 2, span, 1 - draw - span], .trinket),
+            ([draw, 0, 0, 1 - draw], .unique),
+            ([draw.nextDown, 0, 0, 1 - draw.nextDown], .unique),
+        ]
+        for (weights, expected) in cases {
+            var rng = initial
+            #expect(ItemLootPolicy.roll(probabilities: weights, using: &rng) == expected)
+        }
     }
 
     @Test(arguments: [ItemDropTier.astral, .trinket, .unique], [false, true])

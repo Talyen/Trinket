@@ -141,8 +141,9 @@ passing compilation or interaction tests alone do not establish visual polish.
 
 ### Execution limits
 
-- Local script regressions default to one worker; handoff uses the fast selected
-  script families. CI runs complete script coverage with its worker pool.
+- Local script regressions use up to two workers; set `TRINKET_SCRIPT_TEST_JOBS=1`
+  to serialize them on a busy machine. Handoff uses the fast selected script
+  families. CI runs complete script coverage with its worker pool.
 - Agents do not set `CI`/`GITHUB_ACTIONS` or the heavy-local override to bypass
   this policy. Controlled script fixtures may simulate those environments with
   stubbed commands; they must not start real builds or simulators.

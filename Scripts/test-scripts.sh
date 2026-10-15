@@ -30,7 +30,7 @@ a caller already ran the docs gate (for example handoff --final).
 local loop; CI runs the full suite. Failed logs are retained under RESULTS_DIR
 or .DerivedData/ScriptTestResults; terminal excerpts are bounded.
 Python and shell suites share a parallel worker pool
-(default one local worker; CI uses ncpu; TRINKET_SCRIPT_TEST_JOBS overrides)
+(up to two local workers; CI uses ncpu; TRINKET_SCRIPT_TEST_JOBS overrides)
 and report in selection order; every selected suite is attempted and the
 first failure exits. Python workers require at least one
 successful test or subtest; empty and entirely skipped modules fail.
@@ -161,7 +161,8 @@ if (( ${#suites[@]} == 0 )); then
   echo "(no regressions selected)"
 else
   cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
-  default_jobs=1
+  default_jobs=2
+  [[ "$cpu_count" != 1 ]] || default_jobs=1
   [[ "${GITHUB_ACTIONS:-}" == true ]] && default_jobs="$cpu_count"
   suite_jobs="${TRINKET_SCRIPT_TEST_JOBS:-$default_jobs}"
   [[ "$suite_jobs" =~ ^[0-9]+$ ]] && (( suite_jobs >= 1 )) || suite_jobs=1

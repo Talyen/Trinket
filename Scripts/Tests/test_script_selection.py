@@ -169,17 +169,26 @@ class ScriptSelectionTests(unittest.TestCase):
             first.write_text('import unittest, time\nfrom pathlib import Path\n'
                              'class Probe(unittest.TestCase):\n'
                              '    def test_failure(self):\n'
+                             '        Path("python-worker").touch()\n'
                              '        deadline = time.monotonic() + 5\n'
                              '        while not Path("shell-worker").exists() and time.monotonic() < deadline: time.sleep(0.01)\n'
                              '        self.assertTrue(Path("shell-worker").exists(), "shell must overlap Python")\n'
                              '        self.fail("worker failure sentinel")\n')
             shell = tests / "test-peer.sh"
-            shell.write_text('#!/bin/sh\ntouch shell-worker\necho shell failure sentinel\nexit 7\n')
+            shell.write_text('#!/bin/bash\ntouch shell-worker\n'
+                             'while [[ ! -f python-worker && $SECONDS -lt 5 ]]; do sleep 0.01; done\n'
+                             '[[ -f python-worker ]] || exit 9\necho shell failure sentinel\nexit 7\n')
             last.write_text('import unittest\nfrom pathlib import Path\n'
                             'class Probe(unittest.TestCase):\n'
                             '    def test_worker(self): Path("last-worker").touch()\n')
-            environment = {**os.environ, "TRINKET_SCRIPT_TEST_JOBS": "2", "TRINKET_KEEP_REPORTS": "0",
-                           "RESULTS_DIR": str(root / "logs")}
+            # A two-way barrier proves the local default actually overlaps workers;
+            # merely observing a marker from an already-finished shell does not.
+            environment = {key: value for key, value in os.environ.items() if key != "TRINKET_SCRIPT_TEST_JOBS"}
+            tools = root / "bin"
+            tools.mkdir()
+            write_executable(tools / "sysctl", '#!/bin/sh\necho 2\n')
+            environment.update(GITHUB_ACTIONS="", TRINKET_KEEP_REPORTS="0", RESULTS_DIR=str(root / "logs"),
+                               PATH=f"{tools}:{os.environ['PATH']}")
 
             def run():
                 return run_captured(["/bin/bash", "Scripts/test-scripts.sh", "--skip-docs"], cwd=root, env=environment)

@@ -3,29 +3,6 @@ import TrinketContent
 import TrinketCore
 
 struct ShopOfferGeneratorTests {
-    @Test func `prices follow basic and astral rules`() {
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
-        let offers = ShopOfferGenerator.generateOffers(
-            stageID: "chapter-2-stage-8",
-            rewardLevel: 6,
-            count: 40,
-            using: &randomNumberGenerator,
-        )
-
-        for offer in offers {
-            switch offer.item.rarity {
-            case .basic:
-                #expect(ShopOfferGenerator.basePriceRange.contains(offer.price))
-            case .astral:
-                let base = offer.price / ShopOfferGenerator.astralPriceMultiplier
-                #expect(ShopOfferGenerator.basePriceRange.contains(base))
-                #expect(offer.price == base * ShopOfferGenerator.astralPriceMultiplier)
-            case .unique:
-                Issue.record("Shops never offer Uniques")
-            }
-        }
-    }
-
     @Test func `same seed produces identical offers`() {
         var first = SeededRandomNumberGenerator(
             seed: ShopOfferGenerator.seed(worldSeed: 7, forStageID: "chapter-2-stage-8"),
@@ -54,30 +31,38 @@ struct ShopOfferGeneratorTests {
         #expect(offers.isEmpty)
     }
 
-    @Test func `starter shop uses shared odds and discounts premium offers`() {
+    @Test(arguments: [false, true])
+    func `starter shop preserves shared rolls and discounts ordinary and guaranteed astral shelves`(allAstral: Bool) {
         var starterRNG = SeededRandomNumberGenerator(seed: 42)
         var ordinaryRNG = SeededRandomNumberGenerator(seed: 42)
         let starter = ShopOfferGenerator.generateOffers(
-            stageID: ShopOfferGenerator.starterShopStageID, rewardLevel: 1, count: 200, using: &starterRNG,
+            stageID: ShopOfferGenerator.starterShopStageID, rewardLevel: 1, allAstral: allAstral, using: &starterRNG,
         )
         let ordinary = ShopOfferGenerator.generateOffers(
-            stageID: "ordinary", rewardLevel: 1, count: 200, using: &ordinaryRNG,
+            stageID: "ordinary", rewardLevel: 1, allAstral: allAstral, using: &ordinaryRNG,
         )
-        #expect(starter.contains { $0.item.rarity == .astral })
+        #expect(starter.count == ShopOfferGenerator.offerCount)
+        #expect(ordinary.count == ShopOfferGenerator.offerCount)
+        if allAstral {
+            #expect(ordinary.allSatisfy { $0.item.rarity == .astral && !$0.item.isTrinket })
+        } else {
+            #expect(ordinary.contains { $0.item.rarity == .basic })
+        }
         for (discounted, full) in zip(starter, ordinary) {
             #expect(discounted.item.templateID == full.item.templateID)
             #expect(discounted.item.affixPowers == full.item.affixPowers)
             #expect(discounted.price == full.price / 2)
+            switch full.item.rarity {
+            case .basic:
+                #expect(ShopOfferGenerator.basePriceRange.contains(full.price))
+            case .astral:
+                let base = full.price / ShopOfferGenerator.astralPriceMultiplier
+                #expect(ShopOfferGenerator.basePriceRange.contains(base))
+                #expect(full.price == base * ShopOfferGenerator.astralPriceMultiplier)
+            case .unique:
+                Issue.record("Shops never offer Uniques")
+            }
         }
-    }
-
-    @Test func `guaranteed astral shop effect constrains the shared pool`() {
-        var rng = SeededRandomNumberGenerator(seed: 7)
-        let offers = ShopOfferGenerator.generateOffers(
-            stageID: "labyrinth", rewardLevel: 1, allAstral: true, using: &rng,
-        )
-        #expect(offers.count == ShopOfferGenerator.offerCount)
-        #expect(offers.allSatisfy { $0.item.rarity == .astral && !$0.item.isTrinket })
     }
 
     @Test func `price discount percent reduces non starter shop prices`() throws {

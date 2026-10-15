@@ -4,53 +4,77 @@ import TrinketCore
 @testable import TrinketContent
 
 struct VoyageTests {
-    @Test(arguments: VoyageDifficulty.allCases, [true, false])
-    func `routes have regional enemies and bounded pacing`(difficulty: VoyageDifficulty, recruits: Bool) {
-        for chapter in GameContent.chapters {
-            for seed in UInt64(0) ..< 100 {
-                let offer = VoyageOffer(id: "run", chapterID: chapter.id, difficulty: difficulty, seed: seed)
-                let eligible = recruits ? ["recruit-bear"] : []
-                let nodes = VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: eligible)
-                if seed == 0 {
-                    #expect(nodes == VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: eligible))
-                }
-                #expect(nodes.count == difficulty.nodeCount)
-                #expect(nodes.first?.type == .battle)
-                #expect(nodes.last?.type == .boss)
-                #expect(nodes.last?.enemyID == VoyageCatalog.bossID(chapterID: chapter.id))
-                #expect(Set(nodes.map(\.id)).count == nodes.count)
-                #expect(nodes.count(where: { $0.type == .shop }) == (difficulty == .hard ? 2 : 1))
-                #expect(nodes.count(where: { $0.type == .recruit }) == (recruits ? 1 : 0))
-                let battles = nodes.filter { $0.type == .battle }
-                #expect(battles.count == (difficulty == .easy ? 3 : difficulty == .medium ? 4 : 5))
-                #expect(Set(battles.prefix(4).compactMap(\.enemyID)).count == min(4, battles.count))
-                for node in nodes {
-                    if node.type == .battle {
-                        #expect(VoyageCatalog.enemyIDs(chapterID: chapter.id).contains(node.enemyID ?? ""))
-                        #expect(GameContent.enemy(matching: node.enemyID ?? "")?.isBoss == false)
+    @Test(arguments: GameContent.chapters.map(\.id))
+    func `routes preserve regional pacing and favor affinity rewards`(chapterID: String) {
+        let affinities = VoyageCatalog.affinityKeywords(chapterID: chapterID)
+        var keywordHits = 0
+        var affinityHits = 0
+        for difficulty in VoyageDifficulty.allCases {
+            for recruits in [true, false] {
+                for seed in UInt64(0) ..< 100 {
+                    let offer = VoyageOffer(id: "run", chapterID: chapterID, difficulty: difficulty, seed: seed)
+                    let eligible = recruits ? ["recruit-bear"] : []
+                    let nodes = VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: eligible)
+                    if seed == 0 {
+                        #expect(nodes == VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: eligible))
                     }
-                    #expect(node.modifierIDs.count == (node.type == .recruit ? 0 : 1))
-                    for id in node.modifierIDs {
-                        #expect(VoyageCatalog.modifiers(type: node.type, enemyID: node.enemyID).contains { $0.id == id })
+                    expectValidRoute(nodes, offer: offer, recruits: recruits)
+                    // The affinity check uses the same recruited routes as before;
+                    // generating them again provided no independent protection.
+                    if recruits {
+                        for definition in NodeModifierCatalog.modifiers(ids: nodes.flatMap(\.modifierIDs)) {
+                            if case let .reward(reward) = definition.effect, let keyword = reward.requiredKeyword {
+                                keywordHits += 1
+                                if affinities.contains(keyword) {
+                                    affinityHits += 1
+                                }
+                            }
+                        }
                     }
-                }
-                for index in 1 ..< nodes.count {
-                    let previous = nodes[index - 1]
-                    let current = nodes[index]
-                    if !current.type.isCombat {
-                        #expect(current.type != previous.type)
-                    }
-                    if index > 1 {
-                        #expect(!nodes[(index - 2) ... index].allSatisfy { $0.type == .battle })
-                    }
-                    if VoyageCatalog.modifiers(type: current.type, enemyID: current.enemyID).count > 1 {
-                        #expect(current.modifierIDs.first != previous.modifierIDs.first || current.modifierIDs.isEmpty)
-                    }
-                }
-                for index in 1 ..< battles.count {
-                    #expect(battles[index].enemyID != battles[index - 1].enemyID)
                 }
             }
+        }
+        #expect(keywordHits > 0)
+        #expect(Double(affinityHits) > Double(keywordHits) * 0.5)
+    }
+
+    private func expectValidRoute(_ nodes: [VoyageNode], offer: VoyageOffer, recruits: Bool) {
+        let difficulty = offer.difficulty
+        #expect(nodes.count == difficulty.nodeCount)
+        #expect(nodes.first?.type == .battle)
+        #expect(nodes.last?.type == .boss)
+        #expect(nodes.last?.enemyID == VoyageCatalog.bossID(chapterID: offer.chapterID))
+        #expect(Set(nodes.map(\.id)).count == nodes.count)
+        #expect(nodes.count(where: { $0.type == .shop }) == (difficulty == .hard ? 2 : 1))
+        #expect(nodes.count(where: { $0.type == .recruit }) == (recruits ? 1 : 0))
+        let battles = nodes.filter { $0.type == .battle }
+        #expect(battles.count == (difficulty == .easy ? 3 : difficulty == .medium ? 4 : 5))
+        #expect(Set(battles.prefix(4).compactMap(\.enemyID)).count == min(4, battles.count))
+        for node in nodes {
+            if node.type == .battle {
+                #expect(VoyageCatalog.enemyIDs(chapterID: offer.chapterID).contains(node.enemyID ?? ""))
+                #expect(GameContent.enemy(matching: node.enemyID ?? "")?.isBoss == false)
+            }
+            #expect(node.modifierIDs.count == (node.type == .recruit ? 0 : 1))
+            for id in node.modifierIDs {
+                #expect(VoyageCatalog.modifiers(type: node.type, enemyID: node.enemyID).contains { $0.id == id })
+            }
+        }
+        for index in 1 ..< nodes.count {
+            let previous = nodes[index - 1]
+            let current = nodes[index]
+            if !current.type.isCombat {
+                #expect(current.type != previous.type)
+            }
+            if index > 1 {
+                #expect(!nodes[(index - 2) ... index].allSatisfy { $0.type == .battle })
+            }
+            if VoyageCatalog.modifiers(type: current.type, enemyID: current.enemyID).count > 1 {
+                #expect(current.modifierIDs.first != previous.modifierIDs.first || current.modifierIDs.isEmpty)
+            }
+        }
+        for index in 1 ..< battles.count {
+            #expect(battles[index].enemyID != battles[index - 1].enemyID)
         }
     }
 
@@ -67,31 +91,6 @@ struct VoyageTests {
         }
         #expect(seen == Set(Keyword.allCases))
         #expect(VoyageCatalog.affinityKeywords(chapterID: "unknown").isEmpty)
-    }
-
-    @Test func `voyage reward writs favor chapter affinity`() {
-        for chapter in GameContent.chapters {
-            let affinities = VoyageCatalog.affinityKeywords(chapterID: chapter.id)
-            #expect(!affinities.isEmpty)
-            var keywordHits = 0
-            var affinityHits = 0
-            for seed in UInt64(0) ..< 100 {
-                for difficulty in VoyageDifficulty.allCases {
-                    let offer = VoyageOffer(id: "run", chapterID: chapter.id, difficulty: difficulty, seed: seed)
-                    let nodes = VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: ["recruit-bear"])
-                    for definition in NodeModifierCatalog.modifiers(ids: nodes.flatMap(\.modifierIDs)) {
-                        if case let .reward(reward) = definition.effect, let keyword = reward.requiredKeyword {
-                            keywordHits += 1
-                            if affinities.contains(keyword) {
-                                affinityHits += 1
-                            }
-                        }
-                    }
-                }
-            }
-            #expect(keywordHits > 0)
-            #expect(Double(affinityHits) > Double(keywordHits) * 0.5)
-        }
     }
 
     @Test func `completion bonus rounds once and is not multiplied again`() {
