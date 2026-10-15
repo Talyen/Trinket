@@ -15,7 +15,7 @@ class SwiftInvariantsTests(ScriptRegressionTestCase):
         ))
         (self.root / ".tools").symlink_to(ROOT / ".tools", target_is_directory=True)
         for package in (ROOT / "Packages").iterdir():
-            if package.is_dir():
+            if package.is_dir() and not package.name.startswith('.'):
                 (self.root / "Packages" / package.name / "Sources" / package.name).mkdir(parents=True)
                 (self.root / "Packages" / package.name / "Tests").mkdir()
         (self.root / "Trinket/App").mkdir(parents=True)
@@ -88,6 +88,19 @@ class SwiftInvariantsTests(ScriptRegressionTestCase):
                 if failure:
                     self.assertIn(failure, result.stderr)
 
+
+    def test_package_husks_exclude_hidden_build_state_but_reject_folded_packages(self) -> None:
+        packages = self.root / 'Packages'
+        # SwiftPM caches are legitimate ignored state, not a former package tenant.
+        (packages / '.build').mkdir(exist_ok=True)
+        result = run_captured([str(self.root / 'Scripts/check-agent-invariants.sh')], cwd=self.root)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+        (packages / 'FoldedPackage/.build').mkdir(parents=True)
+        result = run_captured([str(self.root / 'Scripts/check-agent-invariants.sh')], cwd=self.root)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn('Packages/FoldedPackage/: package husk', result.stderr)
+        self.assertNotIn('Packages/.build/: package husk', result.stderr)
 
     def test_exclusivity_footguns_reject_self_inout_and_honor_allow(self) -> None:
         root = self.root

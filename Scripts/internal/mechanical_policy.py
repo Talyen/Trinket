@@ -49,6 +49,8 @@ def invariants(scan: SourceScan) -> list[str]:
             findings.append(scan.location(path, index, message))
     findings.extend(token_violations(scan, 'swiftlint-reasons', roots))
     for tenant in sorted((scan.root / 'Packages').iterdir()):
+        if tenant.name.startswith('.'):
+            continue
         if tenant.is_dir() and not (tenant / 'Package.swift').is_file() and not (tenant / 'Sources').is_dir():
             findings.append(f'{tenant.relative_to(scan.root)}/: package husk without Package.swift or Sources (remove the stale fold leftover)')
     return findings
