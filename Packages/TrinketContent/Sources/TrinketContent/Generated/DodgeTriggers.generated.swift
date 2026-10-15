@@ -225,82 +225,84 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
         self.partyDodgeChanceBonus = partyDodgeChanceBonus
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<DodgeTriggers>] = [
+        .init(\.wintersWake, .wintersWake, default: false),
+        .init(\.killingGrace, .killingGrace, default: false),
+        .init(\.dodgeNextHitPoisonAndBleedPercent, .dodgeNextHitPoisonAndBleedPercent, default: 0),
+        .init(\.dodgeSpendsHalfBlockAsPhysical, .dodgeSpendsHalfBlockAsPhysical, default: false),
+        .init(\.dodgeDrawPoisonAndReadyCritical, .dodgeDrawPoisonAndReadyCritical, default: false),
+        .init(\.dodgeChanceBonus, .dodgeChanceBonus, default: 0),
+        .init(\.dodgeBlockFlat, .dodgeBlockFlat, default: 0),
+        .init(\.dodgeApplyPoison, .dodgeApplyPoison, default: 0),
+        .init(\.dodgeGoldFlat, .dodgeGoldFlat, default: 0),
+        .init(\.dodgeHealFlat, .dodgeHealFlat, default: 0),
+        .init(\.dodgeChanceAboveHalfHealthBonus, .dodgeChanceAboveHalfHealthBonus, default: 0),
+        .init(\.dodgeChanceBelowHealthPercentThreshold, .dodgeChanceBelowHealthPercentThreshold, default: 0),
+        .init(\.dodgeChanceBelowHealthPercentBonus, .dodgeChanceBelowHealthPercentBonus, default: 0),
+        .init(\.onDodgeDrawCardForHero, .onDodgeDrawCardForHero, default: 0),
+        .init(\.nextAttackDoubleAfterDodge, .nextAttackDoubleAfterDodge, default: false),
+        .init(\.onDodgeDelayAttackerTurn, .onDodgeDelayAttackerTurn, default: false),
+        .init(\.onDodgeGrantHeroBlock, .onDodgeGrantHeroBlock, default: 0),
+        .init(\.onDodgePartyMana, .onDodgePartyMana, default: 0),
+        .init(\.onDodgeCounterDamage, .onDodgeCounterDamage, default: 0),
+        .init(\.onDodgeCounterBasicAttack, .onDodgeCounterBasicAttack, default: false),
+        .init(\.critMultiplierPerDodge, .critMultiplierPerDodge, default: 0),
+        .init(\.onDodgeNextPartyHitGuaranteedCritical, .onDodgeNextPartyHitGuaranteedCritical, default: false),
+        .init(\.onCompanionDodgeGrantHeroDodgePercent, .onCompanionDodgeGrantHeroDodgePercent, default: 0),
+        .init(\.autoDodgeAfterFirstHitPerTurn, .autoDodgeAfterFirstHitPerTurn, default: false),
+        .init(\.nextAttackBleedAfterDodge, .nextAttackBleedAfterDodge, default: 0),
+        .init(\.onDodgeApplyPoisonOrBleed, .onDodgeApplyPoisonOrBleed, default: 0),
+        .init(\.onDodgePartyNextCardDamageBonus, .onDodgePartyNextCardDamageBonus, default: 0),
+        .init(\.onApplyBurnDodgeChanceUntilNextTurn, .onApplyBurnDodgeChanceUntilNextTurn, default: 0),
+        .init(\.dodgeChanceVsBleedingEnemiesBonus, .dodgeChanceVsBleedingEnemiesBonus, default: 0),
+        .init(\.firstAttackGuaranteedCritical, .firstAttackGuaranteedCritical, default: false),
+        .init(\.swapAndDodgeForHeroChance, .swapAndDodgeForHeroChance, default: 0),
+        .init(\.untargetableAboveHealthPercent, .untargetableAboveHealthPercent, default: 0),
+        .init(\.onDodgeDrawAndPlayCardChainOnCrit, .onDodgeDrawAndPlayCardChainOnCrit, default: false),
+        .init(\.phantomCounter, .phantomCounter, default: false),
+        .init(\.perfectTempo, .perfectTempo, default: false),
+        .init(\.passingLuck, .passingLuck, default: false),
+        .init(\.improvingOdds, .improvingOdds, default: false),
+        .init(\.blindSpot, .blindSpot, default: false),
+        .init(\.onDodgeNextAttackGuaranteedCritical, .onDodgeNextAttackGuaranteedCritical, default: false),
+        .init(\.dodgeFirstAttackEachCombat, .dodgeFirstAttackEachCombat, default: false),
+        .init(\.partyDodgeVsBurningBonus, .partyDodgeVsBurningBonus, default: 0),
+        .init(\.quietGroveDodgeAtFullHealth, .quietGroveDodgeAtFullHealth, default: 0),
+        .init(\.groveReserveCompanionDodgeBonus, .groveReserveCompanionDodgeBonus, default: 0),
+        .init(\.dodgeNextAttackCritBonus, .dodgeNextAttackCritBonus, default: 0),
+        .init(\.dodgeBelowHalfDrawCard, .dodgeBelowHalfDrawCard, default: false),
+        .init(\.dodgeBleedChancePercent, .dodgeBleedChancePercent, default: 0),
+        .init(\.dodgeBleedDamage, .dodgeBleedDamage, default: 0),
+        .init(\.dodgeBurnChancePercent, .dodgeBurnChancePercent, default: 0),
+        .init(\.dodgeBurnDamage, .dodgeBurnDamage, default: 0),
+        .init(\.firstDodgeDrawForAlly, .firstDodgeDrawForAlly, default: false),
+        .init(\.dodgeNextManaEmpowerFree, .dodgeNextManaEmpowerFree, default: false),
+        .init(\.dodgeNextFreezeIgnoreBlock, .dodgeNextFreezeIgnoreBlock, default: false),
+        .init(\.dodgeDealBleedFlat, .dodgeDealBleedFlat, default: 0),
+        .init(\.firstDodgeDoubleNextAttack, .firstDodgeDoubleNextAttack, default: false),
+        .init(\.dodgeNextAttackIgnoreBlock, .dodgeNextAttackIgnoreBlock, default: false),
+        .init(\.dodgeDrawChancePercent, .dodgeDrawChancePercent, default: 0),
+        .init(\.dodgeAtFullHealthBonus, .dodgeAtFullHealthBonus, default: 0),
+        .init(\.belowHalfFirstDodgeHealPerTurn, .belowHalfFirstDodgeHealPerTurn, default: 0),
+        .init(\.dodgeAllyNextAttackCriticalBonus, .dodgeAllyNextAttackCriticalBonus, default: 0),
+        .init(\.dodgeNextBleedAttackMultiplier, .dodgeNextBleedAttackMultiplier, default: 1),
+        .init(\.dodgeNextCriticalDamageMultiplier, .dodgeNextCriticalDamageMultiplier, default: 1),
+        .init(\.dodgeNextPhysicalDamageMultiplier, .dodgeNextPhysicalDamageMultiplier, default: 1),
+        .init(\.dodgePhysicalChancePercent, .dodgePhysicalChancePercent, default: 0),
+        .init(\.dodgePhysicalDamage, .dodgePhysicalDamage, default: 0),
+        .init(\.dodgePoisonChancePercent, .dodgePoisonChancePercent, default: 0),
+        .init(\.dodgePoisonDamage, .dodgePoisonDamage, default: 0),
+        .init(\.dodgeStunChancePercent, .dodgeStunChancePercent, default: 0),
+        .init(\.dodgeStunDamage, .dodgeStunDamage, default: 0),
+        .init(\.firstDodgeAllyEvadeNextHit, .firstDodgeAllyEvadeNextHit, default: false),
+        .init(\.firstDodgeNextAttackBonusPerTurn, .firstDodgeNextAttackBonusPerTurn, default: 0),
+        .init(\.partyDodgeAtFullHealthBonus, .partyDodgeAtFullHealthBonus, default: 0),
+        .init(\.partyDodgeChanceBonus, .partyDodgeChanceBonus, default: 0),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.wintersWake != other.wintersWake { fields.append(.wintersWake) }
-        if self.killingGrace != other.killingGrace { fields.append(.killingGrace) }
-        if self.dodgeNextHitPoisonAndBleedPercent != other.dodgeNextHitPoisonAndBleedPercent { fields.append(.dodgeNextHitPoisonAndBleedPercent) }
-        if self.dodgeSpendsHalfBlockAsPhysical != other.dodgeSpendsHalfBlockAsPhysical { fields.append(.dodgeSpendsHalfBlockAsPhysical) }
-        if self.dodgeDrawPoisonAndReadyCritical != other.dodgeDrawPoisonAndReadyCritical { fields.append(.dodgeDrawPoisonAndReadyCritical) }
-        if self.dodgeChanceBonus != other.dodgeChanceBonus { fields.append(.dodgeChanceBonus) }
-        if self.dodgeBlockFlat != other.dodgeBlockFlat { fields.append(.dodgeBlockFlat) }
-        if self.dodgeApplyPoison != other.dodgeApplyPoison { fields.append(.dodgeApplyPoison) }
-        if self.dodgeGoldFlat != other.dodgeGoldFlat { fields.append(.dodgeGoldFlat) }
-        if self.dodgeHealFlat != other.dodgeHealFlat { fields.append(.dodgeHealFlat) }
-        if self.dodgeChanceAboveHalfHealthBonus != other.dodgeChanceAboveHalfHealthBonus { fields.append(.dodgeChanceAboveHalfHealthBonus) }
-        if self.dodgeChanceBelowHealthPercentThreshold != other.dodgeChanceBelowHealthPercentThreshold { fields.append(.dodgeChanceBelowHealthPercentThreshold) }
-        if self.dodgeChanceBelowHealthPercentBonus != other.dodgeChanceBelowHealthPercentBonus { fields.append(.dodgeChanceBelowHealthPercentBonus) }
-        if self.onDodgeDrawCardForHero != other.onDodgeDrawCardForHero { fields.append(.onDodgeDrawCardForHero) }
-        if self.nextAttackDoubleAfterDodge != other.nextAttackDoubleAfterDodge { fields.append(.nextAttackDoubleAfterDodge) }
-        if self.onDodgeDelayAttackerTurn != other.onDodgeDelayAttackerTurn { fields.append(.onDodgeDelayAttackerTurn) }
-        if self.onDodgeGrantHeroBlock != other.onDodgeGrantHeroBlock { fields.append(.onDodgeGrantHeroBlock) }
-        if self.onDodgePartyMana != other.onDodgePartyMana { fields.append(.onDodgePartyMana) }
-        if self.onDodgeCounterDamage != other.onDodgeCounterDamage { fields.append(.onDodgeCounterDamage) }
-        if self.onDodgeCounterBasicAttack != other.onDodgeCounterBasicAttack { fields.append(.onDodgeCounterBasicAttack) }
-        if self.critMultiplierPerDodge != other.critMultiplierPerDodge { fields.append(.critMultiplierPerDodge) }
-        if self.onDodgeNextPartyHitGuaranteedCritical != other.onDodgeNextPartyHitGuaranteedCritical { fields.append(.onDodgeNextPartyHitGuaranteedCritical) }
-        if self.onCompanionDodgeGrantHeroDodgePercent != other.onCompanionDodgeGrantHeroDodgePercent { fields.append(.onCompanionDodgeGrantHeroDodgePercent) }
-        if self.autoDodgeAfterFirstHitPerTurn != other.autoDodgeAfterFirstHitPerTurn { fields.append(.autoDodgeAfterFirstHitPerTurn) }
-        if self.nextAttackBleedAfterDodge != other.nextAttackBleedAfterDodge { fields.append(.nextAttackBleedAfterDodge) }
-        if self.onDodgeApplyPoisonOrBleed != other.onDodgeApplyPoisonOrBleed { fields.append(.onDodgeApplyPoisonOrBleed) }
-        if self.onDodgePartyNextCardDamageBonus != other.onDodgePartyNextCardDamageBonus { fields.append(.onDodgePartyNextCardDamageBonus) }
-        if self.onApplyBurnDodgeChanceUntilNextTurn != other.onApplyBurnDodgeChanceUntilNextTurn { fields.append(.onApplyBurnDodgeChanceUntilNextTurn) }
-        if self.dodgeChanceVsBleedingEnemiesBonus != other.dodgeChanceVsBleedingEnemiesBonus { fields.append(.dodgeChanceVsBleedingEnemiesBonus) }
-        if self.firstAttackGuaranteedCritical != other.firstAttackGuaranteedCritical { fields.append(.firstAttackGuaranteedCritical) }
-        if self.swapAndDodgeForHeroChance != other.swapAndDodgeForHeroChance { fields.append(.swapAndDodgeForHeroChance) }
-        if self.untargetableAboveHealthPercent != other.untargetableAboveHealthPercent { fields.append(.untargetableAboveHealthPercent) }
-        if self.onDodgeDrawAndPlayCardChainOnCrit != other.onDodgeDrawAndPlayCardChainOnCrit { fields.append(.onDodgeDrawAndPlayCardChainOnCrit) }
-        if self.phantomCounter != other.phantomCounter { fields.append(.phantomCounter) }
-        if self.perfectTempo != other.perfectTempo { fields.append(.perfectTempo) }
-        if self.passingLuck != other.passingLuck { fields.append(.passingLuck) }
-        if self.improvingOdds != other.improvingOdds { fields.append(.improvingOdds) }
-        if self.blindSpot != other.blindSpot { fields.append(.blindSpot) }
-        if self.onDodgeNextAttackGuaranteedCritical != other.onDodgeNextAttackGuaranteedCritical { fields.append(.onDodgeNextAttackGuaranteedCritical) }
-        if self.dodgeFirstAttackEachCombat != other.dodgeFirstAttackEachCombat { fields.append(.dodgeFirstAttackEachCombat) }
-        if self.partyDodgeVsBurningBonus != other.partyDodgeVsBurningBonus { fields.append(.partyDodgeVsBurningBonus) }
-        if self.quietGroveDodgeAtFullHealth != other.quietGroveDodgeAtFullHealth { fields.append(.quietGroveDodgeAtFullHealth) }
-        if self.groveReserveCompanionDodgeBonus != other.groveReserveCompanionDodgeBonus { fields.append(.groveReserveCompanionDodgeBonus) }
-        if self.dodgeNextAttackCritBonus != other.dodgeNextAttackCritBonus { fields.append(.dodgeNextAttackCritBonus) }
-        if self.dodgeBelowHalfDrawCard != other.dodgeBelowHalfDrawCard { fields.append(.dodgeBelowHalfDrawCard) }
-        if self.dodgeBleedChancePercent != other.dodgeBleedChancePercent { fields.append(.dodgeBleedChancePercent) }
-        if self.dodgeBleedDamage != other.dodgeBleedDamage { fields.append(.dodgeBleedDamage) }
-        if self.dodgeBurnChancePercent != other.dodgeBurnChancePercent { fields.append(.dodgeBurnChancePercent) }
-        if self.dodgeBurnDamage != other.dodgeBurnDamage { fields.append(.dodgeBurnDamage) }
-        if self.firstDodgeDrawForAlly != other.firstDodgeDrawForAlly { fields.append(.firstDodgeDrawForAlly) }
-        if self.dodgeNextManaEmpowerFree != other.dodgeNextManaEmpowerFree { fields.append(.dodgeNextManaEmpowerFree) }
-        if self.dodgeNextFreezeIgnoreBlock != other.dodgeNextFreezeIgnoreBlock { fields.append(.dodgeNextFreezeIgnoreBlock) }
-        if self.dodgeDealBleedFlat != other.dodgeDealBleedFlat { fields.append(.dodgeDealBleedFlat) }
-        if self.firstDodgeDoubleNextAttack != other.firstDodgeDoubleNextAttack { fields.append(.firstDodgeDoubleNextAttack) }
-        if self.dodgeNextAttackIgnoreBlock != other.dodgeNextAttackIgnoreBlock { fields.append(.dodgeNextAttackIgnoreBlock) }
-        if self.dodgeDrawChancePercent != other.dodgeDrawChancePercent { fields.append(.dodgeDrawChancePercent) }
-        if self.dodgeAtFullHealthBonus != other.dodgeAtFullHealthBonus { fields.append(.dodgeAtFullHealthBonus) }
-        if self.belowHalfFirstDodgeHealPerTurn != other.belowHalfFirstDodgeHealPerTurn { fields.append(.belowHalfFirstDodgeHealPerTurn) }
-        if self.dodgeAllyNextAttackCriticalBonus != other.dodgeAllyNextAttackCriticalBonus { fields.append(.dodgeAllyNextAttackCriticalBonus) }
-        if self.dodgeNextBleedAttackMultiplier != other.dodgeNextBleedAttackMultiplier { fields.append(.dodgeNextBleedAttackMultiplier) }
-        if self.dodgeNextCriticalDamageMultiplier != other.dodgeNextCriticalDamageMultiplier { fields.append(.dodgeNextCriticalDamageMultiplier) }
-        if self.dodgeNextPhysicalDamageMultiplier != other.dodgeNextPhysicalDamageMultiplier { fields.append(.dodgeNextPhysicalDamageMultiplier) }
-        if self.dodgePhysicalChancePercent != other.dodgePhysicalChancePercent { fields.append(.dodgePhysicalChancePercent) }
-        if self.dodgePhysicalDamage != other.dodgePhysicalDamage { fields.append(.dodgePhysicalDamage) }
-        if self.dodgePoisonChancePercent != other.dodgePoisonChancePercent { fields.append(.dodgePoisonChancePercent) }
-        if self.dodgePoisonDamage != other.dodgePoisonDamage { fields.append(.dodgePoisonDamage) }
-        if self.dodgeStunChancePercent != other.dodgeStunChancePercent { fields.append(.dodgeStunChancePercent) }
-        if self.dodgeStunDamage != other.dodgeStunDamage { fields.append(.dodgeStunDamage) }
-        if self.firstDodgeAllyEvadeNextHit != other.firstDodgeAllyEvadeNextHit { fields.append(.firstDodgeAllyEvadeNextHit) }
-        if self.firstDodgeNextAttackBonusPerTurn != other.firstDodgeNextAttackBonusPerTurn { fields.append(.firstDodgeNextAttackBonusPerTurn) }
-        if self.partyDodgeAtFullHealthBonus != other.partyDodgeAtFullHealthBonus { fields.append(.partyDodgeAtFullHealthBonus) }
-        if self.partyDodgeChanceBonus != other.partyDodgeChanceBonus { fields.append(.partyDodgeChanceBonus) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -384,154 +386,15 @@ extension DodgeTriggers {
 extension DodgeTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            wintersWake: values.decode(Bool.self, "wintersWake", default: false),
-            killingGrace: values.decode(Bool.self, "killingGrace", default: false),
-            dodgeNextHitPoisonAndBleedPercent: values.decode(Double.self, "dodgeNextHitPoisonAndBleedPercent", default: 0),
-            dodgeSpendsHalfBlockAsPhysical: values.decode(Bool.self, "dodgeSpendsHalfBlockAsPhysical", default: false),
-            dodgeDrawPoisonAndReadyCritical: values.decode(Bool.self, "dodgeDrawPoisonAndReadyCritical", default: false),
-            dodgeChanceBonus: values.decode(Double.self, "dodgeChanceBonus", default: 0),
-            dodgeBlockFlat: values.decode(Int.self, "dodgeBlockFlat", default: 0),
-            dodgeApplyPoison: values.decode(Int.self, "dodgeApplyPoison", default: 0),
-            dodgeGoldFlat: values.decode(Int.self, "dodgeGoldFlat", default: 0),
-            dodgeHealFlat: values.decode(Int.self, "dodgeHealFlat", default: 0),
-            dodgeChanceAboveHalfHealthBonus: values.decode(Double.self, "dodgeChanceAboveHalfHealthBonus", default: 0),
-            dodgeChanceBelowHealthPercentThreshold: values.decode(Double.self, "dodgeChanceBelowHealthPercentThreshold", default: 0),
-            dodgeChanceBelowHealthPercentBonus: values.decode(Double.self, "dodgeChanceBelowHealthPercentBonus", default: 0),
-            onDodgeDrawCardForHero: values.decode(Int.self, "onDodgeDrawCardForHero", default: 0),
-            nextAttackDoubleAfterDodge: values.decode(Bool.self, "nextAttackDoubleAfterDodge", default: false),
-            onDodgeDelayAttackerTurn: values.decode(Bool.self, "onDodgeDelayAttackerTurn", default: false),
-            onDodgeGrantHeroBlock: values.decode(Int.self, "onDodgeGrantHeroBlock", default: 0),
-            onDodgePartyMana: values.decode(Int.self, "onDodgePartyMana", default: 0),
-            onDodgeCounterDamage: values.decode(Int.self, "onDodgeCounterDamage", default: 0),
-            onDodgeCounterBasicAttack: values.decode(Bool.self, "onDodgeCounterBasicAttack", default: false),
-            critMultiplierPerDodge: values.decode(Double.self, "critMultiplierPerDodge", default: 0),
-            onDodgeNextPartyHitGuaranteedCritical: values.decode(Bool.self, "onDodgeNextPartyHitGuaranteedCritical", default: false),
-            onCompanionDodgeGrantHeroDodgePercent: values.decode(Double.self, "onCompanionDodgeGrantHeroDodgePercent", default: 0),
-            autoDodgeAfterFirstHitPerTurn: values.decode(Bool.self, "autoDodgeAfterFirstHitPerTurn", default: false),
-            nextAttackBleedAfterDodge: values.decode(Int.self, "nextAttackBleedAfterDodge", default: 0),
-            onDodgeApplyPoisonOrBleed: values.decode(Int.self, "onDodgeApplyPoisonOrBleed", default: 0),
-            onDodgePartyNextCardDamageBonus: values.decode(Int.self, "onDodgePartyNextCardDamageBonus", default: 0),
-            onApplyBurnDodgeChanceUntilNextTurn: values.decode(Double.self, "onApplyBurnDodgeChanceUntilNextTurn", default: 0),
-            dodgeChanceVsBleedingEnemiesBonus: values.decode(Double.self, "dodgeChanceVsBleedingEnemiesBonus", default: 0),
-            firstAttackGuaranteedCritical: values.decode(Bool.self, "firstAttackGuaranteedCritical", default: false),
-            swapAndDodgeForHeroChance: values.decode(Double.self, "swapAndDodgeForHeroChance", default: 0),
-            untargetableAboveHealthPercent: values.decode(Double.self, "untargetableAboveHealthPercent", default: 0),
-            onDodgeDrawAndPlayCardChainOnCrit: values.decode(Bool.self, "onDodgeDrawAndPlayCardChainOnCrit", default: false),
-            phantomCounter: values.decode(Bool.self, "phantomCounter", default: false),
-            perfectTempo: values.decode(Bool.self, "perfectTempo", default: false),
-            passingLuck: values.decode(Bool.self, "passingLuck", default: false),
-            improvingOdds: values.decode(Bool.self, "improvingOdds", default: false),
-            blindSpot: values.decode(Bool.self, "blindSpot", default: false),
-            onDodgeNextAttackGuaranteedCritical: values.decode(Bool.self, "onDodgeNextAttackGuaranteedCritical", default: false),
-            dodgeFirstAttackEachCombat: values.decode(Bool.self, "dodgeFirstAttackEachCombat", default: false),
-            partyDodgeVsBurningBonus: values.decode(Double.self, "partyDodgeVsBurningBonus", default: 0),
-            quietGroveDodgeAtFullHealth: values.decode(Double.self, "quietGroveDodgeAtFullHealth", default: 0),
-            groveReserveCompanionDodgeBonus: values.decode(Double.self, "groveReserveCompanionDodgeBonus", default: 0),
-            dodgeNextAttackCritBonus: values.decode(Double.self, "dodgeNextAttackCritBonus", default: 0),
-            dodgeBelowHalfDrawCard: values.decode(Bool.self, "dodgeBelowHalfDrawCard", default: false),
-            dodgeBleedChancePercent: values.decode(Double.self, "dodgeBleedChancePercent", default: 0),
-            dodgeBleedDamage: values.decode(Int.self, "dodgeBleedDamage", default: 0),
-            dodgeBurnChancePercent: values.decode(Double.self, "dodgeBurnChancePercent", default: 0),
-            dodgeBurnDamage: values.decode(Int.self, "dodgeBurnDamage", default: 0),
-            firstDodgeDrawForAlly: values.decode(Bool.self, "firstDodgeDrawForAlly", default: false),
-            dodgeNextManaEmpowerFree: values.decode(Bool.self, "dodgeNextManaEmpowerFree", default: false),
-            dodgeNextFreezeIgnoreBlock: values.decode(Bool.self, "dodgeNextFreezeIgnoreBlock", default: false),
-            dodgeDealBleedFlat: values.decode(Int.self, "dodgeDealBleedFlat", default: 0),
-            firstDodgeDoubleNextAttack: values.decode(Bool.self, "firstDodgeDoubleNextAttack", default: false),
-            dodgeNextAttackIgnoreBlock: values.decode(Bool.self, "dodgeNextAttackIgnoreBlock", default: false),
-            dodgeDrawChancePercent: values.decode(Double.self, "dodgeDrawChancePercent", default: 0),
-            dodgeAtFullHealthBonus: values.decode(Double.self, "dodgeAtFullHealthBonus", default: 0),
-            belowHalfFirstDodgeHealPerTurn: values.decode(Int.self, "belowHalfFirstDodgeHealPerTurn", default: 0),
-            dodgeAllyNextAttackCriticalBonus: values.decode(Double.self, "dodgeAllyNextAttackCriticalBonus", default: 0),
-            dodgeNextBleedAttackMultiplier: values.decode(Double.self, "dodgeNextBleedAttackMultiplier", default: 1),
-            dodgeNextCriticalDamageMultiplier: values.decode(Double.self, "dodgeNextCriticalDamageMultiplier", default: 1),
-            dodgeNextPhysicalDamageMultiplier: values.decode(Double.self, "dodgeNextPhysicalDamageMultiplier", default: 1),
-            dodgePhysicalChancePercent: values.decode(Double.self, "dodgePhysicalChancePercent", default: 0),
-            dodgePhysicalDamage: values.decode(Int.self, "dodgePhysicalDamage", default: 0),
-            dodgePoisonChancePercent: values.decode(Double.self, "dodgePoisonChancePercent", default: 0),
-            dodgePoisonDamage: values.decode(Int.self, "dodgePoisonDamage", default: 0),
-            dodgeStunChancePercent: values.decode(Double.self, "dodgeStunChancePercent", default: 0),
-            dodgeStunDamage: values.decode(Int.self, "dodgeStunDamage", default: 0),
-            firstDodgeAllyEvadeNextHit: values.decode(Bool.self, "firstDodgeAllyEvadeNextHit", default: false),
-            firstDodgeNextAttackBonusPerTurn: values.decode(Int.self, "firstDodgeNextAttackBonusPerTurn", default: 0),
-            partyDodgeAtFullHealthBonus: values.decode(Double.self, "partyDodgeAtFullHealthBonus", default: 0),
-            partyDodgeChanceBonus: values.decode(Double.self, "partyDodgeChanceBonus", default: 0)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(wintersWake, "wintersWake", default: false)
-        try container.encodeNonDefault(killingGrace, "killingGrace", default: false)
-        try container.encodeNonDefault(dodgeNextHitPoisonAndBleedPercent, "dodgeNextHitPoisonAndBleedPercent", default: 0)
-        try container.encodeNonDefault(dodgeSpendsHalfBlockAsPhysical, "dodgeSpendsHalfBlockAsPhysical", default: false)
-        try container.encodeNonDefault(dodgeDrawPoisonAndReadyCritical, "dodgeDrawPoisonAndReadyCritical", default: false)
-        try container.encodeNonDefault(dodgeChanceBonus, "dodgeChanceBonus", default: 0)
-        try container.encodeNonDefault(dodgeBlockFlat, "dodgeBlockFlat", default: 0)
-        try container.encodeNonDefault(dodgeApplyPoison, "dodgeApplyPoison", default: 0)
-        try container.encodeNonDefault(dodgeGoldFlat, "dodgeGoldFlat", default: 0)
-        try container.encodeNonDefault(dodgeHealFlat, "dodgeHealFlat", default: 0)
-        try container.encodeNonDefault(dodgeChanceAboveHalfHealthBonus, "dodgeChanceAboveHalfHealthBonus", default: 0)
-        try container.encodeNonDefault(dodgeChanceBelowHealthPercentThreshold, "dodgeChanceBelowHealthPercentThreshold", default: 0)
-        try container.encodeNonDefault(dodgeChanceBelowHealthPercentBonus, "dodgeChanceBelowHealthPercentBonus", default: 0)
-        try container.encodeNonDefault(onDodgeDrawCardForHero, "onDodgeDrawCardForHero", default: 0)
-        try container.encodeNonDefault(nextAttackDoubleAfterDodge, "nextAttackDoubleAfterDodge", default: false)
-        try container.encodeNonDefault(onDodgeDelayAttackerTurn, "onDodgeDelayAttackerTurn", default: false)
-        try container.encodeNonDefault(onDodgeGrantHeroBlock, "onDodgeGrantHeroBlock", default: 0)
-        try container.encodeNonDefault(onDodgePartyMana, "onDodgePartyMana", default: 0)
-        try container.encodeNonDefault(onDodgeCounterDamage, "onDodgeCounterDamage", default: 0)
-        try container.encodeNonDefault(onDodgeCounterBasicAttack, "onDodgeCounterBasicAttack", default: false)
-        try container.encodeNonDefault(critMultiplierPerDodge, "critMultiplierPerDodge", default: 0)
-        try container.encodeNonDefault(onDodgeNextPartyHitGuaranteedCritical, "onDodgeNextPartyHitGuaranteedCritical", default: false)
-        try container.encodeNonDefault(onCompanionDodgeGrantHeroDodgePercent, "onCompanionDodgeGrantHeroDodgePercent", default: 0)
-        try container.encodeNonDefault(autoDodgeAfterFirstHitPerTurn, "autoDodgeAfterFirstHitPerTurn", default: false)
-        try container.encodeNonDefault(nextAttackBleedAfterDodge, "nextAttackBleedAfterDodge", default: 0)
-        try container.encodeNonDefault(onDodgeApplyPoisonOrBleed, "onDodgeApplyPoisonOrBleed", default: 0)
-        try container.encodeNonDefault(onDodgePartyNextCardDamageBonus, "onDodgePartyNextCardDamageBonus", default: 0)
-        try container.encodeNonDefault(onApplyBurnDodgeChanceUntilNextTurn, "onApplyBurnDodgeChanceUntilNextTurn", default: 0)
-        try container.encodeNonDefault(dodgeChanceVsBleedingEnemiesBonus, "dodgeChanceVsBleedingEnemiesBonus", default: 0)
-        try container.encodeNonDefault(firstAttackGuaranteedCritical, "firstAttackGuaranteedCritical", default: false)
-        try container.encodeNonDefault(swapAndDodgeForHeroChance, "swapAndDodgeForHeroChance", default: 0)
-        try container.encodeNonDefault(untargetableAboveHealthPercent, "untargetableAboveHealthPercent", default: 0)
-        try container.encodeNonDefault(onDodgeDrawAndPlayCardChainOnCrit, "onDodgeDrawAndPlayCardChainOnCrit", default: false)
-        try container.encodeNonDefault(phantomCounter, "phantomCounter", default: false)
-        try container.encodeNonDefault(perfectTempo, "perfectTempo", default: false)
-        try container.encodeNonDefault(passingLuck, "passingLuck", default: false)
-        try container.encodeNonDefault(improvingOdds, "improvingOdds", default: false)
-        try container.encodeNonDefault(blindSpot, "blindSpot", default: false)
-        try container.encodeNonDefault(onDodgeNextAttackGuaranteedCritical, "onDodgeNextAttackGuaranteedCritical", default: false)
-        try container.encodeNonDefault(dodgeFirstAttackEachCombat, "dodgeFirstAttackEachCombat", default: false)
-        try container.encodeNonDefault(partyDodgeVsBurningBonus, "partyDodgeVsBurningBonus", default: 0)
-        try container.encodeNonDefault(quietGroveDodgeAtFullHealth, "quietGroveDodgeAtFullHealth", default: 0)
-        try container.encodeNonDefault(groveReserveCompanionDodgeBonus, "groveReserveCompanionDodgeBonus", default: 0)
-        try container.encodeNonDefault(dodgeNextAttackCritBonus, "dodgeNextAttackCritBonus", default: 0)
-        try container.encodeNonDefault(dodgeBelowHalfDrawCard, "dodgeBelowHalfDrawCard", default: false)
-        try container.encodeNonDefault(dodgeBleedChancePercent, "dodgeBleedChancePercent", default: 0)
-        try container.encodeNonDefault(dodgeBleedDamage, "dodgeBleedDamage", default: 0)
-        try container.encodeNonDefault(dodgeBurnChancePercent, "dodgeBurnChancePercent", default: 0)
-        try container.encodeNonDefault(dodgeBurnDamage, "dodgeBurnDamage", default: 0)
-        try container.encodeNonDefault(firstDodgeDrawForAlly, "firstDodgeDrawForAlly", default: false)
-        try container.encodeNonDefault(dodgeNextManaEmpowerFree, "dodgeNextManaEmpowerFree", default: false)
-        try container.encodeNonDefault(dodgeNextFreezeIgnoreBlock, "dodgeNextFreezeIgnoreBlock", default: false)
-        try container.encodeNonDefault(dodgeDealBleedFlat, "dodgeDealBleedFlat", default: 0)
-        try container.encodeNonDefault(firstDodgeDoubleNextAttack, "firstDodgeDoubleNextAttack", default: false)
-        try container.encodeNonDefault(dodgeNextAttackIgnoreBlock, "dodgeNextAttackIgnoreBlock", default: false)
-        try container.encodeNonDefault(dodgeDrawChancePercent, "dodgeDrawChancePercent", default: 0)
-        try container.encodeNonDefault(dodgeAtFullHealthBonus, "dodgeAtFullHealthBonus", default: 0)
-        try container.encodeNonDefault(belowHalfFirstDodgeHealPerTurn, "belowHalfFirstDodgeHealPerTurn", default: 0)
-        try container.encodeNonDefault(dodgeAllyNextAttackCriticalBonus, "dodgeAllyNextAttackCriticalBonus", default: 0)
-        try container.encodeNonDefault(dodgeNextBleedAttackMultiplier, "dodgeNextBleedAttackMultiplier", default: 1)
-        try container.encodeNonDefault(dodgeNextCriticalDamageMultiplier, "dodgeNextCriticalDamageMultiplier", default: 1)
-        try container.encodeNonDefault(dodgeNextPhysicalDamageMultiplier, "dodgeNextPhysicalDamageMultiplier", default: 1)
-        try container.encodeNonDefault(dodgePhysicalChancePercent, "dodgePhysicalChancePercent", default: 0)
-        try container.encodeNonDefault(dodgePhysicalDamage, "dodgePhysicalDamage", default: 0)
-        try container.encodeNonDefault(dodgePoisonChancePercent, "dodgePoisonChancePercent", default: 0)
-        try container.encodeNonDefault(dodgePoisonDamage, "dodgePoisonDamage", default: 0)
-        try container.encodeNonDefault(dodgeStunChancePercent, "dodgeStunChancePercent", default: 0)
-        try container.encodeNonDefault(dodgeStunDamage, "dodgeStunDamage", default: 0)
-        try container.encodeNonDefault(firstDodgeAllyEvadeNextHit, "firstDodgeAllyEvadeNextHit", default: false)
-        try container.encodeNonDefault(firstDodgeNextAttackBonusPerTurn, "firstDodgeNextAttackBonusPerTurn", default: 0)
-        try container.encodeNonDefault(partyDodgeAtFullHealthBonus, "partyDodgeAtFullHealthBonus", default: 0)
-        try container.encodeNonDefault(partyDodgeChanceBonus, "partyDodgeChanceBonus", default: 0)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

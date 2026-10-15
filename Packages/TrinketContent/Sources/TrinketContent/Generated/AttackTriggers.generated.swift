@@ -345,122 +345,124 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
         self.loadedStrike = loadedStrike
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<AttackTriggers>] = [
+        .init(\.firstCriticalHitRepeatsPerTurn, .firstCriticalHitRepeatsPerTurn, default: false),
+        .init(\.heldCardNextAttackDamage, .heldCardNextAttackDamage, default: 0),
+        .init(\.partnerFirstAttackDamage, .partnerFirstAttackDamage, default: 0),
+        .init(\.dazingSwipeChancePercent, .dazingSwipeChancePercent, default: 0),
+        .init(\.dazingSwipeStunDamage, .dazingSwipeStunDamage, default: 0),
+        .init(\.secondCardDrawAndDodgePercent, .secondCardDrawAndDodgePercent, default: 0),
+        .init(\.thirdCardReturnsToHand, .thirdCardReturnsToHand, default: false),
+        .init(\.recoverLastAttackCardEachTurn, .recoverLastAttackCardEachTurn, default: false),
+        .init(\.attacksApplyPoison, .attacksApplyPoison, default: 0),
+        .init(\.physicalAttackApplyBleed, .physicalAttackApplyBleed, default: 0),
+        .init(\.physicalAttackApplyBleedAndStun, .physicalAttackApplyBleedAndStun, default: 0),
+        .init(\.basicAttackApplyBleed, .basicAttackApplyBleed, default: 0),
+        .init(\.basicAttackFreezeBuildup, .basicAttackFreezeBuildup, default: 0),
+        .init(\.criticalApplyPoison, .criticalApplyPoison, default: 0),
+        .init(\.criticalApplyBurn, .criticalApplyBurn, default: 0),
+        .init(\.holyAttackApplyBurnAndStunBuildup, .holyAttackApplyBurnAndStunBuildup, default: 0),
+        .init(\.onAttackStealGold, .onAttackStealGold, default: 0),
+        .init(\.basicAttackStealGold, .basicAttackStealGold, default: 0),
+        .init(\.onAttackFrozenEnemyGainMana, .onAttackFrozenEnemyGainMana, default: 0),
+        .init(\.onAttackFrozenEnemyGainBlock, .onAttackFrozenEnemyGainBlock, default: 0),
+        .init(\.onAttackStunnedEnemyGold, .onAttackStunnedEnemyGold, default: 0),
+        .init(\.onAttackStunnedEnemyBlock, .onAttackStunnedEnemyBlock, default: 0),
+        .init(\.holyDamageNextHitBonus, .holyDamageNextHitBonus, default: 0),
+        .init(\.holyDamageNextAttackHolyBonus, .holyDamageNextAttackHolyBonus, default: 0),
+        .init(\.onBleedDamageNextBasicGuaranteedCrit, .onBleedDamageNextBasicGuaranteedCrit, default: false),
+        .init(\.onBleedDamageNextBasicCritBonus, .onBleedDamageNextBasicCritBonus, default: 0),
+        .init(\.nextAttackBonusOnFullHealth, .nextAttackBonusOnFullHealth, default: 0),
+        .init(\.leechOverhealDamageBonus, .leechOverhealDamageBonus, default: 0),
+        .init(\.onHeroSpendManaCompanionNextAttackBonus, .onHeroSpendManaCompanionNextAttackBonus, default: 0),
+        .init(\.partyBasicAttackHolyBonus, .partyBasicAttackHolyBonus, default: 0),
+        .init(\.partyHolyDamageBonusWhileCompanionFullHealth, .partyHolyDamageBonusWhileCompanionFullHealth, default: 0),
+        .init(\.partyDamageBonusWhileCompanionFullHealth, .partyDamageBonusWhileCompanionFullHealth, default: 0),
+        .init(\.partyPhysicalDamageBonusFirstTurns, .partyPhysicalDamageBonusFirstTurns, default: 0),
+        .init(\.partyPhysicalDamageBonusFirstTurnCount, .partyPhysicalDamageBonusFirstTurnCount, default: 0),
+        .init(\.attackBurstChancePercent, .attackBurstChancePercent, default: 0),
+        .init(\.attackBurstDamage, .attackBurstDamage, default: 0),
+        .init(\.attackBurstBlock, .attackBurstBlock, default: 0),
+        .init(\.directHitBleedChancePercent, .directHitBleedChancePercent, default: 0),
+        .init(\.attackApplyBleed, .attackApplyBleed, default: 0),
+        .init(\.onHeroAttackPoisonedEnemyApplyPoison, .onHeroAttackPoisonedEnemyApplyPoison, default: 0),
+        .init(\.onPhysicalDamageGainBlock, .onPhysicalDamageGainBlock, default: 0),
+        .init(\.critStealEnemyBlock, .critStealEnemyBlock, default: false),
+        .init(\.criticalPurgeCount, .criticalPurgeCount, default: 0),
+        .init(\.criticalPurgeAll, .criticalPurgeAll, default: false),
+        .init(\.cleanCut, .cleanCut, default: false),
+        .init(\.crackedGuard, .crackedGuard, default: false),
+        .init(\.blockedAttackNextPhysicalDouble, .blockedAttackNextPhysicalDouble, default: false),
+        .init(\.poisonCritPreparesBleedCrit, .poisonCritPreparesBleedCrit, default: false),
+        .init(\.leechCriticalVsBleedingBonus, .leechCriticalVsBleedingBonus, default: 0),
+        .init(\.burnAttackCritDrawCard, .burnAttackCritDrawCard, default: false),
+        .init(\.burnPreparesBleedDamageBonus, .burnPreparesBleedDamageBonus, default: 0),
+        .init(\.physicalElementChancePercent, .physicalElementChancePercent, default: 0),
+        .init(\.physicalElementDamage, .physicalElementDamage, default: 0),
+        .init(\.standardDeviation, .standardDeviation, default: false),
+        .init(\.physicalVsFrozenCritBonus, .physicalVsFrozenCritBonus, default: 0),
+        .init(\.blockBreakNextPhysicalBonus, .blockBreakNextPhysicalBonus, default: 0),
+        .init(\.physicalDamageVsStunnedMultiplier, .physicalDamageVsStunnedMultiplier, default: 1),
+        .init(\.physicalCritChanceBelowHalfBonus, .physicalCritChanceBelowHalfBonus, default: 0),
+        .init(\.physicalCritRemoveEnemyBlock, .physicalCritRemoveEnemyBlock, default: false),
+        .init(\.firstPhysicalAttackBlockDamagePercent, .firstPhysicalAttackBlockDamagePercent, default: 0),
+        .init(\.poisonCriticalHasLeech, .poisonCriticalHasLeech, default: false),
+        .init(\.poisonAttackStunChancePercent, .poisonAttackStunChancePercent, default: 0),
+        .init(\.bleedCriticalPoisonDamage, .bleedCriticalPoisonDamage, default: 0),
+        .init(\.bleedCriticalThorns, .bleedCriticalThorns, default: 0),
+        .init(\.bleedCriticalDrawChancePercent, .bleedCriticalDrawChancePercent, default: 0),
+        .init(\.criticalGoldStealFlat, .criticalGoldStealFlat, default: 0),
+        .init(\.bleedAttackDamageBonus, .bleedAttackDamageBonus, default: 0),
+        .init(\.bleedAttackCriticalBonus, .bleedAttackCriticalBonus, default: 0),
+        .init(\.attackVsBleedingBelowHalfMultiplier, .attackVsBleedingBelowHalfMultiplier, default: 1),
+        .init(\.bleedCriticalDamageMultiplier, .bleedCriticalDamageMultiplier, default: 1),
+        .init(\.belowHalfHealthNextBleedDouble, .belowHalfHealthNextBleedDouble, default: false),
+        .init(\.partyCritChanceWhileCompanionFullHealth, .partyCritChanceWhileCompanionFullHealth, default: 0),
+        .init(\.holyCriticalAllyIgnoreBlock, .holyCriticalAllyIgnoreBlock, default: false),
+        .init(\.holyAttackCriticalBonus, .holyAttackCriticalBonus, default: 0),
+        .init(\.holyAttackEnemyMissChance, .holyAttackEnemyMissChance, default: 0),
+        .init(\.holyAttackDrawChancePercent, .holyAttackDrawChancePercent, default: 0),
+        .init(\.holyCriticalPurgeCount, .holyCriticalPurgeCount, default: 0),
+        .init(\.holyAttackCleanseAllyChancePercent, .holyAttackCleanseAllyChancePercent, default: 0),
+        .init(\.attackDamageVsStunnedMultiplier, .attackDamageVsStunnedMultiplier, default: 1),
+        .init(\.bleedDamageVsPoisonedMultiplier, .bleedDamageVsPoisonedMultiplier, default: 1),
+        .init(\.burnCriticalDamageMultiplier, .burnCriticalDamageMultiplier, default: 1),
+        .init(\.burnCriticalIgnoreBlock, .burnCriticalIgnoreBlock, default: false),
+        .init(\.firstBleedAttackLeechPerTurn, .firstBleedAttackLeechPerTurn, default: false),
+        .init(\.firstHolyAttackBlockPerTurn, .firstHolyAttackBlockPerTurn, default: 0),
+        .init(\.firstHolyAttackBonusPerTurn, .firstHolyAttackBonusPerTurn, default: 0),
+        .init(\.firstHolyHitDamageMultiplierPerTurn, .firstHolyHitDamageMultiplierPerTurn, default: 1),
+        .init(\.firstPhysicalAttackBattleMultiplier, .firstPhysicalAttackBattleMultiplier, default: 1),
+        .init(\.firstPhysicalAttackBlockPerTurn, .firstPhysicalAttackBlockPerTurn, default: 0),
+        .init(\.freezeAttackCriticalBonus, .freezeAttackCriticalBonus, default: 0),
+        .init(\.freezeCriticalDamageMultiplier, .freezeCriticalDamageMultiplier, default: 1),
+        .init(\.holyCriticalStunDamage, .holyCriticalStunDamage, default: 0),
+        .init(\.holyDamageMultiplierWhileBlocked, .holyDamageMultiplierWhileBlocked, default: 1),
+        .init(\.holyDamageVsStunnedMultiplier, .holyDamageVsStunnedMultiplier, default: 1),
+        .init(\.leechAttackDamageVsBleedingMultiplier, .leechAttackDamageVsBleedingMultiplier, default: 1),
+        .init(\.partyBleedCritChanceBonus, .partyBleedCritChanceBonus, default: 0),
+        .init(\.partyFirstPhysicalCriticalBonus, .partyFirstPhysicalCriticalBonus, default: 0),
+        .init(\.partyHolyAttackCriticalBonus, .partyHolyAttackCriticalBonus, default: 0),
+        .init(\.partyHolyDamageMultiplier, .partyHolyDamageMultiplier, default: 1),
+        .init(\.physicalAttackBurstChancePercent, .physicalAttackBurstChancePercent, default: 0),
+        .init(\.physicalAttackBurstMultiplier, .physicalAttackBurstMultiplier, default: 1),
+        .init(\.physicalCritVsBleedingBonus, .physicalCritVsBleedingBonus, default: 0),
+        .init(\.physicalCriticalBleedDamage, .physicalCriticalBleedDamage, default: 0),
+        .init(\.physicalCriticalDamageVsBleedingMultiplier, .physicalCriticalDamageVsBleedingMultiplier, default: 1),
+        .init(\.physicalCriticalDamageVsPoisonedMultiplier, .physicalCriticalDamageVsPoisonedMultiplier, default: 1),
+        .init(\.stunAttackCriticalBonus, .stunAttackCriticalBonus, default: 0),
+        .init(\.stunCriticalIgnoreBlock, .stunCriticalIgnoreBlock, default: false),
+        .init(\.stunDamageMultiplierWhileThorns, .stunDamageMultiplierWhileThorns, default: 1),
+        .init(\.firstHolyHitAllyBlockPerTurn, .firstHolyHitAllyBlockPerTurn, default: 0),
+        .init(\.redHarvestPhysicalCriticalDetonatesBleed, .redHarvestPhysicalCriticalDetonatesBleed, default: false),
+        .init(\.huntsmasterPhysicalCriticalDrawsCompanion, .huntsmasterPhysicalCriticalDrawsCompanion, default: false),
+        .init(\.attackPurgeCount, .attackPurgeCount, default: 0),
+        .init(\.loadedStrike, .loadedStrike, default: false),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.firstCriticalHitRepeatsPerTurn != other.firstCriticalHitRepeatsPerTurn { fields.append(.firstCriticalHitRepeatsPerTurn) }
-        if self.heldCardNextAttackDamage != other.heldCardNextAttackDamage { fields.append(.heldCardNextAttackDamage) }
-        if self.partnerFirstAttackDamage != other.partnerFirstAttackDamage { fields.append(.partnerFirstAttackDamage) }
-        if self.dazingSwipeChancePercent != other.dazingSwipeChancePercent { fields.append(.dazingSwipeChancePercent) }
-        if self.dazingSwipeStunDamage != other.dazingSwipeStunDamage { fields.append(.dazingSwipeStunDamage) }
-        if self.secondCardDrawAndDodgePercent != other.secondCardDrawAndDodgePercent { fields.append(.secondCardDrawAndDodgePercent) }
-        if self.thirdCardReturnsToHand != other.thirdCardReturnsToHand { fields.append(.thirdCardReturnsToHand) }
-        if self.recoverLastAttackCardEachTurn != other.recoverLastAttackCardEachTurn { fields.append(.recoverLastAttackCardEachTurn) }
-        if self.attacksApplyPoison != other.attacksApplyPoison { fields.append(.attacksApplyPoison) }
-        if self.physicalAttackApplyBleed != other.physicalAttackApplyBleed { fields.append(.physicalAttackApplyBleed) }
-        if self.physicalAttackApplyBleedAndStun != other.physicalAttackApplyBleedAndStun { fields.append(.physicalAttackApplyBleedAndStun) }
-        if self.basicAttackApplyBleed != other.basicAttackApplyBleed { fields.append(.basicAttackApplyBleed) }
-        if self.basicAttackFreezeBuildup != other.basicAttackFreezeBuildup { fields.append(.basicAttackFreezeBuildup) }
-        if self.criticalApplyPoison != other.criticalApplyPoison { fields.append(.criticalApplyPoison) }
-        if self.criticalApplyBurn != other.criticalApplyBurn { fields.append(.criticalApplyBurn) }
-        if self.holyAttackApplyBurnAndStunBuildup != other.holyAttackApplyBurnAndStunBuildup { fields.append(.holyAttackApplyBurnAndStunBuildup) }
-        if self.onAttackStealGold != other.onAttackStealGold { fields.append(.onAttackStealGold) }
-        if self.basicAttackStealGold != other.basicAttackStealGold { fields.append(.basicAttackStealGold) }
-        if self.onAttackFrozenEnemyGainMana != other.onAttackFrozenEnemyGainMana { fields.append(.onAttackFrozenEnemyGainMana) }
-        if self.onAttackFrozenEnemyGainBlock != other.onAttackFrozenEnemyGainBlock { fields.append(.onAttackFrozenEnemyGainBlock) }
-        if self.onAttackStunnedEnemyGold != other.onAttackStunnedEnemyGold { fields.append(.onAttackStunnedEnemyGold) }
-        if self.onAttackStunnedEnemyBlock != other.onAttackStunnedEnemyBlock { fields.append(.onAttackStunnedEnemyBlock) }
-        if self.holyDamageNextHitBonus != other.holyDamageNextHitBonus { fields.append(.holyDamageNextHitBonus) }
-        if self.holyDamageNextAttackHolyBonus != other.holyDamageNextAttackHolyBonus { fields.append(.holyDamageNextAttackHolyBonus) }
-        if self.onBleedDamageNextBasicGuaranteedCrit != other.onBleedDamageNextBasicGuaranteedCrit { fields.append(.onBleedDamageNextBasicGuaranteedCrit) }
-        if self.onBleedDamageNextBasicCritBonus != other.onBleedDamageNextBasicCritBonus { fields.append(.onBleedDamageNextBasicCritBonus) }
-        if self.nextAttackBonusOnFullHealth != other.nextAttackBonusOnFullHealth { fields.append(.nextAttackBonusOnFullHealth) }
-        if self.leechOverhealDamageBonus != other.leechOverhealDamageBonus { fields.append(.leechOverhealDamageBonus) }
-        if self.onHeroSpendManaCompanionNextAttackBonus != other.onHeroSpendManaCompanionNextAttackBonus { fields.append(.onHeroSpendManaCompanionNextAttackBonus) }
-        if self.partyBasicAttackHolyBonus != other.partyBasicAttackHolyBonus { fields.append(.partyBasicAttackHolyBonus) }
-        if self.partyHolyDamageBonusWhileCompanionFullHealth != other.partyHolyDamageBonusWhileCompanionFullHealth { fields.append(.partyHolyDamageBonusWhileCompanionFullHealth) }
-        if self.partyDamageBonusWhileCompanionFullHealth != other.partyDamageBonusWhileCompanionFullHealth { fields.append(.partyDamageBonusWhileCompanionFullHealth) }
-        if self.partyPhysicalDamageBonusFirstTurns != other.partyPhysicalDamageBonusFirstTurns { fields.append(.partyPhysicalDamageBonusFirstTurns) }
-        if self.partyPhysicalDamageBonusFirstTurnCount != other.partyPhysicalDamageBonusFirstTurnCount { fields.append(.partyPhysicalDamageBonusFirstTurnCount) }
-        if self.attackBurstChancePercent != other.attackBurstChancePercent { fields.append(.attackBurstChancePercent) }
-        if self.attackBurstDamage != other.attackBurstDamage { fields.append(.attackBurstDamage) }
-        if self.attackBurstBlock != other.attackBurstBlock { fields.append(.attackBurstBlock) }
-        if self.directHitBleedChancePercent != other.directHitBleedChancePercent { fields.append(.directHitBleedChancePercent) }
-        if self.attackApplyBleed != other.attackApplyBleed { fields.append(.attackApplyBleed) }
-        if self.onHeroAttackPoisonedEnemyApplyPoison != other.onHeroAttackPoisonedEnemyApplyPoison { fields.append(.onHeroAttackPoisonedEnemyApplyPoison) }
-        if self.onPhysicalDamageGainBlock != other.onPhysicalDamageGainBlock { fields.append(.onPhysicalDamageGainBlock) }
-        if self.critStealEnemyBlock != other.critStealEnemyBlock { fields.append(.critStealEnemyBlock) }
-        if self.criticalPurgeCount != other.criticalPurgeCount { fields.append(.criticalPurgeCount) }
-        if self.criticalPurgeAll != other.criticalPurgeAll { fields.append(.criticalPurgeAll) }
-        if self.cleanCut != other.cleanCut { fields.append(.cleanCut) }
-        if self.crackedGuard != other.crackedGuard { fields.append(.crackedGuard) }
-        if self.blockedAttackNextPhysicalDouble != other.blockedAttackNextPhysicalDouble { fields.append(.blockedAttackNextPhysicalDouble) }
-        if self.poisonCritPreparesBleedCrit != other.poisonCritPreparesBleedCrit { fields.append(.poisonCritPreparesBleedCrit) }
-        if self.leechCriticalVsBleedingBonus != other.leechCriticalVsBleedingBonus { fields.append(.leechCriticalVsBleedingBonus) }
-        if self.burnAttackCritDrawCard != other.burnAttackCritDrawCard { fields.append(.burnAttackCritDrawCard) }
-        if self.burnPreparesBleedDamageBonus != other.burnPreparesBleedDamageBonus { fields.append(.burnPreparesBleedDamageBonus) }
-        if self.physicalElementChancePercent != other.physicalElementChancePercent { fields.append(.physicalElementChancePercent) }
-        if self.physicalElementDamage != other.physicalElementDamage { fields.append(.physicalElementDamage) }
-        if self.standardDeviation != other.standardDeviation { fields.append(.standardDeviation) }
-        if self.physicalVsFrozenCritBonus != other.physicalVsFrozenCritBonus { fields.append(.physicalVsFrozenCritBonus) }
-        if self.blockBreakNextPhysicalBonus != other.blockBreakNextPhysicalBonus { fields.append(.blockBreakNextPhysicalBonus) }
-        if self.physicalDamageVsStunnedMultiplier != other.physicalDamageVsStunnedMultiplier { fields.append(.physicalDamageVsStunnedMultiplier) }
-        if self.physicalCritChanceBelowHalfBonus != other.physicalCritChanceBelowHalfBonus { fields.append(.physicalCritChanceBelowHalfBonus) }
-        if self.physicalCritRemoveEnemyBlock != other.physicalCritRemoveEnemyBlock { fields.append(.physicalCritRemoveEnemyBlock) }
-        if self.firstPhysicalAttackBlockDamagePercent != other.firstPhysicalAttackBlockDamagePercent { fields.append(.firstPhysicalAttackBlockDamagePercent) }
-        if self.poisonCriticalHasLeech != other.poisonCriticalHasLeech { fields.append(.poisonCriticalHasLeech) }
-        if self.poisonAttackStunChancePercent != other.poisonAttackStunChancePercent { fields.append(.poisonAttackStunChancePercent) }
-        if self.bleedCriticalPoisonDamage != other.bleedCriticalPoisonDamage { fields.append(.bleedCriticalPoisonDamage) }
-        if self.bleedCriticalThorns != other.bleedCriticalThorns { fields.append(.bleedCriticalThorns) }
-        if self.bleedCriticalDrawChancePercent != other.bleedCriticalDrawChancePercent { fields.append(.bleedCriticalDrawChancePercent) }
-        if self.criticalGoldStealFlat != other.criticalGoldStealFlat { fields.append(.criticalGoldStealFlat) }
-        if self.bleedAttackDamageBonus != other.bleedAttackDamageBonus { fields.append(.bleedAttackDamageBonus) }
-        if self.bleedAttackCriticalBonus != other.bleedAttackCriticalBonus { fields.append(.bleedAttackCriticalBonus) }
-        if self.attackVsBleedingBelowHalfMultiplier != other.attackVsBleedingBelowHalfMultiplier { fields.append(.attackVsBleedingBelowHalfMultiplier) }
-        if self.bleedCriticalDamageMultiplier != other.bleedCriticalDamageMultiplier { fields.append(.bleedCriticalDamageMultiplier) }
-        if self.belowHalfHealthNextBleedDouble != other.belowHalfHealthNextBleedDouble { fields.append(.belowHalfHealthNextBleedDouble) }
-        if self.partyCritChanceWhileCompanionFullHealth != other.partyCritChanceWhileCompanionFullHealth { fields.append(.partyCritChanceWhileCompanionFullHealth) }
-        if self.holyCriticalAllyIgnoreBlock != other.holyCriticalAllyIgnoreBlock { fields.append(.holyCriticalAllyIgnoreBlock) }
-        if self.holyAttackCriticalBonus != other.holyAttackCriticalBonus { fields.append(.holyAttackCriticalBonus) }
-        if self.holyAttackEnemyMissChance != other.holyAttackEnemyMissChance { fields.append(.holyAttackEnemyMissChance) }
-        if self.holyAttackDrawChancePercent != other.holyAttackDrawChancePercent { fields.append(.holyAttackDrawChancePercent) }
-        if self.holyCriticalPurgeCount != other.holyCriticalPurgeCount { fields.append(.holyCriticalPurgeCount) }
-        if self.holyAttackCleanseAllyChancePercent != other.holyAttackCleanseAllyChancePercent { fields.append(.holyAttackCleanseAllyChancePercent) }
-        if self.attackDamageVsStunnedMultiplier != other.attackDamageVsStunnedMultiplier { fields.append(.attackDamageVsStunnedMultiplier) }
-        if self.bleedDamageVsPoisonedMultiplier != other.bleedDamageVsPoisonedMultiplier { fields.append(.bleedDamageVsPoisonedMultiplier) }
-        if self.burnCriticalDamageMultiplier != other.burnCriticalDamageMultiplier { fields.append(.burnCriticalDamageMultiplier) }
-        if self.burnCriticalIgnoreBlock != other.burnCriticalIgnoreBlock { fields.append(.burnCriticalIgnoreBlock) }
-        if self.firstBleedAttackLeechPerTurn != other.firstBleedAttackLeechPerTurn { fields.append(.firstBleedAttackLeechPerTurn) }
-        if self.firstHolyAttackBlockPerTurn != other.firstHolyAttackBlockPerTurn { fields.append(.firstHolyAttackBlockPerTurn) }
-        if self.firstHolyAttackBonusPerTurn != other.firstHolyAttackBonusPerTurn { fields.append(.firstHolyAttackBonusPerTurn) }
-        if self.firstHolyHitDamageMultiplierPerTurn != other.firstHolyHitDamageMultiplierPerTurn { fields.append(.firstHolyHitDamageMultiplierPerTurn) }
-        if self.firstPhysicalAttackBattleMultiplier != other.firstPhysicalAttackBattleMultiplier { fields.append(.firstPhysicalAttackBattleMultiplier) }
-        if self.firstPhysicalAttackBlockPerTurn != other.firstPhysicalAttackBlockPerTurn { fields.append(.firstPhysicalAttackBlockPerTurn) }
-        if self.freezeAttackCriticalBonus != other.freezeAttackCriticalBonus { fields.append(.freezeAttackCriticalBonus) }
-        if self.freezeCriticalDamageMultiplier != other.freezeCriticalDamageMultiplier { fields.append(.freezeCriticalDamageMultiplier) }
-        if self.holyCriticalStunDamage != other.holyCriticalStunDamage { fields.append(.holyCriticalStunDamage) }
-        if self.holyDamageMultiplierWhileBlocked != other.holyDamageMultiplierWhileBlocked { fields.append(.holyDamageMultiplierWhileBlocked) }
-        if self.holyDamageVsStunnedMultiplier != other.holyDamageVsStunnedMultiplier { fields.append(.holyDamageVsStunnedMultiplier) }
-        if self.leechAttackDamageVsBleedingMultiplier != other.leechAttackDamageVsBleedingMultiplier { fields.append(.leechAttackDamageVsBleedingMultiplier) }
-        if self.partyBleedCritChanceBonus != other.partyBleedCritChanceBonus { fields.append(.partyBleedCritChanceBonus) }
-        if self.partyFirstPhysicalCriticalBonus != other.partyFirstPhysicalCriticalBonus { fields.append(.partyFirstPhysicalCriticalBonus) }
-        if self.partyHolyAttackCriticalBonus != other.partyHolyAttackCriticalBonus { fields.append(.partyHolyAttackCriticalBonus) }
-        if self.partyHolyDamageMultiplier != other.partyHolyDamageMultiplier { fields.append(.partyHolyDamageMultiplier) }
-        if self.physicalAttackBurstChancePercent != other.physicalAttackBurstChancePercent { fields.append(.physicalAttackBurstChancePercent) }
-        if self.physicalAttackBurstMultiplier != other.physicalAttackBurstMultiplier { fields.append(.physicalAttackBurstMultiplier) }
-        if self.physicalCritVsBleedingBonus != other.physicalCritVsBleedingBonus { fields.append(.physicalCritVsBleedingBonus) }
-        if self.physicalCriticalBleedDamage != other.physicalCriticalBleedDamage { fields.append(.physicalCriticalBleedDamage) }
-        if self.physicalCriticalDamageVsBleedingMultiplier != other.physicalCriticalDamageVsBleedingMultiplier { fields.append(.physicalCriticalDamageVsBleedingMultiplier) }
-        if self.physicalCriticalDamageVsPoisonedMultiplier != other.physicalCriticalDamageVsPoisonedMultiplier { fields.append(.physicalCriticalDamageVsPoisonedMultiplier) }
-        if self.stunAttackCriticalBonus != other.stunAttackCriticalBonus { fields.append(.stunAttackCriticalBonus) }
-        if self.stunCriticalIgnoreBlock != other.stunCriticalIgnoreBlock { fields.append(.stunCriticalIgnoreBlock) }
-        if self.stunDamageMultiplierWhileThorns != other.stunDamageMultiplierWhileThorns { fields.append(.stunDamageMultiplierWhileThorns) }
-        if self.firstHolyHitAllyBlockPerTurn != other.firstHolyHitAllyBlockPerTurn { fields.append(.firstHolyHitAllyBlockPerTurn) }
-        if self.redHarvestPhysicalCriticalDetonatesBleed != other.redHarvestPhysicalCriticalDetonatesBleed { fields.append(.redHarvestPhysicalCriticalDetonatesBleed) }
-        if self.huntsmasterPhysicalCriticalDrawsCompanion != other.huntsmasterPhysicalCriticalDrawsCompanion { fields.append(.huntsmasterPhysicalCriticalDrawsCompanion) }
-        if self.attackPurgeCount != other.attackPurgeCount { fields.append(.attackPurgeCount) }
-        if self.loadedStrike != other.loadedStrike { fields.append(.loadedStrike) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -584,234 +586,15 @@ extension AttackTriggers {
 extension AttackTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            firstCriticalHitRepeatsPerTurn: values.decode(Bool.self, "firstCriticalHitRepeatsPerTurn", default: false),
-            heldCardNextAttackDamage: values.decode(Int.self, "heldCardNextAttackDamage", default: 0),
-            partnerFirstAttackDamage: values.decode(Int.self, "partnerFirstAttackDamage", default: 0),
-            dazingSwipeChancePercent: values.decode(Double.self, "dazingSwipeChancePercent", default: 0),
-            dazingSwipeStunDamage: values.decode(Int.self, "dazingSwipeStunDamage", default: 0),
-            secondCardDrawAndDodgePercent: values.decode(Double.self, "secondCardDrawAndDodgePercent", default: 0),
-            thirdCardReturnsToHand: values.decode(Bool.self, "thirdCardReturnsToHand", default: false),
-            recoverLastAttackCardEachTurn: values.decode(Bool.self, "recoverLastAttackCardEachTurn", default: false),
-            attacksApplyPoison: values.decode(Int.self, "attacksApplyPoison", default: 0),
-            physicalAttackApplyBleed: values.decode(Int.self, "physicalAttackApplyBleed", default: 0),
-            physicalAttackApplyBleedAndStun: values.decode(Int.self, "physicalAttackApplyBleedAndStun", default: 0),
-            basicAttackApplyBleed: values.decode(Int.self, "basicAttackApplyBleed", default: 0),
-            basicAttackFreezeBuildup: values.decode(Int.self, "basicAttackFreezeBuildup", default: 0),
-            criticalApplyPoison: values.decode(Int.self, "criticalApplyPoison", default: 0),
-            criticalApplyBurn: values.decode(Int.self, "criticalApplyBurn", default: 0),
-            holyAttackApplyBurnAndStunBuildup: values.decode(Int.self, "holyAttackApplyBurnAndStunBuildup", default: 0),
-            onAttackStealGold: values.decode(Int.self, "onAttackStealGold", default: 0),
-            basicAttackStealGold: values.decode(Int.self, "basicAttackStealGold", default: 0),
-            onAttackFrozenEnemyGainMana: values.decode(Int.self, "onAttackFrozenEnemyGainMana", default: 0),
-            onAttackFrozenEnemyGainBlock: values.decode(Int.self, "onAttackFrozenEnemyGainBlock", default: 0),
-            onAttackStunnedEnemyGold: values.decode(Int.self, "onAttackStunnedEnemyGold", default: 0),
-            onAttackStunnedEnemyBlock: values.decode(Int.self, "onAttackStunnedEnemyBlock", default: 0),
-            holyDamageNextHitBonus: values.decode(Int.self, "holyDamageNextHitBonus", default: 0),
-            holyDamageNextAttackHolyBonus: values.decode(Int.self, "holyDamageNextAttackHolyBonus", default: 0),
-            onBleedDamageNextBasicGuaranteedCrit: values.decode(Bool.self, "onBleedDamageNextBasicGuaranteedCrit", default: false),
-            onBleedDamageNextBasicCritBonus: values.decode(Double.self, "onBleedDamageNextBasicCritBonus", default: 0),
-            nextAttackBonusOnFullHealth: values.decode(Int.self, "nextAttackBonusOnFullHealth", default: 0),
-            leechOverhealDamageBonus: values.decode(Int.self, "leechOverhealDamageBonus", default: 0),
-            onHeroSpendManaCompanionNextAttackBonus: values.decode(Int.self, "onHeroSpendManaCompanionNextAttackBonus", default: 0),
-            partyBasicAttackHolyBonus: values.decode(Int.self, "partyBasicAttackHolyBonus", default: 0),
-            partyHolyDamageBonusWhileCompanionFullHealth: values.decode(Int.self, "partyHolyDamageBonusWhileCompanionFullHealth", default: 0),
-            partyDamageBonusWhileCompanionFullHealth: values.decode(Int.self, "partyDamageBonusWhileCompanionFullHealth", default: 0),
-            partyPhysicalDamageBonusFirstTurns: values.decode(Int.self, "partyPhysicalDamageBonusFirstTurns", default: 0),
-            partyPhysicalDamageBonusFirstTurnCount: values.decode(Int.self, "partyPhysicalDamageBonusFirstTurnCount", default: 0),
-            attackBurstChancePercent: values.decode(Double.self, "attackBurstChancePercent", default: 0),
-            attackBurstDamage: values.decode(Int.self, "attackBurstDamage", default: 0),
-            attackBurstBlock: values.decode(Int.self, "attackBurstBlock", default: 0),
-            directHitBleedChancePercent: values.decode(Double.self, "directHitBleedChancePercent", default: 0),
-            attackApplyBleed: values.decode(Int.self, "attackApplyBleed", default: 0),
-            onHeroAttackPoisonedEnemyApplyPoison: values.decode(Int.self, "onHeroAttackPoisonedEnemyApplyPoison", default: 0),
-            onPhysicalDamageGainBlock: values.decode(Int.self, "onPhysicalDamageGainBlock", default: 0),
-            critStealEnemyBlock: values.decode(Bool.self, "critStealEnemyBlock", default: false),
-            criticalPurgeCount: values.decode(Int.self, "criticalPurgeCount", default: 0),
-            criticalPurgeAll: values.decode(Bool.self, "criticalPurgeAll", default: false),
-            cleanCut: values.decode(Bool.self, "cleanCut", default: false),
-            crackedGuard: values.decode(Bool.self, "crackedGuard", default: false),
-            blockedAttackNextPhysicalDouble: values.decode(Bool.self, "blockedAttackNextPhysicalDouble", default: false),
-            poisonCritPreparesBleedCrit: values.decode(Bool.self, "poisonCritPreparesBleedCrit", default: false),
-            leechCriticalVsBleedingBonus: values.decode(Double.self, "leechCriticalVsBleedingBonus", default: 0),
-            burnAttackCritDrawCard: values.decode(Bool.self, "burnAttackCritDrawCard", default: false),
-            burnPreparesBleedDamageBonus: values.decode(Int.self, "burnPreparesBleedDamageBonus", default: 0),
-            physicalElementChancePercent: values.decode(Double.self, "physicalElementChancePercent", default: 0),
-            physicalElementDamage: values.decode(Int.self, "physicalElementDamage", default: 0),
-            standardDeviation: values.decode(Bool.self, "standardDeviation", default: false),
-            physicalVsFrozenCritBonus: values.decode(Double.self, "physicalVsFrozenCritBonus", default: 0),
-            blockBreakNextPhysicalBonus: values.decode(Int.self, "blockBreakNextPhysicalBonus", default: 0),
-            physicalDamageVsStunnedMultiplier: values.decode(Double.self, "physicalDamageVsStunnedMultiplier", default: 1),
-            physicalCritChanceBelowHalfBonus: values.decode(Double.self, "physicalCritChanceBelowHalfBonus", default: 0),
-            physicalCritRemoveEnemyBlock: values.decode(Bool.self, "physicalCritRemoveEnemyBlock", default: false),
-            firstPhysicalAttackBlockDamagePercent: values.decode(Double.self, "firstPhysicalAttackBlockDamagePercent", default: 0),
-            poisonCriticalHasLeech: values.decode(Bool.self, "poisonCriticalHasLeech", default: false),
-            poisonAttackStunChancePercent: values.decode(Double.self, "poisonAttackStunChancePercent", default: 0),
-            bleedCriticalPoisonDamage: values.decode(Int.self, "bleedCriticalPoisonDamage", default: 0),
-            bleedCriticalThorns: values.decode(Int.self, "bleedCriticalThorns", default: 0),
-            bleedCriticalDrawChancePercent: values.decode(Double.self, "bleedCriticalDrawChancePercent", default: 0),
-            criticalGoldStealFlat: values.decode(Int.self, "criticalGoldStealFlat", default: 0),
-            bleedAttackDamageBonus: values.decode(Int.self, "bleedAttackDamageBonus", default: 0),
-            bleedAttackCriticalBonus: values.decode(Double.self, "bleedAttackCriticalBonus", default: 0),
-            attackVsBleedingBelowHalfMultiplier: values.decode(Double.self, "attackVsBleedingBelowHalfMultiplier", default: 1),
-            bleedCriticalDamageMultiplier: values.decode(Double.self, "bleedCriticalDamageMultiplier", default: 1),
-            belowHalfHealthNextBleedDouble: values.decode(Bool.self, "belowHalfHealthNextBleedDouble", default: false),
-            partyCritChanceWhileCompanionFullHealth: values.decode(Double.self, "partyCritChanceWhileCompanionFullHealth", default: 0),
-            holyCriticalAllyIgnoreBlock: values.decode(Bool.self, "holyCriticalAllyIgnoreBlock", default: false),
-            holyAttackCriticalBonus: values.decode(Double.self, "holyAttackCriticalBonus", default: 0),
-            holyAttackEnemyMissChance: values.decode(Double.self, "holyAttackEnemyMissChance", default: 0),
-            holyAttackDrawChancePercent: values.decode(Double.self, "holyAttackDrawChancePercent", default: 0),
-            holyCriticalPurgeCount: values.decode(Int.self, "holyCriticalPurgeCount", default: 0),
-            holyAttackCleanseAllyChancePercent: values.decode(Double.self, "holyAttackCleanseAllyChancePercent", default: 0),
-            attackDamageVsStunnedMultiplier: values.decode(Double.self, "attackDamageVsStunnedMultiplier", default: 1),
-            bleedDamageVsPoisonedMultiplier: values.decode(Double.self, "bleedDamageVsPoisonedMultiplier", default: 1),
-            burnCriticalDamageMultiplier: values.decode(Double.self, "burnCriticalDamageMultiplier", default: 1),
-            burnCriticalIgnoreBlock: values.decode(Bool.self, "burnCriticalIgnoreBlock", default: false),
-            firstBleedAttackLeechPerTurn: values.decode(Bool.self, "firstBleedAttackLeechPerTurn", default: false),
-            firstHolyAttackBlockPerTurn: values.decode(Int.self, "firstHolyAttackBlockPerTurn", default: 0),
-            firstHolyAttackBonusPerTurn: values.decode(Int.self, "firstHolyAttackBonusPerTurn", default: 0),
-            firstHolyHitDamageMultiplierPerTurn: values.decode(Double.self, "firstHolyHitDamageMultiplierPerTurn", default: 1),
-            firstPhysicalAttackBattleMultiplier: values.decode(Double.self, "firstPhysicalAttackBattleMultiplier", default: 1),
-            firstPhysicalAttackBlockPerTurn: values.decode(Int.self, "firstPhysicalAttackBlockPerTurn", default: 0),
-            freezeAttackCriticalBonus: values.decode(Double.self, "freezeAttackCriticalBonus", default: 0),
-            freezeCriticalDamageMultiplier: values.decode(Double.self, "freezeCriticalDamageMultiplier", default: 1),
-            holyCriticalStunDamage: values.decode(Int.self, "holyCriticalStunDamage", default: 0),
-            holyDamageMultiplierWhileBlocked: values.decode(Double.self, "holyDamageMultiplierWhileBlocked", default: 1),
-            holyDamageVsStunnedMultiplier: values.decode(Double.self, "holyDamageVsStunnedMultiplier", default: 1),
-            leechAttackDamageVsBleedingMultiplier: values.decode(Double.self, "leechAttackDamageVsBleedingMultiplier", default: 1),
-            partyBleedCritChanceBonus: values.decode(Double.self, "partyBleedCritChanceBonus", default: 0),
-            partyFirstPhysicalCriticalBonus: values.decode(Double.self, "partyFirstPhysicalCriticalBonus", default: 0),
-            partyHolyAttackCriticalBonus: values.decode(Double.self, "partyHolyAttackCriticalBonus", default: 0),
-            partyHolyDamageMultiplier: values.decode(Double.self, "partyHolyDamageMultiplier", default: 1),
-            physicalAttackBurstChancePercent: values.decode(Double.self, "physicalAttackBurstChancePercent", default: 0),
-            physicalAttackBurstMultiplier: values.decode(Double.self, "physicalAttackBurstMultiplier", default: 1),
-            physicalCritVsBleedingBonus: values.decode(Double.self, "physicalCritVsBleedingBonus", default: 0),
-            physicalCriticalBleedDamage: values.decode(Int.self, "physicalCriticalBleedDamage", default: 0),
-            physicalCriticalDamageVsBleedingMultiplier: values.decode(Double.self, "physicalCriticalDamageVsBleedingMultiplier", default: 1),
-            physicalCriticalDamageVsPoisonedMultiplier: values.decode(Double.self, "physicalCriticalDamageVsPoisonedMultiplier", default: 1),
-            stunAttackCriticalBonus: values.decode(Double.self, "stunAttackCriticalBonus", default: 0),
-            stunCriticalIgnoreBlock: values.decode(Bool.self, "stunCriticalIgnoreBlock", default: false),
-            stunDamageMultiplierWhileThorns: values.decode(Double.self, "stunDamageMultiplierWhileThorns", default: 1),
-            firstHolyHitAllyBlockPerTurn: values.decode(Int.self, "firstHolyHitAllyBlockPerTurn", default: 0),
-            redHarvestPhysicalCriticalDetonatesBleed: values.decode(Bool.self, "redHarvestPhysicalCriticalDetonatesBleed", default: false),
-            huntsmasterPhysicalCriticalDrawsCompanion: values.decode(Bool.self, "huntsmasterPhysicalCriticalDrawsCompanion", default: false),
-            attackPurgeCount: values.decode(Int.self, "attackPurgeCount", default: 0),
-            loadedStrike: values.decode(Bool.self, "loadedStrike", default: false)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(firstCriticalHitRepeatsPerTurn, "firstCriticalHitRepeatsPerTurn", default: false)
-        try container.encodeNonDefault(heldCardNextAttackDamage, "heldCardNextAttackDamage", default: 0)
-        try container.encodeNonDefault(partnerFirstAttackDamage, "partnerFirstAttackDamage", default: 0)
-        try container.encodeNonDefault(dazingSwipeChancePercent, "dazingSwipeChancePercent", default: 0)
-        try container.encodeNonDefault(dazingSwipeStunDamage, "dazingSwipeStunDamage", default: 0)
-        try container.encodeNonDefault(secondCardDrawAndDodgePercent, "secondCardDrawAndDodgePercent", default: 0)
-        try container.encodeNonDefault(thirdCardReturnsToHand, "thirdCardReturnsToHand", default: false)
-        try container.encodeNonDefault(recoverLastAttackCardEachTurn, "recoverLastAttackCardEachTurn", default: false)
-        try container.encodeNonDefault(attacksApplyPoison, "attacksApplyPoison", default: 0)
-        try container.encodeNonDefault(physicalAttackApplyBleed, "physicalAttackApplyBleed", default: 0)
-        try container.encodeNonDefault(physicalAttackApplyBleedAndStun, "physicalAttackApplyBleedAndStun", default: 0)
-        try container.encodeNonDefault(basicAttackApplyBleed, "basicAttackApplyBleed", default: 0)
-        try container.encodeNonDefault(basicAttackFreezeBuildup, "basicAttackFreezeBuildup", default: 0)
-        try container.encodeNonDefault(criticalApplyPoison, "criticalApplyPoison", default: 0)
-        try container.encodeNonDefault(criticalApplyBurn, "criticalApplyBurn", default: 0)
-        try container.encodeNonDefault(holyAttackApplyBurnAndStunBuildup, "holyAttackApplyBurnAndStunBuildup", default: 0)
-        try container.encodeNonDefault(onAttackStealGold, "onAttackStealGold", default: 0)
-        try container.encodeNonDefault(basicAttackStealGold, "basicAttackStealGold", default: 0)
-        try container.encodeNonDefault(onAttackFrozenEnemyGainMana, "onAttackFrozenEnemyGainMana", default: 0)
-        try container.encodeNonDefault(onAttackFrozenEnemyGainBlock, "onAttackFrozenEnemyGainBlock", default: 0)
-        try container.encodeNonDefault(onAttackStunnedEnemyGold, "onAttackStunnedEnemyGold", default: 0)
-        try container.encodeNonDefault(onAttackStunnedEnemyBlock, "onAttackStunnedEnemyBlock", default: 0)
-        try container.encodeNonDefault(holyDamageNextHitBonus, "holyDamageNextHitBonus", default: 0)
-        try container.encodeNonDefault(holyDamageNextAttackHolyBonus, "holyDamageNextAttackHolyBonus", default: 0)
-        try container.encodeNonDefault(onBleedDamageNextBasicGuaranteedCrit, "onBleedDamageNextBasicGuaranteedCrit", default: false)
-        try container.encodeNonDefault(onBleedDamageNextBasicCritBonus, "onBleedDamageNextBasicCritBonus", default: 0)
-        try container.encodeNonDefault(nextAttackBonusOnFullHealth, "nextAttackBonusOnFullHealth", default: 0)
-        try container.encodeNonDefault(leechOverhealDamageBonus, "leechOverhealDamageBonus", default: 0)
-        try container.encodeNonDefault(onHeroSpendManaCompanionNextAttackBonus, "onHeroSpendManaCompanionNextAttackBonus", default: 0)
-        try container.encodeNonDefault(partyBasicAttackHolyBonus, "partyBasicAttackHolyBonus", default: 0)
-        try container.encodeNonDefault(partyHolyDamageBonusWhileCompanionFullHealth, "partyHolyDamageBonusWhileCompanionFullHealth", default: 0)
-        try container.encodeNonDefault(partyDamageBonusWhileCompanionFullHealth, "partyDamageBonusWhileCompanionFullHealth", default: 0)
-        try container.encodeNonDefault(partyPhysicalDamageBonusFirstTurns, "partyPhysicalDamageBonusFirstTurns", default: 0)
-        try container.encodeNonDefault(partyPhysicalDamageBonusFirstTurnCount, "partyPhysicalDamageBonusFirstTurnCount", default: 0)
-        try container.encodeNonDefault(attackBurstChancePercent, "attackBurstChancePercent", default: 0)
-        try container.encodeNonDefault(attackBurstDamage, "attackBurstDamage", default: 0)
-        try container.encodeNonDefault(attackBurstBlock, "attackBurstBlock", default: 0)
-        try container.encodeNonDefault(directHitBleedChancePercent, "directHitBleedChancePercent", default: 0)
-        try container.encodeNonDefault(attackApplyBleed, "attackApplyBleed", default: 0)
-        try container.encodeNonDefault(onHeroAttackPoisonedEnemyApplyPoison, "onHeroAttackPoisonedEnemyApplyPoison", default: 0)
-        try container.encodeNonDefault(onPhysicalDamageGainBlock, "onPhysicalDamageGainBlock", default: 0)
-        try container.encodeNonDefault(critStealEnemyBlock, "critStealEnemyBlock", default: false)
-        try container.encodeNonDefault(criticalPurgeCount, "criticalPurgeCount", default: 0)
-        try container.encodeNonDefault(criticalPurgeAll, "criticalPurgeAll", default: false)
-        try container.encodeNonDefault(cleanCut, "cleanCut", default: false)
-        try container.encodeNonDefault(crackedGuard, "crackedGuard", default: false)
-        try container.encodeNonDefault(blockedAttackNextPhysicalDouble, "blockedAttackNextPhysicalDouble", default: false)
-        try container.encodeNonDefault(poisonCritPreparesBleedCrit, "poisonCritPreparesBleedCrit", default: false)
-        try container.encodeNonDefault(leechCriticalVsBleedingBonus, "leechCriticalVsBleedingBonus", default: 0)
-        try container.encodeNonDefault(burnAttackCritDrawCard, "burnAttackCritDrawCard", default: false)
-        try container.encodeNonDefault(burnPreparesBleedDamageBonus, "burnPreparesBleedDamageBonus", default: 0)
-        try container.encodeNonDefault(physicalElementChancePercent, "physicalElementChancePercent", default: 0)
-        try container.encodeNonDefault(physicalElementDamage, "physicalElementDamage", default: 0)
-        try container.encodeNonDefault(standardDeviation, "standardDeviation", default: false)
-        try container.encodeNonDefault(physicalVsFrozenCritBonus, "physicalVsFrozenCritBonus", default: 0)
-        try container.encodeNonDefault(blockBreakNextPhysicalBonus, "blockBreakNextPhysicalBonus", default: 0)
-        try container.encodeNonDefault(physicalDamageVsStunnedMultiplier, "physicalDamageVsStunnedMultiplier", default: 1)
-        try container.encodeNonDefault(physicalCritChanceBelowHalfBonus, "physicalCritChanceBelowHalfBonus", default: 0)
-        try container.encodeNonDefault(physicalCritRemoveEnemyBlock, "physicalCritRemoveEnemyBlock", default: false)
-        try container.encodeNonDefault(firstPhysicalAttackBlockDamagePercent, "firstPhysicalAttackBlockDamagePercent", default: 0)
-        try container.encodeNonDefault(poisonCriticalHasLeech, "poisonCriticalHasLeech", default: false)
-        try container.encodeNonDefault(poisonAttackStunChancePercent, "poisonAttackStunChancePercent", default: 0)
-        try container.encodeNonDefault(bleedCriticalPoisonDamage, "bleedCriticalPoisonDamage", default: 0)
-        try container.encodeNonDefault(bleedCriticalThorns, "bleedCriticalThorns", default: 0)
-        try container.encodeNonDefault(bleedCriticalDrawChancePercent, "bleedCriticalDrawChancePercent", default: 0)
-        try container.encodeNonDefault(criticalGoldStealFlat, "criticalGoldStealFlat", default: 0)
-        try container.encodeNonDefault(bleedAttackDamageBonus, "bleedAttackDamageBonus", default: 0)
-        try container.encodeNonDefault(bleedAttackCriticalBonus, "bleedAttackCriticalBonus", default: 0)
-        try container.encodeNonDefault(attackVsBleedingBelowHalfMultiplier, "attackVsBleedingBelowHalfMultiplier", default: 1)
-        try container.encodeNonDefault(bleedCriticalDamageMultiplier, "bleedCriticalDamageMultiplier", default: 1)
-        try container.encodeNonDefault(belowHalfHealthNextBleedDouble, "belowHalfHealthNextBleedDouble", default: false)
-        try container.encodeNonDefault(partyCritChanceWhileCompanionFullHealth, "partyCritChanceWhileCompanionFullHealth", default: 0)
-        try container.encodeNonDefault(holyCriticalAllyIgnoreBlock, "holyCriticalAllyIgnoreBlock", default: false)
-        try container.encodeNonDefault(holyAttackCriticalBonus, "holyAttackCriticalBonus", default: 0)
-        try container.encodeNonDefault(holyAttackEnemyMissChance, "holyAttackEnemyMissChance", default: 0)
-        try container.encodeNonDefault(holyAttackDrawChancePercent, "holyAttackDrawChancePercent", default: 0)
-        try container.encodeNonDefault(holyCriticalPurgeCount, "holyCriticalPurgeCount", default: 0)
-        try container.encodeNonDefault(holyAttackCleanseAllyChancePercent, "holyAttackCleanseAllyChancePercent", default: 0)
-        try container.encodeNonDefault(attackDamageVsStunnedMultiplier, "attackDamageVsStunnedMultiplier", default: 1)
-        try container.encodeNonDefault(bleedDamageVsPoisonedMultiplier, "bleedDamageVsPoisonedMultiplier", default: 1)
-        try container.encodeNonDefault(burnCriticalDamageMultiplier, "burnCriticalDamageMultiplier", default: 1)
-        try container.encodeNonDefault(burnCriticalIgnoreBlock, "burnCriticalIgnoreBlock", default: false)
-        try container.encodeNonDefault(firstBleedAttackLeechPerTurn, "firstBleedAttackLeechPerTurn", default: false)
-        try container.encodeNonDefault(firstHolyAttackBlockPerTurn, "firstHolyAttackBlockPerTurn", default: 0)
-        try container.encodeNonDefault(firstHolyAttackBonusPerTurn, "firstHolyAttackBonusPerTurn", default: 0)
-        try container.encodeNonDefault(firstHolyHitDamageMultiplierPerTurn, "firstHolyHitDamageMultiplierPerTurn", default: 1)
-        try container.encodeNonDefault(firstPhysicalAttackBattleMultiplier, "firstPhysicalAttackBattleMultiplier", default: 1)
-        try container.encodeNonDefault(firstPhysicalAttackBlockPerTurn, "firstPhysicalAttackBlockPerTurn", default: 0)
-        try container.encodeNonDefault(freezeAttackCriticalBonus, "freezeAttackCriticalBonus", default: 0)
-        try container.encodeNonDefault(freezeCriticalDamageMultiplier, "freezeCriticalDamageMultiplier", default: 1)
-        try container.encodeNonDefault(holyCriticalStunDamage, "holyCriticalStunDamage", default: 0)
-        try container.encodeNonDefault(holyDamageMultiplierWhileBlocked, "holyDamageMultiplierWhileBlocked", default: 1)
-        try container.encodeNonDefault(holyDamageVsStunnedMultiplier, "holyDamageVsStunnedMultiplier", default: 1)
-        try container.encodeNonDefault(leechAttackDamageVsBleedingMultiplier, "leechAttackDamageVsBleedingMultiplier", default: 1)
-        try container.encodeNonDefault(partyBleedCritChanceBonus, "partyBleedCritChanceBonus", default: 0)
-        try container.encodeNonDefault(partyFirstPhysicalCriticalBonus, "partyFirstPhysicalCriticalBonus", default: 0)
-        try container.encodeNonDefault(partyHolyAttackCriticalBonus, "partyHolyAttackCriticalBonus", default: 0)
-        try container.encodeNonDefault(partyHolyDamageMultiplier, "partyHolyDamageMultiplier", default: 1)
-        try container.encodeNonDefault(physicalAttackBurstChancePercent, "physicalAttackBurstChancePercent", default: 0)
-        try container.encodeNonDefault(physicalAttackBurstMultiplier, "physicalAttackBurstMultiplier", default: 1)
-        try container.encodeNonDefault(physicalCritVsBleedingBonus, "physicalCritVsBleedingBonus", default: 0)
-        try container.encodeNonDefault(physicalCriticalBleedDamage, "physicalCriticalBleedDamage", default: 0)
-        try container.encodeNonDefault(physicalCriticalDamageVsBleedingMultiplier, "physicalCriticalDamageVsBleedingMultiplier", default: 1)
-        try container.encodeNonDefault(physicalCriticalDamageVsPoisonedMultiplier, "physicalCriticalDamageVsPoisonedMultiplier", default: 1)
-        try container.encodeNonDefault(stunAttackCriticalBonus, "stunAttackCriticalBonus", default: 0)
-        try container.encodeNonDefault(stunCriticalIgnoreBlock, "stunCriticalIgnoreBlock", default: false)
-        try container.encodeNonDefault(stunDamageMultiplierWhileThorns, "stunDamageMultiplierWhileThorns", default: 1)
-        try container.encodeNonDefault(firstHolyHitAllyBlockPerTurn, "firstHolyHitAllyBlockPerTurn", default: 0)
-        try container.encodeNonDefault(redHarvestPhysicalCriticalDetonatesBleed, "redHarvestPhysicalCriticalDetonatesBleed", default: false)
-        try container.encodeNonDefault(huntsmasterPhysicalCriticalDrawsCompanion, "huntsmasterPhysicalCriticalDrawsCompanion", default: false)
-        try container.encodeNonDefault(attackPurgeCount, "attackPurgeCount", default: 0)
-        try container.encodeNonDefault(loadedStrike, "loadedStrike", default: false)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

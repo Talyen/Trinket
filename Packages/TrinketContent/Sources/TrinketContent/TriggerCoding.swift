@@ -51,3 +51,27 @@ extension KeyedEncodingContainer where K == TriggerCodingKey {
         try encode(value, forKey: TriggerCodingKey(key))
     }
 }
+
+/// One typed binding owns a field's flat save key, neutral default and comparison.
+/// Gameplay reads and merges stay statically dispatched on the generated families.
+struct TriggerField<Root: Sendable>: Sendable {
+    let field: CombatTriggerField
+    let differs: @Sendable (Root, Root) -> Bool
+    let decode: @Sendable (DefaultingTriggerDecoder, inout Root) throws -> Void
+    let encode: @Sendable (Root, inout KeyedEncodingContainer<TriggerCodingKey>) throws -> Void
+
+    init<Value: Codable & Equatable & Sendable>(
+        _ keyPath: WritableKeyPath<Root, Value> & Sendable,
+        _ field: CombatTriggerField,
+        default defaultValue: Value,
+    ) {
+        self.field = field
+        differs = { $0[keyPath: keyPath] != $1[keyPath: keyPath] }
+        decode = { values, root in
+            root[keyPath: keyPath] = try values.decode(Value.self, field.rawValue, default: defaultValue)
+        }
+        encode = { root, container in
+            try container.encodeNonDefault(root[keyPath: keyPath], field.rawValue, default: defaultValue)
+        }
+    }
+}

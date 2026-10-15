@@ -246,89 +246,91 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
         self.enemyBurnPreventDecayChancePercent = enemyBurnPreventDecayChancePercent
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<DotTriggers>] = [
+        .init(\.redline, .redline, default: false),
+        .init(\.bleedHalvesAfterExpiration, .bleedHalvesAfterExpiration, default: false),
+        .init(\.burnAndBleedShareDamageBonuses, .burnAndBleedShareDamageBonuses, default: false),
+        .init(\.burnDecaySlowPercent, .burnDecaySlowPercent, default: 0),
+        .init(\.poisonDecaySlowPercent, .poisonDecaySlowPercent, default: 0),
+        .init(\.poisonDecayIncreaseChance, .poisonDecayIncreaseChance, default: 0),
+        .init(\.onBleedApplyPoison, .onBleedApplyPoison, default: 0),
+        .init(\.onBurnApplyPoison, .onBurnApplyPoison, default: 0),
+        .init(\.onBleedDealBurnDamage, .onBleedDealBurnDamage, default: 0),
+        .init(\.onBleedDealPoisonChancePercent, .onBleedDealPoisonChancePercent, default: 0),
+        .init(\.onBurnDealPoisonChancePercent, .onBurnDealPoisonChancePercent, default: 0),
+        .init(\.onBleedDealBurnChancePercent, .onBleedDealBurnChancePercent, default: 0),
+        .init(\.onBurnDamageDetonateBleedChancePercent, .onBurnDamageDetonateBleedChancePercent, default: 0),
+        .init(\.poisonStunChancePercent, .poisonStunChancePercent, default: 0),
+        .init(\.freezeDamageWhileBurningBonus, .freezeDamageWhileBurningBonus, default: 0),
+        .init(\.bleedConsumesPoison, .bleedConsumesPoison, default: false),
+        .init(\.bleedApplicationTicksExisting, .bleedApplicationTicksExisting, default: false),
+        .init(\.onBleedAppliedToBleedingDealDamage, .onBleedAppliedToBleedingDealDamage, default: 0),
+        .init(\.bleedsIgnoreMitigation, .bleedsIgnoreMitigation, default: false),
+        .init(\.onBleedDamageHealSelf, .onBleedDamageHealSelf, default: 0),
+        .init(\.onBurnTickHolyDamage, .onBurnTickHolyDamage, default: 0),
+        .init(\.burnTicksTwicePerTurn, .burnTicksTwicePerTurn, default: false),
+        .init(\.damagePerBurnPotencyPercent, .damagePerBurnPotencyPercent, default: 0),
+        .init(\.burnIncreaseChancePercent, .burnIncreaseChancePercent, default: 0),
+        .init(\.poisonThresholdStunAmount, .poisonThresholdStunAmount, default: 0),
+        .init(\.poisonDamageLeechChancePercent, .poisonDamageLeechChancePercent, default: 0),
+        .init(\.onCritDoubleBleedDuration, .onCritDoubleBleedDuration, default: false),
+        .init(\.criticalOnBleedingDetonateBleed, .criticalOnBleedingDetonateBleed, default: false),
+        .init(\.criticalOnBleedingDetonateBleedChance, .criticalOnBleedingDetonateBleedChance, default: 0),
+        .init(\.criticalDetonateBleedAndPoison, .criticalDetonateBleedAndPoison, default: false),
+        .init(\.onBurnDamageDetonateBleed, .onBurnDamageDetonateBleed, default: false),
+        .init(\.freezeDamageLeech, .freezeDamageLeech, default: false),
+        .init(\.poisonAttackLeech, .poisonAttackLeech, default: false),
+        .init(\.bleedDamageGoldFlat, .bleedDamageGoldFlat, default: 0),
+        .init(\.burnDamageRampPerRound, .burnDamageRampPerRound, default: 0),
+        .init(\.burnDamageRampCap, .burnDamageRampCap, default: 0),
+        .init(\.bleedDamageRampPerRound, .bleedDamageRampPerRound, default: 0),
+        .init(\.bleedDamageRampCap, .bleedDamageRampCap, default: 0),
+        .init(\.burnDamageManaRestoreThreshold, .burnDamageManaRestoreThreshold, default: 0),
+        .init(\.onBurnDamageRestoreManaPerTurnCap, .onBurnDamageRestoreManaPerTurnCap, default: 0),
+        .init(\.burnProcsBleedChancePercent, .burnProcsBleedChancePercent, default: 0),
+        .init(\.bleedProcsBurnChancePercent, .bleedProcsBurnChancePercent, default: 0),
+        .init(\.burnDamageLeech, .burnDamageLeech, default: false),
+        .init(\.firstBurnAttackLeech, .firstBurnAttackLeech, default: false),
+        .init(\.bleedDamageLeech, .bleedDamageLeech, default: false),
+        .init(\.shatterpoint, .shatterpoint, default: false),
+        .init(\.cryostasis, .cryostasis, default: false),
+        .init(\.crossContamination, .crossContamination, default: false),
+        .init(\.backdraft, .backdraft, default: false),
+        .init(\.ashenArsenal, .ashenArsenal, default: false),
+        .init(\.arterialCascade, .arterialCascade, default: false),
+        .init(\.steamExplosion, .steamExplosion, default: false),
+        .init(\.safeHandling, .safeHandling, default: false),
+        .init(\.unstableCulture, .unstableCulture, default: false),
+        .init(\.sealedVial, .sealedVial, default: false),
+        .init(\.barbedSpores, .barbedSpores, default: false),
+        .init(\.livingBark, .livingBark, default: false),
+        .init(\.rootPassage, .rootPassage, default: false),
+        .init(\.firstThornsPoisonDamagePerTurn, .firstThornsPoisonDamagePerTurn, default: 0),
+        .init(\.bleedTickDrawChancePercent, .bleedTickDrawChancePercent, default: 0),
+        .init(\.burnAttackDoubleChancePercent, .burnAttackDoubleChancePercent, default: 0),
+        .init(\.burnDecaySlowVsBleedingPercent, .burnDecaySlowVsBleedingPercent, default: 0),
+        .init(\.bleedDurationFromCriticalBonus, .bleedDurationFromCriticalBonus, default: 0),
+        .init(\.bleedDurationVsPoisonedBonus, .bleedDurationVsPoisonedBonus, default: 0),
+        .init(\.burnAttackBleedChancePercent, .burnAttackBleedChancePercent, default: 0),
+        .init(\.burnAttackBleedDamage, .burnAttackBleedDamage, default: 0),
+        .init(\.poisonPreventDecayChancePercent, .poisonPreventDecayChancePercent, default: 0),
+        .init(\.poisonDamageVsStunnedMultiplier, .poisonDamageVsStunnedMultiplier, default: 1),
+        .init(\.bleedDamageBelowHalfMultiplier, .bleedDamageBelowHalfMultiplier, default: 1),
+        .init(\.onDamageBurnRetaliationChancePercent, .onDamageBurnRetaliationChancePercent, default: 0),
+        .init(\.onDamageBurnRetaliationDamage, .onDamageBurnRetaliationDamage, default: 0),
+        .init(\.burnPreventDecayChancePercent, .burnPreventDecayChancePercent, default: 0),
+        .init(\.bleedPoisonOncePerTurn, .bleedPoisonOncePerTurn, default: false),
+        .init(\.enemyPoisonDecaySlowPercent, .enemyPoisonDecaySlowPercent, default: 0),
+        .init(\.enemyPoisonPreventDecayChancePercent, .enemyPoisonPreventDecayChancePercent, default: 0),
+        .init(\.enemyPoisonDecayIncreaseChance, .enemyPoisonDecayIncreaseChance, default: 0),
+        .init(\.enemyBurnDecaySlowPercent, .enemyBurnDecaySlowPercent, default: 0),
+        .init(\.enemyBurnDecaySlowVsBleedingPercent, .enemyBurnDecaySlowVsBleedingPercent, default: 0),
+        .init(\.enemyBurnPreventDecayChancePercent, .enemyBurnPreventDecayChancePercent, default: 0),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.redline != other.redline { fields.append(.redline) }
-        if self.bleedHalvesAfterExpiration != other.bleedHalvesAfterExpiration { fields.append(.bleedHalvesAfterExpiration) }
-        if self.burnAndBleedShareDamageBonuses != other.burnAndBleedShareDamageBonuses { fields.append(.burnAndBleedShareDamageBonuses) }
-        if self.burnDecaySlowPercent != other.burnDecaySlowPercent { fields.append(.burnDecaySlowPercent) }
-        if self.poisonDecaySlowPercent != other.poisonDecaySlowPercent { fields.append(.poisonDecaySlowPercent) }
-        if self.poisonDecayIncreaseChance != other.poisonDecayIncreaseChance { fields.append(.poisonDecayIncreaseChance) }
-        if self.onBleedApplyPoison != other.onBleedApplyPoison { fields.append(.onBleedApplyPoison) }
-        if self.onBurnApplyPoison != other.onBurnApplyPoison { fields.append(.onBurnApplyPoison) }
-        if self.onBleedDealBurnDamage != other.onBleedDealBurnDamage { fields.append(.onBleedDealBurnDamage) }
-        if self.onBleedDealPoisonChancePercent != other.onBleedDealPoisonChancePercent { fields.append(.onBleedDealPoisonChancePercent) }
-        if self.onBurnDealPoisonChancePercent != other.onBurnDealPoisonChancePercent { fields.append(.onBurnDealPoisonChancePercent) }
-        if self.onBleedDealBurnChancePercent != other.onBleedDealBurnChancePercent { fields.append(.onBleedDealBurnChancePercent) }
-        if self.onBurnDamageDetonateBleedChancePercent != other.onBurnDamageDetonateBleedChancePercent { fields.append(.onBurnDamageDetonateBleedChancePercent) }
-        if self.poisonStunChancePercent != other.poisonStunChancePercent { fields.append(.poisonStunChancePercent) }
-        if self.freezeDamageWhileBurningBonus != other.freezeDamageWhileBurningBonus { fields.append(.freezeDamageWhileBurningBonus) }
-        if self.bleedConsumesPoison != other.bleedConsumesPoison { fields.append(.bleedConsumesPoison) }
-        if self.bleedApplicationTicksExisting != other.bleedApplicationTicksExisting { fields.append(.bleedApplicationTicksExisting) }
-        if self.onBleedAppliedToBleedingDealDamage != other.onBleedAppliedToBleedingDealDamage { fields.append(.onBleedAppliedToBleedingDealDamage) }
-        if self.bleedsIgnoreMitigation != other.bleedsIgnoreMitigation { fields.append(.bleedsIgnoreMitigation) }
-        if self.onBleedDamageHealSelf != other.onBleedDamageHealSelf { fields.append(.onBleedDamageHealSelf) }
-        if self.onBurnTickHolyDamage != other.onBurnTickHolyDamage { fields.append(.onBurnTickHolyDamage) }
-        if self.burnTicksTwicePerTurn != other.burnTicksTwicePerTurn { fields.append(.burnTicksTwicePerTurn) }
-        if self.damagePerBurnPotencyPercent != other.damagePerBurnPotencyPercent { fields.append(.damagePerBurnPotencyPercent) }
-        if self.burnIncreaseChancePercent != other.burnIncreaseChancePercent { fields.append(.burnIncreaseChancePercent) }
-        if self.poisonThresholdStunAmount != other.poisonThresholdStunAmount { fields.append(.poisonThresholdStunAmount) }
-        if self.poisonDamageLeechChancePercent != other.poisonDamageLeechChancePercent { fields.append(.poisonDamageLeechChancePercent) }
-        if self.onCritDoubleBleedDuration != other.onCritDoubleBleedDuration { fields.append(.onCritDoubleBleedDuration) }
-        if self.criticalOnBleedingDetonateBleed != other.criticalOnBleedingDetonateBleed { fields.append(.criticalOnBleedingDetonateBleed) }
-        if self.criticalOnBleedingDetonateBleedChance != other.criticalOnBleedingDetonateBleedChance { fields.append(.criticalOnBleedingDetonateBleedChance) }
-        if self.criticalDetonateBleedAndPoison != other.criticalDetonateBleedAndPoison { fields.append(.criticalDetonateBleedAndPoison) }
-        if self.onBurnDamageDetonateBleed != other.onBurnDamageDetonateBleed { fields.append(.onBurnDamageDetonateBleed) }
-        if self.freezeDamageLeech != other.freezeDamageLeech { fields.append(.freezeDamageLeech) }
-        if self.poisonAttackLeech != other.poisonAttackLeech { fields.append(.poisonAttackLeech) }
-        if self.bleedDamageGoldFlat != other.bleedDamageGoldFlat { fields.append(.bleedDamageGoldFlat) }
-        if self.burnDamageRampPerRound != other.burnDamageRampPerRound { fields.append(.burnDamageRampPerRound) }
-        if self.burnDamageRampCap != other.burnDamageRampCap { fields.append(.burnDamageRampCap) }
-        if self.bleedDamageRampPerRound != other.bleedDamageRampPerRound { fields.append(.bleedDamageRampPerRound) }
-        if self.bleedDamageRampCap != other.bleedDamageRampCap { fields.append(.bleedDamageRampCap) }
-        if self.burnDamageManaRestoreThreshold != other.burnDamageManaRestoreThreshold { fields.append(.burnDamageManaRestoreThreshold) }
-        if self.onBurnDamageRestoreManaPerTurnCap != other.onBurnDamageRestoreManaPerTurnCap { fields.append(.onBurnDamageRestoreManaPerTurnCap) }
-        if self.burnProcsBleedChancePercent != other.burnProcsBleedChancePercent { fields.append(.burnProcsBleedChancePercent) }
-        if self.bleedProcsBurnChancePercent != other.bleedProcsBurnChancePercent { fields.append(.bleedProcsBurnChancePercent) }
-        if self.burnDamageLeech != other.burnDamageLeech { fields.append(.burnDamageLeech) }
-        if self.firstBurnAttackLeech != other.firstBurnAttackLeech { fields.append(.firstBurnAttackLeech) }
-        if self.bleedDamageLeech != other.bleedDamageLeech { fields.append(.bleedDamageLeech) }
-        if self.shatterpoint != other.shatterpoint { fields.append(.shatterpoint) }
-        if self.cryostasis != other.cryostasis { fields.append(.cryostasis) }
-        if self.crossContamination != other.crossContamination { fields.append(.crossContamination) }
-        if self.backdraft != other.backdraft { fields.append(.backdraft) }
-        if self.ashenArsenal != other.ashenArsenal { fields.append(.ashenArsenal) }
-        if self.arterialCascade != other.arterialCascade { fields.append(.arterialCascade) }
-        if self.steamExplosion != other.steamExplosion { fields.append(.steamExplosion) }
-        if self.safeHandling != other.safeHandling { fields.append(.safeHandling) }
-        if self.unstableCulture != other.unstableCulture { fields.append(.unstableCulture) }
-        if self.sealedVial != other.sealedVial { fields.append(.sealedVial) }
-        if self.barbedSpores != other.barbedSpores { fields.append(.barbedSpores) }
-        if self.livingBark != other.livingBark { fields.append(.livingBark) }
-        if self.rootPassage != other.rootPassage { fields.append(.rootPassage) }
-        if self.firstThornsPoisonDamagePerTurn != other.firstThornsPoisonDamagePerTurn { fields.append(.firstThornsPoisonDamagePerTurn) }
-        if self.bleedTickDrawChancePercent != other.bleedTickDrawChancePercent { fields.append(.bleedTickDrawChancePercent) }
-        if self.burnAttackDoubleChancePercent != other.burnAttackDoubleChancePercent { fields.append(.burnAttackDoubleChancePercent) }
-        if self.burnDecaySlowVsBleedingPercent != other.burnDecaySlowVsBleedingPercent { fields.append(.burnDecaySlowVsBleedingPercent) }
-        if self.bleedDurationFromCriticalBonus != other.bleedDurationFromCriticalBonus { fields.append(.bleedDurationFromCriticalBonus) }
-        if self.bleedDurationVsPoisonedBonus != other.bleedDurationVsPoisonedBonus { fields.append(.bleedDurationVsPoisonedBonus) }
-        if self.burnAttackBleedChancePercent != other.burnAttackBleedChancePercent { fields.append(.burnAttackBleedChancePercent) }
-        if self.burnAttackBleedDamage != other.burnAttackBleedDamage { fields.append(.burnAttackBleedDamage) }
-        if self.poisonPreventDecayChancePercent != other.poisonPreventDecayChancePercent { fields.append(.poisonPreventDecayChancePercent) }
-        if self.poisonDamageVsStunnedMultiplier != other.poisonDamageVsStunnedMultiplier { fields.append(.poisonDamageVsStunnedMultiplier) }
-        if self.bleedDamageBelowHalfMultiplier != other.bleedDamageBelowHalfMultiplier { fields.append(.bleedDamageBelowHalfMultiplier) }
-        if self.onDamageBurnRetaliationChancePercent != other.onDamageBurnRetaliationChancePercent { fields.append(.onDamageBurnRetaliationChancePercent) }
-        if self.onDamageBurnRetaliationDamage != other.onDamageBurnRetaliationDamage { fields.append(.onDamageBurnRetaliationDamage) }
-        if self.burnPreventDecayChancePercent != other.burnPreventDecayChancePercent { fields.append(.burnPreventDecayChancePercent) }
-        if self.bleedPoisonOncePerTurn != other.bleedPoisonOncePerTurn { fields.append(.bleedPoisonOncePerTurn) }
-        if self.enemyPoisonDecaySlowPercent != other.enemyPoisonDecaySlowPercent { fields.append(.enemyPoisonDecaySlowPercent) }
-        if self.enemyPoisonPreventDecayChancePercent != other.enemyPoisonPreventDecayChancePercent { fields.append(.enemyPoisonPreventDecayChancePercent) }
-        if self.enemyPoisonDecayIncreaseChance != other.enemyPoisonDecayIncreaseChance { fields.append(.enemyPoisonDecayIncreaseChance) }
-        if self.enemyBurnDecaySlowPercent != other.enemyBurnDecaySlowPercent { fields.append(.enemyBurnDecaySlowPercent) }
-        if self.enemyBurnDecaySlowVsBleedingPercent != other.enemyBurnDecaySlowVsBleedingPercent { fields.append(.enemyBurnDecaySlowVsBleedingPercent) }
-        if self.enemyBurnPreventDecayChancePercent != other.enemyBurnPreventDecayChancePercent { fields.append(.enemyBurnPreventDecayChancePercent) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -419,168 +421,15 @@ extension DotTriggers {
 extension DotTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            redline: values.decode(Bool.self, "redline", default: false),
-            bleedHalvesAfterExpiration: values.decode(Bool.self, "bleedHalvesAfterExpiration", default: false),
-            burnAndBleedShareDamageBonuses: values.decode(Bool.self, "burnAndBleedShareDamageBonuses", default: false),
-            burnDecaySlowPercent: values.decode(Double.self, "burnDecaySlowPercent", default: 0),
-            poisonDecaySlowPercent: values.decode(Double.self, "poisonDecaySlowPercent", default: 0),
-            poisonDecayIncreaseChance: values.decode(Double.self, "poisonDecayIncreaseChance", default: 0),
-            onBleedApplyPoison: values.decode(Int.self, "onBleedApplyPoison", default: 0),
-            onBurnApplyPoison: values.decode(Int.self, "onBurnApplyPoison", default: 0),
-            onBleedDealBurnDamage: values.decode(Int.self, "onBleedDealBurnDamage", default: 0),
-            onBleedDealPoisonChancePercent: values.decode(Double.self, "onBleedDealPoisonChancePercent", default: 0),
-            onBurnDealPoisonChancePercent: values.decode(Double.self, "onBurnDealPoisonChancePercent", default: 0),
-            onBleedDealBurnChancePercent: values.decode(Double.self, "onBleedDealBurnChancePercent", default: 0),
-            onBurnDamageDetonateBleedChancePercent: values.decode(Double.self, "onBurnDamageDetonateBleedChancePercent", default: 0),
-            poisonStunChancePercent: values.decode(Double.self, "poisonStunChancePercent", default: 0),
-            freezeDamageWhileBurningBonus: values.decode(Int.self, "freezeDamageWhileBurningBonus", default: 0),
-            bleedConsumesPoison: values.decode(Bool.self, "bleedConsumesPoison", default: false),
-            bleedApplicationTicksExisting: values.decode(Bool.self, "bleedApplicationTicksExisting", default: false),
-            onBleedAppliedToBleedingDealDamage: values.decode(Int.self, "onBleedAppliedToBleedingDealDamage", default: 0),
-            bleedsIgnoreMitigation: values.decode(Bool.self, "bleedsIgnoreMitigation", default: false),
-            onBleedDamageHealSelf: values.decode(Int.self, "onBleedDamageHealSelf", default: 0),
-            onBurnTickHolyDamage: values.decode(Int.self, "onBurnTickHolyDamage", default: 0),
-            burnTicksTwicePerTurn: values.decode(Bool.self, "burnTicksTwicePerTurn", default: false),
-            damagePerBurnPotencyPercent: values.decode(Double.self, "damagePerBurnPotencyPercent", default: 0),
-            burnIncreaseChancePercent: values.decode(Double.self, "burnIncreaseChancePercent", default: 0),
-            poisonThresholdStunAmount: values.decode(Int.self, "poisonThresholdStunAmount", default: 0),
-            poisonDamageLeechChancePercent: values.decode(Double.self, "poisonDamageLeechChancePercent", default: 0),
-            onCritDoubleBleedDuration: values.decode(Bool.self, "onCritDoubleBleedDuration", default: false),
-            criticalOnBleedingDetonateBleed: values.decode(Bool.self, "criticalOnBleedingDetonateBleed", default: false),
-            criticalOnBleedingDetonateBleedChance: values.decode(Double.self, "criticalOnBleedingDetonateBleedChance", default: 0),
-            criticalDetonateBleedAndPoison: values.decode(Bool.self, "criticalDetonateBleedAndPoison", default: false),
-            onBurnDamageDetonateBleed: values.decode(Bool.self, "onBurnDamageDetonateBleed", default: false),
-            freezeDamageLeech: values.decode(Bool.self, "freezeDamageLeech", default: false),
-            poisonAttackLeech: values.decode(Bool.self, "poisonAttackLeech", default: false),
-            bleedDamageGoldFlat: values.decode(Int.self, "bleedDamageGoldFlat", default: 0),
-            burnDamageRampPerRound: values.decode(Int.self, "burnDamageRampPerRound", default: 0),
-            burnDamageRampCap: values.decode(Int.self, "burnDamageRampCap", default: 0),
-            bleedDamageRampPerRound: values.decode(Int.self, "bleedDamageRampPerRound", default: 0),
-            bleedDamageRampCap: values.decode(Int.self, "bleedDamageRampCap", default: 0),
-            burnDamageManaRestoreThreshold: values.decode(Int.self, "burnDamageManaRestoreThreshold", default: 0),
-            onBurnDamageRestoreManaPerTurnCap: values.decode(Int.self, "onBurnDamageRestoreManaPerTurnCap", default: 0),
-            burnProcsBleedChancePercent: values.decode(Double.self, "burnProcsBleedChancePercent", default: 0),
-            bleedProcsBurnChancePercent: values.decode(Double.self, "bleedProcsBurnChancePercent", default: 0),
-            burnDamageLeech: values.decode(Bool.self, "burnDamageLeech", default: false),
-            firstBurnAttackLeech: values.decode(Bool.self, "firstBurnAttackLeech", default: false),
-            bleedDamageLeech: values.decode(Bool.self, "bleedDamageLeech", default: false),
-            shatterpoint: values.decode(Bool.self, "shatterpoint", default: false),
-            cryostasis: values.decode(Bool.self, "cryostasis", default: false),
-            crossContamination: values.decode(Bool.self, "crossContamination", default: false),
-            backdraft: values.decode(Bool.self, "backdraft", default: false),
-            ashenArsenal: values.decode(Bool.self, "ashenArsenal", default: false),
-            arterialCascade: values.decode(Bool.self, "arterialCascade", default: false),
-            steamExplosion: values.decode(Bool.self, "steamExplosion", default: false),
-            safeHandling: values.decode(Bool.self, "safeHandling", default: false),
-            unstableCulture: values.decode(Bool.self, "unstableCulture", default: false),
-            sealedVial: values.decode(Bool.self, "sealedVial", default: false),
-            barbedSpores: values.decode(Bool.self, "barbedSpores", default: false),
-            livingBark: values.decode(Bool.self, "livingBark", default: false),
-            rootPassage: values.decode(Bool.self, "rootPassage", default: false),
-            firstThornsPoisonDamagePerTurn: values.decode(Int.self, "firstThornsPoisonDamagePerTurn", default: 0),
-            bleedTickDrawChancePercent: values.decode(Double.self, "bleedTickDrawChancePercent", default: 0),
-            burnAttackDoubleChancePercent: values.decode(Double.self, "burnAttackDoubleChancePercent", default: 0),
-            burnDecaySlowVsBleedingPercent: values.decode(Double.self, "burnDecaySlowVsBleedingPercent", default: 0),
-            bleedDurationFromCriticalBonus: values.decode(Int.self, "bleedDurationFromCriticalBonus", default: 0),
-            bleedDurationVsPoisonedBonus: values.decode(Int.self, "bleedDurationVsPoisonedBonus", default: 0),
-            burnAttackBleedChancePercent: values.decode(Double.self, "burnAttackBleedChancePercent", default: 0),
-            burnAttackBleedDamage: values.decode(Int.self, "burnAttackBleedDamage", default: 0),
-            poisonPreventDecayChancePercent: values.decode(Double.self, "poisonPreventDecayChancePercent", default: 0),
-            poisonDamageVsStunnedMultiplier: values.decode(Double.self, "poisonDamageVsStunnedMultiplier", default: 1),
-            bleedDamageBelowHalfMultiplier: values.decode(Double.self, "bleedDamageBelowHalfMultiplier", default: 1),
-            onDamageBurnRetaliationChancePercent: values.decode(Double.self, "onDamageBurnRetaliationChancePercent", default: 0),
-            onDamageBurnRetaliationDamage: values.decode(Int.self, "onDamageBurnRetaliationDamage", default: 0),
-            burnPreventDecayChancePercent: values.decode(Double.self, "burnPreventDecayChancePercent", default: 0),
-            bleedPoisonOncePerTurn: values.decode(Bool.self, "bleedPoisonOncePerTurn", default: false),
-            enemyPoisonDecaySlowPercent: values.decode(Double.self, "enemyPoisonDecaySlowPercent", default: 0),
-            enemyPoisonPreventDecayChancePercent: values.decode(Double.self, "enemyPoisonPreventDecayChancePercent", default: 0),
-            enemyPoisonDecayIncreaseChance: values.decode(Double.self, "enemyPoisonDecayIncreaseChance", default: 0),
-            enemyBurnDecaySlowPercent: values.decode(Double.self, "enemyBurnDecaySlowPercent", default: 0),
-            enemyBurnDecaySlowVsBleedingPercent: values.decode(Double.self, "enemyBurnDecaySlowVsBleedingPercent", default: 0),
-            enemyBurnPreventDecayChancePercent: values.decode(Double.self, "enemyBurnPreventDecayChancePercent", default: 0)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(redline, "redline", default: false)
-        try container.encodeNonDefault(bleedHalvesAfterExpiration, "bleedHalvesAfterExpiration", default: false)
-        try container.encodeNonDefault(burnAndBleedShareDamageBonuses, "burnAndBleedShareDamageBonuses", default: false)
-        try container.encodeNonDefault(burnDecaySlowPercent, "burnDecaySlowPercent", default: 0)
-        try container.encodeNonDefault(poisonDecaySlowPercent, "poisonDecaySlowPercent", default: 0)
-        try container.encodeNonDefault(poisonDecayIncreaseChance, "poisonDecayIncreaseChance", default: 0)
-        try container.encodeNonDefault(onBleedApplyPoison, "onBleedApplyPoison", default: 0)
-        try container.encodeNonDefault(onBurnApplyPoison, "onBurnApplyPoison", default: 0)
-        try container.encodeNonDefault(onBleedDealBurnDamage, "onBleedDealBurnDamage", default: 0)
-        try container.encodeNonDefault(onBleedDealPoisonChancePercent, "onBleedDealPoisonChancePercent", default: 0)
-        try container.encodeNonDefault(onBurnDealPoisonChancePercent, "onBurnDealPoisonChancePercent", default: 0)
-        try container.encodeNonDefault(onBleedDealBurnChancePercent, "onBleedDealBurnChancePercent", default: 0)
-        try container.encodeNonDefault(onBurnDamageDetonateBleedChancePercent, "onBurnDamageDetonateBleedChancePercent", default: 0)
-        try container.encodeNonDefault(poisonStunChancePercent, "poisonStunChancePercent", default: 0)
-        try container.encodeNonDefault(freezeDamageWhileBurningBonus, "freezeDamageWhileBurningBonus", default: 0)
-        try container.encodeNonDefault(bleedConsumesPoison, "bleedConsumesPoison", default: false)
-        try container.encodeNonDefault(bleedApplicationTicksExisting, "bleedApplicationTicksExisting", default: false)
-        try container.encodeNonDefault(onBleedAppliedToBleedingDealDamage, "onBleedAppliedToBleedingDealDamage", default: 0)
-        try container.encodeNonDefault(bleedsIgnoreMitigation, "bleedsIgnoreMitigation", default: false)
-        try container.encodeNonDefault(onBleedDamageHealSelf, "onBleedDamageHealSelf", default: 0)
-        try container.encodeNonDefault(onBurnTickHolyDamage, "onBurnTickHolyDamage", default: 0)
-        try container.encodeNonDefault(burnTicksTwicePerTurn, "burnTicksTwicePerTurn", default: false)
-        try container.encodeNonDefault(damagePerBurnPotencyPercent, "damagePerBurnPotencyPercent", default: 0)
-        try container.encodeNonDefault(burnIncreaseChancePercent, "burnIncreaseChancePercent", default: 0)
-        try container.encodeNonDefault(poisonThresholdStunAmount, "poisonThresholdStunAmount", default: 0)
-        try container.encodeNonDefault(poisonDamageLeechChancePercent, "poisonDamageLeechChancePercent", default: 0)
-        try container.encodeNonDefault(onCritDoubleBleedDuration, "onCritDoubleBleedDuration", default: false)
-        try container.encodeNonDefault(criticalOnBleedingDetonateBleed, "criticalOnBleedingDetonateBleed", default: false)
-        try container.encodeNonDefault(criticalOnBleedingDetonateBleedChance, "criticalOnBleedingDetonateBleedChance", default: 0)
-        try container.encodeNonDefault(criticalDetonateBleedAndPoison, "criticalDetonateBleedAndPoison", default: false)
-        try container.encodeNonDefault(onBurnDamageDetonateBleed, "onBurnDamageDetonateBleed", default: false)
-        try container.encodeNonDefault(freezeDamageLeech, "freezeDamageLeech", default: false)
-        try container.encodeNonDefault(poisonAttackLeech, "poisonAttackLeech", default: false)
-        try container.encodeNonDefault(bleedDamageGoldFlat, "bleedDamageGoldFlat", default: 0)
-        try container.encodeNonDefault(burnDamageRampPerRound, "burnDamageRampPerRound", default: 0)
-        try container.encodeNonDefault(burnDamageRampCap, "burnDamageRampCap", default: 0)
-        try container.encodeNonDefault(bleedDamageRampPerRound, "bleedDamageRampPerRound", default: 0)
-        try container.encodeNonDefault(bleedDamageRampCap, "bleedDamageRampCap", default: 0)
-        try container.encodeNonDefault(burnDamageManaRestoreThreshold, "burnDamageManaRestoreThreshold", default: 0)
-        try container.encodeNonDefault(onBurnDamageRestoreManaPerTurnCap, "onBurnDamageRestoreManaPerTurnCap", default: 0)
-        try container.encodeNonDefault(burnProcsBleedChancePercent, "burnProcsBleedChancePercent", default: 0)
-        try container.encodeNonDefault(bleedProcsBurnChancePercent, "bleedProcsBurnChancePercent", default: 0)
-        try container.encodeNonDefault(burnDamageLeech, "burnDamageLeech", default: false)
-        try container.encodeNonDefault(firstBurnAttackLeech, "firstBurnAttackLeech", default: false)
-        try container.encodeNonDefault(bleedDamageLeech, "bleedDamageLeech", default: false)
-        try container.encodeNonDefault(shatterpoint, "shatterpoint", default: false)
-        try container.encodeNonDefault(cryostasis, "cryostasis", default: false)
-        try container.encodeNonDefault(crossContamination, "crossContamination", default: false)
-        try container.encodeNonDefault(backdraft, "backdraft", default: false)
-        try container.encodeNonDefault(ashenArsenal, "ashenArsenal", default: false)
-        try container.encodeNonDefault(arterialCascade, "arterialCascade", default: false)
-        try container.encodeNonDefault(steamExplosion, "steamExplosion", default: false)
-        try container.encodeNonDefault(safeHandling, "safeHandling", default: false)
-        try container.encodeNonDefault(unstableCulture, "unstableCulture", default: false)
-        try container.encodeNonDefault(sealedVial, "sealedVial", default: false)
-        try container.encodeNonDefault(barbedSpores, "barbedSpores", default: false)
-        try container.encodeNonDefault(livingBark, "livingBark", default: false)
-        try container.encodeNonDefault(rootPassage, "rootPassage", default: false)
-        try container.encodeNonDefault(firstThornsPoisonDamagePerTurn, "firstThornsPoisonDamagePerTurn", default: 0)
-        try container.encodeNonDefault(bleedTickDrawChancePercent, "bleedTickDrawChancePercent", default: 0)
-        try container.encodeNonDefault(burnAttackDoubleChancePercent, "burnAttackDoubleChancePercent", default: 0)
-        try container.encodeNonDefault(burnDecaySlowVsBleedingPercent, "burnDecaySlowVsBleedingPercent", default: 0)
-        try container.encodeNonDefault(bleedDurationFromCriticalBonus, "bleedDurationFromCriticalBonus", default: 0)
-        try container.encodeNonDefault(bleedDurationVsPoisonedBonus, "bleedDurationVsPoisonedBonus", default: 0)
-        try container.encodeNonDefault(burnAttackBleedChancePercent, "burnAttackBleedChancePercent", default: 0)
-        try container.encodeNonDefault(burnAttackBleedDamage, "burnAttackBleedDamage", default: 0)
-        try container.encodeNonDefault(poisonPreventDecayChancePercent, "poisonPreventDecayChancePercent", default: 0)
-        try container.encodeNonDefault(poisonDamageVsStunnedMultiplier, "poisonDamageVsStunnedMultiplier", default: 1)
-        try container.encodeNonDefault(bleedDamageBelowHalfMultiplier, "bleedDamageBelowHalfMultiplier", default: 1)
-        try container.encodeNonDefault(onDamageBurnRetaliationChancePercent, "onDamageBurnRetaliationChancePercent", default: 0)
-        try container.encodeNonDefault(onDamageBurnRetaliationDamage, "onDamageBurnRetaliationDamage", default: 0)
-        try container.encodeNonDefault(burnPreventDecayChancePercent, "burnPreventDecayChancePercent", default: 0)
-        try container.encodeNonDefault(bleedPoisonOncePerTurn, "bleedPoisonOncePerTurn", default: false)
-        try container.encodeNonDefault(enemyPoisonDecaySlowPercent, "enemyPoisonDecaySlowPercent", default: 0)
-        try container.encodeNonDefault(enemyPoisonPreventDecayChancePercent, "enemyPoisonPreventDecayChancePercent", default: 0)
-        try container.encodeNonDefault(enemyPoisonDecayIncreaseChance, "enemyPoisonDecayIncreaseChance", default: 0)
-        try container.encodeNonDefault(enemyBurnDecaySlowPercent, "enemyBurnDecaySlowPercent", default: 0)
-        try container.encodeNonDefault(enemyBurnDecaySlowVsBleedingPercent, "enemyBurnDecaySlowVsBleedingPercent", default: 0)
-        try container.encodeNonDefault(enemyBurnPreventDecayChancePercent, "enemyBurnPreventDecayChancePercent", default: 0)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

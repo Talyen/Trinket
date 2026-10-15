@@ -123,48 +123,50 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.cleanseHolyDamage = cleanseHolyDamage
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<CleanseTriggers>] = [
+        .init(\.interdict, .interdict, default: false),
+        .init(\.lessonLearned, .lessonLearned, default: false),
+        .init(\.cleanseBonusDraw, .cleanseBonusDraw, default: 0),
+        .init(\.holyDamageCleanseCount, .holyDamageCleanseCount, default: 0),
+        .init(\.holyDamagePurgeCount, .holyDamagePurgeCount, default: 0),
+        .init(\.holyDamagePurgeAll, .holyDamagePurgeAll, default: false),
+        .init(\.cleanseBlockPerStack, .cleanseBlockPerStack, default: 0),
+        .init(\.cleanseAffectsBothHeroAndCompanion, .cleanseAffectsBothHeroAndCompanion, default: false),
+        .init(\.cleanseReflectDebuffToEnemy, .cleanseReflectDebuffToEnemy, default: false),
+        .init(\.autoCleanseTeamPerTurn, .autoCleanseTeamPerTurn, default: 0),
+        .init(\.cleanseAlsoPurgesEnemyBuffs, .cleanseAlsoPurgesEnemyBuffs, default: 0),
+        .init(\.cleanseDodgeChanceBonus, .cleanseDodgeChanceBonus, default: 0),
+        .init(\.cleanseDodgeChanceBonusTurns, .cleanseDodgeChanceBonusTurns, default: 0),
+        .init(\.cleansePartyBlock, .cleansePartyBlock, default: 0),
+        .init(\.blockFirstDebuffPerTurn, .blockFirstDebuffPerTurn, default: false),
+        .init(\.partyDebuffDurationHalved, .partyDebuffDurationHalved, default: false),
+        .init(\.purifyingAura, .purifyingAura, default: false),
+        .init(\.onCleansePoisonDealDamagePerStack, .onCleansePoisonDealDamagePerStack, default: 0),
+        .init(\.crownfall, .crownfall, default: false),
+        .init(\.clearSolution, .clearSolution, default: false),
+        .init(\.freshBatch, .freshBatch, default: false),
+        .init(\.heatRecovery, .heatRecovery, default: false),
+        .init(\.antitoxinCoating, .antitoxinCoating, default: false),
+        .init(\.clearMind, .clearMind, default: false),
+        .init(\.cleanBreak, .cleanBreak, default: false),
+        .init(\.perfectPurity, .perfectPurity, default: false),
+        .init(\.purgePreparesDoubleHolyAttack, .purgePreparesDoubleHolyAttack, default: false),
+        .init(\.cleanseNextAttackCriticalBonus, .cleanseNextAttackCriticalBonus, default: 0),
+        .init(\.cleansePurgeChancePercent, .cleansePurgeChancePercent, default: 0),
+        .init(\.cleanseRemovesFreezeBuildup, .cleanseRemovesFreezeBuildup, default: false),
+        .init(\.cleanseTargetBlockFlat, .cleanseTargetBlockFlat, default: 0),
+        .init(\.firstCleanseExtraRemovalPerTurn, .firstCleanseExtraRemovalPerTurn, default: 0),
+        .init(\.cleanseSelfBlockFlat, .cleanseSelfBlockFlat, default: 0),
+        .init(\.onCleanseRestoreMana, .onCleanseRestoreMana, default: 0),
+        .init(\.onPurgeGainBlock, .onPurgeGainBlock, default: 0),
+        .init(\.onPurgeDealHolyDamage, .onPurgeDealHolyDamage, default: 0),
+        .init(\.purgeDrawBelowHalf, .purgeDrawBelowHalf, default: false),
+        .init(\.cleanseHolyDamage, .cleanseHolyDamage, default: 0),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.interdict != other.interdict { fields.append(.interdict) }
-        if self.lessonLearned != other.lessonLearned { fields.append(.lessonLearned) }
-        if self.cleanseBonusDraw != other.cleanseBonusDraw { fields.append(.cleanseBonusDraw) }
-        if self.holyDamageCleanseCount != other.holyDamageCleanseCount { fields.append(.holyDamageCleanseCount) }
-        if self.holyDamagePurgeCount != other.holyDamagePurgeCount { fields.append(.holyDamagePurgeCount) }
-        if self.holyDamagePurgeAll != other.holyDamagePurgeAll { fields.append(.holyDamagePurgeAll) }
-        if self.cleanseBlockPerStack != other.cleanseBlockPerStack { fields.append(.cleanseBlockPerStack) }
-        if self.cleanseAffectsBothHeroAndCompanion != other.cleanseAffectsBothHeroAndCompanion { fields.append(.cleanseAffectsBothHeroAndCompanion) }
-        if self.cleanseReflectDebuffToEnemy != other.cleanseReflectDebuffToEnemy { fields.append(.cleanseReflectDebuffToEnemy) }
-        if self.autoCleanseTeamPerTurn != other.autoCleanseTeamPerTurn { fields.append(.autoCleanseTeamPerTurn) }
-        if self.cleanseAlsoPurgesEnemyBuffs != other.cleanseAlsoPurgesEnemyBuffs { fields.append(.cleanseAlsoPurgesEnemyBuffs) }
-        if self.cleanseDodgeChanceBonus != other.cleanseDodgeChanceBonus { fields.append(.cleanseDodgeChanceBonus) }
-        if self.cleanseDodgeChanceBonusTurns != other.cleanseDodgeChanceBonusTurns { fields.append(.cleanseDodgeChanceBonusTurns) }
-        if self.cleansePartyBlock != other.cleansePartyBlock { fields.append(.cleansePartyBlock) }
-        if self.blockFirstDebuffPerTurn != other.blockFirstDebuffPerTurn { fields.append(.blockFirstDebuffPerTurn) }
-        if self.partyDebuffDurationHalved != other.partyDebuffDurationHalved { fields.append(.partyDebuffDurationHalved) }
-        if self.purifyingAura != other.purifyingAura { fields.append(.purifyingAura) }
-        if self.onCleansePoisonDealDamagePerStack != other.onCleansePoisonDealDamagePerStack { fields.append(.onCleansePoisonDealDamagePerStack) }
-        if self.crownfall != other.crownfall { fields.append(.crownfall) }
-        if self.clearSolution != other.clearSolution { fields.append(.clearSolution) }
-        if self.freshBatch != other.freshBatch { fields.append(.freshBatch) }
-        if self.heatRecovery != other.heatRecovery { fields.append(.heatRecovery) }
-        if self.antitoxinCoating != other.antitoxinCoating { fields.append(.antitoxinCoating) }
-        if self.clearMind != other.clearMind { fields.append(.clearMind) }
-        if self.cleanBreak != other.cleanBreak { fields.append(.cleanBreak) }
-        if self.perfectPurity != other.perfectPurity { fields.append(.perfectPurity) }
-        if self.purgePreparesDoubleHolyAttack != other.purgePreparesDoubleHolyAttack { fields.append(.purgePreparesDoubleHolyAttack) }
-        if self.cleanseNextAttackCriticalBonus != other.cleanseNextAttackCriticalBonus { fields.append(.cleanseNextAttackCriticalBonus) }
-        if self.cleansePurgeChancePercent != other.cleansePurgeChancePercent { fields.append(.cleansePurgeChancePercent) }
-        if self.cleanseRemovesFreezeBuildup != other.cleanseRemovesFreezeBuildup { fields.append(.cleanseRemovesFreezeBuildup) }
-        if self.cleanseTargetBlockFlat != other.cleanseTargetBlockFlat { fields.append(.cleanseTargetBlockFlat) }
-        if self.firstCleanseExtraRemovalPerTurn != other.firstCleanseExtraRemovalPerTurn { fields.append(.firstCleanseExtraRemovalPerTurn) }
-        if self.cleanseSelfBlockFlat != other.cleanseSelfBlockFlat { fields.append(.cleanseSelfBlockFlat) }
-        if self.onCleanseRestoreMana != other.onCleanseRestoreMana { fields.append(.onCleanseRestoreMana) }
-        if self.onPurgeGainBlock != other.onPurgeGainBlock { fields.append(.onPurgeGainBlock) }
-        if self.onPurgeDealHolyDamage != other.onPurgeDealHolyDamage { fields.append(.onPurgeDealHolyDamage) }
-        if self.purgeDrawBelowHalf != other.purgeDrawBelowHalf { fields.append(.purgeDrawBelowHalf) }
-        if self.cleanseHolyDamage != other.cleanseHolyDamage { fields.append(.cleanseHolyDamage) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -214,86 +216,15 @@ extension CleanseTriggers {
 extension CleanseTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            interdict: values.decode(Bool.self, "interdict", default: false),
-            lessonLearned: values.decode(Bool.self, "lessonLearned", default: false),
-            cleanseBonusDraw: values.decode(Int.self, "cleanseBonusDraw", default: 0),
-            holyDamageCleanseCount: values.decode(Int.self, "holyDamageCleanseCount", default: 0),
-            holyDamagePurgeCount: values.decode(Int.self, "holyDamagePurgeCount", default: 0),
-            holyDamagePurgeAll: values.decode(Bool.self, "holyDamagePurgeAll", default: false),
-            cleanseBlockPerStack: values.decode(Int.self, "cleanseBlockPerStack", default: 0),
-            cleanseAffectsBothHeroAndCompanion: values.decode(Bool.self, "cleanseAffectsBothHeroAndCompanion", default: false),
-            cleanseReflectDebuffToEnemy: values.decode(Bool.self, "cleanseReflectDebuffToEnemy", default: false),
-            autoCleanseTeamPerTurn: values.decode(Int.self, "autoCleanseTeamPerTurn", default: 0),
-            cleanseAlsoPurgesEnemyBuffs: values.decode(Int.self, "cleanseAlsoPurgesEnemyBuffs", default: 0),
-            cleanseDodgeChanceBonus: values.decode(Double.self, "cleanseDodgeChanceBonus", default: 0),
-            cleanseDodgeChanceBonusTurns: values.decode(Int.self, "cleanseDodgeChanceBonusTurns", default: 0),
-            cleansePartyBlock: values.decode(Int.self, "cleansePartyBlock", default: 0),
-            blockFirstDebuffPerTurn: values.decode(Bool.self, "blockFirstDebuffPerTurn", default: false),
-            partyDebuffDurationHalved: values.decode(Bool.self, "partyDebuffDurationHalved", default: false),
-            purifyingAura: values.decode(Bool.self, "purifyingAura", default: false),
-            onCleansePoisonDealDamagePerStack: values.decode(Int.self, "onCleansePoisonDealDamagePerStack", default: 0),
-            crownfall: values.decode(Bool.self, "crownfall", default: false),
-            clearSolution: values.decode(Bool.self, "clearSolution", default: false),
-            freshBatch: values.decode(Bool.self, "freshBatch", default: false),
-            heatRecovery: values.decode(Bool.self, "heatRecovery", default: false),
-            antitoxinCoating: values.decode(Bool.self, "antitoxinCoating", default: false),
-            clearMind: values.decode(Bool.self, "clearMind", default: false),
-            cleanBreak: values.decode(Bool.self, "cleanBreak", default: false),
-            perfectPurity: values.decode(Bool.self, "perfectPurity", default: false),
-            purgePreparesDoubleHolyAttack: values.decode(Bool.self, "purgePreparesDoubleHolyAttack", default: false),
-            cleanseNextAttackCriticalBonus: values.decode(Double.self, "cleanseNextAttackCriticalBonus", default: 0),
-            cleansePurgeChancePercent: values.decode(Double.self, "cleansePurgeChancePercent", default: 0),
-            cleanseRemovesFreezeBuildup: values.decode(Bool.self, "cleanseRemovesFreezeBuildup", default: false),
-            cleanseTargetBlockFlat: values.decode(Int.self, "cleanseTargetBlockFlat", default: 0),
-            firstCleanseExtraRemovalPerTurn: values.decode(Int.self, "firstCleanseExtraRemovalPerTurn", default: 0),
-            cleanseSelfBlockFlat: values.decode(Int.self, "cleanseSelfBlockFlat", default: 0),
-            onCleanseRestoreMana: values.decode(Int.self, "onCleanseRestoreMana", default: 0),
-            onPurgeGainBlock: values.decode(Int.self, "onPurgeGainBlock", default: 0),
-            onPurgeDealHolyDamage: values.decode(Int.self, "onPurgeDealHolyDamage", default: 0),
-            purgeDrawBelowHalf: values.decode(Bool.self, "purgeDrawBelowHalf", default: false),
-            cleanseHolyDamage: values.decode(Int.self, "cleanseHolyDamage", default: 0)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(interdict, "interdict", default: false)
-        try container.encodeNonDefault(lessonLearned, "lessonLearned", default: false)
-        try container.encodeNonDefault(cleanseBonusDraw, "cleanseBonusDraw", default: 0)
-        try container.encodeNonDefault(holyDamageCleanseCount, "holyDamageCleanseCount", default: 0)
-        try container.encodeNonDefault(holyDamagePurgeCount, "holyDamagePurgeCount", default: 0)
-        try container.encodeNonDefault(holyDamagePurgeAll, "holyDamagePurgeAll", default: false)
-        try container.encodeNonDefault(cleanseBlockPerStack, "cleanseBlockPerStack", default: 0)
-        try container.encodeNonDefault(cleanseAffectsBothHeroAndCompanion, "cleanseAffectsBothHeroAndCompanion", default: false)
-        try container.encodeNonDefault(cleanseReflectDebuffToEnemy, "cleanseReflectDebuffToEnemy", default: false)
-        try container.encodeNonDefault(autoCleanseTeamPerTurn, "autoCleanseTeamPerTurn", default: 0)
-        try container.encodeNonDefault(cleanseAlsoPurgesEnemyBuffs, "cleanseAlsoPurgesEnemyBuffs", default: 0)
-        try container.encodeNonDefault(cleanseDodgeChanceBonus, "cleanseDodgeChanceBonus", default: 0)
-        try container.encodeNonDefault(cleanseDodgeChanceBonusTurns, "cleanseDodgeChanceBonusTurns", default: 0)
-        try container.encodeNonDefault(cleansePartyBlock, "cleansePartyBlock", default: 0)
-        try container.encodeNonDefault(blockFirstDebuffPerTurn, "blockFirstDebuffPerTurn", default: false)
-        try container.encodeNonDefault(partyDebuffDurationHalved, "partyDebuffDurationHalved", default: false)
-        try container.encodeNonDefault(purifyingAura, "purifyingAura", default: false)
-        try container.encodeNonDefault(onCleansePoisonDealDamagePerStack, "onCleansePoisonDealDamagePerStack", default: 0)
-        try container.encodeNonDefault(crownfall, "crownfall", default: false)
-        try container.encodeNonDefault(clearSolution, "clearSolution", default: false)
-        try container.encodeNonDefault(freshBatch, "freshBatch", default: false)
-        try container.encodeNonDefault(heatRecovery, "heatRecovery", default: false)
-        try container.encodeNonDefault(antitoxinCoating, "antitoxinCoating", default: false)
-        try container.encodeNonDefault(clearMind, "clearMind", default: false)
-        try container.encodeNonDefault(cleanBreak, "cleanBreak", default: false)
-        try container.encodeNonDefault(perfectPurity, "perfectPurity", default: false)
-        try container.encodeNonDefault(purgePreparesDoubleHolyAttack, "purgePreparesDoubleHolyAttack", default: false)
-        try container.encodeNonDefault(cleanseNextAttackCriticalBonus, "cleanseNextAttackCriticalBonus", default: 0)
-        try container.encodeNonDefault(cleansePurgeChancePercent, "cleansePurgeChancePercent", default: 0)
-        try container.encodeNonDefault(cleanseRemovesFreezeBuildup, "cleanseRemovesFreezeBuildup", default: false)
-        try container.encodeNonDefault(cleanseTargetBlockFlat, "cleanseTargetBlockFlat", default: 0)
-        try container.encodeNonDefault(firstCleanseExtraRemovalPerTurn, "firstCleanseExtraRemovalPerTurn", default: 0)
-        try container.encodeNonDefault(cleanseSelfBlockFlat, "cleanseSelfBlockFlat", default: 0)
-        try container.encodeNonDefault(onCleanseRestoreMana, "onCleanseRestoreMana", default: 0)
-        try container.encodeNonDefault(onPurgeGainBlock, "onPurgeGainBlock", default: 0)
-        try container.encodeNonDefault(onPurgeDealHolyDamage, "onPurgeDealHolyDamage", default: 0)
-        try container.encodeNonDefault(purgeDrawBelowHalf, "purgeDrawBelowHalf", default: false)
-        try container.encodeNonDefault(cleanseHolyDamage, "cleanseHolyDamage", default: 0)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

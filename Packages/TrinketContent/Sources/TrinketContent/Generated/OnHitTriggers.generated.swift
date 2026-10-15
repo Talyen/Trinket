@@ -33,18 +33,20 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
         self.onHitGainBlock = onHitGainBlock
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<OnHitTriggers>] = [
+        .init(\.resonantShell, .resonantShell, default: false),
+        .init(\.onHitAttackerBurn, .onHitAttackerBurn, default: 0),
+        .init(\.onHitAttackerFreezeBuildup, .onHitAttackerFreezeBuildup, default: 0),
+        .init(\.onHitAttackerPoison, .onHitAttackerPoison, default: 0),
+        .init(\.onHitAttackerBleedPotency, .onHitAttackerBleedPotency, default: 0),
+        .init(\.onHitAttackerBleedTurns, .onHitAttackerBleedTurns, default: 0),
+        .init(\.onHitAttackerHoly, .onHitAttackerHoly, default: 0),
+        .init(\.onHitGainBlock, .onHitGainBlock, default: 0),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.resonantShell != other.resonantShell { fields.append(.resonantShell) }
-        if self.onHitAttackerBurn != other.onHitAttackerBurn { fields.append(.onHitAttackerBurn) }
-        if self.onHitAttackerFreezeBuildup != other.onHitAttackerFreezeBuildup { fields.append(.onHitAttackerFreezeBuildup) }
-        if self.onHitAttackerPoison != other.onHitAttackerPoison { fields.append(.onHitAttackerPoison) }
-        if self.onHitAttackerBleedPotency != other.onHitAttackerBleedPotency { fields.append(.onHitAttackerBleedPotency) }
-        if self.onHitAttackerBleedTurns != other.onHitAttackerBleedTurns { fields.append(.onHitAttackerBleedTurns) }
-        if self.onHitAttackerHoly != other.onHitAttackerHoly { fields.append(.onHitAttackerHoly) }
-        if self.onHitGainBlock != other.onHitGainBlock { fields.append(.onHitGainBlock) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -64,26 +66,15 @@ extension OnHitTriggers {
 extension OnHitTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            resonantShell: values.decode(Bool.self, "resonantShell", default: false),
-            onHitAttackerBurn: values.decode(Int.self, "onHitAttackerBurn", default: 0),
-            onHitAttackerFreezeBuildup: values.decode(Int.self, "onHitAttackerFreezeBuildup", default: 0),
-            onHitAttackerPoison: values.decode(Int.self, "onHitAttackerPoison", default: 0),
-            onHitAttackerBleedPotency: values.decode(Int.self, "onHitAttackerBleedPotency", default: 0),
-            onHitAttackerBleedTurns: values.decode(Int.self, "onHitAttackerBleedTurns", default: 0),
-            onHitAttackerHoly: values.decode(Int.self, "onHitAttackerHoly", default: 0),
-            onHitGainBlock: values.decode(Int.self, "onHitGainBlock", default: 0)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(resonantShell, "resonantShell", default: false)
-        try container.encodeNonDefault(onHitAttackerBurn, "onHitAttackerBurn", default: 0)
-        try container.encodeNonDefault(onHitAttackerFreezeBuildup, "onHitAttackerFreezeBuildup", default: 0)
-        try container.encodeNonDefault(onHitAttackerPoison, "onHitAttackerPoison", default: 0)
-        try container.encodeNonDefault(onHitAttackerBleedPotency, "onHitAttackerBleedPotency", default: 0)
-        try container.encodeNonDefault(onHitAttackerBleedTurns, "onHitAttackerBleedTurns", default: 0)
-        try container.encodeNonDefault(onHitAttackerHoly, "onHitAttackerHoly", default: 0)
-        try container.encodeNonDefault(onHitGainBlock, "onHitGainBlock", default: 0)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

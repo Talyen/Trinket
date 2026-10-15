@@ -294,105 +294,107 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
         self.blockBreakDrawBelowHalf = blockBreakDrawBelowHalf
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<BlockTriggers>] = [
+        .init(\.sealedSarcophagus, .sealedSarcophagus, default: false),
+        .init(\.retainAllBlockBetweenTurns, .retainAllBlockBetweenTurns, default: false),
+        .init(\.blockedAttackBasicOncePerTurn, .blockedAttackBasicOncePerTurn, default: false),
+        .init(\.blockBrokenBlockFlat, .blockBrokenBlockFlat, default: 0),
+        .init(\.blockBrokenSaintfallPower, .blockBrokenSaintfallPower, default: 0),
+        .init(\.holyDamageBlockFlat, .holyDamageBlockFlat, default: 0),
+        .init(\.stunDamageBlockFlat, .stunDamageBlockFlat, default: 0),
+        .init(\.blockPerTurn, .blockPerTurn, default: 0),
+        .init(\.blockGainThornsPercent, .blockGainThornsPercent, default: 0),
+        .init(\.sunderingBlockMultiplier, .sunderingBlockMultiplier, default: 0),
+        .init(\.blockRetainsThreeQuarters, .blockRetainsThreeQuarters, default: false),
+        .init(\.blockAbsorbsCompanionDamage, .blockAbsorbsCompanionDamage, default: false),
+        .init(\.companionBlockAbsorbsHeroDamage, .companionBlockAbsorbsHeroDamage, default: false),
+        .init(\.onEnemyBlockBrokenDealPhysical, .onEnemyBlockBrokenDealPhysical, default: 0),
+        .init(\.postBlockOverflowDamageMultiplier, .postBlockOverflowDamageMultiplier, default: 1),
+        .init(\.maxDamagePerHitCap, .maxDamagePerHitCap, default: 0),
+        .init(\.guardianHeroBlockFlat, .guardianHeroBlockFlat, default: 0),
+        .init(\.doublePhysicalBlockAbsorption, .doublePhysicalBlockAbsorption, default: false),
+        .init(\.blockPreparesCritical, .blockPreparesCritical, default: false),
+        .init(\.shieldDamageBonusWhileBlocked, .shieldDamageBonusWhileBlocked, default: 0),
+        .init(\.physicalBlockBreakMultiplier, .physicalBlockBreakMultiplier, default: 1),
+        .init(\.holyBlockBreakMultiplier, .holyBlockBreakMultiplier, default: 1),
+        .init(\.physicalBlockIgnorePercent, .physicalBlockIgnorePercent, default: 0),
+        .init(\.physicalIgnoresBlockVsStunnedOrFrozen, .physicalIgnoresBlockVsStunnedOrFrozen, default: false),
+        .init(\.stunnedEnemyLoseAllBlock, .stunnedEnemyLoseAllBlock, default: false),
+        .init(\.holyIgnoresBlock, .holyIgnoresBlock, default: false),
+        .init(\.holyIgnoresBlockAndDodge, .holyIgnoresBlockAndDodge, default: false),
+        .init(\.burnIgnoresBlockAndMitigation, .burnIgnoresBlockAndMitigation, default: false),
+        .init(\.poisonStripsBlockBeforeHealth, .poisonStripsBlockBeforeHealth, default: 0),
+        .init(\.bleedStripsBlockPerTurn, .bleedStripsBlockPerTurn, default: 0),
+        .init(\.spellDamageTakenReductionWhileBlocked, .spellDamageTakenReductionWhileBlocked, default: 0),
+        .init(\.companionBlockSharesToHeroPercent, .companionBlockSharesToHeroPercent, default: 0),
+        .init(\.onBlockHitDealHoly, .onBlockHitDealHoly, default: 0),
+        .init(\.onBlockReduceAttackerAccuracyPercent, .onBlockReduceAttackerAccuracyPercent, default: 0),
+        .init(\.onBlockReduceAttackerAccuracyTurns, .onBlockReduceAttackerAccuracyTurns, default: 0),
+        .init(\.companionBlockProtectsHeroPercent, .companionBlockProtectsHeroPercent, default: 0),
+        .init(\.onAnyHealthLossGainBlock, .onAnyHealthLossGainBlock, default: 0),
+        .init(\.onSelfHealthLossGainBlock, .onSelfHealthLossGainBlock, default: 0),
+        .init(\.onEnemyFrozenGainBlock, .onEnemyFrozenGainBlock, default: 0),
+        .init(\.startBattleBlock, .startBattleBlock, default: 0),
+        .init(\.blockPerGoldEarnedEvery, .blockPerGoldEarnedEvery, default: 0),
+        .init(\.goldGainBlockPercent, .goldGainBlockPercent, default: 0),
+        .init(\.blockPerGoldCollectedEvery, .blockPerGoldCollectedEvery, default: 0),
+        .init(\.onBurnDamageGainBlock, .onBurnDamageGainBlock, default: 0),
+        .init(\.onAllyBurnDamageGainBlock, .onAllyBurnDamageGainBlock, default: 0),
+        .init(\.onHolyDamagePartyBlock, .onHolyDamagePartyBlock, default: 0),
+        .init(\.physicalDamageBlockPercent, .physicalDamageBlockPercent, default: 0),
+        .init(\.freezeDamageGrantsBlock, .freezeDamageGrantsBlock, default: false),
+        .init(\.seismicReversal, .seismicReversal, default: false),
+        .init(\.unbrokenVow, .unbrokenVow, default: false),
+        .init(\.storedImpact, .storedImpact, default: false),
+        .init(\.firstBlockFreezeDamagePerTurn, .firstBlockFreezeDamagePerTurn, default: 0),
+        .init(\.retainedBlockGainThornsPercent, .retainedBlockGainThornsPercent, default: 0),
+        .init(\.onStunEnemyGainBlock, .onStunEnemyGainBlock, default: 0),
+        .init(\.blockRetainsHalf, .blockRetainsHalf, default: false),
+        .init(\.blockWhileGoldThreshold, .blockWhileGoldThreshold, default: 0),
+        .init(\.blockWhileGoldAmount, .blockWhileGoldAmount, default: 0),
+        .init(\.burnIgnoresBlock, .burnIgnoresBlock, default: false),
+        .init(\.thornsDamageDoubleWhileBlocked, .thornsDamageDoubleWhileBlocked, default: false),
+        .init(\.blockAbsorptionMultiplierBelowHalfHealth, .blockAbsorptionMultiplierBelowHalfHealth, default: 1),
+        .init(\.holyBlockIgnorePercent, .holyBlockIgnorePercent, default: 0),
+        .init(\.sunwallChancePercent, .sunwallChancePercent, default: 0),
+        .init(\.bleedAttackBlockIgnorePercent, .bleedAttackBlockIgnorePercent, default: 0),
+        .init(\.burnAttackBlockBreakMultiplier, .burnAttackBlockBreakMultiplier, default: 1),
+        .init(\.burningEnemyBlockGainMultiplier, .burningEnemyBlockGainMultiplier, default: 1),
+        .init(\.poisonAttackExtraBlockRemoval, .poisonAttackExtraBlockRemoval, default: 0),
+        .init(\.bleedIgnoresEnemyBlock, .bleedIgnoresEnemyBlock, default: false),
+        .init(\.leechAttackBlockIgnorePercent, .leechAttackBlockIgnorePercent, default: 0),
+        .init(\.poisonDamageVsBlockMultiplier, .poisonDamageVsBlockMultiplier, default: 1),
+        .init(\.physicalMitigationWhileBlockedFlat, .physicalMitigationWhileBlockedFlat, default: 0),
+        .init(\.allyFirstBelowHalfBlock, .allyFirstBelowHalfBlock, default: 0),
+        .init(\.bleedDamageMultiplierWhileBlocked, .bleedDamageMultiplierWhileBlocked, default: 1),
+        .init(\.blockGainBelowHalfMultiplier, .blockGainBelowHalfMultiplier, default: 1),
+        .init(\.stunNextBlockGainMultiplier, .stunNextBlockGainMultiplier, default: 1),
+        .init(\.stunBlockIgnorePercent, .stunBlockIgnorePercent, default: 0),
+        .init(\.bleedAttackBlockBreakMultiplier, .bleedAttackBlockBreakMultiplier, default: 1),
+        .init(\.burnAttackBlockChancePercent, .burnAttackBlockChancePercent, default: 0),
+        .init(\.burnAttackBlockAmount, .burnAttackBlockAmount, default: 0),
+        .init(\.blockedControlPrevention, .blockedControlPrevention, default: false),
+        .init(\.blockBreakAllyBlockFlat, .blockBreakAllyBlockFlat, default: 0),
+        .init(\.blockAbsorptionMultiplierWhileMana, .blockAbsorptionMultiplierWhileMana, default: 1),
+        .init(\.blockAbsorptionVsBurningMultiplier, .blockAbsorptionVsBurningMultiplier, default: 1),
+        .init(\.blockBreakNextHolyHitDouble, .blockBreakNextHolyHitDouble, default: false),
+        .init(\.blockHolyReflectChancePercent, .blockHolyReflectChancePercent, default: 0),
+        .init(\.damageTakenMultiplierWhileBlocked, .damageTakenMultiplierWhileBlocked, default: 1),
+        .init(\.doubleAllBlockAbsorption, .doubleAllBlockAbsorption, default: false),
+        .init(\.firstBlockBreakNextStunDouble, .firstBlockBreakNextStunDouble, default: false),
+        .init(\.retainAllBlockDuringDeathsDoor, .retainAllBlockDuringDeathsDoor, default: false),
+        .init(\.thornsDamageMultiplierWhileBlocked, .thornsDamageMultiplierWhileBlocked, default: 1),
+        .init(\.startBattleThorns, .startBattleThorns, default: 0),
+        .init(\.blockBrokenThornsFlat, .blockBrokenThornsFlat, default: 0),
+        .init(\.retainedBlockThornsFlat, .retainedBlockThornsFlat, default: 0),
+        .init(\.holyAttackBlockIfNone, .holyAttackBlockIfNone, default: 0),
+        .init(\.attackBlockRemoval, .attackBlockRemoval, default: 0),
+        .init(\.blockBreakDrawBelowHalf, .blockBreakDrawBelowHalf, default: false),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.sealedSarcophagus != other.sealedSarcophagus { fields.append(.sealedSarcophagus) }
-        if self.retainAllBlockBetweenTurns != other.retainAllBlockBetweenTurns { fields.append(.retainAllBlockBetweenTurns) }
-        if self.blockedAttackBasicOncePerTurn != other.blockedAttackBasicOncePerTurn { fields.append(.blockedAttackBasicOncePerTurn) }
-        if self.blockBrokenBlockFlat != other.blockBrokenBlockFlat { fields.append(.blockBrokenBlockFlat) }
-        if self.blockBrokenSaintfallPower != other.blockBrokenSaintfallPower { fields.append(.blockBrokenSaintfallPower) }
-        if self.holyDamageBlockFlat != other.holyDamageBlockFlat { fields.append(.holyDamageBlockFlat) }
-        if self.stunDamageBlockFlat != other.stunDamageBlockFlat { fields.append(.stunDamageBlockFlat) }
-        if self.blockPerTurn != other.blockPerTurn { fields.append(.blockPerTurn) }
-        if self.blockGainThornsPercent != other.blockGainThornsPercent { fields.append(.blockGainThornsPercent) }
-        if self.sunderingBlockMultiplier != other.sunderingBlockMultiplier { fields.append(.sunderingBlockMultiplier) }
-        if self.blockRetainsThreeQuarters != other.blockRetainsThreeQuarters { fields.append(.blockRetainsThreeQuarters) }
-        if self.blockAbsorbsCompanionDamage != other.blockAbsorbsCompanionDamage { fields.append(.blockAbsorbsCompanionDamage) }
-        if self.companionBlockAbsorbsHeroDamage != other.companionBlockAbsorbsHeroDamage { fields.append(.companionBlockAbsorbsHeroDamage) }
-        if self.onEnemyBlockBrokenDealPhysical != other.onEnemyBlockBrokenDealPhysical { fields.append(.onEnemyBlockBrokenDealPhysical) }
-        if self.postBlockOverflowDamageMultiplier != other.postBlockOverflowDamageMultiplier { fields.append(.postBlockOverflowDamageMultiplier) }
-        if self.maxDamagePerHitCap != other.maxDamagePerHitCap { fields.append(.maxDamagePerHitCap) }
-        if self.guardianHeroBlockFlat != other.guardianHeroBlockFlat { fields.append(.guardianHeroBlockFlat) }
-        if self.doublePhysicalBlockAbsorption != other.doublePhysicalBlockAbsorption { fields.append(.doublePhysicalBlockAbsorption) }
-        if self.blockPreparesCritical != other.blockPreparesCritical { fields.append(.blockPreparesCritical) }
-        if self.shieldDamageBonusWhileBlocked != other.shieldDamageBonusWhileBlocked { fields.append(.shieldDamageBonusWhileBlocked) }
-        if self.physicalBlockBreakMultiplier != other.physicalBlockBreakMultiplier { fields.append(.physicalBlockBreakMultiplier) }
-        if self.holyBlockBreakMultiplier != other.holyBlockBreakMultiplier { fields.append(.holyBlockBreakMultiplier) }
-        if self.physicalBlockIgnorePercent != other.physicalBlockIgnorePercent { fields.append(.physicalBlockIgnorePercent) }
-        if self.physicalIgnoresBlockVsStunnedOrFrozen != other.physicalIgnoresBlockVsStunnedOrFrozen { fields.append(.physicalIgnoresBlockVsStunnedOrFrozen) }
-        if self.stunnedEnemyLoseAllBlock != other.stunnedEnemyLoseAllBlock { fields.append(.stunnedEnemyLoseAllBlock) }
-        if self.holyIgnoresBlock != other.holyIgnoresBlock { fields.append(.holyIgnoresBlock) }
-        if self.holyIgnoresBlockAndDodge != other.holyIgnoresBlockAndDodge { fields.append(.holyIgnoresBlockAndDodge) }
-        if self.burnIgnoresBlockAndMitigation != other.burnIgnoresBlockAndMitigation { fields.append(.burnIgnoresBlockAndMitigation) }
-        if self.poisonStripsBlockBeforeHealth != other.poisonStripsBlockBeforeHealth { fields.append(.poisonStripsBlockBeforeHealth) }
-        if self.bleedStripsBlockPerTurn != other.bleedStripsBlockPerTurn { fields.append(.bleedStripsBlockPerTurn) }
-        if self.spellDamageTakenReductionWhileBlocked != other.spellDamageTakenReductionWhileBlocked { fields.append(.spellDamageTakenReductionWhileBlocked) }
-        if self.companionBlockSharesToHeroPercent != other.companionBlockSharesToHeroPercent { fields.append(.companionBlockSharesToHeroPercent) }
-        if self.onBlockHitDealHoly != other.onBlockHitDealHoly { fields.append(.onBlockHitDealHoly) }
-        if self.onBlockReduceAttackerAccuracyPercent != other.onBlockReduceAttackerAccuracyPercent { fields.append(.onBlockReduceAttackerAccuracyPercent) }
-        if self.onBlockReduceAttackerAccuracyTurns != other.onBlockReduceAttackerAccuracyTurns { fields.append(.onBlockReduceAttackerAccuracyTurns) }
-        if self.companionBlockProtectsHeroPercent != other.companionBlockProtectsHeroPercent { fields.append(.companionBlockProtectsHeroPercent) }
-        if self.onAnyHealthLossGainBlock != other.onAnyHealthLossGainBlock { fields.append(.onAnyHealthLossGainBlock) }
-        if self.onSelfHealthLossGainBlock != other.onSelfHealthLossGainBlock { fields.append(.onSelfHealthLossGainBlock) }
-        if self.onEnemyFrozenGainBlock != other.onEnemyFrozenGainBlock { fields.append(.onEnemyFrozenGainBlock) }
-        if self.startBattleBlock != other.startBattleBlock { fields.append(.startBattleBlock) }
-        if self.blockPerGoldEarnedEvery != other.blockPerGoldEarnedEvery { fields.append(.blockPerGoldEarnedEvery) }
-        if self.goldGainBlockPercent != other.goldGainBlockPercent { fields.append(.goldGainBlockPercent) }
-        if self.blockPerGoldCollectedEvery != other.blockPerGoldCollectedEvery { fields.append(.blockPerGoldCollectedEvery) }
-        if self.onBurnDamageGainBlock != other.onBurnDamageGainBlock { fields.append(.onBurnDamageGainBlock) }
-        if self.onAllyBurnDamageGainBlock != other.onAllyBurnDamageGainBlock { fields.append(.onAllyBurnDamageGainBlock) }
-        if self.onHolyDamagePartyBlock != other.onHolyDamagePartyBlock { fields.append(.onHolyDamagePartyBlock) }
-        if self.physicalDamageBlockPercent != other.physicalDamageBlockPercent { fields.append(.physicalDamageBlockPercent) }
-        if self.freezeDamageGrantsBlock != other.freezeDamageGrantsBlock { fields.append(.freezeDamageGrantsBlock) }
-        if self.seismicReversal != other.seismicReversal { fields.append(.seismicReversal) }
-        if self.unbrokenVow != other.unbrokenVow { fields.append(.unbrokenVow) }
-        if self.storedImpact != other.storedImpact { fields.append(.storedImpact) }
-        if self.firstBlockFreezeDamagePerTurn != other.firstBlockFreezeDamagePerTurn { fields.append(.firstBlockFreezeDamagePerTurn) }
-        if self.retainedBlockGainThornsPercent != other.retainedBlockGainThornsPercent { fields.append(.retainedBlockGainThornsPercent) }
-        if self.onStunEnemyGainBlock != other.onStunEnemyGainBlock { fields.append(.onStunEnemyGainBlock) }
-        if self.blockRetainsHalf != other.blockRetainsHalf { fields.append(.blockRetainsHalf) }
-        if self.blockWhileGoldThreshold != other.blockWhileGoldThreshold { fields.append(.blockWhileGoldThreshold) }
-        if self.blockWhileGoldAmount != other.blockWhileGoldAmount { fields.append(.blockWhileGoldAmount) }
-        if self.burnIgnoresBlock != other.burnIgnoresBlock { fields.append(.burnIgnoresBlock) }
-        if self.thornsDamageDoubleWhileBlocked != other.thornsDamageDoubleWhileBlocked { fields.append(.thornsDamageDoubleWhileBlocked) }
-        if self.blockAbsorptionMultiplierBelowHalfHealth != other.blockAbsorptionMultiplierBelowHalfHealth { fields.append(.blockAbsorptionMultiplierBelowHalfHealth) }
-        if self.holyBlockIgnorePercent != other.holyBlockIgnorePercent { fields.append(.holyBlockIgnorePercent) }
-        if self.sunwallChancePercent != other.sunwallChancePercent { fields.append(.sunwallChancePercent) }
-        if self.bleedAttackBlockIgnorePercent != other.bleedAttackBlockIgnorePercent { fields.append(.bleedAttackBlockIgnorePercent) }
-        if self.burnAttackBlockBreakMultiplier != other.burnAttackBlockBreakMultiplier { fields.append(.burnAttackBlockBreakMultiplier) }
-        if self.burningEnemyBlockGainMultiplier != other.burningEnemyBlockGainMultiplier { fields.append(.burningEnemyBlockGainMultiplier) }
-        if self.poisonAttackExtraBlockRemoval != other.poisonAttackExtraBlockRemoval { fields.append(.poisonAttackExtraBlockRemoval) }
-        if self.bleedIgnoresEnemyBlock != other.bleedIgnoresEnemyBlock { fields.append(.bleedIgnoresEnemyBlock) }
-        if self.leechAttackBlockIgnorePercent != other.leechAttackBlockIgnorePercent { fields.append(.leechAttackBlockIgnorePercent) }
-        if self.poisonDamageVsBlockMultiplier != other.poisonDamageVsBlockMultiplier { fields.append(.poisonDamageVsBlockMultiplier) }
-        if self.physicalMitigationWhileBlockedFlat != other.physicalMitigationWhileBlockedFlat { fields.append(.physicalMitigationWhileBlockedFlat) }
-        if self.allyFirstBelowHalfBlock != other.allyFirstBelowHalfBlock { fields.append(.allyFirstBelowHalfBlock) }
-        if self.bleedDamageMultiplierWhileBlocked != other.bleedDamageMultiplierWhileBlocked { fields.append(.bleedDamageMultiplierWhileBlocked) }
-        if self.blockGainBelowHalfMultiplier != other.blockGainBelowHalfMultiplier { fields.append(.blockGainBelowHalfMultiplier) }
-        if self.stunNextBlockGainMultiplier != other.stunNextBlockGainMultiplier { fields.append(.stunNextBlockGainMultiplier) }
-        if self.stunBlockIgnorePercent != other.stunBlockIgnorePercent { fields.append(.stunBlockIgnorePercent) }
-        if self.bleedAttackBlockBreakMultiplier != other.bleedAttackBlockBreakMultiplier { fields.append(.bleedAttackBlockBreakMultiplier) }
-        if self.burnAttackBlockChancePercent != other.burnAttackBlockChancePercent { fields.append(.burnAttackBlockChancePercent) }
-        if self.burnAttackBlockAmount != other.burnAttackBlockAmount { fields.append(.burnAttackBlockAmount) }
-        if self.blockedControlPrevention != other.blockedControlPrevention { fields.append(.blockedControlPrevention) }
-        if self.blockBreakAllyBlockFlat != other.blockBreakAllyBlockFlat { fields.append(.blockBreakAllyBlockFlat) }
-        if self.blockAbsorptionMultiplierWhileMana != other.blockAbsorptionMultiplierWhileMana { fields.append(.blockAbsorptionMultiplierWhileMana) }
-        if self.blockAbsorptionVsBurningMultiplier != other.blockAbsorptionVsBurningMultiplier { fields.append(.blockAbsorptionVsBurningMultiplier) }
-        if self.blockBreakNextHolyHitDouble != other.blockBreakNextHolyHitDouble { fields.append(.blockBreakNextHolyHitDouble) }
-        if self.blockHolyReflectChancePercent != other.blockHolyReflectChancePercent { fields.append(.blockHolyReflectChancePercent) }
-        if self.damageTakenMultiplierWhileBlocked != other.damageTakenMultiplierWhileBlocked { fields.append(.damageTakenMultiplierWhileBlocked) }
-        if self.doubleAllBlockAbsorption != other.doubleAllBlockAbsorption { fields.append(.doubleAllBlockAbsorption) }
-        if self.firstBlockBreakNextStunDouble != other.firstBlockBreakNextStunDouble { fields.append(.firstBlockBreakNextStunDouble) }
-        if self.retainAllBlockDuringDeathsDoor != other.retainAllBlockDuringDeathsDoor { fields.append(.retainAllBlockDuringDeathsDoor) }
-        if self.thornsDamageMultiplierWhileBlocked != other.thornsDamageMultiplierWhileBlocked { fields.append(.thornsDamageMultiplierWhileBlocked) }
-        if self.startBattleThorns != other.startBattleThorns { fields.append(.startBattleThorns) }
-        if self.blockBrokenThornsFlat != other.blockBrokenThornsFlat { fields.append(.blockBrokenThornsFlat) }
-        if self.retainedBlockThornsFlat != other.retainedBlockThornsFlat { fields.append(.retainedBlockThornsFlat) }
-        if self.holyAttackBlockIfNone != other.holyAttackBlockIfNone { fields.append(.holyAttackBlockIfNone) }
-        if self.attackBlockRemoval != other.attackBlockRemoval { fields.append(.attackBlockRemoval) }
-        if self.blockBreakDrawBelowHalf != other.blockBreakDrawBelowHalf { fields.append(.blockBreakDrawBelowHalf) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -499,200 +501,15 @@ extension BlockTriggers {
 extension BlockTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            sealedSarcophagus: values.decode(Bool.self, "sealedSarcophagus", default: false),
-            retainAllBlockBetweenTurns: values.decode(Bool.self, "retainAllBlockBetweenTurns", default: false),
-            blockedAttackBasicOncePerTurn: values.decode(Bool.self, "blockedAttackBasicOncePerTurn", default: false),
-            blockBrokenBlockFlat: values.decode(Int.self, "blockBrokenBlockFlat", default: 0),
-            blockBrokenSaintfallPower: values.decode(Int.self, "blockBrokenSaintfallPower", default: 0),
-            holyDamageBlockFlat: values.decode(Int.self, "holyDamageBlockFlat", default: 0),
-            stunDamageBlockFlat: values.decode(Int.self, "stunDamageBlockFlat", default: 0),
-            blockPerTurn: values.decode(Int.self, "blockPerTurn", default: 0),
-            blockGainThornsPercent: values.decode(Double.self, "blockGainThornsPercent", default: 0),
-            sunderingBlockMultiplier: values.decode(Double.self, "sunderingBlockMultiplier", default: 0),
-            blockRetainsThreeQuarters: values.decode(Bool.self, "blockRetainsThreeQuarters", default: false),
-            blockAbsorbsCompanionDamage: values.decode(Bool.self, "blockAbsorbsCompanionDamage", default: false),
-            companionBlockAbsorbsHeroDamage: values.decode(Bool.self, "companionBlockAbsorbsHeroDamage", default: false),
-            onEnemyBlockBrokenDealPhysical: values.decode(Int.self, "onEnemyBlockBrokenDealPhysical", default: 0),
-            postBlockOverflowDamageMultiplier: values.decode(Double.self, "postBlockOverflowDamageMultiplier", default: 1),
-            maxDamagePerHitCap: values.decode(Int.self, "maxDamagePerHitCap", default: 0),
-            guardianHeroBlockFlat: values.decode(Int.self, "guardianHeroBlockFlat", default: 0),
-            doublePhysicalBlockAbsorption: values.decode(Bool.self, "doublePhysicalBlockAbsorption", default: false),
-            blockPreparesCritical: values.decode(Bool.self, "blockPreparesCritical", default: false),
-            shieldDamageBonusWhileBlocked: values.decode(Int.self, "shieldDamageBonusWhileBlocked", default: 0),
-            physicalBlockBreakMultiplier: values.decode(Double.self, "physicalBlockBreakMultiplier", default: 1),
-            holyBlockBreakMultiplier: values.decode(Double.self, "holyBlockBreakMultiplier", default: 1),
-            physicalBlockIgnorePercent: values.decode(Double.self, "physicalBlockIgnorePercent", default: 0),
-            physicalIgnoresBlockVsStunnedOrFrozen: values.decode(Bool.self, "physicalIgnoresBlockVsStunnedOrFrozen", default: false),
-            stunnedEnemyLoseAllBlock: values.decode(Bool.self, "stunnedEnemyLoseAllBlock", default: false),
-            holyIgnoresBlock: values.decode(Bool.self, "holyIgnoresBlock", default: false),
-            holyIgnoresBlockAndDodge: values.decode(Bool.self, "holyIgnoresBlockAndDodge", default: false),
-            burnIgnoresBlockAndMitigation: values.decode(Bool.self, "burnIgnoresBlockAndMitigation", default: false),
-            poisonStripsBlockBeforeHealth: values.decode(Int.self, "poisonStripsBlockBeforeHealth", default: 0),
-            bleedStripsBlockPerTurn: values.decode(Int.self, "bleedStripsBlockPerTurn", default: 0),
-            spellDamageTakenReductionWhileBlocked: values.decode(Int.self, "spellDamageTakenReductionWhileBlocked", default: 0),
-            companionBlockSharesToHeroPercent: values.decode(Double.self, "companionBlockSharesToHeroPercent", default: 0),
-            onBlockHitDealHoly: values.decode(Int.self, "onBlockHitDealHoly", default: 0),
-            onBlockReduceAttackerAccuracyPercent: values.decode(Int.self, "onBlockReduceAttackerAccuracyPercent", default: 0),
-            onBlockReduceAttackerAccuracyTurns: values.decode(Int.self, "onBlockReduceAttackerAccuracyTurns", default: 0),
-            companionBlockProtectsHeroPercent: values.decode(Double.self, "companionBlockProtectsHeroPercent", default: 0),
-            onAnyHealthLossGainBlock: values.decode(Int.self, "onAnyHealthLossGainBlock", default: 0),
-            onSelfHealthLossGainBlock: values.decode(Int.self, "onSelfHealthLossGainBlock", default: 0),
-            onEnemyFrozenGainBlock: values.decode(Int.self, "onEnemyFrozenGainBlock", default: 0),
-            startBattleBlock: values.decode(Int.self, "startBattleBlock", default: 0),
-            blockPerGoldEarnedEvery: values.decode(Int.self, "blockPerGoldEarnedEvery", default: 0),
-            goldGainBlockPercent: values.decode(Double.self, "goldGainBlockPercent", default: 0),
-            blockPerGoldCollectedEvery: values.decode(Int.self, "blockPerGoldCollectedEvery", default: 0),
-            onBurnDamageGainBlock: values.decode(Int.self, "onBurnDamageGainBlock", default: 0),
-            onAllyBurnDamageGainBlock: values.decode(Int.self, "onAllyBurnDamageGainBlock", default: 0),
-            onHolyDamagePartyBlock: values.decode(Int.self, "onHolyDamagePartyBlock", default: 0),
-            physicalDamageBlockPercent: values.decode(Double.self, "physicalDamageBlockPercent", default: 0),
-            freezeDamageGrantsBlock: values.decode(Bool.self, "freezeDamageGrantsBlock", default: false),
-            seismicReversal: values.decode(Bool.self, "seismicReversal", default: false),
-            unbrokenVow: values.decode(Bool.self, "unbrokenVow", default: false),
-            storedImpact: values.decode(Bool.self, "storedImpact", default: false),
-            firstBlockFreezeDamagePerTurn: values.decode(Int.self, "firstBlockFreezeDamagePerTurn", default: 0),
-            retainedBlockGainThornsPercent: values.decode(Double.self, "retainedBlockGainThornsPercent", default: 0),
-            onStunEnemyGainBlock: values.decode(Int.self, "onStunEnemyGainBlock", default: 0),
-            blockRetainsHalf: values.decode(Bool.self, "blockRetainsHalf", default: false),
-            blockWhileGoldThreshold: values.decode(Int.self, "blockWhileGoldThreshold", default: 0),
-            blockWhileGoldAmount: values.decode(Int.self, "blockWhileGoldAmount", default: 0),
-            burnIgnoresBlock: values.decode(Bool.self, "burnIgnoresBlock", default: false),
-            thornsDamageDoubleWhileBlocked: values.decode(Bool.self, "thornsDamageDoubleWhileBlocked", default: false),
-            blockAbsorptionMultiplierBelowHalfHealth: values.decode(Double.self, "blockAbsorptionMultiplierBelowHalfHealth", default: 1),
-            holyBlockIgnorePercent: values.decode(Double.self, "holyBlockIgnorePercent", default: 0),
-            sunwallChancePercent: values.decode(Double.self, "sunwallChancePercent", default: 0),
-            bleedAttackBlockIgnorePercent: values.decode(Double.self, "bleedAttackBlockIgnorePercent", default: 0),
-            burnAttackBlockBreakMultiplier: values.decode(Double.self, "burnAttackBlockBreakMultiplier", default: 1),
-            burningEnemyBlockGainMultiplier: values.decode(Double.self, "burningEnemyBlockGainMultiplier", default: 1),
-            poisonAttackExtraBlockRemoval: values.decode(Int.self, "poisonAttackExtraBlockRemoval", default: 0),
-            bleedIgnoresEnemyBlock: values.decode(Bool.self, "bleedIgnoresEnemyBlock", default: false),
-            leechAttackBlockIgnorePercent: values.decode(Double.self, "leechAttackBlockIgnorePercent", default: 0),
-            poisonDamageVsBlockMultiplier: values.decode(Double.self, "poisonDamageVsBlockMultiplier", default: 1),
-            physicalMitigationWhileBlockedFlat: values.decode(Int.self, "physicalMitigationWhileBlockedFlat", default: 0),
-            allyFirstBelowHalfBlock: values.decode(Int.self, "allyFirstBelowHalfBlock", default: 0),
-            bleedDamageMultiplierWhileBlocked: values.decode(Double.self, "bleedDamageMultiplierWhileBlocked", default: 1),
-            blockGainBelowHalfMultiplier: values.decode(Double.self, "blockGainBelowHalfMultiplier", default: 1),
-            stunNextBlockGainMultiplier: values.decode(Double.self, "stunNextBlockGainMultiplier", default: 1),
-            stunBlockIgnorePercent: values.decode(Double.self, "stunBlockIgnorePercent", default: 0),
-            bleedAttackBlockBreakMultiplier: values.decode(Double.self, "bleedAttackBlockBreakMultiplier", default: 1),
-            burnAttackBlockChancePercent: values.decode(Double.self, "burnAttackBlockChancePercent", default: 0),
-            burnAttackBlockAmount: values.decode(Int.self, "burnAttackBlockAmount", default: 0),
-            blockedControlPrevention: values.decode(Bool.self, "blockedControlPrevention", default: false),
-            blockBreakAllyBlockFlat: values.decode(Int.self, "blockBreakAllyBlockFlat", default: 0),
-            blockAbsorptionMultiplierWhileMana: values.decode(Double.self, "blockAbsorptionMultiplierWhileMana", default: 1),
-            blockAbsorptionVsBurningMultiplier: values.decode(Double.self, "blockAbsorptionVsBurningMultiplier", default: 1),
-            blockBreakNextHolyHitDouble: values.decode(Bool.self, "blockBreakNextHolyHitDouble", default: false),
-            blockHolyReflectChancePercent: values.decode(Double.self, "blockHolyReflectChancePercent", default: 0),
-            damageTakenMultiplierWhileBlocked: values.decode(Double.self, "damageTakenMultiplierWhileBlocked", default: 1),
-            doubleAllBlockAbsorption: values.decode(Bool.self, "doubleAllBlockAbsorption", default: false),
-            firstBlockBreakNextStunDouble: values.decode(Bool.self, "firstBlockBreakNextStunDouble", default: false),
-            retainAllBlockDuringDeathsDoor: values.decode(Bool.self, "retainAllBlockDuringDeathsDoor", default: false),
-            thornsDamageMultiplierWhileBlocked: values.decode(Double.self, "thornsDamageMultiplierWhileBlocked", default: 1),
-            startBattleThorns: values.decode(Int.self, "startBattleThorns", default: 0),
-            blockBrokenThornsFlat: values.decode(Int.self, "blockBrokenThornsFlat", default: 0),
-            retainedBlockThornsFlat: values.decode(Int.self, "retainedBlockThornsFlat", default: 0),
-            holyAttackBlockIfNone: values.decode(Int.self, "holyAttackBlockIfNone", default: 0),
-            attackBlockRemoval: values.decode(Int.self, "attackBlockRemoval", default: 0),
-            blockBreakDrawBelowHalf: values.decode(Bool.self, "blockBreakDrawBelowHalf", default: false)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(sealedSarcophagus, "sealedSarcophagus", default: false)
-        try container.encodeNonDefault(retainAllBlockBetweenTurns, "retainAllBlockBetweenTurns", default: false)
-        try container.encodeNonDefault(blockedAttackBasicOncePerTurn, "blockedAttackBasicOncePerTurn", default: false)
-        try container.encodeNonDefault(blockBrokenBlockFlat, "blockBrokenBlockFlat", default: 0)
-        try container.encodeNonDefault(blockBrokenSaintfallPower, "blockBrokenSaintfallPower", default: 0)
-        try container.encodeNonDefault(holyDamageBlockFlat, "holyDamageBlockFlat", default: 0)
-        try container.encodeNonDefault(stunDamageBlockFlat, "stunDamageBlockFlat", default: 0)
-        try container.encodeNonDefault(blockPerTurn, "blockPerTurn", default: 0)
-        try container.encodeNonDefault(blockGainThornsPercent, "blockGainThornsPercent", default: 0)
-        try container.encodeNonDefault(sunderingBlockMultiplier, "sunderingBlockMultiplier", default: 0)
-        try container.encodeNonDefault(blockRetainsThreeQuarters, "blockRetainsThreeQuarters", default: false)
-        try container.encodeNonDefault(blockAbsorbsCompanionDamage, "blockAbsorbsCompanionDamage", default: false)
-        try container.encodeNonDefault(companionBlockAbsorbsHeroDamage, "companionBlockAbsorbsHeroDamage", default: false)
-        try container.encodeNonDefault(onEnemyBlockBrokenDealPhysical, "onEnemyBlockBrokenDealPhysical", default: 0)
-        try container.encodeNonDefault(postBlockOverflowDamageMultiplier, "postBlockOverflowDamageMultiplier", default: 1)
-        try container.encodeNonDefault(maxDamagePerHitCap, "maxDamagePerHitCap", default: 0)
-        try container.encodeNonDefault(guardianHeroBlockFlat, "guardianHeroBlockFlat", default: 0)
-        try container.encodeNonDefault(doublePhysicalBlockAbsorption, "doublePhysicalBlockAbsorption", default: false)
-        try container.encodeNonDefault(blockPreparesCritical, "blockPreparesCritical", default: false)
-        try container.encodeNonDefault(shieldDamageBonusWhileBlocked, "shieldDamageBonusWhileBlocked", default: 0)
-        try container.encodeNonDefault(physicalBlockBreakMultiplier, "physicalBlockBreakMultiplier", default: 1)
-        try container.encodeNonDefault(holyBlockBreakMultiplier, "holyBlockBreakMultiplier", default: 1)
-        try container.encodeNonDefault(physicalBlockIgnorePercent, "physicalBlockIgnorePercent", default: 0)
-        try container.encodeNonDefault(physicalIgnoresBlockVsStunnedOrFrozen, "physicalIgnoresBlockVsStunnedOrFrozen", default: false)
-        try container.encodeNonDefault(stunnedEnemyLoseAllBlock, "stunnedEnemyLoseAllBlock", default: false)
-        try container.encodeNonDefault(holyIgnoresBlock, "holyIgnoresBlock", default: false)
-        try container.encodeNonDefault(holyIgnoresBlockAndDodge, "holyIgnoresBlockAndDodge", default: false)
-        try container.encodeNonDefault(burnIgnoresBlockAndMitigation, "burnIgnoresBlockAndMitigation", default: false)
-        try container.encodeNonDefault(poisonStripsBlockBeforeHealth, "poisonStripsBlockBeforeHealth", default: 0)
-        try container.encodeNonDefault(bleedStripsBlockPerTurn, "bleedStripsBlockPerTurn", default: 0)
-        try container.encodeNonDefault(spellDamageTakenReductionWhileBlocked, "spellDamageTakenReductionWhileBlocked", default: 0)
-        try container.encodeNonDefault(companionBlockSharesToHeroPercent, "companionBlockSharesToHeroPercent", default: 0)
-        try container.encodeNonDefault(onBlockHitDealHoly, "onBlockHitDealHoly", default: 0)
-        try container.encodeNonDefault(onBlockReduceAttackerAccuracyPercent, "onBlockReduceAttackerAccuracyPercent", default: 0)
-        try container.encodeNonDefault(onBlockReduceAttackerAccuracyTurns, "onBlockReduceAttackerAccuracyTurns", default: 0)
-        try container.encodeNonDefault(companionBlockProtectsHeroPercent, "companionBlockProtectsHeroPercent", default: 0)
-        try container.encodeNonDefault(onAnyHealthLossGainBlock, "onAnyHealthLossGainBlock", default: 0)
-        try container.encodeNonDefault(onSelfHealthLossGainBlock, "onSelfHealthLossGainBlock", default: 0)
-        try container.encodeNonDefault(onEnemyFrozenGainBlock, "onEnemyFrozenGainBlock", default: 0)
-        try container.encodeNonDefault(startBattleBlock, "startBattleBlock", default: 0)
-        try container.encodeNonDefault(blockPerGoldEarnedEvery, "blockPerGoldEarnedEvery", default: 0)
-        try container.encodeNonDefault(goldGainBlockPercent, "goldGainBlockPercent", default: 0)
-        try container.encodeNonDefault(blockPerGoldCollectedEvery, "blockPerGoldCollectedEvery", default: 0)
-        try container.encodeNonDefault(onBurnDamageGainBlock, "onBurnDamageGainBlock", default: 0)
-        try container.encodeNonDefault(onAllyBurnDamageGainBlock, "onAllyBurnDamageGainBlock", default: 0)
-        try container.encodeNonDefault(onHolyDamagePartyBlock, "onHolyDamagePartyBlock", default: 0)
-        try container.encodeNonDefault(physicalDamageBlockPercent, "physicalDamageBlockPercent", default: 0)
-        try container.encodeNonDefault(freezeDamageGrantsBlock, "freezeDamageGrantsBlock", default: false)
-        try container.encodeNonDefault(seismicReversal, "seismicReversal", default: false)
-        try container.encodeNonDefault(unbrokenVow, "unbrokenVow", default: false)
-        try container.encodeNonDefault(storedImpact, "storedImpact", default: false)
-        try container.encodeNonDefault(firstBlockFreezeDamagePerTurn, "firstBlockFreezeDamagePerTurn", default: 0)
-        try container.encodeNonDefault(retainedBlockGainThornsPercent, "retainedBlockGainThornsPercent", default: 0)
-        try container.encodeNonDefault(onStunEnemyGainBlock, "onStunEnemyGainBlock", default: 0)
-        try container.encodeNonDefault(blockRetainsHalf, "blockRetainsHalf", default: false)
-        try container.encodeNonDefault(blockWhileGoldThreshold, "blockWhileGoldThreshold", default: 0)
-        try container.encodeNonDefault(blockWhileGoldAmount, "blockWhileGoldAmount", default: 0)
-        try container.encodeNonDefault(burnIgnoresBlock, "burnIgnoresBlock", default: false)
-        try container.encodeNonDefault(thornsDamageDoubleWhileBlocked, "thornsDamageDoubleWhileBlocked", default: false)
-        try container.encodeNonDefault(blockAbsorptionMultiplierBelowHalfHealth, "blockAbsorptionMultiplierBelowHalfHealth", default: 1)
-        try container.encodeNonDefault(holyBlockIgnorePercent, "holyBlockIgnorePercent", default: 0)
-        try container.encodeNonDefault(sunwallChancePercent, "sunwallChancePercent", default: 0)
-        try container.encodeNonDefault(bleedAttackBlockIgnorePercent, "bleedAttackBlockIgnorePercent", default: 0)
-        try container.encodeNonDefault(burnAttackBlockBreakMultiplier, "burnAttackBlockBreakMultiplier", default: 1)
-        try container.encodeNonDefault(burningEnemyBlockGainMultiplier, "burningEnemyBlockGainMultiplier", default: 1)
-        try container.encodeNonDefault(poisonAttackExtraBlockRemoval, "poisonAttackExtraBlockRemoval", default: 0)
-        try container.encodeNonDefault(bleedIgnoresEnemyBlock, "bleedIgnoresEnemyBlock", default: false)
-        try container.encodeNonDefault(leechAttackBlockIgnorePercent, "leechAttackBlockIgnorePercent", default: 0)
-        try container.encodeNonDefault(poisonDamageVsBlockMultiplier, "poisonDamageVsBlockMultiplier", default: 1)
-        try container.encodeNonDefault(physicalMitigationWhileBlockedFlat, "physicalMitigationWhileBlockedFlat", default: 0)
-        try container.encodeNonDefault(allyFirstBelowHalfBlock, "allyFirstBelowHalfBlock", default: 0)
-        try container.encodeNonDefault(bleedDamageMultiplierWhileBlocked, "bleedDamageMultiplierWhileBlocked", default: 1)
-        try container.encodeNonDefault(blockGainBelowHalfMultiplier, "blockGainBelowHalfMultiplier", default: 1)
-        try container.encodeNonDefault(stunNextBlockGainMultiplier, "stunNextBlockGainMultiplier", default: 1)
-        try container.encodeNonDefault(stunBlockIgnorePercent, "stunBlockIgnorePercent", default: 0)
-        try container.encodeNonDefault(bleedAttackBlockBreakMultiplier, "bleedAttackBlockBreakMultiplier", default: 1)
-        try container.encodeNonDefault(burnAttackBlockChancePercent, "burnAttackBlockChancePercent", default: 0)
-        try container.encodeNonDefault(burnAttackBlockAmount, "burnAttackBlockAmount", default: 0)
-        try container.encodeNonDefault(blockedControlPrevention, "blockedControlPrevention", default: false)
-        try container.encodeNonDefault(blockBreakAllyBlockFlat, "blockBreakAllyBlockFlat", default: 0)
-        try container.encodeNonDefault(blockAbsorptionMultiplierWhileMana, "blockAbsorptionMultiplierWhileMana", default: 1)
-        try container.encodeNonDefault(blockAbsorptionVsBurningMultiplier, "blockAbsorptionVsBurningMultiplier", default: 1)
-        try container.encodeNonDefault(blockBreakNextHolyHitDouble, "blockBreakNextHolyHitDouble", default: false)
-        try container.encodeNonDefault(blockHolyReflectChancePercent, "blockHolyReflectChancePercent", default: 0)
-        try container.encodeNonDefault(damageTakenMultiplierWhileBlocked, "damageTakenMultiplierWhileBlocked", default: 1)
-        try container.encodeNonDefault(doubleAllBlockAbsorption, "doubleAllBlockAbsorption", default: false)
-        try container.encodeNonDefault(firstBlockBreakNextStunDouble, "firstBlockBreakNextStunDouble", default: false)
-        try container.encodeNonDefault(retainAllBlockDuringDeathsDoor, "retainAllBlockDuringDeathsDoor", default: false)
-        try container.encodeNonDefault(thornsDamageMultiplierWhileBlocked, "thornsDamageMultiplierWhileBlocked", default: 1)
-        try container.encodeNonDefault(startBattleThorns, "startBattleThorns", default: 0)
-        try container.encodeNonDefault(blockBrokenThornsFlat, "blockBrokenThornsFlat", default: 0)
-        try container.encodeNonDefault(retainedBlockThornsFlat, "retainedBlockThornsFlat", default: 0)
-        try container.encodeNonDefault(holyAttackBlockIfNone, "holyAttackBlockIfNone", default: 0)
-        try container.encodeNonDefault(attackBlockRemoval, "attackBlockRemoval", default: 0)
-        try container.encodeNonDefault(blockBreakDrawBelowHalf, "blockBreakDrawBelowHalf", default: false)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

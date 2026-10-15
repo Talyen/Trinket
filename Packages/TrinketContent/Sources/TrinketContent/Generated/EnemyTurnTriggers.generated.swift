@@ -36,19 +36,21 @@ public struct EnemyTurnTriggers: Equatable, Hashable, Sendable {
         self.burnReducesEnemyHealingAndLeechPercent = burnReducesEnemyHealingAndLeechPercent
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<EnemyTurnTriggers>] = [
+        .init(\.negateFirstEnemyAttack, .negateFirstEnemyAttack, default: false),
+        .init(\.attackDelayEnemyTurnChancePercent, .attackDelayEnemyTurnChancePercent, default: 0),
+        .init(\.bleedingEnemyActionSkipChancePercent, .bleedingEnemyActionSkipChancePercent, default: 0),
+        .init(\.extraCardDrawWhileEnemyBleeding, .extraCardDrawWhileEnemyBleeding, default: false),
+        .init(\.extraCardDrawBelowEnemyHealthPercent, .extraCardDrawBelowEnemyHealthPercent, default: 0),
+        .init(\.ultimateAppliesBurnPotency, .ultimateAppliesBurnPotency, default: 0),
+        .init(\.onHeroHolyAbilityCompanionHolyDamage, .onHeroHolyAbilityCompanionHolyDamage, default: 0),
+        .init(\.onHolyDamageRestoreMana, .onHolyDamageRestoreMana, default: 0),
+        .init(\.burnReducesEnemyHealingAndLeechPercent, .burnReducesEnemyHealingAndLeechPercent, default: 0),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.negateFirstEnemyAttack != other.negateFirstEnemyAttack { fields.append(.negateFirstEnemyAttack) }
-        if self.attackDelayEnemyTurnChancePercent != other.attackDelayEnemyTurnChancePercent { fields.append(.attackDelayEnemyTurnChancePercent) }
-        if self.bleedingEnemyActionSkipChancePercent != other.bleedingEnemyActionSkipChancePercent { fields.append(.bleedingEnemyActionSkipChancePercent) }
-        if self.extraCardDrawWhileEnemyBleeding != other.extraCardDrawWhileEnemyBleeding { fields.append(.extraCardDrawWhileEnemyBleeding) }
-        if self.extraCardDrawBelowEnemyHealthPercent != other.extraCardDrawBelowEnemyHealthPercent { fields.append(.extraCardDrawBelowEnemyHealthPercent) }
-        if self.ultimateAppliesBurnPotency != other.ultimateAppliesBurnPotency { fields.append(.ultimateAppliesBurnPotency) }
-        if self.onHeroHolyAbilityCompanionHolyDamage != other.onHeroHolyAbilityCompanionHolyDamage { fields.append(.onHeroHolyAbilityCompanionHolyDamage) }
-        if self.onHolyDamageRestoreMana != other.onHolyDamageRestoreMana { fields.append(.onHolyDamageRestoreMana) }
-        if self.burnReducesEnemyHealingAndLeechPercent != other.burnReducesEnemyHealingAndLeechPercent { fields.append(.burnReducesEnemyHealingAndLeechPercent) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -69,28 +71,15 @@ extension EnemyTurnTriggers {
 extension EnemyTurnTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            negateFirstEnemyAttack: values.decode(Bool.self, "negateFirstEnemyAttack", default: false),
-            attackDelayEnemyTurnChancePercent: values.decode(Double.self, "attackDelayEnemyTurnChancePercent", default: 0),
-            bleedingEnemyActionSkipChancePercent: values.decode(Double.self, "bleedingEnemyActionSkipChancePercent", default: 0),
-            extraCardDrawWhileEnemyBleeding: values.decode(Bool.self, "extraCardDrawWhileEnemyBleeding", default: false),
-            extraCardDrawBelowEnemyHealthPercent: values.decode(Double.self, "extraCardDrawBelowEnemyHealthPercent", default: 0),
-            ultimateAppliesBurnPotency: values.decode(Int.self, "ultimateAppliesBurnPotency", default: 0),
-            onHeroHolyAbilityCompanionHolyDamage: values.decode(Int.self, "onHeroHolyAbilityCompanionHolyDamage", default: 0),
-            onHolyDamageRestoreMana: values.decode(Int.self, "onHolyDamageRestoreMana", default: 0),
-            burnReducesEnemyHealingAndLeechPercent: values.decode(Double.self, "burnReducesEnemyHealingAndLeechPercent", default: 0)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(negateFirstEnemyAttack, "negateFirstEnemyAttack", default: false)
-        try container.encodeNonDefault(attackDelayEnemyTurnChancePercent, "attackDelayEnemyTurnChancePercent", default: 0)
-        try container.encodeNonDefault(bleedingEnemyActionSkipChancePercent, "bleedingEnemyActionSkipChancePercent", default: 0)
-        try container.encodeNonDefault(extraCardDrawWhileEnemyBleeding, "extraCardDrawWhileEnemyBleeding", default: false)
-        try container.encodeNonDefault(extraCardDrawBelowEnemyHealthPercent, "extraCardDrawBelowEnemyHealthPercent", default: 0)
-        try container.encodeNonDefault(ultimateAppliesBurnPotency, "ultimateAppliesBurnPotency", default: 0)
-        try container.encodeNonDefault(onHeroHolyAbilityCompanionHolyDamage, "onHeroHolyAbilityCompanionHolyDamage", default: 0)
-        try container.encodeNonDefault(onHolyDamageRestoreMana, "onHolyDamageRestoreMana", default: 0)
-        try container.encodeNonDefault(burnReducesEnemyHealingAndLeechPercent, "burnReducesEnemyHealingAndLeechPercent", default: 0)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

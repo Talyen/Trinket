@@ -261,94 +261,96 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
         self.threefoldElementalDamageManaChancePercent = threefoldElementalDamageManaChancePercent
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<ManaTriggers>] = [
+        .init(\.dragonPatronage, .dragonPatronage, default: false),
+        .init(\.prismaticScales, .prismaticScales, default: false),
+        .init(\.freezeEmpowermentBlockPerMana, .freezeEmpowermentBlockPerMana, default: 0),
+        .init(\.lastManaEmpowermentRepeatsDamage, .lastManaEmpowermentRepeatsDamage, default: false),
+        .init(\.spendManaBlockFlat, .spendManaBlockFlat, default: 0),
+        .init(\.empoweredElementDrawOpposite, .empoweredElementDrawOpposite, default: false),
+        .init(\.spendManaRandomDoTFlat, .spendManaRandomDoTFlat, default: 0),
+        .init(\.gainManaBlockFlat, .gainManaBlockFlat, default: 0),
+        .init(\.leechRestoreManaFlat, .leechRestoreManaFlat, default: 0),
+        .init(\.drawOnSpendMana, .drawOnSpendMana, default: 0),
+        .init(\.repeatManaEmpowerment, .repeatManaEmpowerment, default: false),
+        .init(\.unspentManaConvertsToBlock, .unspentManaConvertsToBlock, default: false),
+        .init(\.spendManaRemovesAfflictions, .spendManaRemovesAfflictions, default: false),
+        .init(\.spendManaEmpowerNextCardThreshold, .spendManaEmpowerNextCardThreshold, default: 0),
+        .init(\.nextCardEmpowerPercent, .nextCardEmpowerPercent, default: 0),
+        .init(\.startTurnFullManaDrawCards, .startTurnFullManaDrawCards, default: 0),
+        .init(\.onReachZeroManaRestoreMana, .onReachZeroManaRestoreMana, default: 0),
+        .init(\.spendManaRandomElementDamage, .spendManaRandomElementDamage, default: false),
+        .init(\.onGainManaHealFlat, .onGainManaHealFlat, default: 0),
+        .init(\.startBattleBonusMana, .startBattleBonusMana, default: 0),
+        .init(\.empowermentDamageBonus, .empowermentDamageBonus, default: 0),
+        .init(\.spendManaDamageBonusPerMana, .spendManaDamageBonusPerMana, default: 0),
+        .init(\.onHeroSpendManaGainBlock, .onHeroSpendManaGainBlock, default: 0),
+        .init(\.spendManaRefundChancePercent, .spendManaRefundChancePercent, default: 0),
+        .init(\.firstEmpowermentCostReduction, .firstEmpowermentCostReduction, default: 0),
+        .init(\.empowermentCostReduction, .empowermentCostReduction, default: 0),
+        .init(\.healingEmpowermentCostReduction, .healingEmpowermentCostReduction, default: 0),
+        .init(\.bonusManaOnTurns, .bonusManaOnTurns, default: []),
+        .init(\.spendManaGrantsEqualBlock, .spendManaGrantsEqualBlock, default: false),
+        .init(\.manaGainDoubleChancePercent, .manaGainDoubleChancePercent, default: 0),
+        .init(\.spendManaThresholdAutoPlayCard, .spendManaThresholdAutoPlayCard, default: 0),
+        .init(\.onSpendManaBurnBurningEnemies, .onSpendManaBurnBurningEnemies, default: 0),
+        .init(\.onHeroSpendManaApplyRandomAffliction, .onHeroSpendManaApplyRandomAffliction, default: false),
+        .init(\.cardsPlayedManaThreshold, .cardsPlayedManaThreshold, default: 0),
+        .init(\.cardsPlayedManaFlat, .cardsPlayedManaFlat, default: 0),
+        .init(\.onBurnDamageRestoreManaFlat, .onBurnDamageRestoreManaFlat, default: 0),
+        .init(\.drawEveryOtherTurn, .drawEveryOtherTurn, default: 0),
+        .init(\.healCompanionDrawsCompanionCard, .healCompanionDrawsCompanionCard, default: false),
+        .init(\.forbiddenKnowledge, .forbiddenKnowledge, default: false),
+        .init(\.drawOnHealthLoss, .drawOnHealthLoss, default: 0),
+        .init(\.companionCardsEveryOtherTurn, .companionCardsEveryOtherTurn, default: 0),
+        .init(\.companionCardsPerTurn, .companionCardsPerTurn, default: 0),
+        .init(\.onFreezeEnemyGainManaEqualBlock, .onFreezeEnemyGainManaEqualBlock, default: false),
+        .init(\.closedCircuit, .closedCircuit, default: false),
+        .init(\.eyeOfTheStorm, .eyeOfTheStorm, default: false),
+        .init(\.furnaceRhythm, .furnaceRhythm, default: false),
+        .init(\.temperCycle, .temperCycle, default: false),
+        .init(\.livingConduit, .livingConduit, default: false),
+        .init(\.deepRoots, .deepRoots, default: false),
+        .init(\.groveAccord, .groveAccord, default: false),
+        .init(\.onEmpowerBurnRestoreMana, .onEmpowerBurnRestoreMana, default: 0),
+        .init(\.empowerFreezeDamageBonus, .empowerFreezeDamageBonus, default: 0),
+        .init(\.empoweredSkillEchoes, .empoweredSkillEchoes, default: false),
+        .init(\.spendLastManaStunDamage, .spendLastManaStunDamage, default: 0),
+        .init(\.empowerBurnDamageBonus, .empowerBurnDamageBonus, default: 0),
+        .init(\.empowerBurnCostReduction, .empowerBurnCostReduction, default: 0),
+        .init(\.manaEmpowerNextAttackPercent, .manaEmpowerNextAttackPercent, default: 0),
+        .init(\.endTurnZeroManaCleanse, .endTurnZeroManaCleanse, default: false),
+        .init(\.spendLastManaDrawCard, .spendLastManaDrawCard, default: false),
+        .init(\.manaEmpoweredAttackDoubleChancePercent, .manaEmpoweredAttackDoubleChancePercent, default: 0),
+        .init(\.freezeCriticalRestoreMana, .freezeCriticalRestoreMana, default: 0),
+        .init(\.healthLossManaGain, .healthLossManaGain, default: 0),
+        .init(\.manaEmpowerPurgeCount, .manaEmpowerPurgeCount, default: 0),
+        .init(\.healthCostEmpowerDiscount, .healthCostEmpowerDiscount, default: 0),
+        .init(\.manaEmpoweredCriticalMultiplier, .manaEmpoweredCriticalMultiplier, default: 1),
+        .init(\.lastManaNextBurnPercent, .lastManaNextBurnPercent, default: 0),
+        .init(\.poisonExpiryManaRestore, .poisonExpiryManaRestore, default: 0),
+        .init(\.arcaneThornsOnManaRestore, .arcaneThornsOnManaRestore, default: 0),
+        .init(\.barkweaveOnEmpowerBlock, .barkweaveOnEmpowerBlock, default: 0),
+        .init(\.sharedCurrentCompanionNextAttackBonus, .sharedCurrentCompanionNextAttackBonus, default: 0),
+        .init(\.spendManaDrawChancePercent, .spendManaDrawChancePercent, default: 0),
+        .init(\.excessManaRestorationBlock, .excessManaRestorationBlock, default: false),
+        .init(\.manaHeldDamageMultiplier, .manaHeldDamageMultiplier, default: 1),
+        .init(\.manaEmpowerAllyBlock, .manaEmpowerAllyBlock, default: 0),
+        .init(\.burnCriticalRestoreMana, .burnCriticalRestoreMana, default: 0),
+        .init(\.firstManaSpendRefundPerTurn, .firstManaSpendRefundPerTurn, default: 0),
+        .init(\.manaEmpowerBurnFreezeDamageMultiplier, .manaEmpowerBurnFreezeDamageMultiplier, default: 1),
+        .init(\.manaEmpowerDamageChancePercent, .manaEmpowerDamageChancePercent, default: 0),
+        .init(\.manaEmpowerDamageMultiplier, .manaEmpowerDamageMultiplier, default: 1),
+        .init(\.manaEmpowerFreezeBuildupMultiplier, .manaEmpowerFreezeBuildupMultiplier, default: 1),
+        .init(\.manaRestorationDoubleChancePercent, .manaRestorationDoubleChancePercent, default: 0),
+        .init(\.manaRestorationDrawChancePercent, .manaRestorationDrawChancePercent, default: 0),
+        .init(\.selfManaSpendNextAttackBonus, .selfManaSpendNextAttackBonus, default: 0),
+        .init(\.threefoldElementalDamageManaChancePercent, .threefoldElementalDamageManaChancePercent, default: 0),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.dragonPatronage != other.dragonPatronage { fields.append(.dragonPatronage) }
-        if self.prismaticScales != other.prismaticScales { fields.append(.prismaticScales) }
-        if self.freezeEmpowermentBlockPerMana != other.freezeEmpowermentBlockPerMana { fields.append(.freezeEmpowermentBlockPerMana) }
-        if self.lastManaEmpowermentRepeatsDamage != other.lastManaEmpowermentRepeatsDamage { fields.append(.lastManaEmpowermentRepeatsDamage) }
-        if self.spendManaBlockFlat != other.spendManaBlockFlat { fields.append(.spendManaBlockFlat) }
-        if self.empoweredElementDrawOpposite != other.empoweredElementDrawOpposite { fields.append(.empoweredElementDrawOpposite) }
-        if self.spendManaRandomDoTFlat != other.spendManaRandomDoTFlat { fields.append(.spendManaRandomDoTFlat) }
-        if self.gainManaBlockFlat != other.gainManaBlockFlat { fields.append(.gainManaBlockFlat) }
-        if self.leechRestoreManaFlat != other.leechRestoreManaFlat { fields.append(.leechRestoreManaFlat) }
-        if self.drawOnSpendMana != other.drawOnSpendMana { fields.append(.drawOnSpendMana) }
-        if self.repeatManaEmpowerment != other.repeatManaEmpowerment { fields.append(.repeatManaEmpowerment) }
-        if self.unspentManaConvertsToBlock != other.unspentManaConvertsToBlock { fields.append(.unspentManaConvertsToBlock) }
-        if self.spendManaRemovesAfflictions != other.spendManaRemovesAfflictions { fields.append(.spendManaRemovesAfflictions) }
-        if self.spendManaEmpowerNextCardThreshold != other.spendManaEmpowerNextCardThreshold { fields.append(.spendManaEmpowerNextCardThreshold) }
-        if self.nextCardEmpowerPercent != other.nextCardEmpowerPercent { fields.append(.nextCardEmpowerPercent) }
-        if self.startTurnFullManaDrawCards != other.startTurnFullManaDrawCards { fields.append(.startTurnFullManaDrawCards) }
-        if self.onReachZeroManaRestoreMana != other.onReachZeroManaRestoreMana { fields.append(.onReachZeroManaRestoreMana) }
-        if self.spendManaRandomElementDamage != other.spendManaRandomElementDamage { fields.append(.spendManaRandomElementDamage) }
-        if self.onGainManaHealFlat != other.onGainManaHealFlat { fields.append(.onGainManaHealFlat) }
-        if self.startBattleBonusMana != other.startBattleBonusMana { fields.append(.startBattleBonusMana) }
-        if self.empowermentDamageBonus != other.empowermentDamageBonus { fields.append(.empowermentDamageBonus) }
-        if self.spendManaDamageBonusPerMana != other.spendManaDamageBonusPerMana { fields.append(.spendManaDamageBonusPerMana) }
-        if self.onHeroSpendManaGainBlock != other.onHeroSpendManaGainBlock { fields.append(.onHeroSpendManaGainBlock) }
-        if self.spendManaRefundChancePercent != other.spendManaRefundChancePercent { fields.append(.spendManaRefundChancePercent) }
-        if self.firstEmpowermentCostReduction != other.firstEmpowermentCostReduction { fields.append(.firstEmpowermentCostReduction) }
-        if self.empowermentCostReduction != other.empowermentCostReduction { fields.append(.empowermentCostReduction) }
-        if self.healingEmpowermentCostReduction != other.healingEmpowermentCostReduction { fields.append(.healingEmpowermentCostReduction) }
-        if self.bonusManaOnTurns != other.bonusManaOnTurns { fields.append(.bonusManaOnTurns) }
-        if self.spendManaGrantsEqualBlock != other.spendManaGrantsEqualBlock { fields.append(.spendManaGrantsEqualBlock) }
-        if self.manaGainDoubleChancePercent != other.manaGainDoubleChancePercent { fields.append(.manaGainDoubleChancePercent) }
-        if self.spendManaThresholdAutoPlayCard != other.spendManaThresholdAutoPlayCard { fields.append(.spendManaThresholdAutoPlayCard) }
-        if self.onSpendManaBurnBurningEnemies != other.onSpendManaBurnBurningEnemies { fields.append(.onSpendManaBurnBurningEnemies) }
-        if self.onHeroSpendManaApplyRandomAffliction != other.onHeroSpendManaApplyRandomAffliction { fields.append(.onHeroSpendManaApplyRandomAffliction) }
-        if self.cardsPlayedManaThreshold != other.cardsPlayedManaThreshold { fields.append(.cardsPlayedManaThreshold) }
-        if self.cardsPlayedManaFlat != other.cardsPlayedManaFlat { fields.append(.cardsPlayedManaFlat) }
-        if self.onBurnDamageRestoreManaFlat != other.onBurnDamageRestoreManaFlat { fields.append(.onBurnDamageRestoreManaFlat) }
-        if self.drawEveryOtherTurn != other.drawEveryOtherTurn { fields.append(.drawEveryOtherTurn) }
-        if self.healCompanionDrawsCompanionCard != other.healCompanionDrawsCompanionCard { fields.append(.healCompanionDrawsCompanionCard) }
-        if self.forbiddenKnowledge != other.forbiddenKnowledge { fields.append(.forbiddenKnowledge) }
-        if self.drawOnHealthLoss != other.drawOnHealthLoss { fields.append(.drawOnHealthLoss) }
-        if self.companionCardsEveryOtherTurn != other.companionCardsEveryOtherTurn { fields.append(.companionCardsEveryOtherTurn) }
-        if self.companionCardsPerTurn != other.companionCardsPerTurn { fields.append(.companionCardsPerTurn) }
-        if self.onFreezeEnemyGainManaEqualBlock != other.onFreezeEnemyGainManaEqualBlock { fields.append(.onFreezeEnemyGainManaEqualBlock) }
-        if self.closedCircuit != other.closedCircuit { fields.append(.closedCircuit) }
-        if self.eyeOfTheStorm != other.eyeOfTheStorm { fields.append(.eyeOfTheStorm) }
-        if self.furnaceRhythm != other.furnaceRhythm { fields.append(.furnaceRhythm) }
-        if self.temperCycle != other.temperCycle { fields.append(.temperCycle) }
-        if self.livingConduit != other.livingConduit { fields.append(.livingConduit) }
-        if self.deepRoots != other.deepRoots { fields.append(.deepRoots) }
-        if self.groveAccord != other.groveAccord { fields.append(.groveAccord) }
-        if self.onEmpowerBurnRestoreMana != other.onEmpowerBurnRestoreMana { fields.append(.onEmpowerBurnRestoreMana) }
-        if self.empowerFreezeDamageBonus != other.empowerFreezeDamageBonus { fields.append(.empowerFreezeDamageBonus) }
-        if self.empoweredSkillEchoes != other.empoweredSkillEchoes { fields.append(.empoweredSkillEchoes) }
-        if self.spendLastManaStunDamage != other.spendLastManaStunDamage { fields.append(.spendLastManaStunDamage) }
-        if self.empowerBurnDamageBonus != other.empowerBurnDamageBonus { fields.append(.empowerBurnDamageBonus) }
-        if self.empowerBurnCostReduction != other.empowerBurnCostReduction { fields.append(.empowerBurnCostReduction) }
-        if self.manaEmpowerNextAttackPercent != other.manaEmpowerNextAttackPercent { fields.append(.manaEmpowerNextAttackPercent) }
-        if self.endTurnZeroManaCleanse != other.endTurnZeroManaCleanse { fields.append(.endTurnZeroManaCleanse) }
-        if self.spendLastManaDrawCard != other.spendLastManaDrawCard { fields.append(.spendLastManaDrawCard) }
-        if self.manaEmpoweredAttackDoubleChancePercent != other.manaEmpoweredAttackDoubleChancePercent { fields.append(.manaEmpoweredAttackDoubleChancePercent) }
-        if self.freezeCriticalRestoreMana != other.freezeCriticalRestoreMana { fields.append(.freezeCriticalRestoreMana) }
-        if self.healthLossManaGain != other.healthLossManaGain { fields.append(.healthLossManaGain) }
-        if self.manaEmpowerPurgeCount != other.manaEmpowerPurgeCount { fields.append(.manaEmpowerPurgeCount) }
-        if self.healthCostEmpowerDiscount != other.healthCostEmpowerDiscount { fields.append(.healthCostEmpowerDiscount) }
-        if self.manaEmpoweredCriticalMultiplier != other.manaEmpoweredCriticalMultiplier { fields.append(.manaEmpoweredCriticalMultiplier) }
-        if self.lastManaNextBurnPercent != other.lastManaNextBurnPercent { fields.append(.lastManaNextBurnPercent) }
-        if self.poisonExpiryManaRestore != other.poisonExpiryManaRestore { fields.append(.poisonExpiryManaRestore) }
-        if self.arcaneThornsOnManaRestore != other.arcaneThornsOnManaRestore { fields.append(.arcaneThornsOnManaRestore) }
-        if self.barkweaveOnEmpowerBlock != other.barkweaveOnEmpowerBlock { fields.append(.barkweaveOnEmpowerBlock) }
-        if self.sharedCurrentCompanionNextAttackBonus != other.sharedCurrentCompanionNextAttackBonus { fields.append(.sharedCurrentCompanionNextAttackBonus) }
-        if self.spendManaDrawChancePercent != other.spendManaDrawChancePercent { fields.append(.spendManaDrawChancePercent) }
-        if self.excessManaRestorationBlock != other.excessManaRestorationBlock { fields.append(.excessManaRestorationBlock) }
-        if self.manaHeldDamageMultiplier != other.manaHeldDamageMultiplier { fields.append(.manaHeldDamageMultiplier) }
-        if self.manaEmpowerAllyBlock != other.manaEmpowerAllyBlock { fields.append(.manaEmpowerAllyBlock) }
-        if self.burnCriticalRestoreMana != other.burnCriticalRestoreMana { fields.append(.burnCriticalRestoreMana) }
-        if self.firstManaSpendRefundPerTurn != other.firstManaSpendRefundPerTurn { fields.append(.firstManaSpendRefundPerTurn) }
-        if self.manaEmpowerBurnFreezeDamageMultiplier != other.manaEmpowerBurnFreezeDamageMultiplier { fields.append(.manaEmpowerBurnFreezeDamageMultiplier) }
-        if self.manaEmpowerDamageChancePercent != other.manaEmpowerDamageChancePercent { fields.append(.manaEmpowerDamageChancePercent) }
-        if self.manaEmpowerDamageMultiplier != other.manaEmpowerDamageMultiplier { fields.append(.manaEmpowerDamageMultiplier) }
-        if self.manaEmpowerFreezeBuildupMultiplier != other.manaEmpowerFreezeBuildupMultiplier { fields.append(.manaEmpowerFreezeBuildupMultiplier) }
-        if self.manaRestorationDoubleChancePercent != other.manaRestorationDoubleChancePercent { fields.append(.manaRestorationDoubleChancePercent) }
-        if self.manaRestorationDrawChancePercent != other.manaRestorationDrawChancePercent { fields.append(.manaRestorationDrawChancePercent) }
-        if self.selfManaSpendNextAttackBonus != other.selfManaSpendNextAttackBonus { fields.append(.selfManaSpendNextAttackBonus) }
-        if self.threefoldElementalDamageManaChancePercent != other.threefoldElementalDamageManaChancePercent { fields.append(.threefoldElementalDamageManaChancePercent) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -446,178 +448,15 @@ extension ManaTriggers {
 extension ManaTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            dragonPatronage: values.decode(Bool.self, "dragonPatronage", default: false),
-            prismaticScales: values.decode(Bool.self, "prismaticScales", default: false),
-            freezeEmpowermentBlockPerMana: values.decode(Int.self, "freezeEmpowermentBlockPerMana", default: 0),
-            lastManaEmpowermentRepeatsDamage: values.decode(Bool.self, "lastManaEmpowermentRepeatsDamage", default: false),
-            spendManaBlockFlat: values.decode(Int.self, "spendManaBlockFlat", default: 0),
-            empoweredElementDrawOpposite: values.decode(Bool.self, "empoweredElementDrawOpposite", default: false),
-            spendManaRandomDoTFlat: values.decode(Int.self, "spendManaRandomDoTFlat", default: 0),
-            gainManaBlockFlat: values.decode(Int.self, "gainManaBlockFlat", default: 0),
-            leechRestoreManaFlat: values.decode(Int.self, "leechRestoreManaFlat", default: 0),
-            drawOnSpendMana: values.decode(Int.self, "drawOnSpendMana", default: 0),
-            repeatManaEmpowerment: values.decode(Bool.self, "repeatManaEmpowerment", default: false),
-            unspentManaConvertsToBlock: values.decode(Bool.self, "unspentManaConvertsToBlock", default: false),
-            spendManaRemovesAfflictions: values.decode(Bool.self, "spendManaRemovesAfflictions", default: false),
-            spendManaEmpowerNextCardThreshold: values.decode(Int.self, "spendManaEmpowerNextCardThreshold", default: 0),
-            nextCardEmpowerPercent: values.decode(Double.self, "nextCardEmpowerPercent", default: 0),
-            startTurnFullManaDrawCards: values.decode(Int.self, "startTurnFullManaDrawCards", default: 0),
-            onReachZeroManaRestoreMana: values.decode(Int.self, "onReachZeroManaRestoreMana", default: 0),
-            spendManaRandomElementDamage: values.decode(Bool.self, "spendManaRandomElementDamage", default: false),
-            onGainManaHealFlat: values.decode(Int.self, "onGainManaHealFlat", default: 0),
-            startBattleBonusMana: values.decode(Int.self, "startBattleBonusMana", default: 0),
-            empowermentDamageBonus: values.decode(Int.self, "empowermentDamageBonus", default: 0),
-            spendManaDamageBonusPerMana: values.decode(Int.self, "spendManaDamageBonusPerMana", default: 0),
-            onHeroSpendManaGainBlock: values.decode(Int.self, "onHeroSpendManaGainBlock", default: 0),
-            spendManaRefundChancePercent: values.decode(Double.self, "spendManaRefundChancePercent", default: 0),
-            firstEmpowermentCostReduction: values.decode(Int.self, "firstEmpowermentCostReduction", default: 0),
-            empowermentCostReduction: values.decode(Int.self, "empowermentCostReduction", default: 0),
-            healingEmpowermentCostReduction: values.decode(Int.self, "healingEmpowermentCostReduction", default: 0),
-            bonusManaOnTurns: values.decode([Int].self, "bonusManaOnTurns", default: []),
-            spendManaGrantsEqualBlock: values.decode(Bool.self, "spendManaGrantsEqualBlock", default: false),
-            manaGainDoubleChancePercent: values.decode(Double.self, "manaGainDoubleChancePercent", default: 0),
-            spendManaThresholdAutoPlayCard: values.decode(Int.self, "spendManaThresholdAutoPlayCard", default: 0),
-            onSpendManaBurnBurningEnemies: values.decode(Int.self, "onSpendManaBurnBurningEnemies", default: 0),
-            onHeroSpendManaApplyRandomAffliction: values.decode(Bool.self, "onHeroSpendManaApplyRandomAffliction", default: false),
-            cardsPlayedManaThreshold: values.decode(Int.self, "cardsPlayedManaThreshold", default: 0),
-            cardsPlayedManaFlat: values.decode(Int.self, "cardsPlayedManaFlat", default: 0),
-            onBurnDamageRestoreManaFlat: values.decode(Int.self, "onBurnDamageRestoreManaFlat", default: 0),
-            drawEveryOtherTurn: values.decode(Int.self, "drawEveryOtherTurn", default: 0),
-            healCompanionDrawsCompanionCard: values.decode(Bool.self, "healCompanionDrawsCompanionCard", default: false),
-            forbiddenKnowledge: values.decode(Bool.self, "forbiddenKnowledge", default: false),
-            drawOnHealthLoss: values.decode(Int.self, "drawOnHealthLoss", default: 0),
-            companionCardsEveryOtherTurn: values.decode(Int.self, "companionCardsEveryOtherTurn", default: 0),
-            companionCardsPerTurn: values.decode(Int.self, "companionCardsPerTurn", default: 0),
-            onFreezeEnemyGainManaEqualBlock: values.decode(Bool.self, "onFreezeEnemyGainManaEqualBlock", default: false),
-            closedCircuit: values.decode(Bool.self, "closedCircuit", default: false),
-            eyeOfTheStorm: values.decode(Bool.self, "eyeOfTheStorm", default: false),
-            furnaceRhythm: values.decode(Bool.self, "furnaceRhythm", default: false),
-            temperCycle: values.decode(Bool.self, "temperCycle", default: false),
-            livingConduit: values.decode(Bool.self, "livingConduit", default: false),
-            deepRoots: values.decode(Bool.self, "deepRoots", default: false),
-            groveAccord: values.decode(Bool.self, "groveAccord", default: false),
-            onEmpowerBurnRestoreMana: values.decode(Int.self, "onEmpowerBurnRestoreMana", default: 0),
-            empowerFreezeDamageBonus: values.decode(Int.self, "empowerFreezeDamageBonus", default: 0),
-            empoweredSkillEchoes: values.decode(Bool.self, "empoweredSkillEchoes", default: false),
-            spendLastManaStunDamage: values.decode(Int.self, "spendLastManaStunDamage", default: 0),
-            empowerBurnDamageBonus: values.decode(Int.self, "empowerBurnDamageBonus", default: 0),
-            empowerBurnCostReduction: values.decode(Int.self, "empowerBurnCostReduction", default: 0),
-            manaEmpowerNextAttackPercent: values.decode(Double.self, "manaEmpowerNextAttackPercent", default: 0),
-            endTurnZeroManaCleanse: values.decode(Bool.self, "endTurnZeroManaCleanse", default: false),
-            spendLastManaDrawCard: values.decode(Bool.self, "spendLastManaDrawCard", default: false),
-            manaEmpoweredAttackDoubleChancePercent: values.decode(Double.self, "manaEmpoweredAttackDoubleChancePercent", default: 0),
-            freezeCriticalRestoreMana: values.decode(Int.self, "freezeCriticalRestoreMana", default: 0),
-            healthLossManaGain: values.decode(Int.self, "healthLossManaGain", default: 0),
-            manaEmpowerPurgeCount: values.decode(Int.self, "manaEmpowerPurgeCount", default: 0),
-            healthCostEmpowerDiscount: values.decode(Int.self, "healthCostEmpowerDiscount", default: 0),
-            manaEmpoweredCriticalMultiplier: values.decode(Double.self, "manaEmpoweredCriticalMultiplier", default: 1),
-            lastManaNextBurnPercent: values.decode(Double.self, "lastManaNextBurnPercent", default: 0),
-            poisonExpiryManaRestore: values.decode(Int.self, "poisonExpiryManaRestore", default: 0),
-            arcaneThornsOnManaRestore: values.decode(Int.self, "arcaneThornsOnManaRestore", default: 0),
-            barkweaveOnEmpowerBlock: values.decode(Int.self, "barkweaveOnEmpowerBlock", default: 0),
-            sharedCurrentCompanionNextAttackBonus: values.decode(Int.self, "sharedCurrentCompanionNextAttackBonus", default: 0),
-            spendManaDrawChancePercent: values.decode(Double.self, "spendManaDrawChancePercent", default: 0),
-            excessManaRestorationBlock: values.decode(Bool.self, "excessManaRestorationBlock", default: false),
-            manaHeldDamageMultiplier: values.decode(Double.self, "manaHeldDamageMultiplier", default: 1),
-            manaEmpowerAllyBlock: values.decode(Int.self, "manaEmpowerAllyBlock", default: 0),
-            burnCriticalRestoreMana: values.decode(Int.self, "burnCriticalRestoreMana", default: 0),
-            firstManaSpendRefundPerTurn: values.decode(Int.self, "firstManaSpendRefundPerTurn", default: 0),
-            manaEmpowerBurnFreezeDamageMultiplier: values.decode(Double.self, "manaEmpowerBurnFreezeDamageMultiplier", default: 1),
-            manaEmpowerDamageChancePercent: values.decode(Double.self, "manaEmpowerDamageChancePercent", default: 0),
-            manaEmpowerDamageMultiplier: values.decode(Double.self, "manaEmpowerDamageMultiplier", default: 1),
-            manaEmpowerFreezeBuildupMultiplier: values.decode(Double.self, "manaEmpowerFreezeBuildupMultiplier", default: 1),
-            manaRestorationDoubleChancePercent: values.decode(Double.self, "manaRestorationDoubleChancePercent", default: 0),
-            manaRestorationDrawChancePercent: values.decode(Double.self, "manaRestorationDrawChancePercent", default: 0),
-            selfManaSpendNextAttackBonus: values.decode(Int.self, "selfManaSpendNextAttackBonus", default: 0),
-            threefoldElementalDamageManaChancePercent: values.decode(Double.self, "threefoldElementalDamageManaChancePercent", default: 0)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(dragonPatronage, "dragonPatronage", default: false)
-        try container.encodeNonDefault(prismaticScales, "prismaticScales", default: false)
-        try container.encodeNonDefault(freezeEmpowermentBlockPerMana, "freezeEmpowermentBlockPerMana", default: 0)
-        try container.encodeNonDefault(lastManaEmpowermentRepeatsDamage, "lastManaEmpowermentRepeatsDamage", default: false)
-        try container.encodeNonDefault(spendManaBlockFlat, "spendManaBlockFlat", default: 0)
-        try container.encodeNonDefault(empoweredElementDrawOpposite, "empoweredElementDrawOpposite", default: false)
-        try container.encodeNonDefault(spendManaRandomDoTFlat, "spendManaRandomDoTFlat", default: 0)
-        try container.encodeNonDefault(gainManaBlockFlat, "gainManaBlockFlat", default: 0)
-        try container.encodeNonDefault(leechRestoreManaFlat, "leechRestoreManaFlat", default: 0)
-        try container.encodeNonDefault(drawOnSpendMana, "drawOnSpendMana", default: 0)
-        try container.encodeNonDefault(repeatManaEmpowerment, "repeatManaEmpowerment", default: false)
-        try container.encodeNonDefault(unspentManaConvertsToBlock, "unspentManaConvertsToBlock", default: false)
-        try container.encodeNonDefault(spendManaRemovesAfflictions, "spendManaRemovesAfflictions", default: false)
-        try container.encodeNonDefault(spendManaEmpowerNextCardThreshold, "spendManaEmpowerNextCardThreshold", default: 0)
-        try container.encodeNonDefault(nextCardEmpowerPercent, "nextCardEmpowerPercent", default: 0)
-        try container.encodeNonDefault(startTurnFullManaDrawCards, "startTurnFullManaDrawCards", default: 0)
-        try container.encodeNonDefault(onReachZeroManaRestoreMana, "onReachZeroManaRestoreMana", default: 0)
-        try container.encodeNonDefault(spendManaRandomElementDamage, "spendManaRandomElementDamage", default: false)
-        try container.encodeNonDefault(onGainManaHealFlat, "onGainManaHealFlat", default: 0)
-        try container.encodeNonDefault(startBattleBonusMana, "startBattleBonusMana", default: 0)
-        try container.encodeNonDefault(empowermentDamageBonus, "empowermentDamageBonus", default: 0)
-        try container.encodeNonDefault(spendManaDamageBonusPerMana, "spendManaDamageBonusPerMana", default: 0)
-        try container.encodeNonDefault(onHeroSpendManaGainBlock, "onHeroSpendManaGainBlock", default: 0)
-        try container.encodeNonDefault(spendManaRefundChancePercent, "spendManaRefundChancePercent", default: 0)
-        try container.encodeNonDefault(firstEmpowermentCostReduction, "firstEmpowermentCostReduction", default: 0)
-        try container.encodeNonDefault(empowermentCostReduction, "empowermentCostReduction", default: 0)
-        try container.encodeNonDefault(healingEmpowermentCostReduction, "healingEmpowermentCostReduction", default: 0)
-        try container.encodeNonDefault(bonusManaOnTurns, "bonusManaOnTurns", default: [])
-        try container.encodeNonDefault(spendManaGrantsEqualBlock, "spendManaGrantsEqualBlock", default: false)
-        try container.encodeNonDefault(manaGainDoubleChancePercent, "manaGainDoubleChancePercent", default: 0)
-        try container.encodeNonDefault(spendManaThresholdAutoPlayCard, "spendManaThresholdAutoPlayCard", default: 0)
-        try container.encodeNonDefault(onSpendManaBurnBurningEnemies, "onSpendManaBurnBurningEnemies", default: 0)
-        try container.encodeNonDefault(onHeroSpendManaApplyRandomAffliction, "onHeroSpendManaApplyRandomAffliction", default: false)
-        try container.encodeNonDefault(cardsPlayedManaThreshold, "cardsPlayedManaThreshold", default: 0)
-        try container.encodeNonDefault(cardsPlayedManaFlat, "cardsPlayedManaFlat", default: 0)
-        try container.encodeNonDefault(onBurnDamageRestoreManaFlat, "onBurnDamageRestoreManaFlat", default: 0)
-        try container.encodeNonDefault(drawEveryOtherTurn, "drawEveryOtherTurn", default: 0)
-        try container.encodeNonDefault(healCompanionDrawsCompanionCard, "healCompanionDrawsCompanionCard", default: false)
-        try container.encodeNonDefault(forbiddenKnowledge, "forbiddenKnowledge", default: false)
-        try container.encodeNonDefault(drawOnHealthLoss, "drawOnHealthLoss", default: 0)
-        try container.encodeNonDefault(companionCardsEveryOtherTurn, "companionCardsEveryOtherTurn", default: 0)
-        try container.encodeNonDefault(companionCardsPerTurn, "companionCardsPerTurn", default: 0)
-        try container.encodeNonDefault(onFreezeEnemyGainManaEqualBlock, "onFreezeEnemyGainManaEqualBlock", default: false)
-        try container.encodeNonDefault(closedCircuit, "closedCircuit", default: false)
-        try container.encodeNonDefault(eyeOfTheStorm, "eyeOfTheStorm", default: false)
-        try container.encodeNonDefault(furnaceRhythm, "furnaceRhythm", default: false)
-        try container.encodeNonDefault(temperCycle, "temperCycle", default: false)
-        try container.encodeNonDefault(livingConduit, "livingConduit", default: false)
-        try container.encodeNonDefault(deepRoots, "deepRoots", default: false)
-        try container.encodeNonDefault(groveAccord, "groveAccord", default: false)
-        try container.encodeNonDefault(onEmpowerBurnRestoreMana, "onEmpowerBurnRestoreMana", default: 0)
-        try container.encodeNonDefault(empowerFreezeDamageBonus, "empowerFreezeDamageBonus", default: 0)
-        try container.encodeNonDefault(empoweredSkillEchoes, "empoweredSkillEchoes", default: false)
-        try container.encodeNonDefault(spendLastManaStunDamage, "spendLastManaStunDamage", default: 0)
-        try container.encodeNonDefault(empowerBurnDamageBonus, "empowerBurnDamageBonus", default: 0)
-        try container.encodeNonDefault(empowerBurnCostReduction, "empowerBurnCostReduction", default: 0)
-        try container.encodeNonDefault(manaEmpowerNextAttackPercent, "manaEmpowerNextAttackPercent", default: 0)
-        try container.encodeNonDefault(endTurnZeroManaCleanse, "endTurnZeroManaCleanse", default: false)
-        try container.encodeNonDefault(spendLastManaDrawCard, "spendLastManaDrawCard", default: false)
-        try container.encodeNonDefault(manaEmpoweredAttackDoubleChancePercent, "manaEmpoweredAttackDoubleChancePercent", default: 0)
-        try container.encodeNonDefault(freezeCriticalRestoreMana, "freezeCriticalRestoreMana", default: 0)
-        try container.encodeNonDefault(healthLossManaGain, "healthLossManaGain", default: 0)
-        try container.encodeNonDefault(manaEmpowerPurgeCount, "manaEmpowerPurgeCount", default: 0)
-        try container.encodeNonDefault(healthCostEmpowerDiscount, "healthCostEmpowerDiscount", default: 0)
-        try container.encodeNonDefault(manaEmpoweredCriticalMultiplier, "manaEmpoweredCriticalMultiplier", default: 1)
-        try container.encodeNonDefault(lastManaNextBurnPercent, "lastManaNextBurnPercent", default: 0)
-        try container.encodeNonDefault(poisonExpiryManaRestore, "poisonExpiryManaRestore", default: 0)
-        try container.encodeNonDefault(arcaneThornsOnManaRestore, "arcaneThornsOnManaRestore", default: 0)
-        try container.encodeNonDefault(barkweaveOnEmpowerBlock, "barkweaveOnEmpowerBlock", default: 0)
-        try container.encodeNonDefault(sharedCurrentCompanionNextAttackBonus, "sharedCurrentCompanionNextAttackBonus", default: 0)
-        try container.encodeNonDefault(spendManaDrawChancePercent, "spendManaDrawChancePercent", default: 0)
-        try container.encodeNonDefault(excessManaRestorationBlock, "excessManaRestorationBlock", default: false)
-        try container.encodeNonDefault(manaHeldDamageMultiplier, "manaHeldDamageMultiplier", default: 1)
-        try container.encodeNonDefault(manaEmpowerAllyBlock, "manaEmpowerAllyBlock", default: 0)
-        try container.encodeNonDefault(burnCriticalRestoreMana, "burnCriticalRestoreMana", default: 0)
-        try container.encodeNonDefault(firstManaSpendRefundPerTurn, "firstManaSpendRefundPerTurn", default: 0)
-        try container.encodeNonDefault(manaEmpowerBurnFreezeDamageMultiplier, "manaEmpowerBurnFreezeDamageMultiplier", default: 1)
-        try container.encodeNonDefault(manaEmpowerDamageChancePercent, "manaEmpowerDamageChancePercent", default: 0)
-        try container.encodeNonDefault(manaEmpowerDamageMultiplier, "manaEmpowerDamageMultiplier", default: 1)
-        try container.encodeNonDefault(manaEmpowerFreezeBuildupMultiplier, "manaEmpowerFreezeBuildupMultiplier", default: 1)
-        try container.encodeNonDefault(manaRestorationDoubleChancePercent, "manaRestorationDoubleChancePercent", default: 0)
-        try container.encodeNonDefault(manaRestorationDrawChancePercent, "manaRestorationDrawChancePercent", default: 0)
-        try container.encodeNonDefault(selfManaSpendNextAttackBonus, "selfManaSpendNextAttackBonus", default: 0)
-        try container.encodeNonDefault(threefoldElementalDamageManaChancePercent, "threefoldElementalDamageManaChancePercent", default: 0)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

@@ -81,34 +81,36 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         self.affixDeathsDoorSurviveHealFlat = affixDeathsDoorSurviveHealFlat
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<RevivalTriggers>] = [
+        .init(\.undyingEmber, .undyingEmber, default: false),
+        .init(\.borrowedLife, .borrowedLife, default: false),
+        .init(\.onceDeathReviveHealth, .onceDeathReviveHealth, default: 0),
+        .init(\.onceDeathReviveBlock, .onceDeathReviveBlock, default: 0),
+        .init(\.deathsDoorDurationBonusTurns, .deathsDoorDurationBonusTurns, default: 0),
+        .init(\.reviveDealBurnDamage, .reviveDealBurnDamage, default: 0),
+        .init(\.deathsDoorDodgeAndDebuffImmunity, .deathsDoorDodgeAndDebuffImmunity, default: false),
+        .init(\.onDeathDealPhysicalDamageAllEnemies, .onDeathDealPhysicalDamageAllEnemies, default: 0),
+        .init(\.guaranteedCritWhileOnDeathsDoor, .guaranteedCritWhileOnDeathsDoor, default: false),
+        .init(\.deathsDoorExpiredHealFlat, .deathsDoorExpiredHealFlat, default: 0),
+        .init(\.holyDamageReviveCompanionChancePercent, .holyDamageReviveCompanionChancePercent, default: 0),
+        .init(\.surviveDeathsDoorPartyHealFlat, .surviveDeathsDoorPartyHealFlat, default: 0),
+        .init(\.onHeroFatalReviveHealth, .onHeroFatalReviveHealth, default: 0),
+        .init(\.enterDeathsDoorHeal, .enterDeathsDoorHeal, default: 0),
+        .init(\.enterDeathsDoorBurnDamage, .enterDeathsDoorBurnDamage, default: 0),
+        .init(\.surviveDeathsDoorNextAttackDouble, .surviveDeathsDoorNextAttackDouble, default: false),
+        .init(\.deathsDoorIncomingDamageMultiplier, .deathsDoorIncomingDamageMultiplier, default: 1),
+        .init(\.deathsDoorNegativeStatusImmune, .deathsDoorNegativeStatusImmune, default: false),
+        .init(\.onAllyDeathsDoorRestoreHealth, .onAllyDeathsDoorRestoreHealth, default: 0),
+        .init(\.firstAllyFatalIntercept, .firstAllyFatalIntercept, default: false),
+        .init(\.deathsDoorCriticalChanceBonus, .deathsDoorCriticalChanceBonus, default: 0),
+        .init(\.enterDeathsDoorDrawCard, .enterDeathsDoorDrawCard, default: false),
+        .init(\.surviveDeathsDoorPartyBlockFlat, .surviveDeathsDoorPartyBlockFlat, default: 0),
+        .init(\.affixDeathsDoorSurviveHealFlat, .affixDeathsDoorSurviveHealFlat, default: 0),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.undyingEmber != other.undyingEmber { fields.append(.undyingEmber) }
-        if self.borrowedLife != other.borrowedLife { fields.append(.borrowedLife) }
-        if self.onceDeathReviveHealth != other.onceDeathReviveHealth { fields.append(.onceDeathReviveHealth) }
-        if self.onceDeathReviveBlock != other.onceDeathReviveBlock { fields.append(.onceDeathReviveBlock) }
-        if self.deathsDoorDurationBonusTurns != other.deathsDoorDurationBonusTurns { fields.append(.deathsDoorDurationBonusTurns) }
-        if self.reviveDealBurnDamage != other.reviveDealBurnDamage { fields.append(.reviveDealBurnDamage) }
-        if self.deathsDoorDodgeAndDebuffImmunity != other.deathsDoorDodgeAndDebuffImmunity { fields.append(.deathsDoorDodgeAndDebuffImmunity) }
-        if self.onDeathDealPhysicalDamageAllEnemies != other.onDeathDealPhysicalDamageAllEnemies { fields.append(.onDeathDealPhysicalDamageAllEnemies) }
-        if self.guaranteedCritWhileOnDeathsDoor != other.guaranteedCritWhileOnDeathsDoor { fields.append(.guaranteedCritWhileOnDeathsDoor) }
-        if self.deathsDoorExpiredHealFlat != other.deathsDoorExpiredHealFlat { fields.append(.deathsDoorExpiredHealFlat) }
-        if self.holyDamageReviveCompanionChancePercent != other.holyDamageReviveCompanionChancePercent { fields.append(.holyDamageReviveCompanionChancePercent) }
-        if self.surviveDeathsDoorPartyHealFlat != other.surviveDeathsDoorPartyHealFlat { fields.append(.surviveDeathsDoorPartyHealFlat) }
-        if self.onHeroFatalReviveHealth != other.onHeroFatalReviveHealth { fields.append(.onHeroFatalReviveHealth) }
-        if self.enterDeathsDoorHeal != other.enterDeathsDoorHeal { fields.append(.enterDeathsDoorHeal) }
-        if self.enterDeathsDoorBurnDamage != other.enterDeathsDoorBurnDamage { fields.append(.enterDeathsDoorBurnDamage) }
-        if self.surviveDeathsDoorNextAttackDouble != other.surviveDeathsDoorNextAttackDouble { fields.append(.surviveDeathsDoorNextAttackDouble) }
-        if self.deathsDoorIncomingDamageMultiplier != other.deathsDoorIncomingDamageMultiplier { fields.append(.deathsDoorIncomingDamageMultiplier) }
-        if self.deathsDoorNegativeStatusImmune != other.deathsDoorNegativeStatusImmune { fields.append(.deathsDoorNegativeStatusImmune) }
-        if self.onAllyDeathsDoorRestoreHealth != other.onAllyDeathsDoorRestoreHealth { fields.append(.onAllyDeathsDoorRestoreHealth) }
-        if self.firstAllyFatalIntercept != other.firstAllyFatalIntercept { fields.append(.firstAllyFatalIntercept) }
-        if self.deathsDoorCriticalChanceBonus != other.deathsDoorCriticalChanceBonus { fields.append(.deathsDoorCriticalChanceBonus) }
-        if self.enterDeathsDoorDrawCard != other.enterDeathsDoorDrawCard { fields.append(.enterDeathsDoorDrawCard) }
-        if self.surviveDeathsDoorPartyBlockFlat != other.surviveDeathsDoorPartyBlockFlat { fields.append(.surviveDeathsDoorPartyBlockFlat) }
-        if self.affixDeathsDoorSurviveHealFlat != other.affixDeathsDoorSurviveHealFlat { fields.append(.affixDeathsDoorSurviveHealFlat) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -144,58 +146,15 @@ extension RevivalTriggers {
 extension RevivalTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            undyingEmber: values.decode(Bool.self, "undyingEmber", default: false),
-            borrowedLife: values.decode(Bool.self, "borrowedLife", default: false),
-            onceDeathReviveHealth: values.decode(Int.self, "onceDeathReviveHealth", default: 0),
-            onceDeathReviveBlock: values.decode(Int.self, "onceDeathReviveBlock", default: 0),
-            deathsDoorDurationBonusTurns: values.decode(Int.self, "deathsDoorDurationBonusTurns", default: 0),
-            reviveDealBurnDamage: values.decode(Int.self, "reviveDealBurnDamage", default: 0),
-            deathsDoorDodgeAndDebuffImmunity: values.decode(Bool.self, "deathsDoorDodgeAndDebuffImmunity", default: false),
-            onDeathDealPhysicalDamageAllEnemies: values.decode(Int.self, "onDeathDealPhysicalDamageAllEnemies", default: 0),
-            guaranteedCritWhileOnDeathsDoor: values.decode(Bool.self, "guaranteedCritWhileOnDeathsDoor", default: false),
-            deathsDoorExpiredHealFlat: values.decode(Int.self, "deathsDoorExpiredHealFlat", default: 0),
-            holyDamageReviveCompanionChancePercent: values.decode(Double.self, "holyDamageReviveCompanionChancePercent", default: 0),
-            surviveDeathsDoorPartyHealFlat: values.decode(Int.self, "surviveDeathsDoorPartyHealFlat", default: 0),
-            onHeroFatalReviveHealth: values.decode(Int.self, "onHeroFatalReviveHealth", default: 0),
-            enterDeathsDoorHeal: values.decode(Int.self, "enterDeathsDoorHeal", default: 0),
-            enterDeathsDoorBurnDamage: values.decode(Int.self, "enterDeathsDoorBurnDamage", default: 0),
-            surviveDeathsDoorNextAttackDouble: values.decode(Bool.self, "surviveDeathsDoorNextAttackDouble", default: false),
-            deathsDoorIncomingDamageMultiplier: values.decode(Double.self, "deathsDoorIncomingDamageMultiplier", default: 1),
-            deathsDoorNegativeStatusImmune: values.decode(Bool.self, "deathsDoorNegativeStatusImmune", default: false),
-            onAllyDeathsDoorRestoreHealth: values.decode(Int.self, "onAllyDeathsDoorRestoreHealth", default: 0),
-            firstAllyFatalIntercept: values.decode(Bool.self, "firstAllyFatalIntercept", default: false),
-            deathsDoorCriticalChanceBonus: values.decode(Double.self, "deathsDoorCriticalChanceBonus", default: 0),
-            enterDeathsDoorDrawCard: values.decode(Bool.self, "enterDeathsDoorDrawCard", default: false),
-            surviveDeathsDoorPartyBlockFlat: values.decode(Int.self, "surviveDeathsDoorPartyBlockFlat", default: 0),
-            affixDeathsDoorSurviveHealFlat: values.decode(Int.self, "affixDeathsDoorSurviveHealFlat", default: 0)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(undyingEmber, "undyingEmber", default: false)
-        try container.encodeNonDefault(borrowedLife, "borrowedLife", default: false)
-        try container.encodeNonDefault(onceDeathReviveHealth, "onceDeathReviveHealth", default: 0)
-        try container.encodeNonDefault(onceDeathReviveBlock, "onceDeathReviveBlock", default: 0)
-        try container.encodeNonDefault(deathsDoorDurationBonusTurns, "deathsDoorDurationBonusTurns", default: 0)
-        try container.encodeNonDefault(reviveDealBurnDamage, "reviveDealBurnDamage", default: 0)
-        try container.encodeNonDefault(deathsDoorDodgeAndDebuffImmunity, "deathsDoorDodgeAndDebuffImmunity", default: false)
-        try container.encodeNonDefault(onDeathDealPhysicalDamageAllEnemies, "onDeathDealPhysicalDamageAllEnemies", default: 0)
-        try container.encodeNonDefault(guaranteedCritWhileOnDeathsDoor, "guaranteedCritWhileOnDeathsDoor", default: false)
-        try container.encodeNonDefault(deathsDoorExpiredHealFlat, "deathsDoorExpiredHealFlat", default: 0)
-        try container.encodeNonDefault(holyDamageReviveCompanionChancePercent, "holyDamageReviveCompanionChancePercent", default: 0)
-        try container.encodeNonDefault(surviveDeathsDoorPartyHealFlat, "surviveDeathsDoorPartyHealFlat", default: 0)
-        try container.encodeNonDefault(onHeroFatalReviveHealth, "onHeroFatalReviveHealth", default: 0)
-        try container.encodeNonDefault(enterDeathsDoorHeal, "enterDeathsDoorHeal", default: 0)
-        try container.encodeNonDefault(enterDeathsDoorBurnDamage, "enterDeathsDoorBurnDamage", default: 0)
-        try container.encodeNonDefault(surviveDeathsDoorNextAttackDouble, "surviveDeathsDoorNextAttackDouble", default: false)
-        try container.encodeNonDefault(deathsDoorIncomingDamageMultiplier, "deathsDoorIncomingDamageMultiplier", default: 1)
-        try container.encodeNonDefault(deathsDoorNegativeStatusImmune, "deathsDoorNegativeStatusImmune", default: false)
-        try container.encodeNonDefault(onAllyDeathsDoorRestoreHealth, "onAllyDeathsDoorRestoreHealth", default: 0)
-        try container.encodeNonDefault(firstAllyFatalIntercept, "firstAllyFatalIntercept", default: false)
-        try container.encodeNonDefault(deathsDoorCriticalChanceBonus, "deathsDoorCriticalChanceBonus", default: 0)
-        try container.encodeNonDefault(enterDeathsDoorDrawCard, "enterDeathsDoorDrawCard", default: false)
-        try container.encodeNonDefault(surviveDeathsDoorPartyBlockFlat, "surviveDeathsDoorPartyBlockFlat", default: 0)
-        try container.encodeNonDefault(affixDeathsDoorSurviveHealFlat, "affixDeathsDoorSurviveHealFlat", default: 0)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

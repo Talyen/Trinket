@@ -195,72 +195,74 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
         self.dodgeGoldIsTheft = dodgeGoldIsTheft
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<GoldTriggers>] = [
+        .init(\.carrionClaim, .carrionClaim, default: false),
+        .init(\.lightFingered, .lightFingered, default: false),
+        .init(\.goldGainedNextHolyDamage, .goldGainedNextHolyDamage, default: false),
+        .init(\.gainGoldBonusHealSelf, .gainGoldBonusHealSelf, default: 0),
+        .init(\.defeatBleedingEnemyGold, .defeatBleedingEnemyGold, default: 0),
+        .init(\.defeatEnemyGoldFlat, .defeatEnemyGoldFlat, default: 0),
+        .init(\.leechGoldFlat, .leechGoldFlat, default: 0),
+        .init(\.goldPerTurn, .goldPerTurn, default: 0),
+        .init(\.victoryGoldFlat, .victoryGoldFlat, default: 0),
+        .init(\.victoryGoldCoin, .victoryGoldCoin, default: false),
+        .init(\.criticalGoldFlat, .criticalGoldFlat, default: 0),
+        .init(\.criticalActionGoldFlat, .criticalActionGoldFlat, default: 0),
+        .init(\.startBattleBonusGold, .startBattleBonusGold, default: 0),
+        .init(\.onGainGoldHealParty, .onGainGoldHealParty, default: 0),
+        .init(\.goldEveryNTurnsInterval, .goldEveryNTurnsInterval, default: 0),
+        .init(\.goldEveryNTurnsAmount, .goldEveryNTurnsAmount, default: 0),
+        .init(\.onEnemyAbilityGold, .onEnemyAbilityGold, default: 0),
+        .init(\.criticalVsStunnedEnemyGold, .criticalVsStunnedEnemyGold, default: 0),
+        .init(\.critOnDefeatGold, .critOnDefeatGold, default: 0),
+        .init(\.partyGoldGainedPercent, .partyGoldGainedPercent, default: 0),
+        .init(\.firstGoldTheftHeal, .firstGoldTheftHeal, default: 0),
+        .init(\.goldDoubledWhileFullHealth, .goldDoubledWhileFullHealth, default: false),
+        .init(\.firstGoldTheftDraw, .firstGoldTheftDraw, default: 0),
+        .init(\.bountyBlade, .bountyBlade, default: false),
+        .init(\.blockedAttackFirstGold, .blockedAttackFirstGold, default: 0),
+        .init(\.stealGoldBonusVsPoisoned, .stealGoldBonusVsPoisoned, default: 0),
+        .init(\.gainGoldDrawThreshold, .gainGoldDrawThreshold, default: 0),
+        .init(\.stunCriticalStealGold, .stunCriticalStealGold, default: 0),
+        .init(\.dodgePreparesDoubleGoldSteal, .dodgePreparesDoubleGoldSteal, default: false),
+        .init(\.criticalGoldStealDrawCard, .criticalGoldStealDrawCard, default: false),
+        .init(\.goldStealNextPhysicalBonus, .goldStealNextPhysicalBonus, default: 0),
+        .init(\.goldStealNextAttackBonus, .goldStealNextAttackBonus, default: 0),
+        .init(\.goldGainHealChancePercent, .goldGainHealChancePercent, default: 0),
+        .init(\.goldGainHealAmount, .goldGainHealAmount, default: 0),
+        .init(\.criticalGoldTheftBonus, .criticalGoldTheftBonus, default: 0),
+        .init(\.goldGainCleanseChancePercent, .goldGainCleanseChancePercent, default: 0),
+        .init(\.goldGainBelowHalfDrawCard, .goldGainBelowHalfDrawCard, default: false),
+        .init(\.goldTheftDodgeBonus, .goldTheftDodgeBonus, default: 0),
+        .init(\.goldGainDrawChancePercent, .goldGainDrawChancePercent, default: 0),
+        .init(\.goldTheftBlockChancePercent, .goldTheftBlockChancePercent, default: 0),
+        .init(\.goldTheftBlockAmount, .goldTheftBlockAmount, default: 0),
+        .init(\.goldTheftDrawChancePercent, .goldTheftDrawChancePercent, default: 0),
+        .init(\.goldStealFlatBonus, .goldStealFlatBonus, default: 0),
+        .init(\.goldTheftNextBlockMultiplier, .goldTheftNextBlockMultiplier, default: 1),
+        .init(\.firstGoldTheftDrawBattle, .firstGoldTheftDrawBattle, default: false),
+        .init(\.allyCriticalChancePerCombatGold, .allyCriticalChancePerCombatGold, default: 0),
+        .init(\.blockBreakStealGoldFlat, .blockBreakStealGoldFlat, default: 0),
+        .init(\.goldTheftHealAllyFlat, .goldTheftHealAllyFlat, default: 0),
+        .init(\.attackGoldStealAmount, .attackGoldStealAmount, default: 0),
+        .init(\.attackGoldStealChancePercent, .attackGoldStealChancePercent, default: 0),
+        .init(\.belowHalfFirstGoldGainHealPerTurn, .belowHalfFirstGoldGainHealPerTurn, default: 0),
+        .init(\.criticalGoldStealAmount, .criticalGoldStealAmount, default: 0),
+        .init(\.criticalGoldStealChancePercent, .criticalGoldStealChancePercent, default: 0),
+        .init(\.dodgeGoldAmount, .dodgeGoldAmount, default: 0),
+        .init(\.dodgeGoldChancePercent, .dodgeGoldChancePercent, default: 0),
+        .init(\.firstGoldTheftDoubleBattle, .firstGoldTheftDoubleBattle, default: false),
+        .init(\.goldTheftNextAttackCriticalBonus, .goldTheftNextAttackCriticalBonus, default: 0),
+        .init(\.goldTheftStealEnemyBlockChancePercent, .goldTheftStealEnemyBlockChancePercent, default: 0),
+        .init(\.blockedAttackFirstRandomCard, .blockedAttackFirstRandomCard, default: false),
+        .init(\.victoryGoldBonusPercent, .victoryGoldBonusPercent, default: 0),
+        .init(\.goldTheftAllyBlock, .goldTheftAllyBlock, default: false),
+        .init(\.dodgeGoldIsTheft, .dodgeGoldIsTheft, default: false),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.carrionClaim != other.carrionClaim { fields.append(.carrionClaim) }
-        if self.lightFingered != other.lightFingered { fields.append(.lightFingered) }
-        if self.goldGainedNextHolyDamage != other.goldGainedNextHolyDamage { fields.append(.goldGainedNextHolyDamage) }
-        if self.gainGoldBonusHealSelf != other.gainGoldBonusHealSelf { fields.append(.gainGoldBonusHealSelf) }
-        if self.defeatBleedingEnemyGold != other.defeatBleedingEnemyGold { fields.append(.defeatBleedingEnemyGold) }
-        if self.defeatEnemyGoldFlat != other.defeatEnemyGoldFlat { fields.append(.defeatEnemyGoldFlat) }
-        if self.leechGoldFlat != other.leechGoldFlat { fields.append(.leechGoldFlat) }
-        if self.goldPerTurn != other.goldPerTurn { fields.append(.goldPerTurn) }
-        if self.victoryGoldFlat != other.victoryGoldFlat { fields.append(.victoryGoldFlat) }
-        if self.victoryGoldCoin != other.victoryGoldCoin { fields.append(.victoryGoldCoin) }
-        if self.criticalGoldFlat != other.criticalGoldFlat { fields.append(.criticalGoldFlat) }
-        if self.criticalActionGoldFlat != other.criticalActionGoldFlat { fields.append(.criticalActionGoldFlat) }
-        if self.startBattleBonusGold != other.startBattleBonusGold { fields.append(.startBattleBonusGold) }
-        if self.onGainGoldHealParty != other.onGainGoldHealParty { fields.append(.onGainGoldHealParty) }
-        if self.goldEveryNTurnsInterval != other.goldEveryNTurnsInterval { fields.append(.goldEveryNTurnsInterval) }
-        if self.goldEveryNTurnsAmount != other.goldEveryNTurnsAmount { fields.append(.goldEveryNTurnsAmount) }
-        if self.onEnemyAbilityGold != other.onEnemyAbilityGold { fields.append(.onEnemyAbilityGold) }
-        if self.criticalVsStunnedEnemyGold != other.criticalVsStunnedEnemyGold { fields.append(.criticalVsStunnedEnemyGold) }
-        if self.critOnDefeatGold != other.critOnDefeatGold { fields.append(.critOnDefeatGold) }
-        if self.partyGoldGainedPercent != other.partyGoldGainedPercent { fields.append(.partyGoldGainedPercent) }
-        if self.firstGoldTheftHeal != other.firstGoldTheftHeal { fields.append(.firstGoldTheftHeal) }
-        if self.goldDoubledWhileFullHealth != other.goldDoubledWhileFullHealth { fields.append(.goldDoubledWhileFullHealth) }
-        if self.firstGoldTheftDraw != other.firstGoldTheftDraw { fields.append(.firstGoldTheftDraw) }
-        if self.bountyBlade != other.bountyBlade { fields.append(.bountyBlade) }
-        if self.blockedAttackFirstGold != other.blockedAttackFirstGold { fields.append(.blockedAttackFirstGold) }
-        if self.stealGoldBonusVsPoisoned != other.stealGoldBonusVsPoisoned { fields.append(.stealGoldBonusVsPoisoned) }
-        if self.gainGoldDrawThreshold != other.gainGoldDrawThreshold { fields.append(.gainGoldDrawThreshold) }
-        if self.stunCriticalStealGold != other.stunCriticalStealGold { fields.append(.stunCriticalStealGold) }
-        if self.dodgePreparesDoubleGoldSteal != other.dodgePreparesDoubleGoldSteal { fields.append(.dodgePreparesDoubleGoldSteal) }
-        if self.criticalGoldStealDrawCard != other.criticalGoldStealDrawCard { fields.append(.criticalGoldStealDrawCard) }
-        if self.goldStealNextPhysicalBonus != other.goldStealNextPhysicalBonus { fields.append(.goldStealNextPhysicalBonus) }
-        if self.goldStealNextAttackBonus != other.goldStealNextAttackBonus { fields.append(.goldStealNextAttackBonus) }
-        if self.goldGainHealChancePercent != other.goldGainHealChancePercent { fields.append(.goldGainHealChancePercent) }
-        if self.goldGainHealAmount != other.goldGainHealAmount { fields.append(.goldGainHealAmount) }
-        if self.criticalGoldTheftBonus != other.criticalGoldTheftBonus { fields.append(.criticalGoldTheftBonus) }
-        if self.goldGainCleanseChancePercent != other.goldGainCleanseChancePercent { fields.append(.goldGainCleanseChancePercent) }
-        if self.goldGainBelowHalfDrawCard != other.goldGainBelowHalfDrawCard { fields.append(.goldGainBelowHalfDrawCard) }
-        if self.goldTheftDodgeBonus != other.goldTheftDodgeBonus { fields.append(.goldTheftDodgeBonus) }
-        if self.goldGainDrawChancePercent != other.goldGainDrawChancePercent { fields.append(.goldGainDrawChancePercent) }
-        if self.goldTheftBlockChancePercent != other.goldTheftBlockChancePercent { fields.append(.goldTheftBlockChancePercent) }
-        if self.goldTheftBlockAmount != other.goldTheftBlockAmount { fields.append(.goldTheftBlockAmount) }
-        if self.goldTheftDrawChancePercent != other.goldTheftDrawChancePercent { fields.append(.goldTheftDrawChancePercent) }
-        if self.goldStealFlatBonus != other.goldStealFlatBonus { fields.append(.goldStealFlatBonus) }
-        if self.goldTheftNextBlockMultiplier != other.goldTheftNextBlockMultiplier { fields.append(.goldTheftNextBlockMultiplier) }
-        if self.firstGoldTheftDrawBattle != other.firstGoldTheftDrawBattle { fields.append(.firstGoldTheftDrawBattle) }
-        if self.allyCriticalChancePerCombatGold != other.allyCriticalChancePerCombatGold { fields.append(.allyCriticalChancePerCombatGold) }
-        if self.blockBreakStealGoldFlat != other.blockBreakStealGoldFlat { fields.append(.blockBreakStealGoldFlat) }
-        if self.goldTheftHealAllyFlat != other.goldTheftHealAllyFlat { fields.append(.goldTheftHealAllyFlat) }
-        if self.attackGoldStealAmount != other.attackGoldStealAmount { fields.append(.attackGoldStealAmount) }
-        if self.attackGoldStealChancePercent != other.attackGoldStealChancePercent { fields.append(.attackGoldStealChancePercent) }
-        if self.belowHalfFirstGoldGainHealPerTurn != other.belowHalfFirstGoldGainHealPerTurn { fields.append(.belowHalfFirstGoldGainHealPerTurn) }
-        if self.criticalGoldStealAmount != other.criticalGoldStealAmount { fields.append(.criticalGoldStealAmount) }
-        if self.criticalGoldStealChancePercent != other.criticalGoldStealChancePercent { fields.append(.criticalGoldStealChancePercent) }
-        if self.dodgeGoldAmount != other.dodgeGoldAmount { fields.append(.dodgeGoldAmount) }
-        if self.dodgeGoldChancePercent != other.dodgeGoldChancePercent { fields.append(.dodgeGoldChancePercent) }
-        if self.firstGoldTheftDoubleBattle != other.firstGoldTheftDoubleBattle { fields.append(.firstGoldTheftDoubleBattle) }
-        if self.goldTheftNextAttackCriticalBonus != other.goldTheftNextAttackCriticalBonus { fields.append(.goldTheftNextAttackCriticalBonus) }
-        if self.goldTheftStealEnemyBlockChancePercent != other.goldTheftStealEnemyBlockChancePercent { fields.append(.goldTheftStealEnemyBlockChancePercent) }
-        if self.blockedAttackFirstRandomCard != other.blockedAttackFirstRandomCard { fields.append(.blockedAttackFirstRandomCard) }
-        if self.victoryGoldBonusPercent != other.victoryGoldBonusPercent { fields.append(.victoryGoldBonusPercent) }
-        if self.goldTheftAllyBlock != other.goldTheftAllyBlock { fields.append(.goldTheftAllyBlock) }
-        if self.dodgeGoldIsTheft != other.dodgeGoldIsTheft { fields.append(.dodgeGoldIsTheft) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -334,134 +336,15 @@ extension GoldTriggers {
 extension GoldTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            carrionClaim: values.decode(Bool.self, "carrionClaim", default: false),
-            lightFingered: values.decode(Bool.self, "lightFingered", default: false),
-            goldGainedNextHolyDamage: values.decode(Bool.self, "goldGainedNextHolyDamage", default: false),
-            gainGoldBonusHealSelf: values.decode(Int.self, "gainGoldBonusHealSelf", default: 0),
-            defeatBleedingEnemyGold: values.decode(Int.self, "defeatBleedingEnemyGold", default: 0),
-            defeatEnemyGoldFlat: values.decode(Int.self, "defeatEnemyGoldFlat", default: 0),
-            leechGoldFlat: values.decode(Int.self, "leechGoldFlat", default: 0),
-            goldPerTurn: values.decode(Int.self, "goldPerTurn", default: 0),
-            victoryGoldFlat: values.decode(Int.self, "victoryGoldFlat", default: 0),
-            victoryGoldCoin: values.decode(Bool.self, "victoryGoldCoin", default: false),
-            criticalGoldFlat: values.decode(Int.self, "criticalGoldFlat", default: 0),
-            criticalActionGoldFlat: values.decode(Int.self, "criticalActionGoldFlat", default: 0),
-            startBattleBonusGold: values.decode(Int.self, "startBattleBonusGold", default: 0),
-            onGainGoldHealParty: values.decode(Int.self, "onGainGoldHealParty", default: 0),
-            goldEveryNTurnsInterval: values.decode(Int.self, "goldEveryNTurnsInterval", default: 0),
-            goldEveryNTurnsAmount: values.decode(Int.self, "goldEveryNTurnsAmount", default: 0),
-            onEnemyAbilityGold: values.decode(Int.self, "onEnemyAbilityGold", default: 0),
-            criticalVsStunnedEnemyGold: values.decode(Int.self, "criticalVsStunnedEnemyGold", default: 0),
-            critOnDefeatGold: values.decode(Int.self, "critOnDefeatGold", default: 0),
-            partyGoldGainedPercent: values.decode(Double.self, "partyGoldGainedPercent", default: 0),
-            firstGoldTheftHeal: values.decode(Int.self, "firstGoldTheftHeal", default: 0),
-            goldDoubledWhileFullHealth: values.decode(Bool.self, "goldDoubledWhileFullHealth", default: false),
-            firstGoldTheftDraw: values.decode(Int.self, "firstGoldTheftDraw", default: 0),
-            bountyBlade: values.decode(Bool.self, "bountyBlade", default: false),
-            blockedAttackFirstGold: values.decode(Int.self, "blockedAttackFirstGold", default: 0),
-            stealGoldBonusVsPoisoned: values.decode(Int.self, "stealGoldBonusVsPoisoned", default: 0),
-            gainGoldDrawThreshold: values.decode(Int.self, "gainGoldDrawThreshold", default: 0),
-            stunCriticalStealGold: values.decode(Int.self, "stunCriticalStealGold", default: 0),
-            dodgePreparesDoubleGoldSteal: values.decode(Bool.self, "dodgePreparesDoubleGoldSteal", default: false),
-            criticalGoldStealDrawCard: values.decode(Bool.self, "criticalGoldStealDrawCard", default: false),
-            goldStealNextPhysicalBonus: values.decode(Int.self, "goldStealNextPhysicalBonus", default: 0),
-            goldStealNextAttackBonus: values.decode(Int.self, "goldStealNextAttackBonus", default: 0),
-            goldGainHealChancePercent: values.decode(Double.self, "goldGainHealChancePercent", default: 0),
-            goldGainHealAmount: values.decode(Int.self, "goldGainHealAmount", default: 0),
-            criticalGoldTheftBonus: values.decode(Int.self, "criticalGoldTheftBonus", default: 0),
-            goldGainCleanseChancePercent: values.decode(Double.self, "goldGainCleanseChancePercent", default: 0),
-            goldGainBelowHalfDrawCard: values.decode(Bool.self, "goldGainBelowHalfDrawCard", default: false),
-            goldTheftDodgeBonus: values.decode(Double.self, "goldTheftDodgeBonus", default: 0),
-            goldGainDrawChancePercent: values.decode(Double.self, "goldGainDrawChancePercent", default: 0),
-            goldTheftBlockChancePercent: values.decode(Double.self, "goldTheftBlockChancePercent", default: 0),
-            goldTheftBlockAmount: values.decode(Int.self, "goldTheftBlockAmount", default: 0),
-            goldTheftDrawChancePercent: values.decode(Double.self, "goldTheftDrawChancePercent", default: 0),
-            goldStealFlatBonus: values.decode(Int.self, "goldStealFlatBonus", default: 0),
-            goldTheftNextBlockMultiplier: values.decode(Double.self, "goldTheftNextBlockMultiplier", default: 1),
-            firstGoldTheftDrawBattle: values.decode(Bool.self, "firstGoldTheftDrawBattle", default: false),
-            allyCriticalChancePerCombatGold: values.decode(Double.self, "allyCriticalChancePerCombatGold", default: 0),
-            blockBreakStealGoldFlat: values.decode(Int.self, "blockBreakStealGoldFlat", default: 0),
-            goldTheftHealAllyFlat: values.decode(Int.self, "goldTheftHealAllyFlat", default: 0),
-            attackGoldStealAmount: values.decode(Int.self, "attackGoldStealAmount", default: 0),
-            attackGoldStealChancePercent: values.decode(Double.self, "attackGoldStealChancePercent", default: 0),
-            belowHalfFirstGoldGainHealPerTurn: values.decode(Int.self, "belowHalfFirstGoldGainHealPerTurn", default: 0),
-            criticalGoldStealAmount: values.decode(Int.self, "criticalGoldStealAmount", default: 0),
-            criticalGoldStealChancePercent: values.decode(Double.self, "criticalGoldStealChancePercent", default: 0),
-            dodgeGoldAmount: values.decode(Int.self, "dodgeGoldAmount", default: 0),
-            dodgeGoldChancePercent: values.decode(Double.self, "dodgeGoldChancePercent", default: 0),
-            firstGoldTheftDoubleBattle: values.decode(Bool.self, "firstGoldTheftDoubleBattle", default: false),
-            goldTheftNextAttackCriticalBonus: values.decode(Double.self, "goldTheftNextAttackCriticalBonus", default: 0),
-            goldTheftStealEnemyBlockChancePercent: values.decode(Double.self, "goldTheftStealEnemyBlockChancePercent", default: 0),
-            blockedAttackFirstRandomCard: values.decode(Bool.self, "blockedAttackFirstRandomCard", default: false),
-            victoryGoldBonusPercent: values.decode(Int.self, "victoryGoldBonusPercent", default: 0),
-            goldTheftAllyBlock: values.decode(Bool.self, "goldTheftAllyBlock", default: false),
-            dodgeGoldIsTheft: values.decode(Bool.self, "dodgeGoldIsTheft", default: false)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(carrionClaim, "carrionClaim", default: false)
-        try container.encodeNonDefault(lightFingered, "lightFingered", default: false)
-        try container.encodeNonDefault(goldGainedNextHolyDamage, "goldGainedNextHolyDamage", default: false)
-        try container.encodeNonDefault(gainGoldBonusHealSelf, "gainGoldBonusHealSelf", default: 0)
-        try container.encodeNonDefault(defeatBleedingEnemyGold, "defeatBleedingEnemyGold", default: 0)
-        try container.encodeNonDefault(defeatEnemyGoldFlat, "defeatEnemyGoldFlat", default: 0)
-        try container.encodeNonDefault(leechGoldFlat, "leechGoldFlat", default: 0)
-        try container.encodeNonDefault(goldPerTurn, "goldPerTurn", default: 0)
-        try container.encodeNonDefault(victoryGoldFlat, "victoryGoldFlat", default: 0)
-        try container.encodeNonDefault(victoryGoldCoin, "victoryGoldCoin", default: false)
-        try container.encodeNonDefault(criticalGoldFlat, "criticalGoldFlat", default: 0)
-        try container.encodeNonDefault(criticalActionGoldFlat, "criticalActionGoldFlat", default: 0)
-        try container.encodeNonDefault(startBattleBonusGold, "startBattleBonusGold", default: 0)
-        try container.encodeNonDefault(onGainGoldHealParty, "onGainGoldHealParty", default: 0)
-        try container.encodeNonDefault(goldEveryNTurnsInterval, "goldEveryNTurnsInterval", default: 0)
-        try container.encodeNonDefault(goldEveryNTurnsAmount, "goldEveryNTurnsAmount", default: 0)
-        try container.encodeNonDefault(onEnemyAbilityGold, "onEnemyAbilityGold", default: 0)
-        try container.encodeNonDefault(criticalVsStunnedEnemyGold, "criticalVsStunnedEnemyGold", default: 0)
-        try container.encodeNonDefault(critOnDefeatGold, "critOnDefeatGold", default: 0)
-        try container.encodeNonDefault(partyGoldGainedPercent, "partyGoldGainedPercent", default: 0)
-        try container.encodeNonDefault(firstGoldTheftHeal, "firstGoldTheftHeal", default: 0)
-        try container.encodeNonDefault(goldDoubledWhileFullHealth, "goldDoubledWhileFullHealth", default: false)
-        try container.encodeNonDefault(firstGoldTheftDraw, "firstGoldTheftDraw", default: 0)
-        try container.encodeNonDefault(bountyBlade, "bountyBlade", default: false)
-        try container.encodeNonDefault(blockedAttackFirstGold, "blockedAttackFirstGold", default: 0)
-        try container.encodeNonDefault(stealGoldBonusVsPoisoned, "stealGoldBonusVsPoisoned", default: 0)
-        try container.encodeNonDefault(gainGoldDrawThreshold, "gainGoldDrawThreshold", default: 0)
-        try container.encodeNonDefault(stunCriticalStealGold, "stunCriticalStealGold", default: 0)
-        try container.encodeNonDefault(dodgePreparesDoubleGoldSteal, "dodgePreparesDoubleGoldSteal", default: false)
-        try container.encodeNonDefault(criticalGoldStealDrawCard, "criticalGoldStealDrawCard", default: false)
-        try container.encodeNonDefault(goldStealNextPhysicalBonus, "goldStealNextPhysicalBonus", default: 0)
-        try container.encodeNonDefault(goldStealNextAttackBonus, "goldStealNextAttackBonus", default: 0)
-        try container.encodeNonDefault(goldGainHealChancePercent, "goldGainHealChancePercent", default: 0)
-        try container.encodeNonDefault(goldGainHealAmount, "goldGainHealAmount", default: 0)
-        try container.encodeNonDefault(criticalGoldTheftBonus, "criticalGoldTheftBonus", default: 0)
-        try container.encodeNonDefault(goldGainCleanseChancePercent, "goldGainCleanseChancePercent", default: 0)
-        try container.encodeNonDefault(goldGainBelowHalfDrawCard, "goldGainBelowHalfDrawCard", default: false)
-        try container.encodeNonDefault(goldTheftDodgeBonus, "goldTheftDodgeBonus", default: 0)
-        try container.encodeNonDefault(goldGainDrawChancePercent, "goldGainDrawChancePercent", default: 0)
-        try container.encodeNonDefault(goldTheftBlockChancePercent, "goldTheftBlockChancePercent", default: 0)
-        try container.encodeNonDefault(goldTheftBlockAmount, "goldTheftBlockAmount", default: 0)
-        try container.encodeNonDefault(goldTheftDrawChancePercent, "goldTheftDrawChancePercent", default: 0)
-        try container.encodeNonDefault(goldStealFlatBonus, "goldStealFlatBonus", default: 0)
-        try container.encodeNonDefault(goldTheftNextBlockMultiplier, "goldTheftNextBlockMultiplier", default: 1)
-        try container.encodeNonDefault(firstGoldTheftDrawBattle, "firstGoldTheftDrawBattle", default: false)
-        try container.encodeNonDefault(allyCriticalChancePerCombatGold, "allyCriticalChancePerCombatGold", default: 0)
-        try container.encodeNonDefault(blockBreakStealGoldFlat, "blockBreakStealGoldFlat", default: 0)
-        try container.encodeNonDefault(goldTheftHealAllyFlat, "goldTheftHealAllyFlat", default: 0)
-        try container.encodeNonDefault(attackGoldStealAmount, "attackGoldStealAmount", default: 0)
-        try container.encodeNonDefault(attackGoldStealChancePercent, "attackGoldStealChancePercent", default: 0)
-        try container.encodeNonDefault(belowHalfFirstGoldGainHealPerTurn, "belowHalfFirstGoldGainHealPerTurn", default: 0)
-        try container.encodeNonDefault(criticalGoldStealAmount, "criticalGoldStealAmount", default: 0)
-        try container.encodeNonDefault(criticalGoldStealChancePercent, "criticalGoldStealChancePercent", default: 0)
-        try container.encodeNonDefault(dodgeGoldAmount, "dodgeGoldAmount", default: 0)
-        try container.encodeNonDefault(dodgeGoldChancePercent, "dodgeGoldChancePercent", default: 0)
-        try container.encodeNonDefault(firstGoldTheftDoubleBattle, "firstGoldTheftDoubleBattle", default: false)
-        try container.encodeNonDefault(goldTheftNextAttackCriticalBonus, "goldTheftNextAttackCriticalBonus", default: 0)
-        try container.encodeNonDefault(goldTheftStealEnemyBlockChancePercent, "goldTheftStealEnemyBlockChancePercent", default: 0)
-        try container.encodeNonDefault(blockedAttackFirstRandomCard, "blockedAttackFirstRandomCard", default: false)
-        try container.encodeNonDefault(victoryGoldBonusPercent, "victoryGoldBonusPercent", default: 0)
-        try container.encodeNonDefault(goldTheftAllyBlock, "goldTheftAllyBlock", default: false)
-        try container.encodeNonDefault(dodgeGoldIsTheft, "dodgeGoldIsTheft", default: false)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }

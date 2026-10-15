@@ -87,36 +87,38 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         self.onHealthLossNextDamageReduction = onHealthLossNextDamageReduction
     }
 
-    /// Fields where `self` differs from `other`.
+    private static let schema: [TriggerField<MitigationTriggers>] = [
+        .init(\.passiveMitigationFlat, .passiveMitigationFlat, default: 0),
+        .init(\.passivePhysicalMitigationFlat, .passivePhysicalMitigationFlat, default: 0),
+        .init(\.thornsPercent, .thornsPercent, default: 0),
+        .init(\.bleedResistance, .bleedResistance, default: 0),
+        .init(\.frozenEnemyDamageReductionFlat, .frozenEnemyDamageReductionFlat, default: 0),
+        .init(\.bleedingEnemyDamageReductionFlat, .bleedingEnemyDamageReductionFlat, default: 0),
+        .init(\.stunnedEnemyNextTurnDamageMultiplier, .stunnedEnemyNextTurnDamageMultiplier, default: 1),
+        .init(\.enemyBleedStacksDamageReductionStacks, .enemyBleedStacksDamageReductionStacks, default: 0),
+        .init(\.enemyBleedStacksDamageReductionPercent, .enemyBleedStacksDamageReductionPercent, default: 0),
+        .init(\.poisonedEnemyAccuracyPenaltyPercent, .poisonedEnemyAccuracyPenaltyPercent, default: 0),
+        .init(\.poisonedEnemyMissChancePercent, .poisonedEnemyMissChancePercent, default: 0),
+        .init(\.subzeroMist, .subzeroMist, default: false),
+        .init(\.blindingLight, .blindingLight, default: false),
+        .init(\.holyDamageReduceTargetDamage, .holyDamageReduceTargetDamage, default: 0),
+        .init(\.bleedingEnemyAttackDealDamage, .bleedingEnemyAttackDealDamage, default: 0),
+        .init(\.onAllyDamageHeal, .onAllyDamageHeal, default: 0),
+        .init(\.damageReductionPerUnspentManaEvery, .damageReductionPerUnspentManaEvery, default: 0),
+        .init(\.toughnessOnHit, .toughnessOnHit, default: 0),
+        .init(\.toughnessOnHitCap, .toughnessOnHitCap, default: 0),
+        .init(\.blockedControlBurnResistance, .blockedControlBurnResistance, default: 0),
+        .init(\.afflictionResistance, .afflictionResistance, default: 0),
+        .init(\.burningEnemyDamageReductionFlat, .burningEnemyDamageReductionFlat, default: 0),
+        .init(\.blockHalvesDoTDamage, .blockHalvesDoTDamage, default: false),
+        .init(\.bleedingEnemyOutgoingDamageMultiplier, .bleedingEnemyOutgoingDamageMultiplier, default: 1),
+        .init(\.verdantShelterDamageMultiplier, .verdantShelterDamageMultiplier, default: 1),
+        .init(\.onHealthLossNextDamageReduction, .onHealthLossNextDamageReduction, default: 0),
+    ]
+
+    /// Fields where `self` differs from `other`, in schema order.
     func populatedFields(comparedTo other: Self) -> [CombatTriggerField] {
-        var fields: [CombatTriggerField] = []
-        if self.passiveMitigationFlat != other.passiveMitigationFlat { fields.append(.passiveMitigationFlat) }
-        if self.passivePhysicalMitigationFlat != other.passivePhysicalMitigationFlat { fields.append(.passivePhysicalMitigationFlat) }
-        if self.thornsPercent != other.thornsPercent { fields.append(.thornsPercent) }
-        if self.bleedResistance != other.bleedResistance { fields.append(.bleedResistance) }
-        if self.frozenEnemyDamageReductionFlat != other.frozenEnemyDamageReductionFlat { fields.append(.frozenEnemyDamageReductionFlat) }
-        if self.bleedingEnemyDamageReductionFlat != other.bleedingEnemyDamageReductionFlat { fields.append(.bleedingEnemyDamageReductionFlat) }
-        if self.stunnedEnemyNextTurnDamageMultiplier != other.stunnedEnemyNextTurnDamageMultiplier { fields.append(.stunnedEnemyNextTurnDamageMultiplier) }
-        if self.enemyBleedStacksDamageReductionStacks != other.enemyBleedStacksDamageReductionStacks { fields.append(.enemyBleedStacksDamageReductionStacks) }
-        if self.enemyBleedStacksDamageReductionPercent != other.enemyBleedStacksDamageReductionPercent { fields.append(.enemyBleedStacksDamageReductionPercent) }
-        if self.poisonedEnemyAccuracyPenaltyPercent != other.poisonedEnemyAccuracyPenaltyPercent { fields.append(.poisonedEnemyAccuracyPenaltyPercent) }
-        if self.poisonedEnemyMissChancePercent != other.poisonedEnemyMissChancePercent { fields.append(.poisonedEnemyMissChancePercent) }
-        if self.subzeroMist != other.subzeroMist { fields.append(.subzeroMist) }
-        if self.blindingLight != other.blindingLight { fields.append(.blindingLight) }
-        if self.holyDamageReduceTargetDamage != other.holyDamageReduceTargetDamage { fields.append(.holyDamageReduceTargetDamage) }
-        if self.bleedingEnemyAttackDealDamage != other.bleedingEnemyAttackDealDamage { fields.append(.bleedingEnemyAttackDealDamage) }
-        if self.onAllyDamageHeal != other.onAllyDamageHeal { fields.append(.onAllyDamageHeal) }
-        if self.damageReductionPerUnspentManaEvery != other.damageReductionPerUnspentManaEvery { fields.append(.damageReductionPerUnspentManaEvery) }
-        if self.toughnessOnHit != other.toughnessOnHit { fields.append(.toughnessOnHit) }
-        if self.toughnessOnHitCap != other.toughnessOnHitCap { fields.append(.toughnessOnHitCap) }
-        if self.blockedControlBurnResistance != other.blockedControlBurnResistance { fields.append(.blockedControlBurnResistance) }
-        if self.afflictionResistance != other.afflictionResistance { fields.append(.afflictionResistance) }
-        if self.burningEnemyDamageReductionFlat != other.burningEnemyDamageReductionFlat { fields.append(.burningEnemyDamageReductionFlat) }
-        if self.blockHalvesDoTDamage != other.blockHalvesDoTDamage { fields.append(.blockHalvesDoTDamage) }
-        if self.bleedingEnemyOutgoingDamageMultiplier != other.bleedingEnemyOutgoingDamageMultiplier { fields.append(.bleedingEnemyOutgoingDamageMultiplier) }
-        if self.verdantShelterDamageMultiplier != other.verdantShelterDamageMultiplier { fields.append(.verdantShelterDamageMultiplier) }
-        if self.onHealthLossNextDamageReduction != other.onHealthLossNextDamageReduction { fields.append(.onHealthLossNextDamageReduction) }
-        return fields
+        Self.schema.compactMap { $0.differs(self, other) ? $0.field : nil }
     }
 }
 
@@ -154,62 +156,15 @@ extension MitigationTriggers {
 extension MitigationTriggers {
     /// Decodes this family's flat trigger keys.
     init(from values: DefaultingTriggerDecoder) throws {
-        try self.init(
-            passiveMitigationFlat: values.decode(Int.self, "passiveMitigationFlat", default: 0),
-            passivePhysicalMitigationFlat: values.decode(Int.self, "passivePhysicalMitigationFlat", default: 0),
-            thornsPercent: values.decode(Double.self, "thornsPercent", default: 0),
-            bleedResistance: values.decode(Double.self, "bleedResistance", default: 0),
-            frozenEnemyDamageReductionFlat: values.decode(Int.self, "frozenEnemyDamageReductionFlat", default: 0),
-            bleedingEnemyDamageReductionFlat: values.decode(Int.self, "bleedingEnemyDamageReductionFlat", default: 0),
-            stunnedEnemyNextTurnDamageMultiplier: values.decode(Double.self, "stunnedEnemyNextTurnDamageMultiplier", default: 1),
-            enemyBleedStacksDamageReductionStacks: values.decode(Int.self, "enemyBleedStacksDamageReductionStacks", default: 0),
-            enemyBleedStacksDamageReductionPercent: values.decode(Double.self, "enemyBleedStacksDamageReductionPercent", default: 0),
-            poisonedEnemyAccuracyPenaltyPercent: values.decode(Double.self, "poisonedEnemyAccuracyPenaltyPercent", default: 0),
-            poisonedEnemyMissChancePercent: values.decode(Double.self, "poisonedEnemyMissChancePercent", default: 0),
-            subzeroMist: values.decode(Bool.self, "subzeroMist", default: false),
-            blindingLight: values.decode(Bool.self, "blindingLight", default: false),
-            holyDamageReduceTargetDamage: values.decode(Int.self, "holyDamageReduceTargetDamage", default: 0),
-            bleedingEnemyAttackDealDamage: values.decode(Int.self, "bleedingEnemyAttackDealDamage", default: 0),
-            onAllyDamageHeal: values.decode(Int.self, "onAllyDamageHeal", default: 0),
-            damageReductionPerUnspentManaEvery: values.decode(Int.self, "damageReductionPerUnspentManaEvery", default: 0),
-            toughnessOnHit: values.decode(Int.self, "toughnessOnHit", default: 0),
-            toughnessOnHitCap: values.decode(Int.self, "toughnessOnHitCap", default: 0),
-            blockedControlBurnResistance: values.decode(Double.self, "blockedControlBurnResistance", default: 0),
-            afflictionResistance: values.decode(Double.self, "afflictionResistance", default: 0),
-            burningEnemyDamageReductionFlat: values.decode(Int.self, "burningEnemyDamageReductionFlat", default: 0),
-            blockHalvesDoTDamage: values.decode(Bool.self, "blockHalvesDoTDamage", default: false),
-            bleedingEnemyOutgoingDamageMultiplier: values.decode(Double.self, "bleedingEnemyOutgoingDamageMultiplier", default: 1),
-            verdantShelterDamageMultiplier: values.decode(Double.self, "verdantShelterDamageMultiplier", default: 1),
-            onHealthLossNextDamageReduction: values.decode(Int.self, "onHealthLossNextDamageReduction", default: 0)
-        )
+        self.init()
+        for field in Self.schema {
+            try field.decode(values, &self)
+        }
     }
 
     func encode(to container: inout KeyedEncodingContainer<TriggerCodingKey>) throws {
-        try container.encodeNonDefault(passiveMitigationFlat, "passiveMitigationFlat", default: 0)
-        try container.encodeNonDefault(passivePhysicalMitigationFlat, "passivePhysicalMitigationFlat", default: 0)
-        try container.encodeNonDefault(thornsPercent, "thornsPercent", default: 0)
-        try container.encodeNonDefault(bleedResistance, "bleedResistance", default: 0)
-        try container.encodeNonDefault(frozenEnemyDamageReductionFlat, "frozenEnemyDamageReductionFlat", default: 0)
-        try container.encodeNonDefault(bleedingEnemyDamageReductionFlat, "bleedingEnemyDamageReductionFlat", default: 0)
-        try container.encodeNonDefault(stunnedEnemyNextTurnDamageMultiplier, "stunnedEnemyNextTurnDamageMultiplier", default: 1)
-        try container.encodeNonDefault(enemyBleedStacksDamageReductionStacks, "enemyBleedStacksDamageReductionStacks", default: 0)
-        try container.encodeNonDefault(enemyBleedStacksDamageReductionPercent, "enemyBleedStacksDamageReductionPercent", default: 0)
-        try container.encodeNonDefault(poisonedEnemyAccuracyPenaltyPercent, "poisonedEnemyAccuracyPenaltyPercent", default: 0)
-        try container.encodeNonDefault(poisonedEnemyMissChancePercent, "poisonedEnemyMissChancePercent", default: 0)
-        try container.encodeNonDefault(subzeroMist, "subzeroMist", default: false)
-        try container.encodeNonDefault(blindingLight, "blindingLight", default: false)
-        try container.encodeNonDefault(holyDamageReduceTargetDamage, "holyDamageReduceTargetDamage", default: 0)
-        try container.encodeNonDefault(bleedingEnemyAttackDealDamage, "bleedingEnemyAttackDealDamage", default: 0)
-        try container.encodeNonDefault(onAllyDamageHeal, "onAllyDamageHeal", default: 0)
-        try container.encodeNonDefault(damageReductionPerUnspentManaEvery, "damageReductionPerUnspentManaEvery", default: 0)
-        try container.encodeNonDefault(toughnessOnHit, "toughnessOnHit", default: 0)
-        try container.encodeNonDefault(toughnessOnHitCap, "toughnessOnHitCap", default: 0)
-        try container.encodeNonDefault(blockedControlBurnResistance, "blockedControlBurnResistance", default: 0)
-        try container.encodeNonDefault(afflictionResistance, "afflictionResistance", default: 0)
-        try container.encodeNonDefault(burningEnemyDamageReductionFlat, "burningEnemyDamageReductionFlat", default: 0)
-        try container.encodeNonDefault(blockHalvesDoTDamage, "blockHalvesDoTDamage", default: false)
-        try container.encodeNonDefault(bleedingEnemyOutgoingDamageMultiplier, "bleedingEnemyOutgoingDamageMultiplier", default: 1)
-        try container.encodeNonDefault(verdantShelterDamageMultiplier, "verdantShelterDamageMultiplier", default: 1)
-        try container.encodeNonDefault(onHealthLossNextDamageReduction, "onHealthLossNextDamageReduction", default: 0)
+        for field in Self.schema {
+            try field.encode(self, &container)
+        }
     }
 }
