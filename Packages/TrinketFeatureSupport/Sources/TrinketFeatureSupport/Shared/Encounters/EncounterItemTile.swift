@@ -32,7 +32,7 @@ public struct EncounterItemTile: View {
 
     public var body: some View {
         Button(action: onSelect) {
-            VStack(spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
+            VStack(spacing: TrinketDesign.Spacing.small) {
                 ItemCard(
                     item: item,
                     showsAffixCount: false,
@@ -43,11 +43,9 @@ public struct EncounterItemTile: View {
                 )
 
                 if showsName {
-                    Text(balanced: item.displayName)
-                        .trinketTypography(.badge)
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                        .trinketFittedText()
+                    ItemCardLabel(item: item)
+                        .padding(.horizontal, TrinketDesign.Spacing.extraSmall)
+                        .trinketCardLabelSpace()
                 }
             }
         }

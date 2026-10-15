@@ -18,7 +18,7 @@ struct MysteryOfferChoices: View {
     }
 
     var body: some View {
-        Grid(alignment: .topLeading, horizontalSpacing: TrinketDesign.Spacing.medium, verticalSpacing: TrinketDesign.Spacing.medium) {
+        Grid(alignment: .topLeading, horizontalSpacing: TrinketDesign.Spacing.medium, verticalSpacing: TrinketDesign.Spacing.small) {
             GridRow {
                 ForEach(offers, id: \.choiceID) { offer in
                     artwork(for: offer)

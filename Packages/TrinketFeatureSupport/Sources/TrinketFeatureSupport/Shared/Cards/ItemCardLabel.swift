@@ -52,7 +52,7 @@ public struct ItemCardLabel: View {
         .trinketFittedText()
         if item.isCorrupted {
             Text(balanced: "CORRUPTED")
-                .trinketTypography(.caption)
+                .trinketTypography(.eyebrow)
                 .shineText(.corruption)
                 .foregroundStyle(TrinketDesign.Colors.destructive)
                 .trinketFittedText()

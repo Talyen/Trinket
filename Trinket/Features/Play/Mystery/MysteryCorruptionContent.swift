@@ -19,7 +19,7 @@ struct MysteryCorruptionRevealContent: View {
                     eyebrow: eyebrow(for: result.item),
                     eyebrowIndicators: result.effects.filter { $0 == .upgradedRarity }.map(\.indicator),
                     title: result.item.displayName,
-                    titleShine: result.item.displayShine,
+                    titleShine: result.item.displayTextShine,
                     titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptionRevealTitle,
                     baseHeight: baseHeight,
                 ) {

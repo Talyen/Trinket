@@ -40,6 +40,15 @@ folders remain in the `TrinketFeatureSupport` target.
 
 ## Artwork and rendering
 
+Item cards use `ItemCardLabel` for the rarity/status and name stack: bold caption
+eyebrows above medium subheadline names, with 2-point internal spacing. Card
+labels have 4-point horizontal padding and sit 8 points below artwork; item-grid
+rows leave 16 points after their tallest label. Empty equipment slots use the same
+name role and secondary color. Corruption status shares the rarity's eyebrow role
+and moves below it when the pair cannot fit horizontally. Reward reveals use the
+larger `sectionDisplay` name role; on-art details use `screenDisplay`. Both retain
+the same `displayTextShine` title palette as inventory cards.
+
 `PreparedArtworkCache` decodes off the main actor; publication and pin ownership
 stay on the main actor. A cache-owned scheduler admits at most two decodes across
 all callers and at most one deferred decode, prioritizing imminent pins over

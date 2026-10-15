@@ -21,7 +21,7 @@ struct EquipmentSlotSummaryGrid: View {
                 .map { ($0.id, $0) },
         )
 
-        VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
             ForEach(slotRows, id: \.self) { row in
                 SlotSummaryGrid(
                     slots: row,
