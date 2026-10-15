@@ -24,6 +24,23 @@ TIMING = load_script('expanded_timing_test', 'test-timing.py')
 
 
 class CIImprovementsTests(unittest.TestCase):
+    def test_retained_diagnostic_driver_runs_without_the_source_checkout_dependencies(self):
+        workflow = (ROOT / '.github/workflows/diagnostic-ui.yml').read_text()
+        retained = workflow.split('name: Retain diagnostic driver independently of the source revision\n', 1)[1]
+        commands = retained.split('run: |\n', 1)[1].split('\n      - uses:', 1)[0]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env = {**os.environ, 'RUNNER_TEMP': str(root), 'RESULTS_DIR': str(root / 'results')}
+            env.pop('TRINKET_CI_DEADLINE_EPOCH', None)
+            env.pop('PYTHONPATH', None)
+            run_captured(['bash', '-eu', '-c', commands], cwd=ROOT, env=env, expected=0)
+            driver = root / 'ui-diagnostic-driver' / 'ci-run-budget.py'
+            command = [sys.executable, '-c', "import sys; print('Simulator boot timed out after 240s'); sys.exit(7)"]
+            run_captured([sys.executable, str(driver), '--', *command], cwd=root, env=env, expected=7)
+            receipt = json.loads(next((root / 'results').glob('*-invocation.json')).read_text())
+            self.assertEqual(receipt['classification'], 'simulator-infrastructure')
+            self.assertEqual(receipt['command'], command)
+
     def test_exact_diagnostic_products_accept_failed_smoke_but_reject_foreign_or_stale_builds(self):
         run = dict(id=10, run_attempt=2, head_sha='a' * 40, head_branch='main', status='completed',
                    conclusion='failure', path='.github/workflows/ci.yml', head_repository={'full_name': 'owner/repo'})
@@ -56,6 +73,20 @@ class CIImprovementsTests(unittest.TestCase):
                               'FullGamePurchaseSmokeTests'):
                     with self.assertRaises(ValueError):
                         DIAGNOSTIC.selections('smoke', value)
+            with patch.object(DIAGNOSTIC.subprocess, 'check_output', return_value='RepeatedPlayUITests') as registry:
+                target = 'RepeatedPlayUITests/testTwentyAudioEnabledContractsKeepOneUsableCareer'
+                self.assertEqual(DIAGNOSTIC.selections('soak', target), [target])
+                self.assertEqual(registry.call_args.args[0][-1], 'Soak')
+            with patch.object(sys, 'argv', ['diagnostic', 'run', 'soak']), \
+                 patch.dict(os.environ, {'DIAGNOSTIC_TESTS': target}), \
+                 patch.object(DIAGNOSTIC, 'selections', return_value=[target]), \
+                 patch.object(DIAGNOSTIC.subprocess, 'run'), \
+                 patch.object(DIAGNOSTIC.subprocess, 'call', return_value=65) as execute:
+                with self.assertRaises(SystemExit) as status:
+                    DIAGNOSTIC.main()
+                self.assertEqual(status.exception.code, 65)
+                self.assertEqual(execute.call_args.args[0], ['./Scripts/test.sh', 'ui', '--no-build', target])
+                self.assertEqual(execute.call_args.kwargs['env']['TRINKET_UI_PLAN'], 'Soak')
         finally:
             os.chdir(previous)
 

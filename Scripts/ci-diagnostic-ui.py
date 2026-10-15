@@ -51,7 +51,7 @@ def selections(mode: str, text: str) -> list[str]:
     spec = importlib.util.spec_from_file_location('diagnostic_target_retry', 'Scripts/ci_ui_retry.py')
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    plan = 'Smoke' if mode == 'smoke' else 'FullUI'
+    plan = {'smoke': 'Smoke', 'ui': 'FullUI', 'soak': 'Soak'}[mode]
     registry = subprocess.check_output(['python3', 'Scripts/check-testplan-sync.py', '--classes', plan], text=True).split()
     allowed = {name.removeprefix('TrinketUITests/') for name in registry}
     cases = module.expected_cases(requested)
@@ -66,7 +66,7 @@ def main() -> None:
     resolve = sub.add_parser('resolve')
     resolve.add_argument('run', type=int)
     execute = sub.add_parser('run')
-    execute.add_argument('mode', choices=('smoke', 'ui'))
+    execute.add_argument('mode', choices=('smoke', 'ui', 'soak'))
     args = parser.parse_args()
     if args.action == 'resolve':
         repository = os.environ['GITHUB_REPOSITORY']
@@ -88,8 +88,10 @@ def main() -> None:
                          f"`{os.environ.get('SOURCE_SHA')}`; original conclusions remain unchanged.\n\n"
                          + '\n'.join('- ' + target for target in selected) + '\n')
     # Assertion failures remain failures; do not apply infrastructure or assertion retries here.
-    raise SystemExit(subprocess.call(['./Scripts/test.sh', args.mode, '--no-build', *selected],
-                                    env={**os.environ, 'SKIP_GENERATE': '1', 'TRINKET_TARGETED_UI_RETRY': '1'}))
+    environment = {**os.environ, 'SKIP_GENERATE': '1', 'TRINKET_TARGETED_UI_RETRY': '1',
+                   'TRINKET_UI_PLAN': 'Soak' if args.mode == 'soak' else 'FullUI'}
+    mode = 'smoke' if args.mode == 'smoke' else 'ui'
+    raise SystemExit(subprocess.call(['./Scripts/test.sh', mode, '--no-build', *selected], env=environment))
 
 
 if __name__ == '__main__':
