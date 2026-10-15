@@ -359,7 +359,7 @@ struct CombatFeedbackPresenterTests {
 }
 
 extension CombatFeedbackPresenterTests {
-    @Test @MainActor func `same action holy hits share one damage chip`() {
+    @Test func `same action holy hits share one damage chip`() async {
         let ability = Ability(
             id: "feedback-holy", name: "Holy Chain", tier: .basic,
             damageComponents: [DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .holy)],
@@ -383,10 +383,12 @@ extension CombatFeedbackPresenterTests {
         #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .holy } == 3)
         #expect(items.count == 1)
         #expect(items.first { $0.targetID == "enemy" }?.label == .amount(-6))
-        let lane = BattleFeedbackLane()
-        defer { lane.release() }
-        lane.record(events)
-        #expect(Set(lane.hitReactionsByTargetID.keys) == ["enemy"])
+        await MainActor.run {
+            let lane = BattleFeedbackLane()
+            defer { lane.release() }
+            lane.record(events)
+            #expect(Set(lane.hitReactionsByTargetID.keys) == ["enemy"])
+        }
     }
 
     @Test func `keeps same kind results separate across action I ds`() {
