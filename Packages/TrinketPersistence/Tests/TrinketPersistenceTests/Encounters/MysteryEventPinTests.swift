@@ -193,14 +193,6 @@ struct MysteryEventPinTests {
         #expect(result.companionGrantedExperience == expectedExperience)
     }
 
-    @Test func `older labyrinth node payloads decode without offers`() throws {
-        let node = LabyrinthNode(id: "legacy", type: .mystery, depth: 1, clusterID: "floor-1", mysteryEventID: "mana-berries")
-        let data = try JSONEncoder().encode(node)
-        let decoded = try JSONDecoder().decode(LabyrinthNode.self, from: data)
-        #expect(decoded.mysteryOffersPayload == nil)
-        #expect(decoded.mysteryEventID == "mana-berries")
-    }
-
     @Test func `journey gates corruption altar by chapter number`() {
         let inventory = PlayerInventoryState.testSeed
         let chapterOne = MysteryEventPickContext.journey(

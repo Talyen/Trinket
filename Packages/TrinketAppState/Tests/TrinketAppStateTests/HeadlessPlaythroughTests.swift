@@ -8,27 +8,6 @@ import TrinketPersistenceTestSupport
 @Suite(.serialized)
 @MainActor
 struct HeadlessPlaythroughTests {
-    @Test func `free access rejects locked content without changing earned progress`() async throws {
-        let output = try SaveTestSupport.makeTempDirectory(prefix: "PlaythroughAccess")
-        defer { SaveTestSupport.removeTempDirectory(output) }
-        let career = try PlaythroughCareer(scenario: .init(), output: output)
-        _ = try await career.run(reload: true)
-        try career.open()
-        defer { career.close() }
-        let before = career.snapshot
-        let restricted = GameContent.chapters.flatMap(\.stages).first {
-            career.store.accessRestriction(for: .journey(stageID: $0.id)) != nil
-        }
-        let stage = try #require(restricted)
-        #expect(career.play.journey.handleStagePrimaryAction(for: stage) != nil)
-        #expect(career.snapshot == before)
-        career.store.contentAccess = .fullGame
-        #expect(career.store.reconcileAccessibleParty())
-        career.store.contentAccess = .free
-        #expect(career.store.reconcileAccessibleParty())
-        #expect(career.snapshot == before)
-    }
-
     @Test func `exhausted action budget cannot complete A career`() async throws {
         let output = try SaveTestSupport.makeTempDirectory(prefix: "PlaythroughBudget")
         defer { SaveTestSupport.removeTempDirectory(output) }

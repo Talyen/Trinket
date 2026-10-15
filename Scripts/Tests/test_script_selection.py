@@ -178,7 +178,8 @@ class ScriptSelectionTests(unittest.TestCase):
             last.write_text('import unittest\nfrom pathlib import Path\n'
                             'class Probe(unittest.TestCase):\n'
                             '    def test_worker(self): Path("last-worker").touch()\n')
-            environment = {**os.environ, "TRINKET_SCRIPT_TEST_JOBS": "2", "RESULTS_DIR": str(root / "logs")}
+            environment = {**os.environ, "TRINKET_SCRIPT_TEST_JOBS": "2", "TRINKET_KEEP_REPORTS": "0",
+                           "RESULTS_DIR": str(root / "logs")}
 
             def run():
                 return run_captured(["/bin/bash", "Scripts/test-scripts.sh", "--skip-docs"], cwd=root, env=environment)

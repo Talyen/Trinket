@@ -10,6 +10,7 @@ struct ContentAccessModeTests {
         let context = try AppTestContext()
         let state = try context.makeAppState(contentAccess: .free)
         let store = state.playerSave
+        let before = store.currentSave
         let stage = try #require(GameContent.stage(id: "chapter-4-stage-1"))
         #expect(state.play.journey.handleStagePrimaryAction(for: stage)?.fullGameOffer == .campaign(chapter: 4))
         state.play.journey.prepareBattle(for: stage)
@@ -18,6 +19,7 @@ struct ContentAccessModeTests {
         #expect(state.play.spires.startBattle(for: floor)?.fullGameOffer == .spire(.ironVein, floor: 11))
         state.play.spires.prepareBattle(for: floor)
         #expect(!(state.play.battleCoordinator.preparedRuns[PlayBattleOrigin.spire(spireID: .ironVein, floor: 11).runKey] != nil))
+        #expect(store.currentSave == before)
         #expect(store.accessRestriction(for: .journey(stageID: "chapter-3-stage-1")) == nil)
         #expect(store.accessRestriction(for: .spire(spireID: .ironVein, floor: 10)) == nil)
         store.contentAccess = .fullGame

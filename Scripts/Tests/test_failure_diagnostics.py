@@ -690,7 +690,7 @@ class ReporterTests(unittest.TestCase):
                     (scripts / "Tests/test-fixture.sh").write_text("#!/bin/bash\nif broken\n")
                 env = {**os.environ, "PATH": str(root / "bin") + ":" + os.environ["PATH"],
                        "CASE": case, "PAYLOAD": str(root / "payload"), "REAL_PYTHON": sys.executable,
-                       "RESULTS_DIR": str(root / "retained logs")}
+                       "TRINKET_KEEP_REPORTS": "0", "RESULTS_DIR": str(root / "retained logs")}
                 result = run_captured([str(scripts / "test-scripts.sh"), "--skip-docs"], env=env)
                 self.assertEqual(result.returncode, 0 if case == "success" else 7 if case == "python" else 2 if case == "syntax" else 9, result.stdout + result.stderr)
                 if case == "success":

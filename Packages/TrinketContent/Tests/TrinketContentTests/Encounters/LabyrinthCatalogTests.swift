@@ -8,11 +8,8 @@ struct LabyrinthCatalogTests {
     @Test func `generator is deterministic for seed`() {
         let first = LabyrinthGenerator.makeMap(seed: 42, floorCount: 3)
         let second = LabyrinthGenerator.makeMap(seed: 42, floorCount: 3)
-        #expect(first.clusters.map(\.id) == second.clusters.map(\.id))
-        #expect(first.nodes.keys.sorted() == second.nodes.keys.sorted())
-        for id in first.nodes.keys {
-            #expect(first.nodes[id] == second.nodes[id])
-        }
+        #expect(first.clusters == second.clusters)
+        #expect(first.nodes == second.nodes)
     }
 
     @Test func `initial map has reachable entry from entrance`() {
@@ -23,24 +20,6 @@ struct LabyrinthCatalogTests {
         for outgoing in entrance?.outgoingIDs ?? [] {
             #expect(generated.nodes[outgoing]?.isRevealed == true)
         }
-    }
-
-    @Test func `expand beyond boss appends next floor`() throws {
-        let generated = LabyrinthGenerator.makeInitialMap(seed: 11)
-        var clusters = generated.clusters
-        var nodes = generated.nodes
-        let firstBoss = try #require(nodes.values.first(where: { $0.type == .boss && $0.depth == 1 }), "Expected a floor-1 boss")
-        var boss = firstBoss
-        boss.isCleared = true
-        nodes[boss.id] = boss
-        LabyrinthGenerator.expandBeyondBoss(
-            bossNodeID: boss.id,
-            clusters: &clusters,
-            nodes: &nodes,
-            seed: 11,
-        )
-        #expect(clusters.contains { $0.depthBand == 2 })
-        #expect(!(nodes[boss.id]?.outgoingIDs.isEmpty ?? true))
     }
 
     @Test func `modifier effects combine damage and reward bonuses`() throws {
@@ -116,7 +95,6 @@ struct LabyrinthCatalogTests {
         let pool = NodeModifierCatalog.modifiers.filter { $0.applies(to: .mystery) }
         #expect(!pool.isEmpty)
         #expect(economyIDs.isSubset(of: Set(pool.map(\.id))))
-        #expect(pool.allSatisfy { economyIDs.contains($0.id) || $0.applies(to: .mystery) })
     }
 
     @Test func `combat modifiers match enemy ability keywords`() {
@@ -125,21 +103,6 @@ struct LabyrinthCatalogTests {
                 let pool = NodeModifierCatalog.combatModifiers(for: enemy.id, nodeType: nodeType)
                 let enemyKeywords = NodeModifierCatalog.enemyDamageKeywords(for: enemy.id)
                 for modifier in pool {
-                    #expect(modifier.relevantKeyword.map(enemyKeywords.contains) != false)
-                }
-            }
-        }
-    }
-
-    @Test func `generated combat modifiers align with node enemies`() {
-        for seed in 0 ..< 40 {
-            let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
-            for node in generated.nodes.values where node.type.isCombat {
-                guard let enemyID = node.enemyID else { continue }
-                let modifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs)
-                #expect(modifiers.count == 1)
-                let enemyKeywords = NodeModifierCatalog.enemyDamageKeywords(for: enemyID)
-                for modifier in modifiers {
                     #expect(modifier.relevantKeyword.map(enemyKeywords.contains) != false)
                 }
             }
@@ -170,23 +133,20 @@ struct LabyrinthCatalogTests {
         #expect(modifiers.allSatisfy { !$0.title.isEmpty && !$0.effect.description.isEmpty })
     }
 
-    @Test func `floor shape stays within plan bounds`() {
+    @Test func `generated floors preserve geometry encounters and combat modifiers`() throws {
         var layoutSignatures = Set<String>()
         var observedCycleCounts = Set<Int>()
         var observedFourWayJunction = false
 
         for seed in 0 ..< 40 {
             let generated = LabyrinthGenerator.makeMap(seed: UInt64(seed), floorCount: 3)
+            assertEncounterContracts(clusters: generated.clusters, nodes: generated.nodes)
             for cluster in generated.clusters where cluster.depthBand > 0 {
                 let nodes = cluster.nodeIDs.compactMap { generated.nodes[$0] }
                 #expect(nodes.count >= 15)
                 #expect(nodes.count <= 20)
                 #expect(nodes.count(where: { $0.type == .boss }) == 1)
-                #expect(nodes.first?.type == .battle)
-                #expect(nodes.last?.type == .boss)
                 #expect(!nodes.contains { !$0.isRevealed })
-                #expect(nodes.allSatisfy { $0.modifierIDs.count <= 1 })
-                #expect(nodes.count(where: { !$0.type.isCombat }) >= 2)
 
                 let geometry = validateGeometry(of: nodes)
                 observedFourWayJunction = observedFourWayJunction || nodes.contains { source in
@@ -194,6 +154,11 @@ struct LabyrinthCatalogTests {
                 }
                 for node in nodes {
                     let modifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs)
+                    if node.type.isCombat {
+                        let enemyID = try #require(node.enemyID)
+                        let enemyKeywords = NodeModifierCatalog.enemyDamageKeywords(for: enemyID)
+                        #expect(modifiers.allSatisfy { $0.relevantKeyword.map(enemyKeywords.contains) != false })
+                    }
                     #expect(modifiers.allSatisfy { $0.applies(to: node.type) })
                     let expectsModifier = switch node.type {
                     case .shop, .mystery:
@@ -288,8 +253,6 @@ struct LabyrinthCatalogTests {
 
     @Test func `generated floors preserve encounter guarantees`() {
         for seed in 0 ..< 32 {
-            let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
-            assertEncounterContracts(clusters: generated.clusters, nodes: generated.nodes)
             let recruited = LabyrinthGenerator.makeInitialMap(
                 seed: UInt64(seed),
                 eligibleRecruitEventIDs: ["recruit-test-event"],
@@ -345,14 +308,22 @@ extension LabyrinthCatalogTests {
     }
 
     @Test func `expansion preserves decoded legacy floor nodes`() throws {
-        let legacy = (0 ..< 7).map { index in
-            LabyrinthNode(
-                id: "legacy-\(index)", type: index == 6 ? .boss : .battle,
-                depth: 1, clusterID: "legacy", gridPosition: LabyrinthGridPosition(row: index, column: -index / 2),
-                isCleared: true, isRevealed: true,
-            )
-        }
-        let decoded = try JSONDecoder().decode([LabyrinthNode].self, from: JSONEncoder().encode(legacy))
+        // Frozen save keys: deriving this payload from today's encoder would
+        // hide a rename or newly required field that loses existing floor progress.
+        let payload = Data(#"""
+        [
+          {"id":"legacy-0","type":"mystery","depth":1,"clusterID":"legacy","gridPosition":{"row":0,"column":0},"mysteryEventID":"mana-berries","isCleared":true,"isRevealed":true},
+          {"id":"legacy-1","type":"battle","depth":1,"clusterID":"legacy","gridPosition":{"row":1,"column":0},"isCleared":true,"isRevealed":true},
+          {"id":"legacy-2","type":"battle","depth":1,"clusterID":"legacy","gridPosition":{"row":2,"column":-1},"isCleared":true,"isRevealed":true},
+          {"id":"legacy-3","type":"battle","depth":1,"clusterID":"legacy","gridPosition":{"row":3,"column":-1},"isCleared":true,"isRevealed":true},
+          {"id":"legacy-4","type":"battle","depth":1,"clusterID":"legacy","gridPosition":{"row":4,"column":-2},"isCleared":true,"isRevealed":true},
+          {"id":"legacy-5","type":"battle","depth":1,"clusterID":"legacy","gridPosition":{"row":5,"column":-2},"isCleared":true,"isRevealed":true},
+          {"id":"legacy-6","type":"boss","depth":1,"clusterID":"legacy","gridPosition":{"row":6,"column":-3},"isCleared":true,"isRevealed":true}
+        ]
+        """#.utf8)
+        let decoded = try JSONDecoder().decode([LabyrinthNode].self, from: payload)
+        #expect(decoded[0].mysteryEventID == "mana-berries")
+        #expect(decoded[0].mysteryOffersPayload == nil)
         var nodes = Dictionary(uniqueKeysWithValues: decoded.map { ($0.id, $0) })
         var clusters = [LabyrinthCluster(id: "legacy", depthBand: 1, nodeIDs: decoded.map(\.id))]
         let oldCluster = clusters[0]

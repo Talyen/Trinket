@@ -8,9 +8,13 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured
+
+BRIEF = load_script("agent_context_brief", "agent-brief.py")
 
 class AgentContextTests(ScriptRegressionTestCase):
     def test_voyage_and_labyrinth_focus_preserves_progression_rules_and_broad_discovery(self) -> None:
@@ -35,7 +39,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         task = select_task(ROOT, 'cloud')
         paths = [*task['sources'], 'Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift']
         plain = self.route(*paths)
-        focused = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--task', 'cloud', '--paths', *paths], cwd=ROOT, text=True)
+        focused = self.brief('--task', 'cloud', '--paths', *paths)
         start = focused.index('Concern focus:')
         end = focused.index('Ownership and integration', start)
         without_focus = focused[:start] + focused[end:]
@@ -47,7 +51,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             plain = plain.replace('  ' + reference + '\n', '')
         self.assertEqual(stripped, plain)
         self.assertIn('persistence-storage.md#reconciliation', focused)
-        automatic = subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--task', 'cloud'], cwd=ROOT, text=True)
+        automatic = self.brief('--task', 'cloud')
         handoff = lambda text: next(line for line in text.splitlines() if './Scripts/handoff.sh' in line)
         self.assertEqual(handoff(automatic), handoff(self.route(*task['sources'])))
         for query in ('missing-concern', 'battle'):
@@ -104,10 +108,17 @@ class AgentContextTests(ScriptRegressionTestCase):
                 self.assertNotIn(f'{card}.md#', output)
 
 
-    def route(self, *paths):
-        return subprocess.check_output(
-            [str(ROOT / 'Scripts/agent-context.sh'), '--agent', '--paths', *paths], cwd=ROOT, text=True,
-        )
+    def brief(self, *arguments: str) -> str:
+        # Routing matrices exercise the real CLI parser and renderer without a
+        # fresh interpreter per row; shell/env/Git boundaries retain CLI tests.
+        output = StringIO()
+        with redirect_stdout(output):
+            result = BRIEF.main(list(arguments), root=ROOT)
+        self.assertEqual(result, 0, output.getvalue())
+        return output.getvalue()
+
+    def route(self, *paths: str) -> str:
+        return self.brief('--agent', '--paths', *paths)
 
     def test_agent_context_guidance_by_owner(self) -> None:
         cases = (
@@ -116,16 +127,14 @@ class AgentContextTests(ScriptRegressionTestCase):
             ('Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/BattleFeedbackLane.swift', ['Docs/AgentContext/battle-runtime.md'], ['apple-design/SKILL.md']),
             ('Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift', ['Docs/AgentContext/battle-engine.md'], []),
             ('Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/GlassButtons.swift', ['.agents/skills/apple-design/SKILL.md'], ['Docs/AgentContext/swiftui-features.md']),
-            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift', ['Docs/AgentContext/swiftui-features.md'], []),
+            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift', ['Docs/AgentContext/swiftui-features.md', '.agents/knowledge/patterns/artwork-working-set.md'], []),
             ('Packages/TrinketDesignSystem/Tests/TrinketDesignSystemTests/DesignSystemTests.swift', [], ['apple-design/SKILL.md']),
             ('Packages/TrinketAppState/Sources/TrinketAppState/Audio/MusicPlayer.swift', ['Docs/AgentContext/audio.md'], ['Docs/AgentContext/battle']),
             ('project.yml', ['Docs/AgentContext/content-and-manifests.md'], []),
             ('Scripts/check-docs.py', [], ['Ownership and integration']),
-            ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['apple-design/SKILL.md']),
-            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift', ['.agents/knowledge/patterns/artwork-working-set.md'], []),
+            ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['apple-design/SKILL.md', '.agents/knowledge/patterns/']),
             ('Packages/BattleEngine/Package.swift', ['.agents/knowledge/patterns/module-dag-containment.md'], []),
             ('Docs/Platform/Architecture.md', ['.agents/knowledge/patterns/architecture-deferred-seams.md'], []),
-            ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['.agents/knowledge/patterns/']),
         )
         for path, required, excluded in cases:
             with self.subTest(path=path):
@@ -171,9 +180,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         details = {"battle-damage", "battle-actions", "battle-healing", "persistence-storage", "persistence-progression"}
         for paths, expected in cases:
             with self.subTest(paths=paths):
-                output = subprocess.check_output(
-                    [str(ROOT / "Scripts/agent-context.sh"), "--paths", *paths], cwd=ROOT, text=True,
-                )
+                output = self.brief('--paths', *paths)
                 self.assertEqual({name for name in details if f"/{name}.md" in output}, expected)
                 self.assertIn("/battle-engine.md" if paths[0].startswith(engine) else "/persistence.md", output)
                 self.assertIn("python3 Scripts/agent-search.py", output)
@@ -229,9 +236,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         )
         for paths, expected in cases:
             with self.subTest(paths=paths):
-                output = subprocess.check_output(
-                    [str(ROOT / "Scripts/agent-context.sh"), "--paths", *paths], cwd=ROOT, text=True,
-                )
+                output = self.brief('--paths', *paths)
                 self.assertIn("/battle-runtime.md", output)
                 self.assertEqual({name for name in both if f"/{name}.md" in output}, expected)
                 for name in expected:
@@ -261,10 +266,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         ):
             with self.subTest(path=relative_path):
                 path = "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/" + relative_path
-                output = subprocess.check_output(
-                    [str(ROOT / "Scripts/agent-context.sh"), "--agent", "--paths", path],
-                    cwd=ROOT, text=True,
-                )
+                output = self.route(path)
                 self.assertIn("Docs/AgentContext/swiftui-features.md", output)
                 self.assertIn(".agents/skills/apple-design/SKILL.md", output)
                 self.assertIn("Packages/TrinketFeatureSupport/AGENTS.md", output)
@@ -319,10 +321,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             "Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift",
         ]
         compact, full = [
-            subprocess.check_output(
-                [str(ROOT / "Scripts/agent-context.sh"), *flags, "--paths", *paths],
-                cwd=ROOT, text=True,
-            ) for flags in ([], ["--full"])
+            self.brief(*flags, "--paths", *paths) for flags in ([], ["--full"])
         ]
         for expected in (
             "AGENTS.md", "Docs/AgentContext/ui-performance.md",
@@ -344,9 +343,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             ("Trinket/Features/Collection/CollectionView.swift", True),
         ):
             with self.subTest(path=path):
-                output = subprocess.check_output(
-                    [str(ROOT / "Scripts/agent-context.sh"), "--paths", path], cwd=ROOT, text=True,
-                )
+                output = self.brief('--paths', path)
                 self.assertEqual("Docs/AgentContext/ui-performance.md" in output, required)
         general = (ROOT / "Docs/AgentContext/swiftui-features.md").read_text()
         self.assertIn("[UI performance](ui-performance.md)", general)
@@ -375,11 +372,11 @@ class AgentContextTests(ScriptRegressionTestCase):
         )
         for path, expected_card in cases:
             with self.subTest(path=path):
-                result = run_captured([str(ROOT / "Scripts" / "agent-context.sh"), "--agent", "--paths", path], cwd=ROOT, expected=0)
-                self.assertIn(expected_card, result.stdout)
+                output = self.route(path)
+                self.assertIn(expected_card, output)
                 for _, other_card in cases:
                     if other_card != expected_card:
-                        self.assertNotIn(other_card, result.stdout)
+                        self.assertNotIn(other_card, output)
 
 
     def test_status_briefing_preserves_scope_and_rename_endpoints(self) -> None:
@@ -430,15 +427,13 @@ class AgentContextTests(ScriptRegressionTestCase):
 
     def test_leaf_sections_include_lifecycle_and_mixed_hubs_restore_broad_reference(self) -> None:
         feature = 'Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/'
-        def route(*paths):
-            return subprocess.check_output([str(ROOT / 'Scripts/agent-context.sh'), '--paths', *paths], cwd=ROOT, text=True)
-        output = route(feature + 'Features/Feedback/CombatFeedbackRasterHost.swift')
+        output = self.brief('--paths', feature + 'Features/Feedback/CombatFeedbackRasterHost.swift')
         for section in ['display-lifetime', 'display-work-lifecycle', 'floating-combat-feedback']:
             self.assertIn('battle-presentation.md#' + section, output)
         self.assertNotIn('battle-launch.md', output)
         for paths in [(feature + 'Features/Feedback/CombatFeedbackRasterHost.swift', feature + 'State/BattleSession.swift'),
                       (feature + 'State/BattleSession.swift', feature + 'Features/Feedback/CombatFeedbackRasterHost.swift')]:
-            output = route(*paths)
+            output = self.brief('--paths', *paths)
             self.assertIn('battle-presentation.md\n', output)
             self.assertNotIn('battle-presentation.md#', output)
 
@@ -455,8 +450,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         prefix = "Docs/AgentContext/content-and-manifests.md#"
         for path, sections in cases.items():
             with self.subTest(path=path):
-                output = subprocess.check_output([str(ROOT / "Scripts/agent-context.sh"), "--paths", path],
-                                                 cwd=ROOT, text=True)
+                output = self.brief('--paths', path)
                 actual = {line.strip().removeprefix(prefix) for line in output.splitlines()
                           if line.strip().startswith(prefix)}
                 self.assertEqual(actual, sections | {"shared-safeguards"})
