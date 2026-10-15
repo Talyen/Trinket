@@ -9,6 +9,14 @@ enum SaveGraphDurability {
 
 @MainActor
 extension PlayerSaveStore {
+    /// Observation callbacks run synchronously, including during slice publication.
+    /// They may request a retry, but cannot enter a partially published commit.
+    func requireCommitAdmission() throws {
+        guard !isCommittingGraph else {
+            throw PlayerSavePersistenceError.storeUnavailable("A player-save commit is still publishing.")
+        }
+    }
+
     /// One publication boundary for gameplay, cloud transitions and resets.
     /// Cloud encoding precedes graph mutation; compensation uses captured payloads
     /// and never performs another fallible serialization of the old outbox.
@@ -19,6 +27,9 @@ extension PlayerSaveStore {
         cloudState: CloudDeviceState,
         durability: SaveGraphDurability = .recoverable,
     ) throws {
+        try requireCommitAdmission()
+        isCommittingGraph = true
+        defer { isCommittingGraph = false }
         let interval = Self.performanceSignposter.beginInterval("ModelContextSave")
         defer { Self.performanceSignposter.endInterval("ModelContextSave", interval) }
         do {
@@ -61,10 +72,12 @@ extension PlayerSaveStore {
                 root.apply(compensation, context: context)
                 throw error
             }
-            commitRevision &+= 1
             cloudDeviceState = cloudState
             resetAffectsCloudProgress = cloudState.activeAccountID != nil
             installObservedSave(candidate, slices: slices)
+            // Candidates captured by synchronous observers saw an incomplete
+            // publication; advancing last also makes them obsolete after return.
+            commitRevision &+= 1
         } catch {
             notePersistenceFailure(error, logging: "Failed to commit player save graph")
             throw PlayerSavePersistenceError.mapped(error)

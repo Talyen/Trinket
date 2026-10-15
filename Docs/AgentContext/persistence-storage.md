@@ -98,6 +98,12 @@ Compensation stays unsaved until a later successful write; do not use
 SwiftData on the iOS 27 simulator. Resets, including replacement of degraded
 storage, require the primary database write before replacing prior recoverable
 progress. There is no optimistic deferred-write path.
+The boundary holds exclusive admission through diagnostics, durable writes and
+observed-slice publication: synchronous observation callbacks cannot start a
+second graph write, reset or cloud replacement midway through a commit. Such
+attempts return a retryable storage failure. The commit revision advances after
+publication, making candidates captured from a partially published view obsolete
+even if retained until the commit returns.
 Lifecycle and sync checkpoints retry pending recovery files without rolling back
 already accepted progress. Reload tests prove subsequent writes retain the
 recovered values.

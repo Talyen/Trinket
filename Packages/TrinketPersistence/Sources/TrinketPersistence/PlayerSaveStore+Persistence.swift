@@ -26,6 +26,7 @@ extension PlayerSaveStore {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
         }
         do {
+            try requireCommitAdmission()
             guard proposed.sourceRevision == commitRevision else {
                 throw PlayerSavePersistenceError.invalidSave("The save changed while preparing this action.")
             }

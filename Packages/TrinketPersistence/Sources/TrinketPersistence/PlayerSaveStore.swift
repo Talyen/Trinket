@@ -27,6 +27,7 @@ public final class PlayerSaveStore {
     let saveActionRetries = SaveActionRetryQueue()
     @ObservationIgnored var saveActionAttempt: SaveActionAttempt?
     @ObservationIgnored var commitRevision: UInt64 = 0
+    @ObservationIgnored var isCommittingGraph = false
 
     public var isRetryingSaveAction: Bool {
         saveActionRetries.isRetrying

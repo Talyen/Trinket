@@ -4,6 +4,8 @@ import SwiftData
 @MainActor
 public extension PlayerSaveStore {
     func resetGameplayProgress() throws {
+        // Degraded-store replacement mutates storage before entering commitGraph.
+        try requireCommitAdmission()
         var state = cloudDeviceState
         if state.activeAccountID != nil {
             state.account.pending = nil
