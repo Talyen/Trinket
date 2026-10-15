@@ -1,7 +1,6 @@
 ---
 type: execution-plan
-status: blocked
-reason: Combined main contains unrelated unpushed changes requiring publication approval.
+status: active
 created: 2026-10-15
 updated: 2026-10-15
 expires: 2026-10-29
@@ -64,13 +63,13 @@ Pushes and workflow dispatches were authorized by the user on October 14.
 
 ## Notes
 
-Publication approval is pending: locked integration incorporated `07bd8ce50`
-(atomic save projections) and `0b885b1fe` (typed trigger coding/discovery) alongside
-the task follow-ups. Remote main remains `3aa1a69e5` with green CI. Combined local
-main at `5d58d6c27` passes outgoing-range lightweight handoff, including script
-regressions; generation, compilation, and tests for that combined range remain
-hosted work. Preserve all commits. Do not publish unrelated work without the
-requested approval. Original critical phone/iPad job remains in progress.
+The user authorized publication of combined main after the integration of atomic
+save projections and typed trigger coding/discovery. Incorporate current main and
+preserve all commits. The published `3aa1a69e5` has green CI; the newer combined
+range still requires hosted generation, compilation, and tests.
+Original phone/iPad coverage completed with contrast/audit failures and native
+Reduce Motion preparation failures; dependent product assertions correctly abort
+when preparation fails. Inspect the retained audit attachments and Settings traces.
 
 Historical compilation/assertion repairs remain intact. No waits, execution proof,
 or accessibility scope have been weakened. Routine local compilation and simulator
