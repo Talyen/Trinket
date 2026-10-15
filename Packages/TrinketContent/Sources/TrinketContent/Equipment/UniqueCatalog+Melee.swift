@@ -8,7 +8,7 @@ extension UniqueCatalog {
             base: "double_axe",
             keywords: [.bleed],
             description: "Your Bleed continues after its normal duration, halving in potency each additional turn",
-            triggers: CombatTraitTriggers(dot: DotTriggers(bleedHalvesAfterExpiration: true)),
+            triggers: CombatTraitTriggers(dot: DotTriggers { $0.bleedHalvesAfterExpiration = true }),
             supports: ["keen", "serrated", "leeching"],
         ),
         unique(
@@ -17,7 +17,7 @@ extension UniqueCatalog {
             base: "maul",
             keywords: [.stun, .block],
             description: "Your Stun damage ignores enemy Block and gains damage equal to that Block",
-            triggers: CombatTraitTriggers(control: ControlTriggers(stunDamageAddsEnemyBlock: true)),
+            triggers: CombatTraitTriggers(control: ControlTriggers { $0.stunDamageAddsEnemyBlock = true }),
             supports: ["keen", "concussive", "defenders"],
         ),
         unique(
@@ -26,7 +26,7 @@ extension UniqueCatalog {
             base: "greatsword",
             keywords: [.physical],
             description: "Your first Physical Critical Hit each turn strikes again",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(firstCriticalHitRepeatsPerTurn: true)),
+            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.firstCriticalHitRepeatsPerTurn = true }),
             supports: ["keen", "serrated", "dazed"],
         ),
         unique(
@@ -35,7 +35,7 @@ extension UniqueCatalog {
             base: "hatchet",
             keywords: [.physical, .bleed],
             description: "Physical Critical Hits that remove Health detonate Bleed",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(redHarvestPhysicalCriticalDetonatesBleed: true)),
+            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.redHarvestPhysicalCriticalDetonatesBleed = true }),
             supports: ["keen", "serrated", "leeching"],
         ),
         unique(
@@ -44,7 +44,7 @@ extension UniqueCatalog {
             base: "longsword",
             keywords: [.physical, .holy],
             description: "Your Physical damage bonuses also strengthen Holy damage",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(physicalBonusesApplyToHoly: true)),
+            triggers: CombatTraitTriggers(damage: DamageTriggers { $0.physicalBonusesApplyToHoly = true }),
             supports: ["keen", "consecrated", "serrated"],
         ),
         unique(
@@ -53,7 +53,7 @@ extension UniqueCatalog {
             base: "shortsword",
             keywords: [.block],
             description: "Blocking an attack makes your next manually played attack Critically Hit",
-            triggers: CombatTraitTriggers(block: BlockTriggers(blockPreparesCritical: true)),
+            triggers: CombatTraitTriggers(block: BlockTriggers { $0.blockPreparesCritical = true }),
             supports: ["keen", "serrated", "envenomed"],
         ),
         unique(
@@ -62,7 +62,7 @@ extension UniqueCatalog {
             base: "dagger",
             keywords: [.poison, .bleed],
             description: "After Dodging, your next manually played card hit that removes Health deals additional Poison and Bleed damage, each equal to half the Health lost",
-            triggers: CombatTraitTriggers(dodge: DodgeTriggers(dodgeNextHitPoisonAndBleedPercent: 0.5)),
+            triggers: CombatTraitTriggers(dodge: DodgeTriggers { $0.dodgeNextHitPoisonAndBleedPercent = 0.5 }),
             supports: ["envenomed", "serrated", "leeching"],
         ),
         unique(
@@ -71,7 +71,7 @@ extension UniqueCatalog {
             base: "mace",
             keywords: [.stun],
             description: "Stunning an enemy preserves a quarter of the Stun buildup that triggered it",
-            triggers: CombatTraitTriggers(control: ControlTriggers(stunRetainedBuildupPercent: 0.25)),
+            triggers: CombatTraitTriggers(control: ControlTriggers { $0.stunRetainedBuildupPercent = 0.25 }),
             supports: ["concussive", "consecrated", "dazed"],
         ),
     ]

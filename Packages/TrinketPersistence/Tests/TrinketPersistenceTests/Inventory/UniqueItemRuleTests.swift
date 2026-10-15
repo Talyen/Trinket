@@ -11,7 +11,7 @@ struct UniqueItemRuleTests {
         powers[0] = ItemAffixPower(
             description: "Old held-card bonus",
             modifiers: [],
-            triggers: CombatTraitTriggers(attack: AttackTriggers(heldCardNextAttackDamage: 3)),
+            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.heldCardNextAttackDamage = 3 }),
         )
         let legacy = InventoryItem(
             id: item.id, templateID: item.templateID, baseType: item.baseType,

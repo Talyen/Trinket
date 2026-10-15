@@ -11,7 +11,7 @@ struct DodgeCounterDamageFeedbackTests {
         let hero = CombatantFixtures.passiveHero()
         let enemy = CombatantFixtures.passiveEnemy(maxHealth: 100)
         let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            control: ControlTriggers(dodgeDealStunFlat: 3),
+            control: ControlTriggers { $0.dodgeDealStunFlat = 3 },
         ))
         var battle = BattleState(
             hero: hero, companion: CombatantFixtures.passiveCompanion(), enemy: enemy,

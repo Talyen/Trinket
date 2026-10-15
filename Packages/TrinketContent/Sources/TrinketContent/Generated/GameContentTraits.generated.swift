@@ -10,175 +10,227 @@ enum GameContentTraitsGenerated {
             id: "watchful_guard",
             name: "Watchful Guard",
             description: "Gain 1 Block at the start of each round",
-            triggers: CombatTraitTriggers(block: BlockTriggers(blockPerTurn: 1))
+            triggers: CombatTraitTriggers(block: BlockTriggers { $0.blockPerTurn = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "hidden_fangs",
             name: "Hidden Fangs",
             description: "The first attack deals 2 additional Bleed damage",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(firstAttackBleedBonus: 2))
+            triggers: CombatTraitTriggers(damage: DamageTriggers { $0.firstAttackBleedBonus = 2 })
         ))
         list.append(CombatantTraitDefinition(
             id: "siphon",
             name: "Siphon",
             description: "10% chance to Leech",
-            triggers: CombatTraitTriggers(healing: HealingTriggers(leechChancePercent: 0.10))
+            triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechChancePercent = 0.10 })
         ))
         list.append(CombatantTraitDefinition(
             id: "searing_body",
             name: "Searing Body",
             description: "Apply 1 Burn to attackers when hit",
-            triggers: CombatTraitTriggers(onHit: OnHitTriggers(onHitAttackerBurn: 1))
+            triggers: CombatTraitTriggers(onHit: OnHitTriggers { $0.onHitAttackerBurn = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "chilling_strikes",
             name: "Chilling Strikes",
             description: "Basic attacks deal 1 additional Freeze damage",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(basicAttackFreezeBuildup: 1))
+            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.basicAttackFreezeBuildup = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "ambush",
             name: "Ambush",
             description: "Deal double damage on the first attack",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(firstHitDoubleDamage: true))
+            triggers: CombatTraitTriggers(damage: DamageTriggers { $0.firstHitDoubleDamage = true })
         ))
         list.append(CombatantTraitDefinition(
             id: "shieldbreaker",
             name: "Shieldbreaker",
             description: "Physical attacks deal double damage to enemy Block",
-            triggers: CombatTraitTriggers(block: BlockTriggers(physicalBlockBreakMultiplier: 2.0))
+            triggers: CombatTraitTriggers(block: BlockTriggers { $0.physicalBlockBreakMultiplier = 2.0 })
         ))
         list.append(CombatantTraitDefinition(
             id: "fan_the_flames",
             name: "Fan the Flames",
             description: "Attacks against Burning enemies deal 25% additional damage",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBurningMultiplier: 1.25))
+            triggers: CombatTraitTriggers(damage: DamageTriggers { $0.damageVsBurningMultiplier = 1.25 })
         ))
         list.append(CombatantTraitDefinition(
             id: "unquenchable_flame",
             name: "Unquenchable Flame",
             description: "Burn damage ignores all enemy Block and damage reduction",
-            triggers: CombatTraitTriggers(block: BlockTriggers(burnIgnoresBlockAndMitigation: true))
+            triggers: CombatTraitTriggers(block: BlockTriggers { $0.burnIgnoresBlockAndMitigation = true })
         ))
         list.append(CombatantTraitDefinition(
             id: "venomous_strikes",
             name: "Venomous Strikes",
             description: "Attacks apply 1 Poison",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(attacksApplyPoison: 1))
+            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.attacksApplyPoison = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "corrosive_venom",
             name: "Corrosive Venom",
             description: "Poison strips 1 Block before damaging Health",
-            triggers: CombatTraitTriggers(block: BlockTriggers(poisonStripsBlockBeforeHealth: 1))
+            triggers: CombatTraitTriggers(block: BlockTriggers { $0.poisonStripsBlockBeforeHealth = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "blood_scent",
             name: "Blood Scent",
             description: "Attacks against Bleeding enemies deal 1 additional damage",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(damageVsBleedingBonus: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers { $0.damageVsBleedingBonus = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "sated_fury",
             name: "Sated Fury",
             description: "Reaching full Health makes the next attack deal 1 additional damage",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(nextAttackBonusOnFullHealth: 1))
+            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.nextAttackBonusOnFullHealth = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "gathering_zeal",
             name: "Gathering Zeal",
             description: "Dealing Holy damage adds 1 Holy damage to the next attack",
-            triggers: CombatTraitTriggers(attack: AttackTriggers(holyDamageNextAttackHolyBonus: 1))
+            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.holyDamageNextAttackHolyBonus = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "restoring_light",
             name: "Restoring Light",
             description: "Dealing Holy damage restores 1 Health",
-            triggers: CombatTraitTriggers(healing: HealingTriggers(holyDamageHealLowestAllyFlat: 1))
+            triggers: CombatTraitTriggers(healing: HealingTriggers { $0.holyDamageHealLowestAllyFlat = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "righteous_guard",
             name: "Righteous Guard",
             description: "Gain 1 Block when dealing Stun or Holy damage",
-            triggers: CombatTraitTriggers(block: BlockTriggers(holyDamageBlockFlat: 1, stunDamageBlockFlat: 1))
+            triggers: CombatTraitTriggers(
+                block: BlockTriggers {
+                    $0.holyDamageBlockFlat = 1
+                    $0.stunDamageBlockFlat = 1
+                }
+            )
         ))
         list.append(CombatantTraitDefinition(
             id: "numbing_presence",
             name: "Numbing Presence",
             description: "Frozen enemies deal 1 less damage",
-            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(frozenEnemyDamageReductionFlat: 1))
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.frozenEnemyDamageReductionFlat = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "rimeguard",
             name: "Rimeguard",
             description: "Gain 1 Block whenever an enemy becomes Frozen",
-            triggers: CombatTraitTriggers(block: BlockTriggers(onEnemyFrozenGainBlock: 1))
+            triggers: CombatTraitTriggers(block: BlockTriggers { $0.onEnemyFrozenGainBlock = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "dread_exploitation",
             name: "Dread Exploitation",
             description: "Attacks against Stunned enemies deal 1 additional damage",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(damageWhileTargetStunnedBonus: 1))
+            triggers: CombatTraitTriggers(damage: DamageTriggers { $0.damageWhileTargetStunnedBonus = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "concussion",
             name: "Concussion",
             description: "Stunned enemies deal 25% less damage next turn",
-            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(stunnedEnemyNextTurnDamageMultiplier: 0.75))
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.stunnedEnemyNextTurnDamageMultiplier = 0.75 })
         ))
         list.append(CombatantTraitDefinition(
             id: "bulwark_force",
             name: "Bulwark Force",
             description: "While holding Block, attacks deal 1 additional damage",
-            triggers: CombatTraitTriggers(block: BlockTriggers(shieldDamageBonusWhileBlocked: 1))
+            triggers: CombatTraitTriggers(block: BlockTriggers { $0.shieldDamageBonusWhileBlocked = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "shattering_impact",
             name: "Shattering Impact",
             description: "Breaking an enemy's Block deals 1 Physical damage to them",
-            triggers: CombatTraitTriggers(block: BlockTriggers(onEnemyBlockBrokenDealPhysical: 1))
+            triggers: CombatTraitTriggers(block: BlockTriggers { $0.onEnemyBlockBrokenDealPhysical = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "blighted_pulse",
             name: "Blighted Pulse",
             description: "Deals 1 Poison or Bleed damage every other turn to all enemies",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .poison, turnRandomDamageAllEnemiesKeywordB: .bleed, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
+            triggers: CombatTraitTriggers(
+                damage: DamageTriggers {
+                    $0.turnRandomDamageAllEnemiesKeywordA = .poison
+                    $0.turnRandomDamageAllEnemiesKeywordB = .bleed
+                    $0.turnRandomDamageAllEnemiesAmount = 1
+                    $0.turnRandomDamageAllEnemiesInterval = 2
+                }
+            )
         ))
         list.append(CombatantTraitDefinition(
             id: "furnace_pulse",
             name: "Furnace Pulse",
             description: "Deals 1 Stun or 1 Burn damage every other turn to all enemies",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .stun, turnRandomDamageAllEnemiesKeywordB: .burn, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
+            triggers: CombatTraitTriggers(
+                damage: DamageTriggers {
+                    $0.turnRandomDamageAllEnemiesKeywordA = .stun
+                    $0.turnRandomDamageAllEnemiesKeywordB = .burn
+                    $0.turnRandomDamageAllEnemiesAmount = 1
+                    $0.turnRandomDamageAllEnemiesInterval = 2
+                }
+            )
         ))
         list.append(CombatantTraitDefinition(
             id: "winters_grasp",
             name: "Winter’s Grasp",
             description: "Deals 1 Freeze damage every other turn to all enemies",
-            triggers: CombatTraitTriggers(control: ControlTriggers(turnFreezeDamageAllEnemies: 1, turnFreezeDamageAllEnemiesInterval: 2))
+            triggers: CombatTraitTriggers(
+                control: ControlTriggers {
+                    $0.turnFreezeDamageAllEnemies = 1
+                    $0.turnFreezeDamageAllEnemiesInterval = 2
+                }
+            )
         ))
         list.append(CombatantTraitDefinition(
             id: "thunderous_tremor",
             name: "Thunderous Tremor",
             description: "Deals 1 Physical or 1 Stun damage every other turn to all enemies",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .physical, turnRandomDamageAllEnemiesKeywordB: .stun, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
+            triggers: CombatTraitTriggers(
+                damage: DamageTriggers {
+                    $0.turnRandomDamageAllEnemiesKeywordA = .physical
+                    $0.turnRandomDamageAllEnemiesKeywordB = .stun
+                    $0.turnRandomDamageAllEnemiesAmount = 1
+                    $0.turnRandomDamageAllEnemiesInterval = 2
+                }
+            )
         ))
         list.append(CombatantTraitDefinition(
             id: "crimson_pulse",
             name: "Crimson Pulse",
             description: "Deals 1 Bleed damage every other turn to all enemies",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .bleed, turnRandomDamageAllEnemiesKeywordB: .bleed, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
+            triggers: CombatTraitTriggers(
+                damage: DamageTriggers {
+                    $0.turnRandomDamageAllEnemiesKeywordA = .bleed
+                    $0.turnRandomDamageAllEnemiesKeywordB = .bleed
+                    $0.turnRandomDamageAllEnemiesAmount = 1
+                    $0.turnRandomDamageAllEnemiesInterval = 2
+                }
+            )
         ))
         list.append(CombatantTraitDefinition(
             id: "radiant_judgment",
             name: "Radiant Judgment",
             description: "Deals 1 Holy damage every other turn to all enemies",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .holy, turnRandomDamageAllEnemiesKeywordB: .holy, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
+            triggers: CombatTraitTriggers(
+                damage: DamageTriggers {
+                    $0.turnRandomDamageAllEnemiesKeywordA = .holy
+                    $0.turnRandomDamageAllEnemiesKeywordB = .holy
+                    $0.turnRandomDamageAllEnemiesAmount = 1
+                    $0.turnRandomDamageAllEnemiesInterval = 2
+                }
+            )
         ))
         list.append(CombatantTraitDefinition(
             id: "seismic_pulse",
             name: "Seismic Pulse",
             description: "Deals 1 Physical damage every other turn to all enemies",
-            triggers: CombatTraitTriggers(damage: DamageTriggers(turnRandomDamageAllEnemiesKeywordA: .physical, turnRandomDamageAllEnemiesKeywordB: .physical, turnRandomDamageAllEnemiesAmount: 1, turnRandomDamageAllEnemiesInterval: 2))
+            triggers: CombatTraitTriggers(
+                damage: DamageTriggers {
+                    $0.turnRandomDamageAllEnemiesKeywordA = .physical
+                    $0.turnRandomDamageAllEnemiesKeywordB = .physical
+                    $0.turnRandomDamageAllEnemiesAmount = 1
+                    $0.turnRandomDamageAllEnemiesInterval = 2
+                }
+            )
         ))
         list.append(CombatantTraitDefinition(
             id: "toughened_hide",
@@ -292,7 +344,7 @@ enum GameContentTraitsGenerated {
             id: "loose_rubble",
             name: "Loose Rubble",
             description: "Taking Health damage reduces the next damage dealt by 1",
-            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(onHealthLossNextDamageReduction: 1))
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.onHealthLossNextDamageReduction = 1 })
         ))
         list.append(CombatantTraitDefinition(
             id: "off_balance",

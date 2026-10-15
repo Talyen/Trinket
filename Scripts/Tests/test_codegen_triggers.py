@@ -89,14 +89,16 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
     def test_triggers_swift_damage_below_health_percent_both_arities(self) -> None:
         self.assertEqual(
             content_codegen_triggers.triggers_swift("damage_below_health_percent:50:5"),
-            "CombatTraitTriggers(damage: DamageTriggers("
-            "damageBelowHealthPercentThreshold: 50, damageBelowHealthPercentBonus: 5))",
+            "CombatTraitTriggers(\n    damage: DamageTriggers {\n"
+            "        $0.damageBelowHealthPercentThreshold = 50\n"
+            "        $0.damageBelowHealthPercentBonus = 5\n    }\n)",
         )
         self.assertEqual(
             content_codegen_triggers.triggers_swift("damage_below_health_percent:50:burn:5"),
-            "CombatTraitTriggers(damage: DamageTriggers("
-            "damageBelowHealthPercentThreshold: 50, damageBelowHealthPercentKeyword: .burn, "
-            "damageBelowHealthPercentBonus: 5))",
+            "CombatTraitTriggers(\n    damage: DamageTriggers {\n"
+            "        $0.damageBelowHealthPercentThreshold = 50\n"
+            "        $0.damageBelowHealthPercentKeyword = .burn\n"
+            "        $0.damageBelowHealthPercentBonus = 5\n    }\n)",
         )
 
     def test_triggers_swift_unknown_token_fails_loudly(self) -> None:
@@ -138,7 +140,7 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
         ]:
             with self.subTest(token=token), self.assertRaises(ValueError):
                 content_codegen_triggers.triggers_swift(token)
-        self.assertIn('bonusManaOnTurns: [1, 4,]', content_codegen_triggers.triggers_swift('bonusManaOnTurns:[1, 4,]'))
+        self.assertIn('$0.bonusManaOnTurns = [1, 4,]', content_codegen_triggers.triggers_swift('bonusManaOnTurns:[1, 4,]'))
 
     def test_boolean_aliases_and_canonical_fields_emit_swift_literals(self) -> None:
         for field in ("first_hit_double_damage", "firstHitDoubleDamage"):

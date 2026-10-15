@@ -10,9 +10,7 @@ enum UniqueCatalog {
             keywords: [.stun, .holy],
             description: "Purge all buffs when you Stun an enemy\nDeal 2 Holy damage per buff removed",
             triggers: CombatTraitTriggers(
-                control: ControlTriggers(
-                    stunPurgeDealHolyPerEffect: 2,
-                ),
+                control: ControlTriggers { $0.stunPurgeDealHolyPerEffect = 2 },
             ),
             supports: ["dazed", "concussive", "sentinel"],
         ),
@@ -23,7 +21,7 @@ enum UniqueCatalog {
             keywords: [.dodge],
             description: "When you Dodge, immediately draw and play a card\nIf it's a Critical Hit, repeat this effect",
             triggers: CombatTraitTriggers(
-                dodge: DodgeTriggers(onDodgeDrawAndPlayCardChainOnCrit: true),
+                dodge: DodgeTriggers { $0.onDodgeDrawAndPlayCardChainOnCrit = true },
             ),
             supports: ["riposte", "untouchable", "sidestep"],
         ),
@@ -36,7 +34,7 @@ enum UniqueCatalog {
             keywords: [.physical, .bleed, .poison],
             description: "Critical Hits detonate and consume all remaining Bleed and Poison damage",
             triggers: CombatTraitTriggers(
-                dot: DotTriggers(criticalDetonateBleedAndPoison: true),
+                dot: DotTriggers { $0.criticalDetonateBleedAndPoison = true },
             ),
             supports: ["infected", "lingering", "contagion"],
         ),
@@ -47,7 +45,7 @@ enum UniqueCatalog {
             keywords: [.burn, .freeze, .mana],
             description: "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa",
             triggers: CombatTraitTriggers(
-                mana: ManaTriggers(empoweredElementDrawOpposite: true),
+                mana: ManaTriggers { $0.empoweredElementDrawOpposite = true },
             ),
             supports: ["smoldering", "glacial", "channeled"],
         ),
@@ -59,10 +57,10 @@ enum UniqueCatalog {
             keywords: [.holy, .gold, .stun],
             description: "Holy damage causes Stun build-up and steals 1 Gold when it Stuns an enemy",
             triggers: CombatTraitTriggers(
-                control: ControlTriggers(
-                    holyStunBuildupPercent: 1,
-                    holyTriggeredStunGoldFlat: 1,
-                ),
+                control: ControlTriggers {
+                    $0.holyStunBuildupPercent = 1
+                    $0.holyTriggeredStunGoldFlat = 1
+                },
             ),
             supports: ["stunning", "lucky", "absolving"],
         ),
@@ -76,12 +74,12 @@ enum UniqueCatalog {
         keywords: [.burn, .bleed],
         description: "Dealing Burn damage has a 20% chance to deal 1 Bleed damage, and vice versa\nBurn and Bleed damage gain Leech",
         triggers: CombatTraitTriggers(
-            dot: DotTriggers(
-                burnProcsBleedChancePercent: 0.20,
-                bleedProcsBurnChancePercent: 0.20,
-                burnDamageLeech: true,
-                bleedDamageLeech: true,
-            ),
+            dot: DotTriggers {
+                $0.burnProcsBleedChancePercent = 0.20
+                $0.bleedProcsBurnChancePercent = 0.20
+                $0.burnDamageLeech = true
+                $0.bleedDamageLeech = true
+            },
         ),
         supports: ["biting", "vampiric", "bloodstone"],
     )
@@ -94,8 +92,8 @@ enum UniqueCatalog {
         keywords: [.freeze, .block, .mana],
         description: "Dealing Freeze damage grants that amount of Block\nGain Mana equal to your Block when you Freeze an enemy",
         triggers: CombatTraitTriggers(
-            block: BlockTriggers(freezeDamageGrantsBlock: true),
-            mana: ManaTriggers(onFreezeEnemyGainManaEqualBlock: true),
+            block: BlockTriggers { $0.freezeDamageGrantsBlock = true },
+            mana: ManaTriggers { $0.onFreezeEnemyGainManaEqualBlock = true },
         ),
         supports: ["rime", "aetherward", "manabound"],
         pinned: ["manabound"],
@@ -109,7 +107,7 @@ enum UniqueCatalog {
         keywords: [.block, .health, .holy, .stun],
         description: "The first time each round your Block is broken, deal 6 Holy and 6 Stun damage to the attacker, then restore 6 Health",
         triggers: CombatTraitTriggers(
-            block: BlockTriggers(blockBrokenSaintfallPower: 6),
+            block: BlockTriggers { $0.blockBrokenSaintfallPower = 6 },
         ),
         supports: ["bulwark", "sanctum", "vital"],
     )

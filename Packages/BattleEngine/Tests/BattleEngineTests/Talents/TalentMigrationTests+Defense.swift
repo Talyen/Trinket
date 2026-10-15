@@ -115,8 +115,8 @@ extension TalentMigrationTests {
     }
 
     @Test(arguments: [
-        (BlockTriggers(retainedBlockGainThornsPercent: 0.5), 8, true, 2),
-        (BlockTriggers(blockRetainsHalf: true), 50, false, 25),
+        (BlockTriggers { $0.retainedBlockGainThornsPercent = 0.5 }, 8, true, 2),
+        (BlockTriggers { $0.blockRetainsHalf = true }, 50, false, 25),
     ])
     func `companion block decay honors retention and thorns talents`(
         triggers: BlockTriggers, initialBlock: Int, checksThorns: Bool, expected: Int,

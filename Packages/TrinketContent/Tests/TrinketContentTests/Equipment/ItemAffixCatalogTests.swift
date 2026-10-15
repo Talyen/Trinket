@@ -9,11 +9,11 @@ struct ItemAffixCatalogTests {
         let oldPowers = [
             ItemAffixPower(
                 description: "Every other turn, lose 1 Health and draw 2 cards.", modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(forbiddenKnowledge: true)),
+                triggers: CombatTraitTriggers(mana: ManaTriggers { $0.forbiddenKnowledge = true }),
             ),
             ItemAffixPower(
                 description: "Draw 2 cards every other turn.", modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers(drawEveryOtherTurn: 2)),
+                triggers: CombatTraitTriggers(mana: ManaTriggers { $0.drawEveryOtherTurn = 2 }),
             ),
         ]
         for old in oldPowers {
@@ -33,7 +33,7 @@ struct ItemAffixCatalogTests {
         let definition = try #require(GameContent.itemAffixDefinition(matching: "groves_favor"))
         let old = ItemAffixPower(
             description: "Restore 2 Health each turn.", modifiers: [],
-            triggers: CombatTraitTriggers(healing: HealingTriggers(healthPerTurn: 2)),
+            triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthPerTurn = 2 }),
         )
         let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
         let item = try ItemFixtures.makeBareItem(
@@ -49,7 +49,10 @@ struct ItemAffixCatalogTests {
         let definition = try #require(GameContent.itemAffixDefinition(matching: "companions_collar"))
         let old = ItemAffixPower(
             description: "Draw an additional Companion card each turn.", modifiers: [],
-            triggers: CombatTraitTriggers(mana: ManaTriggers(spendManaBlockFlat: 2, companionCardsPerTurn: 1)),
+            triggers: CombatTraitTriggers(mana: ManaTriggers {
+                $0.spendManaBlockFlat = 2
+                $0.companionCardsPerTurn = 1
+            }),
         )
         let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
         let item = try ItemFixtures.makeBareItem(
@@ -69,7 +72,7 @@ struct ItemAffixCatalogTests {
         try #require(catalog.affixes.first?.id == "the_patient_edge")
         let old = ItemAffixPower(
             description: "Old held card text.", modifiers: [],
-            triggers: CombatTraitTriggers(attack: AttackTriggers(heldCardNextAttackDamage: 3)),
+            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.heldCardNextAttackDamage = 3 }),
         )
         let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
         let item = InventoryItem(

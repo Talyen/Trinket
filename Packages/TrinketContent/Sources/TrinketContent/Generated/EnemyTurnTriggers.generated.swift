@@ -13,25 +13,7 @@ public struct EnemyTurnTriggers: Equatable, Hashable, Sendable {
     public var onHolyDamageRestoreMana: Int = 0
     public var burnReducesEnemyHealingAndLeechPercent: Double = 0
 
-    public init(
-        negateFirstEnemyAttack: Bool = false,
-        attackDelayEnemyTurnChancePercent: Double = 0,
-        bleedingEnemyActionSkipChancePercent: Double = 0,
-        extraCardDrawWhileEnemyBleeding: Bool = false,
-        extraCardDrawBelowEnemyHealthPercent: Double = 0,
-        ultimateAppliesBurnPotency: Int = 0,
-        onHeroHolyAbilityCompanionHolyDamage: Int = 0,
-        onHolyDamageRestoreMana: Int = 0,
-        burnReducesEnemyHealingAndLeechPercent: Double = 0
-    ) {
-        self.negateFirstEnemyAttack = negateFirstEnemyAttack
-        self.attackDelayEnemyTurnChancePercent = attackDelayEnemyTurnChancePercent
-        self.bleedingEnemyActionSkipChancePercent = bleedingEnemyActionSkipChancePercent
-        self.extraCardDrawWhileEnemyBleeding = extraCardDrawWhileEnemyBleeding
-        self.extraCardDrawBelowEnemyHealthPercent = extraCardDrawBelowEnemyHealthPercent
-        self.ultimateAppliesBurnPotency = ultimateAppliesBurnPotency
-        self.onHeroHolyAbilityCompanionHolyDamage = onHeroHolyAbilityCompanionHolyDamage
-        self.onHolyDamageRestoreMana = onHolyDamageRestoreMana
-        self.burnReducesEnemyHealingAndLeechPercent = burnReducesEnemyHealingAndLeechPercent
+    public init(_ configure: (inout Self) -> Void = { _ in }) {
+        configure(&self)
     }
 }

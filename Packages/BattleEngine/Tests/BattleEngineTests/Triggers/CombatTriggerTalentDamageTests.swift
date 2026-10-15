@@ -21,15 +21,21 @@ struct CombatTriggerTalentDamageTests {
     }
 
     @Test(arguments: [
-        (DamageTriggers(damageVsBleedingBonus: 3), [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)], 4, Keyword.physical, 7),
         (
-            DamageTriggers(damageVsFrozenMultiplier: 2),
+            DamageTriggers { $0.damageVsBleedingBonus = 3 },
+            [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
+            4,
+            Keyword.physical,
+            7,
+        ),
+        (
+            DamageTriggers { $0.damageVsFrozenMultiplier = 2 },
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
             4,
             .physical,
             8,
         ),
-        (DamageTriggers(burnDamageVsNoBlockMultiplier: 2), [], 3, .burn, 6),
+        (DamageTriggers { $0.burnDamageVsNoBlockMultiplier = 2 }, [], 3, .burn, 6),
     ])
     func `damage bonuses honor their target status and keyword`(
         triggers: DamageTriggers, effects: [ActiveEffect], amount: Int, keyword: Keyword, expected: Int,

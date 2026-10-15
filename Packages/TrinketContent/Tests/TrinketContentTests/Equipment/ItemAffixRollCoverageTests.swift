@@ -20,7 +20,7 @@ struct ItemAffixRollCoverageTests {
         let power = ItemAffixPower(
             description: "Gain 2 Block and deal 2 Poison damage.",
             modifiers: [.blockGained(2)],
-            triggers: CombatTraitTriggers(dot: DotTriggers(onBleedApplyPoison: 2)),
+            triggers: CombatTraitTriggers(dot: DotTriggers { $0.onBleedApplyPoison = 2 }),
         )
         let target = try #require(power.bumpCandidates(direction: .up).last)
         let bumped = power.bumped(target: target, direction: .up)
@@ -70,7 +70,7 @@ struct ItemAffixRollCoverageTests {
     @Test func `percentage trigger bumps preserve the power and displayed magnitude`() throws {
         let power = ItemAffixPower(
             description: "Gain 25% Thorns.",
-            triggers: CombatTraitTriggers(mitigation: MitigationTriggers(thornsPercent: 0.25)),
+            triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.thornsPercent = 0.25 }),
         )
         let target = try #require(power.bumpCandidates(direction: .up).first)
         let increased = power.bumped(target: target, direction: .up)
@@ -122,10 +122,10 @@ struct ItemAffixRollCoverageTests {
         let power = ItemAffixPower(
             description: "Gain 2 Block and deal 1 Poison damage with a 35% chance.",
             modifiers: [.blockGained(2)],
-            triggers: CombatTraitTriggers(dot: DotTriggers(
-                onBleedApplyPoison: 1,
-                onBleedDealPoisonChancePercent: 0.35,
-            )),
+            triggers: CombatTraitTriggers(dot: DotTriggers {
+                $0.onBleedApplyPoison = 1
+                $0.onBleedDealPoisonChancePercent = 0.35
+            }),
         )
 
         let scaled = power.scaled(by: 2)
@@ -165,7 +165,7 @@ struct ItemAffixRollCoverageTests {
         let power = ItemAffixPower(
             description: "Gain 1 Block and Purge a buff.",
             modifiers: [.blockGained(1)],
-            triggers: CombatTraitTriggers(cleanse: CleanseTriggers(holyDamagePurgeCount: 1)),
+            triggers: CombatTraitTriggers(cleanse: CleanseTriggers { $0.holyDamagePurgeCount = 1 }),
         )
         let max = power.rolledMax()
         #expect(max.modifiers == [.blockGained(2)])

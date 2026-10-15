@@ -30,59 +30,7 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
     public var verdantShelterDamageMultiplier: Double = 1
     public var onHealthLossNextDamageReduction: Int = 0
 
-    public init(
-        passiveMitigationFlat: Int = 0,
-        passivePhysicalMitigationFlat: Int = 0,
-        thornsPercent: Double = 0,
-        bleedResistance: Double = 0,
-        frozenEnemyDamageReductionFlat: Int = 0,
-        bleedingEnemyDamageReductionFlat: Int = 0,
-        stunnedEnemyNextTurnDamageMultiplier: Double = 1,
-        enemyBleedStacksDamageReductionStacks: Int = 0,
-        enemyBleedStacksDamageReductionPercent: Double = 0,
-        poisonedEnemyAccuracyPenaltyPercent: Double = 0,
-        poisonedEnemyMissChancePercent: Double = 0,
-        subzeroMist: Bool = false,
-        blindingLight: Bool = false,
-        holyDamageReduceTargetDamage: Int = 0,
-        bleedingEnemyAttackDealDamage: Int = 0,
-        onAllyDamageHeal: Int = 0,
-        damageReductionPerUnspentManaEvery: Int = 0,
-        toughnessOnHit: Int = 0,
-        toughnessOnHitCap: Int = 0,
-        blockedControlBurnResistance: Double = 0,
-        afflictionResistance: Double = 0,
-        burningEnemyDamageReductionFlat: Int = 0,
-        blockHalvesDoTDamage: Bool = false,
-        bleedingEnemyOutgoingDamageMultiplier: Double = 1,
-        verdantShelterDamageMultiplier: Double = 1,
-        onHealthLossNextDamageReduction: Int = 0
-    ) {
-        self.passiveMitigationFlat = passiveMitigationFlat
-        self.passivePhysicalMitigationFlat = passivePhysicalMitigationFlat
-        self.thornsPercent = thornsPercent
-        self.bleedResistance = bleedResistance
-        self.frozenEnemyDamageReductionFlat = frozenEnemyDamageReductionFlat
-        self.bleedingEnemyDamageReductionFlat = bleedingEnemyDamageReductionFlat
-        self.stunnedEnemyNextTurnDamageMultiplier = stunnedEnemyNextTurnDamageMultiplier
-        self.enemyBleedStacksDamageReductionStacks = enemyBleedStacksDamageReductionStacks
-        self.enemyBleedStacksDamageReductionPercent = enemyBleedStacksDamageReductionPercent
-        self.poisonedEnemyAccuracyPenaltyPercent = poisonedEnemyAccuracyPenaltyPercent
-        self.poisonedEnemyMissChancePercent = poisonedEnemyMissChancePercent
-        self.subzeroMist = subzeroMist
-        self.blindingLight = blindingLight
-        self.holyDamageReduceTargetDamage = holyDamageReduceTargetDamage
-        self.bleedingEnemyAttackDealDamage = bleedingEnemyAttackDealDamage
-        self.onAllyDamageHeal = onAllyDamageHeal
-        self.damageReductionPerUnspentManaEvery = damageReductionPerUnspentManaEvery
-        self.toughnessOnHit = toughnessOnHit
-        self.toughnessOnHitCap = toughnessOnHitCap
-        self.blockedControlBurnResistance = blockedControlBurnResistance
-        self.afflictionResistance = afflictionResistance
-        self.burningEnemyDamageReductionFlat = burningEnemyDamageReductionFlat
-        self.blockHalvesDoTDamage = blockHalvesDoTDamage
-        self.bleedingEnemyOutgoingDamageMultiplier = bleedingEnemyOutgoingDamageMultiplier
-        self.verdantShelterDamageMultiplier = verdantShelterDamageMultiplier
-        self.onHealthLossNextDamageReduction = onHealthLossNextDamageReduction
+    public init(_ configure: (inout Self) -> Void = { _ in }) {
+        configure(&self)
     }
 }

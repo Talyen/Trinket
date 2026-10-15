@@ -12,23 +12,7 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
     public var onHitAttackerHoly: Int = 0
     public var onHitGainBlock: Int = 0
 
-    public init(
-        resonantShell: Bool = false,
-        onHitAttackerBurn: Int = 0,
-        onHitAttackerFreezeBuildup: Int = 0,
-        onHitAttackerPoison: Int = 0,
-        onHitAttackerBleedPotency: Int = 0,
-        onHitAttackerBleedTurns: Int = 0,
-        onHitAttackerHoly: Int = 0,
-        onHitGainBlock: Int = 0
-    ) {
-        self.resonantShell = resonantShell
-        self.onHitAttackerBurn = onHitAttackerBurn
-        self.onHitAttackerFreezeBuildup = onHitAttackerFreezeBuildup
-        self.onHitAttackerPoison = onHitAttackerPoison
-        self.onHitAttackerBleedPotency = onHitAttackerBleedPotency
-        self.onHitAttackerBleedTurns = onHitAttackerBleedTurns
-        self.onHitAttackerHoly = onHitAttackerHoly
-        self.onHitGainBlock = onHitGainBlock
+    public init(_ configure: (inout Self) -> Void = { _ in }) {
+        configure(&self)
     }
 }

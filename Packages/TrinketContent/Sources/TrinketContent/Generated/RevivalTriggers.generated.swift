@@ -28,55 +28,7 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
     public var surviveDeathsDoorPartyBlockFlat: Int = 0
     public var affixDeathsDoorSurviveHealFlat: Int = 0
 
-    public init(
-        undyingEmber: Bool = false,
-        borrowedLife: Bool = false,
-        onceDeathReviveHealth: Int = 0,
-        onceDeathReviveBlock: Int = 0,
-        deathsDoorDurationBonusTurns: Int = 0,
-        reviveDealBurnDamage: Int = 0,
-        deathsDoorDodgeAndDebuffImmunity: Bool = false,
-        onDeathDealPhysicalDamageAllEnemies: Int = 0,
-        guaranteedCritWhileOnDeathsDoor: Bool = false,
-        deathsDoorExpiredHealFlat: Int = 0,
-        holyDamageReviveCompanionChancePercent: Double = 0,
-        surviveDeathsDoorPartyHealFlat: Int = 0,
-        onHeroFatalReviveHealth: Int = 0,
-        enterDeathsDoorHeal: Int = 0,
-        enterDeathsDoorBurnDamage: Int = 0,
-        surviveDeathsDoorNextAttackDouble: Bool = false,
-        deathsDoorIncomingDamageMultiplier: Double = 1,
-        deathsDoorNegativeStatusImmune: Bool = false,
-        onAllyDeathsDoorRestoreHealth: Int = 0,
-        firstAllyFatalIntercept: Bool = false,
-        deathsDoorCriticalChanceBonus: Double = 0,
-        enterDeathsDoorDrawCard: Bool = false,
-        surviveDeathsDoorPartyBlockFlat: Int = 0,
-        affixDeathsDoorSurviveHealFlat: Int = 0
-    ) {
-        self.undyingEmber = undyingEmber
-        self.borrowedLife = borrowedLife
-        self.onceDeathReviveHealth = onceDeathReviveHealth
-        self.onceDeathReviveBlock = onceDeathReviveBlock
-        self.deathsDoorDurationBonusTurns = deathsDoorDurationBonusTurns
-        self.reviveDealBurnDamage = reviveDealBurnDamage
-        self.deathsDoorDodgeAndDebuffImmunity = deathsDoorDodgeAndDebuffImmunity
-        self.onDeathDealPhysicalDamageAllEnemies = onDeathDealPhysicalDamageAllEnemies
-        self.guaranteedCritWhileOnDeathsDoor = guaranteedCritWhileOnDeathsDoor
-        self.deathsDoorExpiredHealFlat = deathsDoorExpiredHealFlat
-        self.holyDamageReviveCompanionChancePercent = holyDamageReviveCompanionChancePercent
-        self.surviveDeathsDoorPartyHealFlat = surviveDeathsDoorPartyHealFlat
-        self.onHeroFatalReviveHealth = onHeroFatalReviveHealth
-        self.enterDeathsDoorHeal = enterDeathsDoorHeal
-        self.enterDeathsDoorBurnDamage = enterDeathsDoorBurnDamage
-        self.surviveDeathsDoorNextAttackDouble = surviveDeathsDoorNextAttackDouble
-        self.deathsDoorIncomingDamageMultiplier = deathsDoorIncomingDamageMultiplier
-        self.deathsDoorNegativeStatusImmune = deathsDoorNegativeStatusImmune
-        self.onAllyDeathsDoorRestoreHealth = onAllyDeathsDoorRestoreHealth
-        self.firstAllyFatalIntercept = firstAllyFatalIntercept
-        self.deathsDoorCriticalChanceBonus = deathsDoorCriticalChanceBonus
-        self.enterDeathsDoorDrawCard = enterDeathsDoorDrawCard
-        self.surviveDeathsDoorPartyBlockFlat = surviveDeathsDoorPartyBlockFlat
-        self.affixDeathsDoorSurviveHealFlat = affixDeathsDoorSurviveHealFlat
+    public init(_ configure: (inout Self) -> Void = { _ in }) {
+        configure(&self)
     }
 }

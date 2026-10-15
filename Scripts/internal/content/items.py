@@ -63,6 +63,8 @@ def parse_item_base_rows() -> list[ItemBaseRow]:
 def generate_affix_catalog(rows: list[AffixRow]) -> None:
     entries: list[str] = []
     for row in rows:
+        basic_triggers = triggers_swift(row.basic_triggers, indent="            ")
+        astral_triggers = triggers_swift(row.astral_triggers, indent="            ")
         entries.append(
             "        ItemAffixCatalog.affix(\n"
             f'            id: "{row.id}",\n'
@@ -70,8 +72,8 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
             f"            slot: .{row.slot},\n"
             f"            keywords: {parse_keywords(row.keywords)},\n"
             f"            weight: {row.weight},\n"
-            f'            basic: ItemAffixPower(description: "{swift_escape(row.basic_description)}", modifiers: {modifiers_swift(row.basic_modifiers)}, triggers: {triggers_swift(row.basic_triggers)}),\n'
-            f'            astral: ItemAffixPower(description: "{swift_escape(row.astral_description)}", modifiers: {modifiers_swift(row.astral_modifiers)}, triggers: {triggers_swift(row.astral_triggers)})\n'
+            f'            basic: ItemAffixPower(description: "{swift_escape(row.basic_description)}", modifiers: {modifiers_swift(row.basic_modifiers)}, triggers: {basic_triggers}),\n'
+            f'            astral: ItemAffixPower(description: "{swift_escape(row.astral_description)}", modifiers: {modifiers_swift(row.astral_modifiers)}, triggers: {astral_triggers})\n'
             "        )"
         )
 
