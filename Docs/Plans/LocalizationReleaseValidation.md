@@ -26,8 +26,8 @@ Artwork lettering is explicitly excluded by the user.
 
 ## Boundaries
 
-No artwork edits or release publication. Hosted CI currently references older remote
-commits; a push decision must use the concrete reviewed task commit. No simulator
+No artwork edits or release publication. The owner authorized a branch push and
+exhaustive CI after the pseudolocalization investigation. No simulator
 or package full suites on the laptop merely to substitute for hosted coverage.
 Use bounded localization XCTest selectors for the known missing interaction and layout evidence.
 
@@ -46,4 +46,6 @@ Use bounded localization XCTest selectors for the known missing interaction and 
 - Final-source normal French and double-length English journeys passed. Real-language captions fit; Apple's synthetic double-English mode still crowds the native tab captions and leaves a format fragment in one doubled talent rule. These synthetic-only limits are retained in screenshots rather than hidden by disabling pseudolocalization or altering shipping wording.
 - Retain evidence under `/tmp/trinket-localization-release-validation/` before worktree cleanup. Native text size uses a restoring context; hardware purchase authorization is outside these display checks.
 - Production source commit: `191c3bf7f`. The first temporary archive runner incorrectly reused build-only output overrides; native archive arguments succeeded. No release/upload tool or Apple credentials were used.
-- Hosted exhaustive CI/package/full-UI checks remain pending a separately authorized push of this reviewed branch. Local verification does not replace those suites.
+- Pseudolocalization investigation: a Foundation-only probe confirms that `NSDoubleLocalizedStrings` strips `%` from the first copy of `%1$lld` before interpolation; the same catalog renders `2` correctly with the flag off. No game renderer is involved in that corruption.
+- A bounded iPhone SE / iOS 26.5 diagnostic tested custom SwiftUI tab labels with fitting modifiers. The native caption crowding was unchanged. Removed the ineffective prototype and temporary diagnostic test; shipping code and translations remain unchanged. Screenshot: `/tmp/trinket-localization-release-validation/pseudo-tab-fit/ui-20261015T233410Z-81291-27721/Localization-en-double-tab-fit-diagnostic.png`.
+- Hosted exhaustive CI/package/full-UI checks are authorized and pending dispatch on the reviewed branch. Local verification does not replace those suites.

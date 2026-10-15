@@ -116,6 +116,27 @@ reach Restore Purchases while retaining the pinned purchase action. Review the
 purchase screenshot itself to confirm the complete price is visible; an accessible
 label alone does not establish that its rendered text fits.
 
+### Pseudolanguage diagnostics
+
+Compare suspected formatting defects with the same catalog entry in a real locale.
+On Xcode 27.1 RC / iOS 26.5, Apple's `NSDoubleLocalizedStrings` changes the raw
+bundle value `Quantity %1$lld` into `Quantity 1$lld Quantity %1$lld` before
+interpolation. A Foundation-only `Bundle.localizedString(forKey:value:table:)`
+probe reproduces this without game rendering. The first copy's format fragment is
+a diagnostic artifact; keep placeholder validation and reviewed translations intact.
+
+On the compact iPhone SE, native tab captions can overlap when this mode doubles
+their titles. A custom SwiftUI tab `Label` with single-line fitting, tightening,
+and a minimum scale factor produced the same rendered result on iOS 26.5. Retain
+native tabs and the stress screenshots; judge shipping captions separately and
+fix any overflow reproduced in a supported language. Do not suppress doubling or
+change player-facing terminology just to make that diagnostic pass visually.
+Apple also documents [custom pseudolocalizations](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPInternational/MaintaingYourOwnStringsFiles/MaintaingYourOwnStringsFiles.html)
+when its built-in modes are insufficient; adopting one would be a separate test
+tooling change, not a translation correction.
+
+### Storefront preparation
+
 Store metadata is generated under `Localization/Generated/AppStore/`, with field
 length checks. Storefront copy and Full Game product copy are separate from the
 binary's languages. Submission files and screenshots are preparation artifacts;
