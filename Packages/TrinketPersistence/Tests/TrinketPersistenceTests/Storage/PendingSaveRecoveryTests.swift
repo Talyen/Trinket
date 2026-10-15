@@ -397,7 +397,7 @@ extension PendingSaveRecoveryTests {
     @Test func `refused recovery prewrite cannot accept an older pending candidate`() throws {
         let fixture = try PersistenceTestContext()
         let recovery = PendingSaveRecovery(storeURL: fixture.storeURL())
-        var previous = PlayerSave.fresh
+        var previous = try fixture.makeSaveStore().currentSave
         previous.roster.gold = 17
         try recovery.write(save: previous, cloudState: nil)
         var candidate = previous
