@@ -286,7 +286,7 @@ prepare_generated_inputs results || status=$?
             ("Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog.swift", "--skip-xcodegen"),
             ("Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/MysteryEventPool+Events.swift", "--skip-xcodegen"),
             ("Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/RecruitEventPool.swift", "--skip-xcodegen"),
-            ("Scripts/lib/media-assets.sh", ""),
+            ("Scripts/prepare-media.py", ""),
             ("Scripts/config/full-only-art-kinds.txt", ""),
             ("Scripts/prepare-assets.sh", ""),
         ):

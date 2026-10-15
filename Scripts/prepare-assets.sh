@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Unified dispatch for media pipelines — delegates to kind-specific prepare scripts.
-# LC_ALL=C sort is handled by delegated scripts; header-preserving sort uses
-# head -n 2 and tail -n +3 in lib/media-assets.sh; unchanged outputs use cmp -s.
+# Preparation preserves stable state order and unchanged output timestamps.
 
 cd "$(dirname "$0")/.."
 # shellcheck source=Scripts/lib/args.sh

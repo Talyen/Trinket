@@ -135,7 +135,7 @@ let package = Package(name: "TrinketCore",
     def test_generation_helpers_route_local_and_ci_verification(self) -> None:
         cases = (("internal/content/content_codegen_modifiers.py", False), ("internal/content/content_codegen_triggers.py", False),
                  ("internal/content/trigger_families/index.json", False), ("prepare-assets.sh", True),
-                 ("lib/media-assets.sh", True), ("config/full-only-art-kinds.txt", True))
+                 ("prepare-media.py", True), ("config/full-only-art-kinds.txt", True))
         for name, assets in cases:
             with self.subTest(path=name):
                 path = "Scripts/" + name

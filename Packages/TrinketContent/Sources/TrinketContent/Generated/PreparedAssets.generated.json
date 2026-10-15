@@ -1,6 +1,6 @@
 {
   "app-icon": {
-    "input_hash": "8323f9d3a1dabbc7c43542cb1c6d08e08e316b2c196bfe0e37671b7d9f73fba1",
+    "input_hash": "d3727977f385be567d0e198e0b5d0c437658bacfe403821dd1273a73c1303a1e",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv": "c7ec3e9f737e9570ef1dc76fe9ef6fbb2a3cdd6b80890665b8e085f2ad3103ad",
       "Trinket/AppIcon.icon/Assets/Trinket App Icon.jpg": "5d1746f8a848e773c2be9cef9f16933aadf6a7cdb913d937853892ad198be7c2",
@@ -12,7 +12,7 @@
     }
   },
   "art": {
-    "input_hash": "dc5b1d5c1fa5239259839389a4b3d986122ad30cc508fc0267911ac9f08349e4",
+    "input_hash": "d0666b0e5aaf73f15231b736a76ac17305e2b01c1a1dcc589b9ce155bf566205",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift": "4b52eebee8e7bb6299ada9b6872fbee570a4ac3b26cb401ad97510a4587b7db8",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv": "33269145fc82fd9539df826c88b677fe940122837f5cf2dc5d9561590bb0d82a",
@@ -1640,7 +1640,7 @@
     }
   },
   "music": {
-    "input_hash": "30e54e47db71a59de77dfc496eb99cca2ca9bf4866adabf49c5cfe73ab3c8db0",
+    "input_hash": "5bbb55c518f0830ecd55f5f0e7e9317dbc52aea6b9969210d5ab481a89d71820",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "8ef9d00ad7fcfd86fcd9c668a5aa74634d123957ce91a86b40bacb3e90e8194f",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv": "5b06ba1966c6fe92ec4cbeb882f14bb702136083bf842575f1c6e9fa9dfe2e49",
@@ -1673,7 +1673,7 @@
     }
   },
   "sfx": {
-    "input_hash": "aed895580dea2cab36383236ae6389b175b33eff1ef51bf34b8841ac2accfe79",
+    "input_hash": "a6871d9d060df30e6d9b68e73171b94c11bf58a76d567f8c4d32286e76c82fcf",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift": "c19f8d09a29035875bb3bdd88d5772ddf009c8a92f68cc8d2990c187df560281",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv": "13c6840012154e30278262c1a96fd87c99f6bd34a0963b92d9fc34440b8b851a",

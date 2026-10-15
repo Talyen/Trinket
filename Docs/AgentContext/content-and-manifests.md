@@ -111,7 +111,11 @@ lazy eligibility filter. Preserve this order and the existing numeric/save forma
 
 Art references derive thumbnail names with the `_thumb` suffix; full-only resource
 and slot-background references expose only the full image. Catalog kind metadata
-in `prepare-art-assets.sh` owns reference types, crop fields, and full dimensions.
+in `Scripts/prepare-media.py` owns reference types and crop fields;
+`asset-library.py` owns encode settings shared by conversion and input fingerprints.
+The focused shell commands delegate to that shared incremental pipeline. It reuses
+`asset-library.py` for source identity and receipts; static Swift catalog declarations
+live in `Scripts/internal/media_templates/`.
 
 Shared media-pipeline rules: raw source folders in the external Asset Library are not in Xcode target membership; processed outputs under
 `Trinket/` are. Hash-based media pipelines re-encode when source bytes or encode settings

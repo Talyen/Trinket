@@ -52,7 +52,15 @@ def rows(kind: str) -> list[dict[str, str]]:
         'app-icon': 'asset_name source_path',
     }
     header = headers[kind].split()
-    return [dict(zip(header, line.split('\t'))) for line in lines if line and not line.startswith('#')]
+    result = []
+    for number, line in enumerate(lines, 1):
+        if not line or line.startswith('#'):
+            continue
+        fields = line.split('\t')
+        if len(fields) != len(header):
+            raise ValueError(f'{KINDS[kind][0]}:{number}: expected {len(header)} tab-separated fields.')
+        result.append(dict(zip(header, fields)))
+    return result
 
 
 
@@ -80,11 +88,7 @@ def source_hashes(kind: str) -> dict[str, str]:
     return result
 
 
-def input_hash(kind: str) -> str:
-    manifest, _, _, _, script = KINDS[kind]
-    paths = [manifest, script, 'Scripts/lib/media-assets.sh', 'Scripts/asset-library.py']
-    if kind == 'art':
-        paths.append('Scripts/config/full-only-art-kinds.txt')
+def encoding_settings(kind: str) -> dict[str, str]:
     if kind == 'art':
         override = os.environ.get('ART_MAX_DIMENSION', '')
         defaults = {'COMBATANT': '1320', 'ABILITY': '960', 'ITEM': '960', 'SLOT_BACKGROUND': '720', 'BACKGROUND': '1600', 'PORTRAIT_BACKGROUND': '2752', 'ENCOUNTER': '1320', 'RESOURCE': '256', 'TALENT': '960'}
@@ -94,8 +98,17 @@ def input_hash(kind: str) -> str:
     else:
         defaults = {'music': {'MUSIC_AAC_BITRATE': '96000'}, 'sfx': {'SFX_AAC_BITRATE': '64000'}, 'app-icon': {}}[kind]
         settings = {name: os.environ.get(name) or value for name, value in defaults.items()}
+    return settings
+
+
+def input_hash(kind: str) -> str:
+    manifest, _, _, _, script = KINDS[kind]
+    paths = [manifest, script, 'Scripts/prepare-media.py', 'Scripts/asset-library.py']
+    paths.extend(str(path.relative_to(ROOT)) for path in sorted((ROOT / 'Scripts/internal/media_templates').glob('*.swift-template')))
+    if kind == 'art':
+        paths.append('Scripts/config/full-only-art-kinds.txt')
     values = {path: digest(ROOT / path) for path in paths if (ROOT / path).is_file()}
-    values['settings'] = settings
+    values['settings'] = encoding_settings(kind)
     return hashlib.sha256(json.dumps(values, sort_keys=True).encode()).hexdigest()
 
 

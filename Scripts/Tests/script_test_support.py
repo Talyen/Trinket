@@ -105,6 +105,8 @@ class ScriptRegressionTestCase(unittest.TestCase):
             helper = root / "Scripts/asset-library.py"
             helper.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / "Scripts/asset-library.py", helper)
+            shutil.copy2(ROOT / 'Scripts/prepare-media.py', root / 'Scripts/prepare-media.py')
+            shutil.copytree(ROOT / 'Scripts/internal/media_templates', root / 'Scripts/internal/media_templates', dirs_exist_ok=True)
             from unittest.mock import patch
             environment_patch = patch.dict(os.environ, {"ASSET_LIBRARY_ROOT": str(root)})
             environment_patch.start()
@@ -143,7 +145,7 @@ class ScriptRegressionTestCase(unittest.TestCase):
 
     def make_audio_fixture(self, directory: str, kind: str) -> tuple[Path, dict[str, str], Path]:
         manifest, source, media, row, audio = self._AUDIO_FIXTURES[kind]
-        root = self.make_repo_fixture(directory, ("Scripts/prepare-audio-assets.sh", "Scripts/lib/media-assets.sh"))
+        root = self.make_repo_fixture(directory, ("Scripts/prepare-audio-assets.sh", "Scripts/prepare-media.py"))
         for relative in (Path(manifest).parent, Path(source).parent, media,
                          "Packages/TrinketContent/Sources/TrinketContent/Generated", "bin"):
             (root / relative).mkdir(parents=True, exist_ok=True)

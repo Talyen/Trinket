@@ -13,22 +13,6 @@ from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, write_executable
 
 class MediaAssetScriptTests(ScriptRegressionTestCase):
-    def test_media_temp_cleanup_preserves_paths_with_spaces(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            scratch = Path(directory) / 'temporary assets'
-            scratch.mkdir()
-            run_captured(['bash', '-eu', '-c', '''
-source "$1"
-# Exercise a spaced path on BSD hosts too; GNU mktemp honors TMPDIR by default.
-mktemp() { command mktemp "$TMPDIR/asset.XXXXXX"; }
-trinket_asset_track_mktemp first
-trinket_asset_track_mktemp second
-touch "$first.next" "$second.sorted"
-trinket_asset_cleanup_tracked
-trinket_asset_cleanup_tracked
-''', '_', str(ROOT / 'Scripts/lib/media-assets.sh')], env={**os.environ, 'TMPDIR': str(scratch)}, expected=0)
-            self.assertEqual(list(scratch.iterdir()), [])
-
     def test_sfx_cache_tracks_profile_state_output_and_force(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root, environment, conversion_log = self.make_audio_fixture(directory, "sfx")
@@ -124,9 +108,20 @@ trinket_asset_cleanup_tracked
             previous = {path: path.read_bytes() for path in (catalog, state)}
             manifest = root / "MusicManifest/music.tsv"
             manifest.write_text(manifest.read_text().replace("1.0", "0.5"))
-            write_executable(root / "bin/mv", '#!/bin/sh\ncase "$*" in *MusicCatalog.generated.swift*) exit 23;; esac\nexec /bin/mv "$@"\n')
-            failed = self.run_audio_fixture(root, environment, "music")
-            self.assertEqual(failed.returncode, 23, failed.stderr)
+            # Refuse the atomic catalog replacement, after conversion succeeds.
+            failed = run_captured([sys.executable, '-c', """
+import pathlib, runpy, sys
+replace = pathlib.Path.replace
+def refuse_catalog(self, target):
+    if pathlib.Path(target).name == 'MusicCatalog.generated.swift':
+        raise OSError('catalog replacement refused')
+    return replace(self, target)
+pathlib.Path.replace = refuse_catalog
+sys.argv = ['Scripts/prepare-media.py', 'music']
+runpy.run_path(sys.argv[0], run_name='__main__')
+"""], cwd=root, env=environment)
+            self.assertEqual(failed.returncode, 1, failed.stderr)
+            self.assertIn('catalog replacement refused', failed.stderr)
             self.assertEqual(list(scratch.iterdir()), [])
             self.assertFalse(list(state.parent.glob("*.tmp.*")))
             for path, content in previous.items():
@@ -134,29 +129,59 @@ trinket_asset_cleanup_tracked
 
     def test_media_orphan_pruning_is_extension_scoped(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            resources = root / "Media"
-            resources.mkdir()
-            active = root / "active.txt"
-            active.write_text("keep.m4a\n", encoding="utf-8")
-            for name in ("keep.m4a", "remove.m4a", "ignore.txt"):
-                (resources / name).write_text(name, encoding="utf-8")
-
-            run_captured(
-                [
-                    "bash",
-                    "-c",
-                    'source "$1"; trinket_asset_prune_orphans "$2" "$3" sfx m4a',
-                    "media-prune-test",
-                    str(ROOT / "Scripts/lib/media-assets.sh"),
-                    str(resources),
-                    str(active),
-                ],
-                expected=0,
-            )
-            self.assertTrue((resources / "keep.m4a").exists())
+            root, environment, _ = self.make_audio_fixture(directory, "sfx")
+            resources = root / "Trinket/Media/SFX"
+            self.assertEqual(self.run_audio_fixture(root, environment, "sfx").returncode, 0)
+            for name in ("remove.m4a", "ignore.txt"):
+                (resources / name).write_text(name)
+            result = self.run_audio_fixture(root, environment, "sfx")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((resources / "sfx_test_clip.m4a").exists())
             self.assertFalse((resources / "remove.m4a").exists())
             self.assertTrue((resources / "ignore.txt").exists())
+
+    def test_invalid_later_row_preserves_encoded_media_and_receipt(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, log = self.make_audio_fixture(directory, "sfx")
+            self.assertEqual(self.run_audio_fixture(root, environment, "sfx").returncode, 0)
+            generated = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated'
+            output = root / 'Trinket/Media/SFX/sfx_test_clip.m4a'
+            orphan = output.with_name('orphan.m4a')
+            orphan.write_bytes(b'retain until validation succeeds')
+            before = {path: path.read_bytes() for path in [output, orphan, *generated.iterdir()]}
+            (root / 'Raw Assets/Sound Effects/clip.wav').write_bytes(b'revised source')
+            with (root / 'SoundManifest/sfx.tsv').open('a') as stream:
+                stream.write('invalid\trepeat\tinvalid\tRaw Assets/Sound Effects/clip.wav\t1.0\n')
+            result = self.run_audio_fixture(root, environment, "sfx")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('reserved Swift keyword', result.stderr)
+            self.assertEqual(log.read_text().count('convert'), 1)
+            self.assertEqual({path: path.read_bytes() for path in before}, before)
+
+    def test_failed_imageset_install_restores_previous_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, _ = self.make_art_fixture(directory)
+            (root / 'ArtManifest/curated-assets.tsv').write_text(
+                'combatant\tknight\thero_knight_card\tRaw Assets/source.jpeg\t0.5\t0.5\n')
+            self.assertEqual(self.run_art_fixture(root, environment).returncode, 0)
+            imageset = root / 'Trinket/Assets.xcassets/hero_knight_card.imageset'
+            receipt = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json'
+            before = {path: path.read_bytes() for path in [receipt, *imageset.iterdir()]}
+            result = run_captured([sys.executable, '-c', """
+import pathlib, runpy, sys
+replace = pathlib.Path.replace
+def refuse_install(self, target):
+    if self.name == 'hero_knight_card.imageset' and self.parent.name.startswith('.media-'):
+        raise OSError('imageset installation refused')
+    return replace(self, target)
+pathlib.Path.replace = refuse_install
+sys.argv = ['Scripts/prepare-media.py', 'art']
+runpy.run_path(sys.argv[0], run_name='__main__')
+"""], cwd=root, env={**environment, 'FORCE_ASSET_REENCODE': '1'})
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('imageset installation refused', result.stderr)
+            self.assertEqual({path: path.read_bytes() for path in before}, before)
+            self.assertFalse(list(imageset.parent.glob('.media-*')))
 
     def test_project_yml_keeps_assets_outside_swift_sync_roots(self) -> None:
         text = (ROOT / "project.yml").read_text(encoding="utf-8")
@@ -172,7 +197,7 @@ trinket_asset_cleanup_tracked
         )
 
     def make_art_fixture(self, directory: str) -> tuple[Path, dict[str, str], Path]:
-        root = self.make_repo_fixture(directory, ("Scripts/prepare-art-assets.sh", "Scripts/lib/media-assets.sh"))
+        root = self.make_repo_fixture(directory, ("Scripts/prepare-art-assets.sh", "Scripts/prepare-media.py"))
         for relative in (
             "ArtManifest",
             "Raw Assets",
@@ -305,7 +330,7 @@ trinket_asset_cleanup_tracked
             )
             rejected = self.run_art_fixture(root, environment)
             self.assertNotEqual(rejected.returncode, 0)
-            self.assertIn("Combatant art id 'bogus'", rejected.stderr)
+            self.assertIn('Art selection combatant "bogus"', rejected.stderr)
             self.assertEqual(list(scratch.iterdir()), [])
             manifest.write_text(
                 "combatant\tknight\thero_knight_card\tRaw Assets/source.jpeg\t0.5\t0.5\n",
@@ -348,7 +373,7 @@ trinket_asset_cleanup_tracked
 
     def test_app_icon_fixture_installs_once_and_stays_stable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root = self.make_repo_fixture(directory, ("Scripts/prepare-app-icon.sh", "Scripts/lib/media-assets.sh"))
+            root = self.make_repo_fixture(directory, ("Scripts/prepare-app-icon.sh", "Scripts/prepare-media.py"))
             for relative in (
                 "Scripts/lib",
                 "Raw Assets/App Icon/Trinket App Icon.icon",
@@ -356,7 +381,7 @@ trinket_asset_cleanup_tracked
                 "Packages/TrinketContent/Sources/TrinketContent/Generated",
             ):
                 (root / relative).mkdir(parents=True, exist_ok=True)
-            for relative in ("Scripts/prepare-app-icon.sh", "Scripts/lib/media-assets.sh"):
+            for relative in ("Scripts/prepare-app-icon.sh", "Scripts/prepare-media.py"):
                 write_executable(root / relative, (ROOT / relative).read_text(encoding="utf-8"))
             (root / "Raw Assets/App Icon/Trinket App Icon.icon/icon.json").write_text(
                 "{}", encoding="utf-8"

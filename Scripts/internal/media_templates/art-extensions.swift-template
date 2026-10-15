@@ -1,0 +1,34 @@
+extension Combatant {
+    public var artReference: CombatantArtReference? {
+        ArtCatalog.combatantArtByID[id]
+    }
+}
+
+extension Ability {
+    public var artReference: AbilityArtReference? {
+        ArtCatalog.abilityArtByID[id]
+    }
+}
+
+extension Keyword {
+    public var artReference: TalentArtReference? {
+        ArtCatalog.talentArtByID[self]
+    }
+}
+
+extension InventoryItem {
+    public var artReference: ItemArtReference? {
+        // Catalog keys are template ids (e.g. crossbow-basic), not per-instance ids.
+        // Uniques share their base item's Astral artwork.
+        ArtCatalog.itemArtByID[templateID]
+            ?? (rarity == .unique ? ArtCatalog.itemArtByID["\(baseType.id)-astral"] : nil)
+            ?? ArtCatalog.itemArtByID["\(baseType.id)-\(rarity.rawValue)"]
+            ?? baseType.previewArtReference
+    }
+}
+
+extension ItemSlot {
+    public var slotBackgroundReference: SlotBackgroundArtReference? {
+        ArtCatalog.slotBackgroundArtByID[self]
+    }
+}

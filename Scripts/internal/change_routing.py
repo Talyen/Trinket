@@ -109,7 +109,7 @@ CONTENT_RULES = (
     (('Packages/TrinketContent/Sources/TrinketContent/Abilities/*', 'Scripts/internal/content/abilities.py'), sections(CONTENT, 'abilities')),
     (('ContentManifest/*',), sections(CONTENT, 'manifests')),
     (('Scripts/internal/content/trigger_families/*', 'Scripts/internal/content/modifiers.json', 'Scripts/internal/content/modifier_schema.py', 'Scripts/internal/content/content_codegen_triggers.py', 'Scripts/internal/content/content_codegen_modifiers.py', 'Scripts/internal/content/affix_rolling.py'), sections(CONTENT, 'trigger-schemas')),
-    (('ArtManifest/*', 'MusicManifest/*', 'SoundManifest/*', 'Raw Assets/*', 'Trinket/Assets.xcassets/*', 'Trinket/Media/*', 'Scripts/prepare-*-assets.sh', 'Scripts/prepare-app-icon.sh', 'Scripts/lib/media-assets.sh', 'Scripts/asset-library.py', '*/PreparedAssets.generated.json'), sections(CONTENT, 'media-assets')),
+    (('ArtManifest/*', 'MusicManifest/*', 'SoundManifest/*', 'Raw Assets/*', 'Trinket/Assets.xcassets/*', 'Trinket/Media/*', 'Scripts/prepare-*-assets.sh', 'Scripts/prepare-app-icon.sh', 'Scripts/prepare-media.py', 'Scripts/internal/media_templates/*', 'Scripts/asset-library.py', '*/PreparedAssets.generated.json'), sections(CONTENT, 'media-assets')),
 )
 VISUAL_PATHS = ('Trinket/Features/*', 'Packages/TrinketBattleFeature/Sources/*/Features/*', 'Packages/TrinketBattleFeature/Sources/*/Views/*', 'Packages/TrinketFeatureSupport/Sources/*/Features/*', 'Packages/TrinketFeatureSupport/Sources/*/FeatureAdapters/*', *(f'Packages/TrinketFeatureSupport/Sources/*/Shared/{part}/*' for part in ('Cards', 'Detail', 'Forms', 'Encounters', 'Rewards')), 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/*')
 KNOWLEDGE_RULES = (
