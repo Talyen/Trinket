@@ -9,7 +9,6 @@ struct PlayerHomesteadStoreTests {
     @Test @MainActor func `awaited homestead commands retry refused writes and settle once across reload`() async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let start = Date(timeIntervalSince1970: 0)
         let collectionDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
         try store.performFixtureMutation { save in
@@ -19,7 +18,7 @@ struct PlayerHomesteadStoreTests {
         }
 
         store.forcesNextSaveFailure = true
-        #expect(await store.buildOrUpgradeNode(definition, targetTier: 1, at: start) == .success)
+        #expect(await store.buildOrUpgradeNode(.wheatField, targetTier: 1, at: start) == .success)
         store.forcesNextSaveFailure = true
         #expect(await store.collectProduction(at: collectionDate) == .success([ResourceAmount(.food, 1)]))
 
@@ -35,7 +34,6 @@ struct PlayerHomesteadStoreTests {
     func `cancelled homestead command cannot commit after its initial yield`(collecting: Bool) async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let start = Date(timeIntervalSince1970: 0)
         let collectionDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
         try store.performFixtureMutation { save in
@@ -49,7 +47,7 @@ struct PlayerHomesteadStoreTests {
             if collecting {
                 return await store.collectProduction(at: collectionDate) == .invalidated
             }
-            return await store.buildOrUpgradeNode(definition, targetTier: 1, at: start) == .invalidated
+            return await store.buildOrUpgradeNode(.wheatField, targetTier: 1, at: start) == .invalidated
         }
         pending.cancel()
         #expect(await pending.value)
@@ -60,11 +58,10 @@ struct PlayerHomesteadStoreTests {
     @Test @MainActor func `runesmith builds without other buildings and survives reload`() async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        let definition = try #require(GameContent.homesteadNode(matching: .runesmithWorkshop))
         #expect(store.persistFixtureBatch(logging: "Independent building fixture") { save in
             save.homestead = PlayerHomesteadState(resources: [.iron: 9, .gems: 2], nodeTiers: [:])
         })
-        #expect(await store.buildOrUpgradeNode(definition, targetTier: 1) == .success)
+        #expect(await store.buildOrUpgradeNode(.runesmithWorkshop, targetTier: 1) == .success)
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.homestead.tier(for: .runesmithWorkshop) == 1)
         #expect(HomesteadNodeID.allCases.filter { $0 != .runesmithWorkshop }.allSatisfy { reloaded.homestead.tier(for: $0) == 0 })
@@ -74,7 +71,6 @@ struct PlayerHomesteadStoreTests {
 
     @Test @MainActor func `cloud homestead actions preserve wallet tiers and production across reload`() async throws {
         let context = try PersistenceTestContext()
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let start = Date(timeIntervalSince1970: 0)
         let collectionDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
         var before: PlayerSave
@@ -107,13 +103,13 @@ struct PlayerHomesteadStoreTests {
                 ResourceAmount(.food, 1), ResourceAmount(.gold, 1),
             ]))
             #expect(
-                await store.buildOrUpgradeNode(definition, targetTier: 2, at: collectionDate) == .success,
+                await store.buildOrUpgradeNode(.wheatField, targetTier: 2, at: collectionDate) == .success,
             )
             #expect(store.currentSave != before)
         }
         let reloaded = try context.makeReloadedStore()
         #expect(await reloaded.collectProduction(at: collectionDate) == .noProduction)
-        #expect(await reloaded.buildOrUpgradeNode(definition, targetTier: 2, at: collectionDate) == .notAvailable)
+        #expect(await reloaded.buildOrUpgradeNode(.wheatField, targetTier: 2, at: collectionDate) == .notAvailable)
         let afterLocalPlay = try context.makeReloadedStore()
         #expect(afterLocalPlay.homestead.tier(for: .wheatField) == 2)
         #expect(afterLocalPlay.homestead.resources[.food] == 1)
@@ -123,7 +119,6 @@ struct PlayerHomesteadStoreTests {
     @Test @MainActor func `build or upgrade node persists homestead and roster through hub`() async throws {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [.wood: 20, .herbs: 10],
             nodeTiers: [:],
@@ -132,7 +127,7 @@ struct PlayerHomesteadStoreTests {
         roster.gold = 4
         #expect(firstStore.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
 
-        let result = await firstStore.buildOrUpgradeNode(definition, targetTier: 1)
+        let result = await firstStore.buildOrUpgradeNode(.wheatField, targetTier: 1)
         try #expect(result == .success)
         try #expect(firstStore.homestead.tier(for: .wheatField) == 1)
         try #expect(firstStore.homestead.resources[.wood] == 16)
@@ -146,10 +141,9 @@ struct PlayerHomesteadStoreTests {
     @Test @MainActor func `build or upgrade node returns insufficient resources without mutating`() async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore(inMemoryOnly: true)
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         #expect(store.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:]) })
 
-        let result = await store.buildOrUpgradeNode(definition, targetTier: 1)
+        let result = await store.buildOrUpgradeNode(.wheatField, targetTier: 1)
         try #expect(result == .insufficientResources)
         try #expect(store.homestead.tier(for: .wheatField) == 0)
     }
@@ -164,7 +158,7 @@ struct PlayerHomesteadStoreTests {
             nodeTiers: [.wheatField: maxTier],
         ) })
 
-        let result = await store.buildOrUpgradeNode(definition, targetTier: 1)
+        let result = await store.buildOrUpgradeNode(definition.id, targetTier: 1)
         try #expect(result == .notAvailable)
         try #expect(store.homestead.tier(for: .wheatField) == maxTier)
     }
@@ -172,14 +166,13 @@ struct PlayerHomesteadStoreTests {
     @Test @MainActor func `repeated displayed tier cannot buy the following upgrade`() async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         #expect(store.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
             resources: [.wood: 99, .herbs: 99],
             nodeTiers: [:],
         ) })
-        #expect(await store.buildOrUpgradeNode(definition, targetTier: 1) == .success)
+        #expect(await store.buildOrUpgradeNode(.wheatField, targetTier: 1) == .success)
         let after = store.currentSave
-        #expect(await store.buildOrUpgradeNode(definition, targetTier: 1) == .notAvailable)
+        #expect(await store.buildOrUpgradeNode(.wheatField, targetTier: 1) == .notAvailable)
         #expect(store.currentSave == after)
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.homestead.tier(for: .wheatField) == 1)
@@ -216,7 +209,6 @@ struct PlayerHomesteadStoreTests {
     @Test @MainActor func `build settles production before changing node tier`() async throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore(inMemoryOnly: true)
-        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let start = Date(timeIntervalSince1970: 0)
         let upgradeDate = start.addingTimeInterval(PlayerHomesteadState.secondsPerDay)
         #expect(store.persistFixtureBatch(logging: "Test setup") { $0.homestead = PlayerHomesteadState(
@@ -225,7 +217,7 @@ struct PlayerHomesteadStoreTests {
             lastProductionAt: start,
         ) })
 
-        let result = await store.buildOrUpgradeNode(definition, targetTier: 2, at: upgradeDate)
+        let result = await store.buildOrUpgradeNode(.wheatField, targetTier: 2, at: upgradeDate)
         try #expect(result == .success)
         try #expect(store.homestead.tier(for: .wheatField) == 2)
         try #expect(store.homestead.pendingProduction[.food] == 1)

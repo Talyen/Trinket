@@ -185,6 +185,11 @@ Content's `PlayerHomesteadState` owns production, collection, affordability, and
 upgrade math using Gold values, with the wallet bound in Core's `GoldBalance`.
 Persistence owns saved Gold, Homestead graph mapping/sanitization, admission,
 and receipts; cloud replay uses the same Content rules with historical Gold.
+Build/upgrade commands accept only a node ID and the displayed target tier.
+The shared Persistence mutation resolves the canonical Content definition on each
+attempt, for both local commands and legacy cloud production actions. Callers
+cannot supply prices or tier definitions; affordability, deduction, and receipts
+use that same resolved tier.
 The Homestead value's Codable fields and the SwiftData graph remain unchanged.
 
 Homestead collection and build/upgrade commands are asynchronous. Linked cloud

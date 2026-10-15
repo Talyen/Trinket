@@ -20,14 +20,14 @@ public enum HomesteadCollectionResult: Equatable, Sendable {
 @MainActor
 public extension PlayerSaveStore {
     func buildOrUpgradeNode(
-        _ definition: HomesteadNodeDefinition,
+        _ nodeID: HomesteadNodeID,
         targetTier: Int,
         at date: Date = Date(),
     ) async -> HomesteadBuildResult {
         let result = await retryingSaveTransaction {
             try prepareLocalProduction()
             return persistTransaction(logging: "Failed to build or upgrade homestead node") { save, recordReceipt in
-                HomesteadBuildMutation.apply(definition, targetTier: targetTier, at: date, to: &save, recordReceipt: recordReceipt)
+                HomesteadBuildMutation.apply(nodeID, targetTier: targetTier, at: date, to: &save, recordReceipt: recordReceipt)
             }
         }
         switch result {
@@ -75,14 +75,16 @@ enum HomesteadBuildFailure: Error {
 }
 
 enum HomesteadBuildMutation {
+    /// Resolve price and tier from Content at admission; display values never authorize a purchase.
     static func apply(
-        _ definition: HomesteadNodeDefinition,
+        _ nodeID: HomesteadNodeID,
         targetTier: Int,
         at date: Date,
         to save: inout PlayerSave,
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> Result<Void, HomesteadBuildFailure> {
-        guard let tier = save.homestead.nextTier(for: definition), tier.tier == targetTier else { return .failure(.notAvailable) }
+        guard let definition = GameContent.homesteadNode(matching: nodeID),
+              let tier = save.homestead.nextTier(for: definition), tier.tier == targetTier else { return .failure(.notAvailable) }
         save.homestead.settleProduction(at: date, gold: save.roster.gold)
         guard save.homestead.canAfford(tier, gold: save.roster.gold) else { return .failure(.insufficientResources) }
         guard save.homestead.buildOrUpgrade(definition, gold: &save.roster.gold) else { return .failure(.notAvailable) }

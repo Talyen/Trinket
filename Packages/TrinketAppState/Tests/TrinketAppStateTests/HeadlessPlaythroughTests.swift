@@ -91,9 +91,8 @@ struct HeadlessPlaythroughTests {
             let recruit = try #require(GameContent.stage(id: "chapter-1-stage-2"))
             #expect(play.journey.handleStagePrimaryAction(for: recruit) == nil)
             #expect(try play.encounters.finishMysteryEncounter(session: #require(play.encounters.activeMysteryEncounter)))
-            let wheat = try #require(GameContent.homesteadNode(matching: .wheatField))
             let date = Date(timeIntervalSince1970: 1800000000)
-            #expect(await save.buildOrUpgradeNode(wheat, targetTier: 1, at: date) == .success)
+            #expect(await save.buildOrUpgradeNode(.wheatField, targetTier: 1, at: date) == .success)
             #expect(await save.collectProduction(at: date.addingTimeInterval(PlayerHomesteadState.secondsPerDay)) == .success([.init(
                 .food,
                 1,

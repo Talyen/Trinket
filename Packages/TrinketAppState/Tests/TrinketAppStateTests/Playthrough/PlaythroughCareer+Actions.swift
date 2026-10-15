@@ -171,7 +171,7 @@ extension PlaythroughCareer {
             guard let definition = GameContent.homesteadNodes.first(where: { $0.id.rawValue == id }) else {
                 throw PlaythroughFailure.unsupported("Homestead node \(id)")
             }
-            try await require(store.buildOrUpgradeNode(definition, targetTier: tier, at: date) == .success, "Homestead build")
+            try await require(store.buildOrUpgradeNode(definition.id, targetTier: tier, at: date) == .success, "Homestead build")
             summary.upgrades += 1
         case let .collect(at):
             date = at

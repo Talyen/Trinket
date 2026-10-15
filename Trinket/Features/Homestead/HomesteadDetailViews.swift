@@ -264,7 +264,7 @@ struct HomesteadNodeDetailView: View {
         )
         build.isPending = true
         Task {
-            let result = await playerSave.buildOrUpgradeNode(definition, targetTier: expectedTier)
+            let result = await playerSave.buildOrUpgradeNode(definition.id, targetTier: expectedTier)
             build.isPending = false
             guard result == .success else { return }
             build.upgradeEventCount += 1

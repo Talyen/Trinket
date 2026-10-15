@@ -238,9 +238,7 @@ enum CloudSaveReconciler {
                 head.formatVersion = 2
             }
         case let .upgrade(nodeID, tier):
-            guard let definition = GameContent.homesteadNode(matching: nodeID)
-            else { return resolution(head, request: request, outcome: .notAvailable, backups: []) }
-            switch HomesteadBuildMutation.apply(definition, targetTier: tier, at: date, to: &save, recordReceipt: { _ in }) {
+            switch HomesteadBuildMutation.apply(nodeID, targetTier: tier, at: date, to: &save, recordReceipt: { _ in }) {
             case .success: break
             case .failure(.insufficientResources):
                 return resolution(head, request: request, outcome: .insufficientResources, backups: [])

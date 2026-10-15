@@ -19,14 +19,14 @@ struct CloudSaveMergeEconomyRegressionTests {
         var first = base
         var second = base
         for definition in [well, field, coop] {
-            guard case .success = HomesteadBuildMutation.apply(definition, targetTier: 1, at: date, to: &first, recordReceipt: { _ in })
+            guard case .success = HomesteadBuildMutation.apply(definition.id, targetTier: 1, at: date, to: &first, recordReceipt: { _ in })
             else {
                 Issue.record("The first device should afford its buildings")
                 return
             }
         }
         for definition in [well, field, garden] {
-            guard case .success = HomesteadBuildMutation.apply(definition, targetTier: 1, at: date, to: &second, recordReceipt: { _ in })
+            guard case .success = HomesteadBuildMutation.apply(definition.id, targetTier: 1, at: date, to: &second, recordReceipt: { _ in })
             else {
                 Issue.record("The second device should afford its buildings")
                 return
@@ -144,9 +144,9 @@ struct CloudSaveMergeEconomyRegressionTests {
         let coop = try #require(GameContent.homesteadNode(matching: .chickenCoop))
         var first = base
         var second = base
-        guard case .success = HomesteadBuildMutation.apply(field, targetTier: 1, at: date, to: &first, recordReceipt: { _ in }),
-              case .success = HomesteadBuildMutation.apply(field, targetTier: 1, at: date, to: &second, recordReceipt: { _ in }),
-              case .success = HomesteadBuildMutation.apply(coop, targetTier: 1, at: date, to: &first, recordReceipt: { _ in })
+        guard case .success = HomesteadBuildMutation.apply(field.id, targetTier: 1, at: date, to: &first, recordReceipt: { _ in }),
+              case .success = HomesteadBuildMutation.apply(field.id, targetTier: 1, at: date, to: &second, recordReceipt: { _ in }),
+              case .success = HomesteadBuildMutation.apply(coop.id, targetTier: 1, at: date, to: &first, recordReceipt: { _ in })
         else {
             Issue.record("Both devices should afford the Wheat Field and one should afford the Chicken Coop")
             return
@@ -177,7 +177,7 @@ struct CloudSaveMergeEconomyRegressionTests {
         let firstSalvage = ItemSalvageApplier.salvage(itemID: item.id, save: &first, recordReceipt: { _ in })
         let secondSalvage = ItemSalvageApplier.salvage(itemID: item.id, save: &second, recordReceipt: { _ in })
         guard case let .success(yields) = firstSalvage,
-              case .success = HomesteadBuildMutation.apply(well, targetTier: 1, at: date, to: &first, recordReceipt: { _ in })
+              case .success = HomesteadBuildMutation.apply(well.id, targetTier: 1, at: date, to: &first, recordReceipt: { _ in })
         else {
             Issue.record("Salvage and the Wishing Well build should succeed")
             return
@@ -243,7 +243,7 @@ struct CloudSaveMergeEconomyRegressionTests {
         #expect(collected == [ResourceAmount(.wood, 10)])
         let field = GameContent.homesteadNode(matching: .wheatField)
         guard let field, case .success = HomesteadBuildMutation.apply(
-            field,
+            field.id,
             targetTier: 1,
             at: date,
             to: &collectedAndSpent,
