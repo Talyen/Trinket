@@ -65,4 +65,7 @@ recovery remain required; schema changes must follow the storage contract.
 SwiftData remains local; explicit complete-save CloudKit synchronization is owned
 by Persistence, with lifecycle polling, account events, and session invalidation
 owned by AppState. CloudKit enablement: [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
+AppState installs account and external-progress hooks even when sync is initially
+unavailable. Foreground polling resolves the store's current sync capability on
+each pass, so durable-storage recovery can enable synchronization in the same session.
 Identity: [Identity](../Product/Identity.md).

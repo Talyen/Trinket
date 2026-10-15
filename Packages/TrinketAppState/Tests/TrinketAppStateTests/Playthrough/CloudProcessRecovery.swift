@@ -147,13 +147,30 @@ enum CloudProcessRecovery {
 @Suite(.serialized)
 @MainActor
 struct CloudPresentationBoundaryTests {
-    @Test func `own acknowledgement retains reward exit while remote progress invalidates stale presentation`() async throws {
+    @Test func `late cloud enablement synchronizes and invalidates only remote progress presentation`() async throws {
         let context = try AppTestContext()
         let transport = DiskCloudTransport(directory: context.directoryURL)
-        let first = try makeStore(directory: context.directoryURL.appendingPathComponent("a"), transport: transport)
+        let first = try makeStore(
+            directory: context.directoryURL.appendingPathComponent("a"),
+            transport: transport,
+            cloudSyncEnabled: false,
+        )
         let second = try makeStore(directory: context.directoryURL.appendingPathComponent("b"), transport: transport)
         let app = try context.makeAppState(playerSave: first)
-        #expect(await first.cloudSync?.synchronize() == true)
+        #expect(first.cloudSync == nil)
+        var polls = 0
+        await app.runCloudSynchronization {
+            polls += 1
+            if polls == 1 {
+                // The same capability transition used after durable storage
+                // recovers, while the foreground polling task is already alive.
+                first.enableCloudAfterDurableRecovery(transport: transport)
+            } else {
+                throw CancellationError()
+            }
+        }
+        #expect(polls == 2)
+        #expect(try await transport.remote().head?.revision.snapshot == CloudSaveSnapshot(first.currentSave))
         #expect(await second.cloudSync?.synchronize() == true)
         // The second device's attachment advances the remote revision. Adopt it
         // before opening the battle so its reward upload is an own acknowledgement.
@@ -183,14 +200,14 @@ struct CloudPresentationBoundaryTests {
         #expect(reopened.journey.hasClaimedRewards(for: stage))
     }
 
-    private func makeStore(directory: URL, transport: DiskCloudTransport) throws -> PlayerSaveStore {
+    private func makeStore(directory: URL, transport: DiskCloudTransport, cloudSyncEnabled: Bool = true) throws -> PlayerSaveStore {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let schema = PlayerSaveGraph.schema
         let configuration = ModelConfiguration(schema: schema, url: directory.appendingPathComponent("save.store"), cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, migrationPlan: PlayerSaveMigrationPlan.self, configurations: configuration)
         return try PlayerSaveStore(
             openResult: .init(container: container, usedInMemoryFallback: false),
-            cloudSyncEnabled: true, cloudTransport: transport, recoveryConfiguration: configuration,
+            cloudSyncEnabled: cloudSyncEnabled, cloudTransport: transport, recoveryConfiguration: configuration,
         )
     }
 }

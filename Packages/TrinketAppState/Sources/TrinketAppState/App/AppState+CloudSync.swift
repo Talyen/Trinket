@@ -4,7 +4,8 @@ import TrinketCore
 
 extension AppState {
     func installCloudSynchronization() {
-        guard playerSave.cloudSync != nil else { return }
+        // Durable-storage recovery can enable sync after bootstrap. These hooks
+        // belong to the save store's lifetime, including its local-only phase.
         playerSave.onExternalProgressChange = { [weak play] in
             play?.clearTransientState()
         }
@@ -23,11 +24,16 @@ extension AppState {
     }
 
     public func runCloudSynchronization() async {
-        guard let sync = playerSave.cloudSync else { return }
+        await runCloudSynchronization {
+            try await Task.sleep(for: .seconds(30))
+        }
+    }
+
+    func runCloudSynchronization(waitForNextPoll: @MainActor () async throws -> Void) async {
         while !Task.isCancelled {
-            await sync.synchronize()
+            await playerSave.cloudSync?.synchronize()
             do {
-                try await Task.sleep(for: .seconds(30))
+                try await waitForNextPoll()
             } catch {
                 return
             }
