@@ -91,7 +91,11 @@ payloads or terminate the process. Prepare cloud metadata and outbox additions
 before mutating the graph; retain original graph payload bytes and removed outbox
 rows for nonthrowing compensation.
 Publish cloud state and observed save slices only after the graph or recovery file
-accepts the candidate. A refused write restores affected graph slices, the exact
+accepts the candidate. Once the current candidate reaches the recovery file, a
+later database failure retains that acceptance and retries only database persistence;
+it must not attempt another fallible recovery write or replay the player action.
+An older pending file alone does not prove acceptance of a new candidate.
+A refused write restores affected graph slices, the exact
 prior metadata bytes and graph/outbox payloads without re-encoding prior values.
 Compensation stays unsaved until a later successful write; do not use
 `ModelContext.rollback()` because restoring deleted relationship rows can crash

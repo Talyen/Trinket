@@ -206,13 +206,18 @@ final class PendingSaveRecovery {
         outboxRecords: () -> [CloudSaveOutbox.StoredRecord]? = { nil },
         primaryWrite: () throws -> Void,
     ) throws -> Bool {
-        if memoryFallback || hasPendingSave {
+        let writesRecoveryFirst = memoryFallback || hasPendingSave
+        if writesRecoveryFirst {
             try write(save: save, cloudState: cloudState, outboxRecords: outboxRecords(), labyrinthPayload: labyrinthPayload)
         }
         do {
             try primaryWrite()
         } catch {
-            try write(save: save, cloudState: cloudState, outboxRecords: outboxRecords(), labyrinthPayload: labyrinthPayload)
+            // The first recovery write already accepted this candidate. A second
+            // fallible write must not turn durable progress into a refused action.
+            if !writesRecoveryFirst {
+                try write(save: save, cloudState: cloudState, outboxRecords: outboxRecords(), labyrinthPayload: labyrinthPayload)
+            }
             return true
         }
         if !memoryFallback {

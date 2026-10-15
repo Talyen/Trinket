@@ -366,6 +366,54 @@ struct PendingSaveRecoveryTests {
 }
 
 extension PendingSaveRecoveryTests {
+    @Test func `accepted recovery write cannot become a refused action after database failure`() throws {
+        let fixture = try PersistenceTestContext()
+        var original: PlayerSaveStore? = try fixture.makeSaveStore()
+        let recovery = try #require(original?.pendingSaveRecovery)
+        let metadata = original?.root.cloudStatePayload
+        let records = original?.cloudOutbox?.storedRecords
+        var candidate = try #require(original?.currentSave)
+        candidate.roster.gold = 17
+        try recovery.write(save: candidate, cloudState: metadata, outboxRecords: records)
+        candidate.roster.gold = 29
+
+        let needsRetry = try recovery.persist(
+            save: candidate, cloudState: metadata, memoryFallback: false, outboxRecords: { records },
+            primaryWrite: {
+                // The candidate's sidecar is already durable. A subsequent disk
+                // failure must not make the store compensate or retry its action.
+                recovery.forcesNextWriteFailure = true
+                throw PlayerSavePersistenceError.writeFailed
+            },
+        )
+        #expect(needsRetry)
+        #expect(try recovery.read()?.restoredSave() == candidate)
+        original = nil
+        let restored = try fixture.makeReloadedStore()
+        #expect(restored.currentSave == candidate)
+        #expect(!restored.isPersistenceDegraded)
+    }
+
+    @Test func `refused recovery prewrite cannot accept an older pending candidate`() throws {
+        let fixture = try PersistenceTestContext()
+        let recovery = PendingSaveRecovery(storeURL: fixture.storeURL())
+        var previous = PlayerSave.fresh
+        previous.roster.gold = 17
+        try recovery.write(save: previous, cloudState: nil)
+        var candidate = previous
+        candidate.roster.gold = 29
+        recovery.forcesNextWriteFailure = true
+        var primaryWasCalled = false
+
+        #expect(throws: PlayerSavePersistenceError.writeFailed) {
+            _ = try recovery.persist(save: candidate, cloudState: nil, memoryFallback: false) {
+                primaryWasCalled = true
+            }
+        }
+        #expect(!primaryWasCalled)
+        #expect(try fixture.makeReloadedStore().currentSave == previous)
+    }
+
     @Test func `database failure with unreadable map keeps other progress across relaunch`() throws {
         let fixture = try PersistenceTestContext()
         var original: PlayerSaveStore? = try fixture.makeSaveStore()
