@@ -42,6 +42,13 @@ edits under unchanged keys. Applying old results fails. If a source revision has
 changed, regenerate the queue and retain only individually matching source hashes;
 review changed entries again. Unchanged translations are preserved.
 
+`Localization/reviews.json` retains its nested JSON schema with one complete locale
+review record per line. `apply` writes this deterministic compact format; `check`
+rejects formatting drift. Hashes, completed checks, and full review rationales stay
+intact. A current response with an empty `translations` array can normalize existing
+records without translating again or creating new review evidence. String Catalogs
+retain their normal readable formatting.
+
 An unavailable AI allowance leaves a pending queue and an incomplete task. Do not
 disable locales, bypass the gate, or mark English fallback as translated. Review
 fingerprints record work performed; they do not establish linguistic correctness.

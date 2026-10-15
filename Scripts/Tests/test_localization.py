@@ -102,6 +102,28 @@ class LocalizationTests(unittest.TestCase):
         self.assertEqual(before, {str(path): (path.read_bytes(), path.stat().st_mtime_ns) for path in self.root.rglob('*') if path.is_file() and '.DerivedData' not in path.parts})
         self.assertEqual(plan(self.root)['requests'], [])
 
+    def test_compacting_legacy_receipts_preserves_all_evidence_and_other_files(self):
+        apply(self.root, self.response())
+        path = self.root / 'Localization/reviews.json'
+        receipts = json.loads(path.read_text())
+        record = next(iter(receipts.values()))['ja']
+        record['review'] += '\nChecked Japanese: "炎上" and escaped \\ markup.'
+        record['additional_evidence'] = {'notes': ['数量', 'actor and target'], 'passed': True}
+        self.write('Localization/reviews.json', receipts)
+        self.assertTrue(any('compact review records' in error for error in check(self.root)))
+        before = {str(item): item.read_bytes() for item in self.root.rglob('*')
+                  if item.is_file() and item != path and '.DerivedData' not in item.parts}
+        queue = plan(self.root)
+        self.assertEqual(queue['requests'], [])
+        apply(self.root, {'version': 1, 'source_revision': queue['source_revision'], 'translations': []})
+        self.assertEqual(json.loads(path.read_text()), receipts)
+        lines = path.read_text().splitlines()
+        records = [json.loads('{' + line.strip().rstrip(',') + '}') for line in lines if line.startswith('    ')]
+        self.assertEqual(records, [{locale: record} for locales in receipts.values() for locale, record in sorted(locales.items())])
+        self.assertEqual(before, {str(item): item.read_bytes() for item in self.root.rglob('*')
+                                  if item.is_file() and item != path and '.DerivedData' not in item.parts})
+        self.assertEqual(check(self.root), [])
+
     def test_semantic_token_identity_is_preserved_when_prose_reorders(self):
         source = {'value': '<keyword id="burn">Burn</keyword>: <value id="damage">%1$lld</value>'}
         validate_translation(source, {'value': '<value id="damage">%1$lld</value> <keyword id="burn">炎上</keyword>'}, 'ja', 'damage')

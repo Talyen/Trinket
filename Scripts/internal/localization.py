@@ -38,6 +38,17 @@ def encoded(value) -> bytes:
     return (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + '\n').encode()
 
 
+def encoded_reviews(receipts: dict) -> bytes:
+    """Keep each locale's complete evidence on one line without changing the JSON schema."""
+    def compact(value):
+        return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+    entries = []
+    for identifier, locales in sorted(receipts.items()):
+        records = ',\n'.join(f'    {compact(locale)}: {compact(record)}' for locale, record in sorted(locales.items()))
+        entries.append(f'  {compact(identifier)}: {{\n{records}\n  }}')
+    return ('{\n' + ',\n'.join(entries) + '\n}\n').encode() if entries else b'{}\n'
+
+
 def contained(root: Path, name: str) -> Path:
     path = (root / name).resolve()
     if not path.is_relative_to(root.resolve()):
@@ -286,7 +297,7 @@ def apply(root: Path, response: dict) -> None:
         updates = {contained(root, name): encoded(catalog) for name, catalog in catalogs.items()}
         from internal.localization_resources import generated_resources
         updates.update(generated_resources(root, catalogs))
-        updates[receipt_path] = encoded({key: value for key, value in receipts.items() if key in entries})
+        updates[receipt_path] = encoded_reviews({key: value for key, value in receipts.items() if key in entries})
         if plan(root)['source_revision'] != queue['source_revision']:
             raise ValueError('Source changed during validation; no translations were applied')
         replace_files({path: data for path, data in updates.items() if not path.exists() or path.read_bytes() != data})
@@ -297,6 +308,9 @@ def check(root: Path) -> list[str]:
     queue = plan(root)
     errors = [f"{item['catalog']}/{item['key']} [{item['locale']}]: missing, stale, invalid, or unreviewed translation"
               for item in queue['requests']]
+    receipt_path = root / 'Localization/reviews.json'
+    if receipt_path.exists() and receipt_path.read_bytes() != encoded_reviews(load(receipt_path)):
+        errors.append('Localization/reviews.json: use canonical compact review records; localization.py apply normalizes the format')
     from internal.localization_resources import resource_errors
     errors.extend(resource_errors(root))
     return errors
