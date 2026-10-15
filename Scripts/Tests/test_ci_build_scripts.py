@@ -357,14 +357,31 @@ prepare_generated_inputs results
             self.assertEqual((root / "calls").read_text(), "Scripts/prepare-audio-assets.sh sfx\n")
 
     def test_bare_full_ui_requires_explicit_opt_in(self) -> None:
-        # Full exhaustive UI is CI-owned post-push; bare local runs must opt in.
-        test_sh = (ROOT / "Scripts" / "test.sh").read_text(encoding="utf-8")
-        self.assertIn('TRINKET_ALLOW_FULL_UI:-', test_sh)
-        self.assertIn('GITHUB_ACTIONS:-}', test_sh)
-        self.assertIn("Refusing a bare local full exhaustive UI run", test_sh)
-        deploy = (ROOT / "Scripts" / "test-deploy.sh").read_text(encoding="utf-8")
-        # Release-time deploy verification is the sanctioned bypass.
-        self.assertIn("TRINKET_ALLOW_FULL_UI=1 ./Scripts/test.sh ui", deploy)
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_repo_fixture(directory, (
+                'Scripts/test.sh', 'Scripts/lib/args.sh', 'Scripts/lib/verification-policy.sh',
+            ))
+            scripts = root / 'Scripts'
+            # Stop at preparation, before any real build or simulator operation.
+            (scripts / 'run-env.sh').write_text(
+                'trinket_run_env_init() { touch prepared; return 99; }\n')
+            (scripts / 'build-freshness.sh').touch()
+            (scripts / 'xcode-runner.sh').touch()
+            (scripts / 'phase-timing.py').write_text('print(0)\n')
+            for targets, hosted, full_ui, expected in (
+                ([], False, '', 1),
+                (['BattleFlowUITests'], False, '', 99),
+                ([], False, '1', 99),
+                ([], True, '', 99),
+            ):
+                with self.subTest(targets=targets, hosted=hosted, full_ui=full_ui):
+                    prepared = root / 'prepared'
+                    prepared.unlink(missing_ok=True)
+                    result = run_captured(['bash', 'Scripts/test.sh', 'ui', *targets], cwd=root,
+                        env=self.verification_environment(hosted=hosted, TRINKET_ALLOW_HEAVY_LOCAL='1',
+                                                          TRINKET_ALLOW_FULL_UI=full_ui))
+                    self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                    self.assertEqual(prepared.exists(), expected == 99)
 
     def test_unit_dispatch_forwards_flags_and_exit_without_app_preparation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

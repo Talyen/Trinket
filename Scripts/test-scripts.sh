@@ -32,7 +32,8 @@ or .DerivedData/ScriptTestResults; terminal excerpts are bounded.
 Python and shell suites share a parallel worker pool
 (default one local worker; CI uses ncpu; TRINKET_SCRIPT_TEST_JOBS overrides)
 and report in selection order; every selected suite is attempted and the
-first failure exits.
+first failure exits. Python workers require at least one
+successful test or subtest; empty and entirely skipped modules fail.
 --paths selects registered leaf-script regression families. Shared/unknown script
 paths and unscoped invocations run all suites. Syntax is scoped to --paths;
 cache alignment stays full-tree (cheap static guard). CI uses the unscoped
@@ -171,7 +172,7 @@ else
     started=$SECONDS
     case "$suite" in
       *.sh) command=(bash "$suite") ;;
-      *) command=(python3 -m unittest -b "$suite") ;;
+      *) command=(python3 Scripts/script_test_execution.py "$suite") ;;
     esac
     status=0
     PYTHONPATH=Scripts/Tests "${command[@]}" >"$log" 2>&1 || status=$?

@@ -81,6 +81,11 @@ back to the full suite. Unrelated product paths use their own gates unless claim
 in the registry. Ownership regressions reject unaccounted leaves, missing consumers,
 and malformed metadata. Direct edits to a test module select that module.
 
+Python workers use `script_test_execution.py` to require at least one successful
+test or subtest per selected module. Empty or entirely skipped modules fail rather
+than providing false coverage. Individual unavailable cases can still skip within
+an executing module.
+
 ## Player coverage automation
 
 `player-coverage.sh ios18|compact|tablet|soak` owns minimum-OS compatibility,

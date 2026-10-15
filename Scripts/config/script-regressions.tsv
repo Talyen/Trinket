@@ -186,6 +186,7 @@ Scripts/restore-ci-test-products.sh	test_build_metadata.py
 Scripts/run-env.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py
 Scripts/run-simulator.sh	test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
 Scripts/script_diagnostics.py	test_codegen_abilities.py,test_failure_diagnostics.py,test_package_diagnostics.py,test_test_timing.py
+Scripts/script_test_execution.py	test_failure_diagnostics.py,test_script_selection.py
 Scripts/script_test_selection.py	test_script_selection.py
 Scripts/setup-ci-xcode.py	test_ci_xcode.py
 Scripts/setup-git-safety.mjs	test_git_safety.py

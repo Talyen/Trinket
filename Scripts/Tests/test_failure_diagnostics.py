@@ -669,16 +669,19 @@ class ReporterTests(unittest.TestCase):
                 scripts = root / "Scripts"
                 for relative in ("lib", "config", "Tests"):
                     (scripts / relative).mkdir(parents=True)
-                for name in ("test-scripts.sh", "script_test_selection.py", "config/script-regressions.tsv", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env", "cleanup-outputs.py", "internal/output_retention.py", "lib/output-retention.sh", "lib/lock.sh"):
+                for name in ("test-scripts.sh", "script_test_selection.py", "script_test_execution.py", "config/script-regressions.tsv", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env", "cleanup-outputs.py", "internal/output_retention.py", "lib/output-retention.sh", "lib/lock.sh"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 write_executable(scripts / "check-build-cache-paths.sh", "#!/bin/bash\nexit 0\n")
                 (root / "payload").write_text(payload)
-                (scripts / "Tests/test_fixture.py").write_text("")
+                (scripts / "Tests/test_fixture.py").write_text(
+                    'import unittest\nclass Fixture(unittest.TestCase):\n'
+                    '    def test_executed(self): pass\n')
                 (root / "bin").mkdir()
                 write_executable(
                     root / "bin/python3",
-                    '#!/bin/bash\nif [[ "$1" == -m ]]; then\n' '  if [[ "$CASE" == python ]]; then cat "$PAYLOAD"; exit 7; fi\n' '  exit 0\nfi\nexec "$REAL_PYTHON" "$@"\n',
+                    '#!/bin/bash\nif [[ "$1" == Scripts/script_test_execution.py && "$CASE" == python ]]; then\n'
+                    '  cat "$PAYLOAD"; exit 7\nfi\nexec "$REAL_PYTHON" "$@"\n',
                 )
                 (scripts / "Tests/test-fixture.sh").write_text(
                     '#!/bin/bash\ncat "$PAYLOAD"\n[[ "$CASE" == success ]] && exit 0\nexit 9\n'

@@ -80,7 +80,9 @@ class BuildMetadataTests(unittest.TestCase):
                 self.check(expected=1)
 
     def test_test_plans_and_generated_project_changes_invalidate_local_reuse(self):
-        for relative in ('Profiles.xctestplan', 'Soak.xctestplan', 'Future.xctestplan',
+        # An unknown plan proves wildcard ownership; repeating named plans adds
+        # the same build/check cycles without another invalidation mechanism.
+        for relative in ('Future.xctestplan',
                          'Trinket.xcodeproj/project.pbxproj',
                          'Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme'):
             with self.subTest(path=relative):

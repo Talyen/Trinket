@@ -147,7 +147,8 @@ class ScriptSelectionTests(unittest.TestCase):
         for name in ('test-scripts.sh', 'lib/args.sh', 'script_diagnostics.py',
                      'internal/diagnostics/diagnostic_limits.py', 'config/diagnostic-limits.env',
                      'cleanup-outputs.py', 'internal/output_retention.py', 'internal/cli.py',
-                     'lib/output-retention.sh', 'lib/lock.sh', 'script_test_selection.py'):
+                     'lib/output-retention.sh', 'lib/lock.sh', 'script_test_selection.py',
+                     'script_test_execution.py'):
             (scripts / name).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / 'Scripts' / name, scripts / name)
         write_executable(scripts / 'check-build-cache-paths.sh', '#!/bin/sh\nexit 0\n')
@@ -237,6 +238,36 @@ class ScriptSelectionTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("(no regressions selected)", result.stdout)
             self.assertIn("Script checks passed", result.stdout)
+
+    def test_python_worker_rejects_empty_skipped_and_unimportable_suites(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / 'Scripts'
+            (scripts / 'Tests').mkdir(parents=True)
+            shutil.copy2(ROOT / 'Scripts/script_test_execution.py', scripts)
+            probe = scripts / 'Tests/test_probe.py'
+            for source, status, message in (
+                ('', 1, 'zero successful tests'),
+                ('import unittest\n@unittest.skip("unavailable")\nclass Probe(unittest.TestCase):\n'
+                 '    def test_skipped(self): self.fail("must not execute")\n', 1, 'zero successful tests'),
+                ('raise ImportError("broken fixture")\n', 1, 'broken fixture'),
+                ('import unittest\nclass Probe(unittest.TestCase):\n'
+                 '    def test_partial(self):\n'
+                 '        for available in (False, True):\n'
+                 '            with self.subTest(available=available):\n'
+                 '                if not available: self.skipTest("unavailable")\n'
+                 '                self.assertTrue(available)\n', 0, 'OK'),
+            ):
+                with self.subTest(source=source):
+                    probe.write_text(source)
+                    # Keep rapid rewrites from reusing timestamp-based bytecode.
+                    shutil.rmtree(probe.parent / '__pycache__', ignore_errors=True)
+                    # Failure propagation and selection already run through the
+                    # real shell runner above; these are Python worker outcomes.
+                    result = run_captured([sys.executable, str(scripts / 'script_test_execution.py'),
+                                           'test_probe'], cwd=root)
+                    self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                    self.assertIn(message, result.stdout + result.stderr)
 
     def test_registry_is_data_and_globs_union_consumers(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
