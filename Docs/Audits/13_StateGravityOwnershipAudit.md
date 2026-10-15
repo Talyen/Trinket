@@ -31,8 +31,11 @@ replaced behavior remains active.
 ## Boundaries
 
 - Preserve Architecture's package DAG and SwiftUI-free domain/contracts boundaries.
-- Do not move battle simulation off the main actor or collapse accepted seams
-  without the relevant architectural decision and evidence.
+- Preserve the live `BattleSession`'s main-actor ownership and accepted seams.
+  Pure BattleEngine commands and headless tools follow the
+  [engine's calling-thread contract](../AgentContext/battle-engine.md); they are
+  not main-actor APIs. Changing those ownership boundaries requires the relevant
+  architectural decision and evidence.
 - Repair straightforward import-gate failures directly rather than inflating them
   into a hub rewrite.
 - Correct-owner redundant paths and mixed-job/context cost without misplaced

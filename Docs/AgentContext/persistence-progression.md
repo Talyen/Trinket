@@ -151,10 +151,11 @@ mutable.
 
 ## Shop stock and encounter identity
 
-`EncounterIdentity` scopes Journey stages and Labyrinth nodes to their world seed
-and save generation. Shop offers are pinned on first opening; stock and purchased
-offer IDs live in the Journey stage payload or Labyrinth node payload. A cloud
-import can change local session generation without invalidating saved stock;
+`EncounterIdentity` scopes Journey stages, Labyrinth nodes, and Voyage run/node
+pairs to their world seed and save generation. Shop offers are pinned on first
+opening; stock and purchased offer IDs live in the corresponding Journey stage,
+Labyrinth node, or Voyage node payload. A cloud import can change local session
+generation without invalidating saved stock;
 current commands still require the new generation. Stock survives inventory
 removal and reload; singleton ownership is a separate check.
 `ShopPurchaseApplier` accepts an offer ID and reads saved stock, including its price.

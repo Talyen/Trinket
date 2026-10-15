@@ -8,8 +8,10 @@ Under `Sources/TrinketPersistence/`, the root holds the save/store facade,
 configuration, sanitization, and roster hydration. Domain operations live in
 `Progression/` (battle rewards and mode completion), `Encounters/` (Mystery and
 Shop claims and saved offers), and `Inventory/` (stored items, salvage, and
-corruption). `Models/` holds value models; `PlayerSaveGraph/` holds SwiftData
-models and mapping. All folders remain in the same target.
+corruption and Blacksmith forging). `Cloud/` owns complete-save transport,
+reconciliation, journals, outbox records, and receipt replay. `Models/` holds
+saved value models; `PlayerSaveGraph/` holds SwiftData models and mapping.
+All folders remain in the same target.
 
 ## Concern guides
 

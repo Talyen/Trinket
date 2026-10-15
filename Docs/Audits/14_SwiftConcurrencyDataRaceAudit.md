@@ -39,9 +39,10 @@ explains task structure and cancellation.
 
 Repair the affected isolation/lifetime chain and verify the specific interleaving,
 termination, or synchronization guarantee. Do not replace working bridges or add
-cancellation machinery simply to modernize syntax. Preserve battle's main-actor
-ownership unless Architecture changes; do not introduce blocking sleeps or semaphore
-waits in cooperative contexts.
+cancellation machinery simply to modernize syntax. Preserve the live
+`BattleSession`'s main-actor ownership. Pure BattleEngine commands and headless
+tools follow the [engine's calling-thread contract](../AgentContext/battle-engine.md).
+Do not introduce blocking sleeps or semaphore waits in cooperative contexts.
 
 Transaction integrity, non-concurrent effect placement, and other overlaps route
 through the shared confusable-pairs table.

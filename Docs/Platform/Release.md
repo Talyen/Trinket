@@ -102,8 +102,8 @@ unsigned device Release checks on that combined revision. Lightweight integratio
 handoff does not replace release verification.
 
 When publication is requested, tag the verified integrated commit explicitly and
-push only that release tag with its commit. From the retained, clean task worktree
-at that commit (substitute the actual version and commit below):
+push that release tag together with its commit on `main`. From the retained,
+clean task worktree at that commit (substitute the actual version and commit below):
 
 ```sh
 git tag -a vX.Y.Z <integrated-release-commit> -m 'Release vX.Y.Z'

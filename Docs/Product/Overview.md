@@ -12,11 +12,10 @@ What the player sees, in player terms. Locked rules live in
 | Labyrinth | A persistent expedition through infinite floors. |
 | Spires | Ascending challenge gauntlets with fixed floor levels, keyword modifiers, and permanent completion. See [Spires.md](Spires.md). |
 | Contracts | Three renewable single-battle jobs under Explore, with regular rewards and party-based levels. See [Contracts.md](Contracts.md). |
+| Voyage | Finite, repeatable regional adventures under Explore, with saved routes, free retries, and completion bonuses. See [Voyage.md](Voyage.md). |
 | Collection | The party's equipment and talents: hero and companion loadouts plus drill-in detail screens. |
 | Homestead | Permanent progression from gathered resources: art-led overview, category galleries (Farming / Crafting / Alchemy / Training / Arcana), and immediate tier-path builds. See [Homestead.md](Homestead.md). |
 | Shop | Spends rewards between encounters; leaves back to Play. |
 | Options | Device preferences, Full Game purchases/restoration, and support; never gates free play. Identity model: [Identity.md](Identity.md). |
 
 Free-content boundaries and Full Game access: [Monetization.md](Monetization.md).
-
-Voyage offers finite, repeatable regional adventures. See [Voyage](Voyage.md).

@@ -10,8 +10,10 @@ Prefer representative behavior families and targeted interaction regressions ove
 per-mechanic or combinatorial matrices; a distinct mechanic alone is not a coverage gap.
 The authoritative suite inventory is the `Tests/` directory: `BattleEngineTests/`
 plus `BattleBalanceToolsTests/` (`BattleSimulator*`, `Balance*`,
-`ModeProgressionToolingTests`, `SweepWorkerPoolTests`), which is excluded from
-the default package command. This guide names stable families.
+`ModeProgressionToolingTests`, `SweepWorkerPoolTests`) and `BalanceSweepCLITests/`.
+Both tooling targets are excluded from the default package command; the
+[package testing guide](../README.md#testing) owns their opt-in.
+This guide names stable families.
 
 Action, combatant, card, turn, trigger, talent, and Unique suites are grouped
 under `Actions/`, `Combatants/`, `Cards/`, `Turns/`, `Triggers/`, `Talents/`, and

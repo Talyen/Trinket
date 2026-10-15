@@ -32,9 +32,10 @@ private helpers may stay with their owner; neither one type per file nor fewer
 files is a goal by itself.
 
 On-hit work is intentionally split across two channels (see
-`Docs/AgentContext/battle-engine.md`): `DamagePipeline` applies talent on-hit
-applications during damage resolution, while `CombatTriggerEngine` owns post-hit
-cadence. Do not fold one into the other. Unconditional hero/companion loops
+[engine ownership](../../Docs/AgentContext/battle-engine.md)): `DamagePipeline`
+orders damage reactions and delegates attacker-side applications to
+`AttackerOnHitEngine`, while `CombatTriggerEngine` owns post-hit cadence.
+Do not fold one into the other. Unconditional hero/companion loops
 (stored-damage drain, healing-echo drain) must visit dead members too; the
 `livingPartyMembers`/`livingAllies` helpers are only for living-only passes.
 `EffectRemovalOperation` owns effect stripping (cleanse for debuffs, purge for
@@ -84,9 +85,16 @@ Read only the matching detail: [hands and actions](../../Docs/AgentContext/battl
 
 ## Adding a new effect
 
-1. Add the `EffectKind` case (in `TrinketCore`)
-2. Create a handler conforming to `BattleEffectHandler`
-3. Add its case to the exhaustive `EffectHandlers.handler(for:)` switch
+1. Add the payload case to Core's `Effect` and its dispatch identity to
+   `EffectKind`. Update the exhaustive kind/lifecycle mappings in
+   `Effect+Properties.swift` and the effect's targeting, duration, magnitude,
+   keyword, and presentation mappings in `Effect.swift` / `EffectPresentation.swift`.
+2. Reuse an existing handler when it expresses the behavior, or implement
+   `BattleEffectHandler` in this package. Add the dispatch case in
+   `EffectHandlers/Registry.swift`; handlers do not declare a second kind.
+3. Follow the effect's consumers through Content validation and BattleFeature
+   feedback to handle any additional exhaustive mappings. Keep gameplay in the
+   engine and display policy in its presentation owner.
 4. Verify apply/expiry behavior through the existing
    handler coverage; extend tests only for consequential gaps under
    [Testing.md](../../Docs/Platform/Testing.md).
