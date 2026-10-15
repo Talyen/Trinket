@@ -25,9 +25,9 @@ materials and Gold, and learning or practice for XP. The authored catalog is
 
 ## Reward rules
 
-The Corruption Altar colors changed affix numbers green for increases and red for
-decreases, preserving keyword colors. Newly corrupted items retain this comparison
-when inspected later; older saves without the original numbers keep neutral numbers.
+The Corruption Altar reveal colors changed affix numbers green for increases and
+red for decreases, preserving keyword colors. This comparison appears only in the
+reveal; later item inspection uses the standard number styling.
 
 - Resolve offers before display. Basic/Astral gear uses the choice's fixed base;
   Trinkets and Uniques may only come from that choice's explicit thematic pool.

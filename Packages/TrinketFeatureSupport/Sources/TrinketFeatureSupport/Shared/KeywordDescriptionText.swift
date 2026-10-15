@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
@@ -21,11 +20,11 @@ private let keywordAttributedTextCache: NSCache<NSString, KeywordAttributedTextE
 
 public struct KeywordDescriptionText: View {
     public let text: String
-    private let corruptedPower: ItemAffixPower?
+    private let comparisonDescription: String?
 
-    public init(text: String, corruptedPower: ItemAffixPower? = nil) {
+    public init(text: String, comparisonDescription: String? = nil) {
         self.text = text
-        self.corruptedPower = corruptedPower
+        self.comparisonDescription = comparisonDescription
     }
 
     public var body: some View {
@@ -34,16 +33,13 @@ public struct KeywordDescriptionText: View {
 
     private var highlightedText: AttributedString {
         var attributed = Self.attributedText(for: text)
-        guard let corruptedPower, let baseline = corruptedPower.corruptionBaselineDescription else { return attributed }
-        let before = DescriptionMagnitude.matches(in: baseline)
-        let after = DescriptionMagnitude.matches(in: corruptedPower.description)
-        let displayed = DescriptionMagnitude.matches(in: text)
-        // Compare unscaled rolls, then style the matching displayed quantity. Weapon
-        // scaling and keyword colors must not change the corruption's direction.
-        guard before.count == after.count, after.count == displayed.count else { return attributed }
+        guard let comparisonDescription else { return attributed }
+        let before = DescriptionMagnitude.matches(in: comparisonDescription)
+        let after = DescriptionMagnitude.matches(in: text)
+        guard before.count == after.count else { return attributed }
         for index in after.indices where after[index].value != before[index].value {
-            guard let start = AttributedString.Index(displayed[index].range.lowerBound, within: attributed),
-                  let end = AttributedString.Index(displayed[index].range.upperBound, within: attributed)
+            guard let start = AttributedString.Index(after[index].range.lowerBound, within: attributed),
+                  let end = AttributedString.Index(after[index].range.upperBound, within: attributed)
             else { continue }
             attributed[start ..< end].foregroundColor = after[index].value > before[index].value
                 ? TrinketDesign.Colors.success : TrinketDesign.Colors.destructive

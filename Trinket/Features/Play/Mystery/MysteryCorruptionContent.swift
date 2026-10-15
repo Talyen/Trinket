@@ -34,7 +34,7 @@ struct MysteryCorruptionRevealContent: View {
                                 DetailTraitRow(
                                     title: affix.title,
                                     description: affix.description,
-                                    corruptedPower: result.item.affixPowers.flatMap { $0.indices.contains(index) ? $0[index] : nil },
+                                    comparisonDescription: comparisonDescription(for: affix),
                                     indicators: result.effects.filter { $0.affects(affix) }.map(\.indicator),
                                     titleShine: result.item.affixShine(at: index, affix: affix),
                                     titlePrefix: affix.isCorrupted ? "Corrupted " : nil,
@@ -56,6 +56,17 @@ struct MysteryCorruptionRevealContent: View {
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
             .padding(.vertical, TrinketDesign.Spacing.medium)
         }
+    }
+
+    private func comparisonDescription(for affix: ItemAffix) -> String? {
+        if let original = result.originalItem.displayedAffixes.first(where: { $0.id == affix.id }) {
+            return original.description
+        }
+        // Added and replaced affixes start at catalog power before their corruption bump.
+        return GameContent.itemAffixDefinition(matching: affix.id)?
+            .power(for: result.item.rarity)
+            .scaled(by: result.item.baseType.affixPowerMultiplier)
+            .description
     }
 
     private func eyebrow(for item: InventoryItem) -> String {

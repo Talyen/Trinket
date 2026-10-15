@@ -95,7 +95,6 @@ public struct ItemAffix: Identifiable, Equatable, Hashable, Sendable {
 
 public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public let description: String
-    public let corruptionBaselineDescription: String?
     public let modifiers: [AffixModifier]
     public var triggers: CombatTraitTriggers
 
@@ -103,10 +102,8 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         description: String,
         modifiers: [AffixModifier] = [],
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
-        corruptionBaselineDescription: String? = nil,
     ) {
         self.description = description
-        self.corruptionBaselineDescription = corruptionBaselineDescription
         self.modifiers = modifiers
         self.triggers = triggers
     }
@@ -115,13 +112,11 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         case description
         case modifiers
         case triggers
-        case corruptionBaselineDescription
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         description = try container.decode(String.self, forKey: .description)
-        corruptionBaselineDescription = try container.decodeIfPresent(String.self, forKey: .corruptionBaselineDescription)
         struct Failable: Decodable {
             let value: AffixModifier?
             init(from decoder: Decoder) {

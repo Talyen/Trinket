@@ -142,7 +142,6 @@ public struct ItemDetailView: View {
                     DetailTraitRow(
                         title: affix.title,
                         description: affix.description,
-                        corruptedPower: item.affixPowers.flatMap { $0.indices.contains(index) ? $0[index] : nil },
                         titleShine: item.affixShine(at: index, affix: affix),
                     )
                 }

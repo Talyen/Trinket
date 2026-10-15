@@ -1,12 +1,11 @@
 import SwiftUI
-import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
 public struct DetailTraitRow: View {
     var title: String?
     let description: String
-    var corruptedPower: ItemAffixPower?
+    var comparisonDescription: String?
     var descriptionAccessibilityID: String?
     var leadingIconKeyword: Keyword?
     var leadingIcon: GameIcon?
@@ -19,7 +18,7 @@ public struct DetailTraitRow: View {
     public init(
         title: String? = nil,
         description: String,
-        corruptedPower: ItemAffixPower? = nil,
+        comparisonDescription: String? = nil,
         descriptionAccessibilityID: String? = nil,
         leadingIconKeyword: Keyword? = nil,
         leadingIcon: GameIcon? = nil,
@@ -31,7 +30,7 @@ public struct DetailTraitRow: View {
     ) {
         self.title = title
         self.description = description
-        self.corruptedPower = corruptedPower
+        self.comparisonDescription = comparisonDescription
         self.descriptionAccessibilityID = descriptionAccessibilityID
         self.leadingIconKeyword = leadingIconKeyword
         self.leadingIcon = leadingIcon
@@ -97,7 +96,7 @@ public struct DetailTraitRow: View {
 
     @ViewBuilder
     private var descriptionText: some View {
-        let text = KeywordDescriptionText(text: description, corruptedPower: corruptedPower)
+        let text = KeywordDescriptionText(text: description, comparisonDescription: comparisonDescription)
             .trinketTypography(.body)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.leading)
