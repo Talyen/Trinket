@@ -30,6 +30,43 @@ struct PlayerSaveObservationTests {
         #expect(try context.makeReloadedStore().currentSave == expected)
     }
 
+    @MainActor private final class PublicationReads {
+        var snapshot: PlayerSave?
+        var gold: Int?
+        var cooldown: Int?
+    }
+
+    @Test @MainActor func `cross section reads during publication see one complete committed save`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let before = store.currentSave
+        let reads = PublicationReads()
+        withObservationTracking {
+            _ = store.roster
+        } onChange: {
+            MainActor.assumeIsolated {
+                reads.snapshot = store.currentSave
+                reads.gold = store.roster.gold
+                reads.cooldown = store.corruptionAltarCooldownRemaining
+            }
+        }
+
+        try store.performFixtureMutation {
+            $0.roster.gold += 7
+            $0.corruptionAltarCooldownRemaining = 1
+        }
+
+        // Observation's leading edge must see the entire previous commit.
+        // Publishing root fields before the roster exposed a torn snapshot here.
+        #expect(reads.snapshot == before)
+        #expect(reads.gold == before.roster.gold)
+        #expect(reads.cooldown == before.corruptionAltarCooldownRemaining)
+        let committed = store.currentSave
+        #expect(committed.roster.gold == before.roster.gold + 7)
+        #expect(committed.corruptionAltarCooldownRemaining == 1)
+        #expect(try context.makeReloadedStore().currentSave == committed)
+    }
+
     #if DEBUG
     @Test @MainActor func `refused commits publish nothing and preserve durable progress`() throws {
         let context = try PersistenceTestContext()

@@ -19,11 +19,14 @@ identity, cleared state and readable payloads when repairing damaged scalars.
 Readable grid coordinates outside the floor's bounded geometry use the existing
 fallback before neighbor or map-projection arithmetic.
 
-Reads use an in-memory projection with independently observed domain sections and
-root fields. Views read the narrow section or `sessionGeneration`; `currentSave`
-assembles a complete transaction snapshot and intentionally observes every section.
-Publication, compensation, and full replacements share `installObservedSave`;
-unchanged sections do not invalidate their readers.
+Reads share one complete in-memory save value with independently observed domain
+sections and root fields. Views read the narrow section or `sessionGeneration`;
+`currentSave` observes the complete transaction snapshot. `installObservedSave`
+notifies affected readers before swapping that value, then completes their
+notifications. Synchronous leading-edge observers see the complete previous commit,
+including when reading another section; subsequent reads see the complete accepted
+save. Unchanged sections do not invalidate their readers. Load, gameplay commits,
+and full replacements use this same publication boundary.
 
 Load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSave.currentSchemaVersion` versions the value-layer payload and its sanitizer/mapping migrations independently of the SwiftData migration version declared by `PlayerSaveSchema`; bumping one does not imply bumping the other. Slice writes expand through `PlayerSaveSlice.sanitizeTargets`: inventory also sanitizes roster (equipped items must exist), and labyrinth also sanitizes roster (recruit eligibility feeds map healing). Labyrinth sanitize runs on labyrinth mutations and full load, not on every inventory or roster write; recruit eligibility is applied when a map is generated.
 
@@ -106,8 +109,8 @@ The boundary holds exclusive admission through diagnostics, durable writes and
 observed-slice publication: synchronous observation callbacks cannot start a
 second graph write, reset or cloud replacement midway through a commit. Such
 attempts return a retryable storage failure. The commit revision advances after
-publication, making candidates captured from a partially published view obsolete
-even if retained until the commit returns.
+publication, making candidates captured by leading-edge observers obsolete even
+if retained until the commit returns.
 Lifecycle and sync checkpoints retry pending recovery files without rolling back
 already accepted progress. Reload tests prove subsequent writes retain the
 recovered values.

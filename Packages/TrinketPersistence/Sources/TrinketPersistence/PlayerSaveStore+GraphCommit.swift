@@ -75,8 +75,8 @@ extension PlayerSaveStore {
             cloudDeviceState = cloudState
             resetAffectsCloudProgress = cloudState.activeAccountID != nil
             installObservedSave(candidate, slices: slices)
-            // Candidates captured by synchronous observers saw an incomplete
-            // publication; advancing last also makes them obsolete after return.
+            // Leading-edge observers captured the previous complete save;
+            // advancing last makes those candidates obsolete after return.
             commitRevision &+= 1
         } catch {
             notePersistenceFailure(error, logging: "Failed to commit player save graph")

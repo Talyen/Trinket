@@ -81,60 +81,8 @@ public final class PlayerSaveStore {
     public var forcesNextDatabaseSaveFailure = false
     #endif
 
-    // Observe domain sections independently: a wallet edit must not invalidate
-    // map, inventory, or other unrelated readers of the save store.
-    public private(set) var journey: JourneyProgressState = .initial
-    public private(set) var roster: PlayerRosterState = .freshStart
-    public private(set) var inventory: PlayerInventoryState = .freshStart
-    public private(set) var homestead: PlayerHomesteadState = .freshStart
-    public private(set) var spires: PlayerSpiresState = .freshStart
-    public private(set) var labyrinth: PlayerLabyrinthState = .freshStart
-    public private(set) var voyage: PlayerVoyageState = .freshStart
-    public private(set) var contracts: PlayerContractsState = .freshStart
-    public private(set) var corruptionAltarCooldownRemaining = 0
-    public private(set) var worldSeed = PlayerSave.makeWorldSeed()
-    public private(set) var starterSelection: StarterSelectionState = .fresh
-    private var schemaVersion = PlayerSave.currentSchemaVersion
-    private var modifiedAt = Date()
-    public private(set) var sessionGeneration: UInt64 = 0
-
-    /// Complete transaction snapshot. Feature readers use the narrower sections
-    /// above; observing this value intentionally subscribes to the entire save.
-    public var currentSave: PlayerSave {
-        PlayerSave(
-            schemaVersion: schemaVersion, modifiedAt: modifiedAt,
-            sessionGeneration: sessionGeneration, worldSeed: worldSeed,
-            starterSelection: starterSelection, journey: journey, roster: roster,
-            inventory: inventory, homestead: homestead, spires: spires,
-            labyrinth: labyrinth, contracts: contracts, voyage: voyage,
-            corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
-        )
-    }
-
-    func installObservedSave(_ save: PlayerSave, slices: PlayerSaveSlice = .all) {
-        if save.sessionGeneration != sessionGeneration {
-            saveActionRetries.cancelAll()
-        }
-        for section in slices.sections {
-            switch section {
-            case .root:
-                schemaVersion = save.schemaVersion
-                modifiedAt = save.modifiedAt
-                sessionGeneration = save.sessionGeneration
-                worldSeed = save.worldSeed
-                starterSelection = save.starterSelection
-                corruptionAltarCooldownRemaining = max(0, save.corruptionAltarCooldownRemaining)
-            case .journey: journey = save.journey
-            case .roster: roster = save.roster
-            case .inventory: inventory = save.inventory
-            case .homestead: homestead = save.homestead
-            case .spires: spires = save.spires
-            case .labyrinth: labyrinth = save.labyrinth
-            case .contracts: contracts = save.contracts
-            case .voyage: voyage = save.voyage
-            }
-        }
-    }
+    @ObservationIgnored var observedSave = PlayerSave.fresh
+    @ObservationIgnored let saveObservation = ObservationRegistrar()
 
     public convenience init(
         storeName: String? = nil,
