@@ -1,6 +1,7 @@
 ---
 type: execution-plan
-status: active
+status: blocked
+reason: Combined main contains unrelated unpushed changes requiring publication approval.
 created: 2026-10-15
 updated: 2026-10-15
 expires: 2026-10-29
@@ -62,6 +63,14 @@ Pushes and workflow dispatches were authorized by the user on October 14.
 - [ ] Update canonical owners, delete this file, and report the outcome and verification in the task handoff.
 
 ## Notes
+
+Publication approval is pending: locked integration incorporated `07bd8ce50`
+(atomic save projections) and `0b885b1fe` (typed trigger coding/discovery) alongside
+the task follow-ups. Remote main remains `3aa1a69e5` with green CI. Combined local
+main at `5d58d6c27` passes outgoing-range lightweight handoff, including script
+regressions; generation, compilation, and tests for that combined range remain
+hosted work. Preserve all commits. Do not publish unrelated work without the
+requested approval. Original critical phone/iPad job remains in progress.
 
 Historical compilation/assertion repairs remain intact. No waits, execution proof,
 or accessibility scope have been weakened. Routine local compilation and simulator
