@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
@@ -50,7 +51,8 @@ struct PreparedMagnitudeBoundaryTests {
 
         let summaries = battle.talentEffectSummaries(of: battle.hero)
 
-        #expect(summaries.contains { $0.keyword == .health && $0.text == "Living Archive: Restore \(Int.max) Health next round" })
+        let displayedMaximum = Int.max.formatted(.number.locale(Locale(identifier: "en")))
+        #expect(summaries.contains { $0.keyword == .health && $0.text == "Living Archive: Restore \(displayedMaximum) Health next round" })
         #expect(battle.roster.hero.talents.pending.healingEchoes == echoes)
     }
 }

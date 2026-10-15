@@ -1,4 +1,5 @@
 import BattleEngine
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
@@ -40,7 +41,10 @@ struct EffectHandlersApplyBuffDebuffTests {
     @Test(arguments: [
         ([Effect.damageReductionPercent(0.25, 3), .damageReductionPercent(0.20, 3)], "40%"),
         ([Effect.damageReductionFlat(2, 3), .damageReductionFlat(3, 3)], "by 5,"),
-        ([Effect.damageReductionFlat(Int.max, 3), .damageReductionFlat(1, 3)], "by \(Int.max),"),
+        (
+            [Effect.damageReductionFlat(Int.max, 3), .damageReductionFlat(1, 3)],
+            "by \(Int.max.formatted(.number.locale(Locale(identifier: "en")))),",
+        ),
         ([Effect.healingReductionPercent(0.20, 3), .healingReductionPercent(0.50, 3)], "50%"),
     ])
     func `debuff summaries reflect combined combat penalties`(effects: [Effect], expected: String) throws {
@@ -200,6 +204,7 @@ struct EffectHandlersApplyBuffDebuffTests {
         #expect(battle.activeEffects(of: battle.hero).filter { $0.effect.kind == effect.kind }.map(\.effect) == [expected])
         #expect(second.events.last { $0.effectKind == event && $0.keyword == keyword }?.amount == total)
         let rawStacks = [ActiveEffect(id: 1, effect: effect, remainingTurns: 0), ActiveEffect(id: 2, effect: effect, remainingTurns: 0)]
-        #expect(EffectSummaryBuilder.build(for: rawStacks).first?.text.contains(String(total)) == true)
+        let displayedTotal = total.formatted(.number.locale(Locale(identifier: "en")))
+        #expect(EffectSummaryBuilder.build(for: rawStacks).first?.text.contains(displayedTotal) == true)
     }
 }

@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketContentTestSupport
@@ -227,7 +228,8 @@ struct BattleBoundaryRegressionTests {
         #expect(Effect.damageReductionPercent(1e20, 2).summary.contains("\(Int.max)%"))
         #expect(Effect.healingReductionPercent(1e20, 2).summary.contains("\(Int.max)%"))
         let summary = try #require(EffectSummaryBuilder.build(for: battle.activeEffects(of: battle.hero)).first)
-        #expect(summary.text.contains("+\(Int.max)%"))
+        let displayedMaximum = Int.max.formatted(.number.locale(Locale(identifier: "en")))
+        #expect(summary.text.contains("+\(displayedMaximum)%"))
     }
 
     @Test func `stacked Burn potency saturates before damage bonuses read it`() {

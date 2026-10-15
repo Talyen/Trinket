@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
@@ -88,7 +89,8 @@ struct DoTArithmeticBoundaryTests {
 
         let summary = try #require(EffectSummaryBuilder.build(for: effects).first)
 
-        #expect(summary.text.contains("\(Int.max) \(keyword.rawValue)"))
+        let displayedMaximum = Int.max.formatted(.number.locale(Locale(identifier: "en")))
+        #expect(summary.text.contains("\(displayedMaximum) \(keyword.rawValue)"))
     }
 
     @Test(arguments: [Keyword.burn, .bleed])

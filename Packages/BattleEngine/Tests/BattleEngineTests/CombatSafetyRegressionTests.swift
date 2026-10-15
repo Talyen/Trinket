@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketContentTestSupport
@@ -71,7 +72,8 @@ struct CombatSafetyRegressionTests {
             battle.roster.hero.talents.pending.feintStrikeDamageBonus = 1
         }
         let summaries = battle.talentEffectSummaries(of: battle.hero)
-        #expect(summaries.contains { $0.text.contains("\(Int.max)") })
+        let displayedMaximum = Int.max.formatted(.number.locale(Locale(identifier: "en")))
+        #expect(summaries.contains { $0.text.contains(displayedMaximum) })
     }
 
     @Test(arguments: PlayPolicy.allCases)
