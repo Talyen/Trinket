@@ -15,19 +15,16 @@ public struct ItemCardLabel: View {
 
     public var body: some View {
         VStack(spacing: TrinketDesign.Spacing.tight) {
-            HStack(spacing: TrinketDesign.Spacing.tight) {
-                TrinketRarityLabel(
-                    rarity: item.rarity,
-                    labelOverride: item.isTrinket ? "Trinket" : nil,
-                )
-                .trinketFittedText()
-                if item.isCorrupted {
-                    Text(balanced: "CORRUPTED")
-                        .trinketTypography(.caption)
-                        .shineText(.corruption)
-                        .foregroundStyle(TrinketDesign.Colors.destructive)
-                        .trinketFittedText()
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: TrinketDesign.Spacing.tight) {
+                    statusLabels
                 }
+                .fixedSize(horizontal: true, vertical: false)
+
+                VStack(spacing: TrinketDesign.Spacing.tight) {
+                    statusLabels
+                }
+                .multilineTextAlignment(.center)
             }
 
             Text(balanced: item.displayName)
@@ -43,6 +40,22 @@ public struct ItemCardLabel: View {
                     .foregroundStyle(.secondary)
                     .trinketFittedText()
             }
+        }
+    }
+
+    @ViewBuilder
+    private var statusLabels: some View {
+        TrinketRarityLabel(
+            rarity: item.rarity,
+            labelOverride: item.isTrinket ? "Trinket" : nil,
+        )
+        .trinketFittedText()
+        if item.isCorrupted {
+            Text(balanced: "CORRUPTED")
+                .trinketTypography(.caption)
+                .shineText(.corruption)
+                .foregroundStyle(TrinketDesign.Colors.destructive)
+                .trinketFittedText()
         }
     }
 }
