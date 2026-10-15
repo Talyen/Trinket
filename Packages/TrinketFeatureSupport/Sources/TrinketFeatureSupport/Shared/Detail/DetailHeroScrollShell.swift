@@ -128,7 +128,7 @@ private struct DetailHeroNavBarModifier: ViewModifier {
                 ToolbarItem(placement: .principal) {
                     DetailScrollNavigationTitle(
                         title: title,
-                        opacity: scrollState.titleOpacity,
+                        scrollState: scrollState,
                     )
                 }
             }
@@ -148,9 +148,10 @@ private struct HeroHeaderScrollMetrics: Equatable {
 
 private struct DetailScrollNavigationTitle: View {
     let title: String
-    let opacity: CGFloat
+    let scrollState: HeroScrollState
 
     var body: some View {
+        let opacity = scrollState.titleOpacity
         if opacity > 0 {
             Text(title)
                 .trinketTypography(.cardTitle)

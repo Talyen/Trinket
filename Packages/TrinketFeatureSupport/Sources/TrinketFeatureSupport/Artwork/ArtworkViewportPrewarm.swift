@@ -49,7 +49,9 @@ public enum ArtworkViewportPrewarm {
         prefetchRows: Int = defaultPrefetchRows,
         estimatedColumns: Int = collectionEstimatedColumns,
     ) async where Item.ID: Hashable {
-        try? await Task.sleep(for: viewportDebounceInterval)
+        if !visibleIDs.isEmpty {
+            try? await Task.sleep(for: viewportDebounceInterval)
+        }
         guard !Task.isCancelled else { return }
         let latestIDs: Set<Item.ID> = currentVisibleIDs?() ?? visibleIDs
         let names = windowNames(
@@ -72,7 +74,9 @@ public enum ArtworkViewportPrewarm {
         prefetchRows: Int = defaultPrefetchRows,
         estimatedColumns: Int = collectionEstimatedColumns,
     ) async where Item.ID: Hashable {
-        try? await Task.sleep(for: viewportDebounceInterval)
+        if !visibleIDs.isEmpty {
+            try? await Task.sleep(for: viewportDebounceInterval)
+        }
         guard !Task.isCancelled else { return }
         let latestIDs: Set<Item.ID> = currentVisibleIDs?() ?? visibleIDs
         let names = windowNames(

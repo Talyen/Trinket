@@ -59,6 +59,9 @@ public extension Image {
             preparedArtworkFallbackLogger.debug(
                 "PreparedArtwork cache miss for \(name, privacy: .public): on-demand decode will hitch",
             )
+            Task { @MainActor in
+                await PreparedArtworkCache.shared.prepare(names: [name])
+            }
         }
         return Image(name)
     }

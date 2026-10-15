@@ -33,12 +33,7 @@ struct SalvageItemButton: View {
                 showsName: showsName,
                 isSelected: isPreparing,
             ) {
-                ItemArtwork(item: item, variant: .thumbnail)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
-                    .anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { anchor in
-                        (isRetiring || isTransmuting) ? [item.id: anchor] : [:]
-                    }
+                itemArtwork
             }
         }
         .trinketArtworkCardButtonStyle()
@@ -47,6 +42,22 @@ struct SalvageItemButton: View {
         .animation(nil, value: isTransmuting)
         .accessibilityLabel(isLocked ? "\(item.displayName), locked" : item.displayName)
         .accessibilityIdentifier(AccessibilityID.Collection.itemCard(itemID: item.id))
+    }
+
+    @ViewBuilder
+    private var itemArtwork: some View {
+        let artwork = ItemArtwork(item: item, variant: .thumbnail)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
+
+        if isRetiring || isTransmuting {
+            artwork
+                .anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { anchor in
+                    [item.id: anchor]
+                }
+        } else {
+            artwork
+        }
     }
 }
 
