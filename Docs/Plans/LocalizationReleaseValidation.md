@@ -21,7 +21,7 @@ Artwork lettering is explicitly excluded by the user.
 - [x] Run focused XCTest diagnostics on managed iPhone SE; retain/review screenshots.
 - [x] Run normal German/French and largest native text configurations for all five languages.
 - [x] Fix confirmed layout/interaction failures and recheck them.
-- [ ] Verify generated consistency and Release archive language bundles/offline resources.
+- [x] Verify generated consistency and Release archive language bundles/offline resources.
 - [ ] Complete required handoff, review/commit/integrate and exact-commit hosted CI.
 
 ## Boundaries
@@ -42,6 +42,8 @@ Use bounded localization XCTest selectors for the known missing interaction and 
 - Screenshot review caught an untranslated Approach action. Strict computed-action extraction now inventories nine entries; a separate GPT-6.1-Sol High review approved all 45 translations. Localization checks and 20 Python regressions pass; previous translations/reviews are unchanged and compact formatting is retained.
 - The French Full Game screenshot exposed a truncated price despite the purchase button being hittable. Move support controls into scrollable content and preserve the complete purchase label. French/German largest-text journeys passed; screenshots show both complete prices and the translated Approach action.
 - XCTest's scroll view frame extends behind the pinned purchase action, and its hittability can also include covered content. Bound gestures above that action and require Restore's rendered frame to fit there. The strengthened French largest-text journey passed and its support screenshot shows Restore, Privacy, Family Sharing, and the full price.
-- The simulator build passes compiler extraction coverage and all six compiled language checks. The unsigned device archive remains a separate verification step.
+- Simulator and unsigned device Release archive pass compiler extraction coverage and all six compiled language checks. The archive contains the translated catalogs in the app and owning package bundles; actual network-disabled play and hardware purchase authorization are not established by this packaging check.
 - Final-source normal French and double-length English journeys passed. Real-language captions fit; Apple's synthetic double-English mode still crowds the native tab captions and leaves a format fragment in one doubled talent rule. These synthetic-only limits are retained in screenshots rather than hidden by disabling pseudolocalization or altering shipping wording.
 - Retain evidence under `/tmp/trinket-localization-release-validation/` before worktree cleanup. Native text size uses a restoring context; hardware purchase authorization is outside these display checks.
+- Production source commit: `191c3bf7f`. The first temporary archive runner incorrectly reused build-only output overrides; native archive arguments succeeded. No release/upload tool or Apple credentials were used.
+- Hosted exhaustive CI/package/full-UI checks remain pending a separately authorized push of this reviewed branch. Local verification does not replace those suites.
