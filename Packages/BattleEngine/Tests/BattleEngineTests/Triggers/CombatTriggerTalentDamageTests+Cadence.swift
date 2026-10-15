@@ -101,14 +101,13 @@ extension CombatTriggerTalentDamageTests {
             dealOpeningHand: false,
         )
         battle.companionDeck = CombatDeck(abilities: [.kindling, .slash])
-        battle.appendEffect(.bleed(4), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
+        battle.insertEffect(.bleed(4), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
         let active = try #require(battle.activeEffects(of: battle.enemy).first)
-        let handler = EffectHandlers.handler(for: .bleed)
-        let outcome = battle.recordingEvents { battle in await handler.advanceTurn(active, on: battle.enemy, in: &battle) }
+        let outcome = battle.recordingEvents { battle in await EffectHandlers.advanceTurn(active, on: battle.enemy, in: &battle) }
         #expect(outcome.contains(where: { $0.effectKind == .cardsDrawn }))
         #expect(battle.hand.cards.map(\.ability.id) == [Ability.slash.id])
         let remaining = try #require(battle.activeEffects(of: battle.enemy).first { $0.effect.isBleed })
-        let next = battle.recordingEvents { battle in await handler.advanceTurn(remaining, on: battle.enemy, in: &battle) }
+        let next = battle.recordingEvents { battle in await EffectHandlers.advanceTurn(remaining, on: battle.enemy, in: &battle) }
         #expect(!next.contains { $0.effectKind == .cardsDrawn })
         #expect(battle.companionDeck.count == 1)
     }
@@ -220,7 +219,7 @@ extension CombatTriggerTalentDamageTests {
         #expect(bleed.remainingTurns == Effect.bleedDoTTurnCount)
         let beforeTick = battle.health(of: battle.enemy)
 
-        CombatExecutor.run { await EffectHandlers.handler(for: .bleed).advanceTurn(
+        CombatExecutor.run { await EffectHandlers.advanceTurn(
             bleed, on: battle.enemy, in: &battle,
         ) }
 
@@ -254,7 +253,7 @@ extension CombatTriggerTalentDamageTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.smite], heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.nextStrikeDouble, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeDouble, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         let card = BattleCardCombatEngine.deal(.smite, owner: .hero, context: &battle)
 
         let events = try battle.playCard(cardID: card.id).events

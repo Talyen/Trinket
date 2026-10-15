@@ -98,7 +98,7 @@ extension CombatTriggerTalentDamageTests {
         battle.roster.companion.currentHealth = 1
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.companionDeck = CombatDeck(abilities: [.slash])
-        battle.appendEffect(.thorns(10), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(10), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         let payment = battle.payMana(3, for: battle.companion)
         CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
         #expect(!battle.roster.companion.isAlive)
@@ -116,9 +116,12 @@ extension CombatTriggerTalentDamageTests {
         )
         battle.roster.companion.talents.battle.manaSpentTowardAutoPlay = 3
         battle.companionDeck = CombatDeck(abilities: [.kindling, .block])
-        let result = battle.recordingEvents { battle in _ = await DrawAndPlayCardsHandler().apply(
-            .drawAndPlayCards(1), ability: .packTactics, source: battle.hero, target: battle.hero, in: &battle,
-        ) }
+        let result = battle.recordingEvents { battle in _ = await EffectApplication(
+            effect: .drawAndPlayCards(1),
+            ability: .packTactics,
+            source: battle.hero,
+            target: battle.hero,
+        ).apply(in: &battle) }
         #expect(result.contains { $0.kind == .ability && $0.abilityID == Ability.kindling.id })
         #expect(!result.contains { $0.kind == .ability && $0.abilityID == Ability.block.id })
         #expect(battle.roster.companion.talents.battle.manaSpentTowardAutoPlay == 3)

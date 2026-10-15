@@ -61,7 +61,7 @@ package enum BattleTurnEngine {
             context.modifiers(for: $0.id).triggers.stunnedEnemyNextTurnDamageMultiplier < 1
         }) else { return }
         // Round expiry follows this skipped action; retain the reduction through the recovery turn.
-        context.appendEffect(.damageReductionPercent(1 - multiplier, 2), to: actor, sourceID: source.id, remainingTurns: 2)
+        context.insertEffect(.damageReductionPercent(1 - multiplier, 2), to: actor, sourceID: source.id, remainingTurns: 2)
     }
 
     package static func performAction(

@@ -67,7 +67,7 @@ extension TalentCatalogRoundTripTests {
         try playHeroTalentCard(attack, owner: .companion, in: &battle)
         #expect(talentPoints(.shield, on: .enemy, in: battle) > 0)
         #expect(battle.effectSummaries(of: battle.enemy).contains { $0.text.contains("Interdict") && $0.text.contains("Block") })
-        let addedThorns = battle.appendEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        let addedThorns = battle.insertEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         #expect(addedThorns)
         let rejectedBlock = battle.recordingEvents { battle in
             battle.applyBlockGain(7, to: battle.enemy, source: battle.enemy, abilityName: "Block")
@@ -154,7 +154,7 @@ extension TalentCatalogRoundTripTests {
     func `blood money rewards only the lethal hit including consumed bleed`(detonates: Bool) {
         var battle = capstoneBattle(hero: ["rogue_bleed_t2_2"])
         battle.roster.enemy.currentHealth = 6
-        battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
+        battle.insertEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
         _ = battle.resolveTestDamage(2, options: .reaction())
         #expect(battle.gold == 0)
         if detonates {

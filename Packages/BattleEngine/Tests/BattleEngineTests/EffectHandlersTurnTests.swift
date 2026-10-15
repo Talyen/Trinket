@@ -1,7 +1,7 @@
-import BattleEngine
 import Testing
 import TrinketContent
 import TrinketCore
+@testable import BattleEngine
 
 struct EffectHandlersTurnTests {
     @Test(arguments: [false, true])

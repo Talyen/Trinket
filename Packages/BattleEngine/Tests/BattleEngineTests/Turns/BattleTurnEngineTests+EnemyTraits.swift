@@ -10,7 +10,7 @@ extension BattleTurnEngineTests {
         var context = try enemyTraitContext("ice_wraith")
         let actor = context.hero
         if frozen {
-            context.appendEffect(.controlMeter(.freeze, 10, 10), to: actor, sourceID: context.enemy.id, remainingTurns: 1)
+            context.insertEffect(.controlMeter(.freeze, 10, 10), to: actor, sourceID: context.enemy.id, remainingTurns: 1)
         }
 
         let outcome = context.resolveTestDamage(5, keyword: .poison, options: .periodic)
@@ -130,7 +130,7 @@ extension BattleTurnEngineTests {
     @Test func `banshee deals bonus damage to A stunned party member`() throws {
         var context = try enemyTraitContext("banshee")
         let target = context.hero
-        context.appendEffect(
+        context.insertEffect(
             .controlMeter(.stun, 10, 10), to: target, sourceID: context.enemy.id, remainingTurns: 1,
         )
 
@@ -197,7 +197,7 @@ extension BattleTurnEngineTests {
             heroModifiers: profile,
             enemyModifiers: .withTriggers { $0.burnIgnoresBlockAndMitigation = true },
         )
-        context.appendEffect(.thorns(2), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
+        context.insertEffect(.thorns(2), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
         let result = context.resolveTestDamage(
             20,
             from: .enemy,
@@ -304,7 +304,7 @@ extension BattleTurnEngineTests {
             #expect(bleed.sourceActorID == context.enemy.id)
             let beforeTick = context.health(of: target)
             let tickEvents = context.recordingEvents { state in
-                await EffectHandlers.handler(for: bleed.effect.kind).advanceTurn(bleed, on: target, in: &state)
+                await EffectHandlers.advanceTurn(bleed, on: target, in: &state)
             }
             #expect(beforeTick - context.health(of: target) == 1)
             #expect(tickEvents.count(where: { $0.kind == .status && $0.amount == 1 && $0.targetID == target.id }) == 1)

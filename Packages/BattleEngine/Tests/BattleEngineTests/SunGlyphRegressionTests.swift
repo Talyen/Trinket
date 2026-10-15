@@ -66,9 +66,9 @@ struct SunGlyphRegressionTests {
             companionModifiers: CombatantTalentCatalog.profile(for: [talent]), appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
-        battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         // Vitality Infusion qualifies through guaranteed Leech even when Sapped prevents restoration.
-        battle.appendEffect(.healingReductionPercent(1, 2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
+        battle.insertEffect(.healingReductionPercent(1, 2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
 
         let result = battle.resolveTestDamage(
             2,

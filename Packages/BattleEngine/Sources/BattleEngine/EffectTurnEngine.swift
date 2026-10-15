@@ -46,8 +46,7 @@ package enum EffectTurnEngine {
             guard !context.isBattleOver, context.roster.health(for: target) > 0 else { break }
             guard let activeEffect = context.roster.activeEffects(for: target).first(where: { $0.id == effectID })
             else { continue }
-            let handler = EffectHandlers.handler(for: activeEffect.effect.kind)
-            await handler.advanceTurn(activeEffect, on: target, in: &context)
+            await EffectHandlers.advanceTurn(activeEffect, on: target, in: &context)
         }
     }
 

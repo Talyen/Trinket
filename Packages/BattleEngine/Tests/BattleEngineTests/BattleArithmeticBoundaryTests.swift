@@ -65,7 +65,7 @@ struct BattleArithmeticBoundaryTests {
 
     @Test func `large control damage completes existing buildup without overflowing`() {
         var battle = makeBattle()
-        battle.appendEffect(.controlMeter(.stun, 3, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.controlMeter(.stun, 3, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let events = battle.chargeTestControl(Int.max, keyword: .stun, to: battle.enemy, sourceActorID: nil, applyFightPacing: false)
         #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
         #expect(events.contains { $0.effectKind == .controlTriggered })
@@ -80,7 +80,7 @@ struct BattleArithmeticBoundaryTests {
 
     @Test func `Freeze amplification saturates before applying the control threshold`() {
         var battle = makeBattle()
-        battle.appendEffect(.controlMeter(.freeze, 2, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.controlMeter(.freeze, 2, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let events = battle.recordingEvents { battle in await ControlMeterEngine.multiplyBuildup(
             Int.max, keyword: .freeze, to: battle.enemy, sourceActorID: battle.hero.id,
             abilityName: "Cold Snap", in: &battle,

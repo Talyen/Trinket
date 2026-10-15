@@ -306,7 +306,7 @@ package extension CombatTriggerEngine {
             await DoTApplicator.applyDoT(keyword: keyword, potency: potency, to: target, sourceActorID: actor.id, in: &context)
         }
         if triggers.onLeechReduceEnemyStrength > 0 {
-            context.appendEffect(
+            context.insertEffect(
                 .damageReductionFlat(
                     triggers.onLeechReduceEnemyStrength,
                     triggers.onLeechReduceEnemyStrengthTurns,

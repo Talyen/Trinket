@@ -15,7 +15,7 @@ struct FallenSupportRewardRegressionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
         battle.roster.hero.hasConsumedDeathsDoor = true
-        battle.appendEffect(.thorns(4), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(4), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
         let outcome = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
@@ -35,7 +35,7 @@ struct FallenSupportRewardRegressionTests {
             heroModifiers: hero, appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
-        battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
         _ = battle.resolveTestDamage(
             2,

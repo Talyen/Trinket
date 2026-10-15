@@ -19,7 +19,7 @@ struct EquipmentLeechRegressionTests {
             heroModifiers: profile, enemyModifiers: CombatModifierProfile(damageTakenFlat: [.physical: 9]),
             appliesFightPacing: false,
         )
-        battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 1)
+        battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 1)
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
 
         let outcome = battle.resolveTestDamage(10, options: .attack(scaling: .flat, accuracy: .unavoidable))

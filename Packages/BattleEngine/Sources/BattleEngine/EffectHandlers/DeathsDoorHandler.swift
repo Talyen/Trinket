@@ -1,9 +1,8 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
-struct DeathsDoorHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+extension EffectHandlers {
+    static func summarizeDeathsDoor(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard !stacks.isEmpty else { return nil }
         return EffectSummary(
             keyword: keyword,
@@ -11,20 +10,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
         )
     }
 
-    /// Intentionally inert: Death's Door is granted and processed by
-    /// DeathsDoorEngine and the damage pipeline, never applied as a card
-    /// effect. This handler owns the battle summary and turn expiry.
-    func apply(
-        _: Effect,
-        ability _: Ability,
-        source _: Combatant,
-        target _: Combatant,
-        in _: inout BattleState,
-    ) -> EffectApplyOutcome {
-        EffectApplyOutcome(didApply: false)
-    }
-
-    func advanceTurn(
+    static func advanceDeathsDoor(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
@@ -38,7 +24,7 @@ struct DeathsDoorHandler: BattleEffectHandler {
             context.roster.mutateRuntime(for: target) {
                 $0.deathsDoorExpiredAtTurn = context.turnCount
             }
-            let event = context.nextEvent(
+            context.nextEvent(
                 kind: .effect(.deathsDoorExpired),
                 source: .init(target),
                 abilityName: Keyword.deathsDoor.rawValue,
@@ -47,7 +33,6 @@ struct DeathsDoorHandler: BattleEffectHandler {
                 keyword: .deathsDoor,
                 origin: .direct,
             )
-            _ = event
             await DeathsDoorEngine.afterDeathsDoorExpired(on: target, in: &context)
             return
         }

@@ -13,7 +13,7 @@ struct DodgeCounterDamageEventsTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
         if triggersStun {
-            battle.appendEffect(.controlMeter(.stun, 19, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+            battle.insertEffect(.controlMeter(.stun, 19, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
         let before = battle.health(of: battle.enemy)

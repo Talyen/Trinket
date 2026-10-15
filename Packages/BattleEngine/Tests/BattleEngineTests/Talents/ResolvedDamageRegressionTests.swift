@@ -11,7 +11,7 @@ struct ResolvedDamageRegressionTests {
             enemyMaxHealth: 1000, heroModifiers: owner == .hero ? profile : .zero,
             companionModifiers: owner == .companion ? profile : .zero, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.controlMeter(.freeze, 100, 100), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.controlMeter(.freeze, 100, 100), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let result = battle.resolveTestDamage(
             100,
             to: battle.enemy,
@@ -27,7 +27,7 @@ struct ResolvedDamageRegressionTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 1000, companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.controlMeter(.freeze, 100, 100), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.controlMeter(.freeze, 100, 100), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
         let result = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 100, keyword: .burn, target: battle.enemy, sourceActorID: battle.companion.id,
             operation: .resolvedPeriodic, in: &battle,
@@ -42,7 +42,7 @@ struct ResolvedDamageRegressionTests {
             companionModifiers: CombatantTalentCatalog.profile(for: ["shield_scarab_stun_t4_1"]),
             dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.thorns(1), to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(1), to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         var options = operation
         options.abilityCriticalChanceBonus = -1
         let result = battle.resolveTestDamage(100, from: .companion, keyword: .stun, options: options)
@@ -54,7 +54,7 @@ struct ResolvedDamageRegressionTests {
             enemyMaxHealth: 1000, heroModifiers: CombatantTalentCatalog.profile(for: ["ranger_poison_t2_2"]),
             dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.poison(20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.poison(20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         _ = battle.resolveTestDamage(
             1,
             from: .enemy,

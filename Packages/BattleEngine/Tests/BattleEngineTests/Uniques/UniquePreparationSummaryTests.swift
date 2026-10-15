@@ -19,7 +19,7 @@ extension UniqueCollectionTests {
     func `Unique Dodge preparation is visible until the qualifying hit`(id: String) throws {
         var context = try battle([id])
         let actor = context.hero
-        context.appendEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
+        context.insertEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
         _ = context.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(tier: .basic))
         let label = id == "vipers_courtesy" ? "Viper’s Courtesy" : "Wildheart’s Favor"
         #expect(context.effectSummaries(of: actor).contains { $0.keyword == .poison && $0.text.contains(label) })

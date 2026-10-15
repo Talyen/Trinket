@@ -76,7 +76,7 @@ struct QuickFingersCounterattackTests {
             enemyMaxHealth: 20, heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.heroDeck = CombatDeck(abilities: [.slash])
-        battle.appendEffect(.controlMeter(.stun, 4, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.controlMeter(.stun, 4, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let serial = battle.resolution.beginCard(actorID: battle.hero.id)
         defer { battle.resolution.endCard(serial) }
         battle.resolution.mutateCardTalents { $0.didCriticalHit = true }

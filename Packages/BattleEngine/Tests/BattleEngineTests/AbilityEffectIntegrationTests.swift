@@ -10,7 +10,7 @@ struct AbilityEffectIntegrationTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             heroHealth: 3, appliesFightPacing: false,
         )
-        battle.appendEffect(.hemorrhage(4), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.hemorrhage(4), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         DefensePoolEngine.set(block, on: battle.hero, in: &battle)
 
         let events = battle.recordingEvents { battle in
@@ -92,7 +92,7 @@ struct AbilityEffectIntegrationTests {
     @Test(arguments: [Keyword.burn, .poison, .bleed])
     func `dodging an enemy attack prevents its damage over time`(keyword: Keyword) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
-        battle.appendEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let before = battle.roster.hero.currentHealth
         let attack = Ability(
             id: "dodged-dot",
@@ -115,9 +115,9 @@ struct AbilityEffectIntegrationTests {
         battle.roster.hero.hasConsumedDeathsDoor = true
         battle.roster.hero.deathsDoorExpiredAtTurn = -1
         if hemorrhage {
-            battle.appendEffect(.hemorrhage(4), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+            battle.insertEffect(.hemorrhage(4), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         } else {
-            battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+            battle.insertEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         }
         let attack = Ability(
             id: "interrupted",
@@ -195,7 +195,7 @@ struct AbilityEffectIntegrationTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: CombatModifierProfile(triggers: triggers), dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.burn(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.burn(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
         let before = battle.roster.enemy.currentHealth
 
         _ = EffectHandlersTestSupport.dispatch(

@@ -39,8 +39,8 @@ extension BattleCardCombatTests {
 
     @Test func `periodic feedback shares its checkpoint and detail includes active preparations`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
-        battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
-        battle.appendEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
+        battle.insertEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let events = battle.recordingEvents { battle in await EffectTurnEngine.advanceAll(context: &battle) }
         let ticks = events.filter { $0.kind == .status }
         #expect(ticks.count == 2)

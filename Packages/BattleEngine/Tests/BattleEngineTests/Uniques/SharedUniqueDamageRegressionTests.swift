@@ -66,12 +66,12 @@ struct SharedUniqueDamageRegressionTests {
         let critical = talentID == "risen_skeleton_physical_t4_1"
         let status: Effect = critical ? .poison(1) : .controlMeter(.stun, 400, 400)
         var shared = try fixtures.battle(["oathkeeper"], owner: .companion, extra: profile)
-        shared.appendEffect(status, to: shared.enemy, sourceID: shared.companion.id, remainingTurns: 0)
+        shared.insertEffect(status, to: shared.enemy, sourceID: shared.companion.id, remainingTurns: 0)
         try fixtures.play(fixtures.attack(.holy, amount: 20), owner: .companion, critical: critical, in: &shared)
         #expect(shared.health(of: shared.enemy) == (critical ? 1940 : 1975))
 
         var ordinary = try fixtures.battle([], owner: .companion, extra: profile)
-        ordinary.appendEffect(status, to: ordinary.enemy, sourceID: ordinary.companion.id, remainingTurns: 0)
+        ordinary.insertEffect(status, to: ordinary.enemy, sourceID: ordinary.companion.id, remainingTurns: 0)
         try fixtures.play(fixtures.attack(.holy, amount: 20), owner: .companion, critical: critical, in: &ordinary)
         #expect(ordinary.health(of: ordinary.enemy) == (critical ? 1960 : 1980))
     }
@@ -109,8 +109,7 @@ struct SharedUniqueDamageRegressionTests {
         #expect(active.sourceActorID == context.hero.id)
         let expected = active.effect.potencyAfterTurn(burnDecaySlowPercent: 0.4, poisonDecaySlowPercent: 0.4)
         let before = context.health(of: context.enemy)
-        let handler = EffectHandlers.handler(for: active.effect.kind)
-        CombatExecutor.run { await handler.advanceTurn(active, on: context.enemy, in: &context) }
+        CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: context.enemy, in: &context) }
         #expect(before - context.health(of: context.enemy) == expected)
     }
 
@@ -135,7 +134,7 @@ struct SharedUniqueDamageRegressionTests {
         let profile = CombatantTalentCatalog.profile(for: ["wizard_freeze_t2_1"])
         var context = try fixtures.battle(["bloodember_pendant"], extra: profile)
         if frozen {
-            context.appendEffect(
+            context.insertEffect(
                 .controlMeter(.freeze, 400, 400), to: context.enemy,
                 sourceID: context.hero.id, remainingTurns: 0,
             )
@@ -179,7 +178,7 @@ struct SharedUniqueDamageRegressionTests {
         let fixtures = UniqueCollectionTests()
         let profile = CombatantTalentCatalog.profile(for: [talentID])
         var context = try fixtures.battle(["bloodember_pendant"], extra: profile)
-        context.appendEffect(.bleed(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 2)
+        context.insertEffect(.bleed(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 2)
         try fixtures.play(fixtures.attack(.bleed, amount: 20), in: &context)
         #expect(context.roster.enemy.currentHealth == 1975)
     }

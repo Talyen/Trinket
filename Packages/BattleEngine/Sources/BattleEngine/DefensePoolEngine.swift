@@ -129,7 +129,7 @@ package enum DefensePoolEngine {
         if updatedExisting {
             return gainAmount
         }
-        context.appendEffect(
+        context.insertEffect(
             .shield(keyword, gainAmount),
             to: target,
             sourceID: sourceActorID ?? target.id,

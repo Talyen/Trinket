@@ -8,7 +8,7 @@ struct CombatExecutorTests {
     @Test(arguments: [false, true])
     func `damage outcomes retain nested reactions independently of battle history`(tracksEvents: Bool) {
         var battle = BattleStateTestFactory.makeBattle(tracksEvents: tracksEvents, dealOpeningHand: false, appliesFightPacing: false)
-        battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let start = battle.events.count
         let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
         #expect(outcome.healthLost == 5)
@@ -31,7 +31,7 @@ struct CombatExecutorTests {
         var battle = BattleStateTestFactory.makeBattle(
             heroModifiers: hero, companionModifiers: companion, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let start = battle.events.count
         var outcome = CombatOutcome.empty
         let events = CombatExecutor.run {
@@ -135,8 +135,8 @@ struct CombatExecutorTests {
         )
         battle.heroDeck = CombatDeck(abilities: [chain, .slash])
         battle.companionDeck = CombatDeck(abilities: [.slash])
-        battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
-        battle.appendEffect(.thorns(2), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(2), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         let card = BattleCardCombatEngine.deal(chain, owner: .hero, context: &battle)
         let play = try battle.playCard(cardID: card.id, recordActions: true)
         let turn = battle.endTurn(recordActions: true)

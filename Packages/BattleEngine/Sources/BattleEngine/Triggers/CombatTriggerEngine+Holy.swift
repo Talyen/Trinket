@@ -78,7 +78,7 @@ package extension CombatTriggerEngine {
             }
         }
         if profile.triggers.holyDamageReduceTargetDamage > 0, context.roster.health(for: enemy) > 0 {
-            context.appendEffect(
+            context.insertEffect(
                 .damageReductionFlat(profile.triggers.holyDamageReduceTargetDamage, 1),
                 to: enemy,
                 sourceID: source.id,

@@ -94,7 +94,7 @@ struct BattleCardAssessmentTests {
         var state = battle()
         state.roster.mutateRuntime(for: state.hero) { $0.currentHealth = 5 }
         state.roster.mutateRuntime(for: state.companion) { $0.currentHealth = 20 }
-        state.appendEffect(.poison(3), to: state.companion, sourceID: state.enemy.id, remainingTurns: 2)
+        state.insertEffect(.poison(3), to: state.companion, sourceID: state.enemy.id, remainingTurns: 2)
         let ability = Ability(id: "panacea", name: "Panacea", tier: .ultimate, effects: [.panacea(baseHeal: 3, healPerDebuff: 2)])
         let card = deal(ability, in: &state)
         let targets = state.assessCard(card).targets
@@ -114,7 +114,7 @@ struct BattleCardAssessmentTests {
         battle.roster.hero.currentHealth = 5
         battle.roster.companion.currentHealth = 6
         if hasDebuff {
-            battle.appendEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
+            battle.insertEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
         }
         battle.nextCardID += 1
         let card = BattleCard(id: battle.nextCardID, ability: .panaceaPotion, owner: .hero)
@@ -144,7 +144,7 @@ struct BattleCardAssessmentTests {
 
     @Test func `damage intent reflects an active keyword conversion`() {
         var state = battle()
-        state.appendEffect(.damageKeywordOverride(.holy, 1, 2), to: state.hero, sourceID: state.hero.id, remainingTurns: 2)
+        state.insertEffect(.damageKeywordOverride(.holy, 1, 2), to: state.hero, sourceID: state.hero.id, remainingTurns: 2)
         let card = deal(.slash, in: &state)
         #expect(state.assessCard(card).targets.first?.intent == .damage(.holy))
     }

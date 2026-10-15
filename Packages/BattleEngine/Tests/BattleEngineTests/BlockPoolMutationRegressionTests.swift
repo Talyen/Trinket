@@ -67,7 +67,7 @@ struct BlockPoolMutationRegressionTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.burn(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.burn(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
         let resolved = battle.applyBlockGain(
             8, to: battle.enemy, source: battle.enemy, abilityName: "Resolved gain", amountBasis: .resolved,

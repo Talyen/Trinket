@@ -36,7 +36,7 @@ struct AshenVitalityActionPreparationTests {
         var battle = makeBattle(basic: basic, countersAfterDodge: true)
         let actor = battle.companion
         let target = battle.enemy
-        battle.appendEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
+        battle.insertEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
 
         let result = battle.resolveTestDamage(
             3,

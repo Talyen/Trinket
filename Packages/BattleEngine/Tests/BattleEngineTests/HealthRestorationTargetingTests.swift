@@ -11,7 +11,7 @@ struct HealthRestorationTargetingTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = battle(heroModifiers: profile)
         DefensePoolEngine.set(1, on: battle.hero, in: &battle)
-        battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
         #expect(battle.health(of: battle.companion) == 3)
         #expect(battle.health(of: battle.hero) == 20)
@@ -81,7 +81,7 @@ struct HealthRestorationTargetingTests {
             $0.freshBatch = true
         }
         var battle = battle(heroModifiers: profile)
-        battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 1)
+        battle.insertEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 1)
         _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .all(.poison), source: battle.hero, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
@@ -94,7 +94,7 @@ struct HealthRestorationTargetingTests {
         var profile = CombatantTalentCatalog.profile(for: ["alchemist_cleanse_t1_2"])
         profile.triggers.criticalChanceBonus = -1
         var battle = battle(heroModifiers: profile, heroHealth: 5, companionHealth: 6)
-        battle.appendEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
+        battle.insertEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
         battle.nextCardID += 1
         let card = BattleCard(id: battle.nextCardID, ability: .panaceaPotion, owner: .hero)
         battle.hand.append(card)

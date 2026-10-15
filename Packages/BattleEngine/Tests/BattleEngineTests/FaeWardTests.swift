@@ -134,7 +134,7 @@ struct FaeWardTests {
 
     @Test func `prepended debuff is blocked by fae ward`() {
         var battle = makeWardedHeroBattle()
-        battle.prependEffect(.poison(2), to: battle.roster.hero.combatant, remainingTurns: 2)
+        battle.insertEffect(.poison(2), to: battle.roster.hero.combatant, remainingTurns: 2, at: 0)
         let effects = battle.roster.activeEffects(for: battle.roster.hero.combatant)
         #expect(!effects.contains(where: { $0.effect.keyword == .poison }))
     }

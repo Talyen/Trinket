@@ -22,8 +22,8 @@ struct CleanseSurvivalRegressionTests {
             companionModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
-        battle.appendEffect(.poison(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
-        battle.appendEffect(.burn(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.burn(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         DefensePoolEngine.set(6, on: battle.enemy, in: &battle)
 
         let outcome = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(

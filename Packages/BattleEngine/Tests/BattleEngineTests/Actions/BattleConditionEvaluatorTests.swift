@@ -30,7 +30,7 @@ struct BattleConditionEvaluatorTests {
         #expect(BattleConditionEvaluator.isMet(.enemyNotBurning, actor: battle.hero, in: battle))
         #expect(!battle.roster.hasAffliction(.burn, on: battle.enemy))
         #expect(!DamageTargetStatus(for: battle.enemy, in: battle).isBurning)
-        battle.appendEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         #expect(BattleConditionEvaluator.isMet(.enemyBurning, actor: battle.hero, in: battle))
     }
 

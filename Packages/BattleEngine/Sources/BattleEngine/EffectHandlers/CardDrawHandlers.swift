@@ -8,14 +8,8 @@ private let cardDrawLogger = Logger(
     category: "CardDrawHandlers",
 )
 
-struct DrawCardsHandler: BattleEffectHandler {
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+extension EffectApplication {
+    func applyDrawCards(in context: inout BattleState) -> EffectApplyOutcome {
         guard case let .drawCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(didApply: false)
         }
@@ -39,27 +33,11 @@ struct DrawCardsHandler: BattleEffectHandler {
         guard drawn > 0 else {
             return EffectApplyOutcome(didApply: false)
         }
-        context.nextEvent(
-            kind: .effect(.cardsDrawn),
-            source: .init(source),
-            abilityID: ability.id, abilityName: ability.name,
-            target: drawTarget,
-            amount: drawn,
-            keyword: .physical,
-            origin: .direct,
-        )
+        emit(.cardsDrawn, amount: drawn, keyword: .physical, target: drawTarget, in: &context)
         return EffectApplyOutcome(didApply: true)
     }
-}
 
-struct DrawAndPlayCardsHandler: BattleEffectHandler {
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
+    func applyDrawAndPlayCards(in context: inout BattleState) async -> EffectApplyOutcome {
         guard case let .drawAndPlayCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(didApply: false)
         }
@@ -82,14 +60,7 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
             return EffectApplyOutcome(didApply: false)
         }
 
-        context.nextEvent(
-            kind: .effect(.cardsDrawn),
-            source: .init(source),
-            abilityID: ability.id, abilityName: ability.name,
-            target: target,
-            amount: drawnCards.count,
-            keyword: .physical,
-        )
+        emit(.cardsDrawn, amount: drawnCards.count, keyword: .physical, origin: .automatic, in: &context)
         let played = await context.withAutomaticPlay { context in
             await autoPlayDrawnCards(drawnCards, in: &context)
         }

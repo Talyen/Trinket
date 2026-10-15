@@ -364,7 +364,7 @@ package extension CombatTriggerEngine {
             }
             if triggers.firstDodgeAllyEvadeNextHit,
                context.claimHeroTalent(.evasivePack, actorID: actor.id, battle: true) {
-                context.prependEffect(.evadeNextHit, to: ally, remainingTurns: 0)
+                context.insertEffect(.evadeNextHit, to: ally, remainingTurns: 0, at: 0)
             }
         }
     }

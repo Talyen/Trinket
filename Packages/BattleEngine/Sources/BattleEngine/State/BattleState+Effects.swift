@@ -12,21 +12,6 @@ package extension BattleState {
         return id
     }
 
-    func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
-        let profile = modifiers(for: sourceID)
-        switch effect {
-        case let .shield(keyword, buffer):
-            return .shield(
-                keyword, CombatRounding.scaled(
-                    SaturatedArithmetic.saturatingAdd(buffer, profile.blockGainedBonus),
-                    multiplier: 1 + profile.blockGainedPercent,
-                ),
-            )
-        default:
-            return effect
-        }
-    }
-
     @discardableResult
     mutating func applyBlockGain(
         _ amount: Int,
@@ -42,19 +27,18 @@ package extension BattleState {
             || CombatTriggerEngine.preventsPurgedEffect(.shield(.block, amount), on: target, in: self) {
             return 0
         }
-        let (keyword, buffer): (Keyword, Int)
-        if amountBasis == .base,
-           case let .shield(kw, buf) = adjustedOutgoingEffect(.shield(.block, amount), sourceID: source.id) {
-            (keyword, buffer) = (kw, buf)
-        } else {
-            (keyword, buffer) = (.block, amount)
-        }
+        let profile = modifiers(for: source.id)
+        let buffer = amountBasis == .base
+            ? CombatRounding.scaled(
+                SaturatedArithmetic.saturatingAdd(amount, profile.blockGainedBonus),
+                multiplier: 1 + profile.blockGainedPercent,
+            ) : amount
         let (adjustedBuffer, spendsPreparation) = amountBasis == .base
             ? adjustedBlockGain(buffer, to: target) : (buffer, false)
         let applied = DefensePoolEngine.add(
             adjustedBuffer,
             to: target,
-            keyword: keyword,
+            keyword: .block,
             sourceActorID: source.id,
             applyFightPacing: amountBasis == .base,
             in: &self,
@@ -70,7 +54,7 @@ package extension BattleState {
             abilityID: abilityID, abilityName: abilityName,
             target: target,
             amount: applied,
-            keyword: keyword,
+            keyword: .block,
             origin: origin,
         )
         CombatTriggerEngine.afterBlockGained(applied, by: target, in: &self)
@@ -129,39 +113,5 @@ package extension BattleState {
             }
         }
         return true
-    }
-
-    /// @discardableResult so existing fire-and-forget callers are untouched;
-    /// new callers (like TimedDebuffHandler) should check the return instead
-    /// of assuming the effect landed (ward/purge interception can refuse it).
-    @discardableResult
-    mutating func appendEffect(
-        _ effect: Effect,
-        to target: Combatant,
-        sourceID: String,
-        remainingTurns: Int,
-    ) -> Bool {
-        insertEffect(
-            effect,
-            to: target,
-            sourceID: sourceID,
-            remainingTurns: remainingTurns,
-        )
-    }
-
-    @discardableResult
-    mutating func prependEffect(
-        _ effect: Effect,
-        to target: Combatant,
-        sourceID: String? = nil,
-        remainingTurns: Int,
-    ) -> Bool {
-        insertEffect(
-            effect,
-            to: target,
-            sourceID: sourceID,
-            remainingTurns: remainingTurns,
-            at: 0,
-        )
     }
 }

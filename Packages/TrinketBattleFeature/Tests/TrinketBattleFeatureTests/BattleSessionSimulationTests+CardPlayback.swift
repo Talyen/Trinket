@@ -103,7 +103,7 @@ extension BattleSessionSimulationTests {
         state.hand = BattleHand()
         state.roster.companion.currentHealth = 0
         state.roster.hero.hasConsumedDeathsDoor = true
-        state.appendEffect(.thorns(100), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
+        state.insertEffect(.thorns(100), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
         let attack = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &state)
         let remaining = BattleCardCombatEngine.deal(.block, owner: .hero, context: &state)
         session.engineState = state

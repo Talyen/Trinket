@@ -43,7 +43,7 @@ struct ThreeCardTurnTests {
         var state = battle()
         state.heroDeck = CombatDeck(abilities: [.slash, .heal, .avatarOfJustice])
         state.companionDeck = CombatDeck(abilities: [.bash, .serratedEdge, .bloodthorn])
-        state.appendEffect(
+        state.insertEffect(
             .controlMeter(.stun, 10, 5),
             to: state.hero,
             sourceID: state.enemy.id,
@@ -66,12 +66,12 @@ struct ThreeCardTurnTests {
         let played = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &state)
         _ = try state.playCard(cardID: played.id)
         let duplicate = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &state)
-        state.appendEffect(.evadeNextHit, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
+        state.insertEffect(.evadeNextHit, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
         _ = state.performTestAction(attack(), from: .enemy, to: .hero)
         let recovered = try #require(state.hand.cards.first { $0.deckCopyID == played.deckCopyID })
         #expect(recovered.deckCopyID != duplicate.deckCopyID)
         _ = try state.playCard(cardID: recovered.id)
-        state.appendEffect(.evadeNextHit, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
+        state.insertEffect(.evadeNextHit, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
         _ = state.performTestAction(attack(), from: .enemy, to: .hero)
         #expect(!state.hand.cards.contains { $0.deckCopyID == played.deckCopyID })
         #expect(state.heroDeck.discarded.count == 1)
@@ -83,7 +83,7 @@ struct ThreeCardTurnTests {
         var state = battle()
         state.heroDeck = CombatDeck(abilities: [.block])
         let threshold = ControlMeterEngine.threshold(for: state.enemy, in: state)
-        state.appendEffect(
+        state.insertEffect(
             .controlMeter(.freeze, alreadyFrozen ? threshold : threshold - 1, threshold),
             to: state.enemy,
             sourceID: state.hero.id,
@@ -111,8 +111,8 @@ struct ThreeCardTurnTests {
         state.roster.hero.currentMana = mana
         state.heroDeck = CombatDeck(abilities: [.block, .heal])
         let recipient = state.roster[target].combatant
-        state.appendEffect(.burn(1), to: recipient, sourceID: state.enemy.id, remainingTurns: 1)
-        state.appendEffect(.poison(1), to: recipient, sourceID: state.enemy.id, remainingTurns: 1)
+        state.insertEffect(.burn(1), to: recipient, sourceID: state.enemy.id, remainingTurns: 1)
+        state.insertEffect(.poison(1), to: recipient, sourceID: state.enemy.id, remainingTurns: 1)
         _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .all(nil),
             source: state.hero,
@@ -137,8 +137,8 @@ struct ThreeCardTurnTests {
         var state = battle(triggers: CombatTraitTriggers.configured { $0.purgeDrawBelowHalf = true })
         state.roster.hero.currentHealth = health
         state.heroDeck = CombatDeck(abilities: [.block, .heal])
-        state.appendEffect(.shield(.block, 3), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
-        state.appendEffect(.thorns(3), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
+        state.insertEffect(.shield(.block, 3), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
+        state.insertEffect(.thorns(3), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
         _ = CombatExecutor.run { await EffectRemovalOperation.resolvePurge(
             .all(nil),
             source: state.hero,
@@ -163,7 +163,7 @@ struct ThreeCardTurnTests {
         var state = battle(triggers: CombatTraitTriggers.configured { $0.blockBreakDrawBelowHalf = true })
         state.roster.hero.currentHealth = health
         state.heroDeck = CombatDeck(abilities: [.block, .heal])
-        state.appendEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
+        state.insertEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
         _ = state.performTestAction(attack(2), from: .enemy, to: .hero)
         #expect(state.health(of: state.hero) == health - 1)
         #expect(state.hand.totalCount == (health <= 50 ? 1 : 0))
@@ -174,7 +174,7 @@ struct ThreeCardTurnTests {
         var state = battle(triggers: triggers)
         var peer = battle(triggers: triggers)
         func trigger(_ context: inout BattleState) throws {
-            context.appendEffect(
+            context.insertEffect(
                 .shield(.block, 100),
                 to: context.enemy,
                 sourceID: context.enemy.id,
@@ -215,7 +215,7 @@ struct ThreeCardTurnTests {
             _ = try state.playCard(cardID: card.id)
             plays += 1
             try #require(plays <= 5)
-            state.appendEffect(.evadeNextHit, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
+            state.insertEffect(.evadeNextHit, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
             _ = state.performTestAction(attack(), from: .enemy, to: .hero)
         }
         #expect(plays == 5)
@@ -229,11 +229,11 @@ struct ThreeCardTurnTests {
         state.roster.hero.currentHealth = 40
         state.heroDeck = CombatDeck(abilities: [.block, .heal, .slash])
         for _ in 0 ..< 2 {
-            state.appendEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
+            state.insertEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
             _ = state.performTestAction(attack(2), from: .enemy, to: .hero)
         }
         #expect(state.hand.totalCount == 2)
-        state.appendEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
+        state.insertEffect(.shield(.block, 1), to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
         _ = state.performTestAction(attack(2), to: .hero)
         #expect(state.hand.totalCount == 2)
         DefensePoolEngine.set(0, on: state.hero, in: &state)

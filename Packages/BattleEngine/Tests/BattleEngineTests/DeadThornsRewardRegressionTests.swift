@@ -20,7 +20,7 @@ struct DeadThornsRewardRegressionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
         battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
-        battle.appendEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
         let outcome = battle.resolveTestDamage(
             1,
@@ -53,7 +53,7 @@ struct DeadThornsRewardRegressionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
         if hasStack {
-            battle.appendEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+            battle.insertEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
         let hit = battle.resolveTestDamage(

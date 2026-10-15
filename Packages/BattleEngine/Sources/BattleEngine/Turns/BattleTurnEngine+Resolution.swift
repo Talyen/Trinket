@@ -334,7 +334,6 @@ extension BattleTurnEngine {
             let effect = targetedEffect.effect
             let effectTargets = action.targets(targetedEffect.target, in: context)
 
-            let handler = EffectHandlers.handler(for: effect.kind)
             var didApply = false
             var grantedGold = 0
             var restoredMana = 0
@@ -343,13 +342,12 @@ extension BattleTurnEngine {
                 guard context.roster.health(for: effectTarget) > 0 || effect.canApplyToDefeatedTarget,
                       !CombatTriggerEngine.preventsPurgedEffect(effect, on: effectTarget, in: context)
                 else { continue }
-                let outcome = await handler.apply(
-                    effect,
+                let outcome = await EffectApplication(
+                    effect: effect,
                     ability: ability,
                     source: actor,
                     target: effectTarget,
-                    in: &context,
-                )
+                ).apply(in: &context)
 
                 grantedGold = SaturatedArithmetic.saturatingAdd(grantedGold, outcome.grantedGold)
                 restoredMana = SaturatedArithmetic.saturatingAdd(restoredMana, outcome.restoredMana)

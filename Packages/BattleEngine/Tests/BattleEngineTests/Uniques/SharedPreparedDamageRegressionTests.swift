@@ -62,7 +62,7 @@ struct SharedPreparedDamageRegressionTests {
         let originalKeyword: Keyword = nimble ? .bleed : .physical
         let profile = CombatantTalentCatalog.profile(for: [talentID])
         var battle = try fixtures.battle(shared ? [item] : [], owner: .companion, extra: profile)
-        battle.appendEffect(.evadeNextHit, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.evadeNextHit, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         let avoided = battle.resolveTestDamage(
             1,
             from: .enemy,

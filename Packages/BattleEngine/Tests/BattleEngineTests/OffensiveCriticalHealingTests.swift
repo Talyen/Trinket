@@ -9,8 +9,8 @@ struct OffensiveCriticalHealingTests {
     func `Burning enemy critical bonuses do not apply to restoration`(owner: BattleParticipant) {
         var battle = makeBattle(owner: owner)
         let source = battle.roster[owner].combatant
-        battle.appendEffect(.burn(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
-        battle.appendEffect(.burn(1), to: battle.enemy, sourceID: source.id, remainingTurns: 0)
+        battle.insertEffect(.burn(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.burn(1), to: battle.enemy, sourceID: source.id, remainingTurns: 0)
 
         let allyChance = CriticalChanceEngine.chance(actorID: source.id, defender: battle.hero, in: battle)
         let attackChance = CriticalChanceEngine.chance(
@@ -30,8 +30,8 @@ struct OffensiveCriticalHealingTests {
 
     @Test func `Burning ally retains ordinary restoration critical chance and party maximum`() {
         var battle = makeBattle(owner: .companion)
-        battle.appendEffect(.burn(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
-        battle.appendEffect(.criticalChanceBonus(0.30, 2), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 2)
+        battle.insertEffect(.burn(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.criticalChanceBonus(0.30, 2), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 2)
         #expect(CriticalChanceEngine.rollSucceeds(
             actorID: battle.companion.id, defender: battle.hero, usePartyMaximum: true, in: &battle,
         ))
@@ -66,7 +66,7 @@ struct OffensiveCriticalHealingTests {
             heroHealth: 1, companionHealth: 10, heroModifiers: profile, rngSeed: rngSeed, appliesFightPacing: false,
         )
         var lastlight = ordinary
-        lastlight.appendEffect(.deathsDoor, to: lastlight.hero, sourceID: lastlight.hero.id, remainingTurns: 2)
+        lastlight.insertEffect(.deathsDoor, to: lastlight.hero, sourceID: lastlight.hero.id, remainingTurns: 2)
         var attacking = lastlight
 
         let ordinaryHeal = ordinary.resolveHeal(HealRequest(

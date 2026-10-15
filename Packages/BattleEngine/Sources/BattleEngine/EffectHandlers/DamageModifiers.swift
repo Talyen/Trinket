@@ -1,34 +1,8 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
-struct HalveShieldHandler: BattleEffectHandler {
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        guard case let .halveShield(keyword) = effect else { return EffectApplyOutcome(didApply: false) }
-        guard DefensePoolEngine.halveBlock(on: target, in: &context) else {
-            return EffectApplyOutcome(didApply: false)
-        }
-        context.nextEvent(
-            kind: .effect(.shieldHalved),
-            source: .init(source),
-            abilityID: ability.id, abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: keyword,
-            origin: .direct,
-        )
-        return EffectApplyOutcome(didApply: true)
-    }
-}
-
-struct ControlMeterHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+extension EffectHandlers {
+    static func summarizeControlMeter(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let meterStacks = stacks.filter { activeEffect in
             guard case let .controlMeter(meterKeyword, _, _) = activeEffect.effect else { return false }
             return meterKeyword == keyword
@@ -52,7 +26,7 @@ struct ControlMeterHandler: BattleEffectHandler {
         )
     }
 
-    func advanceTurn(
+    static func advanceControlMeter(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
@@ -68,37 +42,10 @@ struct ControlMeterHandler: BattleEffectHandler {
             active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
         )
     }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
-        guard case let .controlMeter(keyword, amount, _) = effect else {
-            return EffectApplyOutcome(didApply: false)
-        }
-        guard amount > 0 else {
-            return EffectApplyOutcome(didApply: false)
-        }
-        let firstEventID = context.nextEventID
-        let effectsBefore = context.roster.activeEffects(for: target)
-        await ControlMeterEngine.applyMeterCharge(amount, keyword: keyword, to: target, sourceActorID: source.id, in: &context)
-        _ = ability
-        let didApply = context.nextEventID > firstEventID || context.roster.activeEffects(for: target) != effectsBefore
-        return EffectApplyOutcome(didApply: didApply)
-    }
 }
 
-struct MultiplyControlMeterHandler: BattleEffectHandler {
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
+extension EffectApplication {
+    func applyMultiplyControlMeter(in context: inout BattleState) async -> EffectApplyOutcome {
         guard case let .multiplyControlMeter(keyword, factor) = effect,
               keyword == .freeze,
               factor > 1

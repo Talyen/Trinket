@@ -27,7 +27,7 @@ struct LeechDefenseRewardTests {
         profile.triggers.physicalAttackLeechBelowHalfHealth = true
         var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile, appliesFightPacing: false)
         battle.roster.companion.currentHealth = 5
-        battle.appendEffect(.healingReductionPercent(1, 2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
+        battle.insertEffect(.healingReductionPercent(1, 2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
         let result = battle.resolveTestDamage(4, from: .companion, options: .attack(accuracy: .unavoidable, guaranteedCritical: true))
         #expect(result.healthLost == 8)
         #expect(battle.health(of: battle.companion) == 5)

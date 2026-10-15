@@ -146,32 +146,6 @@ enum ActiveEffectMutation {
         }
     }
 
-    static func replaceAndEmit(
-        _ effect: Effect,
-        to target: Combatant,
-        source: Combatant,
-        ability: Ability,
-        in context: inout BattleState,
-        replacing matches: (Effect) -> Bool,
-        event: (kind: ActionEvent.EffectOutcome, amount: Int, keyword: Keyword),
-    ) -> EffectApplyOutcome {
-        guard context.insertEffect(
-            effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns, replacing: matches,
-        ) else {
-            return EffectApplyOutcome(didApply: false)
-        }
-        context.nextEvent(
-            kind: .effect(event.kind),
-            source: .init(source),
-            abilityID: ability.id, abilityName: ability.name,
-            target: target,
-            amount: event.amount,
-            keyword: event.keyword,
-            origin: .direct,
-        )
-        return EffectApplyOutcome(didApply: true)
-    }
-
     static func reflect(
         _ active: ActiveEffect,
         to target: Combatant,
@@ -194,7 +168,7 @@ enum ActiveEffectMutation {
             )
             return
         default:
-            context.appendEffect(active.effect, to: target, sourceID: source.id, remainingTurns: active.remainingTurns)
+            context.insertEffect(active.effect, to: target, sourceID: source.id, remainingTurns: active.remainingTurns)
             return
         }
     }

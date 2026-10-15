@@ -45,7 +45,7 @@ struct LooseRubbleTests {
     @Test func `a dodge preserves the reduction and a one-point pulse consumes it`() throws {
         var battle = try battle()
         _ = battle.resolveTestDamage(1, options: .reaction())
-        battle.appendEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 1)
+        battle.insertEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 1)
         let dodge = battle.resolveTestDamage(4, from: .enemy, to: .hero)
         #expect(dodge.healthLost == 0)
         for expected in [0, 1] {

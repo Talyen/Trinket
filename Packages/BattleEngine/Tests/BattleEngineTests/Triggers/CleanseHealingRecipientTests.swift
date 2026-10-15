@@ -38,7 +38,7 @@ struct CleanseHealingRecipientTests {
         )
         battle.roster.hero.currentHealth = 5
         battle.roster.companion.currentHealth = companionHealth
-        battle.appendEffect(.poison(3), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(3), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
         return battle
     }
 }

@@ -307,7 +307,7 @@ package extension DamagePipeline {
                 )
             }
             if defenderTriggers.onBlockReduceAttackerAccuracyPercent > 0 {
-                context.appendEffect(
+                context.insertEffect(
                     .damageReductionPercent(
                         Double(defenderTriggers.onBlockReduceAttackerAccuracyPercent) / 100,
                         defenderTriggers.onBlockReduceAttackerAccuracyTurns,

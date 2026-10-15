@@ -15,7 +15,7 @@ struct CompanionTalentReviewTests {
             dealOpeningHand: false, appliesFightPacing: false,
         )
         if targetIsBleeding {
-            battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+            battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
         }
         let source = owner == .hero ? battle.hero : battle.companion
         let healthBefore = battle.roster.enemy.currentHealth
@@ -122,7 +122,7 @@ struct CompanionTalentReviewTests {
             dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.roster.companion.currentHealth = 1
-        battle.appendEffect(.deathsDoor, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 2)
+        battle.insertEffect(.deathsDoor, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 2)
         let burn = DamageRequest(
             amount: 8, target: battle.enemy, keyword: .burn, sourceActorID: battle.companion.id,
             options: .reaction(),

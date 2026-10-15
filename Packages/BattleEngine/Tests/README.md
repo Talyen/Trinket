@@ -63,7 +63,7 @@ helpers live in `Support/`. All remain in the same test target.
   factories apply this after bootstrap to preserve opening-hand behavior.
 - Use `performTestAction` and `chargeTestControl` for synchronous rule probes;
   these retain the engine entry points and ordered executor boundary.
-- Dispatch effects through `EffectHandlers.handler(for:)`.
+- Dispatch applications through `EffectHandlersTestSupport`; advance stored effects with `EffectHandlers.advanceTurn`.
 - Public facade: reads + `playCard` / `endTurn` / log lifecycle. Engine mutations are `package`.
 - Mutate package-visible battle state directly in tests. Use `syncLog()` when
   assertions inspect logs after internal rule calls.

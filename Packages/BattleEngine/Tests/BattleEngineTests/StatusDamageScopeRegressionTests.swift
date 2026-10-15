@@ -12,7 +12,7 @@ struct StatusDamageScopeRegressionTests {
             dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.roster.enemy.currentHealth = enemyHealth
-        battle.appendEffect(.bleed(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
+        battle.insertEffect(.bleed(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
 
         CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
 
@@ -26,12 +26,12 @@ struct StatusDamageScopeRegressionTests {
             dealOpeningHand: false, appliesFightPacing: false,
         )
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
-        battle.appendEffect(
+        battle.insertEffect(
             .controlMeter(.stun, threshold - 1, threshold),
             to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0,
         )
         DefensePoolEngine.set(1, on: battle.companion, in: &battle)
-        battle.appendEffect(.thorns(8), to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(8), to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
 
         let outcome = battle.resolveTestDamage(
             2,

@@ -121,7 +121,7 @@ struct HealingGainBoundaryTests {
             heroHealth: 10,
             companionModifiers: profile, appliesFightPacing: false,
         )
-        battle.appendEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
+        battle.insertEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
 
         let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: battle.companion.id, target: battle.enemy,
@@ -152,8 +152,8 @@ struct HealingGainBoundaryTests {
             heroModifiers: CombatantTalentCatalog.profile(for: [talent]),
             companionModifiers: CombatantTalentCatalog.profile(for: ["pixie_health_t1_1"]), appliesFightPacing: false,
         )
-        battle.appendEffect(.thorns(1), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
-        battle.appendEffect(.healingReductionPercent(reduction, 2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
+        battle.insertEffect(.thorns(1), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.healingReductionPercent(reduction, 2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
 
         let outcome = battle.resolveHeal(HealRequest(amount: 8, target: battle.hero, sourceActorID: battle.companion.id))
 

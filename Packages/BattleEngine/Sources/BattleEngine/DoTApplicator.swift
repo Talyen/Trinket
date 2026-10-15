@@ -168,7 +168,7 @@ package enum DoTApplicator {
         guard context.roster.health(for: effectTarget) > 0 else { return }
         let poisonDurationBonus = application != .reflection && context.roster.hasAffliction(.poison, on: effectTarget)
             ? sourceProfile.triggers.bleedDurationVsPoisonedBonus : 0
-        context.appendEffect(
+        context.insertEffect(
             .bleed(potency),
             to: effectTarget,
             sourceID: sourceActorID,

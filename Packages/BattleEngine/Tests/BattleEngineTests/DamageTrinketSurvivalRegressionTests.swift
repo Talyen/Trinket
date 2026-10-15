@@ -15,7 +15,7 @@ struct DamageTrinketSurvivalRegressionTests {
             heroHealth: wearerDefeated ? 0 : 20,
             heroModifiers: profile, appliesFightPacing: false,
         )
-        battle.appendEffect(.bleed(4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        battle.insertEffect(.bleed(4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
 
         CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
 
@@ -36,7 +36,7 @@ struct DamageTrinketSurvivalRegressionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
         battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
-        battle.appendEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
         let outcome = battle.resolveTestDamage(
             1,

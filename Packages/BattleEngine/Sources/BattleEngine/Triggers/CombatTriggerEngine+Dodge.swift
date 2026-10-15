@@ -264,13 +264,12 @@ package extension CombatTriggerEngine {
 
         for _ in 0 ..< BattleState.maxDrawAndPlayDepth {
             guard context.health(of: combatant) > 0 else { return }
-            let played = await DrawAndPlayCardsHandler().apply(
-                .drawAndPlayCards(1),
+            let played = await EffectApplication(
+                effect: .drawAndPlayCards(1),
                 ability: cascadeAbility,
                 source: combatant,
                 target: combatant,
-                in: &context,
-            )
+            ).apply(in: &context)
             guard played.didApply else { break }
 
             guard played.criticalAttackActorIDs.contains(combatant.id) else { break }

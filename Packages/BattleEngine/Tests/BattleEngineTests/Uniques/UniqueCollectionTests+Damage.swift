@@ -23,11 +23,10 @@ extension UniqueCollectionTests {
         let enemy = context.roster.enemy.combatant
         let before = context.roster.enemy.currentHealth
         let effect: Effect = keyword == .burn ? .burn(20) : .bleed(10)
-        context.appendEffect(effect, to: enemy, sourceID: context.roster.hero.id, remainingTurns: 2)
+        context.insertEffect(effect, to: enemy, sourceID: context.roster.hero.id, remainingTurns: 2)
         let active = try #require(context.roster.enemy.activeEffects.first)
-        let handler = EffectHandlers.handler(for: effect.kind)
 
-        let events = context.recordingEvents { context in await handler.advanceTurn(active, on: enemy, in: &context) }
+        let events = context.recordingEvents { context in await EffectHandlers.advanceTurn(active, on: enemy, in: &context) }
 
         let followups = chained ? DoTMirrorCascade.maxChainDepth : 1
         #expect(before - context.roster.enemy.currentHealth == 10 + followups)
@@ -63,7 +62,7 @@ extension UniqueCollectionTests {
     func `wardbreaker only purges when its wearer causes the stun`(source: BattleParticipant) throws {
         var context = try battle(["wardbreaker"])
         let enemy = context.roster.enemy.combatant
-        context.appendEffect(.thorns(3), to: enemy, sourceID: enemy.id, remainingTurns: 0)
+        context.insertEffect(.thorns(3), to: enemy, sourceID: enemy.id, remainingTurns: 0)
         let threshold = ControlMeterEngine.threshold(for: enemy, in: context)
 
         _ = context.chargeTestControl(
@@ -135,7 +134,7 @@ extension UniqueCollectionTests {
         extra.triggers.damageVsBleedingBonus = 4
         extra.triggers.physicalDamageVsBleedingMultiplier = 2
         var context = try battle(["oathkeeper"], extra: extra)
-        context.appendEffect(.bleed(1), to: context.roster.enemy.combatant, sourceID: context.roster.hero.id, remainingTurns: 2)
+        context.insertEffect(.bleed(1), to: context.roster.enemy.combatant, sourceID: context.roster.hero.id, remainingTurns: 2)
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1962)
         try play(attack(.burn), in: &context)
@@ -147,14 +146,13 @@ extension UniqueCollectionTests {
         var extra = CombatModifierProfile(damageDealtBonus: [.burn: 2, .bleed: 3], outgoingDamagePercent: 0.2)
         extra.triggers.damageVsBleedingBonus = 4
         var context = try battle(["bloodember_pendant"], extra: extra)
-        context.appendEffect(.bleed(1), to: context.roster.enemy.combatant, sourceID: context.roster.hero.id, remainingTurns: 2)
+        context.insertEffect(.bleed(1), to: context.roster.enemy.combatant, sourceID: context.roster.hero.id, remainingTurns: 2)
         try play(attack(keyword), in: &context)
         #expect(context.roster.enemy.currentHealth == 1979)
         let potency = keyword == .burn ? 21 : 10
         let active = try #require(context.roster.enemy.activeEffects.first { $0.keyword == keyword && $0.effect.potency == potency })
-        let handler = EffectHandlers.handler(for: active.effect.kind)
         let before = context.health(of: context.enemy)
-        CombatExecutor.run { await handler.advanceTurn(active, on: context.enemy, in: &context) }
+        CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: context.enemy, in: &context) }
         #expect(before - context.health(of: context.enemy) == (keyword == .burn ? 10 : 21))
     }
 
@@ -234,7 +232,7 @@ extension UniqueCollectionTests {
     func `serpent requires existing poison when the first packet is fully blocked`(alreadyPoisoned: Bool) throws {
         var context = try battle(["serpents_eye"], enemyExtra: CombatModifierProfile(damageTakenFlat: [.physical: 2]))
         if alreadyPoisoned {
-            context.appendEffect(.poison(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
+            context.insertEffect(.poison(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
         }
         block(20, owner: .enemy, in: &context)
         let mixed = Ability(

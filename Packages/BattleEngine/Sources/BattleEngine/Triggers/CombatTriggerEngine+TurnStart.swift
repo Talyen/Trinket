@@ -283,7 +283,7 @@ package extension CombatTriggerEngine {
         }
         guard !context.isBattleOver, context.health(of: actor) > 0 else { return }
         if triggers.dodgeFirstAttackEachCombat {
-            context.prependEffect(.evadeNextHit, to: actor, remainingTurns: 0)
+            context.insertEffect(.evadeNextHit, to: actor, remainingTurns: 0, at: 0)
         }
     }
 

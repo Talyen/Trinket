@@ -404,7 +404,7 @@ package extension CombatTriggerEngine {
                 return sum
             }
             ActiveEffectMutation.removeMatching(from: target, in: &context) { $0.kind == .thorns }
-            context.appendEffect(.thorns(total), to: target, sourceID: source.id, remainingTurns: 0)
+            context.insertEffect(.thorns(total), to: target, sourceID: source.id, remainingTurns: 0)
             context.nextEvent(
                 kind: .effect(.thornsApplied),
                 source: .init(source),

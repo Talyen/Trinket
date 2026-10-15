@@ -17,7 +17,7 @@ struct HealingSurvivalRegressionTests {
         profile.triggers.overhealConvertsToBlock = true
         profile.triggers.wishspring = true
         var battle = makeBattle(profile: profile, heroHealth: 19)
-        battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
 
         let outcome = battle.resolveHeal(HealRequest(amount: 3, target: battle.hero, sourceActorID: battle.companion.id))
 
@@ -53,7 +53,7 @@ struct HealingSurvivalRegressionTests {
         profile.triggers.cleanseHolyDamage = 3
         profile.triggers.sharedRootsHealPercent = 1
         var battle = makeBattle(profile: profile, heroHealth: 5)
-        battle.appendEffect(.poison(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
 
         _ = battle.resolveHeal(HealRequest(amount: 1, target: battle.companion, sourceActorID: battle.companion.id))
 

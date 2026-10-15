@@ -21,7 +21,7 @@ struct ActionPreparationRegressionTests {
             dealOpeningHand: false,
             appliesFightPacing: false,
         )
-        battle.appendEffect(.burn(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.burn(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
 
         if card {
             let drawn = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
@@ -58,7 +58,7 @@ struct ActionPreparationRegressionTests {
             dealOpeningHand: false,
             appliesFightPacing: false,
         )
-        battle.appendEffect(.burn(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.burn(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
         let before = battle.rng
 
         BattleTurnEngine.performAction(
@@ -91,7 +91,7 @@ struct ActionPreparationRegressionTests {
             appliesFightPacing: false,
         )
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
-        battle.appendEffect(
+        battle.insertEffect(
             .controlMeter(.stun, threshold - 1, threshold), to: battle.enemy,
             sourceID: battle.companion.id, remainingTurns: 0,
         )

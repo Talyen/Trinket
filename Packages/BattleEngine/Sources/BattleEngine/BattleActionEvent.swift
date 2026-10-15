@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -77,14 +76,14 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         return outcome
     }
 
-    public let actorID: String
-    public let actorName: String
+    public private(set) var actorID: String
+    public private(set) var actorName: String
     public let abilityID: String
-    public let abilityName: String
+    public private(set) var abilityName: String
     public let abilityTier: AbilityTier?
     public let targetID: String
     public let targetName: String
-    public let amount: Int
+    public private(set) var amount: Int
     public let keyword: Keyword
     public let appliedEffectSummaries: [String]
     public var milestone: Milestone? {
@@ -92,7 +91,7 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         return milestone
     }
 
-    public let isCritical: Bool
+    public private(set) var isCritical: Bool
 
     public init(
         id: Int,
@@ -147,25 +146,13 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         amount: Int? = nil,
         isCritical: Bool? = nil,
     ) -> Self {
-        Self(
-            id: id,
-            actionID: actionID,
-            kind: kind,
-            actorID: actorID ?? self.actorID,
-            actorName: actorName ?? self.actorName,
-            abilityID: abilityID,
-            abilityName: abilityName ?? self.abilityName,
-            abilityTier: abilityTier,
-            targetID: targetID,
-            targetName: targetName,
-            amount: amount ?? self.amount,
-            keyword: keyword,
-            appliedEffectSummaries: appliedEffectSummaries,
-            isCritical: isCritical ?? self.isCritical,
-            feedbackGroupID: feedbackGroupID,
-            origin: origin,
-            isFullyBlocked: isFullyBlocked,
-        )
+        var copy = self
+        copy.actorID = actorID ?? self.actorID
+        copy.actorName = actorName ?? self.actorName
+        copy.abilityName = abilityName ?? self.abilityName
+        copy.amount = amount ?? self.amount
+        copy.isCritical = isCritical ?? self.isCritical
+        return copy
     }
 }
 

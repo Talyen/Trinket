@@ -24,7 +24,7 @@ struct CombatMagnitudeRegressionTests {
 
     @Test func `Marked preserves capped attack damage when its bonus saturates`() {
         var battle = makeBattle()
-        battle.appendEffect(.marked(Int.max, 2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        battle.insertEffect(.marked(Int.max, 2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
 
         let outcome = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
 
@@ -36,7 +36,7 @@ struct CombatMagnitudeRegressionTests {
     @Test func `stacked Dazzled reductions prevent damage without overflowing`() {
         var battle = makeBattle()
         for amount in [Int.max, 1] {
-            battle.appendEffect(.damageReductionFlat(amount, 2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
+            battle.insertEffect(.damageReductionFlat(amount, 2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
         }
 
         let outcome = battle.resolveTestDamage(6, options: .attack(accuracy: .unavoidable))
@@ -49,7 +49,7 @@ struct CombatMagnitudeRegressionTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.poisonDamageVsBleedingFlat = 1
         var battle = makeBattle(profile: profile)
-        battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
 
         let outcome = battle.resolveDoTTick(
             basePotency: Int.max, keyword: .poison, target: battle.enemy, sourceActorID: battle.hero.id,

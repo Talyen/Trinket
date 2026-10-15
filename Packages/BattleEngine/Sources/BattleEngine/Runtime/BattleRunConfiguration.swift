@@ -30,50 +30,14 @@ public struct BattleRunConfiguration: Identifiable {
 
     // EntropyCheck: allow - battle run identity is per-launch local, not seeded combat RNG.
     public let id = UUID()
-    private struct Inputs: Equatable {
-        let runKey: BattleRunKey?
-        let rngSeed: UInt64
-        let hero: PartyMember
-        let companion: PartyMember
-        let enemy: Combatant?
-        let enemyEncounterLevel: Int?
-        let enemyModifiers: CombatModifierProfile
-        let enemyFaction: EnemyFaction
-    }
-
-    private let inputs: Inputs
-
-    public var runKey: BattleRunKey? {
-        inputs.runKey
-    }
-
-    public var rngSeed: UInt64 {
-        inputs.rngSeed
-    }
-
-    public var hero: PartyMember {
-        inputs.hero
-    }
-
-    public var companion: PartyMember {
-        inputs.companion
-    }
-
-    public var enemy: Combatant? {
-        inputs.enemy
-    }
-
-    public var enemyEncounterLevel: Int? {
-        inputs.enemyEncounterLevel
-    }
-
-    public var enemyModifiers: CombatModifierProfile {
-        inputs.enemyModifiers
-    }
-
-    public var enemyFaction: EnemyFaction {
-        inputs.enemyFaction
-    }
+    public let runKey: BattleRunKey?
+    public let rngSeed: UInt64
+    public let hero: PartyMember
+    public let companion: PartyMember
+    public let enemy: Combatant?
+    public let enemyEncounterLevel: Int?
+    public let enemyModifiers: CombatModifierProfile
+    public let enemyFaction: EnemyFaction
 
     public init(
         runKey: BattleRunKey? = nil,
@@ -85,22 +49,27 @@ public struct BattleRunConfiguration: Identifiable {
         enemyModifiers: CombatModifierProfile,
         enemyFaction: EnemyFaction = .mortal,
     ) {
-        inputs = Inputs(
-            runKey: runKey,
-            rngSeed: rngSeed,
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            enemyModifiers: enemyModifiers,
-            enemyFaction: enemyFaction,
-        )
+        self.runKey = runKey
+        self.rngSeed = rngSeed
+        self.hero = hero
+        self.companion = companion
+        self.enemy = enemy
+        self.enemyEncounterLevel = enemyEncounterLevel
+        self.enemyModifiers = enemyModifiers
+        self.enemyFaction = enemyFaction
     }
 
     /// Preparation can retain its identity and simulation only when all configuration
     /// inputs match. App-level reward and inventory projections have separate lifetimes.
     public func hasSameInputs(as other: Self) -> Bool {
-        inputs == other.inputs
+        runKey == other.runKey
+            && rngSeed == other.rngSeed
+            && hero == other.hero
+            && companion == other.companion
+            && enemy == other.enemy
+            && enemyEncounterLevel == other.enemyEncounterLevel
+            && enemyModifiers == other.enemyModifiers
+            && enemyFaction == other.enemyFaction
     }
 
     public func partyMember(for combatantID: String) -> PartyMember? {

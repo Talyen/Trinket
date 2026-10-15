@@ -7,7 +7,7 @@ struct DoTArithmeticBoundaryTests {
     @Test(arguments: [Keyword.burn, .poison])
     func `attaching potency to an amplified capped pool preserves the cap`(keyword: Keyword) {
         var battle = BattleTestFixtures.makePipelineContext()
-        battle.appendEffect(
+        battle.insertEffect(
             .decayingDoT(keyword: keyword, potency: Int.max / 2 + 1),
             to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0,
         )
@@ -94,7 +94,7 @@ struct DoTArithmeticBoundaryTests {
     @Test(arguments: [Keyword.burn, .bleed])
     func `detonation of capped potency resolves lethal damage without overflowing`(keyword: Keyword) {
         var battle = BattleTestFixtures.makePipelineContext(appliesFightPacing: false)
-        battle.appendEffect(
+        battle.insertEffect(
             keyword == .burn ? .burn(Int.max) : .bleed(Int.max),
             to: battle.enemy, sourceID: battle.hero.id,
             remainingTurns: keyword == .bleed ? 1 : 0,

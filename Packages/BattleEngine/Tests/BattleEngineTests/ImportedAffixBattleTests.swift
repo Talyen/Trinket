@@ -89,8 +89,8 @@ struct ImportedAffixBattleTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
         battle.roster.hero.hasConsumedDeathsDoor = true
-        battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
-        battle.appendEffect(.thorns(8), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(8), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
         _ = battle.resolveTestDamage(4, keyword: .holy, options: .attack(scaling: .flat, accuracy: .unavoidable))
 

@@ -1,19 +1,8 @@
 import TrinketContent
 import TrinketCore
 
-struct TimedDebuffHandler: BattleEffectHandler {
-    func apply(
-        _ effect: Effect,
-        ability _: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        let applied = context.insertEffect(effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns)
-        return EffectApplyOutcome(didApply: applied)
-    }
-
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+extension EffectHandlers {
+    static func summarizeTimedDebuff(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let active = stacks.first else { return nil }
         let durationSuffix = TimedBuffSummary.durationSuffix(in: stacks) { effect in
             effect.durationTurns > 0 ? effect.durationTurns : nil

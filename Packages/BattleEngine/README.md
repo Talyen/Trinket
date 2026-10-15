@@ -6,7 +6,7 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 
 Products from `Package.swift`:
 
-- **BattleEngine** — Core simulation library. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.handler(for:)` and mutate via `BattleState`. `PlayPolicy.greedy` (`greedy-v1`) picks a playable card for Auto Battle and headless sweeps.
+- **BattleEngine** — Core simulation library. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. `EffectApplication` dispatches effects with immutable attribution; `EffectHandlers` owns stored ticks and summaries. `PlayPolicy.greedy` (`greedy-v1`) picks a playable card for Auto Battle and headless sweeps.
 - **BattleBalanceTools** — App-unlinked library for headless simulation, sweeps, and reporting (`BattleSimulator`, `BalanceSweepRunner`, contrast runners). Depends on `BattleEngine`; not linked into the Trinket app.
 - **BalanceSweepCLI** — Executable entry for bulk sweeps. Depends on `BattleBalanceTools`. Invoke with `./Scripts/balance-sweep.sh`.
 
@@ -65,8 +65,8 @@ integration surface above.
 | `HealingResult` / `DamageDefensePolicy` | BattleEngine | Healing delivery facts and consistent defense bypass |
 | `BattleCard` / `BattleHand` / `CombatDeck` | BattleEngine | Three alternating draws from one-copy Hero/Companion decks; FIFO overflow and next-turn discard recycling |
 | `BattleCardCombatEngine` | BattleEngine | Opening draw, play resolution, enemy turn, end-of-round effect pass |
-| `BattleEffectHandler` | BattleEngine | Protocol for effect application and turn-advance logic |
-| `EffectHandlers` | BattleEngine | Exhaustive dispatch from `EffectKind` to its handler |
+| `EffectApplication` | BattleEngine | Closed effect dispatch, storage and event attribution |
+| `EffectHandlers` | BattleEngine | Stored-effect ticks, countdowns and summaries |
 | `CombatTriggerEngine` | BattleEngine | Talent and affix cadence under `Triggers/`, including `+BlockAndDefense`, `+HeroTalents`, and `+Companion`; Leech allocation lives under `Healing/` |
 | `CombatantRuntime` | BattleEngine | Per-combatant runtime state (HP, mana, active effects) |
 | `PlayPolicy.greedy` / `.setupAware` | BattleEngine | greedy-v1 Auto Battle; setup-v1 for diagnostic simulations (the career runner exposes it as setupAware-v1) |
@@ -89,9 +89,9 @@ Read only the matching detail: [hands and actions](../../Docs/AgentContext/battl
    `EffectKind`. Update the exhaustive kind/lifecycle mappings in
    `Effect+Properties.swift` and the effect's targeting, duration, magnitude,
    keyword, and presentation mappings in `Effect.swift` / `EffectPresentation.swift`.
-2. Reuse an existing handler when it expresses the behavior, or implement
-   `BattleEffectHandler` in this package. Add the dispatch case in
-   `EffectHandlers/Registry.swift`; handlers do not declare a second kind.
+2. Add the application case in `EffectApplication.swift`, reusing its storage
+   and attribution operations. Add specialized ticks or summaries through
+   `EffectHandlers/Registry.swift` when the shared lifecycle does not suffice.
 3. Follow the effect's consumers through Content validation and BattleFeature
    feedback to handle any additional exhaustive mappings. Keep gameplay in the
    engine and display policy in its presentation owner.

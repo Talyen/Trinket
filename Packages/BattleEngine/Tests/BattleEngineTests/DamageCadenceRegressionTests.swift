@@ -13,9 +13,9 @@ struct DamageCadenceRegressionTests {
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             enemy: build.combatant, enemyModifiers: build.modifiers, appliesFightPacing: false,
         )
-        battle.appendEffect(.bleed(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
-        battle.appendEffect(.burn(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
-        battle.appendEffect(.controlMeter(.stun, 20, 20), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
+        battle.insertEffect(.bleed(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
+        battle.insertEffect(.burn(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.controlMeter(.stun, 20, 20), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
         DefensePoolEngine.set(1, on: battle.enemy, in: &battle)
         let tick = battle.resolveTestDamage(4, from: .enemy, to: .hero, keyword: .bleed, options: .periodic)
         #expect(tick.healthLost == 4)
@@ -28,7 +28,7 @@ struct DamageCadenceRegressionTests {
         profile.triggers.stunnedDamageMultiplier = 2
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
-        battle.appendEffect(.controlMeter(.stun, 10, 10), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        battle.insertEffect(.controlMeter(.stun, 10, 10), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
         let tick = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
         ) }

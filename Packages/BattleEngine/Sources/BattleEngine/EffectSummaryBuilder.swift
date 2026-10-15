@@ -36,7 +36,7 @@ public enum EffectSummaryBuilder {
             }
             return lhs.key.keyword.rawValue < rhs.key.keyword.rawValue
         }.compactMap { group, stacks in
-            EffectHandlers.handler(for: group.kind).summary(for: stacks, keyword: group.keyword)
+            EffectHandlers.summary(for: stacks, keyword: group.keyword)
         }
     }
 }

@@ -10,7 +10,7 @@ struct FinalSparkRegressionTests {
         extra.triggers.backdraft = true
         var battle = try fixtures.battle(["the_final_spark"], extra: extra)
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 3 }
-        battle.appendEffect(.burn(4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.burn(4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
         let events = try fixtures.play(fixtures.attack(.burn), critical: true, in: &battle)
         let original = try #require(events.first { $0.kind == .abilityDamage && $0.abilityName == "strike" })

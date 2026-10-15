@@ -44,7 +44,7 @@ extension TalentCatalogRoundTripTests {
         in battle: inout BattleState,
         source: BattleParticipant = .hero,
     ) {
-        battle.appendEffect(
+        battle.insertEffect(
             effect,
             to: battle.roster[owner].combatant,
             sourceID: battle.roster[source].id,

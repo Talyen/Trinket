@@ -46,7 +46,7 @@ struct UniqueCollectionTests {
     ) throws -> [ActionEvent] {
         if critical {
             let actor = context.roster[owner].combatant
-            context.appendEffect(.nextStrikeCritical, to: actor, sourceID: actor.id, remainingTurns: 0)
+            context.insertEffect(.nextStrikeCritical, to: actor, sourceID: actor.id, remainingTurns: 0)
         }
         let card = BattleCardCombatEngine.deal(ability, owner: owner, context: &context)
         return try CombatExecutor.run { try await BattleCardCombatEngine.playDrawnCard(card, context: &context) }

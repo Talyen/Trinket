@@ -45,7 +45,7 @@ extension BattleTurnEngineTests {
             },
             dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.poison(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.poison(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
         let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
 
@@ -61,9 +61,9 @@ extension BattleTurnEngineTests {
             heroModifiers: CombatantTalentCatalog.profile(for: ["ranger_bleed_t3_1"]),
             dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
+        battle.insertEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
         if let control {
-            battle.appendEffect(.controlMeter(control, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+            battle.insertEffect(.controlMeter(control, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
         let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }

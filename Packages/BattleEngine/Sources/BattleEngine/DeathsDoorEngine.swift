@@ -150,10 +150,10 @@ package enum DeathsDoorEngine {
         let duration = SaturatedArithmetic.saturatingAdd(
             BattleTiming.deathsDoorDurationTurns, triggers.deathsDoorDurationBonusTurns,
         )
-        context.prependEffect(
+        context.insertEffect(
             .deathsDoor,
             to: combatant,
-            remainingTurns: duration,
+            remainingTurns: duration, at: 0,
         )
 
         context.nextEvent(

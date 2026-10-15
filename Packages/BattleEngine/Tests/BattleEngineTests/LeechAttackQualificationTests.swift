@@ -22,7 +22,7 @@ struct LeechAttackQualificationTests {
         profile.triggers.attackLeechPercent = 0.1
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, seed: 9, appliesFightPacing: false)
         battle.roster.hero.currentHealth = 10
-        battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
 
         let result = battle.resolveTestDamage(10, options: .attack(scaling: .flat, accuracy: .unavoidable))
 
@@ -39,7 +39,7 @@ struct LeechAttackQualificationTests {
         for seed in 1 ... 32 {
             var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, seed: UInt64(seed), appliesFightPacing: false)
             battle.roster.hero.currentHealth = 10
-            battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+            battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
             let result = battle.resolveTestDamage(8, options: .attack(accuracy: .unavoidable))
             criticals += result.isCritical ? 1 : 0
         }
@@ -52,7 +52,7 @@ struct LeechAttackQualificationTests {
         profile.triggers.bleedDamageLeech = bloodfire
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile, appliesFightPacing: false)
-        battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
+        battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
         let result = battle.resolveTestDamage(8, from: .companion, keyword: .bleed, options: .attack(accuracy: .unavoidable))
         #expect(result.healthLost == (bloodfire ? 10 : 8))
     }

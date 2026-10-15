@@ -30,7 +30,7 @@ struct CleanseIntegrationTests {
     @Test(arguments: [Keyword.stun, .freeze])
     func `cleansing control lets an ally play newly drawn cards this turn`(keyword: Keyword) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [.slash], dealOpeningHand: false)
-        battle.appendEffect(.controlMeter(keyword, 10, 10), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.controlMeter(keyword, 10, 10), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         _ = battle.finalizeOpeningHand()
         #expect(battle.ownersSkippingThisPlayerTurn.contains(.hero))
 
@@ -55,12 +55,14 @@ struct CleanseIntegrationTests {
         var applied = debuff
         applied.sourceActorID = battle.enemy.id
         battle.roster.hero.activeEffects = [applied]
-        let handler = EffectHandlers.handler(for: cleanse.kind)
         let enemyHealth = battle.roster.enemy.currentHealth
 
-        _ = CombatExecutor.run { await handler.apply(
-            cleanse, ability: .panaceaPotion, source: battle.companion, target: battle.hero, in: &battle,
-        ) }
+        _ = CombatExecutor.run { await EffectApplication(
+            effect: cleanse,
+            ability: .panaceaPotion,
+            source: battle.companion,
+            target: battle.hero,
+        ).apply(in: &battle) }
 
         #expect(battle.roster.hero.activeEffects.isEmpty)
         let reflected = try #require(battle.roster.enemy.activeEffects.first { $0.effect.kind == debuff.effect.kind })
@@ -77,8 +79,8 @@ struct CleanseIntegrationTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: profile, dealOpeningHand: false,
         )
-        battle.appendEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        battle.appendEffect(.bleed(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
+        battle.insertEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.bleed(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
         let health = battle.health(of: battle.enemy)
 
         _ = EffectHandlersTestSupport.dispatch(
@@ -227,7 +229,7 @@ struct CleanseIntegrationTests {
 
         #expect(battle.hand.count == initialHandCount)
 
-        battle.appendEffect(.poison(3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         _ = EffectHandlersTestSupport.dispatch(
             .cleanse(nil), source: battle.hero, target: battle.hero, battle: &battle,
         )
@@ -235,7 +237,7 @@ struct CleanseIntegrationTests {
         #expect(battle.hand.count == initialHandCount + 1)
 
         // Third cleanse with a new debuff does not draw again (once per combat)
-        battle.appendEffect(.bleed(3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 1)
+        battle.insertEffect(.bleed(3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 1)
         _ = EffectHandlersTestSupport.dispatch(
             .cleanse(nil), source: battle.hero, target: battle.hero, battle: &battle,
         )
@@ -280,7 +282,7 @@ extension CleanseIntegrationTests {
             dealOpeningHand: false, appliesFightPacing: false,
         )
         for effect in [Effect.poison(2), .burn(2)].prefix(removedCount) {
-            battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+            battle.insertEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         }
         let before = battle.health(of: battle.enemy)
         let outcome = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
@@ -300,7 +302,7 @@ extension CleanseIntegrationTests {
             appliesFightPacing: false,
         )
         for recipient in [battle.hero, battle.companion] {
-            battle.appendEffect(.poison(2), to: recipient, sourceID: battle.enemy.id, remainingTurns: 0)
+            battle.insertEffect(.poison(2), to: recipient, sourceID: battle.enemy.id, remainingTurns: 0)
         }
         let before = battle.health(of: battle.enemy)
         let outcome = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
@@ -333,15 +335,15 @@ extension CleanseIntegrationTests {
         }
         cleanse(&battle)
         #expect(!battle.roster.hero.talents.turn.negativeStatusImmune)
-        battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         cleanse(&battle)
         #expect(battle.roster.hero.talents.turn.negativeStatusImmune)
         let damage = battle.resolveTestDamage(3, from: .enemy, to: .hero, keyword: .poison, options: .reaction())
         #expect(damage.healthLost == 3)
-        let prevented = battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        let prevented = battle.insertEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         #expect(!prevented)
         CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        let reapplied = battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        let reapplied = battle.insertEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         #expect(reapplied)
     }
 }

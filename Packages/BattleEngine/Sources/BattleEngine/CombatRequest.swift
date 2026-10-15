@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -89,43 +88,10 @@ public struct HealRequest: Equatable, Hashable, Sendable {
     public var amount: Int
     public var target: Combatant
     public var sourceActorID: String?
-    public let origin: HealingOrigin
-    var logAs: HealLogPolicy
-    var revivesIfDead: Bool
-    var skipFightPacing: Bool
-
-    public init(
-        amount: Int,
-        target: Combatant,
-        sourceActorID: String? = nil,
-        origin: HealingOrigin = .reaction,
-    ) {
-        self.init(
-            amount: amount,
-            target: target,
-            sourceActorID: sourceActorID,
-            origin: origin,
-            logAs: .silent,
-        )
-    }
-
-    init(
-        amount: Int,
-        target: Combatant,
-        sourceActorID: String? = nil,
-        origin: HealingOrigin = .reaction,
-        logAs: HealLogPolicy,
-        revivesIfDead: Bool = false,
-        skipFightPacing: Bool = false,
-    ) {
-        self.amount = amount
-        self.target = target
-        self.sourceActorID = sourceActorID
-        self.origin = origin
-        self.logAs = logAs
-        self.revivesIfDead = revivesIfDead
-        self.skipFightPacing = skipFightPacing
-    }
+    public private(set) var origin: HealingOrigin = .reaction
+    var logAs: HealLogPolicy = .silent
+    var revivesIfDead = false
+    var skipFightPacing = false
 
     var isHoTTick: Bool {
         origin == .periodic
@@ -134,4 +100,13 @@ public struct HealRequest: Equatable, Hashable, Sendable {
     var isDirectCardHeal = false
     var amountBasis: AmountBasis = .base
     var suppressTalentReactions = false
+}
+
+public extension HealRequest {
+    init(amount: Int, target: Combatant, sourceActorID: String? = nil, origin: HealingOrigin = .reaction) {
+        self.amount = amount
+        self.target = target
+        self.sourceActorID = sourceActorID
+        self.origin = origin
+    }
 }

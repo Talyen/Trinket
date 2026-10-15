@@ -77,7 +77,7 @@ struct TurnBoundaryRegressionTests {
         var battle = cadenceBattle(heroModifiers: hero, companionModifiers: companion)
         battle.roster.hero.currentHealth = 20
         battle.roster.companion.currentHealth = 10
-        battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         DefensePoolEngine.set(1, on: battle.companion, in: &battle)
 
         let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
@@ -94,8 +94,8 @@ struct TurnBoundaryRegressionTests {
         var pixie = CombatantTalentCatalog.profile(for: ["pixie_cleanse_t1_1", "pixie_cleanse_t3_2"])
         pixie.triggers.criticalChanceBonus = -1
         var battle = cadenceBattle(heroModifiers: hero, companionModifiers: pixie)
-        battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
-        battle.appendEffect(.burn(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.burn(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
 
         let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 

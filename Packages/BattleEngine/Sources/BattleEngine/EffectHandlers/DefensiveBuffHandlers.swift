@@ -1,42 +1,16 @@
 import TrinketContent
 import TrinketCore
 
-struct BlockBuffHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+extension EffectHandlers {
+    static func summarizeBlockBuff(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = DefensePoolEngine.blockPoints(in: stacks)
         guard total > 0 else { return nil }
         return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total) points ready to absorb incoming damage")
     }
-
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
-        guard case let .shield(_, amount) = effect else {
-            return EffectApplyOutcome(didApply: false)
-        }
-        let gain = context.applyBlockGain(
-            amount,
-            to: target,
-            source: source,
-            abilityID: ability.id, abilityName: ability.name,
-            origin: .direct,
-        )
-        return EffectApplyOutcome(didApply: gain > 0)
-    }
 }
 
-struct ShieldFromResourceHandler: BattleEffectHandler {
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
+extension EffectApplication {
+    func applyShieldFromResource(in context: inout BattleState) async -> EffectApplyOutcome {
         let block: Int
         var payment: ManaPayment?
         switch effect {

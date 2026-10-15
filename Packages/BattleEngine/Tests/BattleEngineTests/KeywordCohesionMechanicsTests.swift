@@ -446,7 +446,7 @@ extension KeywordCohesionMechanicsTests {
             heroModifiers: CombatModifierProfile.withTriggers { $0.firstCriticalHitRepeatsPerTurn = true },
         )
         // Non-Physical Crit does not spend allowance or repeat.
-        battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         battle.performTestAction(Ability(id: "burn", name: "Burn", tier: .basic, directDamage: 4, damageKeyword: .burn))
         // Allowance preserved (not spent) – next Physical Crit still repeats (would need full card flow to verify repeat; assert flag not
         // set).

@@ -47,7 +47,7 @@ struct ThornsResistanceRegressionTests {
             heroModifiers: hero,
             enemyModifiers: .init(modifiers: [.damageTakenPercent(.thorns, 0.5)]), appliesFightPacing: false,
         )
-        battle.appendEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
         let hit = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
 

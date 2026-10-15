@@ -21,7 +21,7 @@ struct ManaEmpowermentLifetimeTests {
     func `nested casts preserve parent empowerment through prepared repeats and Spell Echo`(repeats: Bool) throws {
         var battle = makeBattle(echoes: true)
         if repeats {
-            battle.appendEffect(.playNextCardTwice, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+            battle.insertEffect(.playNextCardTwice, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         }
         let nested = Ability(
             id: "nested-hit", name: "Nested Hit", tier: .basic,

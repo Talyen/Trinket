@@ -50,7 +50,7 @@ struct AbilityStrategyTests {
             }, dealOpeningHand: false, appliesFightPacing: false,
         )
         DefensePoolEngine.set(2, on: state.enemy, in: &state)
-        state.appendEffect(.bleed(1), to: state.enemy, sourceID: state.hero.id, remainingTurns: 3)
+        state.insertEffect(.bleed(1), to: state.enemy, sourceID: state.hero.id, remainingTurns: 3)
         let result = state.recordingResult { state in await BattleTurnEngine.performEnemyAction(
             ability: .shieldBash,
             abilityTarget: state.hero,
@@ -80,7 +80,7 @@ struct AbilityStrategyTests {
     func `ice shot assessment selects before mana payment`(frozen: Bool) throws {
         var state = battle(mana: 6)
         if frozen {
-            state.appendEffect(.controlMeter(.freeze, 10, 10), to: state.enemy, sourceID: state.hero.id, remainingTurns: 0)
+            state.insertEffect(.controlMeter(.freeze, 10, 10), to: state.enemy, sourceID: state.hero.id, remainingTurns: 0)
         }
         let card = deal(.iceShot, in: &state)
         let rng = state.rng

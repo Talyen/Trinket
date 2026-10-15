@@ -1,8 +1,7 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
-struct DecayingDoTHandler: BattleEffectHandler {
+struct DecayingDoTHandler {
     let type: DecayingDoT
 
     var keyword: Keyword {
@@ -68,34 +67,13 @@ struct DecayingDoTHandler: BattleEffectHandler {
         )
     }
 
-    func apply(
-        _ effect: Effect,
-        ability _: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
-        guard let potency = effect.potency, matches(effect) else {
-            return EffectApplyOutcome(didApply: false)
-        }
-        await context.applyDecayingDoT(
-            keyword: keyword,
-            potency: potency,
-            to: target,
-            sourceActorID: source.id,
-            application: .ability,
-            provenance: context.resolution.damageProvenance(for: source.id),
-        )
-        return EffectApplyOutcome(didApply: true)
-    }
-
     private func matches(_ effect: Effect) -> Bool {
         effect.kind == type.kind
     }
 }
 
-struct BleedHandler: BattleEffectHandler {
-    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async {
+extension EffectHandlers {
+    static func advanceBleed(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async {
         guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
             return
         }
@@ -139,7 +117,7 @@ struct BleedHandler: BattleEffectHandler {
         )
     }
 
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    static func summarizeBleed(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, activeEffect in
             guard case let .bleed(potency) = activeEffect.effect, activeEffect.remainingTurns > 0 else {
                 return sum
@@ -153,28 +131,7 @@ struct BleedHandler: BattleEffectHandler {
         )
     }
 
-    func apply(
-        _ effect: Effect,
-        ability _: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
-        guard case let .bleed(potency) = effect else { return EffectApplyOutcome(didApply: false) }
-        let bleedsBefore = context.roster.activeEffects(for: target).count(where: \.effect.isBleed)
-        await DoTApplicator.applyBleed(
-            potency: potency,
-            to: target,
-            sourceActorID: source.id,
-            application: .ability,
-            provenance: context.resolution.damageProvenance(for: source.id),
-            in: &context,
-        )
-        let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
-        return EffectApplyOutcome(didApply: didApply)
-    }
-
-    private func drawCardOnBleedTick(
+    private static func drawCardOnBleedTick(
         active: ActiveEffect,
         sourceTriggers: CombatTraitTriggers?,
         target _: Combatant,
@@ -202,15 +159,13 @@ struct BleedHandler: BattleEffectHandler {
         )
     }
 
-    private func shouldPreserveBleed(on target: Combatant, in context: BattleState) -> Bool {
+    private static func shouldPreserveBleed(on target: Combatant, in context: BattleState) -> Bool {
         target.role == .enemy
             && context.roster.hasControlStatus(for: target, keyword: .freeze)
             && CombatTriggerEngine.hasLivingPartyTrigger(\.cryostasis, in: context)
     }
-}
 
-struct RecurringDamageHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    static func summarizeRecurringDamage(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let active = stacks.first,
               case let .recurringDamage(damageKeyword, potency, _) = active.effect
         else { return nil }
@@ -220,48 +175,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
         )
     }
 
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
-        guard case let .recurringDamage(keyword, potency, turns) = effect, potency > 0, turns > 0 else {
-            return EffectApplyOutcome(didApply: false)
-        }
-        let application = ActiveEffectMutation.replaceAndEmit(
-            .recurringDamage(keyword, potency, turns),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
-            replacing: {
-                if case let .recurringDamage(existingKeyword, _, _) = $0 {
-                    return existingKeyword == keyword
-                }
-                return false
-            },
-            event: (.recurringDamageApplied, potency, keyword),
-        )
-        guard application.didApply else { return application }
-        var operation = DamageOperation.periodic
-        operation.capturesCardRepeat = context.uniques.card?.repeatDamage == true
-            && UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context)
-        _ = await DoTDamage.resolveDamage(
-            basePotency: potency,
-            keyword: keyword,
-            target: target,
-            sourceActorID: source.id,
-            provenance: context.resolution.damageProvenance(for: source.id),
-            operation: operation,
-            in: &context,
-        )
-
-        return EffectApplyOutcome(didApply: true)
-    }
-
-    func advanceTurn(
+    static func advanceRecurringDamage(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
@@ -285,5 +199,33 @@ struct RecurringDamageHandler: BattleEffectHandler {
                 active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
             )
         }
+    }
+}
+
+extension EffectApplication {
+    func applyRecurringDamage(in context: inout BattleState) async -> EffectApplyOutcome {
+        guard case let .recurringDamage(keyword, potency, turns) = effect, potency > 0, turns > 0 else {
+            return EffectApplyOutcome(didApply: false)
+        }
+        let application = store(
+            replacing: { $0.kind == .recurringDamage && $0.keyword == keyword },
+            event: (.recurringDamageApplied, potency, keyword),
+            in: &context,
+        )
+        guard application.didApply else { return application }
+        var operation = DamageOperation.periodic
+        operation.capturesCardRepeat = context.uniques.card?.repeatDamage == true
+            && UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context)
+        _ = await DoTDamage.resolveDamage(
+            basePotency: potency,
+            keyword: keyword,
+            target: target,
+            sourceActorID: source.id,
+            provenance: context.resolution.damageProvenance(for: source.id),
+            operation: operation,
+            in: &context,
+        )
+
+        return EffectApplyOutcome(didApply: true)
     }
 }

@@ -1,9 +1,8 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
-struct AvatarHandler: BattleEffectHandler {
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+extension EffectHandlers {
+    static func summarizeAvatar(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let active = stacks.first,
               case let .avatar(holyDamage, blockPerTurn, _) = active.effect
         else { return nil }
@@ -14,40 +13,7 @@ struct AvatarHandler: BattleEffectHandler {
         )
     }
 
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
-        guard case let .avatar(holyDamage, blockPerTurn, turns) = effect,
-              holyDamage > 0, blockPerTurn >= 0, turns > 0
-        else {
-            return EffectApplyOutcome(didApply: false)
-        }
-        let application = ActiveEffectMutation.replaceAndEmit(
-            .avatar(holyDamage: holyDamage, blockPerTurn: blockPerTurn, turns: turns),
-            to: target,
-            source: source,
-            ability: ability,
-            in: &context,
-            replacing: { $0.kind == .avatar },
-            event: (.avatarApplied, holyDamage, .holy),
-        )
-        guard application.didApply else { return application }
-        await pulse(
-            holyDamage: holyDamage,
-            blockPerTurn: blockPerTurn,
-            from: target,
-            provenance: context.resolution.damageProvenance(for: source.id),
-            in: &context,
-        )
-
-        return EffectApplyOutcome(didApply: true)
-    }
-
-    func advanceTurn(
+    static func advanceAvatar(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
@@ -57,7 +23,7 @@ struct AvatarHandler: BattleEffectHandler {
         else {
             return
         }
-        await pulse(holyDamage: holyDamage, blockPerTurn: blockPerTurn, from: target, in: &context)
+        await pulseAvatar(holyDamage: holyDamage, blockPerTurn: blockPerTurn, from: target, in: &context)
         if var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) {
             updated.remainingTurns -= 1
             ActiveEffectMutation.finishTurn(
@@ -66,7 +32,7 @@ struct AvatarHandler: BattleEffectHandler {
         }
     }
 
-    private func pulse(
+    static func pulseAvatar(
         holyDamage: Int,
         blockPerTurn: Int,
         from caster: Combatant,
@@ -85,5 +51,30 @@ struct AvatarHandler: BattleEffectHandler {
         if blockPerTurn > 0 {
             context.applyBlockGain(blockPerTurn, to: caster, source: caster, abilityName: "Avatar")
         }
+    }
+}
+
+extension EffectApplication {
+    func applyAvatar(in context: inout BattleState) async -> EffectApplyOutcome {
+        guard case let .avatar(holyDamage, blockPerTurn, turns) = effect,
+              holyDamage > 0, blockPerTurn >= 0, turns > 0
+        else {
+            return EffectApplyOutcome(didApply: false)
+        }
+        let application = store(
+            replacing: { $0.kind == .avatar },
+            event: (.avatarApplied, holyDamage, .holy),
+            in: &context,
+        )
+        guard application.didApply else { return application }
+        await EffectHandlers.pulseAvatar(
+            holyDamage: holyDamage,
+            blockPerTurn: blockPerTurn,
+            from: target,
+            provenance: context.resolution.damageProvenance(for: source.id),
+            in: &context,
+        )
+
+        return EffectApplyOutcome(didApply: true)
     }
 }

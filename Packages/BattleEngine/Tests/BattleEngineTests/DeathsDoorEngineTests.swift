@@ -287,7 +287,7 @@ struct DeathsDoorEngineTests {
         )
         let target = battle.roster[owner].combatant
         battle.roster.mutateRuntime(for: target) { $0.currentHealth = 1 }
-        battle.appendEffect(.poison(8), to: target, sourceID: battle.roster.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(8), to: target, sourceID: battle.roster.enemy.id, remainingTurns: 0)
 
         _ = battle.resolveTestDamage(1, to: target, options: .attack(scaling: .flat, accuracy: .unavoidable))
 

@@ -14,7 +14,7 @@ struct CardDamageBoundaryTests {
         _ = EffectHandlersTestSupport.dispatch(
             .nextBurnBonus(bonus), source: hero, target: hero, battle: &battle,
         )
-        battle.appendEffect(.nextStrikeDouble, to: hero, sourceID: hero.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeDouble, to: hero, sourceID: hero.id, remainingTurns: 0)
         DefensePoolEngine.set(4, on: hero, in: &battle)
         let ability = Ability(
             id: "prepared-burn-boundary", name: "Prepared Burn", tier: .basic,
@@ -41,7 +41,7 @@ struct CardDamageBoundaryTests {
             heroModifiers: .init(triggers: .init(dot: DotTriggers { $0.steamExplosion = true })),
             dealOpeningHand: false,
         )
-        battle.appendEffect(.burn(Int.max), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.burn(Int.max), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let ability = Ability(
             id: "steam-preparation-boundary", name: "Freeze", tier: .basic,
             damageComponents: [DamageComponent(2, keyword: .freeze)],

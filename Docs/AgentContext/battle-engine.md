@@ -51,8 +51,8 @@ the same actor but exclude critical healing. The active card frames own those
 facts even when history and optional action recording are disabled.
 Optional action recording never invokes consumer code or exposes intermediate
 engine snapshots.
-Default effect-handler witnesses keep async signatures so direct calls cannot
-bypass a specialized turn handler.
+`EffectHandlers.advanceTurn` selects specialized ticks directly; ordinary timed
+effects share the countdown fallback.
 `CombatExecutorTests` owns small-stack, ordered-unwind and recorded-battle parity
 coverage; package compilation and execution follow the normal CI-owned policy.
 
@@ -79,15 +79,13 @@ without doubling saturated Health or rounding through `Double`.
 Status-summary duration formatting uses `Effect.durationTurns` by default; handlers
 with selective duration rules supply an extractor.
 
-`EffectHandlers.handler(for:)` exhaustively selects a handler for every `EffectKind`;
-there is no optional registration or missing-handler recovery. Handlers implement
-behavior without declaring a second kind. `StoredEffectHandler` shares storage and
-feedback for next-hit flags, wards, Marked, critical bonuses, Mana Shield,
-keyword overrides and Hemorrhage, preserving each effect's replacement or stacking rule.
-Cleanse/Purge and resource-to-Block handlers likewise select from the incoming effect.
-Thorns and Kindled share `StackingAmountBuffHandler`; additions and summary totals
-saturate while retaining their distinct effects, keywords and events.
-For a new effect kind, add its dispatch case. Existing handler and turn-processing
+`EffectApplication` owns immutable effect/ability/source/target attribution and
+exhaustively dispatches the closed `Effect` set. Its store and event operations
+share that attribution; stored-effect ticks and summaries live in `EffectHandlers`.
+Stored buffs share replacement and feedback while retaining their stacking rules.
+Thorns and Kindled share saturating amount-buff operations. Block grants use
+`BattleState.applyBlockGain`; all other insertion uses `insertEffect`.
+For a new effect kind, add its application dispatch case and any specialized lifecycle rules. Existing handler and turn-processing
 coverage may suffice; add or extend `EffectHandlersApplyTests` only when a behavior
 gap meets the [Testing.md](../Platform/Testing.md) value threshold. Use a thin
 integration case only when the existing owner cannot prove the interaction and

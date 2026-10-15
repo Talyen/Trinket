@@ -133,7 +133,7 @@ extension AbilityEffectIntegrationTests {
 
     @Test func `hemorrhage applies and detonates bleed`() {
         var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
-        context.appendEffect(.bleed(4), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
+        context.insertEffect(.bleed(4), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
         let before = context.health(of: context.enemy)
         let events = context.performTestAction(.hemorrhage)
         #expect(events.contains { $0.kind == .abilityDamage && $0.keyword == .bleed })
@@ -170,7 +170,7 @@ extension AbilityEffectIntegrationTests {
     func `fire arrow always deals three burn`(enemyAlreadyBurning: Bool) {
         var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
         if enemyAlreadyBurning {
-            context.appendEffect(.burn(3), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
+            context.insertEffect(.burn(3), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
         }
         let events = context.performTestAction(.fireArrow)
         #expect(events.first { $0.kind == .abilityDamage }?.amount == 3)

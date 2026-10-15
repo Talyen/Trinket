@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -6,14 +5,8 @@ private func isDetonatableDoT(_ effect: Effect, keyword: Keyword) -> Bool {
     effect.keyword == keyword && (effect.isDecayingDoT || effect.isBleed)
 }
 
-struct MultiplyDoTHandler: BattleEffectHandler {
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) -> EffectApplyOutcome {
+extension EffectApplication {
+    func applyMultiplyDoT(in context: inout BattleState) -> EffectApplyOutcome {
         guard case let .multiplyDoT(keyword, factor) = effect, factor > 1 else {
             return EffectApplyOutcome(didApply: false)
         }
@@ -36,26 +29,11 @@ struct MultiplyDoTHandler: BattleEffectHandler {
             total = SaturatedArithmetic.saturatingAdd(total, multiplied)
         }
         context.roster.setActiveEffects(effects, for: target)
-        context.nextEvent(
-            kind: .effect(.dotAmplified),
-            source: .init(source),
-            abilityID: ability.id, abilityName: ability.name,
-            target: target,
-            amount: total,
-            keyword: keyword,
-        )
+        emit(.dotAmplified, amount: total, keyword: keyword, origin: .automatic, in: &context)
         return EffectApplyOutcome(didApply: true)
     }
-}
 
-struct DetonateDoTHandler: BattleEffectHandler {
-    func apply(
-        _ effect: Effect,
-        ability _: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
+    func applyDetonateDoT(in context: inout BattleState) async -> EffectApplyOutcome {
         guard case let .detonateDoT(keyword, factor) = effect, factor > 0 else {
             return EffectApplyOutcome(didApply: false)
         }
@@ -77,7 +55,7 @@ struct DetonateDoTHandler: BattleEffectHandler {
         context.roster.setActiveEffects(effects, for: target)
 
         for active in matching {
-            await detonate(active, factor: factor, source: source, target: target, in: &context)
+            await detonate(active, factor: factor, in: &context)
         }
         return EffectApplyOutcome(didApply: true)
     }
@@ -85,8 +63,6 @@ struct DetonateDoTHandler: BattleEffectHandler {
     private func detonate(
         _ active: ActiveEffect,
         factor: Int,
-        source: Combatant,
-        target: Combatant,
         in context: inout BattleState,
     ) async {
         if active.effect.isBleed {

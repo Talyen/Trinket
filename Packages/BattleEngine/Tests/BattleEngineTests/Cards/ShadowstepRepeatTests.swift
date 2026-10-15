@@ -15,7 +15,7 @@ struct ShadowstepRepeatTests {
             ability = .stab
         } else {
             battle.roster.enemy.currentHealth = 99
-            battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+            battle.insertEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
             ability = Ability(
                 id: "restoring-stab", name: "Restoring Stab", tier: .basic,
                 damageComponents: Ability.stab.damageComponents,
@@ -42,8 +42,8 @@ struct ShadowstepRepeatTests {
         var battle = makeBattle(profile: profile)
         battle.roster.hero.currentHealth = 10
         battle.heroDeck = CombatDeck(abilities: [.block, .apple])
-        battle.appendEffect(.shield(.block, 6), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
-        battle.appendEffect(.nextStrikeDouble, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.shield(.block, 6), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeDouble, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         readyRepeat(on: battle.hero, in: &battle)
         let ability = Ability(
             id: "repeat-costs", name: "Repeat Costs", tier: .skill,
@@ -193,7 +193,7 @@ struct ShadowstepRepeatTests {
         var battle = makeBattle()
         battle.roster.hero.currentHealth = 1
         battle.roster.hero.hasConsumedDeathsDoor = true
-        battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         readyRepeat(on: battle.hero, in: &battle)
         let card = BattleCardCombatEngine.deal(attack(), owner: .hero, context: &battle)
 
@@ -214,7 +214,7 @@ struct ShadowstepRepeatTests {
         )
         readyRepeat(on: battle.enemy, in: &battle)
         if let control {
-            battle.appendEffect(.controlMeter(control, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+            battle.insertEffect(.controlMeter(control, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
         let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
@@ -244,7 +244,7 @@ struct ShadowstepRepeatTests {
     }
 
     private func readyRepeat(on actor: Combatant, in battle: inout BattleState) {
-        battle.appendEffect(.playNextCardTwice, to: actor, sourceID: actor.id, remainingTurns: 0)
+        battle.insertEffect(.playNextCardTwice, to: actor, sourceID: actor.id, remainingTurns: 0)
     }
 
     private func hasRepeat(on actor: Combatant, in battle: BattleState) -> Bool {

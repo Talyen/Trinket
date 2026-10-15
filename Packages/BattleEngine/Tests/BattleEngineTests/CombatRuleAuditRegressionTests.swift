@@ -35,7 +35,7 @@ struct CombatRuleAuditRegressionTests {
             companionAbilities: [.slash], companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
-        battle.appendEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         let events = battle.recordingEvents { battle in await BattleTurnEngine.performAction(
             ability: .slash, actor: battle.companion, abilityTarget: battle.enemy,
             origin: .counterattack, context: &battle,
@@ -76,7 +76,7 @@ struct CombatRuleAuditRegressionTests {
             enemyMaxHealth: 1, heroMaxMana: 9, heroMana: 9,
             heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         _ = try play(.meteor, in: &battle)
         #expect(battle.isBattleOver)
         #expect(battle.mana(of: battle.hero) == 6)

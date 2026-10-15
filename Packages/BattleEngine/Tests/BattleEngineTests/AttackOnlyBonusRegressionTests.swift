@@ -28,7 +28,7 @@ struct AttackOnlyBonusRegressionTests {
             appliesFightPacing: false,
         )
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
-        battle.appendEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
         let result = battle.resolveTestDamage(1, options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1))
 

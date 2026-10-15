@@ -11,7 +11,7 @@ extension UniqueCollectionTests {
         var context = try battle([], extra: profile)
         context.roster.hero.currentHealth = 10
         context.roster.companion.currentHealth = 20
-        context.appendEffect(.thorns(4), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
+        context.insertEffect(.thorns(4), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
 
         let events = enemyHit(1, in: &context).events
 
@@ -23,10 +23,12 @@ extension UniqueCollectionTests {
     @Test func `Rimeheart grants Block for Blizzard's immediate and lingering Freeze damage`() throws {
         var context = try battle(["rimeheart_locket"])
         let applied = CombatExecutor.run {
-            await RecurringDamageHandler().apply(
-                .recurringDamage(.freeze, 6, 1), ability: .blizzard,
-                source: context.hero, target: context.enemy, in: &context,
-            )
+            await EffectApplication(
+                effect: .recurringDamage(.freeze, 6, 1),
+                ability: .blizzard,
+                source: context.hero,
+                target: context.enemy,
+            ).apply(in: &context)
         }
         #expect(applied.didApply)
         #expect(context.health(of: context.enemy) == 1994)
@@ -43,7 +45,7 @@ extension UniqueCollectionTests {
         context.roster.hero.currentHealth = defeated ? 0 : 200
         block(3, owner: .hero, in: &context)
         let threshold = ControlMeterEngine.threshold(for: context.enemy, in: context)
-        context.appendEffect(
+        context.insertEffect(
             .recurringDamage(.freeze, threshold, 1), to: context.enemy,
             sourceID: context.hero.id, remainingTurns: 1,
         )
@@ -61,7 +63,7 @@ extension UniqueCollectionTests {
         context.roster.hero.currentHealth = 1
         context.roster.hero.hasConsumedDeathsDoor = defeated
         let threshold = ControlMeterEngine.threshold(for: context.enemy, in: context)
-        context.appendEffect(.thorns(threshold), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
+        context.insertEffect(.thorns(threshold), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
 
         _ = enemyHit(1, in: &context)
 

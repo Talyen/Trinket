@@ -88,7 +88,7 @@ struct CounterattackRewardRegressionTests {
     @Test(arguments: [0, 2], [false, true])
     func `Light Fingers steals Gold on a Critical Basic counterattack`(theftBonus: Int, fullyBlocked: Bool) {
         var battle = makeBattle(talents: ["rogue_gold_t1_1"]) { $0.triggers.goldStealFlatBonus = theftBonus }
-        battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         if fullyBlocked {
             DefensePoolEngine.set(100, on: battle.enemy, in: &battle)
         }

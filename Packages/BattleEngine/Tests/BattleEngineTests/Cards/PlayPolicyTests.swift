@@ -33,7 +33,7 @@ struct PlayPolicyTests {
         battle.roster.companion.currentHealth = 1
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.roster.companion.deathsDoorExpiredAtTurn = -1
-        battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.hand = BattleHand()
 
         let blackjack = BattleCardCombatEngine.deal(.blackjack, owner: .companion, context: &battle)
@@ -112,7 +112,7 @@ extension PlayPolicyTests {
         if retaliation {
             battle.roster.hero.hasConsumedDeathsDoor = true
             battle.roster.hero.deathsDoorExpiredAtTurn = -1
-            battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+            battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         }
         let attack = BattleCardCombatEngine.deal(retaliation ? .rayOfFrost : .slash, owner: .hero, context: &battle)
         let heal = BattleCardCombatEngine.deal(.heal, owner: .hero, context: &battle)

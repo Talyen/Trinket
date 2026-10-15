@@ -39,7 +39,7 @@ struct FoxRecoveryVictoryTests {
         )
         battle.roster.companion.currentHealth = 4
         DefensePoolEngine.set(8, on: battle.companion, in: &battle)
-        battle.appendEffect(.evadeNextHit, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.evadeNextHit, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         let attack = Ability(id: "fox-recovery-enemy-attack", name: "Enemy Attack", tier: .basic, directDamage: 5, criticalChanceBonus: -1)
 
         let events = battle.performTestAction(attack, from: .enemy, to: .companion)

@@ -24,7 +24,7 @@ struct PoisonedEnemyStunAuraTests {
             companionModifiers: companionProfile, appliesFightPacing: false,
         )
         if scenario != .unpoisoned {
-            battle.appendEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+            battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
         _ = battle.performTestAction(.bash, from: .companion)
@@ -40,7 +40,7 @@ struct PoisonedEnemyStunAuraTests {
             targetMaxHealth: 100,
             heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_poison_t4_1"]), appliesFightPacing: false,
         )
-        battle.appendEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
         _ = battle.chargeTestControl(4, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false)
 

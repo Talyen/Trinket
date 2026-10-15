@@ -226,7 +226,7 @@ struct BattleActionPresentationTests {
         defer { session.endBattle() }
         var state = try #require(session.engineState)
         if skipped {
-            state.appendEffect(.controlMeter(.stun, 10, 10), to: state.enemy, sourceID: state.hero.id, remainingTurns: 0)
+            state.insertEffect(.controlMeter(.stun, 10, 10), to: state.enemy, sourceID: state.hero.id, remainingTurns: 0)
         }
         session.engineState = state
         session.installSimulationPresentation()

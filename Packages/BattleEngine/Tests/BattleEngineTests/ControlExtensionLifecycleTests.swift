@@ -47,7 +47,7 @@ struct ControlExtensionLifecycleTests {
             hero: knight.combatant, companion: moth.combatant,
             heroModifiers: knight.modifiers, companionModifiers: mothModifiers, dealOpeningHand: false,
         )
-        battle.appendEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         applyControl(.freeze, source: battle.companion, in: &battle)
         applyControl(.stun, source: battle.hero, in: &battle)
 

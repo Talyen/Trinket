@@ -33,7 +33,7 @@ extension UniqueCollectionTests {
         var companion = CombatModifierProfile(damageDealtBonus: [.bleed: 1])
         wound.triggers.apply(to: &companion)
         var context = try battle(["blackfletch"], other: companion)
-        context.appendEffect(
+        context.insertEffect(
             .bleed(8),
             to: context.roster.enemy.combatant,
             sourceID: context.roster.companion.id,
@@ -85,7 +85,7 @@ extension UniqueCollectionTests {
         var context = try battle(["laughing_guard"], owner: owner, extra: extra)
         let actor = context.roster[owner].combatant
         block(9, owner: owner, in: &context)
-        context.appendEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
+        context.insertEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
         let hit = context.resolveTestDamage(10, to: actor, keyword: .physical, sourceActorID: context.roster.enemy.id)
         #expect(hit.isDodged)
         #expect(context.roster.enemy.currentHealth == 1994)
@@ -149,7 +149,7 @@ extension UniqueCollectionTests {
         if defeated {
             context.roster.mutateRuntime(for: companion) { $0.currentHealth = 0 }
         } else {
-            context.appendEffect(
+            context.insertEffect(
                 .controlMeter(.stun, 40, 40),
                 to: companion,
                 sourceID: context.roster.enemy.id,
@@ -165,8 +165,8 @@ extension UniqueCollectionTests {
         protection.triggers.sealedSarcophagus = true
         var context = try battle(["wardbreaker"], enemyExtra: protection)
         let enemy = context.enemy
-        context.appendEffect(.shield(.block, 10), to: enemy, sourceID: enemy.id, remainingTurns: 0)
-        context.appendEffect(.thorns(2), to: enemy, sourceID: enemy.id, remainingTurns: 0)
+        context.insertEffect(.shield(.block, 10), to: enemy, sourceID: enemy.id, remainingTurns: 0)
+        context.insertEffect(.thorns(2), to: enemy, sourceID: enemy.id, remainingTurns: 0)
         let events = context.recordingEvents { context in await CombatTriggerEngine.afterEnemyStunned(
             sourceActorID: context.hero.id,
             in: &context,
@@ -181,7 +181,7 @@ extension UniqueCollectionTests {
         extra.triggers.interdict = true
         var context = try battle([], extra: extra)
         let enemy = context.enemy
-        context.appendEffect(.thorns(2), to: enemy, sourceID: enemy.id, remainingTurns: 0)
+        context.insertEffect(.thorns(2), to: enemy, sourceID: enemy.id, remainingTurns: 0)
         CombatExecutor.run { await CombatTriggerEngine.applyPurge(
             to: enemy,
             source: context.hero,
@@ -209,7 +209,7 @@ extension UniqueCollectionTests {
         var context = try battle(["rimeheart_locket"])
         context.roster.hero.currentHealth = 1
         context.roster.hero.hasConsumedDeathsDoor = finallyDefeated
-        context.appendEffect(.thorns(8), to: context.enemy, sourceID: context.enemy.id, remainingTurns: 0)
+        context.insertEffect(.thorns(8), to: context.enemy, sourceID: context.enemy.id, remainingTurns: 0)
 
         let outcome = context.resolveTestDamage(
             4,

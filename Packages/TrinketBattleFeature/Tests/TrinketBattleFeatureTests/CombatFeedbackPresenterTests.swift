@@ -203,7 +203,7 @@ struct CombatFeedbackPresenterTests {
         )
         battle.appliesFightPacing = false
         DefensePoolEngine.set(block, on: enemy, in: &battle)
-        battle.appendEffect(.marked(3, 2), to: enemy, sourceID: hero.id, remainingTurns: 2)
+        battle.insertEffect(.marked(3, 2), to: enemy, sourceID: hero.id, remainingTurns: 2)
         let healthBefore = battle.health(of: enemy)
         let events = BattleTurnEngine.performAction(ability: ability, actor: hero, abilityTarget: enemy, context: &battle)
         let marked = try #require(events.first { $0.effectKind == .markedConsumed })

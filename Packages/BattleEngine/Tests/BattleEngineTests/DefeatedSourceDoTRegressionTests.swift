@@ -27,7 +27,7 @@ struct DefeatedSourceDoTRegressionTests {
                 .detonateDoT(.burn, 1), source: battle.hero, target: battle.enemy, battle: &battle,
             )
         } else {
-            CombatExecutor.run { await EffectHandlers.handler(for: .burn).advanceTurn(burn, on: battle.enemy, in: &battle) }
+            CombatExecutor.run { await EffectHandlers.advanceTurn(burn, on: battle.enemy, in: &battle) }
         }
 
         let packets = detonates ? 3 : 1
@@ -51,7 +51,7 @@ struct DefeatedSourceDoTRegressionTests {
                 $0.onBurnDamageDetonateBleed = true
             }, appliesFightPacing: false,
         )
-        battle.appendEffect(.bleed(4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 1)
+        battle.insertEffect(.bleed(4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 1)
 
         if detonates {
             _ = EffectHandlersTestSupport.dispatch(
@@ -80,7 +80,7 @@ struct DefeatedSourceDoTRegressionTests {
                 .profile(for: ["rogue_bleed_t2_2"]), appliesFightPacing: false,
         )
 
-        let events = battle.recordingEvents { battle in await EffectHandlers.handler(for: .bleed).advanceTurn(
+        let events = battle.recordingEvents { battle in await EffectHandlers.advanceTurn(
             bleed, on: battle.enemy, in: &battle,
         ) }
 
@@ -111,7 +111,7 @@ struct DefeatedSourceDoTRegressionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
 
-        CombatExecutor.run { await EffectHandlers.handler(for: .bleed).advanceTurn(
+        CombatExecutor.run { await EffectHandlers.advanceTurn(
             bleed, on: battle.enemy, in: &battle,
         ) }
 

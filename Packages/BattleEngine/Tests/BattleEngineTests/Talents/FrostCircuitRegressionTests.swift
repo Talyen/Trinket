@@ -18,7 +18,7 @@ struct FrostCircuitRegressionTests {
         if blocked {
             DefensePoolEngine.set(100, on: battle.enemy, in: &battle)
         }
-        battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let events: [ActionEvent]
         if counterattack {
             fixtures.block(10, owner: .hero, in: &battle)

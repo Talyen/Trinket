@@ -25,7 +25,7 @@ struct BattleBoundaryRegressionTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = makeBattle(profile: profile)
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
-        battle.appendEffect(.controlMeter(.freeze, threshold, threshold), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.controlMeter(.freeze, threshold, threshold), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
         let outcome = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
 
@@ -93,7 +93,7 @@ struct BattleBoundaryRegressionTests {
         profile.triggers.bleedDurationFromCriticalBonus = critical ? 1 : 0
         profile.triggers.bleedDurationVsPoisonedBonus = 1
         var battle = makeBattle(profile: profile)
-        battle.appendEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         CombatExecutor.run { await BattleTurnEngine.applyDoTStackFromDamage(
             keyword: .bleed, potency: 1, to: battle.enemy,
             sourceActorID: battle.hero.id, isCritical: critical, context: &battle,
@@ -233,7 +233,7 @@ struct BattleBoundaryRegressionTests {
     @Test func `stacked Burn potency saturates before damage bonuses read it`() {
         var battle = makeBattle(profile: .zero)
         for potency in [Int.max, 1] {
-            battle.appendEffect(.burn(potency), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+            battle.insertEffect(.burn(potency), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
         #expect(CombatTriggerEngine.totalPotency(of: .burn, on: battle.enemy, in: battle) == Int.max)
@@ -243,7 +243,7 @@ struct BattleBoundaryRegressionTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.onCritDoubleBleedDuration = true
         var battle = makeBattle(profile: profile)
-        battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: Int.max)
+        battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: Int.max)
 
         CombatExecutor.run { await CombatTriggerEngine.afterCriticalHit(
             to: battle.enemy, source: battle.hero, targetWasStunnedAtHit: false, in: &battle,
@@ -274,8 +274,8 @@ struct BattleBoundaryRegressionTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.stunPurgeDealHolyPerEffect = Int.max
         var battle = makeBattle(profile: profile)
-        battle.appendEffect(.shield(.block, 1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
-        battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.shield(.block, 1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
         CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(
             sourceActorID: battle.hero.id, in: &battle,

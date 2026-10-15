@@ -8,7 +8,7 @@ extension UniqueCollectionTests {
     func `Red Harvest detonates Bleed only after damaging Physical Critical Hits`(owner: BattleParticipant) throws {
         func prepared() throws -> BattleState {
             var context = try battle(["red_harvest"], owner: owner)
-            context.appendEffect(
+            context.insertEffect(
                 .bleed(4), to: context.roster.enemy.combatant,
                 sourceID: context.roster[owner].id, remainingTurns: 2,
             )
@@ -22,7 +22,7 @@ extension UniqueCollectionTests {
         #expect(!critical.roster.hasAffliction(.bleed, on: enemy))
         #expect(beforeHealth - critical.roster.enemy.currentHealth > 10)
         #expect(critical.hand.isEmpty)
-        critical.appendEffect(.bleed(4), to: enemy, sourceID: critical.roster[owner].id, remainingTurns: 2)
+        critical.insertEffect(.bleed(4), to: enemy, sourceID: critical.roster[owner].id, remainingTurns: 2)
         try play(attack(.physical, amount: 5), owner: owner, critical: true, in: &critical)
         #expect(!critical.roster.hasAffliction(.bleed, on: enemy))
 

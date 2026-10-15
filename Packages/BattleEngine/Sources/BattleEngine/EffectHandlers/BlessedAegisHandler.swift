@@ -1,14 +1,8 @@
 import TrinketContent
 import TrinketCore
 
-struct BlessedAegisHandler: BattleEffectHandler {
-    func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target _: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
+extension EffectApplication {
+    func applyBlessedAegis(in context: inout BattleState) async -> EffectApplyOutcome {
         guard case let .blessedAegis(block, holyDamage) = effect else {
             return EffectApplyOutcome(didApply: false)
         }
@@ -19,28 +13,16 @@ struct BlessedAegisHandler: BattleEffectHandler {
             guard context.health(of: source) > 0 else { break }
             // Route through effect dispatch so BlessedAegis always composes the
             // canonical handlers for these kinds rather than a private copy.
-            let shield = await applyEffect(
-                .shield(.block, block), ability: ability, source: source, target: ally, in: &context,
-            )
+            let shield = await replacingEffect(
+                .shield(.block, block), target: ally,
+            ).apply(in: &context)
 
-            let ward = await applyEffect(
-                .onHitDamage(.holy, holyDamage),
-                ability: ability, source: source, target: ally, in: &context,
-            )
+            let ward = await replacingEffect(
+                .onHitDamage(.holy, holyDamage), target: ally,
+            ).apply(in: &context)
 
             didApply = didApply || shield.didApply || ward.didApply
         }
         return EffectApplyOutcome(didApply: didApply)
-    }
-
-    private func applyEffect(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async -> EffectApplyOutcome {
-        let handler = EffectHandlers.handler(for: effect.kind)
-        return await handler.apply(effect, ability: ability, source: source, target: target, in: &context)
     }
 }

@@ -17,7 +17,7 @@ struct DodgeCardChainRegressionTests {
         )
         battle.heroDeck = CombatDeck(abilities: [.block])
         battle.companionDeck = CombatDeck(abilities: [.stab])
-        battle.appendEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         let ability = Ability(id: "nested-draw", name: "Nested Draw", tier: .skill, effects: [.drawAndPlayCards(2)])
         let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
         let result = try CombatExecutor.run {
@@ -72,7 +72,7 @@ struct DodgeCardChainRegressionTests {
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.companionDeck = CombatDeck(abilities: [.stab])
         battle.heroDeck = CombatDeck(abilities: [.block])
-        battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
         let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
             by: battle.companion, attackerID: battle.enemy.id, in: &battle,

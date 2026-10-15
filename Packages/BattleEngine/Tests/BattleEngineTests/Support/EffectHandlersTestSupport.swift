@@ -1,6 +1,6 @@
-import BattleEngine
 import TrinketContent
 import TrinketCore
+@testable import BattleEngine
 
 enum EffectHandlersTestSupport {
     struct ApplicationObservation {
@@ -22,9 +22,8 @@ enum EffectHandlersTestSupport {
     ) -> ApplicationObservation {
         let source = source ?? battle.hero
         let target = target ?? battle.hero
-        let handler = EffectHandlers.handler(for: effect.kind)
         let outcome = battle.recordingResult { battle in
-            await handler.apply(effect, ability: ability, source: source, target: target, in: &battle)
+            await EffectApplication(effect: effect, ability: ability, source: source, target: target).apply(in: &battle)
         }
         if battle.tracksLog {
             battle.syncLog()
@@ -37,14 +36,13 @@ enum EffectHandlersTestSupport {
         target: Combatant,
         battle: inout BattleState,
     ) -> TickObservation {
-        let handler = EffectHandlers.handler(for: active.effect.kind)
         battle.roster.mutateRuntime(for: target) {
             $0.activeEffects.removeAll { $0.id == active.id }
             $0.activeEffects.append(active)
         }
         battle.nextEffectID = max(battle.nextEffectID, active.id + 1)
         let outcome = battle.recordingEvents { battle in
-            await handler.advanceTurn(active, on: target, in: &battle)
+            await EffectHandlers.advanceTurn(active, on: target, in: &battle)
         }
         if battle.tracksLog {
             battle.syncLog()

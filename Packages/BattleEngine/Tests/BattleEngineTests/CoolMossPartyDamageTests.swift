@@ -18,7 +18,7 @@ struct CoolMossPartyDamageTests {
             dealOpeningHand: false, appliesFightPacing: false,
         )
         if poisoned {
-            battle.appendEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+            battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
         if !heroAlive {
             battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 0 }

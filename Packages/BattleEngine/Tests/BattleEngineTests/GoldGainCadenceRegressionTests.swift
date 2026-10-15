@@ -14,7 +14,7 @@ struct GoldGainCadenceRegressionTests {
         battle.roster.hero.currentHealth = 50
         battle.heroDeck = CombatDeck(abilities: [.slash, .block, .maul])
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
-        battle.appendEffect(
+        battle.insertEffect(
             .controlMeter(.stun, threshold - 1, threshold), to: battle.enemy,
             sourceID: battle.hero.id, remainingTurns: 0,
         )

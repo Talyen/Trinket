@@ -29,7 +29,7 @@ struct CombatSafetyRegressionTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.backdraft = true
         var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: profile)
-        battle.appendEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         var damage = packet(in: battle)
         damage.isCritical = true
         damage.remaining = Int.max
@@ -99,8 +99,8 @@ struct CombatSafetyRegressionTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.pruningHealthRemoveEnemyThorns = Int.max
         var battle = BattleStateTestFactory.makeMinimalBattle(heroHealth: 1, heroModifiers: profile, appliesFightPacing: false)
-        battle.appendEffect(.thorns(Int.max), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
-        battle.appendEffect(.thorns(2), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(Int.max), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(2), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         _ = battle.resolveHeal(HealRequest(amount: 1, target: battle.hero, sourceActorID: battle.hero.id))
         #expect(battle.activeEffects(of: battle.enemy).filter { $0.effect.kind == .thorns }.map(\.effect) == [.thorns(2)])
     }

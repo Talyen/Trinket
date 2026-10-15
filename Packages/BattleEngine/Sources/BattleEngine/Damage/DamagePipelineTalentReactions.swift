@@ -134,7 +134,7 @@ package extension DamagePipeline {
             DefensePoolEngine.steal(3, from: state.combatant, to: source.combatant, abilityName: "Bounty Blade", in: &context)
         }
         if triggers.perfectTempo, keyword == .physical, state.isCritical {
-            context.prependEffect(.evadeNextHit, to: source.combatant, remainingTurns: 0)
+            context.insertEffect(.evadeNextHit, to: source.combatant, remainingTurns: 0, at: 0)
         }
     }
 

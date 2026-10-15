@@ -6,8 +6,8 @@ import TrinketCore
 extension DoTMechanicsTests {
     @Test func `Bleed amplification multiplies every stack without replacing its source or duration`() {
         var battle = BattleTestFixtures.makePipelineContext()
-        battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
-        battle.appendEffect(.bleed(3), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 1)
+        battle.insertEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        battle.insertEffect(.bleed(3), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 1)
         let before = battle.activeEffects(of: battle.enemy)
 
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -46,9 +46,8 @@ extension DoTMechanicsTests {
             let active = battle.activeEffects(of: target).first { $0.keyword == keyword }
             #expect(active?.effect.potency ?? 0 == expected)
             if let active {
-                let handler = EffectHandlers.handler(for: active.effect.kind)
                 let tickBefore = battle.health(of: target)
-                CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
+                CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: target, in: &battle) }
                 #expect(tickBefore - battle.health(of: target) == active.effect.potencyAfterTurn())
             }
         }
@@ -82,16 +81,15 @@ extension DoTMechanicsTests {
             enemyModifiers: .init(damageTakenFlat: [keyword: 1]), appliesFightPacing: false,
         )
         let target = battle.enemy
-        battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let ability = Ability(id: "critical-dot", name: "Critical DoT", tier: .skill, directDamage: 4, damageKeyword: keyword)
         BattleTurnEngine.performAction(ability: ability, actor: battle.hero, abilityTarget: target, context: &battle)
         let active = try #require(battle.activeEffects(of: target).first { $0.keyword == keyword })
         #expect(active.effect.potency == 14)
         DefensePoolEngine.set(2, on: target, in: &battle)
         let before = battle.health(of: target)
-        let handler = EffectHandlers.handler(for: active.effect.kind)
 
-        CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
+        CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: target, in: &battle) }
 
         #expect(before - battle.health(of: target) == active.effect.potencyAfterTurn() - 1 - 2)
         #expect(battle.activeEffects(of: target).first { $0.keyword == keyword }?.effect.potency == active.effect.potencyAfterTurn())
@@ -103,7 +101,7 @@ extension DoTMechanicsTests {
             var battle = BattleTestFixtures.makePipelineContext(appliesFightPacing: false)
             let target = battle.hero
             if dodged {
-                battle.appendEffect(.evadeNextHit, to: target, sourceID: target.id, remainingTurns: 0)
+                battle.insertEffect(.evadeNextHit, to: target, sourceID: target.id, remainingTurns: 0)
             } else {
                 DefensePoolEngine.set(20, on: target, in: &battle)
             }
@@ -126,7 +124,7 @@ extension DoTMechanicsTests {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(damageDealtBonus: [keyword: 4], outgoingDamagePercent: 1), appliesFightPacing: false,
         )
-        battle.appendEffect(.decayingDoT(keyword: keyword, potency: 6), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(.decayingDoT(keyword: keyword, potency: 6), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         let before = battle.health(of: battle.enemy)
 
         _ = EffectHandlersTestSupport.dispatch(

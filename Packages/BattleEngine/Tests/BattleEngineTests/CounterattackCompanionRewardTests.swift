@@ -34,7 +34,7 @@ struct CounterattackCompanionRewardTests {
         )
         battle.companionDeck = CombatDeck(abilities: [.slash])
         fixtures.block(10, owner: .companion, in: &battle)
-        battle.appendEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
 
         let events = fixtures.enemyHit(1, target: .companion, in: &battle).events
 

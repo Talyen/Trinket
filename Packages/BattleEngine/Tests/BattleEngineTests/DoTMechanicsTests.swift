@@ -47,10 +47,9 @@ struct DoTMechanicsTests {
         #expect(initialHit.healthLost == (keyword == .burn && frozen ? 8 : 4))
         let effect: Effect = keyword == .burn ? .burn(4) : .poison(4)
         let active = ActiveEffect(id: 100, effect: effect, remainingTurns: 0, sourceActorID: battle.roster.hero.id)
-        let handler = EffectHandlers.handler(for: effect.kind)
         let healthBefore = battle.health(of: enemy)
 
-        CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
+        CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: enemy, in: &battle) }
 
         let expectedDamage = keyword == .burn ? 2 : 3
         #expect(healthBefore - battle.health(of: enemy) == expectedDamage)
@@ -234,8 +233,7 @@ struct DoTMechanicsTests {
 
         let poison = battle.activeEffects(of: enemy).first { $0.keyword == .poison }
         let active = try #require(poison)
-        let handler = EffectHandlers.handler(for: .poison)
-        CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
+        CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: enemy, in: &battle) }
         #expect(battle.health(of: hero) == 31)
         #expect(battle.health(of: enemy) == enemy.maxHealth - 22)
     }
@@ -256,8 +254,7 @@ struct DoTMechanicsTests {
             for: battle.enemy,
         )
         if isTick {
-            let handler = EffectHandlers.handler(for: .bleed)
-            CombatExecutor.run { await handler.advanceTurn(bleed, on: battle.enemy, in: &battle) }
+            CombatExecutor.run { await EffectHandlers.advanceTurn(bleed, on: battle.enemy, in: &battle) }
         } else {
             _ = battle.performTestAction(.rendingSlash)
         }
@@ -329,8 +326,7 @@ extension DoTMechanicsTests {
         let burn = battle.activeEffects(of: enemy).first { $0.keyword == .burn }
         let active = try #require(burn)
         #expect(active.effect.potency == 20)
-        let handler = EffectHandlers.handler(for: .burn)
-        let ticks = battle.recordingEvents { battle in await handler.advanceTurn(active, on: enemy, in: &battle) }
+        let ticks = battle.recordingEvents { battle in await EffectHandlers.advanceTurn(active, on: enemy, in: &battle) }
         #expect(statusAmounts(from: ticks, keyword: .burn) == [10, 10])
         #expect(battle.activeEffects(of: enemy).first { $0.keyword == .burn }?.effect.potency == 10)
     }
@@ -357,9 +353,8 @@ extension DoTMechanicsTests {
         #expect(!initial.isCritical)
         let active = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 2, sourceActorID: hero.id)
         battle.roster.setActiveEffects([active], for: enemy)
-        let handler = EffectHandlers.handler(for: .bleed)
 
-        let events = battle.recordingEvents { battle in await handler.advanceTurn(active, on: enemy, in: &battle) }
+        let events = battle.recordingEvents { battle in await EffectHandlers.advanceTurn(active, on: enemy, in: &battle) }
 
         #expect(statusAmounts(from: events, keyword: .bleed) == [specialCrit ? 15 : 6])
         let status = events.first { $0.kind == .status && $0.keyword == .bleed }
@@ -412,8 +407,7 @@ extension DoTMechanicsTests {
         let enemy = battle.roster.enemy.combatant
         let active = ActiveEffect(id: 100, effect: .burn(4), remainingTurns: 0, sourceActorID: hero.id)
         battle.roster.setActiveEffects([active], for: enemy)
-        let handler = EffectHandlers.handler(for: .burn)
-        CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
+        CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: enemy, in: &battle) }
         #expect(battle.roster.hero.currentMana == 1)
         #expect(battle.turnCadence.burnManaRestored[.hero] == 1)
     }
@@ -422,7 +416,7 @@ extension DoTMechanicsTests {
     func `one potency DoT expires before dealing turn damage`(keyword: Keyword) {
         var battle = isolatedBattle()
         let effect: Effect = keyword == .burn ? .burn(1) : .poison(1)
-        battle.appendEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        battle.insertEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
         CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
         #expect(battle.health(of: battle.enemy) == 100)

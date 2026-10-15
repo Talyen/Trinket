@@ -16,7 +16,7 @@ struct HealingReductionTests {
         battle.roster.hero.currentMana = 0
         battle.roster.hero.currentHealth -= missingHealth
         battle.roster.companion.currentHealth = 1
-        battle.appendEffect(.healingReductionPercent(0.5, 3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 3)
+        battle.insertEffect(.healingReductionPercent(0.5, 3), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 3)
         let outcome = CombatExecutor.run { await HealingEngine.leechFromDamage(
             16, sourceActorID: battle.hero.id, target: battle.enemy,
             abilityHasLeech: true, damageKeyword: .physical, in: &battle,
@@ -119,7 +119,7 @@ struct HealingReductionTests {
         let companion = battle.roster.companion.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
         battle.roster.mutateRuntime(for: companion) { $0.currentHealth = 1 }
-        battle.appendEffect(.poison(3), to: hero, sourceID: battle.roster.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.poison(3), to: hero, sourceID: battle.roster.enemy.id, remainingTurns: 0)
 
         let outcome = battle.resolveHeal(HealRequest(amount: 1, target: hero, sourceActorID: companion.id))
 
@@ -167,7 +167,7 @@ extension HealingReductionTests {
             companionModifiers: CombatantTalentCatalog.profile(for: ["panther_bleed_t3_2"]), appliesFightPacing: false,
         )
         battle.roster.enemy.currentHealth = 10
-        battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
+        battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 2)
 
         let outcome = battle.resolveHeal(HealRequest(amount: 8, target: battle.enemy, sourceActorID: battle.enemy.id))
 

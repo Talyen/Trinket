@@ -90,7 +90,7 @@ struct ManaEmpowermentTests {
             heroAbilities: [], heroMaxMana: 9, heroMana: 9,
             heroModifiers: profile,
         )
-        battle.appendEffect(.thorns(5), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(5), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         var ability = BattleAbilityRules.resolveOutcome(.cinderbloom, actor: battle.hero, in: &battle)
         #expect(ability.damageComponents.first?.keyword == .burn)
         CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
