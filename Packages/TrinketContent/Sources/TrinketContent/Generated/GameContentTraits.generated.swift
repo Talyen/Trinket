@@ -5,7 +5,7 @@ import TrinketCore
 enum GameContentTraitsGenerated {
     static let definitions: [CombatantTraitDefinition] = {
         var list = [CombatantTraitDefinition]()
-        list.reserveCapacity(48)
+        list.reserveCapacity(49)
         list.append(CombatantTraitDefinition(
             id: "watchful_guard",
             name: "Watchful Guard",
@@ -183,6 +183,12 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "toughened_hide",
             name: "Toughened Hide",
+            description: "Physical damage taken reduced by 10%",
+            modifiers: [.damageTakenPercent(.physical, 0.10)]
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "gelatinous_body",
+            name: "Gelatinous Body",
             description: "Physical damage taken reduced by 10%",
             modifiers: [.damageTakenPercent(.physical, 0.10)]
         ))

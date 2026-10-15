@@ -29,6 +29,7 @@ crimson_pulse	Crimson Pulse	Deals 1 Bleed damage every other turn to all enemies
 radiant_judgment	Radiant Judgment	Deals 1 Holy damage every other turn to all enemies		turn_random_damage_all_enemies:holy:holy:1|turn_random_damage_all_enemies_interval:2
 seismic_pulse	Seismic Pulse	Deals 1 Physical damage every other turn to all enemies		turn_random_damage_all_enemies:physical:physical:1|turn_random_damage_all_enemies_interval:2
 toughened_hide	Toughened Hide	Physical damage taken reduced by 10%	damage_taken_percent:physical:0.10	
+gelatinous_body	Gelatinous Body	Physical damage taken reduced by 10%	damage_taken_percent:physical:0.10	
 dense_form	Dense Form	Physical damage taken reduced by 20%	damage_taken_percent:physical:0.20	
 incorporeal	Incorporeal	Physical damage taken reduced by 30%	damage_taken_percent:physical:0.30	
 toxin_tolerance	Toxin Tolerance	Poison damage taken reduced by 10%	damage_taken_percent:poison:0.10	

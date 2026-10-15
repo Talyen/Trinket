@@ -12,7 +12,7 @@ the_iron_bear	The Iron Bear	15	true	bash,sunder,thornMail	thunderous_tremor	beas
 goblin	Goblin	13	false	stab,serratedEdge,astralArrow	kindling	mortal
 fire_elemental	Fire Elemental	13	false	kindling,fireball,combustion	searing_body,cold_shocked	elemental
 frost_elemental	Frost Elemental	14	false	rayOfFrost,glacialWard,blizzard	chilling_strikes,kindling	elemental
-slime	Slime	15	false	causticJab,acidPotion,bloodthorn	toughened_hide,toxin_tolerance	beast
+slime	Slime	15	false	causticJab,acidPotion,bloodthorn	gelatinous_body,toxin_tolerance	beast
 will_o_wisp	Will-o-Wisp	13	false	iceShot,frostbolt,blizzard	incorporeal,winterborn	elemental
 bandit	Bandit	13	false	stab,serratedEdge,hemorrhage	ambush,profane	mortal
 ogre	Ogre	15	false	slash,sunder,thornMail	shieldbreaker,profane	mortal
