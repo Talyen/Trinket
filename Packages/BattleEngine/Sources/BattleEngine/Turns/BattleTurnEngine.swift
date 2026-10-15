@@ -137,15 +137,20 @@ package enum BattleTurnEngine {
         let resolvedAbility = outcomes.resolve(using: &context.rng)
         let facts = ResolvedActionFacts(original: ability, resolved: resolvedAbility, action: action, origin: origin, in: context)
         let blockCost = resolvedAbility.blockCost
+        let deductedBlock: Int
         if blockCost > 0 {
             let balance = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
-            DefensePoolEngine.set(balance - blockCost, on: actor, in: &context)
+            deductedBlock = min(balance, blockCost)
+            DefensePoolEngine.set(balance - deductedBlock, on: actor, in: &context)
+        } else {
+            deductedBlock = 0
         }
         var committed = false
         defer {
-            if !committed, blockCost > 0 {
+            if !committed, deductedBlock > 0 {
                 let remaining = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
-                DefensePoolEngine.set(remaining + blockCost, on: actor, in: &context)
+                // Restore only the payment, preserving gains from interception reactions.
+                DefensePoolEngine.set(SaturatedArithmetic.saturatingAdd(remaining, deductedBlock), on: actor, in: &context)
             }
         }
         if entry == .enemyTurn {

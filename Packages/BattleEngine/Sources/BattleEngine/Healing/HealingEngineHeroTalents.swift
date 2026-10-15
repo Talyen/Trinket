@@ -209,6 +209,7 @@ extension HealingEngine {
                 abilityName: "Cleansing Dew", in: &context,
             )
         }
+        guard context.roster.health(for: source) > 0 else { return }
         if request.target.role == .companion, sourceTriggers.sharedRootsHealPercent > 0,
            context.roster.hero.isAlive {
             let amount = CombatRounding.scaled(restored, multiplier: sourceTriggers.sharedRootsHealPercent)

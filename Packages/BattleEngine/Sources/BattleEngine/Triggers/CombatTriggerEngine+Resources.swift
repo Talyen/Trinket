@@ -7,6 +7,7 @@ package extension CombatTriggerEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         goldTheftAllyBlock(amount, by: actor, in: &context)
         await afterCompanionGoldTheft(by: actor, in: &context)
+        guard context.roster.health(for: actor) > 0 else { return }
         if triggers.goldTheftBlockAmount > 0, triggers.goldTheftBlockChancePercent > 0,
            context.claimTalentAbility(.hoardArmor, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.goldTheftBlockChancePercent, using: &context.rng) {
@@ -136,7 +137,6 @@ package extension CombatTriggerEngine {
         )
     }
 
-    // swiftlint:disable:next function_body_length - gold trigger fan-out is one ordered transaction
     static func afterGoldGained(
         granted: Int,
         previousEarned: Int,
@@ -145,19 +145,54 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) async {
         guard granted > 0 else { return }
+        await afterGoldGainRewards(granted: granted, combatant: combatant, in: &context)
+        for (_, member) in livingPartyMembers(in: context) {
+            let memberTriggers = context.modifiers(for: member.id).triggers
+            let percent = memberTriggers.goldGainBlockPercent
+            if member.id == combatant.id, percent > 0 {
+                let block = CombatRounding.scaled(granted, multiplier: percent)
+                if block > 0 {
+                    emitBlock(
+                        .goldGainBlockPercent, "Golden Guard",
+                        amount: block, to: member.combatant, source: member.combatant, in: &context,
+                    )
+                }
+            }
+            let every = memberTriggers.blockPerGoldEarnedEvery
+            guard every > 0 else { continue }
+            let newlyGranted = currentEarned / every - previousEarned / every
+            if newlyGranted > 0 {
+                emitBlock(
+                    .blockPerGoldEarnedEvery, "Golden Guard",
+                    amount: newlyGranted, to: member.combatant, source: member.combatant, in: &context,
+                )
+            }
+        }
+    }
+
+    // swiftlint:disable:next function_body_length - recipient Gold rewards share ordered reaction checkpoints
+    private static func afterGoldGainRewards(
+        granted: Int,
+        combatant: Combatant,
+        in context: inout BattleState,
+    ) async {
+        guard context.roster.health(for: combatant) > 0 else { return }
         let triggers = context.modifiers(for: combatant.id).triggers
         let wasBelowHalfHealth = context.roster.isBelowHalfHealth(for: combatant)
         let restoration = await beginGoldRestoration(granted: granted, combatant: combatant, triggers: triggers, in: &context)
+        guard context.roster.health(for: combatant) > 0 else { return }
 
         let hasAbilityScope = context.resolution.actionID != nil || context.hasHeroCard(for: combatant.id)
         let wildcardGoldGain = granted > 0 && context.allowsHeroTalentReaction
             && (!hasAbilityScope || context.claimTalentAbility(.wildcardGoldGain, actorID: combatant.id))
         if wildcardGoldGain {
             await healthIsWealthHealing(for: combatant, triggers: triggers, in: &context)
+            guard context.roster.health(for: combatant) > 0 else { return }
             if triggers.goldGainCleanseChancePercent > 0,
                context.hasTalentDebuff(on: combatant),
                BattleChance.succeeds(probability: triggers.goldGainCleanseChancePercent, using: &context.rng) {
                 await performRandomCleanses(source: combatant, target: combatant, count: 1, abilityName: "Lucky Charm", in: &context)
+                guard context.roster.health(for: combatant) > 0 else { return }
             }
             if triggers.goldGainBelowHalfDrawCard, wasBelowHalfHealth,
                let owner = context.roster.participant(for: combatant) {
@@ -201,34 +236,11 @@ package extension CombatTriggerEngine {
         }
         if restoration {
             for (_, member) in livingPartyMembers(in: context) {
+                guard context.roster.health(for: combatant) > 0 else { break }
                 await emitHeal(
                     .onGainGoldHealParty, "Golden Recovery",
                     amount: triggers.onGainGoldHealParty, to: member.combatant, source: combatant, in: &context,
                 )
-            }
-        }
-        if granted > 0 {
-            for (_, member) in livingPartyMembers(in: context) {
-                let memberTriggers = context.modifiers(for: member.id).triggers
-                let percent = memberTriggers.goldGainBlockPercent
-                if member.id == combatant.id, percent > 0 {
-                    let block = CombatRounding.scaled(granted, multiplier: percent)
-                    if block > 0 {
-                        emitBlock(
-                            .goldGainBlockPercent, "Golden Guard",
-                            amount: block, to: member.combatant, source: member.combatant, in: &context,
-                        )
-                    }
-                }
-                let every = memberTriggers.blockPerGoldEarnedEvery
-                guard every > 0 else { continue }
-                let newlyGranted = currentEarned / every - previousEarned / every
-                if newlyGranted > 0 {
-                    emitBlock(
-                        .blockPerGoldEarnedEvery, "Golden Guard",
-                        amount: newlyGranted, to: member.combatant, source: member.combatant, in: &context,
-                    )
-                }
             }
         }
     }
@@ -243,6 +255,7 @@ package extension CombatTriggerEngine {
         let restoresParty = granted > 0 && triggers.onGainGoldHealParty > 0
             && context.resolution.claim(.heroTalent(.goldGainPartyHeal), actorID: combatant.id, cadence: .turn(context.turnCount))
         _ = await healLowestAfterGoldGain(source: combatant, in: &context)
+        guard context.roster.health(for: combatant) > 0 else { return false }
         await afterFinalCompanionGoldGain(granted: granted, actor: combatant, in: &context)
         return restoresParty
     }

@@ -53,6 +53,8 @@ package extension CombatTriggerEngine {
             await emitGold(.dodgeGoldFlat, "Payday", amount: triggers.dodgeGoldFlat, to: combatant, in: &context)
         }
 
+        // Gold and Mana gains can heal and provoke lethal retaliation before the next Dodge reward.
+        guard context.health(of: combatant) > 0 else { return }
         if triggers.dodgeBlockFlat > 0 {
             emitBlock(.dodgeBlockFlat, "Untouchable", amount: triggers.dodgeBlockFlat, to: combatant, source: combatant, in: &context)
         }
@@ -67,6 +69,7 @@ package extension CombatTriggerEngine {
 
         if triggers.onDodgePartyMana > 0 {
             for (_, member) in livingPartyMembers(in: context) {
+                guard context.health(of: combatant) > 0 else { return }
                 await emitMana(
                     .onDodgePartyMana, "Dodge",
                     amount: triggers.onDodgePartyMana, to: member.combatant, nameFrom: combatant, in: &context,
@@ -74,6 +77,7 @@ package extension CombatTriggerEngine {
             }
         }
 
+        guard context.health(of: combatant) > 0 else { return }
         if triggers.onDodgeDrawCardForHero > 0, context.roster.hero.isAlive {
             let drawn = BattleCardCombatEngine.drawCards(count: triggers.onDodgeDrawCardForHero, for: .hero, context: &context)
             if drawn > 0 {
@@ -94,11 +98,15 @@ package extension CombatTriggerEngine {
 
         guard context.health(of: combatant) > 0 else { return }
         await applySidestepHeal(for: combatant, profile: profile, in: &context)
+        guard context.health(of: combatant) > 0 else { return }
         if allowsCounterattacks, context.roster.enemy.isAlive {
             for (keyword, chance, potency) in [
                 (Keyword.bleed, triggers.dodgeBleedChancePercent, triggers.dodgeBleedDamage),
                 (Keyword.burn, triggers.dodgeBurnChancePercent, triggers.dodgeBurnDamage),
-            ] where potency > 0 && BattleChance.succeeds(probability: chance, using: &context.rng) {
+            ] {
+                guard context.health(of: combatant) > 0 else { return }
+                guard context.roster.enemy.isAlive else { break }
+                guard potency > 0, BattleChance.succeeds(probability: chance, using: &context.rng) else { continue }
                 await DoTApplicator.applyDoT(
                     keyword: keyword,
                     potency: potency,
@@ -127,6 +135,7 @@ package extension CombatTriggerEngine {
             )
         }
 
+        guard context.health(of: combatant) > 0 else { return }
         if triggers.dodgeApplyPoison > 0, context.roster.enemy.isAlive {
             await context.applyDecayingDoT(
                 keyword: .poison,
@@ -137,6 +146,7 @@ package extension CombatTriggerEngine {
             )
         }
 
+        guard context.health(of: combatant) > 0 else { return }
         if triggers.onDodgeDelayAttackerTurn, let attackerID,
            let attacker = context.roster.combatant(for: attackerID),
            attacker.role == .enemy {
@@ -151,10 +161,12 @@ package extension CombatTriggerEngine {
                     triggers.onDodgeCounterDamage, to: target, keyword: .physical, sourceActorID: combatant.id,
                 )
             }
+            guard context.health(of: combatant) > 0 else { return }
             if allowsCounterattacks, triggers.onDodgeCounterBasicAttack {
                 await counterWithBasicAttack(by: combatant, in: &context)
             }
-            if triggers.onDodgeApplyPoisonOrBleed > 0 {
+            guard context.health(of: combatant) > 0 else { return }
+            if triggers.onDodgeApplyPoisonOrBleed > 0, context.health(of: target) > 0 {
                 // `applyDoT` routes bleed to its dedicated applicator and
                 // everything else to decaying DoTs, matching the two direct
                 // calls this replaces with one RNG draw either way.
@@ -168,7 +180,8 @@ package extension CombatTriggerEngine {
                     in: &context,
                 )
             }
-            if triggers.onDodgeAttackerStunBuildup > 0 {
+            guard context.health(of: combatant) > 0 else { return }
+            if triggers.onDodgeAttackerStunBuildup > 0, context.health(of: target) > 0 {
                 await ControlMeterEngine.applyMeterCharge(
                     triggers.onDodgeAttackerStunBuildup,
                     keyword: .stun,
@@ -180,6 +193,7 @@ package extension CombatTriggerEngine {
             }
         }
 
+        guard context.health(of: combatant) > 0 else { return }
         if allowsCounterattacks, triggers.phantomCounter,
            context.resolution.depth(.damage) < ReactionScope.maxDepth,
            context.resolution.depth(.dot) < ReactionScope.maxDepth,
@@ -249,6 +263,7 @@ package extension CombatTriggerEngine {
         let cascadeAbility = Ability(id: "dance-of-blades", name: "Dance of Blades", tier: .basic)
 
         for _ in 0 ..< BattleState.maxDrawAndPlayDepth {
+            guard context.health(of: combatant) > 0 else { return }
             let played = await DrawAndPlayCardsHandler().apply(
                 .drawAndPlayCards(1),
                 ability: cascadeAbility,
@@ -267,7 +282,7 @@ package extension CombatTriggerEngine {
         profile: CombatModifierProfile,
         in context: inout BattleState,
     ) async {
-        guard profile.triggers.dodgeHealFlat > 0 else { return }
+        guard context.health(of: combatant) > 0, profile.triggers.dodgeHealFlat > 0 else { return }
         let target = BattleActionContext(actor: combatant, in: context).target(.lowestHealthAlly, in: context)
         await emitHeal(.dodgeHealFlat, "Sidestep", amount: profile.triggers.dodgeHealFlat, to: target, source: combatant, in: &context)
     }
@@ -280,7 +295,7 @@ package extension CombatTriggerEngine {
         for combatant: Combatant,
         in context: inout BattleState,
     ) async {
-        guard amount > 0, context.roster.enemy.isAlive else { return }
+        guard context.health(of: combatant) > 0, amount > 0, context.roster.enemy.isAlive else { return }
         let enemy = context.roster.enemy.combatant
         let name = triggerAbilityName(key, for: combatant, fallback: fallback, in: context)
         let outcome = await context.resolveDamage(

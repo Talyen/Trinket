@@ -14,7 +14,8 @@ enum DamageDefensePolicy {
         guard let sourceActorID = state.sourceActorID else { return 1 }
         let sourceProfile = context.modifiers(for: sourceActorID)
         // Full-mitigation bypasses: each keyword owns its own trigger flag.
-        if state.options.abilityHasLeech, sourceProfile.triggers.leechIgnoresMitigation {
+        if state.options.abilityHasLeech || state.hasGuaranteedAttackLeech(in: context),
+           sourceProfile.triggers.leechIgnoresMitigation {
             return 0
         }
         if state.damageKeyword == .burn, sourceProfile.triggers.burnIgnoresBlockAndMitigation {
@@ -73,7 +74,7 @@ enum DamageDefensePolicy {
             if state.damageKeyword == .stun, state.options.isAttackHit {
                 ignored = max(ignored, triggers.stunBlockIgnorePercent)
             }
-            if state.options.isAttackHit, state.options.abilityHasLeech || state.talentAttackHasLeech {
+            if state.hasGuaranteedAttackLeech(in: context) {
                 ignored = max(ignored, triggers.leechAttackBlockIgnorePercent)
             }
         }

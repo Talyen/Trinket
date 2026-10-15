@@ -319,10 +319,14 @@ package extension DamagePipeline {
             }
         }
 
-        if blockBroken, state.combatant.role == .enemy,
+        if blockBroken,
            let sourceTriggers, sourceTriggers.onEnemyBlockBrokenDealPhysical > 0,
            let attackerID = state.sourceActorID,
+           let attacker = context.roster.participant(for: attackerID),
+           let defender = context.roster.participant(for: state.combatant),
+           attacker.isPartyMember != defender.isPartyMember,
            context.roster.health(for: state.combatant) > 0 {
+            // The Block break committed this offensive consequence before any lethal reflection.
             _ = await resolveNestedDamage(
                 amount: sourceTriggers.onEnemyBlockBrokenDealPhysical,
                 keyword: .physical,

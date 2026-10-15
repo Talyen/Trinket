@@ -66,6 +66,24 @@ struct ManaArithmeticBoundaryTests {
         #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == 1)
     }
 
+    @Test(arguments: [false, true])
+    func `oversized Mana automatic play stops after its deck is exhausted`(hasCard: Bool) {
+        var profile = CombatModifierProfile(maximumManaBonus: Int.max)
+        profile.triggers.spendManaThresholdAutoPlayCard = 3
+        var battle = makeBattle(heroModifiers: profile)
+        battle.roster.hero.currentMana = Int.max
+        battle.roster.hero.talents.battle.manaSpentTowardAutoPlay = 1
+        battle.heroDeck = CombatDeck(abilities: hasCard ? [.block] : [])
+        let payment = battle.payMana(Int.max, for: battle.hero)
+
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
+
+        #expect(battle.roster.hero.talents.battle.manaSpentTowardAutoPlay == 2)
+        #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == (hasCard ? 1 : 0))
+        #expect(battle.heroDeck.abilities.isEmpty)
+        #expect(!battle.resolution.isAutomaticPlay)
+    }
+
     private func makeBattle(
         heroModifiers: CombatModifierProfile = .zero,
         companionModifiers: CombatModifierProfile = .zero,

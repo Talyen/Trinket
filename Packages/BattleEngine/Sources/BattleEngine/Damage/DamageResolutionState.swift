@@ -45,6 +45,13 @@ package struct DamageResolutionState {
         return source
     }
 
+    /// Fractional grants qualify for riders without selecting ability-strength restoration.
+    func hasGuaranteedAttackLeech(in context: BattleState) -> Bool {
+        guard options.isAttackHit else { return false }
+        return options.abilityHasLeech || talentAttackHasLeech
+            || sourceActorID.map { context.modifiers(for: $0).triggers.attackLeechPercent > 0 } == true
+    }
+
     public let options: DamageOperation
     var provenance: DamageProvenance?
 

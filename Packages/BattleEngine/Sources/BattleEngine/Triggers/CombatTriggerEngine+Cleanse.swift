@@ -24,6 +24,7 @@ package extension CombatTriggerEngine {
         guard count > 0, context.roster.health(for: target) > 0 else { return }
 
         for _ in 0 ..< count {
+            guard context.roster.health(for: source) > 0, context.roster.health(for: target) > 0 else { break }
             let outcome = await EffectRemovalOperation.resolveCleanse(
                 .randomDebuff, source: source, target: target, abilityName: abilityName, in: &context,
             )
@@ -41,6 +42,7 @@ package extension CombatTriggerEngine {
         allowMassCleanse: Bool = true,
         in context: inout BattleState,
     ) async {
+        guard context.roster.health(for: source) > 0 else { return }
         let triggers = context.modifiers(for: source.id).triggers
 
         if removedCount > 0 {
@@ -69,6 +71,7 @@ package extension CombatTriggerEngine {
                     to: source, in: &context,
                 )
             }
+            guard context.roster.health(for: source) > 0 else { return }
             cleanseShieldBonuses(
                 triggers: triggers,
                 source: source,
@@ -80,8 +83,10 @@ package extension CombatTriggerEngine {
         }
         if allowMassCleanse {
             await dispelMagicPurge(triggers: triggers, source: source, in: &context)
+            guard context.roster.health(for: source) > 0 else { return }
             await cleansePartyReactions(triggers: triggers, source: source, target: target, in: &context)
         }
+        guard context.roster.health(for: source) > 0 else { return }
         if source.role != .enemy, Self.hasLivingPartyTrigger(\.purifyingWaters, in: context), removedCount > 0 {
             let healTarget = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
             await context.healEmitting(

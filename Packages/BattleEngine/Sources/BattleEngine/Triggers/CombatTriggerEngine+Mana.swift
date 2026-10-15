@@ -339,13 +339,14 @@ package extension CombatTriggerEngine {
         await context.withAutomaticPlay { context in
             for _ in 0 ..< automaticPlays {
                 guard context.roster.health(for: actor) > 0, !context.isBattleOver else { break }
-                _ = await DrawAndPlayCardsHandler().apply(
+                let application = await DrawAndPlayCardsHandler().apply(
                     .drawAndPlayCards(1),
                     ability: Ability(id: "arcane-burst", name: "Arcane Burst", tier: .basic),
                     source: actor,
                     target: actor,
                     in: &context,
                 )
+                guard application.didApply else { break }
             }
         }
     }

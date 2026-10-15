@@ -5,6 +5,19 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleCardAssessmentTests {
+    @Test func `Meteor inspection quotes capped Mana without iterating over every empowerment`() throws {
+        var state = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 100, maxMana: Int.max),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 100),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 1000),
+            heroMana: Int.max, appliesFightPacing: false,
+        )
+        let card = deal(.meteor, in: &state)
+        let use = try #require(state.assessCard(card).resources.first { $0.keyword == .mana })
+        #expect(use.amount == Int.max / 3 * 3)
+        #expect(state.roster.hero.currentMana == Int.max)
+    }
+
     @Test func `pack tactics previews its opening hit without guessing automatic recipients`() {
         var state = battle()
         let card = deal(.packTactics, in: &state)

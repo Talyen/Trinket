@@ -276,7 +276,7 @@ package extension DamagePipeline {
         else { return }
         let triggers = context.modifiers(for: sourceID).triggers
         guard triggers.leechCriticalAllyBlock > 0 else { return }
-        guard state.didLeech || state.options.abilityHasLeech || state.talentAttackHasLeech else { return }
+        guard state.didLeech || state.hasGuaranteedAttackLeech(in: context) else { return }
         context.applyBlockGain(
             triggers.leechCriticalAllyBlock,
             to: context.roster.hero.combatant,

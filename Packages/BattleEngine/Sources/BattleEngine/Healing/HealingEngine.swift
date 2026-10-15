@@ -162,7 +162,10 @@ package enum HealingEngine {
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
     ) async {
-        guard restored > 0, let sourceTriggers else { return }
+        guard restored > 0, let sourceTriggers,
+              let sourceActorID = request.sourceActorID,
+              context.roster.combatant(for: sourceActorID)?.isAlive == true,
+              context.roster.health(for: request.target) > 0 else { return }
 
         if sourceTriggers.onHealGrantBlock > 0,
            let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID) {
@@ -184,6 +187,8 @@ package enum HealingEngine {
                 in: &context,
             )
         }
+        guard context.roster.combatant(for: sourceActorID)?.isAlive == true,
+              context.roster.health(for: request.target) > 0 else { return }
         if sourceTriggers.healOverTimeOnHealAmount > 0,
            sourceTriggers.healOverTimeOnHealTurns > 0,
            !request.isHoTTick, let sourceActorID = request.sourceActorID {

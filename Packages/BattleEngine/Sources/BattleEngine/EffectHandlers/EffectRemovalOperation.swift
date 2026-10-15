@@ -120,7 +120,7 @@ enum EffectRemovalOperation {
         // empty path reports didApply:false. The asymmetry is intentional.
         guard !removed.isEmpty else {
             await CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
-            if healAmount > 0 {
+            if healAmount > 0, context.roster.health(for: source) > 0 {
                 let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
                 await context.healEmitting(
                     amount: healAmount, target: recipient, source: source, abilityID: abilityID, abilityName: abilityName,
@@ -166,6 +166,8 @@ enum EffectRemovalOperation {
             removed, effectKind: .cleanseApplied, source: source, target: target,
             abilityID: abilityID, abilityName: abilityName, origin: origin, in: &context,
         )
+        // Removal is committed even when its first reaction defeats the cleanser.
+        guard context.roster.health(for: source) > 0 else { return }
         if healAmount > 0 {
             let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
             await context.healEmitting(
@@ -176,13 +178,16 @@ enum EffectRemovalOperation {
                 isDirectCardHeal: context.hasHeroCard(for: source.id),
             )
         }
+        guard context.roster.health(for: source) > 0 else { return }
         _ = await CombatTriggerEngine.bonusHealAfterCleanse(
             source: source, target: target, amount: triggers.cleanseBonusHeal, requireWoundedTarget: true, in: &context,
         )
+        guard context.roster.health(for: source) > 0 else { return }
         _ = await CombatTriggerEngine.bonusHealAfterCleanse(
             source: source, target: BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context),
             amount: triggers.cleanseSelfHeal, requireWoundedTarget: false, in: &context,
         )
+        guard context.roster.health(for: source) > 0 else { return }
         CombatTriggerEngine.drawAfterCleanse(source: source, removedCount: removed.count, in: &context)
         await CombatTriggerEngine.afterCleanseAction(
             source: source,
@@ -192,6 +197,7 @@ enum EffectRemovalOperation {
             in: &context,
         )
         for keyword in orderedKeywords {
+            guard context.roster.health(for: source) > 0 else { return }
             await CombatTriggerEngine.afterCleanseKeywordReaction(
                 source: source,
                 removedKeyword: keyword,
@@ -199,6 +205,7 @@ enum EffectRemovalOperation {
                 in: &context,
             )
         }
+        guard context.roster.health(for: source) > 0 else { return }
         await CombatTriggerEngine.reflectCleansedEffects(removed, source: source, in: &context)
     }
 

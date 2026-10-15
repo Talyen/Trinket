@@ -74,4 +74,29 @@ struct ManaEmpowermentBudget {
         preparedDiscount = 0
         return Payment(ownMana: own, partnerMana: shared, block: blockCost)
     }
+
+    /// Inspection has no spending reactions. Pay the discounted first purchase,
+    /// then quote the identical remaining purchases without iterating over Mana.
+    mutating func totalPayment() -> Payment? {
+        guard let first = nextPayment() else { return nil }
+        guard baseCost > 0, purchaseLimit > 1 else { return first }
+        let available = SaturatedArithmetic.saturatingAdd(
+            SaturatedArithmetic.saturatingAdd(ownMana, partnerMana),
+            blockRate > 0 ? block / blockRate : 0,
+        )
+        let purchases = min(purchaseLimit - 1, available / baseCost)
+        // The original purchase limit bounds this product by the capped capacity.
+        let cost = purchases * baseCost
+        let own = min(cost, ownMana)
+        let shared = min(cost - own, partnerMana)
+        let blockCost = (cost - own - shared) * blockRate
+        ownMana -= own
+        partnerMana -= shared
+        block -= blockCost
+        return Payment(
+            ownMana: first.ownMana + own,
+            partnerMana: first.partnerMana + shared,
+            block: first.block + blockCost,
+        )
+    }
 }

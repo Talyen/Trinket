@@ -54,24 +54,16 @@ private extension BattleState {
         ) : ability
         var budget = ManaEmpowermentBudget(ability: quoted, actor: actor, in: self)
         let isCertain = !randomKeywords && (budget.purchaseLimit == 1 || hasPredictableRepeatedPayments)
-        var ownMana = 0
-        var sharedMana = 0
-        var block = 0
-        for _ in 0 ..< budget.purchaseLimit {
-            guard let payment = budget.nextPayment() else { break }
-            ownMana += payment.ownMana
-            sharedMana += payment.partnerMana
-            block += payment.block
-        }
+        guard let payment = budget.totalPayment() else { return [] }
         var uses: [BattleCardAssessment.ResourceUse] = []
-        if ownMana > 0 {
-            uses.append(resourceUse(.mana, amount: isCertain ? ownMana : nil, actor: actor))
+        if payment.ownMana > 0 {
+            uses.append(resourceUse(.mana, amount: isCertain ? payment.ownMana : nil, actor: actor))
         }
-        if sharedMana > 0, let partner = budget.partner {
-            uses.append(resourceUse(.mana, amount: isCertain ? sharedMana : nil, actor: partner))
+        if payment.partnerMana > 0, let partner = budget.partner {
+            uses.append(resourceUse(.mana, amount: isCertain ? payment.partnerMana : nil, actor: partner))
         }
-        if block > 0 {
-            uses.append(resourceUse(.block, amount: isCertain ? block : nil, actor: actor))
+        if payment.block > 0 {
+            uses.append(resourceUse(.block, amount: isCertain ? payment.block : nil, actor: actor))
         }
         return uses
     }

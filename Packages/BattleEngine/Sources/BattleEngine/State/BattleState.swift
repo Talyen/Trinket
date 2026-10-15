@@ -191,25 +191,13 @@ public struct BattleState {
         )
         self.init(
             roster: BattleRoster(
-                hero: CombatantRuntime(
-                    combatant: hero,
-                    initialHealth: heroStartingHealth,
-                    initialActiveEffects: activeHeroEffects,
-                    maximumHealthBonus: CombatantMaxValues.maxHealth(for: hero, modifiers: heroModifiers) - hero.maxHealth,
-                    maximumManaBonus: SaturatedArithmetic.saturatingSub(
-                        CombatantMaxValues.maxMana(for: hero, modifiers: heroModifiers), hero.maxMana,
-                    ),
+                hero: Self.startingRuntime(
+                    for: hero, modifiers: heroModifiers, health: heroStartingHealth, effects: activeHeroEffects,
                 ),
-                companion: CombatantRuntime(
-                    combatant: companion,
-                    initialHealth: companionStartingHealth,
-                    initialActiveEffects: activeCompanionEffects,
-                    maximumHealthBonus: CombatantMaxValues.maxHealth(for: companion, modifiers: companionModifiers) - companion.maxHealth,
-                    maximumManaBonus: SaturatedArithmetic.saturatingSub(
-                        CombatantMaxValues.maxMana(for: companion, modifiers: companionModifiers), companion.maxMana,
-                    ),
+                companion: Self.startingRuntime(
+                    for: companion, modifiers: companionModifiers, health: companionStartingHealth, effects: activeCompanionEffects,
                 ),
-                enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects),
+                enemy: Self.startingRuntime(for: resolvedEnemy, modifiers: enemyModifiers, effects: activeEnemyEffects),
             ),
             rng: SeededRandomNumberGenerator(seed: rngSeed ?? Self.defaultRNGSeed),
             nextEffectID: maxExistingEffectID + 1,
@@ -463,5 +451,19 @@ public struct BattleState {
     private mutating func finishMutation(rebuildLog: Bool) {
         guard rebuildLog, tracksLog else { return }
         logProjection?.sync(events: events)
+    }
+}
+
+private extension BattleState {
+    static func startingRuntime(
+        for combatant: Combatant, modifiers: CombatModifierProfile, health: Int? = nil, effects: [ActiveEffect],
+    ) -> CombatantRuntime {
+        CombatantRuntime(
+            combatant: combatant, initialHealth: health, initialActiveEffects: effects,
+            maximumHealthBonus: CombatantMaxValues.maxHealth(for: combatant, modifiers: modifiers) - combatant.maxHealth,
+            maximumManaBonus: SaturatedArithmetic.saturatingSub(
+                CombatantMaxValues.maxMana(for: combatant, modifiers: modifiers), combatant.maxMana,
+            ),
+        )
     }
 }

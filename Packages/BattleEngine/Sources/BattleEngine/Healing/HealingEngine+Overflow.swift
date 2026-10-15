@@ -39,7 +39,9 @@ extension HealingEngine {
         guard overflow > 0 else { return }
         await applyLeechOverhealing(allocation: &allocation, request: request, sourceTriggers: sourceTriggers, in: &context)
         prepareFreeManaEmpowermentAfterOverheal(request: request, triggers: sourceTriggers, in: &context)
-        if sourceTriggers?.wishspring == true {
+        if sourceTriggers?.wishspring == true,
+           let sourceID = request.sourceActorID,
+           context.roster.combatant(for: sourceID)?.isAlive == true {
             await context.restoreManaEmitting(
                 CombatRounding.scaled(overflow, multiplier: 0.5), to: request.target,
                 abilityName: "Wishspring",
@@ -56,8 +58,9 @@ extension HealingEngine {
         request: HealRequest, sourceTriggers: CombatTraitTriggers?, targetTriggers: CombatTraitTriggers,
         in context: BattleState,
     ) -> (triggers: CombatTraitTriggers, source: Combatant) {
-        var conversion = overhealConversionTriggers(source: sourceTriggers, target: targetTriggers, request: request)
         let source = request.sourceActorID.flatMap { context.roster.combatant(for: $0) }
+        let livingSourceTriggers = source?.isAlive == true ? sourceTriggers : nil
+        var conversion = overhealConversionTriggers(source: livingSourceTriggers, target: targetTriggers, request: request)
         let hasProvidedConversion = source?.isAlive == true
             && (sourceTriggers?.providedOverhealConvertsToBlock == true
                 || (sourceTriggers?.providedOverhealToBlockPercent ?? 0) > 0)
@@ -241,6 +244,9 @@ extension HealingEngine {
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
     ) async {
+        guard request.origin == .leech,
+              let sourceActorID = request.sourceActorID,
+              context.roster.combatant(for: sourceActorID)?.isAlive == true else { return }
         let transferAmount = CombatGain.amount(
             allocation.remaining, current: context.roster.companion.currentHealth, cap: context.roster.companion.maxHealth,
         )
@@ -263,7 +269,9 @@ extension HealingEngine {
                 )
             }
         }
+        guard context.roster.combatant(for: sourceActorID)?.isAlive == true else { return }
         await convertLeechOverflowToMana(allocation: &allocation, request: request, sourceTriggers: sourceTriggers, in: &context)
+        guard context.roster.combatant(for: sourceActorID)?.isAlive == true else { return }
         if request.origin == .leech, sourceTriggers?.marrowmend == true,
            request.sourceActorID == request.target.id,
            context.claimHeroTalent(.marrowmend, actorID: request.target.id) {

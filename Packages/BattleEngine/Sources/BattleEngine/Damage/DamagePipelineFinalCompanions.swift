@@ -113,7 +113,7 @@ package extension DamagePipeline {
         if state.options.isAttackHit, state.targetStatus.isStunned {
             multiplier *= triggers.attackDamageVsStunnedMultiplier
         }
-        let attackHasLeech = state.options.abilityHasLeech || state.talentAttackHasLeech
+        let attackHasLeech = state.hasGuaranteedAttackLeech(in: context)
             || triggers.borrowedLife && context.roster.isDeathsDoorActive(for: source)
         if state.options.isAttackHit, state.targetStatus.isBleeding, attackHasLeech {
             multiplier *= triggers.leechAttackDamageVsBleedingMultiplier
@@ -207,7 +207,7 @@ package extension DamagePipeline {
         else { return }
         let triggers = context.modifiers(for: sourceID).triggers
         let attackHasLeech = state.options.isAttackHit && state.healthLost > 0
-            && (state.options.abilityHasLeech || state.talentAttackHasLeech
+            && (state.hasGuaranteedAttackLeech(in: context)
                 || triggers.borrowedLife && context.roster.isDeathsDoorActive(for: source.combatant))
         guard state.didLeech || attackHasLeech else { return }
         if triggers.leechEnemyNextAttackDamageMultiplier < 1, context.roster.enemy.isAlive {

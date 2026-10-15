@@ -466,6 +466,7 @@ package extension CombatTriggerEngine {
                 abilityName: "Shared Spoils",
             )
         }
+        guard context.roster.health(for: actor) > 0 else { return }
         if triggers.firstGoldTheftDrawBattle,
            context.claimHeroTalent(.fetch, actorID: actor.id, battle: true),
            let owner = context.roster.participant(for: actor) {
