@@ -104,13 +104,14 @@ extension BattleSession {
         else { return }
 
         let generation = autoEnd.claim()
+        let delay = autoEndTurnDelay
         autoEnd.task = Task { @MainActor [weak self] in
-            guard let self else { return }
             defer {
-                autoEnd.finish(generation: generation)
+                self?.autoEnd.finish(generation: generation)
             }
-            try? await Task.sleep(for: autoEndTurnDelay)
-            guard !Task.isCancelled,
+            try? await Task.sleep(for: delay)
+            guard let self, !Task.isCancelled,
+                  autoEnd.isCurrent(generation),
                   !isSuspendedForScenePhase,
                   canEndTurn,
                   !hasPlayableCard

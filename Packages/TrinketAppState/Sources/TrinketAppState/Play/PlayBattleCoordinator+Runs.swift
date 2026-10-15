@@ -12,7 +12,7 @@ extension PlayBattleCoordinator {
     }
 
     func prepare(_ launch: BattleLaunchAssembly, route: PlayBattleRoute) -> Bool {
-        guard battle.lifecyclePhase != .active,
+        guard runtimeTransition == nil, battle.lifecyclePhase != .active,
               let runKey = launch.configuration.runKey,
               PlayBattleRoute.matches(route, runKey: runKey, missingLog: "Missing route for prepared battle registration")
         else { return false }
@@ -38,40 +38,46 @@ extension PlayBattleCoordinator {
     }
 
     func activatePrepared(_ configuration: BattleRunConfiguration) -> Bool {
-        guard battle.lifecyclePhase != .active,
+        guard runtimeTransition == nil, battle.lifecyclePhase != .active,
               let runKey = configuration.runKey,
               let run = preparedRuns[runKey], run.registration.launch.configuration.id == configuration.id,
               run.registration.rewardClaim.isCurrent(in: playerSave)
         else { return false }
-        guard battle.activatePreparedBattle(run.handle, presentation: run.registration.presentation) else { return false }
-        activeBattle = ActivePlayBattle(run.registration)
-        preparations.consume(runKey)
-        publishPreparedPreview()
-        return true
+        return installRuntime {
+            guard battle.activatePreparedBattle(run.handle, presentation: run.registration.presentation) else { return false }
+            activeBattle = ActivePlayBattle(run.registration)
+            preparations.consume(runKey)
+            publishPreparedPreview()
+            return true
+        }
     }
 
     func activateStandalone(_ launch: BattleLaunchAssembly) -> Bool {
         guard battle.lifecyclePhase != .active, launch.configuration.runKey == nil else { return false }
-        guard battle.activate(launch.configuration, presentation: launch.presentation) else { return false }
-        activeBattle = ActivePlayBattle(makeRegistration(launch, route: nil))
-        discardPreparations()
-        return true
+        return installRuntime {
+            guard battle.activate(launch.configuration, presentation: launch.presentation) else { return false }
+            activeBattle = ActivePlayBattle(makeRegistration(launch, route: nil))
+            discardPreparations()
+            return true
+        }
     }
 
     func restart(_ launch: BattleLaunchAssembly, route: PlayBattleRoute?) -> Bool {
-        guard battle.lifecyclePhase == .active,
+        guard battle.lifecyclePhase == .active, activeBattle?.canRestart == true,
               battle.activeBattle?.runKey == launch.configuration.runKey,
               activeRun?.rewardClaim.isCurrent(in: playerSave) == true,
               PlayBattleRoute.matches(route, runKey: launch.configuration.runKey, missingLog: "Missing route for battle restart")
         else { return false }
-        guard battle.restart(launch.configuration, presentation: launch.presentation) else { return false }
-        activeBattle = ActivePlayBattle(makeRegistration(launch, route: route))
-        discardPreparations()
-        return true
+        return installRuntime {
+            guard battle.restart(launch.configuration, presentation: launch.presentation) else { return false }
+            activeBattle = ActivePlayBattle(makeRegistration(launch, route: route))
+            discardPreparations()
+            return true
+        }
     }
 
     func selectPreparedRun(_ key: BattleRunKey?) {
-        guard preparations.select(key) else { return }
+        guard runtimeTransition == nil, preparations.select(key) else { return }
         publishPreparedPreview()
     }
 
@@ -102,7 +108,7 @@ extension PlayBattleCoordinator {
         _ keys: Set<BattleRunKey>,
         preservingWhere preserve: (PlayBattleOrigin) -> Bool = { _ in false },
     ) {
-        guard battle.lifecyclePhase != .active else { return }
+        guard runtimeTransition == nil, battle.lifecyclePhase != .active else { return }
         preparations.retain { key, run in
             keys.contains(key) || run.registration.route.map { preserve($0.origin) } == true
         }
@@ -114,9 +120,34 @@ extension PlayBattleCoordinator {
         publishPreparedPreview()
     }
 
+    private func installRuntime(_ install: () -> Bool) -> Bool {
+        guard runtimeTransition == nil else { return false }
+        runtimeTransition = .installing
+        let installed = install()
+        runtimeTransition = nil
+        if endRequestedDuringInstallation {
+            endRequestedDuringInstallation = false
+            endBattle()
+            return false
+        }
+        return installed
+    }
+
     func endBattle() {
-        battle.endBattle()
+        if runtimeTransition == .installing {
+            endRequestedDuringInstallation = true
+            return
+        }
+        guard runtimeTransition == nil else { return }
+        runtimeTransition = .ending
+        defer { runtimeTransition = nil }
+        retireBattle()
+    }
+
+    func retireBattle() {
+        // Revoke the registration before runtime observation can reenter claims.
         activeBattle = nil
+        battle.endBattle()
         discardPreparations()
     }
 }

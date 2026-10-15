@@ -31,7 +31,7 @@ extension PlayBattleCoordinator {
         if let restriction = playerSave.accessRestriction(for: origin) {
             return restriction
         }
-        guard battle.lifecyclePhase != .active else { return busyMessage }
+        guard runtimeTransition == nil, battle.lifecyclePhase != .active else { return busyMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
         let request: (input: BattleLaunchInput, route: PlayBattleRoute)
         switch resolve() {
@@ -47,7 +47,7 @@ extension PlayBattleCoordinator {
 
     @discardableResult
     func prepareCombat(_ input: BattleLaunchInput, route: PlayBattleRoute) -> Bool {
-        guard battle.lifecyclePhase != .active,
+        guard runtimeTransition == nil, battle.lifecyclePhase != .active,
               playerSave.accessRestriction(for: input.origin) == nil,
               PlayBattleRoute.matches(
                   route, runKey: input.origin?.runKey,
@@ -75,7 +75,7 @@ extension PlayBattleCoordinator {
         _ input: BattleLaunchInput,
         route: PlayBattleRoute? = nil,
     ) -> Bool {
-        guard battle.lifecyclePhase != .active,
+        guard runtimeTransition == nil, battle.lifecyclePhase != .active,
               playerSave.accessRestriction(for: input.origin) == nil,
               playerSave.contentAccess.allowsCombatant(input.hero.id),
               playerSave.contentAccess.allowsCombatant(input.companion.id) else { return false }
@@ -119,7 +119,7 @@ extension PlayBattleCoordinator {
     }
 
     func requestRestart(onFinished: () -> Void) -> StageMapMessage? {
-        if let activeBattle, case .victory = activeBattle.claimState {
+        if let activeBattle, !activeBattle.canRestart {
             return Self.activationFailureMessage
         }
         guard let configuration = battle.activeBattle,
@@ -133,8 +133,9 @@ extension PlayBattleCoordinator {
     }
 
     func restartActiveBattle(_ configuration: BattleRunConfiguration) -> Bool {
-        guard let run = activeRun, run.launch.configuration.id == configuration.id,
-              battle.activeBattle?.id == configuration.id else { return false }
+        guard runtimeTransition == nil, let activeBattle, isCurrent(activeBattle), activeBattle.canRestart,
+              activeBattle.registration.launch.configuration.id == configuration.id else { return false }
+        let run = activeBattle.registration
         let original = run.launch.inputs.launch
         let roster = playerSave.roster
         let hero = roster.heroes.first { $0.id == configuration.hero.combatant.id } ?? roster.activeHero

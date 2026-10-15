@@ -77,8 +77,16 @@ completion can authorize the award. Stale settlement refreshes the reveal, stora
 failure retains the chosen action for retry, and already-claimed victories use the
 same delegate without waiting for an overlay. BattleFeature never imports
 Persistence or AppState. Unconnected preview sessions cannot commit rewards.
-`PlayBattleCoordinator` owns one presentation claim state: unclaimed, committed defeat, or
-committed victory awaiting its keyed exit. A configuration cannot claim both
+`PlayBattleCoordinator` binds claim admission and reward exits to the exact
+`ActivePlayBattle` lifetime. A save claim excludes reentrant claims and Retry while
+persistence synchronously publishes its observations. After publication, only that
+same active lifetime may record Talent baselines, publish claim feedback, restart,
+or exit; replacing it leaves the durable award intact without touching the new run.
+An exit is consumed before origin restoration notifies observers, and the application
+registration is retired before runtime teardown. Runtime installation and the complete
+exit sequence exclude nested launches and preparation; an end requested during
+installation is drained before activation returns and makes that activation fail.
+A configuration cannot claim both
 outcomes. Persistence independently enforces source identity, settlement freshness,
 and single-outcome consumption through the registration's `BattleRewardClaim`.
 Failed writes do not advance either state; failed Retry retains its

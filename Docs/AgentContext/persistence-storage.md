@@ -208,7 +208,10 @@ identified domain action with reconstructible before/after snapshots in the loca
 Upload requests
 carry those actions, their acknowledged base snapshot, and a stable request ID;
 the server replays the actions into one complete projected save and an immutable
-receipt. A successful receipt removes only its included local actions. Union earned
+receipt. A successful receipt removes only its included local actions, and only
+when the fetched head's vector clock includes the receipted request. Head and
+receipt reads may straddle a commit; an older head leaves the pending request and
+journal intact for the next fetch instead of replacing earned progress. Union earned
 items, unlocks, claims, and completion. Union talent purchases while honoring
 removals from the shared base, so a talent reset survives unrelated progress;
 unrelated saves without a shared base union talents. Use the latest valid party/loadout

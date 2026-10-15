@@ -17,26 +17,30 @@ enum BattleCardPlayResolution: Equatable {
 }
 
 @MainActor
-struct CancellableGeneration {
+final class CancellableGeneration {
     var generation = 0
     var task: Task<Void, Never>?
+
+    deinit {
+        task?.cancel()
+    }
 
     var hasPendingTask: Bool {
         task != nil
     }
 
-    mutating func invalidate() {
+    func invalidate() {
         generation &+= 1
         task?.cancel()
         task = nil
     }
 
-    mutating func claim() -> Int {
+    func claim() -> Int {
         invalidate()
         return generation
     }
 
-    mutating func finish(generation: Int) {
+    func finish(generation: Int) {
         if self.generation == generation {
             task = nil
         }

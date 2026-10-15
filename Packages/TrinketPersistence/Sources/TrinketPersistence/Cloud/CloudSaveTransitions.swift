@@ -109,6 +109,12 @@ enum CloudSaveTransitions {
     ) throws -> Acknowledgement? {
         guard original.activeAccountID == accountID else { throw CloudSaveError.accountChanged }
         guard original.account.pending?.id == request.id else { return nil }
+        guard receipt.requestID == request.id else { throw CloudSaveError.unsupportedSave }
+        // Head and receipt are separate reads. A delayed upload can commit
+        // between them, so a receipt alone cannot authorize pruning its actions
+        // or replacing local progress with the earlier head. Every resolution,
+        // including resets and refused uploads, retains the request's clock.
+        guard head.revision.includes(request.revision.clock) else { return nil }
         var state = original
         state.account.pending = nil
         if original.account.base?.epoch != head.epoch {

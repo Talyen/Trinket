@@ -174,7 +174,8 @@ extension BattleSession {
         sfx: String,
         show: @escaping @MainActor (BattleSession) -> Void,
     ) {
-        spectacle.outcomeTask.invalidate()
+        let taskOwner = spectacle.outcomeTask
+        let generation = taskOwner.claim()
         let latestFeedbackDelay = feedback.activeItems
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
             .max() ?? 0
@@ -188,24 +189,24 @@ extension BattleSession {
             dependencies.playSFX([sfx])
             return
         }
-        spectacle.outcomeTask.task = Task { @MainActor [weak self] in
-            guard let self else { return }
+        taskOwner.task = Task { @MainActor [weak self, weak taskOwner] in
+            defer { taskOwner?.finish(generation: generation) }
             var remaining = delay
             let clock = ContinuousClock()
             while remaining > .zero, !Task.isCancelled {
                 let started = clock.now
-                let wasSuspended = isSuspendedForScenePhase
+                guard let wasSuspended = self?.isSuspendedForScenePhase else { return }
                 // Suspension freezes the countdown, so sleep longer while
                 // suspended instead of waking every 50 ms for no progress.
                 try? await Task.sleep(for: min(remaining, wasSuspended ? .milliseconds(250) : .milliseconds(50)))
-                if !wasSuspended, !isSuspendedForScenePhase {
+                if !wasSuspended, self?.isSuspendedForScenePhase == false {
                     remaining -= started.duration(to: clock.now)
                 }
             }
-            guard !Task.isCancelled, outcome == expected else { return }
+            guard let self, !Task.isCancelled, taskOwner?.isCurrent(generation) == true,
+                  outcome == expected else { return }
             show(self)
             dependencies.playSFX([sfx])
-            spectacle.outcomeTask.task = nil
         }
     }
 

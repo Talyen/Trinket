@@ -20,6 +20,7 @@ actor CloudSaveTestTransport: CloudSaveTransport {
     /// store between fetch and verify. Awaiting it from this actor serializes
     /// the fake the same way the real transport serializes on the store.
     var nextFetchAction: (@MainActor @Sendable () async -> Void)?
+    private var nextReceiptFetchAction: (@MainActor @Sendable () async throws -> Void)?
 
     func configure(
         offline: Bool = false,
@@ -43,6 +44,10 @@ actor CloudSaveTestTransport: CloudSaveTransport {
 
     func onNextFetch(_ action: @escaping @MainActor @Sendable () async -> Void) {
         nextFetchAction = action
+    }
+
+    func onNextReceiptFetch(_ action: @escaping @MainActor @Sendable () async throws -> Void) {
+        nextReceiptFetchAction = action
     }
 
     func account(_ id: String = "player-a") -> Account {
@@ -74,7 +79,12 @@ actor CloudSaveTestTransport: CloudSaveTransport {
         return touched
     }
 
-    func fetchReceipt(accountID: String, requestID: String) throws -> CloudSaveReceipt? {
+    func fetchReceipt(accountID: String, requestID: String) async throws -> CloudSaveReceipt? {
+        try verify(accountID)
+        if let action = nextReceiptFetchAction {
+            nextReceiptFetchAction = nil
+            try await action()
+        }
         try verify(accountID)
         return accounts[accountID]?.receipts[requestID]
     }

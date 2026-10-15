@@ -81,12 +81,27 @@ final class PreparedBattleRegistry {
 final class ActivePlayBattle {
     enum ClaimState {
         case unclaimed
+        case claiming
         case defeat
         case victory(onFinished: () -> Void)
+        case ending
     }
 
     let registration: PlayBattleRunRegistration
     var claimState: ClaimState = .unclaimed
+
+    var canRestart: Bool {
+        switch claimState {
+        case .unclaimed, .defeat: true
+        case .claiming, .victory, .ending: false
+        }
+    }
+
+    func releaseClaim() {
+        if case .claiming = claimState {
+            claimState = .unclaimed
+        }
+    }
 
     init(_ registration: PlayBattleRunRegistration) {
         self.registration = registration

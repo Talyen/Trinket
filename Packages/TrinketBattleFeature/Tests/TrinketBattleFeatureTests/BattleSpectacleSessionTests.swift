@@ -112,6 +112,41 @@ struct BattleSpectacleSessionTests {
         #expect(session.spectacle.outcomeTask.task == nil)
     }
 
+    @Test(arguments: [false, true])
+    func `abandoned suspended battle releases its presentation and cancels its wait`(atOutcome: Bool) async throws {
+        let party = BattlePartyFixtures.quickWinParty()
+        let (configuration, presentation) = BattleRunConfigurationTestSupport.make(
+            hero: party.hero, companion: party.companion, enemy: party.enemy,
+        )
+        var session: BattleSession? = BattleSession(
+            outcomePresentationDelayOverride: 60, partyCelebrateDelayOverride: 60,
+        )
+        if !atOutcome {
+            session?.setSuspendedForScenePhase(true)
+        }
+        #expect(session?.activate(configuration, presentation: presentation) == true)
+        if atOutcome {
+            try BattleSessionTestSupport.driveUntilOutcome(#require(session))
+            #expect(session?.outcome == .victory)
+            session?.setSuspendedForScenePhase(true)
+        }
+        let task = try #require(atOutcome ? session?.spectacle.outcomeTask.task : session?.transitionTask.task)
+        defer { task.cancel() }
+        weak var releasedSession = session
+        weak var releasedPresentation = session?.presentation
+
+        // Let the owner task enter its suspended loop before releasing the last
+        // external owner; a weak capture promoted across sleep would retain it.
+        try await Task.sleep(for: .milliseconds(20))
+        session = nil
+
+        #expect(releasedSession == nil)
+        #expect(releasedPresentation == nil)
+        #expect(task.isCancelled)
+        task.cancel()
+        await task.value
+    }
+
     private func presentPendingImpacts(in session: BattleSession) {
         for impact in session.feedback.scheduledActions.filter(\.hasPendingImpact).map(\.impactAt).sorted() {
             session.feedback.advance(to: impact)

@@ -4,6 +4,35 @@ import TrinketCore
 @testable import TrinketPersistence
 
 extension CloudSaveSyncTests {
+    @Test @MainActor func `receipt arriving after an older head cannot erase its uploaded earnings`() async throws {
+        let context = try PersistenceTestContext()
+        let transport = CloudSaveTestTransport()
+        let store = try cloudStore(context, transport: transport)
+        let sync = try #require(store.cloudSync)
+        #expect(await sync.synchronize())
+        #expect(store.persistFixtureBatch(logging: "Offline earnings") { $0.roster.gold += 17 })
+        await transport.onNextReceiptFetch {
+            // A previous attempt can finish after a retry has fetched the old
+            // head. Its immutable receipt then arrives before its new head.
+            let request = try #require(store.cloudDeviceState.account.pending)
+            let previous = await transport.account().head
+            let resolution = try await CloudSavePlanner.resolve(request, against: previous)
+            _ = try await transport.commit(
+                accountID: "player-a", replacing: previous, head: resolution.head,
+                receipt: resolution.receipt, backups: resolution.backups,
+            )
+        }
+        #expect(await sync.synchronize())
+        #expect(store.roster.gold == 17)
+        #expect(store.cloudDeviceState.account.pending == nil)
+        #expect(store.cloudDeviceState.account.journal?.isEmpty == true)
+        #expect(try context.makeReloadedStore().roster.gold == 17)
+        let receiptCount = await transport.account().receipts.count
+        #expect(await sync.synchronize())
+        #expect(await transport.account().receipts.count == receiptCount)
+        #expect(await transport.account().head?.head.revision.snapshot.roster.gold == 17)
+    }
+
     @Test(arguments: [false, true])
     @MainActor func `one device serializes production commands through their own receipts`(cancelUpgrade: Bool) async throws {
         let context = try PersistenceTestContext()

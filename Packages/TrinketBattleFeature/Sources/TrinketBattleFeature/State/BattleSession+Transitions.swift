@@ -66,12 +66,18 @@ extension BattleSession {
         }
         let generation = transitionTask.claim()
         transitionTask.task = Task { @MainActor [weak self] in
-            guard let self else { return }
-            defer { transitionTask.finish(generation: generation) }
-            while !Task.isCancelled, isSuspendedForScenePhase {
-                await waitForAutoBattleRetry()
+            defer { self?.transitionTask.finish(generation: generation) }
+            // A backgrounded opening can wait indefinitely. The wait must not
+            // retain the session whose teardown owns its cancellation.
+            while !Task.isCancelled, self?.isSuspendedForScenePhase == true {
+                let delay = self?.autoBattleRetryDelay ?? .zero
+                if delay > .zero {
+                    try? await Task.sleep(for: delay)
+                } else {
+                    await Task.yield()
+                }
             }
-            guard !Task.isCancelled, transitionTask.isCurrent(generation) else { return }
+            guard let self, !Task.isCancelled, transitionTask.isCurrent(generation) else { return }
             presentOpeningTransition(for: configurationID)
         }
     }

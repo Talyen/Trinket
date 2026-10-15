@@ -17,6 +17,9 @@ final class PlayBattleCoordinator {
     var nextCombatSeed: () -> UInt64 = { UInt64.random(in: .min ... .max) }
     let preparations = PreparedBattleRegistry()
     var activeBattle: ActivePlayBattle?
+    enum RuntimeTransition { case installing, ending }
+    var runtimeTransition: RuntimeTransition?
+    var endRequestedDuringInstallation = false
     var preparedRuns: [BattleRunKey: PreparedBattleRegistry.Entry] {
         preparations.entries
     }
@@ -51,9 +54,33 @@ final class PlayBattleCoordinator {
     }
 
     func endBattleReturningToOrigin(onFinished: () -> Void) {
-        restoreOrigin(activeRun?.route?.origin)
-        endBattle()
+        guard let activeBattle else { return }
+        finishBattle(activeBattle) {
+            onFinished()
+            reset()
+        }
+    }
+
+    func isCurrent(_ run: ActivePlayBattle) -> Bool {
+        activeBattle === run && battle.lifecyclePhase == .active
+            && battle.activeBattle?.id == run.registration.launch.configuration.id
+    }
+
+    /// Origin restoration and runtime teardown notify observers synchronously.
+    /// Consume this run's exit before either can reenter the coordinator.
+    func finishBattle(_ run: ActivePlayBattle, onFinished: () -> Void) {
+        guard isCurrent(run) else { return }
+        if runtimeTransition == .installing {
+            endBattle()
+            return
+        }
+        guard runtimeTransition == nil else { return }
+        runtimeTransition = .ending
+        defer { runtimeTransition = nil }
+        run.claimState = .ending
+        restoreOrigin(run.registration.route?.origin)
+        guard isCurrent(run) else { return }
+        retireBattle()
         onFinished()
-        reset()
     }
 }

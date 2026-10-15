@@ -11,9 +11,7 @@ extension PlayBattleCoordinator {
               activeBattle.registration.launch.configuration.id == configurationID,
               case let .victory(onFinished) = activeBattle.claimState,
               battle.activeBattle?.id == configurationID else { return }
-        restoreOrigin(activeBattle.registration.route?.origin)
-        endBattle()
-        onFinished()
+        finishBattle(activeBattle, onFinished: onFinished)
     }
 
     func reset() {
@@ -39,14 +37,6 @@ extension PlayBattleCoordinator {
         }
     }
 
-    private func canClaimVictory(configurationID: UUID) -> Bool {
-        guard let activeBattle, activeBattle.registration.launch.configuration.id == configurationID else { return false }
-        if case .unclaimed = activeBattle.claimState {
-            return true
-        }
-        return false
-    }
-
     @discardableResult
     func completeActiveBattle(
         _ configuration: BattleRunConfiguration,
@@ -58,12 +48,12 @@ extension PlayBattleCoordinator {
         onFinished: @escaping () -> Void,
         onClaimed: @escaping () -> Void,
     ) -> BattleCompletionResult {
-        playerSave.performSaveAction(key: SaveRetryKey.victory(configuration.id)) { [weak self] isRetry -> BattleCompletionResult in
-            guard let self else { return .unavailable }
-            // Fail closed while any presentation exit is pending. Same-ID calls
-            // are duplicate claims; a different ID would overwrite the pending
-            // onFinished and leak the first battle's exit.
-            guard canClaimVictory(configurationID: configuration.id) else { return .unavailable }
+        guard runtimeTransition == nil, let expectedBattle = activeBattle, isCurrent(expectedBattle),
+              expectedBattle.registration.launch.configuration.id == configuration.id,
+              case .unclaimed = expectedBattle.claimState else { return .unavailable }
+        return playerSave.performSaveAction(key: SaveRetryKey.victory(configuration.id)) { [weak self] isRetry -> BattleCompletionResult in
+            guard let self, isCurrent(expectedBattle),
+                  case .unclaimed = expectedBattle.claimState else { return .unavailable }
             guard let run = activeRegistration(for: configuration) else { return .unavailable }
             let route = run.route
             // A settled award already includes material bonuses. With a supplied
@@ -83,6 +73,8 @@ extension PlayBattleCoordinator {
             } else {
                 nil
             }
+            expectedBattle.claimState = .claiming
+            defer { expectedBattle.releaseClaim() }
             let committed = playerSave.completeBattle(
                 run.rewardClaim, award: settlement ?? resolved,
                 enemyEncounterLevel: configuration.enemyEncounterLevel,
@@ -93,13 +85,13 @@ extension PlayBattleCoordinator {
             case .rejected: .unavailable
             case .persistFailed: .persistenceFailed
             }
-            if result.didComplete {
+            if result.didComplete, isCurrent(expectedBattle) {
                 recordTalentProgressions(settlement ?? resolved, configuration: configuration)
-                activeBattle?.claimState = .victory(onFinished: onFinished)
+                expectedBattle.claimState = .victory(onFinished: onFinished)
                 if !run.launch.inputs.launch.stageRewardsAlreadyClaimed {
                     onClaimed()
                 }
-                if !defersPresentationExit || isRetry {
+                if isCurrent(expectedBattle), !defersPresentationExit || isRetry {
                     finishPresentation(configurationID: configuration.id)
                 }
             }
@@ -147,28 +139,31 @@ extension PlayBattleCoordinator {
               battle.resolvedDefeatProgress != nil else { return .unavailable }
         guard let activeBattle else { return .unavailable }
         switch activeBattle.claimState {
-        case .victory: return .unavailable
+        case .claiming, .victory, .ending: return .unavailable
         case .defeat: return .completed
         case .unclaimed: break
         }
         guard let resolved = settleDefeat(configuration, at: settlement.inputs.productionDate)
         else { return .unavailable }
         guard resolved == settlement else { return .staleSettlement(resolved) }
+        activeBattle.claimState = .claiming
+        defer { activeBattle.releaseClaim() }
         switch playerSave.claimDefeatExperience(run.rewardClaim, award: resolved) {
         case .committed: break
         case .rejected: return .unavailable
         case .persistFailed: return .persistenceFailed
         }
+        guard isCurrent(activeBattle) else { return .completed }
         activeBattle.claimState = .defeat
         recordTalentProgressions(resolved, configuration: configuration)
         return .completed
     }
 
     func activeRegistration(for configuration: BattleRunConfiguration) -> PlayBattleRunRegistration? {
-        guard battle.lifecyclePhase == .active, battle.activeBattle?.id == configuration.id,
-              let activeRun, activeRun.launch.configuration.id == configuration.id,
-              activeRun.rewardClaim.isCurrent(in: playerSave) else { return nil }
-        return activeRun
+        guard runtimeTransition == nil, let activeBattle, isCurrent(activeBattle),
+              activeBattle.registration.launch.configuration.id == configuration.id,
+              activeBattle.registration.rewardClaim.isCurrent(in: playerSave) else { return nil }
+        return activeBattle.registration
     }
 
     func completeDefeat(
@@ -177,12 +172,15 @@ extension PlayBattleCoordinator {
         action: BattleDefeatAction,
         onFinished: @escaping () -> Void,
     ) -> BattleCompletionResult {
-        playerSave.performSaveAction(key: SaveRetryKey.defeat(configuration.id)) { [weak self] isRetry -> BattleCompletionResult in
-            guard let self else { return .unavailable }
+        guard runtimeTransition == nil, let expectedBattle = activeBattle, isCurrent(expectedBattle),
+              expectedBattle.registration.launch.configuration.id == configuration.id,
+              expectedBattle.canRestart else { return .unavailable }
+        return playerSave.performSaveAction(key: SaveRetryKey.defeat(configuration.id)) { [weak self] isRetry -> BattleCompletionResult in
+            guard let self, isCurrent(expectedBattle) else { return .unavailable }
             guard let refreshed = isRetry ? settleDefeat(configuration, at: Date()) : settlement else { return .unavailable }
 
             let result = claimDefeat(configuration, settlement: refreshed)
-            guard result.didComplete else { return result }
+            guard result.didComplete, isCurrent(expectedBattle) else { return result }
             switch action {
             case .retry:
                 _ = requestRestart(onFinished: onFinished)
