@@ -11,10 +11,10 @@ extension BattleState {
         sourceActorID: String?,
         applyFightPacing: Bool = true,
     ) -> [ActionEvent] {
-        CombatExecutor.run {
+        recordingEvents { context in
             await ControlMeterEngine.applyMeterCharge(
                 amount, keyword: keyword, to: target, sourceActorID: sourceActorID,
-                applyFightPacing: applyFightPacing, in: &self,
+                applyFightPacing: applyFightPacing, in: &context,
             )
         }
     }
@@ -26,9 +26,12 @@ extension BattleState {
         from source: BattleParticipant = .hero,
         to target: BattleParticipant = .enemy,
     ) -> [ActionEvent] {
-        BattleTurnEngine.performAction(
-            ability: ability, actor: roster[source].combatant, abilityTarget: roster[target].combatant, context: &self,
-        )
+        recordingEvents { context in
+            await BattleTurnEngine.performAction(
+                ability: ability, actor: context.roster[source].combatant, abilityTarget: context.roster[target].combatant,
+                context: &context,
+            )
+        }
     }
 
     @discardableResult
@@ -57,5 +60,18 @@ extension BattleState {
             amount: amount, target: target, keyword: keyword,
             sourceActorID: sourceActorID, options: options,
         ))
+    }
+}
+
+extension BattleState {
+    mutating func recordingResult<Value>(
+        _ operation: (inout BattleState) async -> Value,
+    ) -> (events: [ActionEvent], value: Value) {
+        let result = CombatExecutor.run { await collectingResult(operation) }
+        return (result.events, result.value)
+    }
+
+    mutating func recordingEvents(_ operation: (inout BattleState) async -> Void) -> [ActionEvent] {
+        CombatExecutor.run { await collectingEvents(operation) }
     }
 }

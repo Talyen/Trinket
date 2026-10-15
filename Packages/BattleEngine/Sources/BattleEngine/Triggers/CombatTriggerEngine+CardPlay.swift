@@ -5,15 +5,15 @@ package extension CombatTriggerEngine {
     internal static func afterCardPlayed(
         _ facts: ResolvedActionFacts,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let actor = facts.action.actor
         let ability = facts.originalAbility
         let abilityTarget = facts.action.selectedTarget
         guard let owner = context.roster.participant(for: actor), owner.isPartyMember,
-              context.roster[owner].isAlive else { return [] }
+              context.roster[owner].isAlive else { return }
         let triggers = context.modifiers(for: actor.id).triggers
         let keywords = facts.damageKeywords
-        var events = await CombatCheckpoint.cardCompletion(actor.id).resolve([
+        await CombatCheckpoint.cardCompletion(actor.id).resolve([
             { await spellEchoIfNeeded(ability: ability, actor: actor, owner: owner, abilityTarget: abilityTarget, in: &$0) },
             { await scholarlySmiteIfNeeded(keywords: keywords, actor: actor, in: &$0) },
             { await infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &$0) },
@@ -25,14 +25,13 @@ package extension CombatTriggerEngine {
         let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
         context.turnCadence.cardsPlayed[owner] = count
 
-        guard context.roster[owner].isAlive else { return events }
+        guard context.roster[owner].isAlive else { return }
         if !keywords.isEmpty, triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
            BattleChance.succeeds(probability: triggers.attackDelayEnemyTurnChancePercent, using: &context.rng) {
             context.additionalControlSkipsByCombatantID[context.roster.enemy.id, default: 0] += 1
         }
 
-        await events.append(contentsOf: cardsPlayedManaIfNeeded(count: count, actor: actor, triggers: triggers, in: &context))
-        return events
+        await cardsPlayedManaIfNeeded(count: count, actor: actor, triggers: triggers, in: &context)
     }
 
     private static func spellEchoIfNeeded(
@@ -41,36 +40,30 @@ package extension CombatTriggerEngine {
         owner: BattleParticipant,
         abilityTarget: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard ability.tier == .skill, !context.isEchoingSkill else { return [] }
+    ) async {
+        guard ability.tier == .skill, !context.isEchoingSkill else { return }
         let skillCount = context.turnCadence.skillCardsPlayed[owner, default: 0] + 1
         context.turnCadence.skillCardsPlayed[owner] = skillCount
         let empowered = context.resolution.consumeCardEmpowerment(by: actor.id)
         guard empowered,
               context.modifiers(for: actor.id).triggers.empoweredSkillEchoes
-        else { return [] }
+        else { return }
         context.isEchoingSkill = true
         defer { context.isEchoingSkill = false }
-        return await BattleTurnEngine.performAction(
-            ability: ability,
-            actor: actor,
-            abilityTarget: abilityTarget,
-            origin: .card,
-            context: &context,
-        )
+        await BattleTurnEngine.performAction(ability: ability, actor: actor, abilityTarget: abilityTarget, origin: .card, context: &context)
     }
 
     private static func scholarlySmiteIfNeeded(
         keywords: Set<Keyword>,
         actor: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard actor.role == .hero, keywords.contains(.holy),
               let companionTriggers = companionReactingToHeroTriggers(in: context),
               companionTriggers.onHeroHolyAbilityCompanionHolyDamage > 0,
               context.roster.enemy.isAlive
-        else { return [] }
-        return await context.resolveDamage(
+        else { return }
+        _ = await context.resolveDamage(
             DamageRequest(
                 amount: companionTriggers.onHeroHolyAbilityCompanionHolyDamage,
                 target: context.roster.enemy.combatant,
@@ -78,7 +71,7 @@ package extension CombatTriggerEngine {
                 sourceActorID: context.roster.companion.id,
                 options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
             ),
-        ).events
+        )
     }
 
     private static func infernoBarrageIfNeeded(
@@ -86,12 +79,12 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard ability.tier == .ultimate,
               triggers.ultimateAppliesBurnPotency > 0,
               context.roster.enemy.isAlive
-        else { return [] }
-        return await context.applyDecayingDoT(
+        else { return }
+        await context.applyDecayingDoT(
             keyword: .burn,
             potency: triggers.ultimateAppliesBurnPotency,
             to: context.roster.enemy.combatant,
@@ -106,14 +99,14 @@ package extension CombatTriggerEngine {
         owner: BattleParticipant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard keywords.contains(.freeze) else { return [] }
+    ) async {
+        guard keywords.contains(.freeze) else { return }
         let freezeCount = context.turnCadence.freezeCardsPlayed[owner, default: 0] + 1
         context.turnCadence.freezeCardsPlayed[owner] = freezeCount
         let threshold = triggers.freezeCardsPlayedThisTurnFreezeAll
-        guard threshold > 0, freezeCount == threshold, context.roster.enemy.isAlive else { return [] }
+        guard threshold > 0, freezeCount == threshold, context.roster.enemy.isAlive else { return }
         let enemyThreshold = ControlMeterEngine.threshold(for: context.roster.enemy.combatant, in: context)
-        return await ControlMeterEngine.applyMeterCharge(
+        await ControlMeterEngine.applyMeterCharge(
             enemyThreshold,
             keyword: .freeze,
             to: context.roster.enemy.combatant,
@@ -137,16 +130,15 @@ package extension CombatTriggerEngine {
         keywords: Set<Keyword>,
         actor: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) {
         guard context.resolution.depth(.damage) < ReactionScope.maxDepth,
-              !context.resolution.isAutomaticPlay else { return [] }
+              !context.resolution.isAutomaticPlay else { return }
         let triggers = context.modifiers(for: actor.id).triggers
         if keywords.contains(.burn) {
             for (keyword, enabled) in repeatPairs(triggers: triggers) where enabled {
                 context.roster.mutateRuntime(for: actor) { $0.talents.turn.primedRepeatKeywords.insert(keyword) }
             }
         }
-        return []
     }
 
     private static func talentRepeatIfNeeded(
@@ -155,10 +147,10 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         abilityTarget: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard context.resolution.depth(.damage) < ReactionScope.maxDepth,
               !context.resolution.isAutomaticPlay
-        else { return [] }
+        else { return }
         let triggers = context.modifiers(for: actor.id).triggers
         for (keyword, enabled) in repeatPairs(triggers: triggers) where keywords.contains(keyword) && enabled {
             var prepared = false
@@ -166,44 +158,30 @@ package extension CombatTriggerEngine {
             guard prepared else { continue }
             context.resolution.enter(.damage)
             defer { context.resolution.leave(.damage) }
-            return await BattleTurnEngine.performAction(
+            await BattleTurnEngine.performAction(
                 ability: ability,
                 actor: actor,
                 abilityTarget: abilityTarget,
                 origin: .cardRepeat,
                 context: &context,
             )
+            return
         }
-        return []
     }
 
-    static func drawAfterSpendMana(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
-        guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return [] }
+    static func drawAfterSpendMana(by actor: Combatant, in context: inout BattleState) {
+        guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return }
         let count = context.modifiers(for: actor.id).triggers.drawOnSpendMana
-        guard count > 0, context.turnCadence.spendManaDrawOwners.insert(owner).inserted else { return [] }
-        return drawClaimedCards(
-            count,
-            for: owner,
-            actor: actor,
-            abilityKey: .drawOnSpendMana,
-            fallback: "Runic Quill",
-            in: &context,
-        )
+        guard count > 0, context.turnCadence.spendManaDrawOwners.insert(owner).inserted else { return }
+        drawClaimedCards(count, for: owner, actor: actor, abilityKey: .drawOnSpendMana, fallback: "Runic Quill", in: &context)
     }
 
-    static func drawAfterHealthLoss(by actor: Combatant, in context: inout BattleState) -> [ActionEvent] {
+    static func drawAfterHealthLoss(by actor: Combatant, in context: inout BattleState) {
         guard let owner = context.roster.participant(for: actor), owner.isPartyMember,
-              context.roster.health(for: actor) > 0 else { return [] }
+              context.roster.health(for: actor) > 0 else { return }
         let count = context.modifiers(for: actor.id).triggers.drawOnHealthLoss
-        guard count > 0, context.turnCadence.healthLossDrawOwners.insert(owner).inserted else { return [] }
-        return drawClaimedCards(
-            count,
-            for: owner,
-            actor: actor,
-            abilityKey: .drawOnHealthLoss,
-            fallback: "Bone Charm",
-            in: &context,
-        )
+        guard count > 0, context.turnCadence.healthLossDrawOwners.insert(owner).inserted else { return }
+        drawClaimedCards(count, for: owner, actor: actor, abilityKey: .drawOnHealthLoss, fallback: "Bone Charm", in: &context)
     }
 
     private static func drawClaimedCards(
@@ -213,7 +191,7 @@ package extension CombatTriggerEngine {
         abilityKey: CombatTriggerField,
         fallback: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) {
         drawCards(
             count,
             for: owner,
@@ -227,14 +205,14 @@ package extension CombatTriggerEngine {
         _ amount: Int,
         to actor: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         resetPantherRedline(afterHealthRestoration: actor, in: &context)
         let percent = context.modifiers(for: actor.id).triggers.healthRestoredPoisonPercent
         guard amount > 0, percent > 0, context.roster.enemy.isAlive, context.resolution.depth(.talentReaction) == 0 else {
-            return []
+            return
         }
         let damage = CombatRounding.scaled(amount, multiplier: percent)
-        guard damage > 0 else { return [] }
+        guard damage > 0 else { return }
         context.resolution.enter(.talentReaction)
         defer { context.resolution.leave(.talentReaction) }
         let poison = await DamagePipeline.resolveNestedDamage(
@@ -244,12 +222,11 @@ package extension CombatTriggerEngine {
             sourceActorID: actor.id,
             in: &context,
         )
-        var events = poison.events
-        await events.append(contentsOf: context.applyDecayingDoT(
+
+        await context.applyDecayingDoT(
             keyword: .poison, potency: poison.healthLost, to: context.roster.enemy.combatant,
             sourceActorID: actor.id, application: .attached,
-        ))
-        return events
+        )
     }
 
     static func drawCards(
@@ -258,26 +235,26 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         abilityName: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) {
         let drawn = BattleCardCombatEngine.drawCards(count: count, for: owner, context: &context)
-        guard drawn > 0 else { return [] }
-        return [context.nextEvent(
+        guard drawn > 0 else { return }
+        context.nextEvent(
             kind: .effect(.cardsDrawn),
             source: .init(actor),
             abilityName: abilityName,
             target: actor,
             amount: drawn,
             keyword: .physical,
-        )]
+        )
     }
 }
 
 // MARK: - Party cards
 
 package extension CombatTriggerEngine {
-    static func afterPartyCardPlayed(in context: inout BattleState) async -> [ActionEvent] {
+    static func afterPartyCardPlayed(in context: inout BattleState) async {
         let count = context.turnCadence.cardsPlayed.values.reduce(0, +)
-        var events: [ActionEvent] = []
+
         for (_, actor) in livingPartyMembers(in: context) {
             let triggers = context.modifiers(for: actor.id).triggers
             guard triggers.cardsPlayedHealPartyThreshold > 0,
@@ -285,13 +262,12 @@ package extension CombatTriggerEngine {
                   context.resolution.claim(.heroTalent(.playfulEnergy), actorID: actor.id, cadence: .turn(context.turnCount))
             else { continue }
             for (_, target) in livingPartyMembers(in: context) {
-                await events.append(contentsOf: emitHeal(
+                await emitHeal(
                     .cardsPlayedHealPartyThreshold, "Playful Energy",
                     amount: triggers.cardsPlayedHealPartyAmount,
                     to: target.combatant, source: actor.combatant, in: &context,
-                ))
+                )
             }
         }
-        return events
     }
 }

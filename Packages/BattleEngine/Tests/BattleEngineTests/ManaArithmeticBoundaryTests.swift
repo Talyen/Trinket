@@ -15,7 +15,7 @@ struct ManaArithmeticBoundaryTests {
         #expect(battle.roster.hero.talents.pending.manaOverflowThorns == Int.max)
         _ = battle.payMana(1, for: battle.hero)
 
-        let events = CombatExecutor.run {
+        let events = battle.recordingEvents { battle in
             await battle.restoreManaEmitting(1, to: battle.hero, abilityName: "Restore")
         }
 
@@ -33,7 +33,7 @@ struct ManaArithmeticBoundaryTests {
         battle.roster.hero.talents.pending.cardDamageBonus = existingBonus ? Int.max : 0
         let payment = battle.payMana(3, for: battle.hero)
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
 
         #expect(battle.roster.hero.talents.pending.cardDamageBonus == Int.max)
     }
@@ -46,7 +46,7 @@ struct ManaArithmeticBoundaryTests {
         battle.roster.companion.talents.pending.cardDamageBonus = Int.max
         let payment = battle.payMana(1, for: battle.hero)
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
 
         #expect(battle.roster.companion.talents.pending.cardDamageBonus == Int.max)
     }
@@ -60,7 +60,7 @@ struct ManaArithmeticBoundaryTests {
         battle.heroDeck = CombatDeck(abilities: [.block])
         let payment = battle.payMana(Int.max, for: battle.hero)
 
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
 
         #expect(battle.roster.hero.talents.battle.manaSpentTowardAutoPlay == 1)
         #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == 1)

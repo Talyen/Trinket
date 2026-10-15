@@ -87,7 +87,7 @@ package extension DamagePipeline {
         recordBlockAbsorption(absorbed, owner: owner, to: &state, in: &context)
 
         if !isBorrowed {
-            _ = await applyBlockAbsorptionReactions(
+            await applyBlockAbsorptionReactions(
                 absorbed: absorbed,
                 blockBroken: blockBroken,
                 defenderTriggers: defenderTriggers,
@@ -96,7 +96,7 @@ package extension DamagePipeline {
                 in: &context,
             )
         }
-        _ = await handleTalentBlockedDamage(
+        await handleTalentBlockedDamage(
             absorbed: absorbed,
             blockBroken: blockBroken,
             defender: owner,
@@ -109,11 +109,7 @@ package extension DamagePipeline {
         }
         if blockBroken {
             state.brokenBlockOwners.append(owner)
-            _ = await CombatTriggerEngine.afterBlockBroken(
-                on: owner,
-                attackerID: state.sourceActorID,
-                in: &context,
-            )
+            await CombatTriggerEngine.afterBlockBroken(on: owner, attackerID: state.sourceActorID, in: &context)
         }
         return min(buffer, max(0, stripBeforeAbsorption))
     }
@@ -175,51 +171,50 @@ package extension DamagePipeline {
         defender: Combatant,
         attackerID: String?,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard absorbed > 0, defender.role != .enemy, let attackerID,
               let attacker = context.roster.combatant(for: attackerID)
-        else { return [] }
-        var events: [ActionEvent] = []
+        else { return }
+
         if partyTrigger(\.storedImpact, defender: defender, in: context) {
             context.storedBlockedDamageByActorID[defender.id] = SaturatedArithmetic.saturatingAdd(
                 context.storedBlockedDamageByActorID[defender.id, default: 0], absorbed,
             )
         }
         if blockBroken, context.modifiers(for: defender.id).triggers.seismicReversal {
-            await events.append(contentsOf: resolveNestedDamage(
+            _ = await resolveNestedDamage(
                 amount: absorbed,
                 keyword: .stun,
                 target: attacker.combatant,
                 sourceActorID: defender.id,
                 requireTargetAlive: true,
                 in: &context,
-            ).events)
+            )
         }
         let freeze = context.modifiers(for: defender.id).triggers.firstBlockFreezeDamagePerTurn
         if freeze > 0, context.claimTurnGuard(.glacialReprieve, actorID: defender.id) {
-            await events.append(contentsOf: resolveNestedDamage(
+            _ = await resolveNestedDamage(
                 amount: freeze,
                 keyword: .freeze,
                 target: attacker.combatant,
                 sourceActorID: defender.id,
                 requireTargetAlive: true,
                 in: &context,
-            ).events)
+            )
         }
         let reflectChance = context.modifiers(for: defender.id).triggers.blockHolyReflectChancePercent
         if reflectChance > 0, attacker.role == .enemy,
            context.claimTalentAbility(.radiantShell, actorID: defender.id),
            BattleChance.succeeds(probability: reflectChance, using: &context.rng) {
-            await events.append(contentsOf: resolveNestedDamage(
+            _ = await resolveNestedDamage(
                 amount: absorbed,
                 keyword: .holy,
                 target: attacker.combatant,
                 sourceActorID: defender.id,
                 requireTargetAlive: true,
                 in: &context,
-            ).events)
+            )
         }
-        return events
     }
 
     private static func partyTrigger(
@@ -296,21 +291,20 @@ package extension DamagePipeline {
         sourceTriggers: CombatTraitTriggers?,
         to state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        var events: [ActionEvent] = []
+    ) async {
         if absorbed > 0, let attackerID = state.sourceActorID,
            let attacker = context.roster.combatant(for: attackerID),
            context.roster.health(for: attacker.combatant) > 0 {
             let reflection = defenderTriggers.onBlockHitDealHoly
             if reflection > 0 {
-                await events.append(contentsOf: resolveNestedDamage(
+                _ = await resolveNestedDamage(
                     amount: reflection,
                     keyword: .holy,
                     target: attacker.combatant,
                     sourceActorID: state.combatant.id,
                     requireTargetAlive: true,
                     in: &context,
-                ).events)
+                )
             }
             if defenderTriggers.onBlockReduceAttackerAccuracyPercent > 0 {
                 context.appendEffect(
@@ -329,15 +323,14 @@ package extension DamagePipeline {
            let sourceTriggers, sourceTriggers.onEnemyBlockBrokenDealPhysical > 0,
            let attackerID = state.sourceActorID,
            context.roster.health(for: state.combatant) > 0 {
-            await events.append(contentsOf: resolveNestedDamage(
+            _ = await resolveNestedDamage(
                 amount: sourceTriggers.onEnemyBlockBrokenDealPhysical,
                 keyword: .physical,
                 target: state.combatant,
                 sourceActorID: attackerID,
                 requireTargetAlive: true,
                 in: &context,
-            ).events)
+            )
         }
-        return events
     }
 }

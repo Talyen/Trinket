@@ -43,7 +43,7 @@ struct TalentCatalogRoundTripTests {
             },
             dealOpeningHand: false, appliesFightPacing: false,
         )
-        _ = battle.applyBlock(3, to: battle.hero, source: battle.hero, abilityName: "Block")
+        _ = battle.applyBlockGain(3, to: battle.hero, source: battle.hero, abilityName: "Block")
         for amount in [1, 3] {
             _ = battle.resolveTestDamage(amount, from: .enemy, to: .companion, options: .reaction())
             #expect(talentPoints(.shield, on: .hero, in: battle) == 2)
@@ -65,7 +65,9 @@ struct TalentCatalogRoundTripTests {
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
             for: target,
         )
-        let blockEvents = battle.applyBlock(5, to: target, source: target, abilityName: "Test")
+        let blockEvents = battle.recordingEvents { battle in
+            battle.applyBlockGain(5, to: target, source: target, abilityName: "Test")
+        }
         #expect(blockEvents.isEmpty == (recipient == .enemy))
         battle.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
         let heal = battle.resolveHeal(HealRequest(amount: 5, target: target, sourceActorID: "enemy"))

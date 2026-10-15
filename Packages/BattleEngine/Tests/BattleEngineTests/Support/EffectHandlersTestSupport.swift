@@ -3,6 +3,11 @@ import TrinketContent
 import TrinketCore
 
 enum EffectHandlersTestSupport {
+    struct ApplicationObservation {
+        let didApply: Bool
+        let events: [ActionEvent]
+    }
+
     struct TickObservation {
         let events: [ActionEvent]
         let currentEffect: ActiveEffect?
@@ -14,17 +19,17 @@ enum EffectHandlersTestSupport {
         source: Combatant? = nil,
         target: Combatant? = nil,
         battle: inout BattleState,
-    ) -> EffectApplyOutcome {
+    ) -> ApplicationObservation {
         let source = source ?? battle.hero
         let target = target ?? battle.hero
         let handler = EffectHandlers.handler(for: effect.kind)
-        let outcome = CombatExecutor.run {
+        let outcome = battle.recordingResult { battle in
             await handler.apply(effect, ability: ability, source: source, target: target, in: &battle)
         }
         if battle.tracksLog {
             battle.syncLog()
         }
-        return outcome
+        return ApplicationObservation(didApply: outcome.value.didApply, events: outcome.events)
     }
 
     static func dispatchTick(
@@ -38,7 +43,9 @@ enum EffectHandlersTestSupport {
             $0.activeEffects.append(active)
         }
         battle.nextEffectID = max(battle.nextEffectID, active.id + 1)
-        let outcome = CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
+        let outcome = battle.recordingEvents { battle in
+            await handler.advanceTurn(active, on: target, in: &battle)
+        }
         if battle.tracksLog {
             battle.syncLog()
         }

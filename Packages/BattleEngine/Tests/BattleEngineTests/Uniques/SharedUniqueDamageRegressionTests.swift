@@ -100,7 +100,7 @@ struct SharedUniqueDamageRegressionTests {
         profile.triggers.poisonDecaySlowPercent = 0.4
         var context = try fixtures.battle([], extra: profile)
         for owner in [BattleParticipant.hero, .companion] {
-            _ = CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
+            CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
                 keyword: keyword, potency: 10, to: context.enemy,
                 sourceActorID: context.roster[owner].id, application: .attached, in: &context,
             ) }
@@ -110,7 +110,7 @@ struct SharedUniqueDamageRegressionTests {
         let expected = active.effect.potencyAfterTurn(burnDecaySlowPercent: 0.4, poisonDecaySlowPercent: 0.4)
         let before = context.health(of: context.enemy)
         let handler = EffectHandlers.handler(for: active.effect.kind)
-        _ = CombatExecutor.run { await handler.advanceTurn(active, on: context.enemy, in: &context) }
+        CombatExecutor.run { await handler.advanceTurn(active, on: context.enemy, in: &context) }
         #expect(before - context.health(of: context.enemy) == expected)
     }
 
@@ -252,7 +252,7 @@ extension SharedUniqueDamageRegressionTests {
         let fixtures = UniqueCollectionTests()
         let profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t4_1"])
         var battle = try fixtures.battle(["oathkeeper"], extra: profile)
-        _ = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Steal", isTheft: true)
+        battle.grantGoldEvent(1, to: battle.hero, abilityName: "Steal", isTheft: true)
 
         try fixtures.play(fixtures.attack(.holy, amount: 20), in: &battle)
         #expect(battle.health(of: battle.enemy) == 1977)

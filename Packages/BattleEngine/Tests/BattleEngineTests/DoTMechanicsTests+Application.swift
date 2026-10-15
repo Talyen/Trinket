@@ -39,7 +39,7 @@ extension DoTMechanicsTests {
             let ability = Ability(id: "dot-hit", name: "DoT Hit", tier: .basic, directDamage: 4, damageKeyword: keyword)
             let before = battle.health(of: target)
 
-            _ = BattleTurnEngine.performAction(ability: ability, actor: actor, abilityTarget: target, context: &battle)
+            BattleTurnEngine.performAction(ability: ability, actor: actor, abilityTarget: target, context: &battle)
 
             let expected = 6 - block
             #expect(before - battle.health(of: target) == expected)
@@ -48,7 +48,7 @@ extension DoTMechanicsTests {
             if let active {
                 let handler = EffectHandlers.handler(for: active.effect.kind)
                 let tickBefore = battle.health(of: target)
-                _ = CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
+                CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
                 #expect(tickBefore - battle.health(of: target) == active.effect.potencyAfterTurn())
             }
         }
@@ -65,7 +65,7 @@ extension DoTMechanicsTests {
             DefensePoolEngine.set(block, on: target, in: &battle)
             let before = battle.health(of: target)
 
-            _ = CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
+            CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
                 keyword: keyword, potency: 4, to: target, sourceActorID: battle.hero.id,
                 application: application, in: &battle,
             ) }
@@ -84,14 +84,14 @@ extension DoTMechanicsTests {
         let target = battle.enemy
         battle.appendEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let ability = Ability(id: "critical-dot", name: "Critical DoT", tier: .skill, directDamage: 4, damageKeyword: keyword)
-        _ = BattleTurnEngine.performAction(ability: ability, actor: battle.hero, abilityTarget: target, context: &battle)
+        BattleTurnEngine.performAction(ability: ability, actor: battle.hero, abilityTarget: target, context: &battle)
         let active = try #require(battle.activeEffects(of: target).first { $0.keyword == keyword })
         #expect(active.effect.potency == 14)
         DefensePoolEngine.set(2, on: target, in: &battle)
         let before = battle.health(of: target)
         let handler = EffectHandlers.handler(for: active.effect.kind)
 
-        _ = CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
+        CombatExecutor.run { await handler.advanceTurn(active, on: target, in: &battle) }
 
         #expect(before - battle.health(of: target) == active.effect.potencyAfterTurn() - 1 - 2)
         #expect(battle.activeEffects(of: target).first { $0.keyword == keyword }?.effect.potency == active.effect.potencyAfterTurn())
@@ -109,7 +109,7 @@ extension DoTMechanicsTests {
             }
             let request = DamageRequest(amount: 4, target: target, keyword: keyword, sourceActorID: battle.enemy.id)
 
-            _ = CombatExecutor.run { await UniqueCombatEngine.repeatHit(
+            CombatExecutor.run { await UniqueCombatEngine.repeatHit(
                 request,
                 actor: battle.enemy,
                 name: "Repeat",

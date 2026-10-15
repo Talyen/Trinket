@@ -11,9 +11,9 @@ struct BlockPoolMutationRegressionTests {
 
         #expect(DefensePoolEngine.halveBlock(on: battle.enemy, in: &battle))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 6)
-        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.enemy, in: &battle) }
+        CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.enemy, in: &battle) }
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 3)
-        #expect(battle.applyBlockGain(4, to: battle.enemy, source: battle.enemy, abilityName: "Blocked gain").applied == 0)
+        #expect(battle.applyBlockGain(4, to: battle.enemy, source: battle.enemy, abilityName: "Blocked gain") == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 3)
     }
 
@@ -29,8 +29,8 @@ struct BlockPoolMutationRegressionTests {
             8, to: battle.enemy, source: battle.enemy, abilityName: "Resolved gain", amountBasis: .resolved,
         )
         let base = battle.applyBlockGain(8, to: battle.enemy, source: battle.enemy, abilityName: "Base gain")
-        #expect(resolved.applied == 8)
-        #expect(base.applied == 4)
+        #expect(resolved == 8)
+        #expect(base == 4)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 12)
     }
 }

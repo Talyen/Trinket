@@ -3,8 +3,6 @@ import TrinketContent
 import TrinketCore
 
 package struct EffectApplyOutcome {
-    package var events: [ActionEvent] = []
-
     package var didApply: Bool = true
     /// Direct grants exclude any gains produced by nested reactions.
     package var grantedGold: Int = 0
@@ -24,7 +22,7 @@ package protocol BattleEffectHandler: Sendable {
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent]
+    ) async
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary?
 }
 
@@ -34,14 +32,13 @@ package extension BattleEffectHandler {
         on target: Combatant,
         in context: inout BattleState,
         // swiftlint:disable:next async_without_await - Match the async protocol witness so synchronous calls cannot bypass specialized turn handlers.
-    ) async -> [ActionEvent] {
-        guard active.effect.advancesEachTurn else { return [] }
+    ) async {
+        guard active.effect.advancesEachTurn else { return }
         var updated = active
         updated.remainingTurns -= 1
         ActiveEffectMutation.finishTurn(
             active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
         )
-        return []
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {

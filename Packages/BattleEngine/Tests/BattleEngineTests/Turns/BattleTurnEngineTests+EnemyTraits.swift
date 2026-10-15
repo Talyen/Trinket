@@ -44,9 +44,9 @@ extension BattleTurnEngineTests {
         DefensePoolEngine.set(20, on: target, in: &context)
         DefensePoolEngine.set(8, on: enemy, in: &context)
 
-        let events = BattleTurnEngine.performAction(
+        let events = context.recordingEvents { context in await BattleTurnEngine.performAction(
             ability: ability, actor: enemy, abilityTarget: target, context: &context,
-        )
+        ) }
 
         #expect(DefensePoolEngine.blockPoints(in: context.roster.enemy.activeEffects) == 8)
         #expect(events.contains {
@@ -60,9 +60,9 @@ extension BattleTurnEngineTests {
         context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 39 }
         let target = BattleActionContext(actor: enemy, in: context).selectedTarget
 
-        let events = BattleTurnEngine.performAction(
+        let events = context.recordingEvents { context in await BattleTurnEngine.performAction(
             ability: .poisonDagger, actor: enemy, abilityTarget: target, context: &context,
-        )
+        ) }
 
         let hits = events.filter { $0.kind == .abilityDamage }
         #expect(hits.map(\.keyword) == [.poison, .poison])
@@ -235,7 +235,7 @@ extension BattleTurnEngineTests {
         var context = try enemyTraitContext("cleric")
         let enemy = context.enemy
         context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 5 }
-        let blockEvents = CombatTriggerEngine.turnBlock(for: enemy, in: &context)
+        let blockEvents = context.recordingEvents { context in await CombatTriggerEngine.turnBlock(for: enemy, in: &context) }
         #expect(blockEvents.contains { $0.abilityName == "Watchful Guard" && $0.targetID == enemy.id })
         let outcome = context.resolveTestDamage(
             2,
@@ -256,8 +256,8 @@ extension BattleTurnEngineTests {
             context.turnCount = turn
             let heroHealth = context.health(of: context.hero)
             let companionHealth = context.health(of: context.companion)
-            _ = CombatExecutor.run { await EnemyTraitEngine.turnFreeze(for: enemy, context: &context) }
-            _ = CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: enemy, context: &context) }
+            CombatExecutor.run { await EnemyTraitEngine.turnFreeze(for: enemy, context: &context) }
+            CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: enemy, context: &context) }
             let expectedDamage = turn.isMultiple(of: 2) ? 1 : 0
             #expect(heroHealth - context.health(of: context.hero) == expectedDamage)
             #expect(companionHealth - context.health(of: context.companion) == expectedDamage)
@@ -274,7 +274,7 @@ extension BattleTurnEngineTests {
         }
         context.turnCount = 2
 
-        _ = CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context) }
+        CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context) }
 
         for (index, target) in targets.enumerated() {
             #expect(healthBefore[index] - context.health(of: target) == 1 - block)
@@ -282,7 +282,7 @@ extension BattleTurnEngineTests {
             #expect(bleed.effect.potency == 1)
             #expect(bleed.sourceActorID == context.enemy.id)
             let beforeTick = context.health(of: target)
-            _ = CombatExecutor.run { await EffectHandlers.handler(for: bleed.effect.kind).advanceTurn(
+            CombatExecutor.run { await EffectHandlers.handler(for: bleed.effect.kind).advanceTurn(
                 bleed, on: target, in: &context,
             ) }
             #expect(beforeTick - context.health(of: target) == 1)
@@ -308,7 +308,7 @@ extension BattleTurnEngineTests {
             DefensePoolEngine.set(block, on: target, in: &context)
         }
 
-        _ = CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context) }
+        CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context) }
 
         for (index, target) in targets.enumerated() {
             #expect(healthBefore[index] - context.health(of: target) == 4 - block)
@@ -325,7 +325,7 @@ extension BattleTurnEngineTests {
         let enemy = context.enemy
         let target = context.hero
         let skillAttack = Ability(id: "spider-skill", name: "Venom Strike", tier: .skill, directDamage: 5, damageKeyword: .physical)
-        _ = BattleTurnEngine.performAction(ability: skillAttack, actor: enemy, abilityTarget: target, context: &context)
+        BattleTurnEngine.performAction(ability: skillAttack, actor: enemy, abilityTarget: target, context: &context)
         #expect(context.roster.hasAffliction(.poison, on: target))
     }
 

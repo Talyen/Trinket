@@ -34,25 +34,22 @@ extension HealingEngine {
         sourceTriggers: CombatTraitTriggers?,
         targetTriggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let overflow = allocation.overflow
-        guard overflow > 0 else { return [] }
-        var events = await applyLeechOverhealing(
-            allocation: &allocation, request: request, sourceTriggers: sourceTriggers, in: &context,
-        )
+        guard overflow > 0 else { return }
+        await applyLeechOverhealing(allocation: &allocation, request: request, sourceTriggers: sourceTriggers, in: &context)
         prepareFreeManaEmpowermentAfterOverheal(request: request, triggers: sourceTriggers, in: &context)
         if sourceTriggers?.wishspring == true {
-            await events.append(contentsOf: context.restoreManaEmitting(
+            await context.restoreManaEmitting(
                 CombatRounding.scaled(overflow, multiplier: 0.5), to: request.target,
                 abilityName: "Wishspring",
                 source: context.roster.combatant(for: request.sourceActorID ?? "")?.combatant,
-            ))
+            )
         }
-        events.append(contentsOf: applyBlockOverhealConversion(
+        applyBlockOverhealConversion(
             allocation: &allocation, request: request,
             sourceTriggers: sourceTriggers, targetTriggers: targetTriggers, in: &context,
-        ))
-        return events
+        )
     }
 
     private static func providedOverhealConversion(
@@ -79,11 +76,11 @@ extension HealingEngine {
         allocation: inout HealingAllocation, request: HealRequest,
         sourceTriggers: CombatTraitTriggers?, targetTriggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) {
         let (conversion, blockSource) = providedOverhealConversion(
             request: request, sourceTriggers: sourceTriggers, targetTriggers: targetTriggers, in: context,
         )
-        var events: [ActionEvent] = []
+
         convertOverhealToMaximumHealth(conversion, target: request.target, allocation: &allocation, in: &context)
         if conversion.overhealConvertsToBlock, allocation.remaining > 0 {
             let gain = context.applyBlockGain(
@@ -93,28 +90,28 @@ extension HealingEngine {
                 abilityName: "Barrier Blessing",
                 amountBasis: .resolved,
             )
-            allocation.allocate(gain.applied, to: .block)
-            events.append(contentsOf: gain.events)
+            allocation.allocate(gain, to: .block)
+
         } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealFirstBlockPerTurn > 0,
                   allocation.remaining > 0,
                   context.claimTurnGuard(
                       .overhealFirstBlock,
                       actorID: request.sourceActorID ?? request.target.id,
                   ) {
-            events.append(contentsOf: context.applyBlock(
+            context.applyBlockGain(
                 conversion.overhealFirstBlockPerTurn,
                 to: request.target,
                 source: request.target,
                 abilityName: "Aether Shield",
-            ))
+            )
         } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealToBlockPercent > 0 {
-            events.append(contentsOf: convertFractionalOverhealToBlock(
+            convertFractionalOverhealToBlock(
                 allocation: &allocation,
                 target: request.target,
                 source: blockSource,
                 percent: conversion.overhealToBlockPercent,
                 in: &context,
-            ))
+            )
         } else if !conversion.overhealConvertsToMaxHealth, conversion.overhealShieldCap > 0 {
             let shield = min(allocation.remaining, conversion.overhealShieldCap)
             let gain = context.applyBlockGain(
@@ -126,10 +123,8 @@ extension HealingEngine {
                     fallback: "Reclaimed Reagents",
                 ),
             )
-            allocation.allocate(min(shield, gain.applied), to: .block)
-            events.append(contentsOf: gain.events)
+            allocation.allocate(min(shield, gain), to: .block)
         }
-        return events
     }
 
     private static func prepareFreeManaEmpowermentAfterOverheal(
@@ -152,18 +147,11 @@ extension HealingEngine {
         source: Combatant,
         percent: Double,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) {
         let shield = min(allocation.remaining, CombatRounding.scaled(allocation.remaining, multiplier: percent))
-        guard shield > 0 else { return [] }
-        let gain = context.applyBlockGain(
-            shield,
-            to: target,
-            source: source,
-            abilityName: "Reclaimed Reagents",
-            amountBasis: .resolved,
-        )
-        allocation.allocate(gain.applied, to: .block)
-        return gain.events
+        guard shield > 0 else { return }
+        let gain = context.applyBlockGain(shield, to: target, source: source, abilityName: "Reclaimed Reagents", amountBasis: .resolved)
+        allocation.allocate(gain, to: .block)
     }
 
     private static func convertOverhealToMaximumHealth(
@@ -233,8 +221,7 @@ extension HealingEngine {
     private static func convertLeechOverflowToMana(
         allocation: inout HealingAllocation, request: HealRequest, sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        var events: [ActionEvent] = []
+    ) async {
         if request.origin == .leech, sourceTriggers?.excessLeechRestoresMana == true,
            let sourceID = request.sourceActorID,
            let source = context.roster.combatant(for: sourceID), source.isAlive {
@@ -243,12 +230,9 @@ extension HealingEngine {
                 to: .mana,
             )
             if converted > 0 {
-                await events.append(contentsOf: context.restoreManaEmitting(
-                    converted, to: source.combatant, abilityName: "Soul Drain", isResolved: true,
-                ))
+                await context.restoreManaEmitting(converted, to: source.combatant, abilityName: "Soul Drain", isResolved: true)
             }
         }
-        return events
     }
 
     static func applyLeechOverhealing(
@@ -256,8 +240,7 @@ extension HealingEngine {
         request: HealRequest,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        var events: [ActionEvent] = []
+    ) async {
         let transferAmount = CombatGain.amount(
             allocation.remaining, current: context.roster.companion.currentHealth, cap: context.roster.companion.maxHealth,
         )
@@ -270,19 +253,17 @@ extension HealingEngine {
             )
             transfer.amountBasis = .resolved
             let outcome = await resolveHeal(transfer, in: &context)
-            events.append(contentsOf: outcome.events)
+
             if outcome.healthRestored > 0 {
                 allocation.allocate(outcome.healthRestored, to: .transfer)
-                events.append(context.nextEvent(
+                context.nextEvent(
                     kind: .effect(.leechHeal), source: .init(context.hero),
                     abilityName: "Blood Link", target: context.companion,
                     amount: outcome.healthRestored, keyword: .leech,
-                ))
+                )
             }
         }
-        await events.append(contentsOf: convertLeechOverflowToMana(
-            allocation: &allocation, request: request, sourceTriggers: sourceTriggers, in: &context,
-        ))
+        await convertLeechOverflowToMana(allocation: &allocation, request: request, sourceTriggers: sourceTriggers, in: &context)
         if request.origin == .leech, sourceTriggers?.marrowmend == true,
            request.sourceActorID == request.target.id,
            context.claimHeroTalent(.marrowmend, actorID: request.target.id) {
@@ -292,8 +273,7 @@ extension HealingEngine {
                     converted, to: request.target, source: request.target,
                     abilityName: "Marrowmend", amountBasis: .resolved,
                 )
-                allocation.allocate(gain.applied, to: .block)
-                events.append(contentsOf: gain.events)
+                allocation.allocate(gain, to: .block)
             }
         }
         if request.origin == .leech,
@@ -312,6 +292,5 @@ extension HealingEngine {
                 }
             }
         }
-        return events
     }
 }

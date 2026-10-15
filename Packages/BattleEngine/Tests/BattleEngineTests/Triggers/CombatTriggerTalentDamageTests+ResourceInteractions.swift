@@ -11,7 +11,7 @@ extension CombatTriggerTalentDamageTests {
             dealOpeningHand: false, appliesFightPacing: false,
         )
         var ability = Ability.frostbolt
-        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability,
             actor: battle.hero,
             context: &battle,
@@ -63,7 +63,7 @@ extension CombatTriggerTalentDamageTests {
         )
         battle.heroDeck = CombatDeck(abilities: Array(repeating: .block, count: amount / 5))
         let payment = battle.payMana(amount, for: battle.hero)
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
         #expect(events.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == amount / 5)
         #expect(battle.roster.hero.talents.battle.manaSpentTowardAutoPlay == amount % 5)
     }
@@ -81,10 +81,10 @@ extension CombatTriggerTalentDamageTests {
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(battle.roster.hero.talents.battle.manaSpentTowardAutoPlay == 0)
         #expect(!battle.resolution.isAutomaticPlay)
-        _ = battle.restoreManaEmitting(3, to: battle.hero, abilityName: "Refill")
+        battle.restoreManaEmitting(3, to: battle.hero, abilityName: "Refill")
         battle.heroDeck = CombatDeck(abilities: [.block])
         let payment = battle.payMana(3, for: battle.hero)
-        let next = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
+        let next = battle.recordingEvents { battle in await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
         #expect(next.count { $0.kind == .ability && $0.abilityID == Ability.block.id } == 1)
     }
 
@@ -100,7 +100,7 @@ extension CombatTriggerTalentDamageTests {
         battle.companionDeck = CombatDeck(abilities: [.slash])
         battle.appendEffect(.thorns(10), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         let payment = battle.payMana(3, for: battle.companion)
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &battle) }
         #expect(!battle.roster.companion.isAlive)
         #expect(!battle.roster.hasAffliction(.burn, on: battle.enemy))
         #expect(!battle.roster.enemy.activeEffects.contains { $0.keyword == .freeze })
@@ -116,11 +116,11 @@ extension CombatTriggerTalentDamageTests {
         )
         battle.roster.companion.talents.battle.manaSpentTowardAutoPlay = 3
         battle.companionDeck = CombatDeck(abilities: [.kindling, .block])
-        let result = CombatExecutor.run { await DrawAndPlayCardsHandler().apply(
+        let result = battle.recordingEvents { battle in _ = await DrawAndPlayCardsHandler().apply(
             .drawAndPlayCards(1), ability: .packTactics, source: battle.hero, target: battle.hero, in: &battle,
         ) }
-        #expect(result.events.contains { $0.kind == .ability && $0.abilityID == Ability.kindling.id })
-        #expect(!result.events.contains { $0.kind == .ability && $0.abilityID == Ability.block.id })
+        #expect(result.contains { $0.kind == .ability && $0.abilityID == Ability.kindling.id })
+        #expect(!result.contains { $0.kind == .ability && $0.abilityID == Ability.block.id })
         #expect(battle.roster.companion.talents.battle.manaSpentTowardAutoPlay == 3)
         #expect(!battle.resolution.isAutomaticPlay)
     }

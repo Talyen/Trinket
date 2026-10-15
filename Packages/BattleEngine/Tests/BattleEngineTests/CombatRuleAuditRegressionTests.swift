@@ -35,10 +35,10 @@ struct CombatRuleAuditRegressionTests {
         )
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
         battle.appendEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
-        let events = BattleTurnEngine.performAction(
+        let events = battle.recordingEvents { battle in await BattleTurnEngine.performAction(
             ability: .slash, actor: battle.companion, abilityTarget: battle.enemy,
             origin: .counterattack, context: &battle,
-        )
+        ) }
         #expect(events.contains { $0.kind == .abilityDamage && $0.isCritical })
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 0)
     }

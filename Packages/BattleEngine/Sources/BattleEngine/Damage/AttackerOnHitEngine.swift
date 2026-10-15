@@ -97,7 +97,7 @@ enum AttackerOnHitEngine {
                 state.healthLost,
                 multiplier: triggers.physicalStunBuildupPercent,
             )
-            _ = await ControlMeterEngine.applyMeterCharge(
+            await ControlMeterEngine.applyMeterCharge(
                 buildup,
                 keyword: .stun,
                 to: state.combatant,
@@ -115,7 +115,7 @@ enum AttackerOnHitEngine {
             )
             if block > 0 {
                 guard let source = state.partySource(in: context), source.isAlive else { return }
-                _ = context.applyBlock(
+                context.applyBlockGain(
                     block, to: source.combatant, source: source.combatant,
                     abilityName: "Martial Guard", amountBasis: .resolved,
                 )
@@ -162,7 +162,7 @@ enum AttackerOnHitEngine {
         triggers: CombatTraitTriggers,
         source: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         await context.healEmitting(
             amount: triggers.onAttackBleedingEnemyHeal,
             target: source,
@@ -199,7 +199,7 @@ enum AttackerOnHitEngine {
         context: inout BattleState,
     ) async {
         guard let sourceActorID = state.sourceActorID else { return }
-        _ = await DoTApplicator.applyBleed(
+        await DoTApplicator.applyBleed(
             potency: potency,
             to: state.combatant,
             sourceActorID: sourceActorID,
@@ -216,12 +216,7 @@ enum AttackerOnHitEngine {
         context: inout BattleState,
     ) {
         guard let source = state.partySource(in: context) else { return }
-        _ = context.applyBlock(
-            amount,
-            to: source.combatant,
-            source: source.combatant,
-            abilityName: abilityName,
-        )
+        context.applyBlockGain(amount, to: source.combatant, source: source.combatant, abilityName: abilityName)
     }
 }
 
@@ -247,7 +242,7 @@ extension AttackerOnHitEngine {
         let target = state.combatant
         if triggers.attacksApplyPoison > 0, state.options.isAttackHit,
            context.roster.health(for: target) > 0 {
-            _ = await context.applyDecayingDoT(
+            await context.applyDecayingDoT(
                 keyword: .poison,
                 potency: triggers.attacksApplyPoison,
                 to: target,
@@ -262,7 +257,7 @@ extension AttackerOnHitEngine {
         if triggers.physicalAttackApplyBleedAndStun > 0, hit.keyword == .physical,
            context.roster.health(for: target) > 0 {
             await appendTargetBleed(potency: triggers.physicalAttackApplyBleedAndStun, state: &state, context: &context)
-            _ = await ControlMeterEngine.applyMeterCharge(
+            await ControlMeterEngine.applyMeterCharge(
                 triggers.physicalAttackApplyBleedAndStun,
                 keyword: .stun,
                 to: target,
@@ -284,14 +279,14 @@ extension AttackerOnHitEngine {
         let triggers = hit.triggers
         let target = state.combatant
         guard hit.keyword == .holy, context.roster.health(for: target) > 0, triggers.holyAttackApplyBurnAndStunBuildup > 0 else { return }
-        _ = await context.applyDecayingDoT(
+        await context.applyDecayingDoT(
             keyword: .burn,
             potency: triggers.holyAttackApplyBurnAndStunBuildup,
             to: target,
             sourceActorID: hit.sourceActorID,
             application: .reaction,
         )
-        _ = await ControlMeterEngine.applyMeterCharge(
+        await ControlMeterEngine.applyMeterCharge(
             triggers.holyAttackApplyBurnAndStunBuildup,
             keyword: .stun,
             to: target,
@@ -369,18 +364,10 @@ extension AttackerOnHitEngine {
             )
         }
         if triggers.onAttackBleedingEnemyHeal > 0, targetIsBleeding, targetAlive {
-            _ = await applyBleedingPreyHeal(
-                triggers: triggers,
-                source: hit.source,
-                in: &context,
-            )
+            await applyBleedingPreyHeal(triggers: triggers, source: hit.source, in: &context)
         }
         if triggers.onAttackFrozenEnemyGainMana > 0, targetIsFrozen {
-            _ = await context.restoreManaEmitting(
-                triggers.onAttackFrozenEnemyGainMana,
-                to: hit.source,
-                abilityName: "Frost Siphon",
-            )
+            await context.restoreManaEmitting(triggers.onAttackFrozenEnemyGainMana, to: hit.source, abilityName: "Frost Siphon")
         }
         if triggers.onAttackFrozenEnemyGainBlock > 0, targetIsFrozen {
             appendAttackerBlock(triggers.onAttackFrozenEnemyGainBlock, abilityName: "Frost Guard", state: &state, context: &context)
@@ -396,10 +383,7 @@ extension AttackerOnHitEngine {
             appendAttackerBlock(triggers.onAttackStunnedEnemyBlock, abilityName: "Disorienting Strike", state: &state, context: &context)
         }
         if hit.source.role == .hero, targetIsPoisoned, targetAlive {
-            _ = await CombatTriggerEngine.companionSpitPoison(
-                to: target,
-                in: &context,
-            )
+            await CombatTriggerEngine.companionSpitPoison(to: target, in: &context)
         }
     }
 

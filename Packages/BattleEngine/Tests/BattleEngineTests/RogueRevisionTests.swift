@@ -34,7 +34,7 @@ struct RogueRevisionTests {
         try #expect(battle.gold == 2)
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1)
 
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
+        battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
         #expect(battle.gold == 4)
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1)
     }
@@ -46,7 +46,7 @@ struct RogueRevisionTests {
         )
         battle.appliesFightPacing = false
 
-        _ = battle.grantGoldEvent(gold, to: battle.hero, abilityName: "Fickle Fortune")
+        battle.grantGoldEvent(gold, to: battle.hero, abilityName: "Fickle Fortune")
 
         #expect(battle.gold == gold)
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == (gold == 3 ? 2 : 4))
@@ -59,7 +59,7 @@ struct RogueRevisionTests {
             let effects = bleeding ? [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)] : []
             var battle = BattleTestFixtures.makePipelineContext(targetEffects: effects, heroModifiers: profile, appliesFightPacing: false)
             battle.roster.enemy.currentHealth = 10
-            _ = battle.healEmitting(amount: 8, target: battle.enemy, source: battle.enemy, abilityName: "Heal")
+            battle.healEmitting(amount: 8, target: battle.enemy, source: battle.enemy, abilityName: "Heal")
             #expect(battle.roster.enemy.currentHealth == (bleeding ? 14 : 18))
         }
     }

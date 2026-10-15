@@ -61,7 +61,7 @@ struct CombatRiderArithmeticBoundaryTests {
             heroModifiers: heroProfile, companionModifiers: companionProfile, appliesFightPacing: false,
         )
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &battle) }
 
         #expect(battle.isEnemyDefeated)
     }
@@ -74,9 +74,11 @@ struct CombatRiderArithmeticBoundaryTests {
             heroModifiers: profile, companionModifiers: profile, appliesFightPacing: false,
         )
 
-        let outcome = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &battle)
+        let outcome = battle.recordingResult { battle in
+            CombatTriggerEngine.beforeEnemyActBleedReactions(in: &battle)
+        }
 
-        #expect(outcome.cancelled)
+        #expect(outcome.value)
         #expect(outcome.events.contains { $0.effectKind == .controlActionSkipped })
     }
 
@@ -92,11 +94,11 @@ struct CombatRiderArithmeticBoundaryTests {
         let source = battle.hero
         let target = battle.companion
 
-        let outcome = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+        let outcome = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
             .all(nil), source: source, target: target, abilityName: "Cleanse", propagation: .secondary, in: &battle,
         ) }
 
-        #expect(outcome.removed.count == 1)
+        #expect(outcome.value.removed.count == 1)
         #expect(!battle.roster.hasAffliction(.poison, on: target))
         #expect(battle.roster.companion.talents.dodgeChanceBonus(atTurn: Int.max - 1) == 0.25)
         #expect(battle.roster.companion.talents.dodgeChanceBonus(atTurn: Int.max) == 0)

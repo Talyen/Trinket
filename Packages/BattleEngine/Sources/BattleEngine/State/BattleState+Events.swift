@@ -50,6 +50,7 @@ package extension BattleState {
         return CombatEventSource(actorID: actorID, name: roster.combatant(for: actorID)?.name ?? fallback.name)
     }
 
+    @discardableResult
     mutating func nextEvent(
         kind: ActionEvent.Kind,
         actionID: Int? = nil,
@@ -105,20 +106,18 @@ package extension BattleState {
         )
     }
 
-    mutating func appendDefeatMilestonesIfNeeded() async -> [ActionEvent] {
-        var milestones: [ActionEvent] = []
+    mutating func appendDefeatMilestonesIfNeeded() async {
         if roster.isEnemyDefeated, !hasLoggedDefeat {
             hasLoggedDefeat = true
-            milestones.append(appendMilestone(.enemyDefeated))
-            await milestones.append(contentsOf: CombatTriggerEngine.afterEnemyDefeated(in: &self))
+            _ = appendMilestone(.enemyDefeated)
+            await CombatTriggerEngine.afterEnemyDefeated(in: &self)
             if !roster.isPartyDefeated {
-                await milestones.append(contentsOf: CombatTriggerEngine.afterVictory(in: &self))
+                await CombatTriggerEngine.afterVictory(in: &self)
             }
         }
         if roster.isPartyDefeated, !hasLoggedPartyDefeat {
             hasLoggedPartyDefeat = true
-            milestones.append(appendMilestone(.partyDefeated))
+            _ = appendMilestone(.partyDefeated)
         }
-        return milestones
     }
 }

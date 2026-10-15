@@ -226,7 +226,7 @@ public struct BattleState {
         _ = appendMilestone(.battleStarted(heroName: hero.name, companionName: companion.name))
 
         if enemyModifiers.triggers.startBattleBlock > 0 {
-            _ = applyBlock(
+            applyBlockGain(
                 enemyModifiers.triggers.startBattleBlock,
                 to: resolvedEnemy, source: resolvedEnemy,
                 abilityName: "Shielded Arrival", amountBasis: .resolved,
@@ -418,14 +418,8 @@ public struct BattleState {
         keyword: Keyword,
         to combatant: Combatant,
         sourceActorID: String?,
-    ) async -> [ActionEvent] {
-        await ControlMeterEngine.applyMeterCharge(
-            amount,
-            keyword: keyword,
-            to: combatant,
-            sourceActorID: sourceActorID,
-            in: &self,
-        )
+    ) async {
+        await ControlMeterEngine.applyMeterCharge(amount, keyword: keyword, to: combatant, sourceActorID: sourceActorID, in: &self)
     }
 
     package mutating func resolveDoTTick(
@@ -451,7 +445,7 @@ public struct BattleState {
         sourceActorID: String,
         application: DoTApplication,
         provenance: DamageProvenance? = nil,
-    ) async -> [ActionEvent] {
+    ) async {
         await DoTApplicator.applyDecayingDoT(
             keyword: keyword,
             potency: potency,

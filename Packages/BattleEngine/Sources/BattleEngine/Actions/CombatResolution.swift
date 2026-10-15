@@ -413,8 +413,8 @@ enum CombatResolver {
             context.uniques.isDrainingOutOfTurnAttacks = true
             while !context.uniques.pendingCounterAttackActorIDs.isEmpty
                 || !context.uniques.pendingBlockAnswerOwners.isEmpty {
-                _ = await CombatTriggerEngine.drainPendingCounterAttacks(in: &context)
-                _ = await UniqueCombatEngine.drainPendingBlockAnswers(in: &context)
+                await CombatTriggerEngine.drainPendingCounterAttacks(in: &context)
+                await UniqueCombatEngine.drainPendingBlockAnswers(in: &context)
             }
             context.uniques.isDrainingOutOfTurnAttacks = false
         }

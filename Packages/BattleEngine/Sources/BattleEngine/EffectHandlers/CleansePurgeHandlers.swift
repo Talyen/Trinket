@@ -37,7 +37,7 @@ struct CleansePurgeHandler: BattleEffectHandler {
                 origin: .direct, in: &context,
             ).application
         default:
-            EffectApplyOutcome(events: [], didApply: false)
+            EffectApplyOutcome(didApply: false)
         }
     }
 }
@@ -51,7 +51,7 @@ struct PanaceaHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
         guard case let .panacea(baseHeal, healPerDebuff) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         let action = BattleActionContext(actor: source, in: context)
         let cleanseTarget = BattleActionContext.mostDebuffed(in: action.allies(in: context), state: context)

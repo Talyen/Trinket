@@ -51,12 +51,12 @@ struct AbilityStrategyTests {
         )
         DefensePoolEngine.set(2, on: state.enemy, in: &state)
         state.appendEffect(.bleed(1), to: state.enemy, sourceID: state.hero.id, remainingTurns: 3)
-        let result = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+        let result = state.recordingResult { state in await BattleTurnEngine.performEnemyAction(
             ability: .shieldBash,
             abilityTarget: state.hero,
             context: &state,
         ) }
-        #expect(result.performed)
+        #expect(result.value)
         #expect(DefensePoolEngine.blockPoints(in: state.roster.enemy.activeEffects) == 2)
         #expect(result.events.first { $0.kind == .abilityDamage }?.amount == 1)
     }
@@ -66,12 +66,12 @@ struct AbilityStrategyTests {
             companionModifiers: CombatModifierProfile.withTriggers { $0.negateFirstEnemyAttack = true }, dealOpeningHand: false,
         )
         DefensePoolEngine.set(2, on: state.enemy, in: &state)
-        let result = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+        let result = state.recordingResult { state in await BattleTurnEngine.performEnemyAction(
             ability: .shieldBash,
             abilityTarget: state.hero,
             context: &state,
         ) }
-        #expect(!result.performed)
+        #expect(!result.value)
         #expect(DefensePoolEngine.blockPoints(in: state.roster.enemy.activeEffects) == 2)
         #expect(!result.events.contains { $0.effectKind == .blockSpent })
     }
@@ -245,7 +245,7 @@ struct AbilityStrategyTests {
         var state = battle()
         _ = try play(.sniffOut, in: &state)
         let attack = Ability(id: "followup", name: "Followup", tier: .basic, directDamage: 2)
-        _ = BattleTurnEngine.performAction(
+        BattleTurnEngine.performAction(
             ability: attack, actor: state.companion, abilityTarget: state.enemy, origin: .counterattack, context: &state,
         )
         #expect(state.resolution.pendingPartyDamage(for: state.companion.id) == 1)

@@ -7,7 +7,7 @@ extension TalentMigrationTests {
     @Test func `shatterpoint doubles the next bleed damage after stun`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.shatterpoint = true })
         battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .bleed(6), remainingTurns: 2)], for: battle.roster.enemy.combatant)
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: battle.roster.hero.id, in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: battle.roster.hero.id, in: &battle) }
         let first = battle.resolveTestDamage(4, keyword: .bleed, options: .reaction())
         let second = battle.resolveTestDamage(4, keyword: .bleed, options: .reaction())
         #expect(first.healthLost == 8)
@@ -83,10 +83,10 @@ extension TalentMigrationTests {
                 applyFightPacing: false,
             )
             #expect(battle.roster.hasControlStatus(for: battle.enemy, keyword: .stun))
-            _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
+            CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
             #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == burning)
             if burning {
-                _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
+                CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: battle.enemy, context: &battle) }
                 #expect(!battle.roster.hasPendingActionSkip(for: battle.enemy))
             }
         }

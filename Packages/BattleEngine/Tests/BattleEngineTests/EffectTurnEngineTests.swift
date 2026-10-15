@@ -15,7 +15,7 @@ struct EffectTurnEngineTests {
             battle.roster.setActiveEffects([burn], for: combatant)
         }
 
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
+        CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
 
         #expect(battle.roster.enemy.currentHealth == 0)
         #expect(battle.roster.hero.currentHealth == 1)
@@ -51,7 +51,7 @@ struct EffectTurnEngineTests {
         var context = makeContext(enemyHP: 50, enemyEffects: [shield, burn])
         let enemy = context.roster.enemy.combatant
 
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(
+        CombatExecutor.run { await EffectTurnEngine.advanceEffects(
             on: enemy,
             context: &context,
         ) }
@@ -70,7 +70,7 @@ struct EffectTurnEngineTests {
         let hero = context.roster.hero.combatant
         context.roster.setActiveEffects([burn], for: hero)
 
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(
+        CombatExecutor.run { await EffectTurnEngine.advanceEffects(
             on: hero,
             context: &context,
         ) }

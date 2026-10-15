@@ -15,7 +15,7 @@ struct CrackedGuardRegressionTests {
         DefensePoolEngine.set(8, on: battle.hero, in: &battle)
         DefensePoolEngine.set(2, on: battle.enemy, in: &battle)
 
-        _ = CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(by: battle.hero, attackerID: battle.enemy.id, in: &battle) }
+        CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(by: battle.hero, attackerID: battle.enemy.id, in: &battle) }
 
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.enemy.activeEffects) == 0)
         #expect(battle.roster.hero.talents.pending.nextAttackGuaranteedCritical != nil)

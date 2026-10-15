@@ -60,7 +60,7 @@ struct TurnBoundaryRegressionTests {
             battle.turnCount = turn
             battle.hand = BattleHand()
             battle.companionDeck.putOnBottom(.slash)
-            let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+            let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
             let drawn = events.filter { $0.effectKind == .cardsDrawn }.reduce(0) { $0 + $1.amount }
             #expect(drawn == (turn.isMultiple(of: 2) ? 1 : 0))
             #expect(battle.hand.cards.allSatisfy { $0.owner == .companion })
@@ -80,7 +80,7 @@ struct TurnBoundaryRegressionTests {
         battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         DefensePoolEngine.set(1, on: battle.companion, in: &battle)
 
-        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
 
         #expect(battle.isBattleOver)
         #expect(battle.health(of: battle.companion) == 13)
@@ -97,7 +97,7 @@ struct TurnBoundaryRegressionTests {
         battle.appendEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.appendEffect(.burn(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
 
-        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(battle.isBattleOver)
         #expect(!battle.roster.hasAffliction(.poison, on: battle.hero))
@@ -117,7 +117,7 @@ struct TurnBoundaryRegressionTests {
         companion.triggers.criticalChanceBonus = -1
         var battle = cadenceBattle(heroModifiers: hero, companionModifiers: companion)
 
-        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(battle.isBattleOver)
         #expect(battle.gold == 1)

@@ -18,7 +18,7 @@ struct BattleMechanicsTests {
         battle.roster.mutateRuntime(for: battle.hero) { $0.hasConsumedDeathsDoor = true }
 
         _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
-        _ = battle.appendDefeatMilestonesIfNeeded()
+        battle.appendDefeatMilestonesIfNeeded()
 
         #expect(battle.isPartyDefeated && battle.isEnemyDefeated)
         #expect(BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: true) == .defeat)
@@ -54,7 +54,7 @@ struct BattleMechanicsTests {
             companionModifiers: gold,
         )
 
-        _ = battle.appendDefeatMilestonesIfNeeded()
+        battle.appendDefeatMilestonesIfNeeded()
 
         #expect(battle.isEnemyDefeated && !battle.isPartyDefeated)
         #expect(battle.gold == 0)
@@ -140,7 +140,7 @@ struct BattleMechanicsTests {
         var context = BattleStateTestFactory.makeBattle(hero: hero, companion: wolf, enemy: enemy)
         let ability = try #require(wolf.abilityLoadout.skill)
 
-        _ = BattleTurnEngine.performAction(
+        BattleTurnEngine.performAction(
             ability: ability,
             actor: wolf,
             abilityTarget: context.enemy,
@@ -169,12 +169,12 @@ struct BattleMechanicsTests {
             nextEffectID: 2,
             nextEventID: 0,
         )
-        let events = BattleTurnEngine.performAction(
+        let events = context.recordingEvents { context in await BattleTurnEngine.performAction(
             ability: ability,
             actor: hero,
             abilityTarget: context.enemy,
             context: &context,
-        )
+        ) }
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
         try #expect(damageEvent.isCritical)

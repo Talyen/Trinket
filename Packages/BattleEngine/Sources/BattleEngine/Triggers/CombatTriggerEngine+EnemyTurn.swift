@@ -4,13 +4,13 @@ import TrinketCore
 package extension CombatTriggerEngine {
     /// Single owner for enemy-avoidance events: the enemy is always the named
     /// actor, and only the outcome, ability name, target, and keyword vary.
-    private static func avoidanceEvent(
+    private static func emitAvoidanceEvent(
         effectKind: ActionEvent.EffectOutcome,
         abilityName: String,
         target: Combatant,
         keyword: Keyword,
         in context: inout BattleState,
-    ) -> ActionEvent {
+    ) {
         context.nextEvent(
             kind: .effect(effectKind),
             source: .init(context.roster.enemy),
@@ -35,13 +35,12 @@ package extension CombatTriggerEngine {
         return (total, source)
     }
 
-    static func beforeEnemyActBleedReactions(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
+    static func beforeEnemyActBleedReactions(in context: inout BattleState) -> Bool {
         let enemy = context.enemy
-        guard context.roster.enemy.isAlive else { return ([], false) }
+        guard context.roster.enemy.isAlive else { return false }
         let enemyIsBleeding = context.roster.hasAffliction(.bleed, on: enemy)
-        guard enemyIsBleeding else { return ([], false) }
+        guard enemyIsBleeding else { return false }
 
-        var events: [ActionEvent] = []
         let (skipChance, skipSource) = partyChanceAndSource(
             \.bleedingEnemyActionSkipChancePercent,
             in: context,
@@ -49,7 +48,7 @@ package extension CombatTriggerEngine {
         if skipChance > 0,
            BattleChance.succeeds(probability: skipChance, using: &context.rng) {
             let source = skipSource ?? context.roster.hero.combatant
-            events.append(avoidanceEvent(
+            emitAvoidanceEvent(
                 effectKind: .controlActionSkipped,
                 abilityName: triggerAbilityName(
                     .bleedingEnemyActionSkipChancePercent,
@@ -60,48 +59,46 @@ package extension CombatTriggerEngine {
                 target: enemy,
                 keyword: .bleed,
                 in: &context,
-            ))
-            return (events, true)
+            )
+            return true
         }
-        return (events, false)
+        return false
     }
 
-    static func beforeEnemyAttackBleedReactions(in context: inout BattleState) async -> [ActionEvent] {
+    static func beforeEnemyAttackBleedReactions(in context: inout BattleState) async {
         let enemy = context.enemy
-        guard context.roster.enemy.isAlive, context.roster.hasAffliction(.bleed, on: enemy) else { return [] }
+        guard context.roster.enemy.isAlive, context.roster.hasAffliction(.bleed, on: enemy) else { return }
         let (damage, source) = partyChanceAndSource(
             \.bleedingEnemyAttackDealDamage, adding: SaturatedArithmetic.saturatingAdd, in: context,
         )
-        guard damage > 0, let source else { return [] }
-        return await context.resolveDamage(DamageRequest(
-            amount: damage, target: enemy, keyword: .physical, sourceActorID: source.id, options: .reaction(),
-        )).events
+        guard damage > 0, let source else { return }
+        _ = await context.dealReactionDamage(damage, to: enemy, keyword: .physical, sourceActorID: source.id)
     }
 
     internal static func beforeEnemyAttack(
         _ facts: ResolvedActionFacts, in context: inout BattleState,
-    ) async -> (events: [ActionEvent], cancelled: Bool) {
-        guard !facts.damageKeywords.isEmpty else { return ([], false) }
+    ) async -> Bool {
+        guard !facts.damageKeywords.isEmpty else { return false }
         let actor = facts.action.actor
         let checkpoint = CombatCheckpoint.attackEligibility(actor.id)
-        guard checkpoint.allowsContinuation(in: context) else { return ([], true) }
+        guard checkpoint.allowsContinuation(in: context) else { return true }
         let avoidance = await enemyAttackAvoidance(in: &context)
-        guard !avoidance.cancelled else { return avoidance }
-        var events = avoidance.events
-        await events.append(contentsOf: checkpoint.resolve([
+        guard !avoidance else { return avoidance }
+
+        await checkpoint.resolve([
             { await beforeEnemyAttackBleedReactions(in: &$0) },
-        ], in: &context))
-        guard context.roster.health(for: actor) > 0 else { return (events, true) }
+        ], in: &context)
+        guard context.roster.health(for: actor) > 0 else { return true }
         if context.roster.hasPendingActionSkip(for: actor) {
-            await events.append(contentsOf: BattleTurnEngine.consumeActionSkip(for: actor, context: &context))
-            return (events, true)
+            await BattleTurnEngine.consumeActionSkip(for: actor, context: &context)
+            return true
         }
-        return (events, context.isBattleOver)
+        return context.isBattleOver
     }
 
     private static func companionNegateEnemyAttack(
         in context: inout BattleState,
-    ) async -> (events: [ActionEvent], cancelled: Bool)? {
+    ) async -> Bool? {
         let companion = context.roster.companion
         guard companion.isAlive else { return nil }
         let companionTriggers = context.companionModifiers.triggers
@@ -127,49 +124,39 @@ package extension CombatTriggerEngine {
         by protected: Combatant,
         abilityName: String,
         in context: inout BattleState,
-    ) async -> (events: [ActionEvent], cancelled: Bool) {
-        var events: [ActionEvent] = [
-            context.nextEvent(
-                kind: .effect(.dodgeApplied),
-                source: .init(protected),
-                abilityName: abilityName,
-                target: protected,
-                amount: 0,
-                keyword: .dodge,
-            ),
-        ]
-        await events.append(contentsOf: UniqueCombatEngine.afterUniqueDodge(
-            by: protected,
-            attackerID: context.roster.enemy.id,
-            in: &context,
-        ))
-        events.append(contentsOf: Self.afterHeroTalentDodge(by: protected, in: &context))
-        await events.append(contentsOf: Self.afterDodge(
-            by: protected,
-            attackerID: context.roster.enemy.id,
-            allowsCounterattacks: true,
-            in: &context,
-        ))
-        return (events, true)
+    ) async -> Bool {
+        context.nextEvent(
+            kind: .effect(.dodgeApplied),
+            source: .init(protected),
+            abilityName: abilityName,
+            target: protected,
+            amount: 0,
+            keyword: .dodge,
+        )
+        await UniqueCombatEngine.afterUniqueDodge(by: protected, attackerID: context.roster.enemy.id, in: &context)
+        afterHeroTalentDodge(by: protected, in: &context)
+        await afterDodge(by: protected, attackerID: context.roster.enemy.id, allowsCounterattacks: true, in: &context)
+        return true
     }
 
-    static func consumeEnemyActionDelay(in context: inout BattleState) -> (events: [ActionEvent], cancelled: Bool) {
+    static func consumeEnemyActionDelay(in context: inout BattleState) -> Bool {
         let enemy = context.enemy
         let delays = context.additionalControlSkipsByCombatantID[enemy.id, default: 0]
         if delays > 0 {
             context.additionalControlSkipsByCombatantID[enemy.id] = delays - 1
-            return ([avoidanceEvent(
+            emitAvoidanceEvent(
                 effectKind: .controlActionSkipped,
                 abilityName: "Delay",
                 target: enemy,
                 keyword: .stun,
                 in: &context,
-            )], true)
+            )
+            return true
         }
-        return ([], false)
+        return false
     }
 
-    static func enemyAttackAvoidance(in context: inout BattleState) async -> (events: [ActionEvent], cancelled: Bool) {
+    static func enemyAttackAvoidance(in context: inout BattleState) async -> Bool {
         if let companionNegation = await companionNegateEnemyAttack(in: &context) {
             return companionNegation
         }
@@ -194,7 +181,7 @@ package extension CombatTriggerEngine {
                 in: &context,
             )
         }
-        return ([], false)
+        return false
     }
 
     static func afterEnemyFreezeRecover(in context: inout BattleState) {
@@ -207,7 +194,7 @@ package extension CombatTriggerEngine {
     private static func blindingLightMiss(
         abilityTarget: Combatant,
         in context: inout BattleState,
-    ) -> (events: [ActionEvent], cancelled: Bool)? {
+    ) -> Bool? {
         let enemy = context.roster.enemy.combatant
         let pending = context.roster.runtime(for: enemy)?.talents.pending
         let chance = pending?.nextAttackMissChance ?? 0
@@ -217,19 +204,20 @@ package extension CombatTriggerEngine {
             $0.talents.pending.nextAttackMissAbilityName = nil
         }
         guard BattleChance.succeeds(probability: chance, using: &context.rng) else { return nil }
-        return ([avoidanceEvent(
+        emitAvoidanceEvent(
             effectKind: .dodgeApplied,
             abilityName: pending?.nextAttackMissAbilityName ?? "Blinding Light",
             target: abilityTarget,
             keyword: .dodge,
             in: &context,
-        )], true)
+        )
+        return true
     }
 
     private static func poisonedEnemyMiss(
         abilityTarget: Combatant,
         in context: inout BattleState,
-    ) -> (events: [ActionEvent], cancelled: Bool)? {
+    ) -> Bool? {
         let enemy = context.enemy
         guard context.roster.hasAffliction(.poison, on: enemy) else {
             return nil
@@ -239,7 +227,7 @@ package extension CombatTriggerEngine {
             return nil
         }
         let source = missSource ?? context.roster.hero.combatant
-        return ([avoidanceEvent(
+        emitAvoidanceEvent(
             effectKind: .dodgeApplied,
             abilityName: triggerAbilityName(
                 .poisonedEnemyMissChancePercent,
@@ -250,31 +238,30 @@ package extension CombatTriggerEngine {
             target: abilityTarget,
             keyword: .dodge,
             in: &context,
-        )], true)
+        )
+        return true
     }
 
-    static func afterEnemyAbility(in context: inout BattleState) async -> [ActionEvent] {
-        guard context.roster.companion.isAlive else { return [] }
+    static func afterEnemyAbility(in context: inout BattleState) async {
+        guard context.roster.companion.isAlive else { return }
         let retrieverTriggers = context.companionModifiers.triggers
-        var events: [ActionEvent] = []
+
         if retrieverTriggers.onEnemyAbilityGold > 0 {
-            await events.append(contentsOf: emitGold(
+            await emitGold(
                 .onEnemyAbilityGold, "Fetch!",
                 amount: retrieverTriggers.onEnemyAbilityGold,
                 to: context.roster.companion.combatant,
                 in: &context,
-            ))
+            )
         }
-        return events
     }
 
-    static func afterEnemyStunRecover(in context: inout BattleState) async -> [ActionEvent] {
-        var events: [ActionEvent] = []
+    static func afterEnemyStunRecover(in context: inout BattleState) async {
         let enemy = context.roster.enemy.combatant
         for (owner, member) in livingPartyMembers(in: context) {
             let triggers = context.modifiers(for: member.id).triggers
             if triggers.onEnemyStunRecoverDrawCard > 0 {
-                events.append(contentsOf: drawCards(
+                drawCards(
                     triggers.onEnemyStunRecoverDrawCard,
                     for: owner,
                     actor: member.combatant,
@@ -285,28 +272,27 @@ package extension CombatTriggerEngine {
                         in: context,
                     ),
                     in: &context,
-                ))
+                )
             }
             if triggers.onEnemyStunRecoverApplyAfflictions > 0, context.roster.health(for: enemy) > 0 {
                 let potency = triggers.onEnemyStunRecoverApplyAfflictions
                 for keyword in [Keyword.poison, .burn, .bleed] {
-                    await events.append(contentsOf: applyDoT(
+                    await DoTApplicator.applyDoT(
                         keyword: keyword,
                         potency: potency,
                         to: enemy,
                         sourceActorID: member.id,
                         application: .attached,
                         in: &context,
-                    ))
+                    )
                 }
             }
             if triggers.onStunExpirePoisonDamage > 0, context.roster.health(for: enemy) > 0 {
-                await events.append(contentsOf: heroTalentDamage(
+                await heroTalentDamage(
                     .poison, amount: triggers.onStunExpirePoisonDamage,
                     source: member.combatant, name: "Venom Trap", in: &context,
-                ))
+                )
             }
         }
-        return events
     }
 }

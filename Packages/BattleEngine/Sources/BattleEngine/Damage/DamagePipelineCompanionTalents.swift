@@ -125,7 +125,7 @@ package extension DamagePipeline {
                 keyword: .burn, abilityName: "Blazing Feathers",
                 target: attacker.combatant, defender: defender, in: &context,
             )
-            _ = await context.applyDecayingDoT(
+            await context.applyDecayingDoT(
                 keyword: .burn, potency: healthLost, to: attacker.combatant,
                 sourceActorID: defender.id, application: .attached,
             )
@@ -277,7 +277,7 @@ package extension DamagePipeline {
         let triggers = context.modifiers(for: sourceID).triggers
         guard triggers.leechCriticalAllyBlock > 0 else { return }
         guard state.didLeech || state.options.abilityHasLeech || state.talentAttackHasLeech else { return }
-        _ = context.applyBlock(
+        context.applyBlockGain(
             triggers.leechCriticalAllyBlock,
             to: context.roster.hero.combatant,
             source: source.combatant,

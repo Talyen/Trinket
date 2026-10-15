@@ -41,7 +41,7 @@ extension BattleCardCombatTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         battle.appendEffect(.bleed(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 3)
         battle.appendEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        let events = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
+        let events = battle.recordingEvents { battle in await EffectTurnEngine.advanceAll(context: &battle) }
         let ticks = events.filter { $0.kind == .status }
         #expect(ticks.count == 2)
         #expect(ticks.allSatisfy { $0.origin == .periodic })

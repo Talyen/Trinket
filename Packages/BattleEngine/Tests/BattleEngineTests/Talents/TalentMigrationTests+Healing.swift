@@ -23,7 +23,7 @@ extension TalentMigrationTests {
             Array([ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 1),
                    ActiveEffect(id: 2, effect: .burn(1), remainingTurns: 1)].prefix(removed)), for: target,
         )
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterCleanseAction(
+        CombatExecutor.run { await CombatTriggerEngine.afterCleanseAction(
             source: target, target: target, removedCount: removed, in: &battle,
         ) }
         if recipient == .enemy {
@@ -42,7 +42,7 @@ extension TalentMigrationTests {
         )
         battle.roster.hero.currentHealth = battle.roster.hero.maxHealth - 1
         for index in 0 ..< restorations {
-            _ = battle.healEmitting(amount: 10, target: battle.hero, source: battle.hero, abilityName: "heal-\(index)")
+            battle.healEmitting(amount: 10, target: battle.hero, source: battle.hero, abilityName: "heal-\(index)")
         }
         #expect(!battle.activeEffects(of: battle.hero).contains { $0.keyword == .poison || $0.keyword == .burn })
     }
@@ -54,7 +54,7 @@ extension TalentMigrationTests {
             for: battle.roster.enemy.combatant,
         )
         battle.roster.mutateRuntime(for: battle.roster.enemy.combatant) { $0.currentHealth = $0.maxHealth - 1 }
-        _ = battle.healEmitting(
+        battle.healEmitting(
             amount: 10,
             target: battle.roster.enemy.combatant,
             source: battle.roster.enemy.combatant,

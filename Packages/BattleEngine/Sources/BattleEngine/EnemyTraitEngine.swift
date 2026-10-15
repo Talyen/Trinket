@@ -3,79 +3,69 @@ import TrinketContent
 import TrinketCore
 
 package enum EnemyTraitEngine {
-    static func firstAttackBleedBonus(from state: DamageResolutionState, context: inout BattleState) async -> [ActionEvent] {
+    static func firstAttackBleedBonus(from state: DamageResolutionState, context: inout BattleState) async {
         guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
               let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
               source.role == .enemy,
               context.roster.health(for: source.combatant) > 0,
               context.roster.health(for: state.combatant) > 0
-        else { return [] }
+        else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
         guard triggers.firstAttackBleedBonus > 0,
               let runtime = context.roster.runtime(for: source.combatant),
               !runtime.hasTriggeredFirstHitBonus
-        else { return [] }
+        else { return }
         context.roster.mutateRuntime(for: source.combatant) { $0.hasTriggeredFirstHitBonus = true }
-        var events: [ActionEvent] = []
+
         let amount = triggers.firstAttackBleedBonus
-        let outcome = await context.resolveDamage(DamageRequest(
-            amount: amount,
-            target: state.combatant,
-            keyword: .bleed,
-            sourceActorID: sourceActorID,
-            options: .reaction(),
-        ))
-        events.append(contentsOf: outcome.events)
+        let outcome = await context.dealReactionDamage(amount, to: state.combatant, keyword: .bleed, sourceActorID: sourceActorID)
+
         if outcome.healthLost > 0 {
-            events.append(context.nextEvent(
+            context.nextEvent(
                 kind: .status, source: .init(source),
                 abilityName: context.modifiers(for: sourceActorID).triggerAbilityName(
                     .firstAttackBleedBonus, fallback: "Hidden Fangs",
                 ),
                 target: state.combatant, amount: outcome.healthLost, keyword: .bleed,
-            ))
+            )
         }
-        await events.append(contentsOf: DoTApplicator.applyBleed(
+        await DoTApplicator.applyBleed(
             potency: amount,
             to: state.combatant,
             sourceActorID: sourceActorID,
             application: .afterHit,
             in: &context,
-        ))
-        return events
+        )
     }
 
-    static func basicFreezeDamage(from state: DamageResolutionState, context: inout BattleState) async -> [ActionEvent] {
+    static func basicFreezeDamage(from state: DamageResolutionState, context: inout BattleState) async {
         guard state.sourceActorID == context.enemy.id, state.combatant.role != .enemy,
-              context.health(of: state.combatant) > 0, context.roster.enemy.isAlive else { return [] }
+              context.health(of: state.combatant) > 0, context.roster.enemy.isAlive else { return }
         let amount = context.enemyModifiers.triggers.basicAttackFreezeBuildup
         let immediateBasic = state.provenance != nil
             && state.provenance == context.resolution.damageProvenance(for: context.enemy.id)
             && context.resolution.actionOutcome?.ability.tier == .basic
-        guard amount > 0, state.options.isBasicAttackHit || immediateBasic else { return [] }
+        guard amount > 0, state.options.isBasicAttackHit || immediateBasic else { return }
         if let actionID = context.resolution.actionID {
             guard context.resolution.claim(
                 .heroTalent(.basicAttackFreezeBuildup), actorID: context.enemy.id, cadence: .action(actionID),
-            ) else { return [] }
+            ) else { return }
         }
-        return await context.resolveDamage(DamageRequest(
-            amount: amount, target: state.combatant, keyword: .freeze,
-            sourceActorID: context.enemy.id, options: .reaction(),
-        )).events
+        _ = await context.dealReactionDamage(amount, to: state.combatant, keyword: .freeze, sourceActorID: context.enemy.id)
     }
 
-    static func attacksApplyPoison(from state: DamageResolutionState, context: inout BattleState) async -> [ActionEvent] {
+    static func attacksApplyPoison(from state: DamageResolutionState, context: inout BattleState) async {
         guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
               let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
               source.role == .enemy,
               context.roster.health(for: source.combatant) > 0,
               context.roster.health(for: state.combatant) > 0
-        else { return [] }
+        else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        guard triggers.attacksApplyPoison > 0 else { return [] }
-        return await context.applyDecayingDoT(
+        guard triggers.attacksApplyPoison > 0 else { return }
+        await context.applyDecayingDoT(
             keyword: .poison,
             potency: triggers.attacksApplyPoison,
             to: state.combatant,
@@ -87,7 +77,7 @@ package enum EnemyTraitEngine {
     package static func turnFreeze(
         for combatant: Combatant,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let profile = context.modifiers(for: combatant.id)
         let interval = profile.triggers.turnFreezeDamageAllEnemiesInterval
         guard profile.triggers.turnFreezeDamageAllEnemies > 0,
@@ -95,9 +85,9 @@ package enum EnemyTraitEngine {
               context.turnCount > 0,
               interval > 0,
               context.turnCount.isMultiple(of: interval)
-        else { return [] }
+        else { return }
 
-        return await turnDamageAllEnemies(
+        await turnDamageAllEnemies(
             amount: profile.triggers.turnFreezeDamageAllEnemies,
             keyword: .freeze,
             source: combatant,
@@ -108,7 +98,7 @@ package enum EnemyTraitEngine {
     package static func turnRandomDamageAllEnemies(
         for combatant: Combatant,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let triggers = context.modifiers(for: combatant.id).triggers
         let interval = triggers.turnRandomDamageAllEnemiesInterval
         guard triggers.turnRandomDamageAllEnemiesAmount > 0,
@@ -118,15 +108,10 @@ package enum EnemyTraitEngine {
               context.turnCount > 0,
               interval > 0,
               context.turnCount.isMultiple(of: interval)
-        else { return [] }
+        else { return }
 
         let chosen = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? first : second
-        return await turnDamageAllEnemies(
-            amount: triggers.turnRandomDamageAllEnemiesAmount,
-            keyword: chosen,
-            source: combatant,
-            context: &context,
-        )
+        await turnDamageAllEnemies(amount: triggers.turnRandomDamageAllEnemiesAmount, keyword: chosen, source: combatant, context: &context)
     }
 
     private static func turnDamageAllEnemies(
@@ -134,48 +119,36 @@ package enum EnemyTraitEngine {
         keyword: Keyword,
         source: Combatant,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
-        var events: [ActionEvent] = []
+    ) async {
         let action = BattleActionContext(actor: source, in: context)
         for target in action.opponents(in: context) {
             guard !context.isBattleOver, action.canContinue(in: context) else { break }
             guard context.health(of: target) > 0 else { continue }
-            let outcome = await context.resolveDamage(
-                DamageRequest(
-                    amount: amount,
-                    target: target,
-                    keyword: keyword,
-                    sourceActorID: source.id,
-                    options: .reaction(),
-                ),
-            )
-            events.append(contentsOf: outcome.events)
+            let outcome = await context.dealReactionDamage(amount, to: target, keyword: keyword, sourceActorID: source.id)
+
             let stackPotency = keyword == .bleed ? amount : outcome.healthLost
-            if let applicationEvents = await DoTApplicator.applyDoT(
+            if await DoTApplicator.applyDoT(
                 keyword: keyword,
                 potency: stackPotency,
                 to: target,
                 sourceActorID: source.id,
                 application: .attached,
                 in: &context,
-            ) {
-                events.append(contentsOf: applicationEvents)
-            }
+            ) {}
         }
-        return events
     }
 
     package static func traitAttackerBurn(
         defender: Combatant,
         attackerID: String,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let profile = context.modifiers(for: defender.id)
         guard profile.triggers.onHitAttackerBurn > 0,
               let attacker = context.roster.combatant(for: attackerID)?.combatant
-        else { return [] }
+        else { return }
 
-        return await DoTApplicator.applyDecayingDoT(
+        await DoTApplicator.applyDecayingDoT(
             keyword: .burn,
             potency: profile.triggers.onHitAttackerBurn,
             to: attacker,
@@ -190,14 +163,14 @@ package enum EnemyTraitEngine {
         defender: Combatant,
         attackerID: String,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let profile = context.modifiers(for: defender.id)
         guard profile.triggers.thornsPercent > 0, damageTaken > 0,
               let attacker = context.roster.combatant(for: attackerID)?.combatant
-        else { return [] }
+        else { return }
 
         let thornsAmount = CombatRounding.scaled(damageTaken, multiplier: profile.triggers.thornsPercent)
-        guard thornsAmount > 0 else { return [] }
+        guard thornsAmount > 0 else { return }
         var operation = DamageOperation.reaction()
         operation.isThornsDamage = true
         let outcome = await context.resolveDamage(
@@ -209,20 +182,17 @@ package enum EnemyTraitEngine {
                 options: operation,
             ),
         )
-        var events = outcome.events
+
         if outcome.healthLost > 0 {
-            events.append(context.nextEvent(
+            context.nextEvent(
                 kind: .effect(.thornsTriggered),
                 source: .init(defender),
                 abilityName: profile.triggerAbilityName(.thornsPercent, fallback: "Trait"),
                 target: attacker,
                 amount: outcome.healthLost,
                 keyword: .physical,
-            ))
+            )
         }
-        await events.append(contentsOf: DamagePipeline.thornsRewards(
-            healthLost: outcome.healthLost, attacker: attacker, defender: defender, in: &context,
-        ))
-        return events
+        await DamagePipeline.thornsRewards(healthLost: outcome.healthLost, attacker: attacker, defender: defender, in: &context)
     }
 }

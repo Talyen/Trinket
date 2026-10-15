@@ -11,7 +11,7 @@ extension UniqueCollectionTests {
         _ = try play(.block, owner: owner, in: &context)
         _ = try play(.block, owner: owner, in: &context)
         #expect(context.effectSummaries(of: actor).contains { $0.keyword == .dodge && $0.text.contains("Wrenflight") })
-        _ = UniqueCombatEngine.startTurn(in: &context)
+        UniqueCombatEngine.startTurn(in: &context)
         #expect(!context.effectSummaries(of: actor).contains { $0.text.contains("Wrenflight") })
     }
 
@@ -31,7 +31,7 @@ extension UniqueCollectionTests {
     func `Crucible accumulated Holy damage is visible until spent`(owner: BattleParticipant) throws {
         var context = try battle(["the_golden_crucible"], owner: owner)
         let actor = context.roster[owner].combatant
-        _ = context.grantGoldEvent(3, to: actor, abilityName: "Gold")
+        context.grantGoldEvent(3, to: actor, abilityName: "Gold")
         #expect(context.effectSummaries(of: actor).contains {
             $0.keyword == .holy && $0.text.contains("The Golden Crucible") && $0.text.contains("3")
         })

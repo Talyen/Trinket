@@ -17,7 +17,7 @@ package extension DamagePipeline {
         let removed = min(current, amount)
         guard removed > 0 else { return }
         DefensePoolEngine.set(current - removed, on: state.combatant, in: &context)
-        _ = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.blockStripped),
             source: .init(source.combatant), abilityName: "Sundered Guard",
             target: state.combatant, amount: removed, keyword: .block,

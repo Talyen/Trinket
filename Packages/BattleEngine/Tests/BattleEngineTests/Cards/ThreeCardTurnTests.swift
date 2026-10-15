@@ -252,8 +252,8 @@ struct ThreeCardTurnTests {
             _ = state.performTestAction(theft)
         }
         #expect(state.hand.totalCount == (chance == 1 ? 2 : 0))
-        _ = state.grantGoldEvent(1, to: state.hero, abilityName: "Ordinary Gold")
-        _ = state.grantGoldEvent(0, to: state.hero, abilityName: "Empty Theft", isTheft: true)
+        state.grantGoldEvent(1, to: state.hero, abilityName: "Ordinary Gold")
+        state.grantGoldEvent(0, to: state.hero, abilityName: "Empty Theft", isTheft: true)
         #expect(state.hand.totalCount == (chance == 1 ? 2 : 0))
     }
 

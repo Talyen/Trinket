@@ -74,7 +74,7 @@ extension UniqueCollectionTests {
         let second = try play(spell, in: &context)
         #expect(!second.contains { $0.abilityName == "The Final Spark" })
         #expect(context.roster.enemy.currentHealth == 1967)
-        _ = UniqueCombatEngine.startTurn(in: &context)
+        UniqueCombatEngine.startTurn(in: &context)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentMana = 3 }
         let third = try play(spell, in: &context)
         #expect(third.count(where: { $0.abilityName == "The Final Spark" }) == 1)
@@ -103,8 +103,8 @@ extension UniqueCollectionTests {
         #expect(recurring.map(\.remainingTurns) == original.map(\.remainingTurns))
         #expect(events.count(where: { $0.effectKind == .recurringDamageApplied }) == 1)
         for _ in 0 ..< 3 {
-            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &ordinary) }
-            let ticks = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &spark) }
+            CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &ordinary) }
+            let ticks = spark.recordingEvents { spark in await EffectTurnEngine.advanceAll(context: &spark) }
             #expect(ordinary.roster.enemy.currentHealth - spark.roster.enemy.currentHealth == initialDamage)
             #expect(!ticks.contains { $0.abilityName == "The Final Spark" })
         }
@@ -155,9 +155,9 @@ extension UniqueCollectionTests {
         context.gold = 100
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1990)
-        _ = context.grantGoldEvent(3, to: context.roster.companion.combatant, abilityName: "Other")
+        context.grantGoldEvent(3, to: context.roster.companion.combatant, abilityName: "Other")
         #expect(context.roster[.hero].uniques.goldDamage == 0)
-        _ = context.grantGoldEvent(3, to: context.roster.hero.combatant, abilityName: "Grant")
+        context.grantGoldEvent(3, to: context.roster.hero.combatant, abilityName: "Grant")
         #expect(context.roster[.hero].uniques.goldDamage == 5)
         _ = context.resolveTestDamage(
             1,
@@ -180,7 +180,7 @@ extension UniqueCollectionTests {
         var extra = CombatModifierProfile.zero
         extra.triggers.onAttackStealGold = 2
         var context = try battle(["the_golden_crucible"], extra: extra)
-        _ = context.grantGoldEvent(5, to: context.roster.hero.combatant, abilityName: "Grant")
+        context.grantGoldEvent(5, to: context.roster.hero.combatant, abilityName: "Grant")
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1985)
         #expect(context.roster[.hero].uniques.goldDamage == 2)
@@ -207,7 +207,7 @@ extension UniqueCollectionTests {
             id: "freeze", name: "Freeze", tier: .basic,
             directDamage: 10, damageKeyword: .freeze, repeatsManaEmpowerment: repeats,
         )
-        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability,
             actor: wearer,
             context: &context,

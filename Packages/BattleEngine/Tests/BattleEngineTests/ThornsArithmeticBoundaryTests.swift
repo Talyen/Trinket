@@ -18,12 +18,12 @@ struct ThornsArithmeticBoundaryTests {
         )
         battle.roster.enemy.hasConsumedDeathsDoor = true
         if talentGain {
-            _ = CombatExecutor.run { await CombatTriggerEngine.heroTalentThorns(
+            CombatExecutor.run { await CombatTriggerEngine.heroTalentThorns(
                 to: battle.hero, source: battle.hero, amount: 1, name: "Thorns", in: &battle,
             ) }
             DefensePoolEngine.set(2, on: battle.hero, in: &battle)
         } else {
-            _ = battle.applyBlock(2, to: battle.hero, source: battle.hero, abilityName: "Block")
+            _ = battle.applyBlockGain(2, to: battle.hero, source: battle.hero, abilityName: "Block")
         }
         #expect(battle.activeEffects(of: battle.hero).first { $0.effect.kind == .thorns }?.effect.potency == Int.max)
 

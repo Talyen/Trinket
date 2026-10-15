@@ -12,7 +12,7 @@ extension CombatTriggerTalentControlTests {
             heroModifiers: .withTriggers { $0.onDodgeApplyPoisonOrBleed = 2 },
             dealOpeningHand: false,
         )
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+        CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.roster.hero.combatant,
             attackerID: battle.roster.enemy.id,
             in: &battle,

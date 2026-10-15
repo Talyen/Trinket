@@ -32,7 +32,7 @@ extension UniqueCollectionTests {
         #expect(context.health(of: context.enemy) == 1994)
         #expect(blockAmount(.hero, in: context) == 6)
 
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: context.enemy, context: &context) }
+        CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: context.enemy, context: &context) }
         #expect(context.health(of: context.enemy) == 1988)
         #expect(blockAmount(.hero, in: context) == 12)
     }
@@ -48,7 +48,7 @@ extension UniqueCollectionTests {
             sourceID: context.hero.id, remainingTurns: 1,
         )
 
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: context.enemy, context: &context) }
+        CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: context.enemy, context: &context) }
 
         #expect(context.roster.hasControlStatus(for: context.enemy, keyword: .freeze))
         #expect(context.roster.hero.currentMana == (defeated ? 0 : 3))

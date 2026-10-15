@@ -17,7 +17,7 @@ struct DrawCardsHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .drawCards(count) = effect, count > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         let drawTarget: Combatant
         if ability.id == Ability.packTactics.id,
@@ -33,13 +33,13 @@ struct DrawCardsHandler: BattleEffectHandler {
             drawTarget = target
         }
         guard let owner = context.roster.participant(for: drawTarget), owner.isPartyMember else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         let drawn = BattleCardCombatEngine.drawCards(count: count, for: owner, context: &context)
         guard drawn > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
-        let event = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.cardsDrawn),
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
@@ -48,7 +48,7 @@ struct DrawCardsHandler: BattleEffectHandler {
             keyword: .physical,
             origin: .direct,
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        return EffectApplyOutcome(didApply: true)
     }
 }
 
@@ -61,14 +61,14 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
         guard case let .drawAndPlayCards(count) = effect, count > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         guard context.resolution.depth(.draw) < BattleState.maxDrawAndPlayDepth else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
 
         guard let firstOwner = context.roster.participant(for: target), firstOwner.isPartyMember else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         let drawOwner: BattleParticipant = ability.id == Ability.packTactics.id
             ? (firstOwner == .hero ? .companion : .hero)
@@ -79,24 +79,22 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
             in: &context,
         )
         guard !drawnCards.isEmpty else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
 
-        var events = [
-            context.nextEvent(
-                kind: .effect(.cardsDrawn),
-                source: .init(source),
-                abilityID: ability.id, abilityName: ability.name,
-                target: target,
-                amount: drawnCards.count,
-                keyword: .physical,
-            ),
-        ]
+        context.nextEvent(
+            kind: .effect(.cardsDrawn),
+            source: .init(source),
+            abilityID: ability.id, abilityName: ability.name,
+            target: target,
+            amount: drawnCards.count,
+            keyword: .physical,
+        )
         let played = await context.withAutomaticPlay { context in
             await autoPlayDrawnCards(drawnCards, in: &context)
         }
-        events.append(contentsOf: played.events)
-        return EffectApplyOutcome(events: events, didApply: true, criticalAttackActorIDs: played.criticalAttackActorIDs)
+
+        return EffectApplyOutcome(didApply: true, criticalAttackActorIDs: played)
     }
 
     private func collectDrawnCards(
@@ -136,27 +134,26 @@ struct DrawAndPlayCardsHandler: BattleEffectHandler {
     private func autoPlayDrawnCards(
         _ drawnCards: [BattleCard],
         in context: inout BattleState,
-    ) async -> CardPlayOutcome {
+    ) async -> Set<String> {
         context.resolution.enter(.draw)
         defer { context.resolution.leave(.draw) }
         guard context.resolution.depth(.draw) <= BattleState.maxDrawAndPlayDepth else {
-            return CardPlayOutcome(events: [], criticalAttackActorIDs: [])
+            return []
         }
 
-        var events: [ActionEvent] = []
         var criticalAttackActorIDs: Set<String> = []
         for card in drawnCards {
             guard BattleCardCombatEngine.playError(for: card, in: context, allowsTurnPreparation: true) == nil else { continue }
             do {
                 let played = try await BattleCardCombatEngine.resolveDrawnCard(card, context: &context)
-                events.append(contentsOf: played.events)
-                criticalAttackActorIDs.formUnion(played.criticalAttackActorIDs)
+
+                criticalAttackActorIDs.formUnion(played)
             } catch {
                 cardDrawLogger.info(
                     "Draw-and-play card \(card.id, privacy: .public) failed: \(error.localizedDescription, privacy: .public)",
                 )
             }
         }
-        return CardPlayOutcome(events: events, criticalAttackActorIDs: criticalAttackActorIDs)
+        return criticalAttackActorIDs
     }
 }

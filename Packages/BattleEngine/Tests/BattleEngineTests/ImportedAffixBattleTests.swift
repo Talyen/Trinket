@@ -24,11 +24,11 @@ struct ImportedAffixBattleTests {
         profile.triggers.startBattleThorns = 1
         var battle = makeAffixBattle(modifiers: profile)
 
-        let first = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        let first = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(first.contains { $0.effectKind == .thornsApplied && $0.amount == 1 })
         #expect(thorns(on: battle.hero, in: battle) == 1)
         battle.turnCount = 1
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(thorns(on: battle.hero, in: battle) == 1)
     }
 
@@ -37,7 +37,7 @@ struct ImportedAffixBattleTests {
         profile.triggers.blockBrokenThornsFlat = 2
         var battle = makeAffixBattle(modifiers: profile)
 
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterBlockBroken(
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterBlockBroken(
             on: battle.hero, attackerID: battle.enemy.id, in: &battle,
         ) }
         #expect(events.contains { $0.effectKind == .thornsApplied && $0.amount == 2 })

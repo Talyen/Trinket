@@ -19,13 +19,18 @@ struct ItemAffixKeywordExpansionTests {
         )
         let hero = battle.hero
 
-        let first = battle.healEmitting(amount: 2, target: hero, source: hero, abilityName: "Test Heal")
+        let first = battle.recordingEvents { battle in await battle.healEmitting(
+            amount: 2,
+            target: hero,
+            source: hero,
+            abilityName: "Test Heal",
+        ) }
         #expect(first.contains { $0.effectKind == .cleanseApplied })
         #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect.isRemovableDebuff })
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 2)
         #expect(battle.roster.runtime(for: hero)?.currentMana == 1)
 
-        _ = battle.healEmitting(amount: 2, target: hero, source: hero, abilityName: "Test Heal")
+        battle.healEmitting(amount: 2, target: hero, source: hero, abilityName: "Test Heal")
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 2)
         #expect(battle.roster.runtime(for: hero)?.currentMana == 1)
     }
@@ -44,7 +49,7 @@ struct ItemAffixKeywordExpansionTests {
         let hero = battle.hero
         let enemy = battle.enemy
 
-        let first = CombatExecutor.run { await CombatTriggerEngine.afterHeroTalentSpendMana(
+        let first = battle.recordingEvents { battle in await CombatTriggerEngine.afterHeroTalentSpendMana(
             actor: hero,
             amount: 3,
             empowered: true,
@@ -54,7 +59,7 @@ struct ItemAffixKeywordExpansionTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 2)
         #expect(battle.health(of: enemy) == 38)
 
-        let second = CombatExecutor.run { await CombatTriggerEngine.afterHeroTalentSpendMana(
+        let second = battle.recordingEvents { battle in await CombatTriggerEngine.afterHeroTalentSpendMana(
             actor: hero,
             amount: 3,
             empowered: true,
@@ -110,7 +115,7 @@ struct ItemAffixKeywordExpansionTests {
         let attack = battle.resolveTestDamage(2, options: DamageOperation.attack(tier: .basic, scaling: .flat, accuracy: .unavoidable))
         #expect(attack.isCritical)
 
-        let expiry = CombatExecutor.run { await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &battle) }
+        let expiry = battle.recordingEvents { battle in await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &battle) }
         #expect(expiry.contains { $0.effectKind == .instantHeal && $0.amount == 3 })
         #expect(battle.health(of: hero) == 4)
     }
@@ -129,7 +134,7 @@ struct ItemAffixKeywordExpansionTests {
         )
         let hero = battle.hero
 
-        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: hero, in: &battle) }
+        CombatExecutor.run { await DefensePoolEngine.decayBlock(on: hero, in: &battle) }
         #expect(battle.roster.activeEffects(for: hero).contains {
             if case .thorns(1) = $0.effect {
                 return true
@@ -140,7 +145,7 @@ struct ItemAffixKeywordExpansionTests {
             _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: DamageOperation.attack(
                 tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
             ))
-            _ = CombatExecutor.run { await CombatTriggerEngine.heroTalentThorns(
+            CombatExecutor.run { await CombatTriggerEngine.heroTalentThorns(
                 to: hero, source: hero, amount: 1, name: "Test Thorns", in: &battle,
             ) }
         }

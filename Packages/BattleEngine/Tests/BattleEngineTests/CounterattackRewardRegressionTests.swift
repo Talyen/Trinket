@@ -115,9 +115,11 @@ struct CounterattackRewardRegressionTests {
     private func counter(
         _ ability: Ability, origin: DamageOperation.AttackOrigin = .counterattack, in battle: inout BattleState,
     ) -> [ActionEvent] {
-        BattleTurnEngine.performAction(
-            ability: ability, actor: battle.hero, abilityTarget: battle.enemy,
-            origin: origin, context: &battle,
-        )
+        battle.recordingEvents { battle in
+            await BattleTurnEngine.performAction(
+                ability: ability, actor: battle.hero, abilityTarget: battle.enemy,
+                origin: origin, context: &battle,
+            )
+        }
     }
 }

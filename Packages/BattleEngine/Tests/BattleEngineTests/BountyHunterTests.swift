@@ -17,7 +17,8 @@ struct BountyHunterTests {
         )
         #expect(damage.isCritical)
         #expect(battle.roster.isEnemyDefeated)
-        let rewards = battle.appendDefeatMilestonesIfNeeded().filter { $0.abilityName == "Bounty Hunter" }
+        let rewards = battle.recordingEvents { battle in await battle.appendDefeatMilestonesIfNeeded() }
+            .filter { $0.abilityName == "Bounty Hunter" }
         #expect(battle.gold == (killer == .hero ? 10 : 0))
         #expect(rewards.count == (killer == .hero ? 1 : 0))
         if killer == .hero {
@@ -30,7 +31,8 @@ struct BountyHunterTests {
         let damage = battle.resolveTestDamage(10, options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable))
         #expect(!damage.isCritical)
         #expect(battle.roster.isEnemyDefeated)
-        let rewards = battle.appendDefeatMilestonesIfNeeded().filter { $0.abilityName == "Bounty Hunter" }
+        let rewards = battle.recordingEvents { battle in await battle.appendDefeatMilestonesIfNeeded() }
+            .filter { $0.abilityName == "Bounty Hunter" }
         #expect(battle.gold == 0)
         #expect(rewards.isEmpty)
     }

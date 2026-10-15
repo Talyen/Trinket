@@ -27,7 +27,7 @@ extension UniqueCollectionTests {
         let active = try #require(context.roster.enemy.activeEffects.first)
         let handler = EffectHandlers.handler(for: effect.kind)
 
-        let events = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &context) }
+        let events = context.recordingEvents { context in await handler.advanceTurn(active, on: enemy, in: &context) }
 
         let followups = chained ? DoTMirrorCascade.maxChainDepth : 1
         #expect(before - context.roster.enemy.currentHealth == 10 + followups)
@@ -113,7 +113,7 @@ extension UniqueCollectionTests {
         #expect(first.filter { $0.abilityName == "Everkeen" }.map(\.amount) == [20])
         try play(attack(), owner: owner, critical: true, in: &context)
         #expect(context.roster.enemy.currentHealth == 1945)
-        _ = UniqueCombatEngine.startTurn(in: &context)
+        UniqueCombatEngine.startTurn(in: &context)
         let next = try play(attack(), owner: owner, critical: true, in: &context)
         #expect(next.count(where: { $0.abilityName == "Everkeen" }) == 1)
         #expect(context.roster.enemy.currentHealth == 1905)
@@ -154,7 +154,7 @@ extension UniqueCollectionTests {
         let active = try #require(context.roster.enemy.activeEffects.first { $0.keyword == keyword && $0.effect.potency == potency })
         let handler = EffectHandlers.handler(for: active.effect.kind)
         let before = context.health(of: context.enemy)
-        _ = CombatExecutor.run { await handler.advanceTurn(active, on: context.enemy, in: &context) }
+        CombatExecutor.run { await handler.advanceTurn(active, on: context.enemy, in: &context) }
         #expect(before - context.health(of: context.enemy) == (keyword == .burn ? 10 : 21))
     }
 
@@ -183,7 +183,7 @@ extension UniqueCollectionTests {
     @Test func `viper readiness survives reaction and pays typed followups once`() throws {
         var context = try battle(["vipers_courtesy"], extra: CombatModifierProfile(damageDealtBonus: [.poison: 2, .bleed: 3]))
         let actor = context.roster.hero.combatant
-        _ = CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(by: actor, attackerID: context.roster.enemy.id, in: &context) }
+        CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(by: actor, attackerID: context.roster.enemy.id, in: &context) }
         _ = context.resolveTestDamage(1, options: .reaction())
         #expect(context.roster[.hero].uniques.viperReady == true)
         block(10, owner: .enemy, in: &context)
@@ -209,7 +209,7 @@ extension UniqueCollectionTests {
             criticalChanceBonus: -1,
         )
         context.heroDeck = CombatDeck(abilities: [attack(id: "other"), poison])
-        _ = CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(
+        CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(
             by: context.roster.hero.combatant,
             attackerID: context.roster.enemy.id,
             in: &context,

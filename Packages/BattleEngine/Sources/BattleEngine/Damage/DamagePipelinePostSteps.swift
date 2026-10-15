@@ -12,9 +12,7 @@ package extension DamagePipeline {
                   let runtime = context.roster.runtime(for: wearer), runtime.isAlive,
                   runtime.isBelowHalfHealth,
                   let owner = context.roster.participant(for: wearer) else { continue }
-            _ = CombatTriggerEngine.drawCards(
-                1, for: owner, actor: wearer, abilityName: "Resourceful", in: &context,
-            )
+            CombatTriggerEngine.drawCards(1, for: owner, actor: wearer, abilityName: "Resourceful", in: &context)
         }
     }
 
@@ -54,7 +52,7 @@ package extension DamagePipeline {
 
         switch keyword {
         case .holy:
-            _ = await CombatTriggerEngine.afterHolyDamageDealt(
+            await CombatTriggerEngine.afterHolyDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
                 attackHit: state.options.isAttackHit,
@@ -62,20 +60,16 @@ package extension DamagePipeline {
                 in: &context,
             )
         case .stun:
-            _ = CombatTriggerEngine.afterStunDamageDealt(
-                to: state.combatant,
-                source: source.combatant,
-                in: &context,
-            )
+            CombatTriggerEngine.afterStunDamageDealt(to: state.combatant, source: source.combatant, in: &context)
         case .burn:
-            _ = await CombatTriggerEngine.afterBurnDamageDealt(
+            await CombatTriggerEngine.afterBurnDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
                 healthLost: state.healthLost,
                 in: &context,
             )
         case .freeze:
-            _ = CombatTriggerEngine.afterFreezeDamageDealt(
+            CombatTriggerEngine.afterFreezeDamageDealt(
                 to: state.combatant,
                 source: source.combatant,
                 amount: state.healthLost,
@@ -100,11 +94,7 @@ package extension DamagePipeline {
             guard wearer.isAlive, wearer.currentMana < wearer.maxMana else { continue }
             let chance = context.modifiers(for: wearer.combatant.id).triggers.threefoldElementalDamageManaChancePercent
             guard chance > 0, BattleChance.succeeds(probability: chance, using: &context.rng) else { continue }
-            _ = await context.restoreManaEmitting(
-                1,
-                to: wearer.combatant,
-                abilityName: "Threefold Grace",
-            )
+            await context.restoreManaEmitting(1, to: wearer.combatant, abilityName: "Threefold Grace")
         }
     }
 
@@ -120,11 +110,9 @@ package extension DamagePipeline {
         }
         guard !state.options.isCardAttack, source.isAlive else { return }
         if state.isCritical {
-            _ = await CombatTriggerEngine.afterTypedCriticalAttackHit(
-                keyword: state.damageKeyword, actor: source.combatant, in: &context,
-            )
+            await CombatTriggerEngine.afterTypedCriticalAttackHit(keyword: state.damageKeyword, actor: source.combatant, in: &context)
         }
-        _ = await CombatTriggerEngine.afterCompanionAttackHit(
+        await CombatTriggerEngine.afterCompanionAttackHit(
             keyword: state.damageKeyword, actor: source.combatant, critical: state.isCritical,
             healthLost: state.healthLost, triggers: context.modifiers(for: source.id).triggers, in: &context,
         )
@@ -139,7 +127,7 @@ package extension DamagePipeline {
               let source = state.partySource(in: context),
               state.combatant.role == .enemy
         else { return }
-        _ = await CombatTriggerEngine.afterCriticalHit(
+        await CombatTriggerEngine.afterCriticalHit(
             to: state.combatant,
             source: source.combatant,
             targetWasStunnedAtHit: state.targetStatus.isStunned,
@@ -164,7 +152,7 @@ package extension DamagePipeline {
         } else {
             1
         }
-        _ = await ControlMeterEngine.applyMeterCharge(
+        await ControlMeterEngine.applyMeterCharge(
             CombatRounding.scaled(state.remaining, multiplier: criticalMultiplier),
             keyword: damageKeyword,
             to: state.combatant,
@@ -219,18 +207,14 @@ package extension DamagePipeline {
         sourceActorID: String,
         in context: inout BattleState,
     ) async {
-        _ = await EnemyTraitEngine.traitThornsDamage(
+        await EnemyTraitEngine.traitThornsDamage(
             damageTaken: state.healthLost,
             defender: state.combatant,
             attackerID: sourceActorID,
             in: &context,
         )
         if state.options.isAttackHit {
-            _ = await EnemyTraitEngine.traitAttackerBurn(
-                defender: state.combatant,
-                attackerID: sourceActorID,
-                in: &context,
-            )
+            await EnemyTraitEngine.traitAttackerBurn(defender: state.combatant, attackerID: sourceActorID, in: &context)
         }
     }
 
@@ -241,7 +225,7 @@ package extension DamagePipeline {
     ) async {
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         if defenderTriggers.onHitAttackerPoison > 0, context.roster.health(for: attacker.combatant) > 0 {
-            _ = await context.applyDecayingDoT(
+            await context.applyDecayingDoT(
                 keyword: .poison,
                 potency: defenderTriggers.onHitAttackerPoison,
                 to: attacker.combatant,
@@ -250,7 +234,7 @@ package extension DamagePipeline {
             )
         }
         if defenderTriggers.onHitAttackerBleedPotency > 0, context.roster.health(for: attacker.combatant) > 0 {
-            _ = await DoTApplicator.applyBleed(
+            await DoTApplicator.applyBleed(
                 potency: defenderTriggers.onHitAttackerBleedPotency,
                 to: attacker.combatant,
                 sourceActorID: state.combatant.id,
@@ -273,7 +257,7 @@ package extension DamagePipeline {
             let pacedAmount = context.paced(amount, sourceActorID: state.combatant.id)
             let restored = context.restoreMana(pacedAmount, to: state.combatant)
             if restored > 0 {
-                _ = context.nextEvent(
+                context.nextEvent(
                     kind: .effect(.manaShieldTriggered),
                     source: .init(state.combatant),
                     abilityName: "Mana Shield",
@@ -282,11 +266,7 @@ package extension DamagePipeline {
                     keyword: .mana,
                 )
             }
-            _ = await CombatTriggerEngine.manaRestorationReactions(
-                for: state.combatant,
-                restored: restored,
-                in: &context,
-            )
+            await CombatTriggerEngine.manaRestorationReactions(for: state.combatant, restored: restored, in: &context)
         }
     }
 
@@ -335,7 +315,7 @@ package extension DamagePipeline {
         await applyThornsRetaliation(amount: wards.thornsStacks, attacker: attacker, to: &state, in: &context)
 
         if defenderTriggers.onHitGainBlock > 0 {
-            _ = context.applyBlock(
+            context.applyBlockGain(
                 defenderTriggers.onHitGainBlock,
                 to: state.combatant,
                 source: state.combatant,
@@ -373,7 +353,7 @@ package extension DamagePipeline {
             return false
         }
         let threshold = ControlMeterEngine.threshold(for: attacker.combatant, in: context)
-        _ = await ControlMeterEngine.applyMeterCharge(
+        await ControlMeterEngine.applyMeterCharge(
             threshold,
             keyword: .freeze,
             to: attacker.combatant,
@@ -440,9 +420,7 @@ package extension DamagePipeline {
             isThornsDamage: true,
             in: &context,
         )
-        _ = await thornsRewards(
-            healthLost: healthLost, attacker: attacker.combatant, defender: state.combatant, in: &context,
-        )
+        await thornsRewards(healthLost: healthLost, attacker: attacker.combatant, defender: state.combatant, in: &context)
     }
 
     static func thornsRewards(
@@ -450,18 +428,17 @@ package extension DamagePipeline {
         attacker: Combatant,
         defender: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        var events = await spitebloomDamage(healthLost: healthLost, attacker: attacker, defender: defender, in: &context)
+    ) async {
+        await spitebloomDamage(healthLost: healthLost, attacker: attacker, defender: defender, in: &context)
         let poison = context.modifiers(for: defender.id).triggers.firstThornsPoisonDamagePerTurn
         if healthLost > 0, poison > 0, context.roster.health(for: attacker) > 0,
            context.claimTurnGuard(.thornShedding, actorID: defender.id) {
-            await events.append(contentsOf: context.applyDecayingDoT(
+            await context.applyDecayingDoT(
                 keyword: .poison, potency: poison, to: attacker,
                 sourceActorID: defender.id, application: .reaction,
-            ))
+            )
         }
-        await events.append(contentsOf: spitefulHeal(healthLost: healthLost, defender: defender, in: &context))
-        return events
+        await spitefulHeal(healthLost: healthLost, defender: defender, in: &context)
     }
 
     private static func spitebloomDamage(
@@ -469,34 +446,33 @@ package extension DamagePipeline {
         attacker: Combatant,
         defender: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let amount = context.modifiers(for: defender.id).triggers.poisonOnThornsDamage
-        guard healthLost > 0, amount > 0, context.roster.health(for: attacker) > 0 else { return [] }
+        guard healthLost > 0, amount > 0, context.roster.health(for: attacker) > 0 else { return }
         let poison = await resolveNestedDamage(
             amount: amount, keyword: .poison,
             target: attacker, sourceActorID: defender.id, in: &context,
         )
-        var events = poison.events
+
         if poison.healthLost > 0 {
-            await events.append(contentsOf: context.applyDecayingDoT(
+            await context.applyDecayingDoT(
                 keyword: .poison, potency: poison.healthLost, to: attacker,
                 sourceActorID: defender.id, application: .attached,
-            ))
+            )
         }
-        return events
     }
 
     private static func spitefulHeal(
         healthLost: Int,
         defender: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let heal = context.modifiers(for: defender.id).triggers.firstThornsDamageHealPerTurn
         guard healthLost > 0, heal > 0, context.roster.health(for: defender) > 0,
               context.resolution.claim(.affix(.spitefulHeal), actorID: defender.id, cadence: .turn(context.turnCount))
-        else { return [] }
+        else { return }
         let target = BattleActionContext(actor: defender, in: context).target(.lowestHealthAlly, in: context)
-        return await context.healEmitting(
+        await context.healEmitting(
             amount: heal, target: target, source: defender,
             abilityName: context.modifiers(for: defender.id).triggerAbilityName(
                 .firstThornsDamageHealPerTurn, fallback: "Spiteful",

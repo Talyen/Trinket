@@ -21,9 +21,9 @@ extension BattleTurnEngineTests {
         DefensePoolEngine.set(1, on: context.hero, in: &context)
 
         if build.modifiers.triggers.turnFreezeDamageAllEnemies > 0 {
-            _ = CombatExecutor.run { await EnemyTraitEngine.turnFreeze(for: context.enemy, context: &context) }
+            CombatExecutor.run { await EnemyTraitEngine.turnFreeze(for: context.enemy, context: &context) }
         } else {
-            _ = CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context) }
+            CombatExecutor.run { await EnemyTraitEngine.turnRandomDamageAllEnemies(for: context.enemy, context: &context) }
         }
 
         #expect(context.roster.enemy.currentHealth == 0)

@@ -5,11 +5,6 @@ package enum BlockAmountBasis {
     case base, resolved
 }
 
-package struct BlockGain {
-    package let applied: Int
-    package let events: [ActionEvent]
-}
-
 package extension BattleState {
     mutating func consumeNextEffectID() -> Int {
         let id = nextEffectID
@@ -32,25 +27,7 @@ package extension BattleState {
         }
     }
 
-    mutating func applyBlock(
-        _ amount: Int,
-        to target: Combatant,
-        source: Combatant,
-        abilityID: String = "",
-        abilityName: String,
-        amountBasis: BlockAmountBasis = .base,
-        origin: ActionEvent.Origin = .automatic,
-    ) -> [ActionEvent] {
-        applyBlockGain(
-            amount,
-            to: target,
-            source: source,
-            abilityID: abilityID, abilityName: abilityName,
-            amountBasis: amountBasis,
-            origin: origin,
-        ).events
-    }
-
+    @discardableResult
     mutating func applyBlockGain(
         _ amount: Int,
         to target: Combatant,
@@ -59,11 +36,11 @@ package extension BattleState {
         abilityName: String,
         amountBasis: BlockAmountBasis = .base,
         origin: ActionEvent.Origin = .automatic,
-    ) -> BlockGain {
-        guard roster.health(for: target) > 0 else { return BlockGain(applied: 0, events: []) }
+    ) -> Int {
+        guard roster.health(for: target) > 0 else { return 0 }
         if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(target, in: self)
             || CombatTriggerEngine.preventsPurgedEffect(.shield(.block, amount), on: target, in: self) {
-            return BlockGain(applied: 0, events: [])
+            return 0
         }
         let (keyword, buffer): (Keyword, Int)
         if amountBasis == .base,
@@ -87,7 +64,7 @@ package extension BattleState {
                 $0.talents.pending.nextBlockGainMultiplier = nil
             }
         }
-        var events = [nextEvent(
+        nextEvent(
             kind: .effect(.shieldApplied),
             source: .init(source),
             abilityID: abilityID, abilityName: abilityName,
@@ -95,13 +72,9 @@ package extension BattleState {
             amount: applied,
             keyword: keyword,
             origin: origin,
-        )]
-        events.append(contentsOf: CombatTriggerEngine.afterBlockGained(
-            applied,
-            by: target,
-            in: &self,
-        ))
-        return BlockGain(applied: applied, events: events)
+        )
+        CombatTriggerEngine.afterBlockGained(applied, by: target, in: &self)
+        return applied
     }
 
     private mutating func adjustedBlockGain(_ amount: Int, to target: Combatant) -> (Int, Bool) {

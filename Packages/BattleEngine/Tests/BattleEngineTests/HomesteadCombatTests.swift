@@ -101,10 +101,10 @@ struct HomesteadCombatTests {
         #expect(battle.restoreMana(0, to: battle.hero) == 0)
         #expect(battle.restoreMana(10, to: battle.hero) == 14)
         let gain = battle.applyBlockGain(10, to: battle.hero, source: battle.hero, abilityName: "Block")
-        #expect(gain.applied == 14)
+        #expect(gain == 14)
         let copy = battle.applyBlockGain(10, to: battle.hero, source: battle.hero, abilityName: "Copy", amountBasis: .resolved)
-        #expect(copy.applied == 10)
-        #expect(battle.applyBlockGain(0, to: battle.hero, source: battle.hero, abilityName: "Zero").applied == 0)
+        #expect(copy == 10)
+        #expect(battle.applyBlockGain(0, to: battle.hero, source: battle.hero, abilityName: "Zero") == 0)
     }
 
     @Test func `Mycology percentage scales flat equipment and conditional Leech healing`() {

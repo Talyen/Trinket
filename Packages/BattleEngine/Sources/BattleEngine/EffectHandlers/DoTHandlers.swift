@@ -9,8 +9,8 @@ struct DecayingDoTHandler: BattleEffectHandler {
         type.keyword
     }
 
-    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async -> [ActionEvent] {
-        guard matches(active.effect) else { return [] }
+    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async {
+        guard matches(active.effect) else { return }
         let progression = DecayingDoTProgression(
             type: type, sourceActorID: active.sourceActorID, target: target, in: context,
         )
@@ -19,7 +19,6 @@ struct DecayingDoTHandler: BattleEffectHandler {
         updated.effect = type.effect(potency: nextPotency)
         ActiveEffectMutation.finishTurn(active, replacement: nextPotency > 0 ? updated : nil, on: target, in: &context)
         if nextPotency > 0 {
-            var events: [ActionEvent] = []
             for _ in 0 ..< progression.ticksPerTurn {
                 let outcome = await DoTDamage.resolveDamage(
                     basePotency: nextPotency,
@@ -29,20 +28,21 @@ struct DecayingDoTHandler: BattleEffectHandler {
                     operation: .resolvedPeriodic,
                     in: &context,
                 )
-                events.append(contentsOf: outcome.events)
-                await events.append(contentsOf: CombatTriggerEngine.afterDoTTick(
+
+                await CombatTriggerEngine.afterDoTTick(
                     keyword: keyword,
                     healthLost: outcome.healthLost,
                     target: target,
                     sourceActorID: active.sourceActorID,
                     in: &context,
-                ))
+                )
             }
-            return events
+            return
         }
 
-        return keyword == .poison
-            ? await CombatTriggerEngine.afterHeroTalentPoisonExpiry(sourceID: active.sourceActorID, target: target, in: &context) : []
+        if keyword == .poison {
+            await CombatTriggerEngine.afterHeroTalentPoisonExpiry(sourceID: active.sourceActorID, target: target, in: &context)
+        }
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -76,9 +76,9 @@ struct DecayingDoTHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
         guard let potency = effect.potency, matches(effect) else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
-        let events = await context.applyDecayingDoT(
+        await context.applyDecayingDoT(
             keyword: keyword,
             potency: potency,
             to: target,
@@ -86,7 +86,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
             application: .ability,
             provenance: context.resolution.damageProvenance(for: source.id),
         )
-        return EffectApplyOutcome(events: events, didApply: true)
+        return EffectApplyOutcome(didApply: true)
     }
 
     private func matches(_ effect: Effect) -> Bool {
@@ -95,16 +95,16 @@ struct DecayingDoTHandler: BattleEffectHandler {
 }
 
 struct BleedHandler: BattleEffectHandler {
-    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async -> [ActionEvent] {
+    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async {
         guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
-            return []
+            return
         }
         let sourceTriggers = active.sourceActorID.map { context.modifiers(for: $0).triggers }
         let isCritical = BattleChance.succeeds(
             probability: sourceTriggers?.bleedTickCritChancePercent ?? 0,
             using: &context.rng,
         )
-        let tickOutcome = await DoTDamage.resolveDamage(
+        _ = await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: .bleed,
             target: target,
@@ -112,13 +112,8 @@ struct BleedHandler: BattleEffectHandler {
             guaranteedCritical: isCritical,
             in: &context,
         )
-        var events = tickOutcome.events
-        events.append(contentsOf: drawCardOnBleedTick(
-            active: active,
-            sourceTriggers: sourceTriggers,
-            target: target,
-            in: &context,
-        ))
+
+        drawCardOnBleedTick(active: active, sourceTriggers: sourceTriggers, target: target, in: &context)
 
         if let sourceTriggers, sourceTriggers.bleedStripsBlockPerTurn > 0,
            let reduced = DefensePoolEngine.reduce(
@@ -129,7 +124,7 @@ struct BleedHandler: BattleEffectHandler {
         }
 
         guard var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) else {
-            return events
+            return
         }
         if !shouldPreserveBleed(on: target, in: context) {
             updated.remainingTurns -= 1
@@ -142,7 +137,6 @@ struct BleedHandler: BattleEffectHandler {
         ActiveEffectMutation.finishTurn(
             active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
         )
-        return events
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -166,9 +160,9 @@ struct BleedHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
-        guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard case let .bleed(potency) = effect else { return EffectApplyOutcome(didApply: false) }
         let bleedsBefore = context.roster.activeEffects(for: target).count(where: \.effect.isBleed)
-        let events = await DoTApplicator.applyBleed(
+        await DoTApplicator.applyBleed(
             potency: potency,
             to: target,
             sourceActorID: source.id,
@@ -177,7 +171,7 @@ struct BleedHandler: BattleEffectHandler {
             in: &context,
         )
         let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
-        return EffectApplyOutcome(events: events, didApply: didApply)
+        return EffectApplyOutcome(didApply: didApply)
     }
 
     private func drawCardOnBleedTick(
@@ -185,15 +179,15 @@ struct BleedHandler: BattleEffectHandler {
         sourceTriggers: CombatTraitTriggers?,
         target _: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) {
         guard let attackerID = active.sourceActorID,
               let drawChance = sourceTriggers?.bleedTickDrawChancePercent, drawChance > 0,
               BattleChance.succeeds(probability: drawChance, using: &context.rng),
               let source = context.roster.combatant(for: attackerID),
               let owner = context.roster.participant(for: source.combatant), owner.isPartyMember
-        else { return [] }
-        guard BattleCardCombatEngine.drawFirstCard(matching: .physical, for: owner, context: &context) != nil else { return [] }
-        return [context.nextEvent(
+        else { return }
+        guard BattleCardCombatEngine.drawFirstCard(matching: .physical, for: owner, context: &context) != nil else { return }
+        context.nextEvent(
             kind: .effect(.cardsDrawn),
             source: .init(source.combatant),
             abilityName: CombatTriggerEngine.triggerAbilityName(
@@ -205,7 +199,7 @@ struct BleedHandler: BattleEffectHandler {
             target: source.combatant,
             amount: 1,
             keyword: .physical,
-        )]
+        )
     }
 
     private func shouldPreserveBleed(on target: Combatant, in context: BattleState) -> Bool {
@@ -234,7 +228,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
         guard case let .recurringDamage(keyword, potency, turns) = effect, potency > 0, turns > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         let application = ActiveEffectMutation.replaceAndEmit(
             .recurringDamage(keyword, potency, turns),
@@ -254,7 +248,7 @@ struct RecurringDamageHandler: BattleEffectHandler {
         var operation = DamageOperation.periodic
         operation.capturesCardRepeat = context.uniques.card?.repeatDamage == true
             && UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context)
-        let events = await DoTDamage.resolveDamage(
+        _ = await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: keyword,
             target: target,
@@ -262,34 +256,34 @@ struct RecurringDamageHandler: BattleEffectHandler {
             provenance: context.resolution.damageProvenance(for: source.id),
             operation: operation,
             in: &context,
-        ).events
-        return EffectApplyOutcome(events: application.events + events, didApply: true)
+        )
+
+        return EffectApplyOutcome(didApply: true)
     }
 
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard case let .recurringDamage(keyword, potency, _) = active.effect,
               active.remainingTurns > 0
         else {
-            return []
+            return
         }
         let sourceID = active.sourceActorID ?? target.id
-        let events = await DoTDamage.resolveDamage(
+        _ = await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: keyword,
             target: target,
             sourceActorID: sourceID,
             in: &context,
-        ).events
+        )
         if var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) {
             updated.remainingTurns -= 1
             ActiveEffectMutation.finishTurn(
                 active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
             )
         }
-        return events
     }
 }

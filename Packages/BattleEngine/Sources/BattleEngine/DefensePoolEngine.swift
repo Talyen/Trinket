@@ -9,14 +9,14 @@ package enum DefensePoolEngine {
         to actor: Combatant,
         abilityName: String,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) {
         guard amount > 0, context.roster.health(for: target) > 0, context.roster.health(for: actor) > 0,
-              !context.modifiers(for: target.id).triggers.sealedSarcophagus else { return [] }
+              !context.modifiers(for: target.id).triggers.sealedSarcophagus else { return }
         let block = blockPoints(in: context.roster.activeEffects(for: target))
         let stolen = min(block, amount)
-        guard stolen > 0 else { return [] }
+        guard stolen > 0 else { return }
         set(block - stolen, on: target, in: &context)
-        return context.applyBlock(stolen, to: actor, source: actor, abilityName: abilityName, amountBasis: .resolved)
+        context.applyBlockGain(stolen, to: actor, source: actor, abilityName: abilityName, amountBasis: .resolved)
     }
 
     package static func blockPoints(in effects: [ActiveEffect]) -> Int {
@@ -139,13 +139,12 @@ package enum DefensePoolEngine {
         }
     }
 
-    @discardableResult
     package static func decayBlock(
         on target: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
-        guard current > 0 else { return [] }
+        guard current > 0 else { return }
         let triggers = context.modifiers(for: target.id).triggers
         let retained: Int = if triggers.retainAllBlockBetweenTurns
             || triggers.retainAllBlockDuringDeathsDoor && context.roster.isDeathsDoorActive(for: target) {
@@ -160,27 +159,26 @@ package enum DefensePoolEngine {
         if retained != current {
             set(retained, on: target, in: &context)
         }
-        guard retained > 0 else { return [] }
-        var events: [ActionEvent] = []
+        guard retained > 0 else { return }
+
         if triggers.retainedBlockThornsFlat > 0 {
-            await events.append(contentsOf: CombatTriggerEngine.heroTalentThorns(
+            await CombatTriggerEngine.heroTalentThorns(
                 to: target, source: target, amount: triggers.retainedBlockThornsFlat,
                 name: context.modifiers(for: target.id).triggerAbilityName(
                     .retainedBlockThornsFlat, fallback: "Ironbriar",
                 ),
                 in: &context,
-            ))
+            )
         }
         if triggers.retainedBlockGainThornsPercent > 0 {
-            events.append(contentsOf: CombatTriggerEngine.applyBlockThorns(
+            CombatTriggerEngine.applyBlockThorns(
                 amount: retained,
                 triggers: triggers,
                 actor: target,
                 abilityKey: .retainedBlockGainThornsPercent,
                 in: &context,
-            ))
+            )
         }
-        return events
     }
 
     package static func halveBlock(

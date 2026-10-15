@@ -21,14 +21,14 @@ struct DeathsDoorHandler: BattleEffectHandler {
         target _: Combatant,
         in _: inout BattleState,
     ) -> EffectApplyOutcome {
-        EffectApplyOutcome(events: [], didApply: false)
+        EffectApplyOutcome(didApply: false)
     }
 
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         var updated = active
         updated.remainingTurns -= 1
         ActiveEffectMutation.finishTurn(
@@ -47,10 +47,9 @@ struct DeathsDoorHandler: BattleEffectHandler {
                 keyword: .deathsDoor,
                 origin: .direct,
             )
-            var events = [event]
-            await events.append(contentsOf: DeathsDoorEngine.afterDeathsDoorExpired(on: target, in: &context))
-            return events
+            _ = event
+            await DeathsDoorEngine.afterDeathsDoorExpired(on: target, in: &context)
+            return
         }
-        return []
     }
 }

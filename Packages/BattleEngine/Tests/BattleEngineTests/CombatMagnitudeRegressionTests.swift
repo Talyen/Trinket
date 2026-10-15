@@ -10,7 +10,7 @@ struct CombatMagnitudeRegressionTests {
         profile.triggers.damageAfterDodgeBonus = Int.max / 2 + 1
         var battle = makeBattle(profile: profile)
         for _ in 0 ..< 2 {
-            _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+            CombatExecutor.run { await CombatTriggerEngine.afterDodge(
                 by: battle.hero, attackerID: battle.enemy.id, in: &battle,
             ) }
         }

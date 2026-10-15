@@ -16,7 +16,7 @@ struct BlockBuffHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .shield(_, amount) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         let gain = context.applyBlockGain(
             amount,
@@ -25,7 +25,7 @@ struct BlockBuffHandler: BattleEffectHandler {
             abilityID: ability.id, abilityName: ability.name,
             origin: .direct,
         )
-        return EffectApplyOutcome(events: gain.applied > 0 ? gain.events : [], didApply: gain.applied > 0)
+        return EffectApplyOutcome(didApply: gain > 0)
     }
 }
 
@@ -49,14 +49,14 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
             block = context.mana(of: target) / 2
         case let .shieldFromGold(goldPerBlock):
             guard goldPerBlock > 0 else {
-                return EffectApplyOutcome(events: [], didApply: false)
+                return EffectApplyOutcome(didApply: false)
             }
             block = context.gold / goldPerBlock
         default:
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
 
-        guard block > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard block > 0 else { return EffectApplyOutcome(didApply: false) }
 
         let applied = context.applyBlockGain(
             block,
@@ -65,11 +65,11 @@ struct ShieldFromResourceHandler: BattleEffectHandler {
             abilityID: ability.id, abilityName: ability.name,
             origin: .direct,
         )
-        var events: [ActionEvent] = []
+
         if let payment {
-            events = await CombatTriggerEngine.afterSpendMana(payment, in: &context)
+            await CombatTriggerEngine.afterSpendMana(payment, in: &context)
         }
-        events.append(contentsOf: applied.events)
-        return EffectApplyOutcome(events: events, didApply: applied.applied > 0)
+
+        return EffectApplyOutcome(didApply: applied > 0)
     }
 }

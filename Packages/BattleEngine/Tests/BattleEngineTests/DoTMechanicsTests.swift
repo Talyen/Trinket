@@ -14,7 +14,7 @@ struct DoTMechanicsTests {
         )
         battle.roster.mutateRuntime(for: battle.hero) { $0.hasConsumedDeathsDoor = true }
 
-        _ = CombatExecutor.run { await DoTApplicator.applyBleed(
+        CombatExecutor.run { await DoTApplicator.applyBleed(
             potency: 1, to: battle.hero, sourceActorID: battle.enemy.id,
             application: .reaction, in: &battle,
         ) }
@@ -50,7 +50,7 @@ struct DoTMechanicsTests {
         let handler = EffectHandlers.handler(for: effect.kind)
         let healthBefore = battle.health(of: enemy)
 
-        _ = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
+        CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
 
         let expectedDamage = keyword == .burn ? 2 : 3
         #expect(healthBefore - battle.health(of: enemy) == expectedDamage)
@@ -226,7 +226,7 @@ struct DoTMechanicsTests {
         _ = battle.resolveTestDamage(8, keyword: .poison)
         #expect(battle.health(of: hero) == 24)
 
-        _ = battle.applyDecayingDoT(
+        battle.applyDecayingDoT(
             keyword: .poison, potency: 8, to: enemy,
             sourceActorID: hero.id, application: .ability,
         )
@@ -235,7 +235,7 @@ struct DoTMechanicsTests {
         let poison = battle.activeEffects(of: enemy).first { $0.keyword == .poison }
         let active = try #require(poison)
         let handler = EffectHandlers.handler(for: .poison)
-        _ = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
+        CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
         #expect(battle.health(of: hero) == 31)
         #expect(battle.health(of: enemy) == enemy.maxHealth - 22)
     }
@@ -257,7 +257,7 @@ struct DoTMechanicsTests {
         )
         if isTick {
             let handler = EffectHandlers.handler(for: .bleed)
-            _ = CombatExecutor.run { await handler.advanceTurn(bleed, on: battle.enemy, in: &battle) }
+            CombatExecutor.run { await handler.advanceTurn(bleed, on: battle.enemy, in: &battle) }
         } else {
             _ = battle.performTestAction(.rendingSlash)
         }
@@ -282,7 +282,7 @@ struct DoTMechanicsTests {
     func `damage ramp grows each round with optional cap`(cap: Int, amounts: [Int]) throws {
         var battle = makeRampBattle(cap: cap)
         for expected in amounts {
-            _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+            CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
             let runtime = try #require(battle.roster.runtime(for: battle.hero))
             #expect(runtime.talents.battle.keywordDamageRamp[.burn] == expected)
         }
@@ -294,7 +294,7 @@ struct DoTMechanicsTests {
 
     @Test func `damage ramp applies to matching keyword only`() {
         var battle = makeRampBattle(cap: 4)
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(DamagePipeline.outgoingDamageBonus(
             for: battle.roster.hero.id,
             keyword: .burn,
@@ -321,16 +321,16 @@ extension DoTMechanicsTests {
             ), appliesFightPacing: false,
         )
         let enemy = battle.roster.enemy.combatant
-        let initial = battle.applyDecayingDoT(
+        let initial = battle.recordingEvents { battle in await battle.applyDecayingDoT(
             keyword: .burn, potency: 8, to: enemy,
             sourceActorID: battle.roster.hero.id, application: .ability,
-        )
+        ) }
         #expect(statusAmounts(from: initial, keyword: .burn) == [20])
         let burn = battle.activeEffects(of: enemy).first { $0.keyword == .burn }
         let active = try #require(burn)
         #expect(active.effect.potency == 20)
         let handler = EffectHandlers.handler(for: .burn)
-        let ticks = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
+        let ticks = battle.recordingEvents { battle in await handler.advanceTurn(active, on: enemy, in: &battle) }
         #expect(statusAmounts(from: ticks, keyword: .burn) == [10, 10])
         #expect(battle.activeEffects(of: enemy).first { $0.keyword == .burn }?.effect.potency == 10)
     }
@@ -359,7 +359,7 @@ extension DoTMechanicsTests {
         battle.roster.setActiveEffects([active], for: enemy)
         let handler = EffectHandlers.handler(for: .bleed)
 
-        let events = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
+        let events = battle.recordingEvents { battle in await handler.advanceTurn(active, on: enemy, in: &battle) }
 
         #expect(statusAmounts(from: events, keyword: .bleed) == [specialCrit ? 15 : 6])
         let status = events.first { $0.kind == .status && $0.keyword == .bleed }
@@ -413,7 +413,7 @@ extension DoTMechanicsTests {
         let active = ActiveEffect(id: 100, effect: .burn(4), remainingTurns: 0, sourceActorID: hero.id)
         battle.roster.setActiveEffects([active], for: enemy)
         let handler = EffectHandlers.handler(for: .burn)
-        _ = CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
+        CombatExecutor.run { await handler.advanceTurn(active, on: enemy, in: &battle) }
         #expect(battle.roster.hero.currentMana == 1)
         #expect(battle.turnCadence.burnManaRestored[.hero] == 1)
     }
@@ -424,7 +424,7 @@ extension DoTMechanicsTests {
         let effect: Effect = keyword == .burn ? .burn(1) : .poison(1)
         battle.appendEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
+        CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
         #expect(battle.health(of: battle.enemy) == 100)
         #expect(!battle.roster.hasAffliction(keyword, on: battle.enemy))
     }

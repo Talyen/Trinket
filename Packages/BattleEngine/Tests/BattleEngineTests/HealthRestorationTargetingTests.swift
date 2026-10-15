@@ -35,7 +35,7 @@ struct HealthRestorationTargetingTests {
     @Test func `holy and dodge affixes restore the lowest ally`() {
         let holy = CombatModifierProfile.withTriggers { $0.holyDamageHealFlat = 3 }
         var holyBattle = battle(heroModifiers: holy)
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
+        CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
             to: holyBattle.enemy, source: holyBattle.hero, in: &holyBattle,
         ) }
         #expect(holyBattle.health(of: holyBattle.companion) == 4)
@@ -43,7 +43,7 @@ struct HealthRestorationTargetingTests {
 
         let dodge = CombatModifierProfile.withTriggers { $0.dodgeHealFlat = 3 }
         var dodgeBattle = battle(heroModifiers: dodge)
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+        CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: dodgeBattle.hero, attackerID: dodgeBattle.enemy.id,
             allowsCounterattacks: false, in: &dodgeBattle,
         ) }
@@ -58,7 +58,7 @@ struct HealthRestorationTargetingTests {
             $0.goldGainHealAmount = 3
         }
         var battle = battle(heroModifiers: profile)
-        _ = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Test Gold")
+        battle.grantGoldEvent(1, to: battle.hero, abilityName: "Test Gold")
         #expect(battle.health(of: battle.companion) == 6)
         #expect(battle.health(of: battle.hero) == 20)
     }
@@ -67,7 +67,7 @@ struct HealthRestorationTargetingTests {
         let profile = CombatModifierProfile.withTriggers { $0.endTurnWithBlockHealFlat = 2 }
         var battle = battle(companionModifiers: profile, heroHealth: 1, companionHealth: 20)
         DefensePoolEngine.set(3, on: battle.companion, in: &battle)
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
         #expect(battle.health(of: battle.hero) == 3)
         #expect(battle.health(of: battle.companion) == 20)
     }

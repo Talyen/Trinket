@@ -6,7 +6,7 @@ package enum BattleTurnEngine {
     package static func consumeActionSkip(
         for actor: Combatant,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         var keyword: Keyword?
         var recovered = false
 
@@ -27,10 +27,10 @@ package enum BattleTurnEngine {
 
         guard let keyword else {
             recordAction(for: actor, context: &context)
-            return []
+            return
         }
 
-        let event = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.controlActionSkipped),
             source: .init(actorID: nil, name: keyword.statusAlias ?? keyword.rawValue),
             abilityName: keyword.statusAlias ?? keyword.rawValue,
@@ -38,19 +38,17 @@ package enum BattleTurnEngine {
             amount: 0,
             keyword: keyword,
         )
-        var events = [event]
 
         if keyword == .stun, recovered {
             applyStunRecoveryReduction(for: actor, context: &context)
         }
         if actor.role == .enemy, keyword == .stun, recovered {
-            await events.append(contentsOf: CombatCheckpoint.controlRecovery(actor.id, .stun).resolve([
+            await CombatCheckpoint.controlRecovery(actor.id, .stun).resolve([
                 { await CombatTriggerEngine.afterEnemyStunRecover(in: &$0) },
-            ], in: &context))
+            ], in: &context)
         }
 
         recordAction(for: actor, context: &context)
-        return events
     }
 
     private static func applyStunRecoveryReduction(for actor: Combatant, context: inout BattleState) {
@@ -72,8 +70,8 @@ package enum BattleTurnEngine {
         abilityTarget: Combatant,
         origin: DamageOperation.AttackOrigin = .ability,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
-        await resolveAction(
+    ) async {
+        _ = await resolveAction(
             ability: ability,
             actor: actor,
             abilityTarget: abilityTarget,
@@ -81,7 +79,6 @@ package enum BattleTurnEngine {
             entry: .ordinary,
             context: &context,
         )
-        .events
     }
 
     /// Synchronous action entry for consumers such as actor-isolated feedback
@@ -92,18 +89,15 @@ package enum BattleTurnEngine {
         abilityTarget: Combatant,
         origin: DamageOperation.AttackOrigin = .ability,
         context: inout BattleState,
-    ) -> [ActionEvent] {
+    ) {
         CombatExecutor.run {
-            await performAction(
-                ability: ability, actor: actor, abilityTarget: abilityTarget,
-                origin: origin, context: &context,
-            )
+            await performAction(ability: ability, actor: actor, abilityTarget: abilityTarget, origin: origin, context: &context)
         }
     }
 
     static func performEnemyAction(
         ability: Ability, abilityTarget: Combatant, context: inout BattleState,
-    ) async -> (events: [ActionEvent], performed: Bool) {
+    ) async -> Bool {
         await resolveAction(
             ability: ability,
             actor: context.enemy,
@@ -125,19 +119,19 @@ package enum BattleTurnEngine {
         origin: DamageOperation.AttackOrigin,
         entry: ActionEntry,
         context: inout BattleState,
-    ) async -> (events: [ActionEvent], performed: Bool) {
+    ) async -> Bool {
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
-        guard !context.isBattleOver, action.canContinue(in: context) else { return ([], false) }
+        guard !context.isBattleOver, action.canContinue(in: context) else { return false }
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         defer { context.resolution.feedbackGroupID = previousFeedbackGroup }
         let actionID = context.resolution.beginAction(action, origin: origin)
         defer { context.resolution.endAction() }
-        var events: [ActionEvent] = []
+
         guard BattleAbilityRules.canPayHealthCost(ability, action: action, in: context) else {
             if actor.role == .enemy {
                 recordAction(for: actor, context: &context)
             }
-            return ([], actor.role == .enemy)
+            return actor.role == .enemy
         }
         let outcomes = BattleAbilityRules.possibleOutcomes(ability, action: action, in: context)
         let resolvedAbility = outcomes.resolve(using: &context.rng)
@@ -157,12 +151,12 @@ package enum BattleTurnEngine {
         if entry == .enemyTurn {
             let actionsBeforeInterception = context.roster.enemy.actionCount
             let interception = await CombatTriggerEngine.beforeEnemyAttack(facts, in: &context)
-            events.append(contentsOf: interception.events)
-            guard !interception.cancelled else {
+
+            guard !interception else {
                 if context.roster.enemy.actionCount == actionsBeforeInterception {
                     recordAction(for: actor, context: &context)
                 }
-                return (events, false)
+                return false
             }
         }
         committed = true
@@ -172,44 +166,39 @@ package enum BattleTurnEngine {
             abilityID: resolvedAbility.id, isAttack: resolvedAbility.dealsCombatDamage, afterEventID: context.nextEventID,
         )
         if blockCost > 0 {
-            events.append(context.nextEvent(
+            context.nextEvent(
                 kind: .effect(.blockSpent), source: .init(actor),
                 abilityID: ability.id, abilityName: ability.name, target: actor, amount: blockCost, keyword: .block, origin: .direct,
-            ))
+            )
         }
         _ = context.resolution.prepareAction(facts)
         let checkpoint = CombatCheckpoint.preparedAction(actor.id)
         await checkpoint.perform(in: &context) { UniqueCombatEngine.prepareResolvedAttack(facts, in: &$0) }
-        await events.append(contentsOf: executePreparedAction(facts, repeats: repeats, context: &context))
-        return (events, true)
+        await executePreparedAction(facts, repeats: repeats, context: &context)
+        return true
     }
 
     private static func executePreparedAction(
         _ facts: ResolvedActionFacts,
         repeats: Bool,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let actor = facts.action.actor
         var resolvedAbility = prepareTalentAction(ability: facts.ability, actor: actor, in: &context)
-        var events: [ActionEvent] = []
-        await events.append(contentsOf: spendManaToEmpowerBurnOrFreezeIfNeeded(
-            for: &resolvedAbility,
-            actor: actor,
-            context: &context,
-        ))
+
+        await spendManaToEmpowerBurnOrFreezeIfNeeded(for: &resolvedAbility, actor: actor, context: &context)
         await CombatCheckpoint.preparedAction(actor.id).perform(in: &context) { context in
             if resolvedAbility.dealsCombatDamage {
-                await events.append(contentsOf: consumeHemorrhageIfActive(for: actor, in: &context))
+                await consumeHemorrhageIfActive(for: actor, in: &context)
             }
         }
 
-        await events.append(contentsOf: executePreparedOperations(facts, ability: resolvedAbility, context: &context))
+        await executePreparedOperations(facts, ability: resolvedAbility, context: &context)
         recordAction(for: actor, context: &context)
         context.commandOutput?.endAction()
         if repeats {
-            await events.append(contentsOf: repeatPreparedCard(facts, ability: resolvedAbility, context: &context))
+            await repeatPreparedCard(facts, ability: resolvedAbility, context: &context)
         }
-        return events
     }
 
     package static func selectedEnemyAbility(for actor: Combatant, turnNumber: Int) -> Ability? {

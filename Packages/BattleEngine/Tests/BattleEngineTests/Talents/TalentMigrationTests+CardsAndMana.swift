@@ -32,7 +32,7 @@ extension TalentMigrationTests {
     @Test func `closedCircuit spends mana deals stun`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.closedCircuit = true })
         let enemyHealthBefore = battle.health(of: battle.enemy)
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
+        CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
             ManaPayment(
                 payer: battle.roster.hero.combatant,
                 balanceBefore: battle.mana(of: battle.roster.hero.combatant) + 3,
@@ -82,7 +82,7 @@ extension TalentMigrationTests {
         battle.heroDeck = CombatDeck(abilities: [.slash])
         battle.roster[.hero].uniques.cardsPlayed = 2
         let healthBefore = battle.roster.enemy.currentHealth
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
         ) }
         #expect(battle.roster.enemy.currentHealth < healthBefore)
@@ -99,7 +99,7 @@ extension TalentMigrationTests {
             heroAbilities: [.fangs],
         )
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 5 }
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
         ) }
         #expect(battle.roster.hero.currentHealth > 5)
@@ -136,7 +136,7 @@ extension TalentMigrationTests {
     @Test func `pyromancer restores mana on burn empowerment`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.onEmpowerBurnRestoreMana = 1 })
         var ability = Ability.meteor
-        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.roster.hero.combatant, context: &battle,
         ) }
         #expect(battle.roster.runtime(for: battle.roster.hero.combatant)?.currentMana == 3)
@@ -145,7 +145,7 @@ extension TalentMigrationTests {
     @Test func `frost guard adds freeze damage to empowerment`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.empowerFreezeDamageBonus = 1 })
         var ability = Ability.frostbolt
-        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.roster.hero.combatant, context: &battle,
         ) }
         #expect(ability.damageComponents.first(where: { $0.keyword == .freeze })?.amount == 6)
@@ -156,7 +156,7 @@ extension TalentMigrationTests {
         battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentMana = 0 }
         let before = battle.health(of: battle.enemy)
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
+        CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
             ManaPayment(
                 payer: battle.roster.hero.combatant,
                 balanceBefore: battle.mana(of: battle.roster.hero.combatant) + 1,

@@ -48,12 +48,9 @@ package enum BattleCardCombatEngine {
         // has no preceding round to advance.
         for participant in BattleParticipant.effectTurnOrder {
             guard !context.isBattleOver else { break }
-            _ = CombatTriggerEngine.turnBlock(
-                for: context.roster[participant].combatant,
-                in: &context,
-            )
+            CombatTriggerEngine.turnBlock(for: context.roster[participant].combatant, in: &context)
         }
-        _ = await CombatTriggerEngine.atPlayerTurnStart(in: &context)
+        await CombatTriggerEngine.atPlayerTurnStart(in: &context)
         await finishPlayerTurnStart(context: &context)
     }
 
@@ -61,7 +58,7 @@ package enum BattleCardCombatEngine {
         discardDefeatedOwnerCards(context: &context)
         promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
-        _ = await context.appendDefeatMilestonesIfNeeded()
+        await context.appendDefeatMilestonesIfNeeded()
         context.turnState = context.isBattleOver ? .ended : .playerTurn
     }
 
@@ -95,11 +92,7 @@ package enum BattleCardCombatEngine {
                 let runtime = context.roster[owner]
                 guard runtime.isAlive, runtime.maxMana > 0 else { continue }
                 let combatant = runtime.combatant
-                _ = await context.restoreManaEmitting(
-                    1,
-                    to: combatant,
-                    abilityName: Keyword.mana.rawValue,
-                )
+                await context.restoreManaEmitting(1, to: combatant, abilityName: Keyword.mana.rawValue)
             }
         }
     }
@@ -146,10 +139,10 @@ package enum BattleCardCombatEngine {
             let enemy = context.enemy
             guard context.roster.enemy.isAlive else { return }
 
-            _ = await DefensePoolEngine.decayBlock(on: enemy, in: &context)
+            await DefensePoolEngine.decayBlock(on: enemy, in: &context)
 
             if context.roster.hasPendingActionSkip(for: enemy) {
-                _ = await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
+                await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
                 return
             }
 
@@ -165,19 +158,19 @@ package enum BattleCardCombatEngine {
                 return
             }
             let bleed = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &context)
-            if bleed.cancelled {
+            if bleed {
                 return
             }
 
             let avoidance = CombatTriggerEngine.consumeEnemyActionDelay(in: &context)
-            if avoidance.cancelled {
+            if avoidance {
                 return
             }
 
             let abilityTarget = BattleActionContext(actor: enemy, in: context).selectedTarget
             let action = await BattleTurnEngine.performEnemyAction(ability: ability, abilityTarget: abilityTarget, context: &context)
-            if action.performed {
-                _ = await CombatTriggerEngine.afterEnemyAbility(in: &context)
+            if action {
+                await CombatTriggerEngine.afterEnemyAbility(in: &context)
             }
         }
     }
@@ -197,10 +190,7 @@ package enum BattleCardCombatEngine {
         for owner in context.ownersSkippingThisPlayerTurn {
             let combatant = context.roster[owner].combatant
             if context.roster.hasPendingActionSkip(for: combatant) {
-                _ = await BattleTurnEngine.consumeActionSkip(
-                    for: combatant,
-                    context: &context,
-                )
+                await BattleTurnEngine.consumeActionSkip(for: combatant, context: &context)
             }
         }
         context.ownersSkippingThisPlayerTurn = []
@@ -209,7 +199,7 @@ package enum BattleCardCombatEngine {
             return
         }
 
-        _ = await CombatTriggerEngine.atPlayerEndTurn(in: &context)
+        await CombatTriggerEngine.atPlayerEndTurn(in: &context)
         for owner in [BattleParticipant.hero, .companion] {
             context.roster.mutateRuntime(for: context.roster[owner].combatant) { $0.talents.turn.primedRepeatKeywords.removeAll() }
         }
@@ -230,9 +220,9 @@ package enum BattleCardCombatEngine {
             }
         }
         context.turnCount += 1
-        _ = await EffectTurnEngine.advanceAll(context: &context)
+        await EffectTurnEngine.advanceAll(context: &context)
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant] {
-            _ = await DefensePoolEngine.decayBlock(on: combatant, in: &context)
+            await DefensePoolEngine.decayBlock(on: combatant, in: &context)
         }
         if await finishRoundIfBattleOver(context: &context) {
             return
@@ -243,7 +233,7 @@ package enum BattleCardCombatEngine {
 
     private static func finishRoundIfBattleOver(context: inout BattleState) async -> Bool {
         // Milestones can trigger victory rewards; finish them before checking the final roster.
-        _ = await context.appendDefeatMilestonesIfNeeded()
+        await context.appendDefeatMilestonesIfNeeded()
         guard context.isBattleOver else { return false }
         context.turnState = .ended
         return true

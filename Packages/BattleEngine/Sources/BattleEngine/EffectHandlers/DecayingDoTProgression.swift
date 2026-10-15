@@ -97,18 +97,18 @@ enum DecayingDoTDetonation {
         sourceActorID: String,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard let type = DecayingDoT(effect: active.effect) else { return [] }
+    ) async {
+        guard let type = DecayingDoT(effect: active.effect) else { return }
         let progression = DecayingDoTProgression(
             type: type, sourceActorID: active.sourceActorID, target: target, in: context,
         )
         var potency = active.effect.potency ?? 0
-        var events: [ActionEvent] = []
+
         while context.roster.health(for: target) > 0 {
             potency = progression.decayedPotency(from: potency)
             guard potency > 0 else { break }
             for _ in 0 ..< progression.ticksPerTurn where context.roster.health(for: target) > 0 {
-                await events.append(contentsOf: DoTDamage.resolveDamage(
+                _ = await DoTDamage.resolveDamage(
                     basePotency: SaturatedArithmetic.saturatingMul(potency, factor),
                     keyword: type.keyword,
                     target: target,
@@ -116,9 +116,8 @@ enum DecayingDoTDetonation {
                     provenance: provenance,
                     operation: .resolvedPeriodic,
                     in: &context,
-                ).events)
+                )
             }
         }
-        return events
     }
 }

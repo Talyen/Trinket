@@ -57,7 +57,7 @@ struct HealingReductionTests {
             enemy: CombatantFixtures.passiveEnemy(abilities: [.serratedEdge]), appliesFightPacing: false,
         )
         let target = battle.roster[recipient].combatant
-        _ = BattleTurnEngine.performAction(
+        BattleTurnEngine.performAction(
             ability: .serratedEdge, actor: battle.enemy, abilityTarget: target, context: &battle,
         )
 

@@ -210,7 +210,7 @@ struct ControlMeterEngineTests {
 private func preventedActions(in context: inout BattleState, for actor: Combatant) -> Int {
     var count = 0
     while context.roster.hasPendingActionSkip(for: actor), count < 5 {
-        _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: actor, context: &context) }
+        CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: actor, context: &context) }
         count += 1
     }
     return count

@@ -4,12 +4,11 @@ import TrinketCore
 
 extension BattleTurnEngine {
     struct DamageComponentOutcome {
-        let events: [ActionEvent]
         let healthLost: Int
         let logDamageKeyword: Keyword?
 
         static var empty: Self {
-            Self(events: [], healthLost: 0, logDamageKeyword: nil)
+            Self(healthLost: 0, logDamageKeyword: nil)
         }
     }
 
@@ -155,7 +154,7 @@ extension BattleTurnEngine {
             context.resolution.recordCardAttackCritical(by: actor.id)
         }
         let dealt = damageOutcome.healthLost
-        var events = damageOutcome.events
+
         let componentEvent = context.nextEvent(
             kind: .abilityDamage,
             actionID: context.resolution.actionID,
@@ -169,16 +168,15 @@ extension BattleTurnEngine {
             isCritical: damageOutcome.flags.contains(.critical),
             origin: .direct,
         )
-        events.append(componentEvent)
 
         if case .landed = damageOutcome.damageImpact {
             if prepared.nextStrike.contains(.holyStrike) {
-                await events.append(contentsOf: context.applyDecayingDoT(
+                await context.applyDecayingDoT(
                     keyword: .burn, potency: prepared.holyStrikeBurnPotency, to: prepared.target,
                     sourceActorID: actor.id, application: .ability,
-                ))
+                )
             }
-            await events.append(contentsOf: applyDoTStackFromDamage(
+            await applyDoTStackFromDamage(
                 keyword: prepared.keyword,
                 potency: prepared.keyword == .burn || prepared.keyword == .poison
                     ? dealt : prepared.stackPotency,
@@ -186,10 +184,10 @@ extension BattleTurnEngine {
                 sourceActorID: actor.id,
                 isCritical: componentEvent.isCritical,
                 context: &context,
-            ))
+            )
         }
         return DamageComponentOutcome(
-            events: events, healthLost: dealt, logDamageKeyword: prepared.logDamageKeyword,
+            healthLost: dealt, logDamageKeyword: prepared.logDamageKeyword,
         )
     }
 
@@ -200,7 +198,7 @@ extension BattleTurnEngine {
         sourceActorID: String,
         isCritical: Bool = false,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let profile = context.modifiers(for: sourceActorID)
         let criticalDurationBonus = keyword == .bleed && isCritical
             ? profile.triggers.bleedDurationFromCriticalBonus : 0
@@ -209,7 +207,7 @@ extension BattleTurnEngine {
                 SaturatedArithmetic.saturatingAdd(Effect.bleedDoTTurnCount, profile.bleedDurationBonus),
                 criticalDurationBonus,
             ) : nil
-        return await DoTApplicator.applyDoT(
+        await DoTApplicator.applyDoT(
             keyword: keyword,
             potency: potency,
             to: target,
@@ -217,7 +215,7 @@ extension BattleTurnEngine {
             application: .afterHit,
             durationTurns: duration,
             in: &context,
-        ) ?? []
+        )
     }
 
     static func activeDamageKeywordOverride(
@@ -284,7 +282,7 @@ extension BattleTurnEngine {
     static func consumeHemorrhageIfActive(
         for actor: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         var hemorrhageDamage: Int?
         var sourceActorID: String?
         for active in context.roster.activeEffects(for: actor) {
@@ -294,37 +292,22 @@ extension BattleTurnEngine {
                 break
             }
         }
-        guard let hemorrhageDamage else { return [] }
+        guard let hemorrhageDamage else { return }
         ActiveEffectMutation.removeMatching(from: actor, in: &context) { $0.kind == .hemorrhage }
         let casterID = sourceActorID ?? actor.id
-        let hemorrhageOutcome = await context.resolveDamage(
-            DamageRequest(
-                amount: hemorrhageDamage,
-                target: actor,
-                keyword: .bleed,
-                sourceActorID: casterID,
-                options: .reaction(),
-            ),
-        )
-        var hemorrhageEvents = hemorrhageOutcome.events
+        let hemorrhageOutcome = await context.dealReactionDamage(hemorrhageDamage, to: actor, keyword: .bleed, sourceActorID: casterID)
+
         if hemorrhageOutcome.healthLost > 0 {
-            hemorrhageEvents.append(context.nextEvent(
+            context.nextEvent(
                 kind: .effect(.hemorrhageTriggered),
                 source: .init(actor),
                 abilityName: "Hemorrhage",
                 target: actor,
                 amount: hemorrhageOutcome.healthLost,
                 keyword: .bleed,
-            ))
+            )
         }
-        await hemorrhageEvents.append(contentsOf: DoTApplicator.applyBleed(
-            potency: hemorrhageDamage,
-            to: actor,
-            sourceActorID: casterID,
-            application: .afterHit,
-            in: &context,
-        ))
-        return hemorrhageEvents
+        await DoTApplicator.applyBleed(potency: hemorrhageDamage, to: actor, sourceActorID: casterID, application: .afterHit, in: &context)
     }
 
     static func applyTargetedEffects(
@@ -333,7 +316,6 @@ extension BattleTurnEngine {
         actor: Combatant,
         abilityTarget: Combatant,
         context: inout BattleState,
-        events: inout [ActionEvent],
     ) async -> [String] {
         var appliedEffectLogs: [String] = []
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
@@ -368,7 +350,7 @@ extension BattleTurnEngine {
                     target: effectTarget,
                     in: &context,
                 )
-                events.append(contentsOf: outcome.events)
+
                 grantedGold = SaturatedArithmetic.saturatingAdd(grantedGold, outcome.grantedGold)
                 restoredMana = SaturatedArithmetic.saturatingAdd(restoredMana, outcome.restoredMana)
                 didApply = didApply || outcome.didApply

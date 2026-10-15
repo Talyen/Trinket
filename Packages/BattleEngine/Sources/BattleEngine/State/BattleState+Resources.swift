@@ -2,12 +2,8 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-package struct GoldGain {
-    let applied: Int
-    let events: [ActionEvent]
-}
-
 package extension BattleState {
+    @discardableResult
     mutating func grantGold(
         _ amount: Int,
         to combatant: Combatant,
@@ -16,8 +12,8 @@ package extension BattleState {
         isTheft: Bool = false,
         isDirectCardGain: Bool = false,
         isLeechOverflow: Bool = false,
-    ) async -> GoldGain {
-        guard amount > 0, roster.health(for: combatant) > 0 else { return GoldGain(applied: 0, events: []) }
+    ) async -> Int {
+        guard amount > 0, roster.health(for: combatant) > 0 else { return 0 }
         if isLeechOverflow {
             resolution.enter(.leechOverflowGold)
         }
@@ -53,7 +49,7 @@ package extension BattleState {
         }
         UniqueCombatEngine.gainedGold(granted, by: combatant, in: &self)
         let currentEarned = goldFlow.gained
-        var events = [nextEvent(
+        nextEvent(
             kind: .effect(.resourceGain),
             source: .init(combatant),
             abilityID: abilityID, abilityName: abilityName,
@@ -61,18 +57,18 @@ package extension BattleState {
             amount: granted,
             keyword: .gold,
             origin: isDirectCardGain ? .direct : .automatic,
-        )]
+        )
         if isTheft, granted > 0 {
-            await events.append(contentsOf: CombatTriggerEngine.afterGoldTheft(by: combatant, amount: granted, in: &self))
+            await CombatTriggerEngine.afterGoldTheft(by: combatant, amount: granted, in: &self)
         }
-        await events.append(contentsOf: CombatTriggerEngine.goldGainTriggerEvents(
+        await CombatTriggerEngine.afterGoldGained(
             granted: granted,
             previousEarned: previousEarned,
             currentEarned: currentEarned,
             combatant: combatant,
             in: &self,
-        ))
-        return GoldGain(applied: granted, events: events)
+        )
+        return granted
     }
 
     func goldGranted(for amount: Int, sourceActorID: String) -> Int {
@@ -153,7 +149,7 @@ package extension BattleState {
         abilityName: String,
         source: Combatant? = nil,
         isResolved: Bool = false,
-    ) async -> [ActionEvent] {
+    ) async {
         let standalone = resolution.beginStandaloneRestoration()
         defer {
             if standalone {
@@ -161,22 +157,18 @@ package extension BattleState {
             }
         }
         let restored = restoreMana(amount, to: combatant, isResolved: isResolved)
-        let overflowEvents = await CombatTriggerEngine.consumeManaOverflowTalents(
-            for: combatant, restoredMana: restored > 0, in: &self,
-        )
-        guard restored > 0 else { return overflowEvents }
-        var events: [ActionEvent] = []
-        events.append(nextEvent(
+        await CombatTriggerEngine.consumeManaOverflowTalents(for: combatant, restoredMana: restored > 0, in: &self)
+        guard restored > 0 else { return }
+
+        nextEvent(
             kind: .effect(.resourceGain),
             source: .init(source ?? combatant),
             abilityID: abilityID, abilityName: abilityName,
             target: combatant,
             amount: restored,
             keyword: .mana,
-        ))
-        await events.append(contentsOf: CombatTriggerEngine.afterGainMana(by: combatant, in: &self))
-        events.append(contentsOf: overflowEvents)
-        return events
+        )
+        await CombatTriggerEngine.afterGainMana(by: combatant, in: &self)
     }
 
     mutating func healEmitting(
@@ -187,7 +179,7 @@ package extension BattleState {
         abilityName: String,
         keyword: Keyword = .health,
         isDirectCardHeal: Bool = false,
-    ) async -> [ActionEvent] {
+    ) async {
         var request = HealRequest(
             amount: amount,
             target: target,
@@ -200,7 +192,7 @@ package extension BattleState {
             ),
         )
         request.isDirectCardHeal = isDirectCardHeal
-        return await HealingEngine.resolveHeal(request, in: &self).events
+        _ = await HealingEngine.resolveHeal(request, in: &self)
     }
 
     internal mutating func payMana(_ amount: Int, for combatant: Combatant) -> ManaPayment {

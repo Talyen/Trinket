@@ -35,7 +35,7 @@ struct CounterattackManaPreparationTests {
         )
         let beforePreparation = battle.health(of: battle.enemy)
 
-        _ = BattleTurnEngine.performAction(
+        BattleTurnEngine.performAction(
             ability: ability, actor: battle.hero, abilityTarget: battle.enemy,
             origin: .counterattack, context: &battle,
         )

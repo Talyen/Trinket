@@ -33,7 +33,7 @@ struct ReactionScopeTests {
         for _ in 0 ..< depth {
             state.resolution.enter(.dot)
         }
-        let events = CombatExecutor.run {
+        let events = state.recordingEvents { state in
             if keyword == .bleed {
                 await CombatTriggerEngine.afterBleedDamageConversions(
                     to: target, sourceActorID: state.hero.id, in: &state,

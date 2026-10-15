@@ -194,7 +194,7 @@ extension EffectHandlersApplyTests {
             heroModifiers: .withTriggers { $0.victoryGoldCoin = true },
         )
         battle.rng = SeededRandomNumberGenerator(seed: seed)
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterVictory(in: &battle) }
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterVictory(in: &battle) }
         #expect(battle.gold == 10 + amount)
         #expect(battle.goldFlow == BattleGoldFlow(gained: amount))
         #expect(events.contains { $0.effectKind == .resourceGain && $0.amount == amount })

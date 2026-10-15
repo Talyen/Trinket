@@ -8,11 +8,10 @@ package extension CombatTriggerEngine {
         attackerID: String?,
         allowsCounterattacks: Bool = true,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard context.health(of: combatant) > 0 else { return [] }
+    ) async {
+        guard context.health(of: combatant) > 0 else { return }
         let profile = context.modifiers(for: combatant.id)
         let triggers = profile.triggers
-        var events: [ActionEvent] = []
 
         context.roster.mutateRuntime(for: combatant) { runtime in
             if triggers.damageAfterDodgeBonus > 0 {
@@ -51,100 +50,91 @@ package extension CombatTriggerEngine {
         }
 
         if triggers.dodgeGoldFlat > 0 {
-            await events.append(contentsOf: emitGold(
-                .dodgeGoldFlat, "Payday", amount: triggers.dodgeGoldFlat, to: combatant, in: &context,
-            ))
+            await emitGold(.dodgeGoldFlat, "Payday", amount: triggers.dodgeGoldFlat, to: combatant, in: &context)
         }
 
         if triggers.dodgeBlockFlat > 0 {
-            events.append(contentsOf: emitBlock(
-                .dodgeBlockFlat, "Untouchable",
-                amount: triggers.dodgeBlockFlat, to: combatant, source: combatant, in: &context,
-            ))
+            emitBlock(.dodgeBlockFlat, "Untouchable", amount: triggers.dodgeBlockFlat, to: combatant, source: combatant, in: &context)
         }
 
         if triggers.onDodgeGrantHeroBlock > 0, context.roster.hero.isAlive {
-            events.append(contentsOf: emitBlock(
+            emitBlock(
                 .onDodgeGrantHeroBlock, "Aerial Cover",
                 amount: triggers.onDodgeGrantHeroBlock,
                 to: context.roster.hero.combatant, source: combatant, in: &context,
-            ))
+            )
         }
 
         if triggers.onDodgePartyMana > 0 {
             for (_, member) in livingPartyMembers(in: context) {
-                await events.append(contentsOf: emitMana(
+                await emitMana(
                     .onDodgePartyMana, "Dodge",
                     amount: triggers.onDodgePartyMana, to: member.combatant, nameFrom: combatant, in: &context,
-                ))
+                )
             }
         }
 
         if triggers.onDodgeDrawCardForHero > 0, context.roster.hero.isAlive {
-            let drawn = BattleCardCombatEngine.drawCards(
-                count: triggers.onDodgeDrawCardForHero,
-                for: .hero,
-                context: &context,
-            )
+            let drawn = BattleCardCombatEngine.drawCards(count: triggers.onDodgeDrawCardForHero, for: .hero, context: &context)
             if drawn > 0 {
-                events.append(context.nextEvent(
+                context.nextEvent(
                     kind: .effect(.cardsDrawn),
                     source: .init(context.roster.hero),
                     abilityName: triggerAbilityName(.onDodgeDrawCardForHero, for: combatant, fallback: "Tailwind", in: context),
                     target: context.roster.hero.combatant,
                     amount: drawn,
                     keyword: .physical,
-                ))
+                )
             }
         }
 
         if allowsCounterattacks, triggers.onDodgeDrawAndPlayCardChainOnCrit {
-            await events.append(contentsOf: drawPlayCascade(for: combatant, in: &context))
+            await drawPlayCascade(for: combatant, in: &context)
         }
 
-        guard context.health(of: combatant) > 0 else { return events }
-        await events.append(contentsOf: applySidestepHeal(for: combatant, profile: profile, in: &context))
+        guard context.health(of: combatant) > 0 else { return }
+        await applySidestepHeal(for: combatant, profile: profile, in: &context)
         if allowsCounterattacks, context.roster.enemy.isAlive {
             for (keyword, chance, potency) in [
                 (Keyword.bleed, triggers.dodgeBleedChancePercent, triggers.dodgeBleedDamage),
                 (Keyword.burn, triggers.dodgeBurnChancePercent, triggers.dodgeBurnDamage),
             ] where potency > 0 && BattleChance.succeeds(probability: chance, using: &context.rng) {
-                await events.append(contentsOf: applyDoT(
+                await DoTApplicator.applyDoT(
                     keyword: keyword,
                     potency: potency,
                     to: context.roster.enemy.combatant,
                     sourceActorID: combatant.id,
                     in: &context,
-                ))
+                )
             }
         }
         if allowsCounterattacks {
-            await events.append(contentsOf: applyDodgeCounterDamage(
+            await applyDodgeCounterDamage(
                 keyword: .stun,
                 amount: profile.triggers.dodgeDealStunFlat,
                 key: .dodgeDealStunFlat,
                 fallback: "Whiplash",
                 for: combatant,
                 in: &context,
-            ))
-            await events.append(contentsOf: applyDodgeCounterDamage(
+            )
+            await applyDodgeCounterDamage(
                 keyword: .freeze,
                 amount: profile.triggers.dodgeDealFreezeFlat,
                 key: .dodgeDealFreezeFlat,
                 fallback: "Wing Buffet",
                 for: combatant,
                 in: &context,
-            ))
+            )
         }
 
         if triggers.dodgeApplyPoison > 0, context.roster.enemy.isAlive {
-            await events.append(contentsOf: context.applyDecayingDoT(
+            await context.applyDecayingDoT(
                 keyword: .poison,
                 potency: triggers.dodgeApplyPoison,
                 to: context.roster.enemy.combatant,
                 sourceActorID: combatant.id,
                 application: .ability,
-            ))
+            )
         }
 
         if triggers.onDodgeDelayAttackerTurn, let attackerID,
@@ -157,42 +147,36 @@ package extension CombatTriggerEngine {
             let target = attackerRuntime.combatant
 
             if allowsCounterattacks, triggers.onDodgeCounterDamage > 0 {
-                await events.append(contentsOf: context.resolveDamage(
-                    DamageRequest(
-                        amount: triggers.onDodgeCounterDamage,
-                        target: target,
-                        keyword: .physical,
-                        sourceActorID: combatant.id,
-                        options: .reaction(),
-                    ),
-                ).events)
+                _ = await context.dealReactionDamage(
+                    triggers.onDodgeCounterDamage, to: target, keyword: .physical, sourceActorID: combatant.id,
+                )
             }
             if allowsCounterattacks, triggers.onDodgeCounterBasicAttack {
-                await events.append(contentsOf: counterWithBasicAttack(by: combatant, in: &context))
+                await counterWithBasicAttack(by: combatant, in: &context)
             }
             if triggers.onDodgeApplyPoisonOrBleed > 0 {
                 // `applyDoT` routes bleed to its dedicated applicator and
                 // everything else to decaying DoTs, matching the two direct
                 // calls this replaces with one RNG draw either way.
                 let keyword: Keyword = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? .poison : .bleed
-                await events.append(contentsOf: applyDoT(
+                await DoTApplicator.applyDoT(
                     keyword: keyword,
                     potency: triggers.onDodgeApplyPoisonOrBleed,
                     to: target,
                     sourceActorID: combatant.id,
                     application: .reaction,
                     in: &context,
-                ))
+                )
             }
             if triggers.onDodgeAttackerStunBuildup > 0 {
-                await events.append(contentsOf: ControlMeterEngine.applyMeterCharge(
+                await ControlMeterEngine.applyMeterCharge(
                     triggers.onDodgeAttackerStunBuildup,
                     keyword: .stun,
                     to: target,
                     sourceActorID: combatant.id,
                     applyFightPacing: false,
                     in: &context,
-                ))
+                )
             }
         }
 
@@ -211,35 +195,34 @@ package extension CombatTriggerEngine {
                 context.resolution.leave(.dot)
                 context.resolution.leave(.draw)
             }
-            await events.append(contentsOf: context.withAutomaticPlay { context in
+            _ = await context.withAutomaticPlay { context in
                 await (try? BattleCardCombatEngine.playDrawnCard(card, context: &context)) ?? []
-            })
+            }
         }
 
-        guard context.health(of: combatant) > 0 else { return events }
-        await events.append(contentsOf: afterCompanionDodge(by: combatant, in: &context))
-        return events
+        guard context.health(of: combatant) > 0 else { return }
+        await afterCompanionDodge(by: combatant, in: &context)
     }
 
     private static func counterWithBasicAttack(
         by actor: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard !context.isBattleOver, context.roster.health(for: actor) > 0,
               let owner = context.roster.participant(for: actor),
               !context.ownersSkippingThisPlayerTurn.contains(owner),
               !context.roster.hasPendingActionSkip(for: actor),
               let ability = actor.abilityLoadout.basic,
               BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context)
-        else { return [] }
+        else { return }
         // Defer while inside damage resolution, like UniqueCombatEngine's
         // out-of-turn summons: a full Basic nested in the damage pipeline
         // overflows small worker-thread stacks.
         guard context.resolution.depth(.damage) == 0 else {
             context.uniques.pendingCounterAttackActorIDs.append(actor.id)
-            return []
+            return
         }
-        return await BattleTurnEngine.performAction(
+        await BattleTurnEngine.performAction(
             ability: ability,
             actor: actor,
             abilityTarget: BattleActionContext(actor: actor, in: context).selectedTarget,
@@ -248,24 +231,23 @@ package extension CombatTriggerEngine {
         )
     }
 
-    static func drainPendingCounterAttacks(in context: inout BattleState) async -> [ActionEvent] {
-        guard !context.uniques.pendingCounterAttackActorIDs.isEmpty else { return [] }
-        var events: [ActionEvent] = []
+    static func drainPendingCounterAttacks(in context: inout BattleState) async {
+        guard !context.uniques.pendingCounterAttackActorIDs.isEmpty else { return }
+
         while !context.uniques.pendingCounterAttackActorIDs.isEmpty {
             let actorID = context.uniques.pendingCounterAttackActorIDs.removeFirst()
             guard let actor = context.roster.combatant(for: actorID)?.combatant else { continue }
-            await events.append(contentsOf: counterWithBasicAttack(by: actor, in: &context))
+            await counterWithBasicAttack(by: actor, in: &context)
         }
-        return events
     }
 
     private static func drawPlayCascade(
         for combatant: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard context.roster.health(for: combatant) > 0 else { return [] }
+    ) async {
+        guard context.roster.health(for: combatant) > 0 else { return }
         let cascadeAbility = Ability(id: "dance-of-blades", name: "Dance of Blades", tier: .basic)
-        var events: [ActionEvent] = []
+
         for _ in 0 ..< BattleState.maxDrawAndPlayDepth {
             let played = await DrawAndPlayCardsHandler().apply(
                 .drawAndPlayCards(1),
@@ -275,23 +257,19 @@ package extension CombatTriggerEngine {
                 in: &context,
             )
             guard played.didApply else { break }
-            events.append(contentsOf: played.events)
+
             guard played.criticalAttackActorIDs.contains(combatant.id) else { break }
         }
-        return events
     }
 
     private static func applySidestepHeal(
         for combatant: Combatant,
         profile: CombatModifierProfile,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard profile.triggers.dodgeHealFlat > 0 else { return [] }
+    ) async {
+        guard profile.triggers.dodgeHealFlat > 0 else { return }
         let target = BattleActionContext(actor: combatant, in: context).target(.lowestHealthAlly, in: context)
-        return await emitHeal(
-            .dodgeHealFlat, "Sidestep",
-            amount: profile.triggers.dodgeHealFlat, to: target, source: combatant, in: &context,
-        )
+        await emitHeal(.dodgeHealFlat, "Sidestep", amount: profile.triggers.dodgeHealFlat, to: target, source: combatant, in: &context)
     }
 
     private static func applyDodgeCounterDamage(
@@ -301,8 +279,8 @@ package extension CombatTriggerEngine {
         fallback: String,
         for combatant: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard amount > 0, context.roster.enemy.isAlive else { return [] }
+    ) async {
+        guard amount > 0, context.roster.enemy.isAlive else { return }
         let enemy = context.roster.enemy.combatant
         let name = triggerAbilityName(key, for: combatant, fallback: fallback, in: context)
         let outcome = await context.resolveDamage(
@@ -314,12 +292,12 @@ package extension CombatTriggerEngine {
                 options: .reaction(cause: .dodge, accuracy: .normal),
             ),
         )
-        var events = outcome.events
+
         if outcome.healthLost > 0 {
             if outcome.isCritical {
                 context.resolution.recordCardAttackCritical(by: combatant.id)
             }
-            events.append(context.nextEvent(
+            context.nextEvent(
                 kind: .abilityDamage,
                 source: .init(combatant),
                 abilityName: name,
@@ -327,8 +305,7 @@ package extension CombatTriggerEngine {
                 amount: outcome.healthLost,
                 keyword: keyword,
                 isCritical: outcome.isCritical,
-            ))
+            )
         }
-        return events
     }
 }

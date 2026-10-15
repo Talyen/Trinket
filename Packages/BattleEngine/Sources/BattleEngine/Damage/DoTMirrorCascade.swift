@@ -11,11 +11,11 @@ enum DoTMirrorCascade {
         target: Combatant,
         sourceActorID: String,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard initialHealthLost > 0, context.resolution.depth(.dotMirror) == 0 else { return [] }
+    ) async {
+        guard initialHealthLost > 0, context.resolution.depth(.dotMirror) == 0 else { return }
         context.resolution.enter(.dotMirror)
         defer { context.resolution.leave(.dotMirror) }
-        var events: [ActionEvent] = []
+
         var currentKeyword = keyword
         var currentAmount = initialHealthLost
         for _ in 0 ..< maxChainDepth {
@@ -35,10 +35,9 @@ enum DoTMirrorCascade {
                 sourceActorID: sourceActorID,
                 in: &context,
             )
-            events.append(contentsOf: outcome.events)
+
             currentKeyword = mirrored
             currentAmount = outcome.healthLost
         }
-        return events
     }
 }

@@ -37,8 +37,13 @@ struct PassiveTalentCadenceTests {
     @Test func `font of magic rolls for separate passive mana and health restorations`() {
         var battle = makeBattle()
         let actionCount = battle.actionCount
-        let mana = battle.restoreManaEmitting(1, to: battle.hero, abilityName: "Turn Mana")
-        let healing = battle.healEmitting(amount: 1, target: battle.hero, source: battle.hero, abilityName: "Verdant Renewal")
+        let mana = battle.recordingEvents { battle in await battle.restoreManaEmitting(1, to: battle.hero, abilityName: "Turn Mana") }
+        let healing = battle.recordingEvents { battle in await battle.healEmitting(
+            amount: 1,
+            target: battle.hero,
+            source: battle.hero,
+            abilityName: "Verdant Renewal",
+        ) }
 
         #expect(battle.actionCount == actionCount)
         #expect(battle.roster.hero.currentMana == 1)
@@ -51,8 +56,13 @@ struct PassiveTalentCadenceTests {
     @Test func `font of magic retains one roll for mana and health within a card`() {
         var battle = makeBattle()
         let card = battle.resolution.beginCard(actorID: battle.hero.id)
-        let mana = battle.restoreManaEmitting(1, to: battle.hero, abilityName: "Card Mana")
-        let healing = battle.healEmitting(amount: 1, target: battle.hero, source: battle.hero, abilityName: "Card Health")
+        let mana = battle.recordingEvents { battle in await battle.restoreManaEmitting(1, to: battle.hero, abilityName: "Card Mana") }
+        let healing = battle.recordingEvents { battle in await battle.healEmitting(
+            amount: 1,
+            target: battle.hero,
+            source: battle.hero,
+            abilityName: "Card Health",
+        ) }
         battle.resolution.endCard(card)
 
         #expect(mana.contains { $0.abilityName == "Font of Magic" && $0.effectKind == .cardsDrawn })

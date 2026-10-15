@@ -10,7 +10,7 @@ struct TimedDebuffHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         let applied = context.insertEffect(effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns)
-        return EffectApplyOutcome(events: [], didApply: applied)
+        return EffectApplyOutcome(didApply: applied)
     }
 
     func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {

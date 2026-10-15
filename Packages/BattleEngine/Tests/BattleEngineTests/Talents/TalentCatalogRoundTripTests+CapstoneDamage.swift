@@ -69,15 +69,18 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.effectSummaries(of: battle.enemy).contains { $0.text.contains("Interdict") && $0.text.contains("Block") })
         let addedThorns = battle.appendEffect(.thorns(3), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         #expect(addedThorns)
-        #expect(battle.applyBlock(7, to: battle.enemy, source: battle.enemy, abilityName: "Block").isEmpty)
+        let rejectedBlock = battle.recordingEvents { battle in
+            battle.applyBlockGain(7, to: battle.enemy, source: battle.enemy, abilityName: "Block")
+        }
+        #expect(rejectedBlock.isEmpty)
         #expect(DefensePoolEngine.add(7, to: battle.enemy, in: &battle) == 0)
         battle.roster.enemy.currentHealth = 100
         let healed = battle.resolveHeal(HealRequest(amount: 3, target: battle.enemy, sourceActorID: battle.enemy.id))
         #expect(healed.healthRestored == 3)
         let gold = battle.gold
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")
+        battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")
         #expect(battle.gold == gold + 2)
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(DefensePoolEngine.add(7, to: battle.enemy, in: &battle) == 7)
     }
 
@@ -103,7 +106,7 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.hero.currentHealth == heroHealth)
         #expect(battle.roster.companion.currentHealth == companionHealth)
         #expect(battle.activeEffects(of: battle.enemy).isEmpty)
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         let applied = EffectHandlersTestSupport.dispatch(
             avatar, ability: .avatarOfJustice, source: battle.enemy, target: battle.enemy, battle: &battle,
         )
@@ -116,7 +119,7 @@ extension TalentCatalogRoundTripTests {
     @Test func `gilded claws banks actual theft without scaling from carried gold`() throws {
         var battle = capstoneBattle(companion: ["lizard_scout_gold_t3_2"])
         battle.gold = 10000
-        _ = battle.grantGoldEvent(3, to: battle.companion, abilityName: "Steal", isTheft: true)
+        battle.grantGoldEvent(3, to: battle.companion, abilityName: "Steal", isTheft: true)
         let next = try playHeroTalentCard(.stab, owner: .companion, in: &battle)
         let nextHit = try #require(next.first { $0.kind == .abilityDamage })
         #expect(nextHit.amount == (nextHit.isCritical ? 10 : 5))
@@ -139,8 +142,8 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.roster.enemy.talents.pending.nextAttackMissChance == 0.20)
         battle.roster.enemy.talents.pending.nextAttackMissChance = 1
         let attack = Ability(id: "two-hits", name: "Two Hits", tier: .basic, damageComponents: [DamageComponent(4), DamageComponent(4)])
-        let avoided = CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &battle) }
-        #expect(avoided.cancelled)
+        let avoided = battle.recordingResult { battle in await CombatTriggerEngine.enemyAttackAvoidance(in: &battle) }
+        #expect(avoided.value)
         let before = battle.roster.hero.currentHealth
         _ = battle.performTestAction(attack, from: .enemy, to: .hero)
         #expect(before - battle.roster.hero.currentHealth == 8)
@@ -155,7 +158,7 @@ extension TalentCatalogRoundTripTests {
         _ = battle.resolveTestDamage(2, options: .reaction())
         #expect(battle.gold == 0)
         if detonates {
-            _ = CombatExecutor.run { await CombatTriggerEngine.detonateBleed(on: battle.enemy, sourceActorID: battle.hero.id, in: &battle) }
+            CombatExecutor.run { await CombatTriggerEngine.detonateBleed(on: battle.enemy, sourceActorID: battle.hero.id, in: &battle) }
         } else {
             _ = battle.resolveTestDamage(4, options: .reaction())
         }

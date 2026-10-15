@@ -38,7 +38,7 @@ struct BattleTurnEngineTests {
         let enemy = context.roster.enemy.combatant
         let before = try #require(context.roster.runtime(for: enemy)?.actionCount)
 
-        let events = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context) }
+        let events = context.recordingEvents { context in await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context) }
 
         try #expect(events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
         try #expect(!(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
@@ -84,12 +84,12 @@ struct BattleTurnEngineTests {
         let enemy = context.roster.enemy.combatant
         let ability = try #require(enemy.abilityLoadout.basic)
 
-        let events = BattleTurnEngine.performAction(
+        let events = context.recordingEvents { context in await BattleTurnEngine.performAction(
             ability: ability,
             actor: enemy,
             abilityTarget: context.roster.enemyAttackTarget,
             context: &context,
-        )
+        ) }
         let abilityEvent = try #require(events.first { $0.kind == .ability })
 
         #expect(!events.contains { $0.effectKind == .controlActionSkipped })
@@ -182,12 +182,12 @@ struct BattleTurnEngineTests {
             seed: 0,
         )
         let enemy = context.enemy
-        let events = BattleTurnEngine.performAction(
+        let events = context.recordingEvents { context in await BattleTurnEngine.performAction(
             ability: ability,
             actor: context.hero,
             abilityTarget: enemy,
             context: &context,
-        )
+        ) }
 
         try #expect(context.roster.health(for: enemy) == 0)
         if grantGold {
@@ -290,7 +290,7 @@ struct BattleTurnEngineComponentTests {
                 runtime.talents.turn.blockedFaeWard = true
             }
         }
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &context) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &context) }
         for participant in BattleParticipant.allCases {
             let runtime = try #require(context.roster.runtime(for: context.roster[participant].combatant))
             #expect(!runtime.talents.turn.tookAttackHit)
@@ -321,12 +321,12 @@ struct BattleTurnEngineComponentTests {
         context.roster.mutateRuntime(for: hero) {
             $0.currentMana = 5
         }
-        let events = BattleTurnEngine.performAction(
+        let events = context.recordingEvents { context in await BattleTurnEngine.performAction(
             ability: burnAbility,
             actor: hero,
             abilityTarget: enemy,
             context: &context,
-        )
+        ) }
         try #expect(context.roster.runtime(for: hero)?.currentMana == 5)
         let summary = try #require(events.first { $0.kind == .ability })
         #expect(summary.amount == 6)

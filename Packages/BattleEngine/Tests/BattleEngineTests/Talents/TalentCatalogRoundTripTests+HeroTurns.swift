@@ -13,12 +13,27 @@ extension TalentCatalogRoundTripTests {
         battle.companionDeck = CombatDeck(abilities: [.bash, .fangs])
         battle.roster.hero.currentHealth = 10
         _ = battle.resolution.beginAction(BattleActionContext(actor: battle.companion, in: battle), origin: .ability)
-        let first = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
-        let second = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
+        let first = battle.recordingEvents { battle in await battle.healEmitting(
+            amount: 2,
+            target: battle.hero,
+            source: battle.companion,
+            abilityName: "Heal",
+        ) }
+        let second = battle.recordingEvents { battle in await battle.healEmitting(
+            amount: 2,
+            target: battle.hero,
+            source: battle.companion,
+            abilityName: "Heal",
+        ) }
         battle.resolution.endAction()
         #expect(first.contains { $0.abilityName == "Playful Energy" })
         #expect(!second.contains { $0.abilityName == "Playful Energy" })
-        let later = battle.healEmitting(amount: 2, target: battle.hero, source: battle.companion, abilityName: "Heal")
+        let later = battle.recordingEvents { battle in await battle.healEmitting(
+            amount: 2,
+            target: battle.hero,
+            source: battle.companion,
+            abilityName: "Heal",
+        ) }
         #expect(later.contains { $0.abilityName == "Playful Energy" })
     }
 
@@ -37,7 +52,7 @@ extension TalentCatalogRoundTripTests {
             dealOpeningHand: false,
         )
         let before = battle.roster.enemy.currentHealth
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
             by: battle.companion,
             attackerID: battle.enemy.id,
             in: &battle,
@@ -52,20 +67,20 @@ extension TalentCatalogRoundTripTests {
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 0 }
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 1 }
         seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
+        CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentMana == 2)
         #expect(battle.roster.companion.currentHealth == 4)
         seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
+        CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentMana == 4)
         battle.turnCount += 1
         seedHeroTalentEffect(.poison(1), on: .hero, in: &battle)
         battle.removeTalentPoints(1, kind: .poison, from: battle.hero)
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
+        CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentMana == 4)
         #expect(battle.roster.companion.currentHealth == 7)
         seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle, source: .companion)
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
+        CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentMana == 4)
     }
 
@@ -105,7 +120,7 @@ extension TalentCatalogRoundTripTests {
     @Test func `shared current empowers the companion's next attack`() {
         var battle = capstoneBattle(hero: ["druid_mana_t3_1"])
         var ability = Ability.kindling
-        _ = CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+        CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.hero, context: &battle,
         ) }
         #expect(battle.roster.companion.talents.pending.cardDamageBonus == 2)
@@ -127,10 +142,10 @@ extension TalentCatalogRoundTripTests {
     @Test func `last wager draws when gold arrives below half health`() {
         var battle = heroTalentBattle("wildcard_gold_t3_1")
         battle.heroDeck = CombatDeck(abilities: [.slash, .slash])
-        let full = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Gold")
+        let full = battle.recordingEvents { battle in _ = await battle.grantGold(1, to: battle.hero, abilityName: "Gold") }
         #expect(!full.contains { $0.effectKind == .cardsDrawn })
         battle.roster.hero.currentHealth = battle.roster.hero.maxHealth / 2 - 1
-        let wounded = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Gold")
+        let wounded = battle.recordingEvents { battle in _ = await battle.grantGold(1, to: battle.hero, abilityName: "Gold") }
         #expect(wounded.contains { $0.effectKind == .cardsDrawn })
     }
 }

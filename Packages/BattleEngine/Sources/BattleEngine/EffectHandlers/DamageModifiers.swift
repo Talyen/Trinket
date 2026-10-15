@@ -10,11 +10,11 @@ struct HalveShieldHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard case let .halveShield(keyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard case let .halveShield(keyword) = effect else { return EffectApplyOutcome(didApply: false) }
         guard DefensePoolEngine.halveBlock(on: target, in: &context) else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
-        let event = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.shieldHalved),
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
@@ -23,7 +23,7 @@ struct HalveShieldHandler: BattleEffectHandler {
             keyword: keyword,
             origin: .direct,
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        return EffectApplyOutcome(didApply: true)
     }
 }
 
@@ -56,18 +56,17 @@ struct ControlMeterHandler: BattleEffectHandler {
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard active.remainingTurns > 0 else { return [] }
+    ) {
+        guard active.remainingTurns > 0 else { return }
         var updated = active
         updated.remainingTurns -= 1
         if updated.remainingTurns == 0, let restored = UniqueCombatEngine.recoveredStun(updated, in: &context) {
             ActiveEffectMutation.finishTurn(active, replacement: restored, on: target, in: &context)
-            return []
+            return
         }
         ActiveEffectMutation.finishTurn(
             active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
         )
-        return []
     }
 
     func apply(
@@ -78,22 +77,17 @@ struct ControlMeterHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
         guard case let .controlMeter(keyword, amount, _) = effect else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         guard amount > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
+        let firstEventID = context.nextEventID
         let effectsBefore = context.roster.activeEffects(for: target)
-        let events = await ControlMeterEngine.applyMeterCharge(
-            amount,
-            keyword: keyword,
-            to: target,
-            sourceActorID: source.id,
-            in: &context,
-        )
+        await ControlMeterEngine.applyMeterCharge(amount, keyword: keyword, to: target, sourceActorID: source.id, in: &context)
         _ = ability
-        let didApply = !events.isEmpty || context.roster.activeEffects(for: target) != effectsBefore
-        return EffectApplyOutcome(events: events, didApply: didApply)
+        let didApply = context.nextEventID > firstEventID || context.roster.activeEffects(for: target) != effectsBefore
+        return EffectApplyOutcome(didApply: didApply)
     }
 }
 
@@ -109,11 +103,12 @@ struct MultiplyControlMeterHandler: BattleEffectHandler {
               keyword == .freeze,
               factor > 1
         else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
 
+        let firstEventID = context.nextEventID
         let effectsBefore = context.roster.activeEffects(for: target)
-        let events = await ControlMeterEngine.multiplyBuildup(
+        await ControlMeterEngine.multiplyBuildup(
             factor,
             keyword: keyword,
             to: target,
@@ -121,7 +116,7 @@ struct MultiplyControlMeterHandler: BattleEffectHandler {
             abilityID: ability.id, abilityName: ability.name,
             in: &context,
         )
-        let didApply = !events.isEmpty || context.roster.activeEffects(for: target) != effectsBefore
-        return EffectApplyOutcome(events: events, didApply: didApply)
+        let didApply = context.nextEventID > firstEventID || context.roster.activeEffects(for: target) != effectsBefore
+        return EffectApplyOutcome(didApply: didApply)
     }
 }

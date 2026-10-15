@@ -7,7 +7,7 @@ extension TalentCatalogRoundTripTests {
     @Test func `living archive does not echo passive healing or revive its recipient`() throws {
         var battle = capstoneBattle(companion: ["library_owl_health_t4_1"])
         battle.roster.hero.currentHealth = 1
-        _ = battle.healEmitting(amount: 4, target: battle.hero, source: battle.companion, abilityName: "Passive")
+        battle.healEmitting(amount: 4, target: battle.hero, source: battle.companion, abilityName: "Passive")
         let afterPassive = battle.roster.hero.currentHealth
         _ = battle.endTurn()
         #expect(battle.roster.hero.currentHealth == afterPassive)
@@ -17,7 +17,7 @@ extension TalentCatalogRoundTripTests {
         )
         try playHeroTalentCard(card, owner: .companion, in: &battle)
         battle.roster.hero.currentHealth = 0
-        _ = CombatExecutor.run { await HealingEngine.resolveHealingEchoes(in: &battle) }
+        CombatExecutor.run { await HealingEngine.resolveHealingEchoes(in: &battle) }
         #expect(battle.roster.hero.currentHealth == 0)
     }
 
@@ -40,7 +40,7 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.poison, on: .hero, in: battle) == 0)
         #expect(talentPoints(.burn, on: .companion, in: battle) == 0)
         let health = battle.roster.hero.currentHealth
-        _ = CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
+        CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
             keyword: .poison, potency: 3, to: battle.hero, sourceActorID: battle.enemy.id,
             application: .ability, in: &battle,
         ) }

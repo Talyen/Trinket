@@ -54,7 +54,7 @@ package extension DamagePipeline {
                 return false
             }
         }
-        _ = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.dodgeApplied),
             source: .init(state.combatant),
             abilityName: "Dodge",
@@ -66,15 +66,11 @@ package extension DamagePipeline {
         state.isDodged = true
         await applyWinterWake(to: &state, in: &context)
         if !state.options.causedByDodge {
-            _ = await UniqueCombatEngine.afterUniqueDodge(
-                by: state.combatant,
-                attackerID: state.sourceActorID,
-                in: &context,
-            )
+            await UniqueCombatEngine.afterUniqueDodge(by: state.combatant, attackerID: state.sourceActorID, in: &context)
         }
-        _ = CombatTriggerEngine.afterHeroTalentDodge(by: state.combatant, in: &context)
+        CombatTriggerEngine.afterHeroTalentDodge(by: state.combatant, in: &context)
         if !state.options.causedByDodge {
-            _ = await CombatTriggerEngine.afterDodge(
+            await CombatTriggerEngine.afterDodge(
                 by: state.combatant,
                 attackerID: state.sourceActorID,
                 allowsCounterattacks: !autoDodge,
@@ -322,12 +318,6 @@ package extension DamagePipeline {
         else { return }
         let enemyBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant))
         guard enemyBlock > 0 else { return }
-        _ = DefensePoolEngine.steal(
-            enemyBlock,
-            from: state.combatant,
-            to: source.combatant,
-            abilityName: "Master Thief",
-            in: &context,
-        )
+        DefensePoolEngine.steal(enemyBlock, from: state.combatant, to: source.combatant, abilityName: "Master Thief", in: &context)
     }
 }

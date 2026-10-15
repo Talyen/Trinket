@@ -4,9 +4,7 @@ import TrinketCore
 
 struct ControlMeterOutcome {
     let didTrigger: Bool
-    let events: [ActionEvent]
-
-    static let empty = Self(didTrigger: false, events: [])
+    static let empty = Self(didTrigger: false)
 }
 
 package enum ControlMeterEngine {
@@ -17,13 +15,14 @@ package enum ControlMeterEngine {
         sourceActorID: String?,
         applyFightPacing: Bool = true,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         await resolveMeterCharge(
             amount, keyword: keyword, to: combatant, sourceActorID: sourceActorID,
             applyFightPacing: applyFightPacing, in: &context,
-        ).events
+        )
     }
 
+    @discardableResult
     static func resolveMeterCharge( // swiftlint:disable:this function_body_length - control status mutation is one atomic pipeline
         _ amount: Int,
         keyword: Keyword,
@@ -76,7 +75,7 @@ package enum ControlMeterEngine {
         let newAmount = min(SaturatedArithmetic.saturatingAdd(existingAmount, adjustedAmount), effectiveThreshold)
 
         if newAmount >= effectiveThreshold {
-            let events = await applyThresholdReached(
+            await applyThresholdReached(
                 ControlMeterThresholdContext(
                     keyword: keyword,
                     combatant: combatant,
@@ -88,7 +87,7 @@ package enum ControlMeterEngine {
                 currentEffects: &currentEffects,
                 in: &context,
             )
-            return ControlMeterOutcome(didTrigger: true, events: events)
+            return ControlMeterOutcome(didTrigger: true)
         }
 
         updateBuildup(
@@ -135,7 +134,7 @@ package enum ControlMeterEngine {
         _ thresholdContext: ControlMeterThresholdContext,
         currentEffects: inout [ActiveEffect],
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let keyword = thresholdContext.keyword
         let combatant = thresholdContext.combatant
         let sourceActorID = thresholdContext.sourceActorID
@@ -181,25 +180,24 @@ package enum ControlMeterEngine {
         }
 
         let abilityName = keyword.statusAlias ?? keyword.rawValue
-        var events = [
-            context.nextEvent(
-                kind: .effect(.controlTriggered),
-                source: context.eventSource(actorID: sourceActorID, fallback: combatant),
-                abilityName: abilityName,
-                target: combatant,
-                amount: 0,
-                keyword: keyword,
-                appliedEffectSummaries: [],
-            ),
-        ]
+        context.nextEvent(
+            kind: .effect(.controlTriggered),
+            source: context.eventSource(actorID: sourceActorID, fallback: combatant),
+            abilityName: abilityName,
+            target: combatant,
+            amount: 0,
+            keyword: keyword,
+            appliedEffectSummaries: [],
+        )
+
         if keyword == .stun, combatant.id == context.roster.enemy.id {
-            await events.append(contentsOf: CombatTriggerEngine.afterEnemyStunned(sourceActorID: sourceActorID, in: &context))
+            await CombatTriggerEngine.afterEnemyStunned(sourceActorID: sourceActorID, in: &context)
         }
         if keyword == .freeze, combatant.id == context.roster.enemy.id {
-            await events.append(contentsOf: CombatTriggerEngine.afterEnemyFrozen(sourceActorID: sourceActorID, in: &context))
+            await CombatTriggerEngine.afterEnemyFrozen(sourceActorID: sourceActorID, in: &context)
         }
         if keyword == .freeze {
-            events.append(contentsOf: frozenOpponentBlock(on: combatant, in: &context))
+            frozenOpponentBlock(on: combatant, in: &context)
         }
         if keyword == .freeze,
            combatant.role == .enemy,
@@ -209,11 +207,7 @@ package enum ControlMeterEngine {
             let owner = source.combatant
             let currentBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: owner))
             if currentBlock > 0 {
-                await events.append(contentsOf: context.restoreManaEmitting(
-                    currentBlock,
-                    to: owner,
-                    abilityName: "Rimeheart",
-                ))
+                await context.restoreManaEmitting(currentBlock, to: owner, abilityName: "Rimeheart")
             }
         }
         if keyword == .stun,
@@ -222,7 +216,7 @@ package enum ControlMeterEngine {
            let source = context.roster.combatant(for: sourceActorID), source.isAlive,
            context.modifiers(for: sourceActorID).triggers.onStunEnemyGainBlock > 0,
            context.roster.health(for: combatant) > 0 {
-            events.append(contentsOf: context.applyBlock(
+            context.applyBlockGain(
                 context.modifiers(for: sourceActorID).triggers.onStunEnemyGainBlock,
                 to: source.combatant,
                 source: source.combatant,
@@ -232,41 +226,38 @@ package enum ControlMeterEngine {
                     fallback: "Stalwart Oath",
                     in: context,
                 ),
-            ))
+            )
         }
         if keyword == .stun,
            combatant.role == .enemy,
            let sourceActorID,
            context.modifiers(for: sourceActorID).triggers.onStunEnemyApplyBurn > 0,
            context.roster.health(for: combatant) > 0 {
-            await events.append(contentsOf: context.applyDecayingDoT(
+            await context.applyDecayingDoT(
                 keyword: .burn,
                 potency: context.modifiers(for: sourceActorID).triggers.onStunEnemyApplyBurn,
                 to: combatant,
                 sourceActorID: sourceActorID,
                 application: .reaction,
-            ))
+            )
         }
-        return events
     }
 
     private static func frozenOpponentBlock(
         on target: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        var events: [ActionEvent] = []
+    ) {
         let observers = BattleActionContext(actor: target, in: context).opponents(in: context)
         for actor in observers {
             let amount = context.modifiers(for: actor.id).triggers.onEnemyFrozenGainBlock
             guard context.health(of: actor) > 0, amount > 0 else { continue }
-            events.append(contentsOf: context.applyBlock(
+            context.applyBlockGain(
                 amount, to: actor, source: actor,
                 abilityName: context.modifiers(for: actor.id).triggerAbilityName(
                     .onEnemyFrozenGainBlock, fallback: "Glacial Barrier",
                 ),
-            ))
+            )
         }
-        return events
     }
 
     private static func applyExtendControlChance(
@@ -399,13 +390,13 @@ extension ControlMeterEngine {
         abilityID: String = "",
         abilityName: String,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard factor > 1,
               keyword == .freeze,
               context.roster.health(for: combatant) > 0,
               !context.roster.hasControlStatus(for: combatant, keyword: keyword)
         else {
-            return []
+            return
         }
         var currentEffects = context.roster.activeEffects(for: combatant)
         guard let existingIndex = currentEffects.firstIndex(where: { activeEffect in
@@ -416,14 +407,14 @@ extension ControlMeterEngine {
             currentAmount > 0,
             threshold > currentAmount
         else {
-            return []
+            return
         }
-        guard !isProtected(currentEffects[existingIndex].effect, on: combatant, in: context) else { return [] }
+        guard !isProtected(currentEffects[existingIndex].effect, on: combatant, in: context) else { return }
 
         let newAmount = min(SaturatedArithmetic.saturatingMul(currentAmount, factor), threshold)
-        guard newAmount > currentAmount else { return [] }
+        guard newAmount > currentAmount else { return }
 
-        let amplificationEvent = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.dotAmplified),
             source: context.eventSource(actorID: sourceActorID, fallback: combatant),
             abilityID: abilityID, abilityName: abilityName,
@@ -434,7 +425,7 @@ extension ControlMeterEngine {
         )
 
         if newAmount >= threshold {
-            let thresholdEvents = await applyThresholdReached(
+            await applyThresholdReached(
                 ControlMeterThresholdContext(
                     keyword: keyword,
                     combatant: combatant,
@@ -446,7 +437,8 @@ extension ControlMeterEngine {
                 currentEffects: &currentEffects,
                 in: &context,
             )
-            return [amplificationEvent] + thresholdEvents
+
+            return
         }
 
         updateBuildup(
@@ -461,7 +453,6 @@ extension ControlMeterEngine {
             currentEffects: &currentEffects,
             in: &context,
         )
-        return [amplificationEvent]
     }
 
     private static func isProtected(_ effect: Effect, on combatant: Combatant, in context: BattleState) -> Bool {

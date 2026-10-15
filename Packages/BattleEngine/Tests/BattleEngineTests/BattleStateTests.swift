@@ -92,11 +92,11 @@ struct BattleStateTests {
         for (health, expectedGold) in [(1, 11), (0, 0), (1, 11)] {
             battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = health }
             let before = battle.gold
-            _ = battle.grantGoldEvent(10, to: battle.companion, abilityName: "Steal", isTheft: true)
+            battle.grantGoldEvent(10, to: battle.companion, abilityName: "Steal", isTheft: true)
             #expect(battle.gold - before == expectedGold)
         }
         let beforeEmptySteal = battle.gold
-        _ = battle.grantGoldEvent(0, to: battle.companion, abilityName: "Empty Steal", isTheft: true)
+        battle.grantGoldEvent(0, to: battle.companion, abilityName: "Empty Steal", isTheft: true)
         #expect(battle.gold == beforeEmptySteal)
     }
 

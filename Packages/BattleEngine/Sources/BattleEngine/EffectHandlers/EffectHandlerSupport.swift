@@ -158,9 +158,9 @@ enum ActiveEffectMutation {
         guard context.insertEffect(
             effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns, replacing: matches,
         ) else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
-        let appliedEvent = context.nextEvent(
+        context.nextEvent(
             kind: .effect(event.kind),
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
@@ -169,7 +169,7 @@ enum ActiveEffectMutation {
             keyword: event.keyword,
             origin: .direct,
         )
-        return EffectApplyOutcome(events: [appliedEvent], didApply: true)
+        return EffectApplyOutcome(didApply: true)
     }
 
     static func reflect(
@@ -177,23 +177,25 @@ enum ActiveEffectMutation {
         to target: Combatant,
         source: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         switch active.effect {
         case let .burn(potency), let .poison(potency), let .bleed(potency):
-            return await DoTApplicator.applyDoT(
+            await DoTApplicator.applyDoT(
                 keyword: active.keyword, potency: potency, to: target, sourceActorID: source.id, application: .reflection,
                 durationTurns: active.remainingTurns, in: &context,
-            ) ?? []
+            )
+            return
         case let .controlMeter(keyword, amount, threshold):
             // A triggered status remains triggered when its new recipient has a larger Health pool.
             let reflectedAmount = threshold > 0 && amount >= threshold
                 ? max(amount, ControlMeterEngine.threshold(for: target, in: context)) : amount
-            return await ControlMeterEngine.applyMeterCharge(
+            await ControlMeterEngine.applyMeterCharge(
                 reflectedAmount, keyword: keyword, to: target, sourceActorID: source.id, applyFightPacing: false, in: &context,
             )
+            return
         default:
             context.appendEffect(active.effect, to: target, sourceID: source.id, remainingTurns: active.remainingTurns)
-            return []
+            return
         }
     }
 }

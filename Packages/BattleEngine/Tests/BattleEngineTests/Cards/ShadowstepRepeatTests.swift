@@ -83,9 +83,9 @@ struct ShadowstepRepeatTests {
             .drawAndPlayCards(1), source: battle.hero, target: battle.hero, battle: &battle,
         )
         #expect(automatic.events.count(where: { $0.kind == .ability && $0.abilityID == attack().id }) == 1)
-        let echo = BattleTurnEngine.performAction(
+        let echo = battle.recordingEvents { battle in await BattleTurnEngine.performAction(
             ability: attack(), actor: battle.hero, abilityTarget: battle.enemy, origin: .cardRepeat, context: &battle,
-        )
+        ) }
         #expect(echo.count(where: { $0.kind == .ability && $0.abilityID == attack().id }) == 1)
         #expect(hasRepeat(on: battle.hero, in: battle))
         battle.heroDeck = CombatDeck(abilities: [.block, .apple])
@@ -171,17 +171,17 @@ struct ShadowstepRepeatTests {
         #expect(hasRepeat(on: battle.enemy, in: battle))
         let count = battle.roster.enemy.actionCount
 
-        let repeated = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+        let repeated = battle.recordingResult { battle in await BattleTurnEngine.performEnemyAction(
             ability: .stab,
             abilityTarget: battle.hero,
             context: &battle,
         ) }
 
-        #expect(repeated.performed)
+        #expect(repeated.value)
         #expect(repeated.events.count(where: { $0.kind == .ability && $0.abilityID == Ability.stab.id }) == 2)
         #expect(battle.roster.enemy.actionCount == count + 1)
         #expect(!hasRepeat(on: battle.enemy, in: battle))
-        let ordinary = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+        let ordinary = battle.recordingResult { battle in await BattleTurnEngine.performEnemyAction(
             ability: .block,
             abilityTarget: battle.hero,
             context: &battle,

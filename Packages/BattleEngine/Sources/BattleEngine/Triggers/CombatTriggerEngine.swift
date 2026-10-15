@@ -76,11 +76,11 @@ package enum CombatTriggerEngine {
     /// Runs `perform` inside the hero-reaction scope shared by reward emitters.
     static func withHeroReaction(
         in context: inout BattleState,
-        perform: (inout BattleState) async -> [ActionEvent],
-    ) async -> [ActionEvent] {
+        perform: (inout BattleState) async -> Void,
+    ) async {
         context.resolution.enter(.heroReaction)
         defer { context.resolution.leave(.heroReaction) }
-        return await perform(&context)
+        await perform(&context)
     }
 
     static func resolveBonusHeal(
@@ -115,8 +115,8 @@ package enum CombatTriggerEngine {
         to target: Combatant,
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        context.applyBlock(
+    ) {
+        context.applyBlockGain(
             amount,
             to: target,
             source: source,
@@ -131,7 +131,7 @@ package enum CombatTriggerEngine {
         to target: Combatant,
         source: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         await context.healEmitting(
             amount: amount,
             target: target,
@@ -147,9 +147,9 @@ package enum CombatTriggerEngine {
         to target: Combatant,
         nameFrom: Combatant? = nil,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let source = nameFrom ?? target
-        return await context.restoreManaEmitting(
+        await context.restoreManaEmitting(
             amount,
             to: target,
             abilityName: triggerAbilityName(key, for: source, fallback: fallback, in: context),
@@ -162,25 +162,25 @@ package enum CombatTriggerEngine {
         amount: Int,
         to target: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         await context.grantGold(
             amount,
             to: target,
             abilityName: triggerAbilityName(key, for: target, fallback: fallback, in: context),
-        ).events
+        )
     }
 
     static func withDoTRecursionScope(
         site: String,
         context: inout BattleState,
-        perform: (inout BattleState) async -> [ActionEvent],
-    ) async -> [ActionEvent] {
+        perform: (inout BattleState) async -> Void,
+    ) async {
         guard context.resolution.depth(.dot) < ReactionScope.maxDepth else {
             ReactionScope.capHit(site: site, depth: context.resolution.depth(.dot))
-            return []
+            return
         }
         context.resolution.enter(.dot)
         defer { context.resolution.leave(.dot) }
-        return await perform(&context)
+        await perform(&context)
     }
 }

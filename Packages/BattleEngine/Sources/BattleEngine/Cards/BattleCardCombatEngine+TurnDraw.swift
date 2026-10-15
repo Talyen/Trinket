@@ -16,7 +16,7 @@ package extension BattleCardCombatEngine {
             return
         }
 
-        _ = UniqueCombatEngine.startTurn(in: &context)
+        UniqueCombatEngine.startTurn(in: &context)
 
         context.heroDeck.recycleDiscards()
         context.companionDeck.recycleDiscards()
@@ -43,7 +43,7 @@ package extension BattleCardCombatEngine {
     ) async {
         guard context.turnState.beginTurnStart(opening: false) else { return }
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
-        _ = await CombatTriggerEngine.atPlayerTurnStart(in: &context)
+        await CombatTriggerEngine.atPlayerTurnStart(in: &context)
         for owner in [BattleParticipant.hero, .companion] {
             UniqueCombatEngine.recoverStunBeforeClearing(on: context.roster[owner].combatant, in: &context)
             context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)

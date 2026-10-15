@@ -26,20 +26,21 @@ package enum DoTApplication: Equatable {
 
 package enum DoTApplicator {
     /// Single switch for keyword-typed DoT application: burn/poison attach
-    /// decaying stacks, bleed attaches bleed stacks. Returns nil for non-DoT
-    /// keywords so the caller can fall through to its own handling (usually
+    /// decaying stacks, bleed attaches bleed stacks. Returns whether the keyword
+    /// was handled so callers can fall through for non-DoT damage (usually
     /// nested damage). `durationTurns` applies to bleed only; decaying DoTs
     /// always attach with remainingTurns 0 and ignore it.
+    @discardableResult
     package static func applyDoT(
         keyword: Keyword,
         potency: Int,
         to effectTarget: Combatant,
         sourceActorID: String,
-        application: DoTApplication,
+        application: DoTApplication = .reaction,
         durationTurns: Int? = nil,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) async -> [ActionEvent]? {
+    ) async -> Bool {
         switch keyword {
         case .bleed:
             await applyBleed(
@@ -51,6 +52,7 @@ package enum DoTApplicator {
                 provenance: provenance,
                 in: &context,
             )
+            return true
         case .burn, .poison:
             await applyDecayingDoT(
                 keyword: keyword,
@@ -61,8 +63,9 @@ package enum DoTApplicator {
                 provenance: provenance,
                 in: &context,
             )
+            return true
         default:
-            nil
+            return false
         }
     }
 
@@ -74,24 +77,23 @@ package enum DoTApplicator {
         application: DoTApplication,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
+    ) async {
+        guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return }
 
-        var collected: [ActionEvent] = []
         var appliedPotency = potency
         if application.dealsImmediateDamage {
             let outcome = await DoTDamage.resolveDamage(
                 basePotency: potency, keyword: keyword, target: effectTarget,
                 sourceActorID: sourceActorID, provenance: provenance, in: &context,
             )
-            collected = outcome.events
+
             appliedPotency = outcome.healthLost
         }
-        guard appliedPotency > 0, context.roster.health(for: effectTarget) > 0 else { return collected }
+        guard appliedPotency > 0, context.roster.health(for: effectTarget) > 0 else { return }
 
         var currentEffects = context.roster.activeEffects(for: effectTarget)
         let appliedEffect = Effect.decayingDoT(keyword: keyword, potency: appliedPotency)
-        guard !context.interceptDebuff(appliedEffect, on: effectTarget) else { return collected }
+        guard !context.interceptDebuff(appliedEffect, on: effectTarget) else { return }
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
             currentEffects[index].effect = Effect.decayingDoT(
@@ -110,14 +112,8 @@ package enum DoTApplicator {
         }
         context.roster.setActiveEffects(currentEffects, for: effectTarget)
         if application.triggersApplicationReactions {
-            collected.append(contentsOf: CombatTriggerEngine.afterDecayingDoTApplied(
-                keyword: keyword,
-                to: effectTarget,
-                sourceActorID: sourceActorID,
-                in: &context,
-            ))
+            CombatTriggerEngine.afterDecayingDoTApplied(keyword: keyword, to: effectTarget, sourceActorID: sourceActorID, in: &context)
         }
-        return collected
     }
 
     package static func applyBleed(
@@ -128,17 +124,17 @@ package enum DoTApplicator {
         durationTurns: Int? = nil,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
+    ) async {
+        guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return }
 
-        var collected = await immediateDamage(
+        await immediateDamage(
             keyword: .bleed, potency: potency, target: effectTarget,
             sourceActorID: sourceActorID, application: application,
             provenance: provenance, in: &context,
         )
 
-        guard context.roster.health(for: effectTarget) > 0 else { return collected }
-        guard !context.interceptDebuff(.bleed(potency), on: effectTarget) else { return collected }
+        guard context.roster.health(for: effectTarget) > 0 else { return }
+        guard !context.interceptDebuff(.bleed(potency), on: effectTarget) else { return }
         let alreadyBleeding = context.roster.activeEffects(for: effectTarget).contains(where: \.effect.isBleed)
         if alreadyBleeding, application != .reflection {
             let sourceTriggers = context.modifiers(for: sourceActorID).triggers
@@ -148,28 +144,28 @@ package enum DoTApplicator {
                 }
                 for bleed in bleeds {
                     guard context.roster.health(for: effectTarget) > 0 else { break }
-                    await collected.append(contentsOf: DoTDamage.resolveDamage(
+                    _ = await DoTDamage.resolveDamage(
                         basePotency: bleed.effect.potency ?? 0,
                         keyword: .bleed,
                         target: effectTarget,
                         sourceActorID: bleed.sourceActorID ?? sourceActorID,
                         in: &context,
-                    ).events)
+                    )
                 }
             }
             if sourceTriggers.onBleedAppliedToBleedingDealDamage > 0 {
-                await collected.append(contentsOf: DoTDamage.resolveDamage(
+                _ = await DoTDamage.resolveDamage(
                     basePotency: sourceTriggers.onBleedAppliedToBleedingDealDamage,
                     keyword: .bleed,
                     target: effectTarget,
                     sourceActorID: sourceActorID,
                     in: &context,
-                ).events)
+                )
             }
         }
 
         let sourceProfile = context.modifiers(for: sourceActorID)
-        guard context.roster.health(for: effectTarget) > 0 else { return collected }
+        guard context.roster.health(for: effectTarget) > 0 else { return }
         let poisonDurationBonus = application != .reflection && context.roster.hasAffliction(.poison, on: effectTarget)
             ? sourceProfile.triggers.bleedDurationVsPoisonedBonus : 0
         context.appendEffect(
@@ -181,7 +177,6 @@ package enum DoTApplicator {
                 poisonDurationBonus,
             ),
         )
-        return collected
     }
 
     private static func immediateDamage(
@@ -192,16 +187,16 @@ package enum DoTApplicator {
         application: DoTApplication,
         provenance: DamageProvenance?,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard application.dealsImmediateDamage else { return [] }
-        return await DoTDamage.resolveDamage(
+    ) async {
+        guard application.dealsImmediateDamage else { return }
+        _ = await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: keyword,
             target: target,
             sourceActorID: sourceActorID,
             provenance: provenance,
             in: &context,
-        ).events
+        )
     }
 
     /// Drains decaying stacks without dealing damage. Stays on the applicator

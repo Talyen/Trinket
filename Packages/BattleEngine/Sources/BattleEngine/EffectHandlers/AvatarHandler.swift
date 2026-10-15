@@ -24,7 +24,7 @@ struct AvatarHandler: BattleEffectHandler {
         guard case let .avatar(holyDamage, blockPerTurn, turns) = effect,
               holyDamage > 0, blockPerTurn >= 0, turns > 0
         else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         let application = ActiveEffectMutation.replaceAndEmit(
             .avatar(holyDamage: holyDamage, blockPerTurn: blockPerTurn, turns: turns),
@@ -36,39 +36,34 @@ struct AvatarHandler: BattleEffectHandler {
             event: (.avatarApplied, holyDamage, .holy),
         )
         guard application.didApply else { return application }
-        let events = await pulse(
+        await pulse(
             holyDamage: holyDamage,
             blockPerTurn: blockPerTurn,
             from: target,
             provenance: context.resolution.damageProvenance(for: source.id),
             in: &context,
         )
-        return EffectApplyOutcome(events: application.events + events, didApply: true)
+
+        return EffectApplyOutcome(didApply: true)
     }
 
     func advanceTurn(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard case let .avatar(holyDamage, blockPerTurn, _) = active.effect,
               active.remainingTurns > 0
         else {
-            return []
+            return
         }
-        let events = await pulse(
-            holyDamage: holyDamage,
-            blockPerTurn: blockPerTurn,
-            from: target,
-            in: &context,
-        )
+        await pulse(holyDamage: holyDamage, blockPerTurn: blockPerTurn, from: target, in: &context)
         if var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) {
             updated.remainingTurns -= 1
             ActiveEffectMutation.finishTurn(
                 active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
             )
         }
-        return events
     }
 
     private func pulse(
@@ -77,24 +72,18 @@ struct AvatarHandler: BattleEffectHandler {
         from caster: Combatant,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let opponent = BattleActionContext(actor: caster, in: context).selectedTarget
-        var events = await DoTDamage.resolveDamage(
+        _ = await DoTDamage.resolveDamage(
             basePotency: holyDamage,
             keyword: .holy,
             target: opponent,
             sourceActorID: caster.id,
             provenance: provenance,
             in: &context,
-        ).events
+        )
         if blockPerTurn > 0 {
-            events.append(contentsOf: context.applyBlock(
-                blockPerTurn,
-                to: caster,
-                source: caster,
-                abilityName: "Avatar",
-            ))
+            context.applyBlockGain(blockPerTurn, to: caster, source: caster, abilityName: "Avatar")
         }
-        return events
     }
 }

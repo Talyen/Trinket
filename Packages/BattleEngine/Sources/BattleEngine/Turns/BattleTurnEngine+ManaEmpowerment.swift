@@ -5,16 +5,15 @@ package extension BattleTurnEngine {
     static let manaEmpowermentCost = 3
     static let manaEmpowermentBonus = 1
 
-    @discardableResult
     static func spendManaToEmpowerBurnOrFreezeIfNeeded(
         for ability: inout Ability,
         actor: Combatant,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return [] }
+    ) async {
+        guard ability.hasManaEmpowerableBurnOrFreezeDamage else { return }
         let empoweredKeyword = ability.operations.first(where: \.isManaEmpowerable)?.keyword
         let triggers = context.modifiers(for: actor.id).triggers
-        var events: [ActionEvent] = []
+
         var purchases = 0
         var totalManaSpent = 0
         let purchaseLimit = ManaEmpowermentBudget(ability: ability, actor: actor, in: context).purchaseLimit
@@ -27,20 +26,16 @@ package extension BattleTurnEngine {
             purchases += 1
             totalManaSpent += payment.reduce(0) { $0 + $1.amountSpent }
             ability = empoweredAbility(ability, triggers: triggers)
-            await events.append(contentsOf: CombatTriggerEngine.afterHeroTalentSpendMana(
-                actor: actor, amount: 0, empowered: true, in: &context,
-            ))
+            await CombatTriggerEngine.afterHeroTalentSpendMana(actor: actor, amount: 0, empowered: true, in: &context)
             for contribution in payment where contribution.amountSpent > 0 {
                 guard CombatCheckpoint.preparedAction(actor.id).allowsContinuation(in: context) else { break }
-                await events.append(contentsOf: CombatTriggerEngine.afterSpendMana(
-                    contribution, in: &context,
-                ))
+                await CombatTriggerEngine.afterSpendMana(contribution, in: &context)
             }
         }
-        guard context.roster.health(for: actor) > 0 else { return events }
+        guard context.roster.health(for: actor) > 0 else { return }
         if purchases > 0 {
             markEmpoweredAction(actor: actor, triggers: triggers, in: &context)
-            events.append(contentsOf: grantDragonPatronageBlock(actor: actor, amount: triggers.manaEmpowerAllyBlock, in: &context))
+            grantDragonPatronageBlock(actor: actor, amount: triggers.manaEmpowerAllyBlock, in: &context)
             if triggers.manaEmpowerNextAttackPercent > 0 {
                 prepareOvercharge(for: actor, percent: triggers.manaEmpowerNextAttackPercent, in: &context)
             }
@@ -52,14 +47,10 @@ package extension BattleTurnEngine {
             }
         }
         if totalManaSpent > 0, let empoweredKeyword {
-            events.append(contentsOf: CombatTriggerEngine.drawOppositeElement(
-                afterEmpowering: empoweredKeyword,
-                by: actor,
-                in: &context,
-            ))
+            CombatTriggerEngine.drawOppositeElement(afterEmpowering: empoweredKeyword, by: actor, in: &context)
         }
         if totalManaSpent > 0, empoweredKeyword == .burn, triggers.onEmpowerBurnRestoreMana > 0 {
-            await events.append(contentsOf: context.restoreManaEmitting(
+            await context.restoreManaEmitting(
                 triggers.onEmpowerBurnRestoreMana,
                 to: actor,
                 abilityName: CombatTriggerEngine.triggerAbilityName(
@@ -68,9 +59,8 @@ package extension BattleTurnEngine {
                     fallback: "Pyromancer's Spark",
                     in: context,
                 ),
-            ))
+            )
         }
-        return events
     }
 }
 
@@ -85,12 +75,9 @@ private extension BattleTurnEngine {
         context.resolution.recordManaEmpowerment(by: actor.id, arcaneBurst: arcaneBurst)
     }
 
-    static func grantDragonPatronageBlock(actor: Combatant, amount: Int, in context: inout BattleState) -> [ActionEvent] {
-        guard amount > 0, actor.role == .companion, context.roster.hero.isAlive else { return [] }
-        return context.applyBlock(
-            amount, to: context.roster.hero.combatant,
-            source: actor, abilityName: "Dragon’s Patronage",
-        )
+    static func grantDragonPatronageBlock(actor: Combatant, amount: Int, in context: inout BattleState) {
+        guard amount > 0, actor.role == .companion, context.roster.hero.isAlive else { return }
+        context.applyBlockGain(amount, to: context.roster.hero.combatant, source: actor, abilityName: "Dragon’s Patronage")
     }
 
     static func prepareOvercharge(for actor: Combatant, percent: Double, in context: inout BattleState) {

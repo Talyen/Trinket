@@ -40,26 +40,18 @@ package extension DamagePipeline {
         }
         if lost > 0 {
             if state.combatant.role != .hero || context.roster.health(for: state.combatant) > 0 {
-                _ = await CombatTriggerEngine.afterHeroTalentHealthLoss(
+                await CombatTriggerEngine.afterHeroTalentHealthLoss(
                     target: state.combatant, sourceID: state.sourceActorID, keyword: state.damageKeyword, in: &context,
                 )
             }
-            _ = await CombatTriggerEngine.afterHealthDropped(
-                target: state.combatant,
-                in: &context,
-            )
-            _ = await applyDefenderOnTakenReactions(
+            await CombatTriggerEngine.afterHealthDropped(target: state.combatant, in: &context)
+            await applyDefenderOnTakenReactions(
                 defender: state.combatant,
                 isRetaliation: state.options.isRetaliation,
                 isAttackHit: state.options.isAttackHit,
                 in: &context,
             )
-            _ = await applyCompanionLeechToHero(
-                lost: lost,
-                defender: state.combatant,
-                sourceActorID: state.sourceActorID,
-                in: &context,
-            )
+            await applyCompanionLeechToHero(lost: lost, defender: state.combatant, sourceActorID: state.sourceActorID, in: &context)
         }
     }
 
@@ -101,8 +93,7 @@ package extension DamagePipeline {
         isRetaliation: Bool,
         isAttackHit: Bool,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        var events: [ActionEvent] = []
+    ) async {
         let defenderTriggers = context.modifiers(for: defender.id).triggers
         if defenderTriggers.toughnessOnHit > 0, isAttackHit, !isRetaliation {
             context.roster.mutateRuntime(for: defender) { runtime in
@@ -116,36 +107,25 @@ package extension DamagePipeline {
             for (_, member) in CombatTriggerEngine.livingPartyMembers(in: context) {
                 let amount = context.modifiers(for: member.id).triggers.onAnyHealthLossGainBlock
                 if amount > 0 {
-                    events.append(contentsOf: context.applyBlock(
-                        amount,
-                        to: member.combatant,
-                        source: member.combatant,
-                        abilityName: "Soul Ward",
-                    ))
+                    context.applyBlockGain(amount, to: member.combatant, source: member.combatant, abilityName: "Soul Ward")
                 }
             }
         }
         if defenderTriggers.onSelfHealthLossGainBlock > 0 {
-            events.append(contentsOf: context.applyBlock(
-                defenderTriggers.onSelfHealthLossGainBlock,
-                to: defender,
-                source: defender,
-                abilityName: "Bone Armor",
-            ))
+            context.applyBlockGain(defenderTriggers.onSelfHealthLossGainBlock, to: defender, source: defender, abilityName: "Bone Armor")
         }
         if defender.role != .enemy {
             for (_, member) in CombatTriggerEngine.livingPartyMembers(in: context) {
                 guard member.id != defender.id else { continue }
                 let amount = context.modifiers(for: member.id).triggers.onAllyDamageHeal
                 if amount > 0 {
-                    await events.append(contentsOf: HealingEngine.resolveHeal(
+                    _ = await HealingEngine.resolveHeal(
                         HealRequest(amount: amount, target: defender, sourceActorID: member.id),
                         in: &context,
-                    ).events)
+                    )
                 }
             }
         }
-        return events
     }
 
     private static func applyCompanionLeechToHero(
@@ -153,18 +133,18 @@ package extension DamagePipeline {
         defender: Combatant,
         sourceActorID: String?,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard defender.role == .enemy,
               let sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
               source.role == .companion,
               context.roster.hero.isAlive
-        else { return [] }
+        else { return }
         let percent = context.modifiers(for: source.combatant.id).triggers.companionDamageLeechesToHeroPercent
-        guard percent > 0 else { return [] }
+        guard percent > 0 else { return }
         let leechAmount = CombatRounding.scaled(lost, multiplier: min(1, max(0, percent)))
-        guard leechAmount > 0 else { return [] }
-        return await context.healEmitting(
+        guard leechAmount > 0 else { return }
+        await context.healEmitting(
             amount: leechAmount,
             target: context.roster.hero.combatant,
             source: source.combatant,
@@ -194,7 +174,7 @@ package extension DamagePipeline {
             }
             return false
         }
-        _ = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.markedConsumed),
             source: .init(state.combatant),
             abilityName: "Marked",
@@ -210,19 +190,14 @@ package extension DamagePipeline {
     ) async {
         let deferredPartyHealthLoss = state.healthLost > 0 && state.combatant.role != .enemy
             && context.roster.health(for: state.combatant) == 0
-        _ = await DeathsDoorEngine.resolveAfterDamage(
-            to: state.combatant,
-            in: &context,
-        )
+        await DeathsDoorEngine.resolveAfterDamage(to: state.combatant, in: &context)
         if deferredPartyHealthLoss, context.roster.health(for: state.combatant) > 0 {
             if state.combatant.role == .hero {
-                _ = await CombatTriggerEngine.afterHeroTalentHealthLoss(
+                await CombatTriggerEngine.afterHeroTalentHealthLoss(
                     target: state.combatant, sourceID: state.sourceActorID, keyword: state.damageKeyword, in: &context,
                 )
             }
-            _ = await CombatTriggerEngine.afterSurvivingHealthLoss(
-                target: state.combatant, in: &context,
-            )
+            await CombatTriggerEngine.afterSurvivingHealthLoss(target: state.combatant, in: &context)
         }
     }
 }

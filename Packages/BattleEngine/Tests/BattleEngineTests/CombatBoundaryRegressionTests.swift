@@ -15,7 +15,7 @@ struct CombatBoundaryRegressionTests {
             heroHealth: 0, heroMana: 0, heroModifiers: profile,
         )
 
-        let events = CombatExecutor.run { await battle.restoreManaEmitting(5, to: battle.hero, abilityName: "Restore") }
+        let events = battle.recordingEvents { battle in await battle.restoreManaEmitting(5, to: battle.hero, abilityName: "Restore") }
 
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(battle.activeEffects(of: battle.hero).isEmpty)

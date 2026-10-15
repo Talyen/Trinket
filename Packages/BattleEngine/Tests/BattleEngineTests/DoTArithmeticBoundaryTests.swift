@@ -15,7 +15,7 @@ struct DoTArithmeticBoundaryTests {
             .multiplyDoT(keyword, 2), source: battle.hero, target: battle.enemy, battle: &battle,
         )
 
-        _ = CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
+        CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
             keyword: keyword, potency: 1, to: battle.enemy,
             sourceActorID: battle.companion.id, application: .attached, in: &battle,
         ) }

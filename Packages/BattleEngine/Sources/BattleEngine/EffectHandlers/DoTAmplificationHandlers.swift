@@ -15,14 +15,14 @@ struct MultiplyDoTHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .multiplyDoT(keyword, factor) = effect, factor > 1 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         var effects = context.roster.activeEffects(for: target)
         let indices = effects.indices.filter {
             isDetonatableDoT(effects[$0].effect, keyword: keyword)
         }
         guard !indices.isEmpty else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         var total = 0
         for index in indices {
@@ -31,12 +31,12 @@ struct MultiplyDoTHandler: BattleEffectHandler {
             case .burn: effects[index].effect = .burn(multiplied)
             case .poison: effects[index].effect = .poison(multiplied)
             case .bleed: effects[index].effect = .bleed(multiplied)
-            default: return EffectApplyOutcome(events: [], didApply: false)
+            default: return EffectApplyOutcome(didApply: false)
             }
             total = SaturatedArithmetic.saturatingAdd(total, multiplied)
         }
         context.roster.setActiveEffects(effects, for: target)
-        let event = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.dotAmplified),
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
@@ -44,7 +44,7 @@ struct MultiplyDoTHandler: BattleEffectHandler {
             amount: total,
             keyword: keyword,
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        return EffectApplyOutcome(didApply: true)
     }
 }
 
@@ -57,10 +57,10 @@ struct DetonateDoTHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
         guard case let .detonateDoT(keyword, factor) = effect, factor > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         guard context.resolution.depth(.detonation) == 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         context.resolution.enter(.detonation)
         defer { context.resolution.leave(.detonation) }
@@ -69,17 +69,17 @@ struct DetonateDoTHandler: BattleEffectHandler {
             isDetonatableDoT($0.effect, keyword: keyword)
         }
         guard !matching.isEmpty else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         effects.removeAll {
             isDetonatableDoT($0.effect, keyword: keyword)
         }
         context.roster.setActiveEffects(effects, for: target)
-        var events: [ActionEvent] = []
+
         for active in matching {
-            await events.append(contentsOf: detonate(active, factor: factor, source: source, target: target, in: &context))
+            await detonate(active, factor: factor, source: source, target: target, in: &context)
         }
-        return EffectApplyOutcome(events: events, didApply: true)
+        return EffectApplyOutcome(didApply: true)
     }
 
     private func detonate(
@@ -88,16 +88,17 @@ struct DetonateDoTHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         if active.effect.isBleed {
             var amplified = active
             amplified.effect = .bleed(SaturatedArithmetic.saturatingMul(active.effect.potency ?? 0, factor))
-            return await CombatTriggerEngine.detonateBleedStacks(
+            await CombatTriggerEngine.detonateBleedStacks(
                 [amplified], on: target, sourceActorID: source.id,
                 provenance: context.resolution.damageProvenance(for: source.id), in: &context,
             )
+            return
         }
-        return await DecayingDoTDetonation.resolve(
+        await DecayingDoTDetonation.resolve(
             active,
             factor: factor,
             target: target,

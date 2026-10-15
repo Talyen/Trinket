@@ -23,10 +23,13 @@ struct HeroTalentReworkRegressionTests {
             revival: RevivalTriggers(holyDamageReviveCompanionChancePercent: 1),
         )))
         _ = battle.resolution.beginCard(actorID: battle.hero.id)
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(to: battle.enemy, source: battle.hero, in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(to: battle.enemy, source: battle.hero, in: &battle) }
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 0 }
-        let events = CombatExecutor
-            .run { await CombatTriggerEngine.afterHolyDamageDealt(to: battle.enemy, source: battle.hero, in: &battle) }
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterHolyDamageDealt(
+            to: battle.enemy,
+            source: battle.hero,
+            in: &battle,
+        ) }
         #expect(battle.roster.companion.currentHealth == 1)
         #expect(events.contains { $0.abilityName == "Divine Blessing" && $0.effectKind == .instantHeal })
     }
@@ -77,7 +80,7 @@ struct HeroTalentReworkRegressionTests {
             appliesFightPacing: false,
         )
         battle.roster.companion.currentHealth = 1
-        _ = battle.healEmitting(amount: 3, target: battle.hero, source: battle.hero, abilityName: "Heal")
+        battle.healEmitting(amount: 3, target: battle.hero, source: battle.hero, abilityName: "Heal")
         #expect(battle.roster.companion.currentHealth == 4)
     }
 }

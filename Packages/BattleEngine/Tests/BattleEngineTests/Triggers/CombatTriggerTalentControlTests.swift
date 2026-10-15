@@ -25,9 +25,9 @@ struct CombatTriggerTalentControlTests {
         let enemy = battle.roster.enemy.combatant
         let threshold = ControlMeterEngine.threshold(for: enemy, in: battle)
         _ = battle.chargeTestControl(threshold, keyword: .stun, to: enemy, sourceActorID: "source", applyFightPacing: false)
-        _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
+        CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
         #expect(battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
-        _ = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
+        CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
         #expect(!battle.roster.hasPendingActionSkip(for: enemy))
     }
 
@@ -59,7 +59,7 @@ struct CombatTriggerTalentControlTests {
         battle.appendEffect(.poison(8), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
         let active = try #require(battle.activeEffects(of: battle.enemy).first)
         let handler = EffectHandlers.handler(for: .poison)
-        _ = CombatExecutor.run { await handler.advanceTurn(active, on: battle.enemy, in: &battle) }
+        CombatExecutor.run { await handler.advanceTurn(active, on: battle.enemy, in: &battle) }
         #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == stunned)
     }
 
@@ -115,9 +115,9 @@ struct CombatTriggerTalentControlTests {
             pin.roster.hero.currentHealth = 0
             miss.roster.hero.currentHealth = 0
         }
-        _ = CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &pin) }
+        CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &pin) }
         #expect(pin.health(of: pin.enemy) == (heroAlive ? 35 : 40))
-        #expect(CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &miss) }.cancelled == heroAlive)
+        #expect(CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &miss) } == heroAlive)
     }
 
     @Test(arguments: [false, true])
@@ -131,7 +131,9 @@ struct CombatTriggerTalentControlTests {
         if !ownerAlive {
             battle.roster.companion.currentHealth = 0
         }
-        let events = battle.applyBlock(4, to: battle.enemy, source: battle.hero, abilityName: "Test")
+        let events = battle.recordingEvents { battle in
+            battle.applyBlockGain(4, to: battle.enemy, source: battle.hero, abilityName: "Test")
+        }
         #expect(events.isEmpty == ownerAlive)
         #expect((DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) > 0) == !ownerAlive)
     }
@@ -147,7 +149,7 @@ struct CombatTriggerTalentControlTests {
             dealOpeningHand: false,
         )
         let payer = battle.roster[owner].combatant
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
+        CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
             ManaPayment(payer: payer, balanceBefore: battle.mana(of: payer) + 2, balanceAfter: battle.mana(of: payer)),
             in: &battle,
         ) }
@@ -198,7 +200,7 @@ struct CombatTriggerTalentControlTests {
             dealOpeningHand: false,
         )
         if operation.isPeriodic {
-            _ = battle.applyDecayingDoT(
+            battle.applyDecayingDoT(
                 keyword: .poison, potency: 3, to: battle.enemy, sourceActorID: battle.hero.id, application: .ability,
             )
         } else {

@@ -62,20 +62,13 @@ package enum UniqueCombatEngine {
         owner.hasAttacked = true
     }
 
-    static func finishCardDraws(in context: inout BattleState) -> [ActionEvent] {
-        guard let play = context.uniques.card else { return [] }
+    static func finishCardDraws(in context: inout BattleState) {
+        guard let play = context.uniques.card else { return }
         let actor = context.roster[play.owner].combatant
-        var events: [ActionEvent] = []
+
         for name in play.draws where !context.isBattleOver {
-            events.append(contentsOf: CombatTriggerEngine.drawCards(
-                1,
-                for: play.owner,
-                actor: actor,
-                abilityName: name,
-                in: &context,
-            ))
+            CombatTriggerEngine.drawCards(1, for: play.owner, actor: actor, abilityName: name, in: &context)
         }
-        return events
     }
 
     static func returnPlayedCard(_ card: BattleCard, in context: inout BattleState) -> ActionEvent? {
@@ -89,7 +82,7 @@ package enum UniqueCombatEngine {
         return cardReturnEvent(owner: card.owner, name: name, in: &context)
     }
 
-    static func startTurn(in context: inout BattleState) -> [ActionEvent] {
+    static func startTurn(in context: inout BattleState) {
         if !context.uniques.retainedStunByEffectID.isEmpty {
             var activeIDs = Set<Int>()
             for participant in BattleParticipant.allCases {
@@ -105,7 +98,6 @@ package enum UniqueCombatEngine {
         context.uniques.pendingBlockAnswerOwners = []
         context.uniques.pendingCounterAttackActorIDs = []
         context.uniques.isDrainingOutOfTurnAttacks = false
-        return []
     }
 
     private static func cardReturnEvent(

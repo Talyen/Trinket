@@ -7,13 +7,14 @@ package extension CombatTriggerEngine {
         target: Combatant,
         sourceActorID: String?,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard healthLost > 0, let sourceActorID,
               let caster = context.roster.combatant(for: sourceActorID),
-              caster.id != target.id else { return [] }
+              caster.id != target.id else { return }
         // Committed Bleed retains its conversions; personal rewards require a living source.
         guard caster.isAlive else {
-            return await afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
+            await afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
+            return
         }
         let triggers = context.modifiers(for: sourceActorID).triggers
         if triggers.onBleedDamageNextBasicGuaranteedCrit {
@@ -24,27 +25,26 @@ package extension CombatTriggerEngine {
                 $0.talents.pending.basicCriticalBonus = max($0.talents.pending.basicCriticalBonus, triggers.onBleedDamageNextBasicCritBonus)
             }
         }
-        var events = await afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
+        await afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
         if triggers.onBleedDamageHealSelf > 0 {
-            await events.append(contentsOf: HealingEngine.resolveHeal(
+            _ = await HealingEngine.resolveHeal(
                 HealRequest(amount: triggers.onBleedDamageHealSelf, target: caster.combatant, sourceActorID: sourceActorID),
                 in: &context,
-            ).events)
+            )
         }
         if triggers.bleedConsumesPoison, context.roster.health(for: target) > 0 {
             let poisonPotency = DoTApplicator.consume(.poison, upTo: healthLost, on: target, in: &context)
             if poisonPotency > 0 {
-                await events.append(contentsOf: DoTDamage.resolveDamage(
+                _ = await DoTDamage.resolveDamage(
                     basePotency: poisonPotency,
                     keyword: .poison,
                     target: target,
                     sourceActorID: sourceActorID,
                     operation: .resolvedPeriodic,
                     in: &context,
-                ).events)
+                )
             }
         }
-        return events
     }
 
     static func afterDoTTick(
@@ -53,21 +53,15 @@ package extension CombatTriggerEngine {
         target: Combatant,
         sourceActorID: String?,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard let sourceActorID else { return [] }
+    ) async {
+        guard let sourceActorID else { return }
         let sourceTriggers = context.modifiers(for: sourceActorID).triggers
-        var events: [ActionEvent] = []
+
         if keyword == .burn {
             if sourceTriggers.onBurnTickHolyDamage > 0 {
-                await events.append(contentsOf: context.resolveDamage(
-                    DamageRequest(
-                        amount: sourceTriggers.onBurnTickHolyDamage,
-                        target: target,
-                        keyword: .holy,
-                        sourceActorID: sourceActorID,
-                        options: .reaction(),
-                    ),
-                ).events)
+                _ = await context.dealReactionDamage(
+                    sourceTriggers.onBurnTickHolyDamage, to: target, keyword: .holy, sourceActorID: sourceActorID,
+                )
             }
             let detonateChance = chanceOrGuaranteed(
                 sourceTriggers.onBurnDamageDetonateBleedChancePercent,
@@ -75,14 +69,9 @@ package extension CombatTriggerEngine {
             )
             if detonateChance > 0, healthLost > 0,
                BattleChance.succeeds(probability: min(1, detonateChance), using: &context.rng) {
-                await events.append(contentsOf: detonateBleed(
-                    on: target,
-                    sourceActorID: sourceActorID,
-                    in: &context,
-                ))
+                await detonateBleed(on: target, sourceActorID: sourceActorID, in: &context)
             }
         }
-        return events
     }
 
     static func afterPoisonDamage(
@@ -90,17 +79,17 @@ package extension CombatTriggerEngine {
         target: Combatant,
         sourceActorID: String?,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard healthLost > 0, let sourceActorID,
-              let caster = context.roster.combatant(for: sourceActorID) else { return [] }
-        return await poisonParalysis(target: target, sourceActorID: caster.id, in: &context)
+              let caster = context.roster.combatant(for: sourceActorID) else { return }
+        await poisonParalysis(target: target, sourceActorID: caster.id, in: &context)
     }
 
     private static func poisonParalysis(
         target: Combatant,
         sourceActorID: String,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let sourceTriggers = context.modifiers(for: sourceActorID).triggers
         guard sourceTriggers.poisonThresholdStunAmount > 0,
               target.role == .enemy,
@@ -111,10 +100,10 @@ package extension CombatTriggerEngine {
                   }
                   return false
               })
-        else { return [] }
+        else { return }
         let chance = chanceOrGuaranteed(sourceTriggers.poisonStunChancePercent, guaranteed: true)
-        guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return [] }
-        return await ControlMeterEngine.applyMeterCharge(
+        guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return }
+        await ControlMeterEngine.applyMeterCharge(
             ControlMeterEngine.threshold(for: target, in: context),
             keyword: .stun,
             to: target,
@@ -128,24 +117,22 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         sourceTriggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard let caster = context.roster.combatant(for: sourceActorID),
               let participant = context.roster.participant(for: caster.combatant)
-        else { return [] }
+        else { return }
         let already = context.turnCadence.burnManaRestored[participant, default: 0]
         let cap = sourceTriggers.onBurnDamageRestoreManaPerTurnCap
-        guard cap <= 0 || already < cap else { return [] }
+        guard cap <= 0 || already < cap else { return }
         let toRestore = min(
             sourceTriggers.onBurnDamageRestoreManaFlat,
             cap > 0 ? cap - already : sourceTriggers.onBurnDamageRestoreManaFlat,
         )
         let restored = context.restoreMana(toRestore, to: caster.combatant)
-        let overflowEvents = await consumeManaOverflowTalents(
-            for: caster.combatant, restoredMana: restored > 0, in: &context,
-        )
-        guard restored > 0 else { return overflowEvents }
+        await consumeManaOverflowTalents(for: caster.combatant, restoredMana: restored > 0, in: &context)
+        guard restored > 0 else { return }
         context.turnCadence.burnManaRestored[participant, default: 0] += restored
-        var events = [context.nextEvent(
+        context.nextEvent(
             kind: .effect(.resourceGain),
             source: .init(caster),
             abilityName: triggerAbilityName(
@@ -157,10 +144,8 @@ package extension CombatTriggerEngine {
             target: caster.combatant,
             amount: restored,
             keyword: .mana,
-        )]
-        await events.append(contentsOf: afterGainMana(by: caster.combatant, in: &context))
-        events.append(contentsOf: overflowEvents)
-        return events
+        )
+        await afterGainMana(by: caster.combatant, in: &context)
     }
 
     static func detonateBleedAndPoison(
@@ -168,15 +153,15 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         includePoison: Bool = true,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard context.resolution.depth(.detonation) == 0 else { return [] }
+    ) async {
+        guard context.resolution.depth(.detonation) == 0 else { return }
         context.resolution.enter(.detonation)
         defer { context.resolution.leave(.detonation) }
 
         let currentEffects = context.roster.activeEffects(for: target)
         let bleeds = currentEffects.filter { $0.effect.isBleed && $0.remainingTurns > 0 }
         let poisons = includePoison ? currentEffects.filter { $0.effect.kind == .poison } : []
-        guard !bleeds.isEmpty || !poisons.isEmpty else { return [] }
+        guard !bleeds.isEmpty || !poisons.isEmpty else { return }
 
         context.roster.setActiveEffects(
             currentEffects.filter { active in
@@ -191,15 +176,11 @@ package extension CombatTriggerEngine {
             for: target,
         )
 
-        var events: [ActionEvent] = []
-        await events.append(contentsOf: Self.detonateBleedStacks(bleeds, on: target, sourceActorID: sourceActorID, in: &context))
+        await Self.detonateBleedStacks(bleeds, on: target, sourceActorID: sourceActorID, in: &context)
 
         for active in poisons {
-            await events.append(contentsOf: DecayingDoTDetonation.resolve(
-                active, factor: 1, target: target, sourceActorID: sourceActorID, in: &context,
-            ))
+            await DecayingDoTDetonation.resolve(active, factor: 1, target: target, sourceActorID: sourceActorID, in: &context)
         }
-        return events
     }
 
     static func detonateBleedStacks(
@@ -208,68 +189,39 @@ package extension CombatTriggerEngine {
         sourceActorID: String,
         provenance: DamageProvenance? = nil,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         if context.modifiers(for: sourceActorID).triggers.redline,
            bleeds.contains(where: { $0.remainingTurns > 0 && ($0.effect.potency ?? 0) > 0 }) {
             context.roster.mutateRuntime(forID: sourceActorID) { $0.talents.history.preparations.insert(.bleedDamage) }
         }
-        var events: [ActionEvent] = []
+
         for active in bleeds {
             guard case let .bleed(potency) = active.effect else { continue }
             let extends = active.sourceActorID.map { context.modifiers(for: $0).triggers.bleedHalvesAfterExpiration } == true
             let damageSourceID = extends ? (active.sourceActorID ?? sourceActorID) : sourceActorID
             for _ in 0 ..< active.remainingTurns {
                 guard context.roster.health(for: target) > 0 else { break }
-                await events.append(contentsOf: DoTDamage.resolveDamage(
+                _ = await DoTDamage.resolveDamage(
                     basePotency: potency,
                     keyword: .bleed,
                     target: target,
                     sourceActorID: damageSourceID,
                     provenance: provenance,
                     in: &context,
-                ).events)
+                )
             }
             var tail = extends ? potency / 2 : 0
             while tail > 0, context.roster.health(for: target) > 0 {
-                await events.append(contentsOf: DoTDamage.resolveDamage(
+                _ = await DoTDamage.resolveDamage(
                     basePotency: tail,
                     keyword: .bleed,
                     target: target,
                     sourceActorID: damageSourceID,
                     provenance: provenance,
                     in: &context,
-                ).events)
+                )
                 tail /= 2
             }
-        }
-        return events
-    }
-
-    static func applyDoT(
-        keyword: Keyword,
-        potency: Int,
-        to target: Combatant,
-        sourceActorID: String,
-        application: DoTApplication = .reaction,
-        in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        switch keyword {
-        case .bleed:
-            await DoTApplicator.applyBleed(
-                potency: potency,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: application,
-                in: &context,
-            )
-        default:
-            await context.applyDecayingDoT(
-                keyword: keyword,
-                potency: potency,
-                to: target,
-                sourceActorID: sourceActorID,
-                application: application,
-            )
         }
     }
 }

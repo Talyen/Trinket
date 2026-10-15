@@ -32,7 +32,7 @@ Turn start consumes due Lingering Blessing repeats before restoration reactions
 can queue replacements; newly queued repeats wait for the next player turn.
 Block grants declare a base or resolved amount through `BlockAmountBasis`.
 Duplication, transfer, and already-scaled gains use `.resolved` to avoid applying
-outgoing bonuses and fight pacing again; consequences read `BlockGain.applied`.
+outgoing bonuses and fight pacing again; consequences read the applied amount returned by `applyBlockGain`.
 Resolved Block also preserves its amount through recipient gain multipliers and
 leaves a prepared next-Block-gain bonus available for the next base grant.
 Rimeheart Locket grants resolved Block equal to actual Freeze Health damage, including

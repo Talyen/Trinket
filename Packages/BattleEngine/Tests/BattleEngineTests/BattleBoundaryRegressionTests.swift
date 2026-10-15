@@ -12,7 +12,7 @@ struct BattleBoundaryRegressionTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: profile, appliesFightPacing: false)
         battle.companionDeck = CombatDeck(abilities: [.slash, .block])
 
-        let events = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(battle.hand.totalCount == 2)
         #expect(events.filter { $0.effectKind == .cardsDrawn }.map(\.amount) == [2])
@@ -94,7 +94,7 @@ struct BattleBoundaryRegressionTests {
         profile.triggers.bleedDurationVsPoisonedBonus = 1
         var battle = makeBattle(profile: profile)
         battle.appendEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        _ = CombatExecutor.run { await BattleTurnEngine.applyDoTStackFromDamage(
+        CombatExecutor.run { await BattleTurnEngine.applyDoTStackFromDamage(
             keyword: .bleed, potency: 1, to: battle.enemy,
             sourceActorID: battle.hero.id, isCritical: critical, context: &battle,
         ) }
@@ -151,7 +151,7 @@ struct BattleBoundaryRegressionTests {
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 0 }
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 11 }
         battle.roster.mutateRuntime(for: battle.enemy) { $0.currentHealth = 1 }
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.isEnemyDefeated)
         #expect(battle.health(of: battle.hero) == 13)
         #expect(battle.gold == (opening ? 0 : 1))
@@ -169,15 +169,15 @@ struct BattleBoundaryRegressionTests {
             _ = battle.recordGoldGain(Int.max)
         }
 
-        let gain = CombatExecutor.run { await battle.grantGold(
+        let gain = battle.recordingResult { battle in await battle.grantGold(
             atCapacity ? 1 : 0, to: battle.hero, abilityName: "Gold",
         ) }
 
-        #expect(gain.applied == 0)
+        #expect(gain.value == 0)
         #expect(battle.health(of: battle.hero) == 10)
         #expect(!gain.events.contains { $0.effectKind == .instantHeal })
         if !atCapacity {
-            _ = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Gold")
+            battle.grantGoldEvent(1, to: battle.hero, abilityName: "Gold")
             #expect(battle.health(of: battle.hero) == 12)
         }
     }
@@ -210,7 +210,7 @@ struct BattleBoundaryRegressionTests {
         battle.roster.hero.talents.pending.nextHitBonus = Int.max
         battle.roster.hero.talents.pending.nextAttackHolyBonus = Int.max
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
+        CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
             to: battle.enemy, source: battle.hero, in: &battle,
         ) }
 
@@ -245,7 +245,7 @@ struct BattleBoundaryRegressionTests {
         var battle = makeBattle(profile: profile)
         battle.appendEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: Int.max)
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterCriticalHit(
+        CombatExecutor.run { await CombatTriggerEngine.afterCriticalHit(
             to: battle.enemy, source: battle.hero, targetWasStunnedAtHit: false, in: &battle,
         ) }
 
@@ -263,7 +263,7 @@ struct BattleBoundaryRegressionTests {
         var battle = makeBattle(profile: profile)
         battle.roster.hero.talents.battle.keywordDamageRamp = [.burn: 1, .bleed: 1]
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         for keyword in [Keyword.burn, .bleed] {
             #expect(battle.roster.hero.talents.battle.keywordDamageRamp[keyword] == (cap > 0 ? cap : Int.max))
@@ -277,7 +277,7 @@ struct BattleBoundaryRegressionTests {
         battle.appendEffect(.shield(.block, 1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.appendEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(
+        CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(
             sourceActorID: battle.hero.id, in: &battle,
         ) }
 

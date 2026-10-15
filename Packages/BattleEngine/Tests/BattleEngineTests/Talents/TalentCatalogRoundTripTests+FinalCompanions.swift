@@ -7,11 +7,11 @@ extension TalentCatalogRoundTripTests {
     @Test func `fae ward spends its first cleanse allowance even without another effect`() {
         var battle = capstoneBattle(companion: ["pixie_cleanse_t3_1"])
         battle.seedActiveEffects([ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0)], for: battle.hero)
-        let first = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+        let first = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
             .randomDebuff, source: battle.companion, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
         ) }
-        #expect(first.removed.count == 1)
+        #expect(first.value.removed.count == 1)
 
         battle.seedActiveEffects(
             [
@@ -20,11 +20,11 @@ extension TalentCatalogRoundTripTests {
             ],
             for: battle.hero,
         )
-        let second = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+        let second = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
             .randomDebuff, source: battle.companion, target: battle.hero,
             abilityName: "Cleanse", in: &battle,
         ) }
-        #expect(second.removed.count == 1)
+        #expect(second.value.removed.count == 1)
         #expect(battle.activeEffects(of: battle.hero).count(where: \.effect.isRemovableDebuff) == 1)
     }
 
@@ -40,11 +40,11 @@ extension TalentCatalogRoundTripTests {
                 ],
                 for: battle.hero,
             )
-            let result = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+            let result = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
                 .all(.poison), source: battle.companion, target: battle.hero,
                 abilityName: "Cleanse", in: &battle,
             ) }
-            #expect(result.removed.count == 3)
+            #expect(result.value.removed.count == 3)
             #expect(battle.activeEffects(of: battle.hero).filter(\.effect.isRemovableDebuff).isEmpty)
         }
     }
@@ -56,13 +56,13 @@ extension TalentCatalogRoundTripTests {
         ] {
             var battle = capstoneBattle(companion: [talentID])
             let triggers = battle.companionModifiers.triggers
-            _ = CombatExecutor.run { await CombatTriggerEngine.afterFinalCompanionCardHit(
+            CombatExecutor.run { await CombatTriggerEngine.afterFinalCompanionCardHit(
                 keyword: keyword, actor: battle.companion, critical: true,
                 triggers: triggers, in: &battle,
             ) }
             battle.roster.enemy.talents.pending.nextAttackMissChance = 1
-            let avoided = CombatExecutor.run { await CombatTriggerEngine.enemyAttackAvoidance(in: &battle) }
-            #expect(avoided.cancelled)
+            let avoided = battle.recordingResult { battle in await CombatTriggerEngine.enemyAttackAvoidance(in: &battle) }
+            #expect(avoided.value)
             #expect(avoided.events.first?.abilityName == abilityName)
             #expect(battle.roster.enemy.talents.pending.nextAttackMissAbilityName == nil)
         }
@@ -97,10 +97,10 @@ extension TalentCatalogRoundTripTests {
         )
         let heroHealth = battle.health(of: battle.hero)
         let companionHealth = battle.health(of: battle.companion)
-        let result = CombatExecutor.run { await BattleTurnEngine.performEnemyAction(
+        let result = battle.recordingResult { battle in await BattleTurnEngine.performEnemyAction(
             ability: attack, abilityTarget: battle.hero, context: &battle,
         ) }
-        #expect(!result.performed)
+        #expect(!result.value)
         #expect(result.events.count { $0.effectKind == .dodgeApplied } == 1)
         #expect(!result.events.contains { $0.kind == .abilityDamage })
         #expect(battle.health(of: battle.hero) == heroHealth)
@@ -146,10 +146,10 @@ extension TalentCatalogRoundTripTests {
         ))
         #expect(first.healthRestored == 3)
         #expect(battle.health(of: battle.hero) == 4)
-        let next = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        let next = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.health(of: battle.hero) == 7)
         #expect(next.count { $0.abilityName == "Lingering Blessing" } == 1)
-        let later = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        let later = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.health(of: battle.hero) == 7)
         #expect(!later.contains { $0.abilityName == "Lingering Blessing" })
     }
@@ -210,9 +210,9 @@ extension TalentCatalogRoundTripTests {
             companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
         DefensePoolEngine.set(5, on: battle.enemy, in: &battle)
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")
+        battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")
         #expect(talentPoints(.shield, on: .enemy, in: battle) == 5)
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
+        battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
         #expect(talentPoints(.shield, on: .enemy, in: battle) == 0)
         #expect(talentPoints(.shield, on: .companion, in: battle) == 5)
     }
@@ -224,7 +224,7 @@ extension TalentCatalogRoundTripTests {
             companionMaxMana: 10, companionMana: 0,
             companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        _ = battle.restoreManaEmitting(2, to: battle.companion, abilityName: "Restore")
+        battle.restoreManaEmitting(2, to: battle.companion, abilityName: "Restore")
         #expect(battle.mana(of: battle.companion) == 4)
     }
 

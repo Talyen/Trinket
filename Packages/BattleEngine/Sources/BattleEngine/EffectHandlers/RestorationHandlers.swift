@@ -9,7 +9,7 @@ struct InstantHealHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
-        guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(didApply: false) }
         var request = HealRequest(
             amount: amount, target: target, sourceActorID: source.id,
             origin: .restoration(keyword), logAs: .instantHeal(
@@ -21,7 +21,7 @@ struct InstantHealHandler: BattleEffectHandler {
         )
         request.isDirectCardHeal = context.hasHeroCard(for: source.id)
         let outcome = await HealingEngine.resolveHeal(request, in: &context)
-        return EffectApplyOutcome(events: outcome.events, didApply: outcome.healthRestored > 0)
+        return EffectApplyOutcome(didApply: outcome.healthRestored > 0)
     }
 }
 
@@ -33,14 +33,14 @@ struct ResourceGainHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
-        guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(didApply: false) }
         switch keyword {
         case .mana:
             let restored = context.restoreMana(
                 context.paced(amount, sourceActorID: source.id),
                 to: target,
             )
-            let event = context.nextEvent(
+            context.nextEvent(
                 kind: .effect(.resourceGain),
                 source: .init(source),
                 abilityID: ability.id, abilityName: ability.name,
@@ -49,19 +49,16 @@ struct ResourceGainHandler: BattleEffectHandler {
                 keyword: keyword,
                 origin: .direct,
             )
-            var events = [event]
-            await events.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
-                for: target, restored: restored, in: &context,
-            ))
-            return EffectApplyOutcome(events: events, didApply: true, restoredMana: restored)
+            await CombatTriggerEngine.manaRestorationReactions(for: target, restored: restored, in: &context)
+            return EffectApplyOutcome(didApply: true, restoredMana: restored)
         case .gold:
             let gain = await context.grantGold(
                 amount, to: source, abilityID: ability.id, abilityName: ability.name,
                 isTheft: ability.stealsGold, isDirectCardGain: true,
             )
-            return EffectApplyOutcome(events: gain.events, didApply: true, grantedGold: gain.applied)
+            return EffectApplyOutcome(didApply: true, grantedGold: gain)
         default:
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
     }
 }
@@ -81,7 +78,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) async -> EffectApplyOutcome {
         guard case let .maximumManaBonus(amount) = effect, amount > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         context.appendEffect(
             .maximumManaBonus(amount),
@@ -93,7 +90,7 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             context.paced(amount, sourceActorID: source.id),
             to: target,
         )
-        let event = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.resourceGain),
             source: .init(source),
             abilityID: ability.id, abilityName: ability.name,
@@ -102,11 +99,8 @@ struct MaximumManaBonusHandler: BattleEffectHandler {
             keyword: .mana,
             origin: .direct,
         )
-        var events = [event]
-        await events.append(contentsOf: CombatTriggerEngine.manaRestorationReactions(
-            for: target, restored: restored, in: &context,
-        ))
-        return EffectApplyOutcome(events: events, didApply: true)
+        await CombatTriggerEngine.manaRestorationReactions(for: target, restored: restored, in: &context)
+        return EffectApplyOutcome(didApply: true)
     }
 }
 
@@ -119,12 +113,11 @@ struct ReviveHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .revive(health) = effect, health > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
-        let events = context.reviveEmitting(
-            target, health: health, source: source, abilityID: ability.id, abilityName: ability.name, origin: .direct,
-        )
-        return EffectApplyOutcome(events: events, didApply: !events.isEmpty)
+        let firstEventID = context.nextEventID
+        context.reviveEmitting(target, health: health, source: source, abilityID: ability.id, abilityName: ability.name, origin: .direct)
+        return EffectApplyOutcome(didApply: context.nextEventID > firstEventID)
     }
 }
 
@@ -136,14 +129,14 @@ package extension BattleState {
         abilityID: String = "",
         abilityName: String,
         origin: ActionEvent.Origin = .automatic,
-    ) -> [ActionEvent] {
-        guard health > 0, roster.health(for: target) <= 0 else { return [] }
+    ) {
+        guard health > 0, roster.health(for: target) <= 0 else { return }
         var revivedHealth = 0
         roster.mutateRuntime(for: target) { runtime in
             runtime.currentHealth = min(health, runtime.maxHealth)
             revivedHealth = runtime.currentHealth
         }
-        return [nextEvent(
+        nextEvent(
             kind: .effect(.instantHeal),
             source: .init(source),
             abilityID: abilityID, abilityName: abilityName,
@@ -151,6 +144,6 @@ package extension BattleState {
             amount: revivedHealth,
             keyword: .health,
             origin: origin,
-        )]
+        )
     }
 }

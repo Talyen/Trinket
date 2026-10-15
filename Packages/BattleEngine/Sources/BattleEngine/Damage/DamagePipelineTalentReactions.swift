@@ -80,13 +80,7 @@ package extension DamagePipeline {
         }
 
         for dst in destinations {
-            _ = await dealTalentMirroredDamage(
-                scaled,
-                keyword: dst,
-                target: state.combatant,
-                source: source.combatant,
-                in: &context,
-            )
+            await dealTalentMirroredDamage(scaled, keyword: dst, target: state.combatant, source: source.combatant, in: &context)
         }
     }
 
@@ -102,18 +96,10 @@ package extension DamagePipeline {
            context.roster.companion.isAlive,
            context.claimTalentAbility(.sunwall, actorID: source.id),
            BattleChance.succeeds(probability: triggers.sunwallChancePercent, using: &context.rng) {
-            _ = grantTalentCompanionBlock(
-                state.healthLost,
-                source: source.combatant,
-                in: &context,
-            )
+            grantTalentCompanionBlock(state.healthLost, source: source.combatant, in: &context)
         }
         if triggers.eyeOfTheStorm, keyword == .stun {
-            _ = await context.restoreManaEmitting(
-                state.remaining,
-                to: source.combatant,
-                abilityName: "Eye of the Storm",
-            )
+            await context.restoreManaEmitting(state.remaining, to: source.combatant, abilityName: "Eye of the Storm")
         }
     }
 
@@ -125,11 +111,7 @@ package extension DamagePipeline {
     ) async {
         let shouldDetonateBleed = triggers.arterialCascade && state.options.isAttackHit && state.isCritical
         if shouldDetonateBleed {
-            _ = await CombatTriggerEngine.detonateBleed(
-                on: state.combatant,
-                sourceActorID: source.id,
-                in: &context,
-            )
+            await CombatTriggerEngine.detonateBleed(on: state.combatant, sourceActorID: source.id, in: &context)
         }
     }
 
@@ -141,11 +123,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) async {
         if triggers.ashenArsenal, keyword == .burn {
-            _ = drawTalentCard(
-                .physical,
-                for: source.combatant,
-                in: &context,
-            )
+            drawTalentCard(.physical, for: source.combatant, in: &context)
         }
         if triggers.bountyBlade, state.isCritical {
             _ = await context.grantGold(
@@ -153,9 +131,7 @@ package extension DamagePipeline {
                 to: source.combatant,
                 abilityName: "Bounty Blade",
             )
-            _ = DefensePoolEngine.steal(
-                3, from: state.combatant, to: source.combatant, abilityName: "Bounty Blade", in: &context,
-            )
+            DefensePoolEngine.steal(3, from: state.combatant, to: source.combatant, abilityName: "Bounty Blade", in: &context)
         }
         if triggers.perfectTempo, keyword == .physical, state.isCritical {
             context.prependEffect(.evadeNextHit, to: source.combatant, remainingTurns: 0)
@@ -168,9 +144,9 @@ package extension DamagePipeline {
         target: Combatant,
         source: Combatant,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard amount > 0, context.roster.health(for: target) > 0 else { return [] }
-        if let applied = await DoTApplicator.applyDoT(
+    ) async {
+        guard amount > 0, context.roster.health(for: target) > 0 else { return }
+        if await DoTApplicator.applyDoT(
             keyword: keyword,
             potency: amount,
             to: target,
@@ -178,24 +154,24 @@ package extension DamagePipeline {
             application: .reaction,
             in: &context,
         ) {
-            return applied
+            return
         }
-        return await resolveNestedDamage(
+        _ = await resolveNestedDamage(
             amount: amount,
             keyword: keyword,
             target: target,
             sourceActorID: source.id,
             in: &context,
-        ).events
+        )
     }
 
     private static func grantTalentCompanionBlock(
         _ amount: Int,
         source: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard amount > 0, context.roster.companion.isAlive else { return [] }
-        return context.applyBlock(
+    ) {
+        guard amount > 0, context.roster.companion.isAlive else { return }
+        context.applyBlockGain(
             amount, to: context.roster.companion.combatant, source: source,
             abilityName: "Sunwall", amountBasis: .resolved,
         )
@@ -205,18 +181,18 @@ package extension DamagePipeline {
         _ keyword: Keyword,
         for actor: Combatant,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard let owner = context.roster.participant(for: actor) else { return [] }
+    ) {
+        guard let owner = context.roster.participant(for: actor) else { return }
         let before = context.hand.totalCount
-        guard BattleCardCombatEngine.drawFirstCard(matching: keyword, for: owner, context: &context) != nil else { return [] }
-        guard context.hand.totalCount > before else { return [] }
-        return [context.nextEvent(
+        guard BattleCardCombatEngine.drawFirstCard(matching: keyword, for: owner, context: &context) != nil else { return }
+        guard context.hand.totalCount > before else { return }
+        context.nextEvent(
             kind: .effect(.cardsDrawn),
             source: .init(actor),
             abilityName: "Talent Draw",
             target: actor,
             amount: 1,
             keyword: keyword,
-        )]
+        )
     }
 }

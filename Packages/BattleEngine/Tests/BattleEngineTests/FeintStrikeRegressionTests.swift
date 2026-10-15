@@ -12,7 +12,7 @@ struct FeintStrikeRegressionTests {
             dealOpeningHand: false, appliesFightPacing: false,
         )
         if hasSharedCurrent {
-            _ = CombatExecutor.run { await CombatTriggerEngine.afterHeroTalentSpendMana(
+            CombatExecutor.run { await CombatTriggerEngine.afterHeroTalentSpendMana(
                 actor: battle.hero,
                 amount: 1,
                 empowered: true,
@@ -21,11 +21,11 @@ struct FeintStrikeRegressionTests {
         }
 
         for _ in 0 ..< 2 {
-            _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle) }
+            CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle) }
         }
         battle.turnCount += 1
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle) }
 
         let request = DamageRequest(
             amount: 3, target: battle.enemy, keyword: .physical, sourceActorID: battle.companion.id,
@@ -41,12 +41,12 @@ struct FeintStrikeRegressionTests {
         #expect(battle.resolveDamage(request).healthLost == 3)
 
         // Spending the preparation does not reopen the same turn's first-Dodge allowance.
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle) }
         #expect(battle.resolveDamage(request).healthLost == 3)
 
         battle.turnCount += 1
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle) }
         #expect(battle.resolveDamage(request).healthLost == 6)
     }
 }

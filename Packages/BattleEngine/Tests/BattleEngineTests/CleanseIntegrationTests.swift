@@ -266,7 +266,7 @@ extension CleanseIntegrationTests {
         #expect(battle.roster.hasPendingActionSkip(for: enemy, keyword: keyword))
         #expect(events.contains { $0.effectKind == .controlTriggered && $0.targetID == enemy.id && $0.keyword == keyword })
         #expect(battle.health(of: enemy) == 100)
-        let skipped = CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
+        let skipped = battle.recordingEvents { battle in await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
         #expect(skipped.contains { $0.effectKind == .controlActionSkipped && $0.keyword == keyword })
         #expect(!battle.roster.hasPendingActionSkip(for: enemy, keyword: keyword))
     }
@@ -283,7 +283,7 @@ extension CleanseIntegrationTests {
             battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         }
         let before = battle.health(of: battle.enemy)
-        let outcome = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+        let outcome = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
             .all(nil), source: battle.companion, target: battle.hero, abilityName: "Cleanse", in: &battle,
         ) }
         #expect(before - battle.health(of: battle.enemy) == (removedCount > 0 ? 3 : 0))
@@ -303,17 +303,17 @@ extension CleanseIntegrationTests {
             battle.appendEffect(.poison(2), to: recipient, sourceID: battle.enemy.id, remainingTurns: 0)
         }
         let before = battle.health(of: battle.enemy)
-        let outcome = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+        let outcome = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
             .all(nil), source: battle.companion, target: battle.hero, abilityName: "Cleanse", in: &battle,
         ) }
         #expect(before - battle.health(of: battle.enemy) == 3)
         #expect(outcome.events.count { $0.kind == .abilityDamage && $0.abilityName == "Reproving Light" } == 1)
         #expect(battle.hasTalentDebuff(on: battle.companion))
-        let nested = CombatExecutor.run { await CombatTriggerEngine.withHeroReaction(in: &battle) { context in
+        let nested = battle.recordingEvents { battle in await CombatTriggerEngine.withHeroReaction(in: &battle) { context in
             await EffectRemovalOperation.resolveCleanse(
                 .all(nil), source: context.companion, target: context.companion,
                 abilityName: "Nested Cleanse", in: &context,
-            ).events
+            )
         } }
         #expect(!battle.hasTalentDebuff(on: battle.companion))
         #expect(nested.contains { $0.effectKind == .cleanseApplied })
@@ -340,7 +340,7 @@ extension CleanseIntegrationTests {
         #expect(damage.healthLost == 3)
         let prevented = battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         #expect(!prevented)
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         let reapplied = battle.appendEffect(.poison(2), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         #expect(reapplied)
     }

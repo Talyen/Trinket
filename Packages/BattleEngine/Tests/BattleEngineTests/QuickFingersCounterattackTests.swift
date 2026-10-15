@@ -23,15 +23,15 @@ struct QuickFingersCounterattackTests {
         let serial = battle.resolution.beginCard(actorID: battle.hero.id)
         defer { battle.resolution.endCard(serial) }
 
-        let parent = BattleTurnEngine.performAction(
+        let parent = battle.recordingEvents { battle in await BattleTurnEngine.performAction(
             ability: theft, actor: battle.hero, abilityTarget: battle.enemy, origin: .card, context: &battle,
-        )
+        ) }
         #expect(battle.gold == (jackpot ? 9 : 4))
         #expect(parent.count { $0.effectKind == .cardsDrawn && $0.abilityName == "Quick Fingers" } == (jackpot ? 0 : 1))
 
-        let counterattack = BattleTurnEngine.performAction(
+        let counterattack = battle.recordingEvents { battle in await BattleTurnEngine.performAction(
             ability: theft, actor: battle.hero, abilityTarget: battle.enemy, origin: .counterattack, context: &battle,
-        )
+        ) }
 
         #expect(counterattack.count { $0.kind == .abilityDamage && $0.isCritical } == 2)
         #expect(battle.gold == (jackpot ? 18 : 8))
@@ -50,10 +50,12 @@ struct QuickFingersCounterattackTests {
         battle.heroDeck = CombatDeck(abilities: [.slash, .block])
         let events: [ActionEvent]
         if counterattack {
-            events = BattleTurnEngine.performAction(
-                ability: .blackjack, actor: battle.hero, abilityTarget: battle.enemy,
-                origin: .counterattack, context: &battle,
-            )
+            events = battle.recordingEvents { battle in
+                await BattleTurnEngine.performAction(
+                    ability: .blackjack, actor: battle.hero, abilityTarget: battle.enemy,
+                    origin: .counterattack, context: &battle,
+                )
+            }
         } else {
             let card = BattleCardCombatEngine.deal(.blackjack, owner: .hero, context: &battle)
             events = try battle.playCard(cardID: card.id).events
@@ -79,10 +81,10 @@ struct QuickFingersCounterattackTests {
         defer { battle.resolution.endCard(serial) }
         battle.resolution.mutateCardTalents { $0.didCriticalHit = true }
 
-        let events = BattleTurnEngine.performAction(
+        let events = battle.recordingEvents { battle in await BattleTurnEngine.performAction(
             ability: .blackjack, actor: battle.hero, abilityTarget: battle.enemy,
             origin: .counterattack, context: &battle,
-        )
+        ) }
 
         #expect(!events.contains { $0.kind == .abilityDamage && $0.isCritical })
         #expect(battle.gold == 3)

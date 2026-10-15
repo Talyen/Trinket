@@ -25,7 +25,7 @@ struct DodgeCardChainRegressionTests {
         }
 
         // A partner's nested Critical Hit must not extend the Hero's chain.
-        #expect(result.criticalAttackActorIDs == [battle.companion.id])
+        #expect(result == [battle.companion.id])
         #expect(battle.health(of: battle.enemy) < 100)
         #expect(battle.events.isEmpty == !tracksEvents)
     }
@@ -45,7 +45,7 @@ struct DodgeCardChainRegressionTests {
             rngSeed: criticalLeech ? 17 : CombatantFixtures.deterministicBattleSeed, appliesFightPacing: false,
         )
         battle.heroDeck = CombatDeck(abilities: [criticalLeech ? .fangs : .stab, .block])
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
         ) }
         if criticalLeech {
@@ -74,7 +74,7 @@ struct DodgeCardChainRegressionTests {
         battle.heroDeck = CombatDeck(abilities: [.block])
         battle.appendEffect(.thorns(4), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
             by: battle.companion, attackerID: battle.enemy.id, in: &battle,
         ) }
 
@@ -94,7 +94,7 @@ struct DodgeCardChainRegressionTests {
         battle.heroDeck = CombatDeck(abilities: [.slash])
         battle.companionDeck = CombatDeck(abilities: [.block])
 
-        let events = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
             by: battle.hero, attackerID: battle.enemy.id, in: &battle,
         ) }
 

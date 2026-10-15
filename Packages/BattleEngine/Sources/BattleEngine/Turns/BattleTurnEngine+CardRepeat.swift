@@ -22,11 +22,11 @@ extension BattleTurnEngine {
         _ facts: ResolvedActionFacts,
         ability: Ability,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let actor = facts.action.actor
         guard !context.isBattleOver, facts.action.canContinue(in: context),
               BattleAbilityRules.canPayHealthCost(ability, action: facts.action, in: context)
-        else { return [] }
+        else { return }
         let origin: DamageOperation.AttackOrigin = actor.role == .enemy ? .repeatedAttack : .cardRepeat
         let empowerment = context.resolution.actionTalents(for: actor.id)
         let actionID = context.resolution.beginAction(facts.action, origin: origin)
@@ -47,17 +47,17 @@ extension BattleTurnEngine {
         )
         defer { context.commandOutput?.endAction() }
         // Replay prepared effects without another cost, empowerment, or card-completion cadence.
-        return await executePreparedOperations(repeated, ability: ability, context: &context)
+        await executePreparedOperations(repeated, ability: ability, context: &context)
     }
 
     static func executePreparedOperations(
         _ facts: ResolvedActionFacts,
         ability resolvedAbility: Ability,
         context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         let actor = facts.action.actor
         let abilityTarget = facts.action.selectedTarget
-        var events: [ActionEvent] = []
+
         var totalDealt = 0
         var logKeyword = resolvedAbility.damageKeyword
         var appliedEffectLogs: [String] = []
@@ -70,33 +70,30 @@ extension BattleTurnEngine {
                     guaranteedCritical: facts.guaranteedCritical,
                     reservedKeywordOverride: &reservedKeywordOverride, context: &context,
                 )
-                events.append(contentsOf: outcome.events)
+
                 totalDealt = SaturatedArithmetic.saturatingAdd(totalDealt, outcome.healthLost)
                 logKeyword = outcome.logDamageKeyword ?? logKeyword
             case let .effect(targeted):
                 await appliedEffectLogs.append(contentsOf: applyTargetedEffects(
                     [targeted], ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
-                    context: &context, events: &events,
+                    context: &context,
                 ))
             }
         }
 
-        events.append(
-            context.nextEvent(
-                kind: .ability,
-                actionID: context.resolution.actionID,
-                source: .init(actor),
-                abilityID: resolvedAbility.id,
-                abilityName: resolvedAbility.name,
-                abilityTier: resolvedAbility.tier,
-                target: abilityTarget,
-                amount: totalDealt,
-                keyword: logKeyword,
-                appliedEffectSummaries: appliedEffectLogs,
-            ),
+        context.nextEvent(
+            kind: .ability,
+            actionID: context.resolution.actionID,
+            source: .init(actor),
+            abilityID: resolvedAbility.id,
+            abilityName: resolvedAbility.name,
+            abilityTier: resolvedAbility.tier,
+            target: abilityTarget,
+            amount: totalDealt,
+            keyword: logKeyword,
+            appliedEffectSummaries: appliedEffectLogs,
         )
 
-        await events.append(contentsOf: UniqueCombatEngine.repeatCardDamage(actor: actor, in: &context))
-        return events
+        await UniqueCombatEngine.repeatCardDamage(actor: actor, in: &context)
     }
 }

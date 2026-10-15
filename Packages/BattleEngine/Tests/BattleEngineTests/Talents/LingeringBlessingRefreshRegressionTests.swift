@@ -52,7 +52,7 @@ struct LingeringBlessingRefreshRegressionTests {
             amount: 3, sourceActorID: battle.companion.id, turnsRemaining: 1,
         )
 
-        let first = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        let first = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(battle.health(of: battle.companion) == 6)
         #expect(first.filter { $0.abilityName == "Lingering Blessing" }.map(\.amount) == [3])
@@ -60,7 +60,7 @@ struct LingeringBlessingRefreshRegressionTests {
         #expect(battle.roster.companion.talents.timed.lingeringBlessing?.turnsRemaining == 1)
 
         battle.turnCount = 1
-        let next = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        let next = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(battle.health(of: battle.companion) == 8)
         #expect(next.filter { $0.abilityName == "Lingering Blessing" }.map(\.amount) == [2])

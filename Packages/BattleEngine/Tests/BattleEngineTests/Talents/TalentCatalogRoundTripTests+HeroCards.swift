@@ -41,7 +41,7 @@ extension TalentCatalogRoundTripTests {
             #expect(talentPoints(.thorns, on: .hero, in: battle) == expected)
             #expect(talentPoints(.thorns, on: .companion, in: battle) == expected)
             battle.turnCount += 1
-            _ = CombatTriggerEngine.startHeroTalentTurn(in: &battle)
+            CombatTriggerEngine.startHeroTalentTurn(in: &battle)
             battle.roster.hero.currentMana = 10
             battle.roster.companion.currentMana = 10
         }
@@ -78,7 +78,7 @@ extension TalentCatalogRoundTripTests {
         )
         for _ in 0 ..< 2 {
             seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
-            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
+            CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         }
         try playHeroTalentCard(.causticJab, in: &battle)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 2)
@@ -92,7 +92,7 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
         ActiveEffectMutation.removeMatching(from: battle.enemy, in: &battle) { $0.kind == .poison }
         seedHeroTalentEffect(.poison(1), on: .hero, in: &battle)
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
+        CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         try playHeroTalentCard(.causticJab, in: &battle)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
     }

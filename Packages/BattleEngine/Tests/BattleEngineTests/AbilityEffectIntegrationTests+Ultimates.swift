@@ -124,9 +124,9 @@ extension AbilityEffectIntegrationTests {
             let initialHealth = context.health(of: context.enemy)
             context.performTestAction(ability)
             #expect(context.health(of: context.enemy) == initialHealth - 6)
-            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &context) }
+            CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &context) }
             #expect(context.health(of: context.enemy) == initialHealth - 12)
-            _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &context) }
+            CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &context) }
             #expect(context.health(of: context.enemy) == initialHealth - 12)
         }
     }
@@ -189,12 +189,12 @@ extension AbilityEffectIntegrationTests {
         )
         let startingHealth = context.roster.health(for: enemy)
 
-        let events = BattleTurnEngine.performAction(
+        let events = context.recordingEvents { context in await BattleTurnEngine.performAction(
             ability: .kindling,
             actor: hero,
             abilityTarget: enemy,
             context: &context,
-        )
+        ) }
 
         try #expect(context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .burn })
         let abilityDamage = events

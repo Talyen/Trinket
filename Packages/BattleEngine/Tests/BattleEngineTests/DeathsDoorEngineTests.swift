@@ -23,7 +23,7 @@ struct DeathsDoorEngineTests {
             heroHealth: 0,
             companionModifiers: CombatantTalentCatalog.profile(for: ["phoenix_health_t3_1"]),
         )
-        let events = CombatExecutor.run { await DeathsDoorEngine.resolveAfterDamage(to: battle.hero, in: &battle) }
+        let events = battle.recordingEvents { battle in await DeathsDoorEngine.resolveAfterDamage(to: battle.hero, in: &battle) }
         #expect(battle.health(of: battle.hero) == 1)
         #expect(battle.roster.isDeathsDoorActive(for: battle.hero))
         #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
@@ -259,7 +259,7 @@ struct DeathsDoorEngineTests {
         var context = makeLegionContext(heroHealth: 3)
         let hero = context.roster.hero.combatant
 
-        let events = CombatExecutor.run { await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &context) }
+        let events = context.recordingEvents { context in await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &context) }
 
         try #expect(context.roster.health(for: hero) == 10)
         try #expect(events.contains { $0.effectKind == .instantHeal && $0.amount == 7 })
@@ -269,7 +269,7 @@ struct DeathsDoorEngineTests {
         var context = makeLegionContext(heroHealth: 12)
         let hero = context.roster.hero.combatant
 
-        let events = CombatExecutor.run { await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &context) }
+        let events = context.recordingEvents { context in await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &context) }
 
         try #expect(events.isEmpty)
         try #expect(context.roster.health(for: hero) == 12)

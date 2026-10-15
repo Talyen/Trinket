@@ -2,8 +2,7 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
-    static func atPlayerEndTurn(in context: inout BattleState) async -> [ActionEvent] {
-        var events: [ActionEvent] = []
+    static func atPlayerEndTurn(in context: inout BattleState) async {
         for (_, runtime) in livingPartyMembers(in: context) {
             let actor = runtime.combatant
             let triggers = context.modifiers(for: actor.id).triggers
@@ -12,11 +11,8 @@ package extension CombatTriggerEngine {
                 { context in
                     guard triggers.endTurnZeroManaCleanse,
                           let current = context.roster.runtime(for: actor),
-                          current.maxMana > 0, current.currentMana == 0 else { return [] }
-                    return await performRandomCleanses(
-                        source: actor, target: actor, count: 1,
-                        abilityName: "Arcane Cleansing", in: &context,
-                    )
+                          current.maxMana > 0, current.currentMana == 0 else { return }
+                    await performRandomCleanses(source: actor, target: actor, count: 1, abilityName: "Arcane Cleansing", in: &context)
                 },
                 { await hibernationHeal(actor: actor, triggers: triggers, in: &$0) },
                 { await campfireComfortHeal(actor: actor, triggers: triggers, in: &$0) },
@@ -24,12 +20,11 @@ package extension CombatTriggerEngine {
                 { hoardArmorBlock(actor: actor, triggers: triggers, in: &$0) },
             ]
             for step in steps {
-                guard !context.isBattleOver else { return events }
+                guard !context.isBattleOver else { return }
                 guard context.health(of: actor) > 0 else { break }
-                await events.append(contentsOf: step(&context))
+                await step(&context)
             }
         }
-        return events
     }
 
     private static func endOfTurnBlockConversion(
@@ -37,40 +32,34 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard triggers.unspentManaConvertsToBlock, runtime.maxMana > 0, runtime.currentMana > 0 else { return [] }
+    ) {
+        guard triggers.unspentManaConvertsToBlock, runtime.maxMana > 0, runtime.currentMana > 0 else { return }
         let converted = min(runtime.currentMana, 6)
-        return emitBlock(
-            .unspentManaConvertsToBlock, "Mana Shield",
-            amount: converted, to: actor, source: actor, in: &context,
-        )
+        emitBlock(.unspentManaConvertsToBlock, "Mana Shield", amount: converted, to: actor, source: actor, in: &context)
     }
 
     private static func hoardArmorBlock(
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) -> [ActionEvent] {
-        guard triggers.blockPerGoldCollectedEvery > 0, context.gold > 0 else { return [] }
+    ) {
+        guard triggers.blockPerGoldCollectedEvery > 0, context.gold > 0 else { return }
         let block = min(5, context.gold / triggers.blockPerGoldCollectedEvery)
-        guard block > 0 else { return [] }
-        return emitBlock(
-            .blockPerGoldCollectedEvery, "Hoard Armor",
-            amount: block, to: actor, source: actor, in: &context,
-        )
+        guard block > 0 else { return }
+        emitBlock(.blockPerGoldCollectedEvery, "Hoard Armor", amount: block, to: actor, source: actor, in: &context)
     }
 
     private static func hibernationHeal(
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard triggers.endTurnWithBlockHealFlat > 0,
               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor)) > 0
-        else { return [] }
+        else { return }
         let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
-        guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return [] }
-        return await emitHeal(
+        guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return }
+        await emitHeal(
             .endTurnWithBlockHealFlat, "Hibernation",
             amount: triggers.endTurnWithBlockHealFlat, to: target, source: actor, in: &context,
         )
@@ -80,13 +69,13 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
+    ) async {
         guard triggers.endOfTurnHealLowestAlly > 0,
               context.isPlayerTurn(every: 2, startingAt: 1)
-        else { return [] }
+        else { return }
         let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
-        guard context.roster.health(for: lowest) < context.roster.maxHealth(for: lowest) else { return [] }
-        return await emitHeal(
+        guard context.roster.health(for: lowest) < context.roster.maxHealth(for: lowest) else { return }
+        await emitHeal(
             .endOfTurnHealLowestAlly, "Campfire Comfort",
             amount: triggers.endOfTurnHealLowestAlly, to: lowest, source: actor, in: &context,
         )
@@ -96,17 +85,16 @@ package extension CombatTriggerEngine {
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
-    ) async -> [ActionEvent] {
-        guard triggers.partyRegenPerRound > 0 else { return [] }
-        var events: [ActionEvent] = []
+    ) async {
+        guard triggers.partyRegenPerRound > 0 else { return }
+
         for (_, member) in livingPartyMembers(in: context) {
             guard !context.isBattleOver, context.health(of: actor) > 0 else { break }
             guard member.currentHealth < member.maxHealth else { continue }
-            await events.append(contentsOf: emitHeal(
+            await emitHeal(
                 .partyRegenPerRound, "Regeneration",
                 amount: triggers.partyRegenPerRound, to: member.combatant, source: actor, in: &context,
-            ))
+            )
         }
-        return events
     }
 }

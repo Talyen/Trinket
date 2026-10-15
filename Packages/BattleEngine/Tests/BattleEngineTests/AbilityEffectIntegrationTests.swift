@@ -13,7 +13,7 @@ struct AbilityEffectIntegrationTests {
         battle.appendEffect(.hemorrhage(4), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         DefensePoolEngine.set(block, on: battle.hero, in: &battle)
 
-        let events = CombatExecutor.run {
+        let events = battle.recordingEvents { battle in
             await BattleTurnEngine.consumeHemorrhageIfActive(for: battle.hero, in: &battle)
         }
         #expect(events == battle.events)
@@ -63,7 +63,7 @@ struct AbilityEffectIntegrationTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: profile, dealOpeningHand: false,
         )
-        _ = CombatExecutor.run {
+        CombatExecutor.run {
             await CombatTriggerEngine.afterDodge(by: battle.companion, attackerID: battle.enemy.id, in: &battle)
         }
         #expect(battle.gold == (isTheft ? 7 : 4))
@@ -81,10 +81,10 @@ struct AbilityEffectIntegrationTests {
         if ownerDefeated {
             battle.roster.companion.currentHealth = 0
         }
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")
+        battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
         let before = battle.gold
-        _ = battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
+        battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
         #expect(battle.gold - before == (ownerDefeated ? 0 : 6))
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == (ownerDefeated ? 0 : 6))
     }
@@ -104,7 +104,7 @@ struct AbilityEffectIntegrationTests {
         #expect(events.contains { $0.effectKind == .dodgeApplied })
         #expect(battle.roster.hero.currentHealth == before)
         #expect(!battle.roster.hero.activeEffects.contains { $0.keyword == keyword })
-        _ = CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
+        CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         #expect(battle.roster.hero.currentHealth == before)
     }
 

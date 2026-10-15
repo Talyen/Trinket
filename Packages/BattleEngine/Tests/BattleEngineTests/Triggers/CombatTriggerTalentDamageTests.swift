@@ -78,7 +78,7 @@ struct CombatTriggerTalentDamageTests {
         )
         let companion = battle.roster.companion.combatant
         for _ in 0 ..< 4 {
-            _ = CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+            CombatExecutor.run { await CombatTriggerEngine.afterDodge(
                 by: companion,
                 attackerID: battle.roster.enemy.id,
                 in: &battle,

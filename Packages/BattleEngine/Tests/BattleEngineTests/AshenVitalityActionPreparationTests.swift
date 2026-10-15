@@ -17,9 +17,9 @@ struct AshenVitalityActionPreparationTests {
             ],
         )
 
-        let events = BattleTurnEngine.performAction(
+        let events = battle.recordingEvents { battle in await BattleTurnEngine.performAction(
             ability: creatingAbility, actor: actor, abilityTarget: target, context: &battle,
-        )
+        ) }
 
         #expect(events.contains { $0.effectKind == .overheal && $0.targetID == actor.id && $0.amount == 3 })
         #expect(events.filter { $0.kind == .abilityDamage && $0.keyword == .burn }.map(\.amount) == [3])
@@ -66,9 +66,9 @@ struct AshenVitalityActionPreparationTests {
     }
 
     private func expectLaterBurnConsumesPreparation(actor: Combatant, target: Combatant, in battle: inout BattleState) {
-        let events = BattleTurnEngine.performAction(
+        let events = battle.recordingEvents { battle in await BattleTurnEngine.performAction(
             ability: .fireArrow, actor: actor, abilityTarget: target, context: &battle,
-        )
+        ) }
         #expect(events.filter { $0.kind == .abilityDamage && $0.keyword == .burn }.map(\.amount) == [5])
         #expect(battle.roster.companion.talents.pending.nextBurnDamageBonus == nil)
     }

@@ -41,8 +41,8 @@ struct BattleArithmeticBoundaryTests {
 
     @Test func `Gold grants saturate the ledger and report only the recorded gain`() {
         var battle = makeBattle(profile: CombatModifierProfile(goldGainedBonus: 1), heroMaxHealth: Int.max)
-        let first = battle.grantGoldEvent(Int.max, to: battle.hero, abilityName: "Gold")
-        let second = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Gold")
+        let first = battle.recordingEvents { battle in _ = await battle.grantGold(Int.max, to: battle.hero, abilityName: "Gold") }
+        let second = battle.recordingEvents { battle in _ = await battle.grantGold(1, to: battle.hero, abilityName: "Gold") }
         #expect(battle.gold == Int.max)
         #expect(battle.goldFlow.gained == Int.max)
         #expect(first.first?.amount == Int.max)
@@ -59,7 +59,7 @@ struct BattleArithmeticBoundaryTests {
         #expect(gained == 1)
         #expect(full == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == Int.max)
-        _ = CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.hero, in: &battle) }
+        CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.hero, in: &battle) }
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 6917529027641081855)
     }
 
@@ -74,14 +74,14 @@ struct BattleArithmeticBoundaryTests {
     @Test func `Block grants with a saturated flat bonus fill capacity without overflowing`() {
         var battle = makeBattle(profile: CombatModifierProfile(blockGainedBonus: Int.max))
         let gain = battle.applyBlockGain(1, to: battle.hero, source: battle.hero, abilityName: "Block")
-        #expect(gain.applied == Int.max)
+        #expect(gain == Int.max)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == Int.max)
     }
 
     @Test func `Freeze amplification saturates before applying the control threshold`() {
         var battle = makeBattle()
         battle.appendEffect(.controlMeter(.freeze, 2, 4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        let events = CombatExecutor.run { await ControlMeterEngine.multiplyBuildup(
+        let events = battle.recordingEvents { battle in await ControlMeterEngine.multiplyBuildup(
             Int.max, keyword: .freeze, to: battle.enemy, sourceActorID: battle.hero.id,
             abilityName: "Cold Snap", in: &battle,
         ) }

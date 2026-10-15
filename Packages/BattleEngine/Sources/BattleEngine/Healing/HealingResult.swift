@@ -38,7 +38,7 @@ struct HealingResult {
     let allocation: HealingAllocation
     let isLeech: Bool
     let isCritical: Bool
-    var events: [ActionEvent]
+    var events: [ActionEvent] = []
 
     var directRestoration: Int {
         allocation.directRestoration
@@ -49,7 +49,7 @@ struct HealingResult {
     }
 
     static var empty: Self {
-        Self(allocation: HealingAllocation(resolvedAmount: 0, directRestoration: 0), isLeech: false, isCritical: false, events: [])
+        Self(allocation: HealingAllocation(resolvedAmount: 0, directRestoration: 0), isLeech: false, isCritical: false)
     }
 
     var didLeech: Bool {

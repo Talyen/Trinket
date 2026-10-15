@@ -26,7 +26,7 @@ struct GoldGainCadenceRegressionTests {
         #expect(hit.events.count { $0.effectKind == .cardsDrawn && $0.abilityName == "Last Wager" } == 1)
         #expect(battle.hand.cards.map(\.ability.id) == [Ability.slash.id])
 
-        _ = battle.grantGoldEvent(1, to: battle.hero, abilityName: "Separate reward")
+        battle.grantGoldEvent(1, to: battle.hero, abilityName: "Separate reward")
         #expect(battle.hand.cards.map(\.ability.id) == [Ability.slash.id, Ability.block.id])
     }
 }

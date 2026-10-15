@@ -21,10 +21,10 @@ extension UniqueCollectionTests {
 
     @Test func `Vipers described readiness waits for manual Health damage`() throws {
         var context = try battle(["vipers_courtesy"])
-        _ = CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(
+        CombatExecutor.run { await UniqueCombatEngine.afterUniqueDodge(
             by: context.hero, attackerID: context.enemy.id, in: &context,
         ) }
-        _ = BattleTurnEngine.performAction(
+        BattleTurnEngine.performAction(
             ability: attack(), actor: context.hero, abilityTarget: context.enemy, origin: .counterattack, context: &context,
         )
         #expect(context.roster[.hero].uniques.viperReady == true)

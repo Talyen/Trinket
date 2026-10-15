@@ -1,9 +1,19 @@
 import TrinketContent
 import TrinketCore
 
-/// Synchronous entry points for isolated engine commands. Internal reactions use
-/// their async overloads so a child stays in the enclosing command executor.
+/// Resolution scopes and synchronous entry points for isolated commands.
+/// Internal reactions use async overloads within the enclosing executor.
 package extension BattleState {
+    /// Retaliation and talent pings share the same reaction damage policy.
+    mutating func dealReactionDamage(
+        _ amount: Int, to target: Combatant, keyword: Keyword, sourceActorID: String?,
+    ) async -> CombatOutcome {
+        await resolveDamage(DamageRequest(
+            amount: amount, target: target, keyword: keyword, sourceActorID: sourceActorID,
+            options: .reaction(),
+        ))
+    }
+
     mutating func withAutomaticPlay<Value>(_ body: (inout BattleState) throws -> Value) rethrows -> Value {
         resolution.beginAutomaticPlay()
         defer { resolution.endAutomaticPlay() }
@@ -24,15 +34,15 @@ package extension BattleState {
         isTheft: Bool = false,
         isDirectCardGain: Bool = false,
         isLeechOverflow: Bool = false,
-    ) -> [ActionEvent] {
-        CombatExecutor.run { await grantGold(
+    ) {
+        _ = CombatExecutor.run { await grantGold(
             amount,
             to: combatant,
             abilityID: abilityID, abilityName: abilityName,
             isTheft: isTheft,
             isDirectCardGain: isDirectCardGain,
             isLeechOverflow: isLeechOverflow,
-        ).events }
+        ) }
     }
 
     mutating func restoreManaEmitting(
@@ -41,7 +51,7 @@ package extension BattleState {
         abilityID: String = "",
         abilityName: String,
         source: Combatant? = nil,
-    ) -> [ActionEvent] {
+    ) {
         CombatExecutor
             .run { await restoreManaEmitting(amount, to: combatant, abilityID: abilityID, abilityName: abilityName, source: source) }
     }
@@ -54,7 +64,7 @@ package extension BattleState {
         abilityName: String,
         keyword: Keyword = .health,
         isDirectCardHeal: Bool = false,
-    ) -> [ActionEvent] {
+    ) {
         CombatExecutor.run { await healEmitting(
             amount: amount,
             target: target,
@@ -65,7 +75,7 @@ package extension BattleState {
         ) }
     }
 
-    mutating func appendDefeatMilestonesIfNeeded() -> [ActionEvent] {
+    mutating func appendDefeatMilestonesIfNeeded() {
         CombatExecutor.run { await appendDefeatMilestonesIfNeeded() }
     }
 
@@ -82,7 +92,7 @@ package extension BattleState {
         keyword: Keyword,
         to combatant: Combatant,
         sourceActorID: String?,
-    ) -> [ActionEvent] {
+    ) {
         CombatExecutor.run { await applyControlMeter(amount, keyword: keyword, to: combatant, sourceActorID: sourceActorID) }
     }
 
@@ -103,7 +113,7 @@ package extension BattleState {
         sourceActorID: String,
         application: DoTApplication,
         provenance: DamageProvenance? = nil,
-    ) -> [ActionEvent] {
+    ) {
         CombatExecutor.run { await applyDecayingDoT(
             keyword: keyword,
             potency: potency,

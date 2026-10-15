@@ -39,9 +39,12 @@ Damage pipeline steps emit events without maintaining a second accumulated list;
 the damage scratch state contains calculations and reaction flags only. Standalone
 damage installs a temporary output even when retained battle history is disabled.
 Discarded damage previews detach command output so speculative effects cannot publish.
-Healing outcomes retain their operation-specific events.
-Card plays, direct resource grants, and control-meter charges return committed
-rule facts alongside their events. Critical-attack continuation, triggered-control
+Healing outcomes retain their operation-specific events. Internal triggers, effect
+turns and checkpoints emit directly into this output rather than returning parallel
+arrays. Gold and Block grants return their applied amounts; action admission and
+DoT dispatch return decisions, independently of emitted feedback.
+Card plays, direct resource grants, and control-meter charges expose committed
+rule facts separately from emitted events. Critical-attack continuation, triggered-control
 rewards, and direct gain summaries consume those facts, never event searches,
 display names, or event positions. Critical card facts include nested attacks from
 the same actor but exclude critical healing. The active card frames own those

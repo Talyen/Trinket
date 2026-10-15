@@ -9,9 +9,10 @@ extension TalentCatalogRoundTripTests {
         _ = battle.resolution.beginCard(actorID: battle.hero.id)
         battle.mutateHeroCard { $0.didCriticalHit = true }
         battle.heroDeck = CombatDeck()
-        _ = battle.grantGoldEvent(2, to: battle.hero, abilityName: "Theft", isTheft: true)
+        battle.grantGoldEvent(2, to: battle.hero, abilityName: "Theft", isTheft: true)
         battle.heroDeck = CombatDeck(abilities: [.stab])
-        let events = battle.grantGoldEvent(2, to: battle.hero, abilityName: "Theft", isTheft: true)
+        let events = battle
+            .recordingEvents { battle in _ = await battle.grantGold(2, to: battle.hero, abilityName: "Theft", isTheft: true) }
         #expect(!events.contains { $0.effectKind == .cardsDrawn })
         #expect(battle.heroDeck.count == 1)
     }

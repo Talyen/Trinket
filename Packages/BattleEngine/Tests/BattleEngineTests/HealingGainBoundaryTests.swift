@@ -11,8 +11,10 @@ struct HealingGainBoundaryTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             companionHealth: 0, companionModifiers: profile, appliesFightPacing: false,
         )
-        let gain = battle.applyBlockGain(4, to: battle.companion, source: battle.hero, abilityName: "Ally Block")
-        #expect(gain.applied == 0)
+        let gain = battle.recordingResult { battle in
+            battle.applyBlockGain(4, to: battle.companion, source: battle.hero, abilityName: "Ally Block")
+        }
+        #expect(gain.value == 0)
         #expect(gain.events.isEmpty)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 0)
@@ -25,7 +27,10 @@ struct HealingGainBoundaryTests {
             heroHealth: 5, heroModifiers: profile, appliesFightPacing: false,
         )
         for amount in [0, -1, Int.min] {
-            #expect(battle.grantGoldEvent(amount, to: battle.hero, abilityName: "Empty gain").isEmpty)
+            let events = battle.recordingEvents { battle in
+                _ = await battle.grantGold(amount, to: battle.hero, abilityName: "Empty gain")
+            }
+            #expect(events.isEmpty)
         }
         #expect(battle.gold == 0)
         #expect(battle.health(of: battle.hero) == 5)
@@ -133,7 +138,7 @@ struct HealingGainBoundaryTests {
         #expect(!result.events.contains { $0.effectKind == .instantHeal || $0.effectKind == .leechHeal })
 
         // Conversion suppression ends with its Gold transaction; ordinary gains still heal the wounded Hero.
-        _ = battle.grantGoldEvent(1, to: battle.companion, abilityName: "Ordinary Gold")
+        battle.grantGoldEvent(1, to: battle.companion, abilityName: "Ordinary Gold")
         #expect(battle.health(of: battle.hero) == 15)
     }
 
@@ -178,8 +183,8 @@ struct HealingGainBoundaryTests {
             amountBasis: resolved ? .resolved : .base,
         )
 
-        #expect(gain.applied == (resolved ? 4 : 12))
-        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == gain.applied)
+        #expect(gain == (resolved ? 4 : 12))
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == gain)
         #expect(battle.roster.companion.talents.pending.nextBlockGainMultiplier?.value == (resolved ? 2 : nil))
     }
 

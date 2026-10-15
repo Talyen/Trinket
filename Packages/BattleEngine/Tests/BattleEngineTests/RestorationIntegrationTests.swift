@@ -93,7 +93,8 @@ struct RestorationIntegrationTests {
         )
         battle.roster.companion.currentHealth -= 5
         let healthBefore = battle.roster.companion.currentHealth
-        let events = CombatExecutor.run { await HealingEngine.shareLeechWithAlly(restored: 1, source: battle.hero, in: &battle) }
+        let events = battle
+            .recordingEvents { battle in await HealingEngine.shareLeechWithAlly(restored: 1, source: battle.hero, in: &battle) }
         #expect(events.isEmpty)
         #expect(battle.roster.companion.currentHealth == healthBefore)
     }

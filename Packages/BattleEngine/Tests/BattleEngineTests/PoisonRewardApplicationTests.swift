@@ -15,7 +15,7 @@ struct PoisonRewardApplicationTests {
         DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
         let before = battle.health(of: battle.enemy)
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
+        CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
             to: battle.enemy, source: battle.hero, in: &battle,
         ) }
 

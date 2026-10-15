@@ -27,12 +27,12 @@ struct CleanseArithmeticBoundaryTests {
         let hero = battle.hero
         let companion = battle.companion
 
-        let outcome = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
+        let outcome = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
             .all(nil), source: hero, target: companion, abilityName: "Boundary Cleanse",
             baseHeal: 2, healPerDebuff: healPerDebuff, in: &battle,
         ) }
 
-        #expect(outcome.removed.count == 2)
+        #expect(outcome.value.removed.count == 2)
         #expect(!battle.activeEffects(of: companion).contains { $0.effect.isRemovableDebuff })
         #expect(battle.health(of: companion) == 20)
         #expect(battle.mana(of: hero) == Int.max)

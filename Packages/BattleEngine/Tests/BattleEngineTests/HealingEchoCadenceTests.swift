@@ -24,7 +24,7 @@ struct HealingEchoCadenceTests {
             $0.talents.pending.healingEchoes.append(HealingEcho(amount: 3, sourceActorID: sourceID))
         }
 
-        _ = CombatExecutor.run { await HealingEngine.resolveHealingEchoes(in: &battle) }
+        CombatExecutor.run { await HealingEngine.resolveHealingEchoes(in: &battle) }
 
         #expect(battle.isEnemyDefeated)
         #expect(battle.health(of: battle.hero) == 11)

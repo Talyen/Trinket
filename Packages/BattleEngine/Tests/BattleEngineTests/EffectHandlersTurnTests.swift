@@ -35,8 +35,8 @@ struct EffectHandlersTurnTests {
         )
         let effect = Effect.avatar(holyDamage: 1, blockPerTurn: 2, turns: 2)
         if fromTalent {
-            _ = CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
-            _ = CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
+            CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
+            CombatTriggerEngine.turnBlock(for: battle.hero, in: &battle)
         } else {
             _ = EffectHandlersTestSupport.dispatch(
                 effect, battle: &battle,

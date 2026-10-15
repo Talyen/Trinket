@@ -9,7 +9,7 @@ struct SharedPreparedDamageRegressionTests {
         let fixtures = UniqueCollectionTests()
         let profile = CombatantTalentCatalog.profile(for: ["phoenix_health_t3_2"])
         var battle = try fixtures.battle(shared ? ["bloodember_pendant"] : [], owner: .companion, extra: profile)
-        _ = CombatExecutor.run { await battle.healEmitting(
+        CombatExecutor.run { await battle.healEmitting(
             amount: 1, target: battle.companion, source: battle.companion, abilityName: "Heal",
         ) }
         #expect(battle.roster.companion.talents.pending.nextBurnDamageBonus?.value == 2)

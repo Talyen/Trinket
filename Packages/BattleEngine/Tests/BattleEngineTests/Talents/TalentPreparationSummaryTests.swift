@@ -62,11 +62,11 @@ struct TalentPreparationSummaryTests {
         var context = try fixtures.battle([], owner: .companion, extra: CombatantTalentCatalog.profile(for: [talentID]))
         let actor = context.companion
         if talentID == "fox_stun_t4_1" {
-            _ = CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: actor.id, in: &context) }
+            CombatExecutor.run { await CombatTriggerEngine.afterEnemyStunned(sourceActorID: actor.id, in: &context) }
         } else {
-            _ = context.restoreManaEmitting(1, to: actor, abilityName: "Restore Mana")
+            context.restoreManaEmitting(1, to: actor, abilityName: "Restore Mana")
             let payment = context.payMana(1, for: actor)
-            _ = CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &context) }
+            CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(payment, in: &context) }
         }
 
         #expect(hasPreparation(.physical, for: actor, in: context))
@@ -91,7 +91,7 @@ struct TalentPreparationSummaryTests {
         let firstAppendSucceeded = battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
         #expect(!firstAppendSucceeded)
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(!battle.effectSummaries(of: battle.hero).contains { $0.keyword == effect.keyword })
         let secondAppendSucceeded = battle.appendEffect(effect, to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 2)
@@ -118,7 +118,7 @@ struct TalentPreparationSummaryTests {
         let firstPurgeAppendSucceeded = battle.appendEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)
         #expect(!firstPurgeAppendSucceeded)
 
-        _ = CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
+        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
         #expect(!battle.effectSummaries(of: battle.enemy).contains { $0.keyword == .purge })
         let secondPurgeAppendSucceeded = battle.appendEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)

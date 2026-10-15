@@ -27,7 +27,7 @@ struct ActionPreparationRegressionTests {
             let drawn = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
             _ = try battle.playCard(cardID: drawn.id)
         } else {
-            _ = BattleTurnEngine.performAction(
+            BattleTurnEngine.performAction(
                 ability: ability, actor: battle.hero, abilityTarget: battle.enemy,
                 origin: .counterattack, context: &battle,
             )
@@ -61,7 +61,7 @@ struct ActionPreparationRegressionTests {
         battle.appendEffect(.burn(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
         let before = battle.rng
 
-        _ = BattleTurnEngine.performAction(
+        BattleTurnEngine.performAction(
             ability: ability, actor: battle.companion, abilityTarget: battle.enemy,
             origin: .counterattack, context: &battle,
         )
@@ -96,7 +96,7 @@ struct ActionPreparationRegressionTests {
             sourceID: battle.companion.id, remainingTurns: 0,
         )
 
-        _ = BattleTurnEngine.performAction(
+        BattleTurnEngine.performAction(
             ability: ability, actor: battle.companion, abilityTarget: battle.enemy,
             origin: .counterattack, context: &battle,
         )

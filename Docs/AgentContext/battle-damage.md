@@ -163,7 +163,7 @@ threshold, so a larger enemy Health pool cannot turn the reflected status into
 partial buildup. Untriggered buildup retains its removed amount.
 `DoTApplication.reflection` preserves the
 removed potency and duration without new-application bonuses or immediate damage.
-Turn handlers commit their own effect updates and return only events. Decaying
+Turn handlers commit their own effect updates and emit into command output. Decaying
 DoTs commit decay before ticking; duration-based effects age the live effect after
 their tick, and Death's Door is removed before expiry reactions. `EffectTurnEngine`
 only schedules existing effect IDs and never writes a returned snapshot back.

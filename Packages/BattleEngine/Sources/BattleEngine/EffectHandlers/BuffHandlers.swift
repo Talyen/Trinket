@@ -25,7 +25,7 @@ struct StackingAmountBuffHandler: BattleEffectHandler {
     func apply(
         _ effect: Effect, ability: Ability, source: Combatant, target: Combatant, in context: inout BattleState,
     ) -> EffectApplyOutcome {
-        guard let amount = Self.amount(effect), amount > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard let amount = Self.amount(effect), amount > 0 else { return EffectApplyOutcome(didApply: false) }
         let existing = TimedBuffSummary.summedAmount(in: context.roster.activeEffects(for: target)) {
             $0.kind == effect.kind ? Self.amount($0) : nil
         }
@@ -35,7 +35,7 @@ struct StackingAmountBuffHandler: BattleEffectHandler {
         switch effect {
         case .thorns: stacked = .thorns(total); event = .thornsApplied
         case .nextBurnBonus: stacked = .nextBurnBonus(total); event = .nextBurnBonusApplied
-        default: return EffectApplyOutcome(events: [], didApply: false)
+        default: return EffectApplyOutcome(didApply: false)
         }
         return ActiveEffectMutation.replaceAndEmit(
             stacked, to: target, source: source, ability: ability, in: &context,
@@ -55,11 +55,11 @@ struct ThornsFromBlockFractionHandler: BattleEffectHandler {
         guard case let .thornsFromBlockFraction(divisor, minimum) = effect,
               divisor > 0
         else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target))
         let amount = max(minimum, block / divisor)
-        guard amount > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard amount > 0 else { return EffectApplyOutcome(didApply: false) }
         return StackingAmountBuffHandler().apply(
             .thorns(amount), ability: ability, source: source, target: target, in: &context,
         )
@@ -92,13 +92,14 @@ struct StoredEffectHandler: BattleEffectHandler {
         case .freezeNextAttacker: event = (.controlApplied, 0, effect.keyword)
         case let .restoreManaOnHit(amount, turns):
             context.appendEffect(effect, to: target, sourceID: source.id, remainingTurns: turns)
-            return EffectApplyOutcome(events: [context.nextEvent(
+            context.nextEvent(
                 kind: .effect(.manaShieldApplied), source: .init(source),
                 abilityID: ability.id, abilityName: ability.name, target: target,
                 amount: amount, keyword: .mana, origin: .direct,
-            )], didApply: true)
+            )
+            return EffectApplyOutcome(didApply: true)
         default:
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         return ActiveEffectMutation.replaceAndEmit(
             effect, to: target, source: source, ability: ability, in: &context,
@@ -198,14 +199,14 @@ struct PartyDamageBonusHandler: BattleEffectHandler {
         in context: inout BattleState,
     ) -> EffectApplyOutcome {
         guard case let .partyDamageBonus(amount) = effect, amount > 0 else {
-            return EffectApplyOutcome(events: [], didApply: false)
+            return EffectApplyOutcome(didApply: false)
         }
         let recipient = BattleAbilityRules.preparationRecipient(for: source, in: context)
         context.resolution.preparePartyDamage(amount, recipientID: recipient.id)
-        let event = context.nextEvent(
+        context.nextEvent(
             kind: .effect(.partyDamagePreparationApplied), source: .init(source),
             abilityID: ability.id, abilityName: ability.name, target: recipient, amount: amount, keyword: .physical, origin: .direct,
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        return EffectApplyOutcome(didApply: true)
     }
 }

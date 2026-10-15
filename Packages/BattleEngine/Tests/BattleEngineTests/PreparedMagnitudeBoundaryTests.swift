@@ -22,7 +22,7 @@ struct PreparedMagnitudeBoundaryTests {
             targetedEffects: [TargetedEffect(.recurringDamage(.freeze, Int.max / 2 + 1, 2))],
         )
 
-        _ = CombatExecutor.run {
+        CombatExecutor.run {
             await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(for: &ability, actor: battle.hero, context: &battle)
         }
 

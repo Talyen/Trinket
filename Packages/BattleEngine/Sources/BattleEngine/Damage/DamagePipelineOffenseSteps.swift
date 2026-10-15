@@ -265,7 +265,7 @@ package extension DamagePipeline {
             in: context,
         ).abilityNames
         for name in names {
-            _ = context.nextEvent(
+            context.nextEvent(
                 kind: .ability,
                 source: .init(source),
                 abilityName: name,

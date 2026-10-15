@@ -25,7 +25,7 @@ extension UniqueCollectionTests {
         }
         // Automatic plays do not advance the wearer's ordinary card count.
         try #expect(context.roster[owner].uniques.cardsPlayed == 2)
-        _ = UniqueCombatEngine.startTurn(in: &context)
+        UniqueCombatEngine.startTurn(in: &context)
         #expect(context.roster[owner].uniques.wrenflightDodge == 0)
         #expect(context.roster[owner].uniques.cardsPlayed == 0)
         // The Returning Gale third-card rule is retired; Dodge-triggered returns are covered

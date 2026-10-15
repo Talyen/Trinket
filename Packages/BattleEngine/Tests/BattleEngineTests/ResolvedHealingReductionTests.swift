@@ -63,7 +63,7 @@ struct ResolvedHealingReductionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
         for target in heroSapped ? [battle.hero, battle.companion] : [battle.companion] {
-            _ = BattleTurnEngine.performAction(
+            BattleTurnEngine.performAction(
                 ability: .serratedEdge, actor: battle.enemy, abilityTarget: target, context: &battle,
             )
         }
