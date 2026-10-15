@@ -4,56 +4,60 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct ItemGeneratorTests {
-    @Test(arguments: ["longsword", "plate_armor", "ruby_ring"], [Rarity.basic, .astral])
-    func `generated gear respects rarity eligibility uniqueness and rolled powers`(
+    @Test(arguments: ["longsword", "plate_armor", "ruby_ring"], [
+        (Rarity.basic, 1, 1), (.basic, 80, 1), (.basic, 81, 2), (.basic, 100, 2),
+        (.astral, 1, 3), (.astral, 75, 3), (.astral, 76, 4), (.astral, 100, 4),
+    ])
+    func `generated gear respects count boundaries eligibility uniqueness and rolled powers`(
         baseTypeID: String,
-        rarity: Rarity,
+        countCase: (Rarity, Int, Int),
     ) throws {
         let baseType = try ItemFixtures.baseType(baseTypeID)
-        let range = rarity == .basic ? 1 ... 2 : 3 ... 4
-        var counts = Set<Int>()
-        for seed in UInt64(1) ... 24 {
-            var rng = SeededRandomNumberGenerator(seed: seed)
-            let item = ItemGenerator().generate(
-                id: "rolled-\(seed)", baseType: baseType, rarity: rarity, using: &rng,
-            )
-            counts.insert(item.affixes.count)
-            try #expect(range.contains(item.affixes.count))
-            try #expect(Set(item.affixes.map(\.id)).count == item.affixes.count)
-            for affix in item.affixes {
-                let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
-                try #expect(definition.slot == baseType.slot)
-                try #expect(!definition.keywords.isDisjoint(with: baseType.keywordAffinities))
-            }
-            let powers = try #require(item.affixPowers)
-            try #expect(powers.count == item.affixes.count)
-            for (index, affix) in item.affixes.enumerated() {
-                let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
-                let catalog = definition.power(for: rarity)
-                let stored = powers[index]
-                if definition.basic == definition.astral {
-                    try #expect(stored == catalog)
-                    try #expect(!item.isPerfectAffix(at: index))
-                    continue
-                }
-                try #expect(stored.modifiers.count == catalog.modifiers.count)
-                for (catalogModifier, storedModifier) in zip(catalog.modifiers, stored.modifiers) {
-                    if catalogModifier.isPercent {
-                        let allowed = ItemAffixMagnitudeRoll.percentValues(around: catalogModifier.numericValue)
-                        try #expect(allowed.contains { abs($0 - storedModifier.numericValue) < 1e-9 })
-                    } else {
-                        let range = ItemAffixMagnitudeRoll.integerRange(
-                            around: Int(catalogModifier.numericValue.rounded()),
-                        )
-                        try #expect(range.contains(Int(storedModifier.numericValue.rounded())))
-                    }
-                }
-                let isPerfect = item.isPerfectAffix(at: index)
-                try #expect(isPerfect == stored.isAtOrAboveRollMax(of: catalog))
-            }
+        let (rarity, countRoll, expectedCount) = countCase
+        // Find only the primitive RNG draw; the real generator must apply the
+        // rarity threshold and retain every selected power on the saved item.
+        let matchingSeed = (UInt64(1) ... 10000).first { seed in
+            var probe = SeededRandomNumberGenerator(seed: seed)
+            return Int.random(in: 1 ... 100, using: &probe) == countRoll
         }
-        try #expect(counts.contains(range.lowerBound))
-        try #expect(counts.contains(range.upperBound))
+        let seed = try #require(matchingSeed)
+        var rng = SeededRandomNumberGenerator(seed: seed)
+        let item = ItemGenerator().generate(
+            id: "rolled-\(seed)", baseType: baseType, rarity: rarity, using: &rng,
+        )
+        try #expect(item.affixes.count == expectedCount)
+        try #expect(Set(item.affixes.map(\.id)).count == item.affixes.count)
+        for affix in item.affixes {
+            let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
+            try #expect(definition.slot == baseType.slot)
+            try #expect(!definition.keywords.isDisjoint(with: baseType.keywordAffinities))
+        }
+        let powers = try #require(item.affixPowers)
+        try #expect(powers.count == item.affixes.count)
+        for (index, affix) in item.affixes.enumerated() {
+            let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
+            let catalog = definition.power(for: rarity)
+            let stored = powers[index]
+            if definition.basic == definition.astral {
+                try #expect(stored == catalog)
+                try #expect(!item.isPerfectAffix(at: index))
+                continue
+            }
+            try #expect(stored.modifiers.count == catalog.modifiers.count)
+            for (catalogModifier, storedModifier) in zip(catalog.modifiers, stored.modifiers) {
+                if catalogModifier.isPercent {
+                    let allowed = ItemAffixMagnitudeRoll.percentValues(around: catalogModifier.numericValue)
+                    try #expect(allowed.contains { abs($0 - storedModifier.numericValue) < 1e-9 })
+                } else {
+                    let range = ItemAffixMagnitudeRoll.integerRange(
+                        around: Int(catalogModifier.numericValue.rounded()),
+                    )
+                    try #expect(range.contains(Int(storedModifier.numericValue.rounded())))
+                }
+            }
+            let isPerfect = item.isPerfectAffix(at: index)
+            try #expect(isPerfect == stored.isAtOrAboveRollMax(of: catalog))
+        }
     }
 
     @Test func `every base type has enough eligible affixes for astral maximum`() throws {

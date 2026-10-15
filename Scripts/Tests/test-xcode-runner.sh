@@ -19,6 +19,43 @@ import sys
 Path(sys.argv[1]).write_text("Test Suite 'All tests' passed\n" + "test progress\n" * 100000)
 PY
 xcode_runner_log_has_terminal_marker "$TMP_DIR/large-terminal.log"
+# The production scanner revisits a bounded overlap after each read. A small
+# split log never crosses that offset and cannot protect against lost markers.
+python3 - "$TMP_DIR/split-terminal.log" <<'PY_SPLIT'
+from pathlib import Path
+import sys
+Path(sys.argv[1]).write_text("compiling...\n" * 1000 + "Test Suite 'Selected ")
+PY_SPLIT
+split_offset="$(xcode_runner_log_byte_size "$TMP_DIR/split-terminal.log")"
+if xcode_runner_scan_terminal_marker_from "$TMP_DIR/split-terminal.log" 0; then
+  echo "Partial terminal marker incorrectly accepted" >&2
+  exit 1
+fi
+printf "tests' passed.\nExecuted 1 test, with 0 failures\n" >> "$TMP_DIR/split-terminal.log"
+xcode_runner_scan_terminal_marker_from "$TMP_DIR/split-terminal.log" "$split_offset"
+
+# Keep the long finalization-grace regression without twelve seconds of real
+# waiting. Only the clock/process observation is simulated; the watchdog loop
+# must let an action finalize beyond the former ten-second idle cutoff.
+bash -eu -c '
+  source "$1/Scripts/lib/xcode-watchdog.sh"
+  unset TRINKET_XCODE_IDLE_TIMEOUT_SECONDS TRINKET_CI_DEADLINE_EPOCH
+  export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0
+  finalization_log="$2"
+  SECONDS=0
+  sleep() { SECONDS=$((SECONDS + $1)); }
+  kill() {
+    if [[ "$1" != -0 ]]; then
+      echo "Watchdog killed an action during its finalization grace" >&2
+      exit 1
+    fi
+    printf "Test Suite '\''Selected tests'\'' passed.\nExecuted 1 test, with 0 failures\n" > "$finalization_log"
+    (( SECONDS < 12 ))
+  }
+  xcode_runner_execute_watched "$finalization_log" "" true
+  [[ "$XCODE_RUNNER_COMPLETION_SOURCE" == process-exit ]]
+' _ "$ROOT_DIR" "$TMP_DIR/finalization-grace.log"
+
 for failure in \
   "** TEST FAILED **" \
   "✘ Test example() recorded an issue at Example.swift:12:3: Expectation failed" \
@@ -73,16 +110,12 @@ case "$WATCHDOG_CASE" in
   finalization)
     echo "Test Suite 'Selected tests' passed."
     echo "Executed 1 test, with 0 failures"
-    sleep 12
+    sleep 2
     echo "** TEST SUCCEEDED **"
     exit 0 ;;
   success)
     echo "** TEST SUCCEEDED **"
     echo " Executed 1 test, with 0 failures (0 unexpected) in 1.0 seconds" ;;
-  split-marker)
-    printf "Test Suite 'Selected "
-    sleep 2
-    printf "tests' passed.\nExecuted 1 test, with 0 failures\n" ;;
   selected|zero|zero-options)
     echo "Test Suite 'Selected tests' passed at 2026-08-07 12:38:46.504."
     count=1
@@ -225,10 +258,9 @@ run_watchdog_case() (
     finalization)
       unset TRINKET_XCODE_IDLE_TIMEOUT_SECONDS
       completion=process-exit ;;
-    selected|split-marker|zero|zero-options|mixed-incomplete|swift-summary)
+    selected|zero|zero-options|mixed-incomplete|swift-summary)
       expected=124
-      completion=process-exit
-      [[ "$mode" != split-marker ]] || export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=10 ;;
+      completion=process-exit ;;
     failure|late-failure) expected=65 ;;
     silent|growing)
       export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=2
@@ -254,19 +286,18 @@ import json, sys
 manifest = json.load(open(sys.argv[1]))
 assert manifest["exit_code"] == int(sys.argv[2]), manifest
 assert manifest["completion_source"] == sys.argv[3], manifest
-if sys.argv[4] in {"success", "selected", "split-marker", "mixed-incomplete"}:
+if sys.argv[4] in {"success", "selected", "mixed-incomplete"}:
     assert manifest["test_execution_proven"] and not manifest["result_bundle_complete"], manifest
 PY_MANIFEST
   case "$mode" in
     selected) ! grep -F -- "** TEST SUCCEEDED **" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
-    split-marker) grep -F -- "idle log" "$results/terminal.log" || return 1 ;;
     zero|zero-options|mixed-incomplete|swift-summary)
       grep -F -- "treating as timeout (exit 124)" "$results/terminal.log" || return 1 ;;
     late-failure) grep -F -- "XCTAssertEqual failed" "$XCODE_RUNNER_LOG_PATH" || return 1 ;;
   esac
 )
 
-watchdog_cases=(finalization success selected split-marker zero zero-options mixed-incomplete swift-summary failure late-failure silent growing)
+watchdog_cases=(finalization success selected zero zero-options mixed-incomplete swift-summary failure late-failure silent growing)
 watchdog_pids=()
 for mode in "${watchdog_cases[@]}"; do
   mkdir -p "$TMP_DIR/watchdog-$mode"
@@ -347,7 +378,7 @@ PY_MANIFEST
   if trinket_assert_targeted_tests_executed; then exit 97; fi
 ' _ "$RUNNER" "$TMP_DIR" "$ROOT_DIR"
 
-bash -eu -c '
+TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0 TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0 bash -eu -c '
   source "$1"
   capture="$2/diagnostic-arguments"
   xcodebuild() {
@@ -392,61 +423,6 @@ PY_OPTIONS
   done
 ' _ "$RUNNER" "$TMP_DIR" "$ROOT_DIR"
 
-# Infra retry matcher covers XCUITest launch flakes even when exit is 65.
-python3 - "$ROOT_DIR" <<'PY_FILTERS'
-import json
-import subprocess
-import sys
-import tempfile
-
-def case(identifier, result="Passed"):
-    return {"nodeType": "Test Case", "nodeIdentifier": identifier, "result": result}
-
-checks = [
-    ([case("ExampleTests/testOne()")], ["ExampleTests"], True),
-    ([case("ExampleTests/testOne()")], ["TrinketUITests/ExampleTests/testOne"], True),
-    ([case("ExampleTests/testOne()")], ["ExampleTests", "MissingTests"], False),
-    ([case("ExampleTests/testOne()")], ["ExampleTests/testOther"], False),
-    ([case("ExampleTestsExtra/testOne()")], ["ExampleTests"], False),
-    ([case("ExampleTests/testOne()", "Skipped")], ["ExampleTests"], False),
-    ([case("ExampleTests/testOne()", "Skipped"), case("OtherTests/testOne()")], ["ExampleTests"], False),
-    ([case("ExampleTests/testOne()"), case("ExampleTests/testTwo()", "Skipped")], ["ExampleTests"], True),
-    ([], ["ExampleTests"], False),
-]
-command = '''
-source "$1/Scripts/lib/test-helpers.sh"
-fixture="$2"
-complete="$3"
-shift 3
-TARGETS=("$@")
-RESULT_BUNDLE_PATH=fixture
-XCODEBUILD_LOG_PATH="$fixture"
-xcode_runner_result_bundle_complete() { [[ "$complete" == 1 ]]; }
-xcrun() { :; }
-xcode_runner_run_bounded() { printf '%s' "$fixture"; }
-trinket_assert_targeted_tests_executed
-'''
-for nodes, targets, succeeds in checks:
-    payload = json.dumps({"testNodes": [{"nodeType": "Test Suite", "children": nodes}]})
-    result = subprocess.run(["bash", "-eu", "-c", command, "_", sys.argv[1], payload, "1", *targets],
-                            capture_output=True, text=True)
-    assert (result.returncode == 0) == succeeds, (targets, nodes, result.stdout, result.stderr)
-with tempfile.NamedTemporaryFile(mode="w+") as log:
-    for content, targets, succeeds in [
-        ("Test Case '-[TrinketUITests.ExampleTests testOne]' passed (1 seconds).", ["ExampleTests/testOne"], True),
-        ("Test Case '-[TrinketUITests.ExampleTests testOne]' passed (1 seconds).", ["ExampleTests", "MissingTests"], False),
-        ("Test Case '-[TrinketUITests.ExampleTests testOne]' skipped (1 seconds).", ["ExampleTests"], False),
-        ("Test Case '-[TrinketUITests.ExampleTests testOne]' started.\nExecuted 1 test, with 0 failures", ["ExampleTests"], False),
-    ]:
-        log.seek(0)
-        log.truncate()
-        log.write(content)
-        log.flush()
-        result = subprocess.run(["bash", "-eu", "-c", command, "_", sys.argv[1], log.name, "0", *targets],
-                                capture_output=True, text=True)
-        assert (result.returncode == 0) == succeeds, (content, targets, result.stdout, result.stderr)
-print("Targeted execution filter cases passed")
-PY_FILTERS
 
 # Evidence patterns determine classification; exit code alone must not override.
 launch_log="$TMP_DIR/launch.log"

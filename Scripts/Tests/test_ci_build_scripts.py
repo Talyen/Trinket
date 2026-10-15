@@ -15,31 +15,52 @@ from pathlib import Path
 
 class CIBuildScriptTests(ScriptRegressionTestCase):
     def test_each_requested_ui_filter_requires_executed_cases(self) -> None:
-        command = '''source Scripts/lib/test-helpers.sh
-RESULT_BUNDLE_PATH=unused
+        def case(identifier, result="Passed"):
+            return {"nodeType": "Test Case", "nodeIdentifier": identifier, "result": result}
+
+        # One owner covers both export and terminal fallback, including exact
+        # selector boundaries. A passing neighbor must not hide a missing filter.
+        bundle_cases = [
+            ([case("ExampleTests/testOne()")], ["ExampleTests"], True),
+            ([case("ExampleTests/testOne()")], ["TrinketUITests/ExampleTests/testOne"], True),
+            ([case("ExampleTests/testOne()"), case("OtherTests/testOne()")], ["ExampleTests", "OtherTests"], True),
+            ([case("ExampleTests/testOne()")], ["ExampleTests", "MissingTests"], False),
+            ([case("ExampleTests/testOne()")], ["ExampleTests/testOther"], False),
+            ([case("ExampleTestsExtra/testOne()")], ["ExampleTests"], False),
+            ([case("ExampleTests/testOne()", "Skipped")], ["ExampleTests"], False),
+            ([case("ExampleTests/testOne()", "Skipped"), case("OtherTests/testOne()")], ["ExampleTests"], False),
+            ([case("ExampleTests/testOne()"), case("ExampleTests/testTwo()", "Skipped")], ["ExampleTests"], True),
+            ([], ["ExampleTests"], False),
+        ]
+        command = '''
+source Scripts/lib/test-helpers.sh
+RESULT_BUNDLE_PATH=fixture
 XCODEBUILD_LOG_PATH="$1"
-TARGETS=(SmokeA SmokeB)
-xcrun() { :; }
+shift
+TARGETS=("$@")
 xcode_runner_result_bundle_complete() { [[ "$RESULT_EVIDENCE" == bundle ]]; }
-xcode_runner_run_bounded() { printf '%s\\n' "$TEST_RESULTS"; }
+xcrun() { :; }
+xcode_runner_run_bounded() { printf '%s' "$TEST_RESULTS"; }
 trinket_assert_targeted_tests_executed
 '''
+        log_cases = [
+            ("Test Case '-[TrinketUITests.ExampleTests testOne]' passed (1 seconds).", ["ExampleTests/testOne"], True),
+            ("Test Case '-[TrinketUITests.ExampleTests testOne]' passed (1 seconds).", ["ExampleTests", "MissingTests"], False),
+            ("Test Case '-[TrinketUITests.ExampleTests testOne]' skipped (1 seconds).", ["ExampleTests"], False),
+            ("Test Case '-[TrinketUITests.ExampleTests testOne]' started.\nExecuted 1 test, with 0 failures", ["ExampleTests"], False),
+        ]
         with tempfile.TemporaryDirectory() as directory:
             log = Path(directory) / 'tests.log'
-            for evidence in ('bundle', 'log'):
-                for outcome in ('Skipped', 'Passed'):
-                    with self.subTest(evidence=evidence, outcome=outcome):
-                        tests = [{'nodeType': 'Test Case', 'nodeIdentifier': f'{suite}/testJourney()', 'result': result}
-                                 for suite, result in (('SmokeA', 'Passed'), ('SmokeB', outcome))]
-                        log.write_text("Test Case '-[SmokeA testJourney]' passed (0.1 seconds).\n"
-                                       f"Test Case '-[SmokeB testJourney]' {outcome.lower()} (0.1 seconds).\n")
+            for evidence, cases in (("bundle", bundle_cases), ("log", log_cases)):
+                for content, targets, succeeds in cases:
+                    with self.subTest(evidence=evidence, content=content, targets=targets):
+                        log.write_text(content if evidence == "log" else "")
+                        payload = json.dumps({"testNodes": [{"nodeType": "Test Suite", "children": content}]}) if evidence == "bundle" else ""
                         result = run_captured(
-                            ['bash', '-eu', '-c', command, '_', str(log)], cwd=ROOT, env={**os.environ, 'RESULT_EVIDENCE': evidence, 'TEST_RESULTS': json.dumps({'testNodes': tests})}
+                            ['bash', '-eu', '-c', command, '_', str(log), *targets], cwd=ROOT,
+                            env={**os.environ, 'RESULT_EVIDENCE': evidence, 'TEST_RESULTS': payload},
                         )
-                        self.assertEqual(result.returncode, 0 if outcome == 'Passed' else 1,
-                                         result.stdout + result.stderr)
-                        if outcome == 'Skipped':
-                            self.assertIn('zero tests (empty or all skipped): SmokeB', result.stderr)
+                        self.assertEqual(result.returncode, 0 if succeeds else 1, result.stdout + result.stderr)
 
     def test_successful_test_process_requires_execution_evidence(self) -> None:
         cases = (
