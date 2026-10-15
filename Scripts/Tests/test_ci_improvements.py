@@ -289,12 +289,23 @@ class CIImprovementsTests(unittest.TestCase):
             for name in ('test-ci-packages.sh', 'build-inputs.env'):
                 shutil.copy(ROOT / 'Scripts' / name, root / 'Scripts' / name)
             for name, mode in (('test-package-host.sh', 'native'), ('test-package.sh', 'ios')):
-                write_executable(root / 'Scripts' / name, '#!/bin/bash\nprintf "' + mode + ':%s\\n" "$*"\n')
+                variable = 'NATIVE_STATUS' if mode == 'native' else 'IOS_STATUS'
+                write_executable(root / 'Scripts' / name, '#!/bin/bash\nprintf "' + mode
+                                 + ':%s\\n" "$*"\nexit "${' + variable + ':-0}"\n')
             packages = ['BattleEngine', 'TrinketCore', 'TrinketPersistence', 'TrinketAppState']
             for event, expected in [('push', ['native:BattleEngine TrinketCore', 'ios:TrinketPersistence TrinketAppState']),
                                     ('workflow_dispatch', ['ios:' + ' '.join(packages)])]:
                 result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root, env={**os.environ, 'GITHUB_EVENT_NAME': event}, expected=0)
                 self.assertEqual(result.stdout.splitlines(), expected)
+            # A failed Core run must still exercise saves and app transitions,
+            # and a later success or failure must not erase the original exit.
+            for native, ios, expected in ((17, 0, 17), (0, 23, 23), (17, 23, 17)):
+                with self.subTest(native=native, ios=ios):
+                    result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
+                                          env={**os.environ, 'GITHUB_EVENT_NAME': 'push',
+                                               'NATIVE_STATUS': str(native), 'IOS_STATUS': str(ios)}, expected=expected)
+                    self.assertEqual(result.stdout.splitlines(),
+                                     ['native:BattleEngine TrinketCore', 'ios:TrinketPersistence TrinketAppState'])
 
     def test_native_cache_omits_simulator_products_and_selected_identity_keeps_compatible_keys(self):
         action = (ROOT / '.github/actions/package-cache/action.yml').read_text()

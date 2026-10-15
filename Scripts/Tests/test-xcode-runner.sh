@@ -136,9 +136,12 @@ REPORT_CAPTURE="$TMP_DIR/result-args" XCODE_RUNNER_REPORTER="$TMP_DIR/fake-repor
   ' _ "$RUNNER" "$TMP_DIR/result-summary" "$ROOT_DIR/Scripts/Tests/Fixtures/test-summary.json"
 
 bounded_log="$TMP_DIR/bounded.log"
-for _ in $(seq 1 100); do
-  printf 'Sources/VeryLong.swift:17: error: %s\n' "$(printf 'x%.0s' $(seq 1 500))" >> "$bounded_log"
-done
+python3 - "$bounded_log" <<'PY_LOG'
+from pathlib import Path
+import sys
+
+Path(sys.argv[1]).write_text(("Sources/VeryLong.swift:17: error: " + "x" * 500 + "\n") * 100)
+PY_LOG
 bounded_terminal="$TMP_DIR/bounded-terminal"
 bash -c '
   set -euo pipefail
@@ -147,7 +150,8 @@ bash -c '
 ' _ "$RUNNER" "$TMP_DIR" "$bounded_log" >"$bounded_terminal" 2>&1
 bounded_matches="$(grep -c 'Sources/VeryLong.swift' "$bounded_terminal" || true)"
 [[ "$bounded_matches" -le 81 ]]
-awk 'length($0) <= 430' "$bounded_terminal" >/dev/null
+[[ "$bounded_matches" -gt 0 ]]
+awk 'length($0) > 430 { exit 1 }' "$bounded_terminal"
 
 failure_results="$TMP_DIR/failure-results"
 failure_state="$TMP_DIR/failure-state"

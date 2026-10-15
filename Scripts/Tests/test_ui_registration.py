@@ -78,11 +78,19 @@ class UIRegistrationTests(unittest.TestCase):
                 REGISTRY.generate(root, REGISTRY.registrations(root))
             self.assertEqual(before, [(root / f'{suite}.xctestplan').read_bytes() for suite in ('Smoke', 'FullUI')])
 
-    def test_workflow_rejects_smoke_that_bypasses_registry_filters(self):
+    def test_workflow_rejects_smoke_and_full_ui_that_bypass_registry_filters(self):
         read = Path.read_text
         workflow = ROOT / '.github/workflows/tests.yml'
         original = workflow.read_text()
-        def changed(path, *args, **kwargs):
-            return original.replace('--classes Smoke', '--classes Missing') if path == workflow else read(path, *args, **kwargs)
-        with patch.object(Path, 'read_text', changed):
-            self.assertTrue(any('registry-selected smoke' in error for error in REGISTRY.testplan_failures()))
+        for before, after, diagnostic in (
+            ('--classes Smoke', '--classes Missing', 'registry-selected smoke'),
+            ('steps.ui-matrices.outputs.smoke-targets', 'steps.unrelated.outputs.targets', 'registry-selected smoke'),
+            ('--classes FullUI', '--classes Smoke', 'registry-selected FullUI'),
+            ('steps.ui-matrices.outputs.full-targets', 'steps.ui-matrices.outputs.smoke-targets', 'registry-selected FullUI'),
+            ('steps.ui-targets.outputs.targets', 'steps.unrelated.outputs.targets', 'registry-selected FullUI'),
+        ):
+            with self.subTest(bypass=before):
+                def changed(path, *args, **kwargs):
+                    return original.replace(before, after) if path == workflow else read(path, *args, **kwargs)
+                with patch.object(Path, 'read_text', changed):
+                    self.assertTrue(any(diagnostic in error for error in REGISTRY.testplan_failures()))

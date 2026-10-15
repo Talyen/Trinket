@@ -80,6 +80,9 @@ Known intentional forks (do not "fix" toward a single default):
 - **Stores (persistence reload semantics):** mutate → close/reload from disk → `#expect`; an in-memory accessor/setter round trip is not persistence coverage.
 - **Async/debounce:** inject short intervals in production inits; poll in tests — never `Task.sleep` for multi-second production delays.
 - **Events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
+- **Script runners:** exercise real selection and execution with minimal sentinel
+  suites; avoid recursively running unrelated regression suites just to prove runner
+  plumbing. Keep backend failure propagation and missing-execution protection covered.
 - **Tier fit:** Keep package tests deterministic and credential-free; real CloudKit I/O and physical audio playback need integration/device evidence. Presentation logic can merit unit coverage for consequential contracts such as finite geometry, interruption continuity, and resource cleanup; apply the coverage decision below.
 
 ## Coverage decision (new and changed behavior)

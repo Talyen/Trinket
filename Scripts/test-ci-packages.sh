@@ -24,6 +24,16 @@ for package in "$@"; do
     *) ios+=("$package") ;;
   esac
 done
-if (( ${#native[@]} )); then ./Scripts/test-package-host.sh "${native[@]}"; fi
-if (( ${#ios[@]} )); then ./Scripts/test-package.sh "${ios[@]}"; fi
 if (( $# == 0 )); then echo "Expected package scope." >&2; exit 2; fi
+# A pure-logic failure must not suppress the shard's save and app-state evidence.
+# Keep the first failure while allowing each selected backend to finish.
+status=0
+if (( ${#native[@]} )); then
+  ./Scripts/test-package-host.sh "${native[@]}" || status=$?
+fi
+if (( ${#ios[@]} )); then
+  ios_status=0
+  ./Scripts/test-package.sh "${ios[@]}" || ios_status=$?
+  if (( status == 0 )); then status=$ios_status; fi
+fi
+exit "$status"

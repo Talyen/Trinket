@@ -171,16 +171,11 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
                 self.assertIn('rebuild-command: ./Scripts/build-for-testing.sh --app-only', consumer)
                 self.assertRegex(consumer, r'uses: \./\.github/actions/setup-trinket\n(?:\s+if:.*\n)?\s+with:\n(?:\s+#.*\n)*\s+metal: \'true\'')
 
-    def test_build_smoke_and_exhaustive_keep_registry_coverage(self):
+    def test_build_retains_reusable_products_and_required_smoke(self):
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()
         build = workflow.split('  build:\n', 1)[1].split('  release-device:\n', 1)[0]
-        self.assertIn('python3 Scripts/check-testplan-sync.py --classes Smoke', build)
-        self.assertIn('./Scripts/test.sh smoke --no-build ${{ steps.ui-matrices.outputs.smoke-targets }}', build)
         self.assertIn("upload-artifact: 'true'", build)
         self.assertNotIn('build-artifact:', build.split('- name: Run smoke', 1)[1])
-        exhaustive = workflow.split('  exhaustive-ui:\n', 1)[1].split('  diff-review:\n', 1)[0]
-        self.assertIn('--classes FullUI', exhaustive)
-        self.assertIn('./Scripts/test.sh ui --no-build ${{ steps.ui-targets.outputs.targets }}', exhaustive)
         aggregate = workflow.split('  ci-ok:\n', 1)[1].split('  exhaustive-ok:\n', 1)[0]
         self.assertIn('build', aggregate.split('if: always()', 1)[0])
 

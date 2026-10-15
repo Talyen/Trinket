@@ -110,40 +110,57 @@ class ScriptSelectionTests(unittest.TestCase):
         self.assertEqual(select_tests(["Gemfile.lock"]), ["Scripts/Tests/test_testflight.py"])
 
     def test_script_runner_accepts_absolute_repository_paths(self) -> None:
-        import subprocess
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.runner_fixture(Path(directory))
+            scripts = root / 'Scripts'
+            # Exercise the real normalization, selector, syntax pass and worker;
+            # the leaf suite's behavior already has its own independent owner.
+            for name in ('internal/change_routing.py', 'internal/agent_status.py', 'internal/ui_registration.py'):
+                shutil.copy2(ROOT / 'Scripts' / name, scripts / name)
+            (scripts / 'config/script-regressions.tsv').write_text('')
+            relative = 'Scripts/Tests/test_probe.py'
+            probe = root / relative
+            probe.write_text('import unittest\nfrom pathlib import Path\n'
+                             'class Probe(unittest.TestCase):\n'
+                             '    def test_selected(self): Path("executed").touch()\n')
+            marker = root / 'executed'
+            outputs = []
+            for path in (relative, str(probe)):
+                result = run_captured(['bash', 'Scripts/test-scripts.sh', '--fast', '--paths', path], cwd=root, expected=0)
+                self.assertTrue(marker.exists(), 'selected worker must actually execute')
+                marker.unlink()
+                self.assertIn('Script scope: 1 Python and 0 shell suites.', result.stdout)
+                self.assertIn('Script syntax passed', result.stdout)
+                outputs.append([line for line in result.stdout.splitlines()
+                                if line.startswith(('Script scope:', '=== '))])
+            self.assertEqual(outputs[0], outputs[1])
 
-        relative = "Scripts/Tests/test_internal_cli.py"
-        outputs = []
-        for path in (relative, str(ROOT / relative)):
-            result = run_captured(["bash", "Scripts/test-scripts.sh", "--fast", "--paths", path], cwd=ROOT, expected=0)
-            self.assertIn("Script scope: 1 Python and 0 shell suites.", result.stdout)
-            self.assertIn("Script syntax passed", result.stdout)
-            outputs.append([line for line in result.stdout.splitlines()
-                            if line.startswith(("Script scope:", "=== "))])
-        self.assertEqual(outputs[0], outputs[1])
+            for path in (str(scripts), str(root.parent / 'outside.py')):
+                result = run_captured(['bash', 'Scripts/test-scripts.sh', '--fast', '--paths', path], cwd=root)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('--paths', result.stderr)
+                self.assertFalse(marker.exists(), 'invalid scope must fail before executing workers')
 
-        for path in (str(ROOT / "Scripts"), str(ROOT.parent / "outside.py")):
-            result = run_captured(["bash", "Scripts/test-scripts.sh", "--fast", "--paths", path], cwd=ROOT)
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("--paths", result.stderr)
+    def runner_fixture(self, root: Path) -> Path:
+        scripts = root / 'Scripts'
+        (scripts / 'Tests').mkdir(parents=True)
+        for name in ('test-scripts.sh', 'lib/args.sh', 'script_diagnostics.py',
+                     'internal/diagnostics/diagnostic_limits.py', 'config/diagnostic-limits.env',
+                     'cleanup-outputs.py', 'internal/output_retention.py', 'internal/cli.py',
+                     'lib/output-retention.sh', 'lib/lock.sh', 'script_test_selection.py'):
+            (scripts / name).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / 'Scripts' / name, scripts / name)
+        write_executable(scripts / 'check-build-cache-paths.sh', '#!/bin/sh\nexit 0\n')
+        (scripts / 'check-docs.py').write_text('raise RuntimeError("docs must be skipped")\n')
+        return root
 
     def test_runner_compiles_without_execution_and_preserves_worker_failures(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
+            root = self.runner_fixture(Path(directory))
             scripts = root / "Scripts"
             tests = scripts / "Tests"
-            tests.mkdir(parents=True)
-            (scripts / "lib").mkdir()
-            for name in ("test-scripts.sh", "lib/args.sh", "script_diagnostics.py",
-                         "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env",
-                         "cleanup-outputs.py", "internal/output_retention.py", "internal/cli.py",
-                         "lib/output-retention.sh", "lib/lock.sh"):
-                (scripts / name).parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(ROOT / "Scripts" / name, scripts / name)
             (scripts / "script_test_selection.py").write_text(
                 'print("Scripts/Tests/test_first.py\\nScripts/Tests/test_last.py\\nScripts/Tests/test-peer.sh")\n')
-            write_executable(scripts / "check-build-cache-paths.sh", '#!/bin/sh\nexit 0\n')
-            (scripts / "check-docs.py").write_text('raise RuntimeError("docs must be skipped")\n')
             # A syntactically valid file must never execute during compilation.
             (scripts / "syntax_probe.py").write_text('raise RuntimeError("syntax executed")\n')
             first = tests / "test_first.py"
