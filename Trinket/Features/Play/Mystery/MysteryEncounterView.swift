@@ -31,8 +31,8 @@ struct MysteryEncounterView: View {
                     session: session,
                     unlockedID: unlockedID,
                     onSelectDetail: presentCombatant,
-                    onFinish: { encounters.finishActiveMysteryEncounter(dismiss: false) },
-                    onDismiss: { encounters.dismissActiveMysteryEncounter() },
+                    onFinish: { encounters.finishMysteryEncounter(session: session, dismiss: false) },
+                    onDismiss: { encounters.dismissMysteryEncounter(session: session) },
                 )
                 .transition(.opacity)
             } else if session.showsReward, let result = session.applyResult {
@@ -48,7 +48,7 @@ struct MysteryEncounterView: View {
                     session: session,
                     result: result,
                     onFinish: {
-                        let didFinish = encounters.finishActiveMysteryCorruptionReveal()
+                        let didFinish = encounters.finishMysteryCorruptionReveal(session: session)
                         if didFinish {
                             corruptionWarningTrigger &+= 1
                         }
@@ -59,8 +59,8 @@ struct MysteryEncounterView: View {
             } else if session.showsCorruptItemChoice {
                 MysteryCorruptItemChoiceContent(
                     session: session,
-                    onCorruptItem: { encounters.corruptActiveMysteryItem(itemID: $0) },
-                    onCancelCorruptSelection: { encounters.cancelActiveMysteryCorruptSelection() },
+                    onCorruptItem: { encounters.corruptMysteryItem(session: session, itemID: $0) },
+                    onCancelCorruptSelection: { encounters.cancelMysteryCorruptSelection(session: session) },
                 )
                 .transition(.opacity)
             } else if session.isCorruptionAltar || session.event.isRecruit {
@@ -184,7 +184,7 @@ struct MysteryEncounterView: View {
                         preparedArtworkNames: preparedArtworkNames,
                         isDisabled: session.isResolvingChoice,
                         onInspect: { selectedItem = $0 },
-                        onChoose: { _ = encounters.resolveActiveMysteryChoice(choiceID: $0) },
+                        onChoose: { _ = encounters.resolveMysteryChoice(session: session, choiceID: $0) },
                     )
                 }
                 .padding(TrinketDesign.Layout.contentMargin)
@@ -274,7 +274,7 @@ struct MysteryEncounterView: View {
             isDisabled: selectedChoiceID == nil || session.isResolvingChoice,
         ) {
             guard let selectedChoiceID else { return }
-            _ = encounters.resolveActiveMysteryChoice(choiceID: selectedChoiceID)
+            _ = encounters.resolveMysteryChoice(session: session, choiceID: selectedChoiceID)
         }
         .padding(.top, TrinketDesign.Spacing.small)
     }

@@ -30,11 +30,11 @@ struct AppStateMysteryRecruitTests {
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
 
-        #expect(state.encounters.finishActiveMysteryEncounter())
+        #expect(state.encounters.finishMysteryEncounter(session: session))
 
         #expect(state.encounters.activeMysteryEncounter == nil)
         #expect(state.playerSave.journey.activeStageID == "chapter-1-stage-3")
-        #expect(!state.encounters.finishActiveMysteryEncounter())
+        #expect(!state.encounters.finishMysteryEncounter(session: session))
     }
 
     @Test func `recruit stage preview matches opened encounter`() throws {
@@ -58,11 +58,11 @@ struct AppStateMysteryRecruitTests {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
 
-        #expect(state.encounters.finishActiveMysteryEncounter(dismiss: false))
+        #expect(try state.encounters.finishMysteryEncounter(session: #require(state.encounters.activeMysteryEncounter), dismiss: false))
         #expect(state.encounters.activeMysteryEncounter != nil)
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
 
-        state.encounters.dismissActiveMysteryEncounter()
+        try state.encounters.dismissMysteryEncounter(session: #require(state.encounters.activeMysteryEncounter))
         #expect(state.encounters.activeMysteryEncounter == nil)
     }
 
@@ -187,7 +187,10 @@ struct AppStateMysteryRecruitTests {
         )
         let goldBefore = state.playerSave.roster.gold
 
-        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "stale-choice-id"))
+        #expect(try !state.encounters.resolveMysteryChoice(
+            session: #require(state.encounters.activeMysteryEncounter),
+            choiceID: "stale-choice-id",
+        ))
 
         let session = try #require(state.encounters.activeMysteryEncounter)
         #expect(session.canResolveChoice)
@@ -205,7 +208,7 @@ struct AppStateMysteryRecruitTests {
         let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let session = try attachPreparedMystery(event: event, to: state)
         let offer = try #require(session.offers.last)
-        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
+        #expect(state.encounters.resolveMysteryChoice(session: session, choiceID: offer.choiceID))
         let result = try #require(session.applyResult)
         #expect(result.heroGrantedExperience == result.companionGrantedExperience)
         #expect(result.heroGrantedExperience > 0)
@@ -218,7 +221,7 @@ struct AppStateMysteryRecruitTests {
         let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
         attachMysterySession(event: event, to: state)
 
-        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: "leave"))
+        #expect(try state.encounters.resolveMysteryChoice(session: #require(state.encounters.activeMysteryEncounter), choiceID: "leave"))
         #expect(state.encounters.activeMysteryEncounter == nil)
     }
 
@@ -232,7 +235,7 @@ struct AppStateMysteryRecruitTests {
         roster.gold = 999
         #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") { $0.roster = roster })
 
-        #expect(state.encounters.resolveActiveMysteryChoice(choiceID: offer.choiceID))
+        #expect(state.encounters.resolveMysteryChoice(session: session, choiceID: offer.choiceID))
         #expect(state.playerSave.inventory != inventoryBefore)
         #expect(session.applyResult?.grantedItems == [offer.item])
         #expect(session.applyResult?.grantedGold == 0)
@@ -247,7 +250,10 @@ struct AppStateMysteryRecruitTests {
         let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
         attachMysterySession(event: event, to: state)
 
-        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "corrupt-item"))
+        #expect(try !state.encounters.resolveMysteryChoice(
+            session: #require(state.encounters.activeMysteryEncounter),
+            choiceID: "corrupt-item",
+        ))
 
         let session = try #require(state.encounters.activeMysteryEncounter)
         #expect(session.canResolveChoice)
@@ -265,7 +271,7 @@ struct AppStateMysteryRecruitTests {
 
         let goldBefore = state.playerSave.roster.gold
         playerSave.forcesNextSaveFailure = true
-        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
+        #expect(!state.encounters.resolveMysteryChoice(session: session, choiceID: "take-coinpurse"))
         #expect(state.encounters.activeMysteryEncounter != nil)
         #expect(state.encounters.activeMysteryEncounter?.persistFailureMessage == nil)
         #expect(playerSave.isRetryingSaveAction)
@@ -275,7 +281,7 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.activeMysteryEncounter?.showsReward == true)
         #expect(session.applyResult?.grantedItems == [shown.item])
         #expect(state.playerSave.journey.mysteryOfferPayloads[session.stage.id] == nil)
-        #expect(!state.encounters.resolveActiveMysteryChoice(choiceID: shown.choiceID))
+        #expect(!state.encounters.resolveMysteryChoice(session: session, choiceID: shown.choiceID))
         playerSave.forcesNextSaveFailure = true
         #expect(state.encounters.collectMysteryReward(session: session))
         #expect(playerSave.forcesNextSaveFailure)
@@ -309,7 +315,7 @@ struct AppStateMysteryRecruitTests {
         try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
         #expect(state.playerSave.roster.isCompanionUnlocked("bear"))
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-1-stage-2"))
-        #expect(state.encounters.finishActiveMysteryEncounter())
+        #expect(try state.encounters.finishMysteryEncounter(session: #require(state.encounters.activeMysteryEncounter)))
     }
 
     @Test func `finish active mystery encounter ignores reading phase`() throws {
@@ -330,7 +336,7 @@ struct AppStateMysteryRecruitTests {
             combatant: nil,
         )
 
-        #expect(!state.encounters.finishActiveMysteryEncounter())
+        #expect(try !state.encounters.finishMysteryEncounter(session: #require(state.encounters.activeMysteryEncounter)))
         #expect(state.encounters.activeMysteryEncounter != nil)
         #expect(!state.playerSave.journey.completedStageIDs.contains(stage.id))
     }
@@ -373,5 +379,40 @@ struct AppStateMysteryRecruitTests {
         })
         state.encounters.activeMysteryEncounter = session
         return session
+    }
+}
+
+extension AppStateMysteryRecruitTests {
+    @Test(arguments: [false, true])
+    func `retired mystery callbacks cannot claim or dismiss current progress`(replacedSave: Bool) throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let retired = try attachPreparedMystery(event: event, to: state)
+        let offer = try #require(retired.offers.first)
+        let current: MysteryEncounterSession
+        if replacedSave {
+            try state.playerSave.performFixtureMutation { $0.sessionGeneration &+= 1 }
+            current = retired
+        } else {
+            current = MysteryEncounterSession(
+                origin: retired.origin, encounter: retired.encounter, event: retired.event, combatant: retired.combatant,
+            )
+            current.installOffers(retired.offers)
+            state.encounters.activeMysteryEncounter = current
+        }
+        let before = state.playerSave.currentSave
+
+        #expect(!state.encounters.resolveMysteryChoice(session: retired, choiceID: offer.choiceID))
+        #expect(current.canResolveChoice)
+        #expect(current.applyResult == nil)
+        #expect(state.playerSave.currentSave == before)
+        #expect(!state.playerSave.isRetryingSaveAction)
+
+        current.applyOutcome(.reveal(unlockedCombatantID: "bear"))
+        #expect(!state.encounters.finishMysteryEncounter(session: retired))
+        state.encounters.dismissMysteryEncounter(session: retired)
+        #expect(!state.encounters.applyMysteryOutcome(.dismiss, session: retired))
+        #expect(state.encounters.activeMysteryEncounter === current)
+        #expect(state.playerSave.currentSave == before)
     }
 }

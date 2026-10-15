@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import Testing
 import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
@@ -23,17 +24,25 @@ extension PlaythroughCareer {
             guard let id = play.postBattleTalentConfirmationID else { throw PlaythroughFailure.rejected("talent confirmation") }
             play.finishPostBattleTalentConfirmation(id: id)
         case let .mystery(id):
-            try require(play.encounters.resolveActiveMysteryChoice(choiceID: id), "mystery choice")
-        case .finishMystery:
-            let isCorruption = play.encounters.activeMysteryEncounter?.showsCorruptionReveal == true
             try require(
-                isCorruption ? play.encounters.finishActiveMysteryCorruptionReveal() : play.encounters.finishActiveMysteryEncounter(),
+                play.encounters.resolveMysteryChoice(session: #require(play.encounters.activeMysteryEncounter), choiceID: id),
+                "mystery choice",
+            )
+        case .finishMystery:
+            let session = try #require(play.encounters.activeMysteryEncounter)
+            try require(
+                session.showsCorruptionReveal
+                    ? play.encounters.finishMysteryCorruptionReveal(session: session)
+                    : play.encounters.finishMysteryEncounter(session: session),
                 "mystery completion",
             )
         case let .shop(id):
-            try require(play.encounters.purchaseActiveShopOffer(offerID: id) == .committed, "shop purchase")
+            try require(
+                play.encounters.purchaseShopOffer(session: #require(play.encounters.activeShopEncounter), offerID: id) == .committed,
+                "shop purchase",
+            )
         case .finishShop:
-            try require(play.encounters.finishActiveShopEncounter(), "shop completion")
+            try require(play.encounters.finishShopEncounter(session: #require(play.encounters.activeShopEncounter)), "shop completion")
         case .reopen:
             try require(!play.isGameplayActive, "reload must be at browsing boundary")
             let before = snapshot
@@ -42,7 +51,10 @@ extension PlaythroughCareer {
             try require(snapshot == before, "immediate save reload comparison")
             summary.reloads += 1
         case let .corrupt(itemID):
-            try require(play.encounters.corruptActiveMysteryItem(itemID: itemID), "corruption choice")
+            try require(
+                play.encounters.corruptMysteryItem(session: #require(play.encounters.activeMysteryEncounter), itemID: itemID),
+                "corruption choice",
+            )
         case .card, .endTurn, .victory, .defeat, .retreat:
             try executeBattle(action)
         case .campaign, .enterLabyrinth, .labyrinth, .contracts, .contract, .spire:

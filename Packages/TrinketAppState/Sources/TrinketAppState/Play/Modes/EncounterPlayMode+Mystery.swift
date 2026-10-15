@@ -51,7 +51,7 @@ public extension EncounterPlayMode {
             activeMysteryEncounter = session
             sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
             if session.event.isRecruit {
-                guard resolveActiveMysteryChoice(choiceID: nil) else {
+                guard resolveMysteryChoice(session: session, choiceID: nil) else {
                     if session.isResolvingChoice {
                         return nil
                     }
@@ -66,7 +66,7 @@ public extension EncounterPlayMode {
 
     /// Character paywall for mystery events that unlock combatants. Also
     /// enforced in `PlayBattleCoordinator.activateBattle` and
-    /// `resolveActiveMysteryChoice`; checked here so the paywall surfaces
+    /// `resolveMysteryChoice`; checked here so the paywall surfaces
     /// before any pin writes.
     private func mysteryPaywallMessage(for event: MysteryEvent) -> StageMapMessage? {
         guard let id = event.unlockCombatantID, !playerSave.contentAccess.allowsCombatant(id) else { return nil }
@@ -74,8 +74,8 @@ public extension EncounterPlayMode {
     }
 
     @discardableResult
-    func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
-        guard let mysterySession = activeMysteryEncounter else { return false }
+    func resolveMysteryChoice(session mysterySession: MysteryEncounterSession, choiceID: String? = nil) -> Bool {
+        guard owns(mysterySession) else { return false }
         if mysteryPaywallMessage(for: mysterySession.event) != nil {
             mysterySession.markPersistFailed("This character requires Full Game. Progress is preserved.")
             return false
@@ -89,8 +89,8 @@ public extension EncounterPlayMode {
     }
 
     @discardableResult
-    func corruptActiveMysteryItem(itemID: String) -> Bool {
-        guard let mysterySession = activeMysteryEncounter else { return false }
+    func corruptMysteryItem(session mysterySession: MysteryEncounterSession, itemID: String) -> Bool {
+        guard owns(mysterySession) else { return false }
         guard mysterySession.showsCorruptItemChoice, !mysterySession.isResolvingChoice,
               mysterySession.corruptibleItems.contains(where: { $0.id == itemID }) else {
             mysterySession.markChoiceUnavailable()
@@ -107,9 +107,10 @@ public extension EncounterPlayMode {
     ) -> Bool {
         playerSave.performSaveAction(key: SaveRetryKey.mysteryResolution) { [weak self] _ in
             guard let self else { return false }
-            guard activeMysteryEncounter === mysterySession else { return false }
+            guard owns(mysterySession) else { return false }
 
             mysterySession.markChoiceStarted()
+            guard owns(mysterySession) else { return false }
             switch playerSave.resolveMysteryEncounter(
                 mysterySession.resolutionRequest, action: action, using: &mysteryRandom, at: date,
             ) {
@@ -127,16 +128,16 @@ public extension EncounterPlayMode {
         }
     }
 
-    func cancelActiveMysteryCorruptSelection() {
-        guard let mysterySession = activeMysteryEncounter, mysterySession.showsCorruptItemChoice else {
+    func cancelMysteryCorruptSelection(session mysterySession: MysteryEncounterSession) {
+        guard owns(mysterySession), mysterySession.showsCorruptItemChoice else {
             return
         }
         mysterySession.returnToReading()
     }
 
     @discardableResult
-    func finishActiveMysteryCorruptionReveal() -> Bool {
-        guard let mysterySession = activeMysteryEncounter, mysterySession.showsCorruptionReveal else {
+    func finishMysteryCorruptionReveal(session mysterySession: MysteryEncounterSession) -> Bool {
+        guard owns(mysterySession), mysterySession.showsCorruptionReveal else {
             return false
         }
         activeMysteryEncounter = nil
@@ -144,11 +145,12 @@ public extension EncounterPlayMode {
     }
 
     @discardableResult
-    func finishActiveMysteryEncounter(dismiss: Bool = true) -> Bool {
-        guard let mysterySession = activeMysteryEncounter else {
+    func finishMysteryEncounter(session mysterySession: MysteryEncounterSession, dismiss: Bool = true) -> Bool {
+        guard owns(mysterySession) else {
             return false
         }
         mysterySession.clearPersistFailure()
+        guard owns(mysterySession) else { return false }
         if mysterySession.showsReward {
             if dismiss {
                 activeMysteryEncounter = nil
@@ -166,8 +168,8 @@ public extension EncounterPlayMode {
     }
 
     func collectMysteryReward(session: MysteryEncounterSession) -> Bool {
-        guard activeMysteryEncounter === session, session.showsReward,
-              finishActiveMysteryEncounter(dismiss: false) else { return false }
+        guard owns(session), session.showsReward,
+              finishMysteryEncounter(session: session, dismiss: false) else { return false }
         if session.claimRewardCollectionSound() {
             sfxPlayer.play(SFXID.lootCollect, volume: options.effectsVolume)
         }
@@ -175,11 +177,12 @@ public extension EncounterPlayMode {
     }
 
     func dismissMysteryReward(session: MysteryEncounterSession) {
-        guard activeMysteryEncounter === session, session.showsReward else { return }
+        guard owns(session), session.showsReward else { return }
         activeMysteryEncounter = nil
     }
 
-    func dismissActiveMysteryEncounter() {
+    func dismissMysteryEncounter(session: MysteryEncounterSession) {
+        guard owns(session) else { return }
         activeMysteryEncounter = nil
     }
 
@@ -188,6 +191,7 @@ public extension EncounterPlayMode {
         _ outcome: MysteryChoiceOutcome,
         session mysterySession: MysteryEncounterSession,
     ) -> Bool {
+        guard owns(mysterySession) else { return false }
         switch outcome {
         case .dismiss:
             activeMysteryEncounter = nil

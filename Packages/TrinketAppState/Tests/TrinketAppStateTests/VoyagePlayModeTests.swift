@@ -83,16 +83,16 @@ struct VoyagePlayModeTests {
                 #expect(play.completeActiveBattle(battle, battleGold: .init(gained: 4)).didComplete)
             } else if node.type == .shop {
                 if play.encounters.activeShopEncounter != nil {
-                    #expect(play.encounters.finishActiveShopEncounter())
+                    #expect(try play.encounters.finishShopEncounter(session: #require(play.encounters.activeShopEncounter)))
                 }
             } else {
                 let session = try #require(play.encounters.activeMysteryEncounter)
                 if !session.event.isRecruit {
                     let choice = session.event.choices.first { $0.effects.contains(.leave) } ?? session.event.choices.first
-                    #expect(play.encounters.resolveActiveMysteryChoice(choiceID: choice?.id))
+                    #expect(play.encounters.resolveMysteryChoice(session: session, choiceID: choice?.id))
                 }
                 if play.encounters.activeMysteryEncounter != nil {
-                    #expect(play.encounters.finishActiveMysteryEncounter())
+                    #expect(play.encounters.finishMysteryEncounter(session: session))
                 }
             }
             if node.type != .boss {
@@ -220,8 +220,8 @@ struct VoyagePlayModeTests {
         #expect(session.event.id == "hidden-cache")
         #expect(session.persistFailureMessage == nil)
         #expect(play.playerSave.voyage.node(runID: run.id, nodeID: recruit.id)?.type == .mystery)
-        #expect(play.encounters.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
-        #expect(play.encounters.finishActiveMysteryEncounter())
+        #expect(play.encounters.resolveMysteryChoice(session: session, choiceID: "take-coinpurse"))
+        #expect(play.encounters.finishMysteryEncounter(session: session))
         #expect(play.playerSave.voyage.node(runID: run.id, nodeID: recruit.id)?.isCleared == true)
     }
 
@@ -268,8 +268,8 @@ struct VoyagePlayModeTests {
         #expect(session.event.id == preview.id)
         if !session.event.isRecruit {
             let choice = session.event.choices.first { $0.effects.contains(.leave) } ?? session.event.choices.first
-            #expect(play.encounters.resolveActiveMysteryChoice(choiceID: choice?.id))
+            #expect(play.encounters.resolveMysteryChoice(session: session, choiceID: choice?.id))
         }
-        #expect(play.encounters.finishActiveMysteryEncounter())
+        #expect(play.encounters.finishMysteryEncounter(session: session))
     }
 }

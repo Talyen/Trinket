@@ -92,21 +92,27 @@ public final class EncounterPlayMode {
     }
 
     @discardableResult
-    public func purchaseActiveShopOffer(offerID: String) -> ShopPurchaseOutcome {
-        guard let shopSession = activeShopEncounter else { return .rejected }
+    public func purchaseShopOffer(session shopSession: ShopEncounterSession, offerID: String) -> ShopPurchaseOutcome {
+        guard owns(shopSession) else { return .rejected }
         return playerSave.performSaveAction(key: SaveRetryKey.shopPurchase(offerID)) { [weak self] _ -> ShopPurchaseOutcome in
             guard let self else { return .rejected }
-            guard activeShopEncounter === shopSession else { return .rejected }
+            guard owns(shopSession) else { return .rejected }
             guard !shopSession.isPurchasing else { return .rejected }
             shopSession.markPurchaseStarted()
+            guard owns(shopSession) else {
+                shopSession.markPurchaseFinished()
+                return .rejected
+            }
             switch playerSave.purchaseShopOffer(offerID: offerID, encounter: shopSession.encounter) {
             case .committed:
                 shopSession.markPurchaseFinished()
+                guard owns(shopSession) else { return .committed }
                 shopSession.publishPurchase(offerID: offerID)
                 sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
                 return .committed
             case .rejected:
                 shopSession.markPurchaseFinished()
+                guard owns(shopSession) else { return .rejected }
                 sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
                 return .rejected
             case .persistFailed:
@@ -136,25 +142,37 @@ public final class EncounterPlayMode {
         }
     }
 
-    func clearActiveShopEncounter() {
-        activeShopEncounter = nil
-    }
-
     @discardableResult
-    public func finishActiveShopEncounter() -> Bool {
-        guard let shopSession = activeShopEncounter else { return false }
+    public func finishShopEncounter(session shopSession: ShopEncounterSession) -> Bool {
+        guard owns(shopSession) else { return false }
         return playerSave.performSaveAction(key: SaveRetryKey.shopLeave) { [weak self] _ in
             guard let self else { return false }
-            guard activeShopEncounter === shopSession else { return false }
+            guard owns(shopSession) else { return false }
 
             switch playerSave.finishShop(encounter: shopSession.encounter) {
             case .committed, .rejected:
-                clearActiveShopEncounter()
+                if owns(shopSession) {
+                    activeShopEncounter = nil
+                }
                 return true
             case .persistFailed:
                 return false
             }
         }
+    }
+
+    /// A screen's commands belong to its exact session and save lifetime. Matching
+    /// encounter/offer IDs alone cannot authorize callbacks from a retiring cover.
+    func owns(_ session: ShopEncounterSession) -> Bool {
+        activeShopEncounter === session && isCurrent(session.encounter)
+    }
+
+    func owns(_ session: MysteryEncounterSession) -> Bool {
+        activeMysteryEncounter === session && isCurrent(session.encounter)
+    }
+
+    private func isCurrent(_ encounter: EncounterIdentity) -> Bool {
+        encounter.worldSeed == playerSave.worldSeed && encounter.generation == playerSave.sessionGeneration
     }
 
     static func emptyShopClosedMessage(identifier: String) -> StageMapMessage {

@@ -53,7 +53,7 @@ private struct EncounterCoverContent: View {
             case let .mystery(session):
                 MysteryEncounterView(session: session, preparedArtworkNames: presentation.artworkNames)
             case let .shop(session):
-                ShopEncounterView(session: session, onLeave: encounters.finishActiveShopEncounter)
+                ShopEncounterView(session: session, onLeave: { encounters.finishShopEncounter(session: session) })
             }
         }
         .task(id: artworkNames) {

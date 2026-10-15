@@ -62,6 +62,9 @@ separate from primary actions through `InspectableTapButton` and the existing
 encounter presentation contract. Cache readiness controls artwork presentation,
 not gameplay eligibility. Party shelves and grids share their selection eligibility
 rule, and card tap, drag, and accessibility activation share one play-intent gate.
+Shop and Mystery commands require the session captured by their cover; the encounter
+owner checks reference identity and save generation before actions, retries, and
+completion callbacks. Retiring covers cannot buy, resolve, or dismiss a replacement.
 Party pickers capture selected-first ordering once per presentation and share it
 between shelves and grids. Selection changes animate emphasis without reordering
 the choices; reopening captures the new selection order. Eligibility stays live.

@@ -200,7 +200,7 @@ struct ShopEncounterView: View {
     }
 
     private func attemptPurchase(offerID: String, dismissDetail: Bool) {
-        switch encounters.purchaseActiveShopOffer(offerID: offerID) {
+        switch encounters.purchaseShopOffer(session: session, offerID: offerID) {
         case .committed:
             if dismissDetail {
                 selectedOffer = nil

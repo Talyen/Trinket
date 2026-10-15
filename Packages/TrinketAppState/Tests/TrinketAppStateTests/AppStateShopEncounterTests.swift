@@ -37,10 +37,10 @@ struct AppStateShopEncounterTests {
             save.roster.gold = offer.price * 3
         }
 
-        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .committed)
+        #expect(state.encounters.purchaseShopOffer(session: firstSession, offerID: offer.id) == .committed)
         #expect(firstSession.purchasePresentation?.offerID == offer.id)
         #expect(firstSession.purchasePresentation?.sequence == 1)
-        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .rejected)
+        #expect(state.encounters.purchaseShopOffer(session: firstSession, offerID: offer.id) == .rejected)
         #expect(firstSession.purchasePresentation?.sequence == 1)
         let goldAfterFirst = state.playerSave.roster.gold
         let itemsAfterFirst = state.playerSave.inventory.items.count
@@ -51,7 +51,7 @@ struct AppStateShopEncounterTests {
         let secondSession = try #require(state.encounters.activeShopEncounter)
         #expect(secondSession.offers.first?.id == offer.id)
 
-        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .rejected)
+        #expect(state.encounters.purchaseShopOffer(session: secondSession, offerID: offer.id) == .rejected)
         #expect(state.playerSave.roster.gold == goldAfterFirst)
         #expect(state.playerSave.inventory.items.count == itemsAfterFirst)
     }
@@ -67,7 +67,7 @@ struct AppStateShopEncounterTests {
         }
         let itemsBefore = state.playerSave.inventory.items.count
 
-        state.encounters.finishActiveShopEncounter()
+        try state.encounters.finishShopEncounter(session: #require(state.encounters.activeShopEncounter))
 
         #expect(state.encounters.activeShopEncounter == nil)
         #expect(state.playerSave.journey.completedStageIDs.contains("chapter-2-stage-8"))
@@ -140,7 +140,7 @@ struct AppStateShopEncounterTests {
 
         #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
         #expect(state.encounters.activeShopEncounter?.origin == .journey(stage: stage))
-        #expect(state.encounters.finishActiveShopEncounter())
+        #expect(try state.encounters.finishShopEncounter(session: #require(state.encounters.activeShopEncounter)))
         #expect(state.encounters.activeShopEncounter == nil)
     }
 
@@ -149,13 +149,13 @@ struct AppStateShopEncounterTests {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let origin = try shopOrigin(in: state, inLabyrinth: inLabyrinth)
         #expect(state.encounters.beginShopOrAutoComplete(origin: origin) == nil)
-        #expect(state.encounters.activeShopEncounter != nil)
+        let session = try #require(state.encounters.activeShopEncounter)
         try state.playerSave.performFixtureMutation { $0.sessionGeneration &+= 1 }
         let imported = state.playerSave.currentSave
 
-        #expect(state.encounters.finishActiveShopEncounter())
+        #expect(!state.encounters.finishShopEncounter(session: session))
 
-        #expect(state.encounters.activeShopEncounter == nil)
+        #expect(state.encounters.activeShopEncounter === session)
         #expect(state.playerSave.currentSave == imported)
         #expect(!state.playerSave.isRetryingSaveAction)
     }
@@ -199,6 +199,33 @@ struct AppStateShopEncounterTests {
     }
 
     #if DEBUG
+    @Test func `retired shop callbacks cannot buy from or complete a replacement with the same stock`() async throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
+        let retired = try #require(state.encounters.activeShopEncounter)
+        let offer = try #require(retired.offers.first)
+        let replacement = ShopEncounterSession(origin: retired.origin, encounter: retired.encounter, offers: retired.offers)
+        state.encounters.activeShopEncounter = replacement
+        try state.playerSave.performFixtureMutation { $0.roster.gold = offer.price * 3 }
+        let before = state.playerSave.currentSave
+
+        #expect(state.encounters.purchaseShopOffer(session: retired, offerID: offer.id) == .rejected)
+        #expect(!state.encounters.finishShopEncounter(session: retired))
+        #expect(state.encounters.activeShopEncounter === replacement)
+        #expect(replacement.purchasePresentation == nil)
+        #expect(state.playerSave.currentSave == before)
+        #expect(!state.playerSave.isRetryingSaveAction)
+
+        state.playerSave.forcesNextSaveFailure = true
+        #expect(state.encounters.purchaseShopOffer(session: replacement, offerID: offer.id) == .retrying)
+        #expect(state.encounters.purchaseShopOffer(session: retired, offerID: offer.id) == .rejected)
+        #expect(!state.encounters.finishShopEncounter(session: retired))
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { state.playerSave.isRetryingSaveAction }
+        #expect(replacement.purchasePresentation?.offerID == offer.id)
+        #expect(state.playerSave.roster.gold == before.roster.gold - offer.price)
+    }
+
     @Test func `empty shop retries without reporting completion before a durable write`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
@@ -235,7 +262,7 @@ struct AppStateShopEncounterTests {
         let itemsBefore = playerSave.inventory.items.count
 
         playerSave.forcesNextSaveFailure = true
-        #expect(state.encounters.purchaseActiveShopOffer(offerID: offer.id) == .retrying)
+        #expect(state.encounters.purchaseShopOffer(session: session, offerID: offer.id) == .retrying)
         #expect(session.purchasePresentation == nil)
         // The accepted attempt's rolled-back write left the save intact.
         #expect(playerSave.roster.gold == offer.price * 3)
@@ -272,7 +299,7 @@ struct AppStateShopEncounterTests {
         let session = try #require(state.encounters.activeShopEncounter)
 
         playerSave.forcesNextSaveFailure = true
-        #expect(!state.encounters.finishActiveShopEncounter())
+        #expect(!state.encounters.finishShopEncounter(session: session))
         #expect(state.encounters.activeShopEncounter === session)
         #expect(playerSave.isRetryingSaveAction)
 

@@ -177,22 +177,22 @@ struct AppStateLabyrinthTests {
             let session = try #require(state.encounters.activeShopEncounter)
             #expect(session.labyrinthNodeID == nodeID)
             #expect(!session.offers.isEmpty)
-            state.encounters.finishActiveShopEncounter()
+            state.encounters.finishShopEncounter(session: session)
             #expect(state.encounters.activeShopEncounter == nil)
         case .mystery:
             let session = try #require(state.encounters.activeMysteryEncounter)
             #expect(session.labyrinthNodeID == nodeID)
             if session.canResolveChoice {
-                #expect(state.encounters.resolveActiveMysteryChoice())
+                #expect(state.encounters.resolveMysteryChoice(session: session))
             }
             if session.showsCorruptItemChoice, let itemID = session.corruptibleItems.first?.id {
-                #expect(state.encounters.corruptActiveMysteryItem(itemID: itemID))
+                #expect(state.encounters.corruptMysteryItem(session: session, itemID: itemID))
             }
             if session.showsCorruptionReveal {
-                #expect(state.encounters.finishActiveMysteryCorruptionReveal())
+                #expect(state.encounters.finishMysteryCorruptionReveal(session: session))
             }
             if state.encounters.activeMysteryEncounter != nil {
-                #expect(state.encounters.finishActiveMysteryEncounter())
+                #expect(state.encounters.finishMysteryEncounter(session: session))
             }
             #expect(state.encounters.activeMysteryEncounter == nil)
         default:
@@ -212,7 +212,7 @@ struct AppStateLabyrinthTests {
         let session = try #require(state.encounters.activeMysteryEncounter)
         #expect(session.canResolveChoice)
 
-        #expect(!state.encounters.finishActiveMysteryEncounter())
+        #expect(!state.encounters.finishMysteryEncounter(session: session))
         #expect(state.encounters.activeMysteryEncounter != nil)
         #expect(state.playerSave.labyrinth.nodes[nodeID]?.isCleared == false)
     }
@@ -260,12 +260,12 @@ struct AppStateLabyrinthTests {
         #expect(state.encounters.activeShopEncounter != nil)
 
         playerSave.forcesNextSaveFailure = true
-        #expect(!state.encounters.finishActiveShopEncounter())
+        #expect(try !state.encounters.finishShopEncounter(session: #require(state.encounters.activeShopEncounter)))
         #expect(state.encounters.activeShopEncounter != nil)
         #expect(playerSave.isRetryingSaveAction)
         #expect(state.playerSave.labyrinth.nodes[shopNodeID]?.isCleared == false)
 
-        #expect(state.encounters.finishActiveShopEncounter())
+        #expect(try state.encounters.finishShopEncounter(session: #require(state.encounters.activeShopEncounter)))
         #expect(state.encounters.activeShopEncounter == nil)
         #expect(state.playerSave.labyrinth.nodes[shopNodeID]?.isCleared == true)
     }

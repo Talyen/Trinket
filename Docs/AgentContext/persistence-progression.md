@@ -173,9 +173,11 @@ prices to reconstruct these charges.
 Shops and Mystery events. It requires a current playable `EncounterIdentity`;
 stale sessions and combat nodes cannot grant rewards or advance progress.
 Direct choices receive normal encounter rewards; pooled Mystery offers only advance
-progress. Empty Shops prepare stock and complete in one transaction. Shop exit
-rejects a stale session without writing and closes its obsolete presentation;
-failed writes retain the session and retry silently.
+progress. Empty Shops prepare stock and complete in one transaction.
+Shop and Mystery callbacks require their captured session and its current save
+generation before acting, including retry submission. Retired callbacks leave current
+progress and presentation untouched; external-progress cleanup retires obsolete covers.
+Failed writes retain the session and retry silently.
 
 ## Homestead transactions
 
