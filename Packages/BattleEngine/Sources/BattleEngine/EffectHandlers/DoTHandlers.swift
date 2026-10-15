@@ -62,10 +62,9 @@ struct DecayingDoTHandler: BattleEffectHandler {
                 text: "\(total) Burn\nDeals Burn damage and halves each turn",
             )
         }
-        let alias = keyword.statusAlias ?? keyword.rawValue
         return EffectSummary(
             keyword: keyword,
-            text: "\(alias): \(total) \(keyword.rawValue) potency\nNormally decays before each turn's damage",
+            text: "\(total) Poison\nDeals Poison damage and decreases by 25% each turn",
         )
     }
 
@@ -154,8 +153,10 @@ struct BleedHandler: BattleEffectHandler {
             return SaturatedArithmetic.saturatingAdd(sum, potency)
         }
         guard total > 0 else { return nil }
-        let alias = keyword.statusAlias ?? keyword.rawValue
-        return EffectSummary(keyword: keyword, text: "\(alias): Takes \(total) \(keyword.rawValue) damage each turn")
+        return EffectSummary(
+            keyword: keyword,
+            text: "\(total) Bleed\nDeals Bleed damage each turn until it expires",
+        )
     }
 
     func apply(
