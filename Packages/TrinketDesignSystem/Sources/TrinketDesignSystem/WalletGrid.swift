@@ -36,12 +36,12 @@ private struct TrinketWalletGridLayout: Layout {
         Cache(idealSizes: subviews.map { $0.sizeThatFits(.unspecified) })
     }
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews _: Subviews, cache: inout Cache) -> CGSize {
-        arrangement(proposal: proposal, cache: &cache).size
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
+        arrangement(proposal: proposal, subviews: subviews, cache: &cache).size
     }
 
     func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache: inout Cache) {
-        let placed = arrangement(proposal: ProposedViewSize(bounds.size), cache: &cache)
+        let placed = arrangement(proposal: ProposedViewSize(bounds.size), subviews: subviews, cache: &cache)
         for (index, subview) in subviews.enumerated() {
             let frame = placed.frames[index]
             subview.place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY), proposal: ProposedViewSize(frame.size))
@@ -53,21 +53,33 @@ private struct TrinketWalletGridLayout: Layout {
         var frames: [CGRect]
     }
 
-    private func arrangement(proposal: ProposedViewSize, cache: inout Cache) -> Arrangement {
+    private func arrangement(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> Arrangement {
         if let arrangement = cache.arrangement, cache.proposedWidth == proposal.width {
             return arrangement
         }
-        let result = arrangement(proposal: proposal, idealSizes: cache.idealSizes)
+        let result = arrangement(proposal: proposal, subviews: subviews, idealSizes: cache.idealSizes)
         cache.proposedWidth = proposal.width
         cache.arrangement = result
         return result
     }
 
-    private func arrangement(proposal: ProposedViewSize, idealSizes: [CGSize]) -> Arrangement {
+    private func arrangement(proposal: ProposedViewSize, subviews: Subviews, idealSizes: [CGSize]) -> Arrangement {
         let itemCount = idealSizes.count
         guard itemCount > 0 else { return Arrangement(size: .zero, frames: []) }
 
-        let columns = max(1, min(columnCount, itemCount))
+        let availableWidth = proposal.width.flatMap { $0.isFinite ? max(0, $0) : nil }
+        // Preserve intrinsic label widths by wrapping resources before compressing text.
+        var columns = max(1, min(columnCount, itemCount))
+        while columns > 1, let availableWidth {
+            var widths = Array(repeating: CGFloat.zero, count: columns)
+            for index in 0 ..< itemCount {
+                widths[index % columns] = max(widths[index % columns], idealSizes[index].width.rounded(.up))
+            }
+            if widths.reduce(0, +) + horizontalSpacing * CGFloat(columns - 1) <= availableWidth {
+                break
+            }
+            columns -= 1
+        }
         let rows = (itemCount + columns - 1) / columns
         let columnGaps = horizontalSpacing * CGFloat(columns - 1)
 
@@ -78,25 +90,17 @@ private struct TrinketWalletGridLayout: Layout {
         }
 
         let idealWidth = idealColumnWidths.reduce(0, +) + columnGaps
-        let minimumColumnWidth = TrinketDesign.Layout.walletResourceArtworkSize + TrinketDesign.Spacing.small + 16
-        let minimumArtworkColumnWidth = TrinketDesign.Layout.walletResourceArtworkSize + TrinketDesign.Spacing.small
-        let columnWidths: [CGFloat]
-        if let proposedWidth = proposal.width, proposedWidth.isFinite, proposedWidth >= 10, proposedWidth < idealWidth {
-            let equalizedWidth = max(minimumArtworkColumnWidth, (proposedWidth - columnGaps) / CGFloat(columns))
-            let clampedEqualized = max(minimumColumnWidth, equalizedWidth)
-            if clampedEqualized * CGFloat(columns) + columnGaps <= proposedWidth + 0.5 {
-                columnWidths = Array(repeating: clampedEqualized, count: columns)
-            } else {
-                columnWidths = Array(repeating: equalizedWidth, count: columns)
-            }
+        let columnWidths: [CGFloat] = if let availableWidth, availableWidth < idealWidth {
+            Array(repeating: max(0, (availableWidth - columnGaps) / CGFloat(columns)), count: columns)
         } else {
-            columnWidths = idealColumnWidths.map { max($0, minimumColumnWidth) }
+            idealColumnWidths
         }
 
         var rowHeights = Array(repeating: CGFloat(0), count: rows)
         for index in 0 ..< itemCount {
             let row = index / columns
-            rowHeights[row] = max(rowHeights[row], idealSizes[index].height)
+            let measured = subviews[index].sizeThatFits(ProposedViewSize(width: columnWidths[index % columns], height: nil))
+            rowHeights[row] = max(rowHeights[row], measured.height.rounded(.up))
         }
 
         var frames: [CGRect] = []

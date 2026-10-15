@@ -22,17 +22,22 @@ final class SmokeShopTests: TrinketUITestCase {
         let price = try integer(in: button(buyID))
         scrollUntilVisible(offer, swipingUp: true, requireHittable: true)
         tapWhenReady(offer)
+        let didOpenDetail = detailBuy.trinketWaitForExistence(timeout: Self.defaultTimeout)
+        let openedDetailBuy = try XCTUnwrap(
+            didOpenDetail ? detailBuy : nil,
+            "Tapping merchant offer '\(offerID)' must open its detail before checking the purchase frame",
+        )
         // Native presentation can expose the footer before it has a valid activation frame.
         let windowBounds = app.frame
         waitUntil("Merchant detail purchase control must have an on-screen frame") {
-            guard detailBuy.exists,
-                  let bounds = trinketOnMainActor({ try? detailBuy.snapshot().frame }),
+            guard openedDetailBuy.exists,
+                  let bounds = trinketOnMainActor({ try? openedDetailBuy.snapshot().frame }),
                   !bounds.isEmpty
             else { return false }
             return windowBounds.contains(bounds)
         }
-        XCTAssertEqual(try integer(in: detailBuy), price)
-        tapWhenReady(detailBuy)
+        XCTAssertEqual(try integer(in: openedDetailBuy), price)
+        tapWhenReady(openedDetailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
         XCTAssertEqual(try integer(in: goldBalance), goldBefore - price)
 

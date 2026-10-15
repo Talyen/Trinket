@@ -43,14 +43,10 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         formattedValue == nil
     }
 
-    @ViewBuilder
     private var titleLabel: some View {
-        if #available(iOS 26.0, *) {
-            Text(title).trinketTypography(.caption).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.76)
-        } else {
-            // Opaque text and intrinsic height avoid iOS 18 material contrast and clipping.
-            Text(title).trinketTypography(.caption).foregroundStyle(TrinketDesign.Colors.Overlay.paper).trinketFittedText()
-        }
+        Text(title).trinketTypography(.caption)
+            .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
+            .trinketFittedText()
     }
 
     public var body: some View {

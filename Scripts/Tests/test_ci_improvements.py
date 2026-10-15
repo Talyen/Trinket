@@ -136,6 +136,70 @@ class CIImprovementsTests(unittest.TestCase):
                               ]}, {'nodeType': 'Arguments', 'result': 'Passed'}]}
         self.assertEqual(TIMING.argument_results(node), ['Passed', 'Failed', 'Passed'])
 
+    def test_native_failure_reports_keep_assertions_and_compiler_locations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            events, log = root / 'events.jsonl', root / 'native.log'
+            identifier = 'BattleEngineTests.Rewards/`reward survives`()/Rewards.swift:8:1'
+            failure = {'version': 0, 'kind': 'event', 'payload': {
+                'kind': 'issueRecorded', 'testID': identifier,
+                'issue': {'isKnown': False, 'sourceLocation': {'fileID': 'Tests/Rewards.swift', 'line': 10}},
+                'messages': [{'text': 'Expectation failed: reward == 10'}, {'text': 'reward → 0'}]}}
+            events.write_text(json.dumps(failure) + '\n' + '{interrupted')
+            log.write_text('Error: Simulator boot timed out after 240s\n')
+            issues = NATIVE.failure_issues(events, log, 1)
+            assertion = next(item for item in issues if item['kind'] == 'test-failure')
+            self.assertEqual(assertion['test'], identifier.rsplit('/', 1)[0])
+            self.assertEqual(assertion['line'], 10)
+            self.assertIn('reward → 0', assertion['details'])
+            output = root / 'native-BattleEngine-diagnostics.json'
+            NATIVE.write_receipt(output, dict(label='native-BattleEngine', action='native-test',
+                status='failed', exit_code=1, classification='test-failure', issues=issues))
+            summary = root / 'summary.md'
+            AGGREGATE.main([directory, str(root / 'ci-diagnostics.json')], {'GITHUB_STEP_SUMMARY': str(summary)})
+            self.assertIn('Rewards/', summary.read_text())
+            self.assertIn('Tests/Rewards.swift:10', summary.read_text())
+            events.write_text('')
+            log.write_text("Sources/Defense.swift:132:40: \x1b[1;31merror: \x1b[1;39mvalue has no member 'kind'\x1b[0m\n")
+            compiler = NATIVE.failure_issues(events, log, 1)[0]
+            self.assertEqual(compiler['kind'], 'build-failure')
+            self.assertEqual(compiler['line'], 132)
+            self.assertIn("no member 'kind'", compiler['message'])
+
+    def test_preparation_failures_record_phase_command_and_environment_without_fake_test_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            results = Path(directory)
+            env = {**os.environ, 'RESULTS_DIR': directory, 'TRINKET_DIAGNOSTICS_SESSION_ID': 'preflight',
+                   'XCODE_BUILD': '27A9275'}
+            env.pop('TRINKET_CI_DEADLINE_EPOCH', None)
+            command = [sys.executable, '-c', "import sys; print('Error: Simulator boot timed out after 240s'); sys.exit(1)"]
+            self.assertEqual(BUDGET.run(command, env), 1)
+            report = json.loads(next(results.glob('*-diagnostics.json')).read_text())
+            self.assertEqual(report['classification'], 'simulator-infrastructure')
+            self.assertEqual(report['phase'], 'command-preparation')
+            self.assertEqual(report['command'], command)
+            self.assertEqual(report['environment']['XCODE_BUILD'], '27A9275')
+            self.assertGreater(report['duration_seconds'], 0)
+            self.assertNotIn('test_execution_proven', report)
+            AGGREGATE.main([directory, str(results / 'ci-diagnostics.json')], env)
+            aggregate = json.loads((results / 'ci-diagnostics.json').read_text())
+            self.assertEqual(aggregate['category'], 'simulator-infrastructure')
+            self.assertEqual(aggregate['missing_result_invocations'], 0)
+            BUDGET.preparation_report(command, results, env, 1, 2,
+                                      "Sources/State.swift:4:2: error: failed to launch macro plugin\n"
+                                      "Error: Simulator boot timed out after 240s\n", 'command-preparation')
+            AGGREGATE.main([directory, str(results / 'ci-diagnostics.json')], env)
+            self.assertEqual(json.loads((results / 'ci-diagnostics.json').read_text())['category'], 'build-failure')
+            BUDGET.preparation_report(command, results, env, 1, 120,
+                                      "xcrun --sdk iphonesimulator --show-sdk-version timed out after 120 seconds", 'command-preparation')
+            self.assertTrue(any(json.loads(path.read_text())['classification'] == 'tooling'
+                                for path in results.glob('preparation-*-diagnostics.json')))
+            BUDGET.preparation_report(command, results, env, 1, 120,
+                                      "Expectation failed: committedReward == 10\n"
+                                      "xcrun --show-sdk-version timed out after 120 seconds", 'command-preparation')
+            AGGREGATE.main([directory, str(results / 'ci-diagnostics.json')], env)
+            self.assertEqual(json.loads((results / 'ci-diagnostics.json').read_text())['category'], 'test-failure')
+
     def test_native_ios_parity_requires_matching_ids_not_merely_counts(self):
         with tempfile.TemporaryDirectory() as directory:
             events, catalog, _ = self.native_fixture(Path(directory))

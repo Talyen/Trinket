@@ -3,7 +3,7 @@ description: Select the verified or latest Xcode and validate its required compo
 
 inputs:
   xcode-channel:
-    description: verified uses the exact required build; latest validates the newest installed Xcode
+    description: verified selects an explicitly qualified build; latest validates the newest installed Xcode
     required: false
     default: 'verified'
   xcode-build:
@@ -28,7 +28,7 @@ runs:
         args=(--channel "$TRINKET_CI_XCODE_CHANNEL")
         if [[ -n "$TRINKET_CI_XCODE_BUILD" ]]; then args+=(--build "$TRINKET_CI_XCODE_BUILD"); fi
         if [[ "$TRINKET_CI_METAL" == true ]]; then args+=(--metal); fi
-        python3 Scripts/setup-ci-xcode.py "${args[@]}"
+        python3 Scripts/ci-run-budget.py --phase toolchain -- python3 Scripts/setup-ci-xcode.py "${args[@]}"
 
     - name: Cache pinned CI tools
       uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v4
@@ -38,10 +38,28 @@ runs:
 
     - name: Install pinned CI tools
       shell: bash
-      run: ./Scripts/ensure-ci-tools.sh
+      run: python3 Scripts/ci-run-budget.py --phase toolchain -- ./Scripts/ensure-ci-tools.sh
 
     - name: Verify pinned tool versions
       shell: bash
       run: |
-        ./Scripts/ensure-ci-tools.sh --check
+        python3 Scripts/ci-run-budget.py --phase toolchain -- ./Scripts/ensure-ci-tools.sh --check
         echo "PATH=$PWD/.tools:$PATH" >> "$GITHUB_ENV"
+
+    - name: Report setup failure
+      id: setup-diagnostics
+      if: failure()
+      shell: bash
+      run: |
+        ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+        ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/SetupResults-artifact
+        echo "artifact-key=$(python3 -c 'import uuid; print(uuid.uuid4().hex)')" >> "$GITHUB_OUTPUT"
+
+    - name: Retain setup failure evidence
+      if: failure() && steps.setup-diagnostics.outcome == 'success'
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+      with:
+        name: setup-failure-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.setup-diagnostics.outputs.artifact-key }}
+        path: .DerivedData/SetupResults-artifact/
+        retention-days: 14
+        if-no-files-found: error

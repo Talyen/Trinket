@@ -147,7 +147,8 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
         self.assertIn("TRINKET_XCODE_WALL_TIMEOUT_SECONDS", release)
         self.assertIn("'1800'", release)
         self.assertIn("if: failure()", release)
-        self.assertIn("path: .DerivedData/TestResults", release)
+        self.assertIn("--stage-artifacts .DerivedData/TestResults .DerivedData/ReleaseResults-artifact", release)
+        self.assertIn("path: .DerivedData/ReleaseResults-artifact", release)
         aggregate = workflow.split("  ci-ok:\n", 1)[1].split("  exhaustive-ok:\n", 1)[0]
         self.assertIn("release-device", aggregate.split("if: always()", 1)[0])
         command = aggregate.split("        run: |\n", 1)[1].split("\n  #", 1)[0]

@@ -36,8 +36,25 @@ def installed_xcodes(directory: Path) -> list[tuple[Path, str, str]]:
     return list(installations.values())
 
 
+def qualified_builds(approved: dict) -> list[tuple[str, str]]:
+    preferred = (approved["version"], approved["build"])
+    entries = approved.get("qualified_builds", [approved])
+    if not isinstance(entries, list) or not entries:
+        raise ValueError("Expected a nonempty qualified Xcode build list")
+    identities = []
+    for entry in entries:
+        version, build = entry["version"], entry["build"]
+        if (not isinstance(version, str) or not re.fullmatch(r"\d+(?:\.\d+)*", version)
+                or not isinstance(build, str) or not re.fullmatch(r"[0-9]+[A-Z][0-9]+[a-z]?", build)):
+            raise ValueError("Invalid qualified Xcode identity")
+        identities.append((version, build))
+    if preferred not in identities or len(set(identities)) != len(identities):
+        raise ValueError("Qualified Xcode builds must be unique and include the preferred build")
+    return [preferred, *(identity for identity in identities if identity != preferred)]
+
+
 def select_xcode(installations: list[tuple[Path, str, str]], channel: str,
-                 approved: dict[str, str], requested_build: str = "") -> tuple[Path, str, str]:
+                 approved: dict, requested_build: str = "") -> tuple[Path, str, str]:
     if requested_build:
         if channel != "latest":
             raise RuntimeError("An explicit candidate build requires the latest validation channel")
@@ -49,11 +66,12 @@ def select_xcode(installations: list[tuple[Path, str, str]], channel: str,
                                f"available: {[(version, build) for _, version, build in installations]}")
         return matches[0]
     if channel == "verified":
-        matches = [item for item in installations if item[1:] == (approved["version"], approved["build"])]
-        if not matches:
-            raise RuntimeError(f"Required Xcode {approved['version']} ({approved['build']}) is not installed; "
-                               f"available: {[(version, build) for _, version, build in installations]}")
-        return matches[0]
+        for identity in qualified_builds(approved):
+            matches = [item for item in installations if item[1:] == identity]
+            if matches:
+                return matches[0]
+        raise RuntimeError(f"No qualified Xcode build is installed; required: {qualified_builds(approved)}; "
+                           f"available: {[(version, build) for _, version, build in installations]}")
     if not installations:
         raise RuntimeError("No readable Xcode installation found")
     def order(item):
@@ -114,9 +132,22 @@ def main() -> None:
     parser.add_argument("--build", default="", help="Exact candidate product build; requires --channel latest")
     args = parser.parse_args()
     approved = json.loads((ROOT / "Scripts/config/ci-xcode.json").read_text())
-    app, version, build = select_xcode(installed_xcodes(Path("/Applications")), args.channel, approved, args.build)
+    installations = installed_xcodes(Path("/Applications"))
+    inventory = [(version, build) for _, version, build in installations]
+    image = f"{os.environ.get('ImageOS', 'unknown')} / {os.environ.get('ImageVersion', 'unknown')}"
+    print(f"Runner image: {image}; installed Xcode builds: {inventory}", flush=True)
+    if os.environ.get("GITHUB_STEP_SUMMARY"):
+        with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a") as output:
+            output.write(f"### Xcode environment\n\nRunner image: `{image}`\n\nInstalled Xcode builds: `{inventory}`\n\n")
+    app, version, build = select_xcode(installations, args.channel, approved, args.build)
+    reason = ("exact candidate" if args.build else "newest installed" if args.channel == "latest" else
+              "preferred qualified build" if (version, build) == (approved["version"], approved["build"]) else
+              "qualified rollout fallback")
+    if os.environ.get("GITHUB_STEP_SUMMARY"):
+        with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a") as output:
+            output.write(f"Selected Xcode: `{version} ({build})` — {reason}.\n\n")
     environment = {**os.environ, "DEVELOPER_DIR": str(app / "Contents/Developer")}
-    print(f"Selecting Xcode: {app} ({version}, build {build}, channel {args.channel})", flush=True)
+    print(f"Selecting Xcode: {app} ({version}, build {build}, channel {args.channel}; {reason})", flush=True)
     subprocess.run(["xcodebuild", "-version"], env=environment, timeout=30, check=True)
     subprocess.run(["xcrun", "--sdk", "iphonesimulator", "--show-sdk-version"],
                    env=environment, timeout=30, check=True)
@@ -131,5 +162,5 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+    except (OSError, ValueError, KeyError, TypeError, RuntimeError, subprocess.SubprocessError) as error:
         raise SystemExit(f"Xcode setup failed: {error}")

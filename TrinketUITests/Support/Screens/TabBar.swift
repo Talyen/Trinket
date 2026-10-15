@@ -57,6 +57,10 @@ struct HomesteadScreen {
 
     func openFarmingCategoryAndRevealWheatFieldNode() {
         let categoryButton = app.buttons[AccessibilityID.Homestead.category("Farming")]
+        guard app.scrollUntilVisible(categoryButton, swipingUp: true, maxAttempts: 12, requireHittable: true) else {
+            XCTFail("Farming category must be reachable before opening its nodes")
+            return
+        }
         categoryButton.trinketTapWhenReady()
         _ = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
             .trinketWaitForExistence(timeout: 2)

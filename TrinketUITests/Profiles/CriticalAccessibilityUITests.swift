@@ -4,21 +4,37 @@ import XCTest
 
 final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
     private static let originalReduceMotion = Mutex<Bool?>(nil)
-    private static var settings: XCUIApplication {
+    private static let preparationFailure = Mutex<String?>(nil)
+
+    private struct NativeSettingsFailure: Error, CustomStringConvertible {
+        let description: String
+    }
+
+    @MainActor private static var settings: XCUIApplication {
         XCUIApplication(bundleIdentifier: "com.apple.Preferences")
     }
 
     override static func setUp() {
         super.setUp()
-        settings.launch()
-        defer { settings.terminate() }
-        do {
-            let control = reduceMotionControl()
-            let original = try reduceMotionValue(control)
-            originalReduceMotion.withLock { $0 = original }
-            try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1", control: control)
-        } catch {
-            XCTFail("Could not apply native Reduce Motion: \(error)")
+        preparationFailure.withLock { $0 = nil }
+        trinketOnMainActor {
+            settings.launch()
+            defer { settings.terminate() }
+            do {
+                let control = try reduceMotionControl()
+                let original = try reduceMotionValue(control)
+                originalReduceMotion.withLock { $0 = original }
+                try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1", control: control)
+            } catch {
+                preparationFailure.withLock { $0 = "Could not apply native Reduce Motion: \(error)" }
+            }
+        }
+    }
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        if let failure = Self.preparationFailure.withLock({ $0 }) {
+            throw NativeSettingsFailure(description: failure)
         }
     }
 
@@ -28,57 +44,73 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
             defer { value = nil }
             return value
         }) else { return }
-        settings.activate()
-        defer { settings.terminate() }
-        do {
-            try setReduceMotion(original, control: reduceMotionControl())
-        } catch {
-            XCTFail("Could not restore native Reduce Motion: \(error)")
+        trinketOnMainActor {
+            settings.activate()
+            defer { settings.terminate() }
+            do {
+                try setReduceMotion(original, control: reduceMotionControl())
+            } catch {
+                XCTFail("Could not restore native Reduce Motion: \(error)")
+            }
         }
     }
 
-    private static func reduceMotionControl() -> XCUIElement {
-        let control = settings.switches["Reduce Motion"].firstMatch
-        if control.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout) {
-            revealSettingsElement(control, scrolling: settings)
+    @MainActor private static func reduceMotionControl() throws -> XCUIElement {
+        let control = settings.switches.matching(NSPredicate(
+            format: "identifier IN %@ OR label BEGINSWITH %@", ["ReduceMotion", "Reduce Motion"], "Reduce Motion",
+        )).firstMatch
+        if control.exists {
+            try revealSettingsElement(control, scrolling: settingsContent())
             return control
         }
         let cancelSearch = settings.buttons["Cancel"].firstMatch
         if settings.searchFields.firstMatch.exists, cancelSearch.exists {
-            cancelSearch.trinketTapWhenReady()
+            cancelSearch.tap()
         }
-        // A retained navigation title has the same text as the root's destination row.
-        let accessibility = settings.cells.containing(.staticText, identifier: "Accessibility").firstMatch
         let sidebar = settings.collectionViews["com.apple.settings.sidebar.collectionView"].firstMatch
+        let accessibilityButton = settings.buttons["com.apple.settings.accessibility"].firstMatch
+        let accessibilityCell = settings.cells.containing(.staticText, identifier: "Accessibility").firstMatch
         if !sidebar.exists {
             for _ in 0 ..< 4 {
-                if accessibility.exists {
+                if accessibilityButton.exists || accessibilityCell.exists {
                     break
                 }
-                // Search can leave Dictate as the first button; it is never a back action.
                 let back = settings.navigationBars.buttons.matching(
                     NSPredicate(format: "label IN %@", ["Settings", "Accessibility", "Back"]),
                 ).firstMatch
-                if back.exists {
-                    back.trinketTapWhenReady()
-                } else {
-                    break
-                }
+                guard back.exists else { break }
+                back.tap()
             }
         }
-        revealSettingsElement(accessibility, scrolling: sidebar.exists ? sidebar : settings)
-        accessibility.trinketTapWhenReady()
-        let motion = settings.cells.containing(.staticText, identifier: "Motion").firstMatch
-        revealSettingsElement(motion, scrolling: settings)
-        motion.trinketTapWhenReady()
-        XCTAssertTrue(control.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout))
-        revealSettingsElement(control, scrolling: settings)
+        let accessibility = accessibilityButton.exists ? accessibilityButton : accessibilityCell
+        try revealSettingsElement(accessibility, scrolling: sidebar.exists ? sidebar : settingsContent())
+        accessibility.tap()
+        let motionCell = settings.cells["MOTION_TITLE"].firstMatch
+        let motion = motionCell.exists ? motionCell : settings.cells.containing(.staticText, identifier: "Motion").firstMatch
+        try revealSettingsElement(motion, scrolling: settingsContent())
+        motion.tap()
+        guard control.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout) else {
+            throw NativeSettingsFailure(
+                description: "Reduce Motion switch missing after opening Motion. \(settings.debugDescription.suffix(10000))",
+            )
+        }
+        try revealSettingsElement(control, scrolling: settingsContent())
         return control
     }
 
-    private static func revealSettingsElement(_ element: XCUIElement, scrolling container: XCUIElement) {
+    @MainActor private static func settingsContent() -> XCUIElement {
+        let sidebar = settings.collectionViews["com.apple.settings.sidebar.collectionView"].firstMatch
+        let containers = settings.tables.allElementsBoundByIndex + settings.collectionViews.allElementsBoundByIndex
+        // On iPad, scrolling the application can move the sidebar instead of the selected settings pane.
+        if sidebar.exists, let detail = containers.first(where: { $0.frame.minX >= sidebar.frame.maxX - 1 }) {
+            return detail
+        }
+        return containers.first(where: { $0.identifier != "com.apple.settings.sidebar.collectionView" }) ?? settings
+    }
+
+    @MainActor private static func revealSettingsElement(_ element: XCUIElement, scrolling container: XCUIElement) throws {
         for _ in 0 ..< 10 {
-            if element.exists, element.isHittable {
+            if element.exists, element.isHittable, container.frame.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)) {
                 return
             }
             if element.exists, element.frame.midY < container.frame.midY {
@@ -87,24 +119,28 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
                 container.swipeUp()
             }
         }
-        if !element.exists || !element.isHittable {
-            XCTFail("Requested native setting is not reachable. Settings hierarchy:\n\(settings.debugDescription.prefix(6000))")
-        }
+        throw NativeSettingsFailure(
+            description: "Requested native setting is not reachable. Settings hierarchy: \(settings.debugDescription.suffix(10000))",
+        )
     }
 
-    private static func reduceMotionValue(_ control: XCUIElement) throws -> Bool {
+    @MainActor private static func reduceMotionValue(_ control: XCUIElement) throws -> Bool {
         let value = try XCTUnwrap(control.value as? String)
-        XCTAssertTrue(value == "0" || value == "1", "Native Reduce Motion value unavailable: \(value)")
+        guard value == "0" || value == "1" else {
+            throw NativeSettingsFailure(description: "Native Reduce Motion value unavailable: \(value)")
+        }
         return value == "1"
     }
 
-    private static func setReduceMotion(_ enabled: Bool, control: XCUIElement) throws {
+    @MainActor private static func setReduceMotion(_ enabled: Bool, control: XCUIElement) throws {
         if try reduceMotionValue(control) != enabled {
-            control.trinketTapWhenReady()
+            control.tap()
         }
-        XCTAssertTrue(trinketWaitUntil(timeout: TrinketUITestCase.defaultTimeout) {
+        guard trinketWaitUntil(timeout: TrinketUITestCase.defaultTimeout, condition: {
             control.value as? String == (enabled ? "1" : "0")
-        }, "Native Reduce Motion must match the requested setting")
+        }) else {
+            throw NativeSettingsFailure(description: "Native Reduce Motion did not match requested value \(enabled)")
+        }
     }
 
     func testCriticalControlsWithRequestedAccessibilityEnvironment() throws {
@@ -164,9 +200,16 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
     private func assertRequestedEnvironment() throws {
         let large = ProcessInfo.processInfo.environment["TRINKET_PROFILE_LARGE_TEXT"] == "1"
         let reduced = ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1"
-        let environment = try coverageReport()
-        XCTAssertEqual(environment["largeText"] as? Bool, large, "Native text-size setting did not reach SwiftUI")
-        XCTAssertEqual(environment["largestText"] as? Bool, large)
-        XCTAssertEqual(environment["reduceMotion"] as? Bool, reduced)
+        var environment = try coverageReport()
+        guard trinketWaitUntil(timeout: Self.defaultTimeout, condition: {
+            if let current = try? self.coverageReport() {
+                environment = current
+            }
+            return environment["largeText"] as? Bool == large
+                && environment["largestText"] as? Bool == large
+                && environment["reduceMotion"] as? Bool == reduced
+        }) else {
+            throw NativeSettingsFailure(description: "Native settings did not reach SwiftUI: \(environment)")
+        }
     }
 }

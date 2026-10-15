@@ -97,7 +97,7 @@ runs:
           .DerivedData/TestResults-artifact/timing-log.jsonl
           .DerivedData/TestResults-artifact/phase-timing.jsonl
           .DerivedData/TestResults-artifact/ci-diagnostics.json
-        retention-days: 1
+        retention-days: 14
         if-no-files-found: ignore
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
@@ -105,7 +105,7 @@ runs:
       # failed job or when a caller explicitly opts in.
       if: always() && failure()
       with:
-        name: ${{ inputs.artifact-prefix }}${{ inputs.artifact-name }}-${{ github.run_id }}
+        name: ${{ inputs.artifact-prefix }}${{ inputs.artifact-name }}-${{ github.run_id }}-${{ github.run_attempt }}
         path: .DerivedData/TestResults-artifact/
-        retention-days: 1
+        retention-days: 14
         if-no-files-found: ignore

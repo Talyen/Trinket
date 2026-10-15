@@ -10,6 +10,12 @@ import os
 from pathlib import Path
 import subprocess
 
+from internal.diagnostics.diagnostic_model import (
+    CLASSIFICATION_PRECEDENCE, DiagnosticIssue, IssueAccumulator, IssueObservation, MAX_ISSUES,
+)
+from internal.diagnostics.diagnostic_rendering import render_annotation
+from internal.diagnostics.failure_diagnostics_parsers import parse_log
+
 PACKAGES = ('BattleEngine', 'TrinketCore')
 
 
@@ -80,6 +86,38 @@ def valid(proof: object) -> bool:
             and type(proof.get('passed')) is int and proof['passed'] == len(expected)
             and type(proof.get('failed')) is int and proof['failed'] == 0
             and type(proof.get('skipped')) is int and proof['skipped'] == 0)
+
+
+def failure_issues(events: Path, log: Path, exit_code: int) -> list[dict]:
+    accumulator = IssueAccumulator()
+    try:
+        with events.open() as stream:
+            for line in stream:
+                record = json.loads(line)
+                payload = record.get('payload', {})
+                if (record.get('version') != 0 or record.get('kind') != 'event'
+                        or payload.get('kind') != 'issueRecorded'):
+                    continue
+                issue = payload.get('issue', {})
+                if issue.get('isKnown') is True:
+                    continue
+                messages = [item['text'] for item in payload.get('messages', [])
+                            if isinstance(item, dict) and isinstance(item.get('text'), str)]
+                location = issue.get('sourceLocation', payload.get('_sourceLocation', {}))
+                accumulator.add(IssueObservation(
+                    'test-failure', 'Swift Testing assertion', messages[0] if messages else 'Native test recorded an issue',
+                    test=str(payload.get('testID', '')).rsplit('/', 1)[0],
+                    file=str(location.get('_filePath', location.get('fileID', ''))),
+                    line=location.get('line'), details='\n'.join(messages[1:]),
+                ))
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        # Interrupted streams can still have useful assertions before their incomplete tail.
+        pass
+    for observation in parse_log(log, exit_code):
+        if observation.kind != 'unknown':
+            accumulator.add(observation)
+    issues = accumulator.finalize()
+    return [issue.to_dict() for issue in issues[:MAX_ISSUES]]
 
 
 def compare(native: dict, rows: list[dict], commit: str) -> dict:
@@ -153,10 +191,15 @@ def main() -> None:
         proof = execution(args.package, args.events, args.catalog)
     except (OSError, ValueError, KeyError, TypeError) as error:
         status = status or 1
-        issues = [{'kind': 'unknown', 'message': str(error)}]
+        issues = failure_issues(args.events, args.log, status)
+        if not issues:
+            kind = 'unknown' if args.exit_code else 'configuration'
+            issues = [dict(kind=kind, title='Native execution evidence', message=str(error))]
+    kinds = {issue['kind'] for issue in issues}
+    classification = next((kind for kind in CLASSIFICATION_PRECEDENCE if kind in kinds), 'unknown')
     result = {'schema_version': 1, 'label': 'native-' + args.package, 'action': 'native-test',
               'status': 'passed' if status == 0 else 'failed', 'exit_code': status,
-              'classification': 'unknown', 'issues': issues,
+              'classification': classification, 'issues': issues,
               'commit': commit, 'native_test': proof, 'test_execution_proven': status == 0,
               'native_artifacts': [str(args.events), str(args.catalog), str(args.log)],
               'completion_source': 'process-exit', 'raw_log_path': str(args.log),
@@ -164,6 +207,14 @@ def main() -> None:
               'session_id': os.environ.get('TRINKET_DIAGNOSTICS_SESSION_ID', '')}
     write_receipt(args.output, result)
     if status:
+        for issue in issues[:5]:
+            print(f"Native {args.package} {issue['kind']}: {issue.get('test') or issue.get('file', '')} {issue['message']}", flush=True)
+        if os.environ.get('GITHUB_ACTIONS') == 'true':
+            for issue in issues[:MAX_ISSUES]:
+                print(render_annotation(DiagnosticIssue.from_observation(IssueObservation(
+                    issue['kind'], issue.get('title', 'Native failure'), issue['message'],
+                    test=issue.get('test', ''), file=issue.get('file', ''), line=issue.get('line'),
+                ))))
         raise SystemExit(issues[0]['message'])
     print(f"Native {args.package}: {proof['passed']} discovered tests executed and passed.")
 

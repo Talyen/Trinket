@@ -105,6 +105,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - Scroll helpers resolve a container per reveal and return the final visibility
   result. Reuse that result. Filter inventory with `replaceText` instead of grid
   scroll loops; use stable IDs for primary actions.
+  Scroll gestures stay within the visible container above the floating tab bar;
+  starting a drag over a tab can navigate away from the requested screen.
 - Read numeric values and fallback labels from one snapshot. Homestead accounting
   reads each wallet/cost subtree once and waits for every resource balance.
   Coverage/audio waits retain the report that satisfied the condition; StoreKit
@@ -113,6 +115,10 @@ Assert a journey’s return destination before using helpers that navigate elsew
   for that registration launch. Tests retain fresh sessions, transactions, and saves.
 - Success screenshots require `TRINKET_UI_SUCCESS_SCREENSHOTS=1`; failures always
   retain a screenshot and bounded accessibility context. Profile evidence remains explicit.
+  Profile setup verifies the requested native settings reached SwiftUI before
+  gameplay assertions. Native Settings navigation scrolls the iPad detail pane
+  independently of its sidebar, and unavailable prerequisites fail the requested
+  cases without attempting dependent interactions. Original settings are restored.
 - Completed xcresult exports are shared by filter validation, timing, diagnostics,
   and infrastructure retry only while bundle identity matches. Missing, damaged,
   or replaced evidence requires a fresh bounded export.

@@ -561,8 +561,13 @@ extension XCUIApplication {
             return true
         }
         let container = scrollContainer()
+        let visibleBounds = scrollGestureBounds(in: container)
+        guard !visibleBounds.isNull, !visibleBounds.isEmpty,
+              visibleBounds.minX.isFinite, visibleBounds.minY.isFinite,
+              visibleBounds.maxX.isFinite, visibleBounds.maxY.isFinite
+        else { return false }
         for _ in 0 ..< maxAttempts {
-            container.dragScroll(fromY: swipingUp ? 0.90 : 0.35, toY: swipingUp ? 0.35 : 0.90)
+            container.dragScroll(fromY: swipingUp ? 0.90 : 0.35, toY: swipingUp ? 0.35 : 0.90, within: visibleBounds)
             if trinketWaitForExistenceMainActorSafe(element, timeout: 0.35), !requireHittable || element.isHittable {
                 return true
             }
@@ -576,12 +581,38 @@ extension XCUIApplication {
             ?? tables.allElementsBoundByIndex.last { $0.isHittable }
             ?? self
     }
+
+    private func scrollGestureBounds(in container: XCUIElement) -> CGRect {
+        trinketOnMainActor {
+            var bounds = container.frame.intersection(frame)
+            let nativeBar = tabBars.firstMatch
+            let barTop: CGFloat?
+            if nativeBar.exists, nativeBar.isHittable {
+                barTop = nativeBar.frame.minY
+            } else {
+                // Some runtimes expose the floating tab bar as toolbar buttons.
+                let tabs = ["Play", "Collection", "Homestead", "Options"].compactMap { title -> CGFloat? in
+                    let button = buttons.matching(NSPredicate(format: "label == %@ AND identifier != %@", title, "BackButton")).firstMatch
+                    guard button.exists, button.isHittable, button.frame.midY > frame.midY else { return nil }
+                    return button.frame.minY
+                }
+                barTop = tabs.count == 4 ? tabs.min() : nil
+            }
+            if let barTop, barTop > bounds.minY, barTop < bounds.maxY {
+                bounds.size.height = barTop - bounds.minY
+            }
+            return bounds
+        }
+    }
 }
 
 private extension XCUIElement {
-    func dragScroll(fromY: CGFloat, toY: CGFloat) {
-        let start = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
-        let end = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
-        start.press(forDuration: 0.05, thenDragTo: end)
+    func dragScroll(fromY: CGFloat, toY: CGFloat, within bounds: CGRect) {
+        trinketOnMainActor {
+            let origin = coordinate(withNormalizedOffset: .zero)
+            let start = origin.withOffset(CGVector(dx: bounds.midX - frame.minX, dy: bounds.minY + bounds.height * fromY - frame.minY))
+            let end = origin.withOffset(CGVector(dx: bounds.midX - frame.minX, dy: bounds.minY + bounds.height * toY - frame.minY))
+            start.press(forDuration: 0.05, thenDragTo: end)
+        }
     }
 }

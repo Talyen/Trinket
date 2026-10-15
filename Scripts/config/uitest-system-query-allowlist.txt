@@ -12,3 +12,5 @@ Astral
 Accessibility
 Cancel
 Motion
+com.apple.settings.accessibility
+MOTION_TITLE

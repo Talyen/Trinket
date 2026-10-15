@@ -1,4 +1,8 @@
 {
   "version": "27.1",
-  "build": "27A9275"
+  "build": "27A9275",
+  "qualified_builds": [
+    { "version": "27.1", "build": "27A9275" },
+    { "version": "27.1", "build": "27A9269" }
+  ]
 }

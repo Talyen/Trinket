@@ -83,6 +83,7 @@ struct HomesteadDetailSheetView: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             Text(tier.tier == 1 ? "Build cost" : "Upgrade cost")
                 .trinketTypography(.cardTitle)
+                .trinketFittedText()
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), alignment: .leading)], alignment: .leading) {
                 ForEach(tier.cost) { amount in

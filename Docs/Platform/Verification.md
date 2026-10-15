@@ -211,9 +211,9 @@ their own process groups; existing simulator guest/lease cleanup remains in forc
 
 Nightlies validate the newest installed Xcode even when the commit is unchanged:
 runner images and Apple component catalogs can change independently of source.
-Required pushes use the pinned toolchain; promotion and Metal readiness follow the
+Required pushes use an explicitly qualified toolchain; admission, preference and Metal readiness follow the
 [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder). Latest-toolchain
-manual runs cannot reuse pinned-toolchain checks; exhaustive UI remains advisory.
+manual runs cannot reuse qualified-toolchain checks; exhaustive UI remains advisory.
 
 `Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Default deploy verification
 runs FullUI; main CI supplies smoke coverage separately. The release workflow

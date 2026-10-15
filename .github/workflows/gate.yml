@@ -73,5 +73,5 @@ jobs:
         with:
           name: gate-failure-${{ github.run_id }}-${{ github.run_attempt }}
           path: .DerivedData/GateResults-artifact/
-          retention-days: 1
+          retention-days: 14
           if-no-files-found: ignore

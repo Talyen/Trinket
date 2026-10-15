@@ -183,9 +183,12 @@ Unknown inputs fall back to the full suite. The selector is consumed by
 
 ## Toolchain ladder
 
-Required push CI and default manual/performance runs select the exact Xcode
-version and product build in [ci-xcode.json](config/ci-xcode.json). A missing pin
-fails setup rather than silently changing the compiler. Nightly CI and manual
+Required push CI and default manual/performance runs select an explicitly qualified
+Xcode version/product-build pair in [ci-xcode.json](config/ci-xcode.json). The top-level
+`version`/`build` is preferred; `qualified_builds` lists the approved alternatives
+in fallback order. A runner without the preferred build selects the first installed
+qualified pair; no qualified pair fails setup. Runner image/version, installed
+identities and selection reason appear in logs and the job summary. Nightly CI and manual
 `toolchain=latest` runs validate the newest installed Xcode independently; they
 cannot reuse the required toolchain's verification. Local scripts honor
 `DEVELOPER_DIR`, otherwise inheriting the Mac's selected Xcode.
@@ -195,11 +198,14 @@ build (for example `27A9275`). Every job must find that build installed or fail;
 the selector never substitutes the newest beta or changes the verified pin.
 Leave the field blank for normal newest-installed validation.
 
-Promote a newer build in `ci-xcode.json` only after `toolchain=latest` CI proves
+Admit or prefer a newer build in `ci-xcode.json` only after exact-candidate `toolchain=latest` CI proves
 that exact build's Metal readiness, app/smoke, package tests and device Release
-compilation. Commit the pin and verify its push; a marketing version alone cannot
+compilation. Commit the qualified list and verify its push; a marketing version alone cannot
 distinguish two betas. Confirm that every relevant job reports the same product
-build; mixed runner-image results cannot qualify a pin. [setup-ci-xcode.py](setup-ci-xcode.py) reads the product
+build; mixed-build results cannot qualify a candidate. Ordinary verified CI may
+use different qualified builds across runners during a rollout; caches and product
+transfers still require their actual selected compiler identity.
+[setup-ci-xcode.py](setup-ci-xcode.py) reads the product
 version plist, logs the exact build, and exports job-local `DEVELOPER_DIR` without
 changing global `xcode-select`.
 Changes to the setup script or required pin select app/smoke and all package checks.
@@ -286,5 +292,11 @@ Keep/release accepts existing paths in the known repository output roots.
 `TRINKET_CLEANUP_TEST_ARTIFACTS=0` only defers cleanup through downstream consumers.
 Custom destinations outside these roots stay caller-owned. Temporary guidance
 receipts are scoped to this checkout and expire after one day of inactivity.
-Hosted diagnostic/timing artifacts expire after one day; reusable build-product
-artifacts retain their seven-day consumer window.
+Hosted logs, bounded failure diagnostics, compact timing, and native qualification
+evidence retain a 14-day window. The repository Actions retention setting must be
+at least 14 days or GitHub caps the workflow requests. Check it with
+`gh api repos/Talyen/Trinket/actions/permissions/artifact-and-log-retention`;
+changing the setting affects future evidence and cannot restore expired objects.
+Large reusable build-product and iOS runtime artifacts retain a one-day consumer
+window; full performance traces also expire after one day. Missing or expired
+products follow the existing rebuild/validation policy.

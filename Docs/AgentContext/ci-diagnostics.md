@@ -36,6 +36,18 @@ Command execution uses the job's absolute deadline under
 [verification deadlines](../Platform/Verification.md#execution-deadlines). A timed-out
 supervisor writes a failed budget receipt in the same diagnostic session, even if
 the child never reached Xcode or completed an invocation manifest.
+The supervisor also records unsuccessful preparation commands lacking a current
+failure receipt. Preparation reports retain the phase, command, elapsed time,
+environment identity and a bounded output tail. Simulator boot timeouts classify
+as infrastructure, SDK lookup timeouts as tooling; compiler errors and assertions
+take precedence over infrastructure noise. Setup failures publish their own
+diagnostic artifact even when no build/test step starts.
+
+Native Swift Testing failures extract assertions, test identities and source
+locations from the event stream, with compiler diagnostics from the raw log.
+An interrupted event stream does not discard earlier assertions. Successful native
+execution still requires the independent catalog and complete execution/parity
+proof; diagnostic extraction cannot turn an incomplete run into success.
 
 Test wrappers own simulator preparation and recovery. CI actions must not run a
 background boot alongside that owner: competing recovery can erase a device
@@ -183,7 +195,7 @@ and use the current invocation's evidence.
 After the aggregate has been staged, successful invocation artifacts are ephemeral
 by default. `ci-diagnostics.sh --cleanup` removes passed bundles, reports, manifests,
 and raw logs while retaining failed evidence and the recent timing entries (24-hour expiry per entry).
-UI CI jobs retain compact current-job timing and aggregate JSON for one day,
+UI CI jobs retain compact current-job timing and aggregate JSON for 14 days,
 including passing runs; cached timing is cleared before a CI invocation so old
 runs cannot be mistaken for the current one. Successful full bundles and screenshots
 remain ephemeral. Timing queries are bounded and optional; targeted-test evidence queries are
@@ -211,3 +223,16 @@ bounded reports, the aggregate, and timing data; raw logs, `.xcresult` bundles, 
 attachments are staged only when the aggregate category is failed or unknown. Use
 `python3 ./Scripts/ci-diagnostics.py --full <RESULTS_DIR> <OUTPUT_PATH>` when an investigation
 needs the uncompressed aggregate invocation payload.
+
+Hosted failure artifacts also retain 14 days; names include the run attempt so a
+rerun can retain new evidence without colliding with the original upload. The
+repository retention setting and large product-transfer exceptions are owned by
+[output retention](../../Scripts/Reference.md#output-retention).
+
+When a merchant smoke failure reports a missing purchase frame, first establish
+whether inspection opened the detail sheet at all. Preserve its failed screenshot;
+an unopened sheet does not establish a layout defect. Reproduce against the exact
+selected Xcode build before changing product gestures. For battle timer failures,
+compare the focused case with the complete package: main-actor raster work can
+delay unrelated session scheduling, and a focused pass alone does not prove the
+concurrent package is healthy.

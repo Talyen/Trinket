@@ -364,9 +364,9 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
     reports, parse_errors, manifests_present, missing_diagnostics_invocations, selected_session, distinct_session_count = load_reports(results_dir, output_path, args.session_id, full)
     recorded_invocations = len(reports)
     failed_reports = [report for report in reports if report["failed"]]
-    missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"] and report["action"] not in {"build", "build-for-testing", "native-test"})
+    missing_result_invocations = sum(1 for report in reports if not report["result_bundle_exists"] and report["action"] not in {"build", "build-for-testing", "native-test", "prepare"})
     incomplete_result_invocations = sum(
-        1 for report in reports if not report["result_bundle_complete"] and report["action"] not in {"build", "build-for-testing", "native-test"}
+        1 for report in reports if not report["result_bundle_complete"] and report["action"] not in {"build", "build-for-testing", "native-test", "prepare"}
     )
 
     by_classification = {classification: 0 for classification in CLASSIFICATION_PRECEDENCE}
@@ -519,6 +519,11 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
         handle.write("\n")
 
     print(f"CI diagnostic category: {category} — {detail}")
+    for issue in aggregate_issues[:5]:
+        location = issue.get('test') or issue.get('file') or issue['label']
+        if issue.get('file') and issue.get('line'):
+            location = f"{location}:{issue['line']}" if not issue.get('test') else f"{location} ({issue['file']}:{issue['line']})"
+        print(f"  {issue['kind']}: {location}: {issue['message']}")
     if environ.get("GITHUB_STEP_SUMMARY"):
         summary_path = Path(environ["GITHUB_STEP_SUMMARY"])
         with summary_path.open("a", encoding="utf-8") as summary:
@@ -538,7 +543,15 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
                 for issue in aggregate_issues[:20]:
                     title = issue["title"] or issue["kind"]
                     message = issue["message"] or issue["details"] or "No details provided."
-                    summary.write(f"- `{issue['label']}` — **{title}:** {message}\n")
+                    location = issue.get('test', '').replace('`', "'")
+                    if issue.get('file'):
+                        source = issue['file'] + (f":{issue['line']}" if issue.get('line') else '')
+                        location = f"{location} ({source})" if location else source
+                    description = f"{location}: {message}" if location else message
+                    summary.write(f"- `{issue['label']}` — **{title}:** {description}\n")
+            if environ.get('GITHUB_REPOSITORY') and environ.get('GITHUB_RUN_ID'):
+                run_url = f"https://github.com/{environ['GITHUB_REPOSITORY']}/actions/runs/{environ['GITHUB_RUN_ID']}"
+                summary.write(f"\n[Run and retained diagnostic artifacts]({run_url})\n")
             if category == "unknown":
                 summary.write(
                     "\nThe category is unknown. Escalate by inspecting the raw CI logs; "

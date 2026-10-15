@@ -88,13 +88,18 @@ jobs:
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
       - name: Prepared asset integrity gate
         run: python3 Scripts/ci-run-budget.py -- ./Scripts/ci-assets-gate.sh
-      - name: Retain asset watchdog diagnostics
+      - name: Stage bounded asset failure diagnostics
+        if: failure()
+        run: |
+          ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+          ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/AssetResults-artifact
+      - name: Retain asset failure diagnostics
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: asset-budget-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .DerivedData/TestResults/verification-budget-*
-          retention-days: 1
+          path: .DerivedData/AssetResults-artifact
+          retention-days: 14
           if-no-files-found: ignore
 
   build:
@@ -243,14 +248,19 @@ jobs:
           # runners; cap execution before the job timeout so diagnostics can finish.
           TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
         run: python3 Scripts/ci-run-budget.py -- ./Scripts/build.sh --release-device --quiet
+      - name: Stage bounded Release build failure diagnostics
+        if: failure()
+        run: |
+          ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+          ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/ReleaseResults-artifact
       - name: Upload Release build failure diagnostics
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: ${{ inputs.artifact-prefix }}release-device-failure-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .DerivedData/TestResults
+          path: .DerivedData/ReleaseResults-artifact
           include-hidden-files: true
-          retention-days: 1
+          retention-days: 14
           if-no-files-found: ignore
 
   unit:
@@ -338,7 +348,7 @@ jobs:
             .DerivedData/TestResults/timing-log.jsonl
             .DerivedData/TestResults/raw/native-*
             .DerivedData/NativeQualification-artifact
-          retention-days: 1
+          retention-days: 14
       - name: Clean retained comparator diagnostics
         if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
         run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults

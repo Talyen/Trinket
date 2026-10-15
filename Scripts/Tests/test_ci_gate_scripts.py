@@ -106,6 +106,10 @@ trinket_run_full_gate
             scripts = root / 'Scripts'
             scripts.mkdir()
             (scripts / 'ci-run-budget.py').write_text((ROOT / 'Scripts/ci-run-budget.py').read_text())
+            shutil.copytree(ROOT / 'Scripts/internal', scripts / 'internal', ignore=shutil.ignore_patterns('__pycache__'))
+            (scripts / 'config').mkdir()
+            for name in ('diagnostic-limits.env', 'infrastructure-patterns.env'):
+                shutil.copyfile(ROOT / 'Scripts/config' / name, scripts / 'config' / name)
             write_executable(scripts / 'ci-gate.sh', '#!/bin/bash\necho original failure >&2\nexit 65\n')
             results = root / 'TestResults'
             run_captured(['bash', '-c', command], cwd=root, env={**os.environ, 'RESULTS_DIR': str(results)}, expected=65)
@@ -113,7 +117,7 @@ trinket_run_full_gate
         stage = workflow.split('      - name: Stage bounded gate failure diagnostics', 1)[1]
         self.assertIn('if: failure()', stage)
         self.assertIn('--stage-gate-artifacts', stage)
-        self.assertIn('retention-days: 1', stage)
+        self.assertIn('retention-days: 14', stage)
 
     def test_advisory_report_uses_actual_paginated_shard_conclusions(self) -> None:
         module = load_script('exhaustive_report', 'report-exhaustive-ci.py')

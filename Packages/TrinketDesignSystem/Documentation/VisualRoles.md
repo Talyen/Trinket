@@ -66,6 +66,11 @@ Production material names use `HomesteadResource.productionNameColor`: Physical
 for Iron/Stone, Health for Food, and the existing resource tint for other names.
 This does not recolor the illustrated resources or change wallet/category tints.
 
+Wallet grids wrap resources into fewer columns when their intrinsic labels do
+not fit, then measure row height at the placed width. Native text scaling must
+not force labels into narrow fixed-height columns. Wallet captions use opaque
+paper text to preserve contrast over the shared material.
+
 ## Keyword styling
 
 Every keyword has one visual identity via `Keyword.visualStyle`. Do not introduce one-off keyword colors in feature views.

@@ -348,6 +348,7 @@ def parse_build_results(build: dict[str, Any]) -> list[IssueObservation]:
 LOG_PATTERNS: tuple[tuple[str, str, str], ...] = (
     (r"\*\*\s*(?:TEST )?BUILD FAILED\s*\*\*", "build-failure", "Build failure"),
     (r"(?:undefined symbols for architecture|symbol\(s\) not found|duplicate symbol|linker command failed|ld: .*error|framework .* not found|library .* not found)", "build-failure", "Linker failure"),
+    (r"xcrun.*--show-sdk-version.*timed out", "tooling", "SDK lookup timeout"),
     # Canonical simulator vocabulary first so a crash/timeout line that also
     # names the simulator classifies as infrastructure, not test failure.
     (INFRASTRUCTURE_FAILURE_PATTERN, "simulator-infrastructure", "Simulator infrastructure"),
@@ -365,7 +366,7 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
     except OSError:
         return []
     observations: dict[tuple, IssueObservation] = {}
-    diagnostic = re.compile(r"^(?P<file>[^\n:]+(?::[^\n:]+)*):(?P<line>\d+)(?::\d+)?:\s*(?:fatal )?error:\s*(?P<message>.+)$", re.I)
+    diagnostic = re.compile(r"^(?P<file>[^\n:]+(?::[^\n:]+)*?):(?P<line>\d+)(?::\d+)?:\s*(?:fatal )?error:\s*(?P<message>.+)$", re.I)
     xctest_failure = re.compile(
         r"^-\[(?P<test>[^\]]+)\]\s*:\s*failed\s*-\s*(?P<message>.*)$",
         re.I,
@@ -378,7 +379,7 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
             pending_line = None
             if raw_line is None:
                 break
-            line_text = raw_line.strip()
+            line_text = re.sub(r"\x1b\[[0-9;]*m", "", raw_line).strip()
             # Compiler excerpts contain source arguments such as timeout: and
             # failed assertions; they are not runtime failure observations.
             if re.match(r"^(?:\d+\s*\||\||.*:\d+(?::\d+)?:\s*(?:warning|note):)", line_text):

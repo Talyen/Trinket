@@ -68,14 +68,21 @@ runs:
         SKIP_GENERATE: 1
       run: ${{ inputs.build-command }}
 
+    - name: Stage bounded build failure diagnostics
+      if: failure() && steps.build.outcome == 'failure'
+      shell: bash
+      run: |
+        ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+        ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/BuildResults-artifact
+
     - name: Upload build failure diagnostics
       if: failure() && steps.build.outcome == 'failure'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
       with:
         name: ${{ steps.ids.outputs.artifact-name }}-failure-diagnostics
-        path: .DerivedData/TestResults
+        path: .DerivedData/BuildResults-artifact
         include-hidden-files: true
-        retention-days: 1
+        retention-days: 14
         if-no-files-found: ignore
 
     - name: Prune DerivedData before cache/artifact save
@@ -103,5 +110,5 @@ runs:
         path: .DerivedData/ci-test-artifact.tar
         compression-level: 0
         include-hidden-files: true
-        retention-days: 7
+        retention-days: 1
         if-no-files-found: error

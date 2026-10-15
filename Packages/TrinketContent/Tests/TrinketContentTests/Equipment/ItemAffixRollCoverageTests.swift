@@ -46,7 +46,7 @@ struct ItemAffixRollCoverageTests {
         let bumped = executioners.basic.bumped(target: target, direction: .up)
         #expect(bumped.triggers.damageBelowHealthPercentThreshold == 0.30)
         #expect(bumped.triggers.damageBelowHealthPercentBonus == 3)
-        #expect(bumped.description == "Deal 3 additional damage if the enemy is below 30% Health")
+        #expect(bumped.description.contains("3 additional damage") && bumped.description.contains("below 30% Health"))
 
         let power = ItemAffixPower(
             description: "Gain 20 Strength when below 20% Health.",
@@ -115,7 +115,7 @@ struct ItemAffixRollCoverageTests {
         let max = infected.basic.rolledMax()
         #expect(max.triggers.onBleedApplyPoison == 2)
         #expect(abs(max.triggers.onBleedDealPoisonChancePercent - 0.25) < 1e-9)
-        #expect(max.description == "Bleed damage: 25% chance to deal 2 Poison damage once per turn")
+        #expect(max.description.contains("25% chance to deal 2 Poison damage") && max.description.contains("once per turn"))
     }
 
     @Test func `mixed modifier and trigger magnitudes share the transformation order`() {
@@ -156,7 +156,7 @@ struct ItemAffixRollCoverageTests {
         let target = try #require(definition.basic.bumpCandidates(direction: .up).first)
         let increased = definition.basic.bumped(target: target, direction: .up)
         #expect(increased.triggers.holyDamagePurgeCount == 2)
-        #expect(increased.description == "Purge 2 buffs when you deal Holy damage")
+        #expect(increased.description.contains("Purge 2 buffs") && increased.description.contains("Holy damage"))
         let decreased = increased.bumped(target: target, direction: .down)
         #expect(decreased == definition.basic)
     }

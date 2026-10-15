@@ -30,8 +30,26 @@ class CIXcodeTests(unittest.TestCase):
             pin = dict(version='27.1', build='27A9269')
             self.assertEqual(SETUP.select_xcode(installations, 'verified', pin)[1:], ('27.1', '27A9269'))
             self.assertEqual(SETUP.select_xcode(installations, 'latest', pin)[1:], ('27.2', '27B5028f'))
-            with self.assertRaisesRegex(RuntimeError, 'not installed'):
+            with self.assertRaisesRegex(RuntimeError, 'No qualified Xcode'):
                 SETUP.select_xcode(installations, 'verified', dict(version='27.2', build='27B5019j'))
+
+    def test_rollout_uses_only_qualified_identities_and_prefers_the_primary_build(self):
+        previous = (Path('/Applications/Previous.app'), '27.1', '27A9269')
+        preferred = (Path('/Applications/Preferred.app'), '27.1', '27A9275')
+        unqualified = (Path('/Applications/Beta.app'), '27.2', '27B5028f')
+        pin = dict(version='27.1', build='27A9275', qualified_builds=[
+            dict(version='27.1', build='27A9269'), dict(version='27.1', build='27A9275')])
+        self.assertEqual(SETUP.select_xcode([previous, unqualified], 'verified', pin), previous)
+        self.assertEqual(SETUP.select_xcode([preferred, unqualified], 'verified', pin), preferred)
+        self.assertEqual(SETUP.select_xcode([previous, preferred], 'verified', pin), preferred)
+        self.assertEqual(SETUP.select_xcode([previous, unqualified], 'latest', pin), unqualified)
+        with self.assertRaisesRegex(RuntimeError, 'No qualified Xcode'):
+            SETUP.select_xcode([unqualified], 'verified', pin)
+        with self.assertRaisesRegex(RuntimeError, 'No qualified Xcode'):
+            SETUP.select_xcode([(preferred[0], '27.2', preferred[2])], 'verified', pin)
+        for entries in ([], [pin, pin], [dict(version='27.1', build='27A9269')]):
+            with self.subTest(entries=entries), self.assertRaises(ValueError):
+                SETUP.select_xcode([preferred], 'verified', {**pin, 'qualified_builds': entries})
 
     def test_explicit_candidate_never_falls_back_or_overrides_verified_pin(self):
         installations = [(Path('/Applications/RC.app'), '27.1', '27A9275'),
