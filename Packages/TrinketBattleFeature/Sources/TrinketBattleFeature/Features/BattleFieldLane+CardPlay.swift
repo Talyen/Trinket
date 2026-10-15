@@ -2,15 +2,19 @@ import BattleEngine
 import SwiftUI
 
 extension BattleFieldLane {
+    var input: BattleViewInput {
+        BattleViewInput(session: battleSession, presentation: presentation)
+    }
+
     var autoBattleTaskID: String {
-        "\(battleSession.isAutoBattleEnabled)-\(battleSession.activeBattle?.id.uuidString ?? "none")"
+        "\(battleSession.isAutoBattleEnabled)-\(configuration.id.uuidString)"
     }
 
     func playAutoBattleCard(_ card: BattleCard, handFrame: CGRect) -> Bool {
-        guard !Task.isCancelled, battleSession.isAutoBattleEnabled,
+        guard input.isCurrent, !Task.isCancelled, battleSession.isAutoBattleEnabled,
               let request = activationRequest(for: card, handFrame: handFrame)
         else { return false }
-        battleSession.beginCardCue(card, mode: .tapCommit)
+        input.perform { $0.beginCardCue(card, mode: .tapCommit) }
         let didPlay = playCard(card, request: request, isAutomatic: true)
         if !didPlay {
             cancelCardLift(for: card)
@@ -19,21 +23,21 @@ extension BattleFieldLane {
     }
 
     func playCard(_ card: BattleCard, request: CardActivationRequest, isAutomatic: Bool = false) -> Bool {
-        let outcome = battleSession.playCard(cardID: card.id, isAutomatic: isAutomatic)
-        guard case .committed = outcome else { return false }
+        let outcome = input.perform { $0.playCard(cardID: card.id, isAutomatic: isAutomatic) }
+        guard outcome == .committed else { return false }
         castPresentation.append(request)
         return true
     }
 
     func cancelCardLift(for card: BattleCard) {
-        battleSession.cancelCardCue(card)
+        input.perform { $0.cancelCardCue(card) }
     }
 
     private func activationRequest(
         for card: BattleCard,
         handFrame: CGRect,
     ) -> CardActivationRequest? {
-        let hand = battleSession.hand
+        let hand = presentation.hand
         guard let index = hand.firstIndex(where: { $0.id == card.id }) else { return nil }
         return CardActivationRequest.restingRequest(
             for: card,

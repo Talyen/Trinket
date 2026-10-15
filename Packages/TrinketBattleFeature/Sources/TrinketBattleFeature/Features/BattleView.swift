@@ -57,8 +57,14 @@ public struct BattleView: View {
         }
     }
 
+    private var input: BattleViewInput {
+        BattleViewInput(session: battleSession, presentation: presentation)
+    }
+
     private func bodyContent(battleSession: BattleSession) -> some View {
         outcomeContent(battleSession: battleSession)
+            .allowsHitTesting(input.isCurrent)
+            .accessibilityHidden(!input.isCurrent)
             .environment(battleSession)
             .environment(spectacle)
             .trinketScreenBackground()
@@ -68,9 +74,9 @@ public struct BattleView: View {
             .toolbarVisibility(.visible, for: .navigationBar)
             .toolbarVisibility(.hidden, for: .tabBar)
             .toolbar {
-                if battleSession.lifecyclePhase == .active, !spectacle.outcomePresentation.isOutcomePresented {
+                if input.isCurrent, !spectacle.outcomePresentation.isOutcomePresented {
                     ToolbarItemGroup(placement: .topBarTrailing) {
-                        BattleAutoToggle(battleSession: battleSession)
+                        BattleAutoToggle(battleSession: battleSession, input: input)
                         battleActionsMenu(canRetreat: battleSession.canRetreat)
                     }
                 }
@@ -84,7 +90,7 @@ public struct BattleView: View {
     private func battleActionsMenu(canRetreat: Bool) -> some View {
         Menu {
             Button {
-                battleSession.presentBattleLog()
+                input.perform { $0.presentBattleLog() }
             } label: {
                 Label("Combat Log", systemImage: "list.bullet.rectangle")
             }
@@ -92,7 +98,7 @@ public struct BattleView: View {
 
             #if DEBUG
             Button {
-                battleSession.debugSkipCombat()
+                input.perform { $0.debugSkipCombat() }
             } label: {
                 Label("Skip Combat", systemImage: "forward.end")
             }
@@ -101,7 +107,7 @@ public struct BattleView: View {
 
             if canRetreat {
                 Button(role: .destructive) {
-                    battleSession.retreatFromBattle()
+                    input.perform { $0.retreatFromBattle() }
                 } label: {
                     Label("Retreat", systemImage: "figure.run")
                 }
@@ -129,9 +135,9 @@ public struct BattleView: View {
                     action: hasStageProgression ? .collect(
                         hapticsEnabled: battleSession.hapticsEnabled,
                         claim: { completeVictoryPrimaryAction(summary: victorySummary) },
-                        finish: { battleSession.finishVictoryPresentation(configurationID: configuration.id) },
+                        finish: { input.perform { $0.finishVictoryPresentation(configurationID: configuration.id) } },
                     ) : .immediate { completeVictoryPrimaryAction(summary: victorySummary) },
-                    onExceptionalReveal: { battleSession.playPresentationSFX(SFXID.lootExceptional) },
+                    onExceptionalReveal: { input.perform { $0.playPresentationSFX(SFXID.lootExceptional) } },
                 )
                 .transition(.opacity)
             case let .defeat(settlement):
@@ -174,6 +180,7 @@ public struct BattleView: View {
             configuration: configuration, settlement: settlement,
             didRetreat: battleSession.retreatProgress != nil,
         ) { action in
+            guard input.isCurrent else { return false }
             if battleSession.progression == nil {
                 switch action {
                 case .retry: return restartBattle()
@@ -187,6 +194,7 @@ public struct BattleView: View {
     }
 
     private func completeVictoryPrimaryAction(summary: BattleVictorySummary) -> Bool {
+        guard input.isCurrent else { return false }
         guard hasStageProgression else {
             // A failed restart must leave the reward sequence in `.ready`, so
             // the primary action re-arms instead of locking on completion.
@@ -274,6 +282,7 @@ struct BattleFieldLane: View {
             .task(id: autoBattleTaskID) {
                 interactionState.suppressCombatantTaps = false
                 await battleSession.driveAutoBattle(
+                    input: input,
                     isCardCastPacingBlocked: { castPresentation.blocksAutoBattle(at: .now) },
                     isManualInteractionActive: { interactionState.blocksCombatantTaps },
                     playCard: { card in
@@ -310,11 +319,11 @@ struct BattleFieldLane: View {
         _ card: BattleCard,
         _ mode: BattleCardCuePresentationMode,
     ) {
-        battleSession.beginCardCue(card, mode: mode)
+        input.perform { $0.beginCardCue(card, mode: mode) }
     }
 
     private func showDetails(for combatant: Combatant) {
-        guard !interactionState.blocksCombatantTaps,
+        guard input.isCurrent, !interactionState.blocksCombatantTaps,
               let effectSummaries = battleSession.effectSummaries(for: combatant)
         else { return }
         let combatantPresentation = switch combatant.role {
@@ -362,6 +371,10 @@ private struct BattleHandProjectionLane: View {
 
     @State private var cardPlayFeedbackToken = 0
 
+    private var input: BattleViewInput {
+        BattleViewInput(session: battleSession, presentation: presentation)
+    }
+
     var body: some View {
         let hand = presentation.hand
         ZStack(alignment: .bottom) {
@@ -371,9 +384,9 @@ private struct BattleHandProjectionLane: View {
                 // One play-intent gate for tap, drag, and accessibility
                 // activation: the session's own eligibility, plus the
                 // visual-only finishing taps a finished battle still accepts.
-                isPlayable: { battleSession.isHandCardPlayable($0) },
+                isPlayable: { card in input.perform { $0.isHandCardPlayable(card) } ?? false },
                 onInspect: { card in
-                    battleSession.presentAbilityDetail(card.ability)
+                    input.perform { $0.presentAbilityDetail(card.ability) }
                 },
                 onPlay: { card, request in
                     let didPlay = onPlay(card, request)
@@ -383,8 +396,10 @@ private struct BattleHandProjectionLane: View {
                     return didPlay
                 },
                 onPlayDenied: { card in
-                    battleSession.denyCardCue(card)
-                    battleSession.playPresentationSFX(SFXID.uiDeny)
+                    input.perform { session in
+                        session.denyCardCue(card)
+                        session.playPresentationSFX(SFXID.uiDeny)
+                    }
                 },
                 hapticsEnabled: hapticsEnabled,
                 onFrameChanged: onFrameChanged,
@@ -393,7 +408,7 @@ private struct BattleHandProjectionLane: View {
                 onLiftCancel: onLiftCancel,
             )
         }
-        .allowsHitTesting(battleSession.canInteractWithHand)
+        .allowsHitTesting(input.isCurrent && battleSession.canInteractWithHand)
         .trinketSensoryFeedback(
             .impact(weight: .medium),
             trigger: cardPlayFeedbackToken,

@@ -7,6 +7,57 @@ import TrinketContentTestSupport
 
 @MainActor
 struct BattleSessionCardCueTests {
+    @Test func `retiring hand callbacks cannot play or cancel a replacement battle card`() throws {
+        let session = makeSession()
+        defer { session.endBattle() }
+        let card = try install(.slash, in: session)
+        let configuration = try #require(session.activeBattle)
+        let context = try #require(session.presentationContext)
+        let retiredPresentation = session.presentation
+        let casts = BattleCastPresentationState()
+        defer { casts.reset() }
+        let field = BattleFieldLane(
+            configuration: configuration, presentationContext: context,
+            battleSession: session, presentation: retiredPresentation,
+            interactionState: BattleInteractionState(), castPresentation: casts,
+        )
+        let frame = BattleHandLayout.frame(in: CGSize(width: 375, height: 667))
+        let request = CardActivationRequest.restingRequest(
+            for: card, index: 0, cardCount: session.hand.count, handFrame: frame,
+        )
+
+        session.endBattle()
+        #expect(!field.playCard(card, request: request))
+        // Reuse even the configuration ID: display lifetime, not a card or run
+        // identifier, owns permission to issue commands.
+        #expect(session.activate(configuration, presentation: context))
+        let replacement = try install(.slash, in: session)
+        #expect(replacement.id == card.id)
+        #expect(session.isCardPlayable(replacement))
+        session.beginCardCue(replacement)
+        let events = session.engineState?.events
+        let rng = session.engineState?.rng
+
+        field.cancelCardLift(for: card)
+        #expect(session.cardCues.current?.phase == .lifted)
+        #expect(!field.playCard(card, request: request))
+        session.isAutoBattleEnabled = true
+        #expect(!field.playAutoBattleCard(card, handFrame: frame))
+        #expect(session.hand.contains(replacement))
+        #expect(session.engineState?.events == events)
+        #expect(session.engineState?.rng == rng)
+        #expect(casts.requests.isEmpty)
+        #expect(retiredPresentation.hand.contains(card))
+
+        let current = BattleFieldLane(
+            configuration: configuration, presentationContext: context,
+            battleSession: session, presentation: session.presentation,
+            interactionState: BattleInteractionState(), castPresentation: casts,
+        )
+        #expect(current.playCard(replacement, request: request))
+        #expect(!session.hand.contains(replacement))
+    }
+
     @Test func `moving the hand moves new cast origins without changing a committed cast`() throws {
         let session = makeSession()
         defer { session.endBattle() }

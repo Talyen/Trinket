@@ -211,6 +211,7 @@ enum BattleSessionTestSupport {
     ) async {
         session.isAutoBattleEnabled = true
         await session.driveAutoBattle(
+            input: BattleViewInput(session: session, presentation: session.presentation),
             isCardCastPacingBlocked: isCardCastPacingBlocked,
             isManualInteractionActive: isManualInteractionActive,
             playCard: playCard,

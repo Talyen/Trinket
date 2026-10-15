@@ -121,12 +121,13 @@ extension BattleSession {
     }
 
     func driveAutoBattle(
+        input: BattleViewInput,
         isCardCastPacingBlocked: @escaping @MainActor () -> Bool,
         isManualInteractionActive: @escaping @MainActor () -> Bool,
         playCard: @MainActor (BattleCard) async -> Bool,
     ) async {
         let autoBattlePolicy = PlayPolicy.greedy
-        while !Task.isCancelled, isAutoBattleEnabled {
+        while input.isCurrent(in: self), !Task.isCancelled, isAutoBattleEnabled {
             guard hasRunnableAutoBattle else { return }
 
             if isAutoBattlePresentationBlocked {
@@ -134,9 +135,9 @@ extension BattleSession {
                 continue
             }
 
-            await waitWhileAutoBattleBlocked(isBlocked: isManualInteractionActive)
-            await waitWhileAutoBattleBlocked(isBlocked: isCardCastPacingBlocked)
-            guard !Task.isCancelled, isAutoBattleEnabled, hasRunnableAutoBattle else {
+            await waitWhileAutoBattleBlocked(input: input, isBlocked: isManualInteractionActive)
+            await waitWhileAutoBattleBlocked(input: input, isBlocked: isCardCastPacingBlocked)
+            guard input.isCurrent(in: self), !Task.isCancelled, isAutoBattleEnabled, hasRunnableAutoBattle else {
                 return
             }
             if isAutoBattlePresentationBlocked || isManualInteractionActive() {
@@ -157,9 +158,9 @@ extension BattleSession {
                 await waitForAutoBattleRetry()
                 continue
             }
-            guard !Task.isCancelled, isAutoBattleEnabled, outcome == nil else { return }
+            guard input.isCurrent(in: self), !Task.isCancelled, isAutoBattleEnabled, outcome == nil else { return }
 
-            await waitWhileAutoBattleBlocked(isBlocked: isCardCastPacingBlocked)
+            await waitWhileAutoBattleBlocked(input: input, isBlocked: isCardCastPacingBlocked)
         }
     }
 
@@ -172,9 +173,10 @@ extension BattleSession {
     }
 
     private func waitWhileAutoBattleBlocked(
+        input: BattleViewInput,
         isBlocked: @MainActor () -> Bool,
     ) async {
-        while !Task.isCancelled, isAutoBattleEnabled, isBlocked() {
+        while input.isCurrent(in: self), !Task.isCancelled, isAutoBattleEnabled, isBlocked() {
             await waitForAutoBattleRetry()
         }
     }

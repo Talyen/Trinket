@@ -4,10 +4,13 @@ import TrinketFeatureSupport
 
 struct BattleAutoToggle: View {
     let battleSession: BattleSession
+    let input: BattleViewInput
 
     var body: some View {
-        @Bindable var observedSession = battleSession
-        Toggle(isOn: $observedSession.isAutoBattleEnabled) {
+        Toggle(isOn: Binding(
+            get: { battleSession.isAutoBattleEnabled },
+            set: { enabled in input.perform { $0.isAutoBattleEnabled = enabled } },
+        )) {
             Label(
                 "Auto",
                 systemImage: "arrow.trianglehead.2.clockwise.rotate.90",

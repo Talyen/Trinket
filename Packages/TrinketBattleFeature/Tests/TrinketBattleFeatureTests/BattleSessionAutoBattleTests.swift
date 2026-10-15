@@ -11,6 +11,46 @@ import TrinketFeatureSupport
 
 @MainActor
 extension BattleSessionAutoBattleTests {
+    @Test func `retiring auto driver stops after replacement without waiting for view cancellation`() async throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        defer { session.endBattle() }
+        let configuration = try #require(session.activeBattle)
+        let context = try #require(session.presentationContext)
+        let input = BattleViewInput(session: session, presentation: session.presentation)
+        var blocked = true
+        var checkedGate = false
+        var played = false
+        var finished = false
+        session.isAutoBattleEnabled = true
+        let driver = Task { @MainActor in
+            await session.driveAutoBattle(
+                input: input,
+                isCardCastPacingBlocked: {
+                    checkedGate = true
+                    return blocked
+                },
+                isManualInteractionActive: { false },
+                playCard: { _ in
+                    played = true
+                    session.isAutoBattleEnabled = false
+                    return true
+                },
+            )
+            finished = true
+        }
+        defer { driver.cancel() }
+        #require(try await BattleSessionTestSupport.waitUntil { checkedGate })
+
+        session.endBattle()
+        #expect(session.activate(configuration, presentation: context))
+        session.isAutoBattleEnabled = true
+        blocked = false
+        #require(try await BattleSessionTestSupport.waitUntil { finished })
+        await driver.value
+        #expect(!played)
+        #expect(session.isAutoBattleEnabled)
+    }
+
     @Test func `auto battle commits the next card while the preceding cast remains visible`() async throws {
         let session = BattleSessionTestSupport.makeConfiguredSession()
         defer { session.endBattle() }
@@ -30,6 +70,7 @@ extension BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
+                input: BattleViewInput(session: session, presentation: session.presentation),
                 isCardCastPacingBlocked: {
                     gateChecked = true
                     return casts.blocksAutoBattle(at: clock)
@@ -80,6 +121,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
+                input: BattleViewInput(session: session, presentation: session.presentation),
                 isCardCastPacingBlocked: {
                     castChecks += 1
                     if castChecks == 1 {
@@ -202,6 +244,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
+                input: BattleViewInput(session: session, presentation: session.presentation),
                 isCardCastPacingBlocked: {
                     guard remainingCastBlocks > 0 else { return false }
                     remainingCastBlocks -= 1
@@ -238,6 +281,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
+                input: BattleViewInput(session: session, presentation: session.presentation),
                 isCardCastPacingBlocked: { false },
                 isManualInteractionActive: {
                     interactionChecks += 1
@@ -304,6 +348,7 @@ struct BattleSessionAutoBattleTests {
 
         session.isAutoBattleEnabled = true
         await session.driveAutoBattle(
+            input: BattleViewInput(session: session, presentation: session.presentation),
             isCardCastPacingBlocked: { castPresentation.request != nil },
             isManualInteractionActive: { false },
             playCard: { card in
@@ -349,6 +394,7 @@ struct BattleSessionAutoBattleTests {
         session.isAutoBattleEnabled = true
         let driver = Task { @MainActor in
             await session.driveAutoBattle(
+                input: BattleViewInput(session: session, presentation: session.presentation),
                 isCardCastPacingBlocked: { false },
                 isManualInteractionActive: { false },
                 playCard: { card in

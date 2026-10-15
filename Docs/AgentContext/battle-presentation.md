@@ -12,6 +12,11 @@ run immediately, while the retiring view keeps its last hand, combatants, and
 outcome until hidden.
 Retiring views must not look up replacement display objects from the session.
 The captured spectacle is supplied through the view environment for outcome presentation.
+View commands use `BattleViewInput`, bound to that captured combat projection.
+Replacing or ending the display revokes its card, cue, inspection, toolbar and outcome
+callbacks. Auto Battle carries the same input through suspension and exits when it
+is retired, independently of SwiftUI task cancellation. Configuration and card IDs
+alone do not establish display lifetime.
 
 Victory chrome reads a settled award derived from launch-baked quantities; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
 
