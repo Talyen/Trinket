@@ -11,7 +11,10 @@ struct BlockCostRollbackRegressionTests {
         nestedBlock: Int,
         expectedBlock: Int,
     ) {
-        let attack = Ability(id: "block-cost-attack", name: "Block Cost Attack", tier: .basic, directDamage: 1, blockCost: 3)
+        let attack = Ability(
+            id: "block-cost-attack", name: "Block Cost Attack", tier: .basic,
+            damageComponents: [DamageComponent(1)], blockCost: 3,
+        )
         var profile = CombatModifierProfile.zero
         profile.triggers.onDodgeDrawAndPlayCardChainOnCrit = nestedBlock > 0
         var battle = BattleStateTestFactory.makeBattleWithAbilities(

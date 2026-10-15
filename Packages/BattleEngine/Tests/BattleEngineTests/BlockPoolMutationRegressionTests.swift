@@ -6,7 +6,7 @@ import TrinketCore
 struct BlockPoolMutationRegressionTests {
     @Test(arguments: [false, true], [0, 7])
     func `Block theft reports only actual loss while preserving protected pools`(protected: Bool, block: Int) {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+        var battle = BattleStateTestFactory.makeBattle(
             companionModifiers: .withTriggers { $0.goldTheftStealEnemyBlockChancePercent = 1 },
             enemyModifiers: .withTriggers { $0.sealedSarcophagus = protected },
             dealOpeningHand: false, appliesFightPacing: false,
