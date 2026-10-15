@@ -79,12 +79,10 @@ simulation suites; gesture inspection/drag safety uses `BattleFlowUITests`.
 
 `BattleFeedbackLane` schedules attack phases and impact delivery from resolved
 actions. Combatant motion uses the same clock and native SwiftUI spring recipes,
-retargeting from its current pose. A prepared drag commits its swing; a tap starts
-0.10-second preparation for manual plays, with a 0.15-second swing and
-0.45-second recovery. Prepared drags skip preparation. Automatic and enemy
-attacks retain 0.40-second preparation, 0.15-second swing, and 0.45-second recovery.
-Each scheduled action retains its swing, recovery, and acceleration preparation
-cap so rapid play cannot substitute another action type's timing. Later attacks
+retargeting from its current pose. Manual, automatic, and enemy attacks share
+0.40-second preparation, a 0.15-second swing, and 0.45-second recovery. A prepared
+drag commits its swing and skips preparation. Each scheduled action retains its
+swing, recovery, and acceleration preparation cap. Later attacks
 by the same actor can shorten pending preparation to a 0.08-second cap
 and interrupt recovery, while distinct impacts remain ordered. Automatic card
 reveal and dissolve use the same scheduled swing time. Manual results and recoil publish at commitment

@@ -43,7 +43,7 @@ struct BattleActionPresentationTests {
         let actorID = try #require(session.heroID)
         #expect(session.feedback.attackReactionsByCombatantID[actorID]?.phase == (prepared ? .swing : .windUp))
         let beat = try #require(session.feedback.scheduledActions.first { $0.actorID == actorID })
-        #expect(abs(beat.swingAt.timeIntervalSince(beat.startAt) - (prepared ? 0 : 0.10)) < 0.001)
+        #expect(abs(beat.swingAt.timeIntervalSince(beat.startAt) - (prepared ? 0 : 0.40)) < 0.001)
         #expect(abs(beat.impactAt.timeIntervalSince(beat.swingAt) - 0.15) < 0.001)
         let results = session.feedback.activeItems
         let immediateSounds = sounds
@@ -83,7 +83,7 @@ struct BattleActionPresentationTests {
         #expect(session.playCard(cardID: card.id, isAutomatic: isAutomatic) == .committed)
         let beat = try #require(session.feedback.scheduledActions.first)
         #expect(session.feedback.activeItems.isEmpty == isAutomatic)
-        #expect(abs(beat.swingAt.timeIntervalSince(beat.startAt) - (isAutomatic ? 0.40 : 0.10)) < 0.001)
+        #expect(abs(beat.swingAt.timeIntervalSince(beat.startAt) - 0.40) < 0.001)
         #expect(abs(beat.impactAt.timeIntervalSince(beat.swingAt) - 0.15) < 0.001)
         #expect(beat.recoveryDuration == 0.45)
         session.feedback.advance(to: beat.impactAt)
