@@ -79,9 +79,9 @@ class BuildMetadataTests(unittest.TestCase):
                     os.utime(source, ns=(before.st_atime_ns, before.st_mtime_ns))
                 self.check(expected=1)
 
-    def test_test_plans_and_generated_project_changes_invalidate_local_reuse(self):
-        # An unknown plan proves wildcard ownership; repeating named plans adds
-        # the same build/check cycles without another invalidation mechanism.
+    def test_test_plans_and_generated_project_changes_invalidate_build_snapshot(self):
+        # The source-guard tests above own stamp admission. Here, exercise the
+        # real build-input globs without rebuilding metadata for every mutation.
         for relative in ('Future.xctestplan',
                          'Trinket.xcodeproj/project.pbxproj',
                          'Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme'):
@@ -89,12 +89,13 @@ class BuildMetadataTests(unittest.TestCase):
                 source = self.root / relative
                 source.parent.mkdir(parents=True, exist_ok=True)
                 source.write_text('before')
-                self.build()
+                command = 'generation_input_snapshot --build-inputs "${build_input_paths[@]}"'
+                baseline = self.shell(command).stdout
+                self.assertEqual(self.shell(command).stdout, baseline)
                 source.write_text('after')
-                self.check(expected=1)
-                self.build()
+                self.assertNotEqual(self.shell(command).stdout, baseline)
                 source.unlink()
-                self.check(expected=1)
+                self.assertNotEqual(self.shell(command).stdout, baseline)
 
     def test_selected_bundle_avoids_version_process_and_still_rejects_changed_toolchain(self):
         contents = self.root / 'Xcode.app/Contents'
@@ -146,14 +147,17 @@ touch_build_stamp results package_TrinketCore
 
     def test_legacy_missing_and_corrupt_metadata_fail_closed(self):
         self.check(expected=1)
+        self.build()
+        path = self.metadata()
+        original = path.read_bytes()
         for content in (None, '{', '[]'):
-            self.build()
-            path = self.metadata()
             if content is None:
                 path.unlink()
             else:
                 path.write_text(content)
             self.check(expected=1)
+            path.write_bytes(original)
+            self.check()
 
     def test_ci_requires_stamp_and_commit(self):
         ci = {**self.env, 'CI': 'true'}

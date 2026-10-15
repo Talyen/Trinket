@@ -22,38 +22,54 @@ struct MysteryRewardResolverTests {
         #expect(MysteryRewardResolver.materialQuantity(forLevel: level) == 4 + Int(quotient))
     }
 
-    @Test func `special rewards stay inside the choice pool and exclude owned items`() throws {
+    @Test func `special reward pools filter ownership independently and retain gear fallback`() throws {
         let event = try #require(GameContent.mysteryEvent(matching: "enchanted-spring"))
         let choice = event.choices[0]
-        var seen: Set<String> = []
-        var ownership = RewardOwnership()
-        var rng = SeededRandomNumberGenerator(seed: 42)
-        for _ in 0 ..< 100 {
-            let offer = try #require(resolver(ownership: ownership).resolveOffer(
-                choice: choice, encounterID: "spring", encounterLevel: 6, rewardLevel: 20, using: &rng,
-            ))
-            if offer.item.isTrinket || offer.item.rarity == .unique {
-                #expect(["icy_heart", "rimeheart_locket"].contains(offer.item.templateID))
-                seen.insert(offer.item.templateID)
-            } else {
-                #expect(offer.item.baseType.id == "sapphire_amulet")
+        let scenarios: [(RewardOwnership, Set<ItemDropTier>)] = [
+            (RewardOwnership(), [.basic, .astral, .trinket, .unique]),
+            (RewardOwnership(ownedTrinketIDs: ["icy_heart"]), [.basic, .astral, .unique]),
+            (RewardOwnership(ownedUniqueIDs: ["rimeheart_locket"]), [.basic, .astral, .trinket]),
+            (RewardOwnership(ownedTrinketIDs: ["icy_heart"], ownedUniqueIDs: ["rimeheart_locket"]), [.basic, .astral]),
+        ]
+        let unownedWeights = ItemLootPolicy.probabilities(
+            level: 20, bossContent: false, astralChanceBonusPercent: 0,
+            availableTiers: Set(ItemDropTier.allCases),
+        )
+        for (ownership, available) in scenarios {
+            let weights = ItemLootPolicy.probabilities(
+                level: 20, bossContent: false, astralChanceBonusPercent: 0, availableTiers: available,
+            )
+            for (index, tier) in ItemDropTier.allCases.enumerated() {
+                // Also probe draws that would have selected an owned collectible
+                // before filtering; otherwise a broken exclusion could go unseen.
+                let probeWeights = available.contains(tier) ? weights : unownedWeights
+                let lower = probeWeights.prefix(index).reduce(0, +)
+                let upper = lower + probeWeights[index]
+                // Find only the first random draw in this tier's interval, then
+                // generate one real offer. The policy's weights/boundaries have
+                // their own owner; this test protects Mystery's pool forwarding.
+                let seed = try #require((1 ... 4096).first { seed in
+                    var probe = SeededRandomNumberGenerator(seed: UInt64(seed))
+                    let draw = Double.random(in: 0 ..< 1, using: &probe)
+                    return draw >= lower && draw < upper
+                })
+                var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+                let offer = try #require(resolver(ownership: ownership).resolveOffer(
+                    choice: choice, encounterID: "spring", encounterLevel: 6, rewardLevel: 20, using: &rng,
+                ))
+                #expect(!ownership.ownedTrinketIDs.contains(offer.item.templateID))
+                #expect(!ownership.ownedUniqueIDs.contains(offer.item.templateID))
+                guard available.contains(tier) else { continue }
+                switch tier {
+                case .trinket:
+                    #expect(offer.item.templateID == "icy_heart")
+                case .unique:
+                    #expect(offer.item.templateID == "rimeheart_locket")
+                case .basic, .astral:
+                    #expect(offer.item.baseType.id == "sapphire_amulet")
+                    #expect(offer.item.rarity == (tier == .basic ? .basic : .astral))
+                }
             }
-        }
-        #expect(seen == ["icy_heart", "rimeheart_locket"])
-        for id in seen {
-            let item = try #require(GameContent.itemTemplate(matching: id) ?? GameContent.unique(matching: id))
-            if item.isTrinket {
-                ownership.ownedTrinketIDs.insert(id)
-            } else {
-                ownership.ownedUniqueIDs.insert(id)
-            }
-        }
-        for _ in 0 ..< 20 {
-            let offer = try #require(resolver(ownership: ownership).resolveOffer(
-                choice: choice, encounterID: "spring", encounterLevel: 6, rewardLevel: 20, using: &rng,
-            ))
-            #expect(!offer.item.isTrinket && offer.item.rarity != .unique)
-            #expect(offer.item.baseType.id == "sapphire_amulet")
         }
     }
 

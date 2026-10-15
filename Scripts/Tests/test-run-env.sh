@@ -3,7 +3,7 @@ set -euo pipefail
 
 # No-Xcode coverage for Scripts/run-env.sh isolation, agent sim slots, UI slots,
 # Preview reclaim (empty / Shutdown-only / Booted), single-warm Booted
-# enforcement, and generate lock timeout.
+# enforcement. Generation lock admission is covered by test_build_process.py.
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP_DIR="$(mktemp -d)"
@@ -96,36 +96,6 @@ echo "unexpected xcrun invocation: $*" >&2
 exit 1
 FAKE_XCRUN
 chmod +x "$FAKE_BIN/xcrun"
-
-# Minimal generate.sh extract for lock timeout testing.
-cat > "$REPO/Scripts/generate-lock-harness.sh" <<'HARNESS'
-#!/usr/bin/env bash
-set -euo pipefail
-cd "$(dirname "$0")/.."
-source ./Scripts/run-env.sh
-trinket_run_env_init
-GENERATION_LOCK_DIR="$TRINKET_GENERATE_LOCK_DIR"
-LOCK_TIMEOUT_SECONDS="${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}"
-started_at=$SECONDS
-while ! mkdir "$GENERATION_LOCK_DIR" 2>/dev/null; do
-  lock_pid=""
-  if [[ -f "$GENERATION_LOCK_DIR/pid" ]]; then
-    read -r lock_pid < "$GENERATION_LOCK_DIR/pid" || true
-  fi
-  if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
-    rm -rf "$GENERATION_LOCK_DIR"
-    continue
-  fi
-  if (( SECONDS - started_at >= LOCK_TIMEOUT_SECONDS )); then
-    echo "Generation lock timed out after ${LOCK_TIMEOUT_SECONDS}s." >&2
-    exit 1
-  fi
-  sleep 1
-done
-echo "acquired"
-rm -rf "$GENERATION_LOCK_DIR"
-HARNESS
-chmod +x "$REPO/Scripts/generate-lock-harness.sh"
 
 # --- default shared tenant ---
 bash -c '
@@ -587,24 +557,6 @@ bash -c '
   [[ -d "$1/Packages/DemoPkg/.build" ]]
   [[ -d "$1/Packages/DemoPkg/.DerivedData" ]]
   [[ -d "$1/Packages/DemoPkgFresh/.build" ]]
-' _ "$REPO"
-
-# --- generate lock timeout ---
-bash -c '
-  set -euo pipefail
-  cd "$1"
-  source Scripts/run-env.sh
-  # Shared tenant — no sim slot needed
-  unset TRINKET_ISOLATE TRINKET_RUN_ID TRINKET_AGENT_SLOT
-  trinket_run_env_init
-  mkdir -p "$TRINKET_GENERATE_LOCK_DIR"
-  # Holder is this live shell — timeout should fire.
-  printf "%s\n" "$$" > "$TRINKET_GENERATE_LOCK_DIR/pid"
-  if TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS=2 ./Scripts/generate-lock-harness.sh; then
-    echo "expected generate lock timeout" >&2
-    exit 1
-  fi
-  rm -rf "$TRINKET_GENERATE_LOCK_DIR"
 ' _ "$REPO"
 
 # --- shutdown wait honors TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS ---

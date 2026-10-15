@@ -20,6 +20,7 @@ import plistlib
 import pty
 import shutil
 import signal
+import select
 
 class CISessionScriptTests(ScriptRegressionTestCase):
     def test_linked_worktrees_share_simulator_reservations_and_protect_active_caches(self) -> None:
@@ -743,21 +744,34 @@ echo continued > "$2/continued"
                 self.addCleanup(lambda: guest.wait(timeout=5))
                 self.addCleanup(lambda: guest.poll() is None and guest.kill())
                 process = subprocess.Popen(["bash", "-eu", "-c", script, "_", owner, directory, str(guest.pid)],
-                                           cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                resource_path, worker_pid = process.stdout.readline().split()
-                resource = Path(resource_path)
-                self.assertTrue(resource.exists())
-                os.kill(int(worker_pid), 0)
-                process.send_signal(sig)
-                stdout, stderr = process.communicate(timeout=10)
-                self.assertEqual(process.returncode, 128 + sig, stdout + stderr)
-                self.assertFalse(resource.exists())
-                self.assertFalse((Path(directory) / "continued").exists())
-                if owner == "run-env":
-                    self.assertEqual(guest.wait(timeout=5), -signal.SIGKILL)
-                    self.assertFalse(Path(str(resource) + ".guest-tests").exists())
-                with self.assertRaises(ProcessLookupError):
+                                           cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                           text=True, start_new_session=True)
+                try:
+                    ready, _, _ = select.select([process.stdout], [], [], 10)
+                    self.assertTrue(ready, "cancellation fixture did not publish worker readiness")
+                    resource_path, worker_pid = process.stdout.readline().split()
+                    resource = Path(resource_path)
+                    self.assertTrue(resource.exists())
                     os.kill(int(worker_pid), 0)
+                    process.send_signal(sig)
+                    stdout, stderr = process.communicate(timeout=10)
+                    self.assertEqual(process.returncode, 128 + sig, stdout + stderr)
+                    self.assertFalse(resource.exists())
+                    self.assertFalse((Path(directory) / "continued").exists())
+                    if owner == "run-env":
+                        self.assertEqual(guest.wait(timeout=5), -signal.SIGKILL)
+                        self.assertFalse(Path(str(resource) + ".guest-tests").exists())
+                    with self.assertRaises(ProcessLookupError):
+                        os.kill(int(worker_pid), 0)
+                finally:
+                    # This session contains only this fixture's shell/workers.
+                    # Preserve the failure while preventing timed-out or failed
+                    # readiness/assertion paths from leaking an immortal worker.
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    process.communicate(timeout=5)
 
 
         cases = [(owner, sig) for owner in ("lock", "run-env") for sig in (signal.SIGINT, signal.SIGTERM)]

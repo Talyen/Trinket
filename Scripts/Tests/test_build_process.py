@@ -202,6 +202,41 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                     if build_status == "0":
                         self.assertIn(str((root / "Probe.swift").resolve()), (root / "analyze-arguments").read_text().splitlines())
 
+    def test_generation_checks_live_lock_before_writing_and_recovers_dead_owner(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = self.fixture(root)
+            # Exercise the real generate entry point and lock implementation;
+            # SDK discovery and content generation are external fixture boundaries.
+            (scripts / "run-env.sh").write_text(
+                'source Scripts/lib/lock.sh\n'
+                'trinket_run_env_init() { TRINKET_GENERATE_LOCK_DIR="$PWD/generation.lock"; }\n'
+            )
+            (scripts / "content_codegen.py").write_text(
+                'import os\nfrom pathlib import Path\n'
+                'owner = int(Path("generation.lock/pid").read_text())\n'
+                'os.kill(owner, 0)\n'
+                'Path("generated").write_text("complete")\n'
+            )
+            env = {**fake_toolchain(root), "SDKROOT": str(root),
+                   "DEVELOPER_DIR": str(root / "Developer"),
+                   "TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS": "0"}
+            lock = root / "generation.lock"
+            lock.mkdir()
+            owner = lock / "pid"
+            live = str(os.getpid()) + "\n"
+            owner.write_text(live)
+            command = [str(scripts / "generate.sh"), "--skip-xcodegen"]
+            result = run_captured(command, env=env, expected=1, timeout=5)
+            self.assertIn("Lock timed out", result.stderr)
+            self.assertEqual(owner.read_text(), live)
+            self.assertFalse((root / "generated").exists())
+
+            owner.write_text("99999999\n")
+            run_captured(command, env=env, expected=0, timeout=5)
+            self.assertEqual((root / "generated").read_text(), "complete")
+            self.assertFalse(lock.exists())
+
     def test_failed_generation_does_not_mark_new_inputs_fresh(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
