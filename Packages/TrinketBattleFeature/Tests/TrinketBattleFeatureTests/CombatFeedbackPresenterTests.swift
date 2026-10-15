@@ -205,7 +205,11 @@ struct CombatFeedbackPresenterTests {
         DefensePoolEngine.set(block, on: enemy, in: &battle)
         battle.insertEffect(.marked(3, 2), to: enemy, sourceID: hero.id, remainingTurns: 2)
         let healthBefore = battle.health(of: enemy)
-        let events = BattleTurnEngine.performAction(ability: ability, actor: hero, abilityTarget: enemy, context: &battle)
+        let events = CombatExecutor.run {
+            await battle.collectingEvents { battle in
+                await BattleTurnEngine.performAction(ability: ability, actor: hero, abilityTarget: enemy, context: &battle)
+            }
+        }
         let marked = try #require(events.first { $0.effectKind == .markedConsumed })
         let damage = try #require(events.first { $0.kind == .abilityDamage })
         let healthLost = healthBefore - battle.health(of: enemy)
@@ -370,7 +374,11 @@ extension CombatFeedbackPresenterTests {
             dealOpeningHand: false,
         )
         battle.appliesFightPacing = false
-        let events = BattleTurnEngine.performAction(ability: ability, actor: hero, abilityTarget: enemy, context: &battle)
+        let events = CombatExecutor.run {
+            await battle.collectingEvents { battle in
+                await BattleTurnEngine.performAction(ability: ability, actor: hero, abilityTarget: enemy, context: &battle)
+            }
+        }
         let items = CombatFeedbackPresenter.makeItems(from: events, at: .now)
         #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .holy } == 3)
         #expect(items.count == 1)
