@@ -54,7 +54,7 @@ struct CardLabelSpaceModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         if isReserved {
-            content.frame(minHeight: reservedHeight, alignment: .center)
+            content.frame(minHeight: reservedHeight, alignment: .top)
         } else {
             content
         }

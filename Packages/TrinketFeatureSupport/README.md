@@ -42,7 +42,8 @@ folders remain in the `TrinketFeatureSupport` target.
 
 Item cards use `ItemCardLabel` for the rarity/status and name stack: bold caption
 eyebrows above medium subheadline names, with 2-point internal spacing. Card
-labels have 4-point horizontal padding and sit 8 points below artwork; item-grid
+labels have 4-point horizontal padding and sit 8 points below artwork, with any
+reserved label height extending below the text rather than above it; item-grid
 rows leave 16 points after their tallest label. Empty equipment slots use the same
 name role and secondary color. Corruption status shares the rarity's eyebrow role
 and moves below it when the pair cannot fit horizontally. Reward reveals use the
