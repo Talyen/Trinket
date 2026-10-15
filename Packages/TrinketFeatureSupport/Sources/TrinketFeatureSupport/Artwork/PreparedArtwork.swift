@@ -24,6 +24,19 @@ private enum PreparedArtworkFallbackDedupe {
     }
 }
 
+@MainActor
+private enum PreparedArtworkFallbackWarmup {
+    private static var pending: Set<String> = []
+
+    static func prepare(_ name: String) {
+        guard pending.insert(name).inserted else { return }
+        Task { @MainActor in
+            defer { pending.remove(name) }
+            await PreparedArtworkCache.shared.prepare(names: [name])
+        }
+    }
+}
+
 /// Concurrency-Safety: `@unchecked Sendable` — `name` is a value type and `image` only crosses isolation through the main-actor cache.
 struct PreparedArtwork: @unchecked Sendable {
     let name: String
@@ -59,10 +72,8 @@ public extension Image {
             preparedArtworkFallbackLogger.debug(
                 "PreparedArtwork cache miss for \(name, privacy: .public): on-demand decode will hitch",
             )
-            Task { @MainActor in
-                await PreparedArtworkCache.shared.prepare(names: [name])
-            }
         }
+        PreparedArtworkFallbackWarmup.prepare(name)
         return Image(name)
     }
 }

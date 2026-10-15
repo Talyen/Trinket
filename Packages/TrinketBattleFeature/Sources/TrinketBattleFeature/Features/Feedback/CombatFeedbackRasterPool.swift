@@ -195,7 +195,7 @@ final class CombatFeedbackRasterPool {
                 feedbackClass: item.feedbackClass,
                 layoutDirection: layoutDirection,
                 displayScale: scale,
-                needsShineMask: item.region == .impact,
+                needsShineMask: true,
                 context: &compositionContext,
             )
         }

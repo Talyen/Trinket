@@ -44,20 +44,14 @@ struct SalvageItemButton: View {
         .accessibilityIdentifier(AccessibilityID.Collection.itemCard(itemID: item.id))
     }
 
-    @ViewBuilder
     private var itemArtwork: some View {
-        let artwork = ItemArtwork(item: item, variant: .thumbnail)
+        ItemArtwork(item: item, variant: .thumbnail)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
-
-        if isRetiring || isTransmuting {
-            artwork
-                .anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { anchor in
-                    [item.id: anchor]
-                }
-        } else {
-            artwork
-        }
+            // Keep the native zoom source mounted when salvage starts beneath its sheet.
+            .anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { anchor in
+                isRetiring || isTransmuting ? [item.id: anchor] : [:]
+            }
     }
 }
 

@@ -58,7 +58,10 @@ Artwork on the first paint of a tab, sheet, or push is decoded into
 `PreparedArtworkCache` at launch (or the owning surface's `.task`) and **pinned**
 so deferred catalog warmup cannot evict it. `Image.preparedAsset` falling through
 to `Image(name)` sync-decodes on that frame — that is the hitch path, not a
-memory win. Do not convert this to on-demand loading. Transient battle and
+memory win. Do not convert this to on-demand loading. Fallback misses also request
+cache preparation, coalesced while pending and retried on later misses independently
+of diagnostic log deduplication; this recovery does not replace first-paint pins.
+Transient battle and
 Collection pins still release when that lifecycle ends; Collection re-keys its
 pin task when shelf combatants change so newly unlocked heroes stay hitch-free.
 Before CloudKit publishes different progress, prepare and pin the incoming

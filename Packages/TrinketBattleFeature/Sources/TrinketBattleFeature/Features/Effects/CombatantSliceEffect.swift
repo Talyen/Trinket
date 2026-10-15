@@ -154,17 +154,16 @@ struct CombatantSliceEffect<Content: View>: View {
                     .opacity(solidOpacity)
             }
 
-            if wipeOpacity > 0 {
-                halfCardContent(size: size, isPrimary: isPrimary)
-                    .mask {
-                        CardDissolveThresholdMask(
-                            progress: wipeProgress,
-                            cutAngleDegrees: CombatantSliceGeometry.angleDegrees,
-                        )
-                    }
-                    .compositingGroup()
-                    .opacity(wipeOpacity)
-            }
+            // Mount before the wipe so its artwork and feedback hosts are already prepared.
+            halfCardContent(size: size, isPrimary: isPrimary)
+                .mask {
+                    CardDissolveThresholdMask(
+                        progress: wipeProgress,
+                        cutAngleDegrees: CombatantSliceGeometry.angleDegrees,
+                    )
+                }
+                .compositingGroup()
+                .opacity(wipeOpacity)
 
             if dissolveProgress > 0.001 {
                 SliceBorderParticles(
