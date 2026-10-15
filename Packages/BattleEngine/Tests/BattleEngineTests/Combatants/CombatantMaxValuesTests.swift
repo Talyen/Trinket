@@ -49,6 +49,7 @@ struct CombatantMaxValuesTests {
         (20, 4, -2.0, 0, 3, 0),
         (0, 4, 0.5, 0, 0, 36),
         (2, Int.max, 1.0, Int.max, Int.max, Int.max),
+        (20, 4, Double.greatestFiniteMagnitude, Int.max, Int.max, Int.max),
     ])
     func `all battle roles start with build stats and add active Mana capacity`(
         baseMana: Int, flatBonus: Int, percentBonus: Double, startingMana: Int, capacity: Int, health: Int,
@@ -80,7 +81,11 @@ struct CombatantMaxValuesTests {
         }
     }
 
-    @Test(arguments: [(0.25, 3), (-2.0, 0), (Double.greatestFiniteMagnitude / 4, Int.max), (Double.infinity, 0)])
+    @Test(arguments: [
+        (0.25, 3), (-2.0, 0),
+        (Double.greatestFiniteMagnitude / 4, Int.max), (Double.greatestFiniteMagnitude, Int.max),
+        (Double.infinity, 0), (Double.nan, 0),
+    ])
     func `maximum mana uses safe combat rounding`(percent: Double, expected: Int) {
         let hero = CombatantFixtures.passiveHero(maxMana: 2)
         let modifiers = CombatModifierProfile(maximumManaPercentBonus: percent)

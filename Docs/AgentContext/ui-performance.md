@@ -174,8 +174,9 @@ Raw pin counts are internal to `TrinketFeatureSupport`. Fixed acquisitions use
 most once. Launch replacement transfers its lease only once and releases abandoned
 preparation. Failed or cancelled decodes cannot release another owner's acquisition.
 Replaceable surface working sets use `PreparedArtworkPinSet` for acquisition,
-supersession, and teardown. Crossfading surfaces retain outgoing pins and finish
-the returned update after the transition; stale updates cannot release newer pins.
+supersession, and teardown. Reject cancelled or already-invalid callers before
+superseding a current acquisition or transition. Crossfading surfaces retain outgoing
+pins and finish the returned update after the transition; stale updates cannot release newer pins.
 Collection category navigation and combatant sheets, plus Homestead category
 navigation, prepare their imminent artwork before publishing the destination and
 retain that acquisition for the visit. Nested item/ability navigation and battle

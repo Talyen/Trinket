@@ -48,9 +48,9 @@ public final class PreparedArtworkPinSet {
         retainingOutgoing: Bool = false,
         isCurrent: () -> Bool = { true },
     ) async -> Update? {
+        guard !Task.isCancelled, isCurrent() else { return nil }
         generation &+= 1
         let request = generation
-        guard !Task.isCancelled else { return nil }
         let desired = Set(desiredNames)
         let added = desired.subtracting(names)
         let acquired = added.isEmpty ? [] : await acquire(added)

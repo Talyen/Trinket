@@ -32,10 +32,12 @@ public enum SaturatedArithmetic {
         return (lhs > 0) == (rhs > 0) ? Int.max : Int.min
     }
 
-    /// Scales a non-positive base to zero; saturates at `Int.max` instead of trapping.
+    /// Clamps non-positive bases and invalid multipliers to zero. Finite positive
+    /// multipliers saturate at `Int.max`, including floating-point product overflow.
     public static func scaled(_ value: Int, multiplier: Double) -> Int {
-        guard value > 0 else { return 0 }
-        return rounded(Double(value) * multiplier)
+        guard value > 0, multiplier.isFinite, multiplier > 0 else { return 0 }
+        let product = Double(value) * multiplier
+        return product.isFinite ? rounded(product) : Int.max
     }
 
     /// Scales a value by an integer percentage, clamping non-positive bases to zero.
@@ -46,8 +48,7 @@ public enum SaturatedArithmetic {
 
     /// Clamps negatives and non-finite inputs to zero; saturates at `Int.max`.
     /// Uses away-from-zero rounding (`Double.rounded()`), so exact .5 ties
-    /// round away from zero (2.5 → 3). Non-finite multipliers therefore
-    /// collapse through this path to zero rather than saturating.
+    /// round away from zero (2.5 → 3).
     public static func rounded(_ value: Double) -> Int {
         guard value.isFinite, value > 0 else { return 0 }
         let rounded = value.rounded()

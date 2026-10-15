@@ -38,6 +38,9 @@ by forwarding every field, which can silently drop newly added mechanics.
 Generated descriptions, gameplay/identity keywords, and presentation keywords are cached lazily in that storage.
 Keep caches outside value equality/hashing; transformations must receive fresh storage
 so empowered or resolved cards cannot reuse the original card's text or keywords.
+Actor-targeted damage components pay Health costs and contribute no damage keyword
+to gameplay or identity, including alternative outcomes. Presentation still derives
+their Health keyword from the summary.
 Multi-hit direct-damage totals saturate, including after Mana empowerment.
 
 `AbilityValidator` inspects base, random-branch, and conditional operations through

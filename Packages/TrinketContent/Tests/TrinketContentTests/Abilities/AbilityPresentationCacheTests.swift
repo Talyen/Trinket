@@ -3,6 +3,44 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityPresentationCacheTests {
+    @Test(arguments: [(Ability.bloodOffering, Keyword.bleed), (Ability.darkPact, Keyword.burn)])
+    func `health costs do not give authored cards a physical identity`(ability: Ability, keyword: Keyword) {
+        #expect(ability.keywords == [keyword])
+        #expect(ability.identityKeywords == [keyword])
+        #expect(ability.presentationKeywords.contains(.health))
+        #expect(!ability.presentationKeywords.contains(.physical))
+    }
+
+    @Test(arguments: [false, true])
+    func `health costs stay outside keywords across all outcome paths`(contributesToIdentity: Bool) {
+        let cost = AbilityOperation.damage(DamageComponent(2, keyword: .physical, target: .actor))
+        let ability = Ability(
+            id: "branched-health-cost", name: "Branched Health Cost", tier: .skill,
+            outcomeBranches: [AbilityOutcomeBranch(operations: [
+                cost, .damage(DamageComponent(3, keyword: .freeze)),
+                .effect(TargetedEffect(.shield(.block, 2), target: .actor)),
+            ])],
+            operations: [
+                cost, .damage(DamageComponent(3, keyword: .bleed)),
+                .damage(DamageComponent(2, keyword: .stun, condition: .enemyStunned)),
+            ],
+            conditionalOutcome: AbilityConditionalOutcome(
+                condition: .enemyHasBlock,
+                operations: [
+                    cost, .damage(DamageComponent(3, keyword: .holy)),
+                    .effect(TargetedEffect(.resourceGain(.mana, 2), target: .actor)),
+                ],
+                contributesToIdentity: contributesToIdentity,
+            ),
+        )
+        #expect(ability.keywords == [.bleed, .stun, .freeze, .block, .holy, .mana])
+        let identity: [Keyword] = contributesToIdentity
+            ? [.bleed, .freeze, .block, .holy, .mana] : [.bleed, .freeze, .block]
+        #expect(ability.identityKeywords == identity)
+        #expect(ability.presentationKeywords.contains(.health))
+        #expect(!ability.presentationKeywords.contains(.physical))
+    }
+
     @Test func `multi hit damage totals stay inspectable after saturated empowerment`() {
         let ability = Ability(
             id: "saturated-hits", name: "Saturated Hits", tier: .skill,

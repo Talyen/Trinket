@@ -55,7 +55,9 @@ struct SaturatedArithmeticTests {
         #expect(SaturatedArithmetic.scaled(0, multiplier: 0.8) == 0)
         #expect(SaturatedArithmetic.scaled(Int.min, multiplier: 0.8) == 0)
         #expect(SaturatedArithmetic.scaled(Int.max, multiplier: 2) == Int.max)
-        for multiplier in [Double.infinity, -.infinity, .nan, -0.5] {
+        #expect(SaturatedArithmetic.scaled(2, multiplier: .greatestFiniteMagnitude) == Int.max)
+        #expect(SaturatedArithmetic.scaled(Int.max, multiplier: .greatestFiniteMagnitude) == Int.max)
+        for multiplier in [Double.infinity, -.infinity, .nan, -0.5, 0] {
             #expect(SaturatedArithmetic.scaled(10, multiplier: multiplier) == 0)
         }
     }

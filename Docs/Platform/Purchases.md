@@ -22,6 +22,8 @@ trigger the same refresh; delivery history cannot independently grant access.
 Only the newest started refresh may publish. Verified deliveries are finished
 after that refresh publishes; cancellation or supersession leaves them available
 for redelivery. A delayed foreground check cannot overwrite later restoration.
+Restarting cancelled startup recovery refreshes ownership and unfinished deliveries
+while retaining the single app-lifetime transaction observer.
 
 ## Purchase feedback
 

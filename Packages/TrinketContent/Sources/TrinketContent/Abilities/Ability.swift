@@ -194,7 +194,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
 
     public var keywords: [Keyword] {
         storage.keywords(identityOnly: false) {
-            var result = operations.compactMap { $0.damageComponent?.keyword }
+            var result = operations.compactMap { $0.target != .actor ? $0.damageComponent?.keyword : nil }
             appendNonDamageKeywords(to: &result)
             return result
         }
@@ -208,6 +208,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         storage.keywords(identityOnly: true) {
             var result = operations.compactMap { operation -> Keyword? in
                 guard let component = operation.damageComponent,
+                      component.target != .actor,
                       component.condition == nil || component.bonusAmount > 0 else { return nil }
                 return component.keyword
             }
@@ -234,7 +235,8 @@ public struct Ability: Identifiable, Hashable, Sendable {
         }
         if let branches = outcomeBranches {
             for branch in branches {
-                result.append(contentsOf: branch.operations.lazy.compactMap(\.damageComponent).map(\.keyword))
+                result.append(contentsOf: branch.operations.lazy.compactMap(\.damageComponent)
+                    .filter { $0.target != .actor }.map(\.keyword))
                 result.append(contentsOf: branch.operations.lazy.compactMap(\.targetedEffect)
                     .map(\.effect)
                     .filter(qualifies)
@@ -243,6 +245,9 @@ public struct Ability: Identifiable, Hashable, Sendable {
         }
         if let conditionalOutcome, !identityOnly || conditionalOutcome.contributesToIdentity {
             result.append(contentsOf: conditionalOutcome.operations.lazy.compactMap { op in
+                if op.damageComponent != nil, op.target == .actor {
+                    return nil
+                }
                 if let effect = op.targetedEffect, !qualifies(effect.effect) {
                     return nil
                 }

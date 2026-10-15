@@ -50,13 +50,16 @@ public final class FullGameStore {
     }
 
     public func start() async {
-        guard listener == nil else { return }
-        let storefront = storefront
-        listener = Task { [weak self] in
-            await storefront.observeUpdates { [weak self] transaction in
-                await self?.receive(transaction)
+        if listener == nil {
+            let storefront = storefront
+            listener = Task { [weak self] in
+                await storefront.observeUpdates { [weak self] transaction in
+                    await self?.receive(transaction)
+                }
             }
         }
+        // The view's startup task can be cancelled while the app-lifetime
+        // listener survives. A later presentation must still recover ownership.
         await refreshOwnership()
         await storefront.recoverUnfinished { [weak self] transaction in
             await self?.receive(transaction)

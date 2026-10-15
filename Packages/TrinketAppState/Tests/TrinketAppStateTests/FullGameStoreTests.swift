@@ -53,6 +53,32 @@ struct FullGameStoreTests {
     }
 
     @Test @MainActor
+    func `startup retries ownership and unfinished delivery after cancellation`() async throws {
+        let backend = ControlledFullGameStorefront()
+        let response = AsyncStream<FullGameStore.Ownership>.makeStream()
+        backend.nextRead = response.stream
+        let store = FullGameStore(storefront: backend.storefront)
+        let startup = Task { await store.start() }
+        defer {
+            startup.cancel()
+            response.continuation.finish()
+        }
+        try await backend.waitForRead(count: 1)
+        startup.cancel()
+        await startup.value
+        #expect(store.ownership == .checking)
+
+        backend.ownership = .purchased
+        backend.unfinished = [FullGameTransaction(finish: { @MainActor in
+            backend.ownershipAtFinish.append(store.ownership)
+        })]
+        await store.start()
+
+        #expect(store.ownership == .purchased)
+        #expect(backend.ownershipAtFinish == [.purchased])
+    }
+
+    @Test @MainActor
     func `unfinished purchase delivery cannot regrant revoked access`() async {
         let backend = ControlledFullGameStorefront()
         let store = FullGameStore(storefront: backend.storefront)

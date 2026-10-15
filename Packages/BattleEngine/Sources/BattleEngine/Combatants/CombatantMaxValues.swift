@@ -13,7 +13,7 @@ public enum CombatantMaxValues {
         guard combatant.hasMana else { return 0 }
         let baseWithFlat = SaturatedArithmetic.saturatingAdd(combatant.maxMana, modifiers.maximumManaBonus)
         let multiplier = max(0, 1.0 + modifiers.maximumManaPercentBonus)
-        return CombatRounding.rounded(Double(baseWithFlat) * multiplier)
+        return CombatRounding.scaled(baseWithFlat, multiplier: multiplier)
     }
 
     public static func maxHealth(for combatant: Combatant, flatBonus: Int, talentBonus: Int = 0) -> Int {
