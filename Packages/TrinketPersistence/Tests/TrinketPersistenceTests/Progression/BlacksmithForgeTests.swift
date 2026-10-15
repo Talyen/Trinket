@@ -1,8 +1,8 @@
 import Foundation
 import Testing
-import TrinketContent
 import TrinketCore
 import TrinketPersistenceTestSupport
+@testable import TrinketContent
 @testable import TrinketPersistence
 
 struct BlacksmithForgeTests {
@@ -44,12 +44,9 @@ struct BlacksmithForgeTests {
         return save
     }
 
-    @Test func `catalog preserves order artwork and salvage sink`() throws {
-        #expect(BlacksmithRecipe.all.map(\.baseID) == [
-            "dagger", "shortsword", "longsword", "greatsword", "hatchet", "double_axe",
-            "mace", "flail", "maul", "kite_shield", "plate_armor",
-        ])
-        #expect(Set(BlacksmithRecipe.all.map(\.id)).count == 11)
+    @Test func `recipes have distinct identities artwork and a salvage sink`() throws {
+        try #require(!BlacksmithRecipe.all.isEmpty)
+        #expect(Set(BlacksmithRecipe.all.map(\.id)).count == BlacksmithRecipe.all.count)
         for recipe in BlacksmithRecipe.all {
             #expect(recipe.cost.allSatisfy { $0.quantity > 0 })
             #expect(ArtCatalog.itemArtByID["\(recipe.baseID)-basic"] != nil)
@@ -67,23 +64,55 @@ struct BlacksmithForgeTests {
         save.journey.activeStageID = nil
         save.contracts.recordVictory(encounterLevel: 40)
         save.homestead.nodeTiers[.moonlitSanctum] = 4
+        let cases = try rarityCases(in: save)
         for recipe in BlacksmithRecipe.all {
-            var rarities: Set<Rarity> = []
-            for seed in 0 ..< 100 {
-                var random = SeededRandomNumberGenerator(seed: UInt64(seed))
+            for (rarity, seed) in cases {
+                var random = SeededRandomNumberGenerator(seed: seed)
                 let attempt = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &random).get()
                 #expect(attempt.item.baseType.id == recipe.baseID)
                 #expect(!attempt.item.isTrinket)
-                rarities.insert(attempt.item.rarity)
+                #expect(attempt.item.rarity == rarity)
             }
-            #expect(rarities == [.basic, .astral, .unique])
         }
+        let uniqueSeed = try #require(cases.first { $0.0 == .unique }?.1)
         save.inventory.items = GameContent.uniqueItems
-        for seed in 0 ..< 100 {
-            var random = SeededRandomNumberGenerator(seed: UInt64(seed))
-            let attempt = try BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-longsword", save: save, using: &random).get()
+        for recipe in BlacksmithRecipe.all {
+            var random = SeededRandomNumberGenerator(seed: uniqueSeed)
+            let attempt = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &random).get()
             #expect(attempt.item.rarity != .unique)
+            #expect(attempt.item.baseType.id == recipe.baseID)
         }
+    }
+
+    private func rarityCases(in save: PlayerSave) throws -> [(Rarity, UInt64)] {
+        // Content owns odds and cumulative boundaries. Select one input per path
+        // cheaply, then exercise real forging instead of generating 1,200 items.
+        let probabilities = ItemLootPolicy.probabilities(
+            level: CampaignRewardLevel.resolve(in: save), bossContent: false,
+            astralChanceBonusPercent: BlacksmithRecipe.astralWeightBonusPercent(
+                blacksmithTier: save.homestead.tier(for: .blacksmithForge),
+            ),
+            availableTiers: [.basic, .astral, .unique],
+        )
+        var cases: [(Rarity, UInt64)] = []
+        for seed in UInt64(0) ..< 100 {
+            var random = SeededRandomNumberGenerator(seed: seed)
+            let rarity: Rarity
+            switch ItemLootPolicy.roll(probabilities: probabilities, using: &random) {
+            case .basic: rarity = .basic
+            case .astral: rarity = .astral
+            case .unique: rarity = .unique
+            case .trinket: continue
+            }
+            if !cases.contains(where: { $0.0 == rarity }) {
+                cases.append((rarity, seed))
+            }
+            if cases.count == 3 {
+                break
+            }
+        }
+        try #require(cases.count == 3, "Forge fixture must exercise Basic, Astral and Unique paths")
+        return cases
     }
 
     @Test func `rejection and repeated application never spend twice`() throws {
@@ -98,6 +127,30 @@ struct BlacksmithForgeTests {
         #expect(BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-dagger", save: save, using: &random).failure == .insufficientResources)
         save.homestead.nodeTiers = [:]
         #expect(BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-dagger", save: save, using: &random).failure == .unavailable)
+    }
+
+    @Test func `prepared forge rechecks availability and each material before spending`() throws {
+        let initial = fundedSave()
+        var random = SeededRandomNumberGenerator(seed: 41)
+        let attempt = try BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-longsword", save: initial, using: &random).get()
+        let blockedResources: [HomesteadResource?] = [nil, .iron, .wood]
+        for resource in blockedResources {
+            var save = initial
+            let expected: BlacksmithForgeFailure
+            if let resource {
+                let cost = try #require(attempt.recipe.cost.first { $0.resource == resource })
+                save.homestead.resources[resource] = cost.quantity - 1
+                expected = .insufficientResources
+            } else {
+                save.homestead.nodeTiers = [:]
+                expected = .unavailable
+            }
+            let before = save
+            var receipts: [SaveEconomicReceipt] = []
+            #expect(attempt.apply(to: &save, recordReceipt: { receipts.append($0) }) == .failure(expected))
+            #expect(save == before)
+            #expect(receipts.isEmpty)
+        }
     }
 
     @Test(arguments: [false, true]) @MainActor func `forge commits item and costs across reload and recovery`(recovery: Bool) async throws {

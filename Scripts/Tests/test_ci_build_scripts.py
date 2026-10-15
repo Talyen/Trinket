@@ -92,6 +92,9 @@ trinket_assert_targeted_tests_executed
                     script = tools / filename
                     write_executable(script, source)
                 script = '''source Scripts/xcode-runner.sh
+# Real helper deadlines have an independent owner in test-xcode-runner.sh.
+# This matrix exercises execution evidence and manifests, without polling a fake tool.
+xcode_runner_run_bounded() { shift; "$@"; }
 xcode_runner_prepare unit "$PWD/results"
 if [[ "$FAKE_SUMMARY" != null ]]; then
     mkdir -p "$XCODE_RUNNER_RESULT_BUNDLE_PATH"
@@ -276,7 +279,7 @@ prepare_generated_inputs results || status=$?
             run_captured(["bash", "-eu", "-c", script], cwd=root, expected=0)
 
     def test_generation_tracks_shared_generator_helpers(self) -> None:
-        for relative, expected in (
+        cases = (
             ("Scripts/lib/project-generation.sh", ""),
             ("Scripts/tool-versions.env", ""),
             ("Scripts/lib/ci-tools.d/xcodegen.sh", ""),
@@ -289,33 +292,36 @@ prepare_generated_inputs results || status=$?
             ("Scripts/prepare-media.py", ""),
             ("Scripts/config/full-only-art-kinds.txt", ""),
             ("Scripts/prepare-assets.sh", ""),
-        ):
-            with self.subTest(path=relative), tempfile.TemporaryDirectory() as directory:
-                root = self.make_repo_fixture(
-                    directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env",
-                                "Scripts/lib/generated-paths.sh", "Scripts/config/generated-paths.tsv"))
-                write_executable(
-                    root / 'Scripts/prepare-assets.sh',
-                    '#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\nprintf checked >> asset-checks\n',
-                )
-                (root / "ContentManifest").mkdir()
-                (root / "ContentManifest/input.tsv").touch()
-                (root / "ArtManifest").mkdir()
-                (root / "ArtManifest/input.tsv").touch()
-                (root / "project.yml").touch()
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_repo_fixture(
+                directory, ("Scripts/build-freshness.sh", "Scripts/build-inputs.env",
+                            "Scripts/lib/generated-paths.sh", "Scripts/config/generated-paths.tsv"))
+            for relative in ("ContentManifest/input.tsv", "ArtManifest/input.tsv", "project.yml", *(path for path, _ in cases)):
                 (root / relative).parent.mkdir(parents=True, exist_ok=True)
                 (root / relative).touch()
-                write_executable(root / "Scripts/generate.sh", '#!/bin/bash\nprintf "%s" "$*" > calls\n')
-                (root / "results").mkdir()
-                stamp = root / "results/.last-generate.stamp"
-                subprocess.run(["bash", "-ec", "source Scripts/build-freshness.sh; touch_generate_stamp results"], cwd=root, check=True)
-                os.utime(root / relative, (time.time() + 60, time.time() + 60))
-                run_captured(
-                    ["bash", "-ec", "unset TRINKET_SHARED_DERIVED_DATA SKIP_GENERATE; source Scripts/build-freshness.sh; prepare_generated_inputs results"],
-                    cwd=root,
-                    expected=0,
-                )
-                self.assertEqual((root / "calls").read_text(), expected)
+            (root / 'cases').write_text(''.join(f'{path}|{expected}\n' for path, expected in cases))
+            # Prove each path invalidates the real grouped fingerprints, without
+            # repeating the full generation pipeline. Output-repair tests below
+            # own content-only, project-only, and combined dispatch/stamping.
+            run_captured(["bash", "-eu", "-c", '''
+source Scripts/build-freshness.sh
+snapshots() {
+    generation_input_snapshots "${content_generation_inputs[@]}" -- "${project_generation_inputs[@]}" -- "${asset_generation_inputs[@]}"
+}
+while IFS='|' read -r relative expected; do
+    { read -r content_before; read -r project_before; read -r assets_before; } < <(snapshots)
+    touch "$relative"
+    { read -r content_after; read -r project_after; read -r assets_after; } < <(snapshots)
+    if [[ "$expected" == --skip-xcodegen ]]; then
+        [[ "$content_before" != "$content_after" && "$project_before" == "$project_after" && "$assets_before" == "$assets_after" ]] && continue
+    else
+        [[ "$project_before" != "$project_after" || "$assets_before" != "$assets_after" ]] && continue
+    fi
+    echo "Wrong generation input groups for $relative (expected '$expected')" >&2
+    exit 1
+done < cases
+'''], cwd=root, expected=0)
 
     def test_preparation_repairs_changed_or_missing_generated_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -351,13 +357,16 @@ prepare_generated_inputs results
 rm Trinket/Info.plist
 prepare_generated_inputs results
 [[ $(cat Trinket/Info.plist) == plist ]]
+rm Generated/Catalog.swift Trinket/Info.plist
+prepare_generated_inputs results
+[[ $(cat Generated/Catalog.swift) == catalog && $(cat Trinket/Info.plist) == plist ]]
 rm -r Trinket.xcodeproj/xcshareddata
 prepare_generated_inputs results
 [[ -f Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme ]]
 prepare_generated_inputs results
 '''], cwd=root, expected=0)
             self.assertEqual((root / "calls").read_text().splitlines(),
-                             ["", "--skip-xcodegen", "--skip-xcodegen", "", ""])
+                             ["", "--skip-xcodegen", "--skip-xcodegen", "", "", ""])
 
     def test_asset_dispatch_validates_before_conversion(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
