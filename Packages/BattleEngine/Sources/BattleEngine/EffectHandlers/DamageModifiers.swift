@@ -44,9 +44,11 @@ struct ControlMeterHandler: BattleEffectHandler {
         }
         guard let values = meter.effect.controlMeterValues else { return nil }
         let alias = keyword.statusAlias ?? keyword.rawValue
+        let progress = Double(max(0, values.amount)) * 100 / Double(max(1, values.threshold))
+        let percent = min(99, CombatRounding.rounded(progress.rounded(.down)))
         return EffectSummary(
             keyword: keyword,
-            text: "\(keyword.rawValue) Build-up: \(values.amount)/\(values.threshold) toward \(alias)",
+            text: "\(percent)% \(alias)\nAt 100%, the next action is prevented",
         )
     }
 

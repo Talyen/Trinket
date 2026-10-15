@@ -56,6 +56,12 @@ struct DecayingDoTHandler: BattleEffectHandler {
             return sum
         }
         guard total > 0 else { return nil }
+        if keyword == .burn {
+            return EffectSummary(
+                keyword: keyword,
+                text: "\(total) Burn\nDeals Burn damage and halves each turn",
+            )
+        }
         let alias = keyword.statusAlias ?? keyword.rawValue
         return EffectSummary(
             keyword: keyword,

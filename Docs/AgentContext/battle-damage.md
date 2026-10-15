@@ -167,8 +167,10 @@ Turn handlers commit their own effect updates and return only events. Decaying
 DoTs commit decay before ticking; duration-based effects age the live effect after
 their tick, and Death's Door is removed before expiry reactions. `EffectTurnEngine`
 only schedules existing effect IDs and never writes a returned snapshot back.
-Burn and Poison details show current potency and explain decay before turn damage;
-current potency is not a guaranteed next-turn damage amount.
+Burn details show the current amount and describe damage and halving each turn.
+Poison details show current potency and explain decay before turn damage.
+Neither amount guarantees next-turn damage; Stun and Freeze buildup details show
+percentage progress and explain that reaching 100% prevents the next action.
 
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).
 

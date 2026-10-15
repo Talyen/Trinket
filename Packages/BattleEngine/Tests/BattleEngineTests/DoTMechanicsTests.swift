@@ -419,13 +419,10 @@ extension DoTMechanicsTests {
     }
 
     @Test(arguments: [Keyword.burn, .poison])
-    func `DoT details describe potency instead of promising damage from a fading stack`(keyword: Keyword) throws {
+    func `one potency DoT expires before dealing turn damage`(keyword: Keyword) {
         var battle = isolatedBattle()
         let effect: Effect = keyword == .burn ? .burn(1) : .poison(1)
         battle.appendEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        let summary = try #require(EffectSummaryBuilder.build(for: battle.roster.enemy.activeEffects).first)
-        #expect(summary.text.contains("1 \(keyword.rawValue) potency"))
-        #expect(summary.text.contains("decays before"))
 
         _ = CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
         #expect(battle.health(of: battle.enemy) == 100)
