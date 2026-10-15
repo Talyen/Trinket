@@ -1,0 +1,206 @@
+{
+  "catalogs": [
+    "Trinket/App/Localization/Localizable.xcstrings",
+    "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Resources/Localizable.xcstrings",
+    "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Resources/Localizable.xcstrings",
+    "Packages/TrinketFeatureSupport/Sources/TrinketFeatureAdapters/Resources/Localizable.xcstrings",
+    "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Resources/Localizable.xcstrings",
+    "Packages/TrinketContent/Sources/TrinketContent/Resources/Localizable.xcstrings",
+    "Packages/TrinketCore/Sources/TrinketCore/Resources/Localizable.xcstrings",
+    "Localization/Store/Localizable.xcstrings",
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings"
+  ],
+  "contentCatalog": "Packages/TrinketContent/Sources/TrinketContent/Resources/Localizable.xcstrings",
+  "locales": [
+    "ja",
+    "ko",
+    "de",
+    "zh-Hant",
+    "fr"
+  ],
+  "metadataCatalog": "Localization/Store/Localizable.xcstrings",
+  "sourceLanguage": "en",
+  "resourceArguments": {
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.battlestate_effectsummaries.e7633bc9777a": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.battlestate_effectsummaries.5a57edb4d329": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.battlestate_effectsummaries.3b9581cc412f": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.battlestate_effectsummaries.2240adc3884b": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.buffhandlers.a96afd45f5af": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.buffhandlers.cb1ecaff8635": [
+      1,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.buffhandlers.f62c4f1d4746": [
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.buffhandlers.ead74836fb5e": [
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.buffhandlers.b517a9d4c192": [
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.buffhandlers.12d886cfa2de": [
+      1,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.dothandlers.116f2479cb27": [
+      1,
+      3,
+      4
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.avatarhandler.a9e78e0afef2": [
+      2,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.defensivebuffhandlers.3067b09ebf61": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.timeddebuffhandlers.86592dcd6c44": [
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.timeddebuffhandlers.6ba517693d06": [
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.timeddebuffhandlers.09c8078d2b51": [
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.damagemodifiers.a54b991fe1d3": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.damagemodifiers.86246b48dd06": [
+      1,
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::summary.damagemodifiers.6dc3859fb861": [
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::list.pair": [
+      1,
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::duration.suffix": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::duration.newline": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::flag.keyword": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.use": [
+      1,
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.damage": [
+      1,
+      3,
+      4,
+      5
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.cost": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.applies": [
+      1,
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.status": [
+      1,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.door": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.door_fades": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.control": [
+      1,
+      2
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.block": [
+      1,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.heal": [
+      1,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.reflect": [
+      1,
+      3,
+      4
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.cleanse": [
+      1,
+      2,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.purge": [
+      1,
+      2,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.strip": [
+      1,
+      3,
+      4
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.reduced": [
+      1,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.hemorrhage": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.start": [
+      1,
+      2,
+      3
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.defeated": [
+      1
+    ],
+    "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.party_defeated": [
+      1
+    ]
+  },
+  "pluralForms": {
+    "ja": [
+      "other"
+    ],
+    "ko": [
+      "other"
+    ],
+    "de": [
+      "one",
+      "other"
+    ],
+    "zh-Hant": [
+      "other"
+    ],
+    "fr": [
+      "one",
+      "many",
+      "other"
+    ]
+  },
+  "storeLocales": {
+    "en": "en-US",
+    "ja": "ja",
+    "ko": "ko",
+    "de": "de-DE",
+    "zh-Hant": "zh-Hant",
+    "fr": "fr-FR"
+  }
+}

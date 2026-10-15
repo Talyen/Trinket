@@ -88,7 +88,7 @@ public struct RewardRevealShell<Content: View>: View {
                 VStack(spacing: TrinketDesign.Spacing.small) {
                     VStack(spacing: TrinketDesign.Spacing.extraSmall) {
                         if let eyebrow {
-                            Text(balanced: eyebrow)
+                            GameLabel(eyebrow, balanced: true)
                                 .trinketTypography(.eyebrow)
                                 .foregroundStyle(TrinketDesign.Colors.accent)
                                 .textCase(.uppercase)
@@ -99,7 +99,7 @@ public struct RewardRevealShell<Content: View>: View {
                         }
 
                         if let title {
-                            Text(balanced: title)
+                            GameLabel(title, balanced: true)
                                 .trinketTypography(.screenDisplay)
                                 .foregroundStyle(titleColor)
                                 .multilineTextAlignment(.center)
@@ -111,7 +111,7 @@ public struct RewardRevealShell<Content: View>: View {
                     }
 
                     if let subtitle {
-                        Text(balanced: subtitle)
+                        GameLabel(subtitle, balanced: true)
                             .trinketTypography(.secondaryBody)
                             .foregroundStyle(subtitleColor)
                             .multilineTextAlignment(.center)
@@ -166,7 +166,7 @@ public struct RewardRevealShell<Content: View>: View {
                     guard !isPrimaryActionDisabled else { return }
                     onSecondaryAction()
                 } label: {
-                    Text(secondaryActionTitle)
+                    GameLabel(secondaryActionTitle)
                         .frame(maxWidth: .infinity)
                 }
                 .trinketSecondaryActionButton(accessibilityIdentifier: secondaryActionAccessibilityIdentifier)
@@ -185,23 +185,24 @@ public struct RewardRevealShell<Content: View>: View {
             } label: {
                 ZStack {
                     if #available(iOS 26.0, *) {
-                        Text(primaryActionTitle)
+                        GameLabel(primaryActionTitle)
                             .trinketPresentationVisibility(!isPrimaryActionConfirmed)
-                        Label("Collected", systemImage: "checkmark")
+                        Label(String(localized: L10n.ui_rewardrevealshell_collected_1533d), systemImage: "checkmark")
                             .trinketPresentationVisibility(isPrimaryActionConfirmed)
                     } else if isPrimaryActionConfirmed {
                         // iOS 18 audits invisible label children despite accessibilityHidden.
-                        Label("Collected", systemImage: "checkmark")
+                        Label(String(localized: L10n.ui_rewardrevealshell_collected_1533d), systemImage: "checkmark")
                             .transition(.opacity)
                     } else {
-                        Text(primaryActionTitle)
+                        GameLabel(primaryActionTitle)
                             .transition(.opacity)
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .animation(TrinketMotion.Interaction.stateChange, value: isPrimaryActionConfirmed)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(isPrimaryActionConfirmed ? "Collected" : primaryActionTitle)
+                .accessibilityLabel(isPrimaryActionConfirmed ? String(localized: L10n.ui_rewardrevealshell_collected_1533d) :
+                    primaryActionTitle)
             }
             .trinketPrimaryActionButton()
             .trinketCenteredPrimaryAction()

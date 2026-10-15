@@ -19,7 +19,7 @@ struct BattlePerformanceScenarioHarness: View {
                     .foregroundStyle(.clear)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
-                    .accessibilityLabel("Start battle performance scenario")
+                    .accessibilityLabel(Text(verbatim: "Start battle performance scenario"))
             }
             .buttonStyle(.plain)
             .disabled(status != "ready")

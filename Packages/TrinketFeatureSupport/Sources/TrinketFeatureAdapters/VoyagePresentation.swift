@@ -12,8 +12,10 @@ public extension StageSelectRowPresentation where Item == VoyageOffer {
             )
             return Self(
                 item: offer, isActive: true, activeEyebrow: offer.difficulty.title, mapLabel: offer.difficulty.title,
-                title: GameContent.chapter(id: offer.chapterID)?.title ?? "Voyage", encounterTypeTitle: "Voyage",
-                icon: .system("location.north.fill"), tint: TrinketDesign.Colors.accent, primaryActionTitle: "Embark",
+                title: GameContent.chapter(id: offer.chapterID)?.title ?? String(localized: L10n.ui_voyagepresentation_voyage_10d91),
+                encounterTypeTitle: String(localized: L10n.ui_voyagepresentation_voyage_10d91),
+                icon: .system("location.north.fill"), tint: TrinketDesign.Colors.accent,
+                primaryActionTitle: String(localized: L10n.ui_voyagepresentation_embark_883ea),
                 showsPartyPicker: true, isArtworkInteractive: false,
                 rowAccessibilityID: AccessibilityID.Voyage.row(offer.difficulty.rawValue),
                 artworkAccessibilityID: AccessibilityID.Voyage.artwork(offer.difficulty.rawValue),
@@ -35,7 +37,8 @@ public extension StageSelectRowPresentation where Item == VoyageNode {
                 mapLabel: "", title: node.enemyID.flatMap { GameContent.enemy(matching: $0)?.name } ?? node.type.title,
                 encounterTypeTitle: node.type.title,
                 icon: GameIcon(id: node.type.iconID), tint: LabyrinthMapPresentation.tint(for: node.type),
-                primaryActionTitle: node.type.isCombat ? "Battle" : node.type.primaryActionTitle,
+                primaryActionTitle: node.type.isCombat ? String(localized: L10n.ui_voyagepresentation_battle_1b18e) : node.type
+                    .primaryActionTitle,
                 showsPartyPicker: node.type.isCombat, isArtworkInteractive: node.type.isCombat,
                 rowAccessibilityID: AccessibilityID.Voyage.row(node.id),
                 artworkAccessibilityID: AccessibilityID.Voyage.artwork(node.id),

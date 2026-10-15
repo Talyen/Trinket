@@ -178,10 +178,10 @@ private struct PostBattleTalentChoiceContent: View {
         combatant: Combatant,
         config: CombatantTalentConfig,
     ) -> some View {
-        DetailHeroScrollShell(title: "Choose a Talent") { baseHeight in
+        DetailHeroScrollShell(title: String(localized: L10n.ui_postbattletalentchoiceview_choose_a_talent_b4bcd)) { baseHeight in
             DetailHeroHeader(
                 eyebrow: combatant.name,
-                title: "Choose a Talent",
+                title: String(localized: L10n.ui_postbattletalentchoiceview_choose_a_talent_b4bcd),
                 baseHeight: baseHeight,
             ) {
                 CombatantArtwork(combatant: combatant)
@@ -233,7 +233,7 @@ private struct PostBattleTalentChoiceContent: View {
                     ProgressView()
                         .padding(TrinketDesign.Spacing.small)
                         .trinketMaterial(.subtleOverlay)
-                        .accessibilityLabel("Preparing talents")
+                        .accessibilityLabel(Text(L10n.ui_postbattletalentchoiceview_preparing_talents_7fcea))
                 }
             }
         }
@@ -292,7 +292,7 @@ private extension View {
         #if DEBUG
         overlay(alignment: .topLeading) {
             if hasConfirmation, ProcessInfo.processInfo.arguments.contains("-hold-talent-confirmation") {
-                Text("Committed talent checkpoint")
+                Text(L10n.ui_postbattletalentchoiceview_committed_talent_checkpoint_84513)
                     .accessibilityIdentifier(AccessibilityID.Debug.talentConfirmationCheckpoint)
                     .allowsHitTesting(false)
             }

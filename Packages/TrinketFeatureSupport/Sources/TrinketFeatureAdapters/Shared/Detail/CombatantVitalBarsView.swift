@@ -20,7 +20,7 @@ struct CombatantVitalBarsView: View, Equatable {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
                 DetailVitalBar(
-                    label: "Health",
+                    label: String(localized: L10n.ui_combatantvitalbarsview_health_55898),
                     value: battleHealth ?? maxHealth,
                     maxValue: maxHealth,
                     fillColor: TrinketDesign.Colors.health,
@@ -29,7 +29,7 @@ struct CombatantVitalBarsView: View, Equatable {
 
                 if combatantRole != .enemy, maxMana > 0 {
                     DetailVitalBar(
-                        label: "Mana",
+                        label: String(localized: L10n.ui_combatantvitalbarsview_mana_066ff),
                         value: battleMana ?? maxMana,
                         maxValue: maxMana,
                         fillColor: Keyword.mana.visualStyle.color,
@@ -55,7 +55,7 @@ private struct DetailVitalBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             HStack {
-                Text(label)
+                GameLabel(label)
                     .trinketTypography(.body)
                     .foregroundStyle(.primary)
 
@@ -69,7 +69,7 @@ private struct DetailVitalBar: View {
                     .animation(TrinketMotion.Interaction.selection, value: value)
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("\(label), \(value) of \(maxValue)")
+            .accessibilityLabel(Text(L10n.ui_combatantvitalbarsview_1_2_of_3_b1c65("\(label)", "\(value)", "\(maxValue)")))
             .accessibilityAddTraits(.isStaticText)
 
             GeometryReader { geometry in

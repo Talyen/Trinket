@@ -11,4 +11,4 @@
 --maxwidth 140
 --disable wrapMultilineStatementBraces
 --enable isEmpty,preferContains,preferFirstWhere,preferCountWhere,preferMinOverSorted,preferFlatMap,preferSwiftTesting,privateStateVariables,noGuardInTests
---exclude Packages/TrinketContent/Sources/TrinketContent/Generated,.DerivedData,.build
+--exclude Packages/TrinketContent/Sources/TrinketContent/Generated,.DerivedData,.build,Trinket/App/Generated,Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Generated,Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Generated,Packages/TrinketFeatureSupport/Sources/TrinketFeatureAdapters/Generated,Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Generated,Packages/TrinketCore/Sources/TrinketCore/Generated,Packages/BattleEngine/Sources/BattleEngine/Generated

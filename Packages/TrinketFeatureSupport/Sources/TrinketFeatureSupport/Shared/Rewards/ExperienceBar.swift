@@ -67,13 +67,13 @@ public struct ExperienceBar: View {
 
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.small) {
-                    Text(combatantName)
+                    GameLabel(combatantName)
                         .trinketTypography(.cardLabel)
 
                     Spacer(minLength: TrinketDesign.Spacing.small)
 
                     if let experienceAward, experienceAward > 0, showsExperienceAward {
-                        Text("+\(experienceAward) XP")
+                        Text(L10n.ui_experiencebar_1_xp_3626e("\(experienceAward)"))
                             .trinketTypography(.footnote)
                             .fontWeight(.semibold)
                             .monospacedDigit()
@@ -400,13 +400,13 @@ private struct ExperienceProgress: View, Animatable {
             .frame(height: TrinketDesign.Bars.statHeight)
 
             HStack {
-                Text("Level \(level)")
+                Text(L10n.ui_experiencebar_level_1_87093("\(level)"))
                     .contentTransition(.numericText())
                     .scaleEffect(isLevelUpHighlighted ? Metrics.levelLabelScale : 1, anchor: .leading)
                     .foregroundStyle(isLevelUpHighlighted ? fillColor : .secondary)
                     .trinketFittedText()
                 Spacer(minLength: TrinketDesign.Spacing.small)
-                Text("\(SaturatedArithmetic.rounded(experience)) / \(requiredXP) XP")
+                Text(L10n.ui_experiencebar_1_2_xp_0ef2d("\(SaturatedArithmetic.rounded(experience))", "\(requiredXP)"))
                     .monospacedDigit()
                     .trinketFittedText()
             }

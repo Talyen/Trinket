@@ -38,7 +38,7 @@ public struct BattleLogProjection {
             } else {
                 let damage = event.kind == .ability ? pendingDamage.removeValue(forKey: ActionKey(event)) ?? [] : []
                 if let text = Self.line(for: event, damage: damage) {
-                    entries.append(LogEntry(id: index, text: text))
+                    entries.append(LogEntry(id: index, text: text, event: event, damage: damage))
                 }
             }
         }
@@ -50,7 +50,7 @@ public struct BattleLogProjection {
         sync(events: events)
     }
 
-    private static func actionLine(for event: ActionEvent, damage: [ActionEvent]) -> String {
+    static func damageReport(for event: ActionEvent, damage: [ActionEvent]) -> ([ActionEvent], Int) {
         var totals: [ActionEvent] = []
         var healthCost = 0
         for packet in damage {
@@ -62,9 +62,13 @@ public struct BattleLogProjection {
                 totals.append(packet)
             }
         }
+        return (damage.isEmpty && event.amount > 0 ? [event] : totals, healthCost)
+    }
+
+    private static func actionLine(for event: ActionEvent, damage: [ActionEvent]) -> String {
+        let (reported, healthCost) = damageReport(for: event, damage: damage)
         var text = "\(event.actorName) uses \(event.abilityName)"
         // Older summary-only events retain their aggregate damage fallback.
-        let reported = damage.isEmpty && event.amount > 0 ? [event] : totals
         let damageClauses = reported.map {
             "\($0.amount) \($0.keyword.rawValue) damage to \($0.targetName)"
         }

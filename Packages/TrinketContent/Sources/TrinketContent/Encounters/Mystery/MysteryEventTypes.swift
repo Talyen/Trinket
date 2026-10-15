@@ -44,6 +44,15 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
         unlockCombatantID != nil
     }
 
+    public func localizedNarrative(for offers: [MysteryOffer], locale: Locale) -> String {
+        let names = choices.map { choice in
+            let item = offers.first { $0.choiceID == choice.id }?.item
+            let base = item?.baseType ?? choice.itemPool.flatMap { GameContent.itemBaseType(matching: $0.baseTypeID) }
+            return ContentCopy.localized(item?.displayName ?? base?.name ?? "treasure", locale: locale)
+        }
+        return ContentCopy.narrative(narrative, first: names.first ?? "", second: names.dropFirst().first ?? "", locale: locale)
+    }
+
     public func narrative(for offers: [MysteryOffer]) -> String {
         choices.enumerated().reduce(narrative) { text, entry in
             let item = offers.first { $0.choiceID == entry.element.id }?.item

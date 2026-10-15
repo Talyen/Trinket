@@ -6,14 +6,14 @@ import TrinketDesignSystem
 public extension HomesteadResource {
     var displayName: String {
         switch self {
-        case .wood: "Wood"
-        case .stone: "Stone"
-        case .iron: "Iron"
-        case .food: "Food"
-        case .herbs: "Herbs"
-        case .hide: "Hide"
-        case .gems: "Gems"
-        case .gold: "Gold"
+        case .wood: String(localized: L10n.ui_homestead_wood_73114)
+        case .stone: String(localized: L10n.ui_homestead_stone_6ffa6)
+        case .iron: String(localized: L10n.ui_homestead_iron_bd223)
+        case .food: String(localized: L10n.ui_homestead_food_e4eb1)
+        case .herbs: String(localized: L10n.ui_homestead_herbs_52b83)
+        case .hide: String(localized: L10n.ui_homestead_hide_ac20a)
+        case .gems: String(localized: L10n.ui_homestead_gems_60243)
+        case .gold: String(localized: L10n.ui_homestead_gold_6249d)
         }
     }
 
@@ -66,10 +66,10 @@ public extension [ResourceAmount] {
         case 1:
             return parts[0]
         case 2:
-            return "\(parts[0]) and \(parts[1])"
+            return String(localized: L10n.ui_homestead_1_and_2_16d5b("\(parts[0])", "\(parts[1])"))
         default:
             let head = parts.dropLast().joined(separator: ", ")
-            return "\(head), and \(parts[parts.count - 1])"
+            return String(localized: L10n.ui_homestead_1_and_2_2ac9d("\(head)", "\(parts[parts.count - 1])"))
         }
     }
 }

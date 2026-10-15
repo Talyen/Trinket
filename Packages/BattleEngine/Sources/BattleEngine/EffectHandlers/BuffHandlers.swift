@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -13,13 +14,13 @@ extension EffectHandlers {
         guard let kind = stacks.first?.effect.kind else { return nil }
         let total = TimedBuffSummary.summedAmount(in: stacks) { $0.kind == kind ? Self.stackingAmount($0) : nil }
         guard total > 0 else { return nil }
-        let text: String
+        let text: LocalizedStringResource
         switch kind {
-        case .thorns: text = "Thorns: Deals \(total) Thorns damage to the next attacker"
-        case .nextBurnBonus: text = "Kindled: Next Burn attack deals +\(total) damage"
+        case .thorns: text = L10n.summary_buffhandlers_3e68ff3d38da(total)
+        case .nextBurnBonus: text = L10n.summary_buffhandlers_d0133f55b23d(total)
         default: return nil
         }
-        return EffectSummary(keyword: keyword, text: text)
+        return EffectSummary(keyword: keyword, resource: text)
     }
 
     static func summarizeStoredEffect(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
@@ -31,8 +32,9 @@ extension EffectHandlers {
                 return value
             }
             guard amount > 0 else { return nil }
-            let label = keyword == .freeze ? "Glacial Ward" : "\(keyword.rawValue) Ward"
-            return EffectSummary(keyword: keyword, text: "\(label): Deals \(amount) \(keyword.rawValue) damage to the next attacker")
+            let label = keyword == .freeze ? L10n.summary_buffhandlers_92e5596a3512 : L10n
+                .summary_buffhandlers_a96afd45f5af(keyword.nameResource)
+            return EffectSummary(keyword: keyword, resource: L10n.summary_buffhandlers_cb1ecaff8635(label, amount, keyword.nameResource))
 
         case .marked:
             let bonus = TimedBuffSummary.maxAmount(in: stacks) { effect in
@@ -40,12 +42,12 @@ extension EffectHandlers {
                 return value
             }
             guard bonus > 0 else {
-                return EffectSummary(keyword: keyword, text: "Marked: The next attack deals extra damage and removes Marked")
+                return EffectSummary(keyword: keyword, resource: L10n.summary_buffhandlers_f62a40fbfc30)
             }
-            let suffix = TimedBuffSummary.durationSuffix(in: stacks, separator: "\n")
+            let suffix = TimedBuffSummary.durationResource(in: stacks, separator: "\n")
             return EffectSummary(
                 keyword: keyword,
-                text: "Marked: The next attack deals +\(bonus) damage and removes Marked\(suffix)",
+                resource: L10n.summary_buffhandlers_f62c4f1d4746(bonus, suffix),
             )
 
         case .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
@@ -57,12 +59,12 @@ extension EffectHandlers {
                 return value
             }
             guard amount > 0 else { return nil }
-            return EffectSummary(keyword: keyword, text: "Hemorrhage: Takes \(amount) Bleed damage on next attack")
+            return EffectSummary(keyword: keyword, resource: L10n.summary_buffhandlers_3376c64cba02(amount))
 
         case .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .evadeNextHit, .nextStrikeCritical,
              .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .freezeNextAttacker:
-            guard let text = EffectPresentation.battleSummaryPhrase(for: first) else { return nil }
-            return EffectSummary(keyword: keyword, text: text)
+            guard let text = BattleCopy.flagSummary(first) else { return nil }
+            return EffectSummary(keyword: keyword, resource: text)
 
         default: return nil
         }
@@ -70,8 +72,8 @@ extension EffectHandlers {
 
     private static func summarizeTimedStored(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         guard let first = stacks.first?.effect else { return nil }
-        let suffix = TimedBuffSummary.durationSuffix(in: stacks)
-        let text: String
+        let suffix = TimedBuffSummary.durationResource(in: stacks)
+        let text: LocalizedStringResource
         switch first {
         case .criticalChanceBonus:
             let percent = TimedBuffSummary.maxPercent(in: stacks) { effect in
@@ -79,7 +81,7 @@ extension EffectHandlers {
                 return value
             }
             guard percent > 0 else { return nil }
-            text = "Focused: Increases Critical chance by +\(CombatRounding.rounded((percent * 100).rounded(.towardZero)))%\(suffix)"
+            text = L10n.summary_buffhandlers_ead74836fb5e(CombatRounding.rounded((percent * 100).rounded(.towardZero)), suffix)
 
         case .restoreManaOnHit:
             let amount = TimedBuffSummary.summedAmount(in: stacks) { effect in
@@ -87,14 +89,14 @@ extension EffectHandlers {
                 return value
             }
             guard amount > 0 else { return nil }
-            text = "Mana Shield: Restores \(amount) Mana when hit\(suffix)"
+            text = L10n.summary_buffhandlers_b517a9d4c192(amount, suffix)
 
         case let .damageKeywordOverride(overrideKeyword, bonus, _):
-            text = "Consecrated: Attacks deal \(overrideKeyword.rawValue) damage (+\(bonus))\(suffix)"
+            text = L10n.summary_buffhandlers_12d886cfa2de(overrideKeyword.nameResource, bonus, suffix)
 
         default: return nil
         }
-        return EffectSummary(keyword: keyword, text: text)
+        return EffectSummary(keyword: keyword, resource: text)
     }
 }
 

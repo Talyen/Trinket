@@ -33,7 +33,7 @@ struct ShopEncounterView: View {
                 artwork: { merchantArtwork },
                 copy: {
                     VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
-                        Text(session.stage.encounterSubjectName(worldSeed: playerSave.worldSeed))
+                        GameLabel(session.stage.encounterSubjectName(worldSeed: playerSave.worldSeed))
                             .trinketTypography(.screenTitle)
                             .accessibilityIdentifier(AccessibilityID.Shop.encounterTitle)
                     }
@@ -46,7 +46,7 @@ struct ShopEncounterView: View {
                     Button {
                         _ = onLeave()
                     } label: {
-                        Text("Leave Shop")
+                        Text(L10n.ui_shopencounterview_leave_shop_e6a7f)
                             .frame(maxWidth: .infinity)
                     }
                     .trinketPrimaryActionButton()
@@ -63,7 +63,7 @@ struct ShopEncounterView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     goldWallet
                         .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(HomesteadResource.gold.displayName)
+                        .gameAccessibilityLabel(HomesteadResource.gold.displayName)
                         .accessibilityValue(playerSave.roster.gold.formatted())
                         .accessibilityIdentifier(AccessibilityID.Shop.goldBalance)
                 }
@@ -80,7 +80,7 @@ struct ShopEncounterView: View {
                     purchasePrice: offer.price,
                     canAfford: playerSave.roster.gold >= offer.price,
                     isPurchaseDisabled: playerSave.isRetryingSaveAction || session.isPurchasing || !availability(offer).canPurchase,
-                    purchaseButtonTitleOverride: isSoldOut(offer) ? "Sold Out" : nil,
+                    purchaseButtonTitleOverride: isSoldOut(offer) ? String(localized: L10n.ui_shopencounterview_sold_out_5b92d) : nil,
                     onPurchase: {
                         attemptPurchase(offerID: offer.id, dismissDetail: true)
                     },
@@ -169,9 +169,9 @@ struct ShopEncounterView: View {
     private func buyButtonLabel(offer: ShopOffer, soldOut: Bool, canBuy: Bool) -> some View {
         HStack(spacing: TrinketDesign.Spacing.small) {
             if soldOut {
-                Text("Sold")
+                Text(L10n.ui_shopencounterview_sold_b870b)
             } else {
-                Text("Buy")
+                Text(L10n.ui_shopencounterview_buy_64e3c)
                 HomesteadResourceArtwork(resource: .gold)
                     .frame(
                         width: TrinketDesign.Layout.compactResourceArtworkSize * 0.8,

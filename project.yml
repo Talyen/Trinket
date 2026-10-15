@@ -1,6 +1,7 @@
 name: Trinket
 options:
   bundleIdPrefix: com.ryanmcintire
+  developmentLanguage: en
   projectFormat: xcode16_0
   deploymentTarget:
     iOS: "18.0"
@@ -30,6 +31,7 @@ packages:
     path: Packages/TrinketAppState
 settings:
   base:
+    SWIFT_EMIT_LOC_STRINGS: YES
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     MARKETING_VERSION: "0.1.0"
@@ -70,6 +72,9 @@ targets:
         type: folder
       - path: Trinket/AppIcon.icon
       - path: Trinket/PrivacyInfo.xcprivacy
+        buildPhase: resources
+      # XcodeGen reads these generated lproj groups to declare catalog languages.
+      - path: Localization/Generated/Regions
         buildPhase: resources
       - path: StoreKit/Trinket.storekit
         buildPhase: resources

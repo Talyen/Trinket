@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "TrinketBattleFeature",
+    defaultLocalization: "en",
     platforms: [.iOS(.v18)],
     products: [
         .library(
@@ -29,6 +30,7 @@ let package = Package(
                 "TrinketFeatureSupport",
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
             ],
+            resources: [.process("Resources")],
         ),
         .testTarget(
             name: "TrinketBattleFeatureTests",

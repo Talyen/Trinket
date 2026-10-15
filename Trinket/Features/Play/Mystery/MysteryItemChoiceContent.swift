@@ -22,11 +22,11 @@ struct MysteryScaffold<Footer: View>: View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrinketDesign.Layout.contentMargin) {
                 VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
-                    Text(title)
+                    GameLabel(title)
                         .trinketTypography(.screenTitle)
                         .accessibilityIdentifier(titleAccessibilityIdentifier)
 
-                    Text(narrative)
+                    GameLabel(narrative)
                         .trinketTypography(.body)
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -84,9 +84,9 @@ struct MysteryCorruptItemChoiceContent: View {
 
     var body: some View {
         MysteryScaffold(
-            title: "Offer an Item",
+            title: String(localized: L10n.ui_mysteryitemchoicecontent_offer_an_item_0c482),
             titleAccessibilityIdentifier: AccessibilityID.Mystery.corruptItemTitle,
-            narrative: "Choose gear to corrupt\nThe altar remakes it once, forever",
+            narrative: String(localized: L10n.ui_mysteryitemchoicecontent_choose_gear_to_corrupt_the_altar_remakes_it_o_b4084),
             items: session.corruptibleItems,
             selectedItemID: selectedItemID,
             isDisabled: session.isResolvingChoice,
@@ -101,7 +101,7 @@ struct MysteryCorruptItemChoiceContent: View {
                     Button {
                         onCancelCorruptSelection()
                     } label: {
-                        Text("Back")
+                        Text(L10n.ui_mysteryitemchoicecontent_back_76900)
                             .frame(maxWidth: .infinity)
                     }
                     .trinketSecondaryActionButton(
@@ -113,7 +113,7 @@ struct MysteryCorruptItemChoiceContent: View {
                         guard let selectedItemID else { return }
                         _ = onCorruptItem(selectedItemID)
                     } label: {
-                        Text("Corrupt")
+                        Text(L10n.ui_mysteryitemchoicecontent_corrupt_65ab9)
                             .frame(maxWidth: .infinity)
                     }
                     .trinketPrimaryActionButton(

@@ -1,0 +1,4308 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "ui.abilitydetailview.traits_e0ab4": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/AbilityDetailView.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigenschaften"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traits"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traits"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "特性"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "속성"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "特性"
+          }
+        }
+      }
+    },
+    "ui.abilitytierpickersheet.preparing_ability_23e9a": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/AbilityTierPickerSheet.swift: accessibilityLabel. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fähigkeit wird vorbereitet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing ability"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparation de la capacité"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アビリティを準備中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "능력 준비 중"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在準備能力"
+          }
+        }
+      }
+    },
+    "ui.abilitytierpickersheet.select_ability_2fb3f": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/AbilityTierPickerSheet.swift: primaryActionTitle. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fähigkeit wählen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Ability"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir une capacité"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アビリティを選択"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "능력 선택"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇能力"
+          }
+        }
+      }
+    },
+    "ui.categorybrowseshelf.view_all_1_261d4": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/CategoryBrowseShelf.swift: accessibilityLabel. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle %1$@ ansehen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View all %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout voir : %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@をすべて表示"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 모두 보기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看所有%1$@"
+          }
+        }
+      }
+    },
+    "ui.combatantcard.1_locked_1871c": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Cards/CombatantCard.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, gesperrt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, locked"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, verrouillé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@、ロック中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, 잠김"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@，尚未解鎖"
+          }
+        }
+      }
+    },
+    "ui.emptyslots.empty_1_83ed8": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Cards/EmptySlots.swift: Text. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leerer Platz: %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emplacement vide : %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@なし"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "빈 %1$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空的%1$@"
+          }
+        }
+      }
+    },
+    "ui.experiencebar.1_2_xp_0ef2d": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Rewards/ExperienceBar.swift: Text. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ EP"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ XP"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ EXP"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "経験値 %1$@ / %2$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ 경험치"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "經驗值 %1$@／%2$@"
+          }
+        }
+      }
+    },
+    "ui.experiencebar.1_xp_3626e": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Rewards/ExperienceBar.swift: Text. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@ EP"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@ XP"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@ EXP"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "経験値 +%1$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "경험치 +%1$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "經驗值 +%1$@"
+          }
+        }
+      }
+    },
+    "ui.experiencebar.level_1_87093": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Rewards/ExperienceBar.swift: Text. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stufe %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Level %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niveau %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "レベル%1$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "레벨 %1$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等級%1$@"
+          }
+        }
+      }
+    },
+    "ui.homestead.1_and_2_16d5b": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ und %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ and %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ et %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@と%2$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 및 %2$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@與%2$@"
+          }
+        }
+      }
+    },
+    "ui.homestead.1_and_2_2ac9d": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ und %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, and %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ et %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@、%2$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 및 %2$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@，以及%2$@"
+          }
+        }
+      }
+    },
+    "ui.homestead.food_e4eb1": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nahrung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Food"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nourriture"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "食料"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "식량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "食物"
+          }
+        }
+      }
+    },
+    "ui.homestead.gems_60243": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edelsteine"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gems"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemmes"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宝石"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보석"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "寶石"
+          }
+        }
+      }
+    },
+    "ui.homestead.gold_6249d": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ゴールド"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "골드"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金幣"
+          }
+        }
+      }
+    },
+    "ui.homestead.herbs_52b83": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kräuter"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herbs"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herbes"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "薬草"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "약초"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "藥草"
+          }
+        }
+      }
+    },
+    "ui.homestead.hide_ac20a": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fell"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peaux"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毛皮"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "가죽"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獸皮"
+          }
+        }
+      }
+    },
+    "ui.homestead.iron_bd223": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eisen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iron"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鉄"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "철"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鐵"
+          }
+        }
+      }
+    },
+    "ui.homestead.stone_6ffa6": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pierre"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "石材"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "석재"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "石材"
+          }
+        }
+      }
+    },
+    "ui.homestead.wood_73114": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/Homestead.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Holz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wood"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bois"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "木材"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "목재"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "木材"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.1_chance_2_98e78": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chance auf %1$@: %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ chance %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ : %2$@ de chances"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@確率 %2$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 확률 %2$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@機率%2$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.1_damage_a20c7": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schaden: %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts de type %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.1_damage_taken_f09d1": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erlittener Schaden: %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ damage taken"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts de type %1$@ subis"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被%1$@ダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "받는 %1$@ 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承受的%1$@傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.astral_drop_rates_7c313": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fundrate astraler Gegenstände"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Astral drop rates"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taux de butin astral"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "星界級のドロップ率"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "성운 등급 드롭률"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "星界級掉落率"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.astral_drop_rates_rise_by_1_a8f6b": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Fundrate astraler Gegenstände steigt um %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Astral drop rates rise by %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taux de butin astral augmenté de %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "星界級のドロップ率が%1$@上昇"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "성운 등급 드롭률 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "星界級掉落率提高%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.astral_forge_odds_rise_by_1_2efdc": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Chance auf astrale Schmiedestücke steigt um %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Astral forge odds rise by %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chances de forge astrale augmentées de %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "星界級の鍛造確率が%1$@上昇"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "성운 등급 제작 확률 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "星界級鍛造機率提高%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.attack_leech_81d5c": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lebensraub bei Angriffen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attack Leech"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vol de vie des attaques"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "攻撃の吸収"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "공격 흡혈"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "攻擊吸血"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.attack_purge_a31f2": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entzaubern bei Angriffen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attack Purge"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dissipation des attaques"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "攻撃の強化解除"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "공격 강화 해제"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "攻擊驅散"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.bleed_duration_turns_87ff7": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blutungsdauer (Züge)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bleed duration (turns)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durée du Saignement (tours)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出血の持続（ターン）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "출혈 지속 시간(턴)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "流血持續時間（回合）"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.block_gained_a07f6": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erhaltener Block"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block gained"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocage gagné"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得するブロック"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "방어도 획득량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得的格擋"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.block_removed_on_attack_e8492": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei Angriffen entfernter Block"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block removed on attack"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocage retiré à l’attaque"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "攻撃時に除去するブロック"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "공격 시 방어도 제거량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "攻擊削除的格擋"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.bow_and_crossbow_damage_1_69acf": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bogen- und Armbrustschaden %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bow and Crossbow damage %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts des arcs et arbalètes %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "弓・クロスボウのダメージ %1$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "활과 석궁 피해 %1$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "弓與弩傷害%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.bow_and_crossbow_damage_999aa": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bogen- und Armbrustschaden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bow and Crossbow damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts des arcs et arbalètes"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "弓・クロスボウのダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "활과 석궁 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "弓與弩傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.companion_1_131e7": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gefährte: %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compagnon : %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仲間の%1$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동료 %1$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夥伴%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.companion_bleed_damage_a73f8": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blutungsschaden des Gefährten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion Bleed damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts de Saignement du Compagnon"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仲間の出血ダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동료 출혈 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夥伴流血傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.companion_damage_58009": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schaden des Gefährten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts du Compagnon"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仲間のダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동료 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夥伴傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.companion_damage_rises_by_1_4f2e4": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Schaden des Gefährten steigt um %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion damage rises by %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts du Compagnon augmentés de %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仲間のダメージが%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동료 피해 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夥伴傷害提高%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.companion_health_rises_by_1_fb039": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Gesundheit des Gefährten steigt um %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion Health rises by %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Santé du Compagnon augmentée de %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仲間の体力が%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동료 체력 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夥伴生命值提高%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.companion_physical_damage_54ae8": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Physischer Schaden des Gefährten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion Physical damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts de type Physique du Compagnon"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仲間の物理ダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동료 물리 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夥伴物理傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.critical_damage_ed30e": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kritischer Schaden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Critical damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts critiques"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリティカルダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "치명타 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暴擊傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.dodge_9444f": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausweichen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodge"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esquive"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回避"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "회피"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閃避"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.experience_8eab0": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erfahrung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Experience"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expérience"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "経験値"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "경험치"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "經驗值"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.find_1_more_gems_ddc3e": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finde %1$@ mehr Edelsteine"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find %1$@ more Gems"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trouvez %1$@ de gemmes en plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宝石の獲得量が%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보석 발견량 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "發現的寶石增加%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.find_1_more_gold_2d6b4": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finde %1$@ mehr Gold"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find %1$@ more Gold"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trouvez %1$@ d’Or en plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ゴールドの獲得量が%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "골드 발견량 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "發現的金幣增加%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.forge_astral_odds_db78f": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chance auf astrale Schmiedestücke"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forge Astral odds"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chances de forge astrale"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "星界級の鍛造確率"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "성운 등급 제작 확률"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鍛造星界級機率"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.gain_1_more_block_384cc": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erhalte %1$@ mehr Block"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gain %1$@ more Block"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gagnez %1$@ de Blocage en plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得するブロックが%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "방어도 획득량 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得的格擋增加%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.gain_1_more_experience_36dd5": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erhalte %1$@ mehr Erfahrung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gain %1$@ more Experience"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gagnez %1$@ d’expérience en plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得する経験値が%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "경험치 획득량 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得的經驗值增加%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.gems_found_00a7f": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gefundene Edelsteine"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gems found"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemmes trouvées"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "発見する宝石"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보석 발견량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "發現的寶石"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.gems_in_encounter_rewards_containing_gems_fe880": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edelsteine in Begegnungsbelohnungen mit Edelsteinen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gems in encounter rewards containing Gems"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemmes des récompenses de rencontre qui contiennent des gemmes"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宝石を含む遭遇報酬の宝石"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보석이 포함된 만남 보상의 보석 수량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "含寶石的遭遇獎勵中的寶石"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.gold_found_5fc8b": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gefundenes Gold"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold found"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or trouvé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "発見するゴールド"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "골드 발견량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "發現的金幣"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.gold_gained_68c2f": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erhaltenes Gold"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold gained"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or gagné"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得するゴールド"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "골드 획득량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得的金幣"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.health_55898": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesundheit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Santé"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体力"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "체력"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.health_restored_866e6": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederhergestellte Gesundheit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Health restored"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Santé restaurée"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回復する体力"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "체력 회복량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢復的生命值"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.hero_1_594a0": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Held: %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hero %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Héros : %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヒーローの%1$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영웅 %1$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "英雄%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.increase_1_damage_by_2_71806": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erhöhe Schaden der Art %1$@ um %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Increase %1$@ damage by %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts de type %1$@ augmentés de %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ダメージが%2$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 피해 %2$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@傷害提高%2$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.increase_critical_damage_by_1_07430": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erhöhe kritischen Schaden um %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Increase Critical damage by %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts critiques augmentés de %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリティカルダメージが%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "치명타 피해 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暴擊傷害提高%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.increase_hero_health_by_1_b393f": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erhöhe die Gesundheit des Helden um %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Increase Hero Health by %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Santé du Héros augmentée de %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヒーローの体力が%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영웅 체력 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "英雄生命值提高%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.leech_gained_73609": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erhaltener Lebensraub"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leech gained"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vol de vie gagné"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得する吸収"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "흡혈 획득량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得的吸血"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.leech_healing_dd70e": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heilung durch Lebensraub"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leech healing"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soins de Vol de vie"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "吸収による回復"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "흡혈 치유량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "吸血治療"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.leech_restores_1_more_health_01e79": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lebensraub stellt %1$@ mehr Gesundheit wieder her"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leech restores %1$@ more Health"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le Vol de vie restaure %1$@ de Santé en plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "吸収で回復する体力が%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "흡혈의 체력 회복량 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "吸血恢復的生命值增加%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.mana_066ff": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mana"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mana"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マナ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마나"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "魔力"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.mana_restored_775b4": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederhergestelltes Mana"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mana restored"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mana restauré"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回復するマナ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마나 회복량"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢復的魔力"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.party_damage_4cc26": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schaden der Gruppe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Party damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts du groupe"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パーティのダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파티 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隊伍傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.party_damage_taken_ee076": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erlittener Schaden der Gruppe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Party damage taken"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts subis par le groupe"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パーティの被ダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파티가 받는 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隊伍承受的傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.poison_damage_def9b": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giftschaden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poison damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts de Poison"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毒ダメージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "독 피해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中毒傷害"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.produce_1_2_per_day_aefb1": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Produziere täglich %1$@ %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Produce %1$@ %2$@ per Day"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Produit %1$@ %2$@ par jour"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1日に%2$@を%1$@生産"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "하루에 %2$@ %1$@ 생산"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天生產%1$@%2$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.restore_1_more_health_9892b": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stelle %1$@ mehr Gesundheit wieder her"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore %1$@ more Health"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurez %1$@ de Santé en plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回復する体力が%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "체력 회복량 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢復的生命值增加%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.restore_1_more_mana_eee0e": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stelle %1$@ mehr Mana wieder her"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore %1$@ more Mana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurez %1$@ de Mana en plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回復するマナが%1$@増加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "마나 회복량 %1$@ 증가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢復的魔力增加%1$@"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.starting_block_6a8d9": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block zu Kampfbeginn"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting Block"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocage initial"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開始時のブロック"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시작 방어도"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初始格擋"
+          }
+        }
+      }
+    },
+    "ui.homesteadeffectline.take_1_less_2_damage_431b5": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/HomesteadEffectLine.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erleide %1$@ weniger Schaden der Art %2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take %1$@ less %2$@ damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts de type %2$@ subis réduits de %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$@の被ダメージが%1$@減少"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "받는 %2$@ 피해 %1$@ 감소"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承受的%2$@傷害降低%1$@"
+          }
+        }
+      }
+    },
+    "ui.itemcard.trinket_ae23c": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Cards/ItemCard.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schmuckstück"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トリンケット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트링킷"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "飾物"
+          }
+        }
+      }
+    },
+    "ui.itemcardlabel.corrupted_a7f0f": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Cards/ItemCardLabel.swift: Text. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VERDORBEN"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CORRUPTED"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CORROMPU"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "汚染済み"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "타락함"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已腐化"
+          }
+        }
+      }
+    },
+    "ui.itemcardlabel.trait_count": {
+      "comment": "Number of item traits (affixes) shown beneath an equipment card. Count controls native plural.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Eigenschaft"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld Eigenschaften"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld trait"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld traits"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld traits"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld trait"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld traits"
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "特性%1$lld個"
+                }
+              }
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "속성 %1$lld개"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld項特性"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ui.itemcardlabel.trinket_ae23c": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Cards/ItemCardLabel.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schmuckstück"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トリンケット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트링킷"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "飾物"
+          }
+        }
+      }
+    },
+    "ui.itemdetailview.1_corrupted_7db4d": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · VERDORBEN"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · CORRUPTED"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · CORROMPU"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · 汚染済み"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · 타락함"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · 已腐化"
+          }
+        }
+      }
+    },
+    "ui.itemdetailview.buy_for_1_gold_13d40": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für %1$@ Gold kaufen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy for %1$@ Gold"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acheter pour %1$@ Or"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ゴールドで購入"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "골드 %1$@에 구매"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "花費%1$@金幣購買"
+          }
+        }
+      }
+    },
+    "ui.itemdetailview.cancel_19766": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: Button. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセル"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취소"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "ui.itemdetailview.need_1_gold_341f4": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ Gold benötigt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Need %1$@ Gold"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il vous faut %1$@ Or"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ゴールド必要"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "골드 %1$@ 필요"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要%1$@金幣"
+          }
+        }
+      }
+    },
+    "ui.itemdetailview.salvage_75f34": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: Button. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwerten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recycler"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分解"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "분해"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分解"
+          }
+        }
+      }
+    },
+    "ui.itemdetailview.this_unequips_it_from_1_ae725": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: Text. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dadurch legt %1$@ den Gegenstand ab"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This unequips it from %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet objet ne sera plus équipé par %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@の装備から外れます"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@의 장착이 해제됩니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此物品會從%1$@身上卸下"
+          }
+        }
+      }
+    },
+    "ui.itemdetailview.traits_e0ab4": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eigenschaften"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traits"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traits"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "特性"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "속성"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "特性"
+          }
+        }
+      }
+    },
+    "ui.itemdetailview.trinket_6faed": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRINKET"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRINKET"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRINKET"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トリンケット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트링킷"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "飾物"
+          }
+        }
+      }
+    },
+    "ui.itemdetailview.you_will_receive_25585": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: Text. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du erhältst"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You will receive"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous recevrez"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獲得するもの"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "획득 보상"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你將獲得"
+          }
+        }
+      }
+    },
+    "ui.labyrinthmappresentation.approach_b6b24": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/LabyrinthMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nähern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approach"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approcher"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近づく"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다가가기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "靠近"
+          }
+        }
+      }
+    },
+    "ui.labyrinthmappresentation.battle_1b18e": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/LabyrinthMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kämpfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Battle"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戦う"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전투"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戰鬥"
+          }
+        }
+      }
+    },
+    "ui.labyrinthmappresentation.enter_labyrinth_4c08e": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/LabyrinthMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labyrinth betreten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter Labyrinth"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrer dans le labyrinthe"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "迷宮に入る"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "미궁 입장"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "進入迷宮"
+          }
+        }
+      }
+    },
+    "ui.labyrinthmappresentation.recruit_3803d": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/LabyrinthMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekrutieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recruit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recruter"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入させる"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영입"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "招募"
+          }
+        }
+      }
+    },
+    "ui.labyrinthmappresentation.shop_d00aa": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/LabyrinthMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shop"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boutique"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "상점"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商店"
+          }
+        }
+      }
+    },
+    "ui.rewardrevealexperiencescreen.committed_reward_checkpoint_1e250": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Rewards/RewardRevealExperienceScreen.swift: Text. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherter Belohnungskontrollpunkt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Committed reward checkpoint"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Point de sauvegarde des récompenses validées"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報酬の確定済みチェックポイント"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확정된 보상 체크포인트"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已確認的獎勵檢查點"
+          }
+        }
+      }
+    },
+    "ui.rewardrevealexperiencescreen.preparing_rewards_6f51a": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Rewards/RewardRevealExperienceScreen.swift: accessibilityLabel. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belohnungen werden vorbereitet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing rewards"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparation des récompenses"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報酬を準備中"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보상 준비 중"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在準備獎勵"
+          }
+        }
+      }
+    },
+    "ui.rewardrevealexperiencescreen.rewards_59afe": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Rewards/RewardRevealExperienceScreen.swift: accessibilityLabel. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belohnungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rewards"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récompenses"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報酬"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보상"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "獎勵"
+          }
+        }
+      }
+    },
+    "ui.rewardreveallootsection.gold_6249d": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Rewards/RewardRevealLootSection.swift: title. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gold"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ゴールド"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "골드"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金幣"
+          }
+        }
+      }
+    },
+    "ui.rewardrevealshell.collected_1533d": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Rewards/RewardRevealShell.swift: Label. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eingesammelt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collected"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récupéré"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受取済み"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "수령 완료"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已領取"
+          }
+        }
+      }
+    },
+    "ui.stagemappresentation.battle_1b18e": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/StageMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kampf"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Battle"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戦闘"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전투"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戰鬥"
+          }
+        }
+      }
+    },
+    "ui.stagemappresentation.boss_6a6ac": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/StageMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boss"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boss"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chef"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ボス"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "우두머리"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首領"
+          }
+        }
+      }
+    },
+    "ui.stagemappresentation.merchant_1da9a": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/StageMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Händler"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marchand"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商人"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "상인"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商人"
+          }
+        }
+      }
+    },
+    "ui.stagemappresentation.mystery_9ed9b": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/StageMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mysterium"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mystery"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mystère"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不思議な出来事"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "미지"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "神秘事件"
+          }
+        }
+      }
+    },
+    "ui.stagemappresentation.stage_1_2_387d4": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/StageMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abschnitt %1$@-%2$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stage %1$@-%2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Étape %1$@-%2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ステージ%1$@-%2$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스테이지 %1$@-%2$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關卡%1$@-%2$@"
+          }
+        }
+      }
+    },
+    "ui.stagemappresentation.unknown_enemy_a0041": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Models/StageMapPresentation.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannter Gegner"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown Enemy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ennemi inconnu"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知の敵"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "알 수 없는 적"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知敵人"
+          }
+        }
+      }
+    },
+    "ui.viewallshelfcard.1_more_2861b": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Cards/ViewAllShelfCard.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ weitere"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ more"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de plus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ほか%1$@件"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 추가"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "另有%1$@"
+          }
+        }
+      }
+    },
+    "ui.viewallshelfcard.view_all_ff557": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Cards/ViewAllShelfCard.swift: Text. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle ansehen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View All"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout voir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべて表示"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모두 보기"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看全部"
+          }
+        }
+      }
+    },
+    "ui.volumeoptionrow.music_6eb00": {
+      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Forms/VolumeOptionRow.swift: display copy. Arguments are displayed values in source order.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musik"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Music"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Musique"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音楽"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음악"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音樂"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

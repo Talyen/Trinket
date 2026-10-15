@@ -74,7 +74,7 @@ public struct ItemCard<Art: View>: View {
             art: art,
             label: {
                 if isLocked {
-                    Text(balanced: item.displayName)
+                    GameLabel(item.displayName, balanced: true)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -106,10 +106,10 @@ public struct ItemCard<Art: View>: View {
         VStack(spacing: TrinketDesign.Spacing.tight) {
             TrinketRarityLabel(
                 rarity: item.rarity,
-                labelOverride: item.isTrinket ? "Trinket" : nil,
+                labelOverride: item.isTrinket ? String(localized: L10n.ui_itemcard_trinket_ae23c) : nil,
             )
 
-            Text(balanced: item.displayName)
+            GameLabel(item.displayName, balanced: true)
                 .trinketTypography(.sectionDisplay)
                 .shineText(shine ?? item.displayTextShine)
                 .multilineTextAlignment(.center)

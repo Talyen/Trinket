@@ -51,7 +51,9 @@ public struct ItemDetailView: View {
         self.item = item
         primaryAction = DetailPrimaryAction(
             title: purchaseButtonTitleOverride
-                ?? (canAfford ? "Buy for \(purchasePrice) Gold" : "Need \(purchasePrice) Gold"),
+                ??
+                (canAfford ? String(localized: L10n.ui_itemdetailview_buy_for_1_gold_13d40("\(purchasePrice)")) :
+                    String(localized: L10n.ui_itemdetailview_need_1_gold_341f4("\(purchasePrice)"))),
             accessibilityIdentifier: accessibilityIdentifier,
             isDisabled: !canAfford || isPurchaseDisabled,
             action: onPurchase,
@@ -130,13 +132,13 @@ public struct ItemDetailView: View {
     }
 
     private static func eyebrow(for item: InventoryItem) -> String {
-        let tag = item.isTrinket ? "TRINKET" : item.rarity.label.uppercased()
-        return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
+        let tag = item.isTrinket ? String(localized: L10n.ui_itemdetailview_trinket_6faed) : item.rarity.label
+        return item.isCorrupted ? String(localized: L10n.ui_itemdetailview_1_corrupted_7db4d("\(tag)")) : tag
     }
 
     @ViewBuilder
     private var traitsSection: some View {
-        DetailSection("Traits") {
+        DetailSection(String(localized: L10n.ui_itemdetailview_traits_e0ab4)) {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 ForEach(Array(item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
                     DetailTraitRow(
@@ -152,9 +154,9 @@ public struct ItemDetailView: View {
             VStack(spacing: TrinketDesign.Spacing.medium) {
                 if isSalvageConfirmationPresented {
                     salvageMaterialPreview
-                    Button("Cancel") { isSalvageConfirmationPresented = false }
+                    Button(String(localized: L10n.ui_itemdetailview_cancel_19766)) { isSalvageConfirmationPresented = false }
                         .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Collection.salvageCancelButton)
-                    Button("Salvage", role: .destructive) {
+                    Button(String(localized: L10n.ui_itemdetailview_salvage_75f34), role: .destructive) {
                         guard isSalvageConfirmationPresented else { return }
                         isSalvageConfirmationPresented = false
                         confirmSalvage()
@@ -164,7 +166,7 @@ public struct ItemDetailView: View {
                         accessibilityIdentifier: AccessibilityID.Collection.salvageConfirmButton,
                     )
                 } else {
-                    Button("Salvage") { isSalvageConfirmationPresented = true }
+                    Button(String(localized: L10n.ui_itemdetailview_salvage_75f34)) { isSalvageConfirmationPresented = true }
                         .trinketSecondaryActionButton(
                             tint: TrinketDesign.Colors.destructive,
                             accessibilityIdentifier: AccessibilityID.Collection.salvageButton,
@@ -182,7 +184,7 @@ public struct ItemDetailView: View {
     private var salvageMaterialPreview: some View {
         if let salvage {
             let positiveYields = salvage.yields.filter { $0.quantity > 0 }
-            Text("You will receive")
+            Text(L10n.ui_itemdetailview_you_will_receive_25585)
                 .trinketTypography(.secondaryBody)
 
             if !positiveYields.isEmpty {
@@ -200,7 +202,7 @@ public struct ItemDetailView: View {
             }
 
             if let equippedByName = salvage.equippedByName {
-                Text("This unequips it from \(equippedByName)")
+                Text(L10n.ui_itemdetailview_this_unequips_it_from_1_ae725("\(equippedByName)"))
                     .trinketTypography(.secondaryBody)
             }
         }

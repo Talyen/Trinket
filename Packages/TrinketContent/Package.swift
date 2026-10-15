@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "TrinketContent",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v18),
         .macOS(.v15),
@@ -42,6 +43,7 @@ let package = Package(
                 "Generated/MusicSourceHashes.generated.tsv",
                 "Generated/SFXSourceHashes.generated.tsv",
             ],
+            resources: [.process("Resources")],
         ),
         .target(
             name: "TrinketContentTestSupport",

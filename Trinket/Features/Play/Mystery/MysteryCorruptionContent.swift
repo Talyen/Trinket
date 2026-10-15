@@ -28,7 +28,7 @@ struct MysteryCorruptionRevealContent: View {
             },
             bodyContent: {
                 VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionSpacing) {
-                    DetailSection("Traits") {
+                    DetailSection(String(localized: L10n.ui_mysterycorruptioncontent_traits_e0ab4)) {
                         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                             ForEach(Array(result.item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
                                 DetailTraitRow(
@@ -37,7 +37,8 @@ struct MysteryCorruptionRevealContent: View {
                                     comparisonDescription: comparisonDescription(for: affix),
                                     indicators: result.effects.filter { $0.affects(affix) }.map(\.indicator),
                                     titleShine: result.item.affixShine(at: index, affix: affix),
-                                    titlePrefix: affix.isCorrupted ? "Corrupted " : nil,
+                                    titlePrefix: affix
+                                        .isCorrupted ? String(localized: L10n.ui_mysterycorruptioncontent_corrupted_f79ed) : nil,
                                     titlePrefixShine: affix.isCorrupted ? .corruption : .none,
                                 )
                             }
@@ -48,7 +49,7 @@ struct MysteryCorruptionRevealContent: View {
         )
         .safeAreaInset(edge: .bottom) {
             MysteryPrimaryFooter(
-                title: "Continue",
+                title: String(localized: L10n.ui_mysterycorruptioncontent_continue_31fbe),
                 accessibilityIdentifier: AccessibilityID.Mystery.corruptionContinueButton,
             ) {
                 _ = onFinish()
@@ -70,8 +71,8 @@ struct MysteryCorruptionRevealContent: View {
     }
 
     private func eyebrow(for item: InventoryItem) -> String {
-        let tag = item.isTrinket ? "TRINKET" : item.rarity.label.uppercased()
-        return item.isCorrupted ? "\(tag) · CORRUPTED" : tag
+        let tag = item.isTrinket ? String(localized: L10n.ui_mysterycorruptioncontent_trinket_6faed) : item.rarity.label
+        return item.isCorrupted ? String(localized: L10n.ui_mysterycorruptioncontent_1_corrupted_7db4d("\(tag)")) : tag
     }
 }
 
@@ -93,11 +94,11 @@ private extension CorruptionEffectSummary {
 
     var accessibilityLabel: String {
         switch self {
-        case let .addedAffix(title): "Added \(title)"
-        case let .replacedAffix(from, to): "Replaced \(from) with \(to)"
-        case let .bumpedUp(title): "Empowered \(title)"
-        case let .bumpedDown(title): "Weakened \(title)"
-        case .upgradedRarity: "Upgraded to Astral"
+        case let .addedAffix(title): String(localized: L10n.ui_mysterycorruptioncontent_added_1_7a0c9("\(title)"))
+        case let .replacedAffix(from, to): String(localized: L10n.ui_mysterycorruptioncontent_replaced_1_with_2_6ae57("\(from)", "\(to)"))
+        case let .bumpedUp(title): String(localized: L10n.ui_mysterycorruptioncontent_empowered_1_45315("\(title)"))
+        case let .bumpedDown(title): String(localized: L10n.ui_mysterycorruptioncontent_weakened_1_e7597("\(title)"))
+        case .upgradedRarity: String(localized: L10n.ui_mysterycorruptioncontent_upgraded_to_astral_82813)
         }
     }
 

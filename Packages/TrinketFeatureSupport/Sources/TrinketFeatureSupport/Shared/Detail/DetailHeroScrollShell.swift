@@ -153,7 +153,7 @@ private struct DetailScrollNavigationTitle: View {
     var body: some View {
         let opacity = scrollState.titleOpacity
         if opacity > 0 {
-            Text(title)
+            GameLabel(title)
                 .trinketTypography(.cardTitle)
                 .trinketPresentationVisibility(opacity >= 0.5, opacity: opacity)
         }
@@ -177,7 +177,7 @@ public struct DetailSection<Content: View>: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-            Text(title)
+            GameLabel(title)
                 .trinketTypography(.rowTitle)
                 .foregroundStyle(.primary)
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
@@ -207,7 +207,7 @@ struct DetailPrimaryActionFooter: View {
 
     var body: some View {
         Button(action: primaryAction.action) {
-            Text(primaryAction.title)
+            GameLabel(primaryAction.title)
                 .frame(maxWidth: .infinity)
         }
         .trinketPrimaryActionButton(accessibilityIdentifier: primaryAction.accessibilityIdentifier ?? primaryAction.title)

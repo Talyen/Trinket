@@ -1,92 +1,60 @@
 import Foundation
 import SwiftUI
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-private final class KeywordAttributedTextEntry: Sendable {
-    let text: AttributedString
-
-    init(_ text: AttributedString) {
-        self.text = text
-    }
-}
-
-@MainActor
-private let keywordAttributedTextCache: NSCache<NSString, KeywordAttributedTextEntry> = {
-    let cache = NSCache<NSString, KeywordAttributedTextEntry>()
-    cache.countLimit = 200
-    return cache
-}()
-
 public struct KeywordDescriptionText: View {
-    public let text: String
-    private let comparisonDescription: String?
+    @Environment(\.locale) private var locale
+    private let source: String?
+    private let comparisonSource: String?
+    private let description: LocalizedGameText?
+    private let comparison: LocalizedGameText?
 
     public init(text: String, comparisonDescription: String? = nil) {
-        self.text = text
-        self.comparisonDescription = comparisonDescription
+        source = text
+        comparisonSource = comparisonDescription
+        description = nil
+        comparison = nil
+    }
+
+    public init(description: LocalizedGameText, comparison: LocalizedGameText? = nil) {
+        source = nil
+        comparisonSource = nil
+        self.description = description
+        self.comparison = comparison
     }
 
     public var body: some View {
-        Text(highlightedText)
+        let description = description ?? ContentCopy.description(source ?? "", locale: locale)
+        let comparison = comparison ?? comparisonSource.map { ContentCopy.description($0, locale: locale) }
+        Text(Self.attributedText(for: description, comparison: comparison))
     }
 
-    private var highlightedText: AttributedString {
-        var attributed = Self.attributedText(for: text)
-        guard let comparisonDescription else { return attributed }
-        let before = DescriptionMagnitude.matches(in: comparisonDescription)
-        let after = DescriptionMagnitude.matches(in: text)
-        guard before.count == after.count else { return attributed }
-        for index in after.indices where after[index].value != before[index].value {
-            guard let start = AttributedString.Index(after[index].range.lowerBound, within: attributed),
-                  let end = AttributedString.Index(after[index].range.upperBound, within: attributed)
+    public static func attributedText(for text: String, locale: Locale = .current) -> AttributedString {
+        attributedText(for: ContentCopy.description(text, locale: locale))
+    }
+
+    public static func attributedText(for description: LocalizedGameText, comparison: LocalizedGameText? = nil) -> AttributedString {
+        var attributed = AttributedString(description.text)
+        let before = comparison?.values ?? [:]
+        for span in description.spans {
+            let range = NSRange(location: span.utf16Range.lowerBound, length: span.utf16Range.count)
+            guard let swiftRange = Range(range, in: description.text),
+                  let start = AttributedString.Index(swiftRange.lowerBound, within: attributed),
+                  let end = AttributedString.Index(swiftRange.upperBound, within: attributed)
             else { continue }
-            attributed[start ..< end].foregroundColor = after[index].value > before[index].value
-                ? TrinketDesign.Colors.success : TrinketDesign.Colors.destructive
+            switch span.meaning {
+            case let .keyword(keyword):
+                attributed[start ..< end].foregroundColor = keyword.visualStyle.color
+                attributed[start ..< end].inlinePresentationIntent = .stronglyEmphasized
+            case let .value(identifier, value):
+                if let oldValue = before[identifier], value != oldValue {
+                    attributed[start ..< end].foregroundColor = value > oldValue
+                        ? TrinketDesign.Colors.success : TrinketDesign.Colors.destructive
+                }
+            }
         }
         return attributed
-    }
-
-    @MainActor
-    public static func attributedText(for text: String) -> AttributedString {
-        if let cached = keywordAttributedTextCache.object(forKey: text as NSString)?.text {
-            return cached
-        }
-        var attr = AttributedString(text)
-        let nsText = text as NSString
-        let fullRange = NSRange(location: 0, length: nsText.length)
-        Keyword.highlightRegex?.enumerateMatches(in: text, options: [], range: fullRange) { match, _, _ in
-            guard let match,
-                  let keyword = Keyword.termLookup[nsText.substring(with: match.range).lowercased()],
-                  let swiftRange = Range(match.range, in: text),
-                  let startIdx = AttributedString.Index(swiftRange.lowerBound, within: attr),
-                  let endIdx = AttributedString.Index(swiftRange.upperBound, within: attr)
-            else { return }
-            let styledRange = startIdx ..< endIdx
-            attr[styledRange].foregroundColor = keyword.visualStyle.color
-            attr[styledRange].inlinePresentationIntent = .stronglyEmphasized
-        }
-        // Retain semantic Color values, so environment resolution stays live.
-        // AttributedString copies let callers restyle without changing the cache.
-        keywordAttributedTextCache.setObject(KeywordAttributedTextEntry(attr), forKey: text as NSString)
-        return attr
-    }
-}
-
-private struct DescriptionMagnitude {
-    let range: Range<String.Index>
-    let value: Double
-
-    /// A single buff/debuff is written as an article by the affix formatter.
-    private static let regex = try? NSRegularExpression(pattern: #"\d+(?:\.\d+)?%?|\ba(?= (?:buff|debuff)\b)"#)
-
-    static func matches(in text: String) -> [Self] {
-        let range = NSRange(text.startIndex ..< text.endIndex, in: text)
-        return regex?.matches(in: text, range: range).compactMap { match in
-            guard let range = Range(match.range, in: text) else { return nil }
-            let token = text[range]
-            guard let value = token == "a" ? 1 : Double(token.replacingOccurrences(of: "%", with: "")) else { return nil }
-            return Self(range: range, value: value)
-        } ?? []
     }
 }

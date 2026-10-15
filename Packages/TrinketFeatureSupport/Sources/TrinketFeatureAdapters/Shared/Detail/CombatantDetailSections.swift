@@ -10,7 +10,11 @@ struct CombatantTraitsSection: View, Equatable {
     let descriptionID: String
 
     var body: some View {
-        TraitListSection(title: "Traits", sectionID: sectionID, items: traits) { trait in
+        TraitListSection(
+            title: String(localized: L10n.ui_combatantdetailsections_traits_e0ab4),
+            sectionID: sectionID,
+            items: traits,
+        ) { trait in
             DetailTraitRow(
                 title: trait.name,
                 description: trimmed(trait.description),
@@ -25,7 +29,7 @@ struct CombatantModifiersSection: View, Equatable {
 
     var body: some View {
         TraitListSection(
-            title: "Modifiers",
+            title: String(localized: L10n.ui_combatantdetailsections_modifiers_072da),
             sectionID: AccessibilityID.CombatantDetail.nodeModifiersSection,
             items: nodeModifiers,
         ) { modifier in
@@ -40,13 +44,18 @@ struct CombatantModifiersSection: View, Equatable {
     }
 }
 
-struct CombatantActiveEffectsSection: View, Equatable {
+struct CombatantActiveEffectsSection: View {
+    @Environment(\.locale) private var locale
     let summaries: [EffectSummary]
 
     var body: some View {
-        TraitListSection(title: "Active Effects", items: summaries) { summary in
-            let parts = activeEffectParts(summary)
-            DetailTraitRow(title: parts.0, description: parts.1, leadingIconKeyword: summary.keyword)
+        TraitListSection(title: String(localized: L10n.ui_combatantdetailsections_active_effects_d01db), items: summaries) { summary in
+            DetailTraitRow(
+                title: summary.keyword.localizedName(locale: locale),
+                description: summary.text,
+                leadingIconKeyword: summary.keyword,
+                localizedDescription: summary.localizedText(locale: locale),
+            )
         }
     }
 }
@@ -77,15 +86,6 @@ private func trimmed(_ text: String) -> String {
     text.hasSuffix(".") ? String(text.dropLast()) : text
 }
 
-private func activeEffectParts(_ summary: EffectSummary) -> (String, String) {
-    if let separator = summary.text.range(of: ": ") {
-        let title = String(summary.text[..<separator.lowerBound])
-        let desc = String(summary.text[separator.upperBound...])
-        return (trimmed(title), trimmed(desc))
-    }
-    return (trimmed(summary.text), trimmed(summary.keyword.rulesText))
-}
-
 struct CombatantTalentsSection: View {
     let combatantID: String
     let progression: CombatantProgression
@@ -99,7 +99,10 @@ struct CombatantTalentsSection: View {
                 unlockedNodeIDs: unlockedTalents,
                 availablePoints: available,
             )
-            DetailSection("Talents", sectionID: AccessibilityID.CombatantDetail.talentsSection) {
+            DetailSection(
+                String(localized: L10n.ui_combatantdetailsections_talents_e8871),
+                sectionID: AccessibilityID.CombatantDetail.talentsSection,
+            ) {
                 HStack(spacing: TrinketDesign.Spacing.small) {
                     ForEach(config.trees) { tree in
                         let unlockedCount = tree.nodes.count(where: { unlockedTalents.contains($0.id) })
@@ -109,7 +112,8 @@ struct CombatantTalentsSection: View {
                         } label: {
                             TalentTreeCard(
                                 tree: tree,
-                                caption: isComplete ? "Complete" : "\(unlockedCount)/\(tree.nodes.count)",
+                                caption: isComplete ? String(localized: L10n.ui_combatantdetailsections_complete_143b2) :
+                                    "\(unlockedCount)/\(tree.nodes.count)",
                                 showsShine: hasUnlockableTalent && !isComplete,
                                 accessibilityID: AccessibilityID.CombatantDetail.talentsNode(id: tree.keyword.rawValue),
                             )

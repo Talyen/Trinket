@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "BattleEngine",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v18),
         .macOS(.v15),
@@ -30,6 +31,7 @@ let package = Package(
         .target(
             name: "BattleEngine",
             dependencies: ["TrinketCore", "TrinketContent"],
+            resources: [.process("Resources")],
         ),
         .target(
             name: "BattleBalanceTools",

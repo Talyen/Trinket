@@ -6,6 +6,7 @@ public struct DetailTraitRow: View {
     var title: String?
     let description: String
     var comparisonDescription: String?
+    private var localizedDescription: LocalizedGameText?
     var descriptionAccessibilityID: String?
     var leadingIconKeyword: Keyword?
     var leadingIcon: GameIcon?
@@ -27,6 +28,7 @@ public struct DetailTraitRow: View {
         titleShine: Shine = .none,
         titlePrefix: String? = nil,
         titlePrefixShine: Shine = .none,
+        localizedDescription: LocalizedGameText? = nil,
     ) {
         self.title = title
         self.description = description
@@ -39,6 +41,7 @@ public struct DetailTraitRow: View {
         self.titleShine = titleShine
         self.titlePrefix = titlePrefix
         self.titlePrefixShine = titlePrefixShine
+        self.localizedDescription = localizedDescription
     }
 
     public var body: some View {
@@ -78,14 +81,14 @@ public struct DetailTraitRow: View {
     private var titleText: some View {
         HStack(alignment: .firstTextBaseline, spacing: 0) {
             if let titlePrefix, !titlePrefix.isEmpty {
-                Text(balanced: titlePrefix)
+                GameLabel(titlePrefix, balanced: true)
                     .trinketTypography(.cardTitle)
                     .shineText(titlePrefixShine)
                     .foregroundStyle(.primary)
                     .trinketFittedText()
             }
             if let title, !title.isEmpty {
-                Text(balanced: title)
+                GameLabel(title, balanced: true)
                     .trinketTypography(.cardTitle)
                     .shineText(titleShine)
                     .foregroundStyle(titleColor ?? .primary)
@@ -96,7 +99,7 @@ public struct DetailTraitRow: View {
 
     @ViewBuilder
     private var descriptionText: some View {
-        let text = KeywordDescriptionText(text: description, comparisonDescription: comparisonDescription)
+        let text = keywordText
             .trinketTypography(.body)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.leading)
@@ -104,6 +107,15 @@ public struct DetailTraitRow: View {
             text.accessibilityIdentifier(descriptionAccessibilityID)
         } else {
             text
+        }
+    }
+
+    @ViewBuilder
+    private var keywordText: some View {
+        if let localizedDescription {
+            KeywordDescriptionText(description: localizedDescription)
+        } else {
+            KeywordDescriptionText(text: description, comparisonDescription: comparisonDescription)
         }
     }
 }

@@ -131,8 +131,9 @@ struct BattleAbilityCardView: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(card.ability.name)
-        .accessibilityHint(isPlayable ? "Double tap to play this card" : "Not playable")
+        .gameAccessibilityLabel(card.ability.name)
+        .accessibilityHint(isPlayable ? String(localized: L10n.ui_battleabilitycardview_double_tap_to_play_this_card_03e9e) :
+            String(localized: L10n.ui_battleabilitycardview_not_playable_1d955))
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { requestPlay(.tap) }
         .accessibilityAction(named: "Inspect card") {

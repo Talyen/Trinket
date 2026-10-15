@@ -42,7 +42,8 @@ struct BlacksmithForgePreview: View {
             .accessibilityIdentifier(AccessibilityID.Homestead.forgePreview)
         }
         .trinketScreenBackground()
-        .navigationTitle(displayedItem == nil ? "Forge" : "Forged")
+        .navigationTitle(displayedItem == nil ? String(localized: L10n.ui_blacksmithforgepreview_forge_8899e) :
+            String(localized: L10n.ui_blacksmithforgepreview_forged_ac158))
         .navigationBarTitleDisplayMode(.inline)
         .task(id: recipe.id) { await preparePreviewArtwork() }
         .task(id: result?.id) { await prepareArtwork() }
@@ -91,7 +92,7 @@ struct BlacksmithForgePreview: View {
                 if let displayedItem {
                     ItemCardLabel(item: displayedItem, showsAffixCount: false)
                 } else {
-                    Text(balanced: recipe.baseType.name)
+                    GameLabel(recipe.baseType.name, balanced: true)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
@@ -100,19 +101,19 @@ struct BlacksmithForgePreview: View {
         }
         .trinketArtworkCardButtonStyle()
         .disabled(displayedItem == nil)
-        .accessibilityLabel(displayedItem?.displayName ?? recipe.baseType.name)
+        .gameAccessibilityLabel(displayedItem?.displayName ?? recipe.baseType.name)
         .accessibilityIdentifier(AccessibilityID.Homestead.forgeResult)
     }
 
     private var controls: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             if displayedItem != nil {
-                Label("Added to Inventory", systemImage: "checkmark.circle.fill")
+                Label(String(localized: L10n.ui_blacksmithforgepreview_added_to_inventory_52337), systemImage: "checkmark.circle.fill")
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(TrinketDesign.Colors.accent)
                     .frame(maxWidth: .infinity)
                 Button { dismiss() } label: {
-                    Text("Done").frame(maxWidth: .infinity)
+                    Text(L10n.ui_blacksmithforgepreview_done_11a67).frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.forgeDone)
             } else {
@@ -133,7 +134,7 @@ struct BlacksmithForgePreview: View {
                         if isPending {
                             ProgressView()
                         }
-                        Text("Forge")
+                        Text(L10n.ui_blacksmithforgepreview_forge_8899e)
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -196,7 +197,7 @@ struct BlacksmithForgedItemView: View {
     var body: some View {
         ItemDetailView(
             item: item,
-            heroNote: "Added to Inventory",
+            heroNote: String(localized: L10n.ui_blacksmithforgepreview_added_to_inventory_52337),
             heroNoteAccessibilityID: AccessibilityID.Homestead.forgeAdded,
         )
         .accessibilityElement(children: .contain)

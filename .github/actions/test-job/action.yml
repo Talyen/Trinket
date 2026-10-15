@@ -71,6 +71,20 @@ runs:
         # failures. Other commands pass through unchanged.
         python3 Scripts/ci-run-budget.py -- python3 Scripts/ci_ui_retry.py ${{ inputs.command }}
 
+    - name: Export localization screenshots and accessibility hierarchies
+      if: always() && contains(inputs.command, 'LocalizationUITests')
+      shell: bash
+      run: python3 Scripts/export-localization-screenshots.py .DerivedData/TestResults .DerivedData/LocalizationScreenshots
+
+    - name: Retain localization screenshots for agent visual review
+      if: always() && contains(inputs.command, 'LocalizationUITests')
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+      with:
+        name: ${{ inputs.artifact-prefix }}${{ inputs.artifact-name }}-localization-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .DerivedData/LocalizationScreenshots/
+        retention-days: 14
+        if-no-files-found: error
+
     - name: Classify CI outcome and report timing
       if: always()
       shell: bash

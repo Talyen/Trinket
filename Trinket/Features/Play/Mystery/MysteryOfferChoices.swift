@@ -43,7 +43,8 @@ struct MysteryOfferChoices: View {
                     Button {
                         onChoose(offer.choiceID)
                     } label: {
-                        Text(choices.first { $0.id == offer.choiceID }?.label ?? "Choose")
+                        GameLabel(choices.first { $0.id == offer.choiceID }?
+                            .label ?? String(localized: L10n.ui_mysteryofferchoices_choose_c7f93))
                             .trinketSingleLineFittedText()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
@@ -71,7 +72,7 @@ struct MysteryOfferChoices: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Inspect \(offer.item.displayName)")
+        .accessibilityLabel(Text(L10n.ui_mysteryofferchoices_inspect_1_c8b12("\(offer.item.displayName)")))
         .accessibilityIdentifier(AccessibilityID.Mystery.offerArtwork(choiceID: offer.choiceID))
         .disabled(isDisabled)
     }
@@ -81,17 +82,25 @@ struct MysteryOfferChoices: View {
             switch reward {
             case let .gold(amount):
                 TrinketWalletResourcePill(
-                    title: "Gold",
+                    title: String(localized: L10n.ui_mysteryofferchoices_gold_6249d),
                     amount: amount,
                     showsIncreasePrefix: true,
                 ) {
                     HomesteadResourceArtwork(resource: .gold)
                 }
             case let .goldAndExperience(gold, experience, _, _):
-                TrinketWalletResourcePill(title: "Gold", amount: gold, showsIncreasePrefix: true) {
+                TrinketWalletResourcePill(
+                    title: String(localized: L10n.ui_mysteryofferchoices_gold_6249d),
+                    amount: gold,
+                    showsIncreasePrefix: true,
+                ) {
                     HomesteadResourceArtwork(resource: .gold)
                 }
-                TrinketWalletResourcePill(title: "Exp", amount: experience, showsIncreasePrefix: true) {
+                TrinketWalletResourcePill(
+                    title: String(localized: L10n.ui_mysteryofferchoices_exp_da8a9),
+                    amount: experience,
+                    showsIncreasePrefix: true,
+                ) {
                     ExperienceArtwork()
                 }
             case let .material(resource, amount):
@@ -104,7 +113,7 @@ struct MysteryOfferChoices: View {
                 }
             case let .experience(amount):
                 TrinketWalletResourcePill(
-                    title: "Exp",
+                    title: String(localized: L10n.ui_mysteryofferchoices_exp_da8a9),
                     amount: amount,
                     showsIncreasePrefix: true,
                 ) {

@@ -74,14 +74,14 @@ struct HubArtworkCard: View {
                                 .accessibilityHidden(true)
                         }
 
-                        Text(balanced: subtitle)
+                        GameLabel(subtitle, balanced: true)
                             .trinketTypography(.secondaryBody)
                             .trinketFittedText()
                     }
                     .trinketOnArtText(.eyebrow)
                 }
 
-                Text(balanced: title)
+                GameLabel(title, balanced: true)
                     .trinketTypography(.screenDisplay)
                     .trinketOnArtText(.title)
                     .trinketFittedText()

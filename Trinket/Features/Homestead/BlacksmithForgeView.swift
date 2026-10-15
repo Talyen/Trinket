@@ -15,7 +15,7 @@ struct BlacksmithForgeView: View {
     var body: some View {
         NavigationStack(path: $path) {
             recipeGrid
-                .navigationTitle("Forge")
+                .navigationTitle(Text(L10n.ui_blacksmithforgeview_forge_8899e))
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: BlacksmithForgeRoute.self) { route in
                     switch route {
@@ -63,7 +63,7 @@ struct BlacksmithForgeView: View {
                         BlacksmithBaseCard(recipe: recipe, thumbnail: true)
                     }
                     .trinketArtworkCardButtonStyle()
-                    .accessibilityLabel(recipe.baseType.name)
+                    .gameAccessibilityLabel(recipe.baseType.name)
                     .accessibilityIdentifier(AccessibilityID.Homestead.forgeRecipe(recipe.id))
                     .onAppear { visibleIDs.insert(recipe.id) }
                     .onDisappear { visibleIDs.remove(recipe.id) }
@@ -102,7 +102,7 @@ struct BlacksmithBaseCard: View {
                 PlaceholderArtwork(.item)
             }
         } label: {
-            Text(balanced: recipe.baseType.name)
+            GameLabel(recipe.baseType.name, balanced: true)
                 .trinketTypography(.cardLabel)
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.center)

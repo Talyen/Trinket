@@ -34,7 +34,7 @@ public struct GameFeelPreviewView: View {
 
     public var body: some View {
         VStack(spacing: TrinketDesign.Spacing.small) {
-            Picker("Preview", selection: $surface) {
+            Picker(String(localized: L10n.ui_gamefeelpreviewview_preview_324b1), selection: $surface) {
                 ForEach(Surface.allCases, id: \.self) { Text($0.rawValue).tag($0) }
             }
             .pickerStyle(.segmented)
@@ -54,12 +54,12 @@ public struct GameFeelPreviewView: View {
         .environment(fixture.session)
         .environment(fixture.session.spectacle)
         .trinketScreenBackground()
-        .navigationTitle("Game Feel")
+        .navigationTitle(Text(L10n.ui_gamefeelpreviewview_game_feel_65589))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Toggle("Mute Preview", isOn: $muted)
+                Toggle(String(localized: L10n.ui_gamefeelpreviewview_mute_preview_a45b5), isOn: $muted)
                     .accessibilityIdentifier(AccessibilityID.GameFeel.mute)
             }
         }
@@ -101,7 +101,7 @@ public struct GameFeelPreviewView: View {
                     .allowsHitTesting(false)
                 }
             if holdsSample {
-                Button("Reset Sample") { reset() }
+                Button(String(localized: L10n.ui_gamefeelpreviewview_reset_sample_cf30a)) { reset() }
                     .trinketSecondaryActionButton(controlSize: .small)
                     .accessibilityIdentifier(AccessibilityID.GameFeel.resetSample)
             } else {
@@ -113,9 +113,9 @@ public struct GameFeelPreviewView: View {
     private var combatControls: some View {
         VStack(spacing: TrinketDesign.Spacing.small) {
             HStack {
-                Button("Tap Attack") { attack(prepared: false) }
+                Button(String(localized: L10n.ui_gamefeelpreviewview_tap_attack_5626c)) { attack(prepared: false) }
                     .accessibilityIdentifier(AccessibilityID.GameFeel.tap)
-                Button("Drag Release") { attack(prepared: true) }
+                Button(String(localized: L10n.ui_gamefeelpreviewview_drag_release_a271c)) { attack(prepared: true) }
                     .accessibilityIdentifier(AccessibilityID.GameFeel.drag)
                 Menu("Busy Combat") {
                     ForEach(GameFeelCombatScenario.allCases) { scenario in
@@ -126,13 +126,13 @@ public struct GameFeelPreviewView: View {
             }
             .trinketSecondaryActionButton(controlSize: .small)
             HStack {
-                Picker("Damage Type", selection: $soundFamily) {
+                Picker(String(localized: L10n.ui_gamefeelpreviewview_damage_type_baa24), selection: $soundFamily) {
                     ForEach([Keyword.physical, .burn, .freeze, .stun, .poison, .holy], id: \.self) {
                         Text($0.rawValue.capitalized).tag($0)
                     }
                 }
-                Button("Ordinary") { hitSound(critical: false) }
-                Button("Critical") { hitSound(critical: true) }
+                Button(String(localized: L10n.ui_gamefeelpreviewview_ordinary_f46f3)) { hitSound(critical: false) }
+                Button(String(localized: L10n.ui_gamefeelpreviewview_critical_427dd)) { hitSound(critical: true) }
             }
             .trinketSecondaryActionButton(controlSize: .small)
             .padding(.horizontal)
@@ -142,13 +142,14 @@ public struct GameFeelPreviewView: View {
     private var loot: some View {
         VStack {
             RewardRevealExperienceScreen(
-                eyebrow: nil, title: "Preview Loot",
+                eyebrow: nil, title: String(localized: L10n.ui_gamefeelpreviewview_preview_loot_7f91e),
                 titleAccessibilityIdentifier: AccessibilityID.GameFeel.loot,
                 loot: .init(
                     items: sampleItems, gold: 75, materials: [], showsIncreasePrefix: true,
                     emptyMessage: nil, itemAccessibilityID: { "Game Feel Reward \($0)" },
                 ),
-                primaryActionTitle: "Replay Loot", primaryActionAccessibilityIdentifier: AccessibilityID.GameFeel.replayLoot,
+                primaryActionTitle: String(localized: L10n.ui_gamefeelpreviewview_replay_loot_abcf0),
+                primaryActionAccessibilityIdentifier: AccessibilityID.GameFeel.replayLoot,
                 action: .immediate { replayID = UUID(); return true },
                 allowsImmediatePrimaryAction: true,
                 onExceptionalReveal: { sound(SFXID.lootExceptional) },
@@ -163,7 +164,7 @@ public struct GameFeelPreviewView: View {
                     .frame(width: 180)
                     .trinketPurchaseMotion(trigger: purchaseToken, isActive: scenePhase == .active)
             }
-            Button("Replay Purchase") {
+            Button(String(localized: L10n.ui_gamefeelpreviewview_replay_purchase_b76a1)) {
                 purchaseToken &+= 1
                 sound(SFXID.uiBuySell)
             }

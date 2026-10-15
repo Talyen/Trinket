@@ -19,8 +19,8 @@ struct MysteryRewardContent: View {
 
     var body: some View {
         RewardRevealExperienceScreen(
-            eyebrow: "MYSTERY",
-            title: "Reward",
+            eyebrow: String(localized: L10n.ui_mysteryrewardcontent_mystery_9a26a),
+            title: String(localized: L10n.ui_mysteryrewardcontent_reward_55ac8),
             titleAccessibilityIdentifier: AccessibilityID.Mystery.rewardTitle,
             experienceAwards: experienceAwards,
             loot: .init(
@@ -32,7 +32,7 @@ struct MysteryRewardContent: View {
                 itemAccessibilityID: AccessibilityID.Mystery.rewardItem,
                 lootSpacing: TrinketDesign.Layout.sectionSpacing,
             ),
-            primaryActionTitle: "Loot All",
+            primaryActionTitle: String(localized: L10n.ui_mysteryrewardcontent_loot_all_5f814),
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             action: .collect(hapticsEnabled: options.hapticsEnabled, claim: onClaim, finish: onFinish),
             onExceptionalReveal: { playSFX(SFXID.lootExceptional, options.effectsVolume) },

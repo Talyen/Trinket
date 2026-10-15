@@ -333,10 +333,31 @@ public struct ActiveEffect: Identifiable, Hashable, Sendable {
 public struct EffectSummary: Identifiable, Equatable, Hashable, Sendable {
     public let keyword: Keyword
     public let text: String
+    private let resource: LocalizedStringResource?
 
     public init(keyword: Keyword, text: String) {
         self.keyword = keyword
         self.text = text
+        resource = nil
+    }
+
+    public init(keyword: Keyword, resource: LocalizedStringResource) {
+        self.keyword = keyword
+        self.resource = resource
+        text = LocalizedGameText(resource, locale: Locale(identifier: "en")).text
+    }
+
+    public func localizedText(locale: Locale) -> LocalizedGameText {
+        resource.map { LocalizedGameText($0, locale: locale) } ?? CoreCopy.description(text, locale: locale)
+    }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.keyword == rhs.keyword && lhs.text == rhs.text
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(keyword)
+        hasher.combine(text)
     }
 
     /// Display-only identity for row diffing; not stable across text edits and

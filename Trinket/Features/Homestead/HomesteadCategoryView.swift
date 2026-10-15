@@ -43,14 +43,17 @@ struct HomesteadCategoryView: View {
             .padding(TrinketDesign.Layout.contentMargin)
         }
         .trinketScreenBackground()
-        .navigationTitle(category.rawValue)
+        .navigationTitle(ContentCopy.localized(category.rawValue))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showsWallet = true } label: { Label("Resources", systemImage: "bag") }
-                    .labelStyle(.iconOnly)
-                    .accessibilityIdentifier(AccessibilityID.Homestead.walletButton)
+                Button { showsWallet = true } label: { Label(
+                    String(localized: L10n.ui_homesteadcategoryview_resources_e89b3),
+                    systemImage: "bag",
+                ) }
+                .labelStyle(.iconOnly)
+                .accessibilityIdentifier(AccessibilityID.Homestead.walletButton)
             }
         }
         .accessibilityElement(children: .contain)
@@ -103,7 +106,7 @@ struct HomesteadProjectTile: View {
                             )
                     }
 
-                Text(balanced: definition.title)
+                GameLabel(definition.title, balanced: true)
                     .trinketTypography(.cardTitle)
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
@@ -114,7 +117,7 @@ struct HomesteadProjectTile: View {
             .matchedTransitionSource(id: definition.id, in: zoomNamespace)
         }
         .trinketArtworkCardButtonStyle()
-        .accessibilityValue("\(status.currentTier) of \(definition.maxTier) upgrades")
+        .accessibilityValue(Text(L10n.ui_homesteadcategoryview_1_of_2_upgrades_67fe8("\(status.currentTier)", "\(definition.maxTier)")))
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 

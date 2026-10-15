@@ -21,6 +21,7 @@
 		BFC3CE982AB3EB307C0E5578 /* Media in Resources */ = {isa = PBXBuildFile; fileRef = ADA42E5A1490B3683FC93B52 /* Media */; };
 		C6E80F80F414B3EB960B3DF9 /* BattleEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 2AA0B90E0358E0B20FD2400D /* BattleEngine */; };
 		D069EA9D8B0FC83BD641A500 /* TrinketDesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 32051286CDB32D00CC65B576 /* TrinketDesignSystem */; };
+		D56AD419B16C84D2FAB41B0A /* TrinketLanguages.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3693DF322EC4D5F207ADE07E /* TrinketLanguages.strings */; };
 		F617A3BED12187C4A935CFFF /* TrinketFeatureContracts in Frameworks */ = {isa = PBXBuildFile; productRef = B272982FB6EC9592050EDC80 /* TrinketFeatureContracts */; };
 		F8CC3ED7216627F7C5B3F8BD /* TrinketBattleFeature in Frameworks */ = {isa = PBXBuildFile; productRef = C8EA905F0353F12131822072 /* TrinketBattleFeature */; };
 		F9D95B8C131F9E36ECEA7C11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */; };
@@ -43,16 +44,21 @@
 		1524241C62BF8C54E3A7CDF8 /* Trinket.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Trinket.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CDE25AF095036F687FA72F9 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		2038380B9FA35C2B4DB4B598 /* TrinketCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketCore; path = Packages/TrinketCore; sourceTree = SOURCE_ROOT; };
+		284568895328882230D50CCA /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/TrinketLanguages.strings; sourceTree = "<group>"; };
 		3301AA31D98CDD220CFDF5FF /* TrinketDesignSystem */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketDesignSystem; path = Packages/TrinketDesignSystem; sourceTree = SOURCE_ROOT; };
 		4E09C46EB0D63563E9019385 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		61DAE383D9127ED4E5EE169F /* TrinketFeatureSupport */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketFeatureSupport; path = Packages/TrinketFeatureSupport; sourceTree = SOURCE_ROOT; };
+		7FDAAB86A893641C6329CBAA /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/TrinketLanguages.strings; sourceTree = "<group>"; };
 		8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8841A94175DB81C08D6F654D /* Trinket.storekit */ = {isa = PBXFileReference; path = Trinket.storekit; sourceTree = "<group>"; };
 		8D80BAE3DD95D195DC723862 /* TrinketPersistence */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketPersistence; path = Packages/TrinketPersistence; sourceTree = SOURCE_ROOT; };
+		93549813CC590C3F6E1B8B84 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/TrinketLanguages.strings; sourceTree = "<group>"; };
 		9BD8DF4B5FF1DBECD236E2A9 /* LaunchArtwork */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LaunchArtwork; path = Trinket/LaunchArtwork; sourceTree = SOURCE_ROOT; };
 		9C0890BB8BE4806E4AEDBE9B /* TrinketAppState */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketAppState; path = Packages/TrinketAppState; sourceTree = SOURCE_ROOT; };
 		ADA42E5A1490B3683FC93B52 /* Media */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Media; path = Trinket/Media; sourceTree = SOURCE_ROOT; };
+		AE1EF0C1D7BA6F6C7F394DE8 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/TrinketLanguages.strings"; sourceTree = "<group>"; };
 		B16CD0B73E69AB7EEA6213A0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B3CC0903AD7FB448F2970840 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/TrinketLanguages.strings; sourceTree = "<group>"; };
 		C8EFA27866F6BA45C26D504E /* TrinketBattleFeature */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketBattleFeature; path = Packages/TrinketBattleFeature; sourceTree = SOURCE_ROOT; };
 		D77B1B572840FE4B65134F04 /* Smoke.xctestplan */ = {isa = PBXFileReference; path = Smoke.xctestplan; sourceTree = "<group>"; };
 		E43AF427DA2725C7880E05D0 /* BattleEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BattleEngine; path = Packages/BattleEngine; sourceTree = SOURCE_ROOT; };
@@ -61,6 +67,7 @@
 		EC8FFECA2C30949FD7853EF5 /* Soak.xctestplan */ = {isa = PBXFileReference; path = Soak.xctestplan; sourceTree = "<group>"; };
 		FB2F3612614E891F44DD2597 /* TrinketContent */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketContent; path = Packages/TrinketContent; sourceTree = SOURCE_ROOT; };
 		FCEFEE1788152B3F8E259A13 /* BattlePerformance.xctestplan */ = {isa = PBXFileReference; path = BattlePerformance.xctestplan; sourceTree = "<group>"; };
+		FEC15589D217856B5B0F3833 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/TrinketLanguages.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -179,6 +186,7 @@
 				D77B1B572840FE4B65134F04 /* Smoke.xctestplan */,
 				EC8FFECA2C30949FD7853EF5 /* Soak.xctestplan */,
 				2844A738FB32D14BF53C79FF /* Packages */,
+				80771E0A8DC929B6DE30449F /* Regions */,
 				42122845F4A458BED95405AB /* StoreKit */,
 				A4012463DD954CE8411DA9EE /* Trinket */,
 				4B97B7A08C91F1C36701801E /* Trinket/App */,
@@ -187,6 +195,15 @@
 				B5330FABE0DB864DB225E252 /* Frameworks */,
 				34E76F1E0275AF5606A8CE2F /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		80771E0A8DC929B6DE30449F /* Regions */ = {
+			isa = PBXGroup;
+			children = (
+				3693DF322EC4D5F207ADE07E /* TrinketLanguages.strings */,
+			);
+			name = Regions;
+			path = Localization/Generated/Regions;
 			sourceTree = "<group>";
 		};
 		A4012463DD954CE8411DA9EE /* Trinket */ = {
@@ -290,7 +307,12 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
+				de,
 				en,
+				fr,
+				ja,
+				ko,
+				"zh-Hant",
 			);
 			mainGroup = 4C496176F4614A5DBFEF2CFF;
 			minimizedProjectReferenceProxies = 1;
@@ -334,6 +356,7 @@
 				BFC3CE982AB3EB307C0E5578 /* Media in Resources */,
 				3F9145F17317B18C900AE4BA /* PrivacyInfo.xcprivacy in Resources */,
 				31F15C6D7250C7D11AE47D3B /* Trinket.storekit in Resources */,
+				D56AD419B16C84D2FAB41B0A /* TrinketLanguages.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -363,6 +386,22 @@
 			targetProxy = CC19ED7A0742D49E50D7ACA3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		3693DF322EC4D5F207ADE07E /* TrinketLanguages.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				284568895328882230D50CCA /* de */,
+				B3CC0903AD7FB448F2970840 /* en */,
+				FEC15589D217856B5B0F3833 /* fr */,
+				93549813CC590C3F6E1B8B84 /* ja */,
+				7FDAAB86A893641C6329CBAA /* ko */,
+				AE1EF0C1D7BA6F6C7F394DE8 /* zh-Hant */,
+			);
+			name = TrinketLanguages.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		0EFC7BF9EFF176F64263BA73 /* Release */ = {
@@ -476,6 +515,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
@@ -586,6 +626,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;

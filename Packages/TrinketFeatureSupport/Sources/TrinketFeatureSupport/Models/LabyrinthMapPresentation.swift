@@ -36,12 +36,12 @@ public enum LabyrinthMapPresentation {
         type: LabyrinthNodeType,
     ) -> String {
         switch type {
-        case .battle: "Battle"
-        case .boss: "Battle"
-        case .shop: "Shop"
-        case .mystery: "Approach"
-        case .recruit: "Recruit"
-        case .entrance: "Enter Labyrinth"
+        case .battle: String(localized: L10n.ui_labyrinthmappresentation_battle_1b18e)
+        case .boss: String(localized: L10n.ui_labyrinthmappresentation_battle_1b18e)
+        case .shop: String(localized: L10n.ui_labyrinthmappresentation_shop_d00aa)
+        case .mystery: String(localized: L10n.ui_labyrinthmappresentation_approach_b6b24)
+        case .recruit: String(localized: L10n.ui_labyrinthmappresentation_recruit_3803d)
+        case .entrance: String(localized: L10n.ui_labyrinthmappresentation_enter_labyrinth_4c08e)
         }
     }
 

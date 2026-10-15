@@ -332,5 +332,32 @@
       "Docs/Platform/Verification.md#local-simulator-budget",
       "Docs/AgentContext/ci-diagnostics.md#script-regressions"
     ]
+  },
+  {
+    "id": "localization",
+    "label": "Game and App Store localization",
+    "aliases": [
+      "translation",
+      "languages",
+      "string catalogs"
+    ],
+    "symbols": [
+      "LocalizedGameText",
+      "ContentCopy",
+      "L10n"
+    ],
+    "sources": [
+      "Scripts/localization.py",
+      "Scripts/internal/localization.py",
+      "Scripts/internal/localization_resources.py",
+      "Scripts/internal/localization_sources.py",
+      "Scripts/internal/localization_store.py"
+    ],
+    "tests": [
+      "Scripts/Tests/test_localization.py"
+    ],
+    "contracts": [
+      "Docs/Platform/Localization.md"
+    ]
   }
 ]

@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "TrinketDesignSystem",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v18),
     ],

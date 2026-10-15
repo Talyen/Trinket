@@ -14,3 +14,5 @@ FullUI||HomesteadControlsUITests
 Profiles||CriticalAccessibilityUITests
 Soak||RepeatedPlayUITests
 FullUI||AudioLifecycleUITests
+
+FullUI||LocalizationUITests

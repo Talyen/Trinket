@@ -133,14 +133,14 @@ struct HomesteadNodeDetailView: View {
     private var navigationControls: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Button { dismiss() } label: {
-                Label("Back", systemImage: "chevron.left")
+                Label(String(localized: L10n.ui_homesteaddetailviews_back_76900), systemImage: "chevron.left")
             }
             .labelStyle(.iconOnly)
             .accessibilityIdentifier(AccessibilityID.Homestead.backButton)
         }
         ToolbarItem(placement: .topBarTrailing) {
             Button { sheet = .wallet } label: {
-                Label("Resources", systemImage: "bag")
+                Label(String(localized: L10n.ui_homesteaddetailviews_resources_e89b3), systemImage: "bag")
             }
             .labelStyle(.iconOnly)
             .accessibilityIdentifier(AccessibilityID.Homestead.walletButton)
@@ -148,7 +148,7 @@ struct HomesteadNodeDetailView: View {
     }
 
     private var buildingIdentity: some View {
-        Text(balanced: definition.title)
+        GameLabel(definition.title, balanced: true)
             .trinketTypography(.screenDisplay)
             .multilineTextAlignment(.center)
             .trinketOnArtText()
@@ -162,7 +162,7 @@ struct HomesteadNodeDetailView: View {
                     .frame(width: 28, height: 24)
                     .frame(width: 36, height: 36)
                     .accessibilityHidden(true)
-                Text("Craft")
+                Text(L10n.ui_homesteaddetailviews_craft_57f64)
                 Spacer()
                 Image(systemName: "chevron.right").accessibilityHidden(true)
             }
@@ -195,7 +195,9 @@ struct HomesteadNodeDetailView: View {
                         .trinketTypography(.sectionTitle)
                         .frame(width: 36, height: 36)
                     VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                        Text(status.currentTier == 0 ? "Build" : "Upgrade")
+                        Text(status
+                            .currentTier == 0 ? String(localized: L10n.ui_homesteaddetailviews_build_bdd25) :
+                            String(localized: L10n.ui_homesteaddetailviews_upgrade_7ec02))
                             .trinketTypography(.rowTitle)
                         tierProgress
                     }

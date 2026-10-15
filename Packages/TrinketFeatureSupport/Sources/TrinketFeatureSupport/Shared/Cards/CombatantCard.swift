@@ -29,7 +29,7 @@ public struct CombatantCard: View {
                 CombatantArtwork(combatant: combatant, variant: .card)
             },
             label: {
-                Text(balanced: combatant.name)
+                GameLabel(combatant.name, balanced: true)
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(isLocked ? .secondary : .primary)
                     .multilineTextAlignment(.center)
@@ -70,7 +70,8 @@ public struct CollectionCombatantButton: View {
             .frame(width: cardWidth)
         }
         .trinketArtworkCardButtonStyle()
-        .accessibilityLabel(isLocked ? "\(combatant.name), locked" : combatant.name)
+        .accessibilityLabel(isLocked ? String(localized: L10n.ui_combatantcard_1_locked_1871c("\(combatant.name)")) : ContentCopy
+            .localized(combatant.name))
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.collectionCard(name: combatant.name))
     }
 }

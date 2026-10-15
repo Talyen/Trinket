@@ -23,11 +23,25 @@ struct KeywordHighlightTests {
     }
 
     @Test func `keyword terms carry their matching color`() {
-        let text = KeywordDescriptionText.attributedText(for: "Burn deals damage each round")
+        let text = KeywordDescriptionText.attributedText(for: LocalizedGameText(markedText: "<keyword id=\"burn\">炎上</keyword>のダメージ"))
         let highlighted = text.runs.contains { run in
             run.foregroundColor == Keyword.burn.visualStyle.color
         }
         #expect(highlighted)
+    }
+
+    @Test func `upgrade colors match quantity identities rather than translated number positions`() {
+        let previous = LocalizedGameText(
+            markedText: "<value id=\"damage\">3</value> / <value id=\"turns\">2</value>",
+            values: ["damage": 3, "turns": 2],
+        )
+        let upgraded = LocalizedGameText(
+            markedText: "<value id=\"turns\">2</value>回、<value id=\"damage\">5</value>",
+            values: ["damage": 5, "turns": 2],
+        )
+        let text = KeywordDescriptionText.attributedText(for: upgraded, comparison: previous)
+        let colored = text.runs.filter { $0.foregroundColor != nil }.map { String(text[$0.range].characters) }
+        #expect(colored == ["5"])
     }
 
     @Test func `plain text carries no highlight`() {

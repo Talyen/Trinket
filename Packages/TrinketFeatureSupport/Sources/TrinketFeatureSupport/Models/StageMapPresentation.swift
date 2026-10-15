@@ -70,7 +70,7 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
 
 public extension Stage {
     var mapLabel: String {
-        "Stage \(chapterNumber)-\(stageNumber)"
+        String(localized: L10n.ui_stagemappresentation_stage_1_2_387d4("\(chapterNumber)", "\(stageNumber)"))
     }
 
     var mapMetaLabel: String {
@@ -108,21 +108,22 @@ public extension Stage {
     func encounterSubjectName(worldSeed: UInt64) -> String {
         switch encounter {
         case let .battle(enemyID):
-            GameContent.enemy(matching: enemyID)?.name ?? "Unknown Enemy"
+            GameContent.enemy(matching: enemyID)?.name ?? String(localized: L10n.ui_stagemappresentation_unknown_enemy_a0041)
         case .randomBattle:
-            resolvedBattleEnemyID(worldSeed: worldSeed).flatMap { GameContent.enemy(matching: $0)?.name } ?? "Battle"
+            resolvedBattleEnemyID(worldSeed: worldSeed)
+                .flatMap { GameContent.enemy(matching: $0)?.name } ?? String(localized: L10n.ui_stagemappresentation_battle_1b18e)
         case .shop:
-            GameContent.encounterArtTitle(for: self) ?? "Merchant"
+            GameContent.encounterArtTitle(for: self) ?? String(localized: L10n.ui_stagemappresentation_merchant_1da9a)
         case .mysteryEvent:
-            mysteryEvent?.title ?? "Mystery"
+            mysteryEvent?.title ?? String(localized: L10n.ui_stagemappresentation_mystery_9ed9b)
         case .recruit:
-            "Mystery"
+            String(localized: L10n.ui_stagemappresentation_mystery_9ed9b)
         }
     }
 
     var encounterTypeTitle: String {
         if isBossEncounter {
-            return "Boss"
+            return String(localized: L10n.ui_stagemappresentation_boss_6a6ac)
         }
         return encounter.title
     }

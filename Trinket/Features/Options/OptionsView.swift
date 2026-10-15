@@ -20,9 +20,9 @@ struct OptionsView: View {
         @Bindable var options = optionsStore
 
         Form {
-            Section("Audio") {
+            Section(String(localized: L10n.ui_optionsview_audio_bc1b8)) {
                 VolumeOptionRow(
-                    title: "Music",
+                    title: String(localized: L10n.ui_optionsview_music_6eb00),
                     value: $options.musicVolume,
                     onLiveChange: { volume in
                         appState.applyMusicVolumeLive(volume, scenePhase: scenePhase)
@@ -30,7 +30,7 @@ struct OptionsView: View {
                 )
 
                 VolumeOptionRow(
-                    title: "Sound Effects",
+                    title: String(localized: L10n.ui_optionsview_sound_effects_de7b5),
                     value: $options.effectsVolume,
                     onLiveChange: { volume in
                         playToggleSFX(true, volume)
@@ -39,7 +39,7 @@ struct OptionsView: View {
 
                 Toggle(isOn: $options.hapticsEnabled) {
                     Label {
-                        Text("Haptics")
+                        Text(L10n.ui_optionsview_haptics_fd470)
                             .trinketTypography(.body)
                     } icon: {
                         Image(systemName: options.hapticsEnabled ? "iphone.radiowaves.left.and.right" : "iphone")
@@ -52,10 +52,10 @@ struct OptionsView: View {
                 }
             }
 
-            Section("Battle") {
+            Section(String(localized: L10n.ui_optionsview_battle_1b18e)) {
                 Toggle(isOn: $options.rememberAutoBattlePreference) {
                     Label {
-                        Text("Remember Auto-Battle Preference")
+                        Text(L10n.ui_optionsview_remember_auto_battle_preference_c1275)
                             .trinketTypography(.body)
                     } icon: {
                         Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
@@ -74,22 +74,24 @@ struct OptionsView: View {
         .scrollContentBackground(.hidden)
         .trinketScreenBackground()
         .trinketSoftTopScrollEdge()
-        .navigationTitle("Options")
+        .navigationTitle(Text(L10n.ui_optionsview_options_d0db8))
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.options)
         .disabled(appState.playerSave.isRetryingSaveAction)
     }
 
     private var purchaseSection: some View {
-        Section("Full Game") {
+        Section(String(localized: L10n.ui_optionsview_full_game_59929)) {
             if fullGame.ownership.access.hasFullGame {
                 Label(
-                    fullGame.ownership == .familyShared ? "Shared with your family" : "Full Game · Purchased",
+                    fullGame
+                        .ownership == .familyShared ? String(localized: L10n.ui_optionsview_shared_with_your_family_a9ba5) :
+                        String(localized: L10n.ui_optionsview_full_game_purchased_08610),
                     systemImage: "checkmark.circle",
                 )
                 .trinketTypography(.body)
             } else {
-                Button("Unlock Full Game") { requestOffer(.options) }
+                Button(String(localized: L10n.ui_optionsview_unlock_full_game_0108a)) { requestOffer(.options) }
                     .trinketTypography(.body)
                     .accessibilityIdentifier(AccessibilityID.FullGame.options)
             }
@@ -100,7 +102,7 @@ struct OptionsView: View {
                     if fullGame.isRestoring {
                         ProgressView()
                     }
-                    Text("Restore Purchases")
+                    Text(L10n.ui_optionsview_restore_purchases_16351)
                 }
             }
             .trinketTypography(.body)
@@ -111,10 +113,10 @@ struct OptionsView: View {
     }
 
     private var aboutSection: some View {
-        Section("About") {
-            Link("Support", destination: TrinketPublicPages.support)
+        Section(String(localized: L10n.ui_optionsview_about_4efca)) {
+            Link(String(localized: L10n.ui_optionsview_support_be919), destination: TrinketPublicPages.support)
                 .trinketTypography(.body)
-            Link("Privacy Policy", destination: TrinketPublicPages.privacy)
+            Link(String(localized: L10n.ui_optionsview_privacy_policy_506ff), destination: TrinketPublicPages.privacy)
                 .trinketTypography(.body)
         }
     }
@@ -122,7 +124,7 @@ struct OptionsView: View {
     @MainActor
     @ViewBuilder
     private var gameDataSection: some View {
-        Section("Game Data") {
+        Section(String(localized: L10n.ui_optionsview_game_data_15041)) {
             if isResetConfirmationPresented {
                 Text(
                     appState.playerSave.resetAffectsCloudProgress ? """
@@ -135,9 +137,9 @@ struct OptionsView: View {
                     """,
                 )
                 .trinketTypography(.secondaryBody)
-                Button("Cancel") { isResetConfirmationPresented = false }
+                Button(String(localized: L10n.ui_optionsview_cancel_19766)) { isResetConfirmationPresented = false }
                     .accessibilityIdentifier(AccessibilityID.Options.resetProgressCancel)
-                Button("Reset Game Progress", role: .destructive) {
+                Button(String(localized: L10n.ui_optionsview_reset_game_progress_2edb2), role: .destructive) {
                     guard isResetConfirmationPresented, !appState.playerSave.isRetryingSaveAction else { return }
                     isResetConfirmationPresented = false
                     appState.playerSave.performSaveAction(key: "reset-progress") { _ in
@@ -146,7 +148,7 @@ struct OptionsView: View {
                 }
                 .accessibilityIdentifier(AccessibilityID.Options.resetProgressConfirmation)
             } else {
-                Button("Reset Game Progress", role: .destructive) {
+                Button(String(localized: L10n.ui_optionsview_reset_game_progress_2edb2), role: .destructive) {
                     isResetConfirmationPresented = true
                 }
                 .accessibilityIdentifier(AccessibilityID.Options.resetProgressButton)
@@ -155,7 +157,7 @@ struct OptionsView: View {
 
         #if DEBUG
         Section {
-            NavigationLink("Game Feel") {
+            NavigationLink(String(localized: L10n.ui_optionsview_game_feel_65589)) {
                 GameFeelPreviewView(
                     stage: GameContent.chapters[0].stages.first { $0.encounter.isCombat } ?? GameContent.chapters[0].stages[0],
                     playSound: { appState.sfxPlayer.play($0, volume: optionsStore.effectsVolume) },
@@ -163,7 +165,7 @@ struct OptionsView: View {
             }
             .accessibilityIdentifier(AccessibilityID.GameFeel.entry)
 
-            NavigationLink("Battle Transitions") {
+            NavigationLink(String(localized: L10n.ui_optionsview_battle_transitions_fd4bd)) {
                 BattleTransitionsPreviewView { stage in
                     BattleTransitionLabView(stage: stage) { enterBattle in
                         BattleTransitionsStagePicker(enterBattle: enterBattle)
@@ -172,14 +174,14 @@ struct OptionsView: View {
             }
             .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.entry)
 
-            Button("Unlock All") {
+            Button(String(localized: L10n.ui_optionsview_unlock_all_59b3d)) {
                 appState.playerSave.performSaveAction(key: "unlock-content") { _ in
                     _ = appState.unlockAllContent()
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Options.unlockAllButton)
         } header: {
-            Text("Developer")
+            Text(L10n.ui_optionsview_developer_3fb7b)
         }
         #endif
     }

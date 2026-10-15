@@ -1,0 +1,202 @@
+{
+  "Bleed": {
+    "meaning": "Damage each round for one round",
+    "translations": {
+      "de": "Blutung",
+      "fr": "Saignement",
+      "ja": "出血",
+      "ko": "출혈",
+      "zh-Hant": "流血"
+    }
+  },
+  "Block": {
+    "meaning": "Prevents Health damage; not an avoidance chance",
+    "translations": {
+      "de": "Block",
+      "fr": "Blocage",
+      "ja": "ブロック",
+      "ko": "방어도",
+      "zh-Hant": "格擋"
+    }
+  },
+  "Burn": {
+    "meaning": "Damage each round that fades quickly",
+    "translations": {
+      "de": "Brand",
+      "fr": "Brûlure",
+      "ja": "炎上",
+      "ko": "화상",
+      "zh-Hant": "燃燒"
+    }
+  },
+  "Cleanse": {
+    "meaning": "Removes a debuff from an ally",
+    "translations": {
+      "de": "Reinigen",
+      "fr": "Purification",
+      "ja": "浄化",
+      "ko": "정화",
+      "zh-Hant": "淨化"
+    }
+  },
+  "Companion": {
+    "meaning": "The partner party member, not a pet",
+    "translations": {
+      "de": "Gefährte",
+      "fr": "Compagnon",
+      "ja": "仲間",
+      "ko": "동료",
+      "zh-Hant": "夥伴"
+    }
+  },
+  "Critical": {
+    "meaning": "A critical hit; preserve guaranteed versus chance wording",
+    "translations": {
+      "de": "Kritisch",
+      "fr": "Critique",
+      "ja": "クリティカル",
+      "ko": "치명타",
+      "zh-Hant": "暴擊"
+    }
+  },
+  "Death's Door": {
+    "meaning": "Survives fatal blows at one Health while active",
+    "translations": {
+      "de": "Todesschwelle",
+      "fr": "Seuil de la mort",
+      "ja": "死の淵",
+      "ko": "죽음의 문턱",
+      "zh-Hant": "瀕死之門"
+    }
+  },
+  "Dodge": {
+    "meaning": "Avoids an attack completely",
+    "translations": {
+      "de": "Ausweichen",
+      "fr": "Esquive",
+      "ja": "回避",
+      "ko": "회피",
+      "zh-Hant": "閃避"
+    }
+  },
+  "Freeze": {
+    "meaning": "Builds a meter; filling it costs an enemy action",
+    "translations": {
+      "de": "Frost",
+      "fr": "Gel",
+      "ja": "凍結",
+      "ko": "빙결",
+      "zh-Hant": "冰凍"
+    }
+  },
+  "Gold": {
+    "meaning": "In-game currency, never real-money price",
+    "translations": {
+      "de": "Gold",
+      "fr": "Or",
+      "ja": "ゴールド",
+      "ko": "골드",
+      "zh-Hant": "金幣"
+    }
+  },
+  "Health": {
+    "meaning": "Remaining life, not maximum life unless explicitly stated",
+    "translations": {
+      "de": "Gesundheit",
+      "fr": "Santé",
+      "ja": "体力",
+      "ko": "체력",
+      "zh-Hant": "生命值"
+    }
+  },
+  "Hero": {
+    "meaning": "The main party member, distinct from their Companion",
+    "translations": {
+      "de": "Held",
+      "fr": "Héros",
+      "ja": "ヒーロー",
+      "ko": "영웅",
+      "zh-Hant": "英雄"
+    }
+  },
+  "Holy": {
+    "meaning": "Direct holy damage",
+    "translations": {
+      "de": "Heilig",
+      "fr": "Sacré",
+      "ja": "聖",
+      "ko": "신성",
+      "zh-Hant": "神聖"
+    }
+  },
+  "Leech": {
+    "meaning": "Damage that heals its attacker",
+    "translations": {
+      "de": "Lebensraub",
+      "fr": "Vol de vie",
+      "ja": "吸収",
+      "ko": "흡혈",
+      "zh-Hant": "吸血"
+    }
+  },
+  "Mana": {
+    "meaning": "Card empowerment resource",
+    "translations": {
+      "de": "Mana",
+      "fr": "Mana",
+      "ja": "マナ",
+      "ko": "마나",
+      "zh-Hant": "魔力"
+    }
+  },
+  "Physical": {
+    "meaning": "Direct physical damage",
+    "translations": {
+      "de": "Physisch",
+      "fr": "Physique",
+      "ja": "物理",
+      "ko": "물리",
+      "zh-Hant": "物理"
+    }
+  },
+  "Poison": {
+    "meaning": "Damage each round that fades slowly",
+    "translations": {
+      "de": "Gift",
+      "fr": "Poison",
+      "ja": "毒",
+      "ko": "독",
+      "zh-Hant": "中毒"
+    }
+  },
+  "Purge": {
+    "meaning": "Removes a buff from an enemy",
+    "translations": {
+      "de": "Entzaubern",
+      "fr": "Dissipation",
+      "ja": "強化解除",
+      "ko": "강화 해제",
+      "zh-Hant": "驅散"
+    }
+  },
+  "Stun": {
+    "meaning": "Builds a meter; filling it costs an enemy action",
+    "translations": {
+      "de": "Betäubung",
+      "fr": "Étourdissement",
+      "ja": "スタン",
+      "ko": "기절",
+      "zh-Hant": "暈眩"
+    }
+  },
+  "Thorns": {
+    "meaning": "Damage returned to attackers when hit",
+    "translations": {
+      "de": "Dornen",
+      "fr": "Épines",
+      "ja": "棘",
+      "ko": "가시",
+      "zh-Hant": "荊棘"
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -21,65 +22,72 @@ package extension BattleState {
         if dodge > 0 {
             summaries.append(EffectSummary(
                 keyword: .dodge,
-                text: "Dodge Up: +\(CombatRounding.rounded((dodge * 100).rounded()))% Dodge chance",
+                resource: L10n.summary_battlestate_effectsummaries_1d22931030c3(CombatRounding.rounded((dodge * 100).rounded())),
             ))
         }
         if talents.turn.negativeStatusImmune {
             summaries.append(EffectSummary(
                 keyword: .cleanse,
-                text: "Perfect Purity: Immune to debuffs until next turn",
+                resource: L10n.summary_battlestate_effectsummaries_76cc8eb6266f,
             ))
         }
         if !talents.turn.negativeStatusImmune {
             for keyword in talents.turn.cleansedKeywordProtection.sorted(by: { $0.rawValue < $1.rawValue }) {
-                summaries.append(EffectSummary(keyword: keyword, text: "Immune to \(keyword.rawValue) debuffs until next turn"))
+                summaries.append(EffectSummary(
+                    keyword: keyword,
+                    resource: L10n.summary_battlestate_effectsummaries_e7633bc9777a(keyword.nameResource),
+                ))
             }
         }
         if talents.turn.blockGainPrevented {
-            summaries.append(EffectSummary(keyword: .holy, text: "Interdict: Cannot gain Block until next turn"))
+            summaries.append(EffectSummary(keyword: .holy, resource: L10n.summary_battlestate_effectsummaries_28ffa132d413))
         }
-        let purgedBuffs = talents.turn.purgedEffectProtection.compactMap { purgedBuffName($0) }.sorted()
+        let canonicalLocale = Locale(identifier: "en")
+        let purgedBuffs = talents.turn.purgedEffectProtection.compactMap { purgedBuffName($0) }.sorted {
+            LocalizedGameText($0, locale: canonicalLocale).text < LocalizedGameText($1, locale: canonicalLocale).text
+        }
         if !purgedBuffs.isEmpty {
             summaries.append(EffectSummary(
                 keyword: .purge,
-                text: "Interdict: \(purgedBuffs.joined(separator: ", ")) cannot return until next turn",
+                resource: L10n.summary_battlestate_effectsummaries_5a57edb4d329(BattleCopy.list(purgedBuffs)),
             ))
         }
         if timed.damage.amount > 0, turnCount < timed.damage.expiresAtTurn {
             summaries.append(EffectSummary(
                 keyword: .physical,
-                text: "Damage Up: +\(CombatRounding.rounded((timed.damage.amount * 100).rounded()))% damage",
+                resource: L10n
+                    .summary_battlestate_effectsummaries_75aa7414e689(CombatRounding.rounded((timed.damage.amount * 100).rounded())),
             ))
         }
         if let blessing = timed.lingeringBlessing, blessing.turnsRemaining > 0 {
             summaries.append(EffectSummary(
                 keyword: .health,
-                text: "Lingering Blessing: Restore \(blessing.amount) Health each round for \(blessing.turnsRemaining) rounds",
+                resource: L10n.summary_battlestate_effectsummaries_4c5c3a3e9a71(blessing.amount, blessing.turnsRemaining),
             ))
         }
         return summaries
     }
 
-    private func purgedBuffName(_ kind: EffectKind) -> String? {
+    private func purgedBuffName(_ kind: EffectKind) -> LocalizedStringResource? {
         switch kind {
-        case .shield: "Block"
-        case .thorns: "Thorns"
-        case .criticalChanceBonus: "Focused"
-        case .restoreManaOnHit: "Mana Shield"
-        case .damageKeywordOverride: "Consecrated"
-        case .nextHolyStrike: "Holy Strike"
-        case .nextStrikeDouble: "Double Strike"
-        case .playNextCardTwice: "Shadowstep"
-        case .nextBurnBonus: "Kindled"
-        case .evadeNextHit: "Evasion"
-        case .maximumManaBonus: "Maximum Mana Up"
-        case .nextStrikeCritical: "Critical Focus"
-        case .nextStrikeLeech: "Leech Focus"
-        case .nextStrikeDamageKeywordOverride: "Attack damage conversion"
-        case .partyDamageBonus: "Sniff Out"
-        case .freezeNextAttacker: "Glacial Ward"
-        case .onHitDamage: "Damage wards"
-        case .avatar: "Avatar"
+        case .shield: L10n.summary_battlestate_effectsummaries_211d0bb8cf4f
+        case .thorns: L10n.summary_battlestate_effectsummaries_d20c5a45f302
+        case .criticalChanceBonus: L10n.summary_battlestate_effectsummaries_4f9a966fb271
+        case .restoreManaOnHit: L10n.summary_battlestate_effectsummaries_8039fda759c2
+        case .damageKeywordOverride: L10n.summary_battlestate_effectsummaries_6ef0eec57426
+        case .nextHolyStrike: L10n.summary_battlestate_effectsummaries_b96a31dfc751
+        case .nextStrikeDouble: L10n.summary_battlestate_effectsummaries_f6148c61d5e8
+        case .playNextCardTwice: L10n.summary_battlestate_effectsummaries_3463093c2b5c
+        case .nextBurnBonus: L10n.summary_battlestate_effectsummaries_786cb2fa9e35
+        case .evadeNextHit: L10n.summary_battlestate_effectsummaries_3643dd816bb8
+        case .maximumManaBonus: L10n.summary_battlestate_effectsummaries_504389fe260c
+        case .nextStrikeCritical: L10n.summary_battlestate_effectsummaries_fd3ca4dcb7ab
+        case .nextStrikeLeech: L10n.summary_battlestate_effectsummaries_5392d836018d
+        case .nextStrikeDamageKeywordOverride: L10n.summary_battlestate_effectsummaries_22f2841b72e5
+        case .partyDamageBonus: L10n.summary_battlestate_effectsummaries_3fc6722054ba
+        case .freezeNextAttacker: L10n.summary_battlestate_effectsummaries_92e5596a3512
+        case .onHitDamage: L10n.summary_battlestate_effectsummaries_3e1cf6602265
+        case .avatar: L10n.summary_battlestate_effectsummaries_ca8e826d9c2e
         default: nil
         }
     }
@@ -89,32 +97,32 @@ package extension BattleState {
         summaries.append(
             .dodge,
             when: history.dodgeGrowth > 0,
-            text: "Improving Odds: +\(history.dodgeGrowth)% Dodge chance until you Dodge",
+            resource: L10n.summary_battlestate_effectsummaries_21b62c8cbffa(history.dodgeGrowth),
         )
         summaries.append(
             .physical,
             when: history.stolenGoldDamage > 0,
-            text: "Gilded Claws: Your next damaging card deals \(history.stolenGoldDamage) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_155a41841bc9(history.stolenGoldDamage),
         )
         summaries.append(
             .holy,
             when: history.blindingReduction > 0,
-            text: "Blinding Light: Your next attack deals \(history.blindingReduction) less damage",
+            resource: L10n.summary_battlestate_effectsummaries_8406c44f9158(history.blindingReduction),
         )
         summaries.append(
             .bleed,
             when: history.preparations.contains(.bleedDamage),
-            text: "Redline: Your next Physical card deals 2 additional Bleed damage",
+            resource: L10n.summary_battlestate_effectsummaries_031a8695b433,
         )
         summaries.append(
             .poison,
             when: history.preparations.contains(.doublePoison),
-            text: "Unstable Culture: Your next Poison attack deals double damage",
+            resource: L10n.summary_battlestate_effectsummaries_b769ca6798ae,
         )
         summaries.append(
             .physical,
             when: history.preparations.contains(.ignorePhysicalBlock),
-            text: "Blind Spot: Your next Physical attack ignores enemy Block",
+            resource: L10n.summary_battlestate_effectsummaries_6e538b28b50c,
         )
         return summaries
     }
@@ -126,27 +134,28 @@ package extension BattleState {
         summaries.append(
             .dodge,
             when: state.wrenflightDodge > 0,
-            text: "Wrenflight: +\(CombatRounding.rounded((state.wrenflightDodge * 100).rounded()))% Dodge chance until your next turn",
+            resource: L10n
+                .summary_battlestate_effectsummaries_67548e4830cc(CombatRounding.rounded((state.wrenflightDodge * 100).rounded())),
         )
         summaries.append(
             .physical,
             when: state.patientEdgeReady,
-            text: "The Patient Edge: Your next manually played attack hit Critically Hits",
+            resource: L10n.summary_battlestate_effectsummaries_b193bce3b9f8,
         )
         summaries.append(
             .poison,
             when: state.viperReady,
-            text: "Viper’s Courtesy: Your next manually played card hit that removes Health deals additional Poison and Bleed damage, each equal to half the Health lost",
+            resource: L10n.summary_battlestate_effectsummaries_0bdf6333f6e4,
         )
         summaries.append(
             .poison,
             when: state.wildheartReady,
-            text: "Wildheart’s Favor: Your next Poison card’s damage Critically Hits",
+            resource: L10n.summary_battlestate_effectsummaries_315c178423c3,
         )
         summaries.append(
             .holy,
             when: state.goldDamage > 0,
-            text: "The Golden Crucible: Your next Holy hit from a manually played card deals \(state.goldDamage) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_db3926475fe7(state.goldDamage),
         )
         return summaries
     }
@@ -154,28 +163,29 @@ package extension BattleState {
 
 private extension CombatantTalentState.Pending {
     func effectSummaries(criticalAppliesToParty: Bool, partyCardDamageBonus: Int, partyDamageBonus: Int = 0) -> [EffectSummary] {
-        let criticalTarget = criticalAppliesToParty ? "party hit" : "attack"
+        let criticalTarget = criticalAppliesToParty ? L10n.summary_battlestate_effectsummaries_73aacda6ed7a : L10n
+            .summary_battlestate_effectsummaries_fca30679635b
         var summaries: [EffectSummary] = []
-        summaries.append(.physical, when: doubleDamageAfterDodge, text: "Prepared Strike: Your next attack deals double damage")
+        summaries.append(.physical, when: doubleDamageAfterDodge, resource: L10n.summary_battlestate_effectsummaries_292d229ab591)
         summaries.append(
             .physical,
             when: guaranteedCriticalAfterDodge,
-            text: "Prepared Critical: Your next \(criticalTarget) is a guaranteed Critical Hit",
+            resource: L10n.summary_battlestate_effectsummaries_3b9581cc412f(criticalTarget),
         )
         summaries.append(
             .physical,
             when: basicGuaranteedCritical,
-            text: "Prepared Basic: Your next Basic attack is a guaranteed Critical Hit",
+            resource: L10n.summary_battlestate_effectsummaries_3531028230c1,
         )
         summaries.append(
             .physical,
             when: damageAfterDodge > 0,
-            text: "Prepared Strike: Your next attack deals \(damageAfterDodge) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_e51d9d3d269a(damageAfterDodge),
         )
         summaries.append(
             .bleed,
             when: bleedAfterDodge > 0,
-            text: "Prepared Bleed: Your next attack deals \(bleedAfterDodge) additional Bleed damage",
+            resource: L10n.summary_battlestate_effectsummaries_d6d71d8a3214(bleedAfterDodge),
         )
         appendCardPreparations(to: &summaries, partyCardDamageBonus: partyCardDamageBonus, partyDamageBonus: partyDamageBonus)
         appendAttackBonuses(to: &summaries)
@@ -187,49 +197,49 @@ private extension CombatantTalentState.Pending {
         summaries.append(
             .physical,
             when: partyCardDamageBonus > 0,
-            text: "Feint Strike: The party’s next card deals \(partyCardDamageBonus) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_7d576ea97f2e(partyCardDamageBonus),
         )
         summaries.append(
             .physical,
             when: partyDamageBonus > 0,
-            text: "Sniff Out: Your next damaging card deals \(partyDamageBonus) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_34190d7944be(partyDamageBonus),
         )
         summaries.append(
             .physical,
             when: preparedDamage > 0,
-            text: "Prepared Damage: Your next attack deals \(preparedDamage) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_06b908595f62(preparedDamage),
         )
         summaries.append(
             .physical,
             when: cardDamagePercent > 0,
-            text: "Prepared Damage: Your next attack deals \(CombatRounding.rounded((cardDamagePercent * 100).rounded()))% more damage",
+            resource: L10n.summary_battlestate_effectsummaries_d295c94dcb1f(CombatRounding.rounded((cardDamagePercent * 100).rounded())),
         )
-        summaries.append(.physical, when: nextHitBonus > 0, text: "Prepared Hit: Your next attack deals \(nextHitBonus) additional damage")
+        summaries.append(.physical, when: nextHitBonus > 0, resource: L10n.summary_battlestate_effectsummaries_0b644211f94a(nextHitBonus))
         summaries.append(
             .holy,
             when: nextAttackHolyBonus > 0,
-            text: "Holy Infusion: Your next attack deals \(nextAttackHolyBonus) additional Holy damage",
+            resource: L10n.summary_battlestate_effectsummaries_03aee9c88ab4(nextAttackHolyBonus),
         )
-        summaries.append(.holy, when: doubleNextHolyAttack, text: "Smite the Wicked: Your next Holy attack deals double damage")
-        summaries.append(.poison, when: doubleNextPoisonAttack, text: "Toxic Transfusion: Your next Poison attack deals double damage")
-        summaries.append(.poison, when: doubleNextPoisonDamage, text: "Toxic Backlash: Your next Poison damage is doubled")
-        summaries.append(.bleed, when: doubleNextBleedDamage, text: "Shatterpoint: The next Bleed damage is doubled")
-        summaries.append(.bleed, when: guaranteedBleedCritical, text: "Noxious Reaction: Your next Bleed attack Critically Hits")
-        summaries.append(.gold, when: doubleNextGoldSteal, text: "Escape Fund: Your next Gold steal is doubled")
+        summaries.append(.holy, when: doubleNextHolyAttack, resource: L10n.summary_battlestate_effectsummaries_6552f2f0d34b)
+        summaries.append(.poison, when: doubleNextPoisonAttack, resource: L10n.summary_battlestate_effectsummaries_8e9180740904)
+        summaries.append(.poison, when: doubleNextPoisonDamage, resource: L10n.summary_battlestate_effectsummaries_53c61953e638)
+        summaries.append(.bleed, when: doubleNextBleedDamage, resource: L10n.summary_battlestate_effectsummaries_4bb46a6be256)
+        summaries.append(.bleed, when: guaranteedBleedCritical, resource: L10n.summary_battlestate_effectsummaries_cb6939b701fc)
+        summaries.append(.gold, when: doubleNextGoldSteal, resource: L10n.summary_battlestate_effectsummaries_1e1f899e0668)
         summaries.append(
             .physical,
             when: nextPhysicalDamageBonus > 0,
-            text: "Your next Physical attack deals \(nextPhysicalDamageBonus) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_2958f6f8a886(nextPhysicalDamageBonus),
         )
         summaries.append(
             .gold,
             when: nextAttackDamageBonus > 0,
-            text: "Paid in Full: Your next attack deals \(nextAttackDamageBonus) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_0cd41331d925(nextAttackDamageBonus),
         )
         summaries.append(
             .mana,
             when: nextManaEmpowerDiscount > 0,
-            text: "Your next Mana empowerment costs \(nextManaEmpowerDiscount) less Mana",
+            resource: L10n.summary_battlestate_effectsummaries_a8bf5a1d7814(nextManaEmpowerDiscount),
         )
     }
 
@@ -241,61 +251,66 @@ private extension CombatantTalentState.Pending {
         summaries.append(
             .burn,
             when: nextBurnAttackPercent > 0,
-            text: "Your next Burn attack deals \(CombatRounding.rounded((nextBurnAttackPercent * 100).rounded()))% more damage",
+            resource: L10n
+                .summary_battlestate_effectsummaries_97d3897e9898(CombatRounding.rounded((nextBurnAttackPercent * 100).rounded())),
         )
         summaries.append(
             .bleed,
             when: nextBleedDamageBonus > 0,
-            text: "Your next Bleed attack deals \(nextBleedDamageBonus) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_3b4993948f20(nextBleedDamageBonus),
         )
         summaries.append(
             .burn,
             when: nextBurnDamageBonus > 0,
-            text: "Your next Burn attack deals \(nextBurnDamageBonus) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_943d50431989(nextBurnDamageBonus),
         )
         summaries.append(
             .poison,
             when: nextPoisonDamageBonus > 0,
-            text: "Your next Poison attack deals \(nextPoisonDamageBonus) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_1fcd76ac104a(nextPoisonDamageBonus),
         )
         summaries.append(
             .physical,
             when: criticalBonus > 0,
-            text: "Your next attack has +\(CombatRounding.rounded((criticalBonus * 100).rounded()))% Critical Hit chance",
+            resource: L10n.summary_battlestate_effectsummaries_672f9a146c54(CombatRounding.rounded((criticalBonus * 100).rounded())),
         )
-        summaries.append(.physical, when: nextAttackGuaranteedCritical != nil, text: "Cracked Guard: Your next attack Critically Hits")
+        summaries.append(
+            .physical,
+            when: nextAttackGuaranteedCritical != nil,
+            resource: L10n.summary_battlestate_effectsummaries_70675ddb6ef1,
+        )
         summaries.append(
             .physical,
             when: basicCriticalBonus > 0,
-            text: "Prepared Basic: Your next Basic attack has +\(CombatRounding.rounded((basicCriticalBonus * 100).rounded()))% Critical Hit chance",
+            resource: L10n.summary_battlestate_effectsummaries_19a8737b7c22(CombatRounding.rounded((basicCriticalBonus * 100).rounded())),
         )
         summaries.append(
             .physical,
             when: attackBonusOnFullHealth > 0,
-            text: "Prepared Strike: Your next attack deals \(attackBonusOnFullHealth) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_e51d9d3d269a(attackBonusOnFullHealth),
         )
     }
 
     private func healingPreparationSummaries() -> [EffectSummary] {
         let healing = healingEchoes.reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.amount) }
         guard healing > 0 else { return [] }
-        return [EffectSummary(keyword: .health, text: "Living Archive: Restore \(healing) Health next round")]
+        return [EffectSummary(keyword: .health, resource: L10n.summary_battlestate_effectsummaries_a6c30d506ff6(healing))]
     }
 
     private func additionalPreparationSummaries() -> [EffectSummary] {
         var summaries: [EffectSummary] = []
-        summaries.append(.bleed, when: doubleNextBleedAttack != nil, text: "Redline: Your next Bleed attack deals double damage")
-        summaries.append(.stun, when: nextStunAttackDouble != nil, text: "Quaking Carapace: Your next Stun attack deals double damage")
+        summaries.append(.bleed, when: doubleNextBleedAttack != nil, resource: L10n.summary_battlestate_effectsummaries_7340deb2cd68)
+        summaries.append(.stun, when: nextStunAttackDouble != nil, resource: L10n.summary_battlestate_effectsummaries_d5bc64bc9bf9)
         summaries.append(
             .physical,
             when: doubleNextPhysicalAttack != nil,
-            text: "Feigned Miss: Your next Physical attack deals double damage",
+            resource: L10n.summary_battlestate_effectsummaries_352adf9b122a,
         )
-        summaries.append(.holy, when: nextHolyHitDouble != nil, text: "Sun-Struck Shell: Your next Holy damage is doubled")
-        summaries.append(.physical, when: doubleNextAttackAfterDeathsDoor, text: "Phoenix Vigor: Your next attack deals double damage")
-        summaries.append(.freeze, when: nextFreezeIgnoresBlock != nil, text: "Winter’s Wake: Your next Freeze attack ignores enemy Block")
-        summaries.append(.physical, when: nextAttackIgnoresBlock != nil, text: "Your next attack ignores enemy Block")
-        summaries.append(.physical, when: nextStunPreparedCritical != nil, text: "Stolen Thunder: Your next attack Critically Hits")
+        summaries.append(.holy, when: nextHolyHitDouble != nil, resource: L10n.summary_battlestate_effectsummaries_f722041f3c1c)
+        summaries.append(.physical, when: doubleNextAttackAfterDeathsDoor, resource: L10n.summary_battlestate_effectsummaries_9dc8204ddc95)
+        summaries.append(.freeze, when: nextFreezeIgnoresBlock != nil, resource: L10n.summary_battlestate_effectsummaries_6f7bf645f094)
+        summaries.append(.physical, when: nextAttackIgnoresBlock != nil, resource: L10n.summary_battlestate_effectsummaries_8f8f375bda71)
+        summaries.append(.physical, when: nextStunPreparedCritical != nil, resource: L10n.summary_battlestate_effectsummaries_1468b273b1a7)
         appendMagnitudePreparations(to: &summaries)
         return summaries
     }
@@ -306,55 +321,74 @@ private extension CombatantTalentState.Pending {
         summaries.append(
             .physical,
             when: overchargePercent > 0,
-            text: "Overcharge: Your next attack deals \(CombatRounding.rounded((overchargePercent * 100).rounded()))% more damage",
+            resource: L10n.summary_battlestate_effectsummaries_f5287ca2468b(CombatRounding.rounded((overchargePercent * 100).rounded())),
         )
         summaries.append(
             .bleed,
             when: nextBleedAttackMultiplier != nil,
-            text: "Nimble Fang: Your next Bleed attack deals \(CombatRounding.rounded((((nextBleedAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage",
+            resource: L10n
+                .summary_battlestate_effectsummaries_50369da7bf17(CombatRounding
+                    .rounded((((nextBleedAttackMultiplier?.value ?? 1) - 1) * 100).rounded())),
         )
         summaries.append(
             .physical,
             when: nextPhysicalAttackMultiplier != nil,
-            text: "Phantom Counter: Your next Physical attack deals \(CombatRounding.rounded((((nextPhysicalAttackMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage",
+            resource: L10n
+                .summary_battlestate_effectsummaries_5a2f1e053876(CombatRounding
+                    .rounded((((nextPhysicalAttackMultiplier?.value ?? 1) - 1) * 100).rounded())),
         )
         summaries.append(
             .physical,
             when: nextCriticalHitMultiplier != nil,
-            text: "Perfect Tempo: Your next Critical Hit deals \(CombatRounding.rounded((((nextCriticalHitMultiplier?.value ?? 1) - 1) * 100).rounded()))% more damage",
+            resource: L10n
+                .summary_battlestate_effectsummaries_9464195bf2a5(CombatRounding
+                    .rounded((((nextCriticalHitMultiplier?.value ?? 1) - 1) * 100).rounded())),
         )
         summaries.append(
             .physical,
             when: nextManaSpendAttackBonus != nil,
-            text: "Aetherial Flow: Your next attack deals \(nextManaSpendAttackBonus?.value ?? 0) additional damage",
+            resource: L10n.summary_battlestate_effectsummaries_464a634ebf36(nextManaSpendAttackBonus?.value ?? 0),
         )
+        appendDefensivePreparations(to: &summaries, incomingMultiplier: nextIncomingDamageMultiplier)
+    }
+
+    private func appendDefensivePreparations(to summaries: inout [EffectSummary], incomingMultiplier: Double) {
         summaries.append(
             .block,
             when: nextBlockGainMultiplier != nil,
-            text: "Your next Block gain is increased by \(CombatRounding.rounded((((nextBlockGainMultiplier?.value ?? 1) - 1) * 100).rounded()))%",
+            resource: L10n
+                .summary_battlestate_effectsummaries_18751f68cbcd(CombatRounding
+                    .rounded((((nextBlockGainMultiplier?.value ?? 1) - 1) * 100).rounded())),
         )
         summaries.append(
             .block,
-            when: nextIncomingDamageMultiplier < 1,
-            text: "Warded Roost: Your next incoming damage is reduced by \(CombatRounding.rounded(((1 - nextIncomingDamageMultiplier) * 100).rounded()))%",
+            when: incomingMultiplier < 1,
+            resource: L10n
+                .summary_battlestate_effectsummaries_e410a469f407(CombatRounding
+                    .rounded(((1 - incomingMultiplier) * 100).rounded())),
         )
         summaries.append(
             .physical,
             when: nextOutgoingAttackMultiplier < 1,
-            text: "Weaken Soul: Your next attack deals \(CombatRounding.rounded(((1 - nextOutgoingAttackMultiplier) * 100).rounded()))% less damage",
+            resource: L10n
+                .summary_battlestate_effectsummaries_95314c057098(CombatRounding
+                    .rounded(((1 - nextOutgoingAttackMultiplier) * 100).rounded())),
         )
         summaries.append(
             .dodge,
             when: nextAttackMissChance > 0,
-            text: "\(nextAttackMissAbilityName ?? "Blinding Light"): Your next attack has a \(CombatRounding.rounded((nextAttackMissChance * 100).rounded()))% chance to miss",
+            resource: L10n.summary_battlestate_effectsummaries_2240adc3884b(
+                ContentCopy.resource(nextAttackMissAbilityName ?? "Blinding Light"),
+                CombatRounding.rounded((nextAttackMissChance * 100).rounded()),
+            ),
         )
     }
 }
 
 private extension [EffectSummary] {
     /// Inactive preparations must not format descriptions or allocate summary entries.
-    mutating func append(_ keyword: Keyword, when active: Bool, text: @autoclosure () -> String) {
+    mutating func append(_ keyword: Keyword, when active: Bool, resource: @autoclosure () -> LocalizedStringResource) {
         guard active else { return }
-        append(EffectSummary(keyword: keyword, text: text()))
+        append(EffectSummary(keyword: keyword, resource: resource()))
     }
 }

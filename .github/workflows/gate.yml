@@ -41,6 +41,7 @@ jobs:
             Trinket.xcodeproj
             StoreKit
             ContentManifest
+            Localization
             ArtManifest
             MusicManifest
             SoundManifest

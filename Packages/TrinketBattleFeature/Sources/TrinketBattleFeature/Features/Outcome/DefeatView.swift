@@ -17,17 +17,17 @@ struct DefeatView: View {
         RewardRevealShell(
             eyebrow: nil,
             eyebrowAccessibilityIdentifier: nil,
-            title: "Defeat",
+            title: String(localized: L10n.ui_defeatview_defeat_2be4c),
             subtitle: didRetreat
-                ? "Your party retreated from \(configuration.enemy?.name ?? "Enemy")"
-                : "Your party fell to \(configuration.enemy?.name ?? "Enemy")",
+                ? String(localized: L10n.ui_defeatview_your_party_retreated_from_1_86965("\(configuration.enemy?.name ?? "Enemy")"))
+                : String(localized: L10n.ui_defeatview_your_party_fell_to_1_e9b8d("\(configuration.enemy?.name ?? "Enemy")")),
             titleAccessibilityIdentifier: AccessibilityID.Battle.defeat,
             titleColor: TrinketDesign.Colors.accent,
             content: {
                 RewardRevealExperienceSection(awards: experienceAwards)
                     .accessibilityIdentifier(AccessibilityID.Battle.experience)
             },
-            primaryActionTitle: "Continue",
+            primaryActionTitle: String(localized: L10n.ui_defeatview_continue_31fbe),
             primaryActionAccessibilityIdentifier: AccessibilityID.Battle.defeatLeaveButton,
             isPrimaryActionDisabled: isCompleting,
             onPrimaryAction: { complete(.leave) },

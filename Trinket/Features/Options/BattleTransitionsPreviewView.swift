@@ -59,7 +59,7 @@ struct BattleTransitionsStagePicker: View {
 
     var body: some View {
         StageSelectScreen(
-            eyebrow: "Chapter \(chapter.number)".uppercased(),
+            eyebrow: String(localized: L10n.ui_battletransitionspreviewview_chapter_1_c98b7("\(chapter.number)")),
             title: chapter.title,
             subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.BattleTransitionLab.picker,
@@ -94,7 +94,7 @@ struct BattleTransitionsStagePicker: View {
             encounterTypeTitle: sample.encounterTypeTitle,
             icon: GameIcon(id: sample.encounter.iconID),
             tint: sample.encounter.mapTint,
-            primaryActionTitle: "Battle",
+            primaryActionTitle: String(localized: L10n.ui_battletransitionspreviewview_battle_1b18e),
             showsPartyPicker: false,
             isArtworkInteractive: false,
             rowAccessibilityID: AccessibilityID.BattleTransitionLab.stageRow(sample.id),

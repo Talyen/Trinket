@@ -70,19 +70,19 @@ public struct CombatantDetailPane: View {
             hidesNavigationBar: hidesNavigationBar,
         ) { baseHeight in
             DetailHeroHeader(
-                eyebrow: combatant.role.rawValue.uppercased(),
+                eyebrow: combatant.role.rawValue,
                 title: combatant.name,
                 baseHeight: baseHeight,
             ) {
                 CombatantArtwork(combatant: combatant)
             } footer: {
                 HStack {
-                    Text("LEVEL \(progression.level)")
+                    Text(L10n.ui_combatantdetailpane_level_1_d4c0a("\(progression.level)"))
                         .trinketTypography(.eyebrow)
                         .trinketOnArtText(.eyebrow)
 
                     if combatant.role != .enemy {
-                        Text("\(progression.currentXP)/\(progression.requiredXP) XP")
+                        Text(L10n.ui_combatantdetailpane_1_2_xp_f40b4("\(progression.currentXP)", "\(progression.requiredXP)"))
                             .trinketTypography(.eyebrow)
                             .monospacedDigit()
                             .trinketOnArtText(.eyebrow)
@@ -286,7 +286,7 @@ public struct CombatantDetailPane: View {
                 .equatable()
         }
 
-        DetailSection("Abilities") {
+        DetailSection(String(localized: L10n.ui_combatantdetailpane_abilities_81932)) {
             AbilitySummaryGrid(
                 combatant: combatant,
                 loadout: loadout,
@@ -303,7 +303,7 @@ public struct CombatantDetailPane: View {
         }
 
         if combatant.role != .enemy {
-            DetailSection("Items") {
+            DetailSection(String(localized: L10n.ui_combatantdetailpane_items_fb8e7)) {
                 EquipmentSlotSummaryGrid(
                     role: combatant.role,
                     equipmentLoadout: equipmentLoadout,
@@ -330,7 +330,7 @@ public struct CombatantDetailPane: View {
                 ProgressView()
                     .padding(TrinketDesign.Spacing.small)
                     .trinketMaterial(.subtleOverlay)
-                    .accessibilityLabel("Preparing talents")
+                    .accessibilityLabel(Text(L10n.ui_combatantdetailpane_preparing_talents_7fcea))
             }
         }
     }

@@ -83,7 +83,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
 
     private var categoryHeader: some View {
         HStack(spacing: TrinketDesign.Spacing.small) {
-            Text(balanced: title)
+            GameLabel(title, balanced: true)
                 .trinketTypography(.sectionTitle)
                 .foregroundStyle(.primary)
                 .trinketFittedText()
@@ -116,7 +116,7 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
                         )
                     }
                     .trinketArtworkCardButtonStyle()
-                    .accessibilityLabel("View all \(title)")
+                    .accessibilityLabel(Text(L10n.ui_categorybrowseshelf_view_all_1_261d4("\(title)")))
                 }
             }
             .scrollTargetLayout()

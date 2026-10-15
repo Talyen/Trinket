@@ -310,14 +310,19 @@ extension BattleTurnEngine {
         await DoTApplicator.applyBleed(potency: hemorrhageDamage, to: actor, sourceActorID: casterID, application: .afterHit, in: &context)
     }
 
+    struct AppliedEffectLogs {
+        var text: [String] = []
+        var effects: [Effect] = []
+    }
+
     static func applyTargetedEffects(
         _ effects: [TargetedEffect],
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
         context: inout BattleState,
-    ) async -> [String] {
-        var appliedEffectLogs: [String] = []
+    ) async -> AppliedEffectLogs {
+        var appliedEffectLogs = AppliedEffectLogs()
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
         for targetedEffect in effects {
             guard action.canContinue(in: context) else { break }
@@ -356,7 +361,12 @@ extension BattleTurnEngine {
             if didApply, let summary = appliedEffectSummary(
                 effect, ability: ability, grantedGold: grantedGold, restoredMana: restoredMana,
             ) {
-                appliedEffectLogs.append(summary)
+                appliedEffectLogs.text.append(summary)
+                switch effect {
+                case .resourceGain(.gold, _): appliedEffectLogs.effects.append(.resourceGain(.gold, grantedGold))
+                case .resourceGain(.mana, _): appliedEffectLogs.effects.append(.resourceGain(.mana, restoredMana))
+                default: appliedEffectLogs.effects.append(effect)
+                }
             }
         }
         return appliedEffectLogs

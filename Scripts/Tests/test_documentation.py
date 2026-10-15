@@ -264,6 +264,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             registry,
             [
                 "./Scripts/check-module-boundaries.sh",
+                "python3 Scripts/localization.py check",
                 "./Scripts/check-api-bans.sh",
                 "./Scripts/release-notes.sh validate",
                 "./Scripts/check-artwork-budget.sh",
@@ -272,11 +273,11 @@ class DocumentationTests(ScriptRegressionTestCase):
         # Dry-run must include cheap slices in order after plan.
         result = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Docs/Platform/Verification.md"], cwd=ROOT, expected=0)
         planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        # Docs scope should contain docs check plus 4 cheap slices in registry order.
+        # Docs scope should contain docs check plus the cheap slices in registry order.
         self.assertIn("python3 ./Scripts/check-docs.py", planned)
         cheap_positions = [planned.index(cmd) for cmd in registry]
         self.assertEqual(cheap_positions, sorted(cheap_positions))
-        self.assertEqual(planned[-4:], registry)
+        self.assertEqual(planned[-len(registry):], registry)
 
     def test_mixed_script_and_docs_runs_docs_once(self) -> None:
         for hosted in (False, True):

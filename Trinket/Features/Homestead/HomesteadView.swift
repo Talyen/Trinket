@@ -34,11 +34,11 @@ struct HomesteadView: View {
 
     var body: some View {
         DetailHeroScrollShell(
-            title: "Homestead",
+            title: String(localized: L10n.ui_homesteadview_homestead_9af8e),
             heroHeightPolicy: .cinematicLandscape,
         ) { baseHeight in
             DetailHeroHeader(
-                title: "Homestead",
+                title: String(localized: L10n.ui_homesteadview_homestead_9af8e),
                 baseHeight: baseHeight,
                 horizontalPadding: TrinketDesign.Layout.contentMargin,
                 bottomPadding: TrinketDesign.Spacing.large,
@@ -158,7 +158,7 @@ struct HomesteadView: View {
                 if isCollecting {
                     ProgressView()
                 }
-                Text("Collect")
+                Text(L10n.ui_homesteadview_collect_08a0c)
             }
         } icon: {
             GameIconImage(.system("gift.fill"))

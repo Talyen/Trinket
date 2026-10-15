@@ -44,7 +44,7 @@ struct EquipmentSlotSummaryGrid: View {
                                         .padding(TrinketDesign.Spacing.small)
                                         .trinketMaterial(.subtleOverlay)
                                         .padding(TrinketDesign.Spacing.extraSmall)
-                                        .accessibilityLabel("Preparing equipment")
+                                        .accessibilityLabel(Text(L10n.ui_equipmentslotsummarygrid_preparing_equipment_69cf5))
                                 }
                             }
                             .overlay {

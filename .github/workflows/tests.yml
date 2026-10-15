@@ -137,6 +137,7 @@ jobs:
             Trinket.xcodeproj
             StoreKit
             ContentManifest
+            Localization
             ArtManifest
             MusicManifest
             SoundManifest
@@ -223,6 +224,7 @@ jobs:
             Trinket.xcodeproj
             StoreKit
             ContentManifest
+            Localization
             ArtManifest
             MusicManifest
             SoundManifest
@@ -291,6 +293,7 @@ jobs:
             Trinket.xcodeproj
             StoreKit
             ContentManifest
+            Localization
             ArtManifest
             MusicManifest
             SoundManifest
@@ -399,6 +402,7 @@ jobs:
             Trinket.xcodeproj
             StoreKit
             ContentManifest
+            Localization
             ArtManifest
             MusicManifest
             SoundManifest

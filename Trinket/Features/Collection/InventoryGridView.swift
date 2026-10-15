@@ -14,6 +14,15 @@ enum CollectionItemCategory: String, CaseIterable, Identifiable {
     case uniqueGear = "Unique Gear"
     case trinkets = "Trinkets"
 
+    var displayName: String {
+        switch self {
+        case .basicGear: String(localized: L10n.ui_inventorygridview_basic_gear_f4514)
+        case .astralGear: String(localized: L10n.ui_inventorygridview_astral_gear_f6419)
+        case .uniqueGear: String(localized: L10n.ui_inventorygridview_unique_gear_1404f)
+        case .trinkets: String(localized: L10n.ui_inventorygridview_trinkets_e8322)
+        }
+    }
+
     var id: String {
         rawValue
     }
@@ -73,6 +82,15 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
     case armor = "Armor"
     case accessory = "Accessories"
 
+    var displayName: String {
+        switch self {
+        case .all: String(localized: L10n.ui_inventorygridview_all_a52ac)
+        case .weapon: String(localized: L10n.ui_inventorygridview_weapons_aafc7)
+        case .armor: String(localized: L10n.ui_inventorygridview_armor_a5928)
+        case .accessory: String(localized: L10n.ui_inventorygridview_accessories_b0864)
+        }
+    }
+
     var id: String {
         rawValue
     }
@@ -131,15 +149,18 @@ struct InventoryGridView: View {
             )
         }
         .trinketSoftTopScrollEdge()
-        .navigationTitle(category.rawValue)
+        .navigationTitle(category.displayName)
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             if category != .trinkets {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Picker("Filter \(category.rawValue)", selection: $selectedFilter) {
+                        Picker(
+                            String(localized: L10n.ui_inventorygridview_filter_1_ae8dd("\(category.displayName)")),
+                            selection: $selectedFilter,
+                        ) {
                             ForEach(InventoryFilter.allCases) { filter in
-                                Text(filter.rawValue)
+                                GameLabel(filter.displayName)
                                     .tag(filter)
                                     .accessibilityIdentifier(
                                         AccessibilityID.Collection.gearFilterOption(
@@ -152,7 +173,7 @@ struct InventoryGridView: View {
                         Image(systemName: "line.3.horizontal.decrease")
                             .trinketTypography(selectedFilter != .all ? .button : .body)
                             .foregroundStyle(selectedFilter != .all ? TrinketDesign.Colors.accentEmphasized : .primary)
-                            .accessibilityLabel("Filter \(category.rawValue)")
+                            .accessibilityLabel(Text(L10n.ui_inventorygridview_filter_1_ae8dd("\(category.displayName)")))
                     }
 
                     .accessibilityIdentifier(AccessibilityID.Collection.gearFilter)
@@ -172,16 +193,16 @@ struct InventoryGridView: View {
 
         if isFilteredEmpty {
             ContentUnavailableView(
-                "No Matching Items",
+                String(localized: L10n.ui_inventorygridview_no_matching_items_cef58),
                 systemImage: "line.3.horizontal.decrease",
-                description: Text("Try a different filter"),
+                description: Text(L10n.ui_inventorygridview_try_a_different_filter_cabc7),
             )
             .accessibilityIdentifier(AccessibilityID.Collection.itemsNoResults)
         } else {
             ContentUnavailableView(
-                "No \(category.rawValue) Yet",
+                String(localized: L10n.ui_inventorygridview_no_1_yet_c5f22("\(category.displayName)")),
                 systemImage: "shippingbox",
-                description: Text("Your \(category.rawValue.lowercased()) will appear here when you collect them"),
+                description: Text(L10n.ui_inventorygridview_your_1_will_appear_here_when_you_collect_them_37243("\(category.displayName)")),
             )
             .accessibilityIdentifier(AccessibilityID.Collection.itemsEmptyState)
         }

@@ -88,6 +88,8 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             'printf "%s\\n" "$@" > "$PWD/arguments"; echo swiftc > "$PWD/compiler.log"; '
             'return "${BUILD_STATUS:-0}"; }\n'
         )
+        # Build orchestration fixture; extraction correctness is covered by test_localization.
+        (scripts / "check-localization-build.py").write_text("# Successful compiler-extraction fixture.\n")
         return scripts
 
     def test_compile_actions_do_not_stamp_test_products(self):

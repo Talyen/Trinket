@@ -64,7 +64,7 @@ public struct AbilityTierPickerSheet: View {
                             .padding(TrinketDesign.Spacing.small)
                             .trinketMaterial(.subtleOverlay)
                             .padding(TrinketDesign.Spacing.extraSmall)
-                            .accessibilityLabel("Preparing ability")
+                            .accessibilityLabel(Text(L10n.ui_abilitytierpickersheet_preparing_ability_23e9a))
                     }
                 }
                 .overlay {
@@ -81,7 +81,7 @@ public struct AbilityTierPickerSheet: View {
         .navigationDestination(item: $selectedAbility) { ability in
             AbilityDetailView(
                 ability: ability,
-                primaryActionTitle: "Select Ability",
+                primaryActionTitle: String(localized: L10n.ui_abilitytierpickersheet_select_ability_2fb3f),
                 primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.selectAbility(ability.id),
                 onPrimaryAction: {
                     guard onSelectAbility(ability) else { return }

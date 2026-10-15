@@ -51,7 +51,9 @@ struct HomesteadDetailSheetView: View {
     private func improvement(_ tier: HomesteadNodeTier) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                Text(tier.tier == 1 ? "Build \(definition.title)" : definition.title)
+                GameLabel(tier
+                    .tier == 1 ? String(localized: L10n.ui_homesteaddetailsheetviews_build_1_08716("\(definition.title)")) : definition
+                    .title)
                     .trinketTypography(.sectionDisplay)
                 if tier.tier == 1 {
                     HomesteadBenefitsView(
@@ -81,7 +83,9 @@ struct HomesteadDetailSheetView: View {
 
     private func purchaseControls(_ tier: HomesteadNodeTier) -> some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            Text(tier.tier == 1 ? "Build cost" : "Upgrade cost")
+            Text(tier
+                .tier == 1 ? String(localized: L10n.ui_homesteaddetailsheetviews_build_cost_98758) :
+                String(localized: L10n.ui_homesteaddetailsheetviews_upgrade_cost_359f4))
                 .trinketTypography(.cardTitle)
                 .trinketFittedText()
 
@@ -102,7 +106,9 @@ struct HomesteadDetailSheetView: View {
                     if build.isPending {
                         ProgressView()
                     }
-                    Text(tier.tier == 1 ? "Build" : "Upgrade")
+                    Text(tier
+                        .tier == 1 ? String(localized: L10n.ui_homesteaddetailsheetviews_build_bdd25) :
+                        String(localized: L10n.ui_homesteaddetailsheetviews_upgrade_7ec02))
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -127,7 +133,7 @@ struct HomesteadWalletSheet: View {
                 HomesteadResourceWallet(homestead: playerSave.homestead, gold: playerSave.roster.gold)
                     .padding(TrinketDesign.Layout.contentMargin)
             }
-            .navigationTitle("Resources")
+            .navigationTitle(Text(L10n.ui_homesteaddetailsheetviews_resources_e89b3))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -137,7 +143,7 @@ struct HomesteadWalletSheet: View {
                         } else {
                             dismiss()
                         }
-                    } label: { Label("Close", systemImage: "xmark") }
+                    } label: { Label(String(localized: L10n.ui_homesteaddetailsheetviews_close_7d9eb), systemImage: "xmark") }
                         .accessibilityIdentifier(AccessibilityID.Homestead.closeSheetButton)
                 }
             }

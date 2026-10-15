@@ -42,9 +42,9 @@ private struct DesignSystemGallery: View {
 
     private var typography: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-            Text("Trinket Theme")
+            Text(L10n.ui_designsystempreview_trinket_theme_73e54)
                 .trinketTypography(.screenDisplay)
-            Text("System semantic text remains adaptive over the cool charcoal canvas.")
+            Text(L10n.ui_designsystempreview_system_semantic_text_remains_adaptive_over_th_6d741)
                 .trinketTypography(.body)
                 .foregroundStyle(.secondary)
         }
@@ -52,7 +52,7 @@ private struct DesignSystemGallery: View {
 
     private var surfaces: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            Text("Surfaces").trinketTypography(.sectionTitle)
+            Text(L10n.ui_designsystempreview_surfaces_fbb4d).trinketTypography(.sectionTitle)
             HStack(spacing: TrinketDesign.Spacing.medium) {
                 previewSurface("Secondary", role: .secondary)
                 previewSurface("Dense Row", role: .denseRow)
@@ -63,7 +63,7 @@ private struct DesignSystemGallery: View {
 
     private var colors: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            Text("Semantic Colors").trinketTypography(.sectionTitle)
+            Text(L10n.ui_designsystempreview_semantic_colors_1a188).trinketTypography(.sectionTitle)
             LazyVGrid(columns: [.init(.adaptive(minimum: 130))]) {
                 ForEach(semanticColors, id: \.0) { name, color in
                     HStack(spacing: TrinketDesign.Spacing.small) {
@@ -79,14 +79,14 @@ private struct DesignSystemGallery: View {
 
     private var controls: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            Text("Controls").trinketTypography(.sectionTitle)
-            Toggle("Actions Available", isOn: $actionsEnabled)
+            Text(L10n.ui_designsystempreview_controls_799c2).trinketTypography(.sectionTitle)
+            Toggle(String(localized: L10n.ui_designsystempreview_actions_available_6d28e), isOn: $actionsEnabled)
                 .trinketTypography(.body)
             actionRow
                 .disabled(!actionsEnabled)
-            Text("Unavailable").trinketTypography(.caption)
+            Text(L10n.ui_designsystempreview_unavailable_ca184).trinketTypography(.caption)
             actionRow.disabled(true)
-            Button("Inspect Selected Companion") {}
+            Button(String(localized: L10n.ui_designsystempreview_inspect_selected_companion_62caa)) {}
                 .trinketTypography(.button)
                 .trinketSecondaryActionButton()
                 .disabled(!actionsEnabled)
@@ -95,10 +95,10 @@ private struct DesignSystemGallery: View {
 
     private var actionRow: some View {
         HStack(spacing: TrinketDesign.Spacing.medium) {
-            Button("Build") {}
+            Button(String(localized: L10n.ui_designsystempreview_build_bdd25)) {}
                 .trinketTypography(.button)
                 .trinketPrimaryActionButton()
-            Button("Inspect") {}
+            Button(String(localized: L10n.ui_designsystempreview_inspect_e0723)) {}
                 .trinketTypography(.button)
                 .trinketSecondaryActionButton()
         }
@@ -106,14 +106,14 @@ private struct DesignSystemGallery: View {
 
     private var materials: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            Text("Materials").trinketTypography(.sectionTitle)
+            Text(L10n.ui_designsystempreview_materials_fd10a).trinketTypography(.sectionTitle)
             previewMaterial("Bottom Bar", role: .bottomBar)
             previewMaterial("Subtle Overlay", role: .subtleOverlay)
             HStack(spacing: TrinketDesign.Spacing.medium) {
-                Text("999,999 Gold")
+                Text(L10n.ui_designsystempreview_999_999_gold_86147)
                     .trinketTypography(.statValue)
                     .trinketGlassChip()
-                Text("Selected")
+                Text(L10n.ui_designsystempreview_selected_57fd7)
                     .trinketTypography(.badge)
                     .trinketGlassChip(.emphasis)
             }

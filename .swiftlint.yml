@@ -151,6 +151,13 @@ nesting:
 function_parameter_count: 7
 
 excluded:
+  - Trinket/App/Generated
+  - Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Generated
+  - Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Generated
+  - Packages/TrinketFeatureSupport/Sources/TrinketFeatureAdapters/Generated
+  - Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Generated
+  - Packages/TrinketCore/Sources/TrinketCore/Generated
+  - Packages/BattleEngine/Sources/BattleEngine/Generated
   - Packages/TrinketContent/Sources/TrinketContent/Generated
   - .DerivedData
   - .build

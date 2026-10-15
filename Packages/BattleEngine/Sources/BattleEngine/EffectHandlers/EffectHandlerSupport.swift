@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -97,13 +98,15 @@ enum TimedBuffSummary {
         return minimum ?? 0
     }
 
-    static func durationSuffix(
+    static func durationResource(
         in stacks: [ActiveEffect],
         separator: String = ", ",
         duration: (Effect) -> Int? = { $0.durationTurns },
-    ) -> String {
+    ) -> LocalizedStringResource {
         let turns = minRemainingTurns(in: stacks, duration: duration)
-        return turns > 0 ? "\(separator)\(BattleTiming.remainingDurationLabel(turns: turns))" : ""
+        guard turns > 0 else { return L10n.duration_empty }
+        let remaining = BattleTiming.remainingDurationResource(turns: turns)
+        return separator == "\n" ? L10n.duration_newline(remaining) : L10n.duration_suffix(remaining)
     }
 
     static func summedAmount(in stacks: [ActiveEffect], amount: (Effect) -> Int?) -> Int {

@@ -55,8 +55,8 @@ struct LabyrinthMapView: View {
                 )
             } else if state.isMapPayloadUnreadable {
                 HStack {
-                    Button("Back") { dismiss() }
-                    Button("Retry") { nodeMessage = labyrinth.enter() }
+                    Button(String(localized: L10n.ui_labyrinthmapview_back_76900)) { dismiss() }
+                    Button(String(localized: L10n.ui_labyrinthmapview_retry_94208)) { nodeMessage = labyrinth.enter() }
                         .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Play.labyrinthEnter)
                 }
                 .trinketSecondaryActionButton()
@@ -64,7 +64,7 @@ struct LabyrinthMapView: View {
                 emptyState
             }
         }
-        .navigationTitle("Labyrinth")
+        .navigationTitle(Text(L10n.ui_labyrinthmapview_labyrinth_df308))
         .navigationBarTitleDisplayMode(.inline)
         .trinketScreenBackground()
         .toolbar {
@@ -118,26 +118,29 @@ struct LabyrinthMapView: View {
                     showFloor(floor.depthBand)
                 } label: {
                     if floor.depthBand == viewedFloor {
-                        Label("Floor \(floor.depthBand)", systemImage: "checkmark")
+                        Label(String(localized: L10n.ui_labyrinthmapview_floor_1_699ae("\(floor.depthBand)")), systemImage: "checkmark")
                     } else {
-                        Text("Floor \(floor.depthBand)")
+                        Text(L10n.ui_labyrinthmapview_floor_1_699ae("\(floor.depthBand)"))
                     }
                 }
                 .accessibilityIdentifier(AccessibilityID.Play.labyrinthFloor(floor.depthBand))
             }
         } label: {
-            Label("Floor \(viewedFloor)", systemImage: "square.stack")
+            Label(String(localized: L10n.ui_labyrinthmapview_floor_1_699ae("\(viewedFloor)")), systemImage: "square.stack")
         }
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthFloorMenu)
     }
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("Labyrinth", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+            Label(
+                String(localized: L10n.ui_labyrinthmapview_labyrinth_df308),
+                systemImage: "point.topleft.down.to.point.bottomright.curvepath",
+            )
         } description: {
-            Text("The path remembers\nDescend when you are ready")
+            Text(L10n.ui_labyrinthmapview_the_path_remembers_descend_when_you_are_ready_0ced1)
         } actions: {
-            Button("Enter") {
+            Button(String(localized: L10n.ui_labyrinthmapview_enter_dc865)) {
                 if let message = labyrinth.enter() {
                     nodeMessage = message
                 } else {

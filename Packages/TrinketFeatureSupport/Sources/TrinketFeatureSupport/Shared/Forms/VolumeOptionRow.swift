@@ -14,7 +14,7 @@ public struct VolumeOptionRow: View {
     }
 
     private var dynamicIconName: String {
-        if title == "Music" {
+        if title == String(localized: L10n.ui_volumeoptionrow_music_6eb00) {
             draft == 0 ? "music.note.slash" : "music.note"
         } else {
             if draft == 0 {
@@ -44,7 +44,7 @@ public struct VolumeOptionRow: View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             HStack {
                 Label {
-                    Text(balanced: title)
+                    GameLabel(title, balanced: true)
                         .trinketTypography(.body)
                 } icon: {
                     Image(systemName: dynamicIconName)
@@ -72,7 +72,7 @@ public struct VolumeOptionRow: View {
                     }
                 },
             )
-            .accessibilityLabel(title)
+            .gameAccessibilityLabel(title)
             .accessibilityValue(percentageText)
             .onChange(of: draft) { _, newValue in
                 if isEditing {

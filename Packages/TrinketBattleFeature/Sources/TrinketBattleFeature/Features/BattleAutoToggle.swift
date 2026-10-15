@@ -12,7 +12,7 @@ struct BattleAutoToggle: View {
             set: { enabled in input.perform { $0.isAutoBattleEnabled = enabled } },
         )) {
             Label(
-                "Auto",
+                String(localized: L10n.ui_battleautotoggle_auto_02862),
                 systemImage: "arrow.trianglehead.2.clockwise.rotate.90",
             )
         }

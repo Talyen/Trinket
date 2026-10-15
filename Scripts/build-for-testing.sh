@@ -65,6 +65,11 @@ begin_build_stamps "$RESULTS_DIR" smoke
 xcode_runner_run "${app_runner_args[@]}" -- xcodebuild build-for-testing \
   "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
 
+if [[ "${CI:-}" == true ]]; then
+  python3 Scripts/check-localization-build.py --derived-data "$DERIVED_DATA_PATH" \
+    --app "$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
+fi
+
 if [[ "$APP_ONLY" == "true" ]]; then
   echo "=== build-for-testing: skipping package schemes (--app-only) ==="
   for fingerprint in "${TRINKET_BUILD_FINGERPRINTS_APP[@]}"; do

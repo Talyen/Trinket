@@ -11,10 +11,10 @@ struct FullGameOfferView: View {
     let artwork: FullGameOfferArtwork?
 
     var body: some View {
-        DetailHeroScrollShell(title: "Full Game", heroHeightPolicy: .square) { height in
+        DetailHeroScrollShell(title: String(localized: L10n.ui_fullgameofferview_full_game_59929), heroHeightPolicy: .square) { height in
             DetailHeroHeader(
-                eyebrow: "FULL GAME",
-                title: "Keep Exploring",
+                eyebrow: String(localized: L10n.ui_fullgameofferview_full_game_497de),
+                title: String(localized: L10n.ui_fullgameofferview_keep_exploring_2c443),
                 titleAccessibilityIdentifier: AccessibilityID.FullGame.hero,
                 baseHeight: height,
             ) {
@@ -24,15 +24,15 @@ struct FullGameOfferView: View {
             }
         } bodyContent: {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                benefit(Text("All \(Text("chapters & modes").fontWeight(.semibold))"), icon: .system("map.fill"))
-                benefit(Text("Every \(Text("hero & companion").fontWeight(.semibold))"), icon: .system("person.2.fill"))
-                benefit(Text("Includes \(Text("all future content").fontWeight(.semibold))"), icon: .system("sparkles"))
+                benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"))
+                benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"))
+                benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"))
             }
             .padding(TrinketDesign.Layout.contentMargin)
         }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Close", systemImage: "xmark") { dismiss() }
+                Button(String(localized: L10n.ui_fullgameofferview_close_7d9eb), systemImage: "xmark") { dismiss() }
                     .labelStyle(.iconOnly)
             }
         }
@@ -66,7 +66,7 @@ struct FullGameOfferView: View {
     private var purchaseArea: some View {
         VStack(spacing: TrinketDesign.Spacing.small) {
             if store.ownership.access.hasFullGame {
-                Button("Full Game Purchased") { dismiss() }
+                Button(String(localized: L10n.ui_fullgameofferview_full_game_purchased_51dc5)) { dismiss() }
                     .frame(maxWidth: .infinity)
                     .trinketPrimaryActionButton()
             } else if let product = store.product {
@@ -80,7 +80,7 @@ struct FullGameOfferView: View {
                     .trinketTypography(.body)
                     .frame(maxWidth: .infinity)
             } else {
-                Button("Retry") { Task { await store.loadProduct() } }
+                Button(String(localized: L10n.ui_fullgameofferview_retry_94208)) { Task { await store.loadProduct() } }
                     .frame(maxWidth: .infinity)
                     .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.FullGame.retry)
             }
@@ -95,7 +95,7 @@ struct FullGameOfferView: View {
                         if store.isRestoring {
                             ProgressView()
                         }
-                        Text("Restore Purchases")
+                        Text(L10n.ui_fullgameofferview_restore_purchases_16351)
                     }
                     .frame(minHeight: footerControlMinHeight)
                     .contentShape(.rect)
@@ -107,7 +107,7 @@ struct FullGameOfferView: View {
                         .accessibilityHidden(true)
                 }
                 Link(destination: TrinketPublicPages.privacy) {
-                    Text("Privacy")
+                    Text(L10n.ui_fullgameofferview_privacy_54a57)
                         .frame(minWidth: footerControlMinHeight, minHeight: footerControlMinHeight)
                         .contentShape(.rect)
                 }
@@ -117,7 +117,7 @@ struct FullGameOfferView: View {
             .foregroundStyle(.secondary)
             .padding(.top, TrinketDesign.Spacing.small)
 
-            Label("Family Sharing", systemImage: "person.2")
+            Label(String(localized: L10n.ui_fullgameofferview_family_sharing_ba974), systemImage: "person.2")
                 .trinketTypography(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -146,7 +146,7 @@ private struct FullGameProductStyle: ProductViewStyle {
                     if isPurchasing {
                         ProgressView()
                     }
-                    Text("Unlock Full Game · \(product.displayPrice)")
+                    Text(L10n.ui_fullgameofferview_unlock_full_game_1_b6d50("\(product.displayPrice)"))
                         .trinketTypography(.button)
                 }
                 .frame(maxWidth: .infinity)
@@ -175,18 +175,18 @@ struct FullGameOutcomeMessage: View {
         }
     }
 
-    private func message(for outcome: FullGameStore.Outcome) -> LocalizedStringKey {
+    private func message(for outcome: FullGameStore.Outcome) -> String {
         switch outcome {
         case .pricingUnavailable:
-            "Pricing is unavailable. Try again."
+            String(localized: L10n.ui_fullgameofferview_pricing_is_unavailable_try_again_cf1d2)
         case .pendingApproval:
-            "Waiting for approval. Full Game will unlock when approved."
+            String(localized: L10n.ui_fullgameofferview_waiting_for_approval_full_game_will_unlock_wh_6334b)
         case .restoreFailed:
-            "Couldn’t restore purchases. Please try again."
+            String(localized: L10n.ui_fullgameofferview_couldn_t_restore_purchases_please_try_again_7c988)
         case .noPurchaseFound:
-            "No Full Game purchase was found for your Apple Account."
+            String(localized: L10n.ui_fullgameofferview_no_full_game_purchase_was_found_for_your_appl_bdc23)
         case .purchaseUnverified:
-            "Couldn’t verify Full Game ownership. Please try Restore Purchases."
+            String(localized: L10n.ui_fullgameofferview_couldn_t_verify_full_game_ownership_please_tr_87254)
         }
     }
 }

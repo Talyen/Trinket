@@ -45,3 +45,17 @@ asset|Trinket/Media/SFX
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/AffixModifier.generated.swift
 content|Packages/TrinketContent/Sources/TrinketContent/Generated/AffixRolling.generated.swift
 asset|Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json
+
+content|Trinket/App/Generated/LocalizedStrings.generated.swift
+content|Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Generated/LocalizedStrings.generated.swift
+content|Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Generated/LocalizedStrings.generated.swift
+content|Packages/TrinketFeatureSupport/Sources/TrinketFeatureAdapters/Generated/LocalizedStrings.generated.swift
+content|Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Generated/LocalizedStrings.generated.swift
+content|Packages/TrinketContent/Sources/TrinketContent/Generated/LocalizedStrings.generated.swift
+content|Packages/TrinketCore/Sources/TrinketCore/Generated/LocalizedStrings.generated.swift
+content|Packages/BattleEngine/Sources/BattleEngine/Generated/LocalizedStrings.generated.swift
+content|Packages/TrinketContent/Sources/TrinketContent/Generated/ContentCopy.generated.swift
+content|Packages/TrinketContent/Sources/TrinketContent/Resources/Localizable.xcstrings
+content|Localization/Store/Localizable.xcstrings
+content|Localization/Generated/AppStore
+content|Localization/Generated/Regions

@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketContent
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
@@ -32,7 +33,7 @@ struct StageSelectScreen<HeroArt: View, Content: View>: View {
                     StageSelectModifierLine(modifier: heroModifier)
                         .accessibilityIdentifier(subtitleAccessibilityIdentifier)
                 } else if let subtitle {
-                    Text(subtitle)
+                    GameLabel(subtitle)
                         .accessibilityIdentifier(subtitleAccessibilityIdentifier)
                         .trinketTypography(.secondaryBody)
                         .trinketOnArtText(.eyebrow)
@@ -65,7 +66,7 @@ struct StageSelectCompletionPanel: View {
             ContentUnavailableView(
                 title,
                 systemImage: "checkmark.seal.fill",
-                description: Text(description),
+                description: Text(verbatim: ContentCopy.localized(description)),
             )
 
             Button(buttonTitle, action: onBack)

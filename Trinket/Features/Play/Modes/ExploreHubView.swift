@@ -10,12 +10,12 @@ struct ExploreHubView: View {
 
     var body: some View {
         HubGridScaffold(
-            title: "Explore",
+            title: String(localized: L10n.ui_explorehubview_explore_3b739),
             accessibilityIdentifier: AccessibilityID.Play.exploreHub,
         ) {
             HubArtworkNavigationLink(
                 destination: PlayLaunchDestination.spiresHub,
-                title: "Spires",
+                title: String(localized: L10n.ui_explorehubview_spires_77de7),
                 subtitle: spiresProgressSubtitle,
                 artID: "gameModeSpires",
                 fallbackArtID: EncounterArtIDs.explorePlayModeID,
@@ -24,8 +24,8 @@ struct ExploreHubView: View {
 
             HubArtworkNavigationLink(
                 destination: PlayLaunchDestination.labyrinthMap,
-                title: "Labyrinth",
-                subtitle: "Floor \(max(1, playerSave.labyrinth.currentFloorNumber))",
+                title: String(localized: L10n.ui_explorehubview_labyrinth_df308),
+                subtitle: String(localized: L10n.ui_explorehubview_floor_1_699ae("\(max(1, playerSave.labyrinth.currentFloorNumber))")),
                 artID: "gameModeLabyrinth",
                 fallbackArtID: EncounterArtIDs.explorePlayModeID,
                 accessibilityIdentifier: AccessibilityID.Play.labyrinthModeCard,
@@ -33,7 +33,7 @@ struct ExploreHubView: View {
 
             HubArtworkNavigationLink(
                 destination: PlayLaunchDestination.contracts,
-                title: "Contracts",
+                title: String(localized: L10n.ui_explorehubview_contracts_0488a),
                 subtitle: nil,
                 artID: EncounterArtIDs.contractsHeroID,
                 accessibilityIdentifier: AccessibilityID.Play.contractsModeCard,
@@ -41,7 +41,7 @@ struct ExploreHubView: View {
 
             HubArtworkNavigationLink(
                 destination: PlayLaunchDestination.voyage,
-                title: "Voyage",
+                title: String(localized: L10n.ui_explorehubview_voyage_10d91),
                 subtitle: nil,
                 artID: "gameModeVoyage",
                 accessibilityIdentifier: AccessibilityID.Voyage.modeCard,

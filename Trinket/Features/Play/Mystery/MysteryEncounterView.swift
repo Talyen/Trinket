@@ -9,6 +9,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct MysteryEncounterView: View {
+    @Environment(\.locale) private var locale
     @Environment(\.requestFullGameOffer) private var requestOffer
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
@@ -171,7 +172,7 @@ struct MysteryEncounterView: View {
                 mysteryHeader(baseHeight: baseHeight, singleLineTitle: false)
             } bodyContent: {
                 VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraLarge) {
-                    Text(session.narrative)
+                    Text(verbatim: session.event.localizedNarrative(for: session.offers, locale: locale))
                         .trinketTypography(.body)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -216,7 +217,7 @@ struct MysteryEncounterView: View {
 
     private func mysteryHeader(baseHeight: CGFloat, singleLineTitle: Bool) -> some View {
         DetailHeroHeader(
-            eyebrow: "MYSTERY",
+            eyebrow: String(localized: L10n.ui_mysteryencounterview_mystery_9a26a),
             title: session.event.title,
             titleAccessibilityIdentifier: AccessibilityID.Mystery.encounterTitle,
             baseHeight: baseHeight,
@@ -229,7 +230,7 @@ struct MysteryEncounterView: View {
     }
 
     private var narrativeCard: some View {
-        Text(session.narrative)
+        Text(verbatim: session.event.localizedNarrative(for: session.offers, locale: locale))
             .trinketTypography(.body)
             .foregroundStyle(.primary)
             .fixedSize(horizontal: false, vertical: true)
@@ -242,7 +243,7 @@ struct MysteryEncounterView: View {
     private var mysteryChoices: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             if session.event.choices.count > 1 {
-                Text("PICK A REWARD")
+                Text(L10n.ui_mysteryencounterview_pick_a_reward_c1738)
                     .trinketTypography(.cardTitle)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
@@ -269,7 +270,7 @@ struct MysteryEncounterView: View {
 
     private var mysteryConfirmAction: some View {
         MysteryPrimaryFooter(
-            title: "Confirm",
+            title: String(localized: L10n.ui_mysteryencounterview_confirm_eebdd),
             accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton,
             isDisabled: selectedChoiceID == nil || session.isResolvingChoice,
         ) {
@@ -294,7 +295,7 @@ struct MysteryPrimaryFooter: View {
         Button {
             action()
         } label: {
-            Text(title)
+            GameLabel(title)
                 .frame(maxWidth: .infinity)
         }
         .trinketPrimaryActionButton(accessibilityIdentifier: accessibilityIdentifier)

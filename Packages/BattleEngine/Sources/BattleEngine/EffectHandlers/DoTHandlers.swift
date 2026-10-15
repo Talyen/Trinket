@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -58,12 +59,12 @@ struct DecayingDoTHandler {
         if keyword == .burn {
             return EffectSummary(
                 keyword: keyword,
-                text: "\(total) Burn\nDeals Burn damage and halves each turn",
+                resource: L10n.summary_dothandlers_e5aeed49abb2(total),
             )
         }
         return EffectSummary(
             keyword: keyword,
-            text: "\(total) Poison\nDeals Poison damage and decreases by 25% each turn",
+            resource: L10n.summary_dothandlers_21d6008d77ff(total),
         )
     }
 
@@ -127,7 +128,7 @@ extension EffectHandlers {
         guard total > 0 else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "\(total) Bleed\nDeals Bleed damage each turn until it expires",
+            resource: L10n.summary_dothandlers_2872515f0e5b(total),
         )
     }
 
@@ -171,7 +172,12 @@ extension EffectHandlers {
         else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "\(damageKeyword.rawValue): Deals \(potency) \(damageKeyword.rawValue) damage each turn, \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))",
+            resource: L10n.summary_dothandlers_116f2479cb27(
+                damageKeyword.nameResource,
+                potency,
+                damageKeyword.nameResource,
+                BattleTiming.remainingDurationResource(turns: active.remainingTurns),
+            ),
         )
     }
 

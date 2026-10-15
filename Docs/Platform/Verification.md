@@ -293,6 +293,13 @@ slices omit that check only after successful style verification. Standalone
 cheap slices retain the full registry. Unit mode delegates directly to the
 package runner; per-package timing records own its diagnostic evidence.
 
+The cheap slices include read-only [localization coverage and freshness](Localization.md).
+Every relevant handoff, locked integration and pre-push blocks on its pending
+queue; builds and hooks do not invoke AI. Existing CI app builds separately verify
+compiler-extracted keys and compiled language bundles. FullUI owns localization
+screenshots and accessibility hierarchy evidence; local handoff does not prove
+compilation, fonts, layout, or successful archive language packaging.
+
 ## Style and boundary ownership
 
 | Check | Owns |

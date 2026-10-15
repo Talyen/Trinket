@@ -60,7 +60,7 @@ extension BattleTurnEngine {
 
         var totalDealt = 0
         var logKeyword = resolvedAbility.damageKeyword
-        var appliedEffectLogs: [String] = []
+        var appliedEffectLogs = AppliedEffectLogs()
         var reservedKeywordOverride: Keyword?
         for operation in resolvedAbility.operations {
             switch operation {
@@ -74,10 +74,12 @@ extension BattleTurnEngine {
                 totalDealt = SaturatedArithmetic.saturatingAdd(totalDealt, outcome.healthLost)
                 logKeyword = outcome.logDamageKeyword ?? logKeyword
             case let .effect(targeted):
-                await appliedEffectLogs.append(contentsOf: applyTargetedEffects(
+                let applied = await applyTargetedEffects(
                     [targeted], ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
                     context: &context,
-                ))
+                )
+                appliedEffectLogs.text += applied.text
+                appliedEffectLogs.effects += applied.effects
             }
         }
 
@@ -91,7 +93,9 @@ extension BattleTurnEngine {
             target: abilityTarget,
             amount: totalDealt,
             keyword: logKeyword,
-            appliedEffectSummaries: appliedEffectLogs,
+            appliedEffectSummaries: appliedEffectLogs.text,
+            appliedEffects: appliedEffectLogs.effects,
+            stealsGold: resolvedAbility.stealsGold,
         )
 
         await UniqueCombatEngine.repeatCardDamage(actor: actor, in: &context)

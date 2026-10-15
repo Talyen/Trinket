@@ -51,10 +51,12 @@ struct MysteryUnlockContent: View {
             KeywordPlasmaBackground(keywords: recruitPlasmaKeywords(for: combatant))
 
             RewardRevealShell(
-                eyebrow: combatant.role == .companion ? "New Companion" : "New Hero",
+                eyebrow: combatant
+                    .role == .companion ? String(localized: L10n.ui_mysteryunlockcontent_new_companion_eb4ec) :
+                    String(localized: L10n.ui_mysteryunlockcontent_new_hero_46647),
                 eyebrowAccessibilityIdentifier: AccessibilityID.Mystery.unlockEyebrow,
                 title: combatant.name,
-                subtitle: "UNLOCKED",
+                subtitle: String(localized: L10n.ui_mysteryunlockcontent_unlocked_ef0e1),
                 subtitleAccessibilityIdentifier: AccessibilityID.Mystery.unlockSubtitle,
                 titleAccessibilityIdentifier: AccessibilityID.Mystery.unlockName,
                 eyebrowOpacity: ceremony.eyebrowOpacity,
@@ -84,7 +86,7 @@ struct MysteryUnlockContent: View {
                         .trinketPresentationVisibility(ceremony.allowsDetail, opacity: 1)
                     }
                 },
-                primaryActionTitle: "Recruit",
+                primaryActionTitle: String(localized: L10n.ui_mysteryunlockcontent_recruit_3803d),
                 primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
                 isPrimaryActionDisabled: !ceremony.isOffered,
                 onPrimaryAction: confirmRecruit,
@@ -103,7 +105,7 @@ struct MysteryUnlockContent: View {
             Image(systemName: "checkmark")
                 .fontWeight(.bold)
                 .accessibilityHidden(true)
-            Text("RECRUITED")
+            Text(L10n.ui_mysteryunlockcontent_recruited_dfb90)
                 .trinketTypography(.badge)
         }
         .foregroundStyle(TrinketDesign.Colors.canvas)

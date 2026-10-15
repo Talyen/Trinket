@@ -47,7 +47,7 @@ struct ItemSlotPickerView: View {
         ItemPickerSearchScope(readyItem: $readyItem, onReady: presentReadyItem) {
             VStack(spacing: 0) {
                 if filter.isActive {
-                    Text("\(displayItems.count) of \(model.eligible.count) items")
+                    Text(L10n.ui_itemslotpickerview_1_of_2_items_e86cf("\(displayItems.count)", "\(model.eligible.count)"))
                         .trinketTypography(.caption)
                         .foregroundStyle(.secondary)
                         .padding(.vertical, TrinketDesign.Spacing.small)
@@ -88,9 +88,9 @@ struct ItemSlotPickerView: View {
                 scrollPosition.scrollTo(edge: .top)
             }
         }
-        .searchable(text: $searchText, prompt: "Search equipment")
+        .searchable(text: $searchText, prompt: String(localized: L10n.ui_itemslotpickerview_search_equipment_869c1))
         .toolbar { filterToolbar }
-        .navigationTitle("Equip \(slot.displayName)")
+        .navigationTitle(Text(L10n.ui_itemslotpickerview_equip_1_58a77("\(slot.displayName)")))
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedItem) { item in
             let isEquipped = equipmentLoadout.itemID(for: slot) == item.id
@@ -161,15 +161,15 @@ struct ItemSlotPickerView: View {
     @ViewBuilder
     private var emptyState: some View {
         if model.eligible.isEmpty {
-            ContentUnavailableView("No Items to Equip", systemImage: "shippingbox")
+            ContentUnavailableView(String(localized: L10n.ui_itemslotpickerview_no_items_to_equip_c1b35), systemImage: "shippingbox")
         } else {
             ContentUnavailableView {
-                Label("No Matching Items", systemImage: "line.3.horizontal.decrease")
+                Label(String(localized: L10n.ui_itemslotpickerview_no_matching_items_cef58), systemImage: "line.3.horizontal.decrease")
                     .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemsNoResults)
             } description: {
-                Text("Try a different search or filter")
+                Text(L10n.ui_itemslotpickerview_try_a_different_search_or_filter_bf470)
             } actions: {
-                Button("Clear Filters") { filter = ItemPickerFilter() }
+                Button(String(localized: L10n.ui_itemslotpickerview_clear_filters_57765)) { filter = ItemPickerFilter() }
                     .accessibilityIdentifier(AccessibilityID.LoadoutPicker.clearItemFilters)
             }
         }
@@ -179,32 +179,34 @@ struct ItemSlotPickerView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 if slot != .trinket {
-                    Picker("Rarity", selection: $filter.rarity) {
-                        Text("All Rarities").tag(nil as Rarity?)
+                    Picker(String(localized: L10n.ui_itemslotpickerview_rarity_feddc), selection: $filter.rarity) {
+                        Text(L10n.ui_itemslotpickerview_all_rarities_3b733).tag(nil as Rarity?)
                         ForEach([Rarity.unique, .astral, .basic]) { rarity in
-                            Text(rarity.label).tag(Optional(rarity))
+                            GameLabel(rarity.label).tag(Optional(rarity))
                         }
                     }
                     .pickerStyle(.menu)
                     .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemRarityFilter)
                 }
-                Picker("Keyword", selection: $filter.keyword) {
-                    Text("All Keywords").tag(nil as Keyword?)
+                Picker(String(localized: L10n.ui_itemslotpickerview_keyword_a6680), selection: $filter.keyword) {
+                    Text(L10n.ui_itemslotpickerview_all_keywords_db832).tag(nil as Keyword?)
                     ForEach(model.keywords) { keyword in
-                        Text(keyword.rawValue).tag(Optional(keyword))
+                        GameLabel(keyword.rawValue).tag(Optional(keyword))
                     }
                 }
                 .pickerStyle(.menu)
                 .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemKeywordFilter)
-                Button("Clear Filters") { filter = ItemPickerFilter() }
+                Button(String(localized: L10n.ui_itemslotpickerview_clear_filters_57765)) { filter = ItemPickerFilter() }
                     .disabled(!filter.isActive)
                     .accessibilityIdentifier(AccessibilityID.LoadoutPicker.clearItemFilters)
             } label: {
                 Image(systemName: "line.3.horizontal.decrease")
                     .trinketTypography(filter.isActive ? .button : .body)
                     .foregroundStyle(filter.isActive ? TrinketDesign.Colors.accentEmphasized : .primary)
-                    .accessibilityLabel("Filter Equipment")
-                    .accessibilityValue(filter.isActive ? "Filters active" : "All equipment")
+                    .accessibilityLabel(Text(L10n.ui_itemslotpickerview_filter_equipment_3b068))
+                    .accessibilityValue(filter
+                        .isActive ? String(localized: L10n.ui_itemslotpickerview_filters_active_1334e) :
+                        String(localized: L10n.ui_itemslotpickerview_all_equipment_b79c2))
             }
             .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemFilter)
         }
@@ -217,12 +219,12 @@ struct ItemSlotPickerView: View {
 
     private func actionTitle(for item: InventoryItem) -> String {
         if equipmentLoadout.itemID(for: slot) == item.id {
-            return "Unequip \(slot.displayName)"
+            return String(localized: L10n.ui_itemslotpickerview_unequip_1_3a66e("\(slot.displayName)"))
         }
         if let wearer = otherWearerName(for: item) {
-            return "Move from \(wearer)"
+            return String(localized: L10n.ui_itemslotpickerview_move_from_1_7bb90("\(wearer)"))
         }
-        return "Equip \(slot.displayName)"
+        return String(localized: L10n.ui_itemslotpickerview_equip_1_58a77("\(slot.displayName)"))
     }
 
     @ViewBuilder
@@ -236,7 +238,9 @@ struct ItemSlotPickerView: View {
                 .frame(width: 24, height: 24)
                 .background(TrinketDesign.Colors.panel, in: Circle())
                 .padding(TrinketDesign.Spacing.tight)
-                .accessibilityLabel(otherWearer.map { "Equipped by \($0)" } ?? "Equipped by this combatant")
+                .accessibilityLabel(otherWearer
+                    .map { String(localized: L10n.ui_itemslotpickerview_equipped_by_1_a51ee("\($0)")) } ??
+                    String(localized: L10n.ui_itemslotpickerview_equipped_by_this_combatant_6179d))
         }
     }
 }

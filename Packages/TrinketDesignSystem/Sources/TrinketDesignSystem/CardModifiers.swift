@@ -27,7 +27,7 @@ struct LockedCardEffectModifier: ViewModifier {
                 .blur(radius: Self.lockedBlurRadius)
                 .clipShape(clipShape)
                 .disabled(true)
-                .accessibilityLabel("Locked")
+                .accessibilityLabel(Text(L10n.ui_cardmodifiers_locked_a424e))
                 .overlay { lockBadgeOverlay }
         } else {
             content

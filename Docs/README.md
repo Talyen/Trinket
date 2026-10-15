@@ -38,6 +38,7 @@ is a lookup aid, not a reading checklist.
 | Agent workflow and safety hard stops | root and nested `AGENTS.md` |
 | Simulator isolation and leases | [Platform/SimulatorOperations.md](Platform/SimulatorOperations.md) (leases and recovery); interaction technique in the [ios-simulator skill](../.agents/skills/ios-simulator/SKILL.md) |
 | StoreKit purchase prerequisites | [Purchases](Platform/Purchases.md) (infra checklist); [Monetization](Product/Monetization.md) owns product rules |
+| Localization ownership and synchronization | [Localization](Platform/Localization.md), [English store copy](../Localization/Store/English.json) |
 | App Store metadata draft (data, not policy) | [App Store field drafts](Platform/AppStoreMetadata.md); [Release](Platform/Release.md) owns the procedure |
 | CloudKit enablement gates | [CloudKit checklist](Platform/CloudKitPreShipChecklist.md) (ordered gates); [storage contract](AgentContext/persistence-storage.md) owns save behavior |
 | Commit format, hooks, and push preconditions | [Platform/Release.md](Platform/Release.md) |

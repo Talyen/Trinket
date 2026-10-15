@@ -136,17 +136,17 @@ struct StageSelectActiveCard<
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
             if !presentation.activeEyebrow.isEmpty {
-                Text(balanced: presentation.activeEyebrow.uppercased())
+                GameLabel(presentation.activeEyebrow, balanced: true)
                     .trinketTypography(.eyebrow)
                     .foregroundStyle(.secondary)
                     .trinketSingleLineFittedText()
             }
 
-            Text(balanced: presentation.title)
+            GameLabel(presentation.title, balanced: true)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
                 .trinketSingleLineFittedText()
-                .accessibilityLabel(presentation.title)
+                .gameAccessibilityLabel(presentation.title)
         }
     }
 
@@ -167,7 +167,7 @@ struct StageSelectActiveCard<
             }
         } label: {
             Label {
-                Text(isLockedContent ? "Unlock" : presentation.primaryActionTitle)
+                GameLabel(isLockedContent ? String(localized: L10n.ui_stageselectactivecard_unlock_4ac70) : presentation.primaryActionTitle)
             } icon: {
                 if isLockedContent {
                     Image(systemName: "lock.fill")
@@ -188,7 +188,8 @@ struct StageSelectActiveCard<
             labelColor: primaryActionLabelColor,
             accessibilityIdentifier: presentation.actionAccessibilityID,
         )
-        .accessibilityLabel(isLockedContent ? "Unlock" : presentation.primaryActionTitle)
+        .accessibilityLabel(isLockedContent ? String(localized: L10n.ui_stageselectactivecard_unlock_4ac70) : presentation
+            .primaryActionTitle)
         .disabled(isPrimaryActionDisabled)
         .trinketSensoryFeedback(
             .selection,
@@ -211,7 +212,7 @@ struct StageSelectActiveCard<
         }
         .trinketArtworkCardButtonStyle()
         .disabled(isBattleActive)
-        .accessibilityLabel("Party")
+        .accessibilityLabel(Text(L10n.ui_stageselectactivecard_party_dfa82))
         .accessibilityIdentifier(presentation.partyControlAccessibilityID)
     }
 }
@@ -249,10 +250,10 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
     var body: some View {
         HStack(spacing: TrinketDesign.Spacing.extraSmall) {
             if !presentation.mapLabel.isEmpty {
-                Text(presentation.mapLabel)
+                GameLabel(presentation.mapLabel)
                 Text("·")
             }
-            Text(presentation.encounterTypeTitle)
+            GameLabel(presentation.encounterTypeTitle)
                 .foregroundStyle(presentation.tint)
             GameIconImage(presentation.icon)
                 .foregroundStyle(presentation.tint)

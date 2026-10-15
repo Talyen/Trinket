@@ -40,7 +40,7 @@ struct BattleOutcomeRewardRow: View {
 
     var body: some View {
         Label {
-            Text(balanced: text)
+            GameLabel(text, balanced: true)
                 .trinketTypography(.secondaryBody)
         } icon: {
             GameIconImage(icon)

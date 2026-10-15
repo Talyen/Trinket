@@ -67,7 +67,7 @@ struct StarterRouletteScreen: View {
                     Spacer(minLength: TrinketDesign.Spacing.small)
 
                     if choices.isEmpty {
-                        Button("Retry") { scrollEntryID = choices.first?.id }
+                        Button(String(localized: L10n.ui_starterroulettescreen_retry_94208)) { scrollEntryID = choices.first?.id }
                             .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Onboarding.retry(role: role))
                             .frame(height: layout.bandHeight)
                     } else {
@@ -122,7 +122,7 @@ struct StarterRouletteScreen: View {
     }
 
     private var header: some View {
-        Text("CHOOSE A \(role.rawValue.uppercased())")
+        Text(L10n.ui_starterroulettescreen_choose_a_1_700b7("\(role.rawValue)"))
             .trinketTypography(.eyebrow)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
@@ -211,7 +211,7 @@ struct StarterRouletteScreen: View {
     private var namePlate: some View {
         VStack(spacing: TrinketDesign.Spacing.extraSmall) {
             if let selectedCombatant {
-                Text(balanced: selectedCombatant.name)
+                GameLabel(selectedCombatant.name, balanced: true)
                     .accessibilityIdentifier(AccessibilityID.Onboarding.selectedName)
                     .trinketTypography(.screenTitle)
                     .trinketFittedText()
@@ -221,7 +221,7 @@ struct StarterRouletteScreen: View {
                 if !affinities.isEmpty {
                     HStack(spacing: TrinketDesign.Spacing.small) {
                         ForEach(affinities, id: \.self) { keyword in
-                            Text(keyword.rawValue)
+                            GameLabel(keyword.rawValue)
                                 .trinketTypography(.cardLabel)
                                 .fontWeight(.bold)
                                 .foregroundStyle(keyword.visualStyle.color)
@@ -229,7 +229,7 @@ struct StarterRouletteScreen: View {
                         }
                     }
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel(affinities.map(\.rawValue).joined(separator: ", "))
+                    .accessibilityLabel(affinities.map { $0.localizedName() }.formatted(.list(type: .and)))
                 }
             }
         }
@@ -239,7 +239,10 @@ struct StarterRouletteScreen: View {
 
     private var continueAction: some View {
         Button(
-            selectedCombatant.map { playerSave.contentAccess.allowsCombatant($0.id) } == false ? "Unlock Full Game" : "Continue",
+            selectedCombatant
+                .map { playerSave.contentAccess.allowsCombatant($0.id) } == false ?
+                String(localized: L10n.ui_starterroulettescreen_unlock_full_game_0108a) :
+                String(localized: L10n.ui_starterroulettescreen_continue_31fbe),
             action: confirm,
         )
         .disabled(selectedCombatant == nil)

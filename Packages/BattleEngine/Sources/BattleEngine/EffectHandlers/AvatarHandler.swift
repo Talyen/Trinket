@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -6,10 +7,14 @@ extension EffectHandlers {
         guard let active = stacks.first,
               case let .avatar(holyDamage, blockPerTurn, _) = active.effect
         else { return nil }
-        let blockClause = blockPerTurn > 0 ? " and gains \(blockPerTurn) Block each turn" : " each turn"
+        let blockClause = blockPerTurn > 0 ? L10n.summary_avatarhandler_e8766418d22b(blockPerTurn) : L10n.summary_avatarhandler_3ff4038b7d8e
         return EffectSummary(
             keyword: keyword,
-            text: "Avatar: Deals \(holyDamage) Holy damage\(blockClause), \(BattleTiming.remainingDurationLabel(turns: active.remainingTurns))",
+            resource: L10n.summary_avatarhandler_a9e78e0afef2(
+                holyDamage,
+                blockClause,
+                BattleTiming.remainingDurationResource(turns: active.remainingTurns),
+            ),
         )
     }
 

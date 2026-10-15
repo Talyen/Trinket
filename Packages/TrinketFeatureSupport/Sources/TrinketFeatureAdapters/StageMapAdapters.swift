@@ -109,8 +109,8 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
             else { return nil }
 
             let encounter = StageEncounter.battle(enemyID: floor.enemyID)
-            let encounterTypeTitle = enemy.isBoss ? "Boss" : encounter.title
-            let mapLabel = "Floor \(floor.floor)"
+            let encounterTypeTitle = enemy.isBoss ? String(localized: L10n.ui_stagemapadapters_boss_6a6ac) : encounter.title
+            let mapLabel = String(localized: L10n.ui_stagemapadapters_floor_1_699ae("\(floor.floor)"))
             let selected = floor.floor == activeFloor
                 ? GameContent.spireModifier(for: floor, worldSeed: worldSeed)
                 : nil
@@ -124,7 +124,7 @@ public extension StageSelectRowPresentation where Item == SpireFloor {
                 encounterTypeTitle: encounterTypeTitle,
                 icon: GameIcon(id: encounter.iconID),
                 tint: encounter.mapTint,
-                primaryActionTitle: "Battle",
+                primaryActionTitle: String(localized: L10n.ui_stagemapadapters_battle_1b18e),
                 showsPartyPicker: true,
                 isArtworkInteractive: true,
                 rowAccessibilityID: AccessibilityID.Play.spireFloor(
@@ -162,10 +162,10 @@ public extension StageSelectRowPresentation where Item == ContractOffer {
                 activeEyebrow: offer.difficulty.title,
                 mapLabel: offer.difficulty.title,
                 title: enemy.name,
-                encounterTypeTitle: enemy.isBoss ? "Boss" : encounter.title,
+                encounterTypeTitle: enemy.isBoss ? String(localized: L10n.ui_stagemapadapters_boss_6a6ac) : encounter.title,
                 icon: GameIcon(id: encounter.iconID),
                 tint: encounter.mapTint,
-                primaryActionTitle: "Battle",
+                primaryActionTitle: String(localized: L10n.ui_stagemapadapters_battle_1b18e),
                 showsPartyPicker: true,
                 isArtworkInteractive: true,
                 rowAccessibilityID: AccessibilityID.Play.contractOffer(offer.difficulty.rawValue),
@@ -217,7 +217,7 @@ public extension StageSelectRowPresentation where Item == LabyrinthNode {
         title: String,
         isArtworkInteractive: Bool,
     ) -> Self {
-        let mapLabel = "Floor \(node.depth)"
+        let mapLabel = String(localized: L10n.ui_stagemapadapters_floor_1_699ae("\(node.depth)"))
         return Self(
             item: node,
             isActive: true,

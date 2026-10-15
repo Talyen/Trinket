@@ -62,6 +62,8 @@ package extension BattleState {
         amount: Int,
         keyword: Keyword,
         appliedEffectSummaries: [String] = [],
+        appliedEffects: [Effect] = [],
+        stealsGold: Bool = false,
         isCritical: Bool = false,
         origin: ActionEvent.Origin = .automatic,
         isFullyBlocked: Bool = false,
@@ -81,6 +83,8 @@ package extension BattleState {
             amount: amount,
             keyword: keyword,
             appliedEffectSummaries: appliedEffectSummaries,
+            appliedEffects: appliedEffects,
+            stealsGold: stealsGold,
             isCritical: isCritical,
             feedbackGroupID: resolution.feedbackGroupID ?? nextEventID,
             origin: origin == .direct && !resolution.isAutomaticPlay

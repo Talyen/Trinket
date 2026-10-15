@@ -25,7 +25,7 @@ struct ContractsBoardView: View {
     var body: some View {
         StageSelectScreen(
             eyebrow: nil,
-            title: "Contracts",
+            title: String(localized: L10n.ui_contractsboardview_contracts_0488a),
             subtitle: nil,
             titleAccessibilityIdentifier: nil,
         ) {
@@ -33,7 +33,7 @@ struct ContractsBoardView: View {
         } content: {
             VStack(spacing: 0) {
                 if hasPreparedBoard, displayedOffers.isEmpty {
-                    Button("Load Contracts") { perform { contracts.enter() } }
+                    Button(String(localized: L10n.ui_contractsboardview_load_contracts_46e66)) { perform { contracts.enter() } }
                         .trinketPrimaryActionButton()
                         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                 }
@@ -84,9 +84,11 @@ struct ContractsBoardView: View {
                     .frame(width: 24, height: 24)
                 }
                 .disabled(!canRefreshContracts)
-                .accessibilityLabel("Refresh Contracts")
-                .accessibilityValue(showsPreparationProgress ? "Preparing contracts" :
-                    (playerSave.contracts.refreshAvailable ? "Ready" : "Win a Contract to refresh"))
+                .accessibilityLabel(Text(L10n.ui_contractsboardview_refresh_contracts_63bdc))
+                .accessibilityValue(showsPreparationProgress ? String(localized: L10n.ui_contractsboardview_preparing_contracts_b8319) :
+                    (playerSave.contracts
+                        .refreshAvailable ? String(localized: L10n.ui_contractsboardview_ready_5fa7a) :
+                        String(localized: L10n.ui_contractsboardview_win_a_contract_to_refresh_9aba7)))
                 .accessibilityIdentifier(AccessibilityID.Play.contractsRefresh)
             }
         }

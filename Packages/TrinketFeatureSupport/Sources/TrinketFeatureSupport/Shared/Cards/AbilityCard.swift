@@ -30,12 +30,12 @@ struct AbilityChoiceCard: View {
             },
             label: {
                 VStack(spacing: TrinketDesign.Spacing.tight) {
-                    Text(balanced: ability.tier.rawValue.uppercased())
+                    GameLabel(ability.tier.rawValue, balanced: true)
                         .trinketTypography(.eyebrow)
                         .foregroundStyle(.secondary)
                         .trinketFittedText()
 
-                    Text(balanced: ability.name)
+                    GameLabel(ability.name, balanced: true)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)

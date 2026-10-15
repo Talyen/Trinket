@@ -77,7 +77,7 @@ public struct CombatantTalentsView: View {
     public var body: some View {
         DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .talentTree) { baseHeight in
             DetailHeroHeader(
-                eyebrow: "TALENTS",
+                eyebrow: String(localized: L10n.ui_combatanttalentsview_talents_39430),
                 title: tree.name,
                 baseHeight: baseHeight,
             ) {
@@ -129,7 +129,7 @@ public struct CombatantTalentsView: View {
                     .trinketTypography(.footnote)
                     .fontWeight(.semibold)
                     .foregroundStyle(TrinketDesign.Colors.accent)
-                    .accessibilityLabel("Reset All Talents")
+                    .accessibilityLabel(Text(L10n.ui_combatanttalentsview_reset_all_talents_25b6b))
                     .accessibilityIdentifier(AccessibilityID.CombatantDetail.talentsResetButton)
                 }
             }
@@ -216,32 +216,15 @@ public struct CombatantTalentsView: View {
         let isSelected = selectedNodeID == node.id
         let outlineOpacity = canUnlock(node) ? 0.6 : (isUnlocked ? 0.4 : 0)
         let style = node.keyword.visualStyle
-        let icon = node.iconID.map(GameIcon.init(id:)) ?? style.icon
-
         return Button {
             guard selectedNodeID != node.id else { return }
             selectedNodeID = node.id
             selectionFeedbackTrigger &+= 1
         } label: {
             VStack(spacing: TrinketDesign.Spacing.small) {
-                if isUnlocked {
-                    GameIconImage(icon)
-                        .trinketTypography(.screenTitle)
-                        .foregroundStyle(style.color)
-                        .accessibilityHidden(true)
-                } else if isRowLocked {
-                    Image(systemName: "lock.fill")
-                        .trinketTypography(.sectionTitle)
-                        .foregroundStyle(.tertiary)
-                        .accessibilityHidden(true)
-                } else {
-                    GameIconImage(icon)
-                        .trinketTypography(.screenTitle)
-                        .foregroundStyle(style.color.opacity(0.75))
-                        .accessibilityHidden(true)
-                }
+                TalentNodeIcon(node: node, isUnlocked: isUnlocked, isRowLocked: isRowLocked)
 
-                Text(balanced: node.name)
+                GameLabel(node.name, balanced: true)
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(isUnlocked ? .primary : (isRowLocked ? .tertiary : .secondary))
                     .multilineTextAlignment(.center)
@@ -273,7 +256,8 @@ public struct CombatantTalentsView: View {
         }
         .trinketArtworkCardButtonStyle(pressedScale: TrinketMotion.Interaction.choiceCardPressedScale)
         .accessibilityIdentifier(nodeAccessibilityIdentifier(node.id))
-        .accessibilityLabel(isRowLocked ? "\(node.name), locked" : node.name)
+        .accessibilityLabel(isRowLocked ? String(localized: L10n.ui_combatanttalentsview_1_locked_1871c("\(node.name)")) : ContentCopy
+            .localized(node.name))
     }
 
     private func unlockAccent(for node: TalentNode) -> some View {
@@ -309,7 +293,7 @@ public struct CombatantTalentsView: View {
                         .foregroundStyle(style.color)
                         .accessibilityHidden(true)
 
-                    Text(balanced: selectedNode.name)
+                    GameLabel(selectedNode.name, balanced: true)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(style.color)
                         .trinketFittedText()
@@ -369,20 +353,47 @@ public struct CombatantTalentsView: View {
 
     private func buttonLabel(for node: TalentNode, isUnlocked: Bool, canUnlock: Bool) -> String {
         if isUnlocked {
-            return "Unlocked"
+            return String(localized: L10n.ui_combatanttalentsview_unlocked_531c7)
         }
         if !allowsEditing {
-            return "Locked"
+            return String(localized: L10n.ui_combatanttalentsview_locked_a424e)
         }
         if canUnlock {
-            return "Unlock Talent"
+            return String(localized: L10n.ui_combatanttalentsview_unlock_talent_55a83)
         }
         if node.row > 1, !tree.isRowComplete(node.row - 1, unlockedNodeIDs: unlockedTalents) {
-            return "Complete Row \(node.row - 1) to Unlock"
+            return String(localized: L10n.ui_combatanttalentsview_complete_row_1_to_unlock_ab66a("\(node.row - 1)"))
         }
         if availablePoints == 0 {
-            return "No Points Available"
+            return String(localized: L10n.ui_combatanttalentsview_no_points_available_9bf52)
         }
-        return "Locked"
+        return String(localized: L10n.ui_combatanttalentsview_locked_a424e)
+    }
+}
+
+private struct TalentNodeIcon: View {
+    let node: TalentNode
+    let isUnlocked: Bool
+    let isRowLocked: Bool
+
+    var body: some View {
+        let style = node.keyword.visualStyle
+        let icon = node.iconID.map(GameIcon.init(id:)) ?? style.icon
+        if isUnlocked {
+            GameIconImage(icon)
+                .trinketTypography(.screenTitle)
+                .foregroundStyle(style.color)
+                .accessibilityHidden(true)
+        } else if isRowLocked {
+            Image(systemName: "lock.fill")
+                .trinketTypography(.sectionTitle)
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+        } else {
+            GameIconImage(icon)
+                .trinketTypography(.screenTitle)
+                .foregroundStyle(style.color.opacity(0.75))
+                .accessibilityHidden(true)
+        }
     }
 }

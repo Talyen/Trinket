@@ -19,6 +19,7 @@ trinket_set_app_xcodebuild_args() {
     -sdk "${2:-iphonesimulator}"
     -destination "${3:-generic/platform=iOS Simulator}"
     -derivedDataPath "$derived_data_path"
+    SWIFT_EMIT_LOC_STRINGS=YES
     -parallelizeTargets
     -disableAutomaticPackageResolution
     "SYMROOT=$derived_data_path/Build/Products"

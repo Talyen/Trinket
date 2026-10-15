@@ -3,6 +3,7 @@ import TrinketContent
 import TrinketDesignSystem
 
 public struct AbilityDetailView: View {
+    @Environment(\.locale) private var locale
     let ability: Ability
     private let primaryAction: DetailPrimaryAction?
 
@@ -40,11 +41,11 @@ public struct AbilityDetailView: View {
             },
             bodyContent: {
                 DetailSection(
-                    "Traits",
+                    String(localized: L10n.ui_abilitydetailview_traits_e0ab4),
                     sectionID: AccessibilityID.Battle.abilityDetailEffect,
                 ) {
                     VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                        DetailTraitRow(description: ability.summary)
+                        DetailTraitRow(description: ability.summary, localizedDescription: ability.localizedSummary(locale: locale))
                     }
                 }
             },

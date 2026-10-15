@@ -55,6 +55,7 @@ with `handoff.sh --isolate --quiet --dry-run --paths <files...>` before an unfam
 |---|---|
 | Development | [Generation, builds, discovery, and simulator/device launch](Reference.md#development) |
 | Verification | [Package tests, UI checks, handoff, and gates](Reference.md#verification) |
+| Localization | `python3 Scripts/localization.py plan`, `apply <response.json>`, `check` — [agent workflow](../Docs/Platform/Localization.md) |
 | Assets | [Artwork and media preparation](Reference.md#assets) |
 | TestFlight | `./Scripts/testflight.sh` — [one-time setup and recovery](../Docs/Platform/Release.md#local-testflight-deployment) |
 | Release | [Release and deploy verification](Reference.md#release) |

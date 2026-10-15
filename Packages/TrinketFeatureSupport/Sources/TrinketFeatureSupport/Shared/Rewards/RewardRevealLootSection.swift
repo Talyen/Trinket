@@ -130,7 +130,7 @@ public struct RewardRevealLootSection: View {
             ) {
                 if gold != 0 {
                     TrinketWalletResourcePill(
-                        title: "Gold",
+                        title: String(localized: L10n.ui_rewardreveallootsection_gold_6249d),
                         amount: gold,
                         showsIncreasePrefix: showsIncreasePrefix && gold > 0,
                     ) {
@@ -152,7 +152,7 @@ public struct RewardRevealLootSection: View {
             }
             .trinketPresentationVisibility(visibleWalletRewardCount > 0)
         } else if items.isEmpty, let emptyMessage {
-            Text(balanced: emptyMessage)
+            GameLabel(emptyMessage, balanced: true)
                 .trinketTypography(.secondaryBody)
                 .foregroundStyle(.secondary)
                 .trinketPresentationVisibility(areItemsVisible)

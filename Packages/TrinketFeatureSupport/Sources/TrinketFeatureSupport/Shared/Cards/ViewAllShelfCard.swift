@@ -23,7 +23,7 @@ public struct ViewAllShelfCard: View {
                 .background(TrinketDesign.Colors.surface, in: Circle())
                 .accessibilityHidden(true)
 
-            Text(balanced: "View All")
+            Text(balanced: String(localized: L10n.ui_viewallshelfcard_view_all_ff557))
                 .trinketTypography(.caption)
                 .foregroundStyle(.secondary)
                 .trinketFittedText()
@@ -31,7 +31,7 @@ public struct ViewAllShelfCard: View {
         .frame(width: 88)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityValue(remainingCount.map { $0 > 0 ? "\($0) more" : "" } ?? "")
+        .accessibilityValue(remainingCount.map { $0 > 0 ? String(localized: L10n.ui_viewallshelfcard_1_more_2861b("\($0)")) : "" } ?? "")
         .trinketAccessibilityIdentifier(accessibilityIdentifier)
     }
 }

@@ -63,16 +63,16 @@ public struct BattleTransitionLabView<StagePicker: View>: View {
             ToolbarItem(placement: .topBarLeading) {
                 if screen == .battle {
                     Menu("Battle Preview") {
-                        Button("Return to Stages", action: returnToStages)
+                        Button(String(localized: L10n.ui_battletransitionlabview_return_to_stages_abc9c), action: returnToStages)
                             .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.returnToStages)
-                        Button("Show Victory") { start(.showVictory) }
+                        Button(String(localized: L10n.ui_battletransitionlabview_show_victory_2521f)) { start(.showVictory) }
                             .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.showVictory)
                     }
                     .disabled(replayTask != nil)
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Controls", systemImage: "slider.horizontal.3") {
+                Button(String(localized: L10n.ui_battletransitionlabview_controls_799c2), systemImage: "slider.horizontal.3") {
                     cancelPlayback(restoring: screen)
                     isControlsPresented = true
                 }
@@ -108,7 +108,7 @@ public struct BattleTransitionLabView<StagePicker: View>: View {
         let reveal = revealID
         return VictoryView(
             summary: fixture.summary,
-            primaryActionTitle: "Loot All",
+            primaryActionTitle: String(localized: L10n.ui_battletransitionlabview_loot_all_5f814),
             primaryActionAccessibilityIdentifier: AccessibilityID.BattleTransitionLab.lootAll,
             action: .collect(hapticsEnabled: false, claim: { true }, finish: {
                 guard playbackID == generation, revealID == reveal else { return }
@@ -137,8 +137,8 @@ public struct BattleTransitionLabView<StagePicker: View>: View {
     private var controls: some View {
         NavigationStack {
             Form {
-                Section("Transition") {
-                    Picker("Preset", selection: $preset) {
+                Section(String(localized: L10n.ui_battletransitionlabview_transition_2fe70)) {
+                    Picker(String(localized: L10n.ui_battletransitionlabview_preset_7252e), selection: $preset) {
                         ForEach(BattleTransitionPreset.allCases) { variant in
                             Text(variant.rawValue).tag(variant)
                         }
@@ -146,7 +146,7 @@ public struct BattleTransitionLabView<StagePicker: View>: View {
                     .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.preset)
                     Text(preset.description).foregroundStyle(.secondary)
                 }
-                Section("Replay") {
+                Section(String(localized: L10n.ui_battletransitionlabview_replay_c8dae)) {
                     replayButton("Replay Entry", replay: .entry, id: AccessibilityID.BattleTransitionLab.replayEntry)
                     replayButton("Replay Direct Exit", replay: .directExit, id: AccessibilityID.BattleTransitionLab.replayDirectExit)
                     replayButton(
@@ -155,21 +155,21 @@ public struct BattleTransitionLabView<StagePicker: View>: View {
                         id: AccessibilityID.BattleTransitionLab.replayVictoryReturn,
                     )
                     replayButton("Play Full Journey", replay: .journey, id: AccessibilityID.BattleTransitionLab.playFullJourney)
-                    Button("Reset", action: reset)
+                    Button(String(localized: L10n.ui_battletransitionlabview_reset_daee7), action: reset)
                         .accessibilityIdentifier(AccessibilityID.BattleTransitionLab.reset)
                 }
                 Section {
                     Text(
-                        "Fixed sample stages and rewards. Battle, Return to Stages, and Loot All only change this preview; no progress is saved.",
+                        L10n.ui_battletransitionlabview_fixed_sample_stages_and_rewards_battle_return_f796b,
                     )
                     .foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle("Battle Transitions")
+            .navigationTitle(Text(L10n.ui_battletransitionlabview_battle_transitions_fd4bd))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { isControlsPresented = false }
+                    Button(String(localized: L10n.ui_battletransitionlabview_done_11a67)) { isControlsPresented = false }
                 }
             }
         }

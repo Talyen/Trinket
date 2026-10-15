@@ -12,7 +12,7 @@ struct CoverageDiagnosticsView: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.25)) { _ in
-            Text("Coverage diagnostics")
+            Text(L10n.ui_coveragediagnosticsview_coverage_diagnostics_292cd)
                 .trinketTypography(.footnote)
                 .accessibilityIdentifier(AccessibilityID.Debug.coverageDiagnostics)
                 .accessibilityValue(report)
@@ -32,9 +32,10 @@ struct CoverageDiagnosticsView: View {
         values["completedStages"] = playerSave.journey.completedStageIDs.sorted()
         do {
             values["contracts"] = try JSONSerialization.jsonObject(with: JSONEncoder().encode(playerSave.contracts))
-            return try String(data: JSONSerialization.data(withJSONObject: values), encoding: .utf8) ?? "diagnostics serialization failed"
+            return try String(data: JSONSerialization.data(withJSONObject: values), encoding: .utf8) ??
+                String(localized: L10n.ui_coveragediagnosticsview_diagnostics_serialization_failed_3dbb1)
         } catch {
-            return "diagnostics serialization failed"
+            return String(localized: L10n.ui_coveragediagnosticsview_diagnostics_serialization_failed_3dbb1)
         }
     }
 }

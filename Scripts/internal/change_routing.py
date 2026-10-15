@@ -121,7 +121,7 @@ BEHAVIOR_CARDS = {ACTION, PRESENTATION, STORAGE, PROGRESSION, BALANCE, LAUNCH, U
 
 
 def guidance_references() -> set[str]:
-    references = {CONTENT, PERSISTENCE, RUNTIME, LAUNCH, ENGINE, BALANCE, UI, UI_PERFORMANCE, AUDIO, TALENTS, *sections(CONTENT, 'shared-safeguards', 'project-generation', 'generation-tooling')}
+    references = {'Docs/Platform/Localization.md', CONTENT, PERSISTENCE, RUNTIME, LAUNCH, ENGINE, BALANCE, UI, UI_PERFORMANCE, AUDIO, TALENTS, *sections(CONTENT, 'shared-safeguards', 'project-generation', 'generation-tooling')}
     for rules in (RUNTIME_RULES, ENGINE_RULES, PERSISTENCE_RULES, CONTENT_RULES):
         references.update(reference for _, values in rules for reference in values)
     return references
@@ -270,6 +270,7 @@ def classify(paths: list[str], root: Path = ROOT) -> Route:
         for parent in (root / path).parents:
             if parent == root: break
             if (parent / 'AGENTS.md').is_file(): route.add('guides', (parent / 'AGENTS.md').relative_to(root).as_posix())
+    if any(matches(path, 'Localization/*', '*.xcstrings', 'Scripts/*localization*', 'Scripts/internal/localization*') for path in paths): route.add('cards', 'Docs/Platform/Localization.md')
     if any(matches(path, *VISUAL_PATHS) for path in paths): route.add('skills', '.agents/skills/apple-design/SKILL.md'); route.add('cards', UI)
     return route
 

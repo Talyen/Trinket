@@ -61,7 +61,7 @@ final class FramePacingMetricsProbe {
         let metrics = UILabel()
         metrics.isAccessibilityElement = true
         metrics.accessibilityIdentifier = AccessibilityID.Debug.frameMetrics
-        metrics.accessibilityLabel = "Frame Metrics"
+        metrics.accessibilityLabel = String(localized: L10n.ui_debugfpsoverlay_frame_metrics_c9022)
         metrics.accessibilityValue = "idle"
         metrics.text = " "
         metrics.font = .systemFont(ofSize: 1)
@@ -71,7 +71,7 @@ final class FramePacingMetricsProbe {
 
         let reset = UIButton(type: .system)
         reset.accessibilityIdentifier = AccessibilityID.Debug.frameMetricsReset
-        reset.accessibilityLabel = "Frame Metrics Reset"
+        reset.accessibilityLabel = String(localized: L10n.ui_debugfpsoverlay_frame_metrics_reset_3f6f1)
         reset.addTarget(self, action: #selector(handleResetTap), for: .touchUpInside)
         reset.translatesAutoresizingMaskIntoConstraints = false
         reset.backgroundColor = .clear

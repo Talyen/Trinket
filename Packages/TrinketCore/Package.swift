@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "TrinketCore",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v18),
         .macOS(.v15),
@@ -17,6 +18,7 @@ let package = Package(
     targets: [
         .target(
             name: "TrinketCore",
+            resources: [.process("Resources")],
         ),
         .testTarget(
             name: "TrinketCoreTests",

@@ -118,7 +118,7 @@ struct ContentView: View {
         )
 
         return TabView(selection: intercepting) {
-            Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
+            Tab(ContentCopy.localized(AppTab.play.displayName), systemImage: AppTab.play.symbolName, value: AppTab.play) {
                 PlayView()
                     .modifier(SelectedTabLayoutAcknowledgement(
                         isSelected: shellSession.selectedTab == .play,
@@ -127,7 +127,7 @@ struct ContentView: View {
                     .trinketDecorativeMotion(shellSession.selectedTab == .play)
             }
 
-            Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
+            Tab(ContentCopy.localized(AppTab.collection.displayName), systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
                 NavigationStack {
                     CollectionView {
                         appState.consumePendingCollectionPresentation()
@@ -140,7 +140,7 @@ struct ContentView: View {
                 }
             }
 
-            Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
+            Tab(ContentCopy.localized(AppTab.homestead.displayName), systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
                 homesteadTab
                     .modifier(SelectedTabLayoutAcknowledgement(
                         isSelected: shellSession.selectedTab == .homestead,
@@ -149,7 +149,7 @@ struct ContentView: View {
                     .trinketDecorativeMotion(shellSession.selectedTab == .homestead)
             }
 
-            Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
+            Tab(ContentCopy.localized(AppTab.options.displayName), systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {
                     OptionsView()
                         .modifier(SelectedTabLayoutAcknowledgement(

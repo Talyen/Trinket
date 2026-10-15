@@ -6,8 +6,14 @@ import TrinketFeatureContracts
 
 public extension BattleSession {
     func connectProgression(to delegate: any BattleProgressionDelegate) {
-        precondition(!hasConnectedProgression, "Battle progression may be connected only once")
-        precondition(activeBattle == nil, "Connect battle progression before activation")
+        precondition(
+            !hasConnectedProgression,
+            String(localized: L10n.ui_battlesession_progression_battle_progression_may_be_connected_only_once_c186a),
+        )
+        precondition(
+            activeBattle == nil,
+            String(localized: L10n.ui_battlesession_progression_connect_battle_progression_before_activation_670e5),
+        )
         hasConnectedProgression = true
         progression = delegate
     }

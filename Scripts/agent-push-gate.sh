@@ -64,6 +64,7 @@ fi
 
 echo "=== Agent push gate: pinned tools ==="
 trinket_require_pinned_tools
+python3 Scripts/localization.py check
 
 trinket_collect_committed_paths() {
   local path

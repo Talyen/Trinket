@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -6,7 +7,7 @@ extension EffectHandlers {
         guard !stacks.isEmpty else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "Death's Door: Immune to fatal damage while active",
+            resource: L10n.summary_deathsdoorhandler_1f75b771949a,
         )
     }
 

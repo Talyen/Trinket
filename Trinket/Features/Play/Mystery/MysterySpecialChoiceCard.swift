@@ -15,7 +15,7 @@ struct MysterySpecialChoiceCard: View {
             onSelect()
         } label: {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                Text(choice.label)
+                GameLabel(choice.label)
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(.primary)
                     .trinketSingleLineFittedText()
@@ -92,15 +92,15 @@ struct MysterySpecialChoiceCard: View {
         case let .unlockCombatant(combatantID):
             rewardSummary(
                 title: combatantName(id: combatantID),
-                value: "Unlock",
+                value: String(localized: L10n.ui_mysteryspecialchoicecard_unlock_4ac70),
                 icon: .system("person.badge.plus"),
                 tint: TrinketDesign.Colors.accent,
             )
 
         case .corruptItem:
             rewardSummary(
-                title: "Corrupt Item",
-                value: "Risk",
+                title: String(localized: L10n.ui_mysteryspecialchoicecard_corrupt_item_86c3d),
+                value: String(localized: L10n.ui_mysteryspecialchoicecard_risk_0711a),
                 icon: .system("dice.fill"),
                 tint: TrinketDesign.Colors.destructive,
             )
@@ -110,8 +110,8 @@ struct MysterySpecialChoiceCard: View {
 
         case .leave:
             rewardSummary(
-                title: "Walk Away",
-                value: "Safe",
+                title: String(localized: L10n.ui_mysteryspecialchoicecard_walk_away_85010),
+                value: String(localized: L10n.ui_mysteryspecialchoicecard_safe_4f9f0),
                 icon: .system("figure.walk"),
                 tint: .secondary,
             )
@@ -146,17 +146,17 @@ struct MysterySpecialChoiceCard: View {
 
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                 if let value {
-                    Text(balanced: title)
+                    GameLabel(title, balanced: true)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(.secondary)
                         .trinketFittedText()
 
-                    Text(balanced: value)
+                    GameLabel(value, balanced: true)
                         .trinketTypography(.rowTitle)
                         .monospacedDigit()
                         .trinketFittedText()
                 } else {
-                    Text(balanced: title)
+                    GameLabel(title, balanced: true)
                         .trinketTypography(.rowTitle)
                         .foregroundStyle(.primary)
                         .trinketFittedText()
@@ -171,6 +171,6 @@ struct MysterySpecialChoiceCard: View {
     }
 
     private func combatantName(id: String) -> String {
-        GameContent.combatant(matching: id)?.name ?? "Combatant"
+        GameContent.combatant(matching: id)?.name ?? String(localized: L10n.ui_mysteryspecialchoicecard_combatant_d1bd7)
     }
 }

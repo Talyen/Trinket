@@ -14,7 +14,7 @@ struct VictoryView: View {
     var body: some View {
         RewardRevealExperienceScreen(
             eyebrow: nil,
-            title: "Victory",
+            title: String(localized: L10n.ui_victoryview_victory_2e9b5),
             titleAccessibilityIdentifier: AccessibilityID.Battle.victory,
             experienceAwards: experienceAwards,
             experienceAccessibilityIdentifier: AccessibilityID.Battle.experience,
@@ -23,7 +23,7 @@ struct VictoryView: View {
                 gold: summary.totalGold,
                 materials: summary.materialRewards,
                 showsIncreasePrefix: true,
-                emptyMessage: "No additional rewards",
+                emptyMessage: String(localized: L10n.ui_victoryview_no_additional_rewards_2d56e),
                 itemAccessibilityID: AccessibilityID.Battle.rewardItem,
                 lootAccessibilityIdentifier: AccessibilityID.Battle.rewards,
             ),
@@ -38,7 +38,7 @@ struct VictoryView: View {
                 BattleOutcomeRewardRow(
                     icon: .system("star.fill"),
                     tint: .secondary,
-                    text: "No experience awarded",
+                    text: String(localized: L10n.ui_victoryview_no_experience_awarded_de2bb),
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
             },

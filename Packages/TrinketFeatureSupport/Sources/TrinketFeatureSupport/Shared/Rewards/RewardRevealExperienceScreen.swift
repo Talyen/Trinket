@@ -159,12 +159,12 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                                 onSelectItem: { selectedRewardItem = $0 },
                             )
                             .accessibilityElement(children: .contain)
-                            .accessibilityLabel("Rewards")
+                            .accessibilityLabel(Text(L10n.ui_rewardrevealexperiencescreen_rewards_59afe))
                             .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
                         } else {
                             ProgressView()
                                 .padding(TrinketDesign.Spacing.large)
-                                .accessibilityLabel("Preparing rewards")
+                                .accessibilityLabel(Text(L10n.ui_rewardrevealexperiencescreen_preparing_rewards_6f51a))
                         }
                     }
                 },
@@ -181,7 +181,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
             )
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(title)
+        .gameAccessibilityLabel(title)
         .coverageRewardCheckpoint(isCollected: collection.isCollected)
         .scrollDisabled(collection.isCompleting)
         .trinketSensoryFeedback(.success, trigger: collection.feedbackTrigger, enabled: action.hapticsEnabled)
@@ -310,7 +310,7 @@ private extension View {
         #if DEBUG
         overlay(alignment: .topLeading) {
             if isCollected, ProcessInfo.processInfo.arguments.contains("-hold-reward-collection") {
-                Text("Committed reward checkpoint")
+                Text(L10n.ui_rewardrevealexperiencescreen_committed_reward_checkpoint_1e250)
                     .trinketTypography(.footnote)
                     .accessibilityIdentifier(AccessibilityID.Debug.rewardCollectionCheckpoint)
                     .allowsHitTesting(false)

@@ -10,6 +10,7 @@ Standing engineering policy. Product decisions live in [Docs/Product/Decisions.m
 | [PlayerCoverage.md](PlayerCoverage.md) | Critical settings profiles, repeated play, interruption/recovery coverage, and remaining live checks |
 | [Verification.md](Verification.md) | Task routing, gate composition, CI, style, and handoff |
 | [SimulatorOperations.md](SimulatorOperations.md) | Managed simulator isolation and local Xcode operations |
+| [Localization.md](Localization.md) | Agent translation/review, freshness gates, bundled languages and submission preparation |
 | [Purchases.md](Purchases.md) | StoreKit testing, purchase ownership, and release prerequisites |
 | [Release.md](Release.md) | Versions, release notes, tags, and App Store handoff |
 | [ApplePlatformReference.md](ApplePlatformReference.md) | iOS support, adoption, and Apple design/API choices |

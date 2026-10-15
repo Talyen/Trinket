@@ -28,6 +28,15 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/promote.sh [--quiet]` | Build once under an isolated lease and install that app only on Trinket Run; build/install failures fail the command (also via `handoff.sh --mirror`) |
 | `./Scripts/install-device.sh [--device …]` | Build, install, and launch Trinket on a connected physical iOS device; auto-selects the first paired device |
 
+### Localization
+
+`python3 Scripts/localization.py plan` emits the missing/stale translation queue.
+`apply <response.json>` validates reviewed agent results and deterministically
+generates native resources and localized store submission files. `check` is
+read-only and requires no AI, network, compiler or paid service. The
+[localization contract](../Docs/Platform/Localization.md) owns response format,
+review requirements, source ownership and CI screenshot inspection.
+
 ### Verification
 
 Routine local checks perform no Swift compilation or Simulator/GPU tests.

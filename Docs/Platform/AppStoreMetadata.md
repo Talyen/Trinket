@@ -11,7 +11,7 @@ Sharing) live in
 
 | Field | Draft |
 |---|---|
-| Subtitle | Fantasy Card Battles |
+| Subtitle | [Canonical English input](../../Localization/Store/English.json) |
 | Primary category | Games |
 | Games subcategories | Roleplaying; Strategy |
 | Support URL | https://talyen.github.io/Trinket/ |
@@ -21,31 +21,15 @@ Sharing) live in
 | Review sign-in required | No |
 | Review contact | Ryan McIntire; rymcintire@gmail.com; phone supplied directly to App Store Connect |
 
-## Promotional text
+## Localized submission fields
 
-Build a party of Heroes and Companions, shape their abilities and equipment, and explore a fantasy world through turn-based card battles.
-
-## Description
-
-Pair a Hero with a Companion and guide them through turn-based card battles. Choose abilities, equip earned loot, unlock talents, and build a party that fits your strategy.
-
-Explore the Campaign, climb Spires, venture deeper into the Labyrinth, take on Contracts, and embark on finite regional Voyages. Between adventures, build your Homestead to strengthen your party and gather resources.
-
-FREE TO START
-
-Play the first three Campaign chapters, the first three Labyrinth floors, and the first ten floors of every Spire. Contracts are unlimited, and Voyage includes Forest, Dungeon, and Desert adventures. Equipment, Homestead, and the ability and talent progression of accessible characters are available in free play.
-
-ONE FULL GAME PURCHASE
-
-A permanent, one-time Full Game purchase unlocks the remaining content. Heroes, Companions, equipment, and upgrades are still earned through play. Future content released within Trinket is included; there is no promised update schedule.
-
-PLAY WITHOUT AN ACCOUNT
-
-No Trinket account is required. Play offline, with progress currently saved on your device.
-
-## Keywords
-
-rpg,turn based,cards,strategy,deck,heroes,companions,fantasy,adventure,dungeon,offline
+[Localization/Store/English.json](../../Localization/Store/English.json) owns the
+canonical English app name, subtitle, promotional text, description, keywords and
+Full Game product copy. Edit that input in the development task, then complete the
+[agent translation workflow](Localization.md). Locale-specific, length-checked
+submission files are generated under
+[Localization/Generated/AppStore](../../Localization/Generated/AppStore/). Uploads
+and publication remain in the authorized release process.
 
 ## Review notes
 

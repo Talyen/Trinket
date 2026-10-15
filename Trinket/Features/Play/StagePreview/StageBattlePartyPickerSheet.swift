@@ -15,8 +15,8 @@ enum BattlePartySlot: String {
 
     var sectionTitle: String {
         switch self {
-        case .hero: "Heroes"
-        case .companion: "Companions"
+        case .hero: String(localized: L10n.ui_stagebattlepartypickersheet_heroes_04329)
+        case .companion: String(localized: L10n.ui_stagebattlepartypickersheet_companions_ea125)
         }
     }
 
@@ -136,11 +136,11 @@ private struct StageBattlePartyPickerContent: View {
                 .padding(.top, TrinketDesign.Layout.compactContentTopPadding)
                 .padding(.bottom, TrinketDesign.Layout.sectionSpacing)
             }
-            .navigationTitle("Party")
+            .navigationTitle(Text(L10n.ui_stagebattlepartypickersheet_party_dfa82))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                    Button(String(localized: L10n.ui_stagebattlepartypickersheet_done_11a67)) {
                         dismiss()
                     }
                     .accessibilityIdentifier(AccessibilityID.Play.battlePartyDone)
@@ -198,7 +198,7 @@ private struct StageBattlePartyPickerContent: View {
         }
         .trinketArtworkCardButtonStyle()
         .disabled(!eligible)
-        .accessibilityLabel(combatant.name)
+        .gameAccessibilityLabel(combatant.name)
         .accessibilityAddTraits(selected ? .isSelected : [])
         .accessibilityIdentifier(
             AccessibilityID.Play.battlePartyOption(

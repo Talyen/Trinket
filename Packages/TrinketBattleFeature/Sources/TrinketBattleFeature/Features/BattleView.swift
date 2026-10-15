@@ -92,7 +92,7 @@ public struct BattleView: View {
             Button {
                 input.perform { $0.presentBattleLog() }
             } label: {
-                Label("Combat Log", systemImage: "list.bullet.rectangle")
+                Label(String(localized: L10n.ui_battleview_combat_log_84d6c), systemImage: "list.bullet.rectangle")
             }
             .accessibilityIdentifier(AccessibilityID.Battle.combatLog)
 
@@ -100,7 +100,7 @@ public struct BattleView: View {
             Button {
                 input.perform { $0.debugSkipCombat() }
             } label: {
-                Label("Skip Combat", systemImage: "forward.end")
+                Label(String(localized: L10n.ui_battleview_skip_combat_9b75b), systemImage: "forward.end")
             }
             .accessibilityIdentifier(AccessibilityID.Battle.skipCombat)
             #endif
@@ -109,14 +109,14 @@ public struct BattleView: View {
                 Button(role: .destructive) {
                     input.perform { $0.retreatFromBattle() }
                 } label: {
-                    Label("Retreat", systemImage: "figure.run")
+                    Label(String(localized: L10n.ui_battleview_retreat_e6e5c), systemImage: "figure.run")
                 }
                 .accessibilityIdentifier(AccessibilityID.Battle.retreat)
             }
         } label: {
             Image(systemName: "ellipsis")
                 .frame(minWidth: 44, minHeight: 44)
-                .accessibilityLabel("Battle actions")
+                .accessibilityLabel(Text(L10n.ui_battleview_battle_actions_310a4))
         }
 
         .accessibilityIdentifier(AccessibilityID.Battle.actionsMenu)
@@ -128,7 +128,8 @@ public struct BattleView: View {
             case let .victory(victorySummary):
                 VictoryView(
                     summary: victorySummary,
-                    primaryActionTitle: hasStageProgression ? "Loot All" : "Battle Again",
+                    primaryActionTitle: hasStageProgression ? String(localized: L10n.ui_battleview_loot_all_5f814) :
+                        String(localized: L10n.ui_battleview_battle_again_8381e),
                     primaryActionAccessibilityIdentifier: hasStageProgression
                         ? AccessibilityID.Battle.continueButton
                         : AccessibilityID.Battle.battleAgainButton,

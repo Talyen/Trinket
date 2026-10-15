@@ -70,6 +70,13 @@ durable coordination/resumption.
 
 ## Choose the change
 
+Player-facing text changes include localization in the same task. Follow
+[Localization](Docs/Platform/Localization.md): run `python3 Scripts/localization.py plan`,
+translate the affected queue in every configured language, perform a separate AI
+review pass, apply the reviewed response, and rerun `check`. Never stamp review
+records without the review or copy English into other locales to clear a gate.
+The existing agent allowance owns translation; hooks, builds and CI never call AI.
+
 Fix the owning module's root cause with the simplest complete solution. Keep files
 cohesive; reuse abstractions for confirmed repetition or enforced boundaries, not
 predicted needs. Delete replaced code and redundant tests unless current compatibility

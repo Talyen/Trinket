@@ -37,7 +37,7 @@ struct LabyrinthFloorMap: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Dismiss selection")
+            .accessibilityLabel(Text(L10n.ui_labyrinthmapclusterviews_dismiss_selection_c0791))
             .accessibilityIdentifier(AccessibilityID.Play.labyrinthDismissSelection)
 
             ForEach(nodes) { node in
@@ -175,8 +175,9 @@ private struct LabyrinthMapNodeSeal: View {
             clearedSettleTask?.cancel()
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(nodeAccessibilityLabel)
-        .accessibilityHint(visualState == .reachable ? "Shows node details" : "Not reachable")
+        .gameAccessibilityLabel(nodeAccessibilityLabel)
+        .accessibilityHint(visualState == .reachable ? String(localized: L10n.ui_labyrinthmapclusterviews_shows_node_details_feb56) :
+            String(localized: L10n.ui_labyrinthmapclusterviews_not_reachable_5ad99))
         .accessibilityIdentifier(labyrinthAccessibilityIdentifier)
     }
 
@@ -204,8 +205,8 @@ private struct LabyrinthMapNodeSeal: View {
 
     private var nodeAccessibilityLabel: String {
         switch visualState {
-        case .cleared: "\(type.title), cleared"
-        case .locked: "Unexplored chamber, locked"
+        case .cleared: String(localized: L10n.ui_labyrinthmapclusterviews_1_cleared_b0008("\(type.title)"))
+        case .locked: String(localized: L10n.ui_labyrinthmapclusterviews_unexplored_chamber_locked_54512)
         case .reachable: type.title
         }
     }

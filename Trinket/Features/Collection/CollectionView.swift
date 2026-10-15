@@ -28,7 +28,7 @@ struct CollectionView: View {
             .trinketScreenBackground()
             .trinketSoftTopScrollEdge()
             .accessibilityIdentifier(AccessibilityID.Screen.collection)
-            .navigationTitle("Collection")
+            .navigationTitle(Text(L10n.ui_collectionview_collection_7b790))
             .navigationBarTitleDisplayMode(.large)
             .onAppear(perform: presentPendingLaunchRoute)
             .onChange(of: isLaunchPresentationReady) { _, _ in
@@ -79,7 +79,7 @@ struct CollectionView: View {
         return ScrollView {
             VStack(spacing: TrinketDesign.Layout.sectionSpacing) {
                 combatantCategorySection(
-                    title: "Heroes",
+                    title: String(localized: L10n.ui_collectionview_heroes_04329),
                     accessibilityIdentifier: AccessibilityID.Collection.heroesCategory,
                     kind: .hero,
                     combatants: Array(heroes.prefix(shelfLimit)),
@@ -88,7 +88,7 @@ struct CollectionView: View {
                 )
 
                 combatantCategorySection(
-                    title: "Companions",
+                    title: String(localized: L10n.ui_collectionview_companions_ea125),
                     accessibilityIdentifier: AccessibilityID.Collection.companionsCategory,
                     kind: .companion,
                     combatants: Array(companions.prefix(shelfLimit)),
@@ -100,7 +100,7 @@ struct CollectionView: View {
                     let items = itemsByCategory[category] ?? []
                     if !items.isEmpty {
                         CategoryBrowseShelf(
-                            title: category.rawValue,
+                            title: category.displayName,
                             linkAccessibilityIdentifier: category.accessibilityIdentifier,
                             totalCount: items.count,
                             artworkNames: ArtworkViewportPrewarm.windowNames(

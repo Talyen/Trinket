@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "TrinketFeatureSupport",
+    defaultLocalization: "en",
     platforms: [.iOS(.v18)],
     products: [
         .library(
@@ -42,6 +43,7 @@ let package = Package(
                 "TrinketContent",
                 "TrinketDesignSystem",
             ],
+            resources: [.process("Resources")],
         ),
         .target(
             name: "TrinketFeatureAdapters",
@@ -55,6 +57,7 @@ let package = Package(
                 "TrinketDesignSystem",
             ],
             path: "Sources/TrinketFeatureAdapters",
+            resources: [.process("Resources")],
         ),
         .testTarget(
             name: "TrinketFeatureSupportTests",

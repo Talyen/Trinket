@@ -1,0 +1,300 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "store.description": {
+      "comment": "App Store description. Maximum 4000 characters. Trinket is the unchanged game brand; Full Game is the permanent, one-time non-consumable purchase. No subscriptions or paid random loot.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinde einen Helden mit einem Gefährten und führe sie durch rundenbasierte Kartenkämpfe. Wähle Fähigkeiten, rüste erbeutete Gegenstände aus, schalte Talente frei und stelle eine Gruppe zusammen, die zu deiner Strategie passt.\n\nErkunde die Kampagne, erklimme Türme, dringe tiefer ins Labyrinth vor, erfülle Aufträge und unternimm Reisen mit festem Abschluss durch verschiedene Regionen. Baue zwischen deinen Abenteuern deine Heimstatt aus, um deine Gruppe zu stärken und Ressourcen zu sammeln.\n\nKOSTENLOS BEGINNEN\n\nSpiele die ersten drei Kapitel der Kampagne, die ersten drei Ebenen des Labyrinths und die ersten zehn Ebenen jedes Turms. Aufträge sind unbegrenzt verfügbar. Reisen umfassen Abenteuer in Wald, Verlies und Wüste. Ausrüstung, Heimstatt sowie Fähigkeiten und Talente zugänglicher Charaktere stehen im kostenlosen Spiel zur Verfügung.\n\nEIN KAUF DER VOLLVERSION\n\nEin dauerhafter, einmaliger Kauf der Vollversion schaltet die übrigen Inhalte frei. Helden, Gefährten, Ausrüstung und Verbesserungen werden weiterhin im Spiel verdient. Zukünftig in Trinket veröffentlichte Inhalte sind enthalten; ein fester Zeitplan für Updates wird nicht zugesagt.\n\nOHNE KONTO SPIELEN\n\nEin Trinket-Konto ist nicht erforderlich. Spiele offline; dein Fortschritt wird derzeit auf deinem Gerät gespeichert."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair a Hero with a Companion and guide them through turn-based card battles. Choose abilities, equip earned loot, unlock talents, and build a party that fits your strategy.\n\nExplore the Campaign, climb Spires, venture deeper into the Labyrinth, take on Contracts, and embark on finite regional Voyages. Between adventures, build your Homestead to strengthen your party and gather resources.\n\nFREE TO START\n\nPlay the first three Campaign chapters, the first three Labyrinth floors, and the first ten floors of every Spire. Contracts are unlimited, and Voyage includes Forest, Dungeon, and Desert adventures. Equipment, Homestead, and the ability and talent progression of accessible characters are available in free play.\n\nONE FULL GAME PURCHASE\n\nA permanent, one-time Full Game purchase unlocks the remaining content. Heroes, Companions, equipment, and upgrades are still earned through play. Future content released within Trinket is included; there is no promised update schedule.\n\nPLAY WITHOUT AN ACCOUNT\n\nNo Trinket account is required. Play offline, with progress currently saved on your device."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Associez un Héros à un Compagnon et guidez-les dans des combats de cartes au tour par tour. Choisissez leurs capacités, équipez le butin gagné, débloquez des talents et créez une équipe adaptée à votre stratégie.\n\nExplorez la Campagne, gravissez les Tours, enfoncez-vous dans le Labyrinthe, relevez des Contrats et partez en Expéditions régionales au parcours défini. Entre deux aventures, développez votre Domaine pour renforcer votre équipe et récolter des ressources.\n\nCOMMENCEZ GRATUITEMENT\n\nJouez aux trois premiers chapitres de la Campagne, aux trois premiers étages du Labyrinthe et aux dix premiers étages de chaque Tour. Les Contrats sont illimités, et les Expéditions comprennent des aventures en Forêt, dans le Donjon et dans le Désert. L’équipement, le Domaine et la progression des capacités et talents des personnages accessibles sont disponibles gratuitement.\n\nUN SEUL ACHAT POUR LE JEU COMPLET\n\nUn achat unique et permanent du Jeu complet débloque le reste du contenu. Les Héros, Compagnons, équipements et améliorations s’obtiennent toujours en jouant. Les futurs contenus publiés dans Trinket sont inclus ; aucun calendrier de mises à jour n’est promis.\n\nJOUEZ SANS COMPTE\n\nAucun compte Trinket n’est nécessaire. Jouez hors ligne ; votre progression est actuellement sauvegardée sur votre appareil."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヒーローと仲間を組み合わせ、ターン制カードバトルを戦い抜こう。アビリティを選び、手に入れた戦利品を装備し、才能を解放して、自分の戦略に合うパーティを作ろう。\n\nキャンペーンを探索し、尖塔を登り、迷宮の奥へ進み、依頼に挑戦。各地で終わりのある航海にも出発しよう。冒険の合間には拠点を築き、パーティを強化して資源を集めよう。\n\n無料で始めよう\n\nキャンペーンの最初の3章、迷宮の最初の3階、すべての尖塔の最初の10階をプレイ可能。依頼には回数制限がなく、航海には森・ダンジョン・砂漠の冒険が含まれます。装備、拠点、利用可能なキャラクターのアビリティと才能の育成は、無料でも利用できます。\n\n完全版は一度の購入で\n\n完全版を一度購入すれば、残りのコンテンツが永久に解放されます。ヒーロー、仲間、装備、強化は引き続きプレイを通じて獲得します。今後Trinket内でリリースされるコンテンツも含まれますが、更新時期はお約束していません。\n\nアカウント不要でプレイ\n\nTrinketのアカウントは不要です。オフラインでプレイでき、進行状況は現在お使いの端末に保存されます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영웅과 동료를 짝지어 턴제 카드 전투를 이끌어 보세요. 능력을 선택하고, 획득한 전리품을 장착하고, 특성을 잠금 해제해 전략에 맞는 파티를 꾸리세요.\n\n캠페인을 탐험하고, 첨탑을 오르고, 미궁 깊숙이 들어가고, 의뢰에 도전하며, 끝이 정해진 지역 항해를 떠나세요. 모험 사이에는 안식처를 건설해 파티를 강화하고 자원을 모으세요.\n\n무료로 시작\n\n캠페인 첫 3개 챕터, 미궁 첫 3개 층, 모든 첨탑의 첫 10개 층을 플레이할 수 있습니다. 의뢰는 제한 없이 이용할 수 있으며, 항해에서는 숲, 던전, 사막 모험을 즐길 수 있습니다. 무료 플레이에서도 장비, 안식처, 이용 가능한 캐릭터의 능력 및 특성 성장을 이용할 수 있습니다.\n\n정식 게임 한 번 구매\n\n정식 게임을 한 번 구매하면 나머지 콘텐츠가 영구적으로 잠금 해제됩니다. 영웅, 동료, 장비, 업그레이드는 계속 플레이를 통해 획득합니다. 트링킷 내에 향후 출시되는 콘텐츠도 포함되며, 정해진 업데이트 일정은 약속되어 있지 않습니다.\n\n계정 없이 플레이\n\n트링킷 계정이 필요하지 않습니다. 오프라인으로 플레이할 수 있으며, 현재 진행도는 기기에 저장됩니다."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "讓英雄與夥伴並肩作戰，在回合制卡牌戰鬥中帶領他們前進。選擇能力、裝備贏得的戰利品、解鎖天賦，打造符合你策略的隊伍。\n\n探索戰役、攀登高塔、深入迷宮、挑戰委託，並踏上有明確終點的區域遠征。冒險之間，建設家園以強化隊伍並收集資源。\n\n免費開始遊玩\n\n遊玩戰役前三章、迷宮前三層，以及每座高塔的前十層。委託可無限挑戰，遠征則包含森林、地牢與沙漠冒險。免費遊玩可使用裝備、家園，以及可用角色的能力與天賦成長系統。\n\n一次購買完整版\n\n一次性永久購買完整版即可解鎖其餘內容。英雄、夥伴、裝備與升級仍須透過遊玩獲得。Trinket未來推出的內容也包含在內，但不承諾固定更新時程。\n\n無需帳號即可遊玩\n\n無需Trinket帳號。支援離線遊玩，目前進度儲存於你的裝置。"
+          }
+        }
+      }
+    },
+    "store.fullgamedescription": {
+      "comment": "App Store fullGameDescription. Maximum 45 characters. Trinket is the unchanged game brand; Full Game is the permanent, one-time non-consumable purchase. No subscriptions or paid random loot.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Kapitel und Modi dauerhaft freischalten."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock every chapter and game mode forever."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Débloquez tous les chapitres et modes à vie."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべての章とゲームモードを永久に解放。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모든 챕터와 게임 모드를 영구적으로 잠금 해제하세요."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永久解鎖所有章節與遊戲模式。"
+          }
+        }
+      }
+    },
+    "store.fullgamename": {
+      "comment": "App Store fullGameName. Maximum 30 characters. Trinket is the unchanged game brand; Full Game is the permanent, one-time non-consumable purchase. No subscriptions or paid random loot.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollversion"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Game"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeu complet"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完全版"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "정식 게임"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整版"
+          }
+        }
+      }
+    },
+    "store.keywords": {
+      "comment": "App Store keywords. Maximum 100 characters. Trinket is the unchanged game brand; Full Game is the permanent, one-time non-consumable purchase. No subscriptions or paid random loot.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rollenspiel,rundenbasiert,Karten,Strategie,Deck,Helden,Gefährten,Fantasy,Abenteuer,Verlies,offline"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rpg,turn based,cards,strategy,deck,heroes,companions,fantasy,adventure,dungeon,offline"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rpg,tour par tour,cartes,stratégie,deck,héros,compagnons,fantasy,aventure,donjon,hors ligne"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RPG,ターン制,カード,戦略,デッキ,ヒーロー,仲間,ファンタジー,冒険,ダンジョン,オフライン"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "롤플레잉,턴제,카드,전략,덱,영웅,동료,판타지,모험,던전,오프라인"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色扮演,回合制,卡牌,策略,牌組,英雄,夥伴,奇幻,冒險,地牢,離線"
+          }
+        }
+      }
+    },
+    "store.name": {
+      "comment": "App Store name. Maximum 30 characters. Trinket is the unchanged game brand; Full Game is the permanent, one-time non-consumable purchase. No subscriptions or paid random loot.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket!"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket!"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket !"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket!"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트링킷!"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trinket!"
+          }
+        }
+      }
+    },
+    "store.promotionaltext": {
+      "comment": "App Store promotionalText. Maximum 170 characters. Trinket is the unchanged game brand; Full Game is the permanent, one-time non-consumable purchase. No subscriptions or paid random loot.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stelle eine Gruppe aus Helden und Gefährten zusammen, gestalte ihre Fähigkeiten und Ausrüstung und erkunde eine Fantasywelt in rundenbasierten Kartenkämpfen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build a party of Heroes and Companions, shape their abilities and equipment, and explore a fantasy world through turn-based card battles."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formez une équipe de Héros et de Compagnons, personnalisez leurs capacités et équipements, puis explorez un monde fantastique par des combats de cartes au tour par tour."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヒーローと仲間のパーティを組み、アビリティと装備を整え、ターン制カードバトルで幻想世界を探索しよう。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영웅과 동료로 파티를 꾸리고, 능력과 장비를 갖춰 턴제 카드 전투로 판타지 세계를 탐험하세요."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "組建英雄與夥伴的隊伍，塑造他們的能力與裝備，透過回合制卡牌戰鬥探索奇幻世界。"
+          }
+        }
+      }
+    },
+    "store.subtitle": {
+      "comment": "App Store subtitle. Maximum 30 characters. Trinket is the unchanged game brand; Full Game is the permanent, one-time non-consumable purchase. No subscriptions or paid random loot.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fantasy-Kartenkämpfe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fantasy Card Battles"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combats de cartes fantastiques"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幻想カードバトル"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "판타지 카드 전투"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奇幻卡牌戰鬥"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

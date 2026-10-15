@@ -41,13 +41,13 @@ public struct TalentTreeCard: View {
             },
             label: {
                 VStack(spacing: TrinketDesign.Spacing.extraSmall) {
-                    Text(balanced: tree.name)
+                    GameLabel(tree.name, balanced: true)
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
                         .trinketFittedText()
                     if !caption.isEmpty {
-                        Text(balanced: caption)
+                        GameLabel(caption, balanced: true)
                             .trinketTypography(.badge)
                             .foregroundStyle(.tertiary)
                             .trinketFittedText()

@@ -88,7 +88,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                 HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Spacing.extraSmall) {
                     DetailChangeIndicators(indicators: eyebrowIndicators)
                     if let eyebrow {
-                        Text(balanced: eyebrow)
+                        GameLabel(eyebrow, balanced: true)
                             .trinketOnArtText(.eyebrow)
                             .trinketFittedText()
                     }
@@ -104,10 +104,10 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     private var titleText: some View {
         let text = Group {
             if singleLineTitle {
-                Text(title)
+                GameLabel(title)
                     .trinketSingleLineFittedText()
             } else {
-                Text(balanced: title)
+                GameLabel(title, balanced: true)
                     .trinketFittedText()
             }
         }

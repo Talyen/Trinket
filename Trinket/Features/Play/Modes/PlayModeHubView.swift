@@ -11,12 +11,12 @@ struct PlayModeHubView: View {
 
     var body: some View {
         HubGridScaffold(
-            title: "Play",
+            title: String(localized: L10n.ui_playmodehubview_play_436e6),
             accessibilityIdentifier: AccessibilityID.Play.modesScreen,
         ) {
             HubArtworkNavigationLink(
                 destination: PlayLaunchDestination.campaign,
-                title: "Campaign",
+                title: String(localized: L10n.ui_playmodehubview_campaign_26828),
                 subtitle: campaignSubtitle,
                 icon: .system("map.fill"),
                 artID: EncounterArtIDs.campaignPlayModeID,
@@ -26,7 +26,7 @@ struct PlayModeHubView: View {
 
             HubArtworkNavigationLink(
                 destination: PlayLaunchDestination.explore,
-                title: "Explore",
+                title: String(localized: L10n.ui_playmodehubview_explore_3b739),
                 subtitle: nil,
                 artID: EncounterArtIDs.explorePlayModeID,
                 fallbackArtID: EncounterArtIDs.homesteadHeroID,
@@ -40,6 +40,6 @@ struct PlayModeHubView: View {
            let stage = GameContent.stage(id: stageID) {
             return stage.mapLabel
         }
-        return "Chapter \(journey.playChapter.number) · Complete"
+        return String(localized: L10n.ui_playmodehubview_chapter_1_complete_88d91("\(journey.playChapter.number)"))
     }
 }

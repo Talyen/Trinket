@@ -260,6 +260,8 @@ printf cached > "$cache"
                          'change-budget.sh', 'test.sh'):
             self.write('Scripts/' + filename, '#!/bin/bash\nexit 0\n', executable=True)
         self.write('Scripts/check-accessibility-ids.py', '')
+        # This fixture tests project completeness; translation validation has its own suite.
+        self.write('Scripts/localization.py', '# Successful localization-check fixture.\n')
         self.write('Scripts/prepare-assets.sh', '#!/bin/bash\n[[ "$*" == "--heal" ]] && exit 0\n[[ "$*" == "--check --outputs-only" ]] || exit 9\n', executable=True)
         self.write('Scripts/generate.sh',
                    '#!/bin/bash\nsource Scripts/lib/project-generation.sh\n'

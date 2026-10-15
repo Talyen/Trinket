@@ -41,7 +41,7 @@ struct ChapterStageSelectView: View {
         let presentation = presentation
         let chapter = presentation.chapter
         StageSelectScreen(
-            eyebrow: "Chapter \(chapter.number)".uppercased(),
+            eyebrow: String(localized: L10n.ui_chapterstageselectview_chapter_1_c98b7("\(chapter.number)")),
             title: chapter.title,
             subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.Play.chapterTitle(
@@ -82,7 +82,7 @@ struct ChapterStageSelectView: View {
         }
         .accessibilityIdentifier(AccessibilityID.Screen.play)
         .overlay(alignment: .topLeading) {
-            Text("Chapter \(chapter.number)")
+            Text(L10n.ui_chapterstageselectview_chapter_1_c98b7("\(chapter.number)"))
                 .accessibilityIdentifier(
                     AccessibilityID.Play.chapterHeader(number: chapter.number),
                 )
@@ -104,9 +104,9 @@ struct ChapterStageSelectView: View {
 
     private var campaignCompletionState: some View {
         StageSelectCompletionPanel(
-            title: "Campaign Complete",
-            description: "Every chapter stage is complete",
-            buttonTitle: "Back to Play",
+            title: String(localized: L10n.ui_chapterstageselectview_campaign_complete_a2b42),
+            description: String(localized: L10n.ui_chapterstageselectview_every_chapter_stage_is_complete_bd88c),
+            buttonTitle: String(localized: L10n.ui_chapterstageselectview_back_to_play_f25f0),
             tint: chapter.theme.tint,
             accessibilityIdentifier: AccessibilityID.Play.campaignCompletionBack,
             onBack: { dismiss() },

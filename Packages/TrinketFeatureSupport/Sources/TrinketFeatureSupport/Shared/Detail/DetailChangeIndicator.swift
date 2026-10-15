@@ -21,7 +21,7 @@ struct DetailChangeIndicators: View {
             GameIconImage(indicator.icon)
                 .foregroundStyle(indicator.tint)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(indicator.accessibilityLabel)
+                .gameAccessibilityLabel(indicator.accessibilityLabel)
         }
     }
 }

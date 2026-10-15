@@ -18,8 +18,8 @@ struct CollectionCombatantGridView: View {
 
     private var title: String {
         switch kind {
-        case .hero: "Heroes"
-        case .companion: "Companions"
+        case .hero: String(localized: L10n.ui_collectioncombatantpresentation_heroes_04329)
+        case .companion: String(localized: L10n.ui_collectioncombatantpresentation_companions_ea125)
         }
     }
 

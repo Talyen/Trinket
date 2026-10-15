@@ -11,7 +11,7 @@ struct SpiresHubView: View {
 
     var body: some View {
         HubGridScaffold(
-            title: "Spires",
+            title: String(localized: L10n.ui_spireshubview_spires_77de7),
             accessibilityIdentifier: AccessibilityID.Play.spiresHub,
         ) {
             ForEach(orderedSpires) { spire in
@@ -49,7 +49,7 @@ struct SpiresHubView: View {
 
     private func subtitle(for spire: SpireDefinition, isLocked: Bool) -> String {
         if isLocked {
-            return "Requires \(spire.keyword.rawValue) Abilities"
+            return String(localized: L10n.ui_spireshubview_requires_1_abilities_6df20("\(spire.keyword.rawValue)"))
         }
 
         let clearedFloors = SpiresProgress.clampedClearedFloors(

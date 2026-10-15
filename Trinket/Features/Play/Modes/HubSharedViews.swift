@@ -6,6 +6,6 @@ enum SpiresProgress {
     }
 
     static func floorsText(cleared: Int, total: Int) -> String {
-        "\(cleared) / \(total) Floors"
+        String(localized: L10n.ui_progress_floors(cleared, total))
     }
 }

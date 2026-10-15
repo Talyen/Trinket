@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -86,6 +87,8 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
     public private(set) var amount: Int
     public let keyword: Keyword
     public let appliedEffectSummaries: [String]
+    public let appliedEffects: [Effect]
+    public let stealsGold: Bool
     public var milestone: Milestone? {
         guard case let .milestone(milestone) = kind else { return nil }
         return milestone
@@ -107,6 +110,8 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         amount: Int,
         keyword: Keyword,
         appliedEffectSummaries: [String] = [],
+        appliedEffects: [Effect] = [],
+        stealsGold: Bool = false,
         isCritical: Bool = false,
         feedbackGroupID: Int? = nil,
         origin: Origin = .direct,
@@ -128,6 +133,8 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         self.amount = amount
         self.keyword = keyword
         self.appliedEffectSummaries = appliedEffectSummaries
+        self.appliedEffects = appliedEffects
+        self.stealsGold = stealsGold
         self.isCritical = isCritical
     }
 
@@ -159,4 +166,18 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
 public struct LogEntry: Identifiable, Equatable {
     public let id: Int
     public let text: String
+    private let event: ActionEvent?
+    private let damage: [ActionEvent]
+
+    init(id: Int, text: String, event: ActionEvent? = nil, damage: [ActionEvent] = []) {
+        self.id = id
+        self.text = text
+        self.event = event
+        self.damage = damage
+    }
+
+    public func localizedText(locale: Locale) -> String {
+        guard let event else { return text }
+        return BattleLogProjection.localizedLine(for: event, damage: damage, locale: locale)
+    }
 }

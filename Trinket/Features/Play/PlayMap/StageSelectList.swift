@@ -85,14 +85,14 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                 .clipShape(TrinketDesign.cardShape)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-                Text(presentation.title)
+                GameLabel(presentation.title)
                     .trinketTypography(.rowDisplay)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
                 StageSelectMetaLine(presentation: presentation)
                 ForEach(presentation.modifiers) { modifier in
-                    Text(modifier.title)
+                    GameLabel(modifier.title)
                         .trinketTypography(.footnote)
                         .foregroundStyle(modifier.style.color)
                 }

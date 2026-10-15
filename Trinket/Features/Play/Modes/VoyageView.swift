@@ -50,14 +50,14 @@ struct VoyageView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 if let run, !run.isComplete {
                     Menu {
-                        Button("Abandon Voyage", role: .destructive) { abandonRunID = run.id }
+                        Button(String(localized: L10n.ui_voyageview_abandon_voyage_3cbfa), role: .destructive) { abandonRunID = run.id }
                             .accessibilityIdentifier(AccessibilityID.Voyage.abandon)
                     } label: { Image(systemName: "ellipsis") }
-                        .accessibilityLabel("Voyage options")
+                        .accessibilityLabel(Text(L10n.ui_voyageview_voyage_options_094ff))
                         .accessibilityIdentifier(AccessibilityID.Voyage.options)
                         .disabled(!isReady)
                 } else if run == nil || run?.isComplete == true {
-                    Button("Refresh Voyages", systemImage: "dice.fill") { voyage.refresh() }
+                    Button(String(localized: L10n.ui_voyageview_refresh_voyages_13eed), systemImage: "dice.fill") { voyage.refresh() }
                         .labelStyle(.iconOnly)
                         .accessibilityIdentifier(AccessibilityID.Voyage.refresh)
                         .disabled(!isReady || playerSave.voyage.isUnreadable)
@@ -67,12 +67,12 @@ struct VoyageView: View {
         .safeAreaInset(edge: .bottom) {
             if let abandonRunID, run?.id == abandonRunID, run?.isComplete == false {
                 VStack(spacing: TrinketDesign.Spacing.medium) {
-                    Text("Keep rewards already earned. Remaining progress and the completion bonus will be lost.")
+                    Text(L10n.ui_voyageview_keep_rewards_already_earned_remaining_progres_3052e)
                         .trinketTypography(.secondaryBody)
                     HStack {
-                        Button("Cancel") { self.abandonRunID = nil }
+                        Button(String(localized: L10n.ui_voyageview_cancel_19766)) { self.abandonRunID = nil }
                             .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Voyage.cancelAbandon)
-                        Button("Abandon Voyage", role: .destructive) {
+                        Button(String(localized: L10n.ui_voyageview_abandon_voyage_3cbfa), role: .destructive) {
                             guard isReady, run?.id == abandonRunID, run?.isComplete == false else { return }
                             self.abandonRunID = nil
                             voyage.abandon(runID: abandonRunID)
@@ -118,8 +118,8 @@ struct VoyageView: View {
         let run = state.activeRun
         let heroID = run?.offer.chapterID ?? "gameModeVoyage"
         return StageSelectScreen(
-            eyebrow: run.map { "\($0.offer.difficulty.title.uppercased()) VOYAGE" },
-            title: run.flatMap { GameContent.chapter(id: $0.offer.chapterID)?.title } ?? "Voyage",
+            eyebrow: run.map { String(localized: L10n.ui_voyageview_1_voyage_2e333("\($0.offer.difficulty.title)")) },
+            title: run.flatMap { GameContent.chapter(id: $0.offer.chapterID)?.title } ?? String(localized: L10n.ui_voyageview_voyage_10d91),
             subtitle: nil,
             heroModifier: run.map { run in
                 ModifierCaptionPresentation(run.offer.rewardModifier.resolved(
@@ -139,8 +139,8 @@ struct VoyageView: View {
             Group {
                 if state.isUnreadable {
                     HStack {
-                        Button("Back") { dismiss() }
-                        Button("Retry") { message = voyage.enter() }
+                        Button(String(localized: L10n.ui_voyageview_back_76900)) { dismiss() }
+                        Button(String(localized: L10n.ui_voyageview_retry_94208)) { message = voyage.enter() }
                             .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Voyage.retry)
                     }
                     .trinketSecondaryActionButton()

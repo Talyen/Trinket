@@ -18,8 +18,8 @@ struct HomesteadMaterialValue: View {
             HomesteadResourceArtwork(resource: resource)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(resource.displayName)
-        .accessibilityValue(isInsufficient ? "\(value), insufficient" : value)
+        .gameAccessibilityLabel(resource.displayName)
+        .accessibilityValue(isInsufficient ? String(localized: L10n.ui_homesteadeffectviews_1_insufficient_a0bcb("\(value)")) : value)
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceCost(resource))
     }
 }
@@ -66,7 +66,7 @@ private struct HomesteadBenefitItem: View {
             text[range].inlinePresentationIntent = .stronglyEmphasized
             text[range].foregroundColor = isHighlighted ? TrinketDesign.Colors.accent : .primary
         }
-        if let resource = effect.resource, let range = text.range(of: resource.displayName) {
+        if let resource = effect.resource, let range = text.range(of: ContentCopy.localized(resource.displayName)) {
             text[range].inlinePresentationIntent = .stronglyEmphasized
             text[range].foregroundColor = resource.productionNameColor
         }
@@ -89,7 +89,7 @@ private struct HomesteadBenefitItem: View {
             .frame(width: 36, height: 36)
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
-                Text(title)
+                GameLabel(title)
                     .trinketTypography(.rowTitle)
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -106,50 +106,75 @@ private struct HomesteadBenefitItem: View {
 }
 
 private enum HomesteadBenefitNames {
+    // swiftlint:disable:next function_body_length - Keep the exhaustive node and benefit identity mapping together for localized titles
     static func title(nodeID: HomesteadNodeID, effect: HomesteadEffectLine) -> String {
         switch (nodeID, effect.id) {
-        case (.wheatField, .modifier(.maximumHealthPercent, _)): "Harvest’s Strength"
-        case (.wheatField, .production(.food)): "Golden Harvest"
-        case (.herbGarden, .modifier(.damageTakenPercent(.poison, _), _)): "Bitter Remedy"
-        case (.herbGarden, .production(.herbs)): "Fresh Pickings"
-        case (.chickenCoop, .modifier(.maximumHealthPercent, _)): "Coop’s Comfort"
-        case (.chickenCoop, .production(.food)): "Morning Eggs"
-        case (.pasture, .modifier(.damageTakenPercent(.physical, _), _)): "Thick Hide"
-        case (.pasture, .production(.hide)): "Gathered Hides"
-        case (.culinaryArts, .modifier(.healthRestoredPercent, _)): "Hearty Fare"
-        case (.culinaryArts, .production(.food)): "Daily Bread"
-        case (.blacksmithForge, .modifier(.damageDealtPercent(.physical, _), _)): "Forged Edge"
-        case (.blacksmithForge, .forgeAstralOdds): "Astral Forging"
-        case (.blacksmithForge, .production(.iron)): "Fresh Ingots"
-        case (.woolTailoring, .modifier(.damageTakenPercent(.freeze, _), _)): "Winter Weave"
-        case (.woolTailoring, .modifier(.damageTakenPercent(.burn, _), _)): "Emberguard Stitch"
-        case (.woolTailoring, .production(.gold)): "Tailor’s Trade"
-        case (.runesmithWorkshop, .modifier(.damageDealtPercent(.freeze, _), _)): "Frost Inscription"
-        case (.runesmithWorkshop, .modifier(.damageDealtPercent(.holy, _), _)): "Hallowed Script"
-        case (.runesmithWorkshop, .production(.gems)): "Runic Crystals"
-        case (.alchemyLab, .modifier(.damageDealtPercent(.poison, _), _)): "Potent Venom"
-        case (.alchemyLab, .production(.herbs)): "Cultured Reagents"
-        case (.crystalGarden, .modifier(.criticalDamagePercent, _)): "Perfect Facet"
-        case (.crystalGarden, .production(.gems)): "Crystal Bloom"
-        case (.crystalGarden, .production(.stone)): "Mineral Growth"
-        case (.transmutationCrucible, .modifier(.damageDealtPercent(.burn, _), _)): "Alchemical Flame"
-        case (.transmutationCrucible, .production(.iron)): "Metal Transmutation"
-        case (.mycologyCellar, .modifier(.leechHealingPercent, _)): "Siphoning Spores"
-        case (.mycologyCellar, .production(.herbs)): "Fungal Harvest"
-        case (.hunterLodge, .modifier(.companionDamageDealtPercent, _)): "Pack Instinct"
-        case (.hunterLodge, .production(.hide)): "Hunter’s Haul"
-        case (.agilityTraining, .modifier(.dodgeChanceBonus, _)): "Nimble Paws"
-        case (.sparringGrounds, .modifier(.blockGainedPercent, _)): "Steady Guard"
-        case (.sparringGrounds, .production(.iron)): "Salvaged Steel"
-        case (.archeryRange, .modifier(.rangedDamageDealtPercent, _)): "True Aim"
-        case (.archeryRange, .production(.wood)): "Seasoned Timber"
-        case (.moonlitSanctum, .astralFind): "Astral Attunement"
-        case (.moonlitSanctum, .gemsFind): "Moonlit Fortune"
-        case (.wishingWell, .goldFind): "Wishful Fortune"
-        case (.wishingWell, .production(.gold)): "Wishing Coins"
-        case (.library, .experience): "Lessons of the Past"
-        case (.leylineEnergy, .modifier(.manaRestoredPercent, _)): "Arcane Renewal"
-        case (.leylineEnergy, .production(.gems)): "Leyline Crystallization"
+        case (.wheatField, .modifier(.maximumHealthPercent, _)): String(localized: L10n.ui_homesteadeffectviews_harvest_s_strength_86a7b)
+        case (.wheatField, .production(.food)): String(localized: L10n.ui_homesteadeffectviews_golden_harvest_7d1b8)
+        case (
+            .herbGarden,
+            .modifier(.damageTakenPercent(.poison, _), _),
+        ): String(localized: L10n.ui_homesteadeffectviews_bitter_remedy_6e9c2)
+        case (.herbGarden, .production(.herbs)): String(localized: L10n.ui_homesteadeffectviews_fresh_pickings_97ebc)
+        case (.chickenCoop, .modifier(.maximumHealthPercent, _)): String(localized: L10n.ui_homesteadeffectviews_coop_s_comfort_126d0)
+        case (.chickenCoop, .production(.food)): String(localized: L10n.ui_homesteadeffectviews_morning_eggs_e0c43)
+        case (.pasture, .modifier(.damageTakenPercent(.physical, _), _)): String(localized: L10n.ui_homesteadeffectviews_thick_hide_1e0e8)
+        case (.pasture, .production(.hide)): String(localized: L10n.ui_homesteadeffectviews_gathered_hides_68fd6)
+        case (.culinaryArts, .modifier(.healthRestoredPercent, _)): String(localized: L10n.ui_homesteadeffectviews_hearty_fare_a4413)
+        case (.culinaryArts, .production(.food)): String(localized: L10n.ui_homesteadeffectviews_daily_bread_ca0de)
+        case (
+            .blacksmithForge,
+            .modifier(.damageDealtPercent(.physical, _), _),
+        ): String(localized: L10n.ui_homesteadeffectviews_forged_edge_ecc89)
+        case (.blacksmithForge, .forgeAstralOdds): String(localized: L10n.ui_homesteadeffectviews_astral_forging_fe216)
+        case (.blacksmithForge, .production(.iron)): String(localized: L10n.ui_homesteadeffectviews_fresh_ingots_04643)
+        case (
+            .woolTailoring,
+            .modifier(.damageTakenPercent(.freeze, _), _),
+        ): String(localized: L10n.ui_homesteadeffectviews_winter_weave_38b6f)
+        case (
+            .woolTailoring,
+            .modifier(.damageTakenPercent(.burn, _), _),
+        ): String(localized: L10n.ui_homesteadeffectviews_emberguard_stitch_b1f27)
+        case (.woolTailoring, .production(.gold)): String(localized: L10n.ui_homesteadeffectviews_tailor_s_trade_feec0)
+        case (
+            .runesmithWorkshop,
+            .modifier(.damageDealtPercent(.freeze, _), _),
+        ): String(localized: L10n.ui_homesteadeffectviews_frost_inscription_58bdd)
+        case (
+            .runesmithWorkshop,
+            .modifier(.damageDealtPercent(.holy, _), _),
+        ): String(localized: L10n.ui_homesteadeffectviews_hallowed_script_c4580)
+        case (.runesmithWorkshop, .production(.gems)): String(localized: L10n.ui_homesteadeffectviews_runic_crystals_1b067)
+        case (
+            .alchemyLab,
+            .modifier(.damageDealtPercent(.poison, _), _),
+        ): String(localized: L10n.ui_homesteadeffectviews_potent_venom_58b8c)
+        case (.alchemyLab, .production(.herbs)): String(localized: L10n.ui_homesteadeffectviews_cultured_reagents_d437e)
+        case (.crystalGarden, .modifier(.criticalDamagePercent, _)): String(localized: L10n.ui_homesteadeffectviews_perfect_facet_99ce2)
+        case (.crystalGarden, .production(.gems)): String(localized: L10n.ui_homesteadeffectviews_crystal_bloom_89fbd)
+        case (.crystalGarden, .production(.stone)): String(localized: L10n.ui_homesteadeffectviews_mineral_growth_403c4)
+        case (
+            .transmutationCrucible,
+            .modifier(.damageDealtPercent(.burn, _), _),
+        ): String(localized: L10n.ui_homesteadeffectviews_alchemical_flame_945a1)
+        case (.transmutationCrucible, .production(.iron)): String(localized: L10n.ui_homesteadeffectviews_metal_transmutation_be829)
+        case (.mycologyCellar, .modifier(.leechHealingPercent, _)): String(localized: L10n.ui_homesteadeffectviews_siphoning_spores_92593)
+        case (.mycologyCellar, .production(.herbs)): String(localized: L10n.ui_homesteadeffectviews_fungal_harvest_128e3)
+        case (.hunterLodge, .modifier(.companionDamageDealtPercent, _)): String(localized: L10n.ui_homesteadeffectviews_pack_instinct_b9668)
+        case (.hunterLodge, .production(.hide)): String(localized: L10n.ui_homesteadeffectviews_hunter_s_haul_16745)
+        case (.agilityTraining, .modifier(.dodgeChanceBonus, _)): String(localized: L10n.ui_homesteadeffectviews_nimble_paws_b09ad)
+        case (.sparringGrounds, .modifier(.blockGainedPercent, _)): String(localized: L10n.ui_homesteadeffectviews_steady_guard_12531)
+        case (.sparringGrounds, .production(.iron)): String(localized: L10n.ui_homesteadeffectviews_salvaged_steel_33438)
+        case (.archeryRange, .modifier(.rangedDamageDealtPercent, _)): String(localized: L10n.ui_homesteadeffectviews_true_aim_5fde2)
+        case (.archeryRange, .production(.wood)): String(localized: L10n.ui_homesteadeffectviews_seasoned_timber_6e1d3)
+        case (.moonlitSanctum, .astralFind): String(localized: L10n.ui_homesteadeffectviews_astral_attunement_82aed)
+        case (.moonlitSanctum, .gemsFind): String(localized: L10n.ui_homesteadeffectviews_moonlit_fortune_18d3c)
+        case (.wishingWell, .goldFind): String(localized: L10n.ui_homesteadeffectviews_wishful_fortune_fb2cf)
+        case (.wishingWell, .production(.gold)): String(localized: L10n.ui_homesteadeffectviews_wishing_coins_e05d5)
+        case (.library, .experience): String(localized: L10n.ui_homesteadeffectviews_lessons_of_the_past_fe7da)
+        case (.leylineEnergy, .modifier(.manaRestoredPercent, _)): String(localized: L10n.ui_homesteadeffectviews_arcane_renewal_dfef9)
+        case (.leylineEnergy, .production(.gems)): String(localized: L10n.ui_homesteadeffectviews_leyline_crystallization_1fb32)
         default: effect.resource?.displayName ?? effect.label
         }
     }
@@ -199,8 +224,8 @@ struct HomesteadTierProgress: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Building progress")
-        .accessibilityValue("\(currentTier) of \(totalTiers) upgrades")
+        .accessibilityLabel(Text(L10n.ui_homesteadeffectviews_building_progress_904de))
+        .accessibilityValue(Text(L10n.ui_homesteadeffectviews_1_of_2_upgrades_67fe8("\(currentTier)", "\(totalTiers)")))
     }
 }
 

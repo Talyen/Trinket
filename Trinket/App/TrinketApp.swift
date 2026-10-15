@@ -162,15 +162,15 @@ private struct AppBootstrapRecoveryView: View {
 
     var body: some View {
         VStack(spacing: TrinketDesign.Spacing.large) {
-            Text("TRINKET")
+            Text(L10n.ui_trinketapp_trinket_6faed)
                 .trinketTypography(.screenDisplay)
                 .foregroundStyle(TrinketDesign.Colors.accent)
             if isRetrying {
                 ProgressView()
             } else {
-                Button("Retry", action: retry)
+                Button(String(localized: L10n.ui_trinketapp_retry_94208), action: retry)
                     .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Screen.bootstrapRetry)
-                Link("Support", destination: TrinketPublicPages.support)
+                Link(String(localized: L10n.ui_trinketapp_support_be919), destination: TrinketPublicPages.support)
                     .trinketSecondaryActionButton(accessibilityIdentifier: AccessibilityID.Screen.bootstrapSupport)
             }
         }

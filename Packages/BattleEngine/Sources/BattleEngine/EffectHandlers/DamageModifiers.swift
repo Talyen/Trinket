@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -10,19 +11,19 @@ extension EffectHandlers {
         guard let meter = meterStacks.first else { return nil }
 
         if meter.effect.isActionSkipPending {
-            let alias = keyword.statusAlias ?? keyword.rawValue
+            let alias = ContentCopy.resource(keyword.statusAlias ?? keyword.rawValue)
             if meter.isAwaitingActionSkip {
-                return EffectSummary(keyword: keyword, text: "\(alias): Next action is prevented")
+                return EffectSummary(keyword: keyword, resource: L10n.summary_damagemodifiers_a54b991fe1d3(alias))
             }
-            return EffectSummary(keyword: keyword, text: "\(alias): Recovering from \(keyword.rawValue)")
+            return EffectSummary(keyword: keyword, resource: L10n.summary_damagemodifiers_86246b48dd06(alias, keyword.nameResource))
         }
         guard let values = meter.effect.controlMeterValues else { return nil }
-        let alias = keyword.statusAlias ?? keyword.rawValue
+        let alias = ContentCopy.resource(keyword.statusAlias ?? keyword.rawValue)
         let progress = Double(max(0, values.amount)) * 100 / Double(max(1, values.threshold))
         let percent = min(99, CombatRounding.rounded(progress.rounded(.down)))
         return EffectSummary(
             keyword: keyword,
-            text: "\(percent)% \(alias)\nAt 100%, the next action is prevented",
+            resource: L10n.summary_damagemodifiers_6dc3859fb861(percent, alias),
         )
     }
 

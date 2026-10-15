@@ -27,7 +27,7 @@ public struct ItemCardLabel: View {
                 .multilineTextAlignment(.center)
             }
 
-            Text(balanced: item.displayName)
+            GameLabel(item.displayName, balanced: true)
                 .trinketTypography(.cardLabel)
                 .shineText(shine ?? item.displayTextShine)
                 .foregroundStyle(.primary)
@@ -35,7 +35,7 @@ public struct ItemCardLabel: View {
                 .trinketFittedText()
 
             if showsAffixCount {
-                Text(balanced: item.affixCountLabel)
+                Text(L10n.ui_itemcardlabel_trait_count(item.affixes.count))
                     .trinketTypography(.caption)
                     .foregroundStyle(.secondary)
                     .trinketFittedText()
@@ -47,21 +47,15 @@ public struct ItemCardLabel: View {
     private var statusLabels: some View {
         TrinketRarityLabel(
             rarity: item.rarity,
-            labelOverride: item.isTrinket ? "Trinket" : nil,
+            labelOverride: item.isTrinket ? String(localized: L10n.ui_itemcardlabel_trinket_ae23c) : nil,
         )
         .trinketFittedText()
         if item.isCorrupted {
-            Text(balanced: "CORRUPTED")
+            Text(balanced: String(localized: L10n.ui_itemcardlabel_corrupted_a7f0f))
                 .trinketTypography(.eyebrow)
                 .shineText(.corruption)
                 .foregroundStyle(TrinketDesign.Colors.destructive)
                 .trinketFittedText()
         }
-    }
-}
-
-private extension InventoryItem {
-    var affixCountLabel: String {
-        "\(affixes.count) \(affixes.count == 1 ? "trait" : "traits")"
     }
 }
