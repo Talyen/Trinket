@@ -129,7 +129,7 @@ struct SFXPlaybackTests {
             case let .play(ids, _):
                 await completion.finish(ids == [futureID] ? "future" : "foreground")
             case .warm: await completion.finish("foreground")
-            case .stop, .release: await completion.finish("invalidation")
+            case .stop, .release, .shutdown: await completion.finish("invalidation")
             case .warmCatalog: break
             }
         }
@@ -156,6 +156,90 @@ struct SFXPlaybackTests {
         player.play(futureID, volume: 0.8)
         await completion.wait(for: "future")
         #expect(events.values.filter { $0.hasPrefix("play:") } == ["play:0"])
+    }
+
+    @MainActor
+    @Test(arguments: [false, true])
+    func `player teardown releases playing audio without waiting for foreground or catalog decoding`(catalog: Bool) async {
+        let events = SFXEvents()
+        let gate = SFXLoadGate()
+        let playingID = SFXCatalog.clips[0].id
+        let suspendedID = SFXCatalog.clips[1].id
+        weak var releasedPlayback: SFXPlayback<TestSFXBackend>?
+        var player: SFXPlayer?
+        do {
+            let playback = SFXPlayback(backend: TestSFXBackend(events: events)) { clip in
+                clip.id == suspendedID ? await gate.load(clip.id) : clip.id
+            }
+            releasedPlayback = playback
+            await playback.execute(.play([playingID], volume: 0.8))
+            player = SFXPlayer { await playback.execute($0) }
+        }
+        if catalog {
+            player?.warmAllCatalog(concurrentPlayerCount: 1)
+        } else {
+            player?.warm([suspendedID], concurrentPlayerCount: 1)
+        }
+        await gate.waitForLoad()
+        weak var releasedPlayer = player
+        player = nil
+        #expect(releasedPlayer == nil)
+        let didRelease = await eventually { events.values.contains("release") }
+        #expect(didRelease)
+        let retiredEvents = events.values
+        await gate.finish()
+        let didRetire = await eventually { releasedPlayback == nil }
+        #expect(didRetire)
+        #expect(events.values == retiredEvents)
+    }
+
+    @Test func `shutdown cannot be revived by subsequent commands`() async {
+        let events = SFXEvents()
+        let playback = SFXPlayback(backend: TestSFXBackend(events: events)) { $0.id }
+        let id = SFXCatalog.clips[0].id
+        await playback.execute(.play([id], volume: 0.8))
+        await playback.execute(.shutdown)
+        let retiredEvents = events.values
+        let commands: [SFXCommand] = [
+            .play([id], volume: 0.8), .warm([id], voiceCount: 2), .warmCatalog(voiceCount: 2), .stop, .release, .shutdown,
+        ]
+        for command in commands {
+            await playback.execute(command)
+        }
+        #expect(events.values == retiredEvents)
+    }
+
+    @MainActor
+    @Test func `cancelled command cannot launch independent catalog warming`() async {
+        let events = SFXEvents()
+        let gate = SFXLoadGate()
+        weak var releasedPlayback: SFXPlayback<TestSFXBackend>?
+        let command: Task<Void, Never>
+        do {
+            let playback = SFXPlayback(backend: TestSFXBackend(events: events)) { $0.id }
+            releasedPlayback = playback
+            command = Task {
+                _ = await gate.load("command")
+                await playback.execute(.warmCatalog(voiceCount: 1))
+            }
+        }
+        await gate.waitForLoad()
+        command.cancel()
+        await gate.finish()
+        await command.value
+        let didRetire = await eventually { releasedPlayback == nil }
+        #expect(didRetire)
+        #expect(events.values.isEmpty)
+    }
+
+    @MainActor
+    private func eventually(_ condition: () -> Bool) async -> Bool {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(5))
+        while !condition(), clock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        return condition()
     }
 
     @Test func `overlapping warmups share one decode and grow the latest pool`() async {

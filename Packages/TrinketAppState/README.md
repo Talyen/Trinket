@@ -101,6 +101,10 @@ prewarming and individual sounds use the same
 asynchronous buffer preparation path. Stop and resource release invalidate in-flight
 decodes, so stale work cannot reinstall buffers or restart the engine. Adding warm
 voices leaves already-playing voices running.
+Releasing the player shuts down the audio actor independently of any suspended
+command. Shutdown cancels catalog warming and pending decodes, releases all native
+resources, and permanently rejects later commands; ordinary resource release remains
+reusable. Cancelled commands cannot create new catalog warmups.
 
 ## Testing
 

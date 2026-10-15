@@ -18,6 +18,9 @@ playback behavior is documented in `Packages/TrinketAppState/README.md`.
 
 Stopping or releasing SFX invalidates earlier queued requests and pending decodes.
 Later requests retain ordinary ordering and wait for that invalidation to finish.
+Player teardown sends a terminal shutdown after pending invalidation, independently
+of the command worker. It cancels catalog warming and decodes, releases the engine,
+and rejects later commands. A cancelled worker cannot start catalog warming.
 
 ## Action sound selection
 

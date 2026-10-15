@@ -21,8 +21,16 @@ public final class SFXPlayer {
 
     deinit {
         workerTask?.cancel()
-        invalidationTask?.cancel()
         continuation?.finish()
+        guard continuation != nil else { return }
+        let invalidation = invalidationTask
+        let execute = execute
+        // The audio actor owns catalog warming independently of the worker.
+        // Retire it without waiting for a suspended foreground decode to finish.
+        Task {
+            await invalidation?.value
+            await execute(.shutdown)
+        }
     }
 
     public func play(_ id: String, volume: Double) {

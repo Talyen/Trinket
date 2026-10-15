@@ -7,6 +7,7 @@ enum SFXCommand: Sendable {
     case warmCatalog(voiceCount: Int)
     case stop
     case release
+    case shutdown
 }
 
 /// Owns command policy, caches and round-robin allocation independently of the
@@ -53,6 +54,7 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
     private var resources: [String: Resource] = [:]
     private var catalogWarmTask: Task<Void, Never>?
     private var generation: UInt64 = 0
+    private var isShutdown = false
 
     init(
         backend: sending Backend,
@@ -67,6 +69,7 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
     }
 
     func execute(_ command: SFXCommand) async {
+        guard !isShutdown else { return }
         switch command {
         case let .play(ids, volume):
             let volume = AudioSupport.clampedVolume(volume)
@@ -78,6 +81,9 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
             }
         case let .warm(ids, voiceCount): _ = await prepareAndStart(ids, voiceCount: voiceCount)
         case let .warmCatalog(voiceCount):
+            // A command already crossing to this actor can arrive after its
+            // worker was cancelled. It must not create independent warmup work.
+            guard !Task.isCancelled else { return }
             catalogWarmTask?.cancel()
             catalogWarmTask = Task { [weak self] in
                 _ = await self?.prepareAndStart(SFXCatalog.clips.map(\.id), voiceCount: voiceCount)
@@ -85,7 +91,10 @@ actor SFXPlayback<Backend: SFXPlaybackBackend> {
         case .stop:
             invalidatePendingLoads()
             backend.stop()
-        case .release:
+        case .release, .shutdown:
+            if case .shutdown = command {
+                isShutdown = true
+            }
             invalidatePendingLoads()
             backend.releaseResources()
             resources.removeAll()
