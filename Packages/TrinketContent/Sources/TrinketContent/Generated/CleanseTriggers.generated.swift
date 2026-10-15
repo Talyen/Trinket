@@ -121,45 +121,4 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
         self.purgeDrawBelowHalf = purgeDrawBelowHalf
         self.cleanseHolyDamage = cleanseHolyDamage
     }
-
-    mutating func merge(_ other: Self) {
-        interdict = interdict || other.interdict
-        lessonLearned = lessonLearned || other.lessonLearned
-        cleanseBonusDraw = SaturatedArithmetic.saturatingAdd(cleanseBonusDraw, other.cleanseBonusDraw)
-        holyDamageCleanseCount = SaturatedArithmetic.saturatingAdd(holyDamageCleanseCount, other.holyDamageCleanseCount)
-        holyDamagePurgeCount = SaturatedArithmetic.saturatingAdd(holyDamagePurgeCount, other.holyDamagePurgeCount)
-        holyDamagePurgeAll = holyDamagePurgeAll || other.holyDamagePurgeAll
-        cleanseBlockPerStack = SaturatedArithmetic.saturatingAdd(cleanseBlockPerStack, other.cleanseBlockPerStack)
-        cleanseAffectsBothHeroAndCompanion = cleanseAffectsBothHeroAndCompanion || other.cleanseAffectsBothHeroAndCompanion
-        cleanseReflectDebuffToEnemy = cleanseReflectDebuffToEnemy || other.cleanseReflectDebuffToEnemy
-        autoCleanseTeamPerTurn = SaturatedArithmetic.saturatingAdd(autoCleanseTeamPerTurn, other.autoCleanseTeamPerTurn)
-        cleanseAlsoPurgesEnemyBuffs = SaturatedArithmetic.saturatingAdd(cleanseAlsoPurgesEnemyBuffs, other.cleanseAlsoPurgesEnemyBuffs)
-        cleanseDodgeChanceBonus += other.cleanseDodgeChanceBonus
-        cleanseDodgeChanceBonusTurns = max(cleanseDodgeChanceBonusTurns, other.cleanseDodgeChanceBonusTurns)
-        cleansePartyBlock = SaturatedArithmetic.saturatingAdd(cleansePartyBlock, other.cleansePartyBlock)
-        blockFirstDebuffPerTurn = blockFirstDebuffPerTurn || other.blockFirstDebuffPerTurn
-        partyDebuffDurationHalved = partyDebuffDurationHalved || other.partyDebuffDurationHalved
-        purifyingAura = purifyingAura || other.purifyingAura
-        onCleansePoisonDealDamagePerStack = SaturatedArithmetic.saturatingAdd(onCleansePoisonDealDamagePerStack, other.onCleansePoisonDealDamagePerStack)
-        crownfall = crownfall || other.crownfall
-        clearSolution = clearSolution || other.clearSolution
-        freshBatch = freshBatch || other.freshBatch
-        heatRecovery = heatRecovery || other.heatRecovery
-        antitoxinCoating = antitoxinCoating || other.antitoxinCoating
-        clearMind = clearMind || other.clearMind
-        cleanBreak = cleanBreak || other.cleanBreak
-        perfectPurity = perfectPurity || other.perfectPurity
-        purgePreparesDoubleHolyAttack = purgePreparesDoubleHolyAttack || other.purgePreparesDoubleHolyAttack
-        cleanseNextAttackCriticalBonus += other.cleanseNextAttackCriticalBonus
-        cleansePurgeChancePercent += other.cleansePurgeChancePercent
-        cleanseRemovesFreezeBuildup = cleanseRemovesFreezeBuildup || other.cleanseRemovesFreezeBuildup
-        cleanseTargetBlockFlat = SaturatedArithmetic.saturatingAdd(cleanseTargetBlockFlat, other.cleanseTargetBlockFlat)
-        firstCleanseExtraRemovalPerTurn = SaturatedArithmetic.saturatingAdd(firstCleanseExtraRemovalPerTurn, other.firstCleanseExtraRemovalPerTurn)
-        cleanseSelfBlockFlat = SaturatedArithmetic.saturatingAdd(cleanseSelfBlockFlat, other.cleanseSelfBlockFlat)
-        onCleanseRestoreMana = SaturatedArithmetic.saturatingAdd(onCleanseRestoreMana, other.onCleanseRestoreMana)
-        onPurgeGainBlock = SaturatedArithmetic.saturatingAdd(onPurgeGainBlock, other.onPurgeGainBlock)
-        onPurgeDealHolyDamage = SaturatedArithmetic.saturatingAdd(onPurgeDealHolyDamage, other.onPurgeDealHolyDamage)
-        purgeDrawBelowHalf = purgeDrawBelowHalf || other.purgeDrawBelowHalf
-        cleanseHolyDamage = SaturatedArithmetic.saturatingAdd(cleanseHolyDamage, other.cleanseHolyDamage)
-    }
 }

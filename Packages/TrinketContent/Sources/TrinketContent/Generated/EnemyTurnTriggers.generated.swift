@@ -34,16 +34,4 @@ public struct EnemyTurnTriggers: Equatable, Hashable, Sendable {
         self.onHolyDamageRestoreMana = onHolyDamageRestoreMana
         self.burnReducesEnemyHealingAndLeechPercent = burnReducesEnemyHealingAndLeechPercent
     }
-
-    mutating func merge(_ other: Self) {
-        negateFirstEnemyAttack = negateFirstEnemyAttack || other.negateFirstEnemyAttack
-        attackDelayEnemyTurnChancePercent += other.attackDelayEnemyTurnChancePercent
-        bleedingEnemyActionSkipChancePercent += other.bleedingEnemyActionSkipChancePercent
-        extraCardDrawWhileEnemyBleeding = extraCardDrawWhileEnemyBleeding || other.extraCardDrawWhileEnemyBleeding
-        extraCardDrawBelowEnemyHealthPercent = max(extraCardDrawBelowEnemyHealthPercent, other.extraCardDrawBelowEnemyHealthPercent)
-        ultimateAppliesBurnPotency = SaturatedArithmetic.saturatingAdd(ultimateAppliesBurnPotency, other.ultimateAppliesBurnPotency)
-        onHeroHolyAbilityCompanionHolyDamage = SaturatedArithmetic.saturatingAdd(onHeroHolyAbilityCompanionHolyDamage, other.onHeroHolyAbilityCompanionHolyDamage)
-        onHolyDamageRestoreMana = SaturatedArithmetic.saturatingAdd(onHolyDamageRestoreMana, other.onHolyDamageRestoreMana)
-        burnReducesEnemyHealingAndLeechPercent += other.burnReducesEnemyHealingAndLeechPercent
-    }
 }

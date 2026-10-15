@@ -31,15 +31,4 @@ public struct OnHitTriggers: Equatable, Hashable, Sendable {
         self.onHitAttackerHoly = onHitAttackerHoly
         self.onHitGainBlock = onHitGainBlock
     }
-
-    mutating func merge(_ other: Self) {
-        resonantShell = resonantShell || other.resonantShell
-        onHitAttackerBurn = SaturatedArithmetic.saturatingAdd(onHitAttackerBurn, other.onHitAttackerBurn)
-        onHitAttackerFreezeBuildup = SaturatedArithmetic.saturatingAdd(onHitAttackerFreezeBuildup, other.onHitAttackerFreezeBuildup)
-        onHitAttackerPoison = SaturatedArithmetic.saturatingAdd(onHitAttackerPoison, other.onHitAttackerPoison)
-        onHitAttackerBleedPotency = SaturatedArithmetic.saturatingAdd(onHitAttackerBleedPotency, other.onHitAttackerBleedPotency)
-        onHitAttackerBleedTurns = max(onHitAttackerBleedTurns, other.onHitAttackerBleedTurns)
-        onHitAttackerHoly = SaturatedArithmetic.saturatingAdd(onHitAttackerHoly, other.onHitAttackerHoly)
-        onHitGainBlock = SaturatedArithmetic.saturatingAdd(onHitGainBlock, other.onHitGainBlock)
-    }
 }

@@ -85,33 +85,4 @@ public struct MitigationTriggers: Equatable, Hashable, Sendable {
         self.verdantShelterDamageMultiplier = verdantShelterDamageMultiplier
         self.onHealthLossNextDamageReduction = onHealthLossNextDamageReduction
     }
-
-    mutating func merge(_ other: Self) {
-        passiveMitigationFlat = SaturatedArithmetic.saturatingAdd(passiveMitigationFlat, other.passiveMitigationFlat)
-        passivePhysicalMitigationFlat = SaturatedArithmetic.saturatingAdd(passivePhysicalMitigationFlat, other.passivePhysicalMitigationFlat)
-        thornsPercent += other.thornsPercent
-        bleedResistance += other.bleedResistance
-        frozenEnemyDamageReductionFlat = SaturatedArithmetic.saturatingAdd(frozenEnemyDamageReductionFlat, other.frozenEnemyDamageReductionFlat)
-        bleedingEnemyDamageReductionFlat = SaturatedArithmetic.saturatingAdd(bleedingEnemyDamageReductionFlat, other.bleedingEnemyDamageReductionFlat)
-        stunnedEnemyNextTurnDamageMultiplier *= other.stunnedEnemyNextTurnDamageMultiplier
-        enemyBleedStacksDamageReductionStacks = max(enemyBleedStacksDamageReductionStacks, other.enemyBleedStacksDamageReductionStacks)
-        enemyBleedStacksDamageReductionPercent += other.enemyBleedStacksDamageReductionPercent
-        poisonedEnemyAccuracyPenaltyPercent += other.poisonedEnemyAccuracyPenaltyPercent
-        poisonedEnemyMissChancePercent += other.poisonedEnemyMissChancePercent
-        subzeroMist = subzeroMist || other.subzeroMist
-        blindingLight = blindingLight || other.blindingLight
-        holyDamageReduceTargetDamage = SaturatedArithmetic.saturatingAdd(holyDamageReduceTargetDamage, other.holyDamageReduceTargetDamage)
-        bleedingEnemyAttackDealDamage = SaturatedArithmetic.saturatingAdd(bleedingEnemyAttackDealDamage, other.bleedingEnemyAttackDealDamage)
-        onAllyDamageHeal = SaturatedArithmetic.saturatingAdd(onAllyDamageHeal, other.onAllyDamageHeal)
-        damageReductionPerUnspentManaEvery = max(damageReductionPerUnspentManaEvery, other.damageReductionPerUnspentManaEvery)
-        toughnessOnHit = SaturatedArithmetic.saturatingAdd(toughnessOnHit, other.toughnessOnHit)
-        toughnessOnHitCap = max(toughnessOnHitCap, other.toughnessOnHitCap)
-        blockedControlBurnResistance += other.blockedControlBurnResistance
-        afflictionResistance += other.afflictionResistance
-        burningEnemyDamageReductionFlat = SaturatedArithmetic.saturatingAdd(burningEnemyDamageReductionFlat, other.burningEnemyDamageReductionFlat)
-        blockHalvesDoTDamage = blockHalvesDoTDamage || other.blockHalvesDoTDamage
-        bleedingEnemyOutgoingDamageMultiplier *= other.bleedingEnemyOutgoingDamageMultiplier
-        verdantShelterDamageMultiplier *= other.verdantShelterDamageMultiplier
-        onHealthLossNextDamageReduction = max(onHealthLossNextDamageReduction, other.onHealthLossNextDamageReduction)
-    }
 }

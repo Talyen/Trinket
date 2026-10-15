@@ -79,31 +79,4 @@ public struct RevivalTriggers: Equatable, Hashable, Sendable {
         self.surviveDeathsDoorPartyBlockFlat = surviveDeathsDoorPartyBlockFlat
         self.affixDeathsDoorSurviveHealFlat = affixDeathsDoorSurviveHealFlat
     }
-
-    mutating func merge(_ other: Self) {
-        undyingEmber = undyingEmber || other.undyingEmber
-        borrowedLife = borrowedLife || other.borrowedLife
-        onceDeathReviveHealth = max(onceDeathReviveHealth, other.onceDeathReviveHealth)
-        onceDeathReviveBlock = SaturatedArithmetic.saturatingAdd(onceDeathReviveBlock, other.onceDeathReviveBlock)
-        deathsDoorDurationBonusTurns = SaturatedArithmetic.saturatingAdd(deathsDoorDurationBonusTurns, other.deathsDoorDurationBonusTurns)
-        reviveDealBurnDamage = SaturatedArithmetic.saturatingAdd(reviveDealBurnDamage, other.reviveDealBurnDamage)
-        deathsDoorDodgeAndDebuffImmunity = deathsDoorDodgeAndDebuffImmunity || other.deathsDoorDodgeAndDebuffImmunity
-        onDeathDealPhysicalDamageAllEnemies = SaturatedArithmetic.saturatingAdd(onDeathDealPhysicalDamageAllEnemies, other.onDeathDealPhysicalDamageAllEnemies)
-        guaranteedCritWhileOnDeathsDoor = guaranteedCritWhileOnDeathsDoor || other.guaranteedCritWhileOnDeathsDoor
-        deathsDoorExpiredHealFlat = max(deathsDoorExpiredHealFlat, other.deathsDoorExpiredHealFlat)
-        holyDamageReviveCompanionChancePercent += other.holyDamageReviveCompanionChancePercent
-        surviveDeathsDoorPartyHealFlat = SaturatedArithmetic.saturatingAdd(surviveDeathsDoorPartyHealFlat, other.surviveDeathsDoorPartyHealFlat)
-        onHeroFatalReviveHealth = SaturatedArithmetic.saturatingAdd(onHeroFatalReviveHealth, other.onHeroFatalReviveHealth)
-        enterDeathsDoorHeal = SaturatedArithmetic.saturatingAdd(enterDeathsDoorHeal, other.enterDeathsDoorHeal)
-        enterDeathsDoorBurnDamage = SaturatedArithmetic.saturatingAdd(enterDeathsDoorBurnDamage, other.enterDeathsDoorBurnDamage)
-        surviveDeathsDoorNextAttackDouble = surviveDeathsDoorNextAttackDouble || other.surviveDeathsDoorNextAttackDouble
-        deathsDoorIncomingDamageMultiplier *= other.deathsDoorIncomingDamageMultiplier
-        deathsDoorNegativeStatusImmune = deathsDoorNegativeStatusImmune || other.deathsDoorNegativeStatusImmune
-        onAllyDeathsDoorRestoreHealth = SaturatedArithmetic.saturatingAdd(onAllyDeathsDoorRestoreHealth, other.onAllyDeathsDoorRestoreHealth)
-        firstAllyFatalIntercept = firstAllyFatalIntercept || other.firstAllyFatalIntercept
-        deathsDoorCriticalChanceBonus += other.deathsDoorCriticalChanceBonus
-        enterDeathsDoorDrawCard = enterDeathsDoorDrawCard || other.enterDeathsDoorDrawCard
-        surviveDeathsDoorPartyBlockFlat = SaturatedArithmetic.saturatingAdd(surviveDeathsDoorPartyBlockFlat, other.surviveDeathsDoorPartyBlockFlat)
-        affixDeathsDoorSurviveHealFlat = SaturatedArithmetic.saturatingAdd(affixDeathsDoorSurviveHealFlat, other.affixDeathsDoorSurviveHealFlat)
-    }
 }

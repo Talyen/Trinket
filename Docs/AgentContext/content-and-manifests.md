@@ -73,9 +73,11 @@ and magnitude bump policy remain authored. Preserve case names, associated-value
 shapes, and Codable representations when evolving these definitions.
 Generation derives `CombatTriggerField` identities and one root field registry from
 the same schema. Its typed descriptors address family storage directly and share
-flat save keys and neutral defaults across decoding, sparse encoding, and
-populated-field traversal. Families own gameplay values and direct generated merges;
-root dynamic-member mutations pass through its copy-on-write storage. Combat provenance and affix-roll policy use those typed identities;
+flat save keys, neutral defaults, and type-compatible merge policies across decoding,
+sparse encoding, populated-field traversal, and equipment stacking. Families own gameplay
+values; the root registry owns merging, entering copy-on-write storage once per merge.
+`CombatTriggerField` also supplies the Codable keys, including unknown-key tolerance.
+Root dynamic-member mutations pass through the same copy-on-write storage. Combat provenance and affix-roll policy use those typed identities;
 raw names remain the flat Codable keys. Renaming a field requires migrating its
 compiled consumers while preserving or migrating the stored key.
 Validation checks Swift identifiers, typed defaults, type-compatible merge operations,
