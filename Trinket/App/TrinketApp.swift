@@ -21,7 +21,7 @@ struct TrinketApp: App {
     @State private var appState: AppState?
     @State private var isRetryingBootstrap = false
     @State private var launchPriorityImageNames: [String]
-    private let makeInitialState: (PlayerSaveStore?) throws -> AppState
+    private let makeInitialState: () throws -> AppState
 
     static let battleRuntimeTypeMessage = "AppState battle runtime must be BattleSession"
 
@@ -33,10 +33,9 @@ struct TrinketApp: App {
                 presentationEnvironment: dependencies,
             )
         }
-        func makeState(_ store: PlayerSaveStore?) throws -> AppState {
+        func makeState() throws -> AppState {
             let state = try AppState(
                 environment: environment,
-                playerSave: store,
                 makeBattleRuntime: makeBattleRuntime,
             )
             if environment.launchScreen == .battleVictory {
@@ -55,8 +54,7 @@ struct TrinketApp: App {
         // Resolve storage before collecting and pinning the first-screen artwork.
         // A successful bootstrap retry installs its own launch census.
         makeInitialState = makeState
-        let bootstrap = Self.bootstrapState(makeState: makeState)
-        if let state = bootstrap.state {
+        if let state = Self.bootstrapState(makeState: makeState) {
             let initialNames = Self.priorityArtworkNames(for: state.playerSave.currentSave, in: state)
             _launchPriorityImageNames = State(initialValue: initialNames)
             _appState = State(initialValue: state)
@@ -94,31 +92,18 @@ struct TrinketApp: App {
         }
     }
 
-    private struct BootstrapResult {
-        var state: AppState?
-    }
-
-    /// Bootstrap with in-memory fallback. Extracted so the primary and fallback
-    /// paths share one logging shape instead of a nested do/catch. Takes no
-    /// self state so init can assign properties (including lets) afterwards.
+    /// Persistence owns durable recovery and its memory fallback. A refused open
+    /// must reach Retry rather than starting another career with a fresh store.
     private static func bootstrapState(
-        makeState: (PlayerSaveStore?) throws -> AppState,
-    ) -> BootstrapResult {
+        makeState: () throws -> AppState,
+    ) -> AppState? {
         do {
-            return try BootstrapResult(state: makeState(nil))
+            return try makeState()
         } catch {
             trinketAppLogger.error(
                 "AppState bootstrap failed: \(String(describing: error), privacy: .public)",
             )
-            do {
-                let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
-                return try BootstrapResult(state: makeState(fallbackSave))
-            } catch {
-                trinketAppLogger.fault(
-                    "AppState in-memory fallback failed: \(error.localizedDescription, privacy: .public)",
-                )
-                return BootstrapResult(state: nil)
-            }
+            return nil
         }
     }
 
@@ -128,7 +113,7 @@ struct TrinketApp: App {
         Task { @MainActor in
             await Task.yield()
             defer { isRetryingBootstrap = false }
-            guard let state = Self.bootstrapState(makeState: makeInitialState).state else { return }
+            guard let state = Self.bootstrapState(makeState: makeInitialState) else { return }
             let names = Self.priorityArtworkNames(for: state.playerSave.currentSave, in: state)
             launchPriorityImageNames = names
             Self.installCloudArtworkPreparation(in: state, initialNames: names)

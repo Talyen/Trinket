@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 import TrinketContent
 import TrinketCore
@@ -366,6 +367,67 @@ struct PendingSaveRecoveryTests {
 }
 
 extension PendingSaveRecoveryTests {
+    @Test(arguments: ["malformed", "envelope-version", "snapshot-version", "previous-write", "read"])
+    func `failed recovery refuses an older writable save and preserves the pending record`(failure: String) throws {
+        let fixture = try PersistenceTestContext()
+        var original: PlayerSaveStore? = try fixture.makeSaveStore()
+        #expect(original?.persistFixtureBatch(logging: "Primary fixture") { $0.roster.gold = 17 } == true)
+        var recovered = try #require(original?.currentSave)
+        recovered.roster.gold = 73
+        let recovery = try #require(original?.pendingSaveRecovery)
+        try recovery.write(
+            save: recovered, cloudState: original?.root.cloudStatePayload,
+            outboxRecords: original?.cloudOutbox?.storedRecords,
+        )
+        original = nil
+        let validData = try Data(contentsOf: recovery.url)
+        switch failure {
+        case "malformed":
+            try Data("unreadable recovery".utf8).write(to: recovery.url)
+        case "envelope-version", "snapshot-version":
+            var payload = try #require(JSONSerialization.jsonObject(with: validData) as? [String: Any])
+            if failure == "envelope-version" {
+                payload["version"] = 999
+            } else {
+                var snapshot = try #require(payload["snapshot"] as? [String: Any])
+                snapshot["schemaVersion"] = 999
+                payload["snapshot"] = snapshot
+            }
+            try JSONSerialization.data(withJSONObject: payload).write(to: recovery.url)
+        case "previous-write":
+            // Restoration must also refuse when archiving the older graph fails.
+            try FileManager.default.createDirectory(at: recovery.previousFileURL, withIntermediateDirectories: false)
+        case "read":
+            try FileManager.default.removeItem(at: recovery.url)
+            try FileManager.default.createDirectory(at: recovery.url, withIntermediateDirectories: false)
+            try validData.write(to: recovery.url.appending(path: "preserved"))
+        default:
+            Issue.record("Unknown failure fixture")
+            return
+        }
+        let preservedURL = failure == "read" ? recovery.url.appending(path: "preserved") : recovery.url
+        let preservedData = try Data(contentsOf: preservedURL)
+
+        #expect(throws: PlayerSavePersistenceError.self) { _ = try fixture.makeReloadedStore() }
+        #expect(try Data(contentsOf: preservedURL) == preservedData)
+        do {
+            let sideContext = try fixture.makeSideContext()
+            let primary = try #require(try sideContext.fetch(FetchDescriptor<PlayerSaveRoot>()).first)
+            #expect(primary.toPlayerSave().roster.gold == 17)
+        }
+
+        if failure == "previous-write" {
+            try FileManager.default.removeItem(at: recovery.previousFileURL)
+        } else if failure == "read" {
+            try FileManager.default.removeItem(at: recovery.url)
+        }
+        try validData.write(to: recovery.url)
+        let restored = try fixture.makeReloadedStore()
+        #expect(restored.currentSave == recovered)
+        #expect(!restored.isPersistenceDegraded)
+        #expect(try fixture.makeReloadedStore().currentSave == recovered)
+    }
+
     @Test func `accepted recovery write cannot become a refused action after database failure`() throws {
         let fixture = try PersistenceTestContext()
         var original: PlayerSaveStore? = try fixture.makeSaveStore()

@@ -156,7 +156,7 @@ public final class PlayerSaveStore {
             logger: logger,
         )
         root = loadedRoot.root
-        if !restoreCloudMetadataAndPendingSave(preservesPrevious: !usesMemoryFallback && loadedRoot.wasExisting) {
+        if try !restoreCloudMetadataAndPendingSave(preservesPrevious: !usesMemoryFallback && loadedRoot.wasExisting) {
             isCloudSyncEnabled = false
         }
         let rawSave = root.toPlayerSave()

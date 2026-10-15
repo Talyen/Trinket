@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 extension PlayerSaveStore {
-    func restoreCloudMetadataAndPendingSave(preservesPrevious: Bool) -> Bool {
+    func restoreCloudMetadataAndPendingSave(preservesPrevious: Bool) throws -> Bool {
         do {
             cloudOutbox = try CloudSaveOutbox(context: context)
         } catch {
@@ -15,12 +15,12 @@ extension PlayerSaveStore {
                 outbox: cloudOutbox,
             )
         } catch {
-            // PersistenceCheck: allow - record is preserved aside when possible; retry persists newer progress
-            archivePendingSaveIfCorrupt(error)
             logger.error(
-                "Pending save could not be read; continuing with readable progress: \(String(describing: error), privacy: .public)",
+                "Pending save could not be restored; preserving progress for retry: \(String(describing: error), privacy: .public)",
             )
-            isPersistenceDegraded = true
+            // The sidecar may contain progress absent from the primary graph.
+            // No writable store may escape until restoration has succeeded.
+            throw PlayerSavePersistenceError.storeUnavailable("Saved progress must be restored before opening this store.")
         }
         do {
             if let cloudOutbox {
@@ -35,16 +35,6 @@ extension PlayerSaveStore {
             logger.error("iCloud metadata could not be read; keeping progress local: \(String(describing: error), privacy: .public)")
         }
         return !preservesUnreadableCloudState
-    }
-
-    /// Archives an unreadable pending record without destroying device-locked
-    /// progress: a locked read stays for retry after first unlock.
-    private func archivePendingSaveIfCorrupt(_ error: Error) {
-        if let saveError = error as? PlayerSavePersistenceError, case .storeUnavailable = saveError {
-            return
-        }
-        // PersistenceCheck: allow - corrupt record is preserved aside; retry persists newer progress
-        try? pendingSaveRecovery?.moveCorruptAside()
     }
 
     func commitCloudState(

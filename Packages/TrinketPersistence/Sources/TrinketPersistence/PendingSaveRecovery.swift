@@ -71,20 +71,6 @@ final class PendingSaveRecovery {
         Self.previousURL(forPendingURL: url)
     }
 
-    /// Versioned corrupt-sample URL so a second corrupt launch archives
-    /// beside the first instead of destroying forensics. Capped at 5 samples;
-    /// older samples are pruned after archiving via `pruneCorruptSamples`.
-    var nextCorruptFileURL: URL {
-        let base = url.appendingPathExtension("unreadable")
-        let manager = FileManager.default
-        guard manager.fileExists(atPath: base.path) else { return base }
-        var index = 2
-        while manager.fileExists(atPath: base.appendingPathExtension("\(index)").path) {
-            index += 1
-        }
-        return base.appendingPathExtension("\(index)")
-    }
-
     nonisolated static func corruptSampleURLs(forPendingURL pending: URL) throws -> [URL] {
         let directory = pending.deletingLastPathComponent()
         let manager = FileManager.default
@@ -106,28 +92,6 @@ final class PendingSaveRecovery {
         }
     }
 
-    /// Keeps at most 5 `.unreadable` samples; evicts oldest first.
-    nonisolated static func pruneCorruptSamples(forPendingURL pending: URL, keeping maxSamples: Int = 5) {
-        let manager = FileManager.default
-        // PersistenceCheck: allow - archive pruning is best-effort, including directory reads
-        guard let candidates = try? corruptSampleURLs(forPendingURL: pending) else { return }
-        var samples: [(URL, Date)] = []
-        for url in candidates {
-            // PersistenceCheck: allow - missing/unreadable sample metadata means skip, not fail
-            guard let values = try? url.resourceValues(forKeys: [.contentModificationDateKey]),
-                  manager.fileExists(atPath: url.path)
-            else { continue }
-            samples.append((url, values.contentModificationDate ?? .distantPast))
-        }
-        guard samples.count > maxSamples else { return }
-        for (url, _) in samples.sorted(by: {
-            $0.1 == $1.1 ? $0.0.lastPathComponent < $1.0.lastPathComponent : $0.1 < $1.1
-        }).prefix(samples.count - maxSamples) {
-            // PersistenceCheck: allow - eviction is best-effort; failed deletes retry next prune
-            try? manager.removeItem(at: url)
-        }
-    }
-
     /// Atomic sidecar write shared by pending/previous/restore paths.
     nonisolated static func writeDataAtomically(_ data: Data, to destination: URL) throws {
         try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -143,14 +107,6 @@ final class PendingSaveRecovery {
         guard nsError.domain == NSCocoaErrorDomain else { return false }
         return nsError.code == CocoaError.fileReadNoPermission.rawValue
             || nsError.code == CocoaError.fileWriteNoPermission.rawValue
-    }
-
-    func moveCorruptAside() throws {
-        guard hasPendingSave else { return }
-        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try FileManager.default.moveItem(at: url, to: nextCorruptFileURL)
-        hasPendingSave = false
-        Self.pruneCorruptSamples(forPendingURL: url)
     }
 
     func read() throws -> Record? {

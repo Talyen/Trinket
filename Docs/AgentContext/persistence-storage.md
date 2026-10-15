@@ -83,6 +83,12 @@ Successful graph persistence removes the pending record. Recovery retries use
 bounded backoff while the app runs. Startup restores the pending record before
 publishing state and preserves the previous readable graph snapshot separately.
 An unreadable recovery record is not discarded or replaced with older progress.
+Any failure to restore it, including protected-file reads, unsupported versions,
+outbox restoration, or preservation of the previous graph, refuses store opening
+before startup repair or persistence retries. Keep the authoritative sidecar in
+place for a later open. Persistence alone owns the memory fallback, retaining its
+durable recovery path; the app must honor a refused open with its existing Retry
+screen rather than constructing a fresh, unrelated memory store.
 Reset replaces the prior pending record only when the fresh reset is durable;
 a failed reset retains the prior recoverable progress. If cleanup after a durable
 reset fails, startup keeps the newer graph and retries pending-file cleanup.
