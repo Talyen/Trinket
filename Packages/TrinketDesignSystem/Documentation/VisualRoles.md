@@ -69,7 +69,9 @@ This does not recolor the illustrated resources or change wallet/category tints.
 Wallet grids wrap resources into fewer columns when their intrinsic labels do
 not fit, then measure row height at the placed width. Native text scaling must
 not force labels into narrow fixed-height columns. Wallet captions use opaque
-paper text to preserve contrast over the shared material.
+paper text to preserve contrast over the shared material. Large control size
+enlarges resource artwork and uses body-size labels; the Homestead overview
+selects this presentation while sheets and other wallets retain compact content.
 
 ## Keyword styling
 

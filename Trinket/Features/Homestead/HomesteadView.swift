@@ -14,7 +14,6 @@ struct HomesteadView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @Environment(\.playSFX) private var playSFX
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var isCollecting = false
     @State private var depositEvent: HomesteadDepositEvent?
     @Environment(\.scenePhase) private var scenePhase
@@ -33,51 +32,47 @@ struct HomesteadView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            DetailHeroScrollShell(
+        DetailHeroScrollShell(
+            title: String(localized: L10n.ui_homesteadview_homestead_9af8e),
+            heroHeightPolicy: .cinematicLandscape,
+        ) { baseHeight in
+            DetailHeroHeader(
                 title: String(localized: L10n.ui_homesteadview_homestead_9af8e),
-                heroHeightPolicy: .cinematicLandscape,
-            ) { baseHeight in
-                DetailHeroHeader(
-                    title: String(localized: L10n.ui_homesteadview_homestead_9af8e),
-                    baseHeight: baseHeight,
-                    horizontalPadding: TrinketDesign.Layout.contentMargin,
-                    bottomPadding: TrinketDesign.Spacing.large,
-                ) {
-                    if let art = ArtCatalog.backgroundArtByID[EncounterArtIDs.homesteadHeroID]
-                        ?? ArtCatalog.backgroundArtByID["wheatField"] {
-                        FocalBackgroundArtwork(art: art)
-                    } else {
-                        TrinketDesign.Colors.surface
-                    }
+                baseHeight: baseHeight,
+                horizontalPadding: TrinketDesign.Layout.contentMargin,
+                bottomPadding: TrinketDesign.Spacing.large,
+            ) {
+                if let art = ArtCatalog.backgroundArtByID[EncounterArtIDs.homesteadHeroID]
+                    ?? ArtCatalog.backgroundArtByID["wheatField"] {
+                    FocalBackgroundArtwork(art: art)
+                } else {
+                    TrinketDesign.Colors.surface
                 }
-            } bodyContent: {
-                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                    HomesteadResourceWallet(
-                        homestead: homestead,
-                        gold: roster.gold,
-                        displayedBalances: displayedBalances,
-                        increaseAnimationDelays: Self.immediateWalletDelays,
-                        keepsArtworkStationary: true,
-                    )
-                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-
-                    collectionSection
-
-                    LazyVGrid(
-                        columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
-                        spacing: TrinketDesign.Spacing.large,
-                    ) {
-                        ForEach(HomesteadNodeCategory.allCases) { category in
-                            categoryCard(category)
-                        }
-                    }
-                    .frame(maxWidth: HubArtworkLayout.width(in: geometry.size))
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                }
-                .padding(.top, TrinketDesign.Layout.sectionHeaderSpacing)
             }
+        } bodyContent: {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
+                HomesteadResourceWallet(
+                    homestead: homestead,
+                    gold: roster.gold,
+                    displayedBalances: displayedBalances,
+                    increaseAnimationDelays: Self.immediateWalletDelays,
+                    keepsArtworkStationary: true,
+                )
+                .controlSize(.large)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+
+                collectionSection
+
+                LazyVStack(spacing: TrinketDesign.Spacing.large) {
+                    ForEach(HomesteadNodeCategory.allCases) { category in
+                        categoryCard(category)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            }
+            .padding(.top, TrinketDesign.Layout.sectionHeaderSpacing)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
         .modifier(HomesteadDepositOverlay(event: depositEvent, geometryChanged: updateDepositGeometry))
@@ -288,6 +283,7 @@ struct HomesteadView: View {
                 subtitle: progress.subtitle,
                 icon: category.icon,
                 artID: category.artID,
+                aspectRatio: 16.0 / 9.0,
             )
             .overlay {
                 if showsCategoryProgress, requestedCategory == category {

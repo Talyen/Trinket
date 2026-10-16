@@ -11,9 +11,10 @@ reserves a bottom dock for costs and Forge/Done while its artwork scrolls above.
 
 ## Browsing and benefits
 
-The overview keeps its full-bleed landscape hero, compact eight-resource wallet,
-and Play Mode–style category cards: Farming, Crafting, Alchemy, Training, Arcana.
-Category cards share Play's viewport-bounded width and stay vertically stacked.
+The overview keeps its full-bleed landscape hero, centered eight-resource wallet,
+and artwork category cards: Farming, Crafting, Alchemy, Training, Arcana.
+The wallet uses the large resource presentation. Category cards fill the content
+width with 16:9 artwork and stay vertically stacked.
 Cards show tier-sum constructed progress and push stable two-column portrait
 building galleries. Buildings have centered names beneath their portraits, without
 visible upgrade segments in the galleries. Gallery cards retain accessibility

@@ -52,6 +52,7 @@ struct HubArtworkCard: View {
     let artID: String
     var fallbackArtID: String?
     var isLocked = false
+    var aspectRatio: CGFloat = HubArtworkLayout.aspectRatio
 
     private var art: BackgroundArtReference? {
         ArtCatalog.backgroundArtByID[artID]
@@ -92,7 +93,7 @@ struct HubArtworkCard: View {
             }
             .padding(TrinketDesign.Spacing.large)
         }
-        .aspectRatio(HubArtworkLayout.aspectRatio, contentMode: .fit)
+        .aspectRatio(aspectRatio, contentMode: .fit)
         .contentShape(TrinketDesign.cardShape)
         .clipShape(TrinketDesign.cardShape)
         .overlay {
