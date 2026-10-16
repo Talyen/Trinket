@@ -81,6 +81,8 @@ public final class AppState {
         dependencies: BootstrapDependencies,
     ) -> any BattleRuntime {
         factory(BattlePresentationDependencies(
+            readMusicPlayback: { dependencies.musicPlayer.readPlayback() },
+            bossLyricsEnabled: { dependencies.options.bossLyricsEnabled },
             playSFX: { ids in
                 dependencies.sfxPlayer.playAll(
                     ids,

@@ -44,6 +44,7 @@ public enum AccessibilityID {
     }
 
     public enum Options {
+        public static let bossLyricsToggle = "Boss Lyrics Toggle"
         public static let hapticsToggle = "Haptics Toggle"
         public static let rememberAutoBattleToggle = "Remember Auto-Battle Preference Toggle"
         public static let resetProgressConfirmation = "Reset Game Progress"
@@ -347,6 +348,7 @@ public enum AccessibilityID {
     }
 
     public enum Battle {
+        public static let bossLyrics = "Boss Lyrics"
         public static let actionsMenu = "Battle Actions"
         public static let autoBattleToggle = "Auto Battle Toggle"
         public static let hand = "Battle Hand"

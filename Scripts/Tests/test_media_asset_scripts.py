@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import hashlib
+import json
 import re
 import subprocess
 import sys
@@ -126,6 +128,68 @@ runpy.run_path(sys.argv[0], run_name='__main__')
             self.assertFalse(list(state.parent.glob("*.tmp.*")))
             for path, content in previous.items():
                 self.assertEqual(path.read_bytes(), content)
+
+    def test_boss_lyrics_bind_recording_and_refresh_catalog_without_reencoding(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, log = self.make_audio_fixture(directory, "music")
+            manifest = root / "MusicManifest/music.tsv"
+            manifest.write_text(manifest.read_text().replace("menu\ttest_track", "boss\ttest_track").replace("none\t", "treant\t"))
+            generated = root / "Packages/TrinketContent/Sources/TrinketContent/Generated"
+            (generated / "GameContentEnemies.generated.swift").write_text('id: "treant", isBoss: true')
+            lyrics = root / "MusicManifest/lyrics/test_track.json"
+            lyrics.parent.mkdir()
+            data = {"audioSha256": hashlib.sha256(b"fixture music").hexdigest(),
+                    "lines": [{"text": "I grow", "timings": [0.5, 1, 1.2, 2]}]}
+            lyrics.write_text(json.dumps(data))
+            result = self.run_audio_fixture(root, environment, "music")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            catalog = generated / "MusicCatalog.generated.swift"
+            before = catalog.read_bytes()
+            self.assertIn(b'MusicLyricPhrase(text: "I grow", timings: [0.5, 1, 1.2, 2])', before)
+            self.assertEqual(self.run_audio_fixture(root, environment, "music").returncode, 0)
+            self.assertEqual(catalog.read_bytes(), before)
+            self.assertEqual(log.read_text().count("convert"), 1)
+            data["lines"][0]["timings"][-1] = 2.5
+            lyrics.write_text(json.dumps(data))
+            check = [sys.executable, "Scripts/asset-library.py", "--check", "--outputs-only", "--kind", "music"]
+            self.assertNotEqual(run_captured(check, cwd=root, env=environment).returncode, 0)
+            self.assertEqual(self.run_audio_fixture(root, environment, "music").returncode, 0)
+            self.assertNotEqual(catalog.read_bytes(), before)
+            self.assertEqual(log.read_text().count("convert"), 1)
+            self.assertEqual(run_captured(check, cwd=root, env=environment).returncode, 0)
+
+    def test_invalid_lyrics_preserve_shipping_outputs_and_receipt(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root, environment, log = self.make_audio_fixture(directory, "music")
+            manifest = root / "MusicManifest/music.tsv"
+            manifest.write_text(manifest.read_text().replace("menu\ttest_track", "boss\ttest_track").replace("none\t", "treant\t"))
+            generated = root / "Packages/TrinketContent/Sources/TrinketContent/Generated"
+            (generated / "GameContentEnemies.generated.swift").write_text('id: "treant", isBoss: true')
+            self.assertEqual(self.run_audio_fixture(root, environment, "music").returncode, 0)
+            orphan = root / "Trinket/Media/Music/orphan.m4a"
+            orphan.write_bytes(b"preserve")
+            before = {path: path.read_bytes() for path in [orphan, *generated.iterdir()]}
+            folder = root / "MusicManifest/lyrics"
+            folder.mkdir()
+            source_hash = hashlib.sha256(b"fixture music").hexdigest()
+            cases = [
+                ("unknown", source_hash, "I grow", [0, 1, 1, 2]),
+                ("test_track", "wrong recording", "I grow", [0, 1, 1, 2]),
+                ("test_track", source_hash, "I grow", [0, 1]),
+                ("test_track", source_hash, "I grow", [0, 1, 0.5, 2]),
+                ("test_track", source_hash, "I grow", [0, 0, 1, 2]),
+                ("test_track", source_hash, "I grow", [0, 1, 1, float("nan")]),
+            ]
+            for track, digest, text, timings in cases:
+                with self.subTest(track=track, digest=digest, timings=timings):
+                    lyrics = folder / (track + ".json")
+                    lyrics.write_text(json.dumps({"audioSha256": digest, "lines": [{"text": text, "timings": timings}]}))
+                    result = self.run_audio_fixture(root, environment, "music")
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("Lyrics", result.stderr)
+                    self.assertEqual({path: path.read_bytes() for path in before}, before)
+                    self.assertEqual(log.read_text().count("convert"), 1)
+                    lyrics.unlink()
 
     def test_media_orphan_pruning_is_extension_scoped(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

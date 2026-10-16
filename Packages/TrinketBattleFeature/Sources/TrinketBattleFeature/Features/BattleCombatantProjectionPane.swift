@@ -39,6 +39,7 @@ struct BattleCombatantProjectionPane: View {
         if let snapshot {
             BattleCombatantPane(
                 combatant: snapshot.combatant,
+                presentation: presentation,
                 health: snapshot.health,
                 maxHealth: snapshot.maxHealth,
                 mana: snapshot.mana,

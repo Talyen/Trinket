@@ -26,6 +26,10 @@ public final class OptionsStore {
         }
     }
 
+    public var bossLyricsEnabled: Bool {
+        didSet { defaults.set(bossLyricsEnabled, forKey: Self.bossLyricsEnabledKey) }
+    }
+
     public var hapticsEnabled: Bool {
         didSet { defaults.set(hapticsEnabled, forKey: Self.hapticsEnabledKey) }
     }
@@ -45,6 +49,7 @@ public final class OptionsStore {
 
     static let musicVolumeKey = "options.musicVolume"
     static let effectsVolumeKey = "options.effectsVolume"
+    static let bossLyricsEnabledKey = "options.bossLyricsEnabled"
     static let hapticsEnabledKey = "options.hapticsEnabled"
     static let rememberAutoBattlePreferenceKey = "options.rememberAutoBattlePreference"
     static let autoBattleEnabledKey = "options.autoBattleEnabled"
@@ -53,6 +58,7 @@ public final class OptionsStore {
     static func clearDefaults(from defaults: UserDefaults) {
         defaults.removeObject(forKey: musicVolumeKey)
         defaults.removeObject(forKey: effectsVolumeKey)
+        defaults.removeObject(forKey: bossLyricsEnabledKey)
         defaults.removeObject(forKey: hapticsEnabledKey)
         defaults.removeObject(forKey: rememberAutoBattlePreferenceKey)
         defaults.removeObject(forKey: autoBattleEnabledKey)
@@ -69,6 +75,7 @@ public final class OptionsStore {
 
         storedMusicVolume = Self.readVolume(from: defaults, key: Self.musicVolumeKey, default: Self.defaultMusicVolume)
         storedEffectsVolume = Self.readVolume(from: defaults, key: Self.effectsVolumeKey, default: Self.defaultEffectsVolume)
+        bossLyricsEnabled = Self.readBool(from: defaults, key: Self.bossLyricsEnabledKey, default: true)
         hapticsEnabled = Self.readBool(from: defaults, key: Self.hapticsEnabledKey, default: Self.defaultHapticsEnabled)
         rememberAutoBattlePreference = rememberAutoValue
         autoBattleEnabled = autoBattleValue

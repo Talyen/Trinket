@@ -37,6 +37,15 @@ struct OptionsView: View {
                     },
                 )
 
+                Toggle(isOn: $options.bossLyricsEnabled) {
+                    Text(L10n.ui_optionsview_boss_lyrics)
+                        .trinketTypography(.body)
+                }
+                .accessibilityIdentifier(AccessibilityID.Options.bossLyricsToggle)
+                .onChange(of: options.bossLyricsEnabled) { _, isEnabled in
+                    playToggleSFX(isEnabled, options.effectsVolume)
+                }
+
                 Toggle(isOn: $options.hapticsEnabled) {
                     Label {
                         Text(L10n.ui_optionsview_haptics_fd470)

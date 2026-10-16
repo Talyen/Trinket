@@ -8023,6 +8023,48 @@
         }
       }
     },
+    "ui.optionsview.boss_lyrics": {
+      "comment": "Audio setting: display the words sung by boss music, synchronized to the recording.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boss-Liedtexte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boss Lyrics"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paroles des chansons des boss"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ボス曲の歌詞"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보스 곡 가사"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "頭目歌曲歌詞"
+          }
+        }
+      }
+    },
     "ui.optionsview.cancel_19766": {
       "comment": "Trinket/Features/Options/OptionsView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",

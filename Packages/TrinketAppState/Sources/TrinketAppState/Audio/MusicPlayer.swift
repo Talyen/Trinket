@@ -1,5 +1,6 @@
 import Foundation
 import TrinketCore
+import TrinketFeatureContracts
 
 @MainActor
 final class MusicPlayer {
@@ -70,6 +71,15 @@ final class MusicPlayer {
             fade?.outgoing.stop()
             current?.voice.stop()
         }
+    }
+
+    func readPlayback() -> MusicPlaybackSnapshot? {
+        guard let current else { return nil }
+        return MusicPlaybackSnapshot(
+            trackID: current.request.track.id,
+            currentTime: current.voice.currentTime,
+            isAudible: current.voice.isPlaying && current.voice.volume > 0,
+        )
     }
 
     var canPreviewVolume: Bool {

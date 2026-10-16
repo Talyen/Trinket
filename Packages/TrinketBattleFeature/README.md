@@ -32,6 +32,20 @@ Feedback scheduling, recipes, presentation models, and sound mapping live in
 `State/Feedback/`; rendering stays in `Features/Feedback/`. Debug performance
 scenario drivers and harnesses live in `Support/Performance/` within this target.
 
+## Boss lyrics
+
+Supported boss music reveals original English words as sung, with a gold active
+word and dim earlier words. Phrases clear at their final word end. The lyric overlay
+sits immediately above Health inside the boss card's attack/recoil transforms;
+it does not resize the battlefield or intercept combatant taps. Only arriving words
+animate. A leaf-owned sampler reads actual playback time and changes view state
+only at word/phrase boundaries, following resumes, seeks and loops.
+
+The default-on Audio option can disable lyrics. Unsupported bosses, defeated bosses,
+retired/prepared displays, hidden tabs, and inactive scenes do not sample. Muted,
+stopped or mismatched playback clears the text. Timing metadata belongs to
+[MusicManifest](../../MusicManifest/README.md#boss-lyrics), not battle state.
+
 ## Prepared artwork
 
 BattleSession holds one balanced cache acquisition per prepared artwork name,

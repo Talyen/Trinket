@@ -7,6 +7,7 @@ import csv
 import fcntl
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -107,6 +108,8 @@ def input_hash(kind: str) -> str:
     paths.extend(str(path.relative_to(ROOT)) for path in sorted((ROOT / 'Scripts/internal/media_templates').glob('*.swift-template')))
     if kind == 'art':
         paths.append('Scripts/config/full-only-art-kinds.txt')
+    if kind == 'music':
+        paths.extend(str(path.relative_to(ROOT)) for path in sorted((ROOT / 'MusicManifest/lyrics').glob('*.json')))
     values = {path: digest(ROOT / path) for path in paths if (ROOT / path).is_file()}
     values['settings'] = encoding_settings(kind)
     return hashlib.sha256(json.dumps(values, sort_keys=True).encode()).hexdigest()
@@ -315,6 +318,37 @@ def validate_media_ids(kind: str) -> None:
                     raise ValueError(f'Music boss "{row["boss_enemy_id"]}" is no longer a boss enemy.')
 
 
+def music_lyrics(sources: dict[str, str]) -> dict[str, list[dict]]:
+    """Validate authored timing snapshots against the selected recordings before output changes."""
+    tracks = {row['id']: row for row in rows('music')}
+    result = {}
+    for path in sorted((ROOT / 'MusicManifest/lyrics').glob('*.json')):
+        track = tracks.get(path.stem)
+        if track is None or track['kind'] != 'boss':
+            raise ValueError(f'Lyrics {path.name} must select an existing boss music track.')
+        data = json.loads(path.read_text())
+        if (not isinstance(data, dict) or not isinstance(data.get('audioSha256'), str)
+                or data['audioSha256'] != sources.get(track['source_path'])):
+            raise ValueError(f'Lyrics {path.name} recording hash does not match the selected source.')
+        lines = data.get('lines')
+        if not isinstance(lines, list) or not lines:
+            raise ValueError(f'Lyrics {path.name} must contain phrases.')
+        previous_end = 0
+        for line in lines:
+            text = line.get('text') if isinstance(line, dict) else None
+            timings = line.get('timings') if isinstance(line, dict) else None
+            if (not isinstance(text, str) or not text or text != ' '.join(text.split())
+                    or not isinstance(timings, list) or len(timings) != len(text.split(' ')) * 2):
+                raise ValueError(f'Lyrics {path.name} phrase must have one interval per word.')
+            for start, end in zip(timings[::2], timings[1::2]):
+                if (any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)
+                        for value in (start, end)) or start < previous_end or end <= start):
+                    raise ValueError(f'Lyrics {path.name} word intervals must be finite, positive and ordered.')
+                previous_end = end
+        result[path.stem] = lines
+    return result
+
+
 def check_kind(kind: str, outputs_only: bool) -> None:
     recorded = read_record().get(kind)
     if not recorded or recorded['input_hash'] != input_hash(kind):
@@ -325,6 +359,8 @@ def check_kind(kind: str, outputs_only: bool) -> None:
         validate_art_ids()
     else:
         validate_media_ids(kind)
+    if kind == 'music':
+        music_lyrics(recorded['sources'])
     if not outputs_only and recorded['sources'] != source_hashes(kind):
         raise ValueError(f'Raw {kind} sources changed. Regenerate locally.')
 

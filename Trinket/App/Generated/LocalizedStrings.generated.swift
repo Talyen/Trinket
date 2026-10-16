@@ -767,6 +767,10 @@ enum L10n {
         LocalizedStringResource("ui.optionsview.battle_transitions_fd4bd", defaultValue: "Battle Transitions", table: "Localizable", bundle: .main)
     }
 
+    static var ui_optionsview_boss_lyrics: LocalizedStringResource {
+        LocalizedStringResource("ui.optionsview.boss_lyrics", defaultValue: "Boss Lyrics", table: "Localizable", bundle: .main)
+    }
+
     static var ui_optionsview_cancel_19766: LocalizedStringResource {
         LocalizedStringResource("ui.optionsview.cancel_19766", defaultValue: "Cancel", table: "Localizable", bundle: .main)
     }

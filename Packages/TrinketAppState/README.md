@@ -87,6 +87,12 @@ Cancelled loads cannot install voices, and cancelled fades cannot overwrite a
 new slider gain. `MusicPlaybackBackend` isolates decoding and ambient session
 setup; deterministic transition tests use controlled loads and silent fake voices.
 
+`MusicPlayer.readPlayback()` returns the current voice's track, media position,
+and playing/positive-volume status for lyric sampling. Prepared voices and outgoing
+fades never become the lyric clock. The persisted Boss Lyrics preference defaults
+on and crosses into Battle alongside this read capability through
+`BattlePresentationDependencies`.
+
 ## Sound effects
 
 SFX use a prestarted `AVAudioEngine`. Battle event mapping stays in

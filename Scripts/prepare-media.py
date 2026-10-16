@@ -251,7 +251,7 @@ def prepare_art(rows, snapshot):
     run.finish(text, active=active, patterns=('*.imageset', '*/*.imageset'))
 
 
-def prepare_audio(kind, rows, snapshot):
+def prepare_audio(kind, rows, snapshot, lyrics=None):
     run = Preparation(kind, snapshot)
     bitrate = run.settings[f'{kind.upper()}_AAC_BITRATE']
     profile = f'container=m4af;codec=aac;bitrate={bitrate};soundcheck=true'
@@ -281,6 +281,12 @@ def prepare_audio(kind, rows, snapshot):
             snippets['ids'].append(f"    public static let {row['swift_symbol']} = {identifier}")
         fields.append(f"volumeGain: {row['volume_gain']}")
         snippets['tracks' if kind == 'music' else 'clips'].append('        ' + ('MusicTrack' if kind == 'music' else 'SFXClip') + '(\n            ' + ',\n            '.join(fields) + '\n        ),')
+    if kind == 'music':
+        entries = []
+        for identifier, lines in (lyrics or {}).items():
+            phrases = [f'            MusicLyricPhrase(text: {swift(line["text"])}, timings: {line["timings"]}),' for line in lines]
+            entries.append(f'        {swift(identifier)}: [\n' + '\n'.join(phrases) + '\n        ],')
+        snippets['lyrics'] = ['[\n' + '\n'.join(entries) + '\n    ]' if entries else '[:]']
     run.finish(template(kind, **{key: '\n'.join(value) for key, value in snippets.items()}),
                active=active, patterns=('*.m4a',), label=f'{kind} asset')
 
@@ -315,13 +321,14 @@ def main():
     # Validate every selected source and row before encoding or pruning any kind.
     snapshots = {kind: assets.input_snapshot(kind) for kind in kinds}
     rows = {kind: validate(kind) for kind in kinds}
+    lyrics = assets.music_lyrics(snapshots['music']['sources']) if 'music' in kinds else None
     for kind in kinds:
         if kind == 'art':
             prepare_art(rows[kind], snapshots[kind])
         elif kind == 'app-icon':
             prepare_icon(rows[kind], snapshots[kind])
         else:
-            prepare_audio(kind, rows[kind], snapshots[kind])
+            prepare_audio(kind, rows[kind], snapshots[kind], lyrics)
         print(f'Prepared {len(rows[kind])} {kind} asset(s).')
 
 

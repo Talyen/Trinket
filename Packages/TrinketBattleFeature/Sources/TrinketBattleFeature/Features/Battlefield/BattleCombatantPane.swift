@@ -30,6 +30,7 @@ extension View {
 struct BattleCombatantPane: View {
     @Environment(\.displayScale) private var displayScale
     let combatant: Combatant
+    let presentation: BattlePresentationState
     let health: Int
     let maxHealth: Int
     let mana: Int
@@ -147,6 +148,14 @@ struct BattleCombatantPane: View {
             }
         }
         .frame(maxWidth: .infinity)
+        .overlay(alignment: .top) {
+            if !isDefeated, recoilDirection == .up {
+                BossLyrics(bossID: combatant.id, presentation: presentation)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 6)
+                    .alignmentGuide(.top) { $0[.bottom] }
+            }
+        }
         .opacity(isDefeated ? 0 : 1)
         .animation(BattleMotion.scrim, value: isDefeated)
     }

@@ -183,6 +183,38 @@ struct MusicPlayerTests {
         #expect(restarted.currentTime == 0)
     }
 
+    @Test func `lyric snapshot follows the active voice and never prepared or outgoing tracks`() async throws {
+        let backend = ControlledMusicBackend()
+        let player = MusicPlayer(isDisabled: false, backend: backend)
+        #expect(player.readPlayback() == nil)
+        let boss = try #require(MusicCatalog.track(matching: "boss_blight_treant"))
+        let first = try await start(.init(track: boss, enemyID: boss.bossEnemyID), player: player, backend: backend)
+        first.currentTime = 1.8
+        #expect(player.readPlayback()?.trackID == boss.id)
+        #expect(player.readPlayback()?.currentTime == 1.8)
+        #expect(player.readPlayback()?.isAudible == true)
+        first.currentTime = 0.6
+        #expect(player.readPlayback()?.currentTime == 0.6)
+        first.isPlaying = false
+        #expect(player.readPlayback()?.isAudible == false)
+        first.isPlaying = true
+        player.setVolume(0)
+        #expect(player.readPlayback()?.isAudible == false)
+        player.setVolume(1)
+        let next = try request("replacement")
+        player.prepare(next)
+        try await eventually { backend.loads.count == 2 }
+        let prepared = TestMusicVoice()
+        backend.completeLoad(1, with: prepared)
+        try await eventually { prepared.configurations > 0 }
+        #expect(player.readPlayback()?.trackID == boss.id)
+        player.update(route: .track(next), volume: 1)
+        #expect(player.readPlayback()?.trackID == next.track.id)
+        player.update(route: .silence(preservingPosition: true), volume: 1)
+        #expect(prepared.isPlaying)
+        #expect(player.readPlayback() == nil)
+    }
+
     private func request(_ enemyID: String) throws -> MusicPlaybackRequest {
         let id = try #require(MusicCatalog.battleTrackIDs.first)
         let track = try #require(MusicCatalog.track(matching: id))
