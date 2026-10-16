@@ -5126,37 +5126,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Gift</keyword>schaden, wenn du <keyword id=\"holy\">heiligen</keyword> Schaden verursachst"
+            "value": "Deine <keyword id=\"holy\">heiligen</keyword> Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden bei <keyword id=\"poison\">vergifteten</keyword> Gegnern"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Poison</keyword> damage when you deal <keyword id=\"holy\">Holy</keyword> damage"
+            "value": "Your <keyword id=\"holy\">Holy</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage to <keyword id=\"poison\">Poisoned</keyword> enemies"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"poison\">Poison</keyword> lorsque vous infligez des dégâts de type <keyword id=\"holy\">Sacré</keyword>"
+            "value": "Vos attaques <keyword id=\"holy\">sacrées</keyword> infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis <keyword id=\"poison\">empoisonnés</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"holy\">聖</keyword>ダメージを与えると<keyword id=\"poison\">毒</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "あなたの<keyword id=\"holy\">聖</keyword>攻撃は、<keyword id=\"poison\">毒</keyword>状態の敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"holy\">신성</keyword> 피해를 주면 <keyword id=\"poison\">독</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "자신의 <keyword id=\"holy\">신성</keyword> 공격이 <keyword id=\"poison\">독</keyword>에 걸린 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "造成<keyword id=\"holy\">神聖</keyword>傷害時，造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"poison\">中毒</keyword>傷害"
+            "value": "你的<keyword id=\"holy\">神聖</keyword>攻擊對<keyword id=\"poison\">中毒</keyword>的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"
           }
         }
       }
@@ -5168,37 +5168,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Gift</keyword>schaden, wenn du <keyword id=\"holy\">heiligen</keyword> Schaden verursachst"
+            "value": "Deine <keyword id=\"holy\">heiligen</keyword> Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden bei <keyword id=\"poison\">vergifteten</keyword> Gegnern"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Poison</keyword> damage when you deal <keyword id=\"holy\">Holy</keyword> damage"
+            "value": "Your <keyword id=\"holy\">Holy</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage to <keyword id=\"poison\">Poisoned</keyword> enemies"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"poison\">Poison</keyword> lorsque vous infligez des dégâts de type <keyword id=\"holy\">Sacré</keyword>"
+            "value": "Vos attaques <keyword id=\"holy\">sacrées</keyword> infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis <keyword id=\"poison\">empoisonnés</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"holy\">聖</keyword>ダメージを与えると<keyword id=\"poison\">毒</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "あなたの<keyword id=\"holy\">聖</keyword>攻撃は、<keyword id=\"poison\">毒</keyword>状態の敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"holy\">신성</keyword> 피해를 주면 <keyword id=\"poison\">독</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "자신의 <keyword id=\"holy\">신성</keyword> 공격이 <keyword id=\"poison\">독</keyword>에 걸린 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "造成<keyword id=\"holy\">神聖</keyword>傷害時，造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"poison\">中毒</keyword>傷害"
+            "value": "你的<keyword id=\"holy\">神聖</keyword>攻擊對<keyword id=\"poison\">中毒</keyword>的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"
           }
         }
       }
@@ -9344,37 +9344,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wenn <keyword id=\"leech\">Lebensraub</keyword> <keyword id=\"health\">Gesundheit</keyword> wiederherstellt, während du unter halber <keyword id=\"health\">Gesundheit</keyword> bist, verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Betäubungs</keyword>schaden"
+            "value": "Unter halber <keyword id=\"health\">Gesundheit</keyword> stellt <keyword id=\"leech\">Lebensraub</keyword> gegen <keyword id=\"stun\">betäubte</keyword> Gegner <value id=\"quantity_1\">%1$lld</value> zusätzliche <keyword id=\"health\">Gesundheit</keyword> wieder her"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When <keyword id=\"leech\">Leech</keyword> restores <keyword id=\"health\">Health</keyword> while you are below half <keyword id=\"health\">Health</keyword>, deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Stun</keyword> damage"
+            "value": "Below half <keyword id=\"health\">Health</keyword>, <keyword id=\"leech\">Leech</keyword> restores <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"health\">Health</keyword> against <keyword id=\"stun\">Stunned</keyword> enemies"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Si un <keyword id=\"leech\">Vol de vie</keyword> restaure de la <keyword id=\"health\">Santé</keyword> alors que vous êtes sous la moitié de votre <keyword id=\"health\">Santé</keyword>, infligez <value id=\"quantity_1\">%1$lld</value> dégâts d’<keyword id=\"stun\">Étourdissement</keyword>"
+            "value": "Sous la moitié de votre <keyword id=\"health\">Santé</keyword> maximale, le <keyword id=\"leech\">Vol de vie</keyword> rend <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> de plus contre les ennemis <keyword id=\"stun\">étourdis</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">体力</keyword>が半分未満の状態で<keyword id=\"leech\">吸収</keyword>により<keyword id=\"health\">体力</keyword>を回復すると、<keyword id=\"stun\">スタン</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "<keyword id=\"health\">体力</keyword>が最大値の半分未満のとき、<keyword id=\"stun\">スタン</keyword>状態の敵への<keyword id=\"leech\">吸収</keyword>による<keyword id=\"health\">体力</keyword>回復量が<value id=\"quantity_1\">%1$lld</value>増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">체력</keyword>이 절반 미만일 때 <keyword id=\"leech\">흡혈</keyword>로 <keyword id=\"health\">체력</keyword>을 회복하면 <keyword id=\"stun\">기절</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "<keyword id=\"health\">체력</keyword>이 최대치의 절반 미만일 때, <keyword id=\"stun\">기절</keyword>한 적에 대한 <keyword id=\"leech\">흡혈</keyword>이 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 추가로 회복합니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">生命值</keyword>低於一半時，若<keyword id=\"leech\">吸血</keyword>恢復<keyword id=\"health\">生命值</keyword>，則造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"stun\">暈眩</keyword>傷害"
+            "value": "<keyword id=\"health\">生命值</keyword>低於上限的一半時，對<keyword id=\"stun\">暈眩</keyword>敵人的<keyword id=\"leech\">吸血</keyword>額外恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"
           }
         }
       }
@@ -9386,37 +9386,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wenn <keyword id=\"leech\">Lebensraub</keyword> <keyword id=\"health\">Gesundheit</keyword> wiederherstellt, während du unter halber <keyword id=\"health\">Gesundheit</keyword> bist, verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Betäubungs</keyword>schaden"
+            "value": "Unter halber <keyword id=\"health\">Gesundheit</keyword> stellt <keyword id=\"leech\">Lebensraub</keyword> gegen <keyword id=\"stun\">betäubte</keyword> Gegner <value id=\"quantity_1\">%1$lld</value> zusätzliche <keyword id=\"health\">Gesundheit</keyword> wieder her"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "When <keyword id=\"leech\">Leech</keyword> restores <keyword id=\"health\">Health</keyword> while you are below half <keyword id=\"health\">Health</keyword>, deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Stun</keyword> damage"
+            "value": "Below half <keyword id=\"health\">Health</keyword>, <keyword id=\"leech\">Leech</keyword> restores <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"health\">Health</keyword> against <keyword id=\"stun\">Stunned</keyword> enemies"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Si un <keyword id=\"leech\">Vol de vie</keyword> restaure de la <keyword id=\"health\">Santé</keyword> alors que vous êtes sous la moitié de votre <keyword id=\"health\">Santé</keyword>, infligez <value id=\"quantity_1\">%1$lld</value> dégâts d’<keyword id=\"stun\">Étourdissement</keyword>"
+            "value": "Sous la moitié de votre <keyword id=\"health\">Santé</keyword> maximale, le <keyword id=\"leech\">Vol de vie</keyword> rend <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> de plus contre les ennemis <keyword id=\"stun\">étourdis</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">体力</keyword>が半分未満の状態で<keyword id=\"leech\">吸収</keyword>により<keyword id=\"health\">体力</keyword>を回復すると、<keyword id=\"stun\">スタン</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "<keyword id=\"health\">体力</keyword>が最大値の半分未満のとき、<keyword id=\"stun\">スタン</keyword>状態の敵への<keyword id=\"leech\">吸収</keyword>による<keyword id=\"health\">体力</keyword>回復量が<value id=\"quantity_1\">%1$lld</value>増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">체력</keyword>이 절반 미만일 때 <keyword id=\"leech\">흡혈</keyword>로 <keyword id=\"health\">체력</keyword>을 회복하면 <keyword id=\"stun\">기절</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "<keyword id=\"health\">체력</keyword>이 최대치의 절반 미만일 때, <keyword id=\"stun\">기절</keyword>한 적에 대한 <keyword id=\"leech\">흡혈</keyword>이 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 추가로 회복합니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">生命值</keyword>低於一半時，若<keyword id=\"leech\">吸血</keyword>恢復<keyword id=\"health\">生命值</keyword>，則造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"stun\">暈眩</keyword>傷害"
+            "value": "<keyword id=\"health\">生命值</keyword>低於上限的一半時，對<keyword id=\"stun\">暈眩</keyword>敵人的<keyword id=\"leech\">吸血</keyword>額外恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"
           }
         }
       }
@@ -9596,37 +9596,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"bleed\">Blutungs</keyword>schaden: <value id=\"quantity_1\">%1$lld</value>%% Chance, einmal pro Zug <value id=\"quantity_2\">%2$lld</value> <keyword id=\"poison\">Gift</keyword>schaden zu verursachen"
+            "value": "Deine <keyword id=\"bleed\">Blutung</keyword> verursacht <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden bei <keyword id=\"poison\">vergifteten</keyword> Gegnern"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"bleed\">Bleed</keyword> damage: <value id=\"quantity_1\">%1$lld</value>%% chance to deal <value id=\"quantity_2\">%2$lld</value> <keyword id=\"poison\">Poison</keyword> damage once per turn"
+            "value": "Your <keyword id=\"bleed\">Bleed</keyword> deals <value id=\"quantity_1\">%1$lld</value> additional damage to <keyword id=\"poison\">Poisoned</keyword> enemies"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dégâts de <keyword id=\"bleed\">Saignement</keyword> : <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger <value id=\"quantity_2\">%2$lld</value> dégâts de <keyword id=\"poison\">Poison</keyword>, une fois par tour"
+            "value": "Votre <keyword id=\"bleed\">Saignement</keyword> inflige <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis <keyword id=\"poison\">empoisonnés</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"bleed\">出血</keyword>ダメージを与えると、1ターンに1回、<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"poison\">毒</keyword>ダメージを<value id=\"quantity_2\">%2$lld</value>与える"
+            "value": "あなたの<keyword id=\"bleed\">出血</keyword>は、<keyword id=\"poison\">毒</keyword>状態の敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"bleed\">출혈</keyword> 피해: 턴마다 한 번, <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"poison\">독</keyword> 피해 <value id=\"quantity_2\">%2$lld</value>"
+            "value": "자신의 <keyword id=\"bleed\">출혈</keyword>이 <keyword id=\"poison\">독</keyword>에 걸린 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "造成<keyword id=\"bleed\">流血</keyword>傷害時，有<value id=\"quantity_1\">%1$lld</value>%%機率造成<value id=\"quantity_2\">%2$lld</value>點<keyword id=\"poison\">中毒</keyword>傷害，每回合一次"
+            "value": "你的<keyword id=\"bleed\">流血</keyword>對<keyword id=\"poison\">中毒</keyword>的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"
           }
         }
       }
@@ -9638,37 +9638,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"bleed\">Blutungs</keyword>schaden: <value id=\"quantity_1\">%1$lld</value>%% Chance, einmal pro Zug <value id=\"quantity_2\">%2$lld</value> <keyword id=\"poison\">Gift</keyword>schaden zu verursachen"
+            "value": "Deine <keyword id=\"bleed\">Blutung</keyword> verursacht <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden bei <keyword id=\"poison\">vergifteten</keyword> Gegnern"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"bleed\">Bleed</keyword> damage: <value id=\"quantity_1\">%1$lld</value>%% chance to deal <value id=\"quantity_2\">%2$lld</value> <keyword id=\"poison\">Poison</keyword> damage once per turn"
+            "value": "Your <keyword id=\"bleed\">Bleed</keyword> deals <value id=\"quantity_1\">%1$lld</value> additional damage to <keyword id=\"poison\">Poisoned</keyword> enemies"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dégâts de <keyword id=\"bleed\">Saignement</keyword> : <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger <value id=\"quantity_2\">%2$lld</value> dégâts de <keyword id=\"poison\">Poison</keyword>, une fois par tour"
+            "value": "Votre <keyword id=\"bleed\">Saignement</keyword> inflige <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis <keyword id=\"poison\">empoisonnés</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"bleed\">出血</keyword>ダメージを与えると、1ターンに1回、<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"poison\">毒</keyword>ダメージを<value id=\"quantity_2\">%2$lld</value>与える"
+            "value": "あなたの<keyword id=\"bleed\">出血</keyword>は、<keyword id=\"poison\">毒</keyword>状態の敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"bleed\">출혈</keyword> 피해: 턴마다 한 번, <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"poison\">독</keyword> 피해 <value id=\"quantity_2\">%2$lld</value>"
+            "value": "자신의 <keyword id=\"bleed\">출혈</keyword>이 <keyword id=\"poison\">독</keyword>에 걸린 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "造成<keyword id=\"bleed\">流血</keyword>傷害時，有<value id=\"quantity_1\">%1$lld</value>%%機率造成<value id=\"quantity_2\">%2$lld</value>點<keyword id=\"poison\">中毒</keyword>傷害，每回合一次"
+            "value": "你的<keyword id=\"bleed\">流血</keyword>對<keyword id=\"poison\">中毒</keyword>的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"
           }
         }
       }
@@ -32863,6 +32863,48 @@
         }
       }
     },
+    "authored.ab6b9b827fb7dab4": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unter halber <keyword id=\"health\">Gesundheit</keyword> stellt <keyword id=\"leech\">Lebensraub</keyword> gegen <keyword id=\"stun\">betäubte</keyword> Gegner <value id=\"quantity_1\">%1$lld</value> zusätzliche <keyword id=\"health\">Gesundheit</keyword> wieder her"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Below half <keyword id=\"health\">Health</keyword>, <keyword id=\"leech\">Leech</keyword> restores <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"health\">Health</keyword> against <keyword id=\"stun\">Stunned</keyword> enemies"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sous la moitié de votre <keyword id=\"health\">Santé</keyword> maximale, le <keyword id=\"leech\">Vol de vie</keyword> rend <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> de plus contre les ennemis <keyword id=\"stun\">étourdis</keyword>"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"health\">体力</keyword>が最大値の半分未満のとき、<keyword id=\"stun\">スタン</keyword>状態の敵への<keyword id=\"leech\">吸収</keyword>による<keyword id=\"health\">体力</keyword>回復量が<value id=\"quantity_1\">%1$lld</value>増加する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"health\">체력</keyword>이 최대치의 절반 미만일 때, <keyword id=\"stun\">기절</keyword>한 적에 대한 <keyword id=\"leech\">흡혈</keyword>이 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 추가로 회복합니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"health\">生命值</keyword>低於上限的一半時，對<keyword id=\"stun\">暈眩</keyword>敵人的<keyword id=\"leech\">吸血</keyword>額外恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"
+          }
+        }
+      }
+    },
     "authored.ab6cad13fab37b90": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/JourneyModels.swift: computed title",
       "extractionState": "manual",
@@ -34413,6 +34455,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "秘術"
+          }
+        }
+      }
+    },
+    "authored.bec3cc676df24746": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine <keyword id=\"holy\">heiligen</keyword> Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden bei <keyword id=\"poison\">vergifteten</keyword> Gegnern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your <keyword id=\"holy\">Holy</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage to <keyword id=\"poison\">Poisoned</keyword> enemies"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos attaques <keyword id=\"holy\">sacrées</keyword> infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis <keyword id=\"poison\">empoisonnés</keyword>"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたの<keyword id=\"holy\">聖</keyword>攻撃は、<keyword id=\"poison\">毒</keyword>状態の敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자신의 <keyword id=\"holy\">신성</keyword> 공격이 <keyword id=\"poison\">독</keyword>에 걸린 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的<keyword id=\"holy\">神聖</keyword>攻擊對<keyword id=\"poison\">中毒</keyword>的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"
           }
         }
       }
@@ -36681,6 +36765,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "每輪自身<keyword id=\"block\">格擋</keyword>首次被擊破時，對攻擊者造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>及<value id=\"quantity_2\">%2$lld</value>點<keyword id=\"stun\">暈眩</keyword>傷害，再恢復<value id=\"quantity_3\">%3$lld</value>點<keyword id=\"health\">生命值</keyword>"
+          }
+        }
+      }
+    },
+    "authored.e0de7af20ffca551": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine <keyword id=\"bleed\">Blutung</keyword> verursacht <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden bei <keyword id=\"poison\">vergifteten</keyword> Gegnern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your <keyword id=\"bleed\">Bleed</keyword> deals <value id=\"quantity_1\">%1$lld</value> additional damage to <keyword id=\"poison\">Poisoned</keyword> enemies"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre <keyword id=\"bleed\">Saignement</keyword> inflige <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis <keyword id=\"poison\">empoisonnés</keyword>"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あなたの<keyword id=\"bleed\">出血</keyword>は、<keyword id=\"poison\">毒</keyword>状態の敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자신의 <keyword id=\"bleed\">출혈</keyword>이 <keyword id=\"poison\">독</keyword>에 걸린 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的<keyword id=\"bleed\">流血</keyword>對<keyword id=\"poison\">中毒</keyword>的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"
           }
         }
       }
@@ -92780,37 +92906,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"burn\">Brand</keyword>-Angriffe verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Blutungs</keyword>schaden"
+            "value": "Deine <keyword id=\"burn\">Brand</keyword>angriffe verursachen bei <keyword id=\"bleed\">blutenden</keyword> Gegnern <value id=\"quantity_1\">%1$lld</value>%% mehr Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"burn\">Burn</keyword> attacks have a <value id=\"quantity_1\">%1$lld</value>%% chance to deal <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Bleed</keyword> damage"
+            "value": "Your <keyword id=\"burn\">Burn</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value>%% more damage to <keyword id=\"bleed\">Bleeding</keyword> enemies"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les attaques de <keyword id=\"burn\">Brûlure</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger <value id=\"quantity_2\">%2$lld</value> dégâts de <keyword id=\"bleed\">Saignement</keyword>"
+            "value": "Vos attaques de <keyword id=\"burn\">Brûlure</keyword> infligent <value id=\"quantity_1\">%1$lld</value>%% de dégâts supplémentaires aux ennemis affectés par un <keyword id=\"bleed\">Saignement</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"burn\">炎上</keyword>攻撃が<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"bleed\">出血</keyword>ダメージを<value id=\"quantity_2\">%2$lld</value>与える"
+            "value": "あなたの<keyword id=\"burn\">炎上</keyword>攻撃は、<keyword id=\"bleed\">出血</keyword>状態の敵に与えるダメージが<value id=\"quantity_1\">%1$lld</value>%%増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"burn\">화상</keyword> 공격이 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"bleed\">출혈</keyword> 피해 <value id=\"quantity_2\">%2$lld</value>"
+            "value": "자신의 <keyword id=\"burn\">화상</keyword> 공격이 <keyword id=\"bleed\">출혈</keyword>에 걸린 적에게 주는 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가합니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"burn\">燃燒</keyword>攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率造成<value id=\"quantity_2\">%2$lld</value>點<keyword id=\"bleed\">流血</keyword>傷害"
+            "value": "你的<keyword id=\"burn\">燃燒</keyword>攻擊對<keyword id=\"bleed\">流血</keyword>的敵人造成的傷害提高<value id=\"quantity_1\">%1$lld</value>%%"
           }
         }
       }
@@ -95864,37 +95990,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">Physische</keyword> Angriffe verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance <value id=\"quantity_2\">%2$lld</value> <keyword id=\"burn\">Brand</keyword>- oder <keyword id=\"freeze\">Frost</keyword>schaden"
+            "value": "Deine <keyword id=\"physical\">physischen</keyword> Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden bei <keyword id=\"burn\">brennenden</keyword> oder <keyword id=\"freeze\">gefrorenen</keyword> Gegnern"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">Physical</keyword> attacks have a <value id=\"quantity_1\">%1$lld</value>%% chance to deal <value id=\"quantity_2\">%2$lld</value> <keyword id=\"burn\">Burn</keyword> or <keyword id=\"freeze\">Freeze</keyword> damage"
+            "value": "Your <keyword id=\"physical\">Physical</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage to <keyword id=\"burn\">Burning</keyword> or <keyword id=\"freeze\">Frozen</keyword> enemies"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les attaques de type <keyword id=\"physical\">Physique</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger <value id=\"quantity_2\">%2$lld</value> dégâts de <keyword id=\"burn\">Brûlure</keyword> ou de <keyword id=\"freeze\">Gel</keyword>"
+            "value": "Vos attaques <keyword id=\"physical\">physiques</keyword> infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis affectés par une <keyword id=\"burn\">Brûlure</keyword> ou un <keyword id=\"freeze\">Gel</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">物理</keyword>攻撃が<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"burn\">炎上</keyword>か<keyword id=\"freeze\">凍結</keyword>ダメージを<value id=\"quantity_2\">%2$lld</value>与える"
+            "value": "あなたの<keyword id=\"physical\">物理</keyword>攻撃は、<keyword id=\"burn\">炎上</keyword>または<keyword id=\"freeze\">凍結</keyword>状態の敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">물리</keyword> 공격이 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"burn\">화상</keyword> 또는 <keyword id=\"freeze\">빙결</keyword> 피해 <value id=\"quantity_2\">%2$lld</value>"
+            "value": "자신의 <keyword id=\"physical\">물리</keyword> 공격이 <keyword id=\"burn\">화상</keyword> 또는 <keyword id=\"freeze\">빙결</keyword>에 걸린 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">物理</keyword>攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率造成<value id=\"quantity_2\">%2$lld</value>點<keyword id=\"burn\">燃燒</keyword>或<keyword id=\"freeze\">冰凍</keyword>傷害"
+            "value": "你的<keyword id=\"physical\">物理</keyword>攻擊對<keyword id=\"burn\">燃燒</keyword>或<keyword id=\"freeze\">冰凍</keyword>中的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"
           }
         }
       }

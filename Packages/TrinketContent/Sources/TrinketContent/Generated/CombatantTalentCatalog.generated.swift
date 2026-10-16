@@ -657,13 +657,8 @@ public extension CombatantTalentCatalog {
             "warlock_burn_t1_1": CombatantTalentEffect(
                 name: "Bloodfire",
                 iconID: "sf:drop.fill",
-                description: "Burn attacks have a 10% chance to deal 4 Bleed damage",
-                triggers: CombatTraitTriggers(
-                    dot: DotTriggers {
-                        $0.burnAttackBleedChancePercent = 0.10
-                        $0.burnAttackBleedDamage = 4
-                    }
-                )
+                description: "Your Burn attacks deal 25% more damage to Bleeding enemies",
+                triggers: CombatTraitTriggers(attack: AttackTriggers { $0.burnAttackDamageVsBleedingMultiplier = 1.25 })
             ),
             "warlock_burn_t1_2": CombatantTalentEffect(
                 name: "Scorching Ash",
@@ -1025,13 +1020,8 @@ public extension CombatantTalentCatalog {
             "wildcard_physical_t1_1": CombatantTalentEffect(
                 name: "Prismatic Edge",
                 iconID: "sf:burst.fill",
-                description: "Physical attacks have a 10% chance to deal 3 Burn or Freeze damage",
-                triggers: CombatTraitTriggers(
-                    attack: AttackTriggers {
-                        $0.physicalElementChancePercent = 0.10
-                        $0.physicalElementDamage = 3
-                    }
-                )
+                description: "Your Physical attacks deal 1 additional damage to Burning or Frozen enemies",
+                triggers: CombatTraitTriggers(attack: AttackTriggers { $0.physicalAttackDamageVsBurningOrFrozenFlat = 1 })
             ),
             "wildcard_physical_t1_2": CombatantTalentEffect(
                 name: "Loaded Strike",

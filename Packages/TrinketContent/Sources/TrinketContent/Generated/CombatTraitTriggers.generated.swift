@@ -103,6 +103,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case poisonDamageVsBleedingFlat
     case holyDamageVsStunnedPercent
     case thornsDamageVsPoisonedFlat
+    case holyAttackDamageVsPoisonedFlat
     case firstCriticalHitRepeatsPerTurn
     case heldCardNextAttackDamage
     case partnerFirstAttackDamage
@@ -216,6 +217,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case attackPurgeCount
     case loadedStrike
     case dazingSwipeStunBuildup
+    case burnAttackDamageVsBleedingMultiplier
+    case physicalAttackDamageVsBurningOrFrozenFlat
     case sealedSarcophagus
     case retainAllBlockBetweenTurns
     case blockedAttackBasicOncePerTurn
@@ -418,6 +421,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case enemyBurnPreventDecayChancePercent
     case burnDamageVsPoisonedFlat
     case bleedDamageVsBurningFlat
+    case bleedDamageVsPoisonedFlat
     case stunDamageAddsEnemyBlock
     case stunRetainedBuildupPercent
     case freezeExtraActionSkips
@@ -803,6 +807,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case providedOverhealToBlockPercent
     case healthRestoredNextPoisonDamagePercent
     case firstHolyAttackHealPerTurn
+    case leechHealVsStunnedBelowHalfFlat
     case undyingEmber
     case borrowedLife
     case onceDeathReviveHealth
@@ -1008,6 +1013,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.damage.poisonDamageVsBleedingFlat, .poisonDamageVsBleedingFlat, default: 0, merging: .add),
         .init(\.damage.holyDamageVsStunnedPercent, .holyDamageVsStunnedPercent, default: 0, merging: .add),
         .init(\.damage.thornsDamageVsPoisonedFlat, .thornsDamageVsPoisonedFlat, default: 0, merging: .add),
+        .init(\.damage.holyAttackDamageVsPoisonedFlat, .holyAttackDamageVsPoisonedFlat, default: 0, merging: .add),
         .init(\.attack.firstCriticalHitRepeatsPerTurn, .firstCriticalHitRepeatsPerTurn, default: false, merging: .or),
         .init(\.attack.heldCardNextAttackDamage, .heldCardNextAttackDamage, default: 0, merging: .max),
         .init(\.attack.partnerFirstAttackDamage, .partnerFirstAttackDamage, default: 0, merging: .max),
@@ -1121,6 +1127,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.attack.attackPurgeCount, .attackPurgeCount, default: 0, merging: .add),
         .init(\.attack.loadedStrike, .loadedStrike, default: false, merging: .or),
         .init(\.attack.dazingSwipeStunBuildup, .dazingSwipeStunBuildup, default: 0, merging: .add),
+        .init(\.attack.burnAttackDamageVsBleedingMultiplier, .burnAttackDamageVsBleedingMultiplier, default: 1, merging: .max),
+        .init(\.attack.physicalAttackDamageVsBurningOrFrozenFlat, .physicalAttackDamageVsBurningOrFrozenFlat, default: 0, merging: .add),
         .init(\.block.sealedSarcophagus, .sealedSarcophagus, default: false, merging: .or),
         .init(\.block.retainAllBlockBetweenTurns, .retainAllBlockBetweenTurns, default: false, merging: .or),
         .init(\.block.blockedAttackBasicOncePerTurn, .blockedAttackBasicOncePerTurn, default: false, merging: .or),
@@ -1323,6 +1331,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.dot.enemyBurnPreventDecayChancePercent, .enemyBurnPreventDecayChancePercent, default: 0, merging: .max),
         .init(\.dot.burnDamageVsPoisonedFlat, .burnDamageVsPoisonedFlat, default: 0, merging: .add),
         .init(\.dot.bleedDamageVsBurningFlat, .bleedDamageVsBurningFlat, default: 0, merging: .add),
+        .init(\.dot.bleedDamageVsPoisonedFlat, .bleedDamageVsPoisonedFlat, default: 0, merging: .add),
         .init(\.control.stunDamageAddsEnemyBlock, .stunDamageAddsEnemyBlock, default: false, merging: .or),
         .init(\.control.stunRetainedBuildupPercent, .stunRetainedBuildupPercent, default: 0, merging: .max),
         .init(\.control.freezeExtraActionSkips, .freezeExtraActionSkips, default: 0, merging: .add),
@@ -1708,6 +1717,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.healing.providedOverhealToBlockPercent, .providedOverhealToBlockPercent, default: 0, merging: .max),
         .init(\.healing.healthRestoredNextPoisonDamagePercent, .healthRestoredNextPoisonDamagePercent, default: 0, merging: .add),
         .init(\.healing.firstHolyAttackHealPerTurn, .firstHolyAttackHealPerTurn, default: 0, merging: .add),
+        .init(\.healing.leechHealVsStunnedBelowHalfFlat, .leechHealVsStunnedBelowHalfFlat, default: 0, merging: .add),
         .init(\.revival.undyingEmber, .undyingEmber, default: false, merging: .or),
         .init(\.revival.borrowedLife, .borrowedLife, default: false, merging: .or),
         .init(\.revival.onceDeathReviveHealth, .onceDeathReviveHealth, default: 0, merging: .max),

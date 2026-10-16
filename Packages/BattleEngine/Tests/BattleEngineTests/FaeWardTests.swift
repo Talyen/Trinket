@@ -139,9 +139,8 @@ struct FaeWardTests {
         #expect(!effects.contains(where: { $0.effect.keyword == .poison }))
     }
 
-    @Test func `blocked bleed does not tick existing bleeds or trigger poison`() {
+    @Test func `blocked bleed does not tick existing bleeds`() {
         var battle = makeWardedHeroBattle(enemyModifiers: CombatModifierProfile.withTriggers {
-            $0.onBleedApplyPoison = 3
             $0.bleedApplicationTicksExisting = true
             $0.onBleedAppliedToBleedingDealDamage = 2
         })

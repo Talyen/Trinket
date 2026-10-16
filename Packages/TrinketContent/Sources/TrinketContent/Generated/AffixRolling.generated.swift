@@ -91,6 +91,9 @@ extension CombatTraitTriggers {
         .int(\.bleedDamageVsBurningFlat, field: .bleedDamageVsBurningFlat),
         .percent(\.healthRestoredNextPoisonDamagePercent, field: .healthRestoredNextPoisonDamagePercent),
         .int(\.firstHolyAttackHealPerTurn, field: .firstHolyAttackHealPerTurn),
+        .int(\.holyAttackDamageVsPoisonedFlat, field: .holyAttackDamageVsPoisonedFlat),
+        .int(\.leechHealVsStunnedBelowHalfFlat, field: .leechHealVsStunnedBelowHalfFlat),
+        .int(\.bleedDamageVsPoisonedFlat, field: .bleedDamageVsPoisonedFlat),
     ]
 
     static let nonRollableAffixFields: [CombatTriggerField: String] = [

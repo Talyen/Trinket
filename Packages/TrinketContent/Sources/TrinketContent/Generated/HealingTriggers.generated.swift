@@ -117,6 +117,7 @@ public struct HealingTriggers: Equatable, Hashable, Sendable {
     public var providedOverhealToBlockPercent: Double = 0
     public var healthRestoredNextPoisonDamagePercent: Double = 0
     public var firstHolyAttackHealPerTurn: Int = 0
+    public var leechHealVsStunnedBelowHalfFlat: Int = 0
 
     public init(_ configure: (inout Self) -> Void = { _ in }) {
         configure(&self)

@@ -4,15 +4,29 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
-    @Test(arguments: [0, 1])
-    func `prismatic burn attaches only damage that reaches health`(block: Int) {
-        var battle = capstoneBattle(hero: ["wildcard_physical_t1_1"])
-        DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
-        let before = battle.roster.enemy.currentHealth
-        CombatExecutor
-            .run { await CombatTriggerEngine.heroTalentDamage(.burn, source: battle.hero, name: "Prismatic Edge", in: &battle) }
-        #expect(before - battle.roster.enemy.currentHealth == 1 - block)
-        #expect(talentPoints(.burn, on: .enemy, in: battle) == 1 - block)
+    @Test(arguments: [false, true], [false, true])
+    func `Prismatic Edge strengthens existing Physical attacks once even against both statuses`(burning: Bool, frozen: Bool) {
+        var profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t1_1"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+        )
+        if burning {
+            battle.insertEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        }
+        if frozen {
+            battle.insertEffect(.controlMeter(.freeze, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        }
+        let events = battle.performTestAction(Ability(
+            id: "prismatic-test", name: "Physical Attack", tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .physical), DamageComponent(2, keyword: .physical)],
+            criticalChanceBonus: -1,
+        ))
+        #expect(battle.health(of: battle.enemy) == (burning || frozen ? 94 : 96))
+        #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.physical, .physical])
+        #expect(CombatTriggerEngine.totalPotency(of: .burn, on: battle.enemy, in: battle) == (burning ? 1 : 0))
+        let tick = battle.resolveTestDamage(2, keyword: .physical, options: .resolvedPeriodic)
+        #expect(tick.healthLost == 2)
     }
 
     @Test(arguments: [0, 2, 4], [BattleParticipant.hero, .companion])

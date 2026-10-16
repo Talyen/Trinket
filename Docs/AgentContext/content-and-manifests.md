@@ -102,8 +102,9 @@ preserve existing orders and append new rollable fields so seeded roll/bump
 selection stays stable. Generation owns the typed field list and exclusion reasons;
 rolling behavior, numeric text replacement, and gameplay remain authored.
 `InventoryItem` normalizes saved Spitebloom, Ashen Wake, Cauterize, Toxic Remedy,
-and Beacon powers before scaling, perfect-roll inspection, and corruption. Keep
-legacy serialized fields for decoding, preserve their rolled magnitude, and clear
+Beacon, Infected, Toxic Incense, and Heartshock powers before scaling, perfect-roll
+inspection, and corruption. Keep legacy serialized fields for decoding, preserve
+their rolled magnitude, and clear
 retired proc fields in the effective power. Beacon doubles its old healing roll
 once when converting to its first-Holy-attack-per-turn rule. Toxic Remedy describes
 the effective healing fraction after equipment scaling.

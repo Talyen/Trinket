@@ -35,48 +35,16 @@ struct DamageCadenceRegressionTests {
         #expect(tick.healthLost == 8)
     }
 
-    @Test func `Infected reacts to ticks without requiring a new stack`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.onBleedApplyPoison = 2
-        profile.triggers.onBleedDealPoisonChancePercent = 1
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
-        let before = battle.health(of: battle.enemy)
-        _ = CombatExecutor.run { await DoTDamage.resolveDamage(
-            basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
-        ) }
-        #expect(battle.health(of: battle.enemy) == before - 6)
-        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 2)
-    }
-
-    @Test func `Infected shares one successful conversion per wearer per turn across Bleed packets`() throws {
-        let affix = try #require(GameContent.itemAffixDefinition(matching: "infected"))
-        var profile = CombatModifierProfile.zero
-        affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
-        profile.triggers.onBleedDealPoisonChancePercent = 1
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, companionModifiers: profile, appliesFightPacing: false)
-        func tick(from actor: Combatant, in battle: inout BattleState) {
-            _ = battle.resolveDamage(.doTTick(amount: 2, target: battle.enemy, keyword: .bleed, sourceActorID: actor.id))
-        }
-        tick(from: battle.hero, in: &battle)
-        tick(from: battle.hero, in: &battle)
-        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 1)
-        tick(from: battle.companion, in: &battle)
-        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 2)
-        battle.turnCount += 1
-        tick(from: battle.hero, in: &battle)
-        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 3)
-    }
-
-    @Test(arguments: [Keyword.bleed, .burn], [false, true])
-    func `conditional affixes strengthen ongoing damage without secondary packets`(keyword: Keyword, conditioned: Bool) throws {
-        let affix = try #require(GameContent.itemAffixDefinition(matching: keyword == .bleed ? "cauterize" : "ashen_wake"))
+    @Test(arguments: ["cauterize", "ashen_wake", "infected"], [false, true])
+    func `conditional affixes strengthen ongoing damage without secondary packets`(id: String, conditioned: Bool) throws {
+        let keyword: Keyword = id == "ashen_wake" ? .burn : .bleed
+        let affix = try #require(GameContent.itemAffixDefinition(matching: id))
         var profile = CombatModifierProfile.zero
         affix.astral.triggers.apply(to: &profile, abilityName: affix.title)
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
         if conditioned {
-            let effect: Effect = keyword == .bleed ? .burn(1) : .poison(1)
+            let effect: Effect = id == "cauterize" ? .burn(1) : .poison(1)
             battle.insertEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
         let before = battle.health(of: battle.enemy)
@@ -87,25 +55,6 @@ struct DamageCadenceRegressionTests {
         #expect(before - battle.health(of: battle.enemy) == (conditioned ? 6 : 4))
         #expect(outcome.events.filter { $0.kind == .status }.map(\.keyword) == [keyword])
         #expect(!outcome.events.contains { $0.kind == .abilityDamage })
-    }
-
-    @Test func `silent Bleed stacks and fully blocked damage do not trigger Infected`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.onBleedApplyPoison = 2
-        profile.triggers.onBleedDealPoisonChancePercent = 1
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
-        _ = CombatExecutor.run { await DoTApplicator.applyDoT(
-            keyword: .bleed, potency: 4, to: battle.enemy, sourceActorID: battle.hero.id,
-            application: .attached, in: &battle,
-        ) }
-        DefensePoolEngine.set(100, on: battle.enemy, in: &battle)
-        let tick = CombatExecutor.run { await DoTDamage.resolveDamage(
-            basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
-        ) }
-        #expect(tick.healthLost == 0)
-        #expect(battle.health(of: battle.enemy) == 50)
-        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 0)
     }
 
     @Test func `Dazing Swipe adds one control charge per Physical ability without another damage packet`() {

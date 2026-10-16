@@ -68,25 +68,24 @@ struct AlchemyAffixPortTests {
         #expect(strike(at: 10, keyword: .holy) == 10)
     }
 
-    @Test func `Heartshock follows actual low-Health Leech without Leeching its own Stun hit`() {
+    @Test(arguments: [false, true], [false, true])
+    func `Heartshock increases the existing Leech heal only below half Health against Stunned enemies`(belowHalf: Bool, stunned: Bool) {
         var profile = CombatModifierProfile.zero
-        profile.triggers.leechStunBelowHalfHealth = 2
+        profile.triggers.leechHealVsStunnedBelowHalfFlat = 2
         profile.triggers.leechChancePercent = 1
-        var battle = makeAffixBattle(heroHealth: 10, modifiers: profile)
-
-        _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
+        profile.triggers.criticalChanceBonus = -1
+        var battle = makeAffixBattle(heroHealth: belowHalf ? 10 : 20, modifiers: profile)
+        if stunned {
+            battle.insertEffect(.controlMeter(.stun, 8, 8), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        }
+        let outcome = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: battle.hero.id, target: battle.enemy,
             abilityHasLeech: true, in: &battle,
         ) }
-        #expect(battle.health(of: battle.hero) == 14)
-        #expect(battle.health(of: battle.enemy) == 38)
-
-        var healthy = makeAffixBattle(heroHealth: 20, modifiers: profile)
-        _ = CombatExecutor.run { await HealingEngine.leechFromDamage(
-            8, sourceActorID: healthy.hero.id, target: healthy.enemy,
-            abilityHasLeech: true, in: &healthy,
-        ) }
-        #expect(healthy.health(of: healthy.enemy) == 40)
+        #expect(battle.health(of: battle.hero) == (belowHalf ? 14 + (stunned ? 2 : 0) : 24))
+        #expect(battle.health(of: battle.enemy) == 40)
+        #expect(!outcome.events.contains { $0.kind == .abilityDamage })
+        #expect(outcome.events.filter { $0.effectKind == .leechHeal }.map(\.amount) == [belowHalf && stunned ? 6 : 4])
     }
 
     @Test func `Venomtrail adds flat Poison damage while Bleed is active, including periodic ticks`() {

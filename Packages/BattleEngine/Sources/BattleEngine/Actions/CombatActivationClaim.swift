@@ -14,7 +14,6 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case belowHalfGoldGainHeal
     case blazingFeathers
     case bleedCriticalDraw
-    case bloodfire
     case boneShield
     case burnAttackDoubleChance
     case burnCriticalMana
@@ -57,7 +56,6 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case healthRestorationRolls
     case hoardArmor
     case jackpot
-    case infected
     case lightFingered
     case lingeringBlessing
     case livingArchive
@@ -70,7 +68,6 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case packBloodlust
     case paralysis
     case playfulEnergy
-    case prismaticEdge
     case prismaticSpark
     case purifyingLight
     case purifyingWisdom

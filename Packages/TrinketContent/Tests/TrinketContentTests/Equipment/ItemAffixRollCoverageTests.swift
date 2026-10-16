@@ -110,12 +110,12 @@ struct ItemAffixRollCoverageTests {
         #expect(silent.isEmpty, "Roll max must change card text: \(silent.sorted())")
     }
 
-    @Test func `infected rolls both damage and chance to max`() throws {
+    @Test func `Infected rolls its conditional damage without an obsolete proc chance`() throws {
         let infected = try #require(GameContent.itemAffixDefinition(matching: "infected"))
         let max = infected.basic.rolledMax()
-        #expect(max.triggers.onBleedApplyPoison == 2)
-        #expect(abs(max.triggers.onBleedDealPoisonChancePercent - 0.25) < 1e-9)
-        #expect(max.description.contains("25% chance to deal 2 Poison damage") && max.description.contains("once per turn"))
+        #expect(max.triggers.bleedDamageVsPoisonedFlat == 2)
+        #expect(max.triggers.onBleedApplyPoison == 0 && max.triggers.onBleedDealPoisonChancePercent == 0)
+        #expect(max.description == "Your Bleed deals 2 additional damage to Poisoned enemies")
     }
 
     @Test func `mixed modifier and trigger magnitudes share the transformation order`() {

@@ -62,8 +62,10 @@ Toxic Remedy replaces its recipient's prepared Poison attack damage with half
 the latest actual Health restoration, excluding overflow. It creates no immediate
 damage or Poison. The creating action/card and ongoing damage cannot consume it;
 a later Poison attack consumes it once, adding independently to Volatile Remedy.
-Heartshock reacts only to direct Leech restoration below half Health. Its Stun
-follow-up cannot Leech, so it cannot trigger another Heartshock hit.
+Heartshock increases the existing Leech healing amount while the wearer is
+strictly below half Health and the victim is Stunned. Check the wearer before
+restoration; the bonus passes through ordinary healing modifiers and recipient
+reductions, creating no additional heal, Stun damage, or control-meter charge.
 Taste for Blood, Necrotic Bleed, Toxic Touch, Soulpiercer, and Vitality Infusion
 recognize Leech granted by equipment and talents as well as abilities. Guaranteed grants qualify at the
 attack checkpoint, before restoration can change the source's Health; a full-Health

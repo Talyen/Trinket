@@ -57,23 +57,17 @@ struct CounterattackRewardRegressionTests {
         #expect(battle.health(of: battle.enemy) == (damageRepeat ? 97 : 94))
     }
 
-    @Test(arguments: [false, true])
-    func `Bloodfire adds Bleed to a Burn Basic counterattack`(damageRepeat: Bool) {
-        var battle = makeBattle(talents: ["warlock_burn_t1_1"]) { $0.triggers.burnAttackBleedChancePercent = 1 }
-
-        _ = counter(.fireArrow, origin: damageRepeat ? .criticalRepeat : .counterattack, in: &battle)
-
-        #expect(battle.health(of: battle.enemy) == (damageRepeat ? 97 : 93))
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isBleed } == !damageRepeat)
-    }
-
-    @Test(arguments: [false, true])
-    func `Prismatic Edge adds elemental damage to a Physical Basic counterattack`(damageRepeat: Bool) {
-        var battle = makeBattle(talents: ["wildcard_physical_t1_1"]) { $0.triggers.physicalElementChancePercent = 1 }
-
-        _ = counter(.slash, origin: damageRepeat ? .criticalRepeat : .counterattack, in: &battle)
-
-        #expect(battle.health(of: battle.enemy) == (damageRepeat ? 97 : 94))
+    @Test(arguments: [false, true], [false, true])
+    func `conditional attack talents strengthen Basic counterattacks and repeated attacks without extra hits`(
+        bloodfire: Bool,
+        damageRepeat: Bool,
+    ) {
+        var battle = makeBattle(talents: [bloodfire ? "warlock_burn_t1_1" : "wildcard_physical_t1_1"])
+        battle.insertEffect(bloodfire ? .bleed(1) : .burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 1)
+        let events = counter(bloodfire ? .fireArrow : .slash, origin: damageRepeat ? .criticalRepeat : .counterattack, in: &battle)
+        #expect(battle.health(of: battle.enemy) == 96)
+        #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [bloodfire ? .burn : .physical])
+        #expect(CombatTriggerEngine.totalPotency(of: .bleed, on: battle.enemy, in: battle) == (bloodfire ? 1 : 0))
     }
 
     @Test func `Hallowguard grants Block after a Holy Basic counterattack but not raw retaliation`() {

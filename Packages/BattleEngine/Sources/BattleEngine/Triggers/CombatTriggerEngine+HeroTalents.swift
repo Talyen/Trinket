@@ -44,29 +44,20 @@ package extension CombatTriggerEngine {
         if critical {
             removeBlockAfterPhysicalCriticalHit(by: sourceID, in: &context)
         }
-        await prismaticEdgeDamage(actor: actor, triggers: triggers, in: &context)
     }
 
     static func afterNonCardAttackHit(
         keyword: Keyword?,
         sourceID: String?,
         fullyBlocked: Bool,
-        options: DamageOperation,
         in context: inout BattleState,
-    ) async {
+    ) {
         guard let sourceID, let source = context.roster.combatant(for: sourceID),
               source.isAlive, source.role != .enemy else { return }
         let actor = source.combatant
         let triggers = context.modifiers(for: sourceID).triggers
         prepareTemperCycle(keyword: keyword, actor: actor, triggers: triggers, in: &context)
-        let allowsBonusDamage = !options.isRetaliation || options.isCounterattack
-        if allowsBonusDamage {
-            await bloodfireDamage(keyword: keyword, actor: actor, triggers: triggers, in: &context)
-        }
         afterBlockedAttack(actor: actor, fullyBlocked: fullyBlocked, triggers: triggers, in: &context)
-        if allowsBonusDamage, keyword == .physical {
-            await prismaticEdgeDamage(actor: actor, triggers: triggers, in: &context)
-        }
     }
 
     private static func prepareTemperCycle(
@@ -130,19 +121,6 @@ package extension CombatTriggerEngine {
         )
     }
 
-    private static func prismaticEdgeDamage(
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) async {
-        guard triggers.physicalElementChancePercent > 0, triggers.physicalElementDamage > 0,
-              context.claimTalentAbility(.prismaticEdge, actorID: actor.id),
-              BattleChance.succeeds(probability: triggers.physicalElementChancePercent, using: &context.rng)
-        else { return }
-        let keyword: Keyword = Bool.random(using: &context.rng) ? .burn : .freeze
-        await heroTalentDamage(keyword, amount: triggers.physicalElementDamage, source: actor, name: "Prismatic Edge", in: &context)
-    }
-
     private static func afterOtherCardHits(
         keyword: Keyword?,
         actor: Combatant,
@@ -152,25 +130,11 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) async {
-        await bloodfireDamage(keyword: keyword, actor: actor, triggers: triggers, in: &context)
         afterBlockedAttack(actor: actor, fullyBlocked: fullyBlocked, triggers: triggers, in: &context)
         await afterCompanionAttackHit(
             keyword: keyword, actor: actor, critical: critical,
             healthLost: healthLost, triggers: triggers, in: &context,
         )
-    }
-
-    private static func bloodfireDamage(
-        keyword: Keyword?,
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) async {
-        guard keyword == .burn, triggers.burnAttackBleedDamage > 0,
-              context.claimTalentAbility(.bloodfire, actorID: actor.id),
-              BattleChance.succeeds(probability: triggers.burnAttackBleedChancePercent, using: &context.rng)
-        else { return }
-        await heroTalentDamage(.bleed, amount: triggers.burnAttackBleedDamage, source: actor, name: "Bloodfire", in: &context)
     }
 
     private static func afterBlockedAttack(

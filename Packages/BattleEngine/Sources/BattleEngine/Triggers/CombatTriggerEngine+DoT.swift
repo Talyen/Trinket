@@ -11,9 +11,8 @@ package extension CombatTriggerEngine {
         guard healthLost > 0, let sourceActorID,
               let caster = context.roster.combatant(for: sourceActorID),
               caster.id != target.id else { return }
-        // Committed Bleed retains its conversions; personal rewards require a living source.
+        // Personal Bleed rewards require a living source.
         guard caster.isAlive else {
-            await afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
             return
         }
         let triggers = context.modifiers(for: sourceActorID).triggers
@@ -25,7 +24,6 @@ package extension CombatTriggerEngine {
                 $0.talents.pending.basicCriticalBonus = max($0.talents.pending.basicCriticalBonus, triggers.onBleedDamageNextBasicCritBonus)
             }
         }
-        await afterBleedDamageConversions(to: target, sourceActorID: sourceActorID, in: &context)
         if triggers.onBleedDamageHealSelf > 0 {
             _ = await HealingEngine.resolveHeal(
                 HealRequest(amount: triggers.onBleedDamageHealSelf, target: caster.combatant, sourceActorID: sourceActorID),

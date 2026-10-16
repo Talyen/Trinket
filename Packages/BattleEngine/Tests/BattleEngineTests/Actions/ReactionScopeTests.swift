@@ -23,27 +23,6 @@ struct ReactionScopeTests {
         #expect(state.resolution.depth(.damage) == ReactionScope.maxDepth)
     }
 
-    @Test(arguments: [ReactionScope.maxDepth - 1, ReactionScope.maxDepth])
-    func `Infected respects the depth boundary and restores ownership`(depth: Int) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onBleedApplyPoison = 3
-        var state = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
-        let target = state.enemy
-        for _ in 0 ..< depth {
-            state.resolution.enter(.dot)
-        }
-        let events = state.recordingEvents { state in
-            await CombatTriggerEngine.afterBleedDamageConversions(
-                to: target, sourceActorID: state.hero.id, in: &state,
-            )
-        }
-        let applies = depth < ReactionScope.maxDepth
-        #expect(events.isEmpty == !applies)
-        #expect(state.health(of: target) == (applies ? 47 : 50))
-        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: target, in: state) == (applies ? 3 : 0))
-        #expect(state.resolution.depth(.dot) == depth)
-    }
-
     @Test func `buildup damage invariant holds for blocked hit`() {
         let hero = CombatantFixtures.passiveHero(maxHealth: 100)
         var state = BattleStateTestFactory.makeMinimalBattle(

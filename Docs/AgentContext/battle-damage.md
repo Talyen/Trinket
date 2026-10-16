@@ -55,10 +55,10 @@ Watchful Guard grants Block in the opening round as well as later rounds.
 Blood Scent, Bulwark Force, Dread Exploitation, and Fan the Flames amplify enemy
 attacks, not ongoing damage. Stormbreak's damage multiplier also applies to Bleed
 ticks against Stunned enemies; resolved Burn and Poison keep their stored potency.
-Infected reacts to positive Bleed Health damage, including ticks, rather than
-stack attachment. It can successfully trigger only once per wearer per turn;
-failed rolls do not spend its allowance. Its Poison hit leaves Poison equal to
-Health lost. Silent stack grants do not trigger it.
+Infected adds flat damage to existing Bleed against Poisoned enemies, including
+ticks and damage from fallen sources; it creates no Poison hit or stack.
+Toxic Incense adds flat damage only to Holy attacks against Poisoned enemies,
+including counterattacks. Raw Holy retaliation and ongoing damage do not qualify.
 Ashen Wake adds flat damage to existing Burn against Poisoned enemies; Cauterize
 adds flat damage to existing Bleed against Burning enemies. Both check the target
 at each damage event, including resolved ticks and damage from fallen sources,
@@ -79,8 +79,8 @@ Burn and Poison attached by damaging attacks or effect applications store the
 actual Health damage dealt by that damage instance, after offensive bonuses,
 critical damage, mitigation and Block. Fully blocked, dodged or otherwise
 zero-Health-damage applications attach no stacks. This rule is identical for
-party members and enemies. Blazing Feathers and Toxic Incense leave
-stacks equal to their own hit's Health loss, without another immediate hit.
+party members and enemies. Blazing Feathers leaves
+stacks equal to its own hit's Health loss, without another immediate hit.
 Subsequent Burn/Poison ticks, consumed-stack damage
 and detonations use resolved potency: do not repeat outgoing flat/percent bonuses,
 critical multipliers or fight pacing. Current recipient defenses still apply.

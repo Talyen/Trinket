@@ -118,6 +118,10 @@ package extension HealingEngine {
                context.roster.hasControlStatus(for: target, keyword: .stun) {
                 restored = SaturatedArithmetic.saturatingAdd(restored, profile.triggers.leechBonusHealVsStunned)
             }
+            if let target, context.roster.isBelowHalfHealth(for: actorCombatant),
+               context.roster.hasControlStatus(for: target, keyword: .stun) {
+                restored = SaturatedArithmetic.saturatingAdd(restored, profile.triggers.leechHealVsStunnedBelowHalfFlat)
+            }
             restored = CombatRounding.scaled(restored, multiplier: 1 + profile.leechHealingPercent)
             if let target, profile.triggers.leechHealingVsAfflictedMultiplier > 1 {
                 let afflicted = context.roster.hasAffliction(.poison, on: target) || context.roster.hasAffliction(.bleed, on: target)
@@ -199,27 +203,6 @@ package extension HealingEngine {
                     ),
                     target: actorCombatant, amount: profile.triggers.leechThornsWithoutThorns, keyword: .thorns,
                 )
-            }
-            if actualRestored > 0, HealthThreshold.isBelowHalf(preHealth, maximum: maxHealth),
-               profile.triggers.leechStunBelowHalfHealth > 0,
-               let target, target.role == .enemy, context.roster.health(for: target) > 0 {
-                var operation = DamageOperation.reaction()
-                operation.suppressLeech = true
-                let stun = await context.resolveDamage(DamageRequest(
-                    amount: profile.triggers.leechStunBelowHalfHealth,
-                    target: target, keyword: .stun,
-                    sourceActorID: actorCombatant.id, options: operation,
-                ))
-
-                if stun.healthLost > 0 {
-                    context.nextEvent(
-                        kind: .abilityDamage, source: .init(actorCombatant),
-                        abilityName: CombatTriggerEngine.triggerAbilityName(
-                            .leechStunBelowHalfHealth, for: actorCombatant, fallback: "Heartshock", in: context,
-                        ),
-                        target: target, amount: stun.healthLost, keyword: .stun,
-                    )
-                }
             }
             if actualRestored > 0, preHealth < maxHealth,
                context.roster.health(for: actorCombatant) >= maxHealth,

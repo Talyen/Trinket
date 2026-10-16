@@ -69,6 +69,9 @@ package extension DamagePipeline {
         let triggers = context.modifiers(for: sourceActorID).triggers
         let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
         guard state.damageKeyword == .burn || sharedKeyword == .burn else { return }
+        if state.options.isAttackHit, state.damageKeyword == .burn, state.targetStatus.isBleeding {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.burnAttackDamageVsBleedingMultiplier)
+        }
         if BattleChance.succeeds(probability: triggers.burnDamageDoubleChancePercent, using: &context.rng) {
             state.remaining = SaturatedArithmetic.saturatingMul(state.remaining, 2)
         }
@@ -123,7 +126,7 @@ package extension DamagePipeline {
         state.remaining = SaturatedArithmetic.saturatingAdd(
             SaturatedArithmetic.saturatingAdd(state.amount, state.statBonus), state.itemBonus,
         )
-        applyConditionalAffixDamage(to: &state, in: context)
+        applyConditionalDamageBonuses(to: &state, in: context)
     }
 
     private static func applyPercentBonus(
@@ -439,7 +442,7 @@ package extension DamagePipeline {
         return multiplier
     }
 
-    static func applyConditionalAffixDamage(to state: inout DamageResolutionState, in context: BattleState) {
+    static func applyConditionalDamageBonuses(to state: inout DamageResolutionState, in context: BattleState) {
         guard state.amount > 0, state.combatant.role == .enemy,
               let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
@@ -457,6 +460,17 @@ package extension DamagePipeline {
         }
         if state.damageKeyword == .bleed, state.targetStatus.isBurning {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.bleedDamageVsBurningFlat)
+        }
+        if state.damageKeyword == .bleed, state.targetStatus.isPoisoned {
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.bleedDamageVsPoisonedFlat)
+        }
+        if state.options.isAttackHit {
+            if state.damageKeyword == .holy, state.targetStatus.isPoisoned {
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.holyAttackDamageVsPoisonedFlat)
+            }
+            if state.damageKeyword == .physical, state.targetStatus.isBurning || state.targetStatus.isFrozen {
+                bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.physicalAttackDamageVsBurningOrFrozenFlat)
+            }
         }
         state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
         state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)

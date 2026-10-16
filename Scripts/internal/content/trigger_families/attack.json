@@ -500,6 +500,16 @@
     {
       "name": "dazingSwipeStunBuildup",
       "type": "Int"
+    },
+    {
+      "name": "burnAttackDamageVsBleedingMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "max"
+    },
+    {
+      "name": "physicalAttackDamageVsBurningOrFrozenFlat",
+      "type": "Int"
     }
   ]
 }

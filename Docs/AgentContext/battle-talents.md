@@ -163,9 +163,9 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 ### Poison riders and damage conversions
 
 Venomous Skin resolves its immediate 1 Poison damage before attaching stacks.
-Prismatic Edge rolls once per Physical card for a separate Burn or Freeze hit,
-using its authored chance and damage. The selected hit uses the ordinary typed
-pipeline; its Burn attaches only the Health damage it actually dealt.
+Prismatic Edge adds flat damage to each existing Physical attack hit against
+Burning or Frozen enemies. Having both statuses grants the bonus once. It creates
+no elemental hit, Burn stack, or Freeze charge, and does not amplify ongoing damage.
 Sunwall rolls once per Holy ability and, on success, grants the Companion Block
 equal to actual Holy Health damage without applying Block bonuses or pacing
 again. Holy follow-up damage shares that ability's roll allowance. Committed Holy
@@ -231,10 +231,9 @@ rewarding each damage event.
 
 ### Bloodfire
 
-Bloodfire rolls once per Burn ability, on its first Burn attack hit. A success
-deals 4 immediate Bleed damage through the ordinary Block and damage pipeline
-and attaches the ordinary Bleed stack to a surviving target, with one automatic damage cue;
-ongoing Burn damage does not roll again.
+Bloodfire increases existing Burn attack damage by 25% against Bleeding enemies,
+checking the target on each hit. It creates no Bleed hit or stack and does not
+amplify ongoing Burn. Burn stacks still inherit their attack's actual Health damage.
 
 ### Paralysis, Bloodrush, and Arcane Focus
 
@@ -278,8 +277,7 @@ they cannot borrow the interrupted card's Critical Hit result.
 
 ### Card-triggered reactions
 
-Card-triggered elemental reactions use the selected random outcome. A defeated
-card owner cannot continue firing on-play rewards or reactions.
+A defeated card owner cannot continue firing on-play rewards or reactions.
 Typed Critical Hit rewards also recognize full Basic counterattacks. Frost Circuit
 restores Mana for each Freeze Critical Hit; Noxious Reaction, Cutpurse Cut, Ashen
 Arsenal, and Companion Burn Critical Hit Mana retain their existing reward cadence.
@@ -288,9 +286,10 @@ Companion attack rewards such as Bone Shield and Bloodrush also recognize full
 Basic counterattacks. Their ability allowances belong to that counterattack,
 independently of an interrupted card's allowance.
 
-Supernova, Bloodfire, and Prismatic Edge also recognize full Basic counterattacks,
-using the counterattack's own ability allowance. Holy Basic counterattacks retain
-Hallowguard and ordinary Holy damage rewards; Critical Basic counterattacks retain
+Supernova recognizes full Basic counterattacks using their own ability allowance.
+Bloodfire and Prismatic Edge also strengthen counterattacks and repeated attacks;
+resolved card repeats retain captured bonuses without applying them twice.
+Holy Basic counterattacks retain Hallowguard and ordinary Holy damage rewards; Critical Basic counterattacks retain
 Light Fingers and ordinary Critical Hit rewards. Raw retaliation and damage repeats
 keep their existing reaction guards.
 

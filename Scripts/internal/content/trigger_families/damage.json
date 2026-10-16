@@ -506,6 +506,14 @@
         "kind": "int",
         "order": 81
       }
+    },
+    {
+      "name": "holyAttackDamageVsPoisonedFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 86
+      }
     }
   ]
 }

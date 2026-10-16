@@ -536,6 +536,14 @@
         "kind": "int",
         "order": 85
       }
+    },
+    {
+      "name": "leechHealVsStunnedBelowHalfFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 87
+      }
     }
   ]
 }

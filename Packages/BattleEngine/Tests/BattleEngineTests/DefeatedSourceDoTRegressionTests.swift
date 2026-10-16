@@ -97,8 +97,7 @@ struct DefeatedSourceDoTRegressionTests {
         profile.triggers.onBleedDamageNextBasicCritBonus = 0.35
         profile.triggers.onBleedDamageHealSelf = 2
         if infected {
-            profile.triggers.onBleedApplyPoison = 2
-            profile.triggers.onBleedDealPoisonChancePercent = 1
+            profile.triggers.bleedDamageVsPoisonedFlat = 2
         } else {
             profile.triggers.bleedDamageVsBurningFlat = 2
         }
@@ -110,16 +109,14 @@ struct DefeatedSourceDoTRegressionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
 
-        if !infected {
-            battle.insertEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        }
+        battle.insertEffect(infected ? .poison(1) : .burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
         CombatExecutor.run { await EffectHandlers.advanceTurn(
             bleed, on: battle.enemy, in: &battle,
         ) }
 
         #expect(battle.health(of: battle.enemy) == 94)
-        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == (infected ? 2 : 0))
+        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == (infected ? 1 : 0))
         #expect(CombatTriggerEngine.totalPotency(of: .burn, on: battle.enemy, in: battle) == (infected ? 0 : 1))
         #expect(battle.health(of: battle.hero) == 0)
         #expect(!battle.roster.hero.talents.pending.basicGuaranteedCritical)

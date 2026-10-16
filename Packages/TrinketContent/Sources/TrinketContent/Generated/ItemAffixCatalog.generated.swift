@@ -309,20 +309,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.bleed, .poison],
             weight: 8,
-            basic: ItemAffixPower(description: "Bleed damage: 20% chance to deal 1 Poison damage once per turn", modifiers: [], triggers: CombatTraitTriggers(
-                dot: DotTriggers {
-                    $0.onBleedApplyPoison = 1
-                    $0.onBleedDealPoisonChancePercent = 0.20
-                    $0.bleedPoisonOncePerTurn = true
-                }
-            )),
-            astral: ItemAffixPower(description: "Bleed damage: 20% chance to deal 2 Poison damage once per turn", modifiers: [], triggers: CombatTraitTriggers(
-                dot: DotTriggers {
-                    $0.onBleedApplyPoison = 2
-                    $0.onBleedDealPoisonChancePercent = 0.20
-                    $0.bleedPoisonOncePerTurn = true
-                }
-            ))
+            basic: ItemAffixPower(description: "Your Bleed deals 1 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers { $0.bleedDamageVsPoisonedFlat = 1 })),
+            astral: ItemAffixPower(description: "Your Bleed deals 2 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers { $0.bleedDamageVsPoisonedFlat = 2 }))
         )
         ]
     }
@@ -704,8 +692,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.holy, .poison],
             weight: 1,
-            basic: ItemAffixPower(description: "Deal 1 Poison damage when you deal Holy damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.holyDamagePoisonFlat = 1 })),
-            astral: ItemAffixPower(description: "Deal 1 Poison damage when you deal Holy damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.holyDamagePoisonFlat = 1 }))
+            basic: ItemAffixPower(description: "Your Holy attacks deal 1 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.holyAttackDamageVsPoisonedFlat = 1 })),
+            astral: ItemAffixPower(description: "Your Holy attacks deal 1 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.holyAttackDamageVsPoisonedFlat = 1 }))
         ),
         ItemAffixCatalog.affix(
             id: "companions_collar",
@@ -1131,8 +1119,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.leech, .health, .stun],
             weight: 8,
-            basic: ItemAffixPower(description: "When Leech restores Health while you are below half Health, deal 1 Stun damage", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechStunBelowHalfHealth = 1 })),
-            astral: ItemAffixPower(description: "When Leech restores Health while you are below half Health, deal 3 Stun damage", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechStunBelowHalfHealth = 3 }))
+            basic: ItemAffixPower(description: "Below half Health, Leech restores 1 additional Health against Stunned enemies", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechHealVsStunnedBelowHalfFlat = 1 })),
+            astral: ItemAffixPower(description: "Below half Health, Leech restores 3 additional Health against Stunned enemies", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechHealVsStunnedBelowHalfFlat = 3 }))
         ),
         ItemAffixCatalog.affix(
             id: "venomtrail",

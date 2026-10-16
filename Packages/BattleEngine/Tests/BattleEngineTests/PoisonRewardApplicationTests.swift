@@ -5,23 +5,31 @@ import TrinketCore
 @testable import BattleEngine
 
 struct PoisonRewardApplicationTests {
-    @Test(arguments: [0, 2, 4])
-    func `Toxic Incense leaves only the Poison damage that passed Block`(block: Int) throws {
+    @Test(arguments: [false, true], [0, 2])
+    func `Toxic Incense strengthens only Holy attacks against Poisoned enemies before Block`(poisoned: Bool, block: Int) throws {
         let affix = try #require(GameContent.itemAffixDefinition(matching: "brass_censer"))
         var profile = CombatModifierProfile.zero
-        affix.astral.triggers.apply(to: &profile, abilityName: affix.title)
-        profile.triggers.holyDamagePoisonFlat = 4
+        affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
+        profile.triggers.criticalChanceBonus = -1
         var battle = makeBattle(profile: profile)
+        if poisoned {
+            battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        }
+        let reaction = battle.resolveTestDamage(4, keyword: .holy, options: .reaction())
+        #expect(reaction.healthLost == 4)
         DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
-        let before = battle.health(of: battle.enemy)
-
-        CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
-            to: battle.enemy, source: battle.hero, in: &battle,
-        ) }
-
-        let lost = 4 - block
-        #expect(before - battle.health(of: battle.enemy) == lost)
-        #expect(battle.activeEffects(of: battle.enemy).first { $0.effect.kind == .poison }?.effect.potency == (lost > 0 ? lost : nil))
+        let attack = Ability(
+            id: "incense-test",
+            name: "Holy Attack",
+            tier: .basic,
+            directDamage: 4,
+            damageKeyword: .holy,
+            criticalChanceBonus: -1,
+        )
+        let events = battle.performTestAction(attack)
+        #expect(battle.health(of: battle.enemy) == 92 + block - (poisoned ? 1 : 0))
+        #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.holy])
+        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == (poisoned ? 1 : 0))
     }
 
     @Test func `Toxic Remedy refreshes from actual healing and combines with Volatile Remedy on a later attack`() throws {

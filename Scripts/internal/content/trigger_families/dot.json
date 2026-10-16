@@ -392,6 +392,14 @@
         "kind": "int",
         "order": 83
       }
+    },
+    {
+      "name": "bleedDamageVsPoisonedFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 88
+      }
     }
   ]
 }

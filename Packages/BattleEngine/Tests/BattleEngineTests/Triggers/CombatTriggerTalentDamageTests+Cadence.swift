@@ -191,40 +191,27 @@ extension CombatTriggerTalentDamageTests {
     }
 
     @Test(arguments: [false, true])
-    func `bloodfire adds bleed damage to a burn card only once`(bloodfireIsLethal: Bool) throws {
+    func `Bloodfire strengthens every Burn attack hit without creating Bleed or strengthening ongoing Burn`(bleeding: Bool) throws {
         var profile = CombatantTalentCatalog.profile(for: ["warlock_burn_t1_1"])
-        profile.triggers.burnAttackBleedChancePercent = 1
+        profile.triggers.criticalChanceBonus = -1
         let ability = Ability(
             id: "bloodfire-check", name: "Bloodfire Check", tier: .basic,
             damageComponents: [DamageComponent(2, keyword: .burn), DamageComponent(2, keyword: .burn)],
             criticalChanceBonus: -1,
         )
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [ability], enemyMaxHealth: bloodfireIsLethal ? 4 : 100, heroModifiers: profile, appliesFightPacing: false,
+            heroAbilities: [ability], enemyMaxHealth: 100, heroModifiers: profile, appliesFightPacing: false,
         )
+        if bleeding {
+            battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 1)
+        }
         let card = try #require(battle.hand.cards.first)
         let events = try battle.playCard(cardID: card.id).events
-        let immediateDamage = bloodfireIsLethal ? 2 : 4
-        #expect(events.count { $0.kind == .abilityDamage && $0.keyword == .bleed && $0.amount == immediateDamage } == 1)
-        let bleeds = battle.activeEffects(of: battle.enemy).filter(\.effect.isBleed)
-        if bloodfireIsLethal {
-            #expect(battle.health(of: battle.enemy) == 0)
-            #expect(bleeds.isEmpty)
-            return
-        }
-        #expect(bleeds.count == 1)
-        let bleed = try #require(bleeds.first)
-        #expect(bleed.effect == .bleed(4))
-        #expect(bleed.sourceActorID == battle.hero.id)
-        #expect(bleed.remainingTurns == Effect.bleedDoTTurnCount)
-        let beforeTick = battle.health(of: battle.enemy)
-
-        CombatExecutor.run { await EffectHandlers.advanceTurn(
-            bleed, on: battle.enemy, in: &battle,
-        ) }
-
-        #expect(beforeTick - battle.health(of: battle.enemy) == 4)
-        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.isBleed })
+        #expect(battle.health(of: battle.enemy) == (bleeding ? 94 : 96))
+        #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.burn, .burn])
+        #expect(CombatTriggerEngine.totalPotency(of: .bleed, on: battle.enemy, in: battle) == (bleeding ? 1 : 0))
+        let tick = battle.resolveTestDamage(4, keyword: .burn, options: .resolvedPeriodic)
+        #expect(tick.healthLost == 4)
     }
 }
 

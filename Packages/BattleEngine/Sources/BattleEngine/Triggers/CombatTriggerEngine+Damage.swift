@@ -3,44 +3,9 @@ import TrinketCore
 
 package extension CombatTriggerEngine {
     /// Explicit trigger chance, falling back to guaranteed (1) when only the
-    /// flat enabler is present. Shared by the bleed/burn conversion gates,
-    /// which differ only in the key they read.
+    /// flat enabler is present. Used by detonation and control gates.
     static func chanceOrGuaranteed(_ explicitChance: Double, guaranteed: Bool) -> Double {
         explicitChance > 0 ? explicitChance : (guaranteed ? 1 : 0)
-    }
-
-    /// Infected can add Poison after positive Bleed Health damage, including ticks.
-    static func afterBleedDamageConversions(
-        to target: Combatant,
-        sourceActorID: String,
-        in context: inout BattleState,
-    ) async {
-        guard context.roster.combatant(for: sourceActorID) != nil else { return }
-        await withDoTRecursionScope(site: "afterBleedDamageConversions", context: &context) { context in
-            let profile = context.modifiers(for: sourceActorID)
-
-            let bleedPoisonChance = chanceOrGuaranteed(
-                profile.triggers.onBleedDealPoisonChancePercent,
-                guaranteed: profile.triggers.onBleedApplyPoison > 0,
-            )
-            let limited = profile.triggers.bleedPoisonOncePerTurn
-            let available = !limited || !context.resolution.isClaimed(
-                .affix(.infected), actorID: sourceActorID, cadence: .turn(context.turnCount),
-            )
-            if profile.triggers.onBleedApplyPoison > 0, bleedPoisonChance > 0, available,
-               BattleChance.succeeds(probability: min(1, bleedPoisonChance), using: &context.rng) {
-                if limited {
-                    _ = context.resolution.claim(.affix(.infected), actorID: sourceActorID, cadence: .turn(context.turnCount))
-                }
-                await context.applyDecayingDoT(
-                    keyword: .poison,
-                    potency: profile.triggers.onBleedApplyPoison,
-                    to: target,
-                    sourceActorID: sourceActorID,
-                    application: .reaction,
-                )
-            }
-        }
     }
 
     static func afterDecayingDoTApplied(

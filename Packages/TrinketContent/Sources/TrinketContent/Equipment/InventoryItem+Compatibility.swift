@@ -170,6 +170,33 @@ extension InventoryItem {
             let actual = triggers.firstHolyAttackHealPerTurn
             description = "Your first Holy attack that deals Health damage each turn restores \(actual) Health to the lowest-Health ally"
         default:
+            return normalizedAdditionalCombatProcPower(power, affixID: affixID)
+        }
+        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
+    }
+
+    private static func normalizedAdditionalCombatProcPower(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower? {
+        var triggers = power.triggers
+        let description: String
+        switch affixID {
+        case "infected":
+            triggers.bleedDamageVsPoisonedFlat = max(triggers.bleedDamageVsPoisonedFlat, triggers.onBleedApplyPoison)
+            triggers.onBleedApplyPoison = 0
+            triggers.onBleedDealPoisonChancePercent = 0
+            triggers.bleedPoisonOncePerTurn = false
+            let actual = triggers.bleedDamageVsPoisonedFlat
+            description = "Your Bleed deals \(actual) additional damage to Poisoned enemies"
+        case "brass_censer":
+            triggers.holyAttackDamageVsPoisonedFlat = max(triggers.holyAttackDamageVsPoisonedFlat, triggers.holyDamagePoisonFlat)
+            triggers.holyDamagePoisonFlat = 0
+            let actual = triggers.holyAttackDamageVsPoisonedFlat
+            description = "Your Holy attacks deal \(actual) additional damage to Poisoned enemies"
+        case "heartshock":
+            triggers.leechHealVsStunnedBelowHalfFlat = max(triggers.leechHealVsStunnedBelowHalfFlat, triggers.leechStunBelowHalfHealth)
+            triggers.leechStunBelowHalfHealth = 0
+            let actual = triggers.leechHealVsStunnedBelowHalfFlat
+            description = "Below half Health, Leech restores \(actual) additional Health against Stunned enemies"
+        default:
             return nil
         }
         return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)

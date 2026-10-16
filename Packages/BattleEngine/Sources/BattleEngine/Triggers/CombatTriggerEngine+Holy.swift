@@ -116,17 +116,6 @@ package extension CombatTriggerEngine {
                 in: &context,
             )
         }
-
-        if profile.triggers.holyDamagePoisonFlat > 0, context.roster.health(for: enemy) > 0 {
-            let poison = await context.dealReactionDamage(
-                profile.triggers.holyDamagePoisonFlat, to: enemy, keyword: .poison, sourceActorID: source.id,
-            )
-
-            await context.applyDecayingDoT(
-                keyword: .poison, potency: poison.healthLost, to: enemy,
-                sourceActorID: source.id, application: .attached,
-            )
-        }
     }
 
     private static func reviveCompanionIfNeeded(

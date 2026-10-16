@@ -83,10 +83,10 @@ package enum DamagePipeline {
         }
         if state.options.isAttackHit, !state.options.isCardAttack,
            state.amount > 0, state.combatant.role == .enemy {
-            await CombatTriggerEngine.afterNonCardAttackHit(
+            CombatTriggerEngine.afterNonCardAttackHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID,
                 fullyBlocked: state.blockedAmount > 0 && state.remaining == 0,
-                options: state.options, in: &context,
+                in: &context,
             )
         }
 
@@ -212,7 +212,7 @@ package enum DamagePipeline {
             state.dealt = state.amount
             state.isCritical = state.options.guaranteedCritical
             if !state.options.isResolvedCardRepeat {
-                applyConditionalAffixDamage(to: &state, in: context)
+                applyConditionalDamageBonuses(to: &state, in: context)
                 applyPreparedPoisonDamage(to: &state, in: &context)
             }
         } else {

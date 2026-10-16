@@ -71,7 +71,7 @@ ranger_bleed_t2_1	Hamstring Shot	sf:figure.fall	Bleeding enemies deal 25% less d
 ranger_bleed_t2_2	Bloodscent	sf:eye.fill	Bleed lasts 1 extra turn	bleed_duration:1
 ranger_bleed_t3_1	Pinning Strike	sf:pin.fill	Bleed attacks deal 50% more damage to Stunned enemies		bleedAttackVsStunnedMultiplier:1.5
 ranger_bleed_t3_2	Blood Tracker	sf:eye.fill	Gain +15% Critical Hit chance against Bleeding enemies		critChancePerBleedingEnemy:0.15
-warlock_burn_t1_1	Bloodfire	sf:drop.fill	Burn attacks have a 10% chance to deal 4 Bleed damage		burnAttackBleedChancePercent:0.10|burnAttackBleedDamage:4
+warlock_burn_t1_1	Bloodfire	sf:drop.fill	Your Burn attacks deal 25% more damage to Bleeding enemies		burnAttackDamageVsBleedingMultiplier:1.25
 warlock_burn_t1_2	Scorching Ash	sf:flame.fill	Below half Health, Burn damage is increased by 25%		burnBelowHalfHealthMultiplier:1.25
 warlock_burn_t2_1	Withering Flame	sf:heart.slash.fill	Burning enemies restore half as much Health		burningEnemyHealingMultiplier:0.5
 warlock_burn_t2_2	Soul Burn	sf:flame.fill	Spending your last Mana increases your next Burn attack’s damage by 50%		lastManaNextBurnPercent:0.5
@@ -419,7 +419,7 @@ wildcard_dodge_t2_2	Scattered Caltrops	sf:asterisk	Dodging has a 20% chance to d
 wildcard_dodge_t3_1	Smoke Trick	sf:cloud.fog.fill	Dodging has a 20% chance to deal 3 Burn damage		dodgeBurnChancePercent:0.20|dodgeBurnDamage:3
 wildcard_dodge_t3_2	Improving Odds	sf:chart.bar.xaxis	Each undodged attack increases your Dodge chance by 5%\nDodging resets this bonus		improvingOdds:true
 wildcard_dodge_t4_1	Blind Spot	sf:eye.slash.fill	Dodging makes your next Physical attack ignore enemy Block		blindSpot:true
-wildcard_physical_t1_1	Prismatic Edge	sf:burst.fill	Physical attacks have a 10% chance to deal 3 Burn or Freeze damage		physicalElementChancePercent:0.10|physicalElementDamage:3
+wildcard_physical_t1_1	Prismatic Edge	sf:burst.fill	Your Physical attacks deal 1 additional damage to Burning or Frozen enemies		physicalAttackDamageVsBurningOrFrozenFlat:1
 wildcard_physical_t1_2	Loaded Strike	sf:burst.fill	Physical attacks randomly deal double or half damage		loadedStrike:true
 wildcard_physical_t2_1	Clean Cut	sf:burst.fill	Physical Critical Hits ignore enemy Block		cleanCut:true
 wildcard_physical_t2_2	Cracked Guard	sf:shield.slash.fill	Breaking enemy Block with Physical damage makes your next attack Critically Hit		crackedGuard:true
