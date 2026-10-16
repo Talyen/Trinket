@@ -24,7 +24,7 @@ struct CombatFeedbackPresenterTests {
         #expect(item.label == .amount(-3))
         #expect(item.sourceEventIDs == [hit.id])
         #expect(item.feedbackClass == .directDamage)
-        #expect(CombatSFXMapper.clipID(for: [reduction, hit]) == SFXID.hit)
+        #expect(CombatSFXMapper.clipID(for: [reduction, hit]) == SFXID.attackSlash)
     }
 
     @Test(arguments: [false, true])

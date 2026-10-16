@@ -128,8 +128,10 @@ struct ContractsPlayModeTests {
             })
         })
         let board = play.playerSave.contracts
-        let hard = try #require(board.offer(for: .hard))
-        #expect(play.contracts.startBattle(offerID: hard.id) == nil)
+        // New Hard offers exclude item-focused modifiers.
+        let difficulty: ContractDifficulty = modifier.isItemFocused ? .standard : .hard
+        let offer = try #require(board.offer(for: difficulty))
+        #expect(play.contracts.startBattle(offerID: offer.id) == nil)
         let configuration = try #require(play.battle.activeBattle)
         let presentation = try #require(play.battlePresentation(for: configuration.runKey))
         let pendingItem = try #require(play.battleRegistration(for: play.battle.activeBattle?.runKey)?.launch.inputs.launch
@@ -144,9 +146,10 @@ struct ContractsPlayModeTests {
         #expect(play.battle.activeBattle == nil)
         #expect(play.shellSession.playPath == [.explore, .contracts])
         #expect(play.consumePendingDestination() == nil)
-        #expect(play.playerSave.contracts.offer(for: .hard)?.id != hard.id)
-        #expect(play.playerSave.contracts.offer(for: .easy) == board.offer(for: .easy))
-        #expect(play.playerSave.contracts.offer(for: .standard) == board.offer(for: .standard))
+        #expect(play.playerSave.contracts.offer(for: difficulty)?.id != offer.id)
+        for unchanged in ContractDifficulty.allCases where unchanged != difficulty {
+            #expect(play.playerSave.contracts.offer(for: unchanged) == board.offer(for: unchanged))
+        }
         #expect(play.playerSave.inventory.item(matching: pendingItem.id) == pendingItem)
         #expect(play.playerSave.roster.progression(for: before.roster.activeHero)
             == before.roster.progression(for: before.roster.activeHero).addingExperience(presentation.rewardPlan.heroExperience))

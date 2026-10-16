@@ -404,9 +404,9 @@ extension BattleActionPresentationTests {
         let date = Date.now
 
         #expect(session.playCard(cardID: card.id, at: date) == .committed)
-        #expect(sounds == [[SFXID.hitPiercing]])
+        #expect(sounds == [[SFXID.itemCorrupt]])
         session.feedback.advance(to: date.addingTimeInterval(1))
-        #expect(sounds == [[SFXID.hitPiercing]])
+        #expect(sounds == [[SFXID.itemCorrupt]])
     }
 
     private func installAttacks(in session: BattleSession) throws -> [BattleCard] {
