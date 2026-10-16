@@ -30,7 +30,7 @@ is reported as unsupported, rather than inventing more content.
 Use `--full-access` for simulated ownership; default careers use free access from
 onboarding. Policies are `greedy-v1`, `setupAware-v1`, `random-v1` (a separate policy
 random stream), and `rotation-v1` (rotate toward the lowest-level earned party).
-Select a mode and a legal starter pair explicitly. A party with no attuned Spire,
+Select a mode and a legal starter pair explicitly. Completed advancing content,
 a locked encounter, or an unavailable choice produces an incomplete result.
 
 Every output career includes its complete `scenario.json`; copy and edit that file
@@ -161,7 +161,7 @@ establish balance, and there is no balance CI gate.
 |---|---|
 | Fresh progression | Onboarding, earned victories/defeats, recruit/Mystery/Shop choices, talents, equipment and Homestead investment; free and simulated-full cohorts |
 | Battle lifecycle | Real commands, readiness, Retry/Leave/retreat, stale configuration, duplicate victory, primary-write recovery and total-write compensation/retry |
-| Modes | Campaign reachability, attuned Spire floors, reachable persistent Labyrinth nodes, renewable Contracts and offer identities |
+| Modes | Campaign reachability, Spire floors, reachable persistent Labyrinth nodes, renewable Contracts and offer identities |
 | Storage | Immediate file-backed reload, uninterrupted/reloaded comparison, A/B/A isolation, actual owned-worker interruption and fresh-process recovery/replay |
 | Time | Explicit session cadence, collection, build/upgrade target tiers, persisted production state |
 | Limits | Action/turn/step/evidence bounds, unsupported/rejected actions, external watchdog, zero-test/missing-result rejection |

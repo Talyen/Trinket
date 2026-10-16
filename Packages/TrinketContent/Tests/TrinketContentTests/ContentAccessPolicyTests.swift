@@ -16,24 +16,6 @@ struct ContentAccessPolicyTests {
         #expect(ContentAccessPolicy.fullGame.allowsSpireFloor(999))
     }
 
-    @Test func `every spire has A free party`() {
-        let heroes = GameContent.heroes.filter { ContentAccessPolicy.free.allowsCombatant($0.id) }
-        let companions = GameContent.companions.filter { ContentAccessPolicy.free.allowsCombatant($0.id) }
-        for spire in GameContent.spires {
-            #expect(SpireAttunement.canEnter(spire, heroes: heroes, companions: companions), "\(spire.title)")
-        }
-    }
-
-    @Test func `conditional and unselected abilities count for attunement`() throws {
-        let frostWhelp = CombatantFixtures.combatant(id: "frost_whelp", role: .companion, maxHealth: 20, abilities: [.iceShot])
-        let spire = try #require(GameContent.spire(id: .rimeVault))
-        #expect(!frostWhelp.keywordProfile.contains(.physical))
-        #expect(SpireAttunement.matches(frostWhelp, spire: spire))
-        let knight = try #require(GameContent.combatant(matching: "knight"))
-        let holy = try #require(GameContent.spire(id: .aureateChoir))
-        #expect(SpireAttunement.matches(knight, spire: holy))
-    }
-
     /// Representative slice: every starting hero, one companion, one seed.
     /// The full hero x companion x seed matrix belongs in codegen validation
     /// if anywhere; the recruit chain is deterministic per seed.

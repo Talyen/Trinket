@@ -73,12 +73,7 @@ final class InterleavingPlayerController {
             case .labyrinth: labyrinthTracker
             case .contract: preconditionFailure("Contracts are recovery jobs, not advancing content")
             }
-            let steps = tracker.steps.filter { step in
-                guard step.mode == .spire else { return true }
-                guard let spire = GameContent.spire(id: SpireID(step.containerID)) else { return false }
-                return SpireAttunement.evaluate(hero: hero, companion: companion, spire: spire).isReady
-            }
-            return ModeProgress(mode: mode, steps: steps)
+            return ModeProgress(mode: mode, steps: tracker.steps)
         }
         state = initialState
     }

@@ -2718,10 +2718,6 @@ enum L10n {
         LocalizedStringResource("authored.7f4507333e6956f3", defaultValue: "Floor Cleared", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static var authored_7fb26b8a706ab2ce: LocalizedStringResource {
-        LocalizedStringResource("authored.7fb26b8a706ab2ce", defaultValue: "Not Attuned", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
-    }
-
     static var authored_810f54d91bb0f8fd: LocalizedStringResource {
         LocalizedStringResource("authored.810f54d91bb0f8fd", defaultValue: "Crystal Geode", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -5756,18 +5752,6 @@ enum L10n {
 
     static func rule_ability_random_damage(_ value1: Int) -> LocalizedStringResource {
         LocalizedStringResource("rule.ability.random_damage", defaultValue: "Deal <value id=\"damage\">\(value1)</value> Random damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
-    }
-
-    static var spire_attunement_missingcompanionaffinity_message: LocalizedStringResource {
-        LocalizedStringResource("spire.attunement.missingcompanionaffinity.message", defaultValue: "Companion needs an ability that matches this Spire", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
-    }
-
-    static var spire_attunement_missingheroaffinity_message: LocalizedStringResource {
-        LocalizedStringResource("spire.attunement.missingheroaffinity.message", defaultValue: "Hero needs an ability that matches this Spire", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
-    }
-
-    static var spire_attunement_ready_message: LocalizedStringResource {
-        LocalizedStringResource("spire.attunement.ready.message", defaultValue: "Party is attuned", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var spire_aureatechoir_epithet: LocalizedStringResource {

@@ -65,8 +65,7 @@ struct SpireClimbView: View {
         return StageSelectScreen(
             eyebrow: String(localized: L10n.ui_spireclimbview_spire_31984),
             title: spire.title,
-            subtitle: isPartyAttuned(to: spire) ? nil :
-                String(localized: L10n.ui_spireclimbview_both_party_members_need_a_1_ability_aba71("\(spire.keyword.rawValue)")),
+            subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.Play.spireTitle(spire.id.rawValue),
         ) {
             spireHeroArtwork(for: spire)
@@ -80,7 +79,7 @@ struct SpireClimbView: View {
                         isPrimaryActionDisabled: { floor in
                             isBattleActive
                                 || (!isFloorLockedContent(floor)
-                                    && (!isPartyAttuned(to: spire) || !playerSave.contentAccess.allowsSpireFloor(floor.floor)))
+                                    && !playerSave.contentAccess.allowsSpireFloor(floor.floor))
                         },
                         isLockedContent: isFloorLockedContent(_:),
                         onArtworkTap: showEnemyDetails,
@@ -129,14 +128,6 @@ struct SpireClimbView: View {
 
     private func isFloorLockedContent(_ floor: SpireFloor) -> Bool {
         floor.floor == activeFloorNumber && !playerSave.contentAccess.allowsSpireFloor(floor.floor)
-    }
-
-    private func isPartyAttuned(to spire: SpireDefinition) -> Bool {
-        SpireAttunement.evaluate(
-            hero: playerSave.roster.activeHero,
-            companion: playerSave.roster.activeCompanion,
-            spire: spire,
-        ).isReady
     }
 
     private func showEnemyDetails(for floor: SpireFloor) {

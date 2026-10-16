@@ -34,33 +34,17 @@ enum BattlePartySlot: String {
         }
     }
 
-    enum Eligibility {
-        case available
-        case locked
-        case unattuned
+    static func isEligible(_ combatant: Combatant, access: ContentAccessPolicy) -> Bool {
+        access.allowsCombatant(combatant.id)
     }
 
-    static func eligibility(_ combatant: Combatant, for spire: SpireDefinition?, access: ContentAccessPolicy) -> Eligibility {
-        guard access.allowsCombatant(combatant.id) else { return .locked }
-        return isEligible(combatant, for: spire) ? .available : .unattuned
-    }
-
-    static func isEligible(_ combatant: Combatant, for spire: SpireDefinition?) -> Bool {
-        guard let spire else { return true }
-        return SpireAttunement.matches(combatant, spire: spire)
-    }
-
-    func orderedCombatants(in roster: PlayerRosterState, spire: SpireDefinition?) -> [Combatant] {
+    func orderedCombatants(in roster: PlayerRosterState) -> [Combatant] {
         let selectedID = selectedID(in: roster)
         let combatants = combatants(in: roster)
         guard let selected = combatants.first(where: { $0.id == selectedID }) else {
-            return combatants.filter { Self.isEligible($0, for: spire) }
+            return combatants
         }
-
-        let eligibleAlternatives = combatants.filter {
-            $0.id != selectedID && Self.isEligible($0, for: spire)
-        }
-        return [selected] + eligibleAlternatives
+        return [selected] + combatants.filter { $0.id != selectedID }
     }
 
     /// Resolves a captured selected-first ID ordering against the live roster.
@@ -79,12 +63,11 @@ enum BattlePartySlot: String {
 private func attemptPartySelection(
     _ combatant: Combatant,
     for slot: BattlePartySlot,
-    spire: SpireDefinition?,
     playerSave: PlayerSaveStore,
     onSelected: @escaping () -> Void,
 ) {
     playerSave.performSaveAction(key: "party-\(slot.title)") { _ in
-        guard BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .available else { return }
+        guard BattlePartySlot.isEligible(combatant, access: playerSave.contentAccess) else { return }
         guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
         let result = switch slot {
         case .hero: playerSave.selectParty(heroID: combatant.id)
@@ -122,7 +105,7 @@ private struct StageBattlePartyPickerContent: View {
     init(spire: SpireDefinition?, roster: PlayerRosterState) {
         self.spire = spire
         _combatantOrder = State(initialValue: Dictionary(uniqueKeysWithValues: [BattlePartySlot.hero, .companion].map {
-            ($0, $0.orderedCombatants(in: roster, spire: spire).map(\.id))
+            ($0, $0.orderedCombatants(in: roster).map(\.id))
         }))
     }
 
@@ -171,7 +154,7 @@ private struct StageBattlePartyPickerContent: View {
             totalCount: allCombatants.count,
             artworkNames: shelfCombatants.compactMap { $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName },
         ) {
-            BattlePartySlotGridView(slot: slot, spire: spire, combatantIDs: combatantOrder[slot] ?? [])
+            BattlePartySlotGridView(slot: slot, combatantIDs: combatantOrder[slot] ?? [])
         } content: {
             ForEach(shelfCombatants) { combatant in
                 partyOption(combatant, for: slot)
@@ -181,16 +164,14 @@ private struct StageBattlePartyPickerContent: View {
 
     private func partyOption(_ combatant: Combatant, for slot: BattlePartySlot) -> some View {
         let selected = combatant.id == slot.selectedID(in: playerSave.roster)
-        let eligibility = BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess)
-        let eligible = eligibility == .available
-        let locked = eligibility == .locked
+        let eligible = BattlePartySlot.isEligible(combatant, access: playerSave.contentAccess)
 
         return Button {
             select(combatant, for: slot)
         } label: {
             CombatantCard(
                 combatant: combatant,
-                isLocked: locked,
+                isLocked: !eligible,
                 showsName: false,
                 isSelected: selected,
             )
@@ -212,7 +193,6 @@ private struct StageBattlePartyPickerContent: View {
         attemptPartySelection(
             combatant,
             for: slot,
-            spire: spire,
             playerSave: playerSave,
             onSelected: { selectionFeedbackTrigger += 1 },
         )
@@ -237,7 +217,6 @@ private struct BattlePartySlotGridView: View {
     @State private var selectionFeedbackTrigger = 0
 
     let slot: BattlePartySlot
-    let spire: SpireDefinition?
     let combatantIDs: [String]
 
     var body: some View {
@@ -245,7 +224,7 @@ private struct BattlePartySlotGridView: View {
             items: orderedCombatants,
             isSelected: { $0.id == slot.selectedID(in: playerSave.roster) },
             isEligible: {
-                BattlePartySlot.eligibility($0, for: spire, access: playerSave.contentAccess) == .available
+                BattlePartySlot.isEligible($0, access: playerSave.contentAccess)
             },
             onSelect: select,
             accessibilityIdentifier: { combatant in
@@ -258,7 +237,7 @@ private struct BattlePartySlotGridView: View {
             card: { combatant, isSelected in
                 CombatantCard(
                     combatant: combatant,
-                    isLocked: BattlePartySlot.eligibility(combatant, for: spire, access: playerSave.contentAccess) == .locked,
+                    isLocked: !BattlePartySlot.isEligible(combatant, access: playerSave.contentAccess),
                     isSelected: isSelected,
                 )
             },
@@ -282,7 +261,6 @@ private struct BattlePartySlotGridView: View {
         attemptPartySelection(
             combatant,
             for: slot,
-            spire: spire,
             playerSave: playerSave,
             onSelected: { selectionFeedbackTrigger += 1 },
         )

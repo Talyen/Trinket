@@ -67,27 +67,27 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Voyage.options)
     }
 
-    func testSpireLockedFloorAndEnemyInspectionPreserveEligibleLaunch() throws {
+    func testSpireWithoutMatchingPartyKeywordsPreservesFloorLocksAndLaunch() throws {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.openExplore()
         tapButton(AccessibilityID.Play.spiresModeCard)
-        assertExistsAfterScroll(AccessibilityID.Play.spireRow("ironVein"), requireHittable: true)
-        tapButton(AccessibilityID.Play.spireRow("ironVein"))
-        assertExists(AccessibilityID.Play.spireClimb("ironVein"))
-        let locked = any(AccessibilityID.Play.spireFloor("ironVein", floor: 2)).firstMatch
+        assertExistsAfterScroll(AccessibilityID.Play.spireRow("cinderSpire"), requireHittable: true)
+        tapButton(AccessibilityID.Play.spireRow("cinderSpire"))
+        assertExists(AccessibilityID.Play.spireClimb("cinderSpire"))
+        let locked = any(AccessibilityID.Play.spireFloor("cinderSpire", floor: 2)).firstMatch
         scrollUntilVisible(locked, swipingUp: true, requireHittable: true)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertDoesNotExist(AccessibilityID.Battle.hand)
-        XCTAssertFalse(button(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 2)).exists)
-        let art = button(AccessibilityID.Play.spireFloorEnemyArt("ironVein", floor: 1))
+        XCTAssertFalse(button(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 2)).exists)
+        let art = button(AccessibilityID.Play.spireFloorEnemyArt("cinderSpire", floor: 1))
         scrollUntilVisible(art, swipingUp: false, requireHittable: true)
         tapWhenReady(art)
-        let floor = try XCTUnwrap(GameContent.spireFloor(spireID: .ironVein, floor: 1))
+        let floor = try XCTUnwrap(GameContent.spireFloor(spireID: .cinderSpire, floor: 1))
         let enemy = try XCTUnwrap(GameContent.enemy(matching: floor.enemyID))
         let detail = AccessibilityID.CombatantDetail.header(name: enemy.combatant.name)
         assertExists(detail)
         dismissSheet(detail)
-        tapButton(AccessibilityID.Play.spireBeginFloor("ironVein", floor: 1))
+        tapButton(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 1))
         battle.assertActive()
     }
 

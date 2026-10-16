@@ -72,7 +72,7 @@ public enum BalanceFindingsReporter {
             )
             lines
                 .append(
-                    "- Progression uses fixed parties, attuned Spires, seeded floor modifiers, and Easy Contract recovery. Gear is an idealized tier profile; Labyrinth samples ten depths.",
+                    "- Progression uses fixed parties, all Spires, seeded floor modifiers, and Easy Contract recovery. Gear is an idealized tier profile; Labyrinth samples ten depths.",
                 )
             lines.append("")
         }

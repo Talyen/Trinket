@@ -9493,48 +9493,6 @@
         }
       }
     },
-    "ui.spireclimbview.both_party_members_need_a_1_ability_aba71": {
-      "comment": "Trinket/Features/Play/Modes/SpireClimbView.swift: display copy. Arguments are displayed values in source order.",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beide Gruppenmitglieder benötigen eine Fähigkeit der Art %1$@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Both party members need a %1$@ ability"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les deux membres du groupe ont besoin d’une capacité de type %1$@"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "パーティの両者に%1$@アビリティが必要"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "파티원 두 명 모두 %1$@ 능력이 필요합니다"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "兩名隊員都需要%1$@能力"
-          }
-        }
-      }
-    },
     "ui.spireclimbview.spire_31984": {
       "comment": "Trinket/Features/Play/Modes/SpireClimbView.swift: eyebrow. Arguments are displayed values in source order.",
       "extractionState": "manual",
@@ -9615,48 +9573,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "高塔通關"
-          }
-        }
-      }
-    },
-    "ui.spireshubview.requires_1_abilities_6df20": {
-      "comment": "Trinket/Features/Play/Modes/SpiresHubView.swift: display copy. Arguments are displayed values in source order.",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erfordert Fähigkeiten der Art %1$@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Requires %1$@ Abilities"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Capacités de type %1$@ requises"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@アビリティが必要"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ 능력 필요"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "需要%1$@能力"
           }
         }
       }

@@ -13,7 +13,7 @@ struct AppStateSpiresTests {
         context = try AppTestContext()
     }
 
-    @Test func `start spire battle succeeds for fresh and attuned parties`() throws {
+    @Test func `start spire battle succeeds for fresh parties`() throws {
         let state = try context.makePlaySession()
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
         let selected = try #require(GameContent.spireModifier(for: floor, worldSeed: state.playerSave.worldSeed))
@@ -39,24 +39,21 @@ struct AppStateSpiresTests {
         }
     }
 
-    @Test func `start spire battle requires attunement`() throws {
+    @Test func `spire preparation and launch allow a companion without the matching keyword`() throws {
         let state = try context.makePlaySession()
         try PlayBattleLaunchTestSupport.setActiveParty(heroID: "rogue", companionID: "phoenix", in: state)
 
         let floor = try #require(GameContent.spireFloor(spireID: .ironVein, floor: 1))
-        let message = state.spires.startBattle(for: floor)
-        #expect(message != nil)
-        #expect(state.battle.activeBattle == nil)
+        state.spires.prepareBattle(for: floor)
+        #expect(state.battleCoordinator.preparedRuns[PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey] != nil)
+        #expect(state.spires.startBattle(for: floor) == nil)
+        #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey)
     }
 
-    @Test func `start spire battle allows non iron spire at fresh progress`() throws {
+    @Test func `start spire battle allows a party without either matching keyword`() throws {
         let spire = try #require(GameContent.spire(id: .cinderSpire))
-        let hero = try #require(GameContent.heroes.first { $0.keywordProfile.contains(spire.keyword) })
-        let companion = try #require(
-            GameContent.companions.first { $0.keywordProfile.contains(spire.keyword) },
-        )
         let state = try context.makePlaySession()
-        try PlayBattleLaunchTestSupport.setActiveParty(heroID: hero.id, companionID: companion.id, in: state)
+        try PlayBattleLaunchTestSupport.setActiveParty(heroID: "rogue", companionID: "bear", in: state)
 
         let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 1))
         #expect(state.spires.startBattle(for: floor) == nil)

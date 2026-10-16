@@ -27,11 +27,9 @@ extension PlaythroughCareer {
             guard let offer = store.contracts.offer(for: .easy) else { throw PlaythroughFailure.unsupported("missing easy Contract") }
             try await perform(.contract(offer.id, combatRandom.next()))
         case "spires":
-            let roster = store.roster
             guard let spire = GameContent.spires.first(where: {
-                SpireAttunement.evaluate(hero: roster.activeHero, companion: roster.activeCompanion, spire: $0).isReady
-                    && store.spires.highestClearedFloor(for: $0.id.rawValue) < $0.floorCount
-            }) else { throw PlaythroughFailure.unsupported("party is not attuned to an unfinished Spire") }
+                store.spires.highestClearedFloor(for: $0.id.rawValue) < $0.floorCount
+            }) else { throw PlaythroughFailure.unsupported("no unfinished Spire") }
             try await perform(.spire(
                 spire.id.rawValue,
                 store.spires.highestClearedFloor(for: spire.id.rawValue) + 1,

@@ -579,7 +579,6 @@ public enum ContentCopy {
         case "Sanctuary": L10n.authored_7dba23b81be9767b
         case "Iron Writ": L10n.authored_7dc9187030ef74f0
         case "Floor Cleared": L10n.authored_7f4507333e6956f3
-        case "Not Attuned": L10n.authored_7fb26b8a706ab2ce
         case "Crystal Geode": L10n.authored_810f54d91bb0f8fd
         case "Venom": L10n.authored_8165682b17ec28a8
         case "Corrupt an Item": L10n.authored_817e8cf7b1109f92
@@ -1137,9 +1136,6 @@ public enum ContentCopy {
         case "Vanguard's Crest": L10n.item_bases_vanguards_crest_name
         case "Wand": L10n.item_bases_wand_name
         case "Wishing Well Coin": L10n.item_bases_wishing_well_coin_name
-        case "Companion needs an ability that matches this Spire": L10n.spire_attunement_missingcompanionaffinity_message
-        case "Hero needs an ability that matches this Spire": L10n.spire_attunement_missingheroaffinity_message
-        case "Party is attuned": L10n.spire_attunement_ready_message
         case "Light that judges": L10n.spire_aureatechoir_epithet
         case "Aureate Choir": L10n.spire_aureatechoir_title
         case "Heat that refuses to die": L10n.spire_cinderspire_epithet
@@ -3333,8 +3329,6 @@ public enum ContentCopy {
             LocalizedGameText(L10n.authored_7dc9187030ef74f0, locale: locale)
         case "Floor Cleared":
             LocalizedGameText(L10n.authored_7f4507333e6956f3, locale: locale)
-        case "Not Attuned":
-            LocalizedGameText(L10n.authored_7fb26b8a706ab2ce, locale: locale)
         case "Crystal Geode":
             LocalizedGameText(L10n.authored_810f54d91bb0f8fd, locale: locale)
         case "Venom":
@@ -4449,12 +4443,6 @@ public enum ContentCopy {
             LocalizedGameText(L10n.item_bases_wand_name, locale: locale)
         case "Wishing Well Coin":
             LocalizedGameText(L10n.item_bases_wishing_well_coin_name, locale: locale)
-        case "Companion needs an ability that matches this Spire":
-            LocalizedGameText(L10n.spire_attunement_missingcompanionaffinity_message, locale: locale)
-        case "Hero needs an ability that matches this Spire":
-            LocalizedGameText(L10n.spire_attunement_missingheroaffinity_message, locale: locale)
-        case "Party is attuned":
-            LocalizedGameText(L10n.spire_attunement_ready_message, locale: locale)
         case "Light that judges":
             LocalizedGameText(L10n.spire_aureatechoir_epithet, locale: locale)
         case "Aureate Choir":

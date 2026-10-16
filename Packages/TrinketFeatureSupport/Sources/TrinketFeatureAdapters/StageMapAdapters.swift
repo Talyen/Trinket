@@ -183,7 +183,6 @@ public extension StageSelectRowPresentation where Item == ContractOffer {
 public extension [SpireDefinition] {
     func orderedForSpiresHub(
         progress: PlayerSpiresState,
-        isUnlocked: (SpireDefinition) -> Bool,
     ) -> [SpireDefinition] {
         enumerated()
             .sorted { left, right in
@@ -197,12 +196,6 @@ public extension [SpireDefinition] {
                 )
                 if leftCleared != rightCleared {
                     return leftCleared > rightCleared
-                }
-
-                let leftUnlocked = isUnlocked(left.element)
-                let rightUnlocked = isUnlocked(right.element)
-                if leftUnlocked != rightUnlocked {
-                    return leftUnlocked
                 }
 
                 return left.offset < right.offset

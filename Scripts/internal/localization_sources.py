@@ -74,20 +74,6 @@ def spire_sources(root: Path) -> dict:
                 if key in entries or '\\(' in value:
                     raise ValueError(f'{path.relative_to(root)}: duplicate or interpolated Spire source {key}')
                 entries[key] = {'text': json.loads(value), 'context': f'{path.relative_to(root)}: {match[1]}, {field}'}
-    path = directory / 'SpireModels.swift'
-    if path.exists():
-        declaration = re.search(r'public var message: String \{\n(.*?)^    \}', path.read_text(), re.M | re.S)
-        if declaration is None:
-            raise ValueError(f'{path.relative_to(root)}: unsupported Spire attunement messages; extend localization inventory')
-        source = declaration[1]
-        matches = list(re.finditer(r'case\s+\.(\w+):\s*(' + literal + r')', source))
-        if not matches or len(matches) != len(re.findall(r'\bcase\b', source)):
-            raise ValueError(f'{path.relative_to(root)}: unsupported Spire attunement case; extend localization inventory')
-        for match in matches:
-            key = f'spire.attunement.{match[1].lower()}.message'
-            if key in entries or '\\(' in match[2]:
-                raise ValueError(f'{path.relative_to(root)}: duplicate or interpolated Spire source {key}')
-            entries[key] = {'text': json.loads(match[2]), 'context': f'{path.relative_to(root)}: Spire attunement {match[1]}, message'}
     return entries
 
 

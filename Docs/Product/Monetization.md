@@ -27,8 +27,8 @@ ability and talent progression when expanded.
 Purchase grants access to normal recruitment and progression, not instant roster
 completion, levels, talents, equipment, or rewards. Owners can choose a premium
 character as their one starter per role. Free characters appear before premium
-characters in Collection and starter selection. Normal recruitment and Spire
-attunement remain separate from purchase access.
+characters in Collection and starter selection. Normal recruitment and floor
+progression remain separate from purchase access.
 
 ## Offer
 
@@ -88,7 +88,7 @@ Keep character progress, equipment, talents, completed encounters, and maps for
 restoration. Restore a usable free party when necessary without resetting other
 progress. Gameplay reset never resets purchase ownership.
 
-Spire attunement follows the [ability-choice rule](Spires.md), independently of
+Every party can enter every [Spire](Spires.md), subject to floor progression and
 purchase access.
 
 Payment implementation and release prerequisites:

@@ -907,20 +907,12 @@ enum L10n {
         LocalizedStringResource("ui.spireclimbview.back_to_spires_2917d", defaultValue: "Back to Spires", table: "Localizable", bundle: .main)
     }
 
-    static func ui_spireclimbview_both_party_members_need_a_1_ability_aba71(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.spireclimbview.both_party_members_need_a_1_ability_aba71", defaultValue: "Both party members need a \(ContentCopy.localized(value1)) ability", table: "Localizable", bundle: .main)
-    }
-
     static var ui_spireclimbview_spire_31984: LocalizedStringResource {
         LocalizedStringResource("ui.spireclimbview.spire_31984", defaultValue: "SPIRE", table: "Localizable", bundle: .main)
     }
 
     static var ui_spireclimbview_spire_cleared_07023: LocalizedStringResource {
         LocalizedStringResource("ui.spireclimbview.spire_cleared_07023", defaultValue: "Spire Cleared", table: "Localizable", bundle: .main)
-    }
-
-    static func ui_spireshubview_requires_1_abilities_6df20(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.spireshubview.requires_1_abilities_6df20", defaultValue: "Requires \(ContentCopy.localized(value1)) Abilities", table: "Localizable", bundle: .main)
     }
 
     static var ui_spireshubview_spires_77de7: LocalizedStringResource {

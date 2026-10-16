@@ -45,24 +45,10 @@ class EncounterCopyInventoryTests(unittest.TestCase):
     spire(.cinderSpire, "Cinder Spire", "Heat that refuses to die", .burn),
 ]
 ''')
-        (directory / 'SpireModels.swift').write_text('''public enum SpireAttunement {
-    public var message: String {
-        switch self {
-        case .ready:
-            "Party is attuned"
-        case .missingHeroAffinity:
-            "Hero needs an ability that matches this Spire"
-        case .missingCompanionAffinity:
-            "Companion needs an ability that matches this Spire"
-        }
-    }
-}
-''')
         first = spire_sources(self.root)
-        self.assertEqual(len(first), 7)
+        self.assertEqual(len(first), 4)
         self.assertEqual(first['spire.ironvein.title']['text'], 'Iron Vein')
         self.assertEqual(first['spire.cinderspire.epithet']['text'], 'Heat that refuses to die')
-        self.assertEqual(first['spire.attunement.missingheroaffinity.message']['text'], 'Hero needs an ability that matches this Spire')
         catalog.write_text(catalog.read_text().replace('Iron Vein', 'Revised Iron Vein'))
         revised = spire_sources(self.root)
         self.assertEqual(set(first), set(revised))

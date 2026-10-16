@@ -137,7 +137,7 @@ Progression simulations keep each mode's steps, cursor, and loss count together
 in `InterleavingPlayerController`. Selection and advancement share that state.
 Seeded matchups draw both talent kits before starter gear; preserve this order
 when simplifying setup so reports remain comparable across refactors.
-Fixed-party progression excludes unattuned Spires, uses the run's world seed for
+Fixed-party progression includes every Spire, uses the run's world seed for
 floor modifiers, and keeps Spire affinity as reward metadata rather than forcing equipment.
 When all remaining advancing modes have stalled, Easy Contracts provide recovery
 XP through the shared level and XP rules. These jobs do not clear advancing steps

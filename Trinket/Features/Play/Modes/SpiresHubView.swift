@@ -20,38 +20,22 @@ struct SpiresHubView: View {
         }
     }
 
-    @ViewBuilder
     private func spireCard(_ spire: SpireDefinition) -> some View {
-        let isLocked = !isSpireUnlocked(spire)
-
         HubArtworkNavigationLink(
             destination: PlayLaunchDestination.spireClimb(spire.id),
             title: spire.title,
-            subtitle: subtitle(for: spire, isLocked: isLocked),
+            subtitle: subtitle(for: spire),
             artID: "spire-\(spire.id.rawValue)",
             fallbackArtID: EncounterArtIDs.explorePlayModeID,
-            isLocked: isLocked,
             accessibilityIdentifier: AccessibilityID.Play.spireRow(spire.id.rawValue),
         )
     }
 
     private var orderedSpires: [SpireDefinition] {
-        GameContent.spires.orderedForSpiresHub(progress: playerSave.spires, isUnlocked: isSpireUnlocked)
+        GameContent.spires.orderedForSpiresHub(progress: playerSave.spires)
     }
 
-    private func isSpireUnlocked(_ spire: SpireDefinition) -> Bool {
-        SpireAttunement.canEnter(
-            spire,
-            heroes: playerSave.roster.heroes.filter { playerSave.contentAccess.allowsCombatant($0.id) },
-            companions: playerSave.roster.companions.filter { playerSave.contentAccess.allowsCombatant($0.id) },
-        )
-    }
-
-    private func subtitle(for spire: SpireDefinition, isLocked: Bool) -> String {
-        if isLocked {
-            return String(localized: L10n.ui_spireshubview_requires_1_abilities_6df20("\(spire.keyword.rawValue)"))
-        }
-
+    private func subtitle(for spire: SpireDefinition) -> String {
         let clearedFloors = SpiresProgress.clampedClearedFloors(
             highestCleared: playerSave.spires.highestClearedFloor(for: spire.id.rawValue),
             floorCount: spire.floorCount,

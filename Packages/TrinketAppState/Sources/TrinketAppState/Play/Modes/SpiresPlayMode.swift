@@ -76,16 +76,6 @@ public final class SpiresPlayMode {
             ))
         }
 
-        let roster = playerSave.roster
-        let attunement = SpireAttunement.evaluate(
-            hero: roster.activeHero,
-            companion: roster.activeCompanion,
-            spire: spire,
-        )
-        guard attunement.isReady else {
-            return .unavailable(StageMapMessage(title: "Not Attuned", message: attunement.message))
-        }
-
         guard let encounter = resolvedEncounter(for: floor) else {
             return .unavailable(StageMapMessage(title: "Encounter Missing", message: "This battle is not ready yet."))
         }

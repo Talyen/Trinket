@@ -40,14 +40,14 @@ struct ModeProgressionToolingTests {
         #expect(merged.progressionRecords.count == records.count + recoveryRecords.count)
     }
 
-    @Test func `unattuned Spires cannot become simulated difficulty walls`() throws {
+    @Test func `Spire progression includes floors regardless of party keywords`() throws {
         let holy = try #require(GameContent.spire(id: .aureateChoir))
         let controller = InterleavingPlayerController(
             campaignTracker: .init(steps: []), spireTracker: .spire(spires: [holy]),
             labyrinthTracker: .init(steps: []),
         )
-        #expect(controller.isComplete)
-        #expect(controller.selectNextStep() == nil)
+        #expect(!controller.isComplete)
+        #expect(controller.selectNextStep()?.containerID == holy.id.rawValue)
     }
 
     @Test func `Spire combat uses the seeded floor modifier without replacing loadout aligned gear`() throws {
