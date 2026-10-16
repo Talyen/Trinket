@@ -1,21 +1,19 @@
-import TrinketContent
-
-enum InventoryDuplicatePolicy {
-    static func containsDuplicate(of candidate: InventoryItem, in items: [InventoryItem]) -> Bool {
+public enum InventoryDuplicatePolicy {
+    public static func containsDuplicate(of candidate: InventoryItem, in items: [InventoryItem]) -> Bool {
         items.contains {
             $0.id == candidate.id || ($0.templateID == candidate.templateID
                 && (($0.isTrinket && candidate.isTrinket) || ($0.rarity == .unique && candidate.rarity == .unique)))
         }
     }
 
-    static func deduplicated(_ items: [InventoryItem]) -> [InventoryItem] {
+    public static func deduplicated(_ items: [InventoryItem]) -> [InventoryItem] {
         var result: [InventoryItem] = []
         result.reserveCapacity(items.count)
         appendUniqueItems(items, to: &result)
         return result
     }
 
-    static func appendUniqueItems(_ candidates: some Sequence<InventoryItem>, to items: inout [InventoryItem]) {
+    public static func appendUniqueItems(_ candidates: some Sequence<InventoryItem>, to items: inout [InventoryItem]) {
         var instances = Set(items.lazy.map(\.id))
         var trinkets = Set(items.lazy.filter(\.isTrinket).map(\.templateID))
         var uniques = Set(items.lazy.filter { $0.rarity == .unique }.map(\.templateID))

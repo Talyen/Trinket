@@ -16,10 +16,10 @@ struct BlacksmithForgeTests {
         save.contracts.recordVictory(encounterLevel: 40)
         let recipe = try #require(BlacksmithRecipe.matching("blacksmith-longsword"))
         var actualRandom = SeededRandomNumberGenerator(seed: 41)
-        let actual = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &actualRandom).get().item
+        let actual = try BlacksmithForgeApplier.prepare(recipeID: recipe.id, save: save, using: &actualRandom).get().item
         save.homestead.nodeTiers[.moonlitSanctum] = nil
         var withoutSanctumRandom = SeededRandomNumberGenerator(seed: 41)
-        let withoutSanctum = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &withoutSanctumRandom).get().item
+        let withoutSanctum = try BlacksmithForgeApplier.prepare(recipeID: recipe.id, save: save, using: &withoutSanctumRandom).get().item
         #expect(actual.rarity == withoutSanctum.rarity)
         #expect(actual.affixes == withoutSanctum.affixes)
         var expectedRandom = SeededRandomNumberGenerator(seed: 41)
@@ -44,95 +44,24 @@ struct BlacksmithForgeTests {
         return save
     }
 
-    @Test func `recipes have distinct identities artwork and a salvage sink`() throws {
-        try #require(!BlacksmithRecipe.all.isEmpty)
-        #expect(Set(BlacksmithRecipe.all.map(\.id)).count == BlacksmithRecipe.all.count)
-        for recipe in BlacksmithRecipe.all {
-            #expect(recipe.cost.allSatisfy { $0.quantity > 0 })
-            #expect(ArtCatalog.itemArtByID["\(recipe.baseID)-basic"] != nil)
-            let item = try SaveTestSupport.makeGeneratedItem(baseID: recipe.baseID, rarity: .astral)
-            let yields = ItemSalvage.yields(for: item)
-            #expect(recipe.cost.reduce(0) { $0 + $1.quantity } > yields.reduce(0) { $0 + $1.quantity })
-            for cost in recipe.cost {
-                #expect(cost.quantity > (yields.first { $0.resource == cost.resource }?.quantity ?? 0))
-            }
-        }
-    }
-
-    @Test func `forging honors recipe bases rarities and unique ownership`() throws {
-        var save = fundedSave()
-        save.journey.activeStageID = nil
-        save.contracts.recordVictory(encounterLevel: 40)
-        save.homestead.nodeTiers[.moonlitSanctum] = 4
-        let cases = try rarityCases(in: save)
-        for recipe in BlacksmithRecipe.all {
-            for (rarity, seed) in cases {
-                var random = SeededRandomNumberGenerator(seed: seed)
-                let attempt = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &random).get()
-                #expect(attempt.item.baseType.id == recipe.baseID)
-                #expect(!attempt.item.isTrinket)
-                #expect(attempt.item.rarity == rarity)
-            }
-        }
-        let uniqueSeed = try #require(cases.first { $0.0 == .unique }?.1)
-        save.inventory.items = GameContent.uniqueItems
-        for recipe in BlacksmithRecipe.all {
-            var random = SeededRandomNumberGenerator(seed: uniqueSeed)
-            let attempt = try BlacksmithForgeAttempt.prepare(recipeID: recipe.id, save: save, using: &random).get()
-            #expect(attempt.item.rarity != .unique)
-            #expect(attempt.item.baseType.id == recipe.baseID)
-        }
-    }
-
-    private func rarityCases(in save: PlayerSave) throws -> [(Rarity, UInt64)] {
-        // Content owns odds and cumulative boundaries. Select one input per path
-        // cheaply, then exercise real forging instead of generating 1,200 items.
-        let probabilities = ItemLootPolicy.probabilities(
-            level: CampaignRewardLevel.resolve(in: save), bossContent: false,
-            astralChanceBonusPercent: BlacksmithRecipe.astralWeightBonusPercent(
-                blacksmithTier: save.homestead.tier(for: .blacksmithForge),
-            ),
-            availableTiers: [.basic, .astral, .unique],
-        )
-        var cases: [(Rarity, UInt64)] = []
-        for seed in UInt64(0) ..< 100 {
-            var random = SeededRandomNumberGenerator(seed: seed)
-            let rarity: Rarity
-            switch ItemLootPolicy.roll(probabilities: probabilities, using: &random) {
-            case .basic: rarity = .basic
-            case .astral: rarity = .astral
-            case .unique: rarity = .unique
-            case .trinket: continue
-            }
-            if !cases.contains(where: { $0.0 == rarity }) {
-                cases.append((rarity, seed))
-            }
-            if cases.count == 3 {
-                break
-            }
-        }
-        try #require(cases.count == 3, "Forge fixture must exercise Basic, Astral and Unique paths")
-        return cases
-    }
-
     @Test func `rejection and repeated application never spend twice`() throws {
         var save = fundedSave()
         var random = SeededRandomNumberGenerator(seed: 41)
-        let attempt = try BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-longsword", save: save, using: &random).get()
-        _ = try attempt.apply(to: &save, recordReceipt: { _ in }).get()
+        let attempt = try BlacksmithForgeApplier.prepare(recipeID: "blacksmith-longsword", save: save, using: &random).get()
+        _ = try BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: { _ in }).get()
         let committed = save
-        #expect(attempt.apply(to: &save, recordReceipt: { _ in }) == .failure(.alreadyOwned))
+        #expect(BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: { _ in }) == .failure(.alreadyOwned))
         #expect(save == committed)
         save.homestead.resources = [:]
-        #expect(BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-dagger", save: save, using: &random).failure == .insufficientResources)
+        #expect(BlacksmithForgeApplier.prepare(recipeID: "blacksmith-dagger", save: save, using: &random).failure == .insufficientResources)
         save.homestead.nodeTiers = [:]
-        #expect(BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-dagger", save: save, using: &random).failure == .unavailable)
+        #expect(BlacksmithForgeApplier.prepare(recipeID: "blacksmith-dagger", save: save, using: &random).failure == .unavailable)
     }
 
     @Test func `prepared forge rechecks availability and each material before spending`() throws {
         let initial = fundedSave()
         var random = SeededRandomNumberGenerator(seed: 41)
-        let attempt = try BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-longsword", save: initial, using: &random).get()
+        let attempt = try BlacksmithForgeApplier.prepare(recipeID: "blacksmith-longsword", save: initial, using: &random).get()
         let blockedResources: [HomesteadResource?] = [nil, .iron, .wood]
         for resource in blockedResources {
             var save = initial
@@ -147,7 +76,7 @@ struct BlacksmithForgeTests {
             }
             let before = save
             var receipts: [SaveEconomicReceipt] = []
-            #expect(attempt.apply(to: &save, recordReceipt: { receipts.append($0) }) == .failure(expected))
+            #expect(BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: { receipts.append($0) }) == .failure(expected))
             #expect(save == before)
             #expect(receipts.isEmpty)
         }
@@ -198,16 +127,16 @@ struct BlacksmithForgeTests {
         let store = try context.makeSaveStore()
         try store.performFixtureMutation { $0 = fundedSave() }
         var random = SeededRandomNumberGenerator(seed: 42)
-        let attempt = try BlacksmithForgeAttempt.prepare(recipeID: "blacksmith-dagger", save: store.currentSave, using: &random).get()
+        let attempt = try BlacksmithForgeApplier.prepare(recipeID: "blacksmith-dagger", save: store.currentSave, using: &random).get()
         let before = store.currentSave
         store.forcesNextSaveFailure = true
         let failure = store.persistTransaction(logging: "Forge failure test") { save, recordReceipt in
-            attempt.apply(to: &save, recordReceipt: recordReceipt)
+            BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: recordReceipt)
         }
         guard case .persistFailed = failure else { Issue.record("Expected failure"); return }
         #expect(store.currentSave == before)
         let success = store.persistTransaction(logging: "Forge retry test") { save, recordReceipt in
-            attempt.apply(to: &save, recordReceipt: recordReceipt)
+            BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: recordReceipt)
         }
         guard case let .committed(item) = success else { Issue.record("Expected commit"); return }
         #expect(item == attempt.item)

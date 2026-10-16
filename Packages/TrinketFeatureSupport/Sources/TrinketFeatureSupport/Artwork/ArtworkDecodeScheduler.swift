@@ -8,8 +8,7 @@ final class ArtworkDecodeScheduler {
 
     @MainActor
     private final class Request {
-        var remaining = 0
-        var queuedNames: Set<String> = []
+        var pendingNames: Set<String> = []
         let priority: Priority
         let didPrepare: () -> Void
         var continuation: CheckedContinuation<Void, Never>?
@@ -19,15 +18,17 @@ final class ArtworkDecodeScheduler {
             self.didPrepare = didPrepare
         }
 
-        func finish(prepared: Bool) {
-            if prepared {
-                didPrepare()
+        func finish(name: String) {
+            guard pendingNames.remove(name) != nil else { return }
+            didPrepare()
+            if pendingNames.isEmpty {
+                resume()
             }
-            remaining -= 1
-            if remaining == 0 {
-                continuation?.resume()
-                continuation = nil
-            }
+        }
+
+        func resume() {
+            continuation?.resume()
+            continuation = nil
         }
     }
 
@@ -48,7 +49,7 @@ final class ArtworkDecodeScheduler {
     private let decode: @Sendable (String) async -> PreparedArtwork
     private let publish: (PreparedArtwork) -> Void
     // The index includes running jobs so overlapping callers share their decode.
-    // Only queued jobs participate in ordered admission and cancellation.
+    // Request cancellation detaches consumers without releasing running decode slots.
     private var jobsByName: [String: Job] = [:]
     private var queuedJobs: [Job] = []
     private var nextSequence: UInt64 = 0
@@ -86,9 +87,8 @@ final class ArtworkDecodeScheduler {
                     if request.priority.rawValue < job.priority.rawValue {
                         job.priority = request.priority
                     }
-                    request.remaining += 1
+                    request.pendingNames.insert(name)
                     if runningPriorities[name] == nil {
-                        request.queuedNames.insert(name)
                         if let index = job.heapIndex {
                             repairHeap(at: index)
                         } else {
@@ -113,9 +113,6 @@ final class ArtworkDecodeScheduler {
             // A deferred root means no higher-priority work remains in the heap.
             guard !hasDeferred || priority != .deferred else { return }
             removeQueuedJob(at: 0)
-            for request in next.requests {
-                request.queuedNames.remove(next.name)
-            }
             runningPriorities[next.name] = priority
             Task(priority: priority == Priority.deferred ? .utility : .userInitiated) {
                 let prepared = await decode(next.name)
@@ -124,7 +121,7 @@ final class ArtworkDecodeScheduler {
                 jobsByName.removeValue(forKey: next.name)
                 runningPriorities.removeValue(forKey: next.name)
                 for request in next.requests {
-                    request.finish(prepared: true)
+                    request.finish(name: next.name)
                 }
                 startAvailableJobs()
             }
@@ -174,13 +171,13 @@ final class ArtworkDecodeScheduler {
     }
 
     private func cancel(_ request: Request) {
-        // Started decodes still publish and balance their consumers' pin demand.
-        let names = request.queuedNames
-        request.queuedNames.removeAll()
+        let names = request.pendingNames
+        request.pendingNames.removeAll()
         for name in names {
-            guard let job = jobsByName[name], let index = job.heapIndex else { continue }
+            guard let job = jobsByName[name] else { continue }
             job.requests.removeAll { $0 === request }
-            request.finish(prepared: false)
+            // Shared started jobs still publish and occupy their slots until decoding ends.
+            guard let index = job.heapIndex else { continue }
             if job.requests.isEmpty {
                 removeQueuedJob(at: index)
                 jobsByName.removeValue(forKey: name)
@@ -189,6 +186,7 @@ final class ArtworkDecodeScheduler {
                 repairHeap(at: index)
             }
         }
+        request.resume()
         startAvailableJobs()
     }
 }

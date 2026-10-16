@@ -51,6 +51,21 @@ final class CancellableGeneration {
     }
 }
 
+/// Configuration, reward context and simulation are installed and retired together.
+/// Engine commands mutate the owned state without publishing a new run identity.
+@MainActor
+final class ActiveBattleSimulation {
+    let configuration: BattleRunConfiguration
+    let presentation: BattlePresentationContext?
+    var state: BattleState
+
+    init(configuration: BattleRunConfiguration, presentation: BattlePresentationContext?, state: BattleState) {
+        self.configuration = configuration
+        self.presentation = presentation
+        self.state = state
+    }
+}
+
 @MainActor
 @Observable
 public final class BattleSession: BattleRuntime {
@@ -89,8 +104,15 @@ public final class BattleSession: BattleRuntime {
         }
     }
 
-    public internal(set) var activeBattle: BattleRunConfiguration?
-    public internal(set) var presentationContext: BattlePresentationContext?
+    var activeSimulation: ActiveBattleSimulation?
+    public var activeBattle: BattleRunConfiguration? {
+        activeSimulation?.configuration
+    }
+
+    public var presentationContext: BattlePresentationContext? {
+        activeSimulation?.presentation
+    }
+
     public var lifecyclePhase: BattleLifecyclePhase {
         if activeBattle != nil {
             return .active
@@ -98,8 +120,15 @@ public final class BattleSession: BattleRuntime {
         return preparedPreview.configurations.isEmpty ? .idle : .prepared
     }
 
-    @ObservationIgnored
-    var engineState: BattleState?
+    var engineState: BattleState? {
+        get { activeSimulation?.state }
+        set {
+            if let newValue {
+                activeSimulation?.state = newValue
+            }
+        }
+    }
+
     var preparedPreview = BattlePreparedPreview.empty
     public internal(set) var preparedBattlePresentationRevision = 0
     @ObservationIgnored
@@ -111,8 +140,13 @@ public final class BattleSession: BattleRuntime {
     weak var progression: (any BattleProgressionDelegate)?
     @ObservationIgnored
     var hasConnectedProgression = false
-    @ObservationIgnored
-    var isInstallingBattle = false
+    enum RuntimeTransition { case installing, ending }
+    @ObservationIgnored var runtimeTransition: RuntimeTransition?
+    @ObservationIgnored var endRequestedDuringInstallation = false
+    var isInstallingBattle: Bool {
+        runtimeTransition == .installing
+    }
+
     @ObservationIgnored
     var deliveredClaimedVictoryConfigurationID: UUID?
 
@@ -198,7 +232,7 @@ public final class BattleSession: BattleRuntime {
     }
 
     var canAcceptBattleCommands: Bool {
-        commandState.acceptsCommands && activeBattle != nil
+        runtimeTransition == nil && commandState.acceptsCommands && activeBattle != nil
             && engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
             && spectacle.outcomePresentation == .battle
             && !hasBlockingOverlay
@@ -315,11 +349,7 @@ public final class BattleSession: BattleRuntime {
             clearRunState()
         }
         clearCardCues()
-        engineState = state
-        activeBattle = configuration
-        presentationContext = presentation
-        isInstallingBattle = true
-        defer { isInstallingBattle = false }
+        activeSimulation = ActiveBattleSimulation(configuration: configuration, presentation: presentation, state: state)
         resetRun(from: configuration)
         #if DEBUG
         if configuration.runKey != nil,

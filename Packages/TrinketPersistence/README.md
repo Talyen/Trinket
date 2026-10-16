@@ -28,6 +28,9 @@ supply current access and inventory inside the transaction. Roster hydration ret
 save compatibility mapping and delegates physical-item ownership to Content.
 Homestead value state and production/build rules live in Content; store commands
 apply them to saved Gold and retain transaction and receipt ownership.
+Content also owns inventory duplicate policy and `BlacksmithForgePlan`; forging
+adapts the current save into that retained roll and applies it with an economic
+receipt inside the existing revision and retry boundary.
 Store methods are `@MainActor`; completion and reward appliers (`StageCompletion`,
 `VictoryRewardApplier`) stay non-isolated
 `save: inout` inside the package. App sessions decide when to invoke domain commands;

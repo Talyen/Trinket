@@ -48,7 +48,7 @@ source selection and preparation.
 | Battle Gold flow and reward values | TrinketCore / TrinketContent | Core carries gross gains/spending fields for compatibility; current combat content is gain-only |
 | Battle reward planning, seeded loot, and request identities | TrinketContent | `BattleLootContext` owns mode loot policy, including Voyage destination composition; shared encounter plans and capped XP policy serve launch and save commands. Persistence adapts saved inputs and commits claims |
 | Mystery item pools, reward quantities, and offer settlement | TrinketContent | Explicit ownership, Homestead effects, and reward inputs; Persistence pins offers and commits claims |
-| Item generation, Corruption, and Salvage rules | TrinketContent | Item values and inventory arrays; Persistence owns save commands, receipts, and cooldowns |
+| Item generation, duplicate ownership, forging, Corruption, and Salvage rules | TrinketContent | Item values and inventory arrays; Blacksmith plans retain rolls and validate current resources. Persistence owns save mapping, commands, receipts, and cooldowns |
 | Roster state, party/loadout edits, combat builds, and talent eligibility | TrinketContent | Value-only rules accept current access and inventory; build resolver produces modifier profiles and effective max stats; Persistence owns saved graph mapping, migration, and commits |
 | Homestead production and upgrade rules | TrinketContent | Value state and Gold inputs; Persistence owns saved wallet writes, graph mapping, and receipts |
 | Catalogs and authored content | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest/codegen boundary and runtime catalog |

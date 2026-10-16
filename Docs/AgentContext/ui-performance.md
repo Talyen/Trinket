@@ -156,7 +156,9 @@ symbol-backed labels so their actions remain visible in Duo's vertical bars.
 Artwork admission is shared across callers: at most two decodes run concurrently,
 with at most one deferred catalog decode. Launch/imminent pins precede viewport
 requests, which precede deferred work; queued requests promote when demand changes.
-Cancellation removes abandoned queued demand without cancelling shared started work.
+Cancellation detaches the caller from queued and running work, resumes its request,
+and releases its pin demand without waiting for started decodes. Shared started work
+still publishes and occupies its admission slot until decoding ends.
 An indexed priority heap retains original enqueue order within each priority; promotion
 and cancellation update queued priority without scanning the deferred catalog.
 Inventory and option-picker viewport tracking observes visible IDs separately from the

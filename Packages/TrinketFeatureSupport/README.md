@@ -55,7 +55,8 @@ stay on the main actor. A cache-owned scheduler admits at most two decodes acros
 all callers and at most one deferred decode, prioritizing imminent pins over
 viewport requests over deferred catalog work. Queued shared jobs inherit their
 most urgent caller. Overlapping requests share cache-owned work: cancellation
-stops a caller's queued work, while started decodes finish for all consumers.
+detaches a caller and releases its pin demand immediately, while started decodes
+keep their admission slots and finish for surviving consumers and the cache.
 Pins live outside the evictable `NSCache` cost limit. `PreparedArtworkPinSet` owns
 replaceable surface working sets: only the latest preparation can publish pins,
 release invalidates pending acquisitions, and transition completion tokens prevent

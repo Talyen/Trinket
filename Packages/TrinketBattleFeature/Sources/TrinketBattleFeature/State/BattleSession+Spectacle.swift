@@ -239,7 +239,6 @@ extension BattleSession {
         presentation = BattlePresentationState()
         resetPresentation(resetSpectacleState: true)
         feedback.release()
-        presentationContext = nil
     }
 
     private func resetPresentation(resetSpectacleState: Bool) {

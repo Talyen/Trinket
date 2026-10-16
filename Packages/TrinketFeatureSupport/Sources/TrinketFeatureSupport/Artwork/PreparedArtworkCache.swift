@@ -143,11 +143,15 @@ public final class PreparedArtworkCache {
 
     func acquirePinnedArtwork(names: [String]) async -> [String] {
         let unique = Array(Set(names)).sorted()
-        guard !unique.isEmpty else { return [] }
+        guard !Task.isCancelled, !unique.isEmpty else { return [] }
         for name in unique {
             pinCountsByName[name, default: 0] += 1
         }
         await decode(unique, priority: .imminent, countsTowardLaunch: false)
+        guard !Task.isCancelled else {
+            releasePins(names: unique)
+            return []
+        }
         for name in unique {
             finalizePin(named: name)
         }

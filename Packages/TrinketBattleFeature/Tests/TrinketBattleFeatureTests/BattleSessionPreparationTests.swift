@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import Observation
 import Testing
 import TrinketContent
 import TrinketContentTestSupport
@@ -32,6 +33,82 @@ struct BattleSessionPreparationTests {
         #expect(!session.hasActiveSimulation)
         #expect(session.lifecyclePhase == .idle)
         #expect(session.presentation.configurationID == nil)
+    }
+
+    @Test(arguments: StartupInstallation.allCases)
+    private func `installation observers cannot replace or partially end a run`(mode: StartupInstallation) async throws {
+        let session = BattleSession()
+        defer { session.endBattle() }
+        let original = preparedConfiguration(key: "original", seed: 1)
+        if mode == .restart {
+            #expect(session.activate(original))
+        }
+        let incoming = preparedConfiguration(key: "incoming", seed: 2)
+        let nested = preparedConfiguration(key: "nested", seed: 3)
+        let handle = mode == .prepared ? try #require(session.createPreparedRun(incoming)) : nil
+        let previousID = session.activeBattle?.id
+        let previousContext = session.presentationContext
+        try await confirmation("The lifecycle publication is observed synchronously") { observed in
+            withObservationTracking {
+                _ = session.activeBattle
+            } onChange: {
+                MainActor.assumeIsolated {
+                    observed()
+                    #expect(session.activeBattle?.id == previousID)
+                    #expect(session.hasActiveSimulation == (previousID != nil))
+                    #expect(session.presentationContext?.rewardPlan == previousContext?.rewardPlan)
+                    #expect(session.engineState?.rngSeed == session.activeBattle?.rngSeed)
+                    #expect(!session.activate(nested))
+                    #expect(!session.restart(nested))
+                    #expect(session.createPreparedRun(nested) == nil)
+                    #expect(!session.canAcceptBattleCommands)
+                    session.endBattle()
+                    // Exit is accepted, but cannot tear down the installing run midway.
+                    #expect(session.activeBattle?.id == previousID)
+                }
+            }
+            let installed: Bool = switch mode {
+            case .fresh: session.activate(incoming, presentation: .empty)
+            case .prepared: try session.activatePreparedBattle(#require(handle), presentation: .empty)
+            case .restart: session.restart(incoming, presentation: .empty)
+            }
+            #expect(!installed)
+        }
+        #expect(session.activeBattle == nil)
+        #expect(session.presentationContext == nil)
+        #expect(!session.hasActiveSimulation)
+        #expect(session.presentation.configurationID == nil)
+        #expect(session.lifecyclePhase == .idle)
+        #expect(!session.hasPendingAutoEnd)
+        #expect(session.activate(nested))
+        #expect(session.activeBattle?.id == nested.id)
+    }
+
+    @Test func `teardown publication cannot install a run that its cleanup would erase`() async {
+        let session = BattleSession()
+        let original = preparedConfiguration(key: "original", seed: 1)
+        let replacement = preparedConfiguration(key: "replacement", seed: 2)
+        #expect(session.activate(original))
+        await confirmation("The outgoing run remains coherent during publication") { observed in
+            withObservationTracking {
+                _ = session.activeBattle
+            } onChange: {
+                MainActor.assumeIsolated {
+                    observed()
+                    #expect(session.activeBattle?.id == original.id)
+                    #expect(session.hasActiveSimulation)
+                    #expect(!session.activate(replacement))
+                    #expect(!session.restart(replacement))
+                    session.endBattle()
+                }
+            }
+            session.endBattle()
+        }
+        #expect(session.activeBattle == nil)
+        #expect(!session.hasActiveSimulation)
+        #expect(session.presentation.configurationID == nil)
+        #expect(session.activate(replacement))
+        session.endBattle()
     }
 
     @Test func `prepared previews preserve identity and refresh selected presentation`() throws {

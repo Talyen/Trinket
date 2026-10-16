@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -9,54 +8,47 @@ public enum BlacksmithForgeFailure: Error, Equatable, Sendable {
     case invalidated
 }
 
-/// A roll is retained across persistence retries; presentation never grants it.
-struct BlacksmithForgeAttempt {
-    let recipe: BlacksmithRecipe
-    let item: InventoryItem
-
+enum BlacksmithForgeApplier {
     static func prepare(
         recipeID: String,
         save: PlayerSave,
         using random: inout some RandomNumberGenerator,
-    ) -> Result<Self, BlacksmithForgeFailure> {
-        guard let recipe = BlacksmithRecipe.matching(recipeID),
-              save.homestead.tier(for: .blacksmithForge) > 0 else { return .failure(.unavailable) }
-        guard affordable(recipe, in: save) else { return .failure(.insufficientResources) }
-        let uniqueIDs = Set(GameContent.uniqueItems.filter { $0.baseType.id == recipe.baseID }.map(\.templateID))
-        let item = ItemRewardGenerator.generate(
-            id: "forge-\(UUID().uuidString)",
+    ) -> Result<BlacksmithForgePlan, BlacksmithForgeFailure> {
+        BlacksmithForgePlan.prepare(
+            recipeID: recipeID,
             rewardLevel: CampaignRewardLevel.resolve(in: save),
-            astralChanceBonusPercent: BlacksmithRecipe.astralWeightBonusPercent(
-                blacksmithTier: save.homestead.tier(for: .blacksmithForge),
-            ),
-            allowedTiers: [.basic, .astral, .unique],
-            ownedTrinketIDs: save.inventory.ownedTrinketIDs,
-            ownedUniqueIDs: save.inventory.ownedUniqueIDs,
-            eligibleUniqueIDs: uniqueIDs,
-            fallbackBaseType: recipe.baseType,
+            inventory: save.inventory.items,
+            homestead: save.homestead,
+            gold: save.roster.gold,
             using: &random,
-        )
-        return .success(Self(recipe: recipe, item: item))
+        ).mapError(BlacksmithForgeFailure.init)
     }
 
-    static func affordable(_ recipe: BlacksmithRecipe, in save: PlayerSave) -> Bool {
-        save.homestead.canAfford(cost: recipe.cost, gold: save.roster.gold)
-    }
-
-    func apply(
+    static func apply(
+        _ plan: BlacksmithForgePlan,
         to save: inout PlayerSave,
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> Result<InventoryItem, BlacksmithForgeFailure> {
-        guard save.homestead.tier(for: .blacksmithForge) > 0 else { return .failure(.unavailable) }
-        guard !InventoryDuplicatePolicy.containsDuplicate(of: item, in: save.inventory.items) else {
-            return .failure(.alreadyOwned)
-        }
-        guard Self.affordable(recipe, in: save) else { return .failure(.insufficientResources) }
         let before = save
-        save.homestead.deductCost(recipe.cost, gold: &save.roster.gold)
-        save.inventory.appendUniqueItem(item)
-        recordReceipt(.reward(from: before, to: save))
-        return .success(item)
+        let result = plan.apply(
+            inventory: &save.inventory.items,
+            homestead: &save.homestead,
+            gold: &save.roster.gold,
+        ).mapError(BlacksmithForgeFailure.init)
+        if case .success = result {
+            recordReceipt(.reward(from: before, to: save))
+        }
+        return result
+    }
+}
+
+private extension BlacksmithForgeFailure {
+    init(_ rejection: BlacksmithForgePlan.Rejection) {
+        switch rejection {
+        case .unavailable: self = .unavailable
+        case .insufficientResources: self = .insufficientResources
+        case .alreadyOwned: self = .alreadyOwned
+        }
     }
 }
 
@@ -64,14 +56,14 @@ struct BlacksmithForgeAttempt {
 public extension PlayerSaveStore {
     func forgeBlacksmithItem(recipeID: String) async -> Result<InventoryItem, BlacksmithForgeFailure> {
         var random = SystemRandomNumberGenerator()
-        let attempt: BlacksmithForgeAttempt
-        switch BlacksmithForgeAttempt.prepare(recipeID: recipeID, save: currentSave, using: &random) {
-        case let .success(value): attempt = value
+        let plan: BlacksmithForgePlan
+        switch BlacksmithForgeApplier.prepare(recipeID: recipeID, save: currentSave, using: &random) {
+        case let .success(value): plan = value
         case let .failure(error): return .failure(error)
         }
         let result = await retryingSaveTransaction {
             self.persistTransaction(logging: "Failed to forge Blacksmith item") { save, recordReceipt in
-                attempt.apply(to: &save, recordReceipt: recordReceipt)
+                BlacksmithForgeApplier.apply(plan, to: &save, recordReceipt: recordReceipt)
             }
         }
         switch result {

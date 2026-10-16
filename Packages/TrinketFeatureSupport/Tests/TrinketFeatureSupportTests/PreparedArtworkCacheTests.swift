@@ -386,10 +386,19 @@ extension PreparedArtworkCacheTests {
             return PreparedArtwork(name: name, image: image)
         }
 
-        let viewport = Task { await cache.prepare(names: ["art"]) }
+        var viewportFinished = false
+        let viewport = Task {
+            await cache.prepare(names: ["art"])
+            viewportFinished = true
+        }
         defer { viewport.cancel() }
         try await waitUntil("the shared artwork decode") { await counter.count >= 1 }
-        let pin = Task { _ = await cache.acquirePinnedArtwork(names: ["art"]) }
+        var pinFinished = false
+        let pin = Task {
+            let acquired = await cache.acquirePinnedArtwork(names: ["art"])
+            pinFinished = true
+            return acquired
+        }
         defer { pin.cancel() }
         try await waitUntil("the shared artwork pin") { cache.pinDemandCount(for: "art") == 1 }
 
@@ -398,42 +407,76 @@ extension PreparedArtworkCacheTests {
         } else {
             pin.cancel()
         }
+        try await waitUntil("canceled consumer to return before shared decoding finishes") {
+            cancelInitiator ? viewportFinished : pinFinished
+        }
+        #expect(cache.image(named: "art") == nil)
+        #expect(cache.pinDemandCount(for: "art") == (cancelInitiator ? 1 : 0))
         await gate.open()
         await viewport.value
-        await pin.value
+        let acquired = await pin.value
+        try await waitUntil("shared decode to publish") { cache.image(named: "art") != nil }
 
         #expect(await counter.count == 1)
-        #expect(cache.image(named: "art") != nil)
-        #expect(cache.snapshot().pinnedCount == 1)
-        #expect(cache.pinDemandCount(for: "art") == 1)
-        cache.releasePins(names: ["art"])
+        #expect(acquired == (cancelInitiator ? ["art"] : []))
+        #expect(cache.snapshot().pinnedCount == (cancelInitiator ? 1 : 0))
+        #expect(cache.pinDemandCount(for: "art") == (cancelInitiator ? 1 : 0))
+        cache.releasePins(names: acquired)
         #expect(cache.snapshot().pinnedCount == 0)
         #expect(cache.pinDemandCount(for: "art") == 0)
     }
 
-    @Test func `canceled batch finishes started images without decoding queued images`() async throws {
+    @Test func `canceled pins return before shared decodes finish without freeing their slots`() async throws {
         let image = makeImage()
-        let gate = DeferredDecodeGate()
-        defer { Task { await gate.open() } }
-        let counter = DecodeCallCounter()
+        let probe = DecodeProbe()
+        defer { Task { await probe.releaseAll() } }
         let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
-            await counter.markCalled()
-            await gate.waitUntilOpen()
+            _ = await probe.decode(name)
             return PreparedArtwork(name: name, image: image)
         }
 
-        let batch = Task { await cache.prepare(names: ["a", "b", "c", "d"]) }
+        var batchFinished = false
+        let batch = Task {
+            let acquired = await cache.acquirePinnedArtwork(names: ["a", "b", "c", "d"])
+            batchFinished = true
+            return acquired
+        }
         defer { batch.cancel() }
-        try await waitUntil("both batch decode slots") { await counter.count >= 2 }
+        try await waitUntil("both batch decode slots") { await probe.started.count == 2 }
+        let survivor = Task { await cache.acquirePinnedArtwork(names: ["a"]) }
+        defer { survivor.cancel() }
+        try await waitUntil("the overlapping pin owner") { cache.pinDemandCount(for: "a") == 2 }
         batch.cancel()
-        await gate.open()
-        await batch.value
+        try await waitUntil("canceled batch to return while both decodes remain held") { batchFinished }
+        #expect(await batch.value.isEmpty)
+        #expect(cache.pinDemandCount(for: "a") == 1)
+        for name in ["b", "c", "d"] {
+            #expect(cache.pinDemandCount(for: name) == 0)
+        }
+        #expect(cache.image(named: "a") == nil)
+        #expect(cache.image(named: "b") == nil)
 
-        #expect(await counter.count == 2)
+        let next = Task { await cache.acquirePinnedArtwork(names: ["e"]) }
+        defer { next.cancel() }
+        try await waitUntil("new demand waiting for a running decode slot") { cache.pinDemandCount(for: "e") == 1 }
+        #expect(await Set(probe.started) == Set(["a", "b"]))
+        await probe.release("a")
+        let acquired = await survivor.value
+        #expect(acquired == ["a"])
         #expect(cache.image(named: "a") != nil)
+        try await waitUntil("new demand admitted after a decode finishes") { await probe.started.count == 3 }
+        #expect(await probe.started.last == "e")
+        await probe.release("b")
+        await probe.release("e")
+        let nextAcquired = await next.value
+        try await waitUntil("abandoned started decode to publish") { cache.image(named: "b") != nil }
         #expect(cache.image(named: "b") != nil)
         #expect(cache.image(named: "c") == nil)
         #expect(cache.image(named: "d") == nil)
+        #expect(await probe.maximumActive == 2)
+        #expect(cache.pinDemandCount(for: "a") == 1)
+        #expect(cache.pinDemandCount(for: "b") == 0)
+        cache.releasePins(names: acquired + nextAcquired)
     }
 
     @Test func `canceled cached pin acquisition does not release another owners demand`() async {

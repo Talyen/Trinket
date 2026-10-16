@@ -8,7 +8,7 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 ## Structure
 
 - **Abilities/** — Ability models, validation, and authored `AbilityCatalog+Basic/Skill/Ultimate.swift` tier catalogs with ordered tier lists.
-- **Equipment/** — Item and affix models, Unique catalogs, loot generation, Corruption, and Salvage rules.
+- **Equipment/** — Item and affix models, Unique catalogs, loot generation, duplicate ownership, Corruption, and Salvage rules.
 - **Encounters/** — Journey, Spire, Contracts, Voyage, and shops; `Labyrinth/`, `Mystery/`, and `Rewards/` group their larger families.
 - **Roster/** — Combatant models, combat builds and build resolution, modifier profiles, level scaling, player roster state and edit rules, equipment/keyword projections, and talent/trait lookup.
 - **Homestead/** — Player value state, production/collection and upgrade rules, effects, and content lookup.
@@ -164,6 +164,12 @@ and applies each result within the save transaction. Direct effect sequences
 refresh inputs after each mutation so later rewards see updated ownership and XP.
 
 ## Item transformations
+
+`InventoryDuplicatePolicy` owns physical-instance, Trinket, and Unique ownership
+for inventory admission and repair. `BlacksmithForgePlan` resolves recipe eligibility,
+rolls one item from explicit reward level and inventory values, and revalidates
+current Homestead resources and ownership before charging. The plan retains that
+same item across save retries; Persistence maps saved inputs and records the commit.
 
 `ItemCorruption` accepts item values and inventory arrays; `ItemSalvage` computes
 material yields from an item. These rules and Corruption result values have no

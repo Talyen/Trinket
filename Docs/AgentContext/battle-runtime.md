@@ -9,6 +9,11 @@ owns simulation, commands, and visual scheduling. AppState constructs it through
 a required factory. PlaySession connects its typed progression delegate before
 bootstrap can launch a battle; the session holds that delegate weakly.
 App options and audio use `BattlePresentationDependencies` from FeatureContracts.
+Configuration, reward context and engine state belong to one active simulation;
+publication replaces that run as a unit. The runtime reserves installation and
+teardown before synchronous observation or presentation callbacks can reenter.
+Nested launches/restarts reject; exit during installation retires the completed
+candidate before reporting failure. Combat commands resume only after installation.
 
 `PlayBattleCoordinator` owns the sole prepared registry, launch metadata, claims,
 Retry, and reward exits. `PreparedBattleRegistry` owns handle replacement,
