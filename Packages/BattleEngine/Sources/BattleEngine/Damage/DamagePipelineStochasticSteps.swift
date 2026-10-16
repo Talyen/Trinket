@@ -301,10 +301,7 @@ package extension DamagePipeline {
         if context.consumeTalentPreparation(\.nextAttackGuaranteedCritical, for: actor) == true {
             return true
         }
-        guard keyword == .bleed,
-              context.roster.runtime(for: actor)?.talents.pending.guaranteedBleedCritical == true else { return false }
-        context.roster.mutateRuntime(for: actor) { $0.talents.pending.guaranteedBleedCritical = false }
-        return true
+        return keyword == .bleed && context.consumeTalentPreparation(\.guaranteedBleedCritical, for: actor) == true
     }
 
     static func applyCriticalBlockSteal(

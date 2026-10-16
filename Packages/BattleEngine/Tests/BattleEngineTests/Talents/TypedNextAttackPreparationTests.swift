@@ -1,0 +1,86 @@
+import Testing
+import TrinketContent
+import TrinketContentTestSupport
+import TrinketCore
+@testable import BattleEngine
+
+struct TypedNextAttackPreparationTests {
+    @Test func `Bounty Blade reserves theft damage beyond the creating card repeat`() throws {
+        let fixtures = UniqueCollectionTests()
+        var profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t4_1"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = try fixtures.battle([], extra: profile)
+        readyRepeat(in: &battle)
+
+        let events = try fixtures.play(.steal, in: &battle)
+        let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.steal.id }
+        #expect(hits.map(\.amount) == [2, 2])
+        #expect(battle.gold == 4)
+        #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus?.value == 3)
+
+        let next = try fixtures.play(.slash, in: &battle)
+        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id }?.amount == 6)
+        #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus == nil)
+    }
+
+    @Test func `Bloodkindling reserves shared Bleed damage beyond the creating Burn card repeat`() throws {
+        let fixtures = UniqueCollectionTests()
+        var profile = CombatantTalentCatalog.profile(for: ["warlock_burn_t4_2"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        readyRepeat(in: &battle)
+
+        let events = try fixtures.play(.fireArrow, in: &battle)
+        let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.fireArrow.id }
+        #expect(hits.map(\.amount) == [3, 3])
+        #expect(battle.roster.hero.talents.pending.nextBleedDamageBonus?.value == 1)
+
+        let next = try fixtures.play(.rendingSlash, in: &battle)
+        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.rendingSlash.id }?.amount == 3)
+        #expect(battle.roster.hero.talents.pending.nextBleedDamageBonus == nil)
+    }
+
+    @Test(arguments: ["bear_physical_t1_2", "risen_skeleton_physical_t1_2"])
+    func `Block break reserves its physical bonus beyond the creating card repeat`(talentID: String) throws {
+        let fixtures = UniqueCollectionTests()
+        var profile = CombatantTalentCatalog.profile(for: [talentID])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = try fixtures.battle([], owner: .companion, extra: profile)
+        battle.insertEffect(.playNextCardTwice, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
+        battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        fixtures.block(1, owner: .companion, in: &battle)
+
+        let events = try fixtures.play(.slash, owner: .companion, in: &battle)
+        let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id && $0.targetID == battle.enemy.id }
+        #expect(hits.map(\.amount) == [3, 3])
+        let bonus = talentID == "bear_physical_t1_2" ? 2 : 3
+        #expect(battle.roster.companion.talents.pending.nextPhysicalDamageBonus?.value == bonus)
+
+        let next = try fixtures.play(.slash, owner: .companion, in: &battle)
+        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id }?.amount == 3 + bonus)
+        #expect(battle.roster.companion.talents.pending.nextPhysicalDamageBonus == nil)
+    }
+
+    @Test func `Noxious Reaction reserves its Critical Hit beyond the creating Bloodthorn card repeat`() throws {
+        let fixtures = UniqueCollectionTests()
+        let profile = CombatantTalentCatalog.profile(for: ["rogue_poison_t2_1"])
+        var battle = try fixtures.battle([], extra: profile)
+        readyRepeat(in: &battle)
+        battle.rng = SeededRandomNumberGenerator(seed: CombatantFixtures.deterministicBattleSeed)
+
+        let events = try fixtures.play(.bloodthorn, in: &battle)
+        let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.bloodthorn.id }
+        #expect(hits.map(\.keyword) == [.bleed, .poison, .bleed, .poison])
+        #expect(hits.map(\.isCritical) == [false, true, false, false])
+        #expect(battle.roster.hero.talents.pending.guaranteedBleedCritical?.value == true)
+
+        let next = try fixtures.play(.rendingSlash, in: &battle)
+        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.rendingSlash.id }?.isCritical == true)
+        #expect(battle.roster.hero.talents.pending.guaranteedBleedCritical == nil)
+    }
+
+    private func readyRepeat(in battle: inout BattleState) {
+        // The supported playNextCardTwice effect repeats the authored ability within one card frame.
+        battle.insertEffect(.playNextCardTwice, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+    }
+}

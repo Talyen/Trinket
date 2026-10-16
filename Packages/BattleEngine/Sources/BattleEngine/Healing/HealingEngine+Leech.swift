@@ -208,12 +208,11 @@ package extension HealingEngine {
             if survivedRestoration, actualRestored > 0, preHealth < maxHealth,
                context.roster.health(for: actorCombatant) >= maxHealth,
                profile.triggers.leechToFullNextAttackBonus > 0 {
-                context.roster.mutateRuntime(for: actorCombatant) {
-                    $0.talents.pending.attackBonusOnFullHealth = max(
-                        $0.talents.pending.attackBonusOnFullHealth,
-                        profile.triggers.leechToFullNextAttackBonus,
-                    )
-                }
+                let bonus = max(
+                    context.roster.runtime(for: actorCombatant)?.talents.pending.attackBonusOnFullHealth?.value ?? 0,
+                    profile.triggers.leechToFullNextAttackBonus,
+                )
+                context.prepareAttackBonus(bonus, \.attackBonusOnFullHealth, for: actorCombatant)
             }
             if survivedRestoration, actualRestored > 0, HealthThreshold.isBelowHalf(preHealth, maximum: maxHealth),
                profile.triggers.leechBlockBelowHalf {

@@ -74,9 +74,12 @@ package extension CombatTriggerEngine {
         let serial = context.resolution.cardTalents?.playSerial
         let actionID = context.resolution.actionID
         context.roster.mutateRuntime(for: actor) {
-            $0.talents.pending.nextPhysicalDamageBonus = max(
-                $0.talents.pending.nextPhysicalDamageBonus, triggers.goldStealNextPhysicalBonus,
-            )
+            if triggers.goldStealNextPhysicalBonus > 0 {
+                $0.talents.pending.nextPhysicalDamageBonus = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextPhysicalDamageBonus?.value ?? 0, triggers.goldStealNextPhysicalBonus),
+                    cardSerial: serial, actionID: actionID,
+                )
+            }
             if triggers.goldStealNextAttackBonus > 0 {
                 $0.talents.pending.nextAttackDamageBonus = PreparedTalentBonus(
                     value: max($0.talents.pending.nextAttackDamageBonus?.value ?? 0, triggers.goldStealNextAttackBonus),

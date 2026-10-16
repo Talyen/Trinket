@@ -255,7 +255,7 @@ extension SharedUniqueDamageRegressionTests {
 
         try fixtures.play(fixtures.attack(.holy, amount: 20), in: &battle)
         #expect(battle.health(of: battle.enemy) == 1977)
-        #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus == 0)
+        #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus == nil)
         try fixtures.play(fixtures.attack(.physical, amount: 20), in: &battle)
         #expect(battle.health(of: battle.enemy) == 1957)
     }

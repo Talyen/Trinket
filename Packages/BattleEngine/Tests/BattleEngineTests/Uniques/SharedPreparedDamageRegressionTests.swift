@@ -86,10 +86,10 @@ struct SharedPreparedDamageRegressionTests {
     func `bloodember spends Temper Cycle on Burn only when sharing is equipped`(shared: Bool) throws {
         let fixtures = UniqueCollectionTests()
         var battle = try fixtures.battle(shared ? ["bloodember_pendant"] : [])
-        battle.roster.hero.talents.pending.nextBleedDamageBonus = 5
+        battle.roster.hero.talents.pending.nextBleedDamageBonus = PreparedTalentBonus(value: 5)
         try fixtures.play(fixtures.attack(.burn, amount: 20), in: &battle)
         #expect(battle.health(of: battle.enemy) == (shared ? 1975 : 1980))
-        #expect((battle.roster.hero.talents.pending.nextBleedDamageBonus == 0) == shared)
+        #expect((battle.roster.hero.talents.pending.nextBleedDamageBonus == nil) == shared)
     }
 
     @Test(arguments: [false, true])

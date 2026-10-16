@@ -78,7 +78,7 @@ package extension CombatTriggerEngine {
                 )
             }
         }
-        if profile.triggers.holyDamageReduceTargetDamage > 0, context.roster.health(for: enemy) > 0 {
+        if profile.triggers.holyDamageReduceTargetDamage > 0, context.health(of: source) > 0, context.roster.health(for: enemy) > 0 {
             context.insertEffect(
                 .damageReductionFlat(profile.triggers.holyDamageReduceTargetDamage, 1),
                 to: enemy,
@@ -86,7 +86,7 @@ package extension CombatTriggerEngine {
                 remainingTurns: 1,
             )
         }
-        if profile.triggers.holyDamagePurgeAll, context.roster.health(for: enemy) > 0 {
+        if profile.triggers.holyDamagePurgeAll, context.health(of: source) > 0, context.roster.health(for: enemy) > 0 {
             await applyPurge(
                 to: enemy,
                 source: source,
@@ -106,7 +106,7 @@ package extension CombatTriggerEngine {
             }
         }
 
-        if profile.triggers.holyDamagePurgeCount > 0 {
+        if profile.triggers.holyDamagePurgeCount > 0, context.health(of: source) > 0 {
             await applyPurge(
                 to: enemy,
                 source: source,

@@ -45,7 +45,7 @@ struct HeroTalentReworkRegressionTests {
             options: .attack(tier: .basic, origin: .card, scaling: .items, accuracy: .unavoidable, guaranteedCritical: true),
         )
         #expect(poison.isCritical)
-        #expect(battle.roster.hero.talents.pending.guaranteedBleedCritical)
+        #expect(battle.roster.hero.talents.pending.guaranteedBleedCritical?.value == true)
         battle.resolution.endCard(serial)
         let bleed = battle.resolveTestDamage(
             2,
@@ -53,7 +53,7 @@ struct HeroTalentReworkRegressionTests {
             options: .attack(tier: .basic, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
         )
         #expect(bleed.isCritical)
-        #expect(!battle.roster.hero.talents.pending.guaranteedBleedCritical)
+        #expect(battle.roster.hero.talents.pending.guaranteedBleedCritical == nil)
     }
 
     @Test func `taste for blood increases leech critical chance against bleeding enemies`() {

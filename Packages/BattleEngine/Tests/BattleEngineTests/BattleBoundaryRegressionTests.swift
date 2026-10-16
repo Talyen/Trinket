@@ -39,7 +39,7 @@ struct BattleBoundaryRegressionTests {
         profile.triggers.criticalChanceBonus = -1
         var battle = makeBattle(profile: profile)
         battle.roster.hero.talents.pending.nextHitBonus = Int.max
-        battle.roster.hero.talents.pending.attackBonusOnFullHealth = 1
+        battle.roster.hero.talents.pending.attackBonusOnFullHealth = PreparedTalentBonus(value: 1)
         battle.roster.hero.talents.battle.damageBonus = 1
 
         let outcome = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
@@ -47,7 +47,7 @@ struct BattleBoundaryRegressionTests {
         #expect(outcome.healthLost == 20)
         #expect(battle.isEnemyDefeated)
         #expect(battle.roster.hero.talents.pending.nextHitBonus == 0)
-        #expect(battle.roster.hero.talents.pending.attackBonusOnFullHealth == 0)
+        #expect(battle.roster.hero.talents.pending.attackBonusOnFullHealth == nil)
     }
 
     @Test(arguments: [false, true])

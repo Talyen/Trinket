@@ -294,11 +294,11 @@ extension HealingEngine {
         if targetTriggers.nextAttackBonusOnFullHealth > 0,
            preHealth < maxHealth,
            context.roster.health(for: request.target) >= maxHealth {
-            context.roster.mutateRuntime(for: request.target) {
-                $0.talents.pending.attackBonusOnFullHealth = SaturatedArithmetic.saturatingAdd(
-                    $0.talents.pending.attackBonusOnFullHealth, targetTriggers.nextAttackBonusOnFullHealth,
-                )
-            }
+            let bonus = SaturatedArithmetic.saturatingAdd(
+                context.roster.runtime(for: request.target)?.talents.pending.attackBonusOnFullHealth?.value ?? 0,
+                targetTriggers.nextAttackBonusOnFullHealth,
+            )
+            context.prepareAttackBonus(bonus, \.attackBonusOnFullHealth, for: request.target)
         }
     }
 

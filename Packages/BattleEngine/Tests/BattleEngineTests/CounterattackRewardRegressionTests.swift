@@ -9,11 +9,11 @@ struct CounterattackRewardRegressionTests {
 
         _ = counter(.fireArrow, in: &battle)
         #expect(battle.health(of: battle.enemy) == 97)
-        #expect(battle.roster.hero.talents.pending.nextBleedDamageBonus == 1)
+        #expect(battle.roster.hero.talents.pending.nextBleedDamageBonus?.value == 1)
 
         _ = counter(.rendingSlash, in: &battle)
         #expect(battle.health(of: battle.enemy) == 94)
-        #expect(battle.roster.hero.talents.pending.nextBleedDamageBonus == 0)
+        #expect(battle.roster.hero.talents.pending.nextBleedDamageBonus == nil)
         _ = counter(.rendingSlash, in: &battle)
         #expect(battle.health(of: battle.enemy) == 92)
     }

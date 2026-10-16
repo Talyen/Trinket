@@ -65,9 +65,9 @@ struct CombatantTalentState: Hashable, Sendable {
         var doubleNextPoisonAttack = false
         var doubleNextPoisonDamage = false
         var doubleNextBleedDamage = false
-        var guaranteedBleedCritical = false
+        var guaranteedBleedCritical: PreparedTalentBonus<Bool>?
         var doubleNextGoldSteal = false
-        var nextPhysicalDamageBonus = 0
+        var nextPhysicalDamageBonus: PreparedTalentBonus<Int>?
         var nextAttackDamageBonus: PreparedTalentBonus<Int>?
         var nextHolyHitDouble: PreparedTalentBonus<Bool>?
         var nextStunAttackDouble: PreparedTalentBonus<Bool>?
@@ -87,7 +87,7 @@ struct CombatantTalentState: Hashable, Sendable {
         var doubleNextAttackAfterDeathsDoor = false
         var nextBurnAttackPercent: PreparedTalentBonus<Double>?
         var doubleNextPhysicalAttack: PreparedTalentBonus<Bool>?
-        var nextBleedDamageBonus = 0
+        var nextBleedDamageBonus: PreparedTalentBonus<Int>?
         var nextBurnDamageBonus: PreparedTalentBonus<Int>?
         var nextPoisonDamageBonus: PreparedTalentBonus<Int>?
         var nextToxicRemedyDamageBonus: PreparedTalentBonus<Int>?
@@ -104,12 +104,11 @@ struct CombatantTalentState: Hashable, Sendable {
         var nextStunPreparedCritical: PreparedTalentBonus<Bool>?
         var basicGuaranteedCritical = false
         var basicCriticalBonus = 0.0
-        var attackBonusOnFullHealth = 0
+        var attackBonusOnFullHealth: PreparedTalentBonus<Int>?
 
         mutating func reserveAttackBonuses() -> (damage: Int, holy: Int) {
-            let bonuses = (SaturatedArithmetic.saturatingAdd(nextHitBonus, attackBonusOnFullHealth), nextAttackHolyBonus)
+            let bonuses = (nextHitBonus, nextAttackHolyBonus)
             nextHitBonus = 0
-            attackBonusOnFullHealth = 0
             nextAttackHolyBonus = 0
             return bonuses
         }

@@ -37,7 +37,7 @@ struct TypedCriticalAttackRewardRegressionTests {
         #expect(events.count { $0.kind == .abilityDamage && $0.keyword == keyword && $0.isCritical } == 2)
         switch talent {
         case "rogue_poison_t2_1":
-            #expect(battle.roster.runtime(for: actor)?.talents.pending.guaranteedBleedCritical == true)
+            #expect(battle.roster.runtime(for: actor)?.talents.pending.guaranteedBleedCritical?.value == true)
             let bleed = Ability(
                 id: "bleed-followup",
                 name: "Bleed Followup",
@@ -48,7 +48,7 @@ struct TypedCriticalAttackRewardRegressionTests {
             )
             let followup = try fixtures.play(bleed, owner: owner, in: &battle)
             #expect(followup.contains { $0.kind == .abilityDamage && $0.keyword == .bleed && $0.isCritical })
-            #expect(battle.roster.runtime(for: actor)?.talents.pending.guaranteedBleedCritical == false)
+            #expect(battle.roster.runtime(for: actor)?.talents.pending.guaranteedBleedCritical == nil)
         case "rogue_gold_t2_1":
             #expect(events.filter { $0.abilityName == "Cutpurse Cut" && $0.keyword == .gold }.reduce(0) { $0 + $1.amount } == 5)
         case "warlock_burn_t4_1":

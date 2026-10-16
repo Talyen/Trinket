@@ -122,10 +122,12 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: target.id)
 
         if profile.triggers.blockBreakNextPhysicalBonus > 0, target.role != .enemy {
+            let serial = context.resolution.cardTalents?.playSerial
+            let actionID = context.resolution.actionID
             context.roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextPhysicalDamageBonus = max(
-                    $0.talents.pending.nextPhysicalDamageBonus,
-                    profile.triggers.blockBreakNextPhysicalBonus,
+                $0.talents.pending.nextPhysicalDamageBonus = PreparedTalentBonus(
+                    value: max($0.talents.pending.nextPhysicalDamageBonus?.value ?? 0, profile.triggers.blockBreakNextPhysicalBonus),
+                    cardSerial: serial, actionID: actionID,
                 )
             }
         }

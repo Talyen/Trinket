@@ -225,12 +225,16 @@ private extension CombatantTalentState.Pending {
         summaries.append(.poison, when: doubleNextPoisonAttack, resource: L10n.summary_battlestate_effectsummaries_8e9180740904)
         summaries.append(.poison, when: doubleNextPoisonDamage, resource: L10n.summary_battlestate_effectsummaries_53c61953e638)
         summaries.append(.bleed, when: doubleNextBleedDamage, resource: L10n.summary_battlestate_effectsummaries_4bb46a6be256)
-        summaries.append(.bleed, when: guaranteedBleedCritical, resource: L10n.summary_battlestate_effectsummaries_cb6939b701fc)
+        summaries.append(
+            .bleed,
+            when: guaranteedBleedCritical?.value == true,
+            resource: L10n.summary_battlestate_effectsummaries_cb6939b701fc,
+        )
         summaries.append(.gold, when: doubleNextGoldSteal, resource: L10n.summary_battlestate_effectsummaries_1e1f899e0668)
         summaries.append(
             .physical,
-            when: nextPhysicalDamageBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_2958f6f8a886(nextPhysicalDamageBonus),
+            when: nextPhysicalDamageBonus != nil,
+            resource: L10n.summary_battlestate_effectsummaries_2958f6f8a886(nextPhysicalDamageBonus?.value ?? 0),
         )
         summaries.append(
             .gold,
@@ -251,7 +255,10 @@ private extension CombatantTalentState.Pending {
             SaturatedArithmetic.saturatingAdd(nextPoisonDamageBonus?.value ?? 0, nextToxicRemedyDamageBonus?.value ?? 0),
             nextLeechCriticalPoisonAttackBonus?.value ?? 0,
         )
-        let nextBleedDamageBonus = SaturatedArithmetic.saturatingAdd(nextBleedDamageBonus, nextDodgeBleedAttackBonus?.value ?? 0)
+        let nextBleedDamageBonus = SaturatedArithmetic.saturatingAdd(
+            nextBleedDamageBonus?.value ?? 0,
+            nextDodgeBleedAttackBonus?.value ?? 0,
+        )
         let criticalBonus = (nextAttackCriticalBonus?.value ?? 0) + (nextCleanseCriticalBonus?.value ?? 0)
         summaries.append(
             .burn,
@@ -291,8 +298,8 @@ private extension CombatantTalentState.Pending {
         )
         summaries.append(
             .physical,
-            when: attackBonusOnFullHealth > 0,
-            resource: L10n.summary_battlestate_effectsummaries_e51d9d3d269a(attackBonusOnFullHealth),
+            when: attackBonusOnFullHealth != nil,
+            resource: L10n.summary_battlestate_effectsummaries_e51d9d3d269a(attackBonusOnFullHealth?.value ?? 0),
         )
     }
 

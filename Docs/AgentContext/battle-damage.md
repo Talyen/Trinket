@@ -140,6 +140,8 @@ fallen source cannot earn healing, Block, or Mana rewards.
 Other personal rewards require a living owner: Martial Guard's Block, both
 Blood Money rewards, Golden Verdict's Stun theft, and Critical Hit Gold stop after
 final defeat.
+Holy-triggered Purge and target weakening also stop if retaliation defeats their
+source; the Holy damage already committed remains.
 Red Harvest detonates Bleed and Huntsmaster’s Call draws a Companion card only
 after Physical Critical Hits remove Health.
 Fully Blocked Critical Hits still qualify for ordinary Critical Hit Gold and Purge

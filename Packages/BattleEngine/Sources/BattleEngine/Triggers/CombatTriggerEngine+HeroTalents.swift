@@ -67,10 +67,12 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) {
         guard keyword == .burn, triggers.burnPreparesBleedDamageBonus > 0 else { return }
+        let serial = context.resolution.cardTalents?.playSerial
+        let actionID = context.resolution.actionID
         context.roster.mutateRuntime(for: actor) {
-            $0.talents.pending.nextBleedDamageBonus = max(
-                $0.talents.pending.nextBleedDamageBonus,
-                triggers.burnPreparesBleedDamageBonus,
+            $0.talents.pending.nextBleedDamageBonus = PreparedTalentBonus(
+                value: max($0.talents.pending.nextBleedDamageBonus?.value ?? 0, triggers.burnPreparesBleedDamageBonus),
+                cardSerial: serial, actionID: actionID,
             )
         }
     }
@@ -93,7 +95,11 @@ package extension CombatTriggerEngine {
             await heroTalentMana(to: actor, source: actor, name: "Frost Circuit", in: &context)
         }
         if keyword == .poison, triggers.poisonCritPreparesBleedCrit {
-            context.roster.mutateRuntime(for: actor) { $0.talents.pending.guaranteedBleedCritical = true }
+            let serial = context.resolution.cardTalents?.playSerial
+            let actionID = context.resolution.actionID
+            context.roster.mutateRuntime(for: actor) {
+                $0.talents.pending.guaranteedBleedCritical = PreparedTalentBonus(value: true, cardSerial: serial, actionID: actionID)
+            }
         }
         if keyword == .stun, triggers.stunCriticalStealGold > 0,
            context.claimTalentAbility(.cutpurseCut, actorID: sourceID) {

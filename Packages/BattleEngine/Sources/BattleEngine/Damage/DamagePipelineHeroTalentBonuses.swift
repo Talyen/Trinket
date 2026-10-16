@@ -129,11 +129,9 @@ package extension DamagePipeline {
             }
         }
         if keyword == .bleed || sharedKeyword == .bleed, state.options.isAttackHit,
-           let bonus = context.roster.runtime(for: source)?.talents.pending.nextBleedDamageBonus,
-           bonus > 0 {
+           let bonus = context.consumeTalentPreparation(\.nextBleedDamageBonus, for: source) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
             state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
-            context.roster.mutateRuntime(for: source) { $0.talents.pending.nextBleedDamageBonus = 0 }
         }
         if state.isCritical, triggers.manaEmpoweredCriticalMultiplier > 1,
            context.resolution.actionTalents(for: source.id)?.empoweredByMana == true {
@@ -203,11 +201,9 @@ package extension DamagePipeline {
             state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         if keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit,
-           let bonus = context.roster.runtime(for: source)?.talents.pending.nextPhysicalDamageBonus,
-           bonus > 0 {
+           let bonus = context.consumeTalentPreparation(\.nextPhysicalDamageBonus, for: source) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
             state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
-            context.roster.mutateRuntime(for: source) { $0.talents.pending.nextPhysicalDamageBonus = 0 }
         }
         if state.options.isAttackHit,
            let bonus = context.consumeTalentPreparation(\.nextAttackDamageBonus, for: source) {

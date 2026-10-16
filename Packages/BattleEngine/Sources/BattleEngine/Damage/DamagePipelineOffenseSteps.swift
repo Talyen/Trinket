@@ -303,9 +303,12 @@ package extension DamagePipeline {
     static func reserveAttackEmpowers(to state: inout DamageResolutionState, in context: inout BattleState) {
         guard state.options.isAttackHit, let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID) else { return }
+        let fullHealthBonus = context.consumeTalentPreparation(\.attackBonusOnFullHealth, for: source.combatant) ?? 0
         context.roster.mutateRuntime(for: source.combatant) { runtime in
             let bonuses = runtime.talents.pending.reserveAttackBonuses()
-            state.pendingAttackBonus = SaturatedArithmetic.saturatingAdd(bonuses.damage, runtime.talents.battle.damageBonus)
+            state.pendingAttackBonus = SaturatedArithmetic.saturatingAdd(
+                SaturatedArithmetic.saturatingAdd(bonuses.damage, fullHealthBonus), runtime.talents.battle.damageBonus,
+            )
             state.pendingHolyBonus = bonuses.holy
         }
     }
