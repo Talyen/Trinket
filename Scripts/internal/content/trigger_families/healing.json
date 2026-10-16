@@ -544,6 +544,10 @@
         "kind": "int",
         "order": 87
       }
+    },
+    {
+      "name": "leechCriticalNextPoisonAttackBonus",
+      "type": "Int"
     }
   ]
 }

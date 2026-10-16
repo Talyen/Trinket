@@ -68,10 +68,10 @@ struct CombatRuleAuditRegressionTests {
         #expect(next.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.causticJab.id }.map(\.amount) == [3])
     }
 
-    @Test func `Meteor stops buying empowerment after a Purge reaction wins`() throws {
+    @Test func `Denouncing prepares a later Holy attack while Meteor finishes its Mana empowerment`() throws {
         var profile = CombatModifierProfile.zero
         profile.triggers.manaEmpowerPurgeCount = 1
-        profile.triggers.onPurgeDealHolyDamage = 2
+        profile.triggers.purgeNextHolyAttackBonus = 2
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 1, heroMaxMana: 9, heroMana: 9,
             heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
@@ -79,7 +79,8 @@ struct CombatRuleAuditRegressionTests {
         battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         _ = try play(.meteor, in: &battle)
         #expect(battle.isBattleOver)
-        #expect(battle.mana(of: battle.hero) == 6)
+        #expect(battle.mana(of: battle.hero) == 0)
+        #expect(battle.roster.hero.talents.pending.nextPurgeHolyAttackBonus?.value == 2)
     }
 
     @Test func `Gold action summaries include the Gold actually granted by equipment`() throws {

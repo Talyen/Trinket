@@ -111,6 +111,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard let source = context.roster.combatant(for: sourceActorID)?.combatant else { return }
+        applyPreparedReactionAttackBonus(to: &state, keyword: keyword, source: source, in: &context)
         let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
         if keyword == .burn || sharedKeyword == .burn,
            context.roster.isBelowHalfHealth(for: source),
@@ -148,6 +149,27 @@ package extension DamagePipeline {
             }
         }
         applyPreparedBurnAttackBonus(to: &state, source: source, in: &context)
+    }
+
+    private static func applyPreparedReactionAttackBonus(
+        to state: inout DamageResolutionState,
+        keyword: Keyword,
+        source: Combatant,
+        in context: inout BattleState,
+    ) {
+        guard state.options.isAttackHit, state.amount > 0 else { return }
+        let keyPath: WritableKeyPath<CombatantTalentState.Pending, PreparedTalentBonus<Int>?>
+        switch keyword {
+        case .stun: keyPath = \.nextDodgeStunAttackBonus
+        case .freeze: keyPath = \.nextDodgeFreezeAttackBonus
+        case .bleed: keyPath = \.nextDodgeBleedAttackBonus
+        case .holy: keyPath = \.nextPurgeHolyAttackBonus
+        case .poison: keyPath = \.nextLeechCriticalPoisonAttackBonus
+        default: return
+        }
+        guard let bonus = context.consumeTalentPreparation(keyPath, for: source) else { return }
+        state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
+        state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
     }
 
     private static func applyPreparedPoisonAttackBonus(

@@ -58,11 +58,13 @@ struct LeechAttackQualificationTests {
     }
 
     @Test(arguments: [false, true])
-    func `Toxic Touch follows a Bloodfire Leech Critical Hit at full Health`(bloodfire: Bool) {
+    func `Toxic Touch recognizes a full Health Leech Critical Hit but waits for a later Poison attack`(bloodfire: Bool) {
         var profile = CombatantTalentCatalog.profile(for: ["risen_skeleton_leech_t1_2"])
         profile.triggers.bleedDamageLeech = bloodfire
         var battle = BattleTestFixtures.makePipelineContext(companionModifiers: profile, appliesFightPacing: false)
         let before = battle.health(of: battle.enemy)
+        let serial = battle.resolution.beginCard(actorID: battle.companion.id)
+        _ = battle.resolution.beginAction(BattleActionContext(actor: battle.companion, in: battle), origin: .card)
         let result = battle.resolveTestDamage(
             4,
             from: .companion,
@@ -70,7 +72,14 @@ struct LeechAttackQualificationTests {
             options: .attack(accuracy: .unavoidable, guaranteedCritical: true),
         )
         #expect(result.healthLost == 8)
-        #expect(before - battle.health(of: battle.enemy) == (bloodfire ? 11 : 8))
-        #expect(result.events.contains { $0.abilityName == "Toxic Touch" } == bloodfire)
+        #expect(before - battle.health(of: battle.enemy) == 8)
+        #expect(!result.events.contains { $0.abilityName == "Toxic Touch" })
+        #expect(battle.roster.companion.talents.pending.nextLeechCriticalPoisonAttackBonus?.value == (bloodfire ? 3 : nil))
+        let attack = DamageOperation.attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
+        #expect(battle.resolveTestDamage(1, from: .companion, keyword: .poison, options: attack).healthLost == 1)
+        battle.resolution.endAction()
+        battle.resolution.endCard(serial)
+        #expect(battle.resolveTestDamage(1, from: .companion, keyword: .poison, options: attack).healthLost == (bloodfire ? 4 : 1))
+        #expect(battle.roster.companion.talents.pending.nextLeechCriticalPoisonAttackBonus == nil)
     }
 }

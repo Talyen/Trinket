@@ -37,7 +37,7 @@ package extension DamagePipeline {
             in: &context,
         )
         state.didLeech = leechOutcome.flags.contains(.leeched)
-        await applyFinalCompanionLeechRewards(to: &state, in: &context)
+        applyFinalCompanionLeechRewards(to: &state, in: &context)
     }
 
     static func applyKeywordReactions(

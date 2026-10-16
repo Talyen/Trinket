@@ -322,6 +322,10 @@
     {
       "name": "partyDodgeChanceBonus",
       "type": "Double"
+    },
+    {
+      "name": "dodgeNextBleedAttackBonus",
+      "type": "Int"
     }
   ]
 }

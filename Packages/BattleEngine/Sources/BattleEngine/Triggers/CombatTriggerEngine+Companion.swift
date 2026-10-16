@@ -290,15 +290,6 @@ package extension CombatTriggerEngine {
             }
         }
 
-        if triggers.dodgeDealBleedFlat > 0, context.roster.enemy.isAlive {
-            await DoTApplicator.applyDoT(
-                keyword: .bleed,
-                potency: triggers.dodgeDealBleedFlat,
-                to: context.roster.enemy.combatant,
-                sourceActorID: actor.id,
-                in: &context,
-            )
-        }
         if triggers.firstDodgeDrawForAlly, context.roster.hero.isAlive,
            context.claimHeroTalent(.tailwind, actorID: actor.id, battle: true) {
             let ally = context.roster.hero.combatant

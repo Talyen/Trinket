@@ -92,7 +92,7 @@ tattered_pages	Forbidden Knowledge	trinket	mana	1	Every other turn, lose 1 Healt
 thunderstone	Stormbreak	trinket	physical,stun	1	Deal double damage to Stunned enemies	Deal double damage to Stunned enemies			stunned_damage_multiplier:2.00	stunned_damage_multiplier:2.00
 vanguards_crest	Martial Guard	trinket	physical,block	1	Gain Block equal to half your Physical damage	Gain Block equal to half your Physical damage			physical_damage_block_percent:0.50	physical_damage_block_percent:0.50
 wishing_well_coin	Fickle Fortune	trinket	gold	1	On victory, gain 7 Gold or gain 3 Gold	On victory, gain 7 Gold or gain 3 Gold			victory_gold_coin:true	victory_gold_coin:true
-whiplash	Whiplash	weapon	dodge,stun	8	Deal 3 Stun damage when you Dodge	Deal 5 Stun damage when you Dodge			on_dodge_deal_stun:3	on_dodge_deal_stun:5
+whiplash	Whiplash	weapon	dodge,stun	8	Dodging adds 3 damage to your next Stun attack	Dodging adds 5 damage to your next Stun attack			dodgeNextStunAttackBonus:3	dodgeNextStunAttackBonus:5
 thornwrought	Thornwrought	armor	thorns,block	8	Gain 1 Thorns at the start of combat	Gain 3 Thorns at the start of combat			start_battle_thorns:1	start_battle_thorns:3
 barbed	Barbed	armor	thorns,physical	8	Increase Thorns damage by 1	Increase Thorns damage by 3			thorns_damage_flat:1	thorns_damage_flat:3
 briarward	Briarward	armor	thorns,block	8	When your Block is broken, gain 2 Thorns	When your Block is broken, gain 4 Thorns			block_broken_thorns_flat:2	block_broken_thorns_flat:4
@@ -102,7 +102,7 @@ restorative	Restorative	accessory	cleanse,health	8	Restoring Health has a 10% ch
 solace	Solace	accessory	cleanse,mana	8	Gain 1 Mana when you Cleanse a debuff	Gain 2 Mana when you Cleanse a debuff			on_cleanse_restore_mana:1	on_cleanse_restore_mana:2
 spellrending	Spellrending	weapon	purge,mana	8	Purge a buff from the enemy when you empower a card with Mana	Purge 2 buffs from the enemy when you empower a card with Mana			mana_empower_purge_count:1	mana_empower_purge_count:2
 unraveling	Unraveling	weapon	purge,block	8	Gain 2 Block when you Purge an enemy	Gain 4 Block when you Purge an enemy			on_purge_gain_block:2	on_purge_gain_block:4
-denouncing	Denouncing	weapon	purge,holy	8	Deal 2 Holy damage when you Purge an enemy	Deal 4 Holy damage when you Purge an enemy			on_purge_deal_holy_damage:2	on_purge_deal_holy_damage:4
+denouncing	Denouncing	weapon	purge,holy	8	Purging an enemy adds 2 damage to your next Holy attack	Purging an enemy adds 4 damage to your next Holy attack			purgeNextHolyAttackBonus:2	purgeNextHolyAttackBonus:4
 emberwake	Emberwake	accessory	deathsDoor,burn	8	Deal 3 Burn damage when you enter Death's Door	Deal 6 Burn damage when you enter Death's Door			enter_deaths_door_burn_damage:3	enter_deaths_door_burn_damage:6
 lastlight	Lastlight	accessory	deathsDoor	8	Gain 10% Critical chance while on Death's Door	Gain 20% Critical chance while on Death's Door			deaths_door_critical_chance_bonus:0.10	deaths_door_critical_chance_bonus:0.20
 rekindled	Rekindled	accessory	deathsDoor,health	8	Restore 3 Health when you survive Death's Door	Restore 6 Health when you survive Death's Door			affix_deaths_door_survive_heal_flat:3	affix_deaths_door_survive_heal_flat:6

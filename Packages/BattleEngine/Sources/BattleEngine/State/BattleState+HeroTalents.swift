@@ -15,6 +15,18 @@ package extension BattleState {
         return value
     }
 
+    internal mutating func prepareAttackBonus(
+        _ amount: Int,
+        _ keyPath: WritableKeyPath<CombatantTalentState.Pending, PreparedTalentBonus<Int>?>,
+        for actor: Combatant,
+    ) {
+        guard amount > 0, roster.runtime(for: actor)?.isAlive == true else { return }
+        let bonus = PreparedTalentBonus(
+            value: amount, cardSerial: resolution.cardTalents?.playSerial, actionID: resolution.actionID,
+        )
+        roster.mutateRuntime(for: actor) { $0.talents.pending[keyPath: keyPath] = bonus }
+    }
+
     var allowsHeroTalentReaction: Bool {
         resolution.depth(.heroReaction) == 0
     }

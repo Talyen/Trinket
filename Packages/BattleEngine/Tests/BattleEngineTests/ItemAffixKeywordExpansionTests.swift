@@ -35,11 +35,11 @@ struct ItemAffixKeywordExpansionTests {
         #expect(battle.roster.runtime(for: hero)?.currentMana == 1)
     }
 
-    @Test func `a successful purge grants block and holy damage while an empty purge grants neither`() {
+    @Test func `a successful Purge grants Block and prepares Holy damage while an empty Purge cannot rearm it`() {
         var profile = CombatModifierProfile.zero
         profile.triggers.manaEmpowerPurgeCount = 1
         profile.triggers.onPurgeGainBlock = 2
-        profile.triggers.onPurgeDealHolyDamage = 2
+        profile.triggers.purgeNextHolyAttackBonus = 2
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40, maxMana: 10),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
@@ -57,7 +57,8 @@ struct ItemAffixKeywordExpansionTests {
         ) }
         #expect(first.contains { $0.effectKind == .purgeApplied })
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 2)
-        #expect(battle.health(of: enemy) == 38)
+        #expect(battle.health(of: enemy) == 40)
+        #expect(battle.roster.hero.talents.pending.nextPurgeHolyAttackBonus?.value == 2)
 
         let second = battle.recordingEvents { battle in await CombatTriggerEngine.afterHeroTalentSpendMana(
             actor: hero,
@@ -67,7 +68,12 @@ struct ItemAffixKeywordExpansionTests {
         ) }
         #expect(!second.contains { $0.effectKind == .purgeApplied })
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: hero)) == 2)
-        #expect(battle.health(of: enemy) == 38)
+        #expect(battle.health(of: enemy) == 40)
+        #expect(battle.roster.hero.talents.pending.nextPurgeHolyAttackBonus?.value == 2)
+        let outcome = battle.resolveTestDamage(2, keyword: .holy, options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1))
+        #expect(outcome.healthLost == 4)
+        CombatExecutor.run { await CombatTriggerEngine.afterHeroTalentSpendMana(actor: hero, amount: 3, empowered: true, in: &battle) }
+        #expect(battle.roster.hero.talents.pending.nextPurgeHolyAttackBonus == nil)
     }
 
     @Test func `Unmaking and Fortunate Strike reward a fully Blocked Critical Hit`() throws {

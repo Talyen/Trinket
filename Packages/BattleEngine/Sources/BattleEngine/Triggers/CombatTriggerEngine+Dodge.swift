@@ -116,25 +116,6 @@ package extension CombatTriggerEngine {
                 )
             }
         }
-        if allowsCounterattacks {
-            await applyDodgeCounterDamage(
-                keyword: .stun,
-                amount: profile.triggers.dodgeDealStunFlat,
-                key: .dodgeDealStunFlat,
-                fallback: "Whiplash",
-                for: combatant,
-                in: &context,
-            )
-            await applyDodgeCounterDamage(
-                keyword: .freeze,
-                amount: profile.triggers.dodgeDealFreezeFlat,
-                key: .dodgeDealFreezeFlat,
-                fallback: "Wing Buffet",
-                for: combatant,
-                in: &context,
-            )
-        }
-
         guard context.health(of: combatant) > 0 else { return }
         if triggers.dodgeApplyPoison > 0, context.roster.enemy.isAlive {
             await context.applyDecayingDoT(
@@ -216,6 +197,10 @@ package extension CombatTriggerEngine {
 
         guard context.health(of: combatant) > 0 else { return }
         await afterCompanionDodge(by: combatant, in: &context)
+        // Arm after this Dodge's counteractions; they cannot spend its fresh bonuses.
+        context.prepareAttackBonus(triggers.dodgeNextStunAttackBonus, \.nextDodgeStunAttackBonus, for: combatant)
+        context.prepareAttackBonus(triggers.dodgeNextFreezeAttackBonus, \.nextDodgeFreezeAttackBonus, for: combatant)
+        context.prepareAttackBonus(triggers.dodgeNextBleedAttackBonus, \.nextDodgeBleedAttackBonus, for: combatant)
     }
 
     private static func counterWithBasicAttack(
@@ -284,42 +269,5 @@ package extension CombatTriggerEngine {
         guard context.health(of: combatant) > 0, profile.triggers.dodgeHealFlat > 0 else { return }
         let target = BattleActionContext(actor: combatant, in: context).target(.lowestHealthAlly, in: context)
         await emitHeal(.dodgeHealFlat, "Sidestep", amount: profile.triggers.dodgeHealFlat, to: target, source: combatant, in: &context)
-    }
-
-    private static func applyDodgeCounterDamage(
-        keyword: Keyword,
-        amount: Int,
-        key: CombatTriggerField,
-        fallback: String,
-        for combatant: Combatant,
-        in context: inout BattleState,
-    ) async {
-        guard context.health(of: combatant) > 0, amount > 0, context.roster.enemy.isAlive else { return }
-        let enemy = context.roster.enemy.combatant
-        let name = triggerAbilityName(key, for: combatant, fallback: fallback, in: context)
-        let outcome = await context.resolveDamage(
-            DamageRequest(
-                amount: amount,
-                target: enemy,
-                keyword: keyword,
-                sourceActorID: combatant.id,
-                options: .reaction(cause: .dodge, accuracy: .normal),
-            ),
-        )
-
-        if outcome.healthLost > 0 {
-            if outcome.isCritical {
-                context.resolution.recordCardAttackCritical(by: combatant.id)
-            }
-            context.nextEvent(
-                kind: .abilityDamage,
-                source: .init(combatant),
-                abilityName: name,
-                target: enemy,
-                amount: outcome.healthLost,
-                keyword: keyword,
-                isCritical: outcome.isCritical,
-            )
-        }
     }
 }

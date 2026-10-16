@@ -4,7 +4,18 @@ import TrinketCore
 @testable import TrinketContent
 
 struct CombatProcCompatibilityTests {
-    @Test(arguments: ["spitebloom", "ashen_wake", "cauterize", "mortar_and_pestle", "beacon", "infected", "brass_censer", "heartshock"])
+    @Test(arguments: [
+        "spitebloom",
+        "ashen_wake",
+        "cauterize",
+        "mortar_and_pestle",
+        "beacon",
+        "infected",
+        "brass_censer",
+        "heartshock",
+        "whiplash",
+        "denouncing",
+    ])
     func `saved proc rolls migrate once and remain inspectable and corruptible`(id: String) throws {
         let definition = try #require(GameContent.itemAffixDefinition(matching: id))
         let old = legacyPower(for: id)
@@ -21,6 +32,7 @@ struct CombatProcCompatibilityTests {
         #expect(current.triggers.onBleedDealBurnChancePercent == 0)
         #expect(current.triggers.onBleedApplyPoison == 0 && current.triggers.onBleedDealPoisonChancePercent == 0)
         #expect(!current.triggers.bleedPoisonOncePerTurn)
+        #expect(current.triggers.dodgeDealStunFlat == 0 && current.triggers.onPurgeDealHolyDamage == 0)
         #expect(current.triggers.holyDamagePoisonFlat == 0 && current.triggers.leechStunBelowHalfHealth == 0)
         let magnitude: Double = switch id {
         case "spitebloom": Double(current.triggers.thornsDamageVsPoisonedFlat)
@@ -30,6 +42,8 @@ struct CombatProcCompatibilityTests {
         case "infected": Double(current.triggers.bleedDamageVsPoisonedFlat)
         case "brass_censer": Double(current.triggers.holyAttackDamageVsPoisonedFlat)
         case "heartshock": Double(current.triggers.leechHealVsStunnedBelowHalfFlat)
+        case "whiplash": Double(current.triggers.dodgeNextStunAttackBonus)
+        case "denouncing": Double(current.triggers.purgeNextHolyAttackBonus)
         default: Double(current.triggers.firstHolyAttackHealPerTurn)
         }
         #expect(magnitude == (id == "beacon" ? 34 : id == "mortar_and_pestle" ? 0.6 : 17))
@@ -45,6 +59,7 @@ struct CombatProcCompatibilityTests {
         #expect(stored.triggers.poisonOnThornsDamage == 0 && stored.triggers.holyDamageHealFlat == 0)
         #expect(stored.triggers.healthRestoredPoisonPercent == 0 && stored.triggers.onBurnApplyPoison == 0)
         #expect(stored.triggers.onBleedDealBurnDamage == 0)
+        #expect(stored.triggers.dodgeDealStunFlat == 0 && stored.triggers.onPurgeDealHolyDamage == 0)
         #expect(stored.triggers.onBleedApplyPoison == 0 && stored.triggers.onBleedDealPoisonChancePercent == 0)
         #expect(stored.triggers.holyDamagePoisonFlat == 0 && stored.triggers.leechStunBelowHalfHealth == 0)
     }
@@ -77,6 +92,8 @@ struct CombatProcCompatibilityTests {
             legacy.bleedPoisonOncePerTurn = true
         case "brass_censer": legacy.holyDamagePoisonFlat = 17
         case "heartshock": legacy.leechStunBelowHalfHealth = 17
+        case "whiplash": legacy.dodgeDealStunFlat = 17
+        case "denouncing": legacy.onPurgeDealHolyDamage = 17
         default: legacy.holyDamageHealFlat = 17
         }
         return ItemAffixPower(description: "Old proc", modifiers: [.maximumHealth(7)], triggers: legacy)

@@ -230,7 +230,7 @@ extension CombatTriggerTalentDamageTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 2)
     }
 
-    @Test func `Sunwall rolls once across Smite and its Denouncing follow-up`() throws {
+    @Test func `Denouncing waits for the next Smite and Sunwall uses that attacks combined damage`() throws {
         var profile = CombatantTalentCatalog.profile(for: ["knight_holy_t4_1"])
         let power = try #require(GameContent.itemAffixDefinition(matching: "denouncing")).astral
         profile.merge(power.modifiers)
@@ -245,12 +245,15 @@ extension CombatTriggerTalentDamageTests {
 
         let events = try battle.playCard(cardID: card.id).events
 
-        #expect(battle.health(of: battle.enemy) == 92)
+        #expect(battle.health(of: battle.enemy) == 96)
+        #expect(battle.roster.hero.talents.pending.nextPurgeHolyAttackBonus?.value == 4)
         #expect(events.filter { $0.effectKind == .shieldApplied && $0.abilityName == "Sunwall" }.map(\.amount) == [4])
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == 4)
 
         let next = BattleCardCombatEngine.deal(.smite, owner: .hero, context: &battle)
         let nextEvents = try battle.playCard(cardID: next.id).events
-        #expect(nextEvents.filter { $0.effectKind == .shieldApplied && $0.abilityName == "Sunwall" }.map(\.amount) == [4])
+        #expect(nextEvents.filter { $0.effectKind == .shieldApplied && $0.abilityName == "Sunwall" }.map(\.amount) == [8])
+        #expect(battle.health(of: battle.enemy) == 88)
+        #expect(battle.roster.hero.talents.pending.nextPurgeHolyAttackBonus == nil)
     }
 }

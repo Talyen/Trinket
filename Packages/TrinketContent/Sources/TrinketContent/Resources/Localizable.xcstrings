@@ -7142,37 +7142,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">heiligen</keyword> Schaden, wenn du einen Gegner <keyword id=\"purge\">entzauberst</keyword>"
+            "value": "Wenn du einen Gegner entzauberst, verursacht dein nächster <keyword id=\"holy\">heiliger</keyword> Angriff <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage when you <keyword id=\"purge\">Purge</keyword> an enemy"
+            "value": "Purging an enemy adds <value id=\"quantity_1\">%1$lld</value> damage to your next <keyword id=\"holy\">Holy</keyword> attack"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts de type <keyword id=\"holy\">Sacré</keyword> lors d’une <keyword id=\"purge\">Dissipation</keyword> sur un ennemi"
+            "value": "Une Dissipation sur un ennemi ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à votre prochaine attaque <keyword id=\"holy\">sacrée</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "敵を<keyword id=\"purge\">強化解除</keyword>すると<keyword id=\"holy\">聖</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "敵の強化を解除すると、次の<keyword id=\"holy\">聖</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "적에게 <keyword id=\"purge\">강화 해제</keyword> 적용 시 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "적의 강화를 해제하면 다음 <keyword id=\"holy\">신성</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가합니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"purge\">驅散</keyword>敵人時，造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害"
+            "value": "驅散敵人後，你的下一次<keyword id=\"holy\">神聖</keyword>攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>點"
           }
         }
       }
@@ -7184,37 +7184,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">heiligen</keyword> Schaden, wenn du einen Gegner <keyword id=\"purge\">entzauberst</keyword>"
+            "value": "Wenn du einen Gegner entzauberst, verursacht dein nächster <keyword id=\"holy\">heiliger</keyword> Angriff <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage when you <keyword id=\"purge\">Purge</keyword> an enemy"
+            "value": "Purging an enemy adds <value id=\"quantity_1\">%1$lld</value> damage to your next <keyword id=\"holy\">Holy</keyword> attack"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts de type <keyword id=\"holy\">Sacré</keyword> lors d’une <keyword id=\"purge\">Dissipation</keyword> sur un ennemi"
+            "value": "Une Dissipation sur un ennemi ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à votre prochaine attaque <keyword id=\"holy\">sacrée</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "敵を<keyword id=\"purge\">強化解除</keyword>すると<keyword id=\"holy\">聖</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "敵の強化を解除すると、次の<keyword id=\"holy\">聖</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "적에게 <keyword id=\"purge\">강화 해제</keyword> 적용 시 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "적의 강화를 해제하면 다음 <keyword id=\"holy\">신성</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가합니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"purge\">驅散</keyword>敵人時，造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害"
+            "value": "驅散敵人後，你的下一次<keyword id=\"holy\">神聖</keyword>攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>點"
           }
         }
       }
@@ -17708,37 +17708,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Betäubungs</keyword>schaden, wenn du <keyword id=\"dodge\">ausweichst</keyword>"
+            "value": "Nach dem Ausweichen verursacht dein nächster <keyword id=\"stun\">Betäubungs</keyword>angriff <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Stun</keyword> damage when you <keyword id=\"dodge\">Dodge</keyword>"
+            "value": "Dodging adds <value id=\"quantity_1\">%1$lld</value> damage to your next <keyword id=\"stun\">Stun</keyword> attack"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts d’<keyword id=\"stun\">Étourdissement</keyword> lors d’une <keyword id=\"dodge\">Esquive</keyword>"
+            "value": "Esquiver ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à votre prochaine attaque d’<keyword id=\"stun\">Étourdissement</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">回避</keyword>すると<keyword id=\"stun\">スタン</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "回避すると、次の<keyword id=\"stun\">スタン</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">회피</keyword> 시 <keyword id=\"stun\">기절</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "회피하면 다음 <keyword id=\"stun\">기절</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가합니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">閃避</keyword>時造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"stun\">暈眩</keyword>傷害"
+            "value": "閃避後，你的下一次<keyword id=\"stun\">暈眩</keyword>攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>點"
           }
         }
       }
@@ -17750,37 +17750,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Betäubungs</keyword>schaden, wenn du <keyword id=\"dodge\">ausweichst</keyword>"
+            "value": "Nach dem Ausweichen verursacht dein nächster <keyword id=\"stun\">Betäubungs</keyword>angriff <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Stun</keyword> damage when you <keyword id=\"dodge\">Dodge</keyword>"
+            "value": "Dodging adds <value id=\"quantity_1\">%1$lld</value> damage to your next <keyword id=\"stun\">Stun</keyword> attack"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts d’<keyword id=\"stun\">Étourdissement</keyword> lors d’une <keyword id=\"dodge\">Esquive</keyword>"
+            "value": "Esquiver ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à votre prochaine attaque d’<keyword id=\"stun\">Étourdissement</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">回避</keyword>すると<keyword id=\"stun\">スタン</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "回避すると、次の<keyword id=\"stun\">スタン</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">회피</keyword> 시 <keyword id=\"stun\">기절</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "회피하면 다음 <keyword id=\"stun\">기절</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가합니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">閃避</keyword>時造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"stun\">暈眩</keyword>傷害"
+            "value": "閃避後，你的下一次<keyword id=\"stun\">暈眩</keyword>攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>點"
           }
         }
       }
@@ -21267,6 +21267,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "掉落<keyword id=\"health\">生命值</keyword>物品"
+          }
+        }
+      }
+    },
+    "authored.21496dd3271e6194": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach dem Ausweichen verursacht dein nächster <keyword id=\"stun\">Betäubungs</keyword>angriff <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodging adds <value id=\"quantity_1\">%1$lld</value> damage to your next <keyword id=\"stun\">Stun</keyword> attack"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esquiver ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à votre prochaine attaque d’<keyword id=\"stun\">Étourdissement</keyword>"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回避すると、次の<keyword id=\"stun\">スタン</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "회피하면 다음 <keyword id=\"stun\">기절</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가합니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閃避後，你的下一次<keyword id=\"stun\">暈眩</keyword>攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>點"
           }
         }
       }
@@ -33069,6 +33111,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "大出血"
+          }
+        }
+      }
+    },
+    "authored.ac407f97f61aff74": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn du einen Gegner entzauberst, verursacht dein nächster <keyword id=\"holy\">heiliger</keyword> Angriff <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purging an enemy adds <value id=\"quantity_1\">%1$lld</value> damage to your next <keyword id=\"holy\">Holy</keyword> attack"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une Dissipation sur un ennemi ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à votre prochaine attaque <keyword id=\"holy\">sacrée</keyword>"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "敵の強化を解除すると、次の<keyword id=\"holy\">聖</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "적의 강화를 해제하면 다음 <keyword id=\"holy\">신성</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가합니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "驅散敵人後，你的下一次<keyword id=\"holy\">神聖</keyword>攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>點"
           }
         }
       }
@@ -69674,37 +69758,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"freeze\">Frost</keyword>schaden, wenn du <keyword id=\"dodge\">ausweichst</keyword>"
+            "value": "Nach dem Ausweichen verursacht dein nächster <keyword id=\"freeze\">Frost</keyword>angriff <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"freeze\">Freeze</keyword> damage when you <keyword id=\"dodge\">Dodge</keyword>"
+            "value": "Dodging adds <value id=\"quantity_1\">%1$lld</value> damage to your next <keyword id=\"freeze\">Freeze</keyword> attack"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"freeze\">Gel</keyword> lors d’une <keyword id=\"dodge\">Esquive</keyword>"
+            "value": "Esquiver ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à votre prochaine attaque de <keyword id=\"freeze\">Gel</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">回避</keyword>すると<keyword id=\"freeze\">凍結</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "回避すると、次の<keyword id=\"freeze\">凍結</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">회피</keyword> 시 <keyword id=\"freeze\">빙결</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "회피하면 다음 <keyword id=\"freeze\">빙결</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가합니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">閃避</keyword>時，造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"freeze\">冰凍</keyword>傷害"
+            "value": "閃避後，你的下一次<keyword id=\"freeze\">冰凍</keyword>攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>點"
           }
         }
       }
@@ -81110,37 +81194,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Blutungs</keyword>schaden, wenn du <keyword id=\"dodge\">ausweichst</keyword>"
+            "value": "Nach dem Ausweichen verursacht dein nächster <keyword id=\"bleed\">Blutungs</keyword>angriff <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Bleed</keyword> damage when you <keyword id=\"dodge\">Dodge</keyword>"
+            "value": "Dodging adds <value id=\"quantity_1\">%1$lld</value> damage to your next <keyword id=\"bleed\">Bleed</keyword> attack"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"bleed\">Saignement</keyword> lors d’une <keyword id=\"dodge\">Esquive</keyword>"
+            "value": "Esquiver ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à votre prochaine attaque de <keyword id=\"bleed\">Saignement</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">回避</keyword>すると<keyword id=\"bleed\">出血</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "回避すると、次の<keyword id=\"bleed\">出血</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">회피</keyword> 시 <keyword id=\"bleed\">출혈</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "회피하면 다음 <keyword id=\"bleed\">출혈</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가합니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"dodge\">閃避</keyword>時，造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"bleed\">流血</keyword>傷害"
+            "value": "閃避後，你的下一次<keyword id=\"bleed\">流血</keyword>攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>點"
           }
         }
       }
@@ -88286,37 +88370,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kritische <keyword id=\"leech\">Lebensraub</keyword>-Treffer verursachen <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Gift</keyword>schaden"
+            "value": "Kritische <keyword id=\"leech\">Lebensraub</keyword>-Treffer erhöhen den Schaden deines nächsten <keyword id=\"poison\">Gift</keyword>angriffs um <value id=\"quantity_1\">%1$lld</value>"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"leech\">Leech</keyword> Critical Hits deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Poison</keyword> damage"
+            "value": "<keyword id=\"leech\">Leech</keyword> Critical Hits add <value id=\"quantity_1\">%1$lld</value> damage to your next <keyword id=\"poison\">Poison</keyword> attack"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les coups critiques de <keyword id=\"leech\">Vol de vie</keyword> infligent <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"poison\">Poison</keyword>"
+            "value": "Les coups critiques de <keyword id=\"leech\">Vol de vie</keyword> ajoutent <value id=\"quantity_1\">%1$lld</value> dégâts à votre prochaine attaque de <keyword id=\"poison\">Poison</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"leech\">吸収</keyword>クリティカルヒットで<keyword id=\"poison\">毒</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"
+            "value": "<keyword id=\"leech\">吸収</keyword>クリティカルヒットで、次の<keyword id=\"poison\">毒</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"leech\">흡혈</keyword> 치명타가 <keyword id=\"poison\">독</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"
+            "value": "<keyword id=\"leech\">흡혈</keyword> 치명타가 다음 <keyword id=\"poison\">독</keyword> 공격의 피해를 <value id=\"quantity_1\">%1$lld</value> 증가시킵니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"leech\">吸血</keyword>暴擊造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"poison\">中毒</keyword>傷害"
+            "value": "<keyword id=\"leech\">吸血</keyword>暴擊使你的下一次<keyword id=\"poison\">中毒</keyword>攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>點"
           }
         }
       }

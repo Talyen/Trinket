@@ -335,12 +335,30 @@ including when refreshing an existing preparation. Paid in Full likewise reserve
 its damage for a later ability, including theft from Saintfall and Golden Verdict
 reactions between hits of the current card.
 
+### Reaction attack preparations
+
+Whiplash, Wing Buffet, and Counter Pounce prepare damage for the wearer's next
+Stun, Freeze, and Bleed attack respectively after Dodge. Arm them after the Dodge's
+counteractions finish, even when counterattacks are disabled; a fallen owner cannot
+arm a bonus. Denouncing prepares Holy attack damage only after an actual enemy
+buff removal. Empty Purges leave existing readiness unchanged.
+Toxic Touch prepares Poison attack damage after its Companion's Leech Critical
+Hit, including guaranteed Leech attacks at full Health. It creates no Poison hit
+or stack and combines independently with Volatile Remedy and Toxic Remedy.
+Each preparation replaces its own amount and creating action/card provenance;
+it does not accumulate. The creating action/card, ongoing damage, other damage
+types, and other actors cannot spend it. The next later matching attack consumes
+it on one hit, folding its amount into that hit. Existing resolved card-repeat
+snapshots do not consume or apply the bonus again. Prepared amounts remain in the
+combatant's status summary.
+
 ### Panther Dodge preparations
 
 Surprise Strike doubles the next attack after Panther's first Dodge each
 combat. Stalker's Precision ignores Block and Vanish guarantees a Critical
-Hit on the next attack. Counter Pounce returns 2 Bleed damage on Dodge;
-Regroup rolls for one card draw. Preparations refresh instead of stacking.
+Hit on the next attack. Counter Pounce prepares 2 damage for the next Bleed
+attack after Dodge; Regroup rolls for one card draw. Preparations refresh instead
+of stacking.
 
 Lizard Scout's Cold Blood returns Poison on every Dodge; Barbed Tail rolls
 once per Dodge for 4 Bleed damage at 20% chance, limiting simultaneous typed

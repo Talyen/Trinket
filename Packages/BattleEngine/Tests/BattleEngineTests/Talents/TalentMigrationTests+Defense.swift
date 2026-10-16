@@ -78,16 +78,6 @@ extension TalentMigrationTests {
         }
     }
 
-    @Test func `rimewind deals freeze damage on dodge`() {
-        var battle = makeBattle(companionTriggers: CombatTraitTriggers.configured { $0.dodgeDealFreezeFlat = 2 })
-        battle.appliesFightPacing = false
-        let before = battle.health(of: battle.enemy)
-        CombatExecutor.run { await CombatTriggerEngine.afterDodge(
-            by: battle.roster.companion.combatant, attackerID: battle.roster.enemy.id, in: &battle,
-        ) }
-        #expect(before - battle.health(of: battle.enemy) == 2)
-    }
-
     @Test func `vanish guarantees critical after dodge`() {
         var battle = makeBattle(companionTriggers: CombatTraitTriggers.configured { $0.onDodgeNextAttackGuaranteedCritical = true })
         CombatExecutor.run { await CombatTriggerEngine.afterDodge(

@@ -75,6 +75,7 @@ public struct DodgeTriggers: Equatable, Hashable, Sendable {
     public var firstDodgeNextAttackBonusPerTurn: Int = 0
     public var partyDodgeAtFullHealthBonus: Double = 0
     public var partyDodgeChanceBonus: Double = 0
+    public var dodgeNextBleedAttackBonus: Int = 0
 
     public init(_ configure: (inout Self) -> Void = { _ in }) {
         configure(&self)

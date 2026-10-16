@@ -929,8 +929,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.dodge, .stun],
             weight: 8,
-            basic: ItemAffixPower(description: "Deal 3 Stun damage when you Dodge", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers { $0.dodgeDealStunFlat = 3 })),
-            astral: ItemAffixPower(description: "Deal 5 Stun damage when you Dodge", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers { $0.dodgeDealStunFlat = 5 }))
+            basic: ItemAffixPower(description: "Dodging adds 3 damage to your next Stun attack", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers { $0.dodgeNextStunAttackBonus = 3 })),
+            astral: ItemAffixPower(description: "Dodging adds 5 damage to your next Stun attack", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers { $0.dodgeNextStunAttackBonus = 5 }))
         ),
         ItemAffixCatalog.affix(
             id: "thornwrought",
@@ -1024,8 +1024,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.purge, .holy],
             weight: 8,
-            basic: ItemAffixPower(description: "Deal 2 Holy damage when you Purge an enemy", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers { $0.onPurgeDealHolyDamage = 2 })),
-            astral: ItemAffixPower(description: "Deal 4 Holy damage when you Purge an enemy", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers { $0.onPurgeDealHolyDamage = 4 }))
+            basic: ItemAffixPower(description: "Purging an enemy adds 2 damage to your next Holy attack", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers { $0.purgeNextHolyAttackBonus = 2 })),
+            astral: ItemAffixPower(description: "Purging an enemy adds 4 damage to your next Holy attack", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers { $0.purgeNextHolyAttackBonus = 4 }))
         ),
         ItemAffixCatalog.affix(
             id: "emberwake",

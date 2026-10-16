@@ -5,32 +5,76 @@ import TrinketCore
 @testable import BattleEngine
 
 struct DodgeCounterDamageEventsTests {
-    @Test(arguments: [false, true])
-    func `Whiplash reports its damage once even when the hit Stuns`(triggersStun: Bool) throws {
-        let profile = CombatModifierProfile.withTriggers { $0.dodgeDealStunFlat = 3 }
-        var battle = BattleStateTestFactory.makeMinimalBattle(
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: profile, appliesFightPacing: false,
-        )
-        if triggersStun {
-            battle.insertEffect(.controlMeter(.stun, 19, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+    @Test(
+        arguments: [(Keyword.stun, "whiplash", 3), (.freeze, "frost_whelp_dodge_t2_2", 2), (.bleed, "panther_dodge_t1_2", 2)],
+        [false, true],
+    )
+    func `Dodge bonuses refresh and wait for one later matching attack by their owner`(
+        scenario: (Keyword, String, Int),
+        card: Bool,
+    ) throws {
+        let (keyword, id, bonus) = scenario
+        var profile = CombatantTalentCatalog.profile(for: [id])
+        if keyword == .stun {
+            let affix = try #require(GameContent.itemAffixDefinition(matching: id))
+            affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
         }
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100), heroModifiers: profile, appliesFightPacing: false,
+        )
+        let serial = card ? battle.resolution.beginCard(actorID: battle.hero.id) : nil
+        _ = battle.resolution.beginAction(BattleActionContext(actor: battle.hero, in: battle), origin: card ? .card : .counterattack)
+        for _ in 0 ..< 2 {
+            let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
+                by: battle.hero, attackerID: battle.enemy.id, allowsCounterattacks: false, in: &battle,
+            ) }
+            #expect(!events.contains { $0.kind == .abilityDamage })
+        }
+        #expect(battle.health(of: battle.enemy) == 100)
+        #expect(battle.activeEffects(of: battle.enemy).isEmpty)
+        let attack = DamageOperation.attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
+        #expect(battle.resolveTestDamage(1, keyword: keyword, options: attack).healthLost == 1)
+        battle.resolution.endAction()
+        if let serial {
+            _ = battle.resolution.beginAction(BattleActionContext(actor: battle.hero, in: battle), origin: .counterattack)
+            #expect(battle.resolveTestDamage(1, keyword: keyword, options: attack).healthLost == 1)
+            battle.resolution.endAction()
+            battle.resolution.endCard(serial)
+        }
+        #expect(battle.resolveTestDamage(1, keyword: keyword, options: .resolvedPeriodic).healthLost == 1)
+        #expect(battle.resolveTestDamage(1, keyword: .physical, options: attack).healthLost == 1)
+        #expect(battle.resolveTestDamage(1, from: .companion, keyword: keyword, options: attack).healthLost == 1)
+        let events = battle.performTestAction(Ability(
+            id: "prepared-pair", name: "Prepared Pair", tier: .basic,
+            damageComponents: [DamageComponent(1, keyword: keyword), DamageComponent(1, keyword: keyword)],
+            criticalChanceBonus: -1,
+        ))
+        #expect(events.filter { $0.kind == .abilityDamage }.map(\.amount) == [1 + bonus, 1])
+    }
 
-        let before = battle.health(of: battle.enemy)
-        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
-            by: battle.hero,
-            attackerID: battle.enemy.id,
-            in: &battle,
-        ) }
-
-        #expect(events == battle.events)
-        #expect(before - battle.health(of: battle.enemy) == 3)
-        let damage = events.filter { $0.kind == .abilityDamage && $0.abilityName == "Whiplash" }
-        #expect(damage.count == 1)
-        let hit = try #require(damage.first)
-        #expect(hit.amount == 3)
-        #expect(hit.keyword == .stun)
-        #expect(hit.targetID == battle.enemy.id)
-        #expect(events.count(where: { $0.effectKind == .controlTriggered }) == (triggersStun ? 1 : 0))
+    @Test func `Whiplash arms after the Dodge counterattack completes`() {
+        let basic = Ability(
+            id: "stun-counter",
+            name: "Stun Counter",
+            tier: .basic,
+            directDamage: 1,
+            damageKeyword: .stun,
+            criticalChanceBonus: -1,
+        )
+        let profile = CombatModifierProfile.withTriggers {
+            $0.dodgeNextStunAttackBonus = 3
+            $0.onDodgeCounterBasicAttack = true
+            $0.criticalChanceBonus = -1
+        }
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(abilities: [basic]),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100), heroModifiers: profile, appliesFightPacing: false,
+        )
+        CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.hero, attackerID: battle.enemy.id, in: &battle) }
+        #expect(battle.health(of: battle.enemy) == 99)
+        #expect(battle.roster.hero.talents.pending.nextDodgeStunAttackBonus?.value == 3)
+        let events = battle.performTestAction(basic)
+        #expect(events.filter { $0.kind == .abilityDamage }.map(\.amount) == [4])
     }
 }

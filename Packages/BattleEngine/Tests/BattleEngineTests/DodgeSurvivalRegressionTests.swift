@@ -16,8 +16,9 @@ struct DodgeSurvivalRegressionTests {
         profile.triggers.onDodgeGrantHeroBlock = 3
         profile.triggers.onDodgePartyMana = 2
         profile.triggers.onDodgeDrawCardForHero = 1
-        profile.triggers.dodgeDealStunFlat = 3
-        profile.triggers.dodgeDealFreezeFlat = 2
+        profile.triggers.dodgeNextStunAttackBonus = 3
+        profile.triggers.dodgeNextFreezeAttackBonus = 2
+        profile.triggers.dodgeNextBleedAttackBonus = 2
         profile.triggers.dodgeBleedChancePercent = 1
         profile.triggers.dodgeBleedDamage = 2
         profile.triggers.dodgeBurnChancePercent = 1
@@ -45,6 +46,9 @@ struct DodgeSurvivalRegressionTests {
         ) }
 
         #expect(battle.health(of: battle.companion) == 0)
+        #expect(battle.roster.companion.talents.pending.nextDodgeStunAttackBonus == nil)
+        #expect(battle.roster.companion.talents.pending.nextDodgeFreezeAttackBonus == nil)
+        #expect(battle.roster.companion.talents.pending.nextDodgeBleedAttackBonus == nil)
         #expect(battle.roster.hero.isAlive)
         #expect(battle.health(of: battle.enemy) == 100)
         // Only the committed healing's Holy ping can consume enemy Block.

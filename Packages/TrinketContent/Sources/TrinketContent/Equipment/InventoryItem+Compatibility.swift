@@ -197,6 +197,26 @@ extension InventoryItem {
             let actual = triggers.leechHealVsStunnedBelowHalfFlat
             description = "Below half Health, Leech restores \(actual) additional Health against Stunned enemies"
         default:
+            return normalizedPreparedReactionPower(power, affixID: affixID)
+        }
+        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
+    }
+
+    private static func normalizedPreparedReactionPower(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower? {
+        var triggers = power.triggers
+        let description: String
+        switch affixID {
+        case "whiplash":
+            triggers.dodgeNextStunAttackBonus = max(triggers.dodgeNextStunAttackBonus, triggers.dodgeDealStunFlat)
+            triggers.dodgeDealStunFlat = 0
+            let actual = triggers.dodgeNextStunAttackBonus
+            description = "Dodging adds \(actual) damage to your next Stun attack"
+        case "denouncing":
+            triggers.purgeNextHolyAttackBonus = max(triggers.purgeNextHolyAttackBonus, triggers.onPurgeDealHolyDamage)
+            triggers.onPurgeDealHolyDamage = 0
+            let actual = triggers.purgeNextHolyAttackBonus
+            description = "Purging an enemy adds \(actual) damage to your next Holy attack"
+        default:
             return nil
         }
         return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)

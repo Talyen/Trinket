@@ -401,9 +401,9 @@ public enum ContentCopy {
             (L10n.affixes_defenders_astral_description(4), [4])
         case "Defender's":
             (L10n.affixes_defenders_title, [])
-        case "Deal 4 Holy damage when you Purge an enemy":
+        case "Purging an enemy adds 4 damage to your next Holy attack":
             (L10n.affixes_denouncing_astral_description(4), [4])
-        case "Deal 2 Holy damage when you Purge an enemy":
+        case "Purging an enemy adds 2 damage to your next Holy attack":
             (L10n.affixes_denouncing_basic_description(2), [2])
         case "Denouncing":
             (L10n.affixes_denouncing_title, [])
@@ -817,9 +817,9 @@ public enum ContentCopy {
             (L10n.affixes_vital_basic_description(1), [1])
         case "Vital":
             (L10n.affixes_vital_title, [])
-        case "Deal 5 Stun damage when you Dodge":
+        case "Dodging adds 5 damage to your next Stun attack":
             (L10n.affixes_whiplash_astral_description(5), [5])
-        case "Deal 3 Stun damage when you Dodge":
+        case "Dodging adds 3 damage to your next Stun attack":
             (L10n.affixes_whiplash_basic_description(3), [3])
         case "Whiplash":
             (L10n.affixes_whiplash_title, [])
@@ -957,6 +957,8 @@ public enum ContentCopy {
             (L10n.authored_213743323f51ef50, [])
         case "Drops Health items":
             (L10n.authored_2147cedab7fd29db, [])
+        case "Dodging adds 1 damage to your next Stun attack":
+            (L10n.authored_21496dd3271e6194(1), [1])
         case "Abandoned Study":
             (L10n.authored_21f8367bd55ff925, [])
         case "Meteorite Crash":
@@ -1383,6 +1385,8 @@ public enum ContentCopy {
             (L10n.authored_ab758d5efa1c1ab7, [])
         case "Barbs":
             (L10n.authored_abbddd55176931a7, [])
+        case "Purging an enemy adds 1 damage to your next Holy attack":
+            (L10n.authored_ac407f97f61aff74(1), [1])
         case "Refresh the board and choose another contract", "Refresh the board and choose another contract.":
             (L10n.authored_ac6e0bc76ccbb455, [])
         case "Drops Armor":
@@ -2731,7 +2735,7 @@ public enum ContentCopy {
             (L10n.talents_frost_whelp_dodge_t2_1_description, [])
         case "Flyby Strike":
             (L10n.talents_frost_whelp_dodge_t2_1_name, [])
-        case "Deal 2 Freeze damage when you Dodge":
+        case "Dodging adds 2 damage to your next Freeze attack":
             (L10n.talents_frost_whelp_dodge_t2_2_description(2), [2])
         case "Wing Buffet":
             (L10n.talents_frost_whelp_dodge_t2_2_name, [])
@@ -3261,7 +3265,7 @@ public enum ContentCopy {
             (L10n.talents_panther_dodge_t1_1_description, [])
         case "Surprise Strike":
             (L10n.talents_panther_dodge_t1_1_name, [])
-        case "Deal 2 Bleed damage when you Dodge":
+        case "Dodging adds 2 damage to your next Bleed attack":
             (L10n.talents_panther_dodge_t1_2_description(2), [2])
         case "Counter Pounce":
             (L10n.talents_panther_dodge_t1_2_name, [])
@@ -3585,7 +3589,7 @@ public enum ContentCopy {
             (L10n.talents_risen_skeleton_leech_t1_1_description(25), [25])
         case "Weaken Soul":
             (L10n.talents_risen_skeleton_leech_t1_1_name, [])
-        case "Leech Critical Hits deal 3 Poison damage":
+        case "Leech Critical Hits add 3 damage to your next Poison attack":
             (L10n.talents_risen_skeleton_leech_t1_2_description(3), [3])
         case "Toxic Touch":
             (L10n.talents_risen_skeleton_leech_t1_2_name, [])
@@ -4340,7 +4344,7 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Gold\\ when\\ you\\ deal\\ Bleed\\ damage$"), count: 1, make: { values in L10n.affixes_cutpurse_knife_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ additional\\ damage\\ while\\ the\\ enemy\\ is\\ Stunned$"), count: 1, make: { values in L10n.affixes_dazed_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ on\\ Death's\\ Door$"), count: 1, make: { values in L10n.affixes_deathgrip_astral_description(values[0]) }),
-        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Holy\\ damage\\ when\\ you\\ Purge\\ an\\ enemy$"), count: 1, make: { values in L10n.affixes_denouncing_astral_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Purging\\ an\\ enemy\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Holy\\ attack$"), count: 1, make: { values in L10n.affixes_denouncing_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Purge\\ ([0-9]+)\\ buffs?\\ when\\ you\\ Stun\\ the\\ enemy$"), count: 1, make: { values in L10n.affixes_disrupting_basic_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)%\\ Dodge\\ chance$"), count: 1, make: { values in L10n.affixes_elusive_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Take\\ ([0-9]+)%\\ less\\ Burn\\ damage$"), count: 1, make: { values in L10n.affixes_emberguard_astral_description(values[0]) }),
@@ -4401,7 +4405,7 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ you\\ Dodge$"), count: 1, make: { values in L10n.affixes_untouchable_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Poison\\ deals\\ ([0-9]+)\\ additional\\ damage\\ against\\ Bleeding\\ enemies$"), count: 1, make: { values in L10n.affixes_venomtrail_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ additional\\ Health$"), count: 1, make: { values in L10n.affixes_vital_astral_description(values[0]) }),
-        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Stun\\ damage\\ when\\ you\\ Dodge$"), count: 1, make: { values in L10n.affixes_whiplash_astral_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Dodging\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Stun\\ attack$"), count: 1, make: { values in L10n.affixes_whiplash_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ when\\ you\\ gain\\ Gold$"), count: 1, make: { values in L10n.affixes_windfall_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^On\\ victory,\\ gain\\ ([0-9]+)\\ Gold\\ or\\ gain\\ ([0-9]+)\\ Gold$"), count: 2, make: { values in L10n.affixes_wishing_well_coin_astral_description(values[0], values[1]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\\nGain\\ ([0-9]+)\\ Gold$"), count: 2, make: { values in L10n.authored_0c6b172c72634036(values[0], values[1]) }),
@@ -4532,7 +4536,7 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^When\\ Stun\\ ends,\\ deal\\ ([0-9]+)\\ Poison\\ damage$"), count: 1, make: { values in L10n.talents_fox_stun_t3_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Critical\\ Hits\\ against\\ Stunned\\ enemies\\ steal\\ ([0-9]+)\\ Gold$"), count: 1, make: { values in L10n.talents_fox_stun_t3_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Above\\ half\\ Health,\\ gain\\ \\+([0-9]+)%\\ Dodge\\ chance$"), count: 1, make: { values in L10n.talents_frost_whelp_dodge_t1_1_description(values[0]) }),
-        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Freeze\\ damage\\ when\\ you\\ Dodge$"), count: 1, make: { values in L10n.talents_frost_whelp_dodge_t2_2_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Dodging\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Freeze\\ attack$"), count: 1, make: { values in L10n.talents_frost_whelp_dodge_t2_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Dodging\\ an\\ attack\\ grants\\ the\\ Hero\\ ([0-9]+)\\ Block$"), count: 1, make: { values in L10n.talents_frost_whelp_dodge_t3_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Freeze\\ cards?\\ hits\\ that\\ remove\\ Health\\ have\\ a\\ ([0-9]+)%\\ chance\\ to\\ draw\\ a\\ cards?$"), count: 1, make: { values in L10n.talents_frost_whelp_freeze_t1_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Taking\\ damage\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ return\\ ([0-9]+)\\ Freeze\\ damage$"), count: 2, make: { values in L10n.talents_frost_whelp_freeze_t1_2_description(values[0], values[1]) }),
@@ -4625,7 +4629,7 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^You\\ deal\\ ([0-9]+)%\\ more\\ damage\\ to\\ Bleeding\\ enemies\\ below\\ half\\ Health$"), count: 1, make: { values in L10n.talents_panther_bleed_t2_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Bleed\\ Critical\\ Hits\\ deal\\ ([0-9]+)%\\ more\\ damage$"), count: 1, make: { values in L10n.talents_panther_bleed_t2_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Enemies\\ with\\ ([0-9]+)\\ or\\ more\\ Bleed\\ stacks\\ deal\\ ([0-9]+)%\\ less\\ damage$"), count: 2, make: { values in L10n.talents_panther_bleed_t3_1_description(values[0], values[1]) }),
-        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Bleed\\ damage\\ when\\ you\\ Dodge$"), count: 1, make: { values in L10n.talents_panther_dodge_t1_2_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Dodging\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Bleed\\ attack$"), count: 1, make: { values in L10n.talents_panther_dodge_t1_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Below\\ half\\ Health,\\ gain\\ \\+([0-9]+)%\\ Dodge\\ chance$"), count: 1, make: { values in L10n.talents_panther_dodge_t2_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Dodging\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ draw\\ a\\ cards?$"), count: 1, make: { values in L10n.talents_panther_dodge_t3_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Bleed\\ attacks\\ gain\\ Leech\\ while\\ below\\ ([0-9]+)%\\ Health$"), count: 1, make: { values in L10n.talents_panther_leech_t1_1_description(values[0]) }),
@@ -4679,7 +4683,7 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^While\\ on\\ Death's\\ Door,\\ gain\\ \\+([0-9]+)%\\ Critical\\ Hit\\ chance$"), count: 1, make: { values in L10n.talents_risen_skeleton_deathsdoor_t2_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Surviving\\ Death's\\ Door\\ grants\\ both\\ allies\\ ([0-9]+)\\ Block$"), count: 1, make: { values in L10n.talents_risen_skeleton_deathsdoor_t3_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Leeching\\ causes\\ the\\ enemy's\\ next\\ hit\\ to\\ deal\\ ([0-9]+)%\\ less\\ damage$"), count: 1, make: { values in L10n.talents_risen_skeleton_leech_t1_1_description(values[0]) }),
-        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Leech\\ Critical\\ Hits\\ deal\\ ([0-9]+)\\ Poison\\ damage$"), count: 1, make: { values in L10n.talents_risen_skeleton_leech_t1_2_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Leech\\ Critical\\ Hits\\ add\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Poison\\ attack$"), count: 1, make: { values in L10n.talents_risen_skeleton_leech_t1_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Leech\\ restores\\ ([0-9]+)%\\ more\\ Health\\ against\\ enemies\\ below\\ half\\ Health$"), count: 1, make: { values in L10n.talents_risen_skeleton_leech_t2_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Leech\\ restores\\ ([0-9]+)%\\ more\\ Health\\ from\\ Poisoned\\ enemies$"), count: 1, make: { values in L10n.talents_risen_skeleton_leech_t3_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Leech\\ attacks\\ deal\\ ([0-9]+)%\\ more\\ damage\\ against\\ Bleeding\\ enemies$"), count: 1, make: { values in L10n.talents_risen_skeleton_leech_t3_2_description(values[0]) }),

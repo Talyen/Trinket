@@ -1445,8 +1445,8 @@ public extension CombatantTalentCatalog {
             "frost_whelp_dodge_t2_2": CombatantTalentEffect(
                 name: "Wing Buffet",
                 iconID: "sf:bird.fill",
-                description: "Deal 2 Freeze damage when you Dodge",
-                triggers: CombatTraitTriggers(control: ControlTriggers { $0.dodgeDealFreezeFlat = 2 })
+                description: "Dodging adds 2 damage to your next Freeze attack",
+                triggers: CombatTraitTriggers(control: ControlTriggers { $0.dodgeNextFreezeAttackBonus = 2 })
             ),
             "frost_whelp_dodge_t3_1": CombatantTalentEffect(
                 name: "Aerial Cover",
@@ -1712,8 +1712,8 @@ public extension CombatantTalentCatalog {
             "panther_dodge_t1_2": CombatantTalentEffect(
                 name: "Counter Pounce",
                 iconID: "sf:pawprint.fill",
-                description: "Deal 2 Bleed damage when you Dodge",
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers { $0.dodgeDealBleedFlat = 2 })
+                description: "Dodging adds 2 damage to your next Bleed attack",
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers { $0.dodgeNextBleedAttackBonus = 2 })
             ),
             "panther_dodge_t2_1": CombatantTalentEffect(
                 name: "Survival Instinct",
@@ -2223,8 +2223,8 @@ public extension CombatantTalentCatalog {
             "risen_skeleton_leech_t1_2": CombatantTalentEffect(
                 name: "Toxic Touch",
                 iconID: "sf:hand.raised.fill",
-                description: "Leech Critical Hits deal 3 Poison damage",
-                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechCriticalPoisonDamage = 3 })
+                description: "Leech Critical Hits add 3 damage to your next Poison attack",
+                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechCriticalNextPoisonAttackBonus = 3 })
             ),
             "risen_skeleton_leech_t2_1": CombatantTalentEffect(
                 name: "Grave Harvest",

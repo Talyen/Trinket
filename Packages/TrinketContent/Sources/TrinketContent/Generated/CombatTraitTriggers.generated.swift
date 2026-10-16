@@ -475,6 +475,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case onStunNextAttackGuaranteedCritical
     case stunBuildupMultiplier
     case holyCriticalPreventsBlock
+    case dodgeNextStunAttackBonus
+    case dodgeNextFreezeAttackBonus
     case wintersWake
     case killingGrace
     case dodgeNextHitPoisonAndBleedPercent
@@ -547,6 +549,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case firstDodgeNextAttackBonusPerTurn
     case partyDodgeAtFullHealthBonus
     case partyDodgeChanceBonus
+    case dodgeNextBleedAttackBonus
     case dragonPatronage
     case prismaticScales
     case freezeEmpowermentBlockPerMana
@@ -808,6 +811,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case healthRestoredNextPoisonDamagePercent
     case firstHolyAttackHealPerTurn
     case leechHealVsStunnedBelowHalfFlat
+    case leechCriticalNextPoisonAttackBonus
     case undyingEmber
     case borrowedLife
     case onceDeathReviveHealth
@@ -870,6 +874,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case onPurgeDealHolyDamage
     case purgeDrawBelowHalf
     case cleanseHolyDamage
+    case purgeNextHolyAttackBonus
     case negateFirstEnemyAttack
     case attackDelayEnemyTurnChancePercent
     case bleedingEnemyActionSkipChancePercent
@@ -1385,6 +1390,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.control.onStunNextAttackGuaranteedCritical, .onStunNextAttackGuaranteedCritical, default: false, merging: .or),
         .init(\.control.stunBuildupMultiplier, .stunBuildupMultiplier, default: 1, merging: .mul),
         .init(\.control.holyCriticalPreventsBlock, .holyCriticalPreventsBlock, default: false, merging: .or),
+        .init(\.control.dodgeNextStunAttackBonus, .dodgeNextStunAttackBonus, default: 0, merging: .add),
+        .init(\.control.dodgeNextFreezeAttackBonus, .dodgeNextFreezeAttackBonus, default: 0, merging: .add),
         .init(\.dodge.wintersWake, .wintersWake, default: false, merging: .or),
         .init(\.dodge.killingGrace, .killingGrace, default: false, merging: .or),
         .init(\.dodge.dodgeNextHitPoisonAndBleedPercent, .dodgeNextHitPoisonAndBleedPercent, default: 0, merging: .max),
@@ -1457,6 +1464,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.dodge.firstDodgeNextAttackBonusPerTurn, .firstDodgeNextAttackBonusPerTurn, default: 0, merging: .add),
         .init(\.dodge.partyDodgeAtFullHealthBonus, .partyDodgeAtFullHealthBonus, default: 0, merging: .add),
         .init(\.dodge.partyDodgeChanceBonus, .partyDodgeChanceBonus, default: 0, merging: .add),
+        .init(\.dodge.dodgeNextBleedAttackBonus, .dodgeNextBleedAttackBonus, default: 0, merging: .add),
         .init(\.mana.dragonPatronage, .dragonPatronage, default: false, merging: .or),
         .init(\.mana.prismaticScales, .prismaticScales, default: false, merging: .or),
         .init(\.mana.freezeEmpowermentBlockPerMana, .freezeEmpowermentBlockPerMana, default: 0, merging: .max),
@@ -1718,6 +1726,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.healing.healthRestoredNextPoisonDamagePercent, .healthRestoredNextPoisonDamagePercent, default: 0, merging: .add),
         .init(\.healing.firstHolyAttackHealPerTurn, .firstHolyAttackHealPerTurn, default: 0, merging: .add),
         .init(\.healing.leechHealVsStunnedBelowHalfFlat, .leechHealVsStunnedBelowHalfFlat, default: 0, merging: .add),
+        .init(\.healing.leechCriticalNextPoisonAttackBonus, .leechCriticalNextPoisonAttackBonus, default: 0, merging: .add),
         .init(\.revival.undyingEmber, .undyingEmber, default: false, merging: .or),
         .init(\.revival.borrowedLife, .borrowedLife, default: false, merging: .or),
         .init(\.revival.onceDeathReviveHealth, .onceDeathReviveHealth, default: 0, merging: .max),
@@ -1780,6 +1789,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.cleanse.onPurgeDealHolyDamage, .onPurgeDealHolyDamage, default: 0, merging: .add),
         .init(\.cleanse.purgeDrawBelowHalf, .purgeDrawBelowHalf, default: false, merging: .or),
         .init(\.cleanse.cleanseHolyDamage, .cleanseHolyDamage, default: 0, merging: .add),
+        .init(\.cleanse.purgeNextHolyAttackBonus, .purgeNextHolyAttackBonus, default: 0, merging: .add),
         .init(\.enemyTurn.negateFirstEnemyAttack, .negateFirstEnemyAttack, default: false, merging: .or),
         .init(\.enemyTurn.attackDelayEnemyTurnChancePercent, .attackDelayEnemyTurnChancePercent, default: 0, merging: .add),
         .init(\.enemyTurn.bleedingEnemyActionSkipChancePercent, .bleedingEnemyActionSkipChancePercent, default: 0, merging: .add),

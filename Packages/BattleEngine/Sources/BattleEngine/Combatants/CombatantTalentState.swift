@@ -91,6 +91,11 @@ struct CombatantTalentState: Hashable, Sendable {
         var nextBurnDamageBonus: PreparedTalentBonus<Int>?
         var nextPoisonDamageBonus: PreparedTalentBonus<Int>?
         var nextToxicRemedyDamageBonus: PreparedTalentBonus<Int>?
+        var nextDodgeStunAttackBonus: PreparedTalentBonus<Int>?
+        var nextDodgeFreezeAttackBonus: PreparedTalentBonus<Int>?
+        var nextDodgeBleedAttackBonus: PreparedTalentBonus<Int>?
+        var nextPurgeHolyAttackBonus: PreparedTalentBonus<Int>?
+        var nextLeechCriticalPoisonAttackBonus: PreparedTalentBonus<Int>?
         var manaOverflowThorns = 0
         var manaOverflowBlock = 0
         var nextAttackCriticalBonus: PreparedTalentBonus<Double>?

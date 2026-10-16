@@ -122,7 +122,7 @@ frost_whelp_mana_t3_2	Spell Channeling	sf:wand.and.stars	Mana empowerment costs 
 frost_whelp_dodge_t1_1	High Altitude	sf:cloud.fill	Above half Health, gain +15% Dodge chance		dodgeChanceAboveHalfHealthBonus:0.15
 frost_whelp_dodge_t1_2	Tailwind	sf:wind	Your first Dodge each combat draws a card for your ally		firstDodgeDrawForAlly:true
 frost_whelp_dodge_t2_1	Flyby Strike	sf:bird.fill	Dodging makes your next attack Critically Hit		onDodgeNextAttackGuaranteedCritical:true
-frost_whelp_dodge_t2_2	Wing Buffet	sf:bird.fill	Deal 2 Freeze damage when you Dodge		dodgeDealFreezeFlat:2
+frost_whelp_dodge_t2_2	Wing Buffet	sf:bird.fill	Dodging adds 2 damage to your next Freeze attack		dodgeNextFreezeAttackBonus:2
 frost_whelp_dodge_t3_1	Aerial Cover	sf:shield.lefthalf.filled	Dodging an attack grants the Hero 3 Block		onDodgeGrantHeroBlock:3
 frost_whelp_dodge_t3_2	Tempest Wing	sf:wind	Dodging makes your next Mana empowerment free		dodgeNextManaEmpowerFree:true
 lizard_scout_poison_t1_1	Cold Blood	sf:thermometer.snowflake	Deal 2 Poison damage when you Dodge		dodgeApplyPoison:2
@@ -156,7 +156,7 @@ panther_leech_t2_2	Sanguine Resistance	sf:leaf.fill	Enemies cannot Leech from yo
 panther_leech_t3_1	Frenzied Feeding	sf:eyedropper	Leech restores 20% more Health against Bleeding enemies		leechHealingVsBleedingMultiplier:1.2
 panther_leech_t3_2	Pack Bloodlust	sf:pawprint.fill	Your ally's attacks have a 10% chance to Leech		allyAttackLeechChancePercent:0.10
 panther_dodge_t1_1	Surprise Strike	sf:burst.fill	Your first Dodge each combat doubles your next attack		firstDodgeDoubleNextAttack:true
-panther_dodge_t1_2	Counter Pounce	sf:pawprint.fill	Deal 2 Bleed damage when you Dodge		dodgeDealBleedFlat:2
+panther_dodge_t1_2	Counter Pounce	sf:pawprint.fill	Dodging adds 2 damage to your next Bleed attack		dodgeNextBleedAttackBonus:2
 panther_dodge_t2_1	Survival Instinct	sf:wind	Below half Health, gain +20% Dodge chance		dodgeChanceBelowHealthPercentThreshold:0.5|dodgeChanceBelowHealthPercentBonus:0.20
 panther_dodge_t2_2	Stalker’s Precision	sf:scope	Dodging makes your next attack ignore enemy Block		dodgeNextAttackIgnoreBlock:true
 panther_dodge_t3_1	Regroup	sf:eye.slash.fill	Dodging has a 10% chance to draw a card		dodgeDrawChancePercent:0.10
@@ -240,7 +240,7 @@ risen_skeleton_physical_t2_2	Dense Bones	sf:shield.fill	Block absorbs twice as m
 risen_skeleton_physical_t3_1	Cleaving Bones	sf:burst.fill	Physical Critical Hits deal 3 Bleed damage		physicalCriticalBleedDamage:3
 risen_skeleton_physical_t3_2	Bone Armor	sf:shield.fill	While you have Block, take 2 less Physical damage		physicalMitigationWhileBlockedFlat:2
 risen_skeleton_leech_t1_1	Weaken Soul	sf:heart.slash.fill	Leeching causes the enemy's next hit to deal 25% less damage		leechEnemyNextAttackDamageMultiplier:0.75
-risen_skeleton_leech_t1_2	Toxic Touch	sf:hand.raised.fill	Leech Critical Hits deal 3 Poison damage		leechCriticalPoisonDamage:3
+risen_skeleton_leech_t1_2	Toxic Touch	sf:hand.raised.fill	Leech Critical Hits add 3 damage to your next Poison attack		leechCriticalNextPoisonAttackBonus:3
 risen_skeleton_leech_t2_1	Grave Harvest	sf:eyedropper	Leech restores 25% more Health against enemies below half Health		leechHealingVsLowEnemyHealthMultiplier:1.25
 risen_skeleton_leech_t2_2	Soul Sharing	sf:heart.fill	Your first Leech restoration each turn also heals your ally equally		firstLeechRestorationShareAlly:true
 risen_skeleton_leech_t3_1	Affliction Siphon	sf:eyedropper	Leech restores 25% more Health from Poisoned enemies		leechHealingVsPoisonedMultiplier:1.25

@@ -6038,6 +6038,132 @@
         }
       }
     },
+    "summary.prepared_freeze_attack_damage": {
+      "comment": "Prepared damage from Dodge or Purge. This bonus applies once to a later attack of this type; quantities are flat damage.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein nächster Frostangriff verursacht %1$lld zusätzlichen Schaden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your next Freeze attack deals %1$lld additional damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre prochaine attaque de Gel inflige %1$lld dégâts supplémentaires"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次の凍結攻撃のダメージが%1$lld増加する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다음 빙결 공격의 피해가 %1$lld 증가합니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的下一次冰凍攻擊額外造成%1$lld點傷害"
+          }
+        }
+      }
+    },
+    "summary.prepared_holy_attack_damage": {
+      "comment": "Prepared damage from Dodge or Purge. This bonus applies once to a later attack of this type; quantities are flat damage.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein nächster heiliger Angriff verursacht %1$lld zusätzlichen Schaden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your next Holy attack deals %1$lld additional damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre prochaine attaque sacrée inflige %1$lld dégâts supplémentaires"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次の聖攻撃のダメージが%1$lld増加する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다음 신성 공격의 피해가 %1$lld 증가합니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的下一次神聖攻擊額外造成%1$lld點傷害"
+          }
+        }
+      }
+    },
+    "summary.prepared_stun_attack_damage": {
+      "comment": "Prepared damage from Dodge or Purge. This bonus applies once to a later attack of this type; quantities are flat damage.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein nächster Betäubungsangriff verursacht %1$lld zusätzlichen Schaden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your next Stun attack deals %1$lld additional damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre prochaine attaque d’Étourdissement inflige %1$lld dégâts supplémentaires"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次のスタン攻撃のダメージが%1$lld増加する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다음 기절 공격의 피해가 %1$lld 증가합니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的下一次暈眩攻擊額外造成%1$lld點傷害"
+          }
+        }
+      }
+    },
     "summary.timeddebuffhandlers.09c8078d2b51": {
       "comment": "Packages/BattleEngine/Sources/BattleEngine/EffectHandlers/TimedDebuffHandlers.swift: active effect presentation. Typed quantities retain their combat meaning; nested resources are names or duration clauses.",
       "extractionState": "manual",

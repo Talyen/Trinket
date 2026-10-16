@@ -41,6 +41,7 @@ public struct CleanseTriggers: Equatable, Hashable, Sendable {
     public var onPurgeDealHolyDamage: Int = 0
     public var purgeDrawBelowHalf: Bool = false
     public var cleanseHolyDamage: Int = 0
+    public var purgeNextHolyAttackBonus: Int = 0
 
     public init(_ configure: (inout Self) -> Void = { _ in }) {
         configure(&self)

@@ -261,9 +261,7 @@ enum EffectRemovalOperation {
                     ),
                 )
             }
-            if triggers.onPurgeDealHolyDamage > 0, context.roster.enemy.isAlive {
-                _ = await context.dealReactionDamage(triggers.onPurgeDealHolyDamage, to: target, keyword: .holy, sourceActorID: source.id)
-            }
+            context.prepareAttackBonus(triggers.purgeNextHolyAttackBonus, \.nextPurgeHolyAttackBonus, for: source)
         }
         return Outcome(removed: removed, application: EffectApplyOutcome(didApply: true))
     }

@@ -248,8 +248,10 @@ private extension CombatantTalentState.Pending {
         let nextBurnAttackPercent = nextBurnAttackPercent?.value ?? 0
         let nextBurnDamageBonus = nextBurnDamageBonus?.value ?? 0
         let nextPoisonDamageBonus = SaturatedArithmetic.saturatingAdd(
-            nextPoisonDamageBonus?.value ?? 0, nextToxicRemedyDamageBonus?.value ?? 0,
+            SaturatedArithmetic.saturatingAdd(nextPoisonDamageBonus?.value ?? 0, nextToxicRemedyDamageBonus?.value ?? 0),
+            nextLeechCriticalPoisonAttackBonus?.value ?? 0,
         )
+        let nextBleedDamageBonus = SaturatedArithmetic.saturatingAdd(nextBleedDamageBonus, nextDodgeBleedAttackBonus?.value ?? 0)
         let criticalBonus = (nextAttackCriticalBonus?.value ?? 0) + (nextCleanseCriticalBonus?.value ?? 0)
         summaries.append(
             .burn,
@@ -302,6 +304,18 @@ private extension CombatantTalentState.Pending {
 
     private func additionalPreparationSummaries() -> [EffectSummary] {
         var summaries: [EffectSummary] = []
+        summaries.append(
+            .stun, when: nextDodgeStunAttackBonus != nil,
+            resource: L10n.summary_prepared_stun_attack_damage(nextDodgeStunAttackBonus?.value ?? 0),
+        )
+        summaries.append(
+            .freeze, when: nextDodgeFreezeAttackBonus != nil,
+            resource: L10n.summary_prepared_freeze_attack_damage(nextDodgeFreezeAttackBonus?.value ?? 0),
+        )
+        summaries.append(
+            .holy, when: nextPurgeHolyAttackBonus != nil,
+            resource: L10n.summary_prepared_holy_attack_damage(nextPurgeHolyAttackBonus?.value ?? 0),
+        )
         summaries.append(.bleed, when: doubleNextBleedAttack != nil, resource: L10n.summary_battlestate_effectsummaries_7340deb2cd68)
         summaries.append(.stun, when: nextStunAttackDouble != nil, resource: L10n.summary_battlestate_effectsummaries_d5bc64bc9bf9)
         summaries.append(

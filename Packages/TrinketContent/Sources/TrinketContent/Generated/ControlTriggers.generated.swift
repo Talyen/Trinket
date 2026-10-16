@@ -56,6 +56,8 @@ public struct ControlTriggers: Equatable, Hashable, Sendable {
     public var onStunNextAttackGuaranteedCritical: Bool = false
     public var stunBuildupMultiplier: Double = 1
     public var holyCriticalPreventsBlock: Bool = false
+    public var dodgeNextStunAttackBonus: Int = 0
+    public var dodgeNextFreezeAttackBonus: Int = 0
 
     public init(_ configure: (inout Self) -> Void = { _ in }) {
         configure(&self)

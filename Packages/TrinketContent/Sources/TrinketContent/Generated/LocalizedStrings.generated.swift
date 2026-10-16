@@ -671,11 +671,11 @@ enum L10n {
     }
 
     static func affixes_denouncing_astral_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.denouncing.astral_description", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"holy\">Holy</keyword> damage when you <keyword id=\"purge\">Purge</keyword> an enemy", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("affixes.denouncing.astral_description", defaultValue: "Purging an enemy adds <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"holy\">Holy</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func affixes_denouncing_basic_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.denouncing.basic_description", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"holy\">Holy</keyword> damage when you <keyword id=\"purge\">Purge</keyword> an enemy", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("affixes.denouncing.basic_description", defaultValue: "Purging an enemy adds <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"holy\">Holy</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var affixes_denouncing_title: LocalizedStringResource {
@@ -1643,11 +1643,11 @@ enum L10n {
     }
 
     static func affixes_whiplash_astral_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.whiplash.astral_description", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"stun\">Stun</keyword> damage when you <keyword id=\"dodge\">Dodge</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("affixes.whiplash.astral_description", defaultValue: "Dodging adds <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"stun\">Stun</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func affixes_whiplash_basic_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.whiplash.basic_description", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"stun\">Stun</keyword> damage when you <keyword id=\"dodge\">Dodge</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("affixes.whiplash.basic_description", defaultValue: "Dodging adds <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"stun\">Stun</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var affixes_whiplash_title: LocalizedStringResource {
@@ -1980,6 +1980,10 @@ enum L10n {
 
     static var authored_2147cedab7fd29db: LocalizedStringResource {
         LocalizedStringResource("authored.2147cedab7fd29db", defaultValue: "Drops <keyword id=\"health\">Health</keyword> items", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func authored_21496dd3271e6194(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("authored.21496dd3271e6194", defaultValue: "Dodging adds <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"stun\">Stun</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_21a45059dfe26e13: LocalizedStringResource {
@@ -3104,6 +3108,10 @@ enum L10n {
 
     static var authored_abe3a4ef5d8edb20: LocalizedStringResource {
         LocalizedStringResource("authored.abe3a4ef5d8edb20", defaultValue: "Hemorrhage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func authored_ac407f97f61aff74(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("authored.ac407f97f61aff74", defaultValue: "Purging an enemy adds <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"holy\">Holy</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_ac6e0bc76ccbb455: LocalizedStringResource {
@@ -6575,7 +6583,7 @@ enum L10n {
     }
 
     static func talents_frost_whelp_dodge_t2_2_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("talents.frost_whelp_dodge_t2_2.description", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"freeze\">Freeze</keyword> damage when you <keyword id=\"dodge\">Dodge</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("talents.frost_whelp_dodge_t2_2.description", defaultValue: "Dodging adds <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"freeze\">Freeze</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_frost_whelp_dodge_t2_2_name: LocalizedStringResource {
@@ -7647,7 +7655,7 @@ enum L10n {
     }
 
     static func talents_panther_dodge_t1_2_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("talents.panther_dodge_t1_2.description", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"bleed\">Bleed</keyword> damage when you <keyword id=\"dodge\">Dodge</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("talents.panther_dodge_t1_2.description", defaultValue: "Dodging adds <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"bleed\">Bleed</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_panther_dodge_t1_2_name: LocalizedStringResource {
@@ -8319,7 +8327,7 @@ enum L10n {
     }
 
     static func talents_risen_skeleton_leech_t1_2_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("talents.risen_skeleton_leech_t1_2.description", defaultValue: "<keyword id=\"leech\">Leech</keyword> Critical Hits deal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"poison\">Poison</keyword> damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("talents.risen_skeleton_leech_t1_2.description", defaultValue: "<keyword id=\"leech\">Leech</keyword> Critical Hits add <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"poison\">Poison</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_risen_skeleton_leech_t1_2_name: LocalizedStringResource {

@@ -266,6 +266,18 @@
     {
       "name": "holyCriticalPreventsBlock",
       "type": "Bool"
+    },
+    {
+      "name": "dodgeNextStunAttackBonus",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 89
+      }
+    },
+    {
+      "name": "dodgeNextFreezeAttackBonus",
+      "type": "Int"
     }
   ]
 }

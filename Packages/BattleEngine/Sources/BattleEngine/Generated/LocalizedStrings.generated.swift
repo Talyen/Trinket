@@ -574,6 +574,18 @@ enum L10n {
         LocalizedStringResource("summary.dothandlers.e5aeed49abb2", defaultValue: "\(value1) Burn\nDeals Burn damage and halves each turn", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static func summary_prepared_freeze_attack_damage(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("summary.prepared_freeze_attack_damage", defaultValue: "Your next Freeze attack deals \(value1) additional damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func summary_prepared_holy_attack_damage(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("summary.prepared_holy_attack_damage", defaultValue: "Your next Holy attack deals \(value1) additional damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func summary_prepared_stun_attack_damage(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("summary.prepared_stun_attack_damage", defaultValue: "Your next Stun attack deals \(value1) additional damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static func summary_timeddebuffhandlers_09c8078d2b51(_ value1: Int, _ value2: LocalizedStringResource) -> LocalizedStringResource {
         LocalizedStringResource("summary.timeddebuffhandlers.09c8078d2b51", defaultValue: "Sapped: Health restoration reduced by \(value1)%\(value2)", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
