@@ -98,6 +98,8 @@ Defeat and reward journeys scroll to their real actions before auditing and rest
 their reachability afterward, since native text-size audits can move the viewport.
 Each settings profile publishes its log and status before the next profile starts,
 so a failed profile remains visible while independent checks continue.
+Hosted device profiles also prepare their runtimes independently: an unavailable
+runtime fails the requested portfolio without preventing other devices from running.
 
 Settings-profile Homestead checks audit and exercise the upgrade controls through the
 visible tier change. Detailed resource debits and reload persistence remain owned by
