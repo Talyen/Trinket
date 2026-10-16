@@ -239,22 +239,26 @@ package extension CombatTriggerEngine {
     ) async {
         let profile = context.modifiers(for: member.id)
         let triggers = profile.triggers
-        let shouldReact = triggers.stunDealPhysicalFlat > 0
-            || triggers.enemyStunnedApplyMarked
-            || triggers.enemyStunnedPurgeCount > 0
-            || triggers.enemyStunnedPurgeAll
-            || triggers.stunPurgeDealHolyPerEffect > 0
+        let causedStun = member.id == sourceActorID
+        let shouldReact = triggers.enemyStunnedApplyMarked
+            || (causedStun && (triggers.stunDealPhysicalFlat > 0
+                    || triggers.enemyStunnedPurgeCount > 0
+                    || triggers.enemyStunnedPurgeAll
+                    || triggers.stunPurgeDealHolyPerEffect > 0))
         guard shouldReact else { return }
 
         let actor = member.combatant
         let enemy = context.roster.enemy.combatant
-        guard context.roster.health(for: enemy) > 0 else { return }
+        guard context.roster.health(for: actor) > 0,
+              context.roster.health(for: enemy) > 0 else { return }
 
-        if triggers.stunDealPhysicalFlat > 0 {
+        if causedStun, triggers.stunDealPhysicalFlat > 0 {
             _ = await context.dealReactionDamage(triggers.stunDealPhysicalFlat, to: enemy, keyword: .physical, sourceActorID: actor.id)
         }
 
-        if triggers.enemyStunnedApplyMarked, context.roster.health(for: enemy) > 0 {
+        guard context.roster.health(for: actor) > 0,
+              context.roster.health(for: enemy) > 0 else { return }
+        if triggers.enemyStunnedApplyMarked {
             applyMarked(
                 to: enemy,
                 source: actor,
@@ -263,8 +267,8 @@ package extension CombatTriggerEngine {
             )
         }
 
-        if context.roster.health(for: enemy) > 0 {
-            if triggers.stunPurgeDealHolyPerEffect > 0, actor.id == sourceActorID {
+        if causedStun, context.roster.health(for: enemy) > 0 {
+            if triggers.stunPurgeDealHolyPerEffect > 0 {
                 await wardbreakerStunPurge(
                     perEffectHolyDamage: triggers.stunPurgeDealHolyPerEffect,
                     actor: actor,
@@ -303,7 +307,9 @@ package extension CombatTriggerEngine {
             in: &context,
         )
 
-        if !purge.removed.isEmpty, context.roster.health(for: enemy) > 0 {
+        if !purge.removed.isEmpty,
+           context.roster.health(for: actor) > 0,
+           context.roster.health(for: enemy) > 0 {
             _ = await context.dealReactionDamage(
                 SaturatedArithmetic.saturatingMul(perEffectHolyDamage, purge.removed.count), to: enemy, keyword: .holy,
                 sourceActorID: actor.id,

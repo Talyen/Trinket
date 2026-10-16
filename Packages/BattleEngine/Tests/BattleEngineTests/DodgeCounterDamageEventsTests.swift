@@ -53,17 +53,19 @@ struct DodgeCounterDamageEventsTests {
         #expect(events.filter { $0.kind == .abilityDamage }.map(\.amount) == [1 + bonus, 1])
     }
 
-    @Test func `Whiplash arms after the Dodge counterattack completes`() {
+    @Test(arguments: [Keyword.stun, .freeze, .bleed], [false, true])
+    func `Dodge counterattacks preserve fresh typed preparations while consuming older readiness`(
+        keyword: Keyword,
+        alreadyPrepared: Bool,
+    ) {
         let basic = Ability(
-            id: "stun-counter",
-            name: "Stun Counter",
-            tier: .basic,
-            directDamage: 1,
-            damageKeyword: .stun,
-            criticalChanceBonus: -1,
+            id: "typed-counter", name: "Typed Counter", tier: .basic,
+            directDamage: 1, damageKeyword: keyword, criticalChanceBonus: -1,
         )
         let profile = CombatModifierProfile.withTriggers {
-            $0.dodgeNextStunAttackBonus = 3
+            $0.dodgeNextStunAttackBonus = keyword == .stun ? 3 : 0
+            $0.dodgeNextFreezeAttackBonus = keyword == .freeze ? 3 : 0
+            $0.dodgeNextBleedAttackBonus = keyword == .bleed ? 3 : 0
             $0.onDodgeCounterBasicAttack = true
             $0.criticalChanceBonus = -1
         }
@@ -71,10 +73,25 @@ struct DodgeCounterDamageEventsTests {
             hero: CombatantFixtures.passiveHero(abilities: [basic]),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100), heroModifiers: profile, appliesFightPacing: false,
         )
-        CombatExecutor.run { await CombatTriggerEngine.afterDodge(by: battle.hero, attackerID: battle.enemy.id, in: &battle) }
-        #expect(battle.health(of: battle.enemy) == 99)
-        #expect(battle.roster.hero.talents.pending.nextDodgeStunAttackBonus?.value == 3)
+        if alreadyPrepared {
+            CombatExecutor.run { await CombatTriggerEngine.afterDodge(
+                by: battle.hero, attackerID: battle.enemy.id, allowsCounterattacks: false, in: &battle,
+            ) }
+        }
+        battle.insertEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        let enemyAttack = Ability(
+            id: "incoming-attack", name: "Incoming Attack", tier: .basic,
+            directDamage: 1, damageKeyword: .physical, criticalChanceBonus: -1,
+        )
+        let counterEvents = battle.performTestAction(enemyAttack, from: .enemy, to: .hero)
+        #expect(counterEvents.contains { $0.effectKind == .dodgeApplied })
+        #expect(counterEvents.filter { $0.kind == .abilityDamage && $0.actorID == battle.hero.id }.map(\.amount)
+            == [alreadyPrepared ? 4 : 1])
+        #expect(battle.uniques.pendingCounterAttacks.isEmpty)
+
         let events = battle.performTestAction(basic)
         #expect(events.filter { $0.kind == .abilityDamage }.map(\.amount) == [4])
+        let laterEvents = battle.performTestAction(basic)
+        #expect(laterEvents.filter { $0.kind == .abilityDamage }.map(\.amount) == [1])
     }
 }

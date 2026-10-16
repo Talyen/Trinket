@@ -96,7 +96,7 @@ package enum UniqueCombatEngine {
             context.roster[owner].uniques.resetTurn()
         }
         context.uniques.pendingBlockAnswerOwners = []
-        context.uniques.pendingCounterAttackActorIDs = []
+        context.uniques.pendingCounterAttacks = []
         context.uniques.isDrainingOutOfTurnAttacks = false
     }
 

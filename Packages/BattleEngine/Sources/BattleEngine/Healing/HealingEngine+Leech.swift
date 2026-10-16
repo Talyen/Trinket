@@ -170,8 +170,9 @@ package extension HealingEngine {
             }
             guard healing.didLeech else { return healing.combatOutcome }
             let actualRestored = healing.directRestoration
+            let survivedRestoration = context.roster.health(for: actorCombatant) > 0
 
-            if actualRestored > 0, profile.triggers.leechBlockChancePercent > 0,
+            if survivedRestoration, actualRestored > 0, profile.triggers.leechBlockChancePercent > 0,
                BattleChance.succeeds(probability: profile.triggers.leechBlockChancePercent, using: &context.rng) {
                 context.applyBlockGain(
                     actualRestored,
@@ -183,7 +184,7 @@ package extension HealingEngine {
                     amountBasis: .resolved,
                 )
             }
-            if actualRestored > 0, profile.triggers.leechThornsWithoutThorns > 0,
+            if survivedRestoration, actualRestored > 0, profile.triggers.leechThornsWithoutThorns > 0,
                !context.roster.activeEffects(for: actorCombatant).contains(where: {
                    if case let .thorns(stacks) = $0.effect {
                        return stacks > 0
@@ -204,7 +205,7 @@ package extension HealingEngine {
                     target: actorCombatant, amount: profile.triggers.leechThornsWithoutThorns, keyword: .thorns,
                 )
             }
-            if actualRestored > 0, preHealth < maxHealth,
+            if survivedRestoration, actualRestored > 0, preHealth < maxHealth,
                context.roster.health(for: actorCombatant) >= maxHealth,
                profile.triggers.leechToFullNextAttackBonus > 0 {
                 context.roster.mutateRuntime(for: actorCombatant) {
@@ -214,7 +215,7 @@ package extension HealingEngine {
                     )
                 }
             }
-            if actualRestored > 0, HealthThreshold.isBelowHalf(preHealth, maximum: maxHealth),
+            if survivedRestoration, actualRestored > 0, HealthThreshold.isBelowHalf(preHealth, maximum: maxHealth),
                profile.triggers.leechBlockBelowHalf {
                 context.applyBlockGain(
                     actualRestored,
@@ -239,7 +240,7 @@ package extension HealingEngine {
             if actorCombatant.role != .enemy {
                 await Self.shareLeechWithAlly(restored: actualRestored, source: actorCombatant, in: &context)
             }
-            if actorCombatant.role == .companion, context.roster.hero.isAlive,
+            if actorCombatant.role == .companion, context.roster.health(for: actorCombatant) > 0, context.roster.hero.isAlive,
                profile.triggers.leechSharesToHeroPercent > 0 {
                 let share = CombatRounding.scaled(
                     actualRestored,
@@ -251,7 +252,7 @@ package extension HealingEngine {
                     _ = await Self.resolveHeal(request, in: &context)
                 }
             }
-            if actorCombatant.role == .companion, context.roster.hero.isAlive,
+            if actorCombatant.role == .companion, context.roster.health(for: actorCombatant) > 0, context.roster.hero.isAlive,
                actualRestored > 0, profile.triggers.firstLeechRestorationShareAlly,
                context.claimHeroTalent(.soulSharing, actorID: actorCombatant.id) {
                 var request = HealRequest(
@@ -262,7 +263,7 @@ package extension HealingEngine {
                 request.amountBasis = .resolved
                 _ = await Self.resolveHeal(request, in: &context)
             }
-            if actorCombatant.role == .companion, context.roster.hero.isAlive,
+            if actorCombatant.role == .companion, context.roster.health(for: actorCombatant) > 0, context.roster.hero.isAlive,
                profile.triggers.onCompanionLeechRestoreHeroMana > 0 {
                 await context.restoreManaEmitting(
                     profile.triggers.onCompanionLeechRestoreHeroMana,
@@ -287,7 +288,7 @@ package extension HealingEngine {
         // separate rules above. Resolved shares never fund another Leech share.
         let ally = source.role == .hero ? context.roster.companion : context.roster.hero
         let percent = min(max(context.modifiers(for: source.id).triggers.companionLeechSharePercent, 0), 1)
-        guard restored > 0,
+        guard context.roster.health(for: source) > 0, restored > 0,
               percent > 0,
               ally.isAlive
         else { return }

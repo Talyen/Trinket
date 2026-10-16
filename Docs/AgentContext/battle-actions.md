@@ -24,6 +24,8 @@ Playful Energy counts both partners' cards and heals once when the party reaches
 its threshold. Shared next-card Dodge bonuses refresh rather than stack; card preparation
 reserves it, and only that card's first damaging hit can spend it. A support card
 uses the preparation without carrying it forward to another card.
+Whiplash, Wing Buffet, and Counter Pounce arm after the Dodge's Basic counterattack
+finishes, including deferred counterattacks; older preparations remain eligible for that counterattack.
 `CombatResolution` owns party preparations and their per-card reservations.
 Immediate card damage carries action/card provenance independently of damage
 mechanics, including the first pulse of a recurring effect. Later ticks and

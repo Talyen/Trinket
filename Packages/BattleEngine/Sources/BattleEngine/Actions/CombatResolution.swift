@@ -411,7 +411,7 @@ enum CombatResolver {
         // both queues again. No-op attacks are removed too, so none strand.
         if context.resolution.depth(.damage) == 0, !context.uniques.isDrainingOutOfTurnAttacks {
             context.uniques.isDrainingOutOfTurnAttacks = true
-            while !context.uniques.pendingCounterAttackActorIDs.isEmpty
+            while !context.uniques.pendingCounterAttacks.isEmpty
                 || !context.uniques.pendingBlockAnswerOwners.isEmpty {
                 await CombatTriggerEngine.drainPendingCounterAttacks(in: &context)
                 await UniqueCombatEngine.drainPendingBlockAnswers(in: &context)

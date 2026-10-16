@@ -160,6 +160,10 @@ all cleanse consequences together. Its purge path likewise commits removals
 before protection and rewards; dependent damage reads its actual removed effects.
 Affix rewards for Purge require at least one buff removed from an enemy; an empty
 Purge never grants Block or deals Holy damage.
+Knockout and Disrupting require their wearer to cause the Stun; Branding observes
+Stun from any source. Recheck the wearer between Stun reactions and after Purge
+before Wardbreaker's follow-up damage. Companion attack rewards likewise stop
+after theft, healing, or Purge reactions defeat their owner.
 Removal events report what was actually removed: one event per removed buff for
 purge, one per distinct keyword for cleanse. Empty purge reports `didApply:false`;
 empty cleanse still reports any heal and side-effect events as applied

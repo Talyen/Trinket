@@ -57,7 +57,9 @@ powers retain their strength and describe that same additional fraction.
 Symbiosis shares its wearer's actual Leech restoration with the living partner,
 whether equipped by a Hero or Companion. Its saved `companionLeechSharePercent`
 field remains unchanged. Shares apply recipient healing reduction without
-repeating healer bonuses, and cannot trigger another Leech share.
+repeating healer bonuses, and cannot trigger another Leech share. Recheck the source's
+survival after restoration and each share: lethal healing reactions preserve the
+committed Leech feedback but stop later personal rewards, shares, and ally Mana.
 Toxic Remedy replaces its recipient's prepared Poison attack damage with half
 the latest actual Health restoration, excluding overflow. It creates no immediate
 damage or Poison. The creating action/card and ongoing damage cannot consume it;

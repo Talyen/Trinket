@@ -85,10 +85,10 @@ struct CombatModifierIntegrationTests {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 200), appliesFightPacing: false,
         )
-        battle.uniques.pendingCounterAttackActorIDs = [battle.hero.id]
+        battle.uniques.pendingCounterAttacks = [.init(actorID: battle.hero.id)]
         battle.uniques.pendingBlockAnswerOwners = [.hero]
         _ = battle.resolveTestDamage(10, options: .reaction())
-        #expect(battle.uniques.pendingCounterAttackActorIDs.isEmpty)
+        #expect(battle.uniques.pendingCounterAttacks.isEmpty)
         #expect(battle.uniques.pendingBlockAnswerOwners.isEmpty)
         #expect(battle.uniques.isDrainingOutOfTurnAttacks == false)
     }

@@ -21,6 +21,7 @@ package extension CombatTriggerEngine {
                 abilityName: "Pickpocket", isTheft: true,
             )
         }
+        guard context.roster.health(for: actor) > 0 else { return }
         if keyword == .poison,
            triggers.poisonAttackStunChancePercent > 0,
            context.claimTalentAbility(.paralysis, actorID: actor.id),
@@ -42,6 +43,7 @@ package extension CombatTriggerEngine {
         if keyword == .bleed, critical {
             await afterCompanionBleedCritical(actor: actor, triggers: triggers, in: &context)
         }
+        guard context.roster.health(for: actor) > 0 else { return }
         await afterFinalCompanionCardHit(keyword: keyword, actor: actor, critical: critical, triggers: triggers, in: &context)
     }
 
@@ -64,6 +66,7 @@ package extension CombatTriggerEngine {
                 purgeAll: false, in: &context,
             )
         }
+        guard context.roster.health(for: actor) > 0 else { return }
         if triggers.holyAttackEnemyMissChance > 0, context.roster.enemy.isAlive {
             prepareEnemyNextAttackMiss(
                 triggers.holyAttackEnemyMissChance, abilityName: "Blinding Light", in: &context,
@@ -134,6 +137,7 @@ package extension CombatTriggerEngine {
                 source: actor, name: "Cross-Contamination", in: &context,
             )
         }
+        guard context.roster.health(for: actor) > 0 else { return }
         if triggers.bleedCriticalThorns > 0 {
             await heroTalentThorns(to: actor, source: actor, amount: triggers.bleedCriticalThorns, name: "Spiny Carapace", in: &context)
         }
@@ -157,7 +161,9 @@ package extension CombatTriggerEngine {
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
     ) async {
+        guard context.roster.health(for: actor) > 0 else { return }
         await finalCompanionGoldFromAttack(actor: actor, critical: critical, triggers: triggers, in: &context)
+        guard context.roster.health(for: actor) > 0 else { return }
         if keyword == .physical {
             if triggers.firstPhysicalAttackBlockPerTurn > 0,
                context.claimHeroTalent(.boneShield, actorID: actor.id) {
@@ -178,6 +184,7 @@ package extension CombatTriggerEngine {
             if critical, triggers.holyCriticalStunDamage > 0, context.roster.enemy.isAlive {
                 await heroTalentDamage(.stun, amount: triggers.holyCriticalStunDamage, source: actor, name: "Stun Flare", in: &context)
             }
+            guard context.roster.health(for: actor) > 0 else { return }
             if critical, triggers.holyCritEnemyNextAttackMissChance > 0, context.roster.enemy.isAlive {
                 prepareEnemyNextAttackMiss(
                     triggers.holyCritEnemyNextAttackMissChance, abilityName: "Dazzling Guard", in: &context,
@@ -205,6 +212,7 @@ package extension CombatTriggerEngine {
                 triggers.attackGoldStealAmount, to: actor, abilityName: "Snatch", isTheft: true,
             )
         }
+        guard context.roster.health(for: actor) > 0 else { return }
         if critical, triggers.criticalGoldStealAmount > 0,
            context.claimTalentAbility(.luckyStrike, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.criticalGoldStealChancePercent, using: &context.rng) {

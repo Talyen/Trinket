@@ -18,6 +18,11 @@ package struct UniqueBattleState {
         let stackPotency: Int
     }
 
+    struct PendingCounterAttack {
+        let actorID: String
+        var preparesDodgeAttackBonuses = false
+    }
+
     var card: CardPlay?
     var retainedStunByEffectID: [Int: Int] = [:]
     // Out-of-turn attacks owed by Knight's Answer defenses and Dodge counters. Recorded during
@@ -25,7 +30,7 @@ package struct UniqueBattleState {
     // full Basic never nests inside the damage pipeline on small
     // worker-thread stacks.
     var pendingBlockAnswerOwners: [BattleParticipant] = []
-    var pendingCounterAttackActorIDs: [String] = []
+    var pendingCounterAttacks: [PendingCounterAttack] = []
     // Reentrancy guard for the outermost-damage drain below. Nested damage
     // during a drain only enqueues; the outer loop picks it up iteratively
     // instead of recursing drain -> Basic -> damage -> drain.

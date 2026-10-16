@@ -134,6 +134,7 @@ package extension CombatTriggerEngine {
             context.additionalControlSkipsByCombatantID[attackerID, default: 0] += 1
         }
 
+        var pendingCounterIndex: Int?
         if let attackerID, let attackerRuntime = context.roster.combatant(for: attackerID), attackerRuntime.isAlive {
             let target = attackerRuntime.combatant
 
@@ -144,7 +145,7 @@ package extension CombatTriggerEngine {
             }
             guard context.health(of: combatant) > 0 else { return }
             if allowsCounterattacks, triggers.onDodgeCounterBasicAttack {
-                await counterWithBasicAttack(by: combatant, in: &context)
+                pendingCounterIndex = await counterWithBasicAttack(by: combatant, in: &context)
             }
             guard context.health(of: combatant) > 0 else { return }
             if triggers.onDodgeApplyPoisonOrBleed > 0, context.health(of: target) > 0 {
@@ -197,7 +198,16 @@ package extension CombatTriggerEngine {
 
         guard context.health(of: combatant) > 0 else { return }
         await afterCompanionDodge(by: combatant, in: &context)
-        // Arm after this Dodge's counteractions; they cannot spend its fresh bonuses.
+        // Deferred Basics must finish before these preparations replace any older readiness.
+        if let pendingCounterIndex {
+            context.uniques.pendingCounterAttacks[pendingCounterIndex].preparesDodgeAttackBonuses = true
+        } else {
+            prepareDodgeAttackBonuses(for: combatant, in: &context)
+        }
+    }
+
+    private static func prepareDodgeAttackBonuses(for combatant: Combatant, in context: inout BattleState) {
+        let triggers = context.modifiers(for: combatant.id).triggers
         context.prepareAttackBonus(triggers.dodgeNextStunAttackBonus, \.nextDodgeStunAttackBonus, for: combatant)
         context.prepareAttackBonus(triggers.dodgeNextFreezeAttackBonus, \.nextDodgeFreezeAttackBonus, for: combatant)
         context.prepareAttackBonus(triggers.dodgeNextBleedAttackBonus, \.nextDodgeBleedAttackBonus, for: combatant)
@@ -206,20 +216,21 @@ package extension CombatTriggerEngine {
     private static func counterWithBasicAttack(
         by actor: Combatant,
         in context: inout BattleState,
-    ) async {
+    ) async -> Int? {
         guard !context.isBattleOver, context.roster.health(for: actor) > 0,
               let owner = context.roster.participant(for: actor),
               !context.ownersSkippingThisPlayerTurn.contains(owner),
               !context.roster.hasPendingActionSkip(for: actor),
               let ability = actor.abilityLoadout.basic,
               BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context)
-        else { return }
+        else { return nil }
         // Defer while inside damage resolution, like UniqueCombatEngine's
         // out-of-turn summons: a full Basic nested in the damage pipeline
         // overflows small worker-thread stacks.
         guard context.resolution.depth(.damage) == 0 else {
-            context.uniques.pendingCounterAttackActorIDs.append(actor.id)
-            return
+            let index = context.uniques.pendingCounterAttacks.count
+            context.uniques.pendingCounterAttacks.append(.init(actorID: actor.id))
+            return index
         }
         await BattleTurnEngine.performAction(
             ability: ability,
@@ -228,15 +239,19 @@ package extension CombatTriggerEngine {
             origin: .counterattack,
             context: &context,
         )
+        return nil
     }
 
     static func drainPendingCounterAttacks(in context: inout BattleState) async {
-        guard !context.uniques.pendingCounterAttackActorIDs.isEmpty else { return }
+        guard !context.uniques.pendingCounterAttacks.isEmpty else { return }
 
-        while !context.uniques.pendingCounterAttackActorIDs.isEmpty {
-            let actorID = context.uniques.pendingCounterAttackActorIDs.removeFirst()
-            guard let actor = context.roster.combatant(for: actorID)?.combatant else { continue }
-            await counterWithBasicAttack(by: actor, in: &context)
+        while !context.uniques.pendingCounterAttacks.isEmpty {
+            let counter = context.uniques.pendingCounterAttacks.removeFirst()
+            guard let actor = context.roster.combatant(for: counter.actorID)?.combatant else { continue }
+            _ = await counterWithBasicAttack(by: actor, in: &context)
+            if counter.preparesDodgeAttackBonuses {
+                prepareDodgeAttackBonuses(for: actor, in: &context)
+            }
         }
     }
 
