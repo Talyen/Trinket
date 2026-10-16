@@ -1,6 +1,6 @@
 import Testing
-import TrinketContent
 import TrinketCore
+@testable import TrinketContent
 
 struct BlacksmithForgePlanTests {
     private func fundedHomestead() -> PlayerHomesteadState {
