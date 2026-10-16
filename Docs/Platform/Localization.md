@@ -66,6 +66,9 @@ derived automatically. Spire positional titles/epithets and
 Contracts/Voyage difficulty cases and computed encounter action titles have strict extractors that reject unsupported
 source shapes. Generated `ContentCopy` keeps source identity separate
 from displayed language, including canonical numeric text retained in older saves.
+Its resource and description APIs share one match carrying the typed resource and
+ordered quantities; descriptions bind those quantities to semantic value spans in
+the rendering locale. Exact matches retain precedence over numeric templates.
 Item names resolve by base identity through `InventoryItem.localizedDisplayName(locale:)`;
 shared English words such as the weapon and attack “Maul” can require different translations.
 Pass the app rendering locale into StoreKit product styles so storefront locale does
