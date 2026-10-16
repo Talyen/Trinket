@@ -293,8 +293,8 @@ public enum ContentCopy {
             (L10n.affixes_bloodward_basic_description(10), [10])
         case "Bloodward":
             (L10n.affixes_bloodward_title, [])
-        case "Gain 30% Dodge chance while below 50% Health":
-            (L10n.affixes_blur_astral_description(30, 50), [30, 50])
+        case "Gain 25% Dodge chance while below 50% Health":
+            (L10n.affixes_blur_astral_description(25, 50), [25, 50])
         case "Gain 15% Dodge chance while below 50% Health":
             (L10n.affixes_blur_basic_description(15, 50), [15, 50])
         case "Blur":
@@ -317,8 +317,8 @@ public enum ContentCopy {
             (L10n.affixes_brass_censer_astral_description(1), [1])
         case "Toxic Incense":
             (L10n.affixes_brass_censer_title, [])
-        case "When your Block is broken, gain 4 Thorns":
-            (L10n.affixes_briarward_astral_description(4), [4])
+        case "When your Block is broken, gain 3 Thorns":
+            (L10n.affixes_briarward_astral_description(3), [3])
         case "When your Block is broken, gain 2 Thorns":
             (L10n.affixes_briarward_basic_description(2), [2])
         case "Briarward":
@@ -329,8 +329,8 @@ public enum ContentCopy {
             (L10n.affixes_bristling_basic_description(2), [2])
         case "Bristling":
             (L10n.affixes_bristling_title, [])
-        case "Gain 5 additional Block":
-            (L10n.affixes_bulwark_astral_description(5), [5])
+        case "Gain 4 additional Block":
+            (L10n.affixes_bulwark_astral_description(4), [4])
         case "Gain 2 additional Block":
             (L10n.affixes_bulwark_basic_description(2), [2])
         case "Bulwark":
@@ -397,8 +397,8 @@ public enum ContentCopy {
             (L10n.affixes_deathgrip_basic_description(8), [8])
         case "Deathgrip":
             (L10n.affixes_deathgrip_title, [])
-        case "Gain 4 additional Block":
-            (L10n.affixes_defenders_astral_description(4), [4])
+        case "Gain 3 additional Block":
+            (L10n.affixes_defenders_astral_description(3), [3])
         case "Defender's":
             (L10n.affixes_defenders_title, [])
         case "Purging an enemy adds 4 damage to your next Holy attack":
@@ -571,10 +571,10 @@ public enum ContentCopy {
             (L10n.affixes_lucky_clover_title, [])
         case "Manabound":
             (L10n.affixes_manabound_title, [])
-        case "Take 25% less Holy damage":
-            (L10n.affixes_martyrs_astral_description(25), [25])
-        case "Take 10% less Holy damage":
-            (L10n.affixes_martyrs_basic_description(10), [10])
+        case "Deal 2 bonus Holy damage\nTake 25% less Holy damage", "Deal 2 bonus Holy damage. Take 25% less Holy damage":
+            (L10n.affixes_martyrs_astral_description(2, 25), [2, 25])
+        case "Deal 1 bonus Holy damage\nTake 10% less Holy damage", "Deal 1 bonus Holy damage. Take 10% less Holy damage":
+            (L10n.affixes_martyrs_basic_description(1, 10), [1, 10])
         case "Martyr's":
             (L10n.affixes_martyrs_title, [])
         case "Gain 1 Gold each turn":
@@ -671,8 +671,6 @@ public enum ContentCopy {
             (L10n.affixes_second_wind_basic_description(8, 25), [8, 25])
         case "Second Wind":
             (L10n.affixes_second_wind_title, [])
-        case "Gain 3 additional Block":
-            (L10n.affixes_sentinel_astral_description(3), [3])
         case "Sentinel":
             (L10n.affixes_sentinel_title, [])
         case "Increase Bleed damage by 2":
@@ -749,8 +747,8 @@ public enum ContentCopy {
             (L10n.affixes_stunned_pocketwatch_title, [])
         case "Stunning":
             (L10n.affixes_stunning_title, [])
-        case "Physical and Stun damage remove twice as much Block":
-            (L10n.affixes_sundering_charm_astral_description, [])
+        case "Increase Physical damage by 1\nPhysical and Stun damage remove twice as much Block", "Increase Physical damage by 1. Physical and Stun damage remove twice as much Block":
+            (L10n.affixes_sundering_charm_astral_description(1), [1])
         case "Shatterguard":
             (L10n.affixes_sundering_charm_title, [])
         case "Your ally receives 100% of the Health you restore with Leech":
@@ -779,10 +777,10 @@ public enum ContentCopy {
             (L10n.affixes_thunderstone_astral_description, [])
         case "Stormbreak":
             (L10n.affixes_thunderstone_title, [])
-        case "Purge all buffs from the enemy when you Critically Hit":
-            (L10n.affixes_unmaking_astral_description, [])
-        case "Purge a buff from the enemy when you Critically Hit":
-            (L10n.affixes_unmaking_basic_description(1), [1])
+        case "Deal 2 bonus Physical damage\nPurge all buffs from the enemy when you Critically Hit", "Deal 2 bonus Physical damage. Purge all buffs from the enemy when you Critically Hit":
+            (L10n.affixes_unmaking_astral_description(2), [2])
+        case "Deal 1 bonus Physical damage\nPurge a buff from the enemy when you Critically Hit", "Deal 1 bonus Physical damage. Purge a buff from the enemy when you Critically Hit":
+            (L10n.affixes_unmaking_basic_description(1, 1), [1, 1])
         case "Unmaking":
             (L10n.affixes_unmaking_title, [])
         case "Gain 4 Block when you Purge an enemy":
@@ -2365,6 +2363,14 @@ public enum ContentCopy {
             (L10n.item_bases_wand_name, [])
         case "Wishing Well Coin":
             (L10n.item_bases_wishing_well_coin_name, [])
+        case "Take 10% less Holy damage":
+            (L10n.legacy_affixes_martyrs_description(10), [10])
+        case "Physical and Stun damage remove twice as much Block":
+            (L10n.legacy_affixes_sundering_charm_description, [])
+        case "Purge all buffs from the enemy when you Critically Hit":
+            (L10n.legacy_affixes_unmaking_astral_description, [])
+        case "Purge a buff from the enemy when you Critically Hit":
+            (L10n.legacy_affixes_unmaking_basic_description(1), [1])
         case "Light that judges":
             (L10n.spire_aureatechoir_epithet, [])
         case "Aureate Choir":
@@ -2433,8 +2439,8 @@ public enum ContentCopy {
             (L10n.talents_alchemist_health_t1_1_description(2), [2])
         case "Fortifying Tonic":
             (L10n.talents_alchemist_health_t1_1_name, [])
-        case "Restoring Health has a 10% chance to draw a card":
-            (L10n.talents_alchemist_health_t1_2_description(10), [10])
+        case "Restoring Health has a 20% chance to draw a card":
+            (L10n.talents_alchemist_health_t1_2_description(20), [20])
         case "Lifeline":
             (L10n.talents_alchemist_health_t1_2_name, [])
         case "Restoring Health also Cleanses Burn":
@@ -2485,8 +2491,8 @@ public enum ContentCopy {
             (L10n.talents_alchemist_poison_t4_1_description, [])
         case "Sealed Vial":
             (L10n.talents_alchemist_poison_t4_1_name, [])
-        case "While you have Block, take 2 less Physical damage":
-            (L10n.talents_bear_block_t1_1_description(2), [2])
+        case "While you have Block, take 3 less Physical damage":
+            (L10n.talents_bear_block_t1_1_description(3), [3])
         case "Thick Hide":
             (L10n.talents_bear_block_t1_1_name, [])
         case "End your turn with Block to restore 2 Health":
@@ -2593,8 +2599,8 @@ public enum ContentCopy {
             (L10n.talents_druid_health_t3_2_description, [])
         case "Shared Roots":
             (L10n.talents_druid_health_t3_2_name, [])
-        case "Allies with Thorns take 25% less damage above half Health":
-            (L10n.talents_druid_health_t4_1_description(25), [25])
+        case "Allies with Thorns take 20% less damage above half Health":
+            (L10n.talents_druid_health_t4_1_description(20), [20])
         case "Verdant Shelter":
             (L10n.talents_druid_health_t4_1_name, [])
         case "Restoring Mana grants 2 Thorns":
@@ -2649,8 +2655,8 @@ public enum ContentCopy {
             (L10n.talents_druid_poison_t3_2_description(25), [25])
         case "Entangling Growth":
             (L10n.talents_druid_poison_t3_2_name, [])
-        case "Thorns deal 2 bonus Poison damage once per turn":
-            (L10n.talents_druid_poison_t4_1_description(2), [2])
+        case "Thorns deal 1 bonus Poison damage once per turn":
+            (L10n.talents_druid_poison_t4_1_description(1), [1])
         case "Thorn Shedding":
             (L10n.talents_druid_poison_t4_1_name, [])
         case "Your first Dodge each turn adds 3 damage to your next attack":
@@ -2879,6 +2885,8 @@ public enum ContentCopy {
             (L10n.talents_golden_retriever_health_t1_1_description, [])
         case "Cheer Up":
             (L10n.talents_golden_retriever_health_t1_1_name, [])
+        case "Restoring Health has a 10% chance to draw a card":
+            (L10n.talents_golden_retriever_health_t1_2_description(10), [10])
         case "Playful Energy":
             (L10n.talents_golden_retriever_health_t1_2_name, [])
         case "Every other turn, Restore 2 Health":
@@ -3011,8 +3019,8 @@ public enum ContentCopy {
             (L10n.talents_library_owl_cleanse_t4_1_description, [])
         case "Lesson Learned":
             (L10n.talents_library_owl_cleanse_t4_1_name, [])
-        case "At full Health, gain +10% Dodge chance":
-            (L10n.talents_library_owl_health_t1_1_description(10), [10])
+        case "At full Health, gain +20% Dodge chance":
+            (L10n.talents_library_owl_health_t1_1_description(20), [20])
         case "Safe Perch":
             (L10n.talents_library_owl_health_t1_1_name, [])
         case "Restoring Health reduces that ally's next incoming damage by 20%":
@@ -3023,8 +3031,8 @@ public enum ContentCopy {
             (L10n.talents_library_owl_health_t2_1_description(25), [25])
         case "Efficient Care":
             (L10n.talents_library_owl_health_t2_1_name, [])
-        case "Restoring Health has a 10% chance to grant equal Block":
-            (L10n.talents_library_owl_health_t2_2_description(10), [10])
+        case "Restoring Health has a 20% chance to grant equal Block":
+            (L10n.talents_library_owl_health_t2_2_description(20), [20])
         case "Aether Shield":
             (L10n.talents_library_owl_health_t2_2_name, [])
         case "When either ally enters Death's Door, they restore 8 Health":
@@ -3199,8 +3207,8 @@ public enum ContentCopy {
             (L10n.talents_mana_moth_freeze_t2_1_description(20), [20])
         case "Blinding Frost":
             (L10n.talents_mana_moth_freeze_t2_1_name, [])
-        case "Freeze has a 10% chance to last an extra turn":
-            (L10n.talents_mana_moth_freeze_t2_2_description(10), [10])
+        case "Freeze has a 20% chance to last an extra turn":
+            (L10n.talents_mana_moth_freeze_t2_2_description(20), [20])
         case "Subzero Mist":
             (L10n.talents_mana_moth_freeze_t2_2_name, [])
         case "Mana empowerment increases Freeze build-up by 25%":
@@ -3645,6 +3653,8 @@ public enum ContentCopy {
             (L10n.talents_risen_skeleton_physical_t3_1_description(3), [3])
         case "Cleaving Bones":
             (L10n.talents_risen_skeleton_physical_t3_1_name, [])
+        case "While you have Block, take 2 less Physical damage":
+            (L10n.talents_risen_skeleton_physical_t3_2_description(2), [2])
         case "Bone Armor":
             (L10n.talents_risen_skeleton_physical_t3_2_name, [])
         case "Physical Critical Hits deal 50% more damage to Poisoned enemies":
@@ -3751,8 +3761,8 @@ public enum ContentCopy {
             (L10n.talents_shield_scarab_block_t3_2_description, [])
         case "Sun-Struck Shell":
             (L10n.talents_shield_scarab_block_t3_2_name, [])
-        case "Your Block absorbs twice as much damage":
-            (L10n.talents_shield_scarab_block_t4_1_description, [])
+        case "Your Block absorbs 50% more damage":
+            (L10n.talents_shield_scarab_block_t4_1_description(50), [50])
         case "Adamant Carapace":
             (L10n.talents_shield_scarab_block_t4_1_name, [])
         case "While you have Block, Holy damage is increased by 25%":
@@ -4385,7 +4395,7 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Leech\\ restores\\ an\\ additional\\ ([0-9]+)%\\ of\\ damage\\ dealt$"), count: 1, make: { values in L10n.affixes_leeching_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ additional\\ Gold$"), count: 1, make: { values in L10n.affixes_lucky_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)%\\ Critical\\ chance\\\nGain\\ ([0-9]+)\\ Gold\\ on\\ Critical\\ Hit$"), count: 2, make: { values in L10n.affixes_lucky_clover_astral_description(values[0], values[1]) }),
-        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Take\\ ([0-9]+)%\\ less\\ Holy\\ damage$"), count: 1, make: { values in L10n.affixes_martyrs_astral_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ bonus\\ Holy\\ damage\\\nTake\\ ([0-9]+)%\\ less\\ Holy\\ damage$"), count: 2, make: { values in L10n.affixes_martyrs_astral_description(values[0], values[1]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Gold\\ each\\ turns?$"), count: 1, make: { values in L10n.affixes_merchants_favor_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Purge\\ ([0-9]+)\\ buffs?\\ when\\ you\\ deal\\ Holy\\ damage$"), count: 1, make: { values in L10n.affixes_nullifying_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Gold\\ when\\ you\\ Dodge$"), count: 1, make: { values in L10n.affixes_payday_astral_description(values[0]) }),
@@ -4410,11 +4420,13 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Your\\ Thorns\\ deal\\ ([0-9]+)\\ additional\\ damage\\ to\\ Poisoned\\ enemies$"), count: 1, make: { values in L10n.affixes_spitebloom_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ the\\ first\\ time\\ Thorns\\ deals\\ damage\\ each\\ turns?$"), count: 1, make: { values in L10n.affixes_spiteful_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Stun\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ last\\ an\\ additional\\ turns?$"), count: 1, make: { values in L10n.affixes_stunned_pocketwatch_astral_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Increase\\ Physical\\ damage\\ by\\ ([0-9]+)\\\nPhysical\\ and\\ Stun\\ damage\\ remove\\ twice\\ as\\ much\\ Block$"), count: 1, make: { values in L10n.affixes_sundering_charm_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Your\\ ally\\ receives\\ ([0-9]+)%\\ of\\ the\\ Health\\ you\\ restore\\ with\\ Leech$"), count: 1, make: { values in L10n.affixes_symbiosis_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Every\\ other\\ turns?,\\ lose\\ ([0-9]+)\\ Health\\ and\\ draw\\ a\\ cards?$"), count: 1, make: { values in L10n.affixes_tattered_pages_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Take\\ ([0-9]+)%\\ less\\ Bleed\\ damage$"), count: 1, make: { values in L10n.affixes_thick_skinned_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Thorns\\ at\\ the\\ start\\ of\\ combat$"), count: 1, make: { values in L10n.affixes_thornwrought_astral_description(values[0]) }),
-        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Purge\\ ([0-9]+)\\ buffs?\\ from\\ the\\ enemy\\ when\\ you\\ Critically\\ Hit$"), count: 1, make: { values in L10n.affixes_unmaking_basic_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ bonus\\ Physical\\ damage\\\nPurge\\ all\\ buffs?\\ from\\ the\\ enemy\\ when\\ you\\ Critically\\ Hit$"), count: 1, make: { values in L10n.affixes_unmaking_astral_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ bonus\\ Physical\\ damage\\\nPurge\\ ([0-9]+)\\ buffs?\\ from\\ the\\ enemy\\ when\\ you\\ Critically\\ Hit$"), count: 2, make: { values in L10n.affixes_unmaking_basic_description(values[0], values[1]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ you\\ Purge\\ an\\ enemy$"), count: 1, make: { values in L10n.affixes_unraveling_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ you\\ Dodge$"), count: 1, make: { values in L10n.affixes_untouchable_astral_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Poison\\ deals\\ ([0-9]+)\\ additional\\ damage\\ against\\ Bleeding\\ enemies$"), count: 1, make: { values in L10n.affixes_venomtrail_astral_description(values[0]) }),
@@ -4492,6 +4504,8 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Find\\ ([0-9]+)%\\ more\\ Gold\\\nProduce\\ ([0-9]+)\\ Gold\\ per\\ Day$"), count: 2, make: { values in L10n.homestead_nodes_wishingwell_1_bonus_description(values[0], values[1]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Find\\ ([0-9]+)%\\ more\\ Gold$"), count: 1, make: { values in L10n.homestead_nodes_wishingwell_1_bonus_title(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Take\\ ([0-9]+)%\\ less\\ Freeze\\ damage\\\nTake\\ ([0-9]+)%\\ less\\ Burn\\ damage\\\nProduce\\ ([0-9]+)\\ Gold\\ per\\ Day$"), count: 3, make: { values in L10n.homestead_nodes_wooltailoring_1_bonus_description(values[0], values[1], values[2]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Take\\ ([0-9]+)%\\ less\\ Holy\\ damage$"), count: 1, make: { values in L10n.legacy_affixes_martyrs_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Purge\\ ([0-9]+)\\ buffs?\\ from\\ the\\ enemy\\ when\\ you\\ Critically\\ Hit$"), count: 1, make: { values in L10n.legacy_affixes_unmaking_basic_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Abilities\\ that\\ restore\\ Health\\ also\\ Cleanse\\ ([0-9]+)\\ debuffs?$"), count: 1, make: { values in L10n.talents_alchemist_cleanse_t1_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Cleansing\\ ([0-9]+)\\ debuffs?\\ restores\\ ([0-9]+)\\ Health$"), count: 2, make: { values in L10n.talents_alchemist_cleanse_t1_2_description(values[0], values[1]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Cleansing\\ Burn\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Burn\\ attack$"), count: 1, make: { values in L10n.talents_alchemist_cleanse_t2_1_description(values[0]) }),
@@ -4722,6 +4736,7 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Retain\\ ([0-9]+)%\\ of\\ your\\ Block\\ between\\ turns?$"), count: 1, make: { values in L10n.talents_shield_scarab_block_t2_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^While\\ you\\ have\\ Block,\\ your\\ ally\\ takes\\ ([0-9]+)%\\ less\\ damage$"), count: 1, make: { values in L10n.talents_shield_scarab_block_t2_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^While\\ you\\ have\\ Block,\\ Thorns\\ deal\\ ([0-9]+)%\\ more\\ damage$"), count: 1, make: { values in L10n.talents_shield_scarab_block_t3_1_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Your\\ Block\\ absorbs\\ ([0-9]+)%\\ more\\ damage$"), count: 1, make: { values in L10n.talents_shield_scarab_block_t4_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^While\\ you\\ have\\ Block,\\ Holy\\ damage\\ is\\ increased\\ by\\ ([0-9]+)%$"), count: 1, make: { values in L10n.talents_shield_scarab_holy_t1_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Blocking\\ damage\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ reflect\\ it\\ as\\ Holy$"), count: 1, make: { values in L10n.talents_shield_scarab_holy_t1_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Your\\ first\\ Holy\\ hit\\ each\\ turns?\\ grants\\ your\\ ally\\ ([0-9]+)\\ Block$"), count: 1, make: { values in L10n.talents_shield_scarab_holy_t2_1_description(values[0]) }),

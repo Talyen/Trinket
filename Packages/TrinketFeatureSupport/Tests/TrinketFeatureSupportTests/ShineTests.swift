@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import Testing
 import TrinketContent
@@ -6,6 +7,29 @@ import TrinketCore
 
 @MainActor
 struct KeywordHighlightTests {
+    @Test(arguments: [
+        ("Take 10% less Holy damage", "Deal 2 bonus Holy damage. Take 25% less Holy damage"),
+        (
+            "Purge a buff from the enemy when you Critically Hit",
+            "Deal 2 bonus Physical damage. Purge all buffs from the enemy when you Critically Hit",
+        ),
+    ])
+    func `reworked affixes do not compare unrelated saved stats`(before: String, after: String) {
+        let locale = Locale(identifier: "en")
+        let original = ContentCopy.description(before, locale: locale)
+        let updated = ContentCopy.description(after, locale: locale)
+        #expect(KeywordDescriptionText.attributedText(for: updated, comparison: original)
+            == KeywordDescriptionText.attributedText(for: updated))
+    }
+
+    @Test func `matching affix rules still show numerical upgrade colors`() {
+        let locale = Locale(identifier: "en")
+        let original = ContentCopy.description("Deal 1 bonus Holy damage. Take 10% less Holy damage", locale: locale)
+        let updated = ContentCopy.description("Deal 2 bonus Holy damage. Take 25% less Holy damage", locale: locale)
+        #expect(KeywordDescriptionText.attributedText(for: updated, comparison: original)
+            != KeywordDescriptionText.attributedText(for: updated))
+    }
+
     @Test func `changed affixes on the same item retain their current shine colors`() {
         let base = ItemBaseType(id: "shine-fixture", name: "Sword", slot: .weapon, weaponKind: .oneHanded, keywordAffinities: [])
         func item(description: String) -> InventoryItem {

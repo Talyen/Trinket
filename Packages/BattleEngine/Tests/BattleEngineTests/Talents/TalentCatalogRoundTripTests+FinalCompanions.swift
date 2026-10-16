@@ -121,9 +121,9 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.health(of: battle.enemy) == enemyHealth - 4)
     }
 
-    @Test func `sealed sarcophagus doubles block absorption without protecting block from purge`() {
+    @Test func `adamant carapace increases block absorption by half without protecting block from purge`() {
         var battle = capstoneBattle(companion: ["shield_scarab_block_t4_1"])
-        DefensePoolEngine.set(3, on: battle.companion, in: &battle)
+        DefensePoolEngine.set(4, on: battle.companion, in: &battle)
         let result = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .reaction())
         #expect(result.healthLost == 0)
         #expect(talentPoints(.shield, on: .companion, in: battle) == 1)

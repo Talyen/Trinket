@@ -42,7 +42,7 @@ extension TalentCatalogRoundTripTests {
             sourceActorID: context.enemy.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
         ) }
-        let poison = defender == .hero && block < 4 ? 2 : 0
+        let poison = defender == .hero && block < 4 ? 1 : 0
         #expect(before - battle.roster.enemy.currentHealth == 4 - block + poison)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == poison)
         #expect(talentPoints(.thorns, on: defender, in: battle) == 0)
@@ -55,7 +55,7 @@ extension TalentCatalogRoundTripTests {
             sourceActorID: battle.enemy.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
         )
-        #expect(talentPoints(.poison, on: .enemy, in: battle) == (defender == .hero ? 2 : 0))
+        #expect(talentPoints(.poison, on: .enemy, in: battle) == (defender == .hero ? 1 : 0))
     }
 
     @Test(arguments: [0, 1, 2])

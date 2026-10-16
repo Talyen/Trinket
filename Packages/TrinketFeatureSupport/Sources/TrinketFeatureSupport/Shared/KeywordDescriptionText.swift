@@ -37,7 +37,10 @@ public struct KeywordDescriptionText: View {
 
     public static func attributedText(for description: LocalizedGameText, comparison: LocalizedGameText? = nil) -> AttributedString {
         var attributed = AttributedString(description.text)
-        let before = comparison?.values ?? [:]
+        // Catalog reworks can reuse a quantity ID for a different stat in saved copy.
+        let before = comparison.flatMap {
+            semanticComponents(in: $0) == semanticComponents(in: description) ? $0.values : nil
+        } ?? [:]
         for span in description.spans {
             let range = NSRange(location: span.utf16Range.lowerBound, length: span.utf16Range.count)
             guard let swiftRange = Range(range, in: description.text),
@@ -56,5 +59,20 @@ public struct KeywordDescriptionText: View {
             }
         }
         return attributed
+    }
+
+    private enum SemanticComponent: Hashable {
+        case keyword(Keyword)
+        case quantity(String)
+    }
+
+    private static func semanticComponents(in text: LocalizedGameText) -> [SemanticComponent: Int] {
+        text.spans.reduce(into: [:]) { components, span in
+            let component: SemanticComponent = switch span.meaning {
+            case let .keyword(keyword): .keyword(keyword)
+            case let .value(identifier, _): .quantity(identifier)
+            }
+            components[component, default: 0] += 1
+        }
     }
 }

@@ -11234,37 +11234,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erleide <value id=\"quantity_1\">%1$lld</value>%% weniger <keyword id=\"holy\">heiligen</keyword> Schaden"
+            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"holy\">heiligen</keyword> Schaden. Erleide <value id=\"quantity_2\">%2$lld</value>%% weniger <keyword id=\"holy\">heiligen</keyword> Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Take <value id=\"quantity_1\">%1$lld</value>%% less <keyword id=\"holy\">Holy</keyword> damage"
+            "value": "Deal <value id=\"quantity_1\">%1$lld</value> bonus <keyword id=\"holy\">Holy</keyword> damage. Take <value id=\"quantity_2\">%2$lld</value>%% less <keyword id=\"holy\">Holy</keyword> damage"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dégâts de type <keyword id=\"holy\">Sacré</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"
+            "value": "Dégâts de type <keyword id=\"holy\">Sacré</keyword> augmentés de <value id=\"quantity_1\">%1$lld</value>. Dégâts de type <keyword id=\"holy\">Sacré</keyword> subis réduits de <value id=\"quantity_2\">%2$lld</value>%%"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "受ける<keyword id=\"holy\">聖</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"
+            "value": "与える<keyword id=\"holy\">聖</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>増加。受ける<keyword id=\"holy\">聖</keyword>ダメージが<value id=\"quantity_2\">%2$lld</value>%%減少"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "받는 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"
+            "value": "가하는 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 증가. 받는 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_2\">%2$lld</value>%% 감소"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "承受的<keyword id=\"holy\">神聖</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"
+            "value": "造成的<keyword id=\"holy\">神聖</keyword>傷害增加<value id=\"quantity_1\">%1$lld</value>。承受的<keyword id=\"holy\">神聖</keyword>傷害降低<value id=\"quantity_2\">%2$lld</value>%%"
           }
         }
       }
@@ -11276,37 +11276,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erleide <value id=\"quantity_1\">%1$lld</value>%% weniger <keyword id=\"holy\">heiligen</keyword> Schaden"
+            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"holy\">heiligen</keyword> Schaden. Erleide <value id=\"quantity_2\">%2$lld</value>%% weniger <keyword id=\"holy\">heiligen</keyword> Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Take <value id=\"quantity_1\">%1$lld</value>%% less <keyword id=\"holy\">Holy</keyword> damage"
+            "value": "Deal <value id=\"quantity_1\">%1$lld</value> bonus <keyword id=\"holy\">Holy</keyword> damage. Take <value id=\"quantity_2\">%2$lld</value>%% less <keyword id=\"holy\">Holy</keyword> damage"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dégâts de type <keyword id=\"holy\">Sacré</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"
+            "value": "Dégâts de type <keyword id=\"holy\">Sacré</keyword> augmentés de <value id=\"quantity_1\">%1$lld</value>. Dégâts de type <keyword id=\"holy\">Sacré</keyword> subis réduits de <value id=\"quantity_2\">%2$lld</value>%%"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "受ける<keyword id=\"holy\">聖</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"
+            "value": "与える<keyword id=\"holy\">聖</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>増加。受ける<keyword id=\"holy\">聖</keyword>ダメージが<value id=\"quantity_2\">%2$lld</value>%%減少"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "받는 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"
+            "value": "가하는 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 증가. 받는 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_2\">%2$lld</value>%% 감소"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "承受的<keyword id=\"holy\">神聖</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"
+            "value": "造成的<keyword id=\"holy\">神聖</keyword>傷害增加<value id=\"quantity_1\">%1$lld</value>。承受的<keyword id=\"holy\">神聖</keyword>傷害降低<value id=\"quantity_2\">%2$lld</value>%%"
           }
         }
       }
@@ -16010,37 +16010,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">Physischer</keyword> Schaden und <keyword id=\"stun\">Betäubungs</keyword>schaden entfernen doppelt so viel <keyword id=\"block\">Block</keyword>"
+            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"physical\">physischen</keyword> Schaden. <keyword id=\"physical\">Physischer</keyword> Schaden und <keyword id=\"stun\">Betäubungs</keyword>schaden entfernen doppelt so viel <keyword id=\"block\">Block</keyword>"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">Physical</keyword> and <keyword id=\"stun\">Stun</keyword> damage remove twice as much <keyword id=\"block\">Block</keyword>"
+            "value": "Increase <keyword id=\"physical\">Physical</keyword> damage by <value id=\"quantity_1\">%1$lld</value>. <keyword id=\"physical\">Physical</keyword> and <keyword id=\"stun\">Stun</keyword> damage remove twice as much <keyword id=\"block\">Block</keyword>"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les dégâts de type <keyword id=\"physical\">Physique</keyword> et d’<keyword id=\"stun\">Étourdissement</keyword> retirent deux fois plus de <keyword id=\"block\">Blocage</keyword>"
+            "value": "Dégâts de type <keyword id=\"physical\">Physique</keyword> augmentés de <value id=\"quantity_1\">%1$lld</value>. Les dégâts de type <keyword id=\"physical\">Physique</keyword> et d’<keyword id=\"stun\">Étourdissement</keyword> retirent deux fois plus de <keyword id=\"block\">Blocage</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">物理</keyword>と<keyword id=\"stun\">スタン</keyword>ダメージで削る<keyword id=\"block\">ブロック</keyword>量が2倍になる"
+            "value": "与える<keyword id=\"physical\">物理</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>増加。<keyword id=\"physical\">物理</keyword>と<keyword id=\"stun\">スタン</keyword>ダメージで削る<keyword id=\"block\">ブロック</keyword>量が2倍になる"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">물리</keyword> 및 <keyword id=\"stun\">기절</keyword> 피해가 <keyword id=\"block\">방어도</keyword>를 두 배로 제거"
+            "value": "가하는 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 증가. <keyword id=\"physical\">물리</keyword> 및 <keyword id=\"stun\">기절</keyword> 피해가 <keyword id=\"block\">방어도</keyword>를 두 배로 제거"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">物理</keyword>與<keyword id=\"stun\">暈眩</keyword>傷害削除的<keyword id=\"block\">格擋</keyword>加倍"
+            "value": "造成的<keyword id=\"physical\">物理</keyword>傷害增加<value id=\"quantity_1\">%1$lld</value>。<keyword id=\"physical\">物理</keyword>與<keyword id=\"stun\">暈眩</keyword>傷害削除的<keyword id=\"block\">格擋</keyword>加倍"
           }
         }
       }
@@ -16052,37 +16052,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">Physischer</keyword> Schaden und <keyword id=\"stun\">Betäubungs</keyword>schaden entfernen doppelt so viel <keyword id=\"block\">Block</keyword>"
+            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"physical\">physischen</keyword> Schaden. <keyword id=\"physical\">Physischer</keyword> Schaden und <keyword id=\"stun\">Betäubungs</keyword>schaden entfernen doppelt so viel <keyword id=\"block\">Block</keyword>"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">Physical</keyword> and <keyword id=\"stun\">Stun</keyword> damage remove twice as much <keyword id=\"block\">Block</keyword>"
+            "value": "Increase <keyword id=\"physical\">Physical</keyword> damage by <value id=\"quantity_1\">%1$lld</value>. <keyword id=\"physical\">Physical</keyword> and <keyword id=\"stun\">Stun</keyword> damage remove twice as much <keyword id=\"block\">Block</keyword>"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les dégâts de type <keyword id=\"physical\">Physique</keyword> et d’<keyword id=\"stun\">Étourdissement</keyword> retirent deux fois plus de <keyword id=\"block\">Blocage</keyword>"
+            "value": "Dégâts de type <keyword id=\"physical\">Physique</keyword> augmentés de <value id=\"quantity_1\">%1$lld</value>. Les dégâts de type <keyword id=\"physical\">Physique</keyword> et d’<keyword id=\"stun\">Étourdissement</keyword> retirent deux fois plus de <keyword id=\"block\">Blocage</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">物理</keyword>と<keyword id=\"stun\">スタン</keyword>ダメージで削る<keyword id=\"block\">ブロック</keyword>量が2倍になる"
+            "value": "与える<keyword id=\"physical\">物理</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>増加。<keyword id=\"physical\">物理</keyword>と<keyword id=\"stun\">スタン</keyword>ダメージで削る<keyword id=\"block\">ブロック</keyword>量が2倍になる"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">물리</keyword> 및 <keyword id=\"stun\">기절</keyword> 피해가 <keyword id=\"block\">방어도</keyword>를 두 배로 제거"
+            "value": "가하는 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 증가. <keyword id=\"physical\">물리</keyword> 및 <keyword id=\"stun\">기절</keyword> 피해가 <keyword id=\"block\">방어도</keyword>를 두 배로 제거"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">物理</keyword>與<keyword id=\"stun\">暈眩</keyword>傷害削除的<keyword id=\"block\">格擋</keyword>加倍"
+            "value": "造成的<keyword id=\"physical\">物理</keyword>傷害增加<value id=\"quantity_1\">%1$lld</value>。<keyword id=\"physical\">物理</keyword>與<keyword id=\"stun\">暈眩</keyword>傷害削除的<keyword id=\"block\">格擋</keyword>加倍"
           }
         }
       }
@@ -16766,37 +16766,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"purge\">Entzaubere</keyword> alle Verstärkungen des Gegners, wenn du kritisch triffst"
+            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"physical\">physischen</keyword> Schaden. <keyword id=\"purge\">Entzaubere</keyword> alle Verstärkungen des Gegners, wenn du kritisch triffst"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"purge\">Purge</keyword> all buffs from the enemy when you Critically Hit"
+            "value": "Deal <value id=\"quantity_1\">%1$lld</value> bonus <keyword id=\"physical\">Physical</keyword> damage. <keyword id=\"purge\">Purge</keyword> all buffs from the enemy when you Critically Hit"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"purge\">Dissipation</keyword> de tous les bonus de l’ennemi lors d’un coup critique"
+            "value": "Dégâts de type <keyword id=\"physical\">Physique</keyword> augmentés de <value id=\"quantity_1\">%1$lld</value>. <keyword id=\"purge\">Dissipation</keyword> de tous les bonus de l’ennemi lors d’un coup critique"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "クリティカルヒット時に敵の強化効果をすべて<keyword id=\"purge\">強化解除</keyword>"
+            "value": "与える<keyword id=\"physical\">物理</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>増加。クリティカルヒット時に敵の強化効果をすべて<keyword id=\"purge\">強化解除</keyword>"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "치명타 적중 시 <keyword id=\"purge\">강화 해제</keyword>로 적의 모든 강화 효과 제거"
+            "value": "가하는 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 증가. 치명타 적중 시 <keyword id=\"purge\">강화 해제</keyword>로 적의 모든 강화 효과 제거"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "暴擊命中時，<keyword id=\"purge\">驅散</keyword>敵人所有增益效果"
+            "value": "造成的<keyword id=\"physical\">物理</keyword>傷害增加<value id=\"quantity_1\">%1$lld</value>。暴擊命中時，<keyword id=\"purge\">驅散</keyword>敵人所有增益效果"
           }
         }
       }
@@ -16806,99 +16806,39 @@
       "extractionState": "manual",
       "localizations": {
         "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "<keyword id=\"purge\">Entzaubere</keyword> <value id=\"quantity_1\">%1$lld</value> Verstärkung des Gegners, wenn du kritisch triffst"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "<keyword id=\"purge\">Entzaubere</keyword> <value id=\"quantity_1\">%1$lld</value> Verstärkungen des Gegners, wenn du kritisch triffst"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"physical\">physischen</keyword> Schaden. <keyword id=\"purge\">Entzaubere</keyword> beim kritischen Treffer gegnerische Verstärkungen (Anzahl: <value id=\"quantity_2\">%2$lld</value>)"
           }
         },
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "<keyword id=\"purge\">Purge</keyword> <value id=\"quantity_1\">%1$lld</value> buff from the enemy when you Critically Hit"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "<keyword id=\"purge\">Purge</keyword> <value id=\"quantity_1\">%1$lld</value> buffs from the enemy when you Critically Hit"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deal <value id=\"quantity_1\">%1$lld</value> bonus <keyword id=\"physical\">Physical</keyword> damage. <keyword id=\"purge\">Purge</keyword> <value id=\"quantity_2\">%2$lld</value> buff from the enemy when you Critically Hit"
           }
         },
         "fr": {
-          "variations": {
-            "plural": {
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "<keyword id=\"purge\">Dissipation</keyword> de <value id=\"quantity_1\">%1$lld</value> bonus de l’ennemi lorsque vous infligez un coup Critique"
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "<keyword id=\"purge\">Dissipation</keyword> de <value id=\"quantity_1\">%1$lld</value> bonus de l’ennemi lorsque vous infligez un coup Critique"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "<keyword id=\"purge\">Dissipation</keyword> de <value id=\"quantity_1\">%1$lld</value> bonus de l’ennemi lorsque vous infligez un coup Critique"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts de type <keyword id=\"physical\">Physique</keyword> augmentés de <value id=\"quantity_1\">%1$lld</value>. <keyword id=\"purge\">Dissipation</keyword> de <value id=\"quantity_2\">%2$lld</value> bonus de l’ennemi lors d’un coup critique"
           }
         },
         "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "クリティカルヒットすると敵の強化効果を<value id=\"quantity_1\">%1$lld</value>個<keyword id=\"purge\">強化解除</keyword>"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "与える<keyword id=\"physical\">物理</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>増加。クリティカルヒットすると敵の強化効果を<value id=\"quantity_2\">%2$lld</value>個<keyword id=\"purge\">強化解除</keyword>"
           }
         },
         "ko": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "치명타 적중 시 <keyword id=\"purge\">강화 해제</keyword>로 적의 강화 효과 <value id=\"quantity_1\">%1$lld</value>개 제거"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "가하는 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 증가. 치명타 적중 시 <keyword id=\"purge\">강화 해제</keyword>로 적의 강화 효과 <value id=\"quantity_2\">%2$lld</value>개 제거"
           }
         },
         "zh-Hant": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "造成暴擊時，<keyword id=\"purge\">驅散</keyword>敵人的<value id=\"quantity_1\">%1$lld</value>項增益效果"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "造成的<keyword id=\"physical\">物理</keyword>傷害增加<value id=\"quantity_1\">%1$lld</value>。暴擊命中時，<keyword id=\"purge\">驅散</keyword>敵人的<value id=\"quantity_2\">%2$lld</value>項增益效果"
           }
         }
       }
@@ -61129,6 +61069,234 @@
         }
       }
     },
+    "legacy.affixes.martyrs.description": {
+      "comment": "Localization/legacy-content.json: saved equipment description affixes.martyrs.description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erleide <value id=\"quantity_1\">%1$lld</value>%% weniger <keyword id=\"holy\">heiligen</keyword> Schaden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take <value id=\"quantity_1\">%1$lld</value>%% less <keyword id=\"holy\">Holy</keyword> damage"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dégâts de type <keyword id=\"holy\">Sacré</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受ける<keyword id=\"holy\">聖</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "받는 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承受的<keyword id=\"holy\">神聖</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"
+          }
+        }
+      }
+    },
+    "legacy.affixes.sundering_charm.description": {
+      "comment": "Localization/legacy-content.json: saved equipment description affixes.sundering_charm.description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"physical\">Physischer</keyword> Schaden und <keyword id=\"stun\">Betäubungs</keyword>schaden entfernen doppelt so viel <keyword id=\"block\">Block</keyword>"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"physical\">Physical</keyword> and <keyword id=\"stun\">Stun</keyword> damage remove twice as much <keyword id=\"block\">Block</keyword>"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les dégâts de type <keyword id=\"physical\">Physique</keyword> et d’<keyword id=\"stun\">Étourdissement</keyword> retirent deux fois plus de <keyword id=\"block\">Blocage</keyword>"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"physical\">物理</keyword>と<keyword id=\"stun\">スタン</keyword>ダメージで削る<keyword id=\"block\">ブロック</keyword>量が2倍になる"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"physical\">물리</keyword> 및 <keyword id=\"stun\">기절</keyword> 피해가 <keyword id=\"block\">방어도</keyword>를 두 배로 제거"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"physical\">物理</keyword>與<keyword id=\"stun\">暈眩</keyword>傷害削除的<keyword id=\"block\">格擋</keyword>加倍"
+          }
+        }
+      }
+    },
+    "legacy.affixes.unmaking.astral_description": {
+      "comment": "Localization/legacy-content.json: saved equipment description affixes.unmaking.astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Entzaubere</keyword> alle Verstärkungen des Gegners, wenn du kritisch triffst"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Purge</keyword> all buffs from the enemy when you Critically Hit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Dissipation</keyword> de tous les bonus de l’ennemi lors d’un coup critique"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリティカルヒット時に敵の強化効果をすべて<keyword id=\"purge\">強化解除</keyword>"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "치명타 적중 시 <keyword id=\"purge\">강화 해제</keyword>로 적의 모든 강화 효과 제거"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暴擊命中時，<keyword id=\"purge\">驅散</keyword>敵人所有增益效果"
+          }
+        }
+      }
+    },
+    "legacy.affixes.unmaking.basic_description": {
+      "comment": "Localization/legacy-content.json: saved equipment description affixes.unmaking.basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "<keyword id=\"purge\">Entzaubere</keyword> <value id=\"quantity_1\">%1$lld</value> Verstärkung des Gegners, wenn du kritisch triffst"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "<keyword id=\"purge\">Entzaubere</keyword> <value id=\"quantity_1\">%1$lld</value> Verstärkungen des Gegners, wenn du kritisch triffst"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "<keyword id=\"purge\">Purge</keyword> <value id=\"quantity_1\">%1$lld</value> buff from the enemy when you Critically Hit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "<keyword id=\"purge\">Purge</keyword> <value id=\"quantity_1\">%1$lld</value> buffs from the enemy when you Critically Hit"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "<keyword id=\"purge\">Dissipation</keyword> de <value id=\"quantity_1\">%1$lld</value> bonus de l’ennemi lorsque vous infligez un coup Critique"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "<keyword id=\"purge\">Dissipation</keyword> de <value id=\"quantity_1\">%1$lld</value> bonus de l’ennemi lorsque vous infligez un coup Critique"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "<keyword id=\"purge\">Dissipation</keyword> de <value id=\"quantity_1\">%1$lld</value> bonus de l’ennemi lorsque vous infligez un coup Critique"
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "クリティカルヒットすると敵の強化効果を<value id=\"quantity_1\">%1$lld</value>個<keyword id=\"purge\">強化解除</keyword>"
+                }
+              }
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "치명타 적중 시 <keyword id=\"purge\">강화 해제</keyword>로 적의 강화 효과 <value id=\"quantity_1\">%1$lld</value>개 제거"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "造成暴擊時，<keyword id=\"purge\">驅散</keyword>敵人的<value id=\"quantity_1\">%1$lld</value>項增益效果"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "rule.ability.alternative": {
       "comment": "Ability rule template. Integer arguments have semantic value labels. String arguments are complete localized rule/condition clauses or keyword names, in source order. Preserve actor, enemy/ally target, condition, chance and quantity.",
       "extractionState": "manual",
@@ -92024,37 +92192,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dein <keyword id=\"block\">Block</keyword> absorbiert doppelt so viel Schaden"
+            "value": "Dein <keyword id=\"block\">Block</keyword> absorbiert <value id=\"quantity_1\">%1$lld</value>%% mehr Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your <keyword id=\"block\">Block</keyword> absorbs twice as much damage"
+            "value": "Your <keyword id=\"block\">Block</keyword> absorbs <value id=\"quantity_1\">%1$lld</value>%% more damage"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre <keyword id=\"block\">Blocage</keyword> absorbe deux fois plus de dégâts"
+            "value": "Votre <keyword id=\"block\">Blocage</keyword> absorbe <value id=\"quantity_1\">%1$lld</value>%% de dégâts en plus"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "自分の<keyword id=\"block\">ブロック</keyword>のダメージ吸収量が2倍になる"
+            "value": "自分の<keyword id=\"block\">ブロック</keyword>のダメージ吸収量が<value id=\"quantity_1\">%1$lld</value>%%増加"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "내 <keyword id=\"block\">방어도</keyword>가 두 배의 피해 흡수"
+            "value": "내 <keyword id=\"block\">방어도</keyword>의 피해 흡수량 <value id=\"quantity_1\">%1$lld</value>%% 증가"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "自身<keyword id=\"block\">格擋</keyword>吸收的傷害加倍"
+            "value": "自身<keyword id=\"block\">格擋</keyword>吸收的傷害提高<value id=\"quantity_1\">%1$lld</value>%%"
           }
         }
       }

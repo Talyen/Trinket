@@ -397,6 +397,12 @@
       "merge": "mul"
     },
     {
+      "name": "blockAbsorptionMultiplier",
+      "type": "Double",
+      "default": "1",
+      "merge": "mul"
+    },
+    {
       "name": "doubleAllBlockAbsorption",
       "type": "Bool"
     },

@@ -88,6 +88,7 @@ public struct BlockTriggers: Equatable, Hashable, Sendable {
     public var blockBreakNextHolyHitDouble: Bool = false
     public var blockHolyReflectChancePercent: Double = 0
     public var damageTakenMultiplierWhileBlocked: Double = 1
+    public var blockAbsorptionMultiplier: Double = 1
     public var doubleAllBlockAbsorption: Bool = false
     public var firstBlockBreakNextStunDouble: Bool = false
     public var retainAllBlockDuringDeathsDoor: Bool = false

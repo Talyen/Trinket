@@ -10,9 +10,9 @@ concussive	Concussive	weapon	stun	8	Increase Stun damage by 1	Increase Stun dama
 lingering	Lingering	weapon	bleed	8	Bleed lasts 1 additional turn	Bleed lasts 2 additional turns	bleed_duration:1	bleed_duration:2
 sentinel	Sentinel	weapon	block	8	Gain 1 additional Block	Gain 3 additional Block	block_gained:1	block_gained:3
 fortified	Fortified	weapon	block	8	Gain 1 additional Block	Gain 2 additional Block	block_gained:1	block_gained:2
-defenders	Defender's	weapon	block	8	Gain 2 additional Block	Gain 4 additional Block	block_gained:2	block_gained:4
+defenders	Defender's	weapon	block	8	Gain 2 additional Block	Gain 3 additional Block	block_gained:2	block_gained:3
 leeching	Leeching	weapon	leech	8	Leech restores an additional 5% of damage dealt	Leech restores an additional 10% of damage dealt	leech_gained_percent:0.05	leech_gained_percent:0.10
-bulwark	Bulwark	armor	block	12	Gain 2 additional Block	Gain 5 additional Block	block_gained:2	block_gained:5
+bulwark	Bulwark	armor	block	12	Gain 2 additional Block	Gain 4 additional Block	block_gained:2	block_gained:4
 vital	Vital	armor	health	10	Restore 1 additional Health	Restore 3 additional Health	health_restored:1	health_restored:3
 emberguard	Emberguard	armor	burn,block	8	Take 10% less Burn damage	Take 25% less Burn damage	damage_taken_percent:burn:0.10	damage_taken_percent:burn:0.25
 antidotal	Antidotal	armor	poison,health	8	Take 20% less Poison damage	Take 30% less Poison damage	damage_taken_percent:poison:0.20	damage_taken_percent:poison:0.30
@@ -43,7 +43,7 @@ second_wind	Second Wind	armor	health	8	Restore 8 Health the first time you fall 
 deathgrip	Deathgrip	accessory	block,health,deathsDoor	8	Gain 8 Block when on Death's Door	Gain 16 Block when on Death's Door			block_on_deaths_door:8	block_on_deaths_door:16
 frostburn	Frostburn	accessory	burn,freeze	8	Increase Freeze damage by 2 against Burning enemies	Increase Freeze damage by 4 against Burning enemies			freeze_damage_while_burning:2	freeze_damage_while_burning:4
 aetherward	Aetherward	accessory	mana	8	Gain 1 Block when you spend Mana	Gain 2 Block when you spend Mana			on_spend_mana_block:1	on_spend_mana_block:2
-martyrs	Martyr's	armor	holy	10	Take 10% less Holy damage	Take 25% less Holy damage	damage_taken_percent:holy:0.10	damage_taken_percent:holy:0.25
+martyrs	Martyr's	armor	holy	10	Deal 1 bonus Holy damage. Take 10% less Holy damage	Deal 2 bonus Holy damage. Take 25% less Holy damage	damage_dealt:holy:1|damage_taken_percent:holy:0.10	damage_dealt:holy:2|damage_taken_percent:holy:0.25
 sanctum	Sanctum	armor	holy,block	8	Gain 1 Block when you deal Holy damage	Gain 2 Block when you deal Holy damage			on_holy_damage_block:1	on_holy_damage_block:2
 absolving	Absolving	accessory	holy,cleanse	8	Cleanse a debuff when you deal Holy damage	Cleanse a debuff when you deal Holy damage			on_holy_damage_cleanse:1	on_holy_damage_cleanse:1
 beacon	Beacon	accessory	holy,health	8	Your first Holy attack that deals Health damage each turn restores 2 Health to the lowest-Health ally	Your first Holy attack that deals Health damage each turn restores 6 Health to the lowest-Health ally			firstHolyAttackHealPerTurn:2	firstHolyAttackHealPerTurn:6
@@ -59,14 +59,14 @@ elusive	Elusive	armor	dodge	8	Gain 5% Dodge chance	Gain 12% Dodge chance			dodge
 untouchable	Untouchable	armor	dodge,block	8	Gain 2 Block when you Dodge	Gain 4 Block when you Dodge			on_dodge_block:2	on_dodge_block:4
 nullifying	Nullifying	weapon	purge,holy	8	Purge a buff when you deal Holy damage	Purge a buff when you deal Holy damage			on_holy_damage_purge:1	on_holy_damage_purge:1
 disrupting	Disrupting	weapon	purge,stun	8	Purge a buff when you Stun the enemy	Purge all buffs when you Stun the enemy			on_enemy_stunned_purge:1	on_enemy_stunned_purge_all:true
-unmaking	Unmaking	weapon	purge,physical	8	Purge a buff from the enemy when you Critically Hit	Purge all buffs from the enemy when you Critically Hit			on_critical_purge:1	on_critical_purge_all:true
+unmaking	Unmaking	weapon	purge,physical	8	Deal 1 bonus Physical damage. Purge a buff from the enemy when you Critically Hit	Deal 2 bonus Physical damage. Purge all buffs from the enemy when you Critically Hit	damage_dealt:physical:1	damage_dealt:physical:2	on_critical_purge:1	on_critical_purge_all:true
 siphoning	Siphoning	accessory	mana,leech	8	Restore 1 Mana when you Leech	Restore 2 Mana when you Leech			on_leech_restore_mana:1	on_leech_restore_mana:2
 arcane_ward	Arcane Ward	armor	mana,block	8	Gain 1 Block when you gain Mana	Gain 2 Block when you gain Mana			on_gain_mana_block:1	on_gain_mana_block:2
 gilded	Gilded	accessory	gold	8	Increase Gold gained by 10%	Increase Gold gained by 20%	gold_gained_percent:0.10	gold_gained_percent:0.20
 bounty	Bounty	accessory	gold	8	Gain 4 Gold when you defeat an enemy	Gain 8 Gold when you defeat an enemy			on_defeat_enemy_gold:4	on_defeat_enemy_gold:8
 blood_price	Blood Price	accessory	gold,leech	8	Gain 1 Gold when you Leech	Gain 2 Gold when you Leech			on_leech_gold:1	on_leech_gold:2
 sidestep	Sidestep	armor	dodge,health	8	Restore 1 Health when you Dodge	Restore 3 Health when you Dodge			on_dodge_heal:1	on_dodge_heal:3
-blur	Blur	accessory	dodge,health	8	Gain 15% Dodge chance while below 50% Health	Gain 30% Dodge chance while below 50% Health			dodge_chance_below_health_percent:0.50:0.15	dodge_chance_below_health_percent:0.50:0.30
+blur	Blur	accessory	dodge,health	8	Gain 15% Dodge chance while below 50% Health	Gain 25% Dodge chance while below 50% Health			dodge_chance_below_health_percent:0.50:0.15	dodge_chance_below_health_percent:0.50:0.25
 bone_charm	Blood Omen	trinket	health	1	Draw a card the first time you lose Health each turn	Draw a card the first time you lose Health each turn			draw_on_health_loss:1	draw_on_health_loss:1
 brass_censer	Toxic Incense	trinket	holy,poison	1	Your Holy attacks deal 1 additional damage to Poisoned enemies	Your Holy attacks deal 1 additional damage to Poisoned enemies			holyAttackDamageVsPoisonedFlat:1	holyAttackDamageVsPoisonedFlat:1
 companions_collar	Loyal Companion	trinket	health,physical	1	Once per turn, healing your Companion draws a Companion card	Once per turn, healing your Companion draws a Companion card			healCompanionDrawsCompanionCard:true	healCompanionDrawsCompanionCard:true
@@ -87,7 +87,7 @@ resonant_chimes	Resonance	trinket	mana	1	Gain 1 Mana when you play your second c
 runic_quill	Arcane Script	trinket	mana	1	Draw a card the first time you spend Mana each turn	Draw a card the first time you spend Mana each turn			draw_on_spend_mana:1	draw_on_spend_mana:1
 sin_eaters_lantern	Absolution	trinket	holy,health	1	Restore 3 Health when you remove a debuff	Restore 3 Health when you remove a debuff			on_cleanse_self_heal:3	on_cleanse_self_heal:3
 smugglers_map	Hidden Cache	trinket	gold	1	Stealing Gold has a 20% chance\nto draw a card	Stealing Gold has a 20% chance\nto draw a card			goldTheftDrawChancePercent:0.20	goldTheftDrawChancePercent:0.20
-sundering_charm	Shatterguard	trinket	physical,block	1	Physical and Stun damage remove twice as much Block	Physical and Stun damage remove twice as much Block			sundering_block_multiplier:1.00	sundering_block_multiplier:1.00
+sundering_charm	Shatterguard	trinket	physical,block	1	Increase Physical damage by 1. Physical and Stun damage remove twice as much Block	Increase Physical damage by 1. Physical and Stun damage remove twice as much Block	damage_dealt:physical:1	damage_dealt:physical:1	sundering_block_multiplier:1.00	sundering_block_multiplier:1.00
 tattered_pages	Forbidden Knowledge	trinket	mana	1	Every other turn, lose 1 Health and draw a card	Every other turn, lose 1 Health and draw a card			forbiddenKnowledge:true	forbiddenKnowledge:true
 thunderstone	Stormbreak	trinket	physical,stun	1	Deal double damage to Stunned enemies	Deal double damage to Stunned enemies			stunned_damage_multiplier:2.00	stunned_damage_multiplier:2.00
 vanguards_crest	Martial Guard	trinket	physical,block	1	Gain Block equal to half your Physical damage	Gain Block equal to half your Physical damage			physical_damage_block_percent:0.50	physical_damage_block_percent:0.50
@@ -95,7 +95,7 @@ wishing_well_coin	Fickle Fortune	trinket	gold	1	On victory, gain 7 Gold or gain 
 whiplash	Whiplash	weapon	dodge,stun	8	Dodging adds 3 damage to your next Stun attack	Dodging adds 5 damage to your next Stun attack			dodgeNextStunAttackBonus:3	dodgeNextStunAttackBonus:5
 thornwrought	Thornwrought	armor	thorns,block	8	Gain 1 Thorns at the start of combat	Gain 3 Thorns at the start of combat			start_battle_thorns:1	start_battle_thorns:3
 barbed	Barbed	armor	thorns,physical	8	Increase Thorns damage by 1	Increase Thorns damage by 3			thorns_damage_flat:1	thorns_damage_flat:3
-briarward	Briarward	armor	thorns,block	8	When your Block is broken, gain 2 Thorns	When your Block is broken, gain 4 Thorns			block_broken_thorns_flat:2	block_broken_thorns_flat:4
+briarward	Briarward	armor	thorns,block	8	When your Block is broken, gain 2 Thorns	When your Block is broken, gain 3 Thorns			block_broken_thorns_flat:2	block_broken_thorns_flat:3
 bloodward	Bloodward	accessory	leech,block	8	Leech has a 10% chance to also grant an equal amount of Block	Leech has a 20% chance to also grant an equal amount of Block			leech_block_chance_percent:0.10	leech_block_chance_percent:0.20
 clearheaded	Clearheaded	accessory	cleanse,block	8	Gain 2 Block when you Cleanse a debuff	Gain 4 Block when you Cleanse a debuff			cleanse_self_block_flat:2	cleanse_self_block_flat:4
 restorative	Restorative	accessory	cleanse,health	8	Restoring Health has a 10% chance to Cleanse a debuff from the target	Restoring Health has a 20% chance to Cleanse a debuff from the target			on_heal_cleanse_target_chance:0.10	on_heal_cleanse_target_chance:0.20

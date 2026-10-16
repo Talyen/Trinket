@@ -487,7 +487,7 @@ Shelter Seed checks Health before healing and grants three Block only after
 actual restoration. Shared Prescription offers excess healing to the other
 living ally up to their missing Health without applying healing bonuses again,
 then Reclaimed Reagents can convert
-half the remainder to Block. Thorn Shedding adds two Poison damage after its
+half the remainder to Block. Thorn Shedding adds one Poison damage after its
 owner's first positive Thorns Health damage each turn, with normal Poison
 application. It leaves Physical and other Thorns conversions intact; other
 allies cannot use the owner's allowance.
@@ -544,8 +544,10 @@ Death's Door, including its ongoing Burn damage.
 
 Block theft transfers only available Block without multiplying the amount.
 Fox's Light-Fingered rolls once per stealing ability to steal all available enemy
-Block. Adamant Carapace doubles its owner's Block absorption for all damage
-types through the ordinary absorption calculation.
+Block. Adamant Carapace increases its owner's Block absorption by 50% for all damage
+types through the ordinary absorption calculation. The numeric absorption trigger
+uses a neutral multiplier of one; the legacy doubling field remains readable for
+retained serialized powers.
 
 ### Stolen Thunder
 

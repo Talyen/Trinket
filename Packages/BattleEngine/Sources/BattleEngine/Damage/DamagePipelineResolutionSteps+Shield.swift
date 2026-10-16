@@ -145,6 +145,7 @@ package extension DamagePipeline {
             .map { context.roster.hasAffliction(.burn, on: $0) } ?? false
         let burningMultiplier = attackerIsBurning ? defenderTriggers.blockAbsorptionVsBurningMultiplier : 1
         return (doublesPhysical ? 2.0 : 1.0) * max(1, oathMultiplier)
+            * max(1, defenderTriggers.blockAbsorptionMultiplier)
             * max(1, defenderTriggers.doubleAllBlockAbsorption ? 2 : 1)
             * max(1, manaMultiplier) * max(1, burningMultiplier)
     }

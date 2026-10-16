@@ -98,6 +98,11 @@ def difficulty_sources(root: Path) -> dict:
 
 def content_sources(root: Path, *, bootstrap_keys: dict | None = None) -> dict:
     entries = manifest_entries(root)
+    legacy = root / 'Localization/legacy-content.json'
+    if legacy.exists():
+        for key, text in json.loads(legacy.read_text()).items():
+            entries['legacy.' + key] = {
+                'text': text, 'context': f'Localization/legacy-content.json: saved equipment description {key}'}
     entries.update(spire_sources(root))
     entries.update(difficulty_sources(root))
     aliases_path = root / 'Localization/source-keys.json'

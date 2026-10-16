@@ -304,6 +304,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case blockBreakNextHolyHitDouble
     case blockHolyReflectChancePercent
     case damageTakenMultiplierWhileBlocked
+    case blockAbsorptionMultiplier
     case doubleAllBlockAbsorption
     case firstBlockBreakNextStunDouble
     case retainAllBlockDuringDeathsDoor
@@ -1219,6 +1220,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.block.blockBreakNextHolyHitDouble, .blockBreakNextHolyHitDouble, default: false, merging: .or),
         .init(\.block.blockHolyReflectChancePercent, .blockHolyReflectChancePercent, default: 0, merging: .add),
         .init(\.block.damageTakenMultiplierWhileBlocked, .damageTakenMultiplierWhileBlocked, default: 1, merging: .mul),
+        .init(\.block.blockAbsorptionMultiplier, .blockAbsorptionMultiplier, default: 1, merging: .mul),
         .init(\.block.doubleAllBlockAbsorption, .doubleAllBlockAbsorption, default: false, merging: .or),
         .init(\.block.firstBlockBreakNextStunDouble, .firstBlockBreakNextStunDouble, default: false, merging: .or),
         .init(\.block.retainAllBlockDuringDeathsDoor, .retainAllBlockDuringDeathsDoor, default: false, merging: .or),

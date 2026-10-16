@@ -205,7 +205,7 @@ extension BattleTurnEngineTests {
             keyword: keyword,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
         )
-        #expect(result.healthLost == (keyword == .burn ? 20 : 15))
+        #expect(result.healthLost == (keyword == .burn ? 20 : 16))
     }
 
     @Test(arguments: [Keyword.burn, .physical])

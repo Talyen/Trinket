@@ -4,6 +4,32 @@ import TrinketCore
 @testable import TrinketContent
 
 struct AbilityLocalizationTests {
+    @Test(arguments: [
+        "Take 17% less Holy damage",
+        "Physical and Stun damage remove twice as much Block",
+        "Purge all buffs from the enemy when you Critically Hit",
+        "Purge 3 buffs from the enemy when you Critically Hit",
+    ])
+    func `saved affix rules remain translated without acquiring new damage bonuses`(description: String) {
+        let english = ContentCopy.description(description, locale: Locale(identifier: "en"))
+        let expectedQuantities = description.contains("17%") ? ["quantity_1": 17]
+            : description.contains("3 buffs") ? ["quantity_1": 3] : [:]
+        #expect(english.values == expectedQuantities)
+        for language in ["ja", "ko", "de", "zh-Hant", "fr"] {
+            let translated = ContentCopy.description(description, locale: Locale(identifier: language))
+            #expect(translated.text != english.text)
+            #expect(translated.values == expectedQuantities)
+            for keyword in [Keyword.physical, .holy] {
+                let expected = description.contains(keyword.rawValue) ? 1 : 0
+                let actual = translated.spans.count {
+                    guard case let .keyword(value) = $0.meaning else { return false }
+                    return value == keyword
+                }
+                #expect(actual == expected)
+            }
+        }
+    }
+
     @Test func `item nouns stay distinct from attacks with the same English name`() throws {
         let base = try #require(GameContent.itemBaseType(matching: "maul"))
         let item = InventoryItem(id: "localization-maul", baseType: base, rarity: .basic, displayName: base.name, affixes: [])

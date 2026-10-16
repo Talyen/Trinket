@@ -69,6 +69,11 @@ from displayed language, including canonical numeric text retained in older save
 Its resource and description APIs share one match carrying the typed resource and
 ordered quantities; descriptions bind those quantities to semantic value spans in
 the rendering locale. Exact matches retain precedence over numeric templates.
+`Localization/legacy-content.json` retains description templates still stored in
+saved equipment after catalog wording changes. These localize the saved rule and
+rolled quantities without adding newly authored bonuses to old powers.
+Upgrade colors require matching keyword and quantity identities, independent of
+word order, so expanded rules cannot compare unrelated saved stats.
 Item names resolve by base identity through `InventoryItem.localizedDisplayName(locale:)`;
 shared English words such as the weapon and attack “Maul” can require different translations.
 Pass the app rendering locale into StoreKit product styles so storefront locale does

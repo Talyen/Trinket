@@ -564,8 +564,8 @@ public extension CombatantTalentCatalog {
             "druid_health_t4_1": CombatantTalentEffect(
                 name: "Verdant Shelter",
                 iconID: "sf:asterisk",
-                description: "Allies with Thorns take 25% less damage above half Health",
-                triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.verdantShelterDamageMultiplier = 0.75 })
+                description: "Allies with Thorns take 20% less damage above half Health",
+                triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.verdantShelterDamageMultiplier = 0.80 })
             ),
             "druid_poison_t1_1": CombatantTalentEffect(
                 name: "Barbed Spores",
@@ -606,8 +606,8 @@ public extension CombatantTalentCatalog {
             "druid_poison_t4_1": CombatantTalentEffect(
                 name: "Thorn Shedding",
                 iconID: "sf:leaf.fill",
-                description: "Thorns deal 2 bonus Poison damage once per turn",
-                triggers: CombatTraitTriggers(dot: DotTriggers { $0.firstThornsPoisonDamagePerTurn = 2 })
+                description: "Thorns deal 1 bonus Poison damage once per turn",
+                triggers: CombatTraitTriggers(dot: DotTriggers { $0.firstThornsPoisonDamagePerTurn = 1 })
             ),
             "druid_mana_t1_1": CombatantTalentEffect(
                 name: "Arcane Thorns",
@@ -882,8 +882,8 @@ public extension CombatantTalentCatalog {
             "alchemist_health_t1_2": CombatantTalentEffect(
                 name: "Lifeline",
                 iconID: "sf:eyedropper",
-                description: "Restoring Health has a 10% chance to draw a card",
-                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestoreDrawChancePercent = 0.10 })
+                description: "Restoring Health has a 20% chance to draw a card",
+                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestoreDrawChancePercent = 0.20 })
             ),
             "alchemist_health_t2_1": CombatantTalentEffect(
                 name: "Cooling Salve",
@@ -1216,8 +1216,8 @@ public extension CombatantTalentCatalog {
             "bear_block_t1_1": CombatantTalentEffect(
                 name: "Thick Hide",
                 iconID: "sf:shield.fill",
-                description: "While you have Block, take 2 less Physical damage",
-                triggers: CombatTraitTriggers(block: BlockTriggers { $0.physicalMitigationWhileBlockedFlat = 2 })
+                description: "While you have Block, take 3 less Physical damage",
+                triggers: CombatTraitTriggers(block: BlockTriggers { $0.physicalMitigationWhileBlockedFlat = 3 })
             ),
             "bear_block_t1_2": CombatantTalentEffect(
                 name: "Hibernation",
@@ -2119,8 +2119,8 @@ public extension CombatantTalentCatalog {
             "library_owl_health_t1_1": CombatantTalentEffect(
                 name: "Safe Perch",
                 iconID: "sf:bird.fill",
-                description: "At full Health, gain +10% Dodge chance",
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers { $0.dodgeAtFullHealthBonus = 0.10 })
+                description: "At full Health, gain +20% Dodge chance",
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers { $0.dodgeAtFullHealthBonus = 0.20 })
             ),
             "library_owl_health_t1_2": CombatantTalentEffect(
                 name: "Warded Roost",
@@ -2137,8 +2137,8 @@ public extension CombatantTalentCatalog {
             "library_owl_health_t2_2": CombatantTalentEffect(
                 name: "Aether Shield",
                 iconID: "sf:shield.fill",
-                description: "Restoring Health has a 10% chance to grant equal Block",
-                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestoreBlockChancePercent = 0.10 })
+                description: "Restoring Health has a 20% chance to grant equal Block",
+                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestoreBlockChancePercent = 0.20 })
             ),
             "library_owl_health_t3_1": CombatantTalentEffect(
                 name: "Guardian Archive",
@@ -2369,8 +2369,8 @@ public extension CombatantTalentCatalog {
             "mana_moth_freeze_t2_2": CombatantTalentEffect(
                 name: "Subzero Mist",
                 iconID: "sf:cloud.fog.fill",
-                description: "Freeze has a 10% chance to last an extra turn",
-                triggers: CombatTraitTriggers(control: ControlTriggers { $0.freezeExtendChancePercent = 0.10 })
+                description: "Freeze has a 20% chance to last an extra turn",
+                triggers: CombatTraitTriggers(control: ControlTriggers { $0.freezeExtendChancePercent = 0.20 })
             ),
             "mana_moth_freeze_t3_1": CombatantTalentEffect(
                 name: "Flash Freeze",
@@ -2698,8 +2698,8 @@ public extension CombatantTalentCatalog {
             "shield_scarab_block_t4_1": CombatantTalentEffect(
                 name: "Adamant Carapace",
                 iconID: "sf:lock.shield.fill",
-                description: "Your Block absorbs twice as much damage",
-                triggers: CombatTraitTriggers(block: BlockTriggers { $0.doubleAllBlockAbsorption = true })
+                description: "Your Block absorbs 50% more damage",
+                triggers: CombatTraitTriggers(block: BlockTriggers { $0.blockAbsorptionMultiplier = 1.5 })
             ),
             "shield_scarab_stun_t4_1": CombatantTalentEffect(
                 name: "Resonant Shell",
