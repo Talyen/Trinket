@@ -176,7 +176,8 @@ class TrinketUITestCase: XCTestCase {
         var recordedIssue = issue
         if issue.isFailure, !hasCapturedFailureScreenshot, let app {
             hasCapturedFailureScreenshot = true
-            let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            let imageData = trinketOnMainActor { XCUIScreen.main.screenshot().pngRepresentation }
+            let attachment = XCTAttachment(data: imageData, uniformTypeIdentifier: "public.png")
             attachment.name = "Failure Screenshot"
             attachment.lifetime = .keepAlways
             recordedIssue.attachments.append(attachment)
