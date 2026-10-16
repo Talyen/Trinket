@@ -11,10 +11,8 @@ public enum ItemDropTier: String, CaseIterable, Sendable {
 
 enum ItemLootPolicy {
     static func progress(level: Int) -> Double {
-        let clamped = Double(min(max(level, 1), 40) - 1)
-        let span = 39.0
-        let curvature = 25.0
-        return (clamped / (curvature + clamped)) / (span / (curvature + span))
+        let x = Double(min(max(level, 1), 40) - 1) / 39
+        return x * x * (3 - 2 * x)
     }
 
     static func probabilities(
@@ -28,6 +26,16 @@ enum ItemLootPolicy {
     ) -> [Double] {
         if bossContent {
             let collectibles = availableTiers.intersection([.trinket, .unique])
+            if collectibles.count == 2 {
+                let uniqueChance = 0.05 + 0.45 * progress(level: level)
+                return ItemDropTier.allCases.map { tier in
+                    switch tier {
+                    case .trinket: 1 - uniqueChance
+                    case .unique: uniqueChance
+                    case .basic, .astral: 0
+                    }
+                }
+            }
             let targets: Set<ItemDropTier> = if !collectibles.isEmpty {
                 collectibles
             } else if availableTiers.contains(.astral) {

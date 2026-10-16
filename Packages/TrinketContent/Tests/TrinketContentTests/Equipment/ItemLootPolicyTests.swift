@@ -6,11 +6,12 @@ import TrinketCore
 struct ItemLootPolicyTests {
     @Test(arguments: [
         (1, [0.98, 0.015, 0.004, 0.001]),
+        (10, [0.928629949931725, 0.04000910332271279, 0.019681383705052347, 0.011679563040509788]),
         (40, [0.60, 0.20, 0.12, 0.08]),
         (Int.min, [0.98, 0.015, 0.004, 0.001]),
         (Int.max, [0.60, 0.20, 0.12, 0.08]),
     ])
-    func `endpoints match authored weights and clamp`(level: Int, expected: [Double]) {
+    func `ordinary odds delay rare loot and preserve clamped endpoints`(level: Int, expected: [Double]) {
         let actual = probabilities(level: level)
         #expect(actual.count == expected.count)
         for (value, target) in zip(actual, expected) {
@@ -37,13 +38,25 @@ struct ItemLootPolicyTests {
         #expect(probabilities(level: 1, boss: boss, bonus: -20) == base)
     }
 
+    @Test(arguments: [(Int.min, 0.05), (1, 0.05), (10, 0.1108329540282203), (40, 0.5), (Int.max, 0.5)])
+    func `boss unique chance grows from five to fifty percent regardless of bonuses`(level: Int, uniqueChance: Double) {
+        for bonus in [0, 20] {
+            let actual = ItemLootPolicy.probabilities(
+                level: level, bossContent: true, astralChanceBonusPercent: bonus,
+                availableTiers: Set(ItemDropTier.allCases), favoredTier: .unique, tierWeightBonusPercent: 100,
+            )
+            #expect(actual[0] == 0 && actual[1] == 0)
+            #expect(abs(actual[2] - (1 - uniqueChance)) < 1e-12)
+            #expect(abs(actual[3] - uniqueChance) < 1e-12)
+        }
+    }
+
     @Test(arguments: [1, 40], [
-        (Set(ItemDropTier.allCases), [0.0, 0, 0.5, 0.5]),
         (Set([ItemDropTier.astral, .trinket]), [0.0, 0, 1, 0]),
         (Set([ItemDropTier.astral, .unique]), [0.0, 0, 0, 1]),
         (Set([ItemDropTier.basic, .astral]), [0.0, 1, 0, 0]),
     ])
-    func `boss guarantees collectibles equally then astral regardless of bonuses`(
+    func `boss guarantees remaining collectible then astral regardless of bonuses`(
         level: Int, pool: (Set<ItemDropTier>, [Double]),
     ) {
         for bonus in [0, 20] {

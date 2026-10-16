@@ -84,17 +84,17 @@ struct RewardSettlementTests {
             stageGold: 10, materials: [ResourceAmount(.wood, 3)], items: [],
             experienceEarnedPercent: 30, victoryOnlyExperienceBonusPercent: 50,
         )
-        // L1 normal XP is 7: Library +20%, shared +30%, victory-only +50%.
-        #expect(plan.heroExperience == 14)
-        #expect(plan.companionExperience == 14)
-        #expect(plan.defeatHeroExperience == 11)
-        #expect(plan.defeatCompanionExperience == 11)
+        // L1 normal XP is 3: Library +20%, shared +30%, victory-only +50%.
+        #expect(plan.heroExperience == 6)
+        #expect(plan.companionExperience == 6)
+        #expect(plan.defeatHeroExperience == 5)
+        #expect(plan.defeatCompanionExperience == 5)
         let defeat = plan.settleDefeat(
             progress: .init(remainingHealth: 50, maximumHealth: 100),
             inputs: inputs(heroLevel: 1, companionLevel: 1),
         )
-        #expect(defeat.award.heroExperience == 2)
-        #expect(defeat.award.companionExperience == 2)
+        #expect(defeat.award.heroExperience == 1)
+        #expect(defeat.award.companionExperience == 1)
 
         let claimed = BattleRewardPlan.forEncounter(
             party: (.at(level: 1), .at(level: 1)), highestLevels: (1, 1),

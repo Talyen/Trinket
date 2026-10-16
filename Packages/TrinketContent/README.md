@@ -94,12 +94,15 @@ the other slots. Save fields and offer identifiers retain their existing formats
 shops, Mysteries, and Blacksmith forging. Tune level endpoints, tier weights,
 curvature, and the boss guarantee in `Sources/TrinketContent/Equipment/ItemLootPolicy.swift`;
 affix counts and keyword bias live with `ItemGenerator.swift`.
-The loot policy blends the endpoint weights using normalized curved level
-progression, clamped to levels 1–40. Ordinary rewards use those weights; Moonlit Sanctum multiplies
+The loot policy blends the endpoint weights with smoothstep `x² × (3 − 2x)`, where
+`x = (clamp(level, 1, 40) - 1) / 39`. This delays early rare drops while preserving
+level-1 and level-40 weights. Ordinary rewards use those weights; Moonlit Sanctum multiplies
 Astral weight by `1 + bonus/100`. After ownership, reservations, keywords, and
 explicit pools remove unavailable categories, the remaining weights normalize.
-Boss victories instead guarantee an uncollected Trinket or Unique with equal category odds,
-choosing uniformly within the selected full catalog. A completed category leaves the other
+Boss victories instead guarantee an uncollected Trinket or Unique. With both categories
+available, Unique chance is `5% + 45% × smoothstep(x)` and Trinkets receive the remainder;
+the odds reach 50/50 at level 40. Selection is uniform within the selected full catalog.
+A completed category leaves the other
 at 100%; both complete guarantees Astral equipment. Boss collectible selection ignores
 keyword restrictions, Sanctum, and item-tier weighting. The opening Journey boss's first
 reward claim guarantees an uncollected Trinket, falling back to the regular boss rule

@@ -22,11 +22,10 @@ public enum ExperienceScaling {
     public static func baseBattleAward(forPlayerLevel level: Int) -> Int {
         let required = CombatantProgression.requiredXP(forLevel: level)
         let battles = if level < EnemyPowerCurve.midLevel {
-            1.5
-        } else if level < EnemyPowerCurve.lateLevel {
-            2.5
+            3 + Double(max(1, level) - 1) / Double(EnemyPowerCurve.midLevel - 1)
         } else {
-            3.5
+            4 + Double(min(level, EnemyPowerCurve.lateLevel) - EnemyPowerCurve.midLevel)
+                / Double(EnemyPowerCurve.lateLevel - EnemyPowerCurve.midLevel)
         }
         return max(1, CombatRounding.rounded(Double(required) / battles))
     }

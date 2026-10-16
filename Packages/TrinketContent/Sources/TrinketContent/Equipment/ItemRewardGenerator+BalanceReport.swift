@@ -6,6 +6,7 @@ public extension ItemRewardGenerator {
             "# Loot balance",
             "",
             "Exact probabilities from the production policy. Repeated-reward chances assume unchanged level, bonuses, and pool availability.",
+            "With both collectible categories available, Boss Unique chance rises from 5% at level 1 to 50% at level 40; Trinkets receive the remainder.",
             "The opening Journey boss guarantees an uncollected Trinket on its first reward claim; exhausted Trinkets use the normal Boss profile.",
             "",
             "| Level | Profile | Sanctum | Pool | Basic % | Astral % | Trinket % | Unique % | Premium in 10 % | Premium in 20 % |",

@@ -7,7 +7,7 @@ public enum EnemyPowerCurve {
         case recovery
     }
 
-    /// Bracket boundaries; the single source of truth read directly by
+    /// Progression anchors; the single source of truth read directly by
     /// `ExperienceScaling.baseBattleAward`.
     static let midLevel = 20
     static let lateLevel = 40

@@ -52,9 +52,10 @@ Wood, Stone, Iron, Food, Herbs, Hide, and Gems bonuses guarantee that resource i
 one of the two material slots and increase its quantity by 25%; the other slot
 remains random and distinct. Existing quantity rounding and reward caps apply.
 
-Hard Contracts use the shared boss guarantee: equal odds of an uncollected Trinket
-or Unique, the remaining category when one is complete, and Astral when both are
-complete. Item-focused modifiers are excluded from new Hard offers; existing saved
+Hard Contracts use the [shared boss guarantee](../../Packages/TrinketContent/README.md#random-item-rewards):
+early levels favor an uncollected Trinket over a Unique, reaching equal category odds
+at level 40. The remaining category receives the reward when one is complete, and
+Astral when both are complete. Item-focused modifiers are excluded from new Hard offers; existing saved
 Hard item modifiers display and pay Bonus Gold without changing their saved IDs.
 
 Astral, Trinket, and Unique bonuses double the selected eligible item-tier weight

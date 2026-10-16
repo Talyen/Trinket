@@ -17,8 +17,9 @@ highest won encounter level through `CampaignRewardLevel`, rather than the curre
 party or battle level.
 Unsettled completion uses Content's `EncounterScaling` mode policy; Spires retain
 their fixed floor level even when the active party is below it.
-`VictoryRewardApplier` owns reward application to the save. Bosses use equal Trinket/Unique
-category odds over uncollected full catalogs, the remaining category if one is complete,
+`VictoryRewardApplier` owns reward application to the save. Bosses use the
+[shared level-based collectible odds](../../Packages/TrinketContent/README.md#random-item-rewards)
+over uncollected full catalogs, the remaining category if one is complete,
 and Astral if both are complete. The opening Journey boss guarantees a Trinket until
 its reward is claimed, with the same exhaustion fallback. Existing claimed IDs prevent
 retroactive awards; no new saved flag is used. Neither boss path can produce Basic.
@@ -100,9 +101,15 @@ same Gold fallback as collectible weight bonuses.
 
 ## Battle experience
 
+`ExperienceScaling.baseBattleAward` divides the level's unchanged XP requirement by
+a target battle count: linear interpolation from 3 at level 1 to 4 at level 20 to
+5 at level 40, holding at 5 afterward. Awards retain integer rounding and a minimum
+of 1 XP. This base also drives Mystery XP and Gold-overflow XP; saved progression
+and pinned rewards retain their values.
+
 Shared battle XP scales per recipient with enemy level. The existing smoothstep
 penalty reaches zero at ten levels below the recipient; its mirrored bonus reaches
-2× base XP at ten levels above and saturates there. Equal-level XP remains unchanged.
+2× base XP at ten levels above and saturates there. Equal-level encounters use base XP.
 Role-specific catch-up, mode bonuses, and existing final caps still apply.
 
 Defeat and retreat XP use `BattleRewardPlan.settleDefeat` with launch-baked XP

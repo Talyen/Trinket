@@ -53,14 +53,14 @@ struct ExperienceScalingTests {
         #expect(ExperienceScaling.cappedAward(10, requiredXP: -5) == 0)
     }
 
-    @Test(arguments: [(1, 7), (19, 175), (20, 114), (39, 369), (40, 276)])
-    func `battle XP changes pace at the shared progression boundaries`(level: Int, expected: Int) {
+    @Test(arguments: [(Int.min, 3), (1, 3), (10, 27), (19, 66), (20, 71), (21, 77), (30, 128), (39, 186), (40, 193), (60, 409)])
+    func `battle XP gradually targets three four then five battles per level`(level: Int, expected: Int) {
         #expect(ExperienceScaling.baseBattleAward(forPlayerLevel: level) == expected)
     }
 
     @Test func `battle award applies level delta and catch up multiplier`() {
         #expect(ExperienceScaling.battleAward(playerLevel: 20, enemyLevel: 5) == 0)
-        #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) == 25)
+        #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) == 12)
 
         #expect(
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0,
@@ -68,7 +68,7 @@ struct ExperienceScalingTests {
 
         #expect(
             ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10)
-                == 59,
+                == 29,
         )
     }
 
