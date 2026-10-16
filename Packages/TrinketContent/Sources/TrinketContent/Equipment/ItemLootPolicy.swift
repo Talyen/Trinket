@@ -24,6 +24,7 @@ enum ItemLootPolicy {
         availableTiers: Set<ItemDropTier>,
         favoredTier: ItemDropTier? = nil,
         tierWeightBonusPercent: Int = 0,
+        collectibleChancePercent: Int = 100,
     ) -> [Double] {
         let t = progress(level: level)
         let weights = ItemDropTier.allCases.map { tier in
@@ -48,7 +49,20 @@ enum ItemLootPolicy {
         }
         let total = weights.reduce(0, +)
         precondition(total > 0, "Item rewards require an eligible category.")
-        return weights.map { $0 / total }
+        var probabilities = weights.map { $0 / total }
+        guard collectibleChancePercent < 100,
+              let gearIndex = ItemDropTier.allCases.firstIndex(where: {
+                  ($0 == .basic || $0 == .astral) && availableTiers.contains($0)
+              })
+        else { return probabilities }
+        // Scale actual chances after eligibility and bonuses, not raw weights.
+        // Return the removed chance to Basic gear (Astral for Astral-only pools).
+        let retained = Double(max(0, collectibleChancePercent)) / 100
+        for (index, tier) in ItemDropTier.allCases.enumerated() where tier == .trinket || tier == .unique {
+            probabilities[gearIndex] += probabilities[index] * (1 - retained)
+            probabilities[index] *= retained
+        }
+        return probabilities
     }
 
     static func roll(probabilities: [Double], using randomNumberGenerator: inout some RandomNumberGenerator) -> ItemDropTier {

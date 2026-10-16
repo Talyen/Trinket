@@ -57,6 +57,27 @@ struct ItemLootPolicyTests {
         #expect(abs(actual[1] / actual[0] - 24 / 60) < 1e-12)
     }
 
+    @Test(arguments: [1, 40], [
+        Set(ItemDropTier.allCases),
+        Set([ItemDropTier.basic, .astral, .trinket]),
+        Set([ItemDropTier.basic, .astral, .unique]),
+        Set([ItemDropTier.basic, .astral]),
+    ])
+    func `mystery reduction halves eligible collectible chances after bonuses`(level: Int, available: Set<ItemDropTier>) {
+        let ordinary = ItemLootPolicy.probabilities(
+            level: level, bossContent: false, astralChanceBonusPercent: 20, availableTiers: available,
+        )
+        let mystery = ItemLootPolicy.probabilities(
+            level: level, bossContent: false, astralChanceBonusPercent: 20, availableTiers: available,
+            collectibleChancePercent: 50,
+        )
+        #expect(abs(mystery[2] - ordinary[2] / 2) < 1e-12)
+        #expect(abs(mystery[3] - ordinary[3] / 2) < 1e-12)
+        #expect(mystery[1] == ordinary[1])
+        #expect(abs(mystery[0] - ordinary[0] - (ordinary[2] + ordinary[3]) / 2) < 1e-12)
+        #expect(abs(mystery.reduce(0, +) - 1) < 1e-12)
+    }
+
     @Test func `weighted draws respect cumulative boundaries and skip unavailable tiers`() throws {
         let initial = SeededRandomNumberGenerator(seed: 42)
         var probe = initial

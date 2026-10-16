@@ -37,6 +37,10 @@ reveal; later item inspection uses the standard number styling.
   party and difficulty determine the encounter level for secondary rewards.
   Moonlit Sanctum scales Astral weight relatively. Remove unavailable special categories before normalizing the
   remaining weights; never substitute an unrelated special item or promote gear.
+  For each newly rolled offer, halve the resulting Trinket and Unique probabilities
+  and return the removed chance to Basic gear, leaving Astral probability unchanged.
+  With both special categories eligible and no Sanctum bonus, level-40 odds per
+  offer are 6% Trinket and 4% Unique. Other reward sources keep their existing odds.
 - Keep the existing Manabound guarantee for the Mana Berries harvest, Crystal
   Geode gem collection, and Crystal Garden shard collection.
 - Materials use the existing encounter-level quantity and applicable bonuses.

@@ -71,6 +71,7 @@ public struct MysteryRewardResolver: Sendable {
             id: id,
             rewardLevel: rewardLevel,
             astralChanceBonusPercent: homesteadEffects.astralChanceBonusPercent,
+            collectibleChancePercent: 50,
             ownedTrinketIDs: ownership.ownedTrinketIDs,
             ownedUniqueIDs: ownership.ownedUniqueIDs,
             eligibleTrinketIDs: pool.trinketIDs,

@@ -9,6 +9,7 @@ public enum ItemRewardGenerator {
         allowedTiers: Set<ItemDropTier> = Set(ItemDropTier.allCases),
         favoredTier: ItemDropTier? = nil,
         tierWeightBonusPercent: Int = 0,
+        collectibleChancePercent: Int = 100,
         requiredKeyword: Keyword? = nil,
         ownedTrinketIDs: Set<String>,
         ownedUniqueIDs: Set<String>,
@@ -61,7 +62,7 @@ public enum ItemRewardGenerator {
             astralChanceBonusPercent: astralChanceBonusPercent,
             availableTiers: available,
             favoredTier: favoredTier,
-            tierWeightBonusPercent: tierWeightBonusPercent,
+            tierWeightBonusPercent: tierWeightBonusPercent, collectibleChancePercent: collectibleChancePercent,
         )
         let rarity: Rarity
         switch ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator) {

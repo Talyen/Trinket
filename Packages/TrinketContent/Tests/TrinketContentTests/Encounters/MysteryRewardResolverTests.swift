@@ -33,11 +33,12 @@ struct MysteryRewardResolverTests {
         ]
         let unownedWeights = ItemLootPolicy.probabilities(
             level: 20, bossContent: false, astralChanceBonusPercent: 0,
-            availableTiers: Set(ItemDropTier.allCases),
+            availableTiers: Set(ItemDropTier.allCases), collectibleChancePercent: 50,
         )
         for (ownership, available) in scenarios {
             let weights = ItemLootPolicy.probabilities(
                 level: 20, bossContent: false, astralChanceBonusPercent: 0, availableTiers: available,
+                collectibleChancePercent: 50,
             )
             for (index, tier) in ItemDropTier.allCases.enumerated() {
                 // Also probe draws that would have selected an owned collectible
