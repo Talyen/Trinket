@@ -42,11 +42,13 @@ overlap; under saturation, the oldest fades out. Decorative cards never
 intercept touches or affect gameplay.
 
 With the autoplay toggle enabled, cards commit immediately from their resting
-hand position and use the same rise and dissolve as tap-to-play. There is no
-separate pre-lift or play delay. Autoplay starts the next card after 0.85 seconds,
-allowing the final 0.15 seconds of the one-second departure visuals to overlap. It pauses for manual interaction,
-while manual plays remain available during those casts.
-Autoplay keeps its sequenced combat feedback.
+hand position. Attack-card rise and dissolve follow the scheduled wind-up and
+finish dissolving as the swing starts, including shortened preparation and queued
+attacks. The remaining particles keep their normal lifetime. Support cards use the
+ordinary tap departure. There is no separate pre-lift or gameplay delay.
+Autoplay starts the next card after 0.85 seconds, allowing departure visuals to
+overlap. It pauses for manual interaction, while manual plays remain immediate
+and available during those casts. Autoplay keeps its sequenced combat feedback.
 
 ## Automatic cards stay full-size
 

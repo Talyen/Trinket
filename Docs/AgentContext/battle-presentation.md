@@ -85,7 +85,12 @@ drag commits its swing and skips preparation. Each scheduled action retains its
 swing, recovery, and acceleration preparation cap. Later attacks
 by the same actor can shorten pending preparation to a 0.08-second cap
 and interrupt recovery, while distinct impacts remain ordered. Automatic card
-reveal and dissolve use the same scheduled swing time. Manual results and recoil publish at commitment
+reveal and dissolve use the same scheduled swing time. Auto Battle hand departures
+share the action's recorded cast identity and clock: their rise/dissolve spans
+preparation and finishes at swing, followed by the ordinary particle tail. Retiming
+and suspension update that same cast; hand departures never render as fly-in cards.
+Their cleanup follows the scheduled end rather than a fixed delay from commitment.
+Manual results and recoil publish at commitment
 while attacker motion continues. Skipped and support actions
 do not invent attacks.
 

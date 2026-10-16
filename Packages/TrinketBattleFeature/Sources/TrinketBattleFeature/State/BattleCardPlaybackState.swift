@@ -3,11 +3,30 @@ import Foundation
 import Observation
 
 struct BattleRecordedCardCast: Equatable, Identifiable {
-    let id = UUID()
+    let id: UUID
     var startedAt: Date
     var activationAt: Date
     var pausedAt: Date?
     let card: BattleCard
+    let isHandDeparture: Bool
+
+    var departureEndAt: Date {
+        activationAt.addingTimeInterval(
+            BattleMotion.cardActivationDuration * (1 - Double(CardDissolveConfiguration().dissolveDuration)),
+        )
+    }
+
+    func departureProgress(at date: Date) -> CGFloat {
+        // Finish the artwork at swing; preserve the particle tail's authored speed.
+        let date = pausedAt ?? date
+        let dissolve = CardDissolveConfiguration().dissolveDuration
+        if date < activationAt {
+            let preparation = activationAt.timeIntervalSince(startedAt)
+            guard preparation > 0 else { return 0 }
+            return dissolve * CGFloat(max(0, date.timeIntervalSince(startedAt)) / preparation)
+        }
+        return min(1, dissolve + CGFloat(date.timeIntervalSince(activationAt) / BattleMotion.cardActivationDuration))
+    }
 }
 
 @MainActor
@@ -16,9 +35,22 @@ final class BattleCardPlaybackState {
     private(set) var casts: [BattleRecordedCardCast] = []
     private(set) var isSuspended = false
 
+    var automaticCasts: [BattleRecordedCardCast] {
+        casts.filter { !$0.isHandDeparture }
+    }
+
+    func handDeparture(id: UUID) -> BattleRecordedCardCast? {
+        casts.first { $0.id == id && $0.isHandDeparture }
+    }
+
     @discardableResult
-    func append(_ card: BattleCard, at date: Date, activationAt: Date) -> UUID {
-        let cast = BattleRecordedCardCast(startedAt: date, activationAt: activationAt, card: card)
+    func append(
+        _ card: BattleCard, at date: Date, activationAt: Date,
+        id: UUID = UUID(), isHandDeparture: Bool = false,
+    ) -> UUID {
+        let cast = BattleRecordedCardCast(
+            id: id, startedAt: date, activationAt: activationAt, card: card, isHandDeparture: isHandDeparture,
+        )
         casts.append(cast)
         return cast.id
     }

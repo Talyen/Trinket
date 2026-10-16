@@ -10,6 +10,7 @@ extension BattleSession {
         playedCardID: Int? = nil,
         preparedCardID: Int? = nil,
         isAutomatic: Bool = false,
+        handDeparture: (id: UUID, card: BattleCard)? = nil,
     ) {
         guard activeBattle?.id == playback.configurationID else { return }
         let previousIDs = Set(presentation.hand.map(\.id))
@@ -37,6 +38,7 @@ extension BattleSession {
         feedback.scheduleActions(
             playback, preparedCardID: preparedCardID, playedCardID: isAutomatic ? nil : playedCardID,
             at: date, cardPlayback: cardPlayback,
+            handDeparture: handDeparture,
         ) { [weak self] events, damage, impactAt, groupID in
             guard let self, activeBattle?.id == configurationID else { return }
             feedback.record(

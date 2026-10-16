@@ -90,7 +90,7 @@ public struct GameFeelPreviewView: View {
                 .overlay {
                     GeometryReader { geometry in
                         let hand = BattleHandLayout.frame(in: geometry.size)
-                        ForEach(fixture.session.cardPlayback.casts) { cast in
+                        ForEach(fixture.session.cardPlayback.automaticCasts) { cast in
                             AutomaticCardCastView(
                                 cast: cast,
                                 stagingFrame: CGRect(x: hand.minX, y: 0, width: hand.width, height: max(0, hand.minY)),

@@ -8,6 +8,7 @@ extension BattleFeedbackLane {
         playedCardID: Int? = nil,
         at date: Date,
         cardPlayback: BattleCardPlaybackState,
+        handDeparture: (id: UUID, card: BattleCard)? = nil,
         present: @escaping ([ActionEvent], [BattleResolvedDamage], Date, Int) -> Void,
     ) {
         advance(to: date)
@@ -20,7 +21,8 @@ extension BattleFeedbackLane {
             let action = group.action
             let automaticIndex = automaticCards.firstIndex { $0.id == action?.cardID }
             let card = automaticIndex.map { automaticCards.remove(at: $0) }
-            guard !group.events.isEmpty || card != nil else { continue }
+            let departure = handDeparture.flatMap { action?.cardID == $0.card.id ? $0 : nil }
+            guard !group.events.isEmpty || card != nil || departure != nil else { continue }
             let actorID = action.flatMap { $0.isAttack ? $0.actorID : nil }
             let isManual = playedCardID != nil && action?.cardID == playedCardID
             let isPrepared = action?.cardID != nil && action?.cardID == preparedCardID
@@ -43,12 +45,13 @@ extension BattleFeedbackLane {
                 swingAt.addingTimeInterval(actorID == nil ? 0 : timing.swing),
                 previousImpact?.addingTimeInterval(timing.swing) ?? date,
             )
-            let castID = card.map {
+            let castCard = card ?? (actorID == nil ? nil : departure?.card)
+            let castID = castCard.map {
                 cardPlayback.append(
-                    $0,
-                    at: revealAt,
+                    $0, at: departure == nil ? revealAt : startAt,
                     activationAt: actorID == nil
                         ? max(impactAt, revealAt.addingTimeInterval(BattleMotion.automaticCardRevealDuration)) : swingAt,
+                    id: departure?.id ?? UUID(), isHandDeparture: departure != nil,
                 )
             }
             let beatID = actionQueue.append { id in

@@ -24,7 +24,13 @@ final class BattleCastPresentationState {
     @ObservationIgnored
     private var pendingStuckResetTasks: [UUID: Task<Void, Never>] = [:]
 
-    func append(_ request: CardActivationRequest) {
+    @ObservationIgnored
+    private weak var playback: BattleCardPlaybackState?
+
+    func append(_ request: CardActivationRequest, playback: BattleCardPlaybackState? = nil) {
+        if let playback {
+            self.playback = playback
+        }
         if requests.count == 6, let oldest = requests.first {
             withAnimation(.easeOut(duration: BattleMotion.feedbackHandoffDuration)) {
                 remove(id: oldest.id)
@@ -35,6 +41,7 @@ final class BattleCastPresentationState {
     }
 
     func remove(id: UUID) {
+        playback?.remove(id: id)
         requests.removeAll { $0.id == id }
         pendingStuckResetTasks.removeValue(forKey: id)?.cancel()
     }
@@ -46,6 +53,9 @@ final class BattleCastPresentationState {
     }
 
     func reset() {
+        for request in requests {
+            playback?.remove(id: request.id)
+        }
         requests.removeAll()
         for task in pendingStuckResetTasks.values {
             task.cancel()
@@ -68,8 +78,9 @@ final class BattleCastPresentationState {
 
     private func scheduleStuckReset(for request: CardActivationRequest) {
         pendingStuckResetTasks.removeValue(forKey: request.id)?.cancel()
+        let endAt = request.completionDate(scheduledCast: playback?.handDeparture(id: request.id))
         let delay = stuckResetDelayOverride
-            ?? max(0, BattleMotion.cardActivationDuration - Date.now.timeIntervalSince(request.startedAt))
+            ?? max(0, endAt.timeIntervalSinceNow)
             + BattleMotion.cardActivationStuckSlack
         pendingStuckResetTasks[request.id] = Task { @MainActor [weak self] in
             if delay > 0 {
@@ -95,6 +106,14 @@ struct CardActivationRequest: Equatable, Identifiable {
     let perspective: CGFloat
     let keywords: [Keyword]
     let particles: [CardActivationParticle]
+
+    func completionDate(scheduledCast: BattleRecordedCardCast?) -> Date {
+        guard let scheduledCast else {
+            return startedAt.addingTimeInterval(BattleMotion.cardActivationDuration)
+        }
+        // A shortened dissolve must not release autoplay's cadence early.
+        return max(scheduledCast.departureEndAt, startedAt.addingTimeInterval(BattleMotion.autoBattleCardInterval))
+    }
 
     init(
         id: UUID = UUID(),
@@ -162,6 +181,7 @@ struct CardActivationRequest: Equatable, Identifiable {
 
 struct CardCastEffectsLayer: View {
     let request: CardActivationRequest?
+    let scheduledCast: BattleRecordedCardCast?
     let onFinished: (UUID) -> Void
 
     private static let idleRequest = CardActivationRequest(
@@ -178,15 +198,16 @@ struct CardCastEffectsLayer: View {
         TimelineView(.animation(paused: request == nil || request?.pausedAt != nil)) { timeline in
             let displayedRequest = request ?? Self.idleRequest
             let progress = request.map {
-                cardActivationProgress(elapsed: ($0.pausedAt ?? timeline.date).timeIntervalSince($0.startedAt))
+                scheduledCast?.departureProgress(at: $0.pausedAt ?? timeline.date)
+                    ?? cardActivationProgress(elapsed: ($0.pausedAt ?? timeline.date).timeIntervalSince($0.startedAt))
             } ?? 0
             cast(displayedRequest, progress: progress)
                 .opacity(request?.isVisible == true ? 1 : 0)
         }
-        .task(id: request) {
+        .task(id: completionDate) {
             guard let request, request.pausedAt == nil else { return }
-            let elapsed = Date.now.timeIntervalSince(request.startedAt)
-            let remaining = max(0, BattleMotion.cardActivationDuration - elapsed)
+            guard let completionDate else { return }
+            let remaining = max(0, completionDate.timeIntervalSinceNow)
             try? await Task.sleep(for: .seconds(remaining))
             guard !Task.isCancelled else { return }
             onFinished(request.id)
@@ -201,6 +222,11 @@ struct CardCastEffectsLayer: View {
             BattleFramePacingSignposts.Name.cardCast,
             isActive: request != nil,
         )
+    }
+
+    private var completionDate: Date? {
+        guard let request, request.pausedAt == nil, scheduledCast?.pausedAt == nil else { return nil }
+        return request.completionDate(scheduledCast: scheduledCast)
     }
 
     private func cast(_ request: CardActivationRequest, progress: CGFloat) -> some View {
@@ -240,7 +266,7 @@ struct CardCastPresentationLane: View {
     var body: some View {
         ZStack {
             ForEach(presentation.requests) { request in
-                CardCastEffectsLayer(request: request) { requestID in
+                CardCastEffectsLayer(request: request, scheduledCast: playback.handDeparture(id: request.id)) { requestID in
                     presentation.remove(id: requestID)
                 }
                 .transition(.opacity)

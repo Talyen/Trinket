@@ -23,9 +23,11 @@ extension BattleFieldLane {
     }
 
     func playCard(_ card: BattleCard, request: CardActivationRequest, isAutomatic: Bool = false) -> Bool {
-        let outcome = input.perform { $0.playCard(cardID: card.id, isAutomatic: isAutomatic) }
+        let outcome = input.perform {
+            $0.playCard(cardID: card.id, isAutomatic: isAutomatic, departureID: isAutomatic ? request.id : nil)
+        }
         guard outcome == .committed else { return false }
-        castPresentation.append(request)
+        castPresentation.append(request, playback: presentation.cardPlayback)
         return true
     }
 

@@ -82,27 +82,23 @@ struct BattleSessionCardCueTests {
         #expect(session.hand.contains(card))
     }
 
-    @Test func `auto battle departs from rest and a manual play commits during its cast`() throws {
+    @Test(arguments: [false, true])
+    func `auto battle departs from rest and a manual play commits during its cast`(queued: Bool) throws {
         let session = makeSession()
         defer { session.endBattle() }
         let card = try install(.slash, in: session)
         var state = try #require(session.engineState)
-        let next = BattleCardCombatEngine.deal(.block, owner: .hero, context: &state)
+        let next = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &state)
+        let preceding = queued ? BattleCardCombatEngine.deal(.slash, owner: .companion, context: &state) : nil
         session.engineState = state
         session.installSimulationPresentation()
+        if let preceding {
+            #expect(session.playCard(cardID: preceding.id) == .committed)
+        }
         session.isAutoBattleEnabled = true
-        let configuration = try #require(session.activeBattle)
-        let presentation = try #require(session.presentationContext)
         let casts = BattleCastPresentationState()
         defer { casts.reset() }
-        let field = BattleFieldLane(
-            configuration: configuration,
-            presentationContext: presentation,
-            battleSession: session,
-            presentation: session.presentation,
-            interactionState: BattleInteractionState(),
-            castPresentation: casts,
-        )
+        let field = try makeField(in: session, casts: casts)
         let battleSize = CGSize(width: 375, height: 667)
         let handFrame = BattleHandLayout.frame(in: battleSize)
         let departure = CardActivationRequest.restingRequest(
@@ -115,9 +111,11 @@ struct BattleSessionCardCueTests {
         #expect(automaticCast.center == departure.center)
         #expect(automaticCast.size == departure.size)
         #expect(automaticCast.rotation == departure.rotation)
-        let automaticAction = try #require(session.feedback.scheduledActions.first)
-        #expect(!automaticAction.deliversResultsImmediately)
-        #expect(automaticAction.swingAt > automaticAction.startAt)
+        let departureTiming = try expectAlignedDeparture(in: session, id: automaticCast.id)
+        if queued {
+            #expect(departureTiming.startedAt > automaticCast.startedAt)
+            #expect(departureTiming.departureProgress(at: automaticCast.startedAt) == 0)
+        }
 
         #expect(session.canInteractWithHand)
         session.beginCardCue(next, mode: .tapCommit)
@@ -127,15 +125,26 @@ struct BattleSessionCardCueTests {
         #expect(field.playCard(next, request: manualCast))
         #expect(session.hand.isEmpty)
         #expect(casts.requests.map(\.id) == [automaticCast.id, manualCast.id])
+        let accelerated = try expectAlignedDeparture(in: session, id: automaticCast.id, earlier: departureTiming)
+        #expect(automaticCast.completionDate(scheduledCast: accelerated)
+            >= automaticCast.startedAt.addingTimeInterval(BattleMotion.autoBattleCardInterval))
+        #expect(session.cardPlayback.handDeparture(id: manualCast.id) == nil)
+        #expect(session.feedback.scheduledActions.last?.deliversResultsImmediately == true)
+        if let preceding {
+            _ = try state.playCard(cardID: preceding.id)
+        }
         _ = try state.playCard(cardID: card.id)
         _ = try state.playCard(cardID: next.id)
         #expect(session.engineState?.events == state.events)
         #expect(session.engineState?.rng == state.rng)
 
+        try expectSuspendedDeparture(in: session, casts: casts, departure: accelerated)
+
         session.isAutoBattleEnabled = false
         #expect(!field.playAutoBattleCard(card, handFrame: handFrame))
         #expect(casts.requests.map(\.id) == [automaticCast.id, manualCast.id])
         casts.remove(id: automaticCast.id)
+        #expect(session.cardPlayback.handDeparture(id: automaticCast.id) == nil)
         #expect(casts.requests.map(\.id) == [manualCast.id])
         #expect(session.hand.isEmpty)
     }
@@ -250,6 +259,52 @@ struct BattleSessionCardCueTests {
         session.engineState = state
         session.denyCardCue(card)
         #expect(session.cardCues.current == nil)
+    }
+
+    private func makeField(in session: BattleSession, casts: BattleCastPresentationState) throws -> BattleFieldLane {
+        try BattleFieldLane(
+            configuration: #require(session.activeBattle),
+            presentationContext: #require(session.presentationContext),
+            battleSession: session, presentation: session.presentation,
+            interactionState: BattleInteractionState(), castPresentation: casts,
+        )
+    }
+
+    private func expectAlignedDeparture(
+        in session: BattleSession, id: UUID, earlier: BattleRecordedCardCast? = nil,
+    ) throws -> BattleRecordedCardCast {
+        let action = try #require(session.feedback.scheduledActions.first { $0.castID == id })
+        let cast = try #require(session.cardPlayback.handDeparture(id: id))
+        #expect(!action.deliversResultsImmediately)
+        #expect(cast.startedAt == action.startAt)
+        #expect(cast.activationAt == action.swingAt)
+        #expect(cast.departureProgress(at: cast.startedAt) == 0)
+        #expect(cast.departureProgress(at: action.swingAt) == CardDissolveConfiguration().dissolveDuration)
+        #expect(cast.departureProgress(at: cast.departureEndAt.addingTimeInterval(0.001)) == 1)
+        #expect(!session.cardPlayback.automaticCasts.contains { $0.id == id })
+        if let earlier {
+            #expect(cast.activationAt < earlier.activationAt)
+        }
+        return cast
+    }
+
+    private func expectSuspendedDeparture(
+        in session: BattleSession, casts: BattleCastPresentationState, departure: BattleRecordedCardCast,
+    ) throws {
+        let pausedAt = departure.startedAt.addingTimeInterval(0.02)
+        session.cardPlayback.setSuspended(true, at: pausedAt)
+        session.feedback.setSuspended(true, at: pausedAt)
+        casts.setSuspended(true, at: pausedAt)
+        let paused = try #require(session.cardPlayback.handDeparture(id: departure.id))
+        #expect(paused.departureProgress(at: pausedAt.addingTimeInterval(10)) == paused.departureProgress(at: pausedAt))
+        let resumedAt = pausedAt.addingTimeInterval(10)
+        session.cardPlayback.setSuspended(false, at: resumedAt)
+        session.feedback.setSuspended(false, at: resumedAt)
+        casts.setSuspended(false, at: resumedAt)
+        let resumed = try #require(session.cardPlayback.handDeparture(id: departure.id))
+        let resumedAction = try #require(session.feedback.scheduledActions.first { $0.castID == departure.id })
+        #expect(resumed.activationAt == resumedAction.swingAt)
+        #expect(abs(resumed.departureProgress(at: resumedAt) - paused.departureProgress(at: pausedAt)) < 0.001)
     }
 
     private func makeSession() -> BattleSession {

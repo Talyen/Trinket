@@ -14,6 +14,7 @@ extension BattleSession {
         at date: Date = .now,
         requiresLift: Bool = false,
         isAutomatic: Bool = false,
+        departureID: UUID? = nil,
     ) -> BattleCardPlayResolution {
         if commandState.phase == .outcome {
             guard canInteractWithHand, presentation.consumeFinishingCard(id: cardID) else { return .rejected }
@@ -29,6 +30,12 @@ extension BattleSession {
         }
 
         do {
+            let handDeparture: (id: UUID, card: BattleCard)? = if isAutomatic, let departureID,
+                                                                  let card = engineState?.hand.card(id: cardID) {
+                (departureID, card)
+            } else {
+                nil
+            }
             if cardCues.current?.cardID == cardID, let card = engineState?.hand.card(id: cardID) {
                 if let assessment = engineState?.assessCard(card), assessment.denial == nil {
                     cardCues.begin(cardID: cardID, assessment: assessment)
@@ -51,7 +58,7 @@ extension BattleSession {
             cancelPendingAutoEnd()
             presentCompletedCommand(
                 resolution.playback, at: date, playedCardID: cardID, preparedCardID: preparedCardID,
-                isAutomatic: isAutomatic,
+                isAutomatic: isAutomatic, handDeparture: handDeparture,
             )
             return .committed
         } catch {

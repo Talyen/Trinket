@@ -297,7 +297,7 @@ struct BattleFieldLane: View {
     }
 
     private func automaticCardLane(handFrame: CGRect) -> some View {
-        ForEach(presentation.cardPlayback.casts) { cast in
+        ForEach(presentation.cardPlayback.automaticCasts) { cast in
             AutomaticCardCastView(
                 cast: cast,
                 stagingFrame: CGRect(x: handFrame.minX, y: 0, width: handFrame.width, height: max(0, handFrame.minY)),
