@@ -15,7 +15,7 @@ Trinket/                    Thin app target — entry, roots, non-Battle product
 Packages/
   TrinketCore/              Domain primitives (effects, stats, enums, progression)
   TrinketContent/           Authored content by game domain + Generated/ catalogs (see package structure)
-  BattleEngine/             Card combat rules, effect handlers, decks/hand, `CombatBuildResolver` (app-unlinked `BattleBalanceTools`)
+  BattleEngine/             Card combat rules, effect handlers, decks/hand (app-unlinked `BattleBalanceTools`)
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals (TrinketCore only)
   TrinketFeatureSupport/    Package hosting shared UI and contract/adapter products

@@ -52,9 +52,12 @@ larger icon rows use gold icons, primary-color text, and selective semibold emph
 - Includes **all future content**
 
 Keep benefit rows on one line at standard text sizes, allowing natural wrapping
-for enlarged text. The anchored primary button is **Unlock Full Game · {localized price}**.
-Below it, show **Restore
-Purchases · Privacy** and a small muted **Family Sharing** label. Keep a visible
+for enlarged text. The anchored primary button is **Unlock Full Game · {localized price}**;
+keep its complete localized label and price visible, wrapping when needed.
+**Restore Purchases · Privacy** and a small muted **Family Sharing** label follow
+the benefits in the scrollable content above that button. Restore and Privacy
+stack when they cannot fit side by side; keep them reachable above the pinned
+purchase area at enlarged text sizes. Keep a visible
 close button that returns to the originating screen. No fixed content counts or named chapter claims,
 additional one-time/subscription reassurance line, or secondary free-play CTA.
 

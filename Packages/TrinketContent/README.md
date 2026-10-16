@@ -61,6 +61,7 @@ compilation, content tests, and idempotence proof to CI under
 | `Combatant` | Hero/Companion model (stats, ability loadout) |
 | `Enemy` | Enemy model |
 | `CombatBuild` / `CombatBuildResolver` | Resolves combatants, equipment, and talents into modifier profiles and effective max stats |
+| `CombatModifierProfile` / `CombatantMaxValues` | Shared build modifiers and maximum Health/Mana calculations; BattleEngine adds active-effect stack totals |
 | `EncounterScaling` | Shared mode-specific encounter level and enemy power-profile policy |
 | `ItemGenerator` | Random item generation from base + affix pools |
 | `ThemedGearGenerator` | Legal worn equipment for headless balance simulations |

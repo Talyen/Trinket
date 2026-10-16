@@ -127,11 +127,11 @@ victory rates, determine acceptance. UI soak accepts either outcome and verifies
 Retain screenshots, compact diagnostics, actual settings/device/runtime/toolchain and
 commit identity for passing profiles. Failed or unclassified runs retain full result
 bundles; screenshot export failures also retain the original bundle. Soak retains raw
-interrupted stores, journals, remote test state and replay reports. Workflow retention
-requests fourteen days. GitHub currently caps this
-repository's uploads at one day; download evidence needed beyond that cap until
-the repository setting is raised. A failed profile retains its verdict while other
-settings execute. Soak failure does not hide the subsequent career/recovery
+interrupted stores, journals, remote test state and replay reports. Hosted evidence
+retention and the read-only command for checking GitHub's repository cap live in
+[output retention](../../Scripts/Reference.md#output-retention). Download evidence
+needed beyond its actual expiry before it is removed. A failed profile retains its
+verdict while other settings execute. Soak failure does not hide the subsequent career/recovery
 verdicts. Archive interrupted inputs before opening recovery copies.
 
 The owned-purchase Restore journey checks that the native control preserves

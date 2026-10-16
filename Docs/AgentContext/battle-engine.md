@@ -67,10 +67,12 @@ Do not fold those cadences into the pipeline or merge affix scalar fields on `Co
 Keep this mapping single-owned and explicit so new modifier cases require a combat
 decision at compile time; `AffixModifier.apply(to:)` delegates to it.
 
-`CombatantMaxValues` owns maximum Health/Mana calculations and Maximum Mana stack
-totals, using shared saturating arithmetic and combat rounding for extreme inputs.
-`CombatBuild` exposes the maximum values; content-to-profile adapters live in
-`CombatModifierProfile+Content.swift`.
+Content's `CombatantMaxValues` owns maximum Health/Mana calculations, using shared
+saturating arithmetic and combat rounding for extreme inputs. The engine's
+`CombatantMaxValues+Effects.swift` adds active Maximum Mana stack totals.
+`CombatBuild` exposes the build's maximum values; build resolution, modifier profiles,
+and catalog-to-profile adapters live in Content's `Roster/` folder, including
+`CombatBuildResolver.swift` and `CombatModifierProfile+Catalogs.swift`.
 `CombatModifierProfile.triggerAbilityNames` keys are schema-generated
 `CombatTriggerField` values shared with Content's populated-field and affix-roll
 metadata. Provenance retains first-writer precedence when profiles merge.

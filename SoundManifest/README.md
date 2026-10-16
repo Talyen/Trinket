@@ -50,7 +50,8 @@ The selected feedback sources come from `Documents/Asset Library/Sounds`. Import
 FLAC inputs as lossless PCM WAV; retain original WAV/OGG inputs. The Homestead
 hammer source `hammer_multiple_exterior_fienup_013` uses 0.82–1.65 seconds with
 10 ms entry and 60 ms exit fades. Selected source clips default to gain `1.0`; `block_absorb` uses `0.97` for
-AAC decoding headroom. Attacks and ticks share their clip and gain.
+AAC decoding headroom. Direct-hit and periodic mappings follow the
+[action sound selection contract](../Docs/AgentContext/audio.md#action-sound-selection).
 
 ## Game-feel variants
 
