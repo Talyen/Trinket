@@ -45,7 +45,7 @@ extension BattleFeedbackLane {
                 swingAt.addingTimeInterval(actorID == nil ? 0 : timing.swing),
                 previousImpact?.addingTimeInterval(timing.swing) ?? date,
             )
-            let castCard = card ?? (actorID == nil ? nil : departure?.card)
+            let castCard = card ?? departure?.card
             let castID = castCard.map {
                 cardPlayback.append(
                     $0, at: departure == nil ? revealAt : startAt,

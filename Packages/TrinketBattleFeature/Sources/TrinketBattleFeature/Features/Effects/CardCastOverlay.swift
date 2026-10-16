@@ -31,7 +31,7 @@ final class BattleCastPresentationState {
         if let playback {
             self.playback = playback
         }
-        if requests.count == 6, let oldest = requests.first {
+        while requests.count >= 6, let oldest = requests.first {
             withAnimation(.easeOut(duration: BattleMotion.feedbackHandoffDuration)) {
                 remove(id: oldest.id)
             }

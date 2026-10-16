@@ -95,7 +95,7 @@ extension EffectApplication {
     }
 
     private func canDrawAndPlay(_ owner: BattleParticipant, in context: BattleState) -> Bool {
-        guard context.roster[owner].isAlive else { return false }
+        guard BattleCardCombatEngine.canDrawFromDeck(for: owner, in: context) else { return false }
         guard !context.ownersSkippingThisPlayerTurn.contains(owner) else { return false }
         let ability = owner == .hero ? context.heroDeck.abilities.first : context.companionDeck.abilities.first
         guard let ability else { return false }

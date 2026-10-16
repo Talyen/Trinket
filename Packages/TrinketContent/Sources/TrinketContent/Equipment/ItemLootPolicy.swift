@@ -28,11 +28,15 @@ enum ItemLootPolicy {
     ) -> [Double] {
         if bossContent {
             let collectibles = availableTiers.intersection([.trinket, .unique])
+            let targets: Set<ItemDropTier> = if !collectibles.isEmpty {
+                collectibles
+            } else if availableTiers.contains(.astral) {
+                [.astral]
+            } else {
+                availableTiers
+            }
             return ItemDropTier.allCases.map { tier in
-                if collectibles.isEmpty {
-                    return tier == .astral ? 1 : 0
-                }
-                return collectibles.contains(tier) ? 1 / Double(collectibles.count) : 0
+                targets.contains(tier) ? 1 / Double(targets.count) : 0
             }
         }
         let t = progress(level: level)

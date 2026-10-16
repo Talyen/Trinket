@@ -136,7 +136,10 @@ struct SpireClimbView: View {
         presentPlayCombatantDetail(makePlayEnemyDetail(
             combatant: encounter.combatant,
             level: encounter.level,
-            nodeModifiers: RewardOwnership(playerSave.inventory).modifiers(ids: modifier.map { [$0.id] } ?? []),
+            nodeModifiers: RewardOwnership(playerSave.inventory).modifiers(
+                ids: modifier.map { [$0.id] } ?? [],
+                enemyIsBoss: GameContent.enemy(matching: floor.enemyID)?.isBoss == true,
+            ),
         ))
     }
 
