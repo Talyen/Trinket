@@ -21,6 +21,7 @@ final class FullGamePurchaseSmokeTests: FullGameStoreKitUITestCase {
         tapButton(AccessibilityID.FullGame.purchase)
         assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 10)
         assertDoesNotExist(AccessibilityID.FullGame.options, timeout: 10)
+        assertDoesNotExist(AccessibilityID.FullGame.restore)
         assertWarlockAccessible()
         tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         combatantDetail.assertLoaded(for: "Warlock")

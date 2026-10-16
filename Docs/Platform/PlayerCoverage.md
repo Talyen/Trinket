@@ -14,7 +14,7 @@ Apple-service readiness.
 | Live battle return; accepted claim termination; failed-write Leave; talent confirmation; normal-speed rapid cards/drag | `BattleLifecycleUITests`, AppState integration, BattleFeature card-play tests | Package checks plus nightly/manual FullUI |
 | Voyage, Spires, Labyrinth inspector | `PlayModeNavigationUITests` | Nightly/manual FullUI |
 | Homestead displayed cost/tier and reload; Haptics binding/reload | `HomesteadControlsUITests`, `OptionsUITests` | Nightly/manual FullUI |
-| Pending approvals active/terminated, decline, cancellation, populated restore, revocation | `FullGamePurchaseUITests`, existing StoreKit session | Nightly/manual FullUI; ordinary purchase smoke remains required |
+| Pending approvals active/terminated, decline, cancellation, populated purchase recovery, revocation | `FullGamePurchaseUITests`, existing StoreKit session | Nightly/manual FullUI; ordinary purchase smoke remains required |
 | Critical controls under native text sizes and Reduce Motion | `CriticalAccessibilityUITests` in Profiles | Nightly/manual Player coverage workflow |
 | Real audio backend routing across battles and foreground | `AudioLifecycleUITests`; existing audio backend tests | Nightly/manual FullUI |
 | Repeated UI ownership and progress | `RepeatedPlayUITests` in Soak | Weekly/manual Player coverage workflow |
@@ -102,7 +102,7 @@ The iOS 18 lane also runs every registry-owned smoke class, the existing Full Ga
 purchase/recovery suite, committed-reward termination recovery, and the complete
 Persistence package suite on the explicitly selected simulator. These cover
 onboarding reload, tab navigation, manual combat and earned rewards, purchase access,
-populated restore, and schema migration/reload without duplicating test bodies.
+populated purchase recovery, and schema migration/reload without duplicating test bodies.
 Purchase automation is required; an unavailable purchase runtime cannot count as
 successful compatibility evidence. Stages run serially, retain failures while
 continuing independent checks, and export screenshots for visual review. A passing

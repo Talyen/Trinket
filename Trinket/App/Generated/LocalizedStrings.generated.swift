@@ -780,7 +780,7 @@ enum L10n {
     }
 
     static var ui_optionsview_full_game_purchased_08610: LocalizedStringResource {
-        LocalizedStringResource("ui.optionsview.full_game_purchased_08610", defaultValue: "Full Game · Purchased", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.optionsview.full_game_purchased_08610", defaultValue: "Full Game — Unlocked", table: "Localizable", bundle: .main)
     }
 
     static var ui_optionsview_game_data_15041: LocalizedStringResource {
@@ -825,10 +825,6 @@ enum L10n {
 
     static var ui_optionsview_restore_purchases_16351: LocalizedStringResource {
         LocalizedStringResource("ui.optionsview.restore_purchases_16351", defaultValue: "Restore Purchases", table: "Localizable", bundle: .main)
-    }
-
-    static var ui_optionsview_shared_with_your_family_a9ba5: LocalizedStringResource {
-        LocalizedStringResource("ui.optionsview.shared_with_your_family_a9ba5", defaultValue: "Shared with your family", table: "Localizable", bundle: .main)
     }
 
     static var ui_optionsview_sound_effects_de7b5: LocalizedStringResource {

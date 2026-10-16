@@ -8150,43 +8150,43 @@
       }
     },
     "ui.optionsview.full_game_purchased_08610": {
-      "comment": "Trinket/Features/Options/OptionsView.swift: display copy. Arguments are displayed values in source order.",
+      "comment": "Options status for verified Full Game access, including Family Sharing. Informational label, not a purchase action.",
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vollversion · Gekauft"
+            "value": "Vollversion — Freigeschaltet"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Full Game · Purchased"
+            "value": "Full Game — Unlocked"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jeu complet · Acheté"
+            "value": "Jeu complet — Débloqué"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "完全版 · 購入済み"
+            "value": "完全版 — 解放済み"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "정식 게임 · 구매 완료"
+            "value": "정식 게임 — 잠금 해제됨"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "完整版 · 已購買"
+            "value": "完整版 — 已解鎖"
           }
         }
       }
@@ -8649,48 +8649,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "回復購買項目"
-          }
-        }
-      }
-    },
-    "ui.optionsview.shared_with_your_family_a9ba5": {
-      "comment": "Trinket/Features/Options/OptionsView.swift: display copy. Arguments are displayed values in source order.",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mit deiner Familie geteilt"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shared with your family"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Partagé avec votre famille"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "家族と共有中"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "가족과 공유됨"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已與家人共享"
           }
         }
       }

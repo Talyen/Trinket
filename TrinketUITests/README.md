@@ -160,12 +160,12 @@ Assert a journey’s return destination before using helpers that navigate elsew
   approved narrow medium-value exception proving the native control binding.
 - Full Game smoke enters the locked Campaign chapter through its owned Debug
   fixture and taps the real offer entry. It purchases access to independently
-  recruited Warlock and opens his detail. Populated Restore first checks cold-launch
-  access, then Restore and retained progress. Restore-failure recovery stays separate.
+  recruited Warlock and opens his detail. Populated purchase recovery checks cold-launch
+  access, hidden purchase/restore actions, and retained progress. Restore-failure recovery stays separate.
   Cancellation retries in the same offer; declined Ask to Buy retries from the
   locked character. Debug entitlement observations avoid repeated Collection trips
-  where purchase/unlock wiring already has a UI owner. Tapping Restore while already
-  unlocked does not prove service restoration; live App Store evidence remains separate.
+  where purchase/unlock wiring already has a UI owner. Live App Store restoration
+  evidence remains separate from local entitlement recovery.
   The refund journey allows its initial StoreKit purchase up to 60 seconds; the
   offer must dismiss and earned-character access must succeed before refund begins.
 - [Player coverage](../Docs/Platform/PlayerCoverage.md) owns settings profiles,

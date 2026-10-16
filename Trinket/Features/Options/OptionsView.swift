@@ -84,31 +84,30 @@ struct OptionsView: View {
         Section(String(localized: L10n.ui_optionsview_full_game_59929)) {
             if fullGame.ownership.access.hasFullGame {
                 Label(
-                    fullGame
-                        .ownership == .familyShared ? String(localized: L10n.ui_optionsview_shared_with_your_family_a9ba5) :
-                        String(localized: L10n.ui_optionsview_full_game_purchased_08610),
+                    String(localized: L10n.ui_optionsview_full_game_purchased_08610),
                     systemImage: "checkmark.circle",
                 )
                 .trinketTypography(.body)
+                .accessibilityIdentifier(AccessibilityID.FullGame.status)
             } else {
                 Button(String(localized: L10n.ui_optionsview_unlock_full_game_0108a)) { requestOffer(.options) }
                     .trinketTypography(.body)
                     .accessibilityIdentifier(AccessibilityID.FullGame.options)
-            }
-            Button {
-                Task { await fullGame.restore() }
-            } label: {
-                HStack {
-                    if fullGame.isRestoring {
-                        ProgressView()
+                Button {
+                    Task { await fullGame.restore() }
+                } label: {
+                    HStack {
+                        if fullGame.isRestoring {
+                            ProgressView()
+                        }
+                        Text(L10n.ui_optionsview_restore_purchases_16351)
                     }
-                    Text(L10n.ui_optionsview_restore_purchases_16351)
                 }
+                .trinketTypography(.body)
+                .disabled(fullGame.isRestoring || fullGame.isPurchasing)
+                .accessibilityIdentifier(AccessibilityID.FullGame.restore)
+                FullGameOutcomeMessage(outcome: fullGame.outcome)
             }
-            .trinketTypography(.body)
-            .disabled(fullGame.isRestoring || fullGame.isPurchasing)
-            .accessibilityIdentifier(AccessibilityID.FullGame.restore)
-            FullGameOutcomeMessage(outcome: fullGame.outcome)
         }
     }
 

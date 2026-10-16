@@ -79,7 +79,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
     }
 
     @MainActor
-    func testRestorePreservesPopulatedLocalProgress() async throws {
+    func testColdLaunchRecognizesPurchaseAndPreservesPopulatedLocalProgress() async throws {
         try skipUnavailablePurchaseAutomation()
         try startStoreSession()
         let session = try XCTUnwrap(storeSession)
@@ -91,14 +91,11 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         let transaction = try await session.buyProduct(identifier: FullGameStore.productID)
         XCTAssertTrue(session.allTransactions().contains { $0.identifier == UInt(transaction.id) })
         relaunchApp(arguments: ["-selectedTab", "options", "-coverage-diagnostics"])
-        // Current entitlements are recognized at launch. Exercise the real
-        // Restore control against that ownership and populated progress.
+        // Current entitlements are recognized at launch without a Restore tap.
+        assertExistsAfterScroll(AccessibilityID.FullGame.status)
         assertDoesNotExist(AccessibilityID.FullGame.options)
+        assertDoesNotExist(AccessibilityID.FullGame.restore)
         assertWarlockAccessible()
-        tabBar.selectOptions()
-        assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
-        tapButton(AccessibilityID.FullGame.restore)
-        waitUntil("Restore must finish") { self.button(AccessibilityID.FullGame.restore).isEnabled }
         assertFullGameAccess(true)
         tabBar.selectPlay()
         play.openCampaign()
@@ -120,6 +117,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         }
         tabBar.selectOptions()
         assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
+        assertExists(AccessibilityID.FullGame.restore)
         assertWarlockLocked()
         relaunchApp(arguments: ["-selectedTab", "collection"])
         assertWarlockLocked()

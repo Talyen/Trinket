@@ -67,9 +67,9 @@ remain inspectable with editing disabled. Combatant details have no recruitment
 or purchase footer.
 
 Options keeps a compact **Full Game** section with **Unlock Full Game** opening
-the offer and **Restore Purchases** always available. Verified owners see
-**Full Game · Purchased**, or **Shared with your family**, instead of the offer
-action. Both purchase surfaces display concise inline outcomes for unavailable
+the offer and **Restore Purchases** available while the game is locked. Verified
+owners, including Family Sharing recipients, see **Full Game — Unlocked** instead
+of both actions. Both purchase surfaces display concise inline outcomes for unavailable
 pricing, pending approval, unsuccessful restoration, no purchase found, and
 unverified ownership. Keep cancellation quiet and use the existing successful
 purchase/dismissal behavior. General **Support** and **Privacy Policy** links
