@@ -27,17 +27,25 @@ def source_proof(run: dict, jobs: list[dict], artifacts: list[dict], repository:
             or not isinstance(sha, str) or not re.fullmatch('[0-9a-f]{40}', sha)
             or type(attempt) is not int or attempt < 1 or type(run_id) is not int):
         raise ValueError('Source must be a completed same-repository CI run on this branch')
-    build = [job for job in jobs if job.get('name') == 'tests / Build and smoke UI']
-    if len(build) != 1 or build[0].get('head_sha') != sha or not any(step.get('name') == 'Restore warm cache and build'
-                                 and step.get('conclusion') == 'success' for step in build[0].get('steps', [])):
-        raise ValueError('Source run has no successful app/test product build')
-    build_attempt = build[0].get('run_attempt')
-    if type(build_attempt) is not int or not 1 <= build_attempt <= attempt:
-        raise ValueError('Invalid producing build attempt')
-    name = f'build-derived-data-{run_id}-{build_attempt}'
-    products = [artifact for artifact in artifacts if artifact.get('name') == name
-                and artifact.get('expired') is False and type(artifact.get('id')) is int]
-    if len(products) != 1:
+    builds = [job for job in jobs if job.get('name') == 'tests / Build and smoke UI']
+    # Partial reruns clone successful jobs into the new attempt without republishing
+    # their artifacts. Require the original attempt's build proof before reusing it.
+    for build_attempt in range(attempt, 0, -1):
+        name = f'build-derived-data-{run_id}-{build_attempt}'
+        products = [artifact for artifact in artifacts if artifact.get('name') == name
+                    and artifact.get('expired') is False and type(artifact.get('id')) is int]
+        if not products:
+            continue
+        producing = [job for job in builds if type(job.get('run_attempt')) is int
+                     and job['run_attempt'] == build_attempt]
+        if len(products) != 1 or len(producing) != 1:
+            raise ValueError('Ambiguous producing build or exact-attempt products')
+        build = producing[0]
+        if build.get('head_sha') != sha or not any(step.get('name') == 'Restore warm cache and build'
+                                                  and step.get('conclusion') == 'success' for step in build.get('steps', [])):
+            raise ValueError('Source run has no successful app/test product build for these products')
+        break
+    else:
         raise ValueError('Exact-attempt products are missing or expired; diagnostics never rebuild')
     return {'sha': sha, 'artifact': name, 'run': str(run_id), 'source_conclusion': run.get('conclusion')}
 
@@ -71,7 +79,7 @@ def main() -> None:
     if args.action == 'resolve':
         repository = os.environ['GITHUB_REPOSITORY']
         result = source_proof(api(repository, f'runs/{args.run}'),
-                              api(repository, f'runs/{args.run}/jobs?filter=latest&per_page=100', 'jobs'),
+                              api(repository, f'runs/{args.run}/jobs?filter=all&per_page=100', 'jobs'),
                               api(repository, f'runs/{args.run}/artifacts?per_page=100', 'artifacts'),
                               repository, os.environ['GITHUB_REF_NAME'])
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

@@ -52,6 +52,16 @@ class CIImprovementsTests(unittest.TestCase):
         earlier = [{**jobs[0], 'run_attempt': 1}]
         self.assertEqual(DIAGNOSTIC.source_proof(run, earlier, [{**artifacts[0], 'name': 'build-derived-data-10-1'}],
                                               'owner/repo', 'main')['artifact'], 'build-derived-data-10-1')
+        original_products = [{**artifacts[0], 'name': 'build-derived-data-10-1'}]
+        history = [*jobs, *earlier]
+        self.assertEqual(DIAGNOSTIC.source_proof(run, history, original_products,
+                                              'owner/repo', 'main')['artifact'], 'build-derived-data-10-1')
+        self.assertEqual(DIAGNOSTIC.source_proof(run, history, [*original_products, *artifacts],
+                                              'owner/repo', 'main')['artifact'], 'build-derived-data-10-2')
+        for invalid in ([*jobs, {**earlier[0], 'head_sha': 'b' * 40}],
+                        [*jobs, {**earlier[0], 'steps': []}], [*history, *earlier]):
+            with self.assertRaises(ValueError):
+                DIAGNOSTIC.source_proof(run, invalid, original_products, 'owner/repo', 'main')
         for changes in ({'status': 'in_progress'}, {'head_sha': 'wrong'}, {'head_branch': 'other'},
                         {'head_repository': {'full_name': 'fork/repo'}}, {'path': 'unrelated.yml'}):
             with self.assertRaises(ValueError):
