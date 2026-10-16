@@ -311,7 +311,7 @@ struct BattleSessionSimulationTests {
         #expect(!session.hasPlayableCard)
         let tickBefore = try #require(session.engineState?.turnCount)
 
-        try await waitForAutoEndTurn(session, after: tickBefore)
+        await waitForAutoEndTurn(session, after: tickBefore)
 
         #expect(session.engineState?.turnCount == tickBefore + 1)
     }
@@ -351,13 +351,15 @@ struct BattleSessionSimulationTests {
 }
 
 @MainActor
-private func waitForAutoEndTurn(_ session: BattleSession, after tickBefore: Int) async throws {
-    guard try await BattleSessionTestSupport.waitUntil(condition: {
-        session.engineState?.turnCount == tickBefore + 1
-    }) else {
-        Issue.record("Auto-end turn did not resolve within the test timeout")
+private func waitForAutoEndTurn(_ session: BattleSession, after tickBefore: Int) async {
+    guard session.engineState?.turnCount != tickBefore + 1 else { return }
+    guard let task = session.autoEnd.task else {
+        Issue.record("Auto-end turn was not scheduled")
         return
     }
+    // Concurrent raster tests can occupy the main actor past a wall-clock poll
+    // deadline. Await the real scheduled command, then assert its turn below.
+    await task.value
 }
 
 extension BattleSessionSimulationTests {
@@ -501,7 +503,7 @@ extension BattleSessionSimulationTests {
             break
         }
 
-        try await waitForAutoEndTurn(session, after: tickBefore)
+        await waitForAutoEndTurn(session, after: tickBefore)
         #expect(session.engineState?.turnCount == tickBefore + 1)
     }
 
@@ -528,7 +530,7 @@ extension BattleSessionSimulationTests {
 
         session.clearBattleLog()
 
-        try await waitForAutoEndTurn(session, after: tickBefore)
+        await waitForAutoEndTurn(session, after: tickBefore)
         #expect(session.engineState?.turnCount == tickBefore + 1)
     }
 
@@ -568,7 +570,7 @@ extension BattleSessionSimulationTests {
 
         session.setSuspendedForScenePhase(false)
 
-        try await waitForAutoEndTurn(session, after: tickBefore)
+        await waitForAutoEndTurn(session, after: tickBefore)
         #expect(session.engineState?.turnCount == tickBefore + 1)
     }
 
