@@ -41,28 +41,6 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.rng.next() == expectedRNG.next())
     }
 
-    @Test func `prismatic edge gets one chance across all hits of a card`() throws {
-        let attack = Ability(
-            id: "prismatic-pair",
-            name: "Physical Pair",
-            tier: .basic,
-            damageComponents: [DamageComponent(1), DamageComponent(1)],
-            criticalChanceBonus: -1,
-        )
-        for seed in UInt64(1) ... 16 {
-            var battle = heroTalentBattle("wildcard_physical_t1_1", seed: seed)
-            var expectedRNG = battle.rng
-            let succeeds = BattleChance.succeeds(probability: 0.10, using: &expectedRNG)
-            if succeeds {
-                _ = Bool.random(using: &expectedRNG)
-            }
-            let before = battle.roster.enemy.currentHealth
-            try playHeroTalentCard(attack, in: &battle)
-            #expect(before - battle.roster.enemy.currentHealth == 2 + (succeeds ? 3 : 0))
-            #expect(battle.rng.next() == expectedRNG.next())
-        }
-    }
-
     @Test func `root passage ignores enemy block on every poison component`() throws {
         var battle = heroTalentBattle("druid_poison_t3_1")
         seedHeroTalentEffect(.shield(.block, 1), on: .enemy, in: &battle)

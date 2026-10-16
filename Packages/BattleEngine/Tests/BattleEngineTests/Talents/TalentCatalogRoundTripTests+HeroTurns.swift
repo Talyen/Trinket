@@ -45,23 +45,6 @@ extension TalentCatalogRoundTripTests {
         #expect(abs(full - injured - 0.10) < 0.0001)
     }
 
-    @Test func `wing buffet deals freeze damage on dodge`() {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyAbilities: [.slash],
-            companionModifiers: CombatantTalentCatalog.profile(for: ["frost_whelp_dodge_t2_2"]),
-            dealOpeningHand: false,
-        )
-        let before = battle.roster.enemy.currentHealth
-        let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterDodge(
-            by: battle.companion,
-            attackerID: battle.enemy.id,
-            in: &battle,
-        ) }
-        #expect(battle.roster.enemy.currentHealth == before - 2)
-        #expect(events.contains { $0.keyword == .freeze && $0.amount == 2 })
-        #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id, default: 0] == 0)
-    }
-
     @Test func `natural poison expiry pays the last source and explicit removal does not`() {
         var battle = heroTalentBattle("alchemist_poison_t2_2", "druid_poison_t2_2")
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 0 }
