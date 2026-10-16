@@ -4,6 +4,11 @@ Player-facing Homestead layout. Implementation and presentation tuning live in
 `Trinket/Features/Homestead/`. [PD-012](Decisions.md) owns immediate purchases
 without a confirmation dialog.
 
+Native bar interaction follows [content beside native bars](../Platform/ApplePlatformReference.md#content-beside-native-bars).
+Building scenery fills behind chrome; identity and controls stay in the usable
+area. The lower controls/benefits scroll together when constrained. Forge preview
+reserves a bottom dock for costs and Forge/Done while its artwork scrolls above.
+
 ## Browsing and benefits
 
 The overview keeps its full-bleed landscape hero, compact eight-resource wallet,

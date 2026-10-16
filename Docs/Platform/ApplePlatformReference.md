@@ -55,7 +55,8 @@ geometry rather than device orientation or identity. Keep enemy-above-party
 battle arrangements and vertically stacked hubs in compact and expanded windows.
 Bound shelf cards and hub widths so expansion reveals choices instead of indefinitely
 enlarging artwork. Detail artwork uses the current usable viewport height as well
-as width. Wide reward screens keep the claim action pinned above the safe area.
+as width. Reward screens pin their actions when the usable viewport is short or
+wide, including when larger text makes the inline arrangement unsuitable.
 The compact horizontal presentation retains tab icons and stacked hubs; native
 system bars may move with the available space. Do not add device-specific panels.
 
@@ -78,6 +79,63 @@ reveal. Confirm that cancelled gestures cannot later commit, commands and reward
 do not repeat, and the active battle and navigation remain intact.
 Use live safe areas and measured insets instead of fixed tab-bar or inspector
 clearances. Preserve prepared artwork and the shared interaction hierarchy.
+
+## Content beside native bars
+
+Keep a continuous canvas beneath native bars on every screen. The side bar is
+system-owned foreground chrome, not a separate app panel. Background artwork,
+gradients and decorative effects may extend behind it; readable and actionable
+foreground uses the native safe area plus the screen's normal content margins.
+Center bounded content in that usable area, not the physical display. Handle each
+edge independently; bars can move to the other side in landscape or multitasking.
+Do not hard-code a side-bar width, duplicate native insets, or pack controls into
+gaps between individual toolbar buttons.
+
+Vertical lists, grids, forms and reading content must keep their entire horizontal
+extent clear of the bars. Horizontal shelves may scroll behind them, but native
+content margins and snapping must let every card, including both endpoints, settle
+fully within the usable area. Preserve native bar hit testing over underlapping
+content. Do not blur, duplicate or extend the interactive shelf itself as a background.
+
+`DetailHeroHeader` extends only its decorative artwork with
+`backgroundExtensionEffect()` after cropping, blending and overscroll transforms;
+no outer horizontal clip may cut off that extension. Its title and footer remain
+safe-area foreground. Full-screen scenes extend only their background layer with
+`ignoresSafeArea`. Primary actions and their costs stay together inside the content
+area; `safeAreaInset` reserves scrolling space for pinned docks. Back, Close,
+navigation, filters and global actions retain native placement. Meaningful numeric
+balances may retain a horizontal toolbar representation rather than becoming an
+unreadable vertical icon. Do not recreate system menus, popovers or StoreKit chrome.
+
+| Screen family | Content treatment and executable owner |
+| --- | --- |
+| Launch/recovery and empty states | Full canvas; safe-area title, progress and recovery controls in `TrinketApp` and `LaunchWarmupView` |
+| Starter hero/companion selection | Full plasma background; safe-area selected card/name/action, horizontal wheel underlap, vertical overflow scrolling in `StarterRouletteScreen` |
+| Play, Explore and Spires hubs | Bounded stacked cards inside the safe area in `HubGridScaffold` |
+| Campaign, Contracts, Voyage and Spire routes | Extended scenic header; safe-width stage rows, modifiers and party/actions in `StageSelectScreen` and `StageSelectList` |
+| Labyrinth | Safe-width actionable map and bottom inspector in `LabyrinthMapView`; decorative background may underlap |
+| Collection and party shelves | Native horizontal underlap, content margins and view-aligned snapping in `CategoryBrowseShelf` |
+| Collection, equipment, ability and party grids | Safe-width adaptive cells in `CollectionGridShell` and `OptionPickerGrid`; names, selection and search remain unobstructed |
+| Combatant, item, ability and forged/corrupted details | Extended art, safe-area information and action docks in `DetailHeroHeader`, `DetailHeroScrollShell` and detail consumers; hero combatants retain the upper portrait crop |
+| Talent trees and post-battle talent choice | Height-bounded extended header; safe-area nodes and bounded bottom inspector in `CombatantTalentsView` |
+| Battle | Safe-area field owns combatant, hand, held-card and cast geometry; decorative canvas/effects may extend. `BattleAbilityCardView` uses one horizontal projection for drawing and release; resizing cancels held input |
+| Victory, defeat, Mystery rewards and recruitment | Safe-area reveal content and adaptive pinned actions in `RewardRevealShell`; presentation and claim ownership stay outside sizing decisions |
+| Shop and Mystery choices | Safe-width merchandise, prices, narrative and choices; content action docks in `ShopEncounterView` and Mystery detail/selection consumers |
+| Homestead overview/gallery | Extended scenic header with safe-area wallet, Collect and bounded category cards; adaptive safe-width project grid |
+| Homestead buildings | Full scenery; safe-area identity and bounded scrolling controls/benefits in `HomesteadNodeDetailView` |
+| Forge, wallet and improvement sheets | Sheet-local safe-area content; reserved cost/action docks and native detents in Forge and Homestead sheet owners |
+| Full Game offer | Extended promotional header, safe-area benefits and purchase dock, native StoreKit presentation in `FullGameOfferView` |
+| Options and combat log | Native safe-area Form/List content and continuous backgrounds; developer previews follow their owning screen's policy |
+
+This applies to native iPad and ordinary iPhone layouts too. Changes in bar placement,
+sheet size or window size must preserve selection, navigation and scroll state.
+Use measured reserved regions only where a custom layout needs finer displacement;
+ordinary content should rely on native safe areas. Qualification and outstanding
+pose/interaction evidence belong to [Player coverage](PlayerCoverage.md).
+
+Apple references: [Prepare your app for iPhone Duo](https://developer.apple.com/videos/play/tech-talks/111461/),
+[Raise the bar](https://developer.apple.com/videos/play/tech-talks/111462/), and
+[background extension](https://developer.apple.com/documentation/swiftui/view/backgroundextensioneffect()).
 
 ## Apple skill references
 

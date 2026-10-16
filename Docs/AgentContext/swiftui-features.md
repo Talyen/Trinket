@@ -33,6 +33,8 @@ value, so changed affixes or powers cannot reuse stale appearance. Cached colors
 remain semantic values; resolve them in the rendering environment.
 
 Use current SwiftUI per [Current vs banned SwiftUI](../Platform/ApplePlatformReference.md#current-vs-banned-swiftui).
+Apply the shared [content beside native bars](../Platform/ApplePlatformReference.md#content-beside-native-bars)
+policy to all screens, including grids, shelves, action docks and custom gameplay input.
 Do not reintroduce the banned column. Keep the root tab bar fully expanded. Hidden toolbar chrome on Battle and detail-hero screens is an intentional art-forward choice.
 
 Prefer the narrowest environment owner for a subtree (`BattleSession`, encounter sessions) over whole `AppState` when the view only needs that slice. Chrome, colors, glass, and typography: [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Feature views must not call raw `.glassEffect` / `.buttonStyle(.glass*)` or invent one-off colors. Use `TrinketMotion` for reusable fluid motion. File-level `@ViewBuilder` helpers that touch DesignSystem modifiers must be `@MainActor` (or methods on a `View`).

@@ -16,7 +16,10 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
   Hand artwork stays fully visible and bounded by both available dimensions;
   extra width spreads the fan instead of enlarging cards indefinitely. Wide
   viewports reserve a smaller height share for the hand so combatants stay legible. Manual
-  and automatic casts share the measured hand geometry. Resizing cancels a
+  and automatic casts share the measured hand geometry. Held artwork is constrained
+  horizontally to the usable field, including its scale and rotation; drawing and
+  the release request use the same projected center. Raw drag direction still owns
+  play classification. Resizing cancels a
   held gesture and hides stale cast positions while preserving cast timing,
   Auto pacing, and the active battle.
 

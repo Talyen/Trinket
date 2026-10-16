@@ -114,9 +114,26 @@ enum BattleHandLayout {
         )
     }
 
-    static func releaseCenter(restingCenter: CGPoint, dragTranslation: CGSize) -> CGPoint {
-        CGPoint(
-            x: restingCenter.x + dragTranslation.width,
+    static func releaseCenter(
+        restingCenter: CGPoint,
+        dragTranslation: CGSize,
+        cardSize: CGSize,
+        rotation: CGFloat,
+        scale: CGFloat,
+        in handFrame: CGRect,
+    ) -> CGPoint {
+        // Scale about the center, then rotate about the bottom, matching the held card.
+        let bounds = CGRect(
+            x: -cardSize.width * scale / 2,
+            y: -cardSize.height * (1 + scale) / 2,
+            width: cardSize.width * scale,
+            height: cardSize.height * scale,
+        ).applying(CGAffineTransform(rotationAngle: rotation))
+        let minX = handFrame.minX + horizontalInset - bounds.minX
+        let maxX = handFrame.maxX - horizontalInset - bounds.maxX
+        let x = restingCenter.x + dragTranslation.width
+        return CGPoint(
+            x: minX <= maxX ? min(max(x, minX), maxX) : handFrame.midX,
             y: restingCenter.y + dragTranslation.height,
         )
     }

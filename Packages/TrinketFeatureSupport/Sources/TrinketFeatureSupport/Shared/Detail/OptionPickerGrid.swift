@@ -84,6 +84,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
             .padding(.vertical, TrinketDesign.Spacing.medium)
         }
+        .trinketScreenBackground()
         .background {
             if let provider = artworkNameProvider {
                 PickerArtworkPrewarmObserver(

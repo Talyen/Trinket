@@ -90,7 +90,6 @@ struct MysteryUnlockContent: View {
                 primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
                 isPrimaryActionDisabled: !ceremony.isOffered,
                 onPrimaryAction: confirmRecruit,
-                pinsPrimaryActionToBottom: false,
                 primaryActionOpacity: ceremony.recruitOpacity,
             )
         }

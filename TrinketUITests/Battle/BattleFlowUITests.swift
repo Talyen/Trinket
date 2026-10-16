@@ -51,6 +51,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         inspectedCard.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
         XCTAssertEqual(cards.count, inspectCountBefore, "Inspecting a card must not play it")
+        attachSuccessScreenshot(named: "hand-ability-inspection")
         dismissSheet(AccessibilityID.Battle.abilityDetail)
 
         let hero = app.buttons[AccessibilityID.CombatantDetail.battleCard(name: "Ranger")]
@@ -64,6 +65,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         )
         battle.openCombatantCard(named: "Ranger")
         combatantDetail.assertLoaded(for: "Ranger")
+        attachSuccessScreenshot(named: "hand-combatant-detail")
         dismissSheet(AccessibilityID.CombatantDetail.header(name: "Ranger"))
 
         let tapCard = battle.frontmostHandCard
@@ -78,6 +80,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertCancelledDrag(from: origin, cards: cards)
         origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
         waitUntil("A successful drag must play the selected card") { !self.any(dragCardID).exists }
+        attachSuccessScreenshot(named: "hand-after-drag")
     }
 
     private func assertCancelledDrag(from origin: XCUICoordinate, cards: XCUIElementQuery) {

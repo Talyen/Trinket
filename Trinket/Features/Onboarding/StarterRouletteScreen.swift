@@ -60,33 +60,36 @@ struct StarterRouletteScreen: View {
             GeometryReader { geometry in
                 let layout = RouletteLayout(containerSize: geometry.size)
 
-                VStack(spacing: 0) {
-                    header
-                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                ScrollView {
+                    VStack(spacing: 0) {
+                        header
+                            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
 
-                    Spacer(minLength: TrinketDesign.Spacing.small)
+                        Spacer(minLength: TrinketDesign.Spacing.small)
 
-                    if choices.isEmpty {
-                        Button(String(localized: L10n.ui_starterroulettescreen_retry_94208)) { scrollEntryID = choices.first?.id }
-                            .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Onboarding.retry(role: role))
-                            .frame(height: layout.bandHeight)
-                    } else {
-                        wheelBand(layout: layout)
+                        if choices.isEmpty {
+                            Button(String(localized: L10n.ui_starterroulettescreen_retry_94208)) { scrollEntryID = choices.first?.id }
+                                .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Onboarding.retry(role: role))
+                                .frame(height: layout.bandHeight)
+                        } else {
+                            wheelBand(layout: layout)
 
-                        pageIndicator
+                            pageIndicator
+                        }
+
+                        namePlate
+                            .padding(.top, TrinketDesign.Spacing.small)
+                            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+
+                        continueAction
+                            .padding(.top, TrinketDesign.Spacing.medium)
+                            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+
+                        Spacer(minLength: TrinketDesign.Layout.sectionSpacing)
                     }
-
-                    namePlate
-                        .padding(.top, TrinketDesign.Spacing.small)
-                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-
-                    continueAction
-                        .padding(.top, TrinketDesign.Spacing.medium)
-                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-
-                    Spacer(minLength: TrinketDesign.Layout.sectionSpacing)
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .scrollBounceBehavior(.basedOnSize)
             }
         }
         .toolbarVisibility(.hidden, for: .navigationBar)

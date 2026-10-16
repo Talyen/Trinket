@@ -33,7 +33,6 @@ struct DefeatView: View {
             onPrimaryAction: { complete(.leave) },
             contentTopPadding: TrinketDesign.Spacing.extraSmall,
             contentStackSpacing: TrinketDesign.Spacing.large,
-            pinsPrimaryActionToBottom: false,
         )
     }
 

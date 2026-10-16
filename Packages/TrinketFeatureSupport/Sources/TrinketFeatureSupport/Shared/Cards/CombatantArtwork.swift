@@ -26,7 +26,7 @@ public struct CombatantArtwork: View {
                 )
                 .resizable()
                 .interpolation(interpolation)
-                .modifier(ArtFillModifier())
+                .modifier(ArtFillModifier(alignment: variant == .hero ? .top : .center))
                 .decorativePreparedArtwork()
 
             } else {
@@ -54,9 +54,11 @@ public struct CombatantArtwork: View {
 }
 
 private struct ArtFillModifier: ViewModifier {
+    let alignment: Alignment
+
     func body(content: Content) -> some View {
         Color.clear
-            .overlay {
+            .overlay(alignment: alignment) {
                 content.scaledToFill()
             }
             .clipped()

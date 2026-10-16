@@ -29,16 +29,18 @@ struct BlacksmithForgePreview: View {
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
-                VStack(spacing: TrinketDesign.Spacing.large) {
-                    previewCard
-                        .frame(width: cardWidth(in: geometry.size.width))
-                        .frame(maxWidth: .infinity)
-                    controls
-                }
-                .padding(TrinketDesign.Layout.contentMargin)
-                .frame(maxWidth: .infinity, alignment: .top)
+                previewCard
+                    .frame(width: cardWidth(in: geometry.size.width))
+                    .frame(maxWidth: .infinity)
+                    .padding(TrinketDesign.Layout.contentMargin)
             }
             .scrollBounceBehavior(.basedOnSize)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                controls
+                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                    .padding(.vertical, TrinketDesign.Spacing.medium)
+                    .trinketScreenBackground()
+            }
             .trinketSoftTopScrollEdge()
             .accessibilityIdentifier(AccessibilityID.Homestead.forgePreview)
         }

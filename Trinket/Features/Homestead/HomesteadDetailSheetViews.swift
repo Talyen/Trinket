@@ -136,7 +136,7 @@ struct HomesteadWalletSheet: View {
             .navigationTitle(Text(L10n.ui_homesteaddetailsheetviews_resources_e89b3))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button {
                         if let onClose {
                             onClose()

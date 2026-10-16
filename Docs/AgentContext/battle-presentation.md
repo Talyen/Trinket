@@ -34,7 +34,8 @@ to the origin without completing the encounter.
 Defeat shows its title and a short enemy subtitle above the same party portrait
 and animated XP section used by Victory. Both party rows remain visible at zero
 XP, with unchanged bars. Continue is the sole primary action below the panel and
-is available while XP animates. Victory's Loot All is likewise available during
+is available while XP animates. In constrained viewports the shared reward shell
+pins it in the content area while XP scrolls above. Victory's Loot All is likewise available during
 the reward reveal; claiming still uses the settled award. Players retry by
 re-entering the encounter from the previous screen. There is no separate artwork, battle
 recap, loot section, or collection feedback. A refreshed defeat settlement resets

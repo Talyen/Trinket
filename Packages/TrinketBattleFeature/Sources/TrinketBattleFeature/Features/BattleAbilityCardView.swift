@@ -146,7 +146,7 @@ struct BattleAbilityCardView: View {
     private var activeOffset: CGSize {
         let resting = restingTranslation
         return CGSize(
-            width: resting.width + (isHeld ? dragTranslation.width : 0),
+            width: resting.width + (isHeld ? heldReleaseCenter.x - restingCenter.x : 0),
             height: resting.height + (isHeld ? dragTranslation.height : 0),
         )
     }
@@ -299,13 +299,9 @@ struct BattleAbilityCardView: View {
     }
 
     private func beginPlay() {
-        let center = BattleHandLayout.releaseCenter(
-            restingCenter: restingCenter,
-            dragTranslation: dragTranslation,
-        )
         let request = CardActivationRequest(
             artworkName: card.ability.artReference?.imageName,
-            center: center,
+            center: heldReleaseCenter,
             size: CGSize(width: width, height: height),
             rotation: CGFloat(activeRotation * .pi / 180),
             verticalTilt: CGFloat(verticalTilt),
@@ -314,6 +310,17 @@ struct BattleAbilityCardView: View {
             keywords: card.ability.presentationKeywords,
         )
         publishPlay(request)
+    }
+
+    private var heldReleaseCenter: CGPoint {
+        BattleHandLayout.releaseCenter(
+            restingCenter: restingCenter,
+            dragTranslation: dragTranslation,
+            cardSize: CGSize(width: width, height: height),
+            rotation: CGFloat(activeRotation * .pi / 180),
+            scale: heldScale.width,
+            in: interactionFrame,
+        )
     }
 
     private func publishPlay(_ request: CardActivationRequest) {

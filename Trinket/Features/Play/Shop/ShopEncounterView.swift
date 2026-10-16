@@ -42,22 +42,25 @@ struct ShopEncounterView: View {
                     offerGrid
                         .trinketPresentationVisibility(offersAppeared)
                         .offset(y: offersAppeared ? 0 : 10)
-
-                    Button {
-                        _ = onLeave()
-                    } label: {
-                        Text(L10n.ui_shopencounterview_leave_shop_e6a7f)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .trinketPrimaryActionButton()
-                    .trinketCenteredPrimaryAction()
-                    .tint(TrinketDesign.Colors.encounterShop)
-                    .accessibilityIdentifier(AccessibilityID.Shop.leaveButton)
-                    .padding(.top, TrinketDesign.Spacing.extraSmall)
                 },
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .trinketScreenBackground()
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Button {
+                    _ = onLeave()
+                } label: {
+                    Text(L10n.ui_shopencounterview_leave_shop_e6a7f)
+                        .frame(maxWidth: .infinity)
+                }
+                .trinketPrimaryActionButton()
+                .trinketCenteredPrimaryAction()
+                .tint(TrinketDesign.Colors.encounterShop)
+                .accessibilityIdentifier(AccessibilityID.Shop.leaveButton)
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.vertical, TrinketDesign.Spacing.medium)
+                .trinketScreenBackground()
+            }
             .navigationBarTitleDisplayMode(.inline)
             .trinketToolbarBackgroundHidden {
                 ToolbarItem(placement: .topBarTrailing) {

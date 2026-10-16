@@ -3,6 +3,38 @@ import Testing
 @testable import TrinketBattleFeature
 
 struct BattleHandLayoutTests {
+    @Test func `held card and cast origin stay clear of either side bar without changing upward drag distance`() {
+        let size = CGSize(width: 150, height: 200)
+        let scale: CGFloat = 1.035
+        for frame in [CGRect(x: 0, y: 350, width: 382, height: 280), CGRect(x: 84, y: 350, width: 382, height: 280)] {
+            let resting = CGPoint(x: frame.midX, y: frame.midY)
+            for x in [CGFloat(-1000), 0, 1000] {
+                for angle in [CGFloat(-22), 0, 22] {
+                    let radians = angle * .pi / 180
+                    let translation = CGSize(width: x, height: -120)
+                    let center = BattleHandLayout.releaseCenter(
+                        restingCenter: resting,
+                        dragTranslation: translation,
+                        cardSize: size,
+                        rotation: radians,
+                        scale: scale,
+                        in: frame,
+                    )
+                    for corner in [.zero, CGPoint(x: size.width, y: 0),
+                                   CGPoint(x: 0, y: size.height), CGPoint(x: size.width, y: size.height)] {
+                        let relative = CGPoint(
+                            x: (corner.x - size.width / 2) * scale,
+                            y: (corner.y - size.height / 2) * scale - size.height / 2,
+                        ).applying(CGAffineTransform(rotationAngle: radians))
+                        #expect(center.x + relative.x >= frame.minX + BattleHandLayout.horizontalInset - 0.001)
+                        #expect(center.x + relative.x <= frame.maxX - BattleHandLayout.horizontalInset + 0.001)
+                    }
+                    #expect(center.y == resting.y - 120)
+                }
+            }
+        }
+    }
+
     @Test func `resting hand leaves party resource bars visible through compact and expanded resizing`() {
         for size in [
             CGSize(width: 402, height: 874),

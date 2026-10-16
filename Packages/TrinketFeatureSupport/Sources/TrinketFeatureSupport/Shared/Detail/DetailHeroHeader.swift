@@ -48,10 +48,6 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
             .overlay {
                 extendedArtwork
                     .allowsHitTesting(false)
-                    .clipped()
-                    .trinketBottomArtworkBlend()
-                    .scaleEffect(baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1, anchor: .top)
-                    .offset(y: -overscroll)
             }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading) {
@@ -71,11 +67,15 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .clipped()
         }
+        .trinketBottomArtworkBlend()
+        .scaleEffect(baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1, anchor: .top)
+        .offset(y: -overscroll)
     }
 
     @ViewBuilder
     private var extendedArtwork: some View {
         if #available(iOS 26.0, *) {
+            // Extend the cropped, blended artwork; an outer clip would cut off the side-bar background.
             artworkFrame.backgroundExtensionEffect()
         } else {
             artworkFrame

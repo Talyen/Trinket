@@ -55,13 +55,17 @@ struct HomesteadNodeDetailView: View {
                 VStack(spacing: TrinketDesign.Spacing.large) {
                     buildingIdentity
                     Spacer(minLength: TrinketDesign.Spacing.large)
-                    VStack(spacing: TrinketDesign.Spacing.medium) {
-                        if definition.id == .blacksmithForge, status.currentTier > 0 {
-                            craftSection
+                    ScrollView {
+                        VStack(spacing: TrinketDesign.Spacing.medium) {
+                            if definition.id == .blacksmithForge, status.currentTier > 0 {
+                                craftSection
+                            }
+                            upgradeSection
+                            panelContent
                         }
-                        upgradeSection
-                        benefitsPanel
                     }
+                    .scrollBounceBehavior(.basedOnSize)
+                    .defaultScrollAnchor(.bottom, for: .alignment)
                     .frame(
                         maxHeight: geometry.size.height * 0.65,
                         alignment: .bottom,
@@ -131,7 +135,7 @@ struct HomesteadNodeDetailView: View {
 
     @ToolbarContentBuilder
     private var navigationControls: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .cancellationAction) {
             Button { dismiss() } label: {
                 Label(String(localized: L10n.ui_homesteaddetailviews_back_76900), systemImage: "chevron.left")
             }
@@ -224,13 +228,6 @@ struct HomesteadNodeDetailView: View {
         )
         .frame(width: 132)
         .accessibilityIdentifier(AccessibilityID.Homestead.progress(tier: status.currentTier))
-    }
-
-    private var benefitsPanel: some View {
-        ViewThatFits(in: .vertical) {
-            panelContent.fixedSize(horizontal: false, vertical: true)
-            ScrollView { panelContent }
-        }
     }
 
     private var panelContent: some View {

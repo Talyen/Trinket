@@ -20,8 +20,10 @@ Within `Sources/TrinketFeatureSupport/Shared/`, `Cards/` owns reusable cards and
 item artwork, `Encounters/` owns encounter tiles and reading presentation, and
 `Rewards/` owns the reward reveal sequence and its views. Victory and Mystery
 reveal loot and the primary action together while XP animates, keeping layout
-positions stable. Wide windows pin the primary action while rewards scroll above
-it; taller windows retain the inline action. Collection becomes available after the reveal fade, independent
+positions stable. `RewardRevealShell` automatically pins actions in short or wide
+viewports; its inline-height threshold scales with native body text. Victory,
+defeat and recruitment share that policy, while an explicit pinning argument can
+override it. Taller windows retain the inline action. Collection becomes available after the reveal fade, independent
 of XP completion. A successful claim triggers a brief stationary pulse before
 exit; animation never determines the amount awarded. Interrupted collection
 finishes the already committed action once. Astral and Unique items receive a
@@ -74,11 +76,16 @@ owns scroll-driven prefetch. Launch retention follows
 the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
 
 `HeroHeaderLayout` and `DetailHeroScrollShell` share full-bleed detail heroes,
-overscroll, and scrim blending. Portrait, square, and cinematic headers are bounded
+overscroll, and scrim blending. Portrait, square, cinematic and talent-tree headers are bounded
 by usable viewport height so their summaries and following content remain visible.
 The shell’s scroll geometry drives header height,
 pinned-title opacity, and artwork overscroll zoom even after the hero scrolls
-offscreen. Overscroll is supplied only to the header subtree. `DetailTraitRow` and
+offscreen. Overscroll is supplied only to the header subtree. Artwork extension
+follows cropping, blending and overscroll transforms, without an outer clip; title
+and footer remain safe-area foreground. Hero combatant artwork uses the upper
+portrait crop when wide headers cannot show its full height; card and battle crops
+are unchanged. Follow [content beside native bars](../../Docs/Platform/ApplePlatformReference.md#content-beside-native-bars)
+for all shared grids, shelves and detail consumers. `DetailTraitRow` and
 `DetailHeroHeader` accept optional `DetailChangeIndicator` values for inline icons
 with explicit accessible meanings; features own the mapping from gameplay outcomes
 to those indicators.

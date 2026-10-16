@@ -128,6 +128,24 @@ a per-career deadline plus a bounded overall deadline. Interruption, recovery, a
 replay checks retain separate processes. Invariants, not
 victory rates, determine acceptance. UI soak accepts either outcome and verifies that only victories add their displayed Contract claim. Raw scenario manifests permit replay.
 
+## Duo visual qualification
+
+Apply the [screen-wide native bar policy](ApplePlatformReference.md#content-beside-native-bars)
+to the closed/open portrait and landscape matrix. Retain the active display's
+screenshot and actual app-window dimensions; the inactive outer display can be
+black while the inner display hosts the app. A successful pose command or device
+orientation value alone does not establish that the window resized. Keep the
+rotation journey's actual-geometry assertion intact when tooling cannot drive it.
+
+Inspect hero extension and upper portrait framing, every horizontal shelf endpoint,
+vertical-grid rightmost cells, pinned cost/action docks, and map/talent inspectors.
+Repeat with long localized labels and native largest text, then compare ordinary
+iPhone and iPad layouts. Exercise folding during dragging, inspection, Auto Battle,
+automatic casts and reward reveal; verify cancellation, retained navigation and no
+duplicate commands or claims. A source review, successful build, subset of captures
+or lightweight handoff cannot close this qualification. Hosted package tests and
+relevant UI/profile results remain required for the exact revision.
+
 ## Evidence and remaining gates
 
 Retain screenshots, compact diagnostics, actual settings/device/runtime/toolchain and

@@ -24,7 +24,8 @@ public struct RewardRevealShell<Content: View>: View {
     let onSecondaryAction: () -> Void
     var contentTopPadding = TrinketDesign.Layout.contentTopPadding
     var contentStackSpacing = TrinketDesign.Layout.sectionSpacing
-    var pinsPrimaryActionToBottom = true
+    var pinsPrimaryActionToBottom: Bool?
+    @ScaledMetric(relativeTo: .body) private var minimumInlineHeight: CGFloat = 600
     var primaryActionOpacity: Double = 1
     var primaryActionEntranceOffset: CGFloat = TrinketDesign.Spacing.small
 
@@ -51,7 +52,7 @@ public struct RewardRevealShell<Content: View>: View {
         onSecondaryAction: @escaping () -> Void = {},
         contentTopPadding: CGFloat = TrinketDesign.Layout.contentTopPadding,
         contentStackSpacing: CGFloat = TrinketDesign.Layout.sectionSpacing,
-        pinsPrimaryActionToBottom: Bool = true,
+        pinsPrimaryActionToBottom: Bool? = nil,
         primaryActionOpacity: Double = 1,
         primaryActionEntranceOffset: CGFloat = TrinketDesign.Spacing.small,
     ) {
@@ -83,48 +84,21 @@ public struct RewardRevealShell<Content: View>: View {
     }
 
     public var body: some View {
+        GeometryReader { geometry in
+            let pinsActions = pinsPrimaryActionToBottom
+                ?? (geometry.size.width > geometry.size.height || geometry.size.height < minimumInlineHeight)
+            scrollContent(pinsActions: pinsActions)
+        }
+    }
+
+    private func scrollContent(pinsActions: Bool) -> some View {
         ScrollView {
             VStack(spacing: contentStackSpacing) {
-                VStack(spacing: TrinketDesign.Spacing.small) {
-                    VStack(spacing: TrinketDesign.Spacing.extraSmall) {
-                        if let eyebrow {
-                            GameLabel(eyebrow, balanced: true)
-                                .trinketTypography(.eyebrow)
-                                .foregroundStyle(TrinketDesign.Colors.accent)
-                                .textCase(.uppercase)
-                                .trinketFittedText()
-                                .trinketPresentationVisibility(eyebrowOpacity >= 1, opacity: eyebrowOpacity)
-                                .offset(y: (1 - eyebrowOpacity) * TrinketDesign.Spacing.small)
-                                .accessibilityIdentifier(eyebrowAccessibilityIdentifier ?? eyebrow)
-                        }
-
-                        if let title {
-                            GameLabel(title, balanced: true)
-                                .trinketTypography(.screenDisplay)
-                                .foregroundStyle(titleColor)
-                                .multilineTextAlignment(.center)
-                                .trinketFittedText()
-                                .trinketPresentationVisibility(titleOpacity >= 1, opacity: titleOpacity)
-                                .offset(y: (1 - titleOpacity) * TrinketDesign.Spacing.small)
-                                .accessibilityIdentifier(titleAccessibilityIdentifier)
-                        }
-                    }
-
-                    if let subtitle {
-                        GameLabel(subtitle, balanced: true)
-                            .trinketTypography(.secondaryBody)
-                            .foregroundStyle(subtitleColor)
-                            .multilineTextAlignment(.center)
-                            .trinketFittedText()
-                            .trinketPresentationVisibility(subtitleOpacity >= 1, opacity: subtitleOpacity)
-                            .offset(y: (1 - subtitleOpacity) * TrinketDesign.Spacing.small)
-                            .accessibilityIdentifier(subtitleAccessibilityIdentifier ?? subtitle)
-                    }
-                }
+                heading
 
                 content()
 
-                if !pinsPrimaryActionToBottom {
+                if !pinsActions {
                     actions
                 }
             }
@@ -135,7 +109,7 @@ public struct RewardRevealShell<Content: View>: View {
         }
         .defaultScrollAnchor(.center, for: .alignment)
         .safeAreaInset(edge: .bottom) {
-            if pinsPrimaryActionToBottom, primaryActionTitle != nil {
+            if pinsActions, primaryActionTitle != nil {
                 actions
                     .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                     .padding(.vertical, TrinketDesign.Spacing.medium)
@@ -154,6 +128,45 @@ public struct RewardRevealShell<Content: View>: View {
                         .offset(y: -28)
                         .allowsHitTesting(false)
                     }
+            }
+        }
+    }
+
+    private var heading: some View {
+        VStack(spacing: TrinketDesign.Spacing.small) {
+            VStack(spacing: TrinketDesign.Spacing.extraSmall) {
+                if let eyebrow {
+                    GameLabel(eyebrow, balanced: true)
+                        .trinketTypography(.eyebrow)
+                        .foregroundStyle(TrinketDesign.Colors.accent)
+                        .textCase(.uppercase)
+                        .trinketFittedText()
+                        .trinketPresentationVisibility(eyebrowOpacity >= 1, opacity: eyebrowOpacity)
+                        .offset(y: (1 - eyebrowOpacity) * TrinketDesign.Spacing.small)
+                        .accessibilityIdentifier(eyebrowAccessibilityIdentifier ?? eyebrow)
+                }
+
+                if let title {
+                    GameLabel(title, balanced: true)
+                        .trinketTypography(.screenDisplay)
+                        .foregroundStyle(titleColor)
+                        .multilineTextAlignment(.center)
+                        .trinketFittedText()
+                        .trinketPresentationVisibility(titleOpacity >= 1, opacity: titleOpacity)
+                        .offset(y: (1 - titleOpacity) * TrinketDesign.Spacing.small)
+                        .accessibilityIdentifier(titleAccessibilityIdentifier)
+                }
+            }
+
+            if let subtitle {
+                GameLabel(subtitle, balanced: true)
+                    .trinketTypography(.secondaryBody)
+                    .foregroundStyle(subtitleColor)
+                    .multilineTextAlignment(.center)
+                    .trinketFittedText()
+                    .trinketPresentationVisibility(subtitleOpacity >= 1, opacity: subtitleOpacity)
+                    .offset(y: (1 - subtitleOpacity) * TrinketDesign.Spacing.small)
+                    .accessibilityIdentifier(subtitleAccessibilityIdentifier ?? subtitle)
             }
         }
     }
