@@ -53,6 +53,20 @@ private struct TrinketPressButtonStyle: ButtonStyle {
     }
 }
 
+private struct CenteredPrimaryActionModifier: ViewModifier {
+    @ScaledMetric(relativeTo: .body) private var widthFraction = TrinketDesign.Layout.singlePrimaryActionWidthFraction
+
+    func body(content: Content) -> some View {
+        content
+            .containerRelativeFrame(.horizontal) { width, _ in
+                let scaledWidth = width * max(widthFraction, TrinketDesign.Layout.singlePrimaryActionWidthFraction)
+                let availableWidth = max(0, width - 2 * TrinketDesign.Layout.contentMargin)
+                return min(scaledWidth, availableWidth)
+            }
+            .frame(maxWidth: .infinity)
+    }
+}
+
 public extension View {
     func trinketPrimaryActionButton(
         controlSize: ControlSize = .large,
@@ -70,8 +84,7 @@ public extension View {
     }
 
     func trinketCenteredPrimaryAction() -> some View {
-        containerRelativeFrame(.horizontal) { width, _ in width * TrinketDesign.Layout.singlePrimaryActionWidthFraction }
-            .frame(maxWidth: .infinity)
+        modifier(CenteredPrimaryActionModifier())
     }
 
     func trinketSecondaryActionButton(

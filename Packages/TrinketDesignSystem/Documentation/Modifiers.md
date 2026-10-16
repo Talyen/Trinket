@@ -30,7 +30,7 @@ buttons and system toolbar styling.
 | `Text(balanced:)` / `String.trinketBalanced()` | Widow-proof titles |
 | `.trinketShineText(colors:)` | Animated shine over explicit colors (Reduce Motion aware, freezes while parked); for a `Shine` model value use FeatureSupport's `shineText(_:)` |
 | `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
-| `.trinketCenteredPrimaryAction()` | Half-width, centered layout for a lone screen primary action |
+| `.trinketCenteredPrimaryAction()` | Centered lone primary action: starts at half the container width and grows with Dynamic Type, capped inside normal content margins |
 | `.trinketOnArtText(_:)` | Opaque paper foreground + crisp ink outline on artwork; iOS 18 adds opaque ink backing for contrast; preserves explicit colored and shine fills |
 | `.trinketBottomArtworkBlend(color:)` | Bottom-edge blend into a destination color (inherits the screen/sheet canvas; pass an explicit color for another surface, panel, or section fill below the art) |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |

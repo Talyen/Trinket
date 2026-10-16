@@ -14,6 +14,7 @@ Centralized intake for agent pain points, confusion, and struggle while working 
 | Date | Area | Symptom (expected vs actual) |
 |------|------|------------------------------|
 | 2026-09-20 | Simulator inspection | Device Hub is running and the leased app launches, but Computer Use `getApp` times out (`-10005`) by both app path and bundle ID, including after a 2026-10-02 restart. The [native device-interaction skill](skills/device-interaction/SKILL.md) provides an alternative inspection route; [floating-feedback visual verification](../Docs/AgentContext/battle-presentation.md#verification-gap) remains pending. |
+| 2026-10-16 | Duo inspection | Xcode 27.1 RC native captures/input can target the inactive outer display after unfolding and report `NotRun` for a running app; orientation commands can change metadata without resizing. Computer Use control activation can work while coordinate gestures fail. [Duo display routing](../Docs/Platform/SimulatorOperations.md#duo-display-routing) records the bounded capture/input checks; unfolded touch and precise cast-boundary qualification remain tooling gaps. |
 
 ## Details
 

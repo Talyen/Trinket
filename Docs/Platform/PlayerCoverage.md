@@ -136,6 +136,15 @@ screenshot and actual app-window dimensions; the inactive outer display can be
 black while the inner display hosts the app. A successful pose command or device
 orientation value alone does not establish that the window resized. Keep the
 rotation journey's actual-geometry assertion intact when tooling cannot drive it.
+Use [Duo display routing](SimulatorOperations.md#duo-display-routing) to distinguish
+inactive-display capture/input from app failures.
+
+For interrupted input, first demonstrate that touch reaches the active display.
+Retain the touch interval and a recording showing held artwork before the real
+display transition; an issued drag command alone does not prove overlap with the
+fold. Compare the hand and process before/after, then exercise fresh card play.
+For rewards, compare the named fixture's saved award and claim receipt after one
+claim. A visible button alone does not establish successful or single settlement.
 
 Inspect hero extension and upper portrait framing, every horizontal shelf endpoint,
 vertical-grid rightmost cells, pinned cost/action docks, and map/talent inspectors.

@@ -115,6 +115,29 @@ screenshot or recording is needed as an artifact, the
 owns the exact simctl capture commands against the leased device. A full pool means
 another run owns the capacity, not permission to take its device.
 
+### Duo display routing
+
+When a Duo capture is black or input has no effect after folding, compare the
+rendered display, app process and actual window dimensions before diagnosing the
+game. In Xcode 27.1 RC (`27A9275`) with iOS 27.1 (`24A94232`), native interaction
+reported `NotRun` for a running app, captured the inactive outer display after
+unfolding, and changed orientation metadata without resizing the app. Device Hub's
+pose and Rotate controls produced actual geometry changes. These are observed
+tool limitations, not permission to weaken the rotation journey.
+
+Under the live lease, `xcrun simctl io "$SIMULATOR_UDID" enumerate` identifies the
+display IDs accepted by screenshot/recording `--display`. The observed outer/inner
+IDs were `1`/`3`; resolve them for the current device rather than assuming that
+mapping. Capture the active display explicitly when the default targets the other
+screen. A readable capture establishes layout, not successful touch routing.
+
+Follow the simulator skill's bounded observation/rebind recovery after Device Hub
+changes windows. Accessibility control activation can remain usable while
+coordinate gestures fail with `noWindowsAvailable`; report the unexercised gesture
+instead of treating a control activation as equivalent touch evidence. If a
+recorder reports resource busy, preserve foreign recordings and use one owned
+recording with before/after captures rather than starting simultaneous displays.
+
 ## Optional mirror (isolated → human)
 
 Handoff is headless by default. An expressly requested local mirror uses
