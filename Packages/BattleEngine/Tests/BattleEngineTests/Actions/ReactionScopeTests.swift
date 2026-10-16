@@ -18,7 +18,7 @@ struct ReactionScopeTests {
             sourceActorID: state.roster.hero.combatant.id,
             options: DamageOperation.effect(scaling: .statsAndItems, accuracy: .normal),
         )
-        let outcome = state.resolveDamage(request)
+        let outcome = state.recordingResult { context in await context.resolveDamage(request) }
         #expect(outcome.events.isEmpty)
         #expect(state.resolution.depth(.damage) == ReactionScope.maxDepth)
     }
@@ -49,10 +49,15 @@ struct ReactionScopeTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroEffects: [ActiveEffect(id: 1, effect: .thorns(4), remainingTurns: 2)],
         )
-        let outcome = state.resolveTestDamage(10, from: .enemy, to: .hero, options: DamageOperation.attack(
-            tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-        ))
-        #expect(outcome.healthLost == 10)
+        let outcome = state.recordingResult { context in context.resolveTestDamage(
+            10,
+            from: .enemy,
+            to: .hero,
+            options: DamageOperation.attack(
+                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
+            ),
+        ) }
+        #expect(outcome.value.healthLost == 10)
         #expect(state.roster.health(for: state.roster.enemy.combatant) == 96)
         #expect(outcome.events.contains {
             $0.effectKind == .thornsTriggered && $0.abilityName == "Thorns"
@@ -68,10 +73,10 @@ struct ReactionScopeTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: heroProfile,
         )
-        let outcome = state.resolveTestDamage(10, options: DamageOperation.attack(
+        let outcome = state.recordingResult { context in context.resolveTestDamage(10, options: DamageOperation.attack(
             tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-        ))
-        #expect(outcome.healthLost == 10)
+        )) }
+        #expect(outcome.value.healthLost == 10)
         #expect(state.roster.health(for: state.roster.enemy.combatant) == 87)
         #expect(!outcome.events.contains { $0.effectKind == .thornsTriggered })
     }

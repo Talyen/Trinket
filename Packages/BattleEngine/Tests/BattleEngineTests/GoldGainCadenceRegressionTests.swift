@@ -20,7 +20,7 @@ struct GoldGainCadenceRegressionTests {
         )
         fixtures.block(5, owner: .hero, in: &battle)
 
-        let hit = fixtures.enemyHit(1, in: &battle)
+        let hit = battle.recordingResult { context in fixtures.enemyHit(1, in: &context) }
 
         #expect(battle.gold == 4)
         #expect(hit.events.count { $0.effectKind == .cardsDrawn && $0.abilityName == "Last Wager" } == 1)

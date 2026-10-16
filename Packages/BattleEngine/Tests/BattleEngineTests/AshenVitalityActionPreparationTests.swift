@@ -38,14 +38,14 @@ struct AshenVitalityActionPreparationTests {
         let target = battle.enemy
         battle.insertEffect(.evadeNextHit, to: actor, sourceID: actor.id, remainingTurns: 0)
 
-        let result = battle.resolveTestDamage(
+        let result = battle.recordingResult { context in context.resolveTestDamage(
             3,
             from: .enemy,
             to: .companion,
             options: .attack(tier: .basic, abilityCriticalChanceBonus: -1),
-        )
+        ) }
 
-        #expect(result.flags.contains(.dodged))
+        #expect(result.value.flags.contains(.dodged))
         #expect(result.events.filter { $0.kind == .abilityDamage && $0.abilityID == basic.id }.map(\.amount) == [4, 4])
         #expect(result.events.count { $0.effectKind == .overheal && $0.targetID == actor.id } == 2)
         #expect(battle.roster.companion.talents.pending.nextBurnDamageBonus?.value == 2)

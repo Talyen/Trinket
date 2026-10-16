@@ -59,11 +59,11 @@ struct BattleTurnEngineTests {
         )
         let hero = context.hero
 
-        let events = context.resolveTestDamage(
+        let events = context.recordingResult { observation in observation.resolveTestDamage(
             40,
             to: hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ).events
+        ) }.events
 
         try #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
         let expectedBlock = context.paced(8, sourceActorID: hero.id)

@@ -7,7 +7,7 @@ extension UniqueCollectionTests {
     @Test func `Patient Edge waits through Knights Answer and a support card for the next manual hit`() throws {
         var context = try battle(["the_patient_edge", "the_knights_answer"], heroBasic: attack())
         block(10, owner: .hero, in: &context)
-        let counter = enemyHit(5, in: &context)
+        let counter = context.recordingResult { observation in enemyHit(5, in: &observation) }
         let hit = try #require(counter.events.first { $0.kind == .abilityDamage && $0.actorID == context.hero.id })
         #expect(!hit.isCritical)
         #expect(context.roster[.hero].uniques.patientEdgeReady == true)

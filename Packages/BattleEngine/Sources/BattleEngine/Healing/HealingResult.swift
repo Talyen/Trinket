@@ -38,7 +38,6 @@ struct HealingResult {
     let allocation: HealingAllocation
     let isLeech: Bool
     let isCritical: Bool
-    var events: [ActionEvent] = []
 
     var directRestoration: Int {
         allocation.directRestoration
@@ -64,6 +63,6 @@ struct HealingResult {
         if didLeech {
             flags.insert(.leeched)
         }
-        return CombatOutcome(healthDelta: directRestoration, events: events, flags: flags)
+        return CombatOutcome(healthDelta: directRestoration, flags: flags)
     }
 }

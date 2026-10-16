@@ -27,9 +27,9 @@ struct HealingOverflowBlockAllocationTests {
         var battle = makeBattle(conversion: conversion)
         battle.roster.companion.talents.turn.blockGainPrevented = true
 
-        let outcome = CombatExecutor.run { await HealingEngine.leechFromDamage(
-            20, sourceActorID: battle.companion.id, target: battle.enemy,
-            abilityHasLeech: true, in: &battle,
+        let outcome = battle.recordingResult { context in await HealingEngine.leechFromDamage(
+            20, sourceActorID: context.companion.id, target: context.enemy,
+            abilityHasLeech: true, in: &context,
         ) }
 
         #expect(battle.gold == 10)

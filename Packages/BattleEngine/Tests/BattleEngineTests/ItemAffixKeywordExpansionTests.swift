@@ -89,10 +89,13 @@ struct ItemAffixKeywordExpansionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
 
-        let outcome = battle.resolveTestDamage(1, options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true))
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
+            1,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
+        ) }
 
-        #expect(outcome.isCritical)
-        #expect(outcome.healthLost == 0)
+        #expect(outcome.value.isCritical)
+        #expect(outcome.value.healthLost == 0)
         #expect(battle.health(of: battle.enemy) == 40)
         #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.isRemovableBuff })
         #expect(outcome.events.count { $0.effectKind == .purgeApplied && $0.abilityName == "Unmaking" } == 1)

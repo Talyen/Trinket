@@ -82,14 +82,17 @@ struct BattleLootTests {
         save.inventory.appendUniqueItem(trinket)
         let goldBefore = save.roster.gold
 
-        VictoryRewardApplier.grantVictoryRewards(
+        let settlement = VictoryRewardApplier.settleVictoryRewards(
             party: (hero, companion),
             encounterLevel: 10,
             stageGold: 0,
             materialRewards: [],
             item: trinket,
-            save: &save,
-            recordReceipt: { _ in },
+            save: save,
+        )
+        VictoryRewardApplier.apply(
+            settlement, hero: hero, companion: companion,
+            save: &save, recordReceipt: { _ in },
         )
 
         let range = BattleLoot.quantityRange(forLevel: 10)

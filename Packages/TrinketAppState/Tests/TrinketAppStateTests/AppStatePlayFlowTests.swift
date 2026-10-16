@@ -181,11 +181,7 @@ struct AppStatePlayFlowTests {
         let configuration = try #require(state.battle.activeBattle)
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
         let initialGold = state.playerSave.roster.gold
-        let expectedGold = VictoryRewardApplier.resolvedGoldReward(
-            stageGold: presentation.rewardPlan.stageGold,
-            battleGold: .init(gained: 5),
-            homestead: state.playerSave.homestead,
-        )
+        let expectedGold = presentation.rewardPlan.resolve(battleGold: .init(gained: 5)).goldDelta
 
         state.completeActiveBattle(configuration, battleGold: .init(gained: 5))
 
@@ -393,11 +389,7 @@ struct AppStatePlayFlowTests {
         let configuration = try #require(state.battle.activeBattle)
         let rawBattleEarnedGold = 20
         let presentation = try #require(state.battlePresentation(for: configuration.runKey))
-        let expectedTotal = VictoryRewardApplier.resolvedGoldReward(
-            stageGold: presentation.rewardPlan.stageGold,
-            battleGold: .init(gained: rawBattleEarnedGold),
-            homestead: state.playerSave.homestead,
-        )
+        let expectedTotal = presentation.rewardPlan.resolve(battleGold: .init(gained: rawBattleEarnedGold)).goldDelta
         let initialGold = state.playerSave.roster.gold
 
         #expect(state.completeActiveBattle(

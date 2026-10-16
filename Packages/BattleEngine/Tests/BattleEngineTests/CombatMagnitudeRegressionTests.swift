@@ -26,9 +26,9 @@ struct CombatMagnitudeRegressionTests {
         var battle = makeBattle()
         battle.insertEffect(.marked(Int.max, 2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
 
-        let outcome = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(1, options: .attack(accuracy: .unavoidable)) }
 
-        #expect(outcome.healthLost == 3)
+        #expect(outcome.value.healthLost == 3)
         #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .marked })
         #expect(outcome.events.contains { $0.effectKind == .markedConsumed && $0.amount == Int.max })
     }

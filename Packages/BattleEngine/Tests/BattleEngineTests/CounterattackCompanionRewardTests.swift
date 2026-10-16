@@ -13,7 +13,7 @@ struct CounterattackCompanionRewardTests {
         )
         fixtures.block(11, owner: .companion, in: &battle)
 
-        let events = fixtures.enemyHit(1, target: .companion, in: &battle).events
+        let events = battle.recordingResult { context in fixtures.enemyHit(1, target: .companion, in: &context) }.events
 
         #expect(events.contains { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id })
         #expect(events.contains { $0.abilityName == "Bone Shield" && $0.effectKind == .shieldApplied && $0.amount == 3 })
@@ -36,7 +36,7 @@ struct CounterattackCompanionRewardTests {
         fixtures.block(10, owner: .companion, in: &battle)
         battle.insertEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
 
-        let events = fixtures.enemyHit(1, target: .companion, in: &battle).events
+        let events = battle.recordingResult { context in fixtures.enemyHit(1, target: .companion, in: &context) }.events
 
         #expect(events.contains { $0.kind == .abilityDamage && $0.keyword == .bleed && $0.isCritical })
         #expect(events.contains { $0.abilityName == "Bloodrush" && $0.effectKind == .cardsDrawn && $0.amount == 1 })

@@ -14,7 +14,7 @@ extension UniqueCollectionTests {
         context.roster.companion.currentHealth = 20
         context.insertEffect(.thorns(4), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
 
-        let events = enemyHit(1, in: &context).events
+        let events = context.recordingResult { observation in enemyHit(1, in: &observation) }.events
         #expect(context.health(of: context.enemy) == 1996)
         #expect(context.health(of: context.hero) == 9)
         #expect(!events.contains { $0.abilityName == "Beacon" })
@@ -22,7 +22,7 @@ extension UniqueCollectionTests {
         block(10, owner: .enemy, in: &context)
         _ = context.resolveTestDamage(10, keyword: .holy, options: attack)
         #expect(context.health(of: context.hero) == 9)
-        let first = context.resolveTestDamage(1, keyword: .holy, options: attack)
+        let first = context.recordingResult { context in context.resolveTestDamage(1, keyword: .holy, options: attack) }
         #expect(context.health(of: context.hero) == 11)
         #expect(first.events.filter { $0.abilityName == "Beacon" && $0.effectKind == .instantHeal }.map(\.amount) == [2])
         _ = context.resolveTestDamage(1, keyword: .holy, options: attack)

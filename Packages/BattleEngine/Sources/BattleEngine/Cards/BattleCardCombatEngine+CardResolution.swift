@@ -2,23 +2,12 @@ import TrinketContent
 import TrinketCore
 
 extension BattleCardCombatEngine {
-    @discardableResult
     package static func playCard(
         cardID: Int,
         context: inout BattleState,
-    ) async throws -> [ActionEvent] {
+    ) async throws {
         guard let card = context.hand.card(id: cardID) else { throw BattlePlayError.cardNotInHand }
-        return try await playDrawnCard(card, context: &context, allowBufferedRemoval: false)
-    }
-
-    static func playDrawnCard(
-        _ card: BattleCard,
-        context: inout BattleState,
-        allowBufferedRemoval: Bool = true,
-    ) async throws -> [ActionEvent] {
-        try await context.collectingEvents { context in
-            _ = try await resolveDrawnCard(card, context: &context, allowBufferedRemoval: allowBufferedRemoval)
-        }
+        _ = try await resolveDrawnCard(card, context: &context, allowBufferedRemoval: false)
     }
 
     static func resolveDrawnCard(

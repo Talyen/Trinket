@@ -36,11 +36,11 @@ struct ResolvedHealingReductionTests {
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = 10
 
-        let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
-            16, sourceActorID: battle.companion.id, target: battle.enemy, abilityHasLeech: true, in: &battle,
+        let result = battle.recordingResult { context in await HealingEngine.leechFromDamage(
+            16, sourceActorID: context.companion.id, target: context.enemy, abilityHasLeech: true, in: &context,
         ) }
 
-        #expect(result.healthRestored == 18)
+        #expect(result.value.healthRestored == 18)
         #expect(battle.health(of: battle.companion) == 28)
         #expect(battle.health(of: battle.hero) == 10 + restoredShare)
         let share = try #require(result.events.first { $0.abilityName == "Symbiosis" && $0.effectKind == .instantHeal })
@@ -70,13 +70,13 @@ struct ResolvedHealingReductionTests {
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = 10
 
-        let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
-            16, sourceActorID: battle.hero.id, target: battle.enemy, abilityHasLeech: true, in: &battle,
+        let result = battle.recordingResult { context in await HealingEngine.leechFromDamage(
+            16, sourceActorID: context.hero.id, target: context.enemy, abilityHasLeech: true, in: &context,
         ) }
 
         let expectedHeroRestoration = heroSapped ? 14 : 18
         let expectedCompanionShare = heroSapped ? 5 : 7
-        #expect(result.healthRestored == expectedHeroRestoration)
+        #expect(result.value.healthRestored == expectedHeroRestoration)
         #expect(battle.health(of: battle.hero) == 10 + expectedHeroRestoration)
         #expect(battle.health(of: battle.companion) == 10 + expectedCompanionShare)
         let share = try #require(result.events.first { $0.abilityName == "Symbiosis" && $0.effectKind == .instantHeal })

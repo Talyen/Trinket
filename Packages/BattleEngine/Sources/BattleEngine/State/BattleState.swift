@@ -254,7 +254,7 @@ public struct BattleState {
         guard !isBattleOver else { throw BattlePlayError.battleOver }
         return try CombatExecutor.run {
             try await performCommand(rebuildLog: rebuildLog, recordActions: recordActions) { context in
-                _ = try await BattleCardCombatEngine.playCard(cardID: cardID, context: &context)
+                try await BattleCardCombatEngine.playCard(cardID: cardID, context: &context)
             }
         }
     }

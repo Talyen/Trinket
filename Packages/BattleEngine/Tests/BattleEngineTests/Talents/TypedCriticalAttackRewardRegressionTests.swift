@@ -30,7 +30,7 @@ struct TypedCriticalAttackRewardRegressionTests {
         let events: [ActionEvent]
         if counterattack {
             fixtures.block(10, owner: owner, in: &battle)
-            events = fixtures.enemyHit(1, target: owner, in: &battle).events
+            events = battle.recordingResult { context in fixtures.enemyHit(1, target: owner, in: &context) }.events
         } else {
             events = try fixtures.play(basic, owner: owner, in: &battle)
         }

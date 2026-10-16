@@ -18,14 +18,14 @@ struct ThornsFeedbackRegressionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
 
-        let outcome = battle.resolveTestDamage(
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
             10,
             from: .enemy,
             to: .hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
 
-        #expect(outcome.healthLost == 10)
+        #expect(outcome.value.healthLost == 10)
         #expect(battle.roster.enemy.currentHealth == 8)
         let reflection = outcome.events.filter { $0.effectKind == .thornsTriggered }
         #expect(reflection.count == 1)

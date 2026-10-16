@@ -98,6 +98,6 @@ struct CombatRuleAuditRegressionTests {
 
     private func play(_ ability: Ability, in battle: inout BattleState) throws -> [ActionEvent] {
         let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
-        return try CombatExecutor.run { try await BattleCardCombatEngine.playDrawnCard(card, context: &battle) }
+        return try battle.recordingEvents { context in _ = try await BattleCardCombatEngine.resolveDrawnCard(card, context: &context) }
     }
 }

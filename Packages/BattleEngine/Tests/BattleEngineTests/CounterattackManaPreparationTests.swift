@@ -13,7 +13,7 @@ struct CounterattackManaPreparationTests {
         battle.heroDeck = CombatDeck(abilities: [.block, .slash])
         fixtures.block(5, owner: .hero, in: &battle)
 
-        let hit = fixtures.enemyHit(1, in: &battle)
+        let hit = battle.recordingResult { context in fixtures.enemyHit(1, in: &context) }
 
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(hit.events.contains { $0.kind == .ability && $0.abilityID == Ability.rayOfFrost.id })

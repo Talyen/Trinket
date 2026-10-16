@@ -74,12 +74,15 @@ struct ContractBoardTests {
             .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level
         let loot = BattleLootContext(save: save).contract(for: offer, encounterLevel: level)
         var expected = before
-        VictoryRewardApplier.grantVictoryRewards(
+        let settlement = VictoryRewardApplier.settleVictoryRewards(
             party: (hero, companion), encounterLevel: level, stageGold: loot.gold,
             battleGold: .init(gained: 5),
             experienceEarnedPercent: RewardOwnership(before.inventory).resolved(offer.rewardModifier).experienceBonusPercent,
-            materialRewards: loot.materials, item: loot.item, save: &expected,
-            recordReceipt: { _ in },
+            materialRewards: loot.materials, item: loot.item, save: expected,
+        )
+        VictoryRewardApplier.apply(
+            settlement, hero: hero, companion: companion,
+            save: &expected, recordReceipt: { _ in },
         )
 
         #expect(ContractsCompletion.complete(
@@ -96,6 +99,7 @@ struct ContractBoardTests {
         #expect(save.journey == before.journey)
         #expect(save.spires == before.spires)
         #expect(save.labyrinth == before.labyrinth)
+        #expect(save.contracts.highestWonEncounterLevel == level)
         #expect(save.contracts.offers.count == 3)
         #expect(save.contracts.offer(for: difficulty)?.id != offer.id)
         #expect(save.contracts.offer(for: difficulty)?.enemyID != offer.enemyID)

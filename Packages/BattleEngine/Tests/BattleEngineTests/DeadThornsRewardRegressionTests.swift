@@ -22,12 +22,12 @@ struct DeadThornsRewardRegressionTests {
         battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
         battle.insertEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
-        let outcome = battle.resolveTestDamage(
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
             1,
             from: .enemy,
             to: .hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
 
         #expect(battle.roster.enemy.currentHealth == 92)
         #expect(battle.roster.hero.currentHealth == (finallyDefeated ? 0 : 3))
@@ -56,12 +56,12 @@ struct DeadThornsRewardRegressionTests {
             battle.insertEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
-        let hit = battle.resolveTestDamage(
+        let hit = battle.recordingResult { context in context.resolveTestDamage(
             10,
             from: .enemy,
             to: .hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
 
         #expect(battle.health(of: battle.companion) == 7)
         #expect(hit.events.count(where: { $0.abilityName == "Spiteful" && $0.effectKind == .instantHeal }) == 1)

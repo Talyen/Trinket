@@ -6,12 +6,17 @@ import TrinketCore
 
 struct CombatExecutorTests {
     @Test(arguments: [false, true])
-    func `damage outcomes retain nested reactions independently of battle history`(tracksEvents: Bool) {
+    func `damage observation retains nested reactions independently of battle history`(tracksEvents: Bool) {
         var battle = BattleStateTestFactory.makeBattle(tracksEvents: tracksEvents, dealOpeningHand: false, appliesFightPacing: false)
         battle.insertEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let start = battle.events.count
-        let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
-        #expect(outcome.healthLost == 5)
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
+            5,
+            from: .enemy,
+            to: .hero,
+            options: .attack(accuracy: .unavoidable),
+        ) }
+        #expect(outcome.value.healthLost == 5)
         #expect(outcome.events.contains { $0.effectKind == .thornsTriggered })
         #expect(outcome.events.map(\.id) == outcome.events.map(\.id).sorted())
         #expect(Set(outcome.events.map(\.id)).count == outcome.events.count)
@@ -33,20 +38,18 @@ struct CombatExecutorTests {
         )
         battle.insertEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let start = battle.events.count
-        var outcome = CombatOutcome.empty
-        let events = CombatExecutor.run {
-            await battle.collectingEvents { context in
-                outcome = await context.resolveDamage(DamageRequest(
-                    amount: 10, target: context.hero, keyword: .physical, sourceActorID: context.enemy.id,
-                    options: .attack(),
-                ))
-            }
+        let request = DamageRequest(
+            amount: 10, target: battle.hero, keyword: .physical, sourceActorID: battle.enemy.id,
+            options: .attack(),
+        )
+        let outcome = battle.recordingResult { context in
+            await context.resolveDamage(request)
         }
-        #expect(outcome.isDodged)
+        let events = outcome.events
+        #expect(outcome.value.isDodged)
         #expect(events.contains { $0.abilityName == "Winter’s Wake" })
         #expect(!events.contains { $0.abilityName == "Guardian" })
         #expect(events == Array(battle.events.dropFirst(start)))
-        #expect(outcome.events == events)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.hero)) == 0)
         #expect(battle.commandOutput == nil)
     }

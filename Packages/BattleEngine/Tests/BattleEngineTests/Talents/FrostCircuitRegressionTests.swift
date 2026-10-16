@@ -22,7 +22,7 @@ struct FrostCircuitRegressionTests {
         let events: [ActionEvent]
         if counterattack {
             fixtures.block(10, owner: .hero, in: &battle)
-            events = fixtures.enemyHit(1, in: &battle).events
+            events = battle.recordingResult { context in fixtures.enemyHit(1, in: &context) }.events
         } else {
             events = try fixtures.play(basic, in: &battle)
         }
@@ -39,8 +39,8 @@ struct FrostCircuitRegressionTests {
         )
         var operation: DamageOperation = periodic ? .periodic : .effect()
         operation.guaranteedCritical = true
-        let outcome = battle.resolveTestDamage(2, keyword: .freeze, options: operation)
-        #expect(outcome.flags.contains(.critical))
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(2, keyword: .freeze, options: operation) }
+        #expect(outcome.value.flags.contains(.critical))
         #expect(battle.roster.hero.currentMana == 0)
         #expect(!outcome.events.contains { $0.abilityName == "Frost Circuit" })
     }

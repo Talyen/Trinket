@@ -207,15 +207,15 @@ struct RewardSettlementTests {
         #expect(settlement.replacementExperience == Int.max)
     }
 
-    @Test func `capacity and replacement comparisons saturate`() {
+    @Test func `capacity and gold overflow saturate`() {
         let extreme = RewardSettlementInputs(
             gold: Int.min, reservedGold: Int.min, goldLimit: Int.max,
             heroProgression: .initial, companionProgression: .initial,
             productionDate: Date(timeIntervalSince1970: 0),
         )
         #expect(extreme.goldCapacity == Int.max)
-        #expect(RewardSettlementPolicy.replacesGold(gains: Int.max, spending: Int.max, capacity: 0) == false)
-        #expect(RewardSettlementPolicy.replacesGold(gains: Int.max, spending: 0, capacity: 0))
+        #expect(RewardSettlementPolicy.goldOverflow(gains: Int.max, spending: Int.max, capacity: 0) == 0)
+        #expect(RewardSettlementPolicy.goldOverflow(gains: Int.max, spending: 0, capacity: 0) == Int.max)
     }
 
     @Test func `shared award is capped by the lower-level partner`() {

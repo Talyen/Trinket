@@ -385,15 +385,6 @@ enum CombatResolver {
             return .empty
         }
         await CombatExecutor.suspend()
-        let result = await context.collectingResult { context in
-            await resolveDamage(request, in: &context)
-        }
-        var outcome = result.value
-        outcome.events = result.events
-        return outcome
-    }
-
-    private static func resolveDamage(_ request: DamageRequest, in context: inout BattleState) async -> CombatOutcome {
         context.resolution.enter(.damage)
         var state = DamageResolutionState(
             amount: request.amount, combatant: request.target, sourceActorID: request.sourceActorID,

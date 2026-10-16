@@ -17,7 +17,12 @@ struct FallenSupportRewardRegressionTests {
         battle.roster.hero.hasConsumedDeathsDoor = true
         battle.insertEffect(.thorns(4), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
-        let outcome = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
+            1,
+            from: .enemy,
+            to: .hero,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ) }
 
         #expect(battle.health(of: battle.hero) == (survives ? 1 : 0))
         #expect(battle.health(of: battle.enemy) == 96)

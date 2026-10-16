@@ -169,18 +169,4 @@ package enum CombatTriggerEngine {
             abilityName: triggerAbilityName(key, for: target, fallback: fallback, in: context),
         )
     }
-
-    static func withDoTRecursionScope(
-        site: String,
-        context: inout BattleState,
-        perform: (inout BattleState) async -> Void,
-    ) async {
-        guard context.resolution.depth(.dot) < ReactionScope.maxDepth else {
-            ReactionScope.capHit(site: site, depth: context.resolution.depth(.dot))
-            return
-        }
-        context.resolution.enter(.dot)
-        defer { context.resolution.leave(.dot) }
-        await perform(&context)
-    }
 }

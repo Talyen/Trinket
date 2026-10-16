@@ -1,7 +1,3 @@
-import Foundation
-import TrinketContent
-import TrinketCore
-
 public struct CombatOutcome: Equatable {
     public enum DamageImpact: Equatable, Sendable {
         case dodged
@@ -9,19 +5,16 @@ public struct CombatOutcome: Equatable {
     }
 
     public var healthDelta: Int
-    public var events: [ActionEvent]
     public var damageImpact: DamageImpact?
     var flags: Set<CombatFlag>
     var elementalHit: ElementalReactionHit?
 
     public init(
         healthDelta: Int = 0,
-        events: [ActionEvent] = [],
         flags: Set<CombatFlag> = [],
         damageImpact: DamageImpact? = nil,
     ) {
         self.healthDelta = healthDelta
-        self.events = events
         self.flags = flags
         self.damageImpact = damageImpact
     }

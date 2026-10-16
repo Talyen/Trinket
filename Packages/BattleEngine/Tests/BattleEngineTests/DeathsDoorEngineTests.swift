@@ -53,13 +53,13 @@ struct DeathsDoorEngineTests {
     @Test func `trigger on first lethal hit`() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
-        let outcome = context.resolveTestDamage(
+        let outcome = context.recordingResult { context in context.resolveTestDamage(
             40,
             to: hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable),
-        )
+        ) }
 
-        try #expect(outcome.healthLost == 5)
+        try #expect(outcome.value.healthLost == 5)
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
         try #expect(context.roster.isDeathsDoorActive(for: hero))
@@ -138,11 +138,11 @@ struct DeathsDoorEngineTests {
             },
         )
         let hero = context.roster.hero.combatant
-        let events = context.resolveTestDamage(
+        let events = context.recordingResult { observation in observation.resolveTestDamage(
             5,
             to: hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ).events
+        ) }.events
 
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
@@ -197,14 +197,14 @@ struct DeathsDoorEngineTests {
     @Test func `do T tick triggers deaths door`() throws {
         var context = makeContext(heroHP: 2)
         let hero = context.roster.hero.combatant
-        let outcome = context.resolveDoTTick(
+        let outcome = context.recordingResult { context in await context.resolveDoTTick(
             basePotency: 3,
             keyword: .burn,
             target: hero,
             sourceActorID: "enemy",
-        )
+        ) }
 
-        try #expect(outcome.healthLost > 0)
+        try #expect(outcome.value.healthLost > 0)
         try #expect(context.roster.health(for: hero) == 1)
         try #expect(outcome.events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
     }
@@ -226,9 +226,9 @@ struct DeathsDoorEngineTests {
         battle.roster.companion.currentHealth = 1
         let companion = battle.roster.companion.combatant
 
-        let entryEvents = battle.resolveTestDamage(
+        let entryEvents = battle.recordingResult { context in context.resolveTestDamage(
             1, to: companion, options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ).events
+        ) }.events
 
         #expect(battle.roster.hero.currentHealth == 1)
         #expect(battle.roster.companion.currentHealth == 1)

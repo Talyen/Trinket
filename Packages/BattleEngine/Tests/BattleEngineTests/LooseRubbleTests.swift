@@ -21,8 +21,8 @@ struct LooseRubbleTests {
             _ = battle.resolveTestDamage(1, options: operation)
         }
         for expected in [3, 4] {
-            let hit = battle.resolveTestDamage(4, from: .enemy, to: .hero, options: .reaction())
-            #expect(hit.healthLost == expected)
+            let hit = battle.recordingResult { context in context.resolveTestDamage(4, from: .enemy, to: .hero, options: .reaction()) }
+            #expect(hit.value.healthLost == expected)
             if expected == 3 {
                 let reduction = try #require(hit.events.first { $0.effectKind == .damageReduced })
                 #expect(reduction.amount == 1)

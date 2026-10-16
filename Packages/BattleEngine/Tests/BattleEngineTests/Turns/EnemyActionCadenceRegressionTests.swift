@@ -33,9 +33,9 @@ struct EnemyActionCadenceRegressionTests {
             companionModifiers: companionModifiers, dealOpeningHand: false, appliesFightPacing: false,
         )
 
-        let dodged = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
-        _ = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
-        let third = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
+        let dodged = battle.recordingEvents { context in await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
+        CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
+        let third = battle.recordingEvents { context in await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
 
         #expect(dodged.contains { $0.effectKind == .dodgeApplied })
         #expect(battle.roster.enemy.actionCount == 3)

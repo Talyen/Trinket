@@ -48,9 +48,9 @@ struct DamageCadenceRegressionTests {
             battle.insertEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
         let before = battle.health(of: battle.enemy)
-        let outcome = CombatExecutor.run { await DoTDamage.resolveDamage(
-            basePotency: 4, keyword: keyword, target: battle.enemy, sourceActorID: battle.hero.id,
-            operation: keyword == .burn ? .resolvedPeriodic : .periodic, in: &battle,
+        let outcome = battle.recordingResult { context in await DoTDamage.resolveDamage(
+            basePotency: 4, keyword: keyword, target: context.enemy, sourceActorID: context.hero.id,
+            operation: keyword == .burn ? .resolvedPeriodic : .periodic, in: &context,
         ) }
         #expect(before - battle.health(of: battle.enemy) == (conditioned ? 6 : 4))
         #expect(outcome.events.filter { $0.kind == .status }.map(\.keyword) == [keyword])

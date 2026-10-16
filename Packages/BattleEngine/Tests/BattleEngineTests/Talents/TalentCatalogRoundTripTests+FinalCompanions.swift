@@ -198,7 +198,7 @@ extension TalentCatalogRoundTripTests {
         _ = battle.resolveDamage(hit)
         #expect(talentPoints(.shield, on: .companion, in: battle) == first)
         battle.turnCount += 1
-        let third = battle.resolveDamage(hit)
+        let third = battle.recordingResult { context in await context.resolveDamage(hit) }
         let reward = third.events.filter { $0.abilityName == "Marrowmend" }
         #expect(reward.count == 1)
         #expect(reward.first?.amount == 6)

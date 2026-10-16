@@ -18,12 +18,12 @@ struct HealthThresholdSurvivalRegressionTests {
         battle.roster.mutateRuntime(for: hero) { $0.hasConsumedDeathsDoor = finallyDefeated }
         #expect(battle.roster.health(for: hero) * 2 >= battle.roster.maxHealth(for: hero))
 
-        let hit = battle.resolveTestDamage(
-            battle.roster.maxHealth(for: hero) + 100,
+        let hit = battle.recordingResult { context in context.resolveTestDamage(
+            context.roster.maxHealth(for: hero) + 100,
             from: .enemy,
             to: .hero,
             options: .attack(accuracy: .unavoidable),
-        )
+        ) }
 
         #expect(battle.roster.health(for: hero) == (finallyDefeated ? 0 : 1))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: hero)) == (finallyDefeated ? 0 : 6))

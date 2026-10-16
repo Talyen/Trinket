@@ -79,10 +79,6 @@ public enum RewardSettlementPolicy {
         }
     }
 
-    public static func replacesGold(gains: Int, spending: Int, capacity: Int) -> Bool {
-        SaturatedArithmetic.saturatingSub(gains, spending) > max(0, capacity)
-    }
-
     public static func goldOverflow(gains: Int, spending: Int, capacity: Int) -> Int {
         max(0, SaturatedArithmetic.saturatingSub(
             SaturatedArithmetic.saturatingSub(max(0, gains), max(0, spending)), max(0, capacity),

@@ -24,15 +24,18 @@ struct BattleGoldRewardTests {
         })
         let contracts = store.currentSave.contracts
         try #require(store.persistFixtureBatch(logging: "Grant maximum Gold reward") { save in
-            VictoryRewardApplier.grantVictoryRewards(
+            let settlement = VictoryRewardApplier.settleVictoryRewards(
                 party: (save.roster.activeHero, save.roster.activeCompanion),
                 encounterLevel: 1,
                 stageGold: Int.max,
                 grantsCombatExperience: false,
                 materialRewards: [],
                 item: item,
-                save: &save,
-                recordReceipt: { _ in },
+                save: save,
+            )
+            VictoryRewardApplier.apply(
+                settlement, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
+                save: &save, recordReceipt: { _ in },
             )
         })
         let reloaded = try context.makeReloadedStore()

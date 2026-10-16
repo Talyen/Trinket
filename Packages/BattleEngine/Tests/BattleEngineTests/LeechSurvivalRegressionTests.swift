@@ -34,16 +34,16 @@ struct LeechSurvivalRegressionTests {
         battle.roster.mutateRuntime(for: source) { $0.hasConsumedDeathsDoor = true }
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
 
-        let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
-            4, sourceActorID: source.id, target: battle.enemy, abilityHasLeech: true, in: &battle,
+        let result = battle.recordingResult { context in await HealingEngine.leechFromDamage(
+            4, sourceActorID: source.id, target: context.enemy, abilityHasLeech: true, in: &context,
         ) }
 
         #expect(battle.health(of: source) == 0)
         #expect(battle.health(of: ally) == 10)
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(!battle.activeEffects(of: source).contains { $0.effect.kind == .thorns })
-        #expect(result.healthRestored == 2)
-        #expect(result.flags.contains(.leeched))
+        #expect(result.value.healthRestored == 2)
+        #expect(result.value.flags.contains(.leeched))
         #expect(result.events.contains { $0.effectKind == .leechHeal && $0.targetID == source.id && $0.amount == 2 })
         #expect(!result.events.contains { $0.effectKind == .thornsApplied })
     }
@@ -73,15 +73,15 @@ struct LeechSurvivalRegressionTests {
         battle.roster.companion.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
 
-        let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
-            8, sourceActorID: battle.companion.id, target: battle.enemy, abilityHasLeech: true, in: &battle,
+        let result = battle.recordingResult { context in await HealingEngine.leechFromDamage(
+            8, sourceActorID: context.companion.id, target: context.enemy, abilityHasLeech: true, in: &context,
         ) }
 
         #expect(battle.health(of: battle.companion) == 0)
         #expect(battle.health(of: battle.hero) == 14)
         #expect(battle.mana(of: battle.hero) == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 18)
-        #expect(result.healthRestored == 4)
+        #expect(result.value.healthRestored == 4)
         #expect(result.events.contains { $0.effectKind == .leechHeal && $0.amount == 4 })
     }
 }

@@ -37,8 +37,13 @@ struct EncounterModifierCombatTests {
         let enemy = CombatModifierProfile(modifiers: [.attackBlockRemoval(2)])
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy, appliesFightPacing: false)
         DefensePoolEngine.set(6, on: battle.hero, in: &battle)
-        let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(scaling: .flat))
-        #expect(outcome.healthLost == 1)
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
+            5,
+            from: .enemy,
+            to: .hero,
+            options: .attack(scaling: .flat),
+        ) }
+        #expect(outcome.value.healthLost == 1)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 0)
         #expect(outcome.events.contains { $0.effectKind == .blockStripped && $0.amount == 2 })
     }
@@ -48,8 +53,13 @@ struct EncounterModifierCombatTests {
         let enemy = CombatModifierProfile(modifiers: [.attackPurgeCount(1)])
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: hero, enemyModifiers: enemy, appliesFightPacing: false)
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
-        let outcome = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .attack(scaling: .flat))
-        #expect(outcome.healthLost == 0)
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
+            2,
+            from: .enemy,
+            to: .hero,
+            options: .attack(scaling: .flat),
+        ) }
+        #expect(outcome.value.healthLost == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 0)
         #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.abilityName == "Unbinding Strike" })
     }
@@ -63,7 +73,12 @@ struct EncounterModifierCombatTests {
             enemyModifiers: CombatModifierProfile(modifiers: [.attackPurgeCount(1)]), appliesFightPacing: false,
         )
         battle.seedActiveEffects([ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 2)], for: battle.companion)
-        let outcome = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
+            4,
+            from: .enemy,
+            to: .companion,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ) }
         #expect(battle.health(of: battle.enemy) == 0)
         #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.abilityName == "Unbinding Strike" })
         #expect(!battle.activeEffects(of: battle.companion).contains { $0.effect == .thorns(3) })

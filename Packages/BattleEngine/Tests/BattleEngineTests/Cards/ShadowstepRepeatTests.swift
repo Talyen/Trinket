@@ -217,7 +217,7 @@ struct ShadowstepRepeatTests {
             battle.insertEffect(.controlMeter(control, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
-        let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
+        let events = battle.recordingEvents { context in await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
 
         #expect(!events.contains { $0.kind == .ability && $0.abilityID == attack().id })
         #expect(hasRepeat(on: battle.enemy, in: battle))

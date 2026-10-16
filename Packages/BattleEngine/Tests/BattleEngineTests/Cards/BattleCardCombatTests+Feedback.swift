@@ -32,7 +32,12 @@ extension BattleCardCombatTests {
     func `absorption events distinguish full and partial block`(block: Int) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         DefensePoolEngine.set(block, on: battle.hero, in: &battle)
-        let outcome = battle.resolveTestDamage(5, from: .enemy, to: .hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
+            5,
+            from: .enemy,
+            to: .hero,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ) }
         let event = try #require(outcome.events.first { $0.effectKind == .shieldAbsorbed })
         #expect(event.isFullyBlocked == (block >= 5))
     }

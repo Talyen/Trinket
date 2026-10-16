@@ -35,13 +35,13 @@ extension TalentCatalogRoundTripTests {
         seedHeroTalentEffect(.thorns(4), on: defender, in: &battle)
         DefensePoolEngine.set(block, on: battle.enemy, in: &battle)
         let before = battle.roster.enemy.currentHealth
-        let outcome = battle.resolveTestDamage(
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
             1,
-            to: battle.roster[defender].combatant,
+            to: context.roster[defender].combatant,
             keyword: .physical,
-            sourceActorID: battle.enemy.id,
+            sourceActorID: context.enemy.id,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
         let poison = defender == .hero && block < 4 ? 2 : 0
         #expect(before - battle.roster.enemy.currentHealth == 4 - block + poison)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == poison)

@@ -1,4 +1,3 @@
-import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -27,7 +26,7 @@ package enum DoTDamage {
         let damageOutcome = await context.resolveDamage(request)
         guard damageOutcome.healthLost > 0 else { return damageOutcome }
 
-        let statusEvent = context.nextEvent(
+        context.nextEvent(
             kind: .status,
             source: .init(actorID: sourceActorID, name: keyword.rawValue),
             abilityName: keyword.rawValue,
@@ -38,7 +37,6 @@ package enum DoTDamage {
         )
         return CombatOutcome(
             healthDelta: damageOutcome.healthDelta,
-            events: damageOutcome.events + [statusEvent],
             flags: damageOutcome.flags,
         )
     }

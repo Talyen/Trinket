@@ -120,9 +120,12 @@ struct RogueRevisionTests {
         )
         battle.roster.hero.hasConsumedDeathsDoor = finallyDefeated
 
-        let hit = battle.resolveTestDamage(4, options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true))
+        let hit = battle.recordingResult { context in context.resolveTestDamage(
+            4,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true),
+        ) }
 
-        #expect(hit.healthLost == 8)
+        #expect(hit.value.healthLost == 8)
         #expect(battle.health(of: battle.enemy) == 92)
         #expect(battle.health(of: battle.hero) == (finallyDefeated ? 0 : 1))
         #expect(battle.gold == (finallyDefeated ? 0 : 1))

@@ -36,7 +36,7 @@ package extension CombatTriggerEngine {
             }
         }
         if context.turnCount > 0 {
-            _ = await BattleCardCombatEngine.restoreManaAtPlayerTurnStart(context: &context)
+            await BattleCardCombatEngine.restoreManaAtPlayerTurnStart(context: &context)
         }
         guard !context.isBattleOver else { return }
         await HealingEngine.resolveHealingEchoes(in: &context)

@@ -172,13 +172,13 @@ struct CombatTriggerTalentControlTests {
             [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2, sourceActorID: battle.roster.hero.id)],
             for: battle.roster.enemy.combatant,
         )
-        let outcome = battle.resolveTestDamage(
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
             5,
-            to: battle.roster.enemy.combatant,
+            to: context.roster.enemy.combatant,
             keyword: .physical,
-            sourceActorID: battle.roster.hero.id,
+            sourceActorID: context.roster.hero.id,
             options: DamageOperation.attack(scaling: .items, accuracy: .unavoidable),
-        )
+        ) }
         #expect(battle.roster.health(for: battle.roster.enemy.combatant) == 94)
         let poisons = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
             .filter { $0.effect.keyword == .poison }

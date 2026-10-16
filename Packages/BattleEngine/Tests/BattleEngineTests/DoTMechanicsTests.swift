@@ -204,7 +204,7 @@ struct DoTMechanicsTests {
         )
         let hero = battle.roster.hero.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = health }
-        let events = battle.resolveTestDamage(4, keyword: .poison, options: .reaction()).events
+        let events = battle.recordingResult { context in context.resolveTestDamage(4, keyword: .poison, options: .reaction()) }.events
 
         #expect(battle.roster.hero.currentMana == (health == 10 ? 2 : 0))
         #expect(battle.roster.hero.currentHealth == (health == 10 ? 12 : health))

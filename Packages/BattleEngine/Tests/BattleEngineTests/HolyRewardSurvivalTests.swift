@@ -20,12 +20,12 @@ struct HolyRewardSurvivalTests {
         )
         battle.roster.hero.hasConsumedDeathsDoor = true
 
-        let attack = battle.resolveTestDamage(
+        let attack = battle.recordingResult { context in context.resolveTestDamage(
             1, keyword: .holy,
             options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
 
-        #expect(attack.healthLost == 1)
+        #expect(attack.value.healthLost == 1)
         #expect(battle.health(of: battle.hero) == (lethal ? 0 : 1))
         #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect == buff } == lethal)
         #expect(attack.events.contains { $0.effectKind == .purgeApplied } == !lethal)

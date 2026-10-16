@@ -11,7 +11,7 @@ extension UniqueCollectionTests {
         block(10, owner: .hero, in: &context)
         block(20, owner: .enemy, in: &context)
 
-        let answer = enemyHit(5, in: &context)
+        let answer = context.recordingResult { observation in enemyHit(5, in: &observation) }
 
         #expect(answer.events.filter {
             $0.kind == .abilityDamage && $0.actorID == context.hero.id

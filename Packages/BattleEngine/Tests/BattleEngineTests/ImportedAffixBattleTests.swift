@@ -52,9 +52,14 @@ struct ImportedAffixBattleTests {
             modifiers: profile,
         )
 
-        let outcome = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: DamageOperation.attack(
-            tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-        ))
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
+            2,
+            from: .enemy,
+            to: .hero,
+            options: DamageOperation.attack(
+                tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
+            ),
+        ) }
         #expect(outcome.events.contains { $0.effectKind == .thornsTriggered && $0.amount == 4 })
         #expect(battle.health(of: battle.enemy) == 36)
         #expect(thorns(on: battle.hero, in: battle) == 0)

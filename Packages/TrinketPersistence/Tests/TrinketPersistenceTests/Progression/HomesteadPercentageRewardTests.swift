@@ -17,11 +17,14 @@ struct HomesteadPercentageRewardTests {
         })
         for _ in 0 ..< 4 {
             #expect(store.persistFixtureBatch(logging: "Small battle reward") { save in
-                VictoryRewardApplier.grantVictoryRewards(
+                let settlement = VictoryRewardApplier.settleVictoryRewards(
                     party: (save.roster.activeHero, save.roster.activeCompanion),
                     encounterLevel: 1, stageGold: 1, grantsCombatExperience: false,
-                    materialRewards: [.init(.gems, 1)], item: nil, save: &save,
-                    recordReceipt: { _ in },
+                    materialRewards: [.init(.gems, 1)], item: nil, save: save,
+                )
+                VictoryRewardApplier.apply(
+                    settlement, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
+                    save: &save, recordReceipt: { _ in },
                 )
             })
         }
@@ -30,11 +33,14 @@ struct HomesteadPercentageRewardTests {
         #expect(reloaded.homestead.resources[.gems] == 4)
         #expect(reloaded.homestead.rewardRemainders == .init(gold: 80, gems: 80))
         #expect(reloaded.persistFixtureBatch(logging: "Pay fractional reward") { save in
-            VictoryRewardApplier.grantVictoryRewards(
+            let settlement = VictoryRewardApplier.settleVictoryRewards(
                 party: (save.roster.activeHero, save.roster.activeCompanion),
                 encounterLevel: 1, stageGold: 1, grantsCombatExperience: false,
-                materialRewards: [.init(.gems, 1)], item: nil, save: &save,
-                recordReceipt: { _ in },
+                materialRewards: [.init(.gems, 1)], item: nil, save: save,
+            )
+            VictoryRewardApplier.apply(
+                settlement, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
+                save: &save, recordReceipt: { _ in },
             )
         })
         let final = try context.makeReloadedStore()

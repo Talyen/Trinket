@@ -32,9 +32,9 @@ struct AlchemyAffixPortTests {
         if poisoned {
             battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
-        let outcome = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .attack(
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(2, from: .enemy, to: .hero, options: .attack(
             tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
-        ))
+        )) }
         #expect(battle.health(of: battle.enemy) == (poisoned ? 35 : 37))
         #expect(outcome.events.filter { $0.effectKind == .thornsTriggered }.map(\.amount) == [poisoned ? 5 : 3])
         #expect(!outcome.events.contains { $0.kind == .abilityDamage && $0.keyword == .poison })
@@ -78,9 +78,9 @@ struct AlchemyAffixPortTests {
         if stunned {
             battle.insertEffect(.controlMeter(.stun, 8, 8), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
         }
-        let outcome = CombatExecutor.run { await HealingEngine.leechFromDamage(
-            8, sourceActorID: battle.hero.id, target: battle.enemy,
-            abilityHasLeech: true, in: &battle,
+        let outcome = battle.recordingResult { context in await HealingEngine.leechFromDamage(
+            8, sourceActorID: context.hero.id, target: context.enemy,
+            abilityHasLeech: true, in: &context,
         ) }
         #expect(battle.health(of: battle.hero) == (belowHalf ? 14 + (stunned ? 2 : 0) : 24))
         #expect(battle.health(of: battle.enemy) == 40)

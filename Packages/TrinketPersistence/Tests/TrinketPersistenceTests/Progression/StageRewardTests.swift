@@ -325,24 +325,13 @@ struct StageRewardTests {
         try #expect(save.journey.hasClaimedRewards(for: firstStage))
     }
 
-    @Test func `resolved gold reward preserves battle spending`() {
-        #expect(VictoryRewardApplier.resolvedGoldReward(
-            stageGold: 10, battleGold: .init(spent: 20), goldFoundPercent: 50,
-        ) == -5)
-        #expect(
-            VictoryRewardApplier.resolvedGoldReward(
-                stageGold: 0,
-                battleGold: .init(spent: 3),
-                goldFoundPercent: 0,
-            ) == -3,
+    @Test(arguments: [(10, 50, 20, -5), (0, 0, 3, -3), (10, 0, 3, 7)])
+    func `resolved gold reward preserves battle spending`(stageGold: Int, percent: Int, spending: Int, expected: Int) {
+        let plan = BattleRewardPlan(
+            stageGold: stageGold, goldFindPercent: percent,
+            heroExperience: 0, companionExperience: 0, materials: [], items: [],
         )
-        #expect(
-            VictoryRewardApplier.resolvedGoldReward(
-                stageGold: 10,
-                battleGold: .init(spent: 3),
-                goldFoundPercent: 0,
-            ) == 7,
-        )
+        #expect(plan.resolve(battleGold: .init(spent: spending)).goldDelta == expected)
     }
 
     @Test @MainActor func `victory persists gold spent beyond the loot reward`() throws {
@@ -352,15 +341,20 @@ struct StageRewardTests {
             save.roster.gold = 100
         })
         try #require(store.persistFixtureBatch(logging: "Complete battle with gold spending") { save in
-            VictoryRewardApplier.grantVictoryRewards(
+            let settlement = VictoryRewardApplier.settleVictoryRewards(
                 party: (save.roster.activeHero, save.roster.activeCompanion),
                 encounterLevel: 1, stageGold: 5, battleGold: .init(spent: 20),
-                materialRewards: [], item: nil, save: &save,
-                recordReceipt: { _ in },
+                materialRewards: [], item: nil, save: save,
+            )
+            StageCompletion.complete(
+                firstStage, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
+                rewards: .settled(settlement, encounterLevel: 1), in: [chapter],
+                save: &save, recordReceipt: { _ in },
             )
         })
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.gold == 85)
+        #expect(reloaded.currentSave.contracts.highestWonEncounterLevel == 1)
     }
 
     @Test func `claim rewards uses precomputed material rewards`() throws {
@@ -414,22 +408,21 @@ extension StageRewardTests {
             recordReceipt: { _ in },
         )
 
-        let expected = VictoryRewardApplier.resolvedGoldReward(
-            stageGold: loot.gold,
-            battleGold: .init(gained: 0),
-            homestead: save.homestead,
-        )
+        let expected = BattleRewardPlan(
+            stageGold: loot.gold, goldFindPercent: save.homestead.effects.goldFindPercent,
+            goldFindFlat: save.homestead.effects.goldFindFlat,
+            initialRewardRemainders: save.homestead.rewardRemainders ?? .zero,
+            heroExperience: 0, companionExperience: 0, materials: [], items: [],
+        ).resolve(battleGold: .init()).goldDelta
         try #expect(save.roster.gold == expected)
     }
 
     @Test func `negative gold find reduces rewards`() {
-        #expect(
-            VictoryRewardApplier.resolvedGoldReward(
-                stageGold: 10,
-                battleGold: .init(gained: 0),
-                goldFoundPercent: -50,
-            ) < 10,
+        let plan = BattleRewardPlan(
+            stageGold: 10, goldFindPercent: -50,
+            heroExperience: 0, companionExperience: 0, materials: [], items: [],
         )
+        #expect(plan.resolve(battleGold: .init()).goldDelta < 10)
     }
 
     @Test func `noncombat completion cannot grant combat rewards`() {
@@ -541,15 +534,18 @@ extension StageRewardTests {
             var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: gold)
             let heroBefore = save.roster.progression(for: hero)
             let companionBefore = save.roster.progression(for: companion)
-            VictoryRewardApplier.grantVictoryRewards(
+            let settlement = VictoryRewardApplier.settleVictoryRewards(
                 party: (hero, companion),
                 encounterLevel: 1,
                 stageGold: 20,
                 battleGold: .init(),
                 materialRewards: [],
                 item: nil,
-                save: &save,
-                recordReceipt: { _ in },
+                save: save,
+            )
+            VictoryRewardApplier.apply(
+                settlement, hero: hero, companion: companion,
+                save: &save, recordReceipt: { _ in },
             )
             #expect(save.roster.gold == 999)
             #expect(save.roster.progression(for: hero) == heroBefore.addingExperience(3 + compensation))

@@ -36,7 +36,7 @@ do not maintain a second generated-file inventory here. Abilities remain
 authored in the three `Abilities/AbilityCatalog+*.swift` tier files; trigger-family
 schemas are indexed by `Scripts/internal/content/trigger_families/index.json`.
 Modifier cases and mechanical transforms are generated from
-`Scripts/internal/content/modifiers.json`; `AffixModifier.swift` retains magnitude
+`Scripts/internal/content/modifiers.json`; `ItemAffixPower+Rolling.swift` owns magnitude
 bump policy. Historical item-power normalization lives in
 `Equipment/InventoryItem+Compatibility.swift`: trigger migrations share one
 normalization pass; modifier and catalog-backed Unique migrations stay separate.

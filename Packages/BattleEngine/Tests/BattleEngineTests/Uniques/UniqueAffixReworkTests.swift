@@ -95,13 +95,13 @@ extension UniqueCollectionTests {
         let target = context.roster.enemy.combatant
         let threshold = ControlMeterEngine.threshold(for: target, in: context)
 
-        let outcome = context.resolveTestDamage(
+        let outcome = context.recordingResult { context in context.resolveTestDamage(
             threshold,
             to: target,
             keyword: .holy,
             sourceActorID: context.roster.hero.id,
             options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
 
         #expect(context.roster.hasControlStatus(for: target, keyword: .stun))
         #expect(context.gold == 3)

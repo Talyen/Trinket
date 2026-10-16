@@ -15,9 +15,14 @@ extension CombatTriggerTalentDamageTests {
         DefensePoolEngine.set(block, on: battle.companion, in: &battle)
         let enemyHealth = battle.health(of: battle.enemy)
 
-        let hit = battle.resolveTestDamage(4, from: .enemy, to: .companion, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        let hit = battle.recordingResult { context in context.resolveTestDamage(
+            4,
+            from: .enemy,
+            to: .companion,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ) }
 
-        #expect(hit.healthLost == (block == 0 ? 4 : 0))
+        #expect(hit.value.healthLost == (block == 0 ? 4 : 0))
         #expect(battle.health(of: battle.enemy) == enemyHealth - (block == 0 ? 4 : 0))
         #expect(battle.activeEffects(of: battle.enemy).contains {
             $0.effect == .controlMeter(.freeze, 4, ControlMeterEngine.threshold(for: battle.enemy, in: battle))
@@ -125,8 +130,13 @@ extension CombatTriggerTalentDamageTests {
         for turn in 0 ... 1 {
             battle.turnCount = turn
             for expectedBlock in [1, 1] {
-                let outcome = battle.resolveTestDamage(1, to: .hero, keyword: .bleed, options: .healthCost)
-                #expect(outcome.healthLost == 1)
+                let outcome = battle.recordingResult { context in context.resolveTestDamage(
+                    1,
+                    to: .hero,
+                    keyword: .bleed,
+                    options: .healthCost,
+                ) }
+                #expect(outcome.value.healthLost == 1)
                 let block = outcome.events.filter { $0.effectKind == .shieldApplied }.reduce(0) { $0 + $1.amount }
                 #expect(block == expectedBlock)
             }

@@ -149,8 +149,11 @@ struct CombatTriggerTalentDamageTests {
             heroModifiers: heroHasAura ? aura(named: "Damnation") : .zero,
             companionModifiers: aura(named: "Intense Heat"), dealOpeningHand: false,
         )
-        let hit = battle.resolveTestDamage(20, options: .effect(scaling: .items, accuracy: .unavoidable))
-        #expect(hit.healthLost == (heroHasAura ? 30 : 25))
+        let hit = battle.recordingResult { context in context.resolveTestDamage(
+            20,
+            options: .effect(scaling: .items, accuracy: .unavoidable),
+        ) }
+        #expect(hit.value.healthLost == (heroHasAura ? 30 : 25))
         #expect(hit.events.contains { $0.abilityName == "Intense Heat" && $0.kind == .ability })
         if heroHasAura {
             #expect(hit.events.contains { $0.abilityName == "Damnation" && $0.kind == .ability })

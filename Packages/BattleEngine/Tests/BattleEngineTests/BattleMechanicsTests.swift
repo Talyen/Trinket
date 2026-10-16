@@ -113,13 +113,13 @@ struct BattleMechanicsTests {
                 ActiveEffect(id: 1, effect: .shield(.block, block), remainingTurns: 6, sourceActorID: context.hero.id), at: 0,
             )
         }
-        let outcome = context.resolveDamage(.directAbilityHit(
+        let outcome = context.recordingResult { context in await context.resolveDamage(.directAbilityHit(
             amount: 3,
             target: context.enemy,
             keyword: .physical,
             sourceActorID: context.hero.id,
-        ))
-        #expect(outcome.healthLost == (block == 0 ? 5 : 0))
+        )) }
+        #expect(outcome.value.healthLost == (block == 0 ? 5 : 0))
         #expect(!context.roster.activeEffects(for: context.enemy).contains { $0.effect.kind == .marked })
         if block > 0 {
             #expect(outcome.events.contains { $0.effectKind == .markedConsumed })

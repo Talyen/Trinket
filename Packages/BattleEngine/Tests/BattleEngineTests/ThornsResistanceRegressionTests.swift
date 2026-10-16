@@ -19,12 +19,12 @@ struct ThornsResistanceRegressionTests {
             enemyModifiers: .init(modifiers: [.damageTakenPercent(.thorns, 1)]), appliesFightPacing: false,
         )
 
-        let reflected = battle.resolveTestDamage(
+        let reflected = battle.recordingResult { context in context.resolveTestDamage(
             20,
             from: .enemy,
             to: .hero,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
 
         #expect(battle.health(of: battle.enemy) == 100)
         #expect(battle.health(of: battle.companion) == 5)
@@ -49,7 +49,12 @@ struct ThornsResistanceRegressionTests {
         )
         battle.insertEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
 
-        let hit = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        let hit = battle.recordingResult { context in context.resolveTestDamage(
+            1,
+            from: .enemy,
+            to: .hero,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ) }
 
         #expect(battle.health(of: battle.enemy) == 96)
         #expect(hit.events.contains { $0.effectKind == .thornsTriggered && $0.keyword == keyword && $0.amount == 4 })

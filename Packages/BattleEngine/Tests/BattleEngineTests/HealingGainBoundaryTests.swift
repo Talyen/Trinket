@@ -123,9 +123,9 @@ struct HealingGainBoundaryTests {
         )
         battle.insertEffect(.poison(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
 
-        let result = CombatExecutor.run { await HealingEngine.leechFromDamage(
-            8, sourceActorID: battle.companion.id, target: battle.enemy,
-            abilityHasLeech: true, in: &battle,
+        let result = battle.recordingResult { context in await HealingEngine.leechFromDamage(
+            8, sourceActorID: context.companion.id, target: context.enemy,
+            abilityHasLeech: true, in: &context,
         ) }
 
         #expect(battle.gold == 4)
@@ -210,14 +210,14 @@ struct HealingGainBoundaryTests {
         )
         request.amountBasis = .resolved
 
-        let result = CombatExecutor.run { await HealingEngine.resolveHealing(request, in: &battle) }
+        let result = battle.recordingResult { context in await HealingEngine.resolveHealing(request, in: &context) }
 
         let restoredMana = leech ? min(7, 10 - mana) : 0
         let convertedBlock = leech ? 7 - restoredMana : 10
-        #expect(result.allocation.transferred == (leech ? 3 : 0))
-        #expect(result.allocation.mana == restoredMana)
-        #expect(result.allocation.block == convertedBlock)
-        #expect(result.allocation.remaining == 0)
+        #expect(result.value.allocation.transferred == (leech ? 3 : 0))
+        #expect(result.value.allocation.mana == restoredMana)
+        #expect(result.value.allocation.block == convertedBlock)
+        #expect(result.value.allocation.remaining == 0)
         #expect(battle.roster.hero.currentMana == mana + restoredMana)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == convertedBlock + (restoredMana > 0 ? 2 : 0))
         #expect(result.events.filter { $0.keyword == .mana }.map(\.amount) == (restoredMana > 0 ? [restoredMana] : []))

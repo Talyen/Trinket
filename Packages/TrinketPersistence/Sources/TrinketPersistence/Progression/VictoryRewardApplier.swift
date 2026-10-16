@@ -8,60 +8,8 @@ public enum VictoryRewardApplier {
         return GameContent.enemy(matching: enemyID)?.isBoss == true
     }
 
-    public static func resolvedGoldReward(
-        stageGold: Int,
-        battleGold: BattleGoldFlow,
-        goldFoundPercent: Int,
-        goldFindFlat: Int = 0,
-    ) -> Int {
-        BattleRewardPlan(
-            stageGold: stageGold, goldFindPercent: goldFoundPercent, goldFindFlat: goldFindFlat,
-            heroExperience: 0, companionExperience: 0, materials: [], items: [],
-        ).resolve(battleGold: battleGold).goldDelta
-    }
-
-    public static func resolvedGoldReward(
-        stageGold: Int,
-        battleGold: BattleGoldFlow,
-        homestead: PlayerHomesteadState,
-    ) -> Int {
-        BattleRewardPlan(
-            stageGold: stageGold, goldFindPercent: homestead.effects.goldFindPercent,
-            goldFindFlat: homestead.effects.goldFindFlat,
-            initialRewardRemainders: homestead.rewardRemainders ?? .zero,
-            heroExperience: 0, companionExperience: 0, materials: [], items: [],
-        ).resolve(battleGold: battleGold).goldDelta
-    }
-
     /// Resolves encounter rewards that have no settled battle award.
-    /// A duplicate headline item (owned trinket/unique) converts to
-    /// level-scaled consolation gold instead of granting nothing: the
-    /// encounter still marks complete, so the claim must still pay something.
-    static func grantVictoryRewards(
-        party: (hero: Combatant, companion: Combatant),
-        encounterLevel: Int,
-        stageGold: Int,
-        battleGold: BattleGoldFlow = .init(),
-        grantsCombatExperience: Bool = true,
-        experienceEarnedPercent: Int = 0,
-        materialRewards: [ResourceAmount],
-        item: InventoryItem?,
-        save: inout PlayerSave,
-        claim: CloudEconomicAction.Claim? = nil,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
-    ) {
-        let (hero, companion) = party
-        let resolved = settleVictoryRewards(
-            party: party, encounterLevel: encounterLevel, stageGold: stageGold, battleGold: battleGold,
-            grantsCombatExperience: grantsCombatExperience, experienceEarnedPercent: experienceEarnedPercent,
-            materialRewards: materialRewards, item: item, save: save,
-        )
-        apply(resolved, hero: hero, companion: companion, save: &save, claim: claim, recordReceipt: recordReceipt)
-        if grantsCombatExperience {
-            save.contracts.recordVictory(encounterLevel: encounterLevel)
-        }
-    }
-
+    /// Duplicate headline items convert to level-scaled consolation Gold.
     static func settleVictoryRewards(
         party: (hero: Combatant, companion: Combatant),
         encounterLevel: Int,

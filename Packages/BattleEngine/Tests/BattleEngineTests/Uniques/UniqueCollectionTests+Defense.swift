@@ -121,7 +121,7 @@ extension UniqueCollectionTests {
         _ = enemyHit(1, target: owner, in: &context)
         #expect(context.roster[owner].uniques.answeredBlock != true)
         block(10, owner: owner, in: &context)
-        let first = enemyHit(5, target: owner, in: &context)
+        let first = context.recordingResult { observation in enemyHit(5, target: owner, in: &observation) }
         #expect(blockAmount(owner, in: context) == 8)
         #expect(context.roster.health(for: actor) > 99)
         #expect(first.events.contains { $0.kind == .ability && $0.abilityID == "answer" })
@@ -211,11 +211,11 @@ extension UniqueCollectionTests {
         context.roster.hero.hasConsumedDeathsDoor = finallyDefeated
         context.insertEffect(.thorns(8), to: context.enemy, sourceID: context.enemy.id, remainingTurns: 0)
 
-        let outcome = context.resolveTestDamage(
+        let outcome = context.recordingResult { context in context.resolveTestDamage(
             4,
             keyword: .freeze,
             options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
 
         #expect(context.health(of: context.enemy) == 1996)
         #expect(context.health(of: context.hero) == (finallyDefeated ? 0 : 1))
@@ -234,19 +234,19 @@ extension UniqueCollectionTests {
             $0.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(value: 2)
         }
 
-        let outcome = context.resolveTestDamage(
+        let outcome = context.recordingResult { context in context.resolveTestDamage(
             8,
             to: context.enemy,
             keyword: .freeze,
             sourceActorID: actor.id,
             options: .effect(scaling: .flat),
-        )
+        ) }
 
-        #expect(outcome.healthLost == 8)
-        #expect(blockAmount(owner, in: context) == outcome.healthLost)
+        #expect(outcome.value.healthLost == 8)
+        #expect(blockAmount(owner, in: context) == outcome.value.healthLost)
         #expect(context.roster.runtime(for: actor)?.talents.pending.nextBlockGainMultiplier?.value == 2)
         #expect(outcome.events.contains {
-            $0.effectKind == .shieldApplied && $0.abilityName == "Rimeheart" && $0.amount == outcome.healthLost
+            $0.effectKind == .shieldApplied && $0.abilityName == "Rimeheart" && $0.amount == outcome.value.healthLost
         })
     }
 }

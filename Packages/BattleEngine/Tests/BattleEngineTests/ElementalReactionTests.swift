@@ -36,14 +36,14 @@ struct ElementalReactionTests {
         var state = battle()
         _ = attack(20, .freeze, in: &state)
         DefensePoolEngine.set(50, on: state.enemy, in: &state)
-        let outcome = attack(1, .physical, from: .companion, in: &state)
-        #expect(outcome.healthLost == 1)
+        let outcome = state.recordingResult { context in attack(1, .physical, from: .companion, in: &context) }
+        #expect(outcome.value.healthLost == 1)
         #expect(reactions(outcome.events) == [.shatter])
         #expect(outcome.events.contains { $0.abilityName == "Shatter" && $0.kind == .abilityDamage && $0.amount == 5 && !$0.isCritical })
         #expect(state.roster.enemy.currentHealth == 74)
         #expect(state.roster.hasControlStatus(for: state.enemy, keyword: .freeze))
         #expect(DefensePoolEngine.blockPoints(in: state.activeEffects(of: state.enemy)) == 0)
-        #expect(reactions(attack(1, .physical, in: &state).events).isEmpty)
+        #expect(reactions(state.recordingResult { context in attack(1, .physical, in: &context) }.events).isEmpty)
     }
 
     @Test func `zero and dodged Physical attacks preserve Shatter and Block`() {
@@ -62,11 +62,11 @@ struct ElementalReactionTests {
     func `secondary attacks cannot spend control opportunities`(origin: DamageOperation.AttackOrigin) {
         var state = battle()
         _ = attack(20, .freeze, in: &state)
-        let outcome = state.resolveTestDamage(
+        let outcome = state.recordingResult { context in context.resolveTestDamage(
             1,
             keyword: .physical,
             options: .attack(origin: origin, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
         #expect(reactions(outcome.events).isEmpty)
         #expect(state.roster.enemy.reactions.shatter == 5)
     }
@@ -86,14 +86,14 @@ struct ElementalReactionTests {
     @Test func `Frostfire routes share a Freeze opportunity while Shatter remains independent`() {
         var state = battle()
         state.insertEffect(.burn(8), to: state.enemy, sourceID: state.hero.id, remainingTurns: 0)
-        let frozen = attack(20, .freeze, in: &state)
+        let frozen = state.recordingResult { context in attack(20, .freeze, in: &context) }
         #expect(reactions(frozen.events) == [.frostfire])
-        #expect(reactions(attack(1, .burn, in: &state).events).isEmpty)
-        #expect(reactions(attack(1, .physical, in: &state).events) == [.shatter])
+        #expect(reactions(state.recordingResult { context in attack(1, .burn, in: &context) }.events).isEmpty)
+        #expect(reactions(state.recordingResult { context in attack(1, .physical, in: &context) }.events) == [.shatter])
 
         var other = battle()
         _ = attack(20, .freeze, in: &other)
-        #expect(reactions(attack(1, .burn, from: .companion, in: &other).events) == [.frostfire])
+        #expect(reactions(other.recordingResult { context in attack(1, .burn, from: .companion, in: &context) }.events) == [.frostfire])
         #expect(other.roster.enemy.reactions.shatter == 5)
     }
 
@@ -102,7 +102,7 @@ struct ElementalReactionTests {
         _ = attack(20, .freeze, in: &state)
         state.roster.mutateRuntime(for: state.hero) { $0.currentHealth = 1 }
         state.insertEffect(.thorns(10), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
-        let outcome = attack(1, .burn, in: &state)
+        let outcome = state.recordingResult { context in attack(1, .burn, in: &context) }
         #expect(!state.roster.hero.isAlive)
         #expect(state.roster.companion.isAlive)
         #expect(reactions(outcome.events).isEmpty)
@@ -158,9 +158,9 @@ struct ElementalReactionTests {
         var state = battle()
         state.insertEffect(.nextStrikeDouble, to: state.hero, sourceID: state.hero.id, remainingTurns: 0)
         DefensePoolEngine.set(40, on: state.enemy, in: &state)
-        let outcome = state.resolveTestDamage(7, keyword: .burn, options: .elementalReaction)
-        #expect(outcome.healthLost == 7)
-        #expect(!outcome.isCritical)
+        let outcome = state.recordingResult { context in context.resolveTestDamage(7, keyword: .burn, options: .elementalReaction) }
+        #expect(outcome.value.healthLost == 7)
+        #expect(!outcome.value.isCritical)
         #expect(state.activeEffects(of: state.hero).contains { $0.effect.kind == .nextStrikeDouble })
         #expect(DefensePoolEngine.blockPoints(in: state.activeEffects(of: state.enemy)) == 40)
         #expect(!state.roster.hasAffliction(.burn, on: state.enemy))
@@ -183,14 +183,14 @@ struct ElementalReactionTests {
     @Test func `Rupture rewards a partners Bleed attack once per Stun without another Bleed application`() {
         var state = battle()
         _ = attack(20, .stun, in: &state)
-        let outcome = attack(1, .bleed, from: .companion, in: &state)
+        let outcome = state.recordingResult { context in attack(1, .bleed, from: .companion, in: &context) }
         #expect(reactions(outcome.events) == [.rupture])
         #expect(outcome.events
             .contains { $0.kind == .abilityDamage && $0.abilityName == "Rupture" && $0.amount == 5 && $0.keyword == .bleed })
         #expect(state.roster.enemy.currentHealth == 74)
         #expect(state.roster.hasControlStatus(for: state.enemy, keyword: .stun))
         #expect(!state.roster.hasAffliction(.bleed, on: state.enemy))
-        #expect(reactions(attack(1, .bleed, in: &state).events).isEmpty)
+        #expect(reactions(state.recordingResult { context in attack(1, .bleed, in: &context) }.events).isEmpty)
     }
 
     @Test func `Toxic Shock pairs natural Poison phases across gaps and ignores extra ticks`() {
@@ -207,16 +207,16 @@ struct ElementalReactionTests {
         #expect(state.roster.enemy.reactions.toxicShock == 5)
         #expect(state.roster.enemy.reactions.pendingPoisonTick == nil)
         ActiveEffectMutation.removeMatching(from: state.enemy, in: &state) { $0.keyword == .poison }
-        let partial = attack(1, .stun, from: .companion, in: &state)
+        let partial = state.recordingResult { context in attack(1, .stun, from: .companion, in: &context) }
         #expect(reactions(partial.events).isEmpty)
         #expect(state.roster.enemy.reactions.toxicShock == 5)
-        let outcome = attack(20, .stun, from: .companion, in: &state)
+        let outcome = state.recordingResult { context in attack(20, .stun, from: .companion, in: &context) }
         #expect(reactions(outcome.events) == [.toxicShock])
         #expect(outcome.events
             .contains { $0.kind == .abilityDamage && $0.abilityName == "Toxic Shock" && $0.amount == 5 && $0.keyword == .poison })
         #expect(state.roster.enemy.reactions.toxicShock == 0)
         #expect(!state.roster.hasAffliction(.poison, on: state.enemy))
-        #expect(reactions(attack(1, .stun, in: &state).events).isEmpty)
+        #expect(reactions(state.recordingResult { context in attack(1, .stun, in: &context) }.events).isEmpty)
     }
 
     @Test func `a reaction kill belongs to its finisher and cannot pay kill rewards twice`() {

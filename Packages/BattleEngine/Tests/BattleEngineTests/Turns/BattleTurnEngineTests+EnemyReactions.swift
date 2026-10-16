@@ -27,7 +27,7 @@ extension BattleTurnEngineTests {
             if !attacks {
                 supportOutcomes += 1
             }
-            let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
+            let events = battle.recordingEvents { context in await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
             #expect(battle.roster.companion.talents.battle.negatedFirstEnemyAttack == attacks)
             #expect(events.contains { $0.effectKind == .shieldApplied && $0.targetID == battle.enemy.id } == !attacks)
             #expect(battle.rng == expected.rng)
@@ -47,7 +47,7 @@ extension BattleTurnEngineTests {
         )
         battle.insertEffect(.poison(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 
-        let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
+        let events = battle.recordingEvents { context in await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
 
         #expect(events.contains { $0.effectKind == .shieldApplied && $0.targetID == battle.enemy.id })
         #expect(!battle.roster.companion.talents.battle.negatedFirstEnemyAttack)
@@ -66,7 +66,7 @@ extension BattleTurnEngineTests {
             battle.insertEffect(.controlMeter(control, 20, 20), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         }
 
-        let events = CombatExecutor.run { await BattleCardCombatEngine.resolveEnemyTurn(context: &battle) }
+        let events = battle.recordingEvents { context in await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
 
         #expect(battle.roster.enemy.currentHealth == 100)
         #expect(events.contains { $0.effectKind == (control == nil ? .shieldApplied : .controlActionSkipped) })

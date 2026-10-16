@@ -31,7 +31,7 @@ struct CompanionBasicBonusRegressionTests {
         fixtures.block(answersBlockedHit ? 11 : 10, owner: .companion, in: &context)
 
         if answersBlockedHit {
-            let hit = fixtures.enemyHit(1, target: .companion, in: &context)
+            let hit = context.recordingResult { observation in fixtures.enemyHit(1, target: .companion, in: &observation) }
             #expect(hit.events.contains { $0.kind == .ability && $0.abilityID == basic.id })
         } else {
             try fixtures.play(basic, owner: .companion, in: &context)

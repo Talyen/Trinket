@@ -49,7 +49,10 @@ struct UniqueCollectionTests {
             context.insertEffect(.nextStrikeCritical, to: actor, sourceID: actor.id, remainingTurns: 0)
         }
         let card = BattleCardCombatEngine.deal(ability, owner: owner, context: &context)
-        return try CombatExecutor.run { try await BattleCardCombatEngine.playDrawnCard(card, context: &context) }
+        return try context.recordingEvents { observation in _ = try await BattleCardCombatEngine.resolveDrawnCard(
+            card,
+            context: &observation,
+        ) }
     }
 
     func block(_ amount: Int, owner: BattleParticipant, in context: inout BattleState) {

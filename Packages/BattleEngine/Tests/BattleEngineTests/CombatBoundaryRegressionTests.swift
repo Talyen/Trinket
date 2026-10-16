@@ -32,10 +32,12 @@ struct CombatBoundaryRegressionTests {
         battle.roster.companion.currentHealth = 0
         let events: [ActionEvent]
         if automatic {
-            events = try CombatExecutor.run { try await battle.withAutomaticPlay { context in
-                let card = BattleCardCombatEngine.deal(.phoenixFeather, owner: .hero, context: &context)
-                return try await BattleCardCombatEngine.playDrawnCard(card, context: &context)
-            } }
+            events = try battle.recordingEvents { context in
+                _ = try await context.withAutomaticPlay { context in
+                    let card = BattleCardCombatEngine.deal(.phoenixFeather, owner: .hero, context: &context)
+                    return try await BattleCardCombatEngine.resolveDrawnCard(card, context: &context)
+                }
+            }
         } else {
             let card = BattleCardCombatEngine.deal(.phoenixFeather, owner: .hero, context: &battle)
             events = try battle.playCard(cardID: card.id).events
@@ -63,7 +65,7 @@ struct CombatBoundaryRegressionTests {
         )
         battle.roster.enemy.hasConsumedDeathsDoor = true
 
-        let events = CombatExecutor.run { await BattleCardCombatEngine.restoreManaAtPlayerTurnStart(context: &battle) }
+        let events = battle.recordingEvents { context in await BattleCardCombatEngine.restoreManaAtPlayerTurnStart(context: &context) }
 
         #expect(battle.isEnemyDefeated)
         #expect(battle.mana(of: battle.hero) == 1)

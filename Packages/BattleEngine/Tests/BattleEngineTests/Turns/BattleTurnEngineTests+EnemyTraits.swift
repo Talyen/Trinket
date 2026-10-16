@@ -150,11 +150,11 @@ extension BattleTurnEngineTests {
             dealOpeningHand: false, appliesFightPacing: false,
         )
         let heroHealthBefore = battle.roster.hero.currentHealth
-        let outcome = battle.resolveTestDamage(
+        let outcome = battle.recordingResult { context in context.resolveTestDamage(
             1,
             options: DamageOperation.attack(tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
-        #expect(outcome.healthLost == 1)
+        ) }
+        #expect(outcome.value.healthLost == 1)
         #expect(!outcome.events.contains { $0.effectKind == .thornsTriggered })
         #expect(battle.roster.hero.currentHealth == heroHealthBefore)
     }
@@ -237,13 +237,13 @@ extension BattleTurnEngineTests {
         context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 5 }
         let blockEvents = context.recordingEvents { context in await CombatTriggerEngine.turnBlock(for: enemy, in: &context) }
         #expect(blockEvents.contains { $0.abilityName == "Watchful Guard" && $0.targetID == enemy.id })
-        let outcome = context.resolveTestDamage(
+        let outcome = context.recordingResult { context in context.resolveTestDamage(
             2,
             from: .enemy,
             to: .hero,
             keyword: .holy,
             options: .attack(accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
+        ) }
         #expect(outcome.events.contains { $0.abilityName == "Restoring Light" && $0.targetID == enemy.id })
     }
 

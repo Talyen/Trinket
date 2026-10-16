@@ -31,7 +31,7 @@ package extension BattleState {
         try await collectingResult(operation).events
     }
 
-    /// Outcomes and command output share emission order, including nested rules.
+    /// Explicit observers collect one range in emission order, including nested rules.
     /// A standalone operation installs a temporary output even with history disabled.
     mutating func collectingResult<Value>(
         _ operation: (inout Self) async throws -> Value,

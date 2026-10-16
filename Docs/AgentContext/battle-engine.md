@@ -33,16 +33,18 @@ Public card, turn, and opening commands return `BattleCommandResult` only after
 resolution completes. `BattleState.nextEvent` writes command output in emission
 order, independently of retained battle history and optional action recording.
 Card/turn orchestration does not reconstruct command events from child return
-values. Nested card and damage operations collect their local event range from that
-same command output, including counterattacks drained after the outer damage packet.
-Damage pipeline steps emit events without maintaining a second accumulated list;
-the damage scratch state contains calculations and reaction flags only. Standalone
-damage installs a temporary output even when retained battle history is disabled.
+values. Damage, healing, and Leech outcomes carry rule facts only; their nested
+reactions emit directly into the enclosing command output without copying local
+event ranges. Internal card plays and enemy/turn-start phases likewise emit
+without returning parallel arrays. Explicit test observers use `collectingEvents`
+or `collectingResult` at the operation boundary, including when retained battle
+history is disabled.
+Counterattacks drained after the outer damage packet remain in emission order.
 Discarded damage previews detach command output so speculative effects cannot publish.
-Healing outcomes retain their operation-specific events. Internal triggers, effect
-turns and checkpoints emit directly into this output rather than returning parallel
-arrays. Gold and Block grants return their applied amounts; action admission and
-DoT dispatch return decisions, independently of emitted feedback.
+Internal triggers, effect turns and checkpoints likewise emit directly into this
+output rather than returning parallel arrays. Gold and Block grants return their
+applied amounts; action admission and DoT dispatch return decisions, independently
+of emitted feedback.
 Card plays, direct resource grants, and control-meter charges expose committed
 rule facts separately from emitted events. Critical-attack continuation, triggered-control
 rewards, and direct gain summaries consume those facts, never event searches,

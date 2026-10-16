@@ -19,19 +19,19 @@ struct SunGlyphRegressionTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyHealth),
             companionModifiers: profile, appliesFightPacing: false,
         )
-        let outcome: CombatOutcome
+        let outcome: (events: [ActionEvent], value: CombatOutcome)
         if reflected {
             DefensePoolEngine.set(4, on: battle.companion, in: &battle)
-            outcome = battle.resolveTestDamage(
+            outcome = battle.recordingResult { context in context.resolveTestDamage(
                 4,
                 from: .enemy,
                 to: .companion,
                 options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-            )
-            #expect(outcome.healthLost == 0)
+            ) }
+            #expect(outcome.value.healthLost == 0)
         } else {
-            outcome = holyHit(in: &battle)
-            #expect(outcome.healthLost == 4)
+            outcome = battle.recordingResult { context in holyHit(in: &context) }
+            #expect(outcome.value.healthLost == 4)
         }
 
         #expect(battle.roster.enemy.currentHealth == enemyHealth - 4)
@@ -42,7 +42,7 @@ struct SunGlyphRegressionTests {
         })
 
         if battle.roster.enemy.isAlive {
-            let second = holyHit(in: &battle)
+            let second = battle.recordingResult { context in holyHit(in: &context) }
             #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 2)
             #expect(!second.events.contains { $0.abilityName == "Sun Glyph" })
         }
@@ -70,14 +70,14 @@ struct SunGlyphRegressionTests {
         // Vitality Infusion qualifies through guaranteed Leech even when Sapped prevents restoration.
         battle.insertEffect(.healingReductionPercent(1, 2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
 
-        let result = battle.resolveTestDamage(
+        let result = battle.recordingResult { context in context.resolveTestDamage(
             2,
             from: .companion,
             keyword: holy ? .holy : .physical,
             options: .attack(scaling: .flat, accuracy: .unavoidable, guaranteedCritical: true, abilityHasLeech: !holy),
-        )
+        ) }
 
-        #expect(result.healthLost == 4)
+        #expect(result.value.healthLost == 4)
         #expect(battle.health(of: battle.companion) == (survives ? 1 : 0))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == (survives ? (holy ? 2 : 3) : 0))
         let reward = holy ? "Sun Glyph" : "Vitality Infusion"

@@ -65,13 +65,13 @@ struct LeechAttackQualificationTests {
         let before = battle.health(of: battle.enemy)
         let serial = battle.resolution.beginCard(actorID: battle.companion.id)
         _ = battle.resolution.beginAction(BattleActionContext(actor: battle.companion, in: battle), origin: .card)
-        let result = battle.resolveTestDamage(
+        let result = battle.recordingResult { context in context.resolveTestDamage(
             4,
             from: .companion,
             keyword: .bleed,
             options: .attack(accuracy: .unavoidable, guaranteedCritical: true),
-        )
-        #expect(result.healthLost == 8)
+        ) }
+        #expect(result.value.healthLost == 8)
         #expect(before - battle.health(of: battle.enemy) == 8)
         #expect(!result.events.contains { $0.abilityName == "Toxic Touch" })
         #expect(battle.roster.companion.talents.pending.nextLeechCriticalPoisonAttackBonus?.value == (bloodfire ? 3 : nil))

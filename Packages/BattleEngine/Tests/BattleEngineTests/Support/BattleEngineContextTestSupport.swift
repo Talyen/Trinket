@@ -74,4 +74,8 @@ extension BattleState {
     mutating func recordingEvents(_ operation: (inout BattleState) async -> Void) -> [ActionEvent] {
         CombatExecutor.run { await collectingEvents(operation) }
     }
+
+    mutating func recordingEvents(_ operation: (inout BattleState) async throws -> Void) throws -> [ActionEvent] {
+        try CombatExecutor.run { try await collectingEvents(operation) }
+    }
 }

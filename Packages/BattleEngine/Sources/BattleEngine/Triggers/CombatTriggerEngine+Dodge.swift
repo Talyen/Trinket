@@ -191,8 +191,8 @@ package extension CombatTriggerEngine {
                 context.resolution.leave(.dot)
                 context.resolution.leave(.draw)
             }
-            _ = await context.withAutomaticPlay { context in
-                await (try? BattleCardCombatEngine.playDrawnCard(card, context: &context)) ?? []
+            await context.withAutomaticPlay { context in
+                _ = try? await BattleCardCombatEngine.resolveDrawnCard(card, context: &context)
             }
         }
 

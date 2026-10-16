@@ -101,7 +101,11 @@ struct HealingReductionTests {
         let hero = battle.roster.hero.combatant
         battle.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
 
-        let outcome = battle.resolveHeal(HealRequest(amount: 1, target: hero, sourceActorID: battle.roster.companion.id))
+        let outcome = battle.recordingResult { context in await context.resolveHeal(HealRequest(
+            amount: 1,
+            target: hero,
+            sourceActorID: context.roster.companion.id,
+        )) }
 
         let block = outcome.events.first { $0.effectKind == .shieldApplied }
         #expect(block?.amount == 5)
@@ -121,7 +125,11 @@ struct HealingReductionTests {
         battle.roster.mutateRuntime(for: companion) { $0.currentHealth = 1 }
         battle.insertEffect(.poison(3), to: hero, sourceID: battle.roster.enemy.id, remainingTurns: 0)
 
-        let outcome = battle.resolveHeal(HealRequest(amount: 1, target: hero, sourceActorID: companion.id))
+        let outcome = battle.recordingResult { context in await context.resolveHeal(HealRequest(
+            amount: 1,
+            target: hero,
+            sourceActorID: companion.id,
+        )) }
 
         #expect(battle.roster.hero.currentHealth == 2)
         #expect(battle.roster.companion.currentHealth == 4)

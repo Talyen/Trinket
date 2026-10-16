@@ -17,15 +17,15 @@ struct SharedRootsHealingTests {
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = companionHealth
 
-        let result = CombatExecutor.run { await HealingEngine.resolveHealing(HealRequest(
-            amount: 10, target: battle.companion, sourceActorID: battle.hero.id,
+        let result = battle.recordingResult { context in await HealingEngine.resolveHealing(HealRequest(
+            amount: 10, target: context.companion, sourceActorID: context.hero.id,
             origin: .restoration(.health),
-        ), in: &battle) }
+        ), in: &context) }
 
         let expectedRestoration = companionHealth == 1 ? 42 : 9
         let expectedShare = companionHealth == 1 ? 21 : 5
-        #expect(result.directRestoration == expectedRestoration)
-        #expect(result.isCritical)
+        #expect(result.value.directRestoration == expectedRestoration)
+        #expect(result.value.isCritical)
         #expect(battle.health(of: battle.companion) == companionHealth + expectedRestoration)
         #expect(battle.health(of: battle.hero) == 10 + expectedShare)
         let share = try #require(result.events.first { $0.abilityName == "Shared Roots" && $0.effectKind == .instantHeal })

@@ -85,15 +85,13 @@ package enum BattleCardCombatEngine {
 
     static func restoreManaAtPlayerTurnStart(
         context: inout BattleState,
-    ) async -> [ActionEvent] {
-        await context.collectingEvents { context in
-            for owner in [BattleParticipant.hero, .companion] {
-                guard !context.isBattleOver else { break }
-                let runtime = context.roster[owner]
-                guard runtime.isAlive, runtime.maxMana > 0 else { continue }
-                let combatant = runtime.combatant
-                await context.restoreManaEmitting(1, to: combatant, abilityName: Keyword.mana.rawValue)
-            }
+    ) async {
+        for owner in [BattleParticipant.hero, .companion] {
+            guard !context.isBattleOver else { break }
+            let runtime = context.roster[owner]
+            guard runtime.isAlive, runtime.maxMana > 0 else { continue }
+            let combatant = runtime.combatant
+            await context.restoreManaEmitting(1, to: combatant, abilityName: Keyword.mana.rawValue)
         }
     }
 
@@ -135,44 +133,42 @@ package enum BattleCardCombatEngine {
 
     static func resolveEnemyTurn(
         context: inout BattleState,
-    ) async -> [ActionEvent] {
-        await context.collectingEvents { context in
-            let enemy = context.enemy
-            guard context.roster.enemy.isAlive else { return }
+    ) async {
+        let enemy = context.enemy
+        guard context.roster.enemy.isAlive else { return }
 
-            await DefensePoolEngine.decayBlock(on: enemy, in: &context)
+        await DefensePoolEngine.decayBlock(on: enemy, in: &context)
 
-            if context.roster.hasPendingActionSkip(for: enemy) {
-                await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
-                return
-            }
+        if context.roster.hasPendingActionSkip(for: enemy) {
+            await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
+            return
+        }
 
-            UniqueCombatEngine.recoverStunBeforeClearing(on: enemy, in: &context)
-            let wasFrozen = context.roster.hasControlStatus(for: enemy, keyword: .freeze)
-            context.roster.clearControlStatusLinger(for: enemy)
-            if wasFrozen {
-                CombatTriggerEngine.afterEnemyFreezeRecover(in: &context)
-            }
+        UniqueCombatEngine.recoverStunBeforeClearing(on: enemy, in: &context)
+        let wasFrozen = context.roster.hasControlStatus(for: enemy, keyword: .freeze)
+        context.roster.clearControlStatusLinger(for: enemy)
+        if wasFrozen {
+            CombatTriggerEngine.afterEnemyFreezeRecover(in: &context)
+        }
 
-            let turnNumber = context.roster.enemy.actionCount + 1
-            guard let ability = BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: turnNumber) else {
-                return
-            }
-            let bleed = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &context)
-            if bleed {
-                return
-            }
+        let turnNumber = context.roster.enemy.actionCount + 1
+        guard let ability = BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: turnNumber) else {
+            return
+        }
+        let bleed = CombatTriggerEngine.beforeEnemyActBleedReactions(in: &context)
+        if bleed {
+            return
+        }
 
-            let avoidance = CombatTriggerEngine.consumeEnemyActionDelay(in: &context)
-            if avoidance {
-                return
-            }
+        let avoidance = CombatTriggerEngine.consumeEnemyActionDelay(in: &context)
+        if avoidance {
+            return
+        }
 
-            let abilityTarget = BattleActionContext(actor: enemy, in: context).selectedTarget
-            let action = await BattleTurnEngine.performEnemyAction(ability: ability, abilityTarget: abilityTarget, context: &context)
-            if action {
-                await CombatTriggerEngine.afterEnemyAbility(in: &context)
-            }
+        let abilityTarget = BattleActionContext(actor: enemy, in: context).selectedTarget
+        let action = await BattleTurnEngine.performEnemyAction(ability: ability, abilityTarget: abilityTarget, context: &context)
+        if action {
+            await CombatTriggerEngine.afterEnemyAbility(in: &context)
         }
     }
 
@@ -208,7 +204,7 @@ package enum BattleCardCombatEngine {
             return
         }
 
-        _ = await resolveEnemyTurn(context: &context)
+        await resolveEnemyTurn(context: &context)
         if await finishRoundIfBattleOver(context: &context) {
             return
         }

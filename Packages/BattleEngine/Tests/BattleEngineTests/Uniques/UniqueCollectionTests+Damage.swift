@@ -45,15 +45,15 @@ extension UniqueCollectionTests {
             accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
         )
 
-        let outcome = context.resolveTestDamage(
+        let outcome = context.recordingResult { context in context.resolveTestDamage(
             10,
             to: context.roster.enemy.combatant,
             keyword: keyword,
             sourceActorID: context.roster.hero.id,
             options: options,
-        )
+        ) }
 
-        #expect(outcome.healthLost == 10)
+        #expect(outcome.value.healthLost == 10)
         #expect(before - context.roster.enemy.currentHealth == 11)
         #expect(outcome.events.filter { $0.kind == .status }.map(\.amount) == [1])
     }
@@ -166,11 +166,11 @@ extension UniqueCollectionTests {
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 100 }
         for keyword in [Keyword.burn, .bleed] {
             let before = context.roster.hero.currentHealth
-            let outcome = CombatExecutor.run { await DoTDamage.resolveDamage(
+            let outcome = context.recordingResult { context in await DoTDamage.resolveDamage(
                 basePotency: 10, keyword: keyword, target: context.roster.enemy.combatant,
                 sourceActorID: context.roster.hero.id, in: &context,
             ) }
-            #expect(outcome.healthLost == 15)
+            #expect(outcome.value.healthLost == 15)
             let expectedHealing = outcome.events.filter { $0.kind == .status }.reduce(0) {
                 $0 + CombatRounding.scaled($1.amount, multiplier: 0.5)
             }
