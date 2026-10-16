@@ -14,6 +14,7 @@ struct PlayView: View {
     @Environment(ShellSession.self) private var shellSession
     @Environment(BattleSession.self) private var battle
     @Environment(EncounterPlayMode.self) private var encounters
+    @Environment(\.isLaunchPresentationReady) private var isLaunchPresentationReady
     @State private var stageMessage: StageMapMessage?
     let restoresPendingDestination: Bool
 
@@ -37,7 +38,7 @@ struct PlayView: View {
         )
         .environment(\.isBattleActive, battle.lifecyclePhase == .active)
         .environment(\.presentPlayCombatantDetail, battle.presentCombatantDetail)
-        .onAppear {
+        .task(id: isLaunchPresentationReady) {
             restorePlayDestinationIfNeeded()
         }
         .onChange(of: play.shellSession.selectedTab) { previousTab, newTab in
@@ -49,7 +50,8 @@ struct PlayView: View {
     }
 
     private func restorePlayDestinationIfNeeded() {
-        guard restoresPendingDestination else { return }
+        // Let the retained tab root finish its launch layout before pushing a destination.
+        guard restoresPendingDestination, isLaunchPresentationReady else { return }
         guard battle.lifecyclePhase != .active else { return }
         // Never overwrite the browsing path under an encounter cover; the
         // pending destination stays queued until the encounter clears.
