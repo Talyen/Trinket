@@ -12,8 +12,8 @@ struct MysteryEffectApplierTests {
         let companion = save.roster.activeCompanion
         let heroProgressionBefore = save.roster.progression(for: hero)
         let companionProgressionBefore = save.roster.progression(for: companion)
-        let expectedHeroXP = 7
-        let expectedCompanionXP = 7
+        let expectedHeroXP = 3
+        let expectedCompanionXP = 3
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -75,8 +75,8 @@ struct MysteryEffectApplierTests {
             save: &save, using: &rng,
         )
 
-        #expect(result.heroGrantedExperience > 7)
-        #expect(result.companionGrantedExperience > 7)
+        #expect(result.heroGrantedExperience == 5)
+        #expect(result.companionGrantedExperience == 5)
         #expect(result.heroProgressionBefore == heroBefore)
         #expect(result.companionProgressionBefore == companionBefore)
         #expect(result.heroProgressionAfter == heroBefore.addingExperience(result.heroGrantedExperience))
@@ -132,8 +132,8 @@ struct MysteryEffectApplierTests {
         save.roster.progressions[companion.id] = .at(level: 5)
         let heroBefore = save.roster.progression(for: hero)
         let companionBefore = save.roster.progression(for: companion)
-        let expectedHeroXP = 7
-        let expectedCompanionXP = 7
+        let expectedHeroXP = 3
+        let expectedCompanionXP = 3
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(

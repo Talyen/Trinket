@@ -536,8 +536,8 @@ extension StageRewardTests {
     @Test func `near-cap victory converts overflow gold to experience`() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-        // Equal-level battle XP is 7; overflow adds floor(7 × overflow / 20).
-        for (gold, compensation) in [(990, 3), (999, 7)] {
+        // Equal-level battle XP is 3; overflow adds floor(3 × overflow / 20).
+        for (gold, compensation) in [(990, 1), (999, 3)] {
             var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: gold)
             let heroBefore = save.roster.progression(for: hero)
             let companionBefore = save.roster.progression(for: companion)
@@ -552,8 +552,8 @@ extension StageRewardTests {
                 recordReceipt: { _ in },
             )
             #expect(save.roster.gold == 999)
-            #expect(save.roster.progression(for: hero) == heroBefore.addingExperience(7 + compensation))
-            #expect(save.roster.progression(for: companion) == companionBefore.addingExperience(7 + compensation))
+            #expect(save.roster.progression(for: hero) == heroBefore.addingExperience(3 + compensation))
+            #expect(save.roster.progression(for: companion) == companionBefore.addingExperience(3 + compensation))
         }
     }
 }
