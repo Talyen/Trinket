@@ -68,11 +68,13 @@ private struct BossLyricWord: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let text: String
     let isActive: Bool
+    @State private var didAppear = false
 
     var body: some View {
-        KeyframeAnimator(initialValue: LyricWordEntrance(), repeating: false) { value in
+        KeyframeAnimator(initialValue: LyricWordEntrance(), trigger: didAppear) { value in
             Text(verbatim: text)
                 .trinketTypography(.cardTitle)
+                .fixedSize()
                 .foregroundStyle(isActive ? TrinketDesign.Colors.accent : TrinketDesign.Colors.Overlay.paper.opacity(0.65))
                 .trinketOnArtText()
                 .opacity(value.opacity)
@@ -91,6 +93,7 @@ private struct BossLyricWord: View {
                 CubicKeyframe(0, duration: 0.18)
             }
         }
+        .onAppear { didAppear = true }
     }
 }
 

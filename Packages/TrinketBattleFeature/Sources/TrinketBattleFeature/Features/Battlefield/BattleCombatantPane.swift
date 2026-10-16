@@ -76,6 +76,13 @@ struct BattleCombatantPane: View {
             artworkPresentation
             resourceBars
         }
+        .overlay(alignment: .bottom) {
+            if !isDefeated, recoilDirection == .up {
+                BossLyrics(bossID: combatant.id, presentation: presentation)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, TrinketDesign.Bars.battleHeight * (hasMana ? 2 : 1) + 6)
+            }
+        }
         if isDefeated, recoilDirection == .up {
             card
         } else {
@@ -148,14 +155,6 @@ struct BattleCombatantPane: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .overlay(alignment: .top) {
-            if !isDefeated, recoilDirection == .up {
-                BossLyrics(bossID: combatant.id, presentation: presentation)
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 6)
-                    .alignmentGuide(.top) { $0[.bottom] }
-            }
-        }
         .opacity(isDefeated ? 0 : 1)
         .animation(BattleMotion.scrim, value: isDefeated)
     }
