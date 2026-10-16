@@ -88,6 +88,8 @@ public struct BattleLogProjection {
         switch event.kind {
         case let .milestone(milestone):
             return milestoneLine(for: event, milestone: milestone)
+        case .reaction:
+            return nil
         case .ability:
             return actionLine(for: event, damage: damage)
         case .abilityDamage:

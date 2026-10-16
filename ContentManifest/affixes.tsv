@@ -34,7 +34,7 @@ infected	Infected	weapon	bleed,poison	8	Your Bleed deals 1 additional damage to 
 ashen_wake	Ashen Wake	weapon	burn,poison	8	Your Burn deals 1 additional damage to Poisoned enemies	Your Burn deals 2 additional damage to Poisoned enemies			burnDamageVsPoisonedFlat:1	burnDamageVsPoisonedFlat:2
 cauterize	Cauterize	weapon	bleed,burn	8	Your Bleed deals 1 additional damage to Burning enemies	Your Bleed deals 2 additional damage to Burning enemies			bleedDamageVsBurningFlat:1	bleedDamageVsBurningFlat:2
 contagion	Contagion	weapon	poison	8	Poison has a 10% chance to increase instead of decreasing	Poison has a 20% chance to increase instead of decreasing			poison_decay_increase_chance:0.10	poison_decay_increase_chance:0.20
-shatter	Shatter	weapon	freeze	8	Deal 2 additional damage while the enemy is Frozen	Deal 4 additional damage while the enemy is Frozen			damage_while_target_frozen:2	damage_while_target_frozen:4
+shatter	Brittle	weapon	freeze	8	Deal 2 additional damage while the enemy is Frozen	Deal 4 additional damage while the enemy is Frozen			damage_while_target_frozen:2	damage_while_target_frozen:4
 executioners	Executioner's	weapon	physical	8	Deal 2 additional damage if the enemy is below 30% Health	Deal 3 additional damage if the enemy is below 30% Health			damage_below_health_percent:0.30:2	damage_below_health_percent:0.30:3
 riposte	Riposte	armor	physical,dodge	8	Deal 3 additional damage on your next attack after Dodging	Deal 6 additional damage on your next attack after Dodging			damage_after_dodge:3	damage_after_dodge:6
 cascading	Cascading	armor	block	8	Gain 1 Block when your Block is broken	Gain 2 Block when your Block is broken			on_block_broken_block:1	on_block_broken_block:2

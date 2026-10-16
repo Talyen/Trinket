@@ -15,6 +15,12 @@ package enum DamagePipeline {
         state: inout DamageResolutionState,
         in context: inout BattleState,
     ) async {
+        if state.options.isElementalReaction {
+            state.remaining = state.amount
+            state.dealt = state.amount
+            await applyElementalHealthLoss(to: &state, in: &context)
+            return
+        }
         if state.options.isHealthCost {
             state.remaining = state.amount
             state.dealt = state.amount
@@ -51,12 +57,16 @@ package enum DamagePipeline {
         }
         applyOutgoingDamage(to: &state, in: &context)
         applyNextDamageReduction(to: &state, in: &context)
+        ElementalReactionEngine.shatter(to: &state, in: &context)
         applyPreparedAttackReduction(to: &state, in: &context)
         applyTakenFlatAdjustments(to: &state, in: &context)
         await applyShieldAbsorption(to: &state, in: &context)
         await applyTakeDamage(to: &state, in: &context)
         applyMarkedConsume(to: &state, in: &context)
         await applyDeathsDoor(to: &state, in: &context)
+        if state.options.isNaturalStatusTick, let keyword = state.damageKeyword, state.combatant == context.enemy {
+            ElementalReactionEngine.recordNaturalTick(keyword, amount: state.healthLost, sourceID: state.sourceActorID, in: &context)
+        }
 
         await CombatCheckpoint.committedDamage.perform(in: &context) { context in
             applyResourceful(to: &state, in: &context)

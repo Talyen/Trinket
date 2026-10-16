@@ -15,7 +15,9 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 - **Media/** — Authored art, music, and sound lookup support.
 - **Generated/** — Auto-generated catalogs from manifests, ability shorthand, talent dictionaries, and trigger-family structs (do not edit directly)
 
-The source root holds `GameContent`, shared access policy, and trigger coding.
+The source root holds `GameContent`, shared access policy, trigger coding, and
+`CombatReaction`, the shared localized reaction vocabulary consumed by the engine
+and battle presentation. Reaction rules and progress remain in BattleEngine.
 Domain-specific `GameContent` extensions live beside their models and catalogs.
 `Sources/TrinketContentTestSupport/` is the shared support target for
 combat/content/battle-party test fixtures (`CombatantFixtures`,

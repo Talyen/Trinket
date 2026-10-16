@@ -1,7 +1,7 @@
 import TrinketContent
 import TrinketCore
 
-package struct DamageTargetStatus {
+package struct DamageTargetStatus: Equatable {
     public var isFrozen = false
     public var isStunned = false
     public var isBurning = false
@@ -54,6 +54,7 @@ package struct DamageResolutionState {
 
     public let options: DamageOperation
     var provenance: DamageProvenance?
+    var elementalHit: ElementalReactionHit?
 
     /// Damage still to be dealt after each pipeline stage. `dealt`
     /// is the outgoing-damage snapshot used for crit/pacing math, not a second

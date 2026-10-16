@@ -14336,37 +14336,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zersplittern"
+            "value": "Spröde"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shatter"
+            "value": "Brittle"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fracas"
+            "value": "Fragile"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "砕氷"
+            "value": "脆化"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "산산조각"
+            "value": "취약"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "碎冰"
+            "value": "易碎"
           }
         }
       }
@@ -18751,6 +18751,48 @@
         }
       }
     },
+    "authored.087bd02c9216a209": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/CombatReaction.swift: computed displayName",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giftflamme"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Venomflash"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flambée venimeuse"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毒炎"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "맹독 점화"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毒焰"
+          }
+        }
+      }
+    },
     "authored.089013043262ce51": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/JourneyModels.swift: computed primaryActionTitle",
       "extractionState": "manual",
@@ -22531,6 +22573,48 @@
         }
       }
     },
+    "authored.2f8579fa0d7c9662": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/CombatReaction.swift: computed displayName",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siedendes Blut"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloodboil"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sang bouillonnant"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沸血"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "끓는 피"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沸血"
+          }
+        }
+      }
+    },
     "authored.2fa567236bcc63e8": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Melee.swift: name",
       "extractionState": "manual",
@@ -23798,37 +23882,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lauffeuer"
+            "value": "Feuerkunst"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wildfire"
+            "value": "Firecraft"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Feu sauvage"
+            "value": "Art du feu"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "野火"
+            "value": "火術"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "들불"
+            "value": "화염술"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "野火"
+            "value": "火焰技藝"
           }
         }
       }
@@ -26185,6 +26269,48 @@
         }
       }
     },
+    "authored.59a61eb576cfe758": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/CombatReaction.swift: computed displayName",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frostfeuer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frostfire"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feu de givre"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "氷炎"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "서리불꽃"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冰焰"
+          }
+        }
+      }
+    },
     "authored.5a78911bb276ef7d": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/MysteryEventPool.swift: title",
       "extractionState": "manual",
@@ -26265,6 +26391,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "荊棘鎖甲"
+          }
+        }
+      }
+    },
+    "authored.5acf0fb9971c829a": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/CombatReaction.swift: computed displayName",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufreißen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rupture"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rupture"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "破裂"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "파열"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "破裂"
           }
         }
       }
@@ -33283,6 +33451,48 @@
         }
       }
     },
+    "authored.ae66817c68e1e71f": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/CombatReaction.swift: computed displayName",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giftschock"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toxic Shock"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choc toxique"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毒の衝撃"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "맹독 충격"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毒性衝擊"
+          }
+        }
+      }
+    },
     "authored.aeaa46e0964aba81": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Labyrinth/LabyrinthModels.swift: computed title",
       "extractionState": "manual",
@@ -37945,6 +38155,48 @@
         }
       }
     },
+    "authored.ef9302e39f3bd3ae": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/CombatReaction.swift: computed displayName",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weihe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consecration"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consécration"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "聖化"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "축성"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "祝聖"
+          }
+        }
+      }
+    },
     "authored.ef956b310f7bebe7": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Rewards/RewardModifier.swift: computed title",
       "extractionState": "manual",
@@ -38151,6 +38403,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "烈焰術"
+          }
+        }
+      }
+    },
+    "authored.f21fe49642ba27cd": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/CombatReaction.swift: computed displayName",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zersplittern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shatter"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fracas"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "砕氷"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "산산조각"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "碎冰"
           }
         }
       }
@@ -73472,37 +73766,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Weihe"
+            "value": "Geweihter Schutz"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Consecration"
+            "value": "Hallowed Guard"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Consécration"
+            "value": "Garde bénie"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "聖化"
+            "value": "聖なる防御"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "축성"
+            "value": "신성한 방어"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "祝聖"
+            "value": "神聖防禦"
           }
         }
       }
@@ -79220,37 +79514,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frostfeuer"
+            "value": "Kalte Flamme"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frostfire"
+            "value": "Cold Flame"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Feu de givre"
+            "value": "Flamme froide"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "氷炎"
+            "value": "冷たい炎"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "서리불꽃"
+            "value": "차가운 불꽃"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "冰火"
+            "value": "冷焰"
           }
         }
       }

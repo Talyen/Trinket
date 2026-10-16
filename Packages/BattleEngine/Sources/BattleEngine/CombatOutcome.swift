@@ -12,6 +12,7 @@ public struct CombatOutcome: Equatable {
     public var events: [ActionEvent]
     public var damageImpact: DamageImpact?
     var flags: Set<CombatFlag>
+    var elementalHit: ElementalReactionHit?
 
     public init(
         healthDelta: Int = 0,

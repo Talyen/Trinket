@@ -152,12 +152,13 @@ package extension DamagePipeline {
         } else {
             1
         }
-        await ControlMeterEngine.applyMeterCharge(
+        await ControlMeterEngine.resolveMeterCharge(
             CombatRounding.scaled(state.remaining, multiplier: criticalMultiplier),
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,
             applyFightPacing: false,
+            setupHealthDamage: state.healthLost,
             in: &context,
         )
         state.didTriggerControl = !wasControlled && context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)

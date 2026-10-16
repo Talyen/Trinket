@@ -40,9 +40,10 @@ struct StationaryFeedbackLayout {
         for index in slots.indices where slots[index].region == region {
             slots[index].rect = slots[index].rect.offsetBy(dx: 0, dy: -pushDistance)
         }
-        let centerY = region == .impact ? bounds.midY : fittingArea.maxY - fitted.height / 2
+        let centerY = region == .announcement ? bounds.midY - min(64, bounds.height * 0.24) : region == .impact ? bounds.midY : fittingArea
+            .maxY - fitted.height / 2
         let centerX = switch region {
-        case .impact: bounds.midX
+        case .impact, .announcement: bounds.midX
         case .benefit: fittingArea.minX + fitted.width / 2
         case .setback: fittingArea.maxX - fitted.width / 2
         }
@@ -55,27 +56,55 @@ struct StationaryFeedbackLayout {
         return slot
     }
 
+    mutating func placeAnnouncementGroup(_ entries: [(id: Int, size: CGSize)], groupIndex: Int) {
+        let columns = entries.count >= 3 ? 2 : 1
+        let rows = (entries.count + columns - 1) / columns
+        let cellWidth = max(0, bounds.width - 16) / CGFloat(columns)
+        let bandHeight = min(100, bounds.height * 0.30)
+        let rowHeight = bandHeight / CGFloat(max(1, rows))
+        for (index, entry) in entries.enumerated() {
+            guard entry.size.width > 0, entry.size.height > 0 else { continue }
+            let fit = min(1, max(0, cellWidth - 8) / (entry.size.width * 1.35), rowHeight / (entry.size.height * 1.35))
+            let width = entry.size.width * fit
+            let height = entry.size.height * fit
+            let x = bounds.minX + 8 + cellWidth * (CGFloat(index % columns) + 0.5)
+            let y = bounds.midY - min(64, bounds.height * 0.24)
+                - CGFloat(groupIndex) * bandHeight - CGFloat(rows - 1 - index / columns) * rowHeight
+            let rect = CGRect(x: x - width / 2, y: y - height / 2, width: width, height: height)
+            let slot = Slot(id: entry.id, region: .announcement, rect: rect, fitScale: fit, initialCenterY: y)
+            if let existing = slots.firstIndex(where: { $0.id == entry.id }) {
+                slots[existing] = slot
+            } else {
+                slots.append(slot)
+            }
+        }
+    }
+
     func position(for slot: Slot, push: CGFloat, rise: CGFloat, bottomInset: CGFloat) -> CGPoint {
+        if slot.region == .announcement {
+            return CGPoint(x: slot.rect.midX, y: slot.rect.midY - push - rise)
+        }
         let inset = fittingArea(for: slot.region, bottomInset: bottomInset)
         // Reserve the peak footprint so scaling and numeric merges keep a fixed center.
         let maximumScale = Self.maximumScale(for: slot.region)
         let halfWidth = slot.rect.width * maximumScale / 2
         let x = switch slot.region {
-        case .impact: bounds.midX
+        case .impact, .announcement: bounds.midX
         case .benefit: inset.minX + halfWidth
         case .setback: inset.maxX - halfWidth
         }
-        let y = slot.region == .impact ? bounds.midY : inset.maxY - slot.rect.height * maximumScale / 2
+        let y = slot.region == .announcement ? bounds.midY - min(64, bounds.height * 0.24) : slot.region == .impact ? bounds.midY : inset
+            .maxY - slot.rect.height * maximumScale / 2
         return CGPoint(x: x, y: y - push - rise)
     }
 
     static func maximumScale(for region: CombatFeedbackRegion) -> CGFloat {
-        region == .impact ? peakScale * mergePulseScale : CombatFeedbackMotionSampler.statusPeakScale
+        region == .announcement ? 1.35 : region == .impact ? peakScale * mergePulseScale : CombatFeedbackMotionSampler.statusPeakScale
     }
 
     private func fittingArea(for region: CombatFeedbackRegion, bottomInset: CGFloat) -> CGRect {
         var area = bounds.insetBy(dx: 8, dy: 8)
-        if region != .impact {
+        if region != .impact, region != .announcement {
             area.size.height -= bottomInset
             area.size.width = (area.width - 8) / 2
             if region == .setback {

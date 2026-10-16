@@ -32,6 +32,8 @@ enum CombatFeedbackChipComposer {
         let displayScale: CGFloat
         let needsShineMask: Bool
         let maximumDigitWidth: CGFloat
+        var textOnly = false
+        var secondaryTextTint: CGColor?
     }
 
     static func compose(
@@ -137,6 +139,9 @@ enum CombatFeedbackChipComposer {
             displayScale: scale,
             needsShineMask: needsShineMask,
             maximumDigitWidth: atlas.maximumDigitWidth(face: face, recipe: recipe),
+            textOnly: presentation.reaction != nil,
+            // UIStyleCheck: allow - Raster names blend the two existing keyword semantic colors.
+            secondaryTextTint: presentation.reaction.map { UIColor($0.preparationKeyword.visualStyle.color).cgColor },
         )
     }
 
@@ -152,12 +157,12 @@ enum CombatFeedbackChipComposer {
         let textWidth = textGlyphs.reduce(CGFloat(0)) { $0 + $1.width }
         let textHeight = textGlyphs.lazy.map(\.height).max() ?? 0
         let leadingWidth = leading?.0.width ?? 0
-        let trailingWidth = trailing.0.width
-        let symbolCount = (leading == nil ? 0 : 1) + 1
+        let trailingWidth = inputs.textOnly ? 0 : trailing.0.width
+        let symbolCount = inputs.textOnly ? 0 : (leading == nil ? 0 : 1) + 1
         let textPresent = textWidth > 0
         let gapCount = max(0, (symbolCount + (textPresent ? 1 : 0)) - 1)
         let contentWidth = leadingWidth + trailingWidth + textWidth + CGFloat(gapCount) * glyphSpacing
-        let contentHeight = max(leading?.0.height ?? 0, trailing.0.height, textHeight)
+        let contentHeight = inputs.textOnly ? textHeight : max(leading?.0.height ?? 0, trailing.0.height, textHeight)
         let pointSize = CGSize(
             width: ceil(contentWidth + horizontalPadding * 2),
             height: ceil(contentHeight + verticalPadding * 2 + shadowOffsetY),
@@ -174,6 +179,7 @@ enum CombatFeedbackChipComposer {
             renderer: renderer,
             shadow: inputs.shadow,
             maskOnly: false,
+            textGradient: inputs.textOnly ? [inputs.secondaryTextTint ?? inputs.textTint, inputs.textTint] : nil,
         ) else { return nil }
         return ComposedRaster(
             image: cgImage, pointSize: pointSize,
@@ -190,6 +196,7 @@ enum CombatFeedbackChipComposer {
 
     private nonisolated static func renderImage(
         _ drawings: [GlyphDrawing], renderer: UIGraphicsImageRenderer, shadow: CGColor, maskOnly: Bool,
+        textGradient: [CGColor]? = nil,
     ) -> CGImage? {
         renderer.image { _ in
             let context = UIGraphicsGetCurrentContext()
@@ -202,14 +209,35 @@ enum CombatFeedbackChipComposer {
             }
             context?.beginTransparencyLayer(auxiliaryInfo: nil)
 
-            for drawing in drawings {
-                // Preserve the eight source-over outline draws; a flattened bitmap changes blending.
-                if !maskOnly, let silhouette = drawing.images.silhouette {
-                    for rect in drawing.frame.outlineRects {
-                        silhouette.draw(in: rect)
+            if let colors = textGradient, !maskOnly,
+               let gradient = CGGradient(colorsSpace: nil, colors: colors as CFArray, locations: [0, 1]) {
+                for drawing in drawings {
+                    if let silhouette = drawing.images.silhouette {
+                        for rect in drawing.frame.outlineRects {
+                            silhouette.draw(in: rect)
+                        }
                     }
                 }
-                drawing.images.image.draw(in: drawing.frame.rect)
+                context?.beginTransparencyLayer(auxiliaryInfo: nil)
+                for drawing in drawings {
+                    drawing.images.image.draw(in: drawing.frame.rect)
+                }
+                context?.saveGState()
+                context?.setBlendMode(.sourceIn)
+                let right = drawings.map(\.frame.rect.maxX).max() ?? 1
+                context?.drawLinearGradient(gradient, start: CGPoint(x: horizontalPadding, y: 0), end: CGPoint(x: right, y: 0), options: [])
+                context?.restoreGState()
+                context?.endTransparencyLayer()
+            } else {
+                for drawing in drawings {
+                    // Preserve the eight source-over outline draws; a flattened bitmap changes blending.
+                    if !maskOnly, let silhouette = drawing.images.silhouette {
+                        for rect in drawing.frame.outlineRects {
+                            silhouette.draw(in: rect)
+                        }
+                    }
+                    drawing.images.image.draw(in: drawing.frame.rect)
+                }
             }
             context?.endTransparencyLayer()
             context?.setShadow(offset: .zero, blur: 0, color: nil)
@@ -237,12 +265,14 @@ enum CombatFeedbackChipComposer {
         if let leading = inputs.leading {
             append(leading.0, x: origins.leadingX, tint: resolvedColor(leading.1))
         }
-        var textX = origins.textX
+        var textX = inputs.textOnly ? horizontalPadding : origins.textX
         for glyph in inputs.textGlyphs {
             append(glyph, x: textX, tint: textTint)
             textX += glyph.width
         }
-        append(inputs.trailing.0, x: origins.trailingX, tint: resolvedColor(inputs.trailing.1))
+        if !inputs.textOnly {
+            append(inputs.trailing.0, x: origins.trailingX, tint: resolvedColor(inputs.trailing.1))
+        }
         return drawings
     }
 

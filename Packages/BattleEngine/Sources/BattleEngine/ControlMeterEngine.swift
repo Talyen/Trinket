@@ -30,6 +30,7 @@ package enum ControlMeterEngine {
         sourceActorID: String?,
         applyFightPacing: Bool = true,
         preservingTriggeredStatus: Bool = false,
+        setupHealthDamage: Int = 0,
         in context: inout BattleState,
     ) async -> ControlMeterOutcome {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return .empty }
@@ -84,10 +85,12 @@ package enum ControlMeterEngine {
                     existingIndex: existingIndex,
                     baseThreshold: threshold,
                     triggeredAmount: effectiveThreshold,
+                    setupHealthDamage: setupHealthDamage,
                 ),
                 currentEffects: &currentEffects,
                 in: &context,
             )
+            await ElementalReactionEngine.finishControl(in: &context)
             return ControlMeterOutcome(didTrigger: true)
         }
 
@@ -128,6 +131,7 @@ package enum ControlMeterEngine {
         let existingIndex: Int?
         let baseThreshold: Int
         let triggeredAmount: Int
+        var setupHealthDamage: Int = 0
     }
 
     // swiftlint:disable:next function_body_length - control decay keeps status and meter changes ordered
@@ -136,6 +140,8 @@ package enum ControlMeterEngine {
         currentEffects: inout [ActiveEffect],
         in context: inout BattleState,
     ) async {
+        context.resolution.controlDepth += 1
+        defer { context.resolution.controlDepth -= 1 }
         let keyword = thresholdContext.keyword
         let combatant = thresholdContext.combatant
         let sourceActorID = thresholdContext.sourceActorID
@@ -151,6 +157,9 @@ package enum ControlMeterEngine {
             ),
             currentEffects: &currentEffects,
             in: &context,
+        )
+        ElementalReactionEngine.prepareControl(
+            keyword, target: combatant, healthDamage: thresholdContext.setupHealthDamage, sourceID: sourceActorID, in: &context,
         )
         if keyword == .stun {
             UniqueCombatEngine.retainStun(
@@ -438,7 +447,7 @@ extension ControlMeterEngine {
                 currentEffects: &currentEffects,
                 in: &context,
             )
-
+            await ElementalReactionEngine.finishControl(in: &context)
             return
         }
 

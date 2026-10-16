@@ -1,11 +1,12 @@
 import BattleEngine
 import Foundation
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
 
 enum CombatFeedbackRegion: CaseIterable, Hashable {
-    case impact, benefit, setback
+    case impact, benefit, setback, announcement
 }
 
 enum CombatFeedbackVisualRole: Hashable {
@@ -73,6 +74,9 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     }
 
     var region: CombatFeedbackRegion {
+        if case .reaction = label {
+            return .announcement
+        }
         if case .word(.cleanse) = label {
             return .benefit
         }
@@ -109,7 +113,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     func scheduled(at date: Date) -> Self {
         var copy = self
         copy.availableAt = date
-        copy.expiresAt = date.addingTimeInterval(CombatFeedbackMotionSampler.lifetime)
+        copy.expiresAt = date.addingTimeInterval(region == .announcement ? 1.6 : CombatFeedbackMotionSampler.lifetime)
         copy.firstScheduledAt = date
         copy.lastReceivedAt = date
         return copy

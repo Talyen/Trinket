@@ -3,6 +3,26 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
+    static func applyElementalHealthLoss(to state: inout DamageResolutionState, in context: inout BattleState) async {
+        context.roster.mutateRuntime(for: state.combatant) { state.healthLost = $0.takeRawDamage(state.amount) }
+        if state.healthLost > 0, context.roster.health(for: state.combatant) == 0 {
+            context.lastEnemyDefeatWasCritical = false
+            context.lastEnemyDefeatSourceActorID = state.sourceActorID
+            if context.roster.hasAffliction(.bleed, on: state.combatant),
+               let source = state.partySource(in: context), source.isAlive {
+                let gold = context.modifiers(for: source.id).triggers.defeatBleedingEnemyGold
+                if gold > 0 {
+                    _ = await context.grantGold(gold, to: source.combatant, abilityName: "Blood Money")
+                }
+            }
+        }
+        if state.healthLost > 0 {
+            await CombatTriggerEngine.afterHealthDropped(target: state.combatant, in: &context)
+        }
+        await applyDeathsDoor(to: &state, in: &context)
+        await applyThreefoldGrace(to: &state, in: &context)
+    }
+
     static func applyTakeDamage(
         to state: inout DamageResolutionState,
         in context: inout BattleState,

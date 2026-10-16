@@ -346,7 +346,7 @@ enum ItemAffixCatalogGenerated {
         ),
         ItemAffixCatalog.affix(
             id: "shatter",
-            title: "Shatter",
+            title: "Brittle",
             slot: .weapon,
             keywords: [.freeze],
             weight: 8,

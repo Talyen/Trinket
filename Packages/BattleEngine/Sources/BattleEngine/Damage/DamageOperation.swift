@@ -22,6 +22,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         case effect
         case periodic
         case reaction(ReactionCause)
+        case elementalReaction
         case healthCost
     }
 
@@ -34,6 +35,22 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     public var abilityHasLeech = false
     package var isThornsDamage = false
     var suppressLeech = false
+    var defersElementalPayoff = false
+    var isNaturalStatusTick = false
+
+    static let elementalReaction = Self(kind: .elementalReaction, scaling: .resolved, accuracy: .unavoidable)
+
+    var isElementalReaction: Bool {
+        kind == .elementalReaction
+    }
+
+    var canInitiateElementalReaction: Bool {
+        switch kind {
+        case .attack(_, .ability), .attack(_, .card), .attack(_, .ordinaryCard): true
+        default: false
+        }
+    }
+
     var partnerFirstAttackBonus = 0
     var capturesCardRepeat = false
     var isRedirected = false
@@ -124,7 +141,8 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
 
     var isRetaliation: Bool {
         switch kind {
-        case .reaction, .periodic, .attack(_, .counterattack), .attack(_, .cardRepeat), .attack(_, .criticalRepeat): true
+        case .elementalReaction, .reaction, .periodic, .attack(_, .counterattack), .attack(_, .cardRepeat),
+             .attack(_, .criticalRepeat): true
         default: false
         }
     }
@@ -178,6 +196,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         repeated.guaranteedCritical = guaranteedCritical ?? self.guaranteedCritical
         repeated.partnerFirstAttackBonus = 0
         repeated.capturesCardRepeat = false
+        repeated.isNaturalStatusTick = false
         return repeated
     }
 }

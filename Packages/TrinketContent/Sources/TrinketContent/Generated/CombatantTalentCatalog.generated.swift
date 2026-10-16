@@ -163,7 +163,7 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(damage: DamageTriggers { $0.physicalDamageFromBlockPercent = 0.25 })
             ),
             "knight_block_t3_1": CombatantTalentEffect(
-                name: "Consecration",
+                name: "Hallowed Guard",
                 iconID: "sf:sparkles",
                 description: "With Block, take half Burn, Poison, and Bleed damage",
                 triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.blockHalvesDoTDamage = true })
@@ -2427,7 +2427,7 @@ public extension CombatantTalentCatalog {
                 triggers: CombatTraitTriggers(control: ControlTriggers { $0.onFreezeBurningEnemyBurnDamage = 5 })
             ),
             "mana_moth_burn_t4_2": CombatantTalentEffect(
-                name: "Frostfire",
+                name: "Cold Flame",
                 iconID: "sf:sun.snow.fill",
                 description: "Frozen enemies take 25% increased Burn damage",
                 triggers: CombatTraitTriggers(damage: DamageTriggers { $0.burnDamageVsFrozenMultiplier = 1.25 })

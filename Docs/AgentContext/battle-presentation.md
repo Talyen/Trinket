@@ -114,7 +114,8 @@ recording parity remains in BattleEngine's card tests.
 
 ## Floating combat feedback
 
-Floating chips contain game icons and numbers. Freeze and Stun use their dedicated
+Floating chips contain game icons and numbers, with the universal reaction-name
+exception below. Freeze and Stun use their dedicated
 animations and activation sounds; their activation, build-up, and skipped-action
 reminders do not float. Other action-skip feedback stays icon-only. Logs, ability
 descriptions, and accessibility wording remain text. No-result cards do not invent
@@ -274,3 +275,23 @@ draws. Deal motion uses offset and scale without an opacity transition. Battle
 entry and exit switch visibility immediately, and the battlefield uses an identity
 transition for outcome changes. Fully hidden prewarmed surfaces remain mounted;
 played-card cast and dissolve effects retain their own presentation.
+
+## Universal reaction announcements
+
+Typed reaction events show localized names above the existing damage chips. Reuse
+paired keyword colors, the glyph atlas and mask preparation, portrait raster hosts,
+and the lane's shared clock. Names have no standalone icon or duplicate damage
+number. Their 1.6-second lifetime is independent of numeric consolidation: pop from
+90% to 108% by 140 ms, settle by 240 ms, sweep one glint from 100 to 1,100 ms, and
+fade from 1,250 to 1,600 ms. Use the normal upward trajectory, holding its final
+position until expiry. Fit at 1.25 times the numeric base size, without wrapping or
+truncating. One or two simultaneous names use one column; three or more use two.
+
+Retain at most three announcement groups per recipient. New groups evict old groups;
+numeric merges never renew a name. Suspension, teardown, death-fragment remounts,
+and portrait clipping follow the existing lane ownership and original timestamps.
+Names do not delay card input. Numerical presentation sums ordinary and bonus damage
+by keyword within the action, retaining distinct engine packets. Existing focal
+sound selection includes bonus damage; name events themselves are silent.
+
+Add no reaction-readiness UI, tutorial copy, or reaction rules to card descriptions.

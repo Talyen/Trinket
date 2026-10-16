@@ -6,6 +6,7 @@ extension BattleTurnEngine {
     struct DamageComponentOutcome {
         let healthLost: Int
         let logDamageKeyword: Keyword?
+        var elementalSettlement: CombatOutcome?
 
         static var empty: Self {
             Self(healthLost: 0, logDamageKeyword: nil)
@@ -135,6 +136,7 @@ extension BattleTurnEngine {
         if !isSelfHealthCost {
             request.provenance = context.resolution.damageProvenance(for: actor.id)
         }
+        request.options.defersElementalPayoff = true
         request = UniqueCombatEngine.prepareDamage(request, in: &context)
         return PreparedDamageComponent(
             request: request, target: target, keyword: keyword, stackPotency: amount,
@@ -186,8 +188,13 @@ extension BattleTurnEngine {
                 context: &context,
             )
         }
+        var settlement = damageOutcome
+        if let hit = settlement.elementalHit {
+            settlement.elementalHit = ElementalReactionEngine.captureAttachment(hit, outcome: damageOutcome, in: &context)
+        }
         return DamageComponentOutcome(
             healthLost: dealt, logDamageKeyword: prepared.logDamageKeyword,
+            elementalSettlement: settlement.elementalHit == nil ? nil : settlement,
         )
     }
 

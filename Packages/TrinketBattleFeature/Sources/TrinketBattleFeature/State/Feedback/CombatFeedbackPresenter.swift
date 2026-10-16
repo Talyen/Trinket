@@ -17,11 +17,18 @@ enum CombatFeedbackPresenter {
         }
     }
 
+    private static func priority(label: CombatFeedbackChipLabel, feedbackClass: CombatFeedbackClass) -> Int {
+        if case .reaction = label {
+            return -1
+        }
+        return displayPriority(for: feedbackClass)
+    }
+
     private static func classify(_ event: ActionEvent) -> CombatFeedbackClass {
         switch event.kind {
         case .abilityDamage, .status:
             .directDamage
-        case .ability, .milestone:
+        case .reaction, .ability, .milestone:
             .buff
         case let .effect(effectKind):
             CombatFeedbackEffectPresentation.descriptor(for: effectKind).feedbackClass
@@ -71,8 +78,8 @@ enum CombatFeedbackPresenter {
 
         return groupOrder.flatMap { key -> [CombatFeedbackItem] in
             let sorted = (grouped[key] ?? []).sorted { lhs, rhs in
-                let lhsPriority = displayPriority(for: lhs.feedbackClass)
-                let rhsPriority = displayPriority(for: rhs.feedbackClass)
+                let lhsPriority = priority(label: lhs.label, feedbackClass: lhs.feedbackClass)
+                let rhsPriority = priority(label: rhs.label, feedbackClass: rhs.feedbackClass)
                 if lhsPriority == rhsPriority {
                     return lhs.source.originalOrder < rhs.source.originalOrder
                 }
@@ -133,7 +140,7 @@ enum CombatFeedbackPresenter {
                 return false
             case .abilityDamage:
                 return event.amount != 0
-            case .status:
+            case .status, .reaction:
                 return true
             case let .effect(effectKind):
                 if effectKind == .controlActionSkipped || effectKind == .controlTriggered,
@@ -190,7 +197,7 @@ enum CombatFeedbackPresenter {
             case .heal: family = .effect(.instantHeal)
             default: family = .effect(effectKind)
             }
-        case .ability, .milestone:
+        case .reaction, .ability, .milestone:
             return nil
         }
         return AggregationKey(

@@ -5,6 +5,7 @@ public struct CombatantRuntime: Hashable {
     private final class StateStorage: Hashable {
         var value: CombatantTalentState
         var uniques: CombatantUniqueState
+        var reactions = ElementalReactionState()
         var peakDepleted: Int
         var referenceMaxHealth: Int
 
@@ -22,12 +23,14 @@ public struct CombatantRuntime: Hashable {
 
         static func == (lhs: StateStorage, rhs: StateStorage) -> Bool {
             lhs === rhs || (
-                lhs.value == rhs.value && lhs.uniques == rhs.uniques && lhs.peakDepleted == rhs.peakDepleted
+                lhs.value == rhs.value && lhs.uniques == rhs.uniques
+                    && lhs.reactions == rhs.reactions && lhs.peakDepleted == rhs.peakDepleted
                     && lhs.referenceMaxHealth == rhs.referenceMaxHealth
             )
         }
 
         func hash(into hasher: inout Hasher) {
+            hasher.combine(reactions)
             hasher.combine(value)
             hasher.combine(uniques)
             hasher.combine(peakDepleted)
@@ -36,6 +39,14 @@ public struct CombatantRuntime: Hashable {
     }
 
     private var runtimeStateStorage = StateStorage()
+
+    var reactions: ElementalReactionState {
+        _read { yield runtimeStateStorage.reactions }
+        _modify {
+            ensureUniqueStateStorage()
+            yield &runtimeStateStorage.reactions
+        }
+    }
 
     var talents: CombatantTalentState {
         _read { yield runtimeStateStorage.value }
@@ -55,12 +66,14 @@ public struct CombatantRuntime: Hashable {
 
     private mutating func ensureUniqueStateStorage() {
         guard !isKnownUniquelyReferenced(&runtimeStateStorage) else { return }
+        let reactions = runtimeStateStorage.reactions
         runtimeStateStorage = StateStorage(
             runtimeStateStorage.value,
             uniques: runtimeStateStorage.uniques,
             peakDepleted: runtimeStateStorage.peakDepleted,
             referenceMaxHealth: runtimeStateStorage.referenceMaxHealth,
         )
+        runtimeStateStorage.reactions = reactions
     }
 
     public let combatant: Combatant
@@ -92,6 +105,10 @@ public struct CombatantRuntime: Hashable {
     public package(set) var activeEffects: [ActiveEffect] {
         didSet {
             currentMana = min(currentMana, maxMana)
+            if combatant.role == .enemy {
+                let effects = activeEffects
+                reactions.expire(with: effects)
+            }
         }
     }
 

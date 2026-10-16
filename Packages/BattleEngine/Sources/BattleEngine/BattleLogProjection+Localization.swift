@@ -10,6 +10,8 @@ extension BattleLogProjection {
         let keyword = event.keyword.nameResource
         let resources: [LocalizedStringResource]
         switch event.kind {
+        case .reaction:
+            resources = []
         case .ability:
             let (reported, healthCost) = damageReport(for: event, damage: damage)
             var parts = [L10n.log_use(actor, ability)]

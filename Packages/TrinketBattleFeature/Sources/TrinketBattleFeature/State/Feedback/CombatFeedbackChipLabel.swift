@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import TrinketContent
 import TrinketCore
 import TrinketFeatureSupport
 
@@ -8,6 +9,7 @@ enum CombatFeedbackChipLabel: Hashable {
 
     case amount(Int, additive: Bool = true)
     case word(CombatFeedbackChipWord)
+    case reaction(CombatReaction)
 
     func merging(with other: Self) -> Self? {
         switch (self, other) {
@@ -25,6 +27,8 @@ enum CombatFeedbackChipLabel: Hashable {
         switch self {
         case let .amount(value, _):
             Self.formatAmount(value)
+        case let .reaction(reaction):
+            String(localized: reaction.nameResource)
         case .word:
             ""
         }
@@ -42,6 +46,8 @@ enum CombatFeedbackChipLabel: Hashable {
         switch event.kind {
         case .abilityDamage, .status:
             return .amount(-event.amount)
+        case let .reaction(reaction):
+            return .reaction(reaction)
         case .ability, .milestone:
             return nil
         case .effect:
@@ -86,7 +92,7 @@ enum CombatFeedbackChipLabel: Hashable {
         switch self {
         case let .amount(value, _):
             value == 0
-        case .word:
+        case .word, .reaction:
             false
         }
     }

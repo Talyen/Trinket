@@ -52,7 +52,7 @@ public enum CombatantTalentCatalog {
         "ranger": [
             TreeAffinity(name: "Nightshade", keyword: .poison),
             TreeAffinity(name: "Marksmanship", keyword: .bleed),
-            TreeAffinity(name: "Wildfire", keyword: .burn),
+            TreeAffinity(name: "Firecraft", keyword: .burn),
         ],
         "rogue": [
             TreeAffinity(name: "Cutpurse", keyword: .gold),

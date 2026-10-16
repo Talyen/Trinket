@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
@@ -47,6 +48,9 @@ enum CombatFeedbackClosedVocabulary {
                     )
                 }
             }
+        }
+        sources += CombatReaction.allCases.map {
+            Source(feedbackClass: .buff, keyword: $0.damageKeyword, visualRole: .keyword, label: .reaction($0))
         }
         return sources
     }

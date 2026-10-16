@@ -3,6 +3,9 @@ import TrinketCore
 struct CombatResolution {
     var feedbackGroupID: Int?
     var isAdvancingEffects = false
+    var naturalReactionPhase: NaturalReactionPhase?
+    var pendingToxicShocks: [ToxicShockPayoff] = []
+    var controlDepth = 0
 
     mutating func beginFeedbackGroup(eventID: Int) -> Int? {
         let previous = feedbackGroupID
@@ -397,8 +400,10 @@ enum CombatResolver {
             damageKeyword: request.keyword, options: request.options,
         )
         state.provenance = request.provenance
+        state.elementalHit = ElementalReactionEngine.capture(request, in: context)
         await DamagePipeline.run(state: &state, in: &context)
-        let outcome = CombatOutcome.fromDamage(state: state)
+        var outcome = CombatOutcome.fromDamage(state: state)
+        outcome.elementalHit = state.elementalHit
         // Recording is scoped to a resolved action, including its immediate DoT pulses.
         if !request.options.isHealthCost, let impact = outcome.damageImpact {
             context.commandOutput?.recordDamage(BattleResolvedDamage(
@@ -417,6 +422,13 @@ enum CombatResolver {
                 await UniqueCombatEngine.drainPendingBlockAnswers(in: &context)
             }
             context.uniques.isDrainingOutOfTurnAttacks = false
+        }
+        if context.resolution.depth(.damage) == 0, !context.uniques.isDrainingOutOfTurnAttacks {
+            await ElementalReactionEngine.finishControl(in: &context)
+        }
+        if !request.options.defersElementalPayoff, let hit = state.elementalHit {
+            let captured = ElementalReactionEngine.captureAttachment(hit, outcome: outcome, in: &context)
+            await ElementalReactionEngine.finish(captured, outcome: outcome, in: &context)
         }
         return outcome
     }

@@ -62,15 +62,21 @@ extension BattleTurnEngine {
         var logKeyword = resolvedAbility.damageKeyword
         var appliedEffectLogs = AppliedEffectLogs()
         var reservedKeywordOverride: Keyword?
+        var pendingSettlement: CombatOutcome?
         for operation in resolvedAbility.operations {
             switch operation {
             case let .damage(component):
+                if let pending = pendingSettlement, let hit = pending.elementalHit {
+                    await ElementalReactionEngine.finish(hit, outcome: pending, in: &context)
+                }
+                pendingSettlement = nil
                 let outcome = await applyDamageComponent(
                     component, ability: resolvedAbility, actor: actor, abilityTarget: abilityTarget,
                     guaranteedCritical: facts.guaranteedCritical,
                     reservedKeywordOverride: &reservedKeywordOverride, context: &context,
                 )
 
+                pendingSettlement = outcome.elementalSettlement
                 totalDealt = SaturatedArithmetic.saturatingAdd(totalDealt, outcome.healthLost)
                 logKeyword = outcome.logDamageKeyword ?? logKeyword
             case let .effect(targeted):
@@ -83,6 +89,9 @@ extension BattleTurnEngine {
             }
         }
 
+        if let pending = pendingSettlement, let hit = pending.elementalHit {
+            await ElementalReactionEngine.finish(hit, outcome: pending, in: &context)
+        }
         context.nextEvent(
             kind: .ability,
             actionID: context.resolution.actionID,

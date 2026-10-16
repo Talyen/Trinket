@@ -63,6 +63,17 @@ enum CombatFeedbackMotionSampler {
 
     static func state(for item: CombatFeedbackItem, at date: Date) -> CombatFeedbackAnimationState {
         let date = item.pausedAt ?? date
+        if item.region == .announcement {
+            let elapsed = max(0, date.timeIntervalSince(item.firstScheduledAt))
+            let scale = elapsed < 0.14 ? 0.9 + 0.18 * BattleMotion.smoothProgress(elapsed / 0.14)
+                : 1.08 - 0.08 * BattleMotion.smoothProgress((elapsed - 0.14) / 0.10)
+            return CombatFeedbackAnimationState(
+                opacity: 1 - BattleMotion.smoothProgress((elapsed - 1.25) / 0.35),
+                scale: 1.25 * scale,
+                riseProgress: 1 - pow(1 - min(1, max(0, (elapsed - 0.20) / (lifetime - 0.20))), 3),
+                shineProgress: min(1, max(0, (elapsed - 0.10) / 1.0)),
+            )
+        }
         let elapsed = max(0, date.timeIntervalSince(item.firstScheduledAt))
         let progress = min(1, max(0, (elapsed - 0.20) / (lifetime - 0.20)))
         let exit = 1 - pow(1 - progress, 3)

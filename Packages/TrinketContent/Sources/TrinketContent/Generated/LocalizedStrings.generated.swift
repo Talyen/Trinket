@@ -1339,7 +1339,7 @@ enum L10n {
     }
 
     static var affixes_shatter_title: LocalizedStringResource {
-        LocalizedStringResource("affixes.shatter.title", defaultValue: "Shatter", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("affixes.shatter.title", defaultValue: "Brittle", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func affixes_shredding_astral_description(_ value1: Int) -> LocalizedStringResource {
@@ -1742,6 +1742,10 @@ enum L10n {
         LocalizedStringResource("authored.0808ca57dd2cdb14", defaultValue: "An iron seam reveals “\(value1)”, and fallen timber traps “\(value2)” nearby", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_087bd02c9216a209: LocalizedStringResource {
+        LocalizedStringResource("authored.087bd02c9216a209", defaultValue: "Venomflash", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_089013043262ce51: LocalizedStringResource {
         LocalizedStringResource("authored.089013043262ce51", defaultValue: "Shop", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -2102,6 +2106,10 @@ enum L10n {
         LocalizedStringResource("authored.2ea4edd70eaa1239", defaultValue: "Ice Shot", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_2f8579fa0d7c9662: LocalizedStringResource {
+        LocalizedStringResource("authored.2f8579fa0d7c9662", defaultValue: "Bloodboil", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_2fa567236bcc63e8: LocalizedStringResource {
         LocalizedStringResource("authored.2fa567236bcc63e8", defaultValue: "The Unclosing Wound", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -2223,7 +2231,7 @@ enum L10n {
     }
 
     static var authored_412c355abf38d4b8: LocalizedStringResource {
-        LocalizedStringResource("authored.412c355abf38d4b8", defaultValue: "Wildfire", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("authored.412c355abf38d4b8", defaultValue: "Firecraft", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_41efb0420ac47732: LocalizedStringResource {
@@ -2450,12 +2458,20 @@ enum L10n {
         LocalizedStringResource("authored.58ad4572d1405d13", defaultValue: "Gilded Writ", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_59a61eb576cfe758: LocalizedStringResource {
+        LocalizedStringResource("authored.59a61eb576cfe758", defaultValue: "Frostfire", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_5a78911bb276ef7d: LocalizedStringResource {
         LocalizedStringResource("authored.5a78911bb276ef7d", defaultValue: "Corruption Altar", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_5a86f48b0b75c78a: LocalizedStringResource {
         LocalizedStringResource("authored.5a86f48b0b75c78a", defaultValue: "Thorn Mail", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var authored_5acf0fb9971c829a: LocalizedStringResource {
+        LocalizedStringResource("authored.5acf0fb9971c829a", defaultValue: "Rupture", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_5c68788831c5e66b: LocalizedStringResource {
@@ -3126,6 +3142,10 @@ enum L10n {
         LocalizedStringResource("authored.ad2cce5b85dde1ce", defaultValue: "Drops Armor", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_ae66817c68e1e71f: LocalizedStringResource {
+        LocalizedStringResource("authored.ae66817c68e1e71f", defaultValue: "Toxic Shock", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_aeaa46e0964aba81: LocalizedStringResource {
         LocalizedStringResource("authored.aeaa46e0964aba81", defaultValue: "Labyrinth Entrance", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -3570,6 +3590,10 @@ enum L10n {
         LocalizedStringResource("authored.eefc52a99136ee0b", defaultValue: "Shop Closed", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var authored_ef9302e39f3bd3ae: LocalizedStringResource {
+        LocalizedStringResource("authored.ef9302e39f3bd3ae", defaultValue: "Consecration", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_ef956b310f7bebe7: LocalizedStringResource {
         LocalizedStringResource("authored.ef956b310f7bebe7", defaultValue: "Trinket Hoard", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -3588,6 +3612,10 @@ enum L10n {
 
     static var authored_f1b00ff683214895: LocalizedStringResource {
         LocalizedStringResource("authored.f1b00ff683214895", defaultValue: "Pyromancy", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var authored_f21fe49642ba27cd: LocalizedStringResource {
+        LocalizedStringResource("authored.f21fe49642ba27cd", defaultValue: "Shatter", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_f2a94f6e39bc8851: LocalizedStringResource {
@@ -6931,7 +6959,7 @@ enum L10n {
     }
 
     static var talents_knight_block_t3_1_name: LocalizedStringResource {
-        LocalizedStringResource("talents.knight_block_t3_1.name", defaultValue: "Consecration", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("talents.knight_block_t3_1.name", defaultValue: "Hallowed Guard", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func talents_knight_block_t3_2_description(_ value1: Int) -> LocalizedStringResource {
@@ -7467,7 +7495,7 @@ enum L10n {
     }
 
     static var talents_mana_moth_burn_t4_2_name: LocalizedStringResource {
-        LocalizedStringResource("talents.mana_moth_burn_t4_2.name", defaultValue: "Frostfire", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("talents.mana_moth_burn_t4_2.name", defaultValue: "Cold Flame", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func talents_mana_moth_freeze_t1_1_description(_ value1: Int) -> LocalizedStringResource {

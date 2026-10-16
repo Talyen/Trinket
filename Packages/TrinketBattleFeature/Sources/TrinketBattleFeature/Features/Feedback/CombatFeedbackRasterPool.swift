@@ -172,9 +172,9 @@ final class CombatFeedbackRasterPool {
         switch item.label {
         case .amount:
             numericMissCount += 1
-        case .word where preparedCatalogKey != nil:
+        case .word where preparedCatalogKey != nil, .reaction where preparedCatalogKey != nil:
             unexpectedClosedVocabularyBuildCount += 1
-        case .word:
+        case .word, .reaction:
             break
         }
 

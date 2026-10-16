@@ -11,6 +11,7 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
     /// sees the same meaning and emitted events cannot be partially retagged.
     public enum Kind: Equatable, Sendable {
         case ability
+        case reaction(CombatReaction)
         case abilityDamage
         case status
         case effect(EffectOutcome)

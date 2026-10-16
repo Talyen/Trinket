@@ -685,7 +685,7 @@ public enum ContentCopy {
             (L10n.affixes_shatter_astral_description(4), [4])
         case "Deal 2 additional damage while the enemy is Frozen":
             (L10n.affixes_shatter_basic_description(2), [2])
-        case "Shatter":
+        case "Brittle":
             (L10n.affixes_shatter_title, [])
         case "Your Physical damage ignores 25% of enemy damage reduction":
             (L10n.affixes_shredding_astral_description(25), [25])
@@ -857,6 +857,8 @@ public enum ContentCopy {
             (L10n.authored_0580f476b6077cea, [])
         case "Your ally receives 1% of the Health you restore with Leech":
             (L10n.authored_0690d4cc7132d673(1), [1])
+        case "Venomflash":
+            (L10n.authored_087bd02c9216a209, [])
         case "Shop":
             (L10n.authored_089013043262ce51, [])
         case "Drops Dodge items":
@@ -1005,6 +1007,8 @@ public enum ContentCopy {
             (L10n.authored_2d2b232443289796, [])
         case "Your Stun damage ignores enemy Block and gains damage equal to that Block":
             (L10n.authored_2d432e5eac18f64c, [])
+        case "Bloodboil":
+            (L10n.authored_2f8579fa0d7c9662, [])
         case "The Unclosing Wound":
             (L10n.authored_2fa567236bcc63e8, [])
         case "Search Crypt":
@@ -1047,7 +1051,7 @@ public enum ContentCopy {
             (L10n.authored_3f950c117798fabf, [])
         case "Increased Stun Damage":
             (L10n.authored_3fbb930ef9174dc4, [])
-        case "Wildfire":
+        case "Firecraft":
             (L10n.authored_412c355abf38d4b8, [])
         case "Your Voyage could not be read\nYour progress is preserved", "Your Voyage could not be read. Your progress is preserved.":
             (L10n.authored_41efb0420ac47732, [])
@@ -1129,8 +1133,12 @@ public enum ContentCopy {
             (L10n.authored_574093754384bac1, [])
         case "Gilded Writ":
             (L10n.authored_58ad4572d1405d13, [])
+        case "Frostfire":
+            (L10n.authored_59a61eb576cfe758, [])
         case "Corruption Altar":
             (L10n.authored_5a78911bb276ef7d, [])
+        case "Rupture":
+            (L10n.authored_5acf0fb9971c829a, [])
         case "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa":
             (L10n.authored_5c7a38e94657a628, [])
         case "Drops Thorns items":
@@ -1391,6 +1399,8 @@ public enum ContentCopy {
             (L10n.authored_ac6e0bc76ccbb455, [])
         case "Drops Armor":
             (L10n.authored_ad2cce5b85dde1ce, [])
+        case "Toxic Shock":
+            (L10n.authored_ae66817c68e1e71f, [])
         case "Labyrinth Entrance":
             (L10n.authored_aeaa46e0964aba81, [])
         case "Drops Poison items":
@@ -1551,6 +1561,8 @@ public enum ContentCopy {
             (L10n.authored_edcdd353607a7598, [])
         case "Shop Closed":
             (L10n.authored_eefc52a99136ee0b, [])
+        case "Consecration":
+            (L10n.authored_ef9302e39f3bd3ae, [])
         case "Trinket Hoard":
             (L10n.authored_ef956b310f7bebe7, [])
         case "Wild Strikes":
@@ -1559,6 +1571,8 @@ public enum ContentCopy {
             (L10n.authored_f0f02bc5904e95bb, [])
         case "Pyromancy":
             (L10n.authored_f1b00ff683214895, [])
+        case "Shatter":
+            (L10n.authored_f21fe49642ba27cd, [])
         case "Astral Hoard":
             (L10n.authored_f388dbe23eace2e6, [])
         case "Harvest Shards":
@@ -2905,7 +2919,7 @@ public enum ContentCopy {
             (L10n.talents_knight_block_t2_2_name, [])
         case "With Block, take half Burn, Poison, and Bleed damage":
             (L10n.talents_knight_block_t3_1_description, [])
-        case "Consecration":
+        case "Hallowed Guard":
             (L10n.talents_knight_block_t3_1_name, [])
         case "Keep 75% of your Block between turns":
             (L10n.talents_knight_block_t3_2_description(75), [75])
@@ -3171,7 +3185,7 @@ public enum ContentCopy {
             (L10n.talents_mana_moth_burn_t4_1_name, [])
         case "Frozen enemies take 25% increased Burn damage":
             (L10n.talents_mana_moth_burn_t4_2_description(25), [25])
-        case "Frostfire":
+        case "Cold Flame":
             (L10n.talents_mana_moth_burn_t4_2_name, [])
         case "Freeze attacks gain +10% Critical Hit chance":
             (L10n.talents_mana_moth_freeze_t1_1_description(10), [10])

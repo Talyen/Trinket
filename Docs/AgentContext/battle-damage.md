@@ -111,7 +111,7 @@ existing damage eligibility and card-scoped roll. Shared numeric bonuses include
 damage to Block: Shatterguard applies to Oathkeeper Holy damage, while Flaming Arrows
 and Armor Shred apply to the other
 Bloodember keyword. Block absorption and attack-only eligibility remain unchanged. Thermal
-Shock and Frostfire apply once per new hit.
+Shock and Cold Flame apply once per new hit.
 Searing Body attaches Burn after attack Health damage, never after periodic or
 reaction damage. Unquenchable Flame bypasses talent damage reduction as well as
 flat mitigation, typed resistance and Block; unapplied prepared protection remains ready.
@@ -151,7 +151,7 @@ recipient defenses, including Retaliatory reflection; it creates no Poison hit o
 Venomtrail checks Bleed at each Poison damage event, including resolved ticks;
 it adds flat damage without replaying general outgoing bonuses. Hallowbreak
 increases Holy damage against Stunned targets, stacking with talent bonuses.
-Shatter, Dazed, and Heavy Flail's damage bonuses against Frozen or Stunned targets
+Brittle, Dazed, and Heavy Flail's damage bonuses against Frozen or Stunned targets
 belong to the attacker with the affix or talent; they do not amplify partner damage.
 Hallowguard snapshots the attacker's Block before a Holy attack and grants Block
 only if that attack removes enemy Health.
@@ -207,3 +207,64 @@ to ordinary damage operations, exempting Health costs.
 After lethal protection restores a party member, living-owner Health-loss rewards
 include Grizzly Guard and Redline. A final defeat grants neither; Second Wind
 keeps its pre-protection checkpoint.
+
+## Universal reactions
+
+The Hero and Companion share earned reaction progress on the enemy. Store it in
+`CombatantRuntime` with its copy-on-write state; packet snapshots belong to damage
+outcomes, and natural-phase facts belong to `CombatResolution`. Fresh battles reset
+progress. Interrupted battles still restart; no save schema or mid-battle resume is
+introduced.
+
+Only ordinary attacks and full automatic card plays can release attack reactions.
+Toxic Shock instead releases on a fresh successful Stun, including non-damaging
+control; partial buildup and hits against an already Stunned target do not release it.
+Counterattacks, repeats, equipment or talent damage, retaliation, periodic damage,
+and detonations cannot release attack reactions. Their successful control can still
+prepare control bonuses and release Toxic Shock.
+Freeze separately prepares Shatter and Frostfire; Stun prepares Rupture. Each
+stores one quarter of its own packet's actual Health loss, rounded once, minimum
+one. Non-damaging control prepares one. Extensions and turn resets cannot refresh
+these opportunities; removal or recovery expires them.
+
+- Shatter: a positive, undodged Physical attack against a Frozen enemy strips all
+  enemy Block before mitigation, then releases its stored Physical bonus. Ordinary
+  Critical rules remain on the attack; the bonus cannot Critical.
+- Frostfire: a Freeze attack successfully Freezing a Burning enemy, or a Burn hit
+  removing Health from a previously Frozen enemy, releases one stored Burn bonus.
+  These routes share one Freeze opportunity, independent of Shatter.
+- Rupture: a Bleed attack removing Health from an enemy already Stunned before the
+  hit releases the stored Bleed bonus, once per Stun. The bonus adds no Bleed stack.
+- Toxic Shock: positive natural Poison damage from two enemy phases prepares a
+  quarter of their combined Health loss. Successfully becoming Stunned releases all
+  completed pairs as Poison damage, without adding Poison. Unmatched ticks and
+  prepared damage survive Poison ending and being reapplied.
+- Consecration: Holy Health damage against an already Bleeding enemy marks its next
+  natural Bleed phase, releasing one quarter of that phase's Bleed Health loss as
+  Holy damage. Marks do not stack. Capture and consume the mark at the first natural
+  Bleed tick; clearing or detonating Bleed before then cancels it.
+- Bloodboil: positive natural Burn and Bleed Health loss in one phase release one
+  quarter of their combined loss as Burn damage, after Consecration.
+- Venomflash: an eligible Burn hit removes Health and ignites an already Poisoned
+  enemy with no prior Burn, releasing one quarter of pre-hit Poison potency as Burn
+  damage. Ignition is recorded before follow-up detonation can consume the fire.
+
+Natural phases retain existing status order and decay. Only the first normal tick
+of each scheduled effect contributes; extra ticks, application pulses, recurring
+damage and detonations do not. Multiple Bleeds contribute one combined phase total.
+Control-skipped enemy turns count. Expired statuses can still contribute the Health
+loss they already dealt. Quarter calculations divide before summing to avoid
+integer overflow and round the combined amount once.
+
+Reaction damage is already resolved: bypass defenses and outgoing scaling, retain
+survival/Health-threshold handling and once-only kill credit, and do not add status
+stacks, attack riders or recursive reaction damage. Attack payoffs wait for ordinary
+follow-ups and retaliation, and require their triggering ally and enemy to survive.
+Consecration retains its Holy source; Bloodboil uses the last contributing natural
+Bleed source. Fallen sources retain periodic damage but cannot earn personal living
+owner rewards. `ActionEvent.Kind.reaction` announces names separately from numerical
+damage events; rules never infer identity from localized names or event searches.
+
+Existing content keeps its saved identifiers and effects: the Shatter affix is
+Brittle, Mana Moth's Frostfire is Cold Flame, Knight's Consecration is Hallowed Guard,
+and Ranger's Wildfire tree is Firecraft.

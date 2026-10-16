@@ -19,13 +19,15 @@ struct DecayingDoTHandler {
         updated.effect = type.effect(potency: nextPotency)
         ActiveEffectMutation.finishTurn(active, replacement: nextPotency > 0 ? updated : nil, on: target, in: &context)
         if nextPotency > 0 {
-            for _ in 0 ..< progression.ticksPerTurn {
+            for tickIndex in 0 ..< progression.ticksPerTurn {
+                var operation = DamageOperation.resolvedPeriodic
+                operation.isNaturalStatusTick = tickIndex == 0 && target == context.enemy && context.resolution.naturalReactionPhase != nil
                 let outcome = await DoTDamage.resolveDamage(
                     basePotency: nextPotency,
                     keyword: keyword,
                     target: target,
                     sourceActorID: active.sourceActorID,
-                    operation: .resolvedPeriodic,
+                    operation: operation,
                     in: &context,
                 )
 
@@ -83,12 +85,18 @@ extension EffectHandlers {
             probability: sourceTriggers?.bleedTickCritChancePercent ?? 0,
             using: &context.rng,
         )
+        if target == context.enemy {
+            ElementalReactionEngine.beginBleed(in: &context)
+        }
+        var operation = DamageOperation.periodic
+        operation.isNaturalStatusTick = target == context.enemy && context.resolution.naturalReactionPhase != nil
         _ = await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: .bleed,
             target: target,
             sourceActorID: active.sourceActorID,
             guaranteedCritical: isCritical,
+            operation: operation,
             in: &context,
         )
 

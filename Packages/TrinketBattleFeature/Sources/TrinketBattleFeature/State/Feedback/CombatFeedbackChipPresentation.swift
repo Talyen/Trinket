@@ -1,4 +1,5 @@
 import Foundation
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 import TrinketFeatureSupport
@@ -25,6 +26,7 @@ struct CombatFeedbackChipPresentation: Hashable {
     let leadingStyle: Style?
     let trailingStyle: Style
     let text: String?
+    var reaction: CombatReaction?
 
     static func resolve(
         label: CombatFeedbackChipLabel,
@@ -33,6 +35,8 @@ struct CombatFeedbackChipPresentation: Hashable {
         feedbackClass: CombatFeedbackClass,
     ) -> Self {
         switch label {
+        case let .reaction(reaction):
+            return Self(leadingStyle: nil, trailingStyle: .keyword(reaction.damageKeyword), text: label.displayString, reaction: reaction)
         case .amount:
             let style = trailingStyle(
                 keyword: keyword,
