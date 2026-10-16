@@ -43,6 +43,32 @@ public enum SFXID {
     public static let hitPiercingCritical = "hit_piercing_critical"
     public static let hitHolyCritical = "hit_holy_critical"
     public static let lootExceptional = "loot_exceptional"
+    public static let attackSlash = "attack_slash"
+    public static let attackStab = "attack_stab"
+    public static let attackSlashCritical = "attack_slash_critical"
+    public static let attackStabCritical = "attack_stab_critical"
+    public static let attackBow = "attack_bow"
+    public static let attackBowAlt = "attack_bow_alt"
+    public static let attackBite = "attack_bite"
+    public static let consumeFood = "consume_food"
+    public static let consumePotion = "consume_potion"
+    public static let castIceWard = "cast_ice_ward"
+    public static let castManaShield = "cast_mana_shield"
+    public static let castAvatar = "cast_avatar"
+    public static let castEvade = "cast_evade"
+    public static let attackSunder = "attack_sunder"
+    public static let attackRock = "attack_rock"
+    public static let thornsGain = "thorns_gain"
+    public static let poisonTick = "poison_tick"
+    public static let bleedTick = "bleed_tick"
+    public static let endTurn = "end_turn"
+    public static let astralBowBurn = "astral_bow_burn"
+    public static let astralBowBurnCritical = "astral_bow_burn_critical"
+    public static let astralBowFreeze = "astral_bow_freeze"
+    public static let astralBowFreezeCritical = "astral_bow_freeze_critical"
+    public static let astralBowPiercing = "astral_bow_piercing"
+    public static let astralBowPiercingCritical = "astral_bow_piercing_critical"
+    public static let castSniff = "cast_sniff"
 }
 
 public struct SFXClip: Identifiable, Hashable, Sendable {
@@ -291,6 +317,162 @@ public enum SFXCatalog {
         SFXClip(
             id: "loot_exceptional",
             resourceName: "sfx_loot_exceptional",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "attack_slash",
+            resourceName: "sfx_attack_slash",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "attack_stab",
+            resourceName: "sfx_attack_stab",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "attack_slash_critical",
+            resourceName: "sfx_attack_slash_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "attack_stab_critical",
+            resourceName: "sfx_attack_stab_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "attack_bow",
+            resourceName: "sfx_attack_bow",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "attack_bow_alt",
+            resourceName: "sfx_attack_bow_alt",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "attack_bite",
+            resourceName: "sfx_attack_bite",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "consume_food",
+            resourceName: "sfx_consume_food",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "consume_potion",
+            resourceName: "sfx_consume_potion",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "cast_ice_ward",
+            resourceName: "sfx_cast_ice_ward",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "cast_mana_shield",
+            resourceName: "sfx_cast_mana_shield",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "cast_avatar",
+            resourceName: "sfx_cast_avatar",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "cast_evade",
+            resourceName: "sfx_cast_evade",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "attack_sunder",
+            resourceName: "sfx_attack_sunder",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "attack_rock",
+            resourceName: "sfx_attack_rock",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "thorns_gain",
+            resourceName: "sfx_thorns_gain",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "poison_tick",
+            resourceName: "sfx_poison_tick",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "bleed_tick",
+            resourceName: "sfx_bleed_tick",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "end_turn",
+            resourceName: "sfx_end_turn",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "astral_bow_burn",
+            resourceName: "sfx_astral_bow_burn",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "astral_bow_burn_critical",
+            resourceName: "sfx_astral_bow_burn_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "astral_bow_freeze",
+            resourceName: "sfx_astral_bow_freeze",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "astral_bow_freeze_critical",
+            resourceName: "sfx_astral_bow_freeze_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "astral_bow_piercing",
+            resourceName: "sfx_astral_bow_piercing",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "astral_bow_piercing_critical",
+            resourceName: "sfx_astral_bow_piercing_critical",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "cast_sniff",
+            resourceName: "sfx_cast_sniff",
             fileExtension: "m4a",
             volumeGain: 1.0
         ),

@@ -37,12 +37,22 @@ cleanse/purge, healing/buffs, resources, then draw. Pure healing at full Health
 retains its cue. Draw arbitration uses the same selector; standalone hand deals
 remain separate beats. Repeated delivery cannot replay a resolved action's sound.
 
-Poison and Bleed share Sword Impact for hits and actual ticks. Stun damage uses
-Gut Punch separately from becoming Stunned; Holy uses Spell Impact. Block absorption
-and dodge have dedicated cues. A winning damage keyword with actual critical Health loss selects its critical variant,
-including mixed ordinary/critical contributions. Fully blocked and dodged hits do
-not qualify. Critical variants preserve numeric arbitration and override priority;
-no separate critical layer or general card-play cue is added.
+Direct Poison and Bleed hits use Sword Impact; actual periodic Poison and Bleed
+use separate squelch and soft wet-impact cues. Stun damage uses Gut Punch separately
+from becoming Stunned; Holy uses Spell Impact. Block absorption and dodge have
+dedicated cues. A winning damage keyword with actual critical Health loss selects
+its critical variant, including mixed ordinary/critical contributions. Fully
+blocked and dodged hits do not qualify.
+
+`CombatAbilitySFX` changes the recording of a winning result without changing its
+numeric strength or priority. Selected abilities use sword, bow, bite, food,
+Potion, ritual, ward, movement, choir or rock identities. Astral Arrow selects a
+single bow-plus-element recording from its actual damage keyword; Slash, Stab and
+Astral Arrow retain corresponding critical revisions. Periodic ticks and unrelated
+reactions cannot inherit a card's cast sound. Death's Door and actual control
+activation still override authored identity; absorbed hits retain the parry cue.
+No separate critical layer or general card-play cue is added. End Turn sounds
+only after its turn transition resolves.
 Separate actions and screen transitions may overlap; the player applies no global
 suppression or tail-cutting policy.
 
@@ -50,6 +60,6 @@ Progression cues belong to confirmed outcomes: Forge reveal, Salvage dissolve
 (or confirmation fallback), Homestead improvement celebration, first collection
 deposit, talent unlock, and Corruption reveal. First visible Astral/Unique loot also uses
 its short exceptional reveal cue, deduplicated by the reward presentation owner. Battle/Mystery collection uses the
-same Coins Handling cue as Homestead; shops retain buy/sell. Corruption replaces
+same short Coins Gathering cue as Homestead and shop transactions. Corruption replaces
 victory on Continue. Retry/remount guards belong to the existing action/session
 owner, and all playback respects Effects volume independently of haptics.

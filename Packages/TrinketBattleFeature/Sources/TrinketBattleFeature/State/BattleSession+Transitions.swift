@@ -54,6 +54,7 @@ extension BattleSession {
 
     func beginTurnPresentation(at date: Date) {
         guard let playback = resolveTransition(.turn) else { return }
+        playPresentationSFX(SFXID.endTurn)
         presentCompletedCommand(playback, at: date)
     }
 

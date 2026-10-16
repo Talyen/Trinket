@@ -42,7 +42,7 @@ Set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 `SFXCatalog.clipsByID` looks up clips by stable `id`. Playback is owned by [SFXPlayer.swift](../Packages/TrinketAppState/Sources/TrinketAppState/Audio/SFXPlayer.swift), which applies `OptionsStore.effectsVolume` × `volumeGain`.
 
 Stable IDs cover UI chrome, card draws, typed combat feedback, progression outcomes,
-and outcome/Mystery stingers. Bleed and Poison share `hit_piercing`; Homestead,
+and outcome/Mystery stingers. Direct Bleed and Poison hits share `hit_piercing`; periodic ticks have distinct cues. Homestead,
 battle, and Mystery collection share `loot_collect`. The single-cue selection and
 outcome timing policy lives in [audio.md](../Docs/AgentContext/audio.md#action-sound-selection).
 
@@ -59,15 +59,31 @@ from their manifest-selected ordinary recordings. They preserve the original
 attack timing and channels, apply a linearly declining transient emphasis of up
 to 2 dB over the opening 60 ms, truncate duration to 85%, and fade the final 30 ms.
 RMS over the retained source window is matched where peak headroom allows;
-source peaks are capped at -2 dBFS before AAC preparation. The Physical and Stun
-variants require approximately 0.42 and 0.19 dB lower RMS respectively to retain
-that headroom. Perceptual balance still requires listening on hardware.
+source peaks are capped at -2 dBFS before AAC preparation. The Physical revision now derives from the compact body impact. The Stun
+revision retains its existing headroom adjustment. Perceptual balance still requires listening on hardware.
 
 `loot_exceptional` uses the full 1.07-second harpsichord quick chime, preserving
 its natural decay with only 5 ms of end smoothing. Its level matches the approved
 harpsichord audition. The source revision is `loot_exceptional_harpsichord_01.wav`,
 derived from `harpsichord_chime_quick__existing_library_unattributed__d4797e91fa2b61fd.flac`.
-The original talent-unlock cue and earlier loot revision are preserved. All seven
-selected sources live under the external library's
-`Sounds/Game Sources/Projects/Trinket/Sound Effects/` folders; their paths are
-recorded in the manifest.
+The original talent-unlock cue and earlier loot revision are preserved. The paths of the selected sources are recorded in the manifest.
+
+## Shared sound-fit selections
+
+The 2026-10-15 Trinket/Alchemy comparison selects existing authored sources from
+both games, plus shared revisions under
+`Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/`.
+The library's `sources.json` records each revision's inputs and processing.
+The compact body hit replaces generic Swish Hit; Slash and Stab have separate
+weapon cues. Their critical sources use the critical treatment above.
+
+Astral Arrow uses one baked bow/element recording: bow at 0 seconds with gain
+0.8, and the resolved Burn, Freeze or Piercing recording at 0.12 seconds with
+gain 0.35. Its critical variants use the same transient/duration treatment.
+The rock impact for Meteor/Earthquake selects 0–1.2 seconds with 5 ms entry and
+60 ms exit fades. All shared revisions are 48 kHz stereo 24-bit PCM with a
+-2 dBFS source peak ceiling. Buff and standalone Mana restore use fixed +7.8 dB
+revisions of the shared Buff Pickup source; Coin Gathering replaces the quiet
+collection source and the longer buy/sell cue. Musical and perceptual balance
+still require hardware listening. These source changes do not alter user volume,
+AVAudioSession behavior, overlap policy, or haptics.

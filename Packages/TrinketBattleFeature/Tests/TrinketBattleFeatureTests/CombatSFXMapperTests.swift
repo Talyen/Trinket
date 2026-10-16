@@ -41,7 +41,7 @@ struct CombatSFXMapperTests {
         #expect(CombatFeedbackPresenter.makeItems(from: [summary, foreignActor, passive], at: .now).isEmpty)
     }
 
-    @Test func `attacks and periodic damage share keyword cues`() {
+    @Test func `direct hits retain typed cues while actual Poison and Bleed ticks are distinct`() {
         let mappings: [(Keyword, String)] = [
             (.physical, SFXID.hit), (.holy, SFXID.hitHoly), (.poison, SFXID.hitPiercing),
             (.bleed, SFXID.hitPiercing), (.leech, SFXID.hit), (.burn, SFXID.hitBurn),
@@ -49,7 +49,9 @@ struct CombatSFXMapperTests {
         ]
         for (keyword, clip) in mappings {
             for kind: ActionEvent.Kind in [.abilityDamage, .status] {
-                #expect(CombatSFXMapper.clipID(for: [event(1, kind: kind, amount: 4, keyword: keyword)]) == clip)
+                let expected = kind == .status && keyword == .poison ? SFXID.poisonTick
+                    : kind == .status && keyword == .bleed ? SFXID.bleedTick : clip
+                #expect(CombatSFXMapper.clipID(for: [event(1, kind: kind, amount: 4, keyword: keyword)]) == expected)
             }
         }
     }
@@ -234,6 +236,26 @@ struct CombatSFXMapperTests {
         }
     }
 
+    @Test func `authored identity follows the winning outcome and preserves blocked critical control boundaries`() {
+        let slash = event(1, amount: 3, keyword: .physical, abilityID: "slash")
+        #expect(CombatSFXMapper.clipID(for: [slash]) == SFXID.attackSlash)
+        #expect(CombatSFXMapper.clipID(for: [slash.with(isCritical: true)]) == SFXID.attackSlashCritical)
+        #expect(CombatSFXMapper.clipID(for: [slash], damage: [
+            .init(targetID: "enemy", keyword: .physical, impact: .landed(blocked: 3, healthLost: 0), isCritical: true),
+        ]) == SFXID.blockAbsorb)
+        let arrow = event(2, amount: 4, keyword: .freeze, abilityID: "astral-arrow")
+        #expect(CombatSFXMapper.clipID(for: [arrow]) == SFXID.astralBowFreeze)
+        #expect(CombatSFXMapper.clipID(for: [arrow.with(isCritical: true)]) == SFXID.astralBowFreezeCritical)
+        #expect(CombatSFXMapper.clipID(for: [arrow, event(3, kind: .effect(.controlTriggered), keyword: .freeze)]) == SFXID.controlFreeze)
+        #expect(CombatSFXMapper.clipID(for: [
+            arrow, event(3, kind: .effect(.instantHeal), amount: 6, keyword: .health),
+        ]) == SFXID.heal)
+        let tick = event(4, kind: .status, amount: 2, keyword: .poison, origin: .periodic, abilityID: "acid-potion")
+        #expect(CombatSFXMapper.clipID(for: [tick]) == SFXID.poisonTick)
+        #expect(CombatSFXMapper
+            .clipID(for: [event(5, kind: .effect(.instantHeal), amount: 3, keyword: .health, abilityID: "apple")]) == SFXID.consumeFood)
+    }
+
     @Test func `selected outputs resolve in catalog and are battle prewarmed`() {
         let prewarmed = Set(CombatSFXMapper.battlePrewarmIDs)
         for keyword in Keyword.allCases {
@@ -253,11 +275,11 @@ struct CombatSFXMapperTests {
 
     private func event(
         _ id: Int, kind: ActionEvent.Kind = .abilityDamage,
-        amount: Int = 0, keyword: Keyword, target: String = "enemy", origin: ActionEvent.Origin = .direct,
+        amount: Int = 0, keyword: Keyword, target: String = "enemy", origin: ActionEvent.Origin = .direct, abilityID: String = "test",
     ) -> ActionEvent {
         ActionEvent(
             id: id, actionID: 1, kind: kind,
-            actorID: "hero", actorName: "Hero", abilityID: "test", abilityName: "Test",
+            actorID: "hero", actorName: "Hero", abilityID: abilityID, abilityName: "Test",
             targetID: target, targetName: target, amount: amount, keyword: keyword, origin: origin,
         )
     }

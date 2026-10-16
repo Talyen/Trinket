@@ -1,41 +1,67 @@
 # id	swift_symbol	asset_name	source_path	volume_gain
 ui_confirm	uiConfirm	sfx_ui_confirm	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/feedback/confirm.wav	1.0
 ui_cancel	uiCancel	sfx_ui_cancel	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/feedback/cancel.wav	1.0
-ui_deny	uiDeny	sfx_ui_deny	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/feedback/deny.wav	1.0
+ui_deny	uiDeny	sfx_ui_deny	Sounds/Game Sources/Projects/Alchemy/Sound Effects/interface/feedback/denied.wav	1.0
 ui_toggle_on	uiToggleOn	sfx_ui_toggle_on	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/toggles/toggle_on.wav	1.0
 ui_toggle_off	uiToggleOff	sfx_ui_toggle_off	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/toggles/toggle_off.wav	1.0
 ui_equip	uiEquip	sfx_ui_equip	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/inventory/equip_01.wav	1.0
-ui_buy_sell	uiBuySell	sfx_ui_buy_sell	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/shop/buy_sell_01.wav	1.0
+ui_buy_sell	uiBuySell	sfx_ui_buy_sell	Sounds/Game Sources/Projects/Alchemy/Sound Effects/curated/coins-gather-quick.ogg	1.0
 ability_draw	abilityDraw	sfx_ability_draw	Sounds/Game Sources/Sound Effects/cards/hand/card_draw_02.wav	1.0
-hit	hit	sfx_hit	Sounds/Game Sources/Sound Effects/combat/attacks/hit_01.wav	1.0
+hit	hit	sfx_hit	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/body_hit.wav	1.0
 hit_burn	hitBurn	sfx_hit_burn	Sounds/Game Sources/Sound Effects/magic/elemental/fire/fireball_01.ogg	1.0
 hit_freeze	hitFreeze	sfx_hit_freeze	Sounds/Game Sources/Sound Effects/magic/elemental/ice/ice_throw_01.ogg	1.0
 heal	heal	sfx_heal	Sounds/Game Sources/Projects/Trinket/Sound Effects/magic/support/heal_01.wav	1.0
-buff	buff	sfx_buff	Sounds/Game Sources/Sound Effects/magic/support/buff_01.wav	1.0
+buff	buff	sfx_buff	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/buff_restore_levelled.wav	1.0
 block	block	sfx_block	Sounds/Game Sources/Sound Effects/combat/defense/block_01.ogg	1.0
 control_freeze	controlFreeze	sfx_control_freeze	Sounds/Game Sources/Sound Effects/magic/elemental/ice/freeze_01.ogg	1.0
 control_stun	controlStun	sfx_control_stun	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/status/stun_01.wav	1.0
 purge	purge	sfx_purge	Sounds/Game Sources/Projects/Trinket/Sound Effects/magic/support/purge_01.wav	1.0
 deaths_door	deathsDoor	sfx_deaths_door	Sounds/Game Sources/Sound Effects/outcomes/defeat/deaths_door.wav	1.0
 victory	victory	sfx_victory	Sounds/Game Sources/Projects/Trinket/Sound Effects/outcomes/victory/victory_01.wav	1.0
-defeat	defeat	sfx_defeat	Sounds/Game Sources/Projects/Trinket/Sound Effects/outcomes/defeat/defeat_01.wav	1.0
+defeat	defeat	sfx_defeat	Sounds/Game Sources/Projects/Alchemy/Sound Effects/outcomes/defeat/harpsichord_defeated.wav	1.0
 mystery_event	mysteryEvent	sfx_mystery_event	Sounds/Game Sources/Sound Effects/outcomes/events/mystery_event.wav	1.0
 block_absorb	blockAbsorb	sfx_block_absorb	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/defense/parry_01.wav	0.97
 dodge	dodge	sfx_dodge	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/defense/dodge_01.wav	1.0
 item_forge	itemForge	sfx_item_forge	Sounds/Game Sources/Projects/Trinket/Sound Effects/progression/forge_01.wav	1.0
 item_salvage	itemSalvage	sfx_item_salvage	Sounds/Game Sources/Projects/Trinket/Sound Effects/progression/salvage_01.wav	1.0
 homestead_build	homesteadBuild	sfx_homestead_build	Sounds/Game Sources/Projects/Trinket/Sound Effects/progression/homestead_build_01.wav	1.0
-loot_collect	lootCollect	sfx_loot_collect	Sounds/Game Sources/Projects/Trinket/Sound Effects/progression/collect_01.wav	1.0
+loot_collect	lootCollect	sfx_loot_collect	Sounds/Game Sources/Projects/Alchemy/Sound Effects/curated/coins-gather-quick.ogg	1.0
 talent_unlock	talentUnlock	sfx_talent_unlock	Sounds/Game Sources/Projects/Trinket/Sound Effects/progression/talent_unlock_01.wav	1.0
 item_corrupt	itemCorrupt	sfx_item_corrupt	Sounds/Game Sources/Projects/Trinket/Sound Effects/progression/corrupt_01.wav	1.0
 hit_stun	hitStun	sfx_hit_stun	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_stun_01.wav	1.0
 hit_piercing	hitPiercing	sfx_hit_piercing	Sounds/Game Sources/Sound Effects/combat/attacks/sword_impact_01.ogg	1.0
 hit_holy	hitHoly	sfx_hit_holy	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_holy_01.ogg	1.0
-restore_mana	restoreMana	sfx_restore_mana	Sounds/Game Sources/Projects/Trinket/Sound Effects/magic/support/restore_mana_01.wav	1.0
-hit_critical	hitCritical	sfx_hit_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_critical_01.wav	1.0
+restore_mana	restoreMana	sfx_restore_mana	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/mana_restore_levelled.wav	1.0
+hit_critical	hitCritical	sfx_hit_critical	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/body_hit_critical.wav	1.0
 hit_burn_critical	hitBurnCritical	sfx_hit_burn_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_burn_critical_01.wav	1.0
 hit_freeze_critical	hitFreezeCritical	sfx_hit_freeze_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_freeze_critical_01.wav	1.0
 hit_stun_critical	hitStunCritical	sfx_hit_stun_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_stun_critical_01.wav	1.0
 hit_piercing_critical	hitPiercingCritical	sfx_hit_piercing_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_piercing_critical_01.wav	1.0
 hit_holy_critical	hitHolyCritical	sfx_hit_holy_critical	Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/attacks/hit_holy_critical_01.wav	1.0
 loot_exceptional	lootExceptional	sfx_loot_exceptional	Sounds/Game Sources/Projects/Trinket/Sound Effects/progression/loot_exceptional_harpsichord_01.wav	1.0
+attack_slash	attackSlash	sfx_attack_slash	Sounds/Game Sources/Projects/Alchemy/Sound Effects/combat/weapons/sword_attack_01.ogg	1.0
+attack_stab	attackStab	sfx_attack_stab	Sounds/Game Sources/Projects/Alchemy/Sound Effects/combat/weapons/sword_attack_03.ogg	1.0
+attack_slash_critical	attackSlashCritical	sfx_attack_slash_critical	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/slash_critical.wav	1.0
+attack_stab_critical	attackStabCritical	sfx_attack_stab_critical	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/stab_critical.wav	1.0
+attack_bow	attackBow	sfx_attack_bow	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/bow-attack-01-626d2d6d-0-3000.wav	1.0
+attack_bow_alt	attackBowAlt	sfx_attack_bow_alt	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/bow-attack-02-d2ecb917-0-3000.wav	1.0
+attack_bite	attackBite	sfx_attack_bite	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/monster-bite-3-7193d1d8-0-1339.wav	1.0
+consume_food	consumeFood	sfx_consume_food	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/bread-curst-bite-mouth-close-chew-crunch-vari-fefd384f-0-1440.wav	1.0
+consume_potion	consumePotion	sfx_consume_potion	Sounds/Game Sources/Projects/Alchemy/Sound Effects/world/liquids/ice_in_water.wav	1.0
+cast_ice_ward	castIceWard	sfx_cast_ice_ward	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/magic-ice-whoosh-ice-bloc-debris-01-2eb4176c-0-2352.wav	1.0
+cast_mana_shield	castManaShield	sfx_cast_mana_shield	Sounds/Game Sources/Projects/Alchemy/Sound Effects/magic/arcana/energy_noise_01.wav	1.0
+cast_avatar	castAvatar	sfx_cast_avatar	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/battle-focus-church-choir-dm-a47d5cbc-0-2500.wav	1.0
+cast_evade	castEvade	sfx_cast_evade	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/texture-whoosh-02-fast-02-1c520254-0-835.wav	1.0
+attack_sunder	attackSunder	sfx_attack_sunder	Sounds/Game Sources/Projects/Alchemy/Sound Effects/combat/attacks/strong_punch_03.wav	1.0
+attack_rock	attackRock	sfx_attack_rock	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/rock_impact_short.wav	1.0
+thorns_gain	thornsGain	sfx_thorns_gain	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/wood-breaking-cracking-snapping-breaking-peel-d8b1cf2e-0-1333.wav	1.0
+poison_tick	poisonTick	sfx_poison_tick	Sounds/Game Sources/Projects/Alchemy/Sound Effects/curated/squelching-4.ogg	1.0
+bleed_tick	bleedTick	sfx_bleed_tick	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/bleed-tick-soft-wet-impact-299cd309-0-850.wav	1.0
+end_turn	endTurn	sfx_end_turn	Sounds/Game Sources/Projects/Alchemy/Sound Effects/interface/toggles/toggle_off_02.wav	1.0
+astral_bow_burn	astralBowBurn	sfx_astral_bow_burn	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/astral_bow_burn.wav	1.0
+astral_bow_burn_critical	astralBowBurnCritical	sfx_astral_bow_burn_critical	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/astral_bow_burn_critical.wav	1.0
+astral_bow_freeze	astralBowFreeze	sfx_astral_bow_freeze	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/astral_bow_freeze.wav	1.0
+astral_bow_freeze_critical	astralBowFreezeCritical	sfx_astral_bow_freeze_critical	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/astral_bow_freeze_critical.wav	1.0
+astral_bow_piercing	astralBowPiercing	sfx_astral_bow_piercing	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/astral_bow_piercing.wav	1.0
+astral_bow_piercing_critical	astralBowPiercingCritical	sfx_astral_bow_piercing_critical	Sounds/Game Sources/Sound Effects/Shared Revisions/sound_fit_20261015/astral_bow_piercing_critical.wav	1.0
+cast_sniff	castSniff	sfx_cast_sniff	Sounds/Game Sources/Projects/Alchemy/Sound Effects/approved/efx-int-mutt-growl-42-b-ef1caab1-0-2443.wav	1.0
