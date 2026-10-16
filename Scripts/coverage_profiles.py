@@ -7,6 +7,7 @@ from contextlib import contextmanager
 import json
 import os
 import plistlib
+import re
 import shutil
 from pathlib import Path
 import subprocess
@@ -20,15 +21,22 @@ PROFILES = {
 TEXT_SIZES = ('large', 'accessibility-extra-extra-extra-large')
 
 
-def select_profile(runtimes, device_types, type_id, major):
+def select_profile(runtimes, device_types, type_id, major, version=None):
     """Fail closed: a requested runtime/type never falls back to another profile."""
     if not any(item.get('identifier') == type_id for item in device_types):
         raise ValueError(f'unavailable device type: {type_id}')
     candidates = [item for item in runtimes if item.get('isAvailable') is True
                   and item.get('platform') == 'iOS'
                   and str(item.get('version', '')).split('.')[0] == str(major)]
+    if version is not None:
+        if not re.fullmatch(r'\d+\.\d+(?:\.\d+)?', version) or int(version.split('.')[0]) != major:
+            raise ValueError(f'invalid or conflicting exact iOS version: {version}')
+        def components(value):
+            parts = tuple(int(part) for part in value.split('.'))
+            return parts + (0,) * (3 - len(parts))
+        candidates = [item for item in candidates if components(item['version']) == components(version)]
     if not candidates:
-        raise ValueError(f'unavailable iOS {major} runtime')
+        raise ValueError(f'unavailable iOS {version or major} runtime')
     selected = max(candidates, key=lambda item: tuple(int(part) for part in item['version'].split('.')))
     supported = selected.get('supportedDeviceTypes')
     if supported and not any(item.get('identifier') == type_id for item in supported):
@@ -61,9 +69,10 @@ def native_text_size(udid, size, run=simctl):
 
 def resolve(name):
     type_id = os.environ['TRINKET_SIM_DEVICE_TYPE']
-    major = int(os.environ['TRINKET_SIM_OS_MAJOR'])
+    version = os.environ.get('TRINKET_SIM_OS_VERSION')
+    major = int(os.environ.get('TRINKET_SIM_OS_MAJOR') or (version or '').split('.')[0])
     runtime = select_profile(json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes'],
-                             json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes'], type_id, major)
+                             json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes'], type_id, major, version)
     devices = json.loads(simctl('list', 'devices', 'available', '-j'))['devices']
     existing = next((item['udid'] for item in devices.get(runtime['identifier'], [])
                      if item.get('name') == name and item.get('deviceTypeIdentifier') == type_id), '')

@@ -51,7 +51,7 @@ rename_legacy_shared_simulator_if_needed() {
 }
 
 resolve_or_create_simulator() {
-  if [[ -n "${TRINKET_SIM_DEVICE_TYPE:-}" || -n "${TRINKET_SIM_OS_MAJOR:-}" ]]; then
+  if [[ -n "${TRINKET_SIM_DEVICE_TYPE:-}" || -n "${TRINKET_SIM_OS_MAJOR:-}" || -n "${TRINKET_SIM_OS_VERSION:-}" ]]; then
     local profile_selection profile_type profile_runtime profile_existing owned_existing
     # Validate availability before touching the simulator owned by this lease.
     profile_selection="$(python3 Scripts/coverage_profiles.py resolve --name "$SIMULATOR_NAME")" || return 1
@@ -270,7 +270,7 @@ ensure_test_simulator() {
   fi
   SIMULATOR_NAME="$owned_name"
 
-  if [[ -n "${TRINKET_SIM_DEVICE_TYPE:-}" || -n "${TRINKET_SIM_OS_MAJOR:-}" ]]; then
+  if [[ -n "${TRINKET_SIM_DEVICE_TYPE:-}" || -n "${TRINKET_SIM_OS_MAJOR:-}" || -n "${TRINKET_SIM_OS_VERSION:-}" ]]; then
     resolve_or_create_simulator || return 1
   fi
 

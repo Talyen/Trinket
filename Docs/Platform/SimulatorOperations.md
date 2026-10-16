@@ -62,6 +62,19 @@ when it exits. A booted device, printed UDID, or explicit `--agent N` selects a
 device but does not prove a live lease. Use `--agent N` only under an existing
 parent lease for that slot; otherwise let `--isolate` acquire an available slot.
 
+For an exact installed runtime, set `TRINKET_SIM_DEVICE_TYPE` and
+`TRINKET_SIM_OS_VERSION`, for example:
+
+```bash
+TRINKET_SIM_DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro \
+TRINKET_SIM_OS_VERSION=27.0 ./Scripts/run-simulator.sh --isolate --inspect
+```
+
+An exact version never falls back to a newer minor release. Missing or incompatible
+profiles fail before replacing the simulator owned by the lease. The existing
+`TRINKET_SIM_OS_MAJOR` selector still chooses the newest installed runtime in that
+major; if both selectors are supplied, they must agree on the major.
+
 ### Computer Use
 
 Interaction technique — viewing and operating the device window, coordinate
