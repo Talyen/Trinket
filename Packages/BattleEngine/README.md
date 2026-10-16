@@ -22,8 +22,9 @@ belong to the same target. `State/` keeps `BattleState` and its extensions toget
   and transition contracts.
 - `Actions/` groups actor/target selection, ability conditions, resolution facts,
   and reaction continuation rules.
-- `Combatants/` groups roster storage, equipment-derived builds, modifier profiles,
-  talent state, scaling, and combatant effect projections.
+- `Combatants/` groups roster storage, runtime combatant state, talent state,
+  and combatant effect projections. Authored combat builds, modifier profiles,
+  and level scaling live in `TrinketContent`.
 - `Cards/PlayPolicy.swift` owns Auto Battle card selection alongside card assessment.
 
 These are folders within the existing target, not separate modules. Keep

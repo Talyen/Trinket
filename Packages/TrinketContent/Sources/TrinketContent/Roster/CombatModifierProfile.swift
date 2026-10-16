@@ -1,4 +1,3 @@
-import TrinketContent
 import TrinketCore
 
 public struct CombatModifierProfile: Equatable, Hashable, Sendable {
@@ -151,9 +150,13 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         case let .companionDamageDealt(amount):
             companionDamageDealtBonus = SaturatedArithmetic.saturatingAdd(companionDamageDealtBonus, amount)
         case let .companionPhysicalDamageDealt(amount):
-            companionPhysicalDamageDealtBonus = SaturatedArithmetic.saturatingAdd(companionPhysicalDamageDealtBonus, amount)
+            companionPhysicalDamageDealtBonus = SaturatedArithmetic.saturatingAdd(
+                companionPhysicalDamageDealtBonus, amount,
+            )
         case let .companionBleedDamageDealt(amount):
-            companionBleedDamageDealtBonus = SaturatedArithmetic.saturatingAdd(companionBleedDamageDealtBonus, amount)
+            companionBleedDamageDealtBonus = SaturatedArithmetic.saturatingAdd(
+                companionBleedDamageDealtBonus, amount,
+            )
         case let .outgoingDamagePercent(amount):
             outgoingDamagePercent += amount
         case let .incomingDamageReductionPercent(amount):

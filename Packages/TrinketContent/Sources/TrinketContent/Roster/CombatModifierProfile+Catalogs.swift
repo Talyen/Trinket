@@ -1,5 +1,3 @@
-import TrinketContent
-
 public extension AffixModifier {
     func apply(to profile: inout CombatModifierProfile) {
         profile.merge(self)

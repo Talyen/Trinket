@@ -1,5 +1,3 @@
-import TrinketContent
-
 public struct CombatBuild: Equatable, Hashable, Sendable {
     public let combatant: Combatant
     public let modifiers: CombatModifierProfile

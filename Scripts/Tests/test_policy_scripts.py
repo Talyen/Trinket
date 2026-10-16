@@ -137,12 +137,30 @@ else:
         )
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_repo_fixture(directory, ("Scripts/check-module-boundaries.sh",))
-            for package in ("TrinketDesignSystem", "BattleEngine", "TrinketPersistence",
+            for package in ("TrinketContent", "TrinketDesignSystem", "BattleEngine", "TrinketPersistence",
                             "TrinketFeatureSupport", "TrinketBattleFeature", "TrinketAppState"):
                 (root / "Packages" / package / "Sources" / package).mkdir(parents=True)
                 (root / "Packages" / package / "Package.swift").write_text(manifest)
             contracts = root / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/Probe.swift"
             contracts.parent.mkdir(parents=True)
+            adapters = root / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureAdapters/Probe.swift"
+            adapters.parent.mkdir(parents=True)
+            content_probe = root / "Packages/TrinketContent/Sources/Probe.swift"
+            content_manifest = root / "Packages/TrinketContent/Package.swift"
+            feature_manifest = root / "Packages/TrinketFeatureSupport/Package.swift"
+            feature_targets = '''// swift-tools-version: 6.4
+import PackageDescription
+let package = Package(name: "TrinketFeatureSupport", targets: [
+    .target(
+        name: "TrinketFeatureContracts",
+        dependencies: ["BattleEngine"]
+    ),
+    .target(
+        name: "TrinketFeatureAdapters",
+        dependencies: ["TrinketContent"]
+    )
+])
+'''
             design_probe = root / "Packages/TrinketDesignSystem/Sources/Probe.swift"
             graph_probe = root / "Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveGraph/Probe.swift"
             graph_probe.parent.mkdir(parents=True)
@@ -151,6 +169,10 @@ else:
             outsider = root / "Trinket/Features/Play/OutsiderView.swift"
             seam.parent.mkdir(parents=True)
             clean = (
+                (content_probe, "struct Content {}\n"),
+                (content_manifest, manifest),
+                (adapters, "import TrinketContent\nstruct Adapter {}\n"),
+                (feature_manifest, feature_targets),
                 (design_probe, "struct Probe {}\n"),
                 (graph_probe, "package final class SaveRoot {}\nextension SaveRoot {}\n"),
                 (contracts, "import BattleEngine\nstruct Contract {}\n"),
@@ -164,6 +186,20 @@ else:
             )
             cases = (
                 ("clean tree with allowlisted seam", (), None),
+                ("content importing engine",
+                 ((content_probe, "import BattleEngine\nstruct Content {}\n"),),
+                 "TrinketContent must not import BattleEngine"),
+                ("content depending on engine",
+                 ((content_manifest, manifest.replace('[.target(name: "Probe")]',
+                                                     '[.target(name: "Probe", dependencies: ["BattleEngine"])]')),),
+                 "TrinketContent must not depend on BattleEngine"),
+                ("character adapter importing engine",
+                 ((adapters, "import BattleEngine\nstruct Adapter {}\n"),),
+                 "TrinketFeatureAdapters must not import BattleEngine"),
+                ("character adapter depending on engine",
+                 ((feature_manifest, feature_targets.replace('dependencies: ["TrinketContent"]',
+                                                            'dependencies: ["BattleEngine"]')),),
+                 "TrinketFeatureAdapters production target must not depend on BattleEngine"),
                 ("public mutable storage model",
                  ((graph_probe, "public final class SaveRoot {}\n"),),
                  "persistence graph must not export public"),

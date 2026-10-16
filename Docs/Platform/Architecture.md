@@ -49,7 +49,7 @@ source selection and preparation.
 | Battle reward planning, seeded loot, and request identities | TrinketContent | `BattleLootContext` owns mode loot policy, including Voyage destination composition; shared encounter plans and capped XP policy serve launch and save commands. Persistence adapts saved inputs and commits claims |
 | Mystery item pools, reward quantities, and offer settlement | TrinketContent | Explicit ownership, Homestead effects, and reward inputs; Persistence pins offers and commits claims |
 | Item generation, Corruption, and Salvage rules | TrinketContent | Item values and inventory arrays; Persistence owns save commands, receipts, and cooldowns |
-| Roster state, party/loadout edits, and talent eligibility | TrinketContent | Value-only rules accept current access and inventory; Persistence owns saved graph mapping, migration, and commits |
+| Roster state, party/loadout edits, combat builds, and talent eligibility | TrinketContent | Value-only rules accept current access and inventory; build resolver produces modifier profiles and effective max stats; Persistence owns saved graph mapping, migration, and commits |
 | Homestead production and upgrade rules | TrinketContent | Value state and Gold inputs; Persistence owns saved wallet writes, graph mapping, and receipts |
 | Catalogs and authored content | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest/codegen boundary and runtime catalog |
 | Contracts and Voyage board selection | TrinketContent | Value-only repair, generation, and replacement rules; Persistence owns refresh admission, active runs, and retirement receipts |
@@ -101,7 +101,7 @@ FeatureContracts also depends on BattleEngine for boundary values, with `Trinket
 progression-delegate, and presentation contracts. It references BattleEngine values
 but contains no save-backed behavior or concrete lifecycle implementation.
 `TrinketFeatureAdapters` owns save-backed map/detail adapters;
-it cannot be imported by `TrinketBattleFeature`. Neither support target may depend on
+it uses Content combat builds and cannot import or depend on `BattleEngine` or `TrinketBattleFeature`. Neither support target may depend on
 `TrinketBattleFeature` or `TrinketAppState`.
 `TrinketBattleFeature` cannot depend on `TrinketAppState`. `TrinketAppState` depends on
 `BattleEngine` values and FeatureContracts (`BattleRuntime`) in production, never the presentation feature.

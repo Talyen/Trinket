@@ -14,8 +14,10 @@ APP = 'TrinketAppState'
 ENGINE = 'BattleEngine'
 SAVE = 'TrinketPersistence'
 DESIGN = 'TrinketDesignSystem'
+CONTENT = 'TrinketContent'
 FORBIDDEN = {
-    DESIGN: ('TrinketContent', ENGINE, SAVE, SUPPORT, BATTLE, APP),
+    CONTENT: (ENGINE, SAVE, DESIGN, SUPPORT, BATTLE, APP),
+    DESIGN: (CONTENT, ENGINE, SAVE, SUPPORT, BATTLE, APP),
     ENGINE: (SAVE, SUPPORT, BATTLE, APP),
     SAVE: (ENGINE, SUPPORT, BATTLE, APP),
     SUPPORT: (BATTLE, APP),
@@ -47,6 +49,7 @@ def violations(scan: SourceScan) -> list[str]:
             if f'"{dependency}"' in scan.text(scan.root / manifest):
                 findings.append(f'{manifest}: {owner} must not depend on {dependency}')
     imports(f'Packages/{SUPPORT}/Sources/{SUPPORT}', (ENGINE, SAVE), SUPPORT)
+    imports(f'Packages/{SUPPORT}/Sources/{ADAPTERS}', (ENGINE,), ADAPTERS)
     imports(f'Packages/{APP}/Sources', (BATTLE, ADAPTERS, SUPPORT), APP)
     imports(f'Packages/{SUPPORT}/Sources/{CONTRACTS}', ('SwiftUI', 'UIKit', DESIGN, SAVE, SUPPORT, ADAPTERS, BATTLE, APP), CONTRACTS)
     imports(f'Packages/{ENGINE}/Sources', ('SwiftUI', 'UIKit', CONTRACTS, BATTLE, APP), ENGINE)
@@ -55,6 +58,7 @@ def violations(scan: SourceScan) -> list[str]:
     for owner, target, forbidden in (
         (APP, None, (BATTLE, ADAPTERS)),
         (SUPPORT, CONTRACTS, ('SwiftUI', 'UIKit', DESIGN, SAVE, SUPPORT, ADAPTERS, BATTLE, APP)),
+        (SUPPORT, ADAPTERS, (ENGINE,)),
     ):
         active = in_target = False
         for line in scan.lines(scan.root / f'Packages/{owner}/Package.swift'):

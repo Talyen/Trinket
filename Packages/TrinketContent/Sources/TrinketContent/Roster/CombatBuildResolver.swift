@@ -1,5 +1,4 @@
 import Foundation
-import TrinketContent
 import TrinketCore
 
 public enum CombatBuildResolver {
