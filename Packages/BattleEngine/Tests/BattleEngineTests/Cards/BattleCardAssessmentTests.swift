@@ -90,7 +90,7 @@ struct BattleCardAssessmentTests {
         #expect(state.rng == rng)
     }
 
-    @Test func `panacea separates its cleanse recipient from its healing recipient`() throws {
+    @Test func `panacea leaves healing unresolved after debuff removal`() throws {
         var state = battle()
         state.roster.mutateRuntime(for: state.hero) { $0.currentHealth = 5 }
         state.roster.mutateRuntime(for: state.companion) { $0.currentHealth = 20 }
@@ -98,8 +98,7 @@ struct BattleCardAssessmentTests {
         let ability = Ability(id: "panacea", name: "Panacea", tier: .ultimate, effects: [.panacea(baseHeal: 3, healPerDebuff: 2)])
         let card = deal(ability, in: &state)
         let targets = state.assessCard(card).targets
-        #expect(targets.contains { $0.combatantID == state.companion.id && $0.intent == .effect(.cleanse(nil)) })
-        #expect(targets.contains { $0.combatantID == state.hero.id && $0.intent == .effect(.instantHeal(.health, 3)) })
+        #expect(targets == [.init(combatantID: state.companion.id, intent: .effect(.cleanse(nil)))])
         _ = try state.playCard(cardID: card.id)
         #expect(state.roster.hero.currentHealth > 5)
         #expect(!state.roster.companion.activeEffects.contains { $0.effect.keyword == .poison })

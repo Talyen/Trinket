@@ -163,11 +163,10 @@ enum ActiveEffectMutation {
             )
             return
         case let .controlMeter(keyword, amount, threshold):
-            // A triggered status remains triggered when its new recipient has a larger Health pool.
-            let reflectedAmount = threshold > 0 && amount >= threshold
-                ? max(amount, ControlMeterEngine.threshold(for: target, in: context)) : amount
-            await ControlMeterEngine.applyMeterCharge(
-                reflectedAmount, keyword: keyword, to: target, sourceActorID: source.id, applyFightPacing: false, in: &context,
+            // Reflect the status itself; recipient resistance still applies to partial buildup.
+            await ControlMeterEngine.resolveMeterCharge(
+                amount, keyword: keyword, to: target, sourceActorID: source.id, applyFightPacing: false,
+                preservingTriggeredStatus: threshold > 0 && amount >= threshold, in: &context,
             )
             return
         default:

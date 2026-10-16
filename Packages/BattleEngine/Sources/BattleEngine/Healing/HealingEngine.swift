@@ -25,7 +25,7 @@ package enum HealingEngine {
         in context: inout BattleState,
     ) async -> HealingResult {
         // Flawless Bounty preserves Gold reactions, but none of their nested work can restore Health.
-        guard context.resolution.depth(.leechOverflowGold) == 0 else { return .empty }
+        guard request.amount > 0, context.resolution.depth(.leechOverflowGold) == 0 else { return .empty }
         let standalone = context.resolution.beginStandaloneRestoration()
         defer {
             if standalone {

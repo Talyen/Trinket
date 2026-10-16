@@ -86,16 +86,15 @@ package extension DamagePipeline {
         context.roster.setActiveEffects(reduced?.effects ?? effects, for: owner)
         recordBlockAbsorption(absorbed, owner: owner, to: &state, in: &context)
 
-        if !isBorrowed {
-            await applyBlockAbsorptionReactions(
-                absorbed: absorbed,
-                blockBroken: blockBroken,
-                defenderTriggers: defenderTriggers,
-                sourceTriggers: sourceTriggers,
-                to: &state,
-                in: &context,
-            )
-        }
+        await applyBlockAbsorptionReactions(
+            absorbed: absorbed,
+            blockBroken: blockBroken,
+            owner: owner,
+            defenderTriggers: defenderTriggers,
+            sourceTriggers: sourceTriggers,
+            to: &state,
+            in: &context,
+        )
         await handleTalentBlockedDamage(
             absorbed: absorbed,
             blockBroken: blockBroken,
@@ -287,12 +286,13 @@ package extension DamagePipeline {
     private static func applyBlockAbsorptionReactions(
         absorbed: Int,
         blockBroken: Bool,
+        owner: Combatant,
         defenderTriggers: CombatTraitTriggers,
         sourceTriggers: CombatTraitTriggers?,
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) async {
-        if absorbed > 0, let attackerID = state.sourceActorID,
+        if owner.id == state.combatant.id, absorbed > 0, let attackerID = state.sourceActorID,
            let attacker = context.roster.combatant(for: attackerID),
            context.roster.health(for: attacker.combatant) > 0 {
             let reflection = defenderTriggers.onBlockHitDealHoly
@@ -323,7 +323,7 @@ package extension DamagePipeline {
            let sourceTriggers, sourceTriggers.onEnemyBlockBrokenDealPhysical > 0,
            let attackerID = state.sourceActorID,
            let attacker = context.roster.participant(for: attackerID),
-           let defender = context.roster.participant(for: state.combatant),
+           let defender = context.roster.participant(for: owner),
            attacker.isPartyMember != defender.isPartyMember,
            context.roster.health(for: state.combatant) > 0 {
             // The Block break committed this offensive consequence before any lethal reflection.

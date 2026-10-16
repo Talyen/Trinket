@@ -4,6 +4,26 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BlockPoolMutationRegressionTests {
+    @Test(arguments: [0, -1])
+    func `nonpositive Block requests do not create bonus Block or spend the next gain`(amount: Int) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            companionModifiers: CombatModifierProfile(blockGainedBonus: 7), appliesFightPacing: false,
+        )
+        battle.roster.companion.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(value: 2)
+
+        let events = battle.recordingEvents { state in
+            let applied = state.applyBlockGain(amount, to: state.companion, source: state.companion, abilityName: "Empty gain")
+            #expect(applied == 0)
+        }
+
+        #expect(events.isEmpty)
+        #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == 0)
+        #expect(battle.roster.companion.talents.pending.nextBlockGainMultiplier?.value == 2)
+        let later = battle.applyBlockGain(1, to: battle.companion, source: battle.companion, abilityName: "Positive gain")
+        #expect(later == 16)
+        #expect(battle.roster.companion.talents.pending.nextBlockGainMultiplier == nil)
+    }
+
     @Test(arguments: [false, true], [0, 7])
     func `Block theft reports only actual loss while preserving protected pools`(protected: Bool, block: Int) {
         var battle = BattleStateTestFactory.makeBattle(

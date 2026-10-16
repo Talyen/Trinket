@@ -124,7 +124,7 @@ private extension BattleState {
             }
             if case let .panacea(baseHeal, _) = targeted.effect {
                 guard !recipientCanChange else { continue }
-                targets.append(contentsOf: panaceaAssessmentTargets(baseHeal: baseHeal, actor: actor))
+                targets.append(contentsOf: panaceaAssessmentTargets(baseHeal: baseHeal))
                 continue
             }
             let target = action.target(targeted.target, in: self)
@@ -133,13 +133,13 @@ private extension BattleState {
         return targets
     }
 
-    func panaceaAssessmentTargets(baseHeal: Int, actor: Combatant) -> [BattleCardAssessment.Target] {
+    func panaceaAssessmentTargets(baseHeal: Int) -> [BattleCardAssessment.Target] {
         let cleanseTarget = BattleConditionEvaluator.mostDebuffedAlly(in: self)
         var targets: [BattleCardAssessment.Target] = [
             .init(combatantID: cleanseTarget.id, intent: .effect(.cleanse(nil))),
         ]
-        // Fresh Batch and its healing reactions resolve before Panacea selects its recipient.
-        if modifiers(for: actor.id).triggers.freshBatch,
+        // Cleanse can trigger damage and restoration before Panacea selects its recipient.
+        if roster.hero.isAlive, roster.companion.isAlive,
            roster.activeEffects(for: cleanseTarget).contains(where: \.effect.isRemovableDebuff) {
             return targets
         }

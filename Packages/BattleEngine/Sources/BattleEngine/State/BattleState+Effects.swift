@@ -22,7 +22,7 @@ package extension BattleState {
         amountBasis: BlockAmountBasis = .base,
         origin: ActionEvent.Origin = .automatic,
     ) -> Int {
-        guard roster.health(for: target) > 0 else { return 0 }
+        guard amount > 0, roster.health(for: target) > 0 else { return 0 }
         if CombatTriggerEngine.frozenTargetCannotBlockOrHeal(target, in: self)
             || CombatTriggerEngine.preventsPurgedEffect(.shield(.block, amount), on: target, in: self) {
             return 0

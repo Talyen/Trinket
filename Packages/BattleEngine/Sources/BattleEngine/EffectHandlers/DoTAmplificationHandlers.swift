@@ -14,7 +14,9 @@ extension EffectApplication {
         let indices = effects.indices.filter {
             isDetonatableDoT(effects[$0].effect, keyword: keyword)
         }
-        guard !indices.isEmpty else {
+        guard let firstIndex = indices.first,
+              !CombatTriggerEngine.preventsDebuff(effects[firstIndex].effect, on: target, in: context)
+        else {
             return EffectApplyOutcome(didApply: false)
         }
         var total = 0

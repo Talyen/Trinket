@@ -213,8 +213,11 @@ Claws, Ground Slam, and Battering Ram; card-only cadences retain their restricti
 Consolation Prize creates one uniformly random card from `AbilityCatalog.all` on
 the owner's first fully Blocked attack per combat. Claim before generation; the
 new copy belongs to that owner, respects FIFO overflow, and follows ordinary
-cycling for this battle without changing the saved loadout. Battle preparation
-pins the possible card artwork only when Consolation Prize is equipped, preserving
+cycling for this battle without changing the saved loadout.
+Card admission also checks live pending Stun and Freeze, so a generated card cannot
+bypass control applied after turn preparation.
+Battle preparation pins the possible card artwork only when Consolation Prize is
+equipped, preserving
 immediate card play without mid-battle on-demand decoding.
 
 Presentation layout (3:4 art, no top chrome, health anchors): [TrinketBattleFeature README](../../Packages/TrinketBattleFeature/README.md).
@@ -244,8 +247,9 @@ Random damage elements retain a certain recipient with an unspecified damage
 keyword when every outcome damages that recipient. Automatic-play recipients
 remain unresolved until their drawn actions execute.
 Targets that depend on preceding effects remain unresolved; Panacea exposes
-its separate cleanse and healing recipients unless Fresh Batch can change the
-healing recipient after Cleanse. Branch-dependent costs and reactive repeated payments remain non-quantitative;
+its cleanse recipient, while healing remains unresolved after debuff removal when
+multiple allies are alive because Cleanse reactions can change Health. A sole living
+ally remains a certain recipient. Branch-dependent costs and reactive repeated payments remain non-quantitative;
 only resolved combat events establish the result. Mana-to-Block quotes include every living
 recipient; conversions after earlier operations or recipient reactions retain an
 unspecified amount because the opening balance may have changed. Static discounts such as

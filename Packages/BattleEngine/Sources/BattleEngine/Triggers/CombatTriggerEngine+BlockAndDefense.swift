@@ -100,12 +100,14 @@ package extension CombatTriggerEngine {
         context.roster.mutateRuntime(for: target) { $0.talents.turn.triggeredBlockBreak = true }
 
         for keyword in [Keyword.holy, .stun] where context.roster.health(for: attacker.combatant) > 0 {
+            guard context.roster.health(for: target) > 0 else { return }
             let outcome = await context.dealReactionDamage(power, to: attacker.combatant, keyword: keyword, sourceActorID: target.id)
 
             if keyword == .holy, outcome.healthLost > 0 {
                 await afterHolyDamageDealt(to: attacker.combatant, source: target, in: &context)
             }
         }
+        guard context.roster.health(for: target) > 0 else { return }
         let healTarget = BattleActionContext(actor: target, in: context).target(.lowestHealthAlly, in: context)
         await emitHeal(.blockBrokenSaintfallPower, "Saintfall", amount: power, to: healTarget, source: target, in: &context)
     }

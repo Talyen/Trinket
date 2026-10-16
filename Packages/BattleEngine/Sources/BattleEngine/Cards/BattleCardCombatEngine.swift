@@ -98,7 +98,7 @@ package enum BattleCardCombatEngine {
     }
 
     package static func isCardPlayable(_ card: BattleCard, in context: BattleState) -> Bool {
-        playError(for: card, in: context) == nil
+        context.hand.card(id: card.id) == card && playError(for: card, in: context) == nil
     }
 
     static func playError(
@@ -108,7 +108,8 @@ package enum BattleCardCombatEngine {
         guard allowsTurnPreparation || context.phase == .playerTurn else { return .notPlayerTurn }
         let runtime = context.roster[card.owner]
         guard runtime.isAlive else { return .ownerDefeated }
-        guard !context.ownersSkippingThisPlayerTurn.contains(card.owner) else { return .ownerSkipping }
+        guard !context.ownersSkippingThisPlayerTurn.contains(card.owner),
+              !context.roster.hasPendingActionSkip(for: runtime.combatant) else { return .ownerSkipping }
         guard BattleAbilityRules.canPayHealthCost(card.ability, actor: runtime.combatant, in: context) else {
             return .insufficientHealth
         }

@@ -29,6 +29,7 @@ package enum ControlMeterEngine {
         to combatant: Combatant,
         sourceActorID: String?,
         applyFightPacing: Bool = true,
+        preservingTriggeredStatus: Bool = false,
         in context: inout BattleState,
     ) async -> ControlMeterOutcome {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return .empty }
@@ -45,12 +46,12 @@ package enum ControlMeterEngine {
             : amount
         guard pacedAmount > 0 else { return .empty }
 
-        let adjustedAmount = adjustedCharge(
+        let threshold = threshold(for: combatant, in: context)
+        let adjustedAmount = preservingTriggeredStatus ? threshold : adjustedCharge(
             pacedAmount, keyword: keyword, to: combatant, sourceActorID: sourceActorID, in: context,
         )
         guard adjustedAmount > 0 else { return .empty }
 
-        let threshold = threshold(for: combatant, in: context)
         let effectiveThreshold: Int = if keyword == .stun, combatant.role == .enemy, let sourceActorID,
                                          context.modifiers(for: sourceActorID).triggers.enemyStunThresholdReductionPercent > 0 {
             CombatRounding.scaled(

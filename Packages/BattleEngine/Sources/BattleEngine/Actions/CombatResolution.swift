@@ -376,7 +376,7 @@ struct CombatResolution {
 
 enum CombatResolver {
     static func damage(_ request: DamageRequest, in context: inout BattleState) async -> CombatOutcome {
-        guard request.amount > 0 else { return .empty }
+        guard request.amount > 0, context.roster.health(for: request.target) > 0 else { return .empty }
         guard context.resolution.depth(.damage) < ReactionScope.maxDepth else {
             ReactionScope.capHit(site: "damage", depth: context.resolution.depth(.damage))
             return .empty
