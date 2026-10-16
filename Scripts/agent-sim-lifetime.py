@@ -137,7 +137,14 @@ def watch(path, token):
     wait_release(record)
     time.sleep(record["grace"])
     while record_is_current(path, record):
-        if cleanup(record):
+        try:
+            released = cleanup(record)
+        except (OSError, subprocess.SubprocessError, ValueError, RuntimeError) as error:
+            # Keep watching after transient host failures; each retry checks the lease again.
+            print(f"Idle simulator cleanup failed; retrying in 5 seconds: {error}", file=sys.stderr, flush=True)
+            time.sleep(5)
+            continue
+        if released:
             remove_record(path, record)
             return
         time.sleep(1)

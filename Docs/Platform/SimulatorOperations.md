@@ -23,6 +23,8 @@ macOS), then allows 60 seconds for warm reuse.
 It reserves the slot before shutting down the exact still-unleased agent device;
 new leases, renamed human devices and foreign XCTest guests are preserved. Busy
 lifecycle locks retry; a replacement registration supersedes the old watcher.
+Failed or timed-out cleanup observations retry after five seconds, preserving the
+ownership record and rechecking leases before another shutdown attempt.
 `TRINKET_AGENT_SIM_IDLE_SECONDS` can select a 0–3600-second grace period.
 No extra registration or cleanup commands are required. **Trinket Run** stays
 available for human play. Existing top-level hygiene also reclaims unleased excess

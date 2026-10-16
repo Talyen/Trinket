@@ -91,6 +91,37 @@ class AgentSimulatorLifetimeTests(unittest.TestCase):
         self.assertEqual(cleanup.call_count, 2)
         self.assertFalse(path.exists())
 
+    def test_timed_out_cleanup_retries_without_losing_device_ownership(self):
+        path = self.slot.with_suffix(".lifetime.json")
+        self.record["grace"] = 0
+        write_json(path, self.record)
+        listing = json.dumps({"devices": {"runtime": [{"udid": "agent-device", "name": "Trinket Agent 1", "state": "Booted"}]}})
+        results = [subprocess.TimeoutExpired("simctl list", 15), subprocess.CompletedProcess([], 0, listing),
+                   subprocess.CompletedProcess([], 0), subprocess.CompletedProcess([], 0, listing.replace("Booted", "Shutdown"))]
+        with patch.object(MODULE, "wait_release"), patch.object(MODULE.time, "sleep"), \
+                patch.object(MODULE.subprocess, "run", side_effect=results) as run, \
+                patch.object(MODULE.subprocess, "check_output", return_value=""):
+            MODULE.watch(path, self.record["token"])
+        self.assertEqual(run.call_args_list[2].args[0], ["xcrun", "simctl", "shutdown", "agent-device"])
+        self.assertFalse(path.exists())
+        self.assertFalse(self.slot.exists())
+        self.assertFalse((self.slot.parent / ".sim-lifecycle.lock").exists())
+
+    def test_new_lease_during_cleanup_retry_is_preserved(self):
+        path = self.slot.with_suffix(".lifetime.json")
+        self.record["grace"] = 0
+        write_json(path, self.record)
+        def reacquire(delay):
+            if delay:
+                self.slot.write_text("200 newer-run\n")
+        with patch.object(MODULE, "wait_release"), patch.object(MODULE.time, "sleep", side_effect=reacquire), \
+                patch.object(MODULE.subprocess, "run", side_effect=subprocess.TimeoutExpired("simctl list", 15)) as run:
+            MODULE.watch(path, self.record["token"])
+        self.assertEqual(run.call_count, 1, "Retried cleanup touched a newly leased simulator")
+        self.assertEqual(self.slot.read_text(), "200 newer-run\n")
+        self.assertFalse(path.exists())
+        self.assertFalse((self.slot.parent / ".sim-lifecycle.lock").exists())
+
     def test_replaced_watcher_cannot_shut_down_a_newly_released_device(self):
         path = self.slot.with_suffix(".lifetime.json")
         self.record["grace"] = 0
