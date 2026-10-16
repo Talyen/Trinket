@@ -1,8 +1,8 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct ControlMeterEngineTests {
     @Test func `stun buildup displays the threshold used by seismic impact`() throws {

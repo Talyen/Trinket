@@ -1,8 +1,8 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct DoTMechanicsTests {
     @Test func `lethal Bleed reaction does not remain on a defeated ally`() {

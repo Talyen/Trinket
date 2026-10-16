@@ -1,7 +1,7 @@
 import Testing
-import TrinketContent
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 extension DoTMechanicsTests {
     @Test func `Bleed amplification multiplies every stack without replacing its source or duration`() {
