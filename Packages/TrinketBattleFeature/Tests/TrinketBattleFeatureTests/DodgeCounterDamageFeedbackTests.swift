@@ -1,10 +1,10 @@
 import Foundation
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 @testable import TrinketBattleFeature
+@testable import TrinketContent
 
 struct DodgeCounterDamageFeedbackTests {
     @Test func `Whiplash floats the Health damage remaining after Block exactly once`() throws {
