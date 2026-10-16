@@ -81,15 +81,17 @@ struct StarterRouletteScreen: View {
                             .padding(.top, TrinketDesign.Spacing.small)
                             .padding(.horizontal, TrinketDesign.Layout.contentMargin)
 
-                        continueAction
-                            .padding(.top, TrinketDesign.Spacing.medium)
-                            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-
                         Spacer(minLength: TrinketDesign.Layout.sectionSpacing)
                     }
                     .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                 }
                 .scrollBounceBehavior(.basedOnSize)
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                continueAction
+                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                    .padding(.top, TrinketDesign.Spacing.medium)
+                    .padding(.bottom, TrinketDesign.Layout.sectionSpacing)
             }
         }
         .toolbarVisibility(.hidden, for: .navigationBar)
@@ -128,7 +130,8 @@ struct StarterRouletteScreen: View {
         Text(role == .hero
             ? L10n.ui_starterroulettescreen_choose_hero
             : L10n.ui_starterroulettescreen_choose_companion)
-            .trinketTypography(.eyebrow)
+            .trinketTypography(.secondaryBody)
+            .fontWeight(.bold)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
             .padding(.top, TrinketDesign.Layout.sectionSpacing)
@@ -205,7 +208,7 @@ struct StarterRouletteScreen: View {
                 let isSelected = selectedCombatant?.id == combatant.id
                 Circle()
                     .fill(isSelected ? TrinketDesign.Colors.accent : Color.secondary.opacity(0.35))
-                    .frame(width: isSelected ? 7 : 5, height: isSelected ? 7 : 5)
+                    .frame(width: isSelected ? 8 : 6, height: isSelected ? 8 : 6)
             }
         }
         .accessibilityHidden(true)
@@ -227,7 +230,7 @@ struct StarterRouletteScreen: View {
                     HStack(spacing: TrinketDesign.Spacing.small) {
                         ForEach(affinities, id: \.self) { keyword in
                             GameLabel(keyword.rawValue)
-                                .trinketTypography(.cardLabel)
+                                .trinketTypography(.body)
                                 .fontWeight(.bold)
                                 .foregroundStyle(keyword.visualStyle.color)
                                 .contentTransition(.numericText())
@@ -284,14 +287,12 @@ private struct RouletteLayout {
     let containerSize: CGSize
 
     var cardWidth: CGFloat {
-        let scale = max(1, containerSize.width / 500)
-        let horizontalLimit = min(containerSize.width * 0.58, 250 * scale)
-        guard containerSize.width > 500 else { return horizontalLimit }
-        return min(horizontalLimit, max(0, containerSize.height * 0.45) * 3.0 / 4.0)
+        // Leave neighboring cards visible, and size within the space above Continue.
+        min(containerSize.width * 0.68, max(0, containerSize.height * 0.62) * 3.0 / 4.0)
     }
 
     var cardHeight: CGFloat {
-        min(cardWidth * 4.0 / 3.0, max(0, containerSize.height * 0.45))
+        cardWidth * 4.0 / 3.0
     }
 
     var bandHeight: CGFloat {
