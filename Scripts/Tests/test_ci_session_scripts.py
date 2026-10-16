@@ -746,6 +746,7 @@ echo continued > "$2/continued"
                 process = subprocess.Popen(["bash", "-eu", "-c", script, "_", owner, directory, str(guest.pid)],
                                            cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                            text=True, start_new_session=True)
+                fixture_stopped = False
                 try:
                     ready, _, _ = select.select([process.stdout], [], [], 10)
                     self.assertTrue(ready, "cancellation fixture did not publish worker readiness")
@@ -763,14 +764,15 @@ echo continued > "$2/continued"
                         self.assertFalse(Path(str(resource) + ".guest-tests").exists())
                     with self.assertRaises(ProcessLookupError):
                         os.kill(int(worker_pid), 0)
+                    fixture_stopped = True
                 finally:
-                    # This session contains only this fixture's shell/workers.
-                    # Preserve the failure while preventing timed-out or failed
-                    # readiness/assertion paths from leaking an immortal worker.
-                    try:
-                        os.killpg(process.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
+                    # Failed readiness/assertions must not leak an immortal worker.
+                    # After both exit checks pass, the old group ID is no longer ours.
+                    if not fixture_stopped:
+                        try:
+                            os.killpg(process.pid, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
                     process.communicate(timeout=5)
 
 
