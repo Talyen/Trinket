@@ -112,7 +112,7 @@ jobs:
       inputs.include-exhaustive ||
       needs.changes.outputs.smoke == 'true')
     runs-on: xcode-27
-    timeout-minutes: 40
+    timeout-minutes: ${{ inputs.include-exhaustive && 55 || 40 }}
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
       smoke-targets: ${{ steps.ui-matrices.outputs.smoke-targets }}
@@ -120,7 +120,7 @@ jobs:
     steps:
       - name: Reserve diagnostic time
         shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 40 * 60 - 180 ))" >> "$GITHUB_ENV"
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + ${{ inputs.include-exhaustive && 55 || 40 }} * 60 - 180 ))" >> "$GITHUB_ENV"
       # Local composite actions cannot run before the repo exists, so the
       # checkout step inlines actions/checkout (same sparse set as
       # .github/actions/checkout-trinket, which documents the shared list).
@@ -276,11 +276,11 @@ jobs:
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
     # Sharded 4-way (Engine/State/Content/Battle) for faster push feedback.
-    timeout-minutes: 25
+    timeout-minutes: ${{ matrix.name == 'Battle' && 30 || 25 }}
     steps:
       - name: Reserve diagnostic time
         shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 25 * 60 - 180 ))" >> "$GITHUB_ENV"
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + ${{ matrix.name == 'Battle' && 30 || 25 }} * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1

@@ -195,6 +195,11 @@ against the remaining deadline, preserving a short manifest-finalization allowan
 Timeouts remain failures and emit structured receipts. Supervisors terminate only
 their own process groups; existing simulator guest/lease cleanup remains in force.
 
+Combined build/smoke/exhaustive jobs allow 55 minutes so the existing 30-minute UI
+watchdog can run after compilation and smoke; ordinary build/smoke jobs allow 40.
+The Battle package shard allows 30 minutes (other package shards allow 25), and
+exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic reserve.
+
 ## Gate composition
 
 | Gate | Composition |

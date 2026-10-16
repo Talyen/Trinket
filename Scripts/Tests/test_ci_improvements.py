@@ -286,10 +286,11 @@ class CIImprovementsTests(unittest.TestCase):
             for block in re.split(r'^  [\w-]+:\n', workflow, flags=re.M):
                 if 'TRINKET_CI_DEADLINE_EPOCH=' not in block:
                     continue
-                minutes = int(re.search(r'timeout-minutes: (\d+)', block)[1])
-                declared, reserve = map(int, re.search(r'\+ (\d+) \* 60 - (\d+)', block).groups())
+                minutes = re.search(r'timeout-minutes: (.+)', block)[1]
+                declared, reserve = re.search(r'\+ (.+) \* 60 - (\d+)', block).groups()
                 self.assertEqual(minutes, declared)
-                self.assertGreaterEqual(reserve, 120)
+                self.assertRegex(minutes, r'^(?:\d+|\$\{\{.+\}\})$')
+                self.assertGreaterEqual(int(reserve), 120)
                 self.assertLess(block.index('TRINKET_CI_DEADLINE_EPOCH='), block.index('actions/checkout@'))
 
     def test_push_native_routing_keeps_manual_ios_comparators(self):
