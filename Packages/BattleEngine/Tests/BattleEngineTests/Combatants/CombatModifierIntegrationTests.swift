@@ -1,8 +1,8 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct CombatModifierIntegrationTests {
     @Test(arguments: [0.0, 0.25, 1.0])

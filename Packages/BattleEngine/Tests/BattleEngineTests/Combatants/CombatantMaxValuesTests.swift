@@ -1,8 +1,8 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct CombatantMaxValuesTests {
     @Test func `maximum stats saturate overflowing flat bonuses`() {

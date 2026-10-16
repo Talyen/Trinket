@@ -1,8 +1,8 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct AbilityEffectIntegrationTests {
     @Test(arguments: [0, 2, 8])

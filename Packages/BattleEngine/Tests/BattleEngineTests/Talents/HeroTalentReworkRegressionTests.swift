@@ -1,7 +1,7 @@
 import Testing
-import TrinketContent
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct HeroTalentReworkRegressionTests {
     @Test(arguments: [Keyword.physical, .bleed, .holy])

@@ -1,7 +1,7 @@
 import Testing
-import TrinketContent
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 extension UniqueCollectionTests {
     @Test func `unclosing wound preserves duration then halves to expiration`() throws {

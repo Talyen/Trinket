@@ -1,8 +1,8 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct HealingGainBoundaryTests {
     @Test func `defeated Companion cannot gain Block or share a ghost Shield Bond`() {

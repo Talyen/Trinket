@@ -1,8 +1,8 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 extension AbilityEffectIntegrationTests {
     @Test func `avatar refresh survives consuming the previous conversion`() {

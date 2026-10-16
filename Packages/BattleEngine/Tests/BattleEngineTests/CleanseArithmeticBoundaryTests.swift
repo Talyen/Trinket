@@ -1,8 +1,8 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct CleanseArithmeticBoundaryTests {
     @Test(arguments: [Int.max, Int.max / 2])

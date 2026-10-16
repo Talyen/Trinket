@@ -1,7 +1,7 @@
 import Testing
-import TrinketContent
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct FinalSparkRegressionTests {
     @Test func `repeat does not consume the Burn newly attached after Backdraft`() throws {

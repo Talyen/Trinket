@@ -1,8 +1,8 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct CombatRiderArithmeticBoundaryTests {
     @Test func `converted Thorns combines typed flat defenses without overflowing`() {

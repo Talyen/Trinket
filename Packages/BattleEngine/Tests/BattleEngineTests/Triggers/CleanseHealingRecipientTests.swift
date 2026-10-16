@@ -1,7 +1,7 @@
 import Testing
-import TrinketContent
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct CleanseHealingRecipientTests {
     @Test(arguments: [15, 20])

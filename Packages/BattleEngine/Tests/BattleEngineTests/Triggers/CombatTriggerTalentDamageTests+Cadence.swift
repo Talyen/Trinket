@@ -1,7 +1,7 @@
 import Testing
-import TrinketContent
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 extension CombatTriggerTalentDamageTests {
     @Test(arguments: [0, 10])

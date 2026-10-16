@@ -1,7 +1,7 @@
 import Testing
-import TrinketContent
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 extension UniqueCollectionTests {
     @Test(arguments: [BattleParticipant.hero, .companion])

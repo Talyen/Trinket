@@ -1,9 +1,9 @@
 import Foundation
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
+@testable import TrinketContent
 
 struct BattleBoundaryRegressionTests {
     @Test func `combined Companion draw bonuses saturate and draw only available cards`() {
