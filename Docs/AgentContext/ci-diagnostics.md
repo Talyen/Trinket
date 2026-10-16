@@ -115,9 +115,10 @@ Failed invocations also produce bounded sibling reports:
 - `*-diagnostics.annotations` with GitHub Actions annotations.
 - `*-diagnostics.attachments/` when a bounded attachment is needed.
 
-The UI test base attaches one screenshot and a bounded accessibility hierarchy
-directly to the first recorded failure,
-including XCTest framework exceptions. Warnings do not consume that capture;
+The UI test base attaches one device-screen screenshot and a bounded accessibility
+hierarchy directly to the first recorded failure, including XCTest framework
+exceptions. If the app is no longer foregrounded, record its state instead of
+requesting an unavailable app frame or hierarchy. Warnings do not consume that capture;
 attaching evidence to the issue keeps it in failures-only exports. Large hierarchies
 retain at most 12,000 characters from each end with an omission marker.
 

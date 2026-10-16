@@ -176,11 +176,15 @@ class TrinketUITestCase: XCTestCase {
         var recordedIssue = issue
         if issue.isFailure, !hasCapturedFailureScreenshot, let app {
             hasCapturedFailureScreenshot = true
-            let attachment = XCTAttachment(screenshot: app.screenshot())
+            let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
             attachment.name = "Failure Screenshot"
             attachment.lifetime = .keepAlways
             recordedIssue.attachments.append(attachment)
-            let description = trinketOnMainActor { app.debugDescription }
+            let description = trinketOnMainActor {
+                app.state == .runningForeground
+                    ? app.debugDescription
+                    : "Application state: \(app.state.rawValue); no foreground application hierarchy."
+            }
             let bounded = description.count > 24000
                 ? String(description.prefix(12000)) + "\n… hierarchy middle omitted …\n" + String(description.suffix(12000))
                 : description
