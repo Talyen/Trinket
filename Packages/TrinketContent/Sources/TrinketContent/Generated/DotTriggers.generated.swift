@@ -82,6 +82,8 @@ public struct DotTriggers: Equatable, Hashable, Sendable {
     public var enemyBurnDecaySlowPercent: Double = 0
     public var enemyBurnDecaySlowVsBleedingPercent: Double = 0
     public var enemyBurnPreventDecayChancePercent: Double = 0
+    public var burnDamageVsPoisonedFlat: Int = 0
+    public var bleedDamageVsBurningFlat: Int = 0
 
     public init(_ configure: (inout Self) -> Void = { _ in }) {
         configure(&self)

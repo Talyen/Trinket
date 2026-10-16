@@ -2,7 +2,7 @@ import TrinketCore
 
 extension InventoryItem {
     static func normalizedPower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {
-        let power = normalizedRulePower(original, affixID: affixID)
+        let power = normalizedCombatProcPower(original, affixID: affixID) ?? normalizedRulePower(original, affixID: affixID)
         var description = power.description
             .replacingOccurrences(of: ". ", with: "\n")
             .replacingOccurrences(of: "; ", with: "\n")
@@ -127,5 +127,51 @@ extension InventoryItem {
         }
         let description = "Increase your Companion's Physical damage by \(actual)"
         return ItemAffixPower(description: description, modifiers: modifiers, triggers: power.triggers)
+    }
+
+    static func normalizedCombatProcPower(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower? {
+        var triggers = power.triggers
+        let description: String
+        switch affixID {
+        case "spitebloom":
+            triggers.thornsDamageVsPoisonedFlat = max(triggers.thornsDamageVsPoisonedFlat, triggers.poisonOnThornsDamage)
+            triggers.poisonOnThornsDamage = 0
+            let actual = triggers.thornsDamageVsPoisonedFlat
+            description = "Your Thorns deal \(actual) additional damage to Poisoned enemies"
+        case "ashen_wake":
+            triggers.burnDamageVsPoisonedFlat = max(triggers.burnDamageVsPoisonedFlat, triggers.onBurnApplyPoison)
+            triggers.onBurnApplyPoison = 0
+            triggers.onBurnDealPoisonChancePercent = 0
+            let actual = triggers.burnDamageVsPoisonedFlat
+            description = "Your Burn deals \(actual) additional damage to Poisoned enemies"
+        case "cauterize":
+            triggers.bleedDamageVsBurningFlat = max(triggers.bleedDamageVsBurningFlat, triggers.onBleedDealBurnDamage)
+            triggers.onBleedDealBurnDamage = 0
+            triggers.onBleedDealBurnChancePercent = 0
+            let actual = triggers.bleedDamageVsBurningFlat
+            description = "Your Bleed deals \(actual) additional damage to Burning enemies"
+        case "mortar_and_pestle":
+            triggers.healthRestoredNextPoisonDamagePercent = max(
+                triggers.healthRestoredNextPoisonDamagePercent, triggers.healthRestoredPoisonPercent,
+            )
+            triggers.healthRestoredPoisonPercent = 0
+            if triggers.healthRestoredNextPoisonDamagePercent == 0.5 {
+                description = "Your next Poison attack gains bonus damage equal to half your latest healing received"
+            } else {
+                let percent = CombatRounding.rounded(min(triggers.healthRestoredNextPoisonDamagePercent, Double(Int.max) / 100) * 100)
+                description = "Your next Poison attack gains bonus damage equal to \(percent)% of your latest healing received"
+            }
+        case "beacon":
+            if triggers.firstHolyAttackHealPerTurn <= 0 {
+                // Old Beacon rolled per-hit healing; its once-per-turn replacement doubles that saved roll once.
+                triggers.firstHolyAttackHealPerTurn = SaturatedArithmetic.saturatingMul(triggers.holyDamageHealFlat, 2)
+            }
+            triggers.holyDamageHealFlat = 0
+            let actual = triggers.firstHolyAttackHealPerTurn
+            description = "Your first Holy attack that deals Health damage each turn restores \(actual) Health to the lowest-Health ally"
+        default:
+            return nil
+        }
+        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
     }
 }

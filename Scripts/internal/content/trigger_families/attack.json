@@ -496,6 +496,10 @@
     {
       "name": "loadedStrike",
       "type": "Bool"
+    },
+    {
+      "name": "dazingSwipeStunBuildup",
+      "type": "Int"
     }
   ]
 }

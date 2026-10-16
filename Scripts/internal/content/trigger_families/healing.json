@@ -520,6 +520,22 @@
       "name": "providedOverhealToBlockPercent",
       "type": "Double",
       "merge": "max"
+    },
+    {
+      "name": "healthRestoredNextPoisonDamagePercent",
+      "type": "Double",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 84
+      }
+    },
+    {
+      "name": "firstHolyAttackHealPerTurn",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 85
+      }
     }
   ]
 }

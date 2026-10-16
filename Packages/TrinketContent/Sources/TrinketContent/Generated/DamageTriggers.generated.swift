@@ -100,6 +100,7 @@ public struct DamageTriggers: Equatable, Hashable, Sendable {
     public var poisonOnThornsDamage: Int = 0
     public var poisonDamageVsBleedingFlat: Int = 0
     public var holyDamageVsStunnedPercent: Double = 0
+    public var thornsDamageVsPoisonedFlat: Int = 0
 
     public init(_ configure: (inout Self) -> Void = { _ in }) {
         configure(&self)

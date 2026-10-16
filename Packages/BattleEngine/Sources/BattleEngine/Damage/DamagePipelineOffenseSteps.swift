@@ -123,7 +123,7 @@ package extension DamagePipeline {
         state.remaining = SaturatedArithmetic.saturatingAdd(
             SaturatedArithmetic.saturatingAdd(state.amount, state.statBonus), state.itemBonus,
         )
-        applyVenomtrail(to: &state, in: context)
+        applyConditionalAffixDamage(to: &state, in: context)
     }
 
     private static func applyPercentBonus(
@@ -439,12 +439,25 @@ package extension DamagePipeline {
         return multiplier
     }
 
-    static func applyVenomtrail(to state: inout DamageResolutionState, in context: BattleState) {
-        guard state.amount > 0, state.damageKeyword == .poison, state.targetStatus.isBleeding,
-              state.combatant.role == .enemy, let sourceActorID = state.sourceActorID,
+    static func applyConditionalAffixDamage(to state: inout DamageResolutionState, in context: BattleState) {
+        guard state.amount > 0, state.combatant.role == .enemy,
+              let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
         else { return }
-        let bonus = context.modifiers(for: sourceActorID).triggers.poisonDamageVsBleedingFlat
+        let triggers = context.modifiers(for: sourceActorID).triggers
+        var bonus = 0
+        if state.damageKeyword == .poison, state.targetStatus.isBleeding {
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.poisonDamageVsBleedingFlat)
+        }
+        if state.options.isThornsDamage, state.targetStatus.isPoisoned {
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.thornsDamageVsPoisonedFlat)
+        }
+        if state.damageKeyword == .burn, state.targetStatus.isPoisoned {
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.burnDamageVsPoisonedFlat)
+        }
+        if state.damageKeyword == .bleed, state.targetStatus.isBurning {
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.bleedDamageVsBurningFlat)
+        }
         state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
         state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
     }

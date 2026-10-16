@@ -155,8 +155,11 @@ package extension DamagePipeline {
         source: Combatant,
         in context: inout BattleState,
     ) {
-        guard state.options.isAttackHit,
-              let bonus = context.consumeTalentPreparation(\.nextPoisonDamageBonus, for: source) else { return }
+        guard state.options.isAttackHit else { return }
+        let bonus = SaturatedArithmetic.saturatingAdd(
+            context.consumeTalentPreparation(\.nextPoisonDamageBonus, for: source) ?? 0,
+            context.consumeTalentPreparation(\.nextToxicRemedyDamageBonus, for: source) ?? 0,
+        )
         state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
         state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
     }

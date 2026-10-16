@@ -35,19 +35,15 @@ struct DamageCadenceRegressionTests {
         #expect(tick.healthLost == 8)
     }
 
-    @Test(arguments: [Keyword.bleed, .burn])
-    func `damage conversions react to ticks without requiring a new stack`(keyword: Keyword) {
+    @Test func `Infected reacts to ticks without requiring a new stack`() {
         var profile = CombatModifierProfile.zero
         profile.triggers.criticalChanceBonus = -1
         profile.triggers.onBleedApplyPoison = 2
         profile.triggers.onBleedDealPoisonChancePercent = 1
-        profile.triggers.onBurnApplyPoison = 2
-        profile.triggers.onBurnDealPoisonChancePercent = 1
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
         let before = battle.health(of: battle.enemy)
         _ = CombatExecutor.run { await DoTDamage.resolveDamage(
-            basePotency: 4, keyword: keyword, target: battle.enemy, sourceActorID: battle.hero.id,
-            operation: keyword == .burn ? .resolvedPeriodic : .periodic, in: &battle,
+            basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
         ) }
         #expect(battle.health(of: battle.enemy) == before - 6)
         #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 2)
@@ -72,44 +68,63 @@ struct DamageCadenceRegressionTests {
         #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 3)
     }
 
-    @Test func `Cauterize reacts to ongoing Bleed damage and leaves Burn`() throws {
-        let affix = try #require(GameContent.itemAffixDefinition(matching: "cauterize"))
+    @Test(arguments: [Keyword.bleed, .burn], [false, true])
+    func `conditional affixes strengthen ongoing damage without secondary packets`(keyword: Keyword, conditioned: Bool) throws {
+        let affix = try #require(GameContent.itemAffixDefinition(matching: keyword == .bleed ? "cauterize" : "ashen_wake"))
         var profile = CombatModifierProfile.zero
         affix.astral.triggers.apply(to: &profile, abilityName: affix.title)
         profile.triggers.criticalChanceBonus = -1
-        profile.triggers.onBleedDealBurnChancePercent = 1
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
+        if conditioned {
+            let effect: Effect = keyword == .bleed ? .burn(1) : .poison(1)
+            battle.insertEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        }
         let before = battle.health(of: battle.enemy)
-        _ = CombatExecutor.run { await DoTDamage.resolveDamage(
-            basePotency: 4,
-            keyword: .bleed,
-            target: battle.enemy,
-            sourceActorID: battle.hero.id,
-            in: &battle,
+        let outcome = CombatExecutor.run { await DoTDamage.resolveDamage(
+            basePotency: 4, keyword: keyword, target: battle.enemy, sourceActorID: battle.hero.id,
+            operation: keyword == .burn ? .resolvedPeriodic : .periodic, in: &battle,
         ) }
-        #expect(battle.health(of: battle.enemy) == before - 6)
-        #expect(CombatTriggerEngine.totalPotency(of: .burn, on: battle.enemy, in: battle) == 2)
+        #expect(before - battle.health(of: battle.enemy) == (conditioned ? 6 : 4))
+        #expect(outcome.events.filter { $0.kind == .status }.map(\.keyword) == [keyword])
+        #expect(!outcome.events.contains { $0.kind == .abilityDamage })
     }
 
-    @Test(arguments: [Keyword.bleed, .burn])
-    func `silent stacks and fully blocked damage do not trigger conversions`(keyword: Keyword) {
+    @Test func `silent Bleed stacks and fully blocked damage do not trigger Infected`() {
         var profile = CombatModifierProfile.zero
         profile.triggers.criticalChanceBonus = -1
         profile.triggers.onBleedApplyPoison = 2
         profile.triggers.onBleedDealPoisonChancePercent = 1
-        profile.triggers.onBurnApplyPoison = 2
-        profile.triggers.onBurnDealPoisonChancePercent = 1
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
         _ = CombatExecutor.run { await DoTApplicator.applyDoT(
-            keyword: keyword, potency: 4, to: battle.enemy, sourceActorID: battle.hero.id,
+            keyword: .bleed, potency: 4, to: battle.enemy, sourceActorID: battle.hero.id,
             application: .attached, in: &battle,
         ) }
         DefensePoolEngine.set(100, on: battle.enemy, in: &battle)
         let tick = CombatExecutor.run { await DoTDamage.resolveDamage(
-            basePotency: 4, keyword: keyword, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
+            basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
         ) }
         #expect(tick.healthLost == 0)
         #expect(battle.health(of: battle.enemy) == 50)
         #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 0)
+    }
+
+    @Test func `Dazing Swipe adds one control charge per Physical ability without another damage packet`() {
+        var profile = CombatantTalentCatalog.profile(for: ["bear_stun_t1_2"])
+        profile.triggers.dazingSwipeChancePercent = 1
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroModifiers: profile, appliesFightPacing: false,
+        )
+        let ability = Ability(
+            id: "double-swipe", name: "Double Swipe", tier: .basic,
+            damageComponents: [DamageComponent(1, keyword: .physical), DamageComponent(1, keyword: .physical)],
+            criticalChanceBonus: -1,
+        )
+        let events = battle.performTestAction(ability)
+        #expect(battle.health(of: battle.enemy) == 98)
+        #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.physical, .physical])
+        let meter = battle.activeEffects(of: battle.enemy).first { $0.effect.kind == .controlMeter }
+        #expect(meter?.effect == .controlMeter(.stun, 4, 20))
     }
 }

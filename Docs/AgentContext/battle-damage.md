@@ -55,12 +55,14 @@ Watchful Guard grants Block in the opening round as well as later rounds.
 Blood Scent, Bulwark Force, Dread Exploitation, and Fan the Flames amplify enemy
 attacks, not ongoing damage. Stormbreak's damage multiplier also applies to Bleed
 ticks against Stunned enemies; resolved Burn and Poison keep their stored potency.
-Infected, Cauterize, and Ashen Wake react to positive Health damage, including
-ticks, rather than stack attachment. Infected can successfully trigger only once
-per wearer per turn; failed rolls do not spend its allowance. Silent stack grants
-do not trigger them.
-Cauterize's Burn hit leaves Burn equal to its Health damage, like Infected and
-Ashen Wake's Poison hits.
+Infected reacts to positive Bleed Health damage, including ticks, rather than
+stack attachment. It can successfully trigger only once per wearer per turn;
+failed rolls do not spend its allowance. Its Poison hit leaves Poison equal to
+Health lost. Silent stack grants do not trigger it.
+Ashen Wake adds flat damage to existing Burn against Poisoned enemies; Cauterize
+adds flat damage to existing Bleed against Burning enemies. Both check the target
+at each damage event, including resolved ticks and damage from fallen sources,
+and create neither secondary hits nor new afflictions.
 Later damage components skip a target already defeated by the same action, so
 post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
 `DecayingDoTProgression` captures the original stack owner’s legacy decay and tick
@@ -77,7 +79,7 @@ Burn and Poison attached by damaging attacks or effect applications store the
 actual Health damage dealt by that damage instance, after offensive bonuses,
 critical damage, mitigation and Block. Fully blocked, dodged or otherwise
 zero-Health-damage applications attach no stacks. This rule is identical for
-party members and enemies. Blazing Feathers, Toxic Incense, and Toxic Remedy leave
+party members and enemies. Blazing Feathers and Toxic Incense leave
 stacks equal to their own hit's Health loss, without another immediate hit.
 Subsequent Burn/Poison ticks, consumed-stack damage
 and detonations use resolved potency: do not repeat outgoing flat/percent bonuses,
@@ -123,8 +125,9 @@ Bristling checks Block remaining after the incoming hit. Spiteful heals only
 when Thorns removes enemy Health, at most once per surviving wearer per turn.
 Thorns retaliation keeps its Physical or converted damage type and also observes
 Thorns resistance, including Briar Ward; ordinary Physical damage does not.
-Retaliatory reflection can trigger Spitebloom and earn Spiteful after positive
-Health damage, sharing Spiteful's once-per-turn allowance with a consumed Thorns stack.
+Retaliatory reflection receives Spitebloom's conditional damage and can earn
+Spiteful after positive Health damage, sharing Spiteful's once-per-turn allowance
+with a consumed Thorns stack.
 Its Physical reflection also observes Thorns resistance.
 Periodic Burn grants its damage rewards through the damage pipeline, including
 detonation and direct tick commands. Natural-turn Holy pings and Bleed detonation
@@ -139,8 +142,8 @@ Red Harvest detonates Bleed and Huntsmaster’s Call draws a Companion card only
 after Physical Critical Hits remove Health.
 Fully Blocked Critical Hits still qualify for ordinary Critical Hit Gold and Purge
 reactions; effects that explicitly require Health damage keep that requirement.
-Spitebloom follows Thorns Health damage with a separate Poison hit and attaches
-Poison only from Health actually lost to that hit.
+Spitebloom adds flat damage to existing Thorns against Poisoned enemies before
+recipient defenses, including Retaliatory reflection; it creates no Poison hit or stack.
 Venomtrail checks Bleed at each Poison damage event, including resolved ticks;
 it adds flat damage without replaying general outgoing bonuses. Hallowbreak
 increases Holy damage against Stunned targets, stacking with talent bonuses.

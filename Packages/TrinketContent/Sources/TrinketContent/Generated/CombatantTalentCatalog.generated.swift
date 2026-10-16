@@ -1304,11 +1304,11 @@ public extension CombatantTalentCatalog {
             "bear_stun_t1_2": CombatantTalentEffect(
                 name: "Dazing Swipe",
                 iconID: "sf:pawprint.fill",
-                description: "Physical attacks have a 10% chance to deal 4 Stun damage",
+                description: "Physical attacks have a 10% chance to apply 4 Stun build-up",
                 triggers: CombatTraitTriggers(
                     attack: AttackTriggers {
                         $0.dazingSwipeChancePercent = 0.10
-                        $0.dazingSwipeStunDamage = 4
+                        $0.dazingSwipeStunBuildup = 4
                     }
                 )
             ),

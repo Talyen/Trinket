@@ -89,19 +89,18 @@ struct DefeatedSourceDoTRegressionTests {
         #expect(events.contains { $0.abilityName == "Blood Money" && $0.amount == 5 } == survives)
     }
 
-    @Test(arguments: [Keyword.poison, .burn])
-    func `Bleed converts damage after its source is defeated without granting personal rewards`(conversion: Keyword) {
+    @Test(arguments: [false, true])
+    func `Bleed affixes survive their source without granting personal rewards`(infected: Bool) {
         var profile = CombatModifierProfile.zero
         profile.triggers.criticalChanceBonus = -1
         profile.triggers.onBleedDamageNextBasicGuaranteedCrit = true
         profile.triggers.onBleedDamageNextBasicCritBonus = 0.35
         profile.triggers.onBleedDamageHealSelf = 2
-        if conversion == .poison {
+        if infected {
             profile.triggers.onBleedApplyPoison = 2
             profile.triggers.onBleedDealPoisonChancePercent = 1
         } else {
-            profile.triggers.onBleedDealBurnDamage = 2
-            profile.triggers.onBleedDealBurnChancePercent = 1
+            profile.triggers.bleedDamageVsBurningFlat = 2
         }
         let bleed = ActiveEffect(id: 100, effect: .bleed(4), remainingTurns: 1, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeMinimalBattle(
@@ -111,12 +110,17 @@ struct DefeatedSourceDoTRegressionTests {
             heroModifiers: profile, appliesFightPacing: false,
         )
 
+        if !infected {
+            battle.insertEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        }
+
         CombatExecutor.run { await EffectHandlers.advanceTurn(
             bleed, on: battle.enemy, in: &battle,
         ) }
 
         #expect(battle.health(of: battle.enemy) == 94)
-        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == (conversion == .poison ? 2 : 0))
+        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == (infected ? 2 : 0))
+        #expect(CombatTriggerEngine.totalPotency(of: .burn, on: battle.enemy, in: battle) == (infected ? 0 : 1))
         #expect(battle.health(of: battle.hero) == 0)
         #expect(!battle.roster.hero.talents.pending.basicGuaranteedCritical)
         #expect(battle.roster.hero.talents.pending.basicCriticalBonus == 0)

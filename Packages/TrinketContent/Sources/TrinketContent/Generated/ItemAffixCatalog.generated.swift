@@ -335,18 +335,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.burn, .poison],
             weight: 8,
-            basic: ItemAffixPower(description: "Dealing Burn damage has a 35% chance to deal 1 Poison damage", modifiers: [], triggers: CombatTraitTriggers(
-                dot: DotTriggers {
-                    $0.onBurnApplyPoison = 1
-                    $0.onBurnDealPoisonChancePercent = 0.35
-                }
-            )),
-            astral: ItemAffixPower(description: "Dealing Burn damage has a 35% chance to deal 2 Poison damage", modifiers: [], triggers: CombatTraitTriggers(
-                dot: DotTriggers {
-                    $0.onBurnApplyPoison = 2
-                    $0.onBurnDealPoisonChancePercent = 0.35
-                }
-            ))
+            basic: ItemAffixPower(description: "Your Burn deals 1 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers { $0.burnDamageVsPoisonedFlat = 1 })),
+            astral: ItemAffixPower(description: "Your Burn deals 2 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers { $0.burnDamageVsPoisonedFlat = 2 }))
         ),
         ItemAffixCatalog.affix(
             id: "cauterize",
@@ -354,18 +344,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.bleed, .burn],
             weight: 8,
-            basic: ItemAffixPower(description: "Dealing Bleed damage has a 35% chance to deal 1 Burn damage", modifiers: [], triggers: CombatTraitTriggers(
-                dot: DotTriggers {
-                    $0.onBleedDealBurnDamage = 1
-                    $0.onBleedDealBurnChancePercent = 0.35
-                }
-            )),
-            astral: ItemAffixPower(description: "Dealing Bleed damage has a 35% chance to deal 2 Burn damage", modifiers: [], triggers: CombatTraitTriggers(
-                dot: DotTriggers {
-                    $0.onBleedDealBurnDamage = 2
-                    $0.onBleedDealBurnChancePercent = 0.35
-                }
-            ))
+            basic: ItemAffixPower(description: "Your Bleed deals 1 additional damage to Burning enemies", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers { $0.bleedDamageVsBurningFlat = 1 })),
+            astral: ItemAffixPower(description: "Your Bleed deals 2 additional damage to Burning enemies", modifiers: [], triggers: CombatTraitTriggers(dot: DotTriggers { $0.bleedDamageVsBurningFlat = 2 }))
         ),
         ItemAffixCatalog.affix(
             id: "contagion",
@@ -506,8 +486,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.holy, .health],
             weight: 8,
-            basic: ItemAffixPower(description: "Restore 1 Health when you deal Holy damage", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.holyDamageHealFlat = 1 })),
-            astral: ItemAffixPower(description: "Restore 3 Health when you deal Holy damage", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.holyDamageHealFlat = 3 }))
+            basic: ItemAffixPower(description: "Your first Holy attack that deals Health damage each turn restores 2 Health to the lowest-Health ally", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.firstHolyAttackHealPerTurn = 2 })),
+            astral: ItemAffixPower(description: "Your first Holy attack that deals Health damage each turn restores 6 Health to the lowest-Health ally", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.firstHolyAttackHealPerTurn = 6 }))
         )
         ]
     }
@@ -834,8 +814,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.health, .poison],
             weight: 1,
-            basic: ItemAffixPower(description: "Deal Poison damage equal to half your Health restored", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestoredPoisonPercent = 0.50 })),
-            astral: ItemAffixPower(description: "Deal Poison damage equal to half your Health restored", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestoredPoisonPercent = 0.50 }))
+            basic: ItemAffixPower(description: "Your next Poison attack gains bonus damage equal to half your latest healing received", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestoredNextPoisonDamagePercent = 0.50 })),
+            astral: ItemAffixPower(description: "Your next Poison attack gains bonus damage equal to half your latest healing received", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestoredNextPoisonDamagePercent = 0.50 }))
         ),
         ItemAffixCatalog.affix(
             id: "obsidian_hammer",
@@ -1128,8 +1108,8 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.thorns, .poison],
             weight: 8,
-            basic: ItemAffixPower(description: "When your Thorns deal damage, deal 1 Poison damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.poisonOnThornsDamage = 1 })),
-            astral: ItemAffixPower(description: "When your Thorns deal damage, deal 3 Poison damage", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.poisonOnThornsDamage = 3 }))
+            basic: ItemAffixPower(description: "Your Thorns deal 1 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.thornsDamageVsPoisonedFlat = 1 })),
+            astral: ItemAffixPower(description: "Your Thorns deal 3 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.thornsDamageVsPoisonedFlat = 3 }))
         )
         ]
     }

@@ -37,11 +37,12 @@ package extension CombatTriggerEngine {
             )
         }
 
-        if profile.triggers.holyDamageHealFlat > 0, context.health(of: source) > 0 {
+        if attackHit, profile.triggers.firstHolyAttackHealPerTurn > 0, context.health(of: source) > 0,
+           context.resolution.claim(.affix(.beacon), actorID: source.id, cadence: .turn(context.turnCount)) {
             let target = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
             await emitHeal(
-                .holyDamageHealFlat, "Beacon",
-                amount: profile.triggers.holyDamageHealFlat, to: target, source: source, in: &context,
+                .firstHolyAttackHealPerTurn, "Beacon",
+                amount: profile.triggers.firstHolyAttackHealPerTurn, to: target, source: source, in: &context,
             )
         }
 

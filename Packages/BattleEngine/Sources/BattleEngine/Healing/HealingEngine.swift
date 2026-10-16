@@ -239,7 +239,7 @@ package enum HealingEngine {
         in context: inout BattleState,
     ) async {
         guard restored > 0 else { return }
-        await CombatTriggerEngine.afterHealthRestored(restored, to: request.target, in: &context)
+        CombatTriggerEngine.afterHealthRestored(restored, to: request.target, in: &context)
         if let sourceTriggers, sourceTriggers.onHealDealHoly > 0,
            let sourceID = request.sourceActorID,
            let source = context.roster.combatant(for: sourceID), source.isAlive,

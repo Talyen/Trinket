@@ -38,8 +38,10 @@ leaves a prepared next-Block-gain bonus available for the next base grant.
 Rimeheart Locket grants resolved Block equal to actual Freeze Health damage, including
 Blizzard pulses and reactive damage, only while its wearer lives after retaliation.
 Its Freeze-triggered Mana also requires a living wearer. Holy Infusion's committed
-Holy Thorns qualifies for Holy damage rewards, including Beacon healing; personal
-rewards require their owner to survive. Holy restoration, Block, Cleanse,
+Holy Thorns qualifies for Holy damage rewards, while Beacon requires the first
+Holy attack that removes Health per wearer per turn. Blocked attacks and raw
+Thorns do not spend Beacon's allowance. Personal rewards require their owner to
+survive. Holy restoration, Block, Cleanse,
 Mana and preparation rewards likewise require a living source; committed offensive
 consequences retain their own eligibility.
 Sun Glyph and Vitality Infusion grant ally Block after the hit's retaliation and
@@ -56,6 +58,10 @@ Symbiosis shares its wearer's actual Leech restoration with the living partner,
 whether equipped by a Hero or Companion. Its saved `companionLeechSharePercent`
 field remains unchanged. Shares apply recipient healing reduction without
 repeating healer bonuses, and cannot trigger another Leech share.
+Toxic Remedy replaces its recipient's prepared Poison attack damage with half
+the latest actual Health restoration, excluding overflow. It creates no immediate
+damage or Poison. The creating action/card and ongoing damage cannot consume it;
+a later Poison attack consumes it once, adding independently to Volatile Remedy.
 Heartshock reacts only to direct Leech restoration below half Health. Its Stun
 follow-up cannot Leech, so it cannot trigger another Heartshock hit.
 Taste for Blood, Necrotic Bleed, Toxic Touch, Soulpiercer, and Vitality Infusion

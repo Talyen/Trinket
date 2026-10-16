@@ -23,26 +23,19 @@ struct ReactionScopeTests {
         #expect(state.resolution.depth(.damage) == ReactionScope.maxDepth)
     }
 
-    @Test(arguments: [Keyword.bleed, .burn], [ReactionScope.maxDepth - 1, ReactionScope.maxDepth])
-    func `active DoT conversions respect the depth boundary and restore ownership`(keyword: Keyword, depth: Int) {
+    @Test(arguments: [ReactionScope.maxDepth - 1, ReactionScope.maxDepth])
+    func `Infected respects the depth boundary and restores ownership`(depth: Int) {
         var profile = CombatModifierProfile.zero
         profile.triggers.onBleedApplyPoison = 3
-        profile.triggers.onBurnApplyPoison = 3
         var state = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
         let target = state.enemy
         for _ in 0 ..< depth {
             state.resolution.enter(.dot)
         }
         let events = state.recordingEvents { state in
-            if keyword == .bleed {
-                await CombatTriggerEngine.afterBleedDamageConversions(
-                    to: target, sourceActorID: state.hero.id, in: &state,
-                )
-            } else {
-                await CombatTriggerEngine.afterBurnDamageConversion(
-                    to: target, sourceActorID: state.hero.id, in: &state,
-                )
-            }
+            await CombatTriggerEngine.afterBleedDamageConversions(
+                to: target, sourceActorID: state.hero.id, in: &state,
+            )
         }
         let applies = depth < ReactionScope.maxDepth
         #expect(events.isEmpty == !applies)

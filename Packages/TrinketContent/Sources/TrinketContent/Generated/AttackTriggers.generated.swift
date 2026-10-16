@@ -115,6 +115,7 @@ public struct AttackTriggers: Equatable, Hashable, Sendable {
     public var huntsmasterPhysicalCriticalDrawsCompanion: Bool = false
     public var attackPurgeCount: Int = 0
     public var loadedStrike: Bool = false
+    public var dazingSwipeStunBuildup: Int = 0
 
     public init(_ configure: (inout Self) -> Void = { _ in }) {
         configure(&self)

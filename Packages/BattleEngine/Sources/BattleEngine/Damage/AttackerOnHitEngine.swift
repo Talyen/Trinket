@@ -398,15 +398,15 @@ extension AttackerOnHitEngine {
            BattleChance.succeeds(probability: triggers.directHitBleedChancePercent, using: &context.rng) {
             await appendTargetBleed(potency: 1, state: &state, context: &context)
         }
-        if triggers.dazingSwipeChancePercent > 0, triggers.dazingSwipeStunDamage > 0,
+        if triggers.dazingSwipeChancePercent > 0, triggers.dazingSwipeStunBuildup > 0,
            state.options.isAttackHit, state.damageKeyword == .physical,
            !state.options.isRetaliation, context.roster.health(for: target) > 0,
            context.claimTalentAbility(.dazingSwipe, actorID: hit.sourceActorID),
            BattleChance.succeeds(probability: triggers.dazingSwipeChancePercent, using: &context.rng) {
-            _ = await DamagePipeline.resolveNestedDamage(
-                amount: triggers.dazingSwipeStunDamage,
+            await ControlMeterEngine.applyMeterCharge(
+                triggers.dazingSwipeStunBuildup,
                 keyword: .stun,
-                target: target,
+                to: target,
                 sourceActorID: hit.sourceActorID,
                 in: &context,
             )

@@ -68,8 +68,8 @@ struct DeadThornsRewardRegressionTests {
         #expect(battle.health(of: battle.enemy) == (hasStack ? 96 : 99))
     }
 
-    @Test(arguments: [0, 1])
-    func `Retaliatory triggers Spitebloom only after reflection removes Health`(enemyBlock: Int) throws {
+    @Test(arguments: [0, 2])
+    func `Spitebloom strengthens Retaliatory before enemy Block`(enemyBlock: Int) throws {
         var profile = CombatModifierProfile.zero
         for id in ["retaliatory", "spitebloom"] {
             let affix = try #require(GameContent.itemAffixDefinition(matching: id))
@@ -81,6 +81,7 @@ struct DeadThornsRewardRegressionTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroModifiers: profile, appliesFightPacing: false,
         )
+        battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         DefensePoolEngine.set(enemyBlock, on: battle.enemy, in: &battle)
 
         _ = battle.resolveTestDamage(
@@ -91,6 +92,6 @@ struct DeadThornsRewardRegressionTests {
         )
 
         #expect(battle.health(of: battle.enemy) == (enemyBlock == 0 ? 98 : 100))
-        #expect(battle.roster.hasAffliction(.poison, on: battle.enemy) == (enemyBlock == 0))
+        #expect(CombatTriggerEngine.totalPotency(of: .poison, on: battle.enemy, in: battle) == 1)
     }
 }

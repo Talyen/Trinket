@@ -67,13 +67,10 @@ struct TurnBoundaryRegressionTests {
         }
     }
 
-    @Test func `End Turn stops Hibernation after Arcane Cleansing wins the battle`() throws {
+    @Test func `End Turn stops Hibernation after Arcane Cleansing wins the battle`() {
         var hero = CombatantTalentCatalog.profile(for: ["wizard_mana_t2_2"])
-        let absolution = try #require(GameContent.itemAffixDefinition(matching: "sin_eaters_lantern"))
-        absolution.basic.triggers.apply(to: &hero, abilityName: absolution.title)
-        var companion = CombatantTalentCatalog.profile(for: ["bear_block_t1_2"])
-        let remedy = try #require(GameContent.itemAffixDefinition(matching: "mortar_and_pestle"))
-        remedy.basic.triggers.apply(to: &companion, abilityName: remedy.title)
+        hero.triggers.cleanseHolyDamage = 1
+        let companion = CombatantTalentCatalog.profile(for: ["bear_block_t1_2"])
         var battle = cadenceBattle(heroModifiers: hero, companionModifiers: companion)
         battle.roster.hero.currentHealth = 20
         battle.roster.companion.currentHealth = 10
@@ -83,16 +80,16 @@ struct TurnBoundaryRegressionTests {
         let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
 
         #expect(battle.isBattleOver)
-        #expect(battle.health(of: battle.companion) == 13)
+        #expect(battle.health(of: battle.companion) == 10)
         #expect(!battle.roster.hasAffliction(.poison, on: battle.hero))
         #expect(!events.contains { $0.abilityName == "Hibernation" })
     }
 
     @Test func `Purifying Aura stops before cleansing its second ally after victory`() {
-        var hero = CombatModifierProfile.zero
-        hero.triggers.healthRestoredPoisonPercent = 0.5
+        let hero = CombatModifierProfile.zero
         var pixie = CombatantTalentCatalog.profile(for: ["pixie_cleanse_t1_1", "pixie_cleanse_t3_2"])
         pixie.triggers.criticalChanceBonus = -1
+        pixie.triggers.cleanseHolyDamage = 1
         var battle = cadenceBattle(heroModifiers: hero, companionModifiers: pixie)
         battle.insertEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.insertEffect(.burn(1), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
@@ -105,7 +102,7 @@ struct TurnBoundaryRegressionTests {
         #expect(events.count(where: { $0.abilityName == "Purifying Aura" && $0.effectKind == .cleanseApplied }) == 1)
     }
 
-    @Test func `Passive Income victory stops Verdant Renewal in the same regeneration step`() throws {
+    @Test func `Toxic Remedy prepares an attack while regeneration continues`() throws {
         var hero = CombatModifierProfile.zero
         let remedy = try #require(GameContent.itemAffixDefinition(matching: "mortar_and_pestle"))
         remedy.basic.triggers.apply(to: &hero, abilityName: remedy.title)
@@ -119,10 +116,11 @@ struct TurnBoundaryRegressionTests {
 
         let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 
-        #expect(battle.isBattleOver)
+        #expect(!battle.isBattleOver)
         #expect(battle.gold == 1)
-        #expect(battle.health(of: battle.hero) == 12)
-        #expect(!events.contains { $0.abilityName == "Verdant Renewal" })
+        #expect(battle.health(of: battle.hero) == 14)
+        #expect(events.contains { $0.abilityName == "Verdant Renewal" })
+        #expect(battle.roster.hero.talents.pending.nextToxicRemedyDamageBonus?.value == 1)
     }
 
     private func cadenceBattle(

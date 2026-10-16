@@ -10,6 +10,7 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case ashenArsenal
     case basicAttackFreezeBuildup
     case batteringRam
+    case beacon
     case belowHalfGoldGainHeal
     case blazingFeathers
     case bleedCriticalDraw

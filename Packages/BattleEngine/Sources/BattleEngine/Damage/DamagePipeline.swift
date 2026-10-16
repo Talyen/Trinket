@@ -133,9 +133,6 @@ package enum DamagePipeline {
                 sourceActorID: sourceActorID, in: &context,
             )
         }
-        if state.damageKeyword == .burn, state.healthLost > 0, let sourceID = state.sourceActorID {
-            await CombatTriggerEngine.afterBurnDamageConversion(to: state.combatant, sourceActorID: sourceID, in: &context)
-        }
         if state.damageKeyword == .bleed {
             await CombatTriggerEngine.afterBleedDamage(
                 healthLost: state.healthLost, target: state.combatant,
@@ -215,7 +212,7 @@ package enum DamagePipeline {
             state.dealt = state.amount
             state.isCritical = state.options.guaranteedCritical
             if !state.options.isResolvedCardRepeat {
-                applyVenomtrail(to: &state, in: context)
+                applyConditionalAffixDamage(to: &state, in: context)
                 applyPreparedPoisonDamage(to: &state, in: &context)
             }
         } else {

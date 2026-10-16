@@ -71,6 +71,8 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
                 return Self.normalizedPower(power.scaled(by: baseType.affixPowerMultiplier), affixID: affixID)
             }
             power = Self.normalizedPower(power, affixID: affixID)
+            let scaled = power.scaled(by: baseType.affixPowerMultiplier)
+            return Self.normalizedCombatProcPower(scaled, affixID: affixID) ?? scaled
         }
         return power.scaled(by: baseType.affixPowerMultiplier)
     }
@@ -108,7 +110,8 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         else {
             return false
         }
-        return storedPowers[index].isAtOrAboveRollMax(of: definition.power(for: rarity))
+        let power = Self.normalizedCombatProcPower(storedPowers[index], affixID: affixes[index].id) ?? storedPowers[index]
+        return power.isAtOrAboveRollMax(of: definition.power(for: rarity))
     }
 
     public var uniqueSignatureIndex: Int? {

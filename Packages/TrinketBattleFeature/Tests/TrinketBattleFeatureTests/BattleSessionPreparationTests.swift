@@ -229,8 +229,8 @@ struct BattleSessionPreparationTests {
         session.connectProgression(to: progression)
         defer { withExtendedLifetime(progression) {} }
         var modifiers = CombatModifierProfile.zero
-        modifiers.triggers.healthRegenAboveHalfHealth = 4
-        modifiers.triggers.healthRestoredPoisonPercent = 0.5
+        modifiers.triggers.forbiddenKnowledge = true
+        modifiers.triggers.enterDeathsDoorBurnDamage = 1
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100, abilities: [.slash])
         let companion = CombatantFixtures.passiveCompanion()
         let enemy = CombatantFixtures.passiveEnemy(maxHealth: 1)
@@ -240,7 +240,7 @@ struct BattleSessionPreparationTests {
         let configuration = BattleRunConfiguration(
             runKey: mode == .prepared ? BattleRunKey("test|opening-victory") : nil,
             rngSeed: 17,
-            hero: .init(combatant: hero, progression: .initial, equipmentLoadout: .init(), modifiers: modifiers, startingHealth: 60),
+            hero: .init(combatant: hero, progression: .initial, equipmentLoadout: .init(), modifiers: modifiers, startingHealth: 1),
             companion: .init(combatant: companion, progression: .initial, equipmentLoadout: .init(), modifiers: .zero),
             enemy: enemy, enemyModifiers: .zero,
         )

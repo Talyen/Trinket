@@ -17,10 +17,10 @@ struct ItemCorruptionTests {
         #expect(originalPowers != catalogPowers)
         for kind in [CorruptionEffectKind.addAffix, .replaceAffix] {
             let result = try #require(ItemCorruption.apply(kinds: [kind], to: item, using: &rng))
-            let powers = try #require(result.item.affixPowers)
+            _ = try #require(result.item.affixPowers)
             for (index, affix) in result.item.affixes.enumerated() {
                 if let originalIndex = item.affixes.firstIndex(where: { $0.id == affix.id }) {
-                    #expect(powers[index] == originalPowers[originalIndex])
+                    #expect(result.item.resolvedPower(at: index) == item.resolvedPower(at: originalIndex))
                 }
             }
         }

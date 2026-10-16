@@ -194,8 +194,8 @@ counterattacks as well as played cards, including hits fully absorbed by Block.
 ### Dazing Swipe
 
 Dazing Swipe rolls once per Physical attack ability, using its authored chance
-and Stun damage through normal control buildup. Retaliation and periodic damage
-do not qualify, and the Stun reaction cannot recursively trigger itself.
+and directly grants Stun build-up without an additional damage hit. Retaliation
+and periodic damage do not qualify.
 
 ### First Physical attack Critical Hit preparation
 

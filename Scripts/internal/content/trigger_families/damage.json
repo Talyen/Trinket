@@ -498,6 +498,14 @@
       "name": "holyDamageVsStunnedPercent",
       "type": "Double",
       "affix_roll": { "kind": "percent", "order": 80 }
+    },
+    {
+      "name": "thornsDamageVsPoisonedFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 81
+      }
     }
   ]
 }

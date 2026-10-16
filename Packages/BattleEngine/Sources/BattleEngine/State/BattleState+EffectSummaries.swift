@@ -247,7 +247,9 @@ private extension CombatantTalentState.Pending {
     private func appendAttackBonuses(to summaries: inout [EffectSummary]) {
         let nextBurnAttackPercent = nextBurnAttackPercent?.value ?? 0
         let nextBurnDamageBonus = nextBurnDamageBonus?.value ?? 0
-        let nextPoisonDamageBonus = nextPoisonDamageBonus?.value ?? 0
+        let nextPoisonDamageBonus = SaturatedArithmetic.saturatingAdd(
+            nextPoisonDamageBonus?.value ?? 0, nextToxicRemedyDamageBonus?.value ?? 0,
+        )
         let criticalBonus = (nextAttackCriticalBonus?.value ?? 0) + (nextCleanseCriticalBonus?.value ?? 0)
         summaries.append(
             .burn,

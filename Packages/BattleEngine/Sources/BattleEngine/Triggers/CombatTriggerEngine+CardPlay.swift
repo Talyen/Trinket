@@ -205,28 +205,18 @@ package extension CombatTriggerEngine {
         _ amount: Int,
         to actor: Combatant,
         in context: inout BattleState,
-    ) async {
+    ) {
         resetPantherRedline(afterHealthRestoration: actor, in: &context)
-        let percent = context.modifiers(for: actor.id).triggers.healthRestoredPoisonPercent
-        guard amount > 0, percent > 0, context.roster.enemy.isAlive, context.resolution.depth(.talentReaction) == 0 else {
+        let percent = context.modifiers(for: actor.id).triggers.healthRestoredNextPoisonDamagePercent
+        guard amount > 0, percent > 0, context.roster.runtime(for: actor)?.isAlive == true else {
             return
         }
-        let damage = CombatRounding.scaled(amount, multiplier: percent)
-        guard damage > 0 else { return }
-        context.resolution.enter(.talentReaction)
-        defer { context.resolution.leave(.talentReaction) }
-        let poison = await DamagePipeline.resolveNestedDamage(
-            amount: damage,
-            keyword: .poison,
-            target: context.roster.enemy.combatant,
-            sourceActorID: actor.id,
-            in: &context,
+        let preparation = PreparedTalentBonus(
+            value: CombatRounding.scaled(amount, multiplier: percent),
+            cardSerial: context.resolution.cardTalents?.playSerial,
+            actionID: context.resolution.actionID,
         )
-
-        await context.applyDecayingDoT(
-            keyword: .poison, potency: poison.healthLost, to: context.roster.enemy.combatant,
-            sourceActorID: actor.id, application: .attached,
-        )
+        context.roster.mutateRuntime(for: actor) { $0.talents.pending.nextToxicRemedyDamageBonus = preparation }
     }
 
     static func drawCards(

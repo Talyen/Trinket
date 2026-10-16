@@ -372,9 +372,9 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `a turn start victory stops later ally Gold gains`() {
-        let healing = CombatModifierProfile.withTriggers {
-            $0.healthRestoredPoisonPercent = 1
-            $0.healthPerTurn = 2
+        let cleansing = CombatModifierProfile.withTriggers {
+            $0.purifyingAura = true
+            $0.cleanseHolyDamage = 1
         }
         let gold = CombatModifierProfile.withTriggers { $0.goldPerTurn = 1 }
         var battle = makeCohesionBattle(
@@ -383,9 +383,11 @@ extension KeywordCohesionMechanicsTests {
             enemyMaxHealth: 10,
             heroHealth: 9,
             enemyHealth: 1,
-            heroModifiers: healing,
+            heroModifiers: cleansing,
             companionModifiers: gold,
         )
+
+        battle.insertEffect(.poison(1), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
 
         CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
 

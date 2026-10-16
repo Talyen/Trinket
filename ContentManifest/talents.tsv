@@ -102,7 +102,7 @@ bear_physical_t2_2	Heavy Impact	sf:hammer.fill	Stunned enemies take 25% increase
 bear_physical_t3_1	Enrage	sf:flame.fill	Below half Health, Physical attacks gain +25% Critical Hit chance		physicalCritChanceBelowHalfBonus:0.25
 bear_physical_t3_2	Pulverize	sf:hammer.fill	Physical Critical Hits remove all enemy Block		physicalCritRemoveEnemyBlock:true
 bear_stun_t1_1	Ground Slam	sf:hammer.fill	Your first Stun attack each turn deals 3 additional damage		firstStunAttackBonusPerTurn:3
-bear_stun_t1_2	Dazing Swipe	sf:pawprint.fill	Physical attacks have a 10% chance to deal 4 Stun damage		dazingSwipeChancePercent:0.10|dazingSwipeStunDamage:4
+bear_stun_t1_2	Dazing Swipe	sf:pawprint.fill	Physical attacks have a 10% chance to apply 4 Stun build-up		dazingSwipeChancePercent:0.10|dazingSwipeStunBuildup:4
 bear_stun_t2_1	Shockwave	sf:waveform	Stun attacks ignore half enemy Block		stunBlockIgnorePercent:0.5
 bear_stun_t2_2	Deep Stun	sf:hourglass.bottomhalf.filled	Stun has a 20% chance to last another turn		stun_extend_chance_percent:0.20
 bear_stun_t3_1	Exposed Prey	sf:scope	Stunned enemies take 25% more damage from your ally		heroDamageVsStunnedMultiplier:1.25

@@ -9,7 +9,7 @@ package extension CombatTriggerEngine {
         explicitChance > 0 ? explicitChance : (guaranteed ? 1 : 0)
     }
 
-    /// Damage conversions run once per positive Health-damage packet, including ticks.
+    /// Infected can add Poison after positive Bleed Health damage, including ticks.
     static func afterBleedDamageConversions(
         to target: Combatant,
         sourceActorID: String,
@@ -40,21 +40,6 @@ package extension CombatTriggerEngine {
                     application: .reaction,
                 )
             }
-
-            let bleedBurnChance = chanceOrGuaranteed(
-                profile.triggers.onBleedDealBurnChancePercent,
-                guaranteed: profile.triggers.onBleedDealBurnDamage > 0,
-            )
-            if profile.triggers.onBleedDealBurnDamage > 0, bleedBurnChance > 0,
-               BattleChance.succeeds(probability: min(1, bleedBurnChance), using: &context.rng) {
-                await context.applyDecayingDoT(
-                    keyword: .burn,
-                    potency: profile.triggers.onBleedDealBurnDamage,
-                    to: target,
-                    sourceActorID: sourceActorID,
-                    application: .reaction,
-                )
-            }
         }
     }
 
@@ -70,24 +55,6 @@ package extension CombatTriggerEngine {
             context.roster.mutateRuntime(for: source.combatant) {
                 $0.talents.grantDodgeUntilNextTurn(dodgeBonus)
             }
-        }
-    }
-
-    static func afterBurnDamageConversion(
-        to target: Combatant,
-        sourceActorID: String,
-        in context: inout BattleState,
-    ) async {
-        let triggers = context.modifiers(for: sourceActorID).triggers
-        let potency = triggers.onBurnApplyPoison
-        guard potency > 0 else { return }
-        await withDoTRecursionScope(site: "afterBurnDamageConversion", context: &context) { context in
-            let chance = chanceOrGuaranteed(triggers.onBurnDealPoisonChancePercent, guaranteed: true)
-            guard BattleChance.succeeds(probability: min(1, chance), using: &context.rng) else { return }
-            await context.applyDecayingDoT(
-                keyword: .poison, potency: potency, to: target,
-                sourceActorID: sourceActorID, application: .reaction,
-            )
         }
     }
 

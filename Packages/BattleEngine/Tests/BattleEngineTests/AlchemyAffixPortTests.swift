@@ -21,17 +21,23 @@ struct AlchemyAffixPortTests {
         )
     }
 
-    @Test func `Spitebloom follows damaging Thorns with Poison`() {
+    @Test(arguments: [false, true])
+    func `Spitebloom strengthens the existing Thorns hit against Poisoned enemies`(poisoned: Bool) {
         var profile = CombatModifierProfile.zero
-        profile.triggers.poisonOnThornsDamage = 2
+        profile.triggers.thornsDamageVsPoisonedFlat = 2
         var battle = makeAffixBattle(
             heroEffects: [ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 0)],
             modifiers: profile,
         )
-
-        _ = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable))
-        #expect(battle.health(of: battle.enemy) == 35)
-        #expect(battle.roster.hasAffliction(.poison, on: battle.enemy))
+        if poisoned {
+            battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        }
+        let outcome = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .attack(
+            tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
+        ))
+        #expect(battle.health(of: battle.enemy) == (poisoned ? 35 : 37))
+        #expect(outcome.events.filter { $0.effectKind == .thornsTriggered }.map(\.amount) == [poisoned ? 5 : 3])
+        #expect(!outcome.events.contains { $0.kind == .abilityDamage && $0.keyword == .poison })
     }
 
     @Test func `Bloodroot needs actual Leech restoration and no existing Thorns`() {

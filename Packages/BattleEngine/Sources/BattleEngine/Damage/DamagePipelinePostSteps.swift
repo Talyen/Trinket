@@ -429,7 +429,6 @@ package extension DamagePipeline {
         defender: Combatant,
         in context: inout BattleState,
     ) async {
-        await spitebloomDamage(healthLost: healthLost, attacker: attacker, defender: defender, in: &context)
         let poison = context.modifiers(for: defender.id).triggers.firstThornsPoisonDamagePerTurn
         if healthLost > 0, poison > 0, context.roster.health(for: attacker) > 0,
            context.claimTurnGuard(.thornShedding, actorID: defender.id) {
@@ -439,27 +438,6 @@ package extension DamagePipeline {
             )
         }
         await spitefulHeal(healthLost: healthLost, defender: defender, in: &context)
-    }
-
-    private static func spitebloomDamage(
-        healthLost: Int,
-        attacker: Combatant,
-        defender: Combatant,
-        in context: inout BattleState,
-    ) async {
-        let amount = context.modifiers(for: defender.id).triggers.poisonOnThornsDamage
-        guard healthLost > 0, amount > 0, context.roster.health(for: attacker) > 0 else { return }
-        let poison = await resolveNestedDamage(
-            amount: amount, keyword: .poison,
-            target: attacker, sourceActorID: defender.id, in: &context,
-        )
-
-        if poison.healthLost > 0 {
-            await context.applyDecayingDoT(
-                keyword: .poison, potency: poison.healthLost, to: attacker,
-                sourceActorID: defender.id, application: .attached,
-            )
-        }
     }
 
     private static func spitefulHeal(

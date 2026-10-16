@@ -376,6 +376,22 @@
       "name": "enemyBurnPreventDecayChancePercent",
       "type": "Double",
       "merge": "max"
+    },
+    {
+      "name": "burnDamageVsPoisonedFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 82
+      }
+    },
+    {
+      "name": "bleedDamageVsBurningFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 83
+      }
     }
   ]
 }

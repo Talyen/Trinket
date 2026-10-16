@@ -4,20 +4,32 @@ import TrinketCore
 @testable import BattleEngine
 
 extension UniqueCollectionTests {
-    @Test func `Beacon heals after Holy Infusion Thorns damage`() throws {
+    @Test func `Beacon heals on the first damaging Holy attack per turn without spending its allowance on Thorns or Block`() throws {
         var profile = CombatantTalentCatalog.profile(for: ["knight_holy_t2_1"])
         let beacon = try #require(GameContent.itemAffixDefinition(matching: "beacon"))
         beacon.basic.triggers.apply(to: &profile, abilityName: beacon.title)
+        profile.triggers.criticalChanceBonus = -1
         var context = try battle([], extra: profile)
         context.roster.hero.currentHealth = 10
         context.roster.companion.currentHealth = 20
         context.insertEffect(.thorns(4), to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
 
         let events = enemyHit(1, in: &context).events
-
         #expect(context.health(of: context.enemy) == 1996)
-        #expect(context.health(of: context.hero) == 10)
-        #expect(events.contains { $0.abilityName == "Beacon" && $0.effectKind == .instantHeal && $0.amount == 1 })
+        #expect(context.health(of: context.hero) == 9)
+        #expect(!events.contains { $0.abilityName == "Beacon" })
+        let attack = DamageOperation.attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
+        block(10, owner: .enemy, in: &context)
+        _ = context.resolveTestDamage(10, keyword: .holy, options: attack)
+        #expect(context.health(of: context.hero) == 9)
+        let first = context.resolveTestDamage(1, keyword: .holy, options: attack)
+        #expect(context.health(of: context.hero) == 11)
+        #expect(first.events.filter { $0.abilityName == "Beacon" && $0.effectKind == .instantHeal }.map(\.amount) == [2])
+        _ = context.resolveTestDamage(1, keyword: .holy, options: attack)
+        #expect(context.health(of: context.hero) == 11)
+        context.turnCount += 1
+        _ = context.resolveTestDamage(1, keyword: .holy, options: attack)
+        #expect(context.health(of: context.hero) == 13)
     }
 
     @Test func `Rimeheart grants Block for Blizzard's immediate and lingering Freeze damage`() throws {

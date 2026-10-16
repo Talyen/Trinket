@@ -96,7 +96,7 @@ struct ImportedAffixBattleTests {
 
         #expect(battle.health(of: battle.enemy) == 96)
         #expect(battle.health(of: battle.hero) == (finallyDefeated ? 0 : 12))
-        #expect(battle.health(of: battle.companion) == (finallyDefeated ? 5 : 6))
+        #expect(battle.health(of: battle.companion) == (finallyDefeated ? 5 : 7))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == (finallyDefeated ? 0 : 1))
         #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .poison } == finallyDefeated)
     }

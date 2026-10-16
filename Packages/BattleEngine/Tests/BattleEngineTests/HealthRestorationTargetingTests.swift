@@ -33,10 +33,10 @@ struct HealthRestorationTargetingTests {
     }
 
     @Test func `holy and dodge affixes restore the lowest ally`() {
-        let holy = CombatModifierProfile.withTriggers { $0.holyDamageHealFlat = 3 }
+        let holy = CombatModifierProfile.withTriggers { $0.firstHolyAttackHealPerTurn = 3 }
         var holyBattle = battle(heroModifiers: holy)
         CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(
-            to: holyBattle.enemy, source: holyBattle.hero, in: &holyBattle,
+            to: holyBattle.enemy, source: holyBattle.hero, attackHit: true, in: &holyBattle,
         ) }
         #expect(holyBattle.health(of: holyBattle.companion) == 4)
         #expect(holyBattle.health(of: holyBattle.hero) == 20)
