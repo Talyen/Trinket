@@ -108,6 +108,7 @@ public struct RewardRevealShell<Content: View>: View {
             .frame(maxWidth: .infinity)
         }
         .defaultScrollAnchor(.top)
+        .clipped()
         .safeAreaInset(edge: .bottom) {
             if pinsActions, primaryActionTitle != nil {
                 actions
@@ -115,19 +116,6 @@ public struct RewardRevealShell<Content: View>: View {
                     .padding(.vertical, TrinketDesign.Spacing.medium)
                     .frame(maxWidth: .infinity)
                     .trinketMaterial(.bottomBar, cornerRadius: 0)
-                    .background(alignment: .top) {
-                        LinearGradient(
-                            colors: [
-                                TrinketDesign.Colors.canvas.opacity(0),
-                                TrinketDesign.Colors.canvas.opacity(0.88),
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom,
-                        )
-                        .frame(height: 28)
-                        .offset(y: -28)
-                        .allowsHitTesting(false)
-                    }
             }
         }
     }

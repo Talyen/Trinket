@@ -63,10 +63,12 @@ system bars may move with the available space. Do not add device-specific panels
 Before iOS 27.1, `PortraitAppRoot` retains the upright portrait lock through its
 first-party hosting controller. Forward public scene/display inputs into that
 hosted root; copying the entire `EnvironmentValues` replaces hosting's internal
-accessibility state and hides cold-launch controls. Apply blanket safe-area
-ignoring only to the legacy representable. Native game content receives system
-safe areas; full-bleed artwork owns any scoped background exception. Root
-scroll-edge and appearance modifiers belong to the shared game content.
+accessibility state and hides cold-launch controls.
+Text size belongs to the hosting controller's native traits; forwarding a captured
+SwiftUI text size overrides native accessibility-audit changes.
+Apply blanket safe-area ignoring only to the legacy representable. Native game
+content receives system safe areas; full-bleed artwork owns any scoped background
+exception. Root scroll-edge and appearance modifiers belong to the shared game content.
 
 `UIRequiresFullScreen` retains legacy orientation compatibility; the system
 ignores it starting with iOS 27.1, matching the native root. Maintain runtime

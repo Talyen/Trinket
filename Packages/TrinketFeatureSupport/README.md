@@ -20,7 +20,9 @@ Within `Sources/TrinketFeatureSupport/Shared/`, `Cards/` owns reusable cards and
 item artwork, `Encounters/` owns encounter tiles and reading presentation, and
 `Rewards/` owns the reward reveal sequence and its views. Victory and Mystery
 reveal loot and the primary action together while XP animates, keeping layout
-positions stable. `RewardRevealShell` keeps rewards top-aligned through reveal and
+positions stable. Pinned reward actions clip the scroll viewport above their footer
+so partially scrolled labels are not blurred or dimmed beneath it.
+`RewardRevealShell` keeps rewards top-aligned through reveal and
 viewport changes so the heading remains reachable, and automatically pins actions in short or wide
 viewports; its inline-height threshold scales with native body text. Victory,
 defeat and recruitment share that policy, while an explicit pinning argument can

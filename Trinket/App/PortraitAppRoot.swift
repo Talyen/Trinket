@@ -26,7 +26,6 @@ struct PortraitHostedContent<Content: View>: View {
         content
             .environment(\.scenePhase, environment.scenePhase)
             .environment(\.displayScale, environment.displayScale)
-            .environment(\.dynamicTypeSize, environment.dynamicTypeSize)
             .environment(\.layoutDirection, environment.layoutDirection)
     }
 }
