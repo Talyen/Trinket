@@ -204,40 +204,13 @@ extension CloudSaveSyncTests {
         await transport.advance(PlayerHomesteadState.secondsPerDay)
         #expect(b.persistFixtureBatch(logging: "Unrelated remote play") { $0.roster.gold += 1 })
         #expect(await b.cloudSync?.synchronize() == true)
-        #expect(await b.cloudSync?.perform(.collect) != nil)
+        try enqueueLegacyProduction(.collect, in: b)
+        #expect(await b.cloudSync?.synchronize() == true)
         #expect(a.persistFixtureBatch(logging: "Offline Gold") { $0.roster.gold += 7 })
         #expect(await a.cloudSync?.synchronize() == true)
         #expect(a.roster.gold == 109)
         #expect(await transport.account().head?.head.revision.snapshot.roster.gold == 109)
         #expect(a.cloudDeviceState.account.journal?.isEmpty == true)
-    }
-
-    @Test(arguments: [CloudSaveRequest.Action.collect, .upgrade(.wheatField, 2)])
-    @MainActor func `production preserves progress earned after preliminary synchronization`(
-        action: CloudSaveRequest.Action,
-    ) async throws {
-        let transport = CloudSaveTestTransport()
-        let context = try PersistenceTestContext()
-        let store = try cloudStore(context, transport: transport)
-        try seedHomestead(store)
-        #expect(await store.cloudSync?.synchronize() == true)
-        await transport.advance(PlayerHomesteadState.secondsPerDay)
-        try store.performFixtureMutation { $0.roster.gold += 7 }
-        let outcome = await store.cloudSync?.perform(action)
-        let expectedGold: Int
-        switch action {
-        case .collect:
-            #expect(outcome == .collected([.food: 1, .gold: 1]))
-            expectedGold = 108
-        default:
-            #expect(outcome == .upgraded)
-            expectedGold = 107
-        }
-        #expect(store.roster.gold == expectedGold)
-        let reloaded = try context.makeReloadedStore()
-        #expect(reloaded.roster.gold == expectedGold)
-        #expect(reloaded.homestead == store.homestead)
-        #expect(reloaded.cloudDeviceState.account.pending == nil)
     }
 
     @Test @MainActor func `local production after rollback cannot reopen cloud claim intervals`() async throws {
@@ -412,19 +385,22 @@ extension CloudSaveSyncTests {
         #expect(await transport.account().backups.count == 1)
     }
 
-    @Test @MainActor func `committed production recovers after response loss and disk reload exactly once`() async throws {
+    @Test @MainActor func `legacy production recovers after response loss and disk reload exactly once`() async throws {
         let transport = CloudSaveTestTransport()
         let context = try PersistenceTestContext()
         var original: PlayerSaveStore? = try cloudStore(context, transport: transport)
         try seedHomestead(#require(original))
         #expect(await original?.cloudSync?.synchronize() == true)
         await transport.advance(PlayerHomesteadState.secondsPerDay)
+        try enqueueLegacyProduction(.collect, in: #require(original))
+        let requestID = try #require(original?.cloudDeviceState.account.pending?.id)
         await transport.configure(loseResponse: true)
-        #expect(await original?.cloudSync?.perform(.collect) == nil)
+        #expect(await original?.cloudSync?.synchronize() == false)
         #expect(original?.homestead.resources[.food, default: 0] == 0)
-        #expect(original?.cloudDeviceState.account.pending != nil)
+        #expect(original?.cloudDeviceState.account.pending?.id == requestID)
         original = nil
         let recovered = try cloudStore(context, transport: transport)
+        #expect(recovered.cloudDeviceState.account.pending?.id == requestID)
         #expect(await recovered.cloudSync?.synchronize() == true)
         #expect(recovered.homestead.resources[.food] == 1)
         #expect(recovered.roster.gold == 101)
@@ -610,6 +586,13 @@ extension CloudSaveSyncTests {
             cloudSyncEnabled: true,
             cloudTransport: transport,
         )
+    }
+
+    @MainActor private func enqueueLegacyProduction(_ action: CloudSaveRequest.Action, in store: PlayerSaveStore) throws {
+        let (state, _) = try CloudSaveTransitions.enqueue(
+            action, state: store.cloudDeviceState, local: CloudSaveSnapshot(store.currentSave), id: UUID().uuidString,
+        )
+        try store.commitCloudState(state)
     }
 
     @MainActor func seedHomestead(_ store: PlayerSaveStore) throws {

@@ -6,14 +6,7 @@ public final class PlayerSaveCloudSync {
     private weak var store: PlayerSaveStore?
     private let transport: any CloudSaveTransport
     private let reconcile: @Sendable (CloudSaveRequest, CloudServerSave?) async throws -> CloudSaveReconciler.Resolution
-    private struct SynchronizationResult: Sendable {
-        let completed: Bool
-        let operationReceipts: [String: CloudSaveReceipt]
-    }
-
-    private let operations = CloudSaveOperationQueue()
-    private var synchronization: (id: UUID, work: Task<SynchronizationResult, Never>)?
-    private(set) var requiresAuthority: Bool
+    private var synchronization: (id: UUID, work: Task<Bool, Never>)?
     private let logger = Logger(subsystem: PlayerSaveDefaults.loggingSubsystem, category: "CloudSave")
 
     init(
@@ -26,29 +19,24 @@ public final class PlayerSaveCloudSync {
         self.store = store
         self.transport = transport
         self.reconcile = reconcile
-        requiresAuthority = store.cloudDeviceState.activeAccountID != nil
     }
 
     @discardableResult
     public func synchronize() async -> Bool {
-        await synchronizeWithReceipts().completed
-    }
-
-    private func synchronizeWithReceipts() async -> SynchronizationResult {
-        let pending: (id: UUID, work: Task<SynchronizationResult, Never>)
+        let pending: (id: UUID, work: Task<Bool, Never>)
         if let synchronization {
             pending = synchronization
         } else {
             let work = Task { [weak self] in
-                guard let self else { return SynchronizationResult(completed: false, operationReceipts: [:]) }
+                guard let self else { return false }
                 do {
-                    let receipts = try await synchronizeUntilCurrent()
-                    return SynchronizationResult(completed: true, operationReceipts: receipts)
+                    try await synchronizeUntilCurrent()
+                    return true
                 } catch {
                     if !(error is CancellationError) {
                         logger.error("iCloud progress remains pending: \(String(describing: error), privacy: .public)")
                     }
-                    return SynchronizationResult(completed: false, operationReceipts: [:])
+                    return false
                 }
             }
             pending = (UUID(), work)
@@ -62,67 +50,17 @@ public final class PlayerSaveCloudSync {
     }
 
     public func accountDidChange() {
-        operations.cancelAll()
         synchronization?.work.cancel()
         synchronization = nil
-        requiresAuthority = true
     }
 
-    /// Legacy authoritative production actions retain request-scoped receipts.
-    /// Current Homestead commands commit locally and synchronize their journals.
-    func perform(_ action: CloudSaveRequest.Action) async -> CloudSaveReceipt.Outcome? {
-        switch action {
-        case .collect, .upgrade: break
-        case .upload, .reset: return nil
-        }
-        return await operations.perform { [weak self] in
-            await self?.performSerially(action)
-        }
-    }
-
-    private func performSerially(_ action: CloudSaveRequest.Action) async -> CloudSaveReceipt.Outcome? {
-        for _ in 0 ..< 2 {
-            guard let store, !Task.isCancelled else { return nil }
-            store.flushPendingPersistence()
-            if store.cloudDeviceState.account.resetRequested
-                || store.cloudDeviceState.account.base?.revision.snapshot != CloudSaveSnapshot(store.currentSave) {
-                guard await synchronize(), !Task.isCancelled else { return nil }
-            }
-            store.flushPendingPersistence()
-            guard !Task.isCancelled, requiresAuthority,
-                  store.cloudDeviceState.account.pending == nil,
-                  !store.cloudDeviceState.account.resetRequested,
-                  store.cloudDeviceState.account.base?.revision.snapshot == CloudSaveSnapshot(store.currentSave),
-                  store.cloudDeviceState.activeAccountID != nil else { return nil }
-            do {
-                let request = try enqueue(action, in: store)
-                let result = await synchronizeWithReceipts()
-                guard result.completed, !Task.isCancelled,
-                      let receipt = result.operationReceipts[request.id],
-                      receipt.requestID == request.id,
-                      store.cloudDeviceState.account.base?.epoch == receipt.epoch,
-                      let sequence = store.cloudDeviceState.account.base?.authoritySequence,
-                      sequence >= receipt.authoritySequence else { return nil }
-                if receipt.outcome == .progressChanged {
-                    continue
-                }
-                return receipt.outcome
-            } catch {
-                return nil
-            }
-        }
-        return nil
-    }
-
-    private func synchronizeUntilCurrent() async throws -> [String: CloudSaveReceipt] {
-        var operationReceipts: [String: CloudSaveReceipt] = [:]
+    private func synchronizeUntilCurrent() async throws {
         guard let store, !store.isPersistenceDegraded else { throw CloudSaveError.unavailable }
         store.flushPendingPersistence()
         let accountID = try await transport.accountID()
         try Task.checkCancellation()
         try await bind(accountID, in: store)
-        requiresAuthority = accountID != nil
-        guard let accountID else { return operationReceipts }
+        guard let accountID else { return }
 
         for attempt in 0 ..< 8 {
             try Task.checkCancellation()
@@ -138,27 +76,23 @@ public final class PlayerSaveCloudSync {
             guard store.cloudDeviceState.activeAccountID == accountID else { throw CloudSaveError.accountChanged }
             guard let request = store.cloudDeviceState.account.pending else {
                 if try await importRemoteIfUnchanged(server, in: store) {
-                    return operationReceipts
+                    return
                 }
                 continue
             }
 
             if let receipt = try await transport.fetchReceipt(accountID: accountID, requestID: request.id) {
                 guard let server else { throw CloudSaveError.missingHead }
-                let finished = try await finish(request, receipt: receipt, server: server, accountID: accountID, in: store)
-                operationReceipts[request.id] = finished.operationReceipt
-                if finished.isCurrent {
-                    return operationReceipts
+                if try await finish(request, receipt: receipt, server: server, accountID: accountID, in: store) {
+                    return
                 }
                 continue
             }
             do {
                 guard let result = try await reconcileAndCommit(request, against: server, accountID: accountID, in: store)
                 else { continue }
-                let finished = try await finish(request, receipt: result.receipt, server: result.server, accountID: accountID, in: store)
-                operationReceipts[request.id] = finished.operationReceipt
-                if finished.isCurrent {
-                    return operationReceipts
+                if try await finish(request, receipt: result.receipt, server: result.server, accountID: accountID, in: store) {
+                    return
                 }
             } catch CloudSaveError.conflict {
                 try await waitBeforeRetry(after: attempt)
@@ -253,13 +187,13 @@ public final class PlayerSaveCloudSync {
         server: CloudServerSave,
         accountID: String,
         in store: PlayerSaveStore,
-    ) async throws -> (isCurrent: Bool, operationReceipt: CloudSaveReceipt?) {
+    ) async throws -> Bool {
         try Task.checkCancellation()
         guard let acknowledgement = try await CloudSavePlanner.acknowledge(
             request, receipt: receipt, head: server.head, accountID: accountID,
             state: store.cloudDeviceState, local: CloudSaveSnapshot(store.currentSave),
-        ), try await apply(acknowledgement.transition, in: store) else { return (false, nil) }
-        return (acknowledgement.isCurrent, acknowledgement.operationReceipt)
+        ), try await apply(acknowledgement.transition, in: store) else { return false }
+        return acknowledgement.isCurrent
     }
 
     private func bind(_ accountID: String?, in store: PlayerSaveStore) async throws {

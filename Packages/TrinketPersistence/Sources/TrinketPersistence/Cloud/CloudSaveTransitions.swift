@@ -19,7 +19,6 @@ enum CloudSaveTransitions {
     struct Acknowledgement: Sendable {
         let transition: CloudSaveTransition
         let isCurrent: Bool
-        let operationReceipt: CloudSaveReceipt?
     }
 
     static func enqueue(
@@ -126,7 +125,6 @@ enum CloudSaveTransitions {
             return Acknowledgement(
                 transition: CloudSaveTransition(sourceState: original, sourceSnapshot: local, state: state),
                 isCurrent: false,
-                operationReceipt: nil,
             )
         }
         if let applied = request.mutations, !applied.isEmpty {
@@ -160,9 +158,8 @@ enum CloudSaveTransitions {
             }
             transition = CloudSaveTransition(sourceState: original, sourceSnapshot: local, state: state)
         }
-        let isProduction = request.action != .upload && request.action != .reset
         return Acknowledgement(
-            transition: transition, isCurrent: sourceUnchanged, operationReceipt: isProduction ? receipt : nil,
+            transition: transition, isCurrent: sourceUnchanged,
         )
     }
 }

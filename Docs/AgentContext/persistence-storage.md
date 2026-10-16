@@ -142,10 +142,10 @@ An obsolete callback that performs no write ends its retry without hiding an unr
 error. Interaction
 owners retain only current choices/encounters while pending. Linked Homestead actions commit
 locally and upload later; transient sync failures retry without player prompts.
-Pending legacy server receipts remain replay-safe. Legacy authoritative commands
-serialize through `CloudSaveOperationQueue` until acknowledgement; cancellation or
-account changes retire queued intents. Coalesced synchronization returns receipts
-by request identity to its callers rather than storing one shared last receipt.
+Pending legacy server requests still reconcile and acknowledge their original
+receipts after reload or a lost response. Current clients never initiate those
+commands; Homestead uses the local transaction and journal path. Synchronization
+coalesces callers onto one task and reports completion after durable acknowledgement.
 Each waiter retires only its completed synchronization, so a completed task cannot
 be reused for a newly enqueued request. Total device write refusal cannot guarantee
 survival of an uncommitted action across process termination; do not report that

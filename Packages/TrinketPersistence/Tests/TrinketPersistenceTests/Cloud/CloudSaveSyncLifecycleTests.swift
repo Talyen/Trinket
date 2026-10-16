@@ -34,42 +34,6 @@ extension CloudSaveSyncTests {
     }
 
     @Test(arguments: [false, true])
-    @MainActor func `one device serializes production commands through their own receipts`(cancelUpgrade: Bool) async throws {
-        let context = try PersistenceTestContext()
-        let transport = CloudSaveTestTransport()
-        let store = try cloudStore(context, transport: transport)
-        try seedHomestead(store)
-        let sync = try #require(store.cloudSync)
-        #expect(await sync.synchronize())
-        await transport.advance(PlayerHomesteadState.secondsPerDay)
-        let gate = ReconciliationGate()
-        await transport.onNextFetch { await gate.pauseOnce() }
-        let collection = Task { await sync.perform(.collect) }
-        await gate.waitUntilPaused()
-        var upgradeStarted = false
-        let upgrade = Task {
-            upgradeStarted = true
-            return await sync.perform(.upgrade(.wheatField, 2))
-        }
-        while !upgradeStarted {
-            await Task.yield()
-        }
-        if cancelUpgrade {
-            upgrade.cancel()
-        }
-        await gate.resume()
-        #expect(await collection.value == .collected([.food: 1, .gold: 1]))
-        #expect(await upgrade.value == (cancelUpgrade ? nil : .upgraded))
-        let reloaded = try context.makeReloadedStore()
-        #expect(reloaded.roster.gold == 101)
-        #expect(reloaded.homestead.resources[.food] == 1)
-        #expect(reloaded.homestead.tier(for: .wheatField) == (cancelUpgrade ? 1 : 2))
-        #expect(reloaded.homestead.resources[.wood] == (cancelUpgrade ? 99 : 91))
-        #expect(reloaded.cloudDeviceState.account.pending == nil)
-        #expect(await sync.perform(.collect) == .collected([:]))
-    }
-
-    @Test(arguments: [false, true])
     @MainActor func `reconciliation suspension preserves newer earnings and rejects cancelled uploads`(cancelUpload: Bool) async throws {
         let context = try PersistenceTestContext()
         let transport = CloudSaveTestTransport()
