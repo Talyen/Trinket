@@ -31,6 +31,7 @@ Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 | Shop offers | `ShopOfferGeneratorTests` | Offer count, price/rarity rules, seed stability |
 | Item affix catalog | `ItemAffixCatalogTests` | Weights, slot pools |
 | Combatant equipment rules | `CombatantEquipmentTests` | Hero vs companion slots |
+| Combat builds and max values | `CombatBuildResolverTests`, `CombatantMaxValuesTests` | Build resolution, stat saturation, and scaling without simulation fixtures |
 | Encounter level scaling | `EncounterLevelResolverTests` | Chapter span, contract offsets |
 | Journey catalog | `JourneyCatalogTests` | Chapter/stage wiring |
 | Labyrinth catalog | `LabyrinthCatalogTests` | Layout diversity, node types |

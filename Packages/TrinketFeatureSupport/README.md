@@ -9,7 +9,7 @@ features.
 |---|---|---|
 | `TrinketFeatureContracts` | SwiftUI-free navigation, messages, battle lifecycle interfaces, and presentation/reward values | Core, Content, BattleEngine |
 | `TrinketFeatureSupport` | Reusable cards/detail panes, encounter and reward UI, presentation models, `AccessibilityID`, prepared artwork, frame analysis | Core, Content, DesignSystem |
-| `TrinketFeatureAdapters` | Save-backed map/detail adapters and equipment editing | Support/Contracts plus Core, Content, BattleEngine, Persistence, DesignSystem |
+| `TrinketFeatureAdapters` | Save-backed map/detail adapters and equipment editing | Support/Contracts plus Core, Content, Persistence, DesignSystem |
 
 None of these products may import `TrinketBattleFeature`, `TrinketAppState`, or the
 app module. Keep app routing, encounter orchestration, and combat lifecycle implementation outside

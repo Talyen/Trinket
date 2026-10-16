@@ -29,6 +29,17 @@ class PlayerCoverageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'incompatible'):
             MODULE.select_profile(runtimes, types, 'compact', 27)
 
+    def test_exact_runtime_does_not_switch_to_newer_or_incompatible_minor(self):
+        runtimes = [dict(identifier='ios-27.0', version='27.0', platform='iOS', isAvailable=True,
+                         supportedDeviceTypes=[dict(identifier='phone')]),
+                    dict(identifier='ios-27.1', version='27.1', platform='iOS', isAvailable=True,
+                         supportedDeviceTypes=[dict(identifier='duo')])]
+        types = [dict(identifier='phone')]
+        self.assertEqual(MODULE.select_profile(runtimes, types, 'phone', 27, '27.0.0')['identifier'], 'ios-27.0')
+        for version, error in [('27.2', 'unavailable'), ('27.1', 'incompatible'), ('26.0', 'conflicting'), ('27', 'invalid')]:
+            with self.subTest(version=version), self.assertRaisesRegex(ValueError, error):
+                MODULE.select_profile(runtimes, types, 'phone', 27, version)
+
     def test_runtime_preparation_installs_missing_major_and_validates_the_result(self):
         for name in ('compact', 'ios18'):
             device, major = MODULE.PROFILES[name]

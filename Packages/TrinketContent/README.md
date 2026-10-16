@@ -10,7 +10,7 @@ in Swift; talent trees are authored in `ContentManifest/talents.tsv`.
 - **Abilities/** — Ability models, validation, and authored `AbilityCatalog+Basic/Skill/Ultimate.swift` tier catalogs with ordered tier lists.
 - **Equipment/** — Item and affix models, Unique catalogs, loot generation, Corruption, and Salvage rules.
 - **Encounters/** — Journey, Spire, Contracts, Voyage, and shops; `Labyrinth/`, `Mystery/`, and `Rewards/` group their larger families.
-- **Roster/** — Combatant models, player roster state and edit rules, equipment/keyword projections, and talent/trait lookup.
+- **Roster/** — Combatant models, combat builds and build resolution, modifier profiles, level scaling, player roster state and edit rules, equipment/keyword projections, and talent/trait lookup.
 - **Homestead/** — Player value state, production/collection and upgrade rules, effects, and content lookup.
 - **Media/** — Authored art, music, and sound lookup support.
 - **Generated/** — Auto-generated catalogs from manifests, ability shorthand, talent dictionaries, and trigger-family structs (do not edit directly)
@@ -60,6 +60,7 @@ compilation, content tests, and idempotence proof to CI under
 | `Ability` / `TargetedEffect` | Ability model with effect declarations |
 | `Combatant` | Hero/Companion model (stats, ability loadout) |
 | `Enemy` | Enemy model |
+| `CombatBuild` / `CombatBuildResolver` | Resolves combatants, equipment, and talents into modifier profiles and effective max stats |
 | `EncounterScaling` | Shared mode-specific encounter level and enemy power-profile policy |
 | `ItemGenerator` | Random item generation from base + affix pools |
 | `ThemedGearGenerator` | Legal worn equipment for headless balance simulations |
