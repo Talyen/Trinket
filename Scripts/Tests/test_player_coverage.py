@@ -41,18 +41,20 @@ class PlayerCoverageTests(unittest.TestCase):
                 MODULE.select_profile(runtimes, types, 'phone', 27, version)
 
     def test_runtime_preparation_installs_missing_major_and_validates_the_result(self):
-        for name in ('compact', 'ios18'):
+        for name, architecture, variant in [('compact', 'arm64', 'arm64'),
+                                             ('ios18', 'x86_64', 'universal')]:
             device, major = MODULE.PROFILES[name]
             types = json.dumps({'devicetypes': [dict(identifier=device)]})
             missing = json.dumps({'runtimes': []})
             available = json.dumps({'runtimes': [dict(identifier=f'ios-{major}', version=f'{major}.0',
                                                        platform='iOS', isAvailable=True)]})
-            with self.subTest(profile=name), patch.object(MODULE, 'simctl', side_effect=[types, missing, available]), \
+            with self.subTest(profile=name), patch.object(MODULE.platform, 'machine', return_value=architecture), \
+                    patch.object(MODULE, 'simctl', side_effect=[types, missing, available]), \
                     patch.object(MODULE.subprocess, 'run') as install:
                 MODULE.prepare_profile(name)
                 install.assert_called_once_with(
                     ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', f'{major}.0',
-                     '-architectureVariant', 'universal'], check=True, timeout=1800)
+                     '-architectureVariant', variant], check=True, timeout=1800)
             with patch.object(MODULE, 'simctl', side_effect=[types, available]), \
                     patch.object(MODULE.subprocess, 'run') as install:
                 MODULE.prepare_profile(name)
@@ -87,11 +89,13 @@ class PlayerCoverageTests(unittest.TestCase):
         supported = dict(identifier='ios-27.1', version='27.1', platform='iOS', isAvailable=True,
                          supportedDeviceTypes=[dict(identifier=device)])
         with patch.object(MODULE, 'simctl', side_effect=[types, json.dumps({'runtimes': [older]}),
-                json.dumps({'runtimes': [older, supported]})]), patch.object(MODULE.subprocess, 'run') as install:
+                json.dumps({'runtimes': [older, supported]})]), \
+                patch.object(MODULE.platform, 'machine', return_value='arm64'), \
+                patch.object(MODULE.subprocess, 'run') as install:
             MODULE.prepare_profile('duo')
             install.assert_called_once_with(
                 ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '27.1',
-                 '-architectureVariant', 'universal'], check=True, timeout=1800)
+                 '-architectureVariant', 'arm64'], check=True, timeout=1800)
         with self.assertRaisesRegex(ValueError, 'unavailable iOS 27.1'):
             MODULE.select_profile([older], [dict(identifier=device)], device, major)
         self.assertEqual(MODULE.select_profile([older, supported], [dict(identifier=device)], device, major), supported)

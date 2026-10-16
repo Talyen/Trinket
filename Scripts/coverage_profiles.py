@@ -7,6 +7,7 @@ from contextlib import contextmanager
 import json
 import os
 import plistlib
+import platform
 import re
 import shutil
 from pathlib import Path
@@ -95,8 +96,9 @@ def prepare_profile(name):
     if not any(item.get('isAvailable') is True and item.get('platform') == 'iOS'
                and str(item.get('version', '')).split('.')[0] == str(major)
                and tuple(int(part) for part in item['version'].split('.')) >= minimum for item in runtimes):
+        variant = 'arm64' if platform.machine() == 'arm64' else 'universal'
         subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '.'.join(map(str, minimum)),
-                        '-architectureVariant', 'universal'],
+                        '-architectureVariant', variant],
                        check=True, timeout=1800)
         runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
     select_profile(runtimes, types, type_id, major)

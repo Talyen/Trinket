@@ -64,9 +64,11 @@ The disposable hosted compatibility runner removes its preinstalled runtimes
 before transfer and deletes the archive after import to leave room for test
 products. Its build and test simulator requests both require the iOS 18 profile.
 Compilation and tests still use the verified toolchain. Other profiles install the
-requested minimum runtime (`27.1` for Duo, otherwise the major's `.0`) with an explicit universal architecture variant
-when absent. Every profile checks runtime availability and device compatibility
-after preparation; failed provisioning fails the aggregate verdict.
+requested minimum runtime (`27.1` for Duo, otherwise the major's `.0`) when absent.
+They request Apple's `arm64` variant on Apple silicon and `universal` on Intel;
+forcing universal can reject a release that is available for Apple silicon
+([Apple component installation](https://developer.apple.com/documentation/xcode/downloading-and-installing-additional-xcode-components)).
+Every profile checks runtime availability and device compatibility after preparation; failed provisioning fails the aggregate verdict.
 Compatible products from successful exact-commit CI are reused;
 missing or incompatible products rebuild, using the shared warm cache when no transfer
 is available. One architecture's products are reused across settings and device profiles. All executions are serial on
