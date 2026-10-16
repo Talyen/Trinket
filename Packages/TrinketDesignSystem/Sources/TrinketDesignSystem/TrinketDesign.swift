@@ -128,6 +128,7 @@ public enum TrinketDesign {
         public static let mysteryRewardRowMinHeight: CGFloat = 48
         public static let singlePrimaryActionWidthFraction: CGFloat = 0.5
         public static let collectionShelfVisibleCardCount: CGFloat = 1.75
+        public static let collectionShelfMaximumCardWidth: CGFloat = 240
 
         public static var collectionGridItems: [GridItem] {
             [GridItem(.adaptive(minimum: collectionGridMinimum, maximum: collectionGridMaximum), spacing: Spacing.large)]

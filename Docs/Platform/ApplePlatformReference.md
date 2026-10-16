@@ -53,6 +53,9 @@ window geometry, and framework safe areas reach the game directly. All four
 orientations are declared for iPhone and iPad. Layout follows current container
 geometry rather than device orientation or identity. Keep enemy-above-party
 battle arrangements and vertically stacked hubs in compact and expanded windows.
+Bound shelf cards and hub widths so expansion reveals choices instead of indefinitely
+enlarging artwork. Detail artwork uses the current usable viewport height as well
+as width. Wide reward screens keep the claim action pinned above the safe area.
 The compact horizontal presentation retains tab icons and stacked hubs; native
 system bars may move with the available space. Do not add device-specific panels.
 

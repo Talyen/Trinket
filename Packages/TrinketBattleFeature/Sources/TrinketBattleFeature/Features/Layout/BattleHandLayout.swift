@@ -51,7 +51,8 @@ enum BattleHandLayout {
 
     static func frame(in containerSize: CGSize) -> CGRect {
         let desiredWidth = min(maxCardWidth, max(minCardWidth, containerSize.width * widthRatio))
-        let height = min(desiredWidth * aspectRatio + fanClearance, max(0, containerSize.height * 0.42))
+        let heightRatio: CGFloat = containerSize.width > containerSize.height ? 0.36 : 0.42
+        let height = min(desiredWidth * aspectRatio + fanClearance, max(0, containerSize.height * heightRatio))
         return CGRect(
             x: 0,
             y: containerSize.height - height - bottomRise,

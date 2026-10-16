@@ -56,7 +56,10 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             .modifier(DetailHeroSoftEdgeModifier(scrollState: scrollState))
             .onScrollGeometryChange(for: HeroHeaderScrollMetrics.self) { geometry in
                 let topInset = geometry.contentInsets.top
-                let baseHeight = heroHeightPolicy.height(forWidth: geometry.containerSize.width)
+                let baseHeight = heroHeightPolicy.height(in: CGSize(
+                    width: geometry.containerSize.width,
+                    height: max(0, geometry.containerSize.height - topInset - geometry.contentInsets.bottom),
+                ))
                 let threshold = baseHeight - topInset
                 let offsetY = geometry.contentOffset.y + topInset
                 let opacity = min(max((offsetY - threshold) / 32, 0), 1)

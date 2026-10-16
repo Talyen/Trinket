@@ -25,7 +25,7 @@ buttons and system toolbar styling.
 | `.trinketToolbarBackgroundHidden { ... }` | Install toolbar content with its shared glass background hidden on iOS 26+; earlier systems retain native toolbar styling |
 | `.trinketAccessibilityIdentifier(_:)` | Optional test identifier passthrough |
 | `.optionalMatchedTransitionSource(id:in:)` | Matched transitions with an optional namespace |
-| `.trinketCollectionShelfCardWidth()` | Peek-shelf card width |
+| `.trinketCollectionShelfCardWidth()` | Peek-shelf width bounded by `Layout.collectionShelfMaximumCardWidth`; expanded windows reveal more cards |
 | `.trinketFittedText()` / `.trinketSingleLineFittedText()` | Native text shrinking/wrapping |
 | `Text(balanced:)` / `String.trinketBalanced()` | Widow-proof titles |
 | `.trinketShineText(colors:)` | Animated shine over explicit colors (Reduce Motion aware, freezes while parked); for a `Shine` model value use FeatureSupport's `shineText(_:)` |

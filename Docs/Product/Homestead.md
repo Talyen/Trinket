@@ -8,6 +8,7 @@ without a confirmation dialog.
 
 The overview keeps its full-bleed landscape hero, compact eight-resource wallet,
 and Play Mode–style category cards: Farming, Crafting, Alchemy, Training, Arcana.
+Category cards share Play's viewport-bounded width and stay vertically stacked.
 Cards show tier-sum constructed progress and push stable two-column portrait
 building galleries. Buildings have centered names beneath their portraits, without
 visible upgrade segments in the galleries. Gallery cards retain accessibility

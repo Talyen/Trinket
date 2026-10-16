@@ -80,6 +80,22 @@ class PlayerCoverageTests(unittest.TestCase):
             with MODULE.native_text_size('owned', 'large', lambda *args: 'unsupported'):
                 self.fail('must not start unsupported profile')
 
+    def test_duo_preparation_requires_27_1_even_when_27_0_is_installed(self):
+        device, major = MODULE.PROFILES['duo']
+        types = json.dumps({'devicetypes': [dict(identifier=device)]})
+        older = dict(identifier='ios-27.0', version='27.0', platform='iOS', isAvailable=True)
+        supported = dict(identifier='ios-27.1', version='27.1', platform='iOS', isAvailable=True,
+                         supportedDeviceTypes=[dict(identifier=device)])
+        with patch.object(MODULE, 'simctl', side_effect=[types, json.dumps({'runtimes': [older]}),
+                json.dumps({'runtimes': [older, supported]})]), patch.object(MODULE.subprocess, 'run') as install:
+            MODULE.prepare_profile('duo')
+            install.assert_called_once_with(
+                ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '27.1',
+                 '-architectureVariant', 'universal'], check=True, timeout=1800)
+        with self.assertRaisesRegex(ValueError, 'unavailable iOS 27.1'):
+            MODULE.select_profile([older], [dict(identifier=device)], device, major)
+        self.assertEqual(MODULE.select_profile([older, supported], [dict(identifier=device)], device, major), supported)
+
     def test_failed_profile_is_recorded_and_other_settings_still_execute(self):
         current, writes = ['large'], []
         def run(*args):
@@ -225,3 +241,33 @@ esac
                     },
                 )
                 self.assertEqual(result.returncode, expected, result.stderr)
+
+    def test_duo_rotation_still_executes_when_settings_profiles_fail(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            scripts = root / 'Scripts'
+            (scripts / 'lib').mkdir(parents=True)
+            (scripts / 'player-coverage.sh').write_text((ROOT / 'Scripts/player-coverage.sh').read_text())
+            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\n')
+            (scripts / 'run-env.sh').write_text('''trinket_run_env_init() { export DERIVED_DATA_PATH="$PWD/data" RESULTS_DIR="$PWD/data/TestResults" SIMULATOR_UDID=owned; }
+trinket_sim_slot_ensure() { :; }
+trinket_run_env_install_self_clean() { :; }
+''')
+            (scripts / 'ensure-simulator.sh').write_text('ensure_test_simulator_logged() { :; }\n')
+            write_executable(scripts / 'test.sh', '''#!/bin/sh
+printf '%s\\n' "$* plan=$TRINKET_UI_PLAN duo=$TEST_RUNNER_TRINKET_DUO_PROFILE" >> "$PWD/calls"
+''')
+            binaries = root / 'bin'
+            binaries.mkdir()
+            write_executable(binaries / 'python3', '''#!/bin/sh
+case "$*" in
+  *'definition --name duo') printf 'fixture-duo\\t27\\n' ;;
+  *'coverage_profiles.py run'*) exit 1 ;;
+  *) exit 2 ;;
+esac
+''')
+            run_captured(['bash', 'Scripts/player-coverage.sh', 'duo'], cwd=root,
+                         env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
+                              'TRINKET_COVERAGE_NO_BUILD': '1', 'TRINKET_UI_PLAN': 'Profiles'}, expected=1)
+            self.assertEqual((root / 'calls').read_text().strip(),
+                             'ui --no-build BattleFlowUITests/testDuoRotationPreservesBattleAndCardPlay plan=FullUI duo=1')

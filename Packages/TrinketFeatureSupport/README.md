@@ -20,7 +20,8 @@ Within `Sources/TrinketFeatureSupport/Shared/`, `Cards/` owns reusable cards and
 item artwork, `Encounters/` owns encounter tiles and reading presentation, and
 `Rewards/` owns the reward reveal sequence and its views. Victory and Mystery
 reveal loot and the primary action together while XP animates, keeping layout
-positions stable. Collection becomes available after the reveal fade, independent
+positions stable. Wide windows pin the primary action while rewards scroll above
+it; taller windows retain the inline action. Collection becomes available after the reveal fade, independent
 of XP completion. A successful claim triggers a brief stationary pulse before
 exit; animation never determines the amount awarded. Interrupted collection
 finishes the already committed action once. Astral and Unique items receive a
@@ -72,8 +73,10 @@ owns scroll-driven prefetch. Launch retention follows
 [UI performance](../../Docs/AgentContext/ui-performance.md); memory budgets follow
 the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
 
-`HeroHeaderLayout` and `DetailHeroScrollShell` share full-bleed 4:3 detail heroes,
-overscroll, and scrim blending. The shell’s scroll geometry drives header height,
+`HeroHeaderLayout` and `DetailHeroScrollShell` share full-bleed detail heroes,
+overscroll, and scrim blending. Portrait, square, and cinematic headers are bounded
+by usable viewport height so their summaries and following content remain visible.
+The shell’s scroll geometry drives header height,
 pinned-title opacity, and artwork overscroll zoom even after the hero scrolls
 offscreen. Overscroll is supplied only to the header subtree. `DetailTraitRow` and
 `DetailHeroHeader` accept optional `DetailChangeIndicator` values for inline icons

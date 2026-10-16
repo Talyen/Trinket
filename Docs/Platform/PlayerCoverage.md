@@ -44,11 +44,17 @@ or resolve a concrete failure. The CI invocations are:
 ./Scripts/player-coverage.sh ios18
 ./Scripts/player-coverage.sh compact
 ./Scripts/player-coverage.sh tablet
+./Scripts/player-coverage.sh duo
 ./Scripts/player-coverage.sh soak
 ```
 
-Settings profiles request iPhone SE third generation on iOS 26 and iPad A16
-(eleventh generation) on iOS 27. The compatibility lane separately requests iPhone
+Settings profiles request iPhone SE third generation on iOS 26, iPad A16
+(eleventh generation) on iOS 27, and iPhone Duo on iOS 27.1 or later in that major.
+The Duo profile also runs the focused battle-rotation journey once after restoring
+native settings, retaining its hand and usable controls through rotation and a card play.
+Folding during held gestures, automatic casts, inspection, and reward reveal still
+requires managed Device Hub inspection; rotation automation does not prove folding.
+The compatibility lane separately requests iPhone
 SE third generation on iOS 18. Missing types, incompatible/missing runtimes, and
 missing native text controls fail visibly without fallback. Xcode 27's command-line
 download rejects pre-26 runtimes ([FB24836279](https://developer.apple.com/forums/thread/847134)).
@@ -58,7 +64,7 @@ The disposable hosted compatibility runner removes its preinstalled runtimes
 before transfer and deletes the archive after import to leave room for test
 products. Its build and test simulator requests both require the iOS 18 profile.
 Compilation and tests still use the verified toolchain. Other profiles install the
-requested major's `.0` runtime with an explicit universal architecture variant
+requested minimum runtime (`27.1` for Duo, otherwise the major's `.0`) with an explicit universal architecture variant
 when absent. Every profile checks runtime availability and device compatibility
 after preparation; failed provisioning fails the aggregate verdict.
 Compatible products from successful exact-commit CI are reused;

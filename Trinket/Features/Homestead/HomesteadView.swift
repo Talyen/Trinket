@@ -33,47 +33,51 @@ struct HomesteadView: View {
     }
 
     var body: some View {
-        DetailHeroScrollShell(
-            title: String(localized: L10n.ui_homesteadview_homestead_9af8e),
-            heroHeightPolicy: .cinematicLandscape,
-        ) { baseHeight in
-            DetailHeroHeader(
+        GeometryReader { geometry in
+            DetailHeroScrollShell(
                 title: String(localized: L10n.ui_homesteadview_homestead_9af8e),
-                baseHeight: baseHeight,
-                horizontalPadding: TrinketDesign.Layout.contentMargin,
-                bottomPadding: TrinketDesign.Spacing.large,
-            ) {
-                if let art = ArtCatalog.backgroundArtByID[EncounterArtIDs.homesteadHeroID]
-                    ?? ArtCatalog.backgroundArtByID["wheatField"] {
-                    FocalBackgroundArtwork(art: art)
-                } else {
-                    TrinketDesign.Colors.surface
-                }
-            }
-        } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                HomesteadResourceWallet(
-                    homestead: homestead,
-                    gold: roster.gold,
-                    displayedBalances: displayedBalances,
-                    increaseAnimationDelays: Self.immediateWalletDelays,
-                    keepsArtworkStationary: true,
-                )
-                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-
-                collectionSection
-
-                LazyVGrid(
-                    columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
-                    spacing: TrinketDesign.Spacing.large,
+                heroHeightPolicy: .cinematicLandscape,
+            ) { baseHeight in
+                DetailHeroHeader(
+                    title: String(localized: L10n.ui_homesteadview_homestead_9af8e),
+                    baseHeight: baseHeight,
+                    horizontalPadding: TrinketDesign.Layout.contentMargin,
+                    bottomPadding: TrinketDesign.Spacing.large,
                 ) {
-                    ForEach(HomesteadNodeCategory.allCases) { category in
-                        categoryCard(category)
+                    if let art = ArtCatalog.backgroundArtByID[EncounterArtIDs.homesteadHeroID]
+                        ?? ArtCatalog.backgroundArtByID["wheatField"] {
+                        FocalBackgroundArtwork(art: art)
+                    } else {
+                        TrinketDesign.Colors.surface
                     }
                 }
-                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            } bodyContent: {
+                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
+                    HomesteadResourceWallet(
+                        homestead: homestead,
+                        gold: roster.gold,
+                        displayedBalances: displayedBalances,
+                        increaseAnimationDelays: Self.immediateWalletDelays,
+                        keepsArtworkStationary: true,
+                    )
+                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+
+                    collectionSection
+
+                    LazyVGrid(
+                        columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
+                        spacing: TrinketDesign.Spacing.large,
+                    ) {
+                        ForEach(HomesteadNodeCategory.allCases) { category in
+                            categoryCard(category)
+                        }
+                    }
+                    .frame(maxWidth: HubArtworkLayout.width(in: geometry.size))
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                }
+                .padding(.top, TrinketDesign.Layout.sectionHeaderSpacing)
             }
-            .padding(.top, TrinketDesign.Layout.sectionHeaderSpacing)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
         .modifier(HomesteadDepositOverlay(event: depositEvent, geometryChanged: updateDepositGeometry))

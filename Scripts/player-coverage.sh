@@ -3,13 +3,13 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mode="${1:-}"
 case "$mode" in
-  ios18|compact|tablet)
+  ios18|compact|tablet|duo)
     selector="$(python3 Scripts/coverage_profiles.py definition --name "$mode")"
     IFS=$'\t' read -r TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR <<< "$selector"
     export TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR
     ;;
   soak) ;;
-  *) echo 'Usage: ./Scripts/player-coverage.sh ios18|compact|tablet|soak' >&2; exit 2 ;;
+  *) echo 'Usage: ./Scripts/player-coverage.sh ios18|compact|tablet|duo|soak' >&2; exit 2 ;;
 esac
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification 'Player coverage profiles and soak' || exit $?
@@ -44,7 +44,13 @@ if [[ "$mode" == ios18 ]]; then
   TRINKET_SERIAL_TESTS=1 ./Scripts/test-package.sh --destination "$SIMULATOR_DESTINATION" TrinketPersistence || coverage_status=1
   exit "$coverage_status"
 elif [[ "$mode" != soak ]]; then
-  python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output"
+  coverage_status=0
+  python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" || coverage_status=1
+  if [[ "$mode" == duo ]]; then
+    TEST_RUNNER_TRINKET_DUO_PROFILE=1 TRINKET_UI_SUCCESS_SCREENSHOTS=1 TRINKET_UI_PLAN=FullUI \
+      ./Scripts/test.sh ui --no-build BattleFlowUITests/testDuoRotationPreservesBattleAndCardPlay || coverage_status=1
+  fi
+  exit "$coverage_status"
 else
   mkdir -p "$coverage_output"
   export TRINKET_UI_PLAN=Soak

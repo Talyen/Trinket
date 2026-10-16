@@ -107,10 +107,10 @@ jobs:
           if-no-files-found: warn
 
   profiles:
-    name: Critical controls on compact phone and portrait iPad
+    name: Critical controls on compact phone, iPad and Duo
     if: github.event.schedule == '0 8 * * *' || inputs.scope == 'profiles' || inputs.scope == 'all'
     runs-on: xcode-27
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
       TRINKET_DIAGNOSTICS_SESSION_ID: player-profiles-${{ github.run_id }}-${{ github.run_attempt }}
@@ -128,8 +128,9 @@ jobs:
         run: |
           python3 Scripts/coverage_profiles.py prepare --name compact
           python3 Scripts/coverage_profiles.py prepare --name tablet
+          python3 Scripts/coverage_profiles.py prepare --name duo
       - uses: ./.github/actions/coverage-products
-      - name: Run both requested profiles serially
+      - name: Run requested profiles serially
         env:
           TRINKET_COVERAGE_NO_BUILD: '1'
         shell: bash
@@ -137,6 +138,7 @@ jobs:
           status=0
           ./Scripts/player-coverage.sh compact || status=1
           ./Scripts/player-coverage.sh tablet || status=1
+          ./Scripts/player-coverage.sh duo || status=1
           exit "$status"
       - name: Stage bounded profile evidence
         if: always()

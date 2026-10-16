@@ -17,7 +17,9 @@ PROFILES = {
     'ios18': ('com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation', 18),
     'compact': ('com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation', 26),
     'tablet': ('com.apple.CoreSimulator.SimDeviceType.iPad-A16', 27),
+    'duo': ('com.apple.CoreSimulator.SimDeviceType.iPhone-Duo', 27),
 }
+MINIMUM_RUNTIME_VERSIONS = {'com.apple.CoreSimulator.SimDeviceType.iPhone-Duo': (27, 1)}
 TEXT_SIZES = ('large', 'accessibility-extra-extra-extra-large')
 
 
@@ -27,7 +29,9 @@ def select_profile(runtimes, device_types, type_id, major, version=None):
         raise ValueError(f'unavailable device type: {type_id}')
     candidates = [item for item in runtimes if item.get('isAvailable') is True
                   and item.get('platform') == 'iOS'
-                  and str(item.get('version', '')).split('.')[0] == str(major)]
+                  and str(item.get('version', '')).split('.')[0] == str(major)
+                  and tuple(int(part) for part in item['version'].split('.'))
+                  >= MINIMUM_RUNTIME_VERSIONS.get(type_id, (major, 0))]
     if version is not None:
         if not re.fullmatch(r'\d+\.\d+(?:\.\d+)?', version) or int(version.split('.')[0]) != major:
             raise ValueError(f'invalid or conflicting exact iOS version: {version}')
@@ -36,7 +40,9 @@ def select_profile(runtimes, device_types, type_id, major, version=None):
             return parts + (0,) * (3 - len(parts))
         candidates = [item for item in candidates if components(item['version']) == components(version)]
     if not candidates:
-        raise ValueError(f'unavailable iOS {version or major} runtime')
+        minimum = MINIMUM_RUNTIME_VERSIONS.get(type_id)
+        requested = version or ('.'.join(map(str, minimum)) + '+' if minimum else str(major))
+        raise ValueError(f'unavailable iOS {requested} runtime')
     selected = max(candidates, key=lambda item: tuple(int(part) for part in item['version'].split('.')))
     supported = selected.get('supportedDeviceTypes')
     if supported and not any(item.get('identifier') == type_id for item in supported):
@@ -85,9 +91,11 @@ def prepare_profile(name):
     if not any(item.get('identifier') == type_id for item in types):
         raise ValueError(f'unavailable device type: {type_id}')
     runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
+    minimum = MINIMUM_RUNTIME_VERSIONS.get(type_id, (major, 0))
     if not any(item.get('isAvailable') is True and item.get('platform') == 'iOS'
-               and str(item.get('version', '')).split('.')[0] == str(major) for item in runtimes):
-        subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', f'{major}.0',
+               and str(item.get('version', '')).split('.')[0] == str(major)
+               and tuple(int(part) for part in item['version'].split('.')) >= minimum for item in runtimes):
+        subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '.'.join(map(str, minimum)),
                         '-architectureVariant', 'universal'],
                        check=True, timeout=1800)
         runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']

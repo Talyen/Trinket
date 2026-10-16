@@ -131,54 +131,56 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
                 isMotionActive: selectedRewardItem == nil,
             )
 
-            RewardRevealShell(
-                eyebrow: eyebrow,
-                eyebrowAccessibilityIdentifier: nil,
-                title: title,
-                subtitle: nil,
-                titleAccessibilityIdentifier: titleAccessibilityIdentifier,
-                titleColor: TrinketDesign.Colors.accent,
-                content: {
-                    VStack(spacing: contentStackSpacing) {
-                        experienceSection
-                        if preparedRewardArtworkNames == rewardArtworkNames {
-                            RewardRevealLootSection(
-                                items: loot.items,
-                                gold: loot.gold,
-                                materials: loot.materials,
-                                showsIncreasePrefix: loot.showsIncreasePrefix,
-                                emptyMessage: loot.emptyMessage,
-                                itemAccessibilityID: loot.itemAccessibilityID,
-                                areItemsVisible: revealSequence.areItemsVisible,
-                                visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
-                                spacing: loot.lootSpacing,
-                                isCollected: collection.isCollected,
-                                focusedItemID: $focusedItemID,
-                                revealSequence: revealSequence,
-                                onExceptionalReveal: onExceptionalReveal,
-                                onSelectItem: { selectedRewardItem = $0 },
-                            )
-                            .accessibilityElement(children: .contain)
-                            .accessibilityLabel(Text(L10n.ui_rewardrevealexperiencescreen_rewards_59afe))
-                            .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
-                        } else {
-                            ProgressView()
-                                .padding(TrinketDesign.Spacing.large)
-                                .accessibilityLabel(Text(L10n.ui_rewardrevealexperiencescreen_preparing_rewards_6f51a))
+            GeometryReader { geometry in
+                RewardRevealShell(
+                    eyebrow: eyebrow,
+                    eyebrowAccessibilityIdentifier: nil,
+                    title: title,
+                    subtitle: nil,
+                    titleAccessibilityIdentifier: titleAccessibilityIdentifier,
+                    titleColor: TrinketDesign.Colors.accent,
+                    content: {
+                        VStack(spacing: contentStackSpacing) {
+                            experienceSection
+                            if preparedRewardArtworkNames == rewardArtworkNames {
+                                RewardRevealLootSection(
+                                    items: loot.items,
+                                    gold: loot.gold,
+                                    materials: loot.materials,
+                                    showsIncreasePrefix: loot.showsIncreasePrefix,
+                                    emptyMessage: loot.emptyMessage,
+                                    itemAccessibilityID: loot.itemAccessibilityID,
+                                    areItemsVisible: revealSequence.areItemsVisible,
+                                    visibleWalletRewardCount: revealSequence.visibleWalletRewardCount,
+                                    spacing: loot.lootSpacing,
+                                    isCollected: collection.isCollected,
+                                    focusedItemID: $focusedItemID,
+                                    revealSequence: revealSequence,
+                                    onExceptionalReveal: onExceptionalReveal,
+                                    onSelectItem: { selectedRewardItem = $0 },
+                                )
+                                .accessibilityElement(children: .contain)
+                                .accessibilityLabel(Text(L10n.ui_rewardrevealexperiencescreen_rewards_59afe))
+                                .accessibilityIdentifier(loot.lootAccessibilityIdentifier ?? titleAccessibilityIdentifier)
+                            } else {
+                                ProgressView()
+                                    .padding(TrinketDesign.Spacing.large)
+                                    .accessibilityLabel(Text(L10n.ui_rewardrevealexperiencescreen_preparing_rewards_6f51a))
+                            }
                         }
-                    }
-                },
-                primaryActionTitle: primaryActionTitle,
-                primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
-                isPrimaryActionDisabled: collection.isCompleting || !isPrimaryActionReady,
-                isPrimaryActionConfirmed: collection.isCollected,
-                onPrimaryAction: complete,
-                contentTopPadding: contentTopPadding,
-                contentStackSpacing: contentStackSpacing,
-                pinsPrimaryActionToBottom: false,
-                primaryActionOpacity: allowsImmediatePrimaryAction || revealSequence.areItemsVisible ? 1 : 0,
-                primaryActionEntranceOffset: 0,
-            )
+                    },
+                    primaryActionTitle: primaryActionTitle,
+                    primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
+                    isPrimaryActionDisabled: collection.isCompleting || !isPrimaryActionReady,
+                    isPrimaryActionConfirmed: collection.isCollected,
+                    onPrimaryAction: complete,
+                    contentTopPadding: contentTopPadding,
+                    contentStackSpacing: contentStackSpacing,
+                    pinsPrimaryActionToBottom: geometry.size.width > geometry.size.height,
+                    primaryActionOpacity: allowsImmediatePrimaryAction || revealSequence.areItemsVisible ? 1 : 0,
+                    primaryActionEntranceOffset: 0,
+                )
+            }
         }
         .accessibilityElement(children: .contain)
         .gameAccessibilityLabel(title)

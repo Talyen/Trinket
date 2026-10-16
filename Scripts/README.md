@@ -89,7 +89,7 @@ an executing module.
 
 ## Player coverage automation
 
-`player-coverage.sh ios18|compact|tablet|soak` owns minimum-OS compatibility,
+`player-coverage.sh ios18|compact|tablet|duo|soak` owns minimum-OS compatibility,
 serial settings profiles, and weekly functional soak/recovery. It is CI-owned and respects the heavy-local policy.
 [Player coverage](../Docs/Platform/PlayerCoverage.md) owns scenarios, cadence,
 explicit profile prerequisites, and evidence limitations. UI membership is authored

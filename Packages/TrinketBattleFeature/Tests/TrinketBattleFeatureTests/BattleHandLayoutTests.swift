@@ -9,6 +9,9 @@ struct BattleHandLayoutTests {
             CGSize(width: 669, height: 951),
             CGSize(width: 951, height: 669),
             CGSize(width: 874, height: 402),
+            // Duo's wide viewports after native side chrome and safe-area reductions.
+            CGSize(width: 618, height: 422),
+            CGSize(width: 891, height: 625),
             CGSize(width: 744, height: 1000),
             CGSize(width: 820, height: 1104),
             CGSize(width: 1024, height: 1280),

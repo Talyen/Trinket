@@ -269,7 +269,10 @@ public extension View {
             let margin = TrinketDesign.Layout.collectionShelfHorizontalMargin
             let spacing = TrinketDesign.Layout.collectionShelfCardSpacing
             let peek = TrinketDesign.Layout.collectionShelfPeekRatio
-            return (length - 2 * margin - spacing) / (TrinketDesign.Layout.collectionShelfVisibleCardCount + peek)
+            return min(
+                TrinketDesign.Layout.collectionShelfMaximumCardWidth,
+                max(0, (length - 2 * margin - spacing) / (TrinketDesign.Layout.collectionShelfVisibleCardCount + peek)),
+            )
         }
     }
 }
