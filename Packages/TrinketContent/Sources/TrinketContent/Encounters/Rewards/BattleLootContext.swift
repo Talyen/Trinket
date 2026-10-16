@@ -6,15 +6,18 @@ public struct BattleLootContext: Equatable, Sendable {
     public let worldSeed: UInt64
     public let ownership: RewardOwnership
     public let astralChanceBonusPercent: Int
+    public let claimedJourneyRewardStageIDs: Set<String>
 
     public init(
         worldSeed: UInt64,
         ownership: RewardOwnership = RewardOwnership(),
         astralChanceBonusPercent: Int = 0,
+        claimedJourneyRewardStageIDs: Set<String> = [],
     ) {
         self.worldSeed = worldSeed
         self.ownership = ownership
         self.astralChanceBonusPercent = astralChanceBonusPercent
+        self.claimedJourneyRewardStageIDs = claimedJourneyRewardStageIDs
     }
 
     public func journey(
@@ -23,8 +26,11 @@ public struct BattleLootContext: Equatable, Sendable {
         enemyIsBoss: Bool? = nil,
         in chapters: [Chapter] = GameContent.chapters,
     ) -> BattleLootResult {
-        resolve(
-            .journey(stage: stage),
+        let openingBoss = chapters.lazy.flatMap(\.stages).first { isBoss(enemyID: $0.encounter.battleEnemyID) }
+        var request = LootRequest.journey(stage: stage)
+        request.guaranteesTrinket = stage.id == openingBoss?.id && !claimedJourneyRewardStageIDs.contains(stage.id)
+        return resolve(
+            request,
             encounterLevel: encounterLevel ?? EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapters),
             enemyIsBoss: enemyIsBoss ?? isBoss(enemyID: stage.encounter.battleEnemyID),
         )
@@ -36,7 +42,7 @@ public struct BattleLootContext: Equatable, Sendable {
         modifier: NodeModifierDefinition? = nil,
     ) -> BattleLootResult {
         let selected = modifier ?? GameContent.spireModifier(for: floor, worldSeed: worldSeed)
-        let definitions = ownership.modifiers(ids: selected.map { [$0.id] } ?? [])
+        let definitions = ownership.modifiers(ids: selected.map { [$0.id] } ?? [], enemyIsBoss: isBoss(enemyID: floor.enemyID))
         let effects = NodeModifierEffects.combining(definitions)
         return resolve(
             .spire(floor: floor, rewardModifier: effects.rewardModifier),
@@ -60,14 +66,14 @@ public struct BattleLootContext: Equatable, Sendable {
 
     public func contract(for offer: ContractOffer, encounterLevel: Int) -> BattleLootResult {
         resolve(
-            .contract(offerID: offer.id, modifier: ownership.resolved(offer.rewardModifier)),
+            .contract(offerID: offer.id, modifier: ownership.resolved(offer.rewardModifier, enemyIsBoss: isBoss(enemyID: offer.enemyID))),
             encounterLevel: encounterLevel,
             enemyIsBoss: isBoss(enemyID: offer.enemyID),
         )
     }
 
     public func voyage(node: VoyageNode, encounterLevel: Int) -> BattleLootResult {
-        let effects = NodeModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
+        let effects = NodeModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs, enemyIsBoss: node.type == .boss))
         return resolve(
             .voyage(node: node, effects: effects),
             encounterLevel: encounterLevel,

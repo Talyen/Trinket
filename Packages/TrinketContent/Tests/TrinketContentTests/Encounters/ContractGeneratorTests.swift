@@ -17,7 +17,7 @@ struct ContractGeneratorTests {
             eligibleModifiers: [.astral], using: &rng,
         )
         #expect(offer.enemyID == remaining.id)
-        #expect(offer.rewardModifier == .astral)
+        #expect(offer.rewardModifier == (difficulty.isBoss ? .gold : .astral))
         let fallback = ContractGenerator.makeOffer(
             difficulty: difficulty, excludingEnemyIDs: allIDs, eligibleModifiers: [], using: &rng,
         )

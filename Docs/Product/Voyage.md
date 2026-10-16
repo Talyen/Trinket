@@ -73,7 +73,7 @@ Let P be the current Hero and Companion's average level, rounded down. Easy uses
 max(1, P − 3), Medium uses P, and Hard uses P + 3. The boss uses the same offset and
 normal boss strength. Each attempt captures its party, level, modifiers, and loot.
 
-Battle XP, Gold, materials, and boss item weighting use shared policies. Equipment
+Battle XP, Gold, materials, and boss item guarantees use shared policies. Equipment
 quality for a battle uses its captured encounter level, capped at loot level 40.
 Shop and Mystery item offers use the highest won encounter level, as in Contracts;
 winning records the battle's level for later offers. Completion adds 20% of combat
@@ -84,12 +84,15 @@ the completion bonus itself. Apply capacity/overflow rules to the final award;
 do not multiply the completion bonus again. The final victory displays and commits
 the combined payout atomically with Voyage completion.
 
-Each offer saves one shared reward modifier. It applies to the final boss's normal
-victory reward only; retreat, defeat, and abandonment do not pay it. Compatible
+Each offer saves one shared reward modifier. It pays only on final boss victory;
+retreat, defeat, and abandonment do not pay it. Compatible
 Gold, XP, and material bonuses add to the boss node's modifier. Two different
-material focuses occupy the two material slots. If both modifiers affect items,
-the boss rolls one item for each rule, with distinct saved IDs and collectible
-ownership respected between rolls. The route's 20% completion bonus remains
+material focuses occupy the two material slots. The boss always grants its shared
+guaranteed collectible/Astral item. An item-focused destination adds a separate item
+using its advertised rule, with Basic excluded; family and keyword rewards are Astral.
+Use distinct saved IDs and exclude the primary collectible from the bonus roll.
+Boss node item modifiers resolve to Bonus Gold and are excluded from new generation;
+destination item modifiers remain eligible. The route's 20% completion bonus remains
 separate. Exhausted collectible modifiers resolve to Bonus Gold, including on
 legacy offers whose saved modifier is missing.
 

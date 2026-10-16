@@ -26,6 +26,15 @@ enum ItemLootPolicy {
         tierWeightBonusPercent: Int = 0,
         collectibleChancePercent: Int = 100,
     ) -> [Double] {
+        if bossContent {
+            let collectibles = availableTiers.intersection([.trinket, .unique])
+            return ItemDropTier.allCases.map { tier in
+                if collectibles.isEmpty {
+                    return tier == .astral ? 1 : 0
+                }
+                return collectibles.contains(tier) ? 1 / Double(collectibles.count) : 0
+            }
+        }
         let t = progress(level: level)
         let weights = ItemDropTier.allCases.map { tier in
             guard availableTiers.contains(tier) else { return 0.0 }
@@ -36,9 +45,6 @@ enum ItemLootPolicy {
             case .unique: (0.1, 8)
             }
             var weight = endpoints.base + (endpoints.top - endpoints.base) * t
-            if bossContent, tier != .basic {
-                weight *= 3
-            }
             if tier == .astral {
                 weight *= 1 + Double(max(0, astralChanceBonusPercent)) / 100
             }

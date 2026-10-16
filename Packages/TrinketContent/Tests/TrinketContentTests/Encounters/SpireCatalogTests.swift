@@ -38,14 +38,15 @@ struct SpireCatalogTests {
             let pool = NodeModifierCatalog.keywordModifiers(for: spire.keyword, nodeType: .battle)
             #expect(pool.count == 3)
             #expect(Set(pool.map(\.id)).count == 3)
-            #expect(NodeModifierCatalog.keywordModifiers(for: spire.keyword, nodeType: .boss) == pool)
+            let bossPool = NodeModifierCatalog.keywordModifiers(for: spire.keyword, nodeType: .boss)
+            #expect(bossPool == pool.filter { $0.effect != .reward(.keyword(spire.keyword)) })
             #expect(pool.contains { $0.effect == .damageDealt(keyword: spire.keyword, amount: 1) })
             #expect(pool.contains { $0.effect == .damageTakenReduction(keyword: spire.keyword, percent: 50) })
             #expect(pool.contains { $0.effect == .reward(.keyword(spire.keyword)) })
 
             for floor in GameContent.spireFloors(for: spire.id) {
                 let first = try #require(GameContent.spireModifier(for: floor, worldSeed: 42))
-                #expect(pool.contains(first))
+                #expect((floor.floor.isMultiple(of: 10) ? bossPool : pool).contains(first))
                 #expect(GameContent.spireModifier(for: floor, worldSeed: 42) == first)
             }
         }

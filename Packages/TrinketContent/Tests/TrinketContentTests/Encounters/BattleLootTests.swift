@@ -3,6 +3,66 @@ import TrinketCore
 @testable import TrinketContent
 
 struct BattleLootTests {
+    @Test(arguments: [false, true], [false, true])
+    func `boss draws only remaining global collectibles then astral`(trinketsComplete: Bool, uniquesComplete: Bool) throws {
+        let trinket = try #require(GameContent.trinketItems.last)
+        let unique = try #require(GameContent.uniqueItems.last)
+        let ownership = RewardOwnership(
+            ownedTrinketIDs: Set(GameContent.trinketItems.filter { trinketsComplete || $0.templateID != trinket.templateID }
+                .map(\.templateID)),
+            ownedUniqueIDs: Set(GameContent.uniqueItems.filter { uniquesComplete || $0.templateID != unique.templateID }.map(\.templateID)),
+        )
+        let context = BattleLootContext(worldSeed: 42, ownership: ownership, astralChanceBonusPercent: 100)
+        for spire in GameContent.spires {
+            let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 10))
+            let item = context.spire(for: floor).item
+            if trinketsComplete, uniquesComplete {
+                #expect(item.rarity == .astral && !item.isTrinket)
+            } else if trinketsComplete {
+                #expect(item.templateID == unique.templateID)
+            } else if uniquesComplete {
+                #expect(item.templateID == trinket.templateID)
+            } else {
+                #expect([trinket.templateID, unique.templateID].contains(item.templateID))
+            }
+        }
+    }
+
+    @Test(arguments: RewardModifier.allCases.filter(\.isItemFocused))
+    func `legacy boss item modifiers pay Gold without replacing guaranteed item`(modifier: RewardModifier) {
+        let request = LootRequest(seedSalt: "boss", itemID: "boss", rewardModifier: modifier)
+        let legacy = BattleLoot.resolve(request, encounterLevel: 1, enemyIsBoss: true, worldSeed: 42, ownership: RewardOwnership())
+        let gold = BattleLoot.resolve(
+            LootRequest(seedSalt: "boss", itemID: "boss", rewardModifier: .gold),
+            encounterLevel: 1, enemyIsBoss: true, worldSeed: 42, ownership: RewardOwnership(),
+        )
+        #expect(legacy == gold)
+        #expect(legacy.item.isTrinket || legacy.item.rarity == .unique)
+        #expect(RewardOwnership().resolved(modifier, enemyIsBoss: true) == .gold)
+        #expect(NodeModifierCatalog.modifiers(ids: [NodeModifierCatalog.rewardID(modifier)], enemyIsBoss: true).first?
+            .effect == .reward(.gold))
+    }
+
+    @Test func `opening Journey boss guarantees a Trinket only until its reward is claimed`() throws {
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-10"))
+        for seed in UInt64(0) ..< 16 {
+            let fresh = BattleLootContext(worldSeed: seed)
+            #expect(fresh.journey(for: stage).item.isTrinket)
+            let claimed = BattleLootContext(worldSeed: seed, claimedJourneyRewardStageIDs: [stage.id])
+            #expect(claimed.journey(for: stage) == BattleLoot.resolve(
+                .journey(stage: stage), encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: GameContent.chapters),
+                enemyIsBoss: true, worldSeed: seed, ownership: RewardOwnership(),
+            ))
+        }
+        let ownership = RewardOwnership(ownedTrinketIDs: Set(GameContent.trinketItems.map(\.templateID)))
+        #expect(BattleLootContext(worldSeed: 42, ownership: ownership).journey(for: stage).item.rarity == .unique)
+        let full = RewardOwnership(
+            ownedTrinketIDs: ownership.ownedTrinketIDs,
+            ownedUniqueIDs: Set(GameContent.uniqueItems.map(\.templateID)),
+        )
+        #expect(BattleLootContext(worldSeed: 42, ownership: full).journey(for: stage).item.rarity == .astral)
+    }
+
     @Test func `quantity range endpoints`() {
         #expect(BattleLoot.quantityRange(forLevel: Int.min) == 3 ... 4)
         #expect(BattleLoot.quantityRange(forLevel: 1) == 3 ... 4)

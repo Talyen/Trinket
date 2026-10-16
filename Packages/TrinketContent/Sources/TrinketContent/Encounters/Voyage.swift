@@ -74,7 +74,7 @@ public struct VoyageNode: Identifiable, Codable, Equatable, Sendable {
     }
 
     public var effects: NodeModifierEffects {
-        .combining(NodeModifierCatalog.modifiers(ids: modifierIDs))
+        .combining(NodeModifierCatalog.modifiers(ids: modifierIDs, enemyIsBoss: type == .boss))
     }
 }
 

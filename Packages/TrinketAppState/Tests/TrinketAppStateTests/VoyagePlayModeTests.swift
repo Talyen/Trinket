@@ -127,8 +127,8 @@ struct VoyagePlayModeTests {
         let presentation = try #require(play.battlePresentation(for: battle))
         let items = presentation.rewardPlan.resolve(battleGold: .init()).items
         #expect(items.count == 2)
-        #expect(items[0].baseType.slot == .weapon)
-        #expect(items[1].baseType.slot == .armor)
+        #expect(items[0].isTrinket || items[0].rarity == .unique)
+        #expect(items[1].baseType.slot == .armor && items[1].rarity == .astral)
         #expect(play.completeActiveBattle(battle, battleGold: .init()).didComplete)
         let after = play.playerSave.currentSave
         #expect(items.allSatisfy { item in after.inventory.items.contains { $0.id == item.id } })

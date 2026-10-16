@@ -55,7 +55,7 @@ struct EncounterLootTests {
 
     @Test func `spire keyword reward guarantees matching gear and retains keyword bias`() throws {
         for spire in GameContent.spires {
-            let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 10))
+            let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 1))
             let seed = try #require((0 ..< 128).map(UInt64.init).first { candidate in
                 GameContent.spireModifier(for: floor, worldSeed: candidate)?.effect == .reward(.keyword(spire.keyword))
             })

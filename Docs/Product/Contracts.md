@@ -25,7 +25,7 @@ at loot level 40. Victory records that level for later Shop, Mystery, and Blacks
 offers, whose quality follows the highest won encounter level. Contract encounter
 level also drives XP, Gold, and material quantities without that loot-level cap.
 Hard Contracts receive the shared
-boss loot weighting. Preserve catch-up XP, shared level-difference XP scaling, reward
+boss loot guarantees. Preserve catch-up XP, shared level-difference XP scaling, reward
 ownership, and applicable Homestead effects. Higher-level enemies award more XP
 under the shared curve; Hard has no additional difficulty-specific XP multiplier.
 Difficulty labels describe level and enemy category, not a guaranteed matchup outcome.
@@ -52,8 +52,13 @@ Wood, Stone, Iron, Food, Herbs, Hide, and Gems bonuses guarantee that resource i
 one of the two material slots and increase its quantity by 25%; the other slot
 remains random and distinct. Existing quantity rounding and reward caps apply.
 
+Hard Contracts use the shared boss guarantee: equal odds of an uncollected Trinket
+or Unique, the remaining category when one is complete, and Astral when both are
+complete. Item-focused modifiers are excluded from new Hard offers; existing saved
+Hard item modifiers display and pay Bonus Gold without changing their saved IDs.
+
 Astral, Trinket, and Unique bonuses double the selected eligible item-tier weight
-after progression, boss, and Homestead weighting, then normalize
+after progression and Homestead weighting, then normalize
 the probabilities. They do not add percentage points or extra items. Unowned-item
 eligibility remains authoritative: exhausted Trinket/Unique pools are excluded
 from generation, and an existing offer targeting an exhausted pool displays and
@@ -63,7 +68,7 @@ Keyword modifiers display “Drops [Keyword] items” and guarantee one Basic or
 Astral item with both a matching base affinity and at least one matching affix.
 The guarantee uses a normal affix slot, carries no additional percentage bonus,
 and leaves Gold, XP, and materials unchanged. Basic/Astral relative tier weights
-retain progression, boss, and Homestead adjustments; collectible tiers are excluded.
+retain progression and Homestead adjustments; collectible tiers are excluded.
 
 Arms, Armor, Ring, and Amulet Hoards guarantee the normal victory item belongs
 to that family, using only Basic/Astral tiers with their ordinary relative

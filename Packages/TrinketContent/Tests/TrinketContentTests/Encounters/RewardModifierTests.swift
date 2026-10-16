@@ -123,7 +123,7 @@ struct RewardModifierTests {
                     for: type, enemyID: enemy.id, eligibleRewards: [.gold], using: &rng,
                 ) == NodeModifierCatalog.rewardID(.gold)
             })
-            for reward in eligible {
+            for reward in eligible where !boss || !reward.isItemFocused {
                 let expectedID = NodeModifierCatalog.rewardID(reward)
                 var rng = SeededRandomNumberGenerator(seed: seed)
                 #expect(NodeModifierCatalog.pickModifier(
@@ -142,6 +142,30 @@ struct RewardModifierTests {
                     continue
                 }
                 #expect(eligible.contains(selected))
+            }
+        }
+    }
+
+    @Test func `boss generation excludes item modifiers while preserving legacy saved IDs`() throws {
+        let enemy = try #require(GameContent.enemies.first { $0.isBoss })
+        let legacyID = NodeModifierCatalog.rewardID(.armsHoard)
+        #expect(NodeModifierCatalog.resolvedModifierIDs(
+            for: .boss, enemyID: enemy.id, existingModifierIDs: [legacyID], worldSeed: 7, nodeID: "legacy-boss",
+        ) == [legacyID])
+        for seed in UInt64(0) ..< 64 {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            let offer = ContractGenerator.makeOffer(difficulty: .hard, using: &rng)
+            #expect(!offer.rewardModifier.isItemFocused)
+            let id = try #require(NodeModifierCatalog.pickModifier(for: .boss, enemyID: enemy.id, using: &rng))
+            let definition = try #require(NodeModifierCatalog.modifier(id: id))
+            if case let .reward(reward) = definition.effect {
+                #expect(!reward.isItemFocused)
+            }
+            for spire in GameContent.spires {
+                let floor = try #require(GameContent.spireFloor(spireID: spire.id, floor: 10))
+                if case let .reward(reward) = GameContent.spireModifier(for: floor, worldSeed: seed)?.effect {
+                    #expect(!reward.isItemFocused)
+                }
             }
         }
     }

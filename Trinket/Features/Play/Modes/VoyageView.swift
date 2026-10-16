@@ -192,7 +192,7 @@ struct VoyageView: View {
 
     private func inspect(_ node: VoyageNode) {
         guard isReady, let encounter = voyage.resolvedEncounter(for: node) else { return }
-        let modifiers = RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs)
+        let modifiers = RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs, enemyIsBoss: node.type == .boss)
         presentPlayCombatantDetail(makePlayEnemyDetail(
             combatant: encounter.combatant,
             level: encounter.level,

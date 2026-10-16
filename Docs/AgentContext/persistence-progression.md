@@ -5,7 +5,7 @@ Use with [persistence ownership](persistence.md) for domain commands, rewards an
 ## Reward levels
 
 Content's `BattleLootContext` owns loot selection for every mode from explicit
-world seed, collectible ownership, and Sanctum bonus values. Launch and unsettled
+world seed, collectible ownership, claimed Journey reward IDs, and Sanctum bonus values. Launch and unsettled
 completion use the same policy, including Spire modifiers and Voyage's independent
 final destination roll and collectible exhaustion. Persistence supplies a save-value
 adapter and commits awards; completion appliers do not expose loot-planning APIs.
@@ -17,7 +17,11 @@ highest won encounter level through `CampaignRewardLevel`, rather than the curre
 party or battle level.
 Unsettled completion uses Content's `EncounterScaling` mode policy; Spires retain
 their fixed floor level even when the active party is below it.
-`VictoryRewardApplier` owns reward application to the save.
+`VictoryRewardApplier` owns reward application to the save. Bosses use equal Trinket/Unique
+category odds over uncollected full catalogs, the remaining category if one is complete,
+and Astral if both are complete. The opening Journey boss guarantees a Trinket until
+its reward is claimed, with the same exhaustion fallback. Existing claimed IDs prevent
+retroactive awards; no new saved flag is used. Neither boss path can produce Basic.
 
 ## Victory settlement
 
@@ -76,9 +80,12 @@ domain identities. Failed or rejected transactions publish neither awards nor re
 
 Contracts and Labyrinth/Voyage combat share Content's `RewardModifier` catalog.
 Voyage destination offers save a separate modifier for the final boss victory;
-its XP bonus is excluded from partial-defeat XP. When both destination and node
-modifiers affect items, the final reward plan carries both rolls so the reveal
-and committed award remain identical.
+its XP bonus is excluded from partial-defeat XP. Every item-focused destination adds
+an independent modifier-driven item beside the boss guarantee, excluding Basic and
+the primary collectible. The final reward plan carries both rolls so the reveal and
+committed award remain identical. New bosses exclude item-focused node/Contract
+modifiers; saved boss item modifiers resolve to Gold in both presentation and payout.
+Voyage destination modifiers are exempt from that boss conversion.
 Rare-tier odds bonuses double the named eligible tier's weight.
 Saved IDs stay stable; exhausted collectible bonuses resolve to Gold consistently
 in artwork/details and launch loot. Keyword guarantees occupy one normal affix

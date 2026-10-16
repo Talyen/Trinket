@@ -98,7 +98,7 @@ public final class SpiresPlayMode {
     ) -> (input: BattleLaunchInput, route: PlayBattleRoute) {
         let selected = GameContent.spireModifier(for: floor, worldSeed: playerSave.worldSeed)
         let modifiers = ModeBattleModifiers(definitions: RewardOwnership(playerSave.inventory)
-            .modifiers(ids: selected.map { [$0.id] } ?? []))
+            .modifiers(ids: selected.map { [$0.id] } ?? [], enemyIsBoss: GameContent.enemy(matching: floor.enemyID)?.isBoss == true))
         let loot = BattleLootContext(playerSave: playerSave).spire(
             for: floor, encounterLevel: encounter.level, modifier: selected,
         )

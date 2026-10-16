@@ -174,7 +174,10 @@ public extension StageSelectRowPresentation where Item == ContractOffer {
                 actionAccessibilityID: AccessibilityID.Play.contractFight(offer.difficulty.rawValue),
                 activeDetailAccessibilityID: AccessibilityID.Play.contractDetail(offer.difficulty.rawValue),
                 partyControlAccessibilityID: AccessibilityID.Play.contractParty(offer.difficulty.rawValue),
-                modifiers: [ModifierCaptionPresentation(RewardOwnership(inventory).resolved(offer.rewardModifier))],
+                modifiers: [ModifierCaptionPresentation(RewardOwnership(inventory).resolved(
+                    offer.rewardModifier,
+                    enemyIsBoss: GameContent.enemy(matching: offer.enemyID)?.isBoss == true,
+                ))],
             )
         }
     }

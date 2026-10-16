@@ -37,6 +37,7 @@ extension BattleLootContext {
             worldSeed: playerSave.worldSeed,
             ownership: RewardOwnership(playerSave.inventory),
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
+            claimedJourneyRewardStageIDs: playerSave.journey.claimedRewardStageIDs,
         )
     }
 }

@@ -6,6 +6,27 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct BattleLootTests {
+    @Test @MainActor func `opening boss Trinket is claimed once and remains claimed after reload`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-10"))
+        let before = store.currentSave
+        let expected = BattleLootContext(save: before).journey(for: stage).item
+        #expect(expected.isTrinket)
+        #expect(store.completeJourneyStages([stage], hero: store.roster.activeHero, companion: store.roster.activeCompanion))
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.journey.claimedRewardStageIDs.contains(stage.id))
+        #expect(reloaded.inventory.items.contains { $0.templateID == expected.templateID })
+        let claimed = reloaded.currentSave
+        #expect(reloaded.completeJourneyStages([stage], hero: reloaded.roster.activeHero, companion: reloaded.roster.activeCompanion))
+        #expect(reloaded.currentSave == claimed)
+        #expect(BattleLootContext(save: claimed).journey(for: stage) == BattleLoot.resolve(
+            .journey(stage: stage), encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: GameContent.chapters),
+            enemyIsBoss: true, worldSeed: claimed.worldSeed, ownership: RewardOwnership(claimed),
+            astralChanceBonusPercent: claimed.homestead.effects.astralChanceBonusPercent,
+        ))
+    }
+
     @Test func `noncombat offer quality follows won encounters across modes`() {
         let node = LabyrinthNode(id: "deep", type: .mystery, depth: 17, clusterID: "cluster")
         var save = SaveTestSupport.makeSave()

@@ -156,7 +156,7 @@ extension LabyrinthPlayMode {
             for: node, effects: labyrinth.effects(for: node.id), encounterLevel: encounter.level,
         ) else { return nil }
         let modifiers = ModeBattleModifiers(
-            definitions: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
+            definitions: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs, enemyIsBoss: node.type == .boss),
         )
         let input = ModeBattleSpec.launchInput(
             origin: .labyrinth(nodeID: node.id),

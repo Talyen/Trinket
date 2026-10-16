@@ -90,13 +90,19 @@ the other slots. Save fields and offer identifiers retain their existing formats
 
 `ItemRewardGenerator` owns category selection and candidate filtering for battles,
 shops, Mysteries, and Blacksmith forging. Tune level endpoints, tier weights,
-curvature, and the boss multiplier in `Sources/TrinketContent/Equipment/ItemLootPolicy.swift`;
+curvature, and the boss guarantee in `Sources/TrinketContent/Equipment/ItemLootPolicy.swift`;
 affix counts and keyword bias live with `ItemGenerator.swift`.
 The loot policy blends the endpoint weights using normalized curved level
-progression, clamped to levels 1–40. Bosses triple premium weights; Moonlit Sanctum multiplies
+progression, clamped to levels 1–40. Ordinary rewards use those weights; Moonlit Sanctum multiplies
 Astral weight by `1 + bonus/100`. After ownership, reservations, keywords, and
 explicit pools remove unavailable categories, the remaining weights normalize.
-There are no category-conversion fallbacks. Guaranteed Astral rewards constrain
+Boss victories instead guarantee an uncollected Trinket or Unique with equal category odds,
+choosing uniformly within the selected full catalog. A completed category leaves the other
+at 100%; both complete guarantees Astral equipment. Boss collectible selection ignores
+keyword restrictions, Sanctum, and item-tier weighting. The opening Journey boss's first
+reward claim guarantees an uncollected Trinket, falling back to the regular boss rule
+when Trinkets are complete. Existing claimed Journey rewards receive no retroactive award.
+Bosses never drop Basics. Guaranteed Astral rewards constrain
 the same resolver to Astral gear; exact authored item rewards remain exact.
 
 Battle items roll at that battle's captured encounter level, with tier odds capped
@@ -184,8 +190,10 @@ retain saved modifier IDs, including `bountyMark`, `scholarsToll`, and
 `scavengersLuck`. Existing maps/routes are not rerolled. Each Spire floor derives
 one keyword-matched node modifier from the saved world seed and its floor identity,
 so no new save field is required.
-Voyage destination offers also save a shared reward modifier for their final boss
-reward. Missing offer modifiers decode as Bonus Gold.
+Boss generation excludes item-focused modifiers; legacy saved boss item modifiers resolve
+to Bonus Gold in presentation and payout without rewriting IDs. This includes Hard
+Contracts and boss nodes. Voyage destination offers retain their independent reward
+modifier; missing offer modifiers decode as Bonus Gold.
 
 Keyword rewards choose uniformly among non-Trinket bases that have the advertised
 keyword affinity and a positive-weight eligible affix for it. Generation reserves
@@ -218,8 +226,12 @@ resolves to Bonus Gold for presentation and payout without rewriting its ID.
 Content's `BattleLootContext` owns mode-specific loot selection from a captured
 world seed, `RewardOwnership`, and Sanctum bonus. `BattleLoot` rolls its `LootRequest`
 for seeded Gold, materials, and items. Voyage's final destination composition,
-second item roll, and last-collectible Gold conversion live in that same value-only
-owner. Persistence adapts saved inputs and commits awards and claims; battle launch
+bonus item roll, and last-collectible Gold conversion live in that same value-only
+owner. Every item-focused Voyage destination adds a separate modifier-driven item beside
+the boss guarantee, even without an item-focused node modifier. Basic is excluded from
+that bonus; family and keyword guarantees therefore produce Astral gear. The bonus
+respects ownership including the primary item; newly exhausted collectible modifiers
+convert to Gold. Persistence adapts saved inputs and commits awards and claims; battle launch
 captures the result for settlement. All modes reuse the same concise
 reward descriptions and keyword/resource icons and colors.
 

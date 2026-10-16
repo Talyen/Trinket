@@ -65,10 +65,12 @@ public enum NodeModifierCatalog {
 
     public static func modifiers(
         ids: [NodeModifierID], eligibleRewards: [RewardModifier] = RewardModifier.allCases,
+        enemyIsBoss: Bool = false,
     ) -> [NodeModifierDefinition] {
         ids.compactMap { id in
             guard let definition = modifiersByID[id] else { return nil }
-            if case let .reward(reward) = definition.effect, !eligibleRewards.contains(reward) {
+            if case let .reward(reward) = definition.effect,
+               !eligibleRewards.contains(reward) || (enemyIsBoss && reward.isItemFocused) {
                 return modifiersByID[rewardID(.gold)]
             }
             return definition
@@ -124,7 +126,7 @@ public enum NodeModifierCatalog {
             case let .damageDealt(effectKeyword, _), let .damageTakenReduction(effectKeyword, _):
                 effectKeyword == keyword
             case let .reward(reward):
-                reward == .keyword(keyword)
+                nodeType != .boss && reward == .keyword(keyword)
             default:
                 false
             }
@@ -158,7 +160,7 @@ public enum NodeModifierCatalog {
         var combat: [NodeModifierDefinition] = []
         for modifier in applicable {
             if case let .reward(reward) = modifier.effect {
-                if eligibleRewards.contains(reward) {
+                if eligibleRewards.contains(reward), type != .boss || !reward.isItemFocused {
                     rewards.append(modifier)
                 }
             } else {

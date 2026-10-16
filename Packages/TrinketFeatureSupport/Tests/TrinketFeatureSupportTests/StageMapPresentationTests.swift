@@ -21,6 +21,30 @@ struct StageMapPresentationTests {
         #expect(!RewardOwnership(save.inventory).eligibleModifiers.contains(modifier))
     }
 
+    @Test func `legacy boss item promises display Gold while Voyage destination keeps its reward`() throws {
+        let save = PlayerSave.testSeed
+        let enemy = try #require(GameContent.enemies.first { $0.isBoss })
+        let offer = ContractOffer(id: "legacy", difficulty: .hard, enemyID: enemy.id, rewardModifier: .armsHoard)
+        let contract = StageSelectRowPresentation<ContractOffer>.contractRows(offers: [offer], inventory: save.inventory)
+        #expect(contract.first?.modifiers.first?.id == RewardModifier.gold.rawValue)
+        let gold = ContractOffer(id: offer.id, difficulty: .hard, enemyID: enemy.id, rewardModifier: .gold)
+        #expect(BattleLootContext(save: save).contract(for: offer, encounterLevel: 10)
+            == BattleLootContext(save: save).contract(for: gold, encounterLevel: 10))
+        let destination = VoyageOffer(id: "run", chapterID: "chapter-1", difficulty: .easy, seed: 1, rewardModifier: .armorHoard)
+        let node = VoyageNode(
+            id: "boss",
+            type: .boss,
+            enemyID: enemy.id,
+            modifierIDs: [NodeModifierCatalog.rewardID(.armsHoard)],
+            recruitEventID: nil,
+        )
+        let run = VoyageRun(offer: destination, nodes: [node])
+        let nodes = StageSelectRowPresentation<VoyageNode>.voyageNodes(run, inventory: save.inventory)
+        #expect(nodes.first?.modifiers.first?.id == NodeModifierCatalog.rewardID(.gold).rawValue)
+        let destinations = StageSelectRowPresentation<VoyageOffer>.voyageOffers([destination], inventory: save.inventory)
+        #expect(destinations.first?.modifiers.first?.id == RewardModifier.armorHoard.rawValue)
+    }
+
     @Test func `stage select rows omit completed stages`() {
         let chapter = GameContent.chapters[0]
         var progress = JourneyProgressState.initial

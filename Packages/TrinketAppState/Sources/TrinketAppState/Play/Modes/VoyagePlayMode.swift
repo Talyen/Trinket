@@ -128,7 +128,7 @@ public final class VoyagePlayMode {
         guard let run = playerSave.voyage.activeRun, run.id == runID,
               let encounter = resolvedEncounter(for: node) else { return nil }
         let modifiers = ModeBattleModifiers(
-            definitions: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs),
+            definitions: RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs, enemyIsBoss: node.type == .boss),
         )
         let lootContext = BattleLootContext(playerSave: playerSave)
         let finalLoot = node.type == .boss ? lootContext.finalVoyage(node: node, offer: run.offer, encounterLevel: encounter.level) : nil

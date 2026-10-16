@@ -9,7 +9,7 @@ public extension BattleLootContext {
     func finalVoyage(
         node: VoyageNode, offer: VoyageOffer, encounterLevel: Int,
     ) -> VoyageResolvedLoot {
-        let effects = NodeModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs))
+        let effects = NodeModifierEffects.combining(ownership.modifiers(ids: node.modifierIDs, enemyIsBoss: true))
         let destination = ownership.resolved(offer.rewardModifier)
         var primary = BattleLoot.resolve(
             .voyage(
@@ -20,7 +20,7 @@ public extension BattleLootContext {
             worldSeed: worldSeed, ownership: ownership,
             astralChanceBonusPercent: astralChanceBonusPercent,
         )
-        guard effects.rewardModifier?.isItemFocused == true, destination.isItemFocused else {
+        guard destination.isItemFocused else {
             return VoyageResolvedLoot(primary: primary, additionalItem: nil)
         }
         var secondOwnership = ownership
@@ -39,15 +39,13 @@ public extension BattleLootContext {
             primary = BattleLootResult(item: primary.item, gold: gold, materials: primary.materials)
             return VoyageResolvedLoot(primary: primary, additionalItem: nil)
         }
-        let second = BattleLoot.resolve(
-            LootRequest(
-                seedSalt: "\(node.id)-destination", itemID: "voyage-\(node.id)-destination",
-                rewardModifier: secondModifier,
-            ),
-            encounterLevel: encounterLevel, enemyIsBoss: true,
-            worldSeed: worldSeed, ownership: secondOwnership,
-            astralChanceBonusPercent: astralChanceBonusPercent,
+        let request = LootRequest(seedSalt: "\(node.id)-destination", itemID: "voyage-\(node.id)-destination")
+        var rng = SeededRandomNumberGenerator(seed: GameContent.encounterSeed(worldSeed, salt: request.seedSalt))
+        let item = BattleLoot.rollItem(
+            request, modifier: secondModifier, encounterLevel: encounterLevel,
+            enemyIsBoss: false, ownership: secondOwnership,
+            astralChanceBonusPercent: astralChanceBonusPercent, excludesBasic: true, using: &rng,
         )
-        return VoyageResolvedLoot(primary: primary, additionalItem: second.item)
+        return VoyageResolvedLoot(primary: primary, additionalItem: item)
     }
 }

@@ -65,7 +65,7 @@ public enum ContractGenerator {
         }
         return ContractOffer(
             id: id, difficulty: difficulty, enemyID: enemy.id,
-            rewardModifier: eligibleModifiers.randomElement(using: &rng) ?? .gold,
+            rewardModifier: eligibleModifiers.filter { !enemy.isBoss || !$0.isItemFocused }.randomElement(using: &rng) ?? .gold,
         )
     }
 }

@@ -3,6 +3,7 @@ import TrinketCore
 /// Mode-specific loot identity and bonuses. The resolver receives the captured
 /// encounter level separately; requests do not derive a competing quality level.
 public struct LootRequest: Equatable, Sendable {
+    var guaranteesTrinket = false
     public var seedSalt: String
     public var itemID: String
     public var keywordBias: Set<Keyword>

@@ -142,7 +142,7 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
 
     public func effects(for nodeID: String) -> NodeModifierEffects {
         guard let node = node(id: nodeID) else { return .zero }
-        let modifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs)
+        let modifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs, enemyIsBoss: node.type == .boss)
         return NodeModifierEffects.combining(modifiers)
     }
 }

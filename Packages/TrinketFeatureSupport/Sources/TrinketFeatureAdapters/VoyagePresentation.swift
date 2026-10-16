@@ -46,7 +46,8 @@ public extension StageSelectRowPresentation where Item == VoyageNode {
                 activeDetailAccessibilityID: AccessibilityID.Voyage.detail(node.id),
                 partyControlAccessibilityID: AccessibilityID.Voyage.party(node.id),
                 modifiers: isActive
-                    ? RewardOwnership(inventory).modifiers(ids: node.modifierIDs).map(ModifierCaptionPresentation.init)
+                    ? RewardOwnership(inventory).modifiers(ids: node.modifierIDs, enemyIsBoss: node.type == .boss)
+                    .map(ModifierCaptionPresentation.init)
                     : [],
                 allowsCompactInspection: node.type.isCombat,
             )

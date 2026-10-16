@@ -27,8 +27,8 @@ struct ItemLootPolicyTests {
         }
     }
 
-    @Test(arguments: [false, true])
-    func `sanctum scales astral weight before normalization`(boss: Bool) {
+    @Test func `sanctum scales ordinary astral weight before normalization`() {
+        let boss = false
         let base = probabilities(level: 1, boss: boss)
         let boosted = probabilities(level: 1, boss: boss, bonus: 20)
         #expect(abs(boosted[1] / boosted[0] - base[1] / base[0] * 1.2) < 1e-12)
@@ -37,14 +37,21 @@ struct ItemLootPolicyTests {
         #expect(probabilities(level: 1, boss: boss, bonus: -20) == base)
     }
 
-    @Test func `boss triples premium weights and retains basic rewards`() {
-        for level in 1 ... 40 {
-            let ordinary = probabilities(level: level)
-            let boss = probabilities(level: level, boss: true)
-            #expect(boss[0] > 0)
-            for index in 1 ... 3 {
-                #expect(abs(boss[index] / boss[0] - ordinary[index] / ordinary[0] * 3) < 1e-12)
-            }
+    @Test(arguments: [1, 40], [
+        (Set(ItemDropTier.allCases), [0.0, 0, 0.5, 0.5]),
+        (Set([ItemDropTier.astral, .trinket]), [0.0, 0, 1, 0]),
+        (Set([ItemDropTier.astral, .unique]), [0.0, 0, 0, 1]),
+        (Set([ItemDropTier.basic, .astral]), [0.0, 1, 0, 0]),
+    ])
+    func `boss guarantees collectibles equally then astral regardless of bonuses`(
+        level: Int, pool: (Set<ItemDropTier>, [Double]),
+    ) {
+        for bonus in [0, 20] {
+            let actual = ItemLootPolicy.probabilities(
+                level: level, bossContent: true, astralChanceBonusPercent: bonus,
+                availableTiers: pool.0, favoredTier: .unique, tierWeightBonusPercent: 100,
+            )
+            #expect(actual == pool.1)
         }
     }
 
@@ -100,8 +107,9 @@ struct ItemLootPolicyTests {
         }
     }
 
-    @Test(arguments: [ItemDropTier.astral, .trinket, .unique], [false, true])
-    func `favored tier multiplies existing weights and preserves eligibility`(tier: ItemDropTier, boss: Bool) throws {
+    @Test(arguments: [ItemDropTier.astral, .trinket, .unique])
+    func `favored tier multiplies ordinary weights and preserves eligibility`(tier: ItemDropTier) throws {
+        let boss = false
         let base = probabilities(level: 20, boss: boss, bonus: 20)
         let boosted = ItemLootPolicy.probabilities(
             level: 20, bossContent: boss, astralChanceBonusPercent: 20,

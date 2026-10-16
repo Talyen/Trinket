@@ -83,8 +83,11 @@ public final class ContractsPlayMode {
             encounter: encounter,
             loot: loot,
             roster: playerSave.roster,
-            experienceBonusPercent: RewardOwnership(playerSave.inventory).resolved(offer.rewardModifier)
-                .experienceBonusPercent,
+            experienceBonusPercent: RewardOwnership(playerSave.inventory).resolved(
+                offer.rewardModifier,
+                enemyIsBoss: GameContent.enemy(matching: offer.enemyID)?.isBoss == true,
+            )
+            .experienceBonusPercent,
         )
         return (input, .contract(offerID: offer.id))
     }

@@ -44,9 +44,7 @@ public enum BattleLoot {
         var rng = SeededRandomNumberGenerator(
             seed: GameContent.encounterSeed(worldSeed, salt: request.seedSalt),
         )
-        let modifier = request.rewardModifier?.resolved(
-            ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
-        )
+        let modifier = request.rewardModifier.map { ownership.resolved($0, enemyIsBoss: enemyIsBoss) }
         let additionalModifier = request.additionalRewardModifier?.resolved(
             ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
         )
@@ -82,26 +80,35 @@ public enum BattleLoot {
         return BattleLootResult(item: item, gold: gold, materials: materials)
     }
 
-    private static func rollItem(
+    static func rollItem(
         _ request: LootRequest,
         modifier: RewardModifier?,
         encounterLevel: Int,
         enemyIsBoss: Bool,
         ownership: RewardOwnership,
         astralChanceBonusPercent: Int,
+        excludesBasic: Bool = false,
         using rng: inout some RandomNumberGenerator,
     ) -> InventoryItem {
+        let modifier = enemyIsBoss ? nil : modifier
         let requiredBaseTypeIDs = modifier?.requiredBaseTypeIDs
         let eligibleBaseTypes = requiredBaseTypeIDs.map { ids in
             GameContent.itemBaseTypes.filter { ids.contains($0.id) }
         } ?? GameContent.itemBaseTypes
         precondition(!eligibleBaseTypes.isEmpty, "Guaranteed item family needs a matching base")
-        let allowedTiers: Set<ItemDropTier> = if let tier = modifier?.requiredItemTier {
+        let guaranteesTrinket = enemyIsBoss && request.guaranteesTrinket
+            && GameContent.trinketItems.contains { !ownership.ownedTrinketIDs.contains($0.templateID) }
+        var allowedTiers: Set<ItemDropTier> = if guaranteesTrinket {
+            [.trinket]
+        } else if let tier = modifier?.requiredItemTier {
             [tier]
         } else if requiredBaseTypeIDs != nil {
             [.basic, .astral]
         } else {
             Set(ItemDropTier.allCases)
+        }
+        if enemyIsBoss || excludesBasic {
+            allowedTiers.remove(.basic)
         }
         return ItemRewardGenerator.generate(
             id: request.itemID,
@@ -114,7 +121,7 @@ public enum BattleLoot {
             requiredKeyword: modifier?.requiredKeyword,
             ownedTrinketIDs: ownership.ownedTrinketIDs,
             ownedUniqueIDs: ownership.ownedUniqueIDs,
-            keywordBias: request.keywordBias,
+            keywordBias: enemyIsBoss ? [] : request.keywordBias,
             baseTypes: eligibleBaseTypes,
             using: &rng,
         )

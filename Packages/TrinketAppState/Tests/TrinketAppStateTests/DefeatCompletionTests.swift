@@ -17,12 +17,14 @@ struct DefeatCompletionTests {
     }
 
     @Test(arguments: [BattleDefeatAction.retry, .leave], [false, true])
-    func `defeat claims once and does not complete encounter`(action: BattleDefeatAction, retreat: Bool) throws {
+    func `defeat claims once and preserves the opening boss reward`(action: BattleDefeatAction, retreat: Bool) throws {
         let play = try context.makePlaySession(arguments: ["-reset-state"])
-        let stage = try #require(GameContent.chapters[0].stages.first)
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-10"))
         #expect(play.journey.startBattle(for: stage) == nil)
         let battle = try #require(context.lastBattle)
         let configuration = try #require(battle.activeBattle)
+        let item = try #require(play.battlePresentation(for: configuration)?.rewardPlan.items.first)
+        #expect(item.isTrinket)
         try resolveDefeat(battle, retreat: retreat)
         let settlement = try #require(play.settleDefeatRewards(configuration))
         let before = play.playerSave.currentSave
@@ -40,6 +42,7 @@ struct DefeatCompletionTests {
         case .retry:
             let next = try #require(battle.activeBattle)
             #expect(next.id != configuration.id)
+            #expect(play.battlePresentation(for: next)?.rewardPlan.items == [item])
             #expect(next.hero.progression == settlement.heroProgressionAfter)
             #expect(next.companion.progression == settlement.companionProgressionAfter)
             #expect(battle.engineState?.defeatProgress.depletedFraction == 0)

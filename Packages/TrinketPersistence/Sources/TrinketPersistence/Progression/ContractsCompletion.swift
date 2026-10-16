@@ -18,7 +18,10 @@ enum ContractsCompletion {
             .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level)
         let settlement = rewards.resolve { overrides in
             let loot = overrides.loot ?? BattleLootContext(save: save).contract(for: offer, encounterLevel: encounterLevel)
-            let modifier = RewardOwnership(save).resolved(offer.rewardModifier)
+            let modifier = RewardOwnership(save).resolved(
+                offer.rewardModifier,
+                enemyIsBoss: GameContent.enemy(matching: offer.enemyID)?.isBoss == true,
+            )
             return VictoryRewardApplier.settleVictoryRewards(
                 party: (hero, companion),
                 encounterLevel: encounterLevel,
