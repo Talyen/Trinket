@@ -211,44 +211,296 @@
         }
       }
     },
-    "ui.emptyslots.empty_1_83ed8": {
-      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Cards/EmptySlots.swift: Text. Arguments are displayed values in source order.",
+    "ui.emptyslots.empty_accessory": {
+      "comment": "Empty equipment slot card label for accessory. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete label.",
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leerer Platz: %1$@"
+            "value": "Leerer Accessoireplatz"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Empty %1$@"
+            "value": "Empty Accessory"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Emplacement vide : %1$@"
+            "value": "Emplacement d’accessoire vide"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@なし"
+            "value": "装飾品未装備"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "빈 %1$@"
+            "value": "장신구 미장착"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "空的%1$@"
+            "value": "未裝備配飾"
+          }
+        }
+      }
+    },
+    "ui.emptyslots.empty_armor": {
+      "comment": "Empty equipment slot card label for armor. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete label.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leerer Rüstungsplatz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty Armor"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emplacement d’armure vide"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "防具未装備"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "방어구 미장착"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未裝備護甲"
+          }
+        }
+      }
+    },
+    "ui.emptyslots.empty_basic": {
+      "comment": "Empty ability card label for the Basic ability tier. Means no ability is equipped in this tier; translate the complete label, not an English tier fragment.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Grundfähigkeit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty Basic"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune capacité de base"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基本アビリティ未装備"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기본 능력 미장착"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未裝備基本能力"
+          }
+        }
+      }
+    },
+    "ui.emptyslots.empty_skill": {
+      "comment": "Empty ability card label for the Skill ability tier. Means no ability is equipped in this tier; translate the complete label, not an English tier fragment.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Fertigkeit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty Skill"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune compétence"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スキル未装備"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기술 미장착"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未裝備技能"
+          }
+        }
+      }
+    },
+    "ui.emptyslots.empty_trinket": {
+      "comment": "Empty equipment slot card label for trinket. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete label.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leerer Schmuckstückplatz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty Trinket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emplacement de bibelot vide"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トリンケット未装備"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트링킷 미장착"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未裝備飾物"
+          }
+        }
+      }
+    },
+    "ui.emptyslots.empty_ultimate": {
+      "comment": "Empty ability card label for the Ultimate ability tier. Means no ability is equipped in this tier; translate the complete label, not an English tier fragment.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine ultimative Fähigkeit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty Ultimate"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune capacité ultime"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奥義未装備"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "궁극기 미장착"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未裝備終極能力"
+          }
+        }
+      }
+    },
+    "ui.emptyslots.empty_weapon": {
+      "comment": "Empty equipment slot card label for weapon. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete label.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leerer Waffenplatz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty Weapon"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emplacement d’arme vide"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武器未装備"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "무기 미장착"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未裝備武器"
           }
         }
       }

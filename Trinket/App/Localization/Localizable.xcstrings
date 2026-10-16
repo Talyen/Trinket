@@ -9871,44 +9871,86 @@
         }
       }
     },
-    "ui.starterroulettescreen.choose_a_1_700b7": {
-      "comment": "Trinket/Features/Onboarding/StarterRouletteScreen.swift: Text. Arguments are displayed values in source order.",
+    "ui.starterroulettescreen.choose_companion": {
+      "comment": "Starter selection heading asking the player to choose their partner party member, the Companion, not a pet. Complete sentence; preserve the Companion glossary term.",
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ WÄHLEN"
+            "value": "GEFÄHRTEN WÄHLEN"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "CHOOSE A %1$@"
+            "value": "CHOOSE A COMPANION"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "CHOISIR : %1$@"
+            "value": "CHOISIR UN COMPAGNON"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@を選択"
+            "value": "仲間を選択"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ 선택"
+            "value": "동료 선택"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "選擇%1$@"
+            "value": "選擇夥伴"
+          }
+        }
+      }
+    },
+    "ui.starterroulettescreen.choose_hero": {
+      "comment": "Starter selection heading asking the player to choose their main party member, the Hero. Complete sentence; preserve the Hero glossary term.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HELDEN WÄHLEN"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CHOOSE A HERO"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CHOISIR UN HÉROS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ヒーローを選択"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영웅 선택"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇英雄"
           }
         }
       }

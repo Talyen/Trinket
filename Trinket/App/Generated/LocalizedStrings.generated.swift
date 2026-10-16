@@ -943,8 +943,12 @@ enum L10n {
         LocalizedStringResource("ui.stageselectactivecard.unlock_4ac70", defaultValue: "Unlock", table: "Localizable", bundle: .main)
     }
 
-    static func ui_starterroulettescreen_choose_a_1_700b7(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.starterroulettescreen.choose_a_1_700b7", defaultValue: "CHOOSE A \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
+    static var ui_starterroulettescreen_choose_companion: LocalizedStringResource {
+        LocalizedStringResource("ui.starterroulettescreen.choose_companion", defaultValue: "CHOOSE A COMPANION", table: "Localizable", bundle: .main)
+    }
+
+    static var ui_starterroulettescreen_choose_hero: LocalizedStringResource {
+        LocalizedStringResource("ui.starterroulettescreen.choose_hero", defaultValue: "CHOOSE A HERO", table: "Localizable", bundle: .main)
     }
 
     static var ui_starterroulettescreen_continue_31fbe: LocalizedStringResource {

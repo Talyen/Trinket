@@ -111,8 +111,20 @@ enum L10n {
         LocalizedStringResource("ui.itemslotpickerview.clear_filters_57765", defaultValue: "Clear Filters", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func ui_itemslotpickerview_equip_1_58a77(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.itemslotpickerview.equip_1_58a77", defaultValue: "Equip \(ContentCopy.localized(value1))", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static var ui_itemslotpickerview_equip_accessory: LocalizedStringResource {
+        LocalizedStringResource("ui.itemslotpickerview.equip_accessory", defaultValue: "Equip Accessory", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_itemslotpickerview_equip_armor: LocalizedStringResource {
+        LocalizedStringResource("ui.itemslotpickerview.equip_armor", defaultValue: "Equip Armor", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_itemslotpickerview_equip_trinket: LocalizedStringResource {
+        LocalizedStringResource("ui.itemslotpickerview.equip_trinket", defaultValue: "Equip Trinket", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_itemslotpickerview_equip_weapon: LocalizedStringResource {
+        LocalizedStringResource("ui.itemslotpickerview.equip_weapon", defaultValue: "Equip Weapon", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func ui_itemslotpickerview_equipped_by_1_a51ee(_ value1: String) -> LocalizedStringResource {
@@ -159,8 +171,20 @@ enum L10n {
         LocalizedStringResource("ui.itemslotpickerview.try_a_different_search_or_filter_bf470", defaultValue: "Try a different search or filter", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func ui_itemslotpickerview_unequip_1_3a66e(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.itemslotpickerview.unequip_1_3a66e", defaultValue: "Unequip \(ContentCopy.localized(value1))", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static var ui_itemslotpickerview_unequip_accessory: LocalizedStringResource {
+        LocalizedStringResource("ui.itemslotpickerview.unequip_accessory", defaultValue: "Unequip Accessory", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_itemslotpickerview_unequip_armor: LocalizedStringResource {
+        LocalizedStringResource("ui.itemslotpickerview.unequip_armor", defaultValue: "Unequip Armor", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_itemslotpickerview_unequip_trinket: LocalizedStringResource {
+        LocalizedStringResource("ui.itemslotpickerview.unequip_trinket", defaultValue: "Unequip Trinket", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_itemslotpickerview_unequip_weapon: LocalizedStringResource {
+        LocalizedStringResource("ui.itemslotpickerview.unequip_weapon", defaultValue: "Unequip Weapon", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var ui_stagemapadapters_battle_1b18e: LocalizedStringResource {

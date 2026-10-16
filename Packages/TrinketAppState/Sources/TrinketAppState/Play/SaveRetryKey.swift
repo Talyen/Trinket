@@ -30,6 +30,7 @@ enum SaveRetryKey {
     static let shopLeave = "shop-leave"
     static let contractsEnter = "contracts-enter"
     static let contractsRefresh = "contracts-refresh"
+    static let labyrinthEnter = "labyrinth-enter"
     static let mysteryOpen = "mystery-open"
     static let mysteryResolution = "mystery-resolution"
     static let voyageEnter = "voyage-enter"

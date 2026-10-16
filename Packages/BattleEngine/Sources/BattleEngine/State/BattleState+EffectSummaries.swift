@@ -194,6 +194,7 @@ private extension CombatantTalentState.Pending {
 
     private func appendCardPreparations(to summaries: inout [EffectSummary], partyCardDamageBonus: Int, partyDamageBonus: Int) {
         let preparedDamage = SaturatedArithmetic.saturatingAdd(cardDamageBonus, feintStrikeDamageBonus)
+        let nextAttackDamageBonus = nextAttackDamageBonus?.value ?? 0
         summaries.append(
             .physical,
             when: partyCardDamageBonus > 0,

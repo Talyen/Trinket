@@ -296,7 +296,11 @@ keep their existing reaction guards.
 
 Bloodkindling also readies its Bleed bonus after a Burn Basic counterattack.
 Toxic Transfusion requires the Companion to survive the Critical Hit's retaliation
-before preparing the Hero's doubled Poison attack.
+before preparing the Hero's doubled Poison attack. Sealed Vial and Unstable Culture
+also amplify full Basic counterattacks; the counterattack consumes the corresponding
+first-attack allowance or readied preparation before a later Poison card.
+Blind Spot also applies to the next full Physical Basic counterattack, consuming
+its Block bypass for that action before a later Physical card.
 
 Cracked Guard prepares the source's next attack after Physical damage breaks enemy
 Block, including reactive damage. The creating card or action cannot spend that
@@ -328,7 +332,9 @@ abilities cannot spend them.
 Ashen Vitality, Sanctified Scroll, and Aftershock Guard also retain their creating
 action so counterattacks without a card frame cannot spend the fresh bonus.
 Heat Recovery records the Cleanse action and card that readied its Burn bonus,
-including when refreshing an existing preparation.
+including when refreshing an existing preparation. Paid in Full likewise reserves
+its damage for a later ability, including theft from Saintfall and Golden Verdict
+reactions between hits of the current card.
 
 ### Panther Dodge preparations
 

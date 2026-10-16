@@ -21,7 +21,7 @@ extension BattleTurnEngine {
         } else if context.hasHeroCard(for: actor.id) {
             action.goldDamage = context.resolution.cardTalents?.gildedDamage ?? 0
             context.mutateHeroCard { $0.gildedDamage = 0 }
-            prepareCardDamage(components: &components, effects: &effects, actor: actor, in: &context)
+            prepareCardDamage(components: &components, actor: actor, in: &context)
             if context.resolution.actionOutcome?.damageKeywords.contains(.freeze) == true,
                context.modifiers(for: actor.id).triggers.steamExplosion {
                 let burn = DoTApplicator.consume(.burn, on: context.roster.enemy.combatant, in: &context)
@@ -31,8 +31,15 @@ extension BattleTurnEngine {
             }
         } else if ability.dealsCombatDamage {
             action.goldDamage = context.roster.runtime(for: actor)?.talents.history.stolenGoldDamage ?? 0
-            context.roster.mutateRuntime(for: actor) { $0.talents.history.stolenGoldDamage = 0 }
+            let isPhysical = context.resolution.actionOutcome?.damageKeywords.contains(.physical) == true
+            context.roster.mutateRuntime(for: actor) {
+                $0.talents.history.stolenGoldDamage = 0
+                if isPhysical {
+                    action.ignoresPhysicalBlock = $0.talents.history.preparations.remove(.ignorePhysicalBlock) != nil
+                }
+            }
         }
+        preparePoisonAttack(components: &components, effects: &effects, actor: actor, in: &context)
         context.resolution.prepareActionTalents(action)
         return ability.replacingOperations(preparedOperations(ability, components: components, effects: effects))
     }
@@ -87,20 +94,35 @@ extension BattleTurnEngine {
 
     private static func prepareCardDamage(
         components: inout [DamageComponent],
+        actor: Combatant,
+        in context: inout BattleState,
+    ) {
+        guard let card = context.resolution.cardTalents else { return }
+        if card.preparations.contains(.bleedDamage), context.claimHeroCardBonus(.redline, actorID: actor.id) {
+            increaseCardDamage(2, keyword: .bleed, components: &components)
+        }
+    }
+
+    private static func preparePoisonAttack(
+        components: inout [DamageComponent],
         effects: inout [TargetedEffect],
         actor: Combatant,
         in context: inout BattleState,
     ) {
-        guard let card = context.resolution.cardTalents,
-              let outcome = context.resolution.cardOutcome(for: actor.id) else { return }
-        if card.preparations.contains(.bleedDamage), context.claimHeroCardBonus(.redline, actorID: actor.id) {
-            increaseCardDamage(2, keyword: .bleed, components: &components)
-        }
-        let sealedVial = outcome.damageKeywords.contains(.poison)
-            && context.modifiers(for: actor.id).triggers.sealedVial
+        guard actor.role != .enemy, context.allowsHeroTalentReaction,
+              context.resolution.actionOutcome?.damageKeywords.contains(.poison) == true else { return }
+        let sealedVial = context.modifiers(for: actor.id).triggers.sealedVial
             && context.claimHeroTalent(.sealedVial, actorID: actor.id, battle: true)
-        let unstableCulture = card.preparations.contains(.doublePoison)
-            && context.claimHeroCardBonus(.unstableCulture, actorID: actor.id)
+        let unstableCulture: Bool
+        if context.hasHeroCard(for: actor.id) {
+            unstableCulture = context.resolution.cardTalents?.preparations.contains(.doublePoison) == true
+                && context.claimHeroCardBonus(.unstableCulture, actorID: actor.id)
+        } else {
+            unstableCulture = context.roster.runtime(for: actor)?.talents.history.preparations.contains(.doublePoison) == true
+            if unstableCulture {
+                context.roster.mutateRuntime(for: actor) { $0.talents.history.preparations.remove(.doublePoison) }
+            }
+        }
         if sealedVial || unstableCulture {
             components = components.map { component in
                 guard component.keyword == .poison, component.target != .actor else { return component }

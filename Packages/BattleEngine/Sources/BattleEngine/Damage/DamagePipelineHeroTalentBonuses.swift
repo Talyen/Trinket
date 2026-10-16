@@ -185,11 +185,9 @@ package extension DamagePipeline {
             context.roster.mutateRuntime(for: source) { $0.talents.pending.nextPhysicalDamageBonus = 0 }
         }
         if state.options.isAttackHit,
-           let bonus = context.roster.runtime(for: source)?.talents.pending.nextAttackDamageBonus,
-           bonus > 0 {
+           let bonus = context.consumeTalentPreparation(\.nextAttackDamageBonus, for: source) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
             state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
-            context.roster.mutateRuntime(for: source) { $0.talents.pending.nextAttackDamageBonus = 0 }
         }
         if keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit,
            context.consumeTalentPreparation(\.doubleNextPhysicalAttack, for: source) == true {

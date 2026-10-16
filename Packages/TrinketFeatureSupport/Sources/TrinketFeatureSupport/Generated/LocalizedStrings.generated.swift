@@ -23,8 +23,32 @@ enum L10n {
         LocalizedStringResource("ui.combatantcard.1_locked_1871c", defaultValue: "\(ContentCopy.localized(value1)), locked", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func ui_emptyslots_empty_1_83ed8(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.emptyslots.empty_1_83ed8", defaultValue: "Empty \(ContentCopy.localized(value1))", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static var ui_emptyslots_empty_accessory: LocalizedStringResource {
+        LocalizedStringResource("ui.emptyslots.empty_accessory", defaultValue: "Empty Accessory", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_emptyslots_empty_armor: LocalizedStringResource {
+        LocalizedStringResource("ui.emptyslots.empty_armor", defaultValue: "Empty Armor", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_emptyslots_empty_basic: LocalizedStringResource {
+        LocalizedStringResource("ui.emptyslots.empty_basic", defaultValue: "Empty Basic", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_emptyslots_empty_skill: LocalizedStringResource {
+        LocalizedStringResource("ui.emptyslots.empty_skill", defaultValue: "Empty Skill", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_emptyslots_empty_trinket: LocalizedStringResource {
+        LocalizedStringResource("ui.emptyslots.empty_trinket", defaultValue: "Empty Trinket", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_emptyslots_empty_ultimate: LocalizedStringResource {
+        LocalizedStringResource("ui.emptyslots.empty_ultimate", defaultValue: "Empty Ultimate", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_emptyslots_empty_weapon: LocalizedStringResource {
+        LocalizedStringResource("ui.emptyslots.empty_weapon", defaultValue: "Empty Weapon", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func ui_experiencebar_1_2_xp_0ef2d(_ value1: String, _ value2: String) -> LocalizedStringResource {

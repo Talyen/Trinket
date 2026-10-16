@@ -90,7 +90,7 @@ struct ItemSlotPickerView: View {
         }
         .searchable(text: $searchText, prompt: String(localized: L10n.ui_itemslotpickerview_search_equipment_869c1))
         .toolbar { filterToolbar }
-        .navigationTitle(Text(L10n.ui_itemslotpickerview_equip_1_58a77("\(slot.displayName)")))
+        .navigationTitle(Text(equipTitle))
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedItem) { item in
             let isEquipped = equipmentLoadout.itemID(for: slot) == item.id
@@ -217,14 +217,32 @@ struct ItemSlotPickerView: View {
         return equipmentOwners.names(for: playerSave.roster.equipmentLoadouts)[item.id]
     }
 
+    private var equipTitle: LocalizedStringResource {
+        switch slot {
+        case .weapon, .secondaryWeapon: L10n.ui_itemslotpickerview_equip_weapon
+        case .armor: L10n.ui_itemslotpickerview_equip_armor
+        case .accessory, .secondaryAccessory: L10n.ui_itemslotpickerview_equip_accessory
+        case .trinket, .secondaryTrinket: L10n.ui_itemslotpickerview_equip_trinket
+        }
+    }
+
+    private var unequipTitle: LocalizedStringResource {
+        switch slot {
+        case .weapon, .secondaryWeapon: L10n.ui_itemslotpickerview_unequip_weapon
+        case .armor: L10n.ui_itemslotpickerview_unequip_armor
+        case .accessory, .secondaryAccessory: L10n.ui_itemslotpickerview_unequip_accessory
+        case .trinket, .secondaryTrinket: L10n.ui_itemslotpickerview_unequip_trinket
+        }
+    }
+
     private func actionTitle(for item: InventoryItem) -> String {
         if equipmentLoadout.itemID(for: slot) == item.id {
-            return String(localized: L10n.ui_itemslotpickerview_unequip_1_3a66e("\(slot.displayName)"))
+            return String(localized: unequipTitle)
         }
         if let wearer = otherWearerName(for: item) {
             return String(localized: L10n.ui_itemslotpickerview_move_from_1_7bb90("\(wearer)"))
         }
-        return String(localized: L10n.ui_itemslotpickerview_equip_1_58a77("\(slot.displayName)"))
+        return String(localized: equipTitle)
     }
 
     @ViewBuilder

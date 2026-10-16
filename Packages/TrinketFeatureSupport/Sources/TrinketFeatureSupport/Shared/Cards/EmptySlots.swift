@@ -6,6 +6,14 @@ struct EmptyAbilitySlotCard: View {
     let tier: AbilityTier
     var reservesLabelSpace: Bool = true
 
+    private var emptyLabel: LocalizedStringResource {
+        switch tier {
+        case .basic: L10n.ui_emptyslots_empty_basic
+        case .skill: L10n.ui_emptyslots_empty_skill
+        case .ultimate: L10n.ui_emptyslots_empty_ultimate
+        }
+    }
+
     var body: some View {
         ProductCardShell(
             showsLabel: true,
@@ -14,7 +22,7 @@ struct EmptyAbilitySlotCard: View {
                 PlaceholderArtwork(.ability)
             },
             label: {
-                Text(balanced: String(localized: L10n.ui_emptyslots_empty_1_83ed8("\(tier.rawValue)")))
+                Text(balanced: String(localized: emptyLabel))
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -33,6 +41,15 @@ public struct EmptyItemSlotCard: View {
         self.reservesLabelSpace = reservesLabelSpace
     }
 
+    private var emptyLabel: LocalizedStringResource {
+        switch slot {
+        case .weapon, .secondaryWeapon: L10n.ui_emptyslots_empty_weapon
+        case .armor: L10n.ui_emptyslots_empty_armor
+        case .accessory, .secondaryAccessory: L10n.ui_emptyslots_empty_accessory
+        case .trinket, .secondaryTrinket: L10n.ui_emptyslots_empty_trinket
+        }
+    }
+
     public var body: some View {
         ProductCardShell(
             showsLabel: true,
@@ -48,7 +65,7 @@ public struct EmptyItemSlotCard: View {
                 }
             },
             label: {
-                Text(balanced: String(localized: L10n.ui_emptyslots_empty_1_83ed8("\(slot.displayName)")))
+                Text(balanced: String(localized: emptyLabel))
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

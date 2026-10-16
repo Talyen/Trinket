@@ -43,16 +43,19 @@ public final class LabyrinthPlayMode {
 
     @discardableResult
     public func enter() -> StageMapMessage? {
-        if playerSave.labyrinth.isMapPayloadUnreadable {
-            return StageMapMessage(
-                title: "Labyrinth Error",
-                message: "Couldn't read the Labyrinth map. Progress is preserved. Try again later.",
-            )
+        playerSave.performSaveAction(key: SaveRetryKey.labyrinthEnter) { [weak self] _ -> StageMapMessage? in
+            guard let self, encounters.canBeginTransientEncounter else { return nil }
+            if playerSave.labyrinth.isMapPayloadUnreadable {
+                return StageMapMessage(
+                    title: "Labyrinth Error",
+                    message: "Couldn't read the Labyrinth map. Progress is preserved. Try again later.",
+                )
+            }
+            guard playerSave.enterLabyrinth() else {
+                return StageMapMessage(title: "Labyrinth Error", message: "Could not open Labyrinth.")
+            }
+            return nil
         }
-        guard playerSave.enterLabyrinth() else {
-            return StageMapMessage(title: "Labyrinth Error", message: "Could not open Labyrinth.")
-        }
-        return nil
     }
 
     @discardableResult

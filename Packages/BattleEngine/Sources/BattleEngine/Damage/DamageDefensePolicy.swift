@@ -39,9 +39,13 @@ enum DamageDefensePolicy {
         if state.ignoreBlockFromTalent {
             return 0
         }
-        let blindSpot = state.options.isCardAttack && state.damageKeyword == .physical
+        let cardBlindSpot = state.options.isCardAttack
             && context.resolution.cardTalents?.actorID == state.sourceActorID
             && context.resolution.cardTalents?.preparations.contains(.ignorePhysicalBlock) == true
+        let actionBlindSpot = state.sourceActorID.map {
+            context.resolution.actionTalents(for: $0)?.ignoresPhysicalBlock == true
+        } ?? false
+        let blindSpot = state.options.isAttackHit && state.damageKeyword == .physical && (cardBlindSpot || actionBlindSpot)
         if blindSpot || UniqueCombatEngine.ignoresBlock(for: state, in: context) {
             return 0
         }

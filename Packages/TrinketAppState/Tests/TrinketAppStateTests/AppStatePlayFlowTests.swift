@@ -141,25 +141,37 @@ struct AppStatePlayFlowTests {
         #expect(state.battlePresentation(for: runKey) != nil)
     }
 
-    @Test func `mismatched prepared journey activation does not start A fresh battle`() throws {
+    @Test func `journey launch refreshes selected party while direct activation rejects mismatches`() throws {
         let state = try context.makePlaySession()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
-        let battle = try #require(context.lastBattle)
+        let otherHero = try #require(
+            GameContent.heroes.first { $0.id != state.playerSave.roster.activeHeroID },
+        )
         let otherCompanion = try #require(
             GameContent.companions.first { $0.id != state.playerSave.roster.activeCompanionID },
         )
 
         state.journey.prepareBattle(for: stage)
-        #expect(state.battleCoordinator.preparedRuns[runKey] != nil)
+        let prepared = try #require(state.battleRegistration(for: runKey))
 
-        PlayBattleLaunchTestSupport.setActiveCompanion(otherCompanion, in: state)
+        try PlayBattleLaunchTestSupport.setActiveParty(
+            heroID: otherHero.id, companionID: otherCompanion.id, in: state,
+        )
+        var mismatchedInput = prepared.launch.inputs.launch
+        mismatchedInput.hero = state.playerSave.roster.activeHero
+        mismatchedInput.companion = state.playerSave.roster.activeCompanion
 
-        let message = state.journey.startBattle(for: stage)
-        #expect(message?.title == PlayBattleCoordinator.activationFailureMessage.title)
+        #expect(!state.battleCoordinator.activateBattle(mismatchedInput, route: prepared.route))
         #expect(state.battle.activeBattle == nil)
-        #expect(state.battleCoordinator.preparedRuns[runKey] != nil)
-        #expect(state.battlePresentation(for: runKey) != nil)
+        #expect(state.battleRegistration(for: runKey)?.launch.configuration.id == prepared.launch.configuration.id)
+
+        #expect(state.journey.startBattle(for: stage) == nil)
+        let active = try #require(state.battle.activeBattle)
+        #expect(active.hero.combatant.id == otherHero.id)
+        #expect(active.companion.combatant.id == otherCompanion.id)
+        #expect(active.id != prepared.launch.configuration.id)
+        #expect(active.rngSeed == prepared.launch.configuration.rngSeed)
     }
 
     @Test func `complete active battle with stage completes journey idempotently`() throws {

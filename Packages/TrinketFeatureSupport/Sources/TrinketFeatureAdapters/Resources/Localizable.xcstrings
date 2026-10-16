@@ -1135,44 +1135,170 @@
         }
       }
     },
-    "ui.itemslotpickerview.equip_1_58a77": {
-      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureAdapters/Shared/Detail/ItemSlotPickerView.swift: navigationTitle. Arguments are displayed values in source order.",
+    "ui.itemslotpickerview.equip_accessory": {
+      "comment": "Equipment picker title and action to equip accessory. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete action.",
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ ausrüsten"
+            "value": "Accessoire ausrüsten"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Equip %1$@"
+            "value": "Equip Accessory"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Équiper %1$@"
+            "value": "Équiper un accessoire"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@を装備"
+            "value": "装飾品を装備"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ 장착"
+            "value": "장신구 장착"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "裝備%1$@"
+            "value": "裝備配飾"
+          }
+        }
+      }
+    },
+    "ui.itemslotpickerview.equip_armor": {
+      "comment": "Equipment picker title and action to equip armor. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete action.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rüstung ausrüsten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equip Armor"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Équiper une armure"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "防具を装備"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "방어구 장착"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝備護甲"
+          }
+        }
+      }
+    },
+    "ui.itemslotpickerview.equip_trinket": {
+      "comment": "Equipment picker title and action to equip trinket. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete action.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schmuckstück ausrüsten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equip Trinket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Équiper un bibelot"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トリンケットを装備"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트링킷 장착"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝備飾物"
+          }
+        }
+      }
+    },
+    "ui.itemslotpickerview.equip_weapon": {
+      "comment": "Equipment picker title and action to equip weapon. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete action.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffe ausrüsten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equip Weapon"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Équiper une arme"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武器を装備"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "무기 장착"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝備武器"
           }
         }
       }
@@ -1639,44 +1765,170 @@
         }
       }
     },
-    "ui.itemslotpickerview.unequip_1_3a66e": {
-      "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureAdapters/Shared/Detail/ItemSlotPickerView.swift: display copy. Arguments are displayed values in source order.",
+    "ui.itemslotpickerview.unequip_accessory": {
+      "comment": "Equipment action to remove the currently equipped accessory. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete action.",
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ ablegen"
+            "value": "Accessoire ablegen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unequip %1$@"
+            "value": "Unequip Accessory"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retirer %1$@"
+            "value": "Retirer l’accessoire"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@を外す"
+            "value": "装飾品を外す"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ 장착 해제"
+            "value": "장신구 장착 해제"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "卸下%1$@"
+            "value": "卸下配飾"
+          }
+        }
+      }
+    },
+    "ui.itemslotpickerview.unequip_armor": {
+      "comment": "Equipment action to remove the currently equipped armor. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete action.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rüstung ablegen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unequip Armor"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer l’armure"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "防具を外す"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "방어구 장착 해제"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸下護甲"
+          }
+        }
+      }
+    },
+    "ui.itemslotpickerview.unequip_trinket": {
+      "comment": "Equipment action to remove the currently equipped trinket. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete action.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schmuckstück ablegen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unequip Trinket"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer le bibelot"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トリンケットを外す"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트링킷 장착 해제"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸下飾物"
+          }
+        }
+      }
+    },
+    "ui.itemslotpickerview.unequip_weapon": {
+      "comment": "Equipment action to remove the currently equipped weapon. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete action.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waffe ablegen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unequip Weapon"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retirer l’arme"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武器を外す"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "무기 장착 해제"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸下武器"
           }
         }
       }

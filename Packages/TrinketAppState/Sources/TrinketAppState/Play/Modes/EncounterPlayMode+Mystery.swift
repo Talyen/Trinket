@@ -26,6 +26,8 @@ public extension EncounterPlayMode {
                 return restriction
             }
             guard canBeginTransientEncounter else { return nil }
+            isOpeningTransientEncounter = true
+            defer { isOpeningTransientEncounter = false }
 
             guard let event = previewMysteryEvent(origin: origin, forcedEventID: forcedEventID) else {
                 return Self.mysteryPinFailureMessage
@@ -43,12 +45,19 @@ public extension EncounterPlayMode {
             case .persistFailed:
                 return nil
             }
+            guard canPublishTransientEncounter(encounter) else { return nil }
             let session = MysteryEncounterSession(
                 origin: origin, encounter: encounter, event: prepared.event,
                 combatant: GameContent.combatant(forMysteryEvent: prepared.event),
             )
             session.installOffers(prepared.offers)
             activeMysteryEncounter = session
+            guard owns(session) else {
+                if activeMysteryEncounter === session {
+                    activeMysteryEncounter = nil
+                }
+                return nil
+            }
             sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
             if session.event.isRecruit {
                 guard resolveMysteryChoice(session: session, choiceID: nil) else {

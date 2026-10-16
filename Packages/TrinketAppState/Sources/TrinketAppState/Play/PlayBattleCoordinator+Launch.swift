@@ -17,7 +17,7 @@ extension PlayBattleCoordinator {
         message: "Could not start this battle. Try again.",
     )
 
-    /// Single paywall → busy → resolve → activate gate for mode battle entry.
+    /// Single paywall → busy → resolve → prepare → activate gate for mode battle entry.
     /// Map taps (Journey/Labyrinth) pass nil and swallow a busy battle;
     /// explicit board/floor taps (Spires/Contracts) pass the failure message.
     /// A busy transient encounter is always a silent ignore.
@@ -42,6 +42,7 @@ extension PlayBattleCoordinator {
         case let .unavailable(message):
             return message
         }
+        guard prepareCombat(request.input, route: request.route) else { return Self.activationFailureMessage }
         return activateBattle(request.input, route: request.route) ? nil : Self.activationFailureMessage
     }
 

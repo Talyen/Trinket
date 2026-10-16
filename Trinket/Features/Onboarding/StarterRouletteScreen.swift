@@ -122,7 +122,9 @@ struct StarterRouletteScreen: View {
     }
 
     private var header: some View {
-        Text(L10n.ui_starterroulettescreen_choose_a_1_700b7("\(role.rawValue)"))
+        Text(role == .hero
+            ? L10n.ui_starterroulettescreen_choose_hero
+            : L10n.ui_starterroulettescreen_choose_companion)
             .trinketTypography(.eyebrow)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)

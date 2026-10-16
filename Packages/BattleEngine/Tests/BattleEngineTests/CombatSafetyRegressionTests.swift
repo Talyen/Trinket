@@ -16,14 +16,14 @@ struct CombatSafetyRegressionTests {
 
     @Test func `prepared talent damage saturates`() {
         var battle = BattleStateTestFactory.makeMinimalBattle()
-        battle.roster.hero.talents.pending.nextAttackDamageBonus = Int.max
+        battle.roster.hero.talents.pending.nextAttackDamageBonus = PreparedTalentBonus(value: Int.max)
         var damage = packet(in: battle)
         damage.remaining = 1
         damage.itemBonus = 1
         DamagePipeline.applyTalentStatusMultipliers(to: &damage, in: &battle)
         #expect(damage.remaining == Int.max)
         #expect(damage.itemBonus == Int.max)
-        #expect(battle.roster.hero.talents.pending.nextAttackDamageBonus == 0)
+        #expect(battle.roster.hero.talents.pending.nextAttackDamageBonus == nil)
     }
 
     @Test func `backdraft saturates both damage snapshots`() {

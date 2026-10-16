@@ -22,6 +22,7 @@ public final class EncounterPlayMode {
     var currentDate: () -> Date = { Date() }
 
     private var activeEncounter: ActiveEncounter?
+    @ObservationIgnored var isOpeningTransientEncounter = false
 
     public var activeMysteryEncounter: MysteryEncounterSession? {
         get {
@@ -52,7 +53,11 @@ public final class EncounterPlayMode {
     }
 
     var canBeginTransientEncounter: Bool {
-        activeEncounter == nil && battle.lifecyclePhase != .active
+        !isOpeningTransientEncounter && activeEncounter == nil && battle.lifecyclePhase != .active
+    }
+
+    func canPublishTransientEncounter(_ encounter: EncounterIdentity) -> Bool {
+        isCurrent(encounter) && activeEncounter == nil && battle.lifecyclePhase != .active
     }
 
     init(
@@ -73,13 +78,22 @@ public final class EncounterPlayMode {
             return .failed(restriction)
         }
         guard canBeginTransientEncounter else { return .unavailable }
+        isOpeningTransientEncounter = true
+        defer { isOpeningTransientEncounter = false }
 
         let encounter = origin.identity(in: playerSave.currentSave)
         switch playerSave.prepareShop(encounter: encounter) {
         case let .committed(stock):
+            guard canPublishTransientEncounter(encounter) else { return .unavailable }
             guard !stock.offers.isEmpty else { return .autoCompleted }
             let session = ShopEncounterSession(origin: origin, encounter: encounter, offers: stock.offers)
             activeShopEncounter = session
+            guard owns(session) else {
+                if activeShopEncounter === session {
+                    activeShopEncounter = nil
+                }
+                return .unavailable
+            }
             return .opened(session)
         case .rejected:
             return .failed(StageMapMessage(title: "Shop Unavailable", message: "The shop could not be opened. Your progress is preserved."))
@@ -172,7 +186,7 @@ public final class EncounterPlayMode {
     }
 
     private func isCurrent(_ encounter: EncounterIdentity) -> Bool {
-        encounter.worldSeed == playerSave.worldSeed && encounter.generation == playerSave.sessionGeneration
+        encounter.isCurrent(in: playerSave.currentSave)
     }
 
     static func emptyShopClosedMessage(identifier: String) -> StageMapMessage {
