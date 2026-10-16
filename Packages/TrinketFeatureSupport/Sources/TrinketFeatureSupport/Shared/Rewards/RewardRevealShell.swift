@@ -107,7 +107,7 @@ public struct RewardRevealShell<Content: View>: View {
             .padding(.bottom, contentStackSpacing)
             .frame(maxWidth: .infinity)
         }
-        .defaultScrollAnchor(.center, for: .alignment)
+        .defaultScrollAnchor(.top)
         .safeAreaInset(edge: .bottom) {
             if pinsActions, primaryActionTitle != nil {
                 actions
