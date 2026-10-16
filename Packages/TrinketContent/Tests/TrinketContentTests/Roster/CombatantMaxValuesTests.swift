@@ -1,7 +1,7 @@
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
+@testable import TrinketContent
 
 struct CombatantMaxValuesTests {
     @Test func `party level scaling preserves extreme saved levels without overflowing stats`() {
