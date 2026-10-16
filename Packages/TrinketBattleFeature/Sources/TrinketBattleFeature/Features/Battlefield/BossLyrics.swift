@@ -70,9 +70,18 @@ private struct BossLyricWord: View {
     let isActive: Bool
     @State private var didAppear = false
 
+    private var lyricText: Text {
+        switch text {
+        case "[chants]": Text(L10n.ui_bosslyrics_chants)
+        case "[growls]": Text(L10n.ui_bosslyrics_growls)
+        case "[vocalizing]": Text(L10n.ui_bosslyrics_vocalizing)
+        default: Text(verbatim: text)
+        }
+    }
+
     var body: some View {
         KeyframeAnimator(initialValue: LyricWordEntrance(), trigger: didAppear) { value in
-            Text(verbatim: text)
+            lyricText
                 .trinketTypography(.cardTitle)
                 .fixedSize()
                 .foregroundStyle(isActive ? TrinketDesign.Colors.accent : TrinketDesign.Colors.Overlay.paper.opacity(0.65))

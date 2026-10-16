@@ -107,6 +107,18 @@ enum L10n {
         LocalizedStringResource("ui.battleview.skip_combat_9b75b", defaultValue: "Skip Combat", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var ui_bosslyrics_chants: LocalizedStringResource {
+        LocalizedStringResource("ui.bosslyrics.chants", defaultValue: "[chants]", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_bosslyrics_growls: LocalizedStringResource {
+        LocalizedStringResource("ui.bosslyrics.growls", defaultValue: "[growls]", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_bosslyrics_vocalizing: LocalizedStringResource {
+        LocalizedStringResource("ui.bosslyrics.vocalizing", defaultValue: "[vocalizing]", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var ui_defeatview_continue_31fbe: LocalizedStringResource {
         LocalizedStringResource("ui.defeatview.continue_31fbe", defaultValue: "Continue", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }

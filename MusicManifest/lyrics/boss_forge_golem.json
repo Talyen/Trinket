@@ -1,0 +1,137 @@
+{
+  "audioSha256": "9e25e4c4cf704232857ad71d86355330221d7bb64a0c746702e64587c7324c90",
+  "lyricsSha256": "151e52f6fb60aed13faa245103ad140164bdb6df8ea91aba39afcbb19c6e48ae",
+  "audioDuration": 214.12,
+  "model": "small.en; medium.en for suspect phrases",
+  "method": "independent ASR phrase matching with repeats/omissions; bounded word alignment; no manual word timestamps",
+  "coverage": {
+    "detectedPhrases": 23,
+    "unmatchedAsrWords": 11,
+    "undetectedWrittenPhrases": 0,
+    "rejectedTimingPhrases": 0,
+    "alignedPhrases": 20,
+    "vocalCuePassages": 3
+  },
+  "lines": [
+    {
+      "text": "Built in the breath of the bellows' flame,",
+      "timings": [
+        30.94, 32.54, 32.54, 32.86, 32.86, 33.04, 33.04, 33.4, 33.4, 33.8, 33.8, 34.0, 34.0, 35.1, 35.1, 35.24
+      ]
+    },
+    {
+      "text": "the Forge Golem wakes.",
+      "timings": [35.44, 35.96, 35.96, 36.72, 36.72, 37.78, 37.78, 39.1]
+    },
+    {
+      "text": "Its rust-red heart still beating,",
+      "timings": [39.7, 40.06, 40.06, 40.92, 40.92, 41.4, 41.4, 41.92, 41.92, 43.36]
+    },
+    {
+      "text": "slow as a buried quake.",
+      "timings": [43.4, 44.48, 44.48, 44.92, 44.92, 45.12, 45.12, 45.88, 45.88, 46.94]
+    },
+    {
+      "text": "[chants]",
+      "timings": [48.1, 57.4]
+    },
+    {
+      "text": "Strike and strike, but I do not fall",
+      "timings": [
+        63.78, 64.46, 64.46, 64.9, 64.9, 65.8, 65.8, 65.88, 65.88, 66.12, 66.12, 66.44, 66.44, 66.94, 66.94, 67.42
+      ]
+    },
+    {
+      "text": "Rust is my crown, the anvil my hall",
+      "timings": [
+        67.7, 68.3, 68.3, 68.74, 68.74, 69.06, 69.06, 70.08, 70.08, 70.16, 70.16, 70.66, 70.66, 71.08, 71.08, 71.36
+      ]
+    },
+    {
+      "text": "Strike and strike, but I do not fall",
+      "timings": [
+        71.62, 72.4, 72.4, 72.9, 72.9, 73.74, 73.74, 73.86, 73.86, 74.1, 74.1, 74.44, 74.44, 74.92, 74.92, 75.46
+      ]
+    },
+    {
+      "text": "I answer with iron for all",
+      "timings": [75.78, 76.12, 76.12, 76.62, 76.62, 77.08, 77.08, 77.62, 77.62, 78.1, 78.1, 78.56]
+    },
+    {
+      "text": "Four shields I bear, unbreaking stone,",
+      "timings": [94.12, 96.38, 96.38, 96.7, 96.7, 97.08, 97.08, 97.84, 97.84, 98.56, 98.56, 99.44]
+    },
+    {
+      "text": "your blade will chip before I groan.",
+      "timings": [
+        99.72, 100.04, 100.04, 100.58, 100.58, 101.0, 101.0, 101.44, 101.44, 102.4, 102.4, 102.78, 102.78, 103.74
+      ]
+    },
+    {
+      "text": "Bending iron on my skin,",
+      "timings": [104.24, 105.02, 105.02, 105.84, 105.84, 106.38, 106.38, 106.74, 106.74, 107.16]
+    },
+    {
+      "text": "I keep the old storm locked within.",
+      "timings": [
+        107.3, 107.98, 107.98, 108.36, 108.36, 108.98, 108.98, 109.42, 109.42, 109.94, 109.94, 110.46, 110.46, 111.16
+      ]
+    },
+    {
+      "text": "[chants]",
+      "timings": [112.7, 120.76]
+    },
+    {
+      "text": "Soprano, sing of rust and rain,",
+      "timings": [128.78, 129.96, 129.96, 130.3, 130.3, 130.8, 130.8, 131.2, 131.2, 131.76, 131.76, 132.12]
+    },
+    {
+      "text": "sing of the marks I take in vain.",
+      "timings": [
+        132.9, 133.34, 133.34, 133.8, 133.8, 134.0, 134.0, 134.52, 134.52, 134.82, 134.82, 135.32, 135.32, 135.78,
+        135.78, 136.14
+      ]
+    },
+    {
+      "text": "I was made to outlast flame,",
+      "timings": [136.98, 137.34, 137.34, 137.82, 137.82, 138.42, 138.42, 138.88, 138.88, 139.78, 139.78, 140.42]
+    },
+    {
+      "text": "I keep my name, I keep my name.",
+      "timings": [
+        140.44, 141.04, 141.04, 141.4, 141.4, 141.9, 141.9, 142.84, 142.84, 143.04, 143.04, 143.4, 143.4, 143.98,
+        143.98, 145.54
+      ]
+    },
+    {
+      "text": "[chants]",
+      "timings": [152.1, 162.5]
+    },
+    {
+      "text": "Strike and strike, but I do not fall",
+      "timings": [
+        167.08, 168.42, 168.42, 168.9, 168.9, 169.78, 169.78, 169.88, 169.88, 170.1, 170.1, 170.5, 170.5, 170.92,
+        170.92, 171.44
+      ]
+    },
+    {
+      "text": "Rust is my crown, the anvil my hall",
+      "timings": [
+        171.66, 172.34, 172.34, 172.74, 172.74, 173.04, 173.04, 174.04, 174.04, 174.12, 174.12, 174.68, 174.68, 175.06,
+        175.06, 175.34
+      ]
+    },
+    {
+      "text": "Strike and strike, but I do not fall",
+      "timings": [
+        175.64, 176.42, 176.42, 176.88, 176.88, 177.46, 177.46, 177.88, 177.88, 178.1, 178.1, 178.46, 178.46, 178.96,
+        178.96, 179.36
+      ]
+    },
+    {
+      "text": "I answer with iron for all",
+      "timings": [179.88, 180.1, 180.1, 180.64, 180.64, 181.08, 181.08, 181.5, 181.5, 182.12, 182.12, 182.44]
+    }
+  ],
+  "vocalCueMethod": "manually bounded vocal-stem passages; descriptive captions, not transcribed words"
+}

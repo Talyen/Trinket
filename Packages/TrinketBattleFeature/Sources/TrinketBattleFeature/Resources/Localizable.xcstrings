@@ -1093,6 +1093,132 @@
         }
       }
     },
+    "ui.bosslyrics.chants": {
+      "comment": "Boss song caption for rhythmic nonverbal chanting; retain brackets to distinguish the cue from sung lyrics.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[rhythmischer Gesang]"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[chants]"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[chants scandés]"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[詠唱]"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[영창]"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[吟唱]"
+          }
+        }
+      }
+    },
+    "ui.bosslyrics.growls": {
+      "comment": "Boss song caption for nonverbal growling; retain brackets to distinguish the cue from sung lyrics.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Knurren]"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[growls]"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[grognements]"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[唸り声]"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[으르렁거림]"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[低吼]"
+          }
+        }
+      }
+    },
+    "ui.bosslyrics.vocalizing": {
+      "comment": "Boss song caption for wordless singing; retain brackets to distinguish the cue from sung lyrics.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[wortloser Gesang]"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[vocalizing]"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[vocalises]"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[言葉のない歌声]"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[가사 없는 노래]"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[無詞吟唱]"
+          }
+        }
+      }
+    },
     "ui.defeatview.continue_31fbe": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Outcome/DefeatView.swift: primaryActionTitle. Arguments are displayed values in source order.",
       "extractionState": "manual",

@@ -48,8 +48,8 @@ Playback, route selection, and pause/resume behavior belong to
 
 Authored `lyrics/<track_id>.json` snapshots contain original-language phrase text,
 paired word start/end times in seconds, and the selected source recording's
-`audioSha256`. The initial Blight Treant snapshot is imported unchanged from
-Alchemy. Add a snapshot for an existing boss track to enable another boss;
+`audioSha256`. The Blight Treant, Forge Golem, Frostwarden, and Iron Bear snapshots are imported
+unchanged from Alchemy. Add a snapshot for an existing boss track to enable another boss;
 unsupported tracks have no lyric presentation.
 
 Music preparation validates word counts, finite ordered positive intervals, boss
@@ -57,3 +57,4 @@ track identity and the recording hash before changing outputs. It generates
 `MusicCatalog.lyrics(for:)`; timing inputs participate in freshness checks.
 Source-free output checks validate the snapshot against the receipt's recording
 hash. Lyrics remain verbatim words from the recording in every app language.
+Nonverbal `[chants]`, `[growls]`, and `[vocalizing]` cues use localized captions.

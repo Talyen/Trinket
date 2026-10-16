@@ -1640,9 +1640,9 @@
     }
   },
   "music": {
-    "input_hash": "1bb64adc0beec3c93359b04bdb0a4525d2228174b22c061220b9976a1ecfa23a",
+    "input_hash": "613da5ef900a0a4fc8d2b8460775ee44eb5cb96475329e81b0da368dea65f1e0",
     "outputs": {
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "704c1ac19992df6db86a16e29862baf824622ebf38325c721feb50fcf70a32e3",
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "33ffb27125df84c8aea760be3f8a63a040f73ace70437a92bbbe694737dcde1a",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv": "5b06ba1966c6fe92ec4cbeb882f14bb702136083bf842575f1c6e9fa9dfe2e49",
       "Trinket/Media/Music/music_battle_1.m4a": "3edcd6b9b215a405701843d32e63e60af865e7eb0a64b80496964e464acffedc",
       "Trinket/Media/Music/music_battle_2.m4a": "0cdfe07496b4cffbf68677003584714f5601c2a2afb101f2dedfeab3bcbfc689",

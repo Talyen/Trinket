@@ -1,0 +1,290 @@
+{
+  "audioSha256": "80011a5374d03a5879b5563f4e30e7de5e316b0fb353fc23275b6f039070d15c",
+  "lyricsSha256": "427efb176b44cfa68aad687c521c8eb57bacead7860c8dbcdfb3ccba494aedd1",
+  "audioDuration": 341.76,
+  "model": "small.en; small.en for suspect phrases",
+  "method": "independent ASR phrase matching with repeats/omissions; bounded word alignment; no manual word timestamps",
+  "coverage": {
+    "detectedPhrases": 56,
+    "unmatchedAsrWords": 19,
+    "undetectedWrittenPhrases": 1,
+    "rejectedTimingPhrases": 0,
+    "alignedPhrases": 60,
+    "recoveredPhrases": 4,
+    "realignedPhrases": 2,
+    "vocalCuePassages": 4
+  },
+  "lines": [
+    {
+      "text": "Where the leyline dies and the aurora weeps",
+      "timings": [
+        26.84, 28.06, 28.06, 28.32, 28.32, 29.16, 29.16, 29.88, 29.88, 30.8, 30.8, 31.16, 31.16, 32.38, 32.38, 33.36
+      ]
+    },
+    {
+      "text": "The Frostwarden sits",
+      "timings": [34.88, 35.16, 35.16, 36.22, 36.22, 36.58]
+    },
+    {
+      "text": "A throne of hoarfrost",
+      "timings": [38.82, 39.2, 39.2, 39.86, 39.86, 40.26, 40.26, 41.12]
+    },
+    {
+      "text": "A heart of glass",
+      "timings": [42.44, 43.06, 43.06, 44.02, 44.02, 44.48, 44.48, 44.96]
+    },
+    {
+      "text": "Long sleep under snow-black eaves",
+      "timings": [46.42, 47.04, 47.04, 47.64, 47.64, 48.12, 48.12, 51.26, 51.26, 52.72]
+    },
+    {
+      "text": "I came through the rime",
+      "timings": [58.54, 59.08, 59.08, 59.56, 59.56, 59.98, 59.98, 60.26, 60.26, 61.14]
+    },
+    {
+      "text": "Through the permafrost seam",
+      "timings": [62.46, 62.94, 62.94, 63.24, 63.24, 64.48, 64.48, 65.02]
+    },
+    {
+      "text": "I hear your silence",
+      "timings": [66.64, 67.7, 67.7, 67.96, 67.96, 68.24, 68.24, 68.76]
+    },
+    {
+      "text": "I know your dream",
+      "timings": [70.6, 71.0, 71.0, 71.66, 71.66, 72.58, 72.58, 73.12]
+    },
+    {
+      "text": "You hid from the burn",
+      "timings": [74.94, 75.16, 75.16, 75.52, 75.52, 75.96, 75.96, 76.28, 76.28, 76.72]
+    },
+    {
+      "text": "You hid from the blaze",
+      "timings": [78.66, 79.14, 79.14, 79.48, 79.48, 79.94, 79.94, 80.24, 80.24, 80.58]
+    },
+    {
+      "text": "But every frozen mercy",
+      "timings": [83.48, 83.8, 83.8, 84.14, 84.14, 85.1, 85.1, 85.58]
+    },
+    {
+      "text": "Still leaves a trace",
+      "timings": [85.9, 87.14, 87.14, 88.0, 88.0, 88.18, 88.18, 88.54]
+    },
+    {
+      "text": "What freezes you",
+      "timings": [93.4, 96.02, 96.02, 96.68, 96.68, 97.36]
+    },
+    {
+      "text": "Only feeds my veins",
+      "timings": [98.56, 99.14, 99.14, 99.94, 99.94, 100.28, 100.28, 100.78]
+    },
+    {
+      "text": "What burns me",
+      "timings": [103.88, 104.14, 104.14, 104.94, 104.94, 105.68]
+    },
+    {
+      "text": "Melts me, breaks the chains",
+      "timings": [106.68, 107.1, 107.1, 108.76, 108.76, 109.68, 109.68, 109.98, 109.98, 110.34]
+    },
+    {
+      "text": "What freezes you",
+      "timings": [111.74, 112.08, 112.08, 112.82, 112.82, 113.4]
+    },
+    {
+      "text": "Only feeds my veins",
+      "timings": [113.44, 115.08, 115.08, 115.88, 115.88, 116.44, 116.44, 116.9]
+    },
+    {
+      "text": "What burns me",
+      "timings": [119.86, 120.1, 120.1, 120.94, 120.94, 121.52]
+    },
+    {
+      "text": "Melts me, breaks the chains",
+      "timings": [122.04, 123.1, 123.1, 124.62, 124.62, 125.6, 125.6, 125.98, 125.98, 126.34]
+    },
+    {
+      "text": "[vocalizing]",
+      "timings": [126.4, 134.0]
+    },
+    {
+      "text": "[vocalizing]",
+      "timings": [136.4, 141.8]
+    },
+    {
+      "text": "You sealed your hands in winter light",
+      "timings": [
+        146.5, 147.74, 147.74, 148.14, 148.14, 148.44, 148.44, 149.02, 149.02, 149.32, 149.32, 149.8, 149.8, 150.32
+      ]
+    },
+    {
+      "text": "To keep the world from taking flight",
+      "timings": [
+        150.54, 151.66, 151.66, 151.98, 151.98, 152.26, 152.26, 152.74, 152.74, 153.2, 153.2, 153.82, 153.82, 154.1
+      ]
+    },
+    {
+      "text": "But I see the pulse",
+      "timings": [155.68, 155.96, 155.96, 156.14, 156.14, 156.7, 156.7, 157.0, 157.0, 157.32]
+    },
+    {
+      "text": "Inside your ice",
+      "timings": [157.62, 158.64, 158.64, 159.28, 159.28, 159.82]
+    },
+    {
+      "text": "A buried ember",
+      "timings": [161.1, 161.74, 161.74, 162.24, 162.24, 163.38]
+    },
+    {
+      "text": "A stolen life",
+      "timings": [165.56, 166.06, 166.06, 168.56, 168.56, 170.7]
+    },
+    {
+      "text": "I bring the ember",
+      "timings": [174.92, 175.74, 175.74, 176.02, 176.02, 176.34, 176.34, 176.98]
+    },
+    {
+      "text": "The spark",
+      "timings": [177.8, 178.1, 178.1, 178.52]
+    },
+    {
+      "text": "The flame",
+      "timings": [179.7, 179.96, 179.96, 180.5]
+    },
+    {
+      "text": "Your shell of ice",
+      "timings": [182.32, 182.62, 182.62, 183.0, 183.0, 183.16, 183.16, 183.72]
+    },
+    {
+      "text": "Cannot hold my name",
+      "timings": [184.5, 184.92, 184.92, 185.76, 185.76, 186.56, 186.56, 186.96]
+    },
+    {
+      "text": "You call it mercy",
+      "timings": [188.54, 189.64, 189.64, 190.0, 190.0, 190.22, 190.22, 190.94]
+    },
+    {
+      "text": "I call it fear",
+      "timings": [193.66, 194.2, 194.2, 195.5, 195.5, 196.2, 196.2, 196.44]
+    },
+    {
+      "text": "I walk through the long sleep",
+      "timings": [197.3, 197.8, 197.8, 198.08, 198.08, 198.7, 198.7, 199.24, 199.24, 199.74, 199.74, 200.42]
+    },
+    {
+      "text": "And drag you near",
+      "timings": [200.92, 201.2, 201.2, 201.94, 201.94, 202.22, 202.22, 202.38]
+    },
+    {
+      "text": "What freezes you",
+      "timings": [209.64, 210.04, 210.04, 210.76, 210.76, 211.36]
+    },
+    {
+      "text": "Only feeds my veins",
+      "timings": [212.42, 213.12, 213.12, 213.94, 213.94, 214.3, 214.3, 214.68]
+    },
+    {
+      "text": "What burns me",
+      "timings": [217.72, 218.1, 218.1, 218.98, 218.98, 219.94]
+    },
+    {
+      "text": "Melts me, breaks the chains",
+      "timings": [219.94, 221.08, 221.08, 222.82, 222.82, 223.64, 223.64, 223.98, 223.98, 224.38]
+    },
+    {
+      "text": "What freezes you",
+      "timings": [224.78, 226.04, 226.04, 226.82, 226.82, 227.36]
+    },
+    {
+      "text": "Only feeds my veins",
+      "timings": [228.56, 229.14, 229.14, 229.92, 229.92, 230.46, 230.46, 230.88]
+    },
+    {
+      "text": "What burns me",
+      "timings": [233.7, 234.12, 234.12, 234.96, 234.96, 236.02]
+    },
+    {
+      "text": "Melts me, breaks the chains",
+      "timings": [236.02, 237.16, 237.16, 238.88, 238.88, 239.64, 239.64, 239.96, 239.96, 240.4]
+    },
+    {
+      "text": "[vocalizing]",
+      "timings": [240.5, 248.4]
+    },
+    {
+      "text": "Ice meets fire",
+      "timings": [259.18, 261.5, 261.5, 262.0, 262.0, 262.68]
+    },
+    {
+      "text": "To a cracked-down tone",
+      "timings": [264.0, 265.0, 265.0, 265.14, 265.14, 266.16, 266.16, 266.66]
+    },
+    {
+      "text": "Your vow goes brittle",
+      "timings": [268.62, 269.2, 269.2, 269.54, 269.54, 270.16, 270.16, 270.68]
+    },
+    {
+      "text": "Your crown turns stone",
+      "timings": [271.58, 272.0, 272.0, 273.44, 273.44, 274.26, 274.26, 274.94]
+    },
+    {
+      "text": "I bring the ember",
+      "timings": [275.38, 275.74, 275.74, 276.0, 276.0, 276.36, 276.36, 277.28]
+    },
+    {
+      "text": "You bring the grave",
+      "timings": [277.365, 279.965, 279.965, 281.025, 281.025, 282.145, 282.145, 282.685]
+    },
+    {
+      "text": "One breath, one fracture",
+      "timings": [283.18, 284.0, 284.0, 284.56, 284.56, 285.36, 285.36, 286.02]
+    },
+    {
+      "text": "One last cold wave",
+      "timings": [287.02, 287.54, 287.54, 288.24, 288.24, 288.86, 288.86, 289.12]
+    },
+    {
+      "text": "What freezes you",
+      "timings": [295.6, 296.08, 296.08, 296.72, 296.72, 297.36]
+    },
+    {
+      "text": "Only feeds my veins",
+      "timings": [298.86, 299.16, 299.16, 299.94, 299.94, 300.38, 300.38, 300.78]
+    },
+    {
+      "text": "What burns me",
+      "timings": [303.7, 304.1, 304.1, 304.96, 304.96, 305.58]
+    },
+    {
+      "text": "Melts me, breaks the chains",
+      "timings": [306.36, 307.12, 307.12, 308.46, 308.46, 309.72, 309.72, 310.0, 310.0, 310.42]
+    },
+    {
+      "text": "What freezes you",
+      "timings": [310.68, 311.98, 311.98, 312.66, 312.66, 313.36]
+    },
+    {
+      "text": "Only feeds my veins",
+      "timings": [314.42, 315.12, 315.12, 315.96, 315.96, 316.52, 316.52, 316.98]
+    },
+    {
+      "text": "What burns me",
+      "timings": [319.06, 320.1, 320.1, 320.98, 320.98, 321.42]
+    },
+    {
+      "text": "Melts me, breaks the chains",
+      "timings": [322.36, 323.14, 323.14, 324.5, 324.5, 325.68, 325.68, 326.0, 326.0, 326.36]
+    },
+    {
+      "text": "[vocalizing]",
+      "timings": [326.4, 337.7]
+    }
+  ],
+  "undetectedWrittenPhrases": ["Aaaah…"],
+  "recovery": {
+    "regionsSha256": "119791b213229191f95b4e0a86d7cfcc53ef0fd25b6b04f2afac73d0781daa2c",
+    "stemSha256": "ce90e65274016309f9cd2d7678426dfa3221be2c4a54eff73aabdfca5b2a0546",
+    "separationModel": "htdemucs",
+    "alignmentModel": "small.en",
+    "method": "bounded contextual vocal-stem alignment; no manual word timestamps"
+  },
+  "vocalCueMethod": "manually bounded vocal-stem passages; descriptive captions, not transcribed words"
+}
