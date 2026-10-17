@@ -186,7 +186,7 @@ trinket_run_env_print() {
   [[ "${TRINKET_ISOLATE:-}" == "1" ]] && isolate_label="isolated"
   [[ -n "${TRINKET_AGENT_SLOT:-}" ]] && slot_label="$TRINKET_AGENT_SLOT"
   local sim_role="human run / local tests"
-  [[ "${TRINKET_ISOLATE:-}" == "1" ]] && sim_role="Cursor agent isolate"
+  [[ "${TRINKET_ISOLATE:-}" == "1" ]] && sim_role="agent isolate"
   printf 'run-env mode=%s run_id=%s agent_slot=%s derived=%s results=%s sim=%s (%s)\n' \
     "$isolate_label" \
     "${TRINKET_RUN_ID:-none}" \

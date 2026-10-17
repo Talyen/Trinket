@@ -44,7 +44,7 @@ Verification: ./Scripts/handoff.sh --isolate --quiet --paths <files...>
 | [audio.md](audio.md) | `TrinketAppState` audio paths |
 | [ci-diagnostics.md](ci-diagnostics.md) | **Lazy:** load only after a test/CI failure |
 
-Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (attached for DesignSystem and visual feature paths only). Cursor glob rule `.cursor/rules/design-system-colors.mdc` enforces color routing independently of this catalog.
+Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/SKILL.md) (attached for DesignSystem and visual feature paths only). The `check-ui-style.py` gate enforces color routing independently of this catalog.
 
 ## Quickstart
 

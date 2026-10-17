@@ -45,7 +45,7 @@ USAGE
 done
 
 if [[ "$INSPECT" == "1" && ! -t 0 ]]; then
-  echo "error: --inspect requires a terminal; agents use exec_command with tty=true." >&2
+  echo "error: --inspect requires an interactive terminal session." >&2
   exit 1
 fi
 

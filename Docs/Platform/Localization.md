@@ -19,7 +19,7 @@ Use `python3 Scripts/agent-brief.py --task localization --read` for routed point
    for larger queues. Planning does not change tracked inputs or outputs.
 3. Translate only queued entries using the existing development agent. Reuse
    matching translations only after checking their contexts. When delegating,
-   use GPT-6.1-Sol with High reasoning for translation and review subagents.
+   use high-reasoning subagents for translation and review.
 4. Perform a separate AI review pass against the English meaning and game rules:
    actors, targets, conditions, timing, quantities, chance versus guarantees,
    glossary terms, grammar, placeholders, and semantic markup. Correct defects.

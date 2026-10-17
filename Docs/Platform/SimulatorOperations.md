@@ -49,11 +49,11 @@ For interactive inspection, use one persistent terminal session:
 ./Scripts/run-simulator.sh --isolate --inspect
 ```
 
-In Codex, call `exec_command` with `tty=true` and retain its session ID. The
+Run the command in an interactive terminal session (e.g. using `run_command` with RunPersistent or `exec_command` with `tty=true`) and retain its session. The
 launcher acquires an available agent slot, builds, installs, launches, then
 prints `Inspection ready` with the simulator name, UDID, bundle ID, product
 path, and device UI path. Xcode 27 uses Device Hub; older Xcode uses Simulator.
-It keeps its lease until you send `stop\n` through `write_stdin`, close
+It keeps its lease until you send `stop\n` through standard input, close
 terminal input, or cancel the process. Confirm process exit after finishing.
 Do not wait for this command to exit before beginning Computer Use. Keep its
 session alive across tool calls; do not run another simulator job against its

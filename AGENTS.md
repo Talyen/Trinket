@@ -17,7 +17,7 @@ acknowledgments, verification-window requests, or routine peer polling. Keep a
 necessary exchange bounded; do not reply merely to acknowledge a message.
 After completion, stop: do not message, poll, or wake completed chats unless the
 user explicitly asks to resume them. Unsolicited routine messages require no reply
-and do not reopen a task. This authorization covers Codex chats only.
+and do not reopen a task.
 
 ## Protect the workspace
 
