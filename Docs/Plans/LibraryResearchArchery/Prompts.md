@@ -1,11 +1,45 @@
 # ImageGen prompts
 
-## Minimal UI refinement
+## Bestiary and portrait-art refinement
 
-The following built-in ImageGen edits produce the current v2 boards. Each uses
+These built-in ImageGen edits produce the current v3 boards. Inputs are listed
+in order in [Mockups.md](Mockups.md). They supersede v1/v2 for current design intent:
+Bestiary and Research only, no item archive, in-place grayscale enemies, maximum
+three objectives per project, landscape enemy art and portrait item art.
+Generated dimensions remain illustrative; native implementation follows the plan.
+
+### Library / Bestiary
+
+```text
+Use case: ui-mockup. Edit image1, the supplied two-screen Trinket Library concept. Image2 is the actual Forge screenshot authority for native iOS controls; image3 is the EXISTING full LANDSCAPE Slime painting, image4 EXISTING full LANDSCAPE Goblin painting. Preserve the Library painting, building title, native Back and Resources buttons, Upgrade and separate XP benefit, calm dark materials and native typography. No new artwork. Two complete upright screens side by side, near-black exterior with small caption "PROPOSED UI - EXISTING ART".
+LEFT: Change the first activity row text from Field Guide to "Bestiary". Keep the second row "Research". Exactly these TWO rows only. No collection, Relics, Trinkets, Uniques or third destination.
+RIGHT: Native system title "Bestiary". REMOVE the Creatures/Relics segmented control entirely. REMOVE the Undiscovered disclosure entirely. Instead one scrolling column of LANDSCAPE enemy paintings, full width within normal margins. Each enemy image MUST have width:height 4:3, wider than tall, NEVER portrait or square. Use image3 Slime with its full landscape forest composition in original color, then name "Slime" and quiet "Defeated" below. Below it show image4 Goblin in FULLY GRAYSCALE, including the complete background in grayscale, exact same full-width 4:3 landscape size; underneath "Goblin" and quiet "Undiscovered". These are adjacent entries in the SAME list, never separated into discovered/undiscovered groups. The bottom can scroll naturally if needed but both landscape examples should be readable. Names and statuses outside images. Unknown entry remains a normal tappable card. No question marks, hidden section, counters, filters or new art.
+Maintain recognizable original paintings and their original wide framing. Restrained native back navigation, comfortable text, fine spacing, no ornamental borders or added controls. Only building art is portrait; enemy art is landscape.
+```
+
+### Research
+
+```text
+Use case: ui-mockup. Edit supplied Trinket Research two-screen concept image1. Image2 actual Collection screenshot establishes native dark styling. Image3 is the EXISTING Shortbow portrait artwork. Keep the plain minimal near-black native screens, system sans-serif typography, gold native Back and subtle separators. Exterior small caption "PROPOSED UI - EXISTING ART". No Library painting header.
+LEFT: Title "Research". In Progress section has just TWO visible rows: "Forest Field Notes", secondary "Poison Shortbow recipe", trailing "2/3" and chevron; "Predator Anatomy", secondary "Bleed Longbow recipe", trailing "2/3" and chevron. DELETE the Relic Curiosities row entirely; do not replace it with any item-collection project. Completed section retains "Companion Chronicles", secondary "Archive record", quiet checkmark AND trailing chevron (still inspectable). These are excerpt rows from five total authored projects; don't add an overall count.
+RIGHT: Native heading "Forest Field Notes", short secondary "Document the creatures inhabiting the Forest." EXACTLY THREE objective rows: checked "Slime", checked "Goblin", unchecked "The Blight Treant". Remove Mud Elemental and Will-o-Wisp rows. No grouped hidden requirements, no fourth objective. Under a subtle divider show modest "Reward", then ONE tappable reward row with the existing Shortbow artwork at EXACTLY 3:4 PORTRAIT aspect ratio, e.g.72pt WIDE and96pt TALL, visibly taller than wide, not square and not cropped landscape. Text "Poison Shortbow" and secondary "Archery Range", trailing chevron. Preserve complete bow composition from image3. No separate View Recipe button, no claim button, no filler text, progressbars, filters, badges, thumbnail tiles on project list or new art. Readable whole upright screens, quiet empty space is welcome.
+```
+
+### Archery
+
+```text
+Use case: ui-mockup. Edit existing two-screen Trinket Archery concept image1. Image2 actual Forge screenshot is authoritative native crafting sheet and portrait item display. Image3 is the existing Shortbow portrait master. Preserve existing Archery Range painting, native Back and add existing Resources bag top-right to BOTH building screens. Maintain serif building title, near-black native sheet, system typography, safe-area costs dock, exact recipe and cost names. No new illustrations.
+Critical correction: ALL equipment artwork, in recipe grids, reward/recipe row thumbnails and central preview, MUST be 3:4 PORTRAIT rectangles, visibly taller than wide. NO square thumbnails, NO landscape equipment cards, no squashing or rotating art. Use existing Shortbow and Longbow paintings already in image1.
+LEFT: Show the Craft sheet expanded enough for a clean scrollable browser excerpt. "Standard Recipes" followed by TWO columns: a 3:4 portrait Shortbow card and a 3:4 portrait Longbow card, names below. They can be around120pt wide x160pt tall to fit elegantly. End viewport as next standard recipe row naturally begins or leave it below scroll; do NOT jump past missing standard recipes to Focused Recipes. No need to squeeze all five recipes into screenshot. No down arrows or explanatory labels. Browser must preserve portrait proportions rather than compress every artwork to show more rows.
+RIGHT: Native sheet grabber; sheet navigation bar includes its OWN circular Back button and centered "Craft". Show central existing Shortbow in strict 3:4 PORTRAIT frame, approx174pt wide x232pt tall; below "Poison Shortbow", green secondary "Poison affix guaranteed", muted "Basic or Astral". Dock costs "Wood 48", "Iron 24", "Herbs 8", using existing resource icon style. One emphasized gold native full-width "Craft" button, safe area below. Preserve original artwork identity from image3 and resource icons. Quiet typography and minimal surfaces, no borders around every row, no extra actions or ornaments. Board small caption "PROPOSED UI - EXISTING ART". Two complete upright screens without hardware, enough vertical canvas to keep art portrait and controls unclipped.
+```
+
+## Previous minimal UI refinement (superseded)
+
+The following built-in ImageGen edits produced the previous v2 boards. Each uses
 its matching original board as image 1. Library/Archery use the preserved actual
 Forge screenshot as image 2; Research uses the actual Collection screenshot.
-These refinements supersede the initial layout prompts for current design intent.
+These refinements superseded the initial layouts; v3 above now defines intent.
 
 ### Library and guide refinement
 

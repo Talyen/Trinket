@@ -13,19 +13,21 @@ and scope specification. Exact generation and correction prompts are preserved i
 
 | Board | Depicted flow | Selected generated output |
 |---|---|---|
-| [Library / guide](library-guide-v2.png) | Shared activity group, separate benefits, discovered cards and collapsed unknown entries | `exec-5e825843-0d53-4071-bebf-3dfa0172160b.png` |
-| [Research](research-projects-v2.png) | Plain native list, objective checks and one tappable recipe reward row | `exec-1660471c-fa29-48e7-b445-630dd3b7ca83.png` |
-| [Archery](archery-crafting-v2.png) | Restrained browser rows, grouped guarantee and one prominent Craft action | `exec-c26558fb-5d28-416a-98cb-622fbb7ded35.png` |
+| [Library / Bestiary](library-bestiary-v3.png) | Two Library activities; landscape enemies with undiscovered art in grayscale in the same list | `exec-3d7dd6f1-b484-4cd4-92c6-4ef77e61ecbe.png` |
+| [Research](research-projects-v3.png) | No item-collection project; three Forest objectives and a portrait reward thumbnail | `exec-34cc417a-519d-45f9-b3f5-a579650dee1e.png` |
+| [Archery](archery-crafting-v3.png) | Portrait recipe cards and preview; one prominent Craft action | `exec-92d83b0d-5f7a-437b-b4e9-169f05b3c354.png` |
 
 All selected outputs are copied unchanged into this directory. Original generated
-outputs remain in the task's Codex generated-images directory. Rejected initial
-variants need not be kept in the repository. The boards show independent example
-states rather than one synchronized player save.
+outputs remain in the task's Codex generated-images directory. The boards show
+independent example states rather than one synchronized player save.
 
-The previous [Library](library-guide.png), [Research](research-projects.png), and
-[Archery](archery-crafting.png) boards remain as exact editing inputs and preserve
-the earlier chat's links. They are superseded for current layout intent; the
-implementation plan embeds only v2. No original asset was overwritten.
+The initial [Library](library-guide.png), [Research](research-projects.png), and
+[Archery](archery-crafting.png) boards and intermediate
+[Library v2](library-guide-v2.png), [Research v2](research-projects-v2.png), and
+[Archery v2](archery-crafting-v2.png) remain as exact editing inputs and preserve
+previous chat links. Their item archive, undiscovered disclosure, five-objective
+project and compressed artwork layouts are superseded. The implementation plan
+embeds only v3. No original asset was overwritten.
 
 ## Actual screenshot references
 
@@ -61,9 +63,9 @@ live under the shared Asset Library; no master or asset-catalog file was edited.
 
 | Manifest kind / ID | Role |
 |---|---|
-| `portrait_background / library` | Library building and research header |
+| `portrait_background / library` | Library building; research headers in superseded initial boards only |
 | `portrait_background / archeryRange` | Range building behind Craft sheet |
-| `combatant / slime`, `combatant / goblin` | Field Guide cards; Slime also supplied to initial research generation |
+| `combatant / slime`, `combatant / goblin` | Landscape Bestiary entries; Slime also supplied to initial research generation |
 | `item / shortbow-basic` | Recipe card, research reward and focused-preview base art |
 | `item / longbow-basic`, `item / quiver-basic` | Standard crafting cards |
 | `item / crossbow-basic` | Correction replacing the initial misleading placeholder |
@@ -81,29 +83,44 @@ initial generated board; Archery correction uses its initial board plus Crossbow
 
 The refinement pass edits those selected boards with the actual screenshots again:
 Library and Archery each use their prior board plus Forge; Research uses its prior
-board plus Collection. All new prompts are preserved in Prompts.md. No new game
+board plus Collection. All prompts are preserved in Prompts.md. No new game
 painting or asset-library source was introduced.
+
+V3 Library uses Library v2, actual Forge, original landscape Slime, original
+landscape Goblin, in that order. V3 Research uses Research v2, actual Collection,
+original portrait Shortbow. V3 Archery uses Archery v2, actual Forge, original
+portrait Shortbow. These inputs correct the earlier board crops while retaining
+the native screenshot references. Existing masters were inspected before editing.
 
 ## Visual review and implementation corrections
 
-Inspected the initial/corrected boards and all three refined outputs. V2 removes
-the building-entry counters, repeated Library heroes, research filters, decorative
-project thumbnails, redundant View Recipe button and permanent explanatory text.
-The Library benefit is now separate from Upgrade; unknown guide entries are a
-single disclosure. Research is a plain native list and recipe rewards are rows.
-Craft's guarantee/rarity copy is grouped with the item, and only Craft is emphasized.
+Inspected all three v3 outputs. Library now exposes Bestiary and Research only;
+Trinkets/Uniques stay in Collection, with no parallel item archive. The Bestiary
+shows colored Slime and grayscale Goblin landscape art together, named and
+inspectable. There is no category switch or undiscovered disclosure. Research
+removes Relic Curiosities, shows exactly three Forest targets (Slime, Goblin,
+The Blight Treant), and uses a portrait Shortbow reward thumbnail. Archery's
+standard recipe cards and preview use portrait item artwork. Earlier minimal
+layout decisions remain: plain research list, one reward row, no repeated Library
+hero, quiet utility typography and Craft as the only prominent primary action.
 
 Known concept-only deviations to resolve in shipping SwiftUI:
 
-- Some list/grid card proportions and sheet detents are compressed for the board.
-  Actual views must follow the current Collection/Forge components and safe areas.
+- ImageGen approximates dimensions. Bestiary images are landscape but wider than
+  the original approximately 4:3 masters; production must retain selected source
+  framing. Every equipment image must use exact 3:4 portrait layout, including
+  the smallest reward/focused-recipe thumbnail. Use real prepared artwork and
+  native components rather than generated crops or measured raster coordinates.
 - Archery's browser is an illustrative excerpt. Shipping contains all five standard
   recipes, including Recurve Bow, in the written catalog order before Focused
-  Recipes. Do not omit the fifth recipe or copy the sample's shortened order.
+  Recipes. V3 fully shows the first two and clips the next row, whose sample
+  ordering is inaccurate (Quiver precedes Recurve Bow). Use the plan's authored
+  order, with Recurve Bow third, Crossbow fourth and Quiver fifth; never jump to
+  Focused Recipes before all five standard recipes.
 - Preserve the actual Resources toolbar action on the building and the native
-  in-sheet Back control on recipe preview. ImageGen omits some of these in the
-  refined Archery board; the underlying building Back is not a substitute for
-  returning from a recipe to the Craft browser.
+  in-sheet Back control on recipe preview. V3 Archery restores Resources but still
+  omits its in-sheet Back despite the prompt. The underlying building Back is not
+  a substitute for returning from a recipe to the Craft browser.
 - Completed research rows remain inspectable and expose a native navigation
   affordance; a completion check must not imply that the row stopped working.
 - Research tier requirements, locked recipe requirements, empty/pending states,
