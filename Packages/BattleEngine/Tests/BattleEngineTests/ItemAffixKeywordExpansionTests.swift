@@ -143,7 +143,7 @@ struct ItemAffixKeywordExpansionTests {
         )
         let hero = battle.hero
 
-        CombatExecutor.run { await DefensePoolEngine.decayBlock(on: hero, in: &battle) }
+        DefensePoolEngine.decayBlock(on: hero, in: &battle)
         #expect(battle.roster.activeEffects(for: hero).contains {
             if case .thorns(1) = $0.effect {
                 return true
@@ -154,9 +154,9 @@ struct ItemAffixKeywordExpansionTests {
             _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: DamageOperation.attack(
                 tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
             ))
-            CombatExecutor.run { await CombatTriggerEngine.heroTalentThorns(
+            CombatTriggerEngine.heroTalentThorns(
                 to: hero, source: hero, amount: 1, name: "Test Thorns", in: &battle,
-            ) }
+            )
         }
         #expect(battle.health(of: battle.enemy) == 34)
         #expect(battle.health(of: hero) == 12)

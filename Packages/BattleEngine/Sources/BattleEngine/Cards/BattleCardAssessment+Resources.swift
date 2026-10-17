@@ -29,7 +29,7 @@ extension BattleState {
             mergeResource(use, into: &resources)
         }
         for (effectIndex, targeted) in branch.targetedEffects.enumerated() where targeted.effect == .convertManaToBlock {
-            if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, actor: actor, in: self) {
+            if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, action: action, in: self) {
                 continue
             }
             for (targetIndex, target) in action.targets(targeted.target, in: self).enumerated() where health(of: target) > 0 {

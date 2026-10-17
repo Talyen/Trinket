@@ -266,7 +266,7 @@ package extension CombatTriggerEngine {
         }
         guard !context.isBattleOver, context.health(of: actor) > 0 else { return }
         if triggers.startBattleThorns > 0 {
-            await heroTalentThorns(
+            heroTalentThorns(
                 to: actor, source: actor, amount: triggers.startBattleThorns,
                 name: triggerAbilityName(.startBattleThorns, for: actor, fallback: "Thornwrought", in: context),
                 in: &context,

@@ -12,6 +12,18 @@ package extension BattleState {
         return id
     }
 
+    /// Admit the complete replacement before removing existing stacks.
+    internal mutating func stackAmountBuff(_ effect: Effect, on target: Combatant, sourceID: String) -> Int? {
+        guard health(of: target) > 0, let amount = EffectHandlers.stackingAmount(effect), amount > 0 else { return nil }
+        let existing = TimedBuffSummary.summedAmount(in: roster.activeEffects(for: target)) {
+            $0.kind == effect.kind ? EffectHandlers.stackingAmount($0) : nil
+        }
+        let total = SaturatedArithmetic.saturatingAdd(existing, amount)
+        guard total > existing else { return nil }
+        let stacked: Effect = effect.kind == .thorns ? .thorns(total) : .nextBurnBonus(total)
+        return insertEffect(stacked, to: target, sourceID: sourceID, remainingTurns: 0, replacing: { $0.kind == effect.kind }) ? total : nil
+    }
+
     @discardableResult
     mutating func applyBlockGain(
         _ amount: Int,

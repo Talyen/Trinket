@@ -160,7 +160,7 @@ struct BattleLogProjectionTests {
 
     @Test(arguments: [false, true])
     func `Gold rewards and Gold steals retain their meaning in the battle log`(theft: Bool) {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities()
+        var battle = makeSupportBattle()
         let ability = theft ? Ability.steal : Ability.goldenPlate
         let events = battle.performTestAction(ability)
         let lines = BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) }
@@ -209,8 +209,6 @@ struct BattleLogProjectionTests {
 
     private func makeActionDamageLogBattle() -> BattleState {
         let profile = CombatModifierProfile.withTriggers { $0.criticalChanceBonus = -1 }
-        return BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.bloodOffering, .bloodthorn], heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
-        )
+        return BattleStateTestFactory.makeMinimalBattle(heroModifiers: profile, appliesFightPacing: false)
     }
 }

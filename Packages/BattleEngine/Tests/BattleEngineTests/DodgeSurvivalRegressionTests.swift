@@ -54,7 +54,7 @@ struct DodgeSurvivalRegressionTests {
         // Only the committed healing's Holy ping can consume enemy Block.
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 19)
         #expect(battle.activeEffects(of: battle.enemy).allSatisfy { !$0.effect.isRemovableDebuff })
-        #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id, default: 0] == 0)
+        #expect(battle.roster.enemy.talents.battle.actionDelays == 0)
         #expect(battle.mana(of: battle.hero) == (healsFromGold ? 0 : 2))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == (healsFromGold ? 0 : 3))
         #expect(battle.heroDeck.abilities.map(\.id) == (healsFromGold ? [Ability.block.id] : []))

@@ -21,12 +21,12 @@ extension TalentMigrationTests {
         let partner = BattleCardCombatEngine.deal(followup, owner: .companion, context: &battle)
         let partnerEvents = try battle.playCard(cardID: partner.id).events
         #expect(partnerEvents.count { $0.kind == .abilityDamage && $0.abilityID == followup.id } == 1)
-        #expect(battle.primedRepeatKeywords.contains(keyword))
+        #expect(battle.roster.hero.talents.turn.primedRepeatKeywords.contains(keyword))
 
         let own = BattleCardCombatEngine.deal(followup, owner: .hero, context: &battle)
         let ownEvents = try battle.playCard(cardID: own.id).events
         #expect(ownEvents.count { $0.kind == .abilityDamage && $0.abilityID == followup.id } == 2)
-        #expect(!battle.primedRepeatKeywords.contains(keyword))
+        #expect(!battle.roster.hero.talents.turn.primedRepeatKeywords.contains(keyword))
     }
 
     @Test func `closedCircuit spends mana deals stun`() {
@@ -90,7 +90,7 @@ extension TalentMigrationTests {
                 ability,
                 in: &battle,
             )
-            #expect(battle.additionalControlSkipsByCombatantID[battle.enemy.id, default: 0]
+            #expect(battle.roster.enemy.talents.battle.actionDelays
                 == (ability.id == Ability.slash.id ? 1 : 0))
         }
     }
@@ -104,9 +104,9 @@ extension TalentMigrationTests {
             Ability(id: "burn-x", name: "Burn X", tier: .basic, directDamage: 1, damageKeyword: Keyword.burn),
             in: &battle,
         )
-        #expect(battle.primedRepeatKeywords.contains(Keyword.physical))
+        #expect(battle.roster.hero.talents.turn.primedRepeatKeywords.contains(Keyword.physical))
         _ = battle.endTurn()
-        #expect(!battle.primedRepeatKeywords.contains(Keyword.physical))
+        #expect(!battle.roster.hero.talents.turn.primedRepeatKeywords.contains(Keyword.physical))
     }
 
     @Test func `pyromancer restores mana on burn empowerment`() {
@@ -155,10 +155,10 @@ extension TalentMigrationTests {
         let before = battle.health(of: battle.enemy)
         _ = cardReactions(card, in: &battle)
         #expect(battle.health(of: battle.enemy) == before)
-        #expect(battle.primedRepeatKeywords.contains(keyword))
+        #expect(battle.roster.hero.talents.turn.primedRepeatKeywords.contains(keyword))
         _ = cardReactions(card, in: &battle)
         #expect(battle.health(of: battle.enemy) < before)
-        #expect(battle.primedRepeatKeywords.contains(keyword))
+        #expect(battle.roster.hero.talents.turn.primedRepeatKeywords.contains(keyword))
     }
 
     @Test func `Ray of Frost gives each damaging hit a Rimewind draw chance`() throws {

@@ -21,9 +21,11 @@ struct ManaEmpowermentBudget {
     private var preparedDiscount: Int
 
     init(ability: Ability, actor: Combatant, in context: BattleState) {
+        let keywords = ability.keywords
+        let hasBurnDamage = ability.hasManaEmpowerableBurnDamage
         let runtime = context.roster.runtime(for: actor)
         let triggers = context.modifiers(for: actor.id).triggers
-        let patron = ability.keywords.contains(.freeze) && actor.role != .enemy
+        let patron = keywords.contains(.freeze) && actor.role != .enemy
             ? [context.roster.hero, context.roster.companion].first {
                 $0.id != actor.id && $0.isAlive && context.modifiers(for: $0.id).triggers.dragonPatronage
             } : nil
@@ -31,12 +33,12 @@ struct ManaEmpowermentBudget {
         ownMana = runtime?.currentMana ?? 0
         partnerMana = patron?.currentMana ?? 0
         block = runtime.map { DefensePoolEngine.blockPoints(in: $0.activeEffects) } ?? 0
-        blockRate = ability.keywords.contains(.freeze) ? triggers.freezeEmpowermentBlockPerMana : 0
+        blockRate = keywords.contains(.freeze) ? triggers.freezeEmpowermentBlockPerMana : 0
         hasEmpowered = runtime?.talents.battle.hasEmpoweredWithMana ?? false
         firstDiscount = triggers.firstEmpowermentCostReduction
-        let reduction = ability.keywords.contains(.health) && triggers.healingEmpowermentCostReduction > 0
+        let reduction = keywords.contains(.health) && triggers.healingEmpowermentCostReduction > 0
             ? triggers.healingEmpowermentCostReduction : triggers.empowermentCostReduction
-        let burnReduction = ability.hasManaEmpowerableBurnDamage ? triggers.empowerBurnCostReduction : 0
+        let burnReduction = hasBurnDamage ? triggers.empowerBurnCostReduction : 0
         preparedDiscount = max(0, runtime?.talents.pending.nextManaEmpowerDiscount ?? 0)
         baseCost = max(
             0,
@@ -48,7 +50,7 @@ struct ManaEmpowermentBudget {
         let maxMana = SaturatedArithmetic.saturatingAdd(runtime?.maxMana ?? 0, patron?.maxMana ?? 0)
         hasCapacity = maxMana > 0 || blockRate > 0
         let repeats = ability.repeatsManaEmpowerment
-            || (ability.hasManaEmpowerableBurnDamage && triggers.repeatManaEmpowerment)
+            || (hasBurnDamage && triggers.repeatManaEmpowerment)
         let discountPurchase = preparedDiscount > 0 || (!hasEmpowered && firstDiscount > 0) ? 1 : 0
         let capacity = SaturatedArithmetic.saturatingAdd(maxMana, blockRate > 0 ? block / blockRate : 0)
         purchaseLimit = repeats && baseCost > 0

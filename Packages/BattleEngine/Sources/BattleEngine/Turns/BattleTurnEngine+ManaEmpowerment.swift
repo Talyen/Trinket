@@ -15,7 +15,7 @@ package extension BattleTurnEngine {
         let triggers = context.modifiers(for: actor.id).triggers
 
         var purchases = 0
-        var totalManaSpent = 0
+        var spentMana = false
         let purchaseLimit = ManaEmpowermentBudget(ability: ability, actor: actor, in: context).purchaseLimit
         while purchases < purchaseLimit, !context.isBattleOver, context.roster.health(for: actor) > 0 {
             guard let payment = payEmpowerment(ability: ability, actor: actor, in: &context) else { break }
@@ -24,7 +24,7 @@ package extension BattleTurnEngine {
                 $0.talents.pending.nextManaEmpowerDiscount = 0
             }
             purchases += 1
-            totalManaSpent += payment.reduce(0) { $0 + $1.amountSpent }
+            spentMana = spentMana || payment.contains { $0.amountSpent > 0 }
             ability = empoweredAbility(ability, triggers: triggers)
             await CombatTriggerEngine.afterHeroTalentSpendMana(actor: actor, amount: 0, empowered: true, in: &context)
             for contribution in payment where contribution.amountSpent > 0 {
@@ -46,10 +46,10 @@ package extension BattleTurnEngine {
                 ability = doubledDamageAbility(ability)
             }
         }
-        if totalManaSpent > 0, let empoweredKeyword {
+        if spentMana, let empoweredKeyword {
             CombatTriggerEngine.drawOppositeElement(afterEmpowering: empoweredKeyword, by: actor, in: &context)
         }
-        if totalManaSpent > 0, empoweredKeyword == .burn, triggers.onEmpowerBurnRestoreMana > 0 {
+        if spentMana, empoweredKeyword == .burn, triggers.onEmpowerBurnRestoreMana > 0 {
             await context.restoreManaEmitting(
                 triggers.onEmpowerBurnRestoreMana,
                 to: actor,

@@ -126,11 +126,11 @@ struct SharedPreparedDamageRegressionTests {
         var battle = try fixtures.battle(shared ? ["oathkeeper"] : [], extra: profile)
         fixtures.block(15, owner: .hero, in: &battle)
         _ = fixtures.enemyHit(10, in: &battle)
-        #expect(battle.storedBlockedDamageByActorID[battle.hero.id] == 10)
+        #expect(battle.roster.hero.talents.battle.storedBlockedDamage == 10)
 
         try fixtures.play(fixtures.attack(.holy, amount: 20), in: &battle)
         #expect(battle.health(of: battle.enemy) == (shared ? 1970 : 1980))
-        #expect((battle.storedBlockedDamageByActorID[battle.hero.id] == nil) == shared)
+        #expect((battle.roster.hero.talents.battle.storedBlockedDamage == 0) == shared)
     }
 
     @Test func `companion profile companionBleedDamageDealtBonus increases bleed damage`() throws {

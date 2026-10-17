@@ -118,17 +118,17 @@ public struct CombatantRuntime: Hashable {
 
     public let maximumManaBonus: Int
 
-    public package(set) var hasConsumedDeathsDoor: Bool
+    public package(set) var hasConsumedDeathsDoor = false
 
     public package(set) var deathsDoorExpiredAtTurn: Int?
 
-    public package(set) var hasTriggeredFirstHitBonus: Bool
+    public package(set) var hasTriggeredFirstHitBonus = false
 
-    public package(set) var hasTriggeredSecondWind: Bool
+    public package(set) var hasTriggeredSecondWind = false
 
-    public package(set) var hasTriggeredDeathRevive: Bool
+    public package(set) var hasTriggeredDeathRevive = false
 
-    public package(set) var hasTriggeredPhoenixGift: Bool
+    public package(set) var hasTriggeredPhoenixGift = false
 
     public init(
         combatant: Combatant,
@@ -137,22 +137,10 @@ public struct CombatantRuntime: Hashable {
         initialActiveEffects: [ActiveEffect] = [],
         maximumHealthBonus: Int = 0,
         maximumManaBonus: Int = 0,
-        hasConsumedDeathsDoor: Bool = false,
-        deathsDoorExpiredAtTurn: Int? = nil,
-        hasTriggeredFirstHitBonus: Bool = false,
-        hasTriggeredSecondWind: Bool = false,
-        hasTriggeredDeathRevive: Bool = false,
-        hasTriggeredPhoenixGift: Bool = false,
     ) {
         self.combatant = combatant
         self.maximumHealthBonus = maximumHealthBonus
         self.maximumManaBonus = maximumManaBonus
-        self.hasConsumedDeathsDoor = hasConsumedDeathsDoor
-        self.deathsDoorExpiredAtTurn = deathsDoorExpiredAtTurn
-        self.hasTriggeredFirstHitBonus = hasTriggeredFirstHitBonus
-        self.hasTriggeredSecondWind = hasTriggeredSecondWind
-        self.hasTriggeredDeathRevive = hasTriggeredDeathRevive
-        self.hasTriggeredPhoenixGift = hasTriggeredPhoenixGift
         let healthCapacity = CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus)
         let startingMana = CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus)
         let manaCapacity = CombatantMaxValues.maxMana(

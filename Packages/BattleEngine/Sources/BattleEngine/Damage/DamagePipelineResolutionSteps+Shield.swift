@@ -188,9 +188,9 @@ package extension DamagePipeline {
         else { return }
 
         if partyTrigger(\.storedImpact, defender: defender, in: context) {
-            context.storedBlockedDamageByActorID[defender.id] = SaturatedArithmetic.saturatingAdd(
-                context.storedBlockedDamageByActorID[defender.id, default: 0], absorbed,
-            )
+            context.roster.mutateRuntime(for: defender) {
+                $0.talents.battle.storedBlockedDamage = SaturatedArithmetic.saturatingAdd($0.talents.battle.storedBlockedDamage, absorbed)
+            }
         }
         if blockBroken, context.modifiers(for: defender.id).triggers.seismicReversal {
             _ = await resolveNestedDamage(

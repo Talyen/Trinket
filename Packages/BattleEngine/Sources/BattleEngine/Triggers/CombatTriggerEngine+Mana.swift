@@ -390,14 +390,14 @@ package extension CombatTriggerEngine {
         if restored > 0 {
             await afterGainMana(by: actor, in: &context)
         }
-        await consumeManaOverflowTalents(for: actor, restoredMana: restored > 0, in: &context)
+        consumeManaOverflowTalents(for: actor, restoredMana: restored > 0, in: &context)
     }
 
     static func consumeManaOverflowTalents(
         for actor: Combatant,
         restoredMana: Bool,
         in context: inout BattleState,
-    ) async {
+    ) {
         let overflow = context.roster.runtime(for: actor)?.talents.pending.manaOverflowThorns ?? 0
         let block = context.roster.runtime(for: actor)?.talents.pending.manaOverflowBlock ?? 0
         let arcane = restoredMana ? context.modifiers(for: actor.id).triggers.arcaneThornsOnManaRestore : 0
@@ -409,7 +409,7 @@ package extension CombatTriggerEngine {
         }
 
         if amount > 0 {
-            await heroTalentThorns(
+            heroTalentThorns(
                 to: actor, source: actor, amount: amount,
                 name: overflow > 0 ? "Living Conduit" : "Arcane Thorns", in: &context,
             )

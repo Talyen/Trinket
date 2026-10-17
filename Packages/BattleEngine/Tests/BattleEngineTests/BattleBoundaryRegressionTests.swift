@@ -301,14 +301,14 @@ struct BattleBoundaryRegressionTests {
         var profile = CombatModifierProfile.zero
         profile.triggers.storedImpact = true
         var battle = makeBattle(profile: profile)
-        battle.storedBlockedDamageByActorID[battle.hero.id] = Int.max
+        battle.roster.hero.talents.battle.storedBlockedDamage = Int.max
         DefensePoolEngine.set(2, on: battle.hero, in: &battle)
 
         let outcome = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .reaction())
 
         #expect(outcome.healthLost == 0)
         #expect(battle.health(of: battle.hero) == 20)
-        #expect(battle.storedBlockedDamageByActorID[battle.hero.id] == Int.max)
+        #expect(battle.roster.hero.talents.battle.storedBlockedDamage == Int.max)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 1)
     }
 

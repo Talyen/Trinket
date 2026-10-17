@@ -90,7 +90,7 @@ extension UniqueCollectionTests {
         #expect(hit.isDodged)
         #expect(context.roster.enemy.currentHealth == 1994)
         #expect(blockAmount(owner, in: context) == 9)
-        CombatExecutor.run { await DefensePoolEngine.decayBlock(on: actor, in: &context) }
+        DefensePoolEngine.decayBlock(on: actor, in: &context)
         #expect(blockAmount(owner, in: context) == 9)
         #expect(DefensePoolEngine.halveBlock(on: actor, in: &context))
         #expect(blockAmount(owner, in: context) == 4)

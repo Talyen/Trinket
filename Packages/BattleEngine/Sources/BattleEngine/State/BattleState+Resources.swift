@@ -183,7 +183,7 @@ package extension BattleState {
             }
         }
         let restored = restoreMana(amount, to: combatant, isResolved: isResolved)
-        await CombatTriggerEngine.consumeManaOverflowTalents(for: combatant, restoredMana: restored > 0, in: &self)
+        CombatTriggerEngine.consumeManaOverflowTalents(for: combatant, restoredMana: restored > 0, in: &self)
         guard restored > 0 else { return }
 
         nextEvent(

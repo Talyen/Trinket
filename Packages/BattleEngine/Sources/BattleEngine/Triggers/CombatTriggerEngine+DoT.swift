@@ -127,7 +127,7 @@ package extension CombatTriggerEngine {
             cap > 0 ? cap - already : sourceTriggers.onBurnDamageRestoreManaFlat,
         )
         let restored = context.restoreMana(toRestore, to: caster.combatant)
-        await consumeManaOverflowTalents(for: caster.combatant, restoredMana: restored > 0, in: &context)
+        consumeManaOverflowTalents(for: caster.combatant, restoredMana: restored > 0, in: &context)
         guard restored > 0 else { return }
         context.turnCadence.burnManaRestored[participant, default: 0] += restored
         context.nextEvent(

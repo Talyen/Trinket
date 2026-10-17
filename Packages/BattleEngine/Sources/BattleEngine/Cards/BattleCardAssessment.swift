@@ -99,7 +99,7 @@ private extension BattleState {
             targets.append(.init(combatantID: target.id, intent: .damage(keyword)))
         }
         for (index, targeted) in branch.targetedEffects.enumerated() {
-            if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, actor: actor, in: self) {
+            if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, action: action, in: self) {
                 continue
             }
             if case .partyDamageBonus = targeted.effect {
@@ -169,12 +169,12 @@ extension BattleCardAssessment {
             keys.append(use)
         }
         return keys.map { key in
-            let amounts = outcomes.map { outcome -> Int? in
-                guard let use = outcome.first(where: { $0.matches(key) }) else { return 0 }
-                return use.amount
+            let firstAmount = key.quotedAmount(in: outcomes[0])
+            let isCommon = outcomes.dropFirst().allSatisfy { outcome in
+                let amount = key.quotedAmount(in: outcome)
+                return amount == firstAmount
             }
-            let firstAmount = amounts[0]
-            let amount = amounts.allSatisfy { $0 == firstAmount } ? firstAmount : nil
+            let amount = isCommon ? firstAmount : nil
             return ResourceUse(
                 combatantID: key.combatantID, keyword: key.keyword, amount: amount,
                 balance: key.balance, capacity: key.capacity,
@@ -184,6 +184,11 @@ extension BattleCardAssessment {
 }
 
 private extension BattleCardAssessment.ResourceUse {
+    func quotedAmount(in outcome: [Self]) -> Int? {
+        guard let use = outcome.first(where: { $0.matches(self) }) else { return 0 }
+        return use.amount
+    }
+
     func matches(_ other: Self) -> Bool {
         combatantID == other.combatantID && keyword == other.keyword
     }

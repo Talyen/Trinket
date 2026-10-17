@@ -128,7 +128,7 @@ package extension CombatTriggerEngine {
         if triggers.onDodgeDelayAttackerTurn, let attackerID,
            let attacker = context.roster.combatant(for: attackerID),
            attacker.role == .enemy {
-            context.additionalControlSkipsByCombatantID[attackerID, default: 0] += 1
+            context.roster.mutateRuntime(for: attacker.combatant) { $0.talents.delayAction() }
         }
 
         var pendingCounterIndex: Int?

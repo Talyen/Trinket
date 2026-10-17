@@ -194,7 +194,7 @@ package extension CombatTriggerEngine {
         if keyword == .poison, target.role == .enemy, let sourceID,
            let source = context.roster.combatant(for: sourceID), source.isAlive,
            context.modifiers(for: sourceID).triggers.barbedSpores {
-            await heroTalentThorns(to: context.roster.companion.combatant, source: source.combatant, name: "Barbed Spores", in: &context)
+            heroTalentThorns(to: context.roster.companion.combatant, source: source.combatant, name: "Barbed Spores", in: &context)
         }
     }
 
@@ -355,7 +355,7 @@ package extension CombatTriggerEngine {
            context.heroModifiers.triggers.groveAccord,
            context.claimHeroTalent(.groveAccord, actorID: hero.id) {
             for target in [hero, context.roster.companion.combatant] {
-                await heroTalentThorns(to: target, source: hero, name: "Grove Accord", in: &context)
+                heroTalentThorns(to: target, source: hero, name: "Grove Accord", in: &context)
             }
         }
     }
@@ -364,26 +364,13 @@ package extension CombatTriggerEngine {
 
     static func heroTalentThorns(
         to target: Combatant, source: Combatant, amount: Int = 1, name: String, in context: inout BattleState,
-    ) async {
-        guard amount > 0, context.roster.health(for: target) > 0, context.roster.health(for: source) > 0 else { return }
-        await withHeroReaction(in: &context) { context in
-            let total = context.roster.activeEffects(for: target).reduce(amount) { sum, active in
-                if case let .thorns(amount) = active.effect {
-                    return SaturatedArithmetic.saturatingAdd(sum, amount)
-                }
-                return sum
-            }
-            ActiveEffectMutation.removeMatching(from: target, in: &context) { $0.kind == .thorns }
-            context.insertEffect(.thorns(total), to: target, sourceID: source.id, remainingTurns: 0)
-            context.nextEvent(
-                kind: .effect(.thornsApplied),
-                source: .init(source),
-                abilityName: name,
-                target: target,
-                amount: amount,
-                keyword: .thorns,
-            )
-        }
+    ) {
+        guard context.roster.health(for: source) > 0,
+              let total = context.stackAmountBuff(.thorns(amount), on: target, sourceID: source.id) else { return }
+        context.nextEvent(
+            kind: .effect(.thornsApplied), source: .init(source),
+            abilityName: name, target: target, amount: total, keyword: .thorns,
+        )
     }
 
     static func heroTalentHeal(

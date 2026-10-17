@@ -127,7 +127,7 @@ package enum BattleCardCombatEngine {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return }
 
-        await DefensePoolEngine.decayBlock(on: enemy, in: &context)
+        DefensePoolEngine.decayBlock(on: enemy, in: &context)
 
         if context.roster.hasPendingActionSkip(for: enemy) {
             await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
@@ -209,7 +209,7 @@ package enum BattleCardCombatEngine {
         context.turnCount += 1
         await EffectTurnEngine.advanceAll(context: &context)
         for combatant in [context.roster.hero.combatant, context.roster.companion.combatant] {
-            await DefensePoolEngine.decayBlock(on: combatant, in: &context)
+            DefensePoolEngine.decayBlock(on: combatant, in: &context)
         }
         if await finishRoundIfBattleOver(context: &context) {
             return

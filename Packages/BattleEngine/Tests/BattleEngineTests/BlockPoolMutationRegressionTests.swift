@@ -73,7 +73,7 @@ struct BlockPoolMutationRegressionTests {
 
         #expect(DefensePoolEngine.halveBlock(on: battle.enemy, in: &battle))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 6)
-        CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.enemy, in: &battle) }
+        DefensePoolEngine.decayBlock(on: battle.enemy, in: &battle)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 3)
         #expect(battle.applyBlockGain(4, to: battle.enemy, source: battle.enemy, abilityName: "Blocked gain") == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 3)

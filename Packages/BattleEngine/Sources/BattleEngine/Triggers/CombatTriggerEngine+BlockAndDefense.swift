@@ -27,30 +27,9 @@ package extension CombatTriggerEngine {
             : triggers.retainedBlockGainThornsPercent
         let gained = CombatRounding.scaled(amount, multiplier: percent)
         guard gained > 0 else { return }
-        let effects = context.roster.activeEffects(for: actor)
-        let existing = effects.reduce(0) { total, active in
-            if case let .thorns(stacks) = active.effect {
-                return SaturatedArithmetic.saturatingAdd(total, stacks)
-            }
-            return total
-        }
-        let total = SaturatedArithmetic.saturatingAdd(existing, gained)
-        guard context.insertEffect(
-            .thorns(total), to: actor, sourceID: actor.id, remainingTurns: 0,
-            replacing: { $0.kind == .thorns },
-        ) else { return }
-        context.nextEvent(
-            kind: .effect(.thornsApplied),
-            source: .init(actor),
-            abilityName: triggerAbilityName(
-                abilityKey,
-                for: actor,
-                fallback: "Thorns",
-                in: context,
-            ),
-            target: actor,
-            amount: total,
-            keyword: .thorns,
+        heroTalentThorns(
+            to: actor, source: actor, amount: gained,
+            name: triggerAbilityName(abilityKey, for: actor, fallback: "Thorns", in: context), in: &context,
         )
     }
 
@@ -161,7 +140,7 @@ package extension CombatTriggerEngine {
             )
         }
         if profile.triggers.blockBrokenThornsFlat > 0 {
-            await heroTalentThorns(
+            heroTalentThorns(
                 to: target, source: target, amount: profile.triggers.blockBrokenThornsFlat,
                 name: triggerAbilityName(.blockBrokenThornsFlat, for: target, fallback: "Briarward", in: context),
                 in: &context,

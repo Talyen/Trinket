@@ -141,9 +141,9 @@ package extension CombatTriggerEngine {
 
     static func consumeEnemyActionDelay(in context: inout BattleState) -> Bool {
         let enemy = context.enemy
-        let delays = context.additionalControlSkipsByCombatantID[enemy.id, default: 0]
+        let delays = context.roster.enemy.talents.battle.actionDelays
         if delays > 0 {
-            context.additionalControlSkipsByCombatantID[enemy.id] = delays - 1
+            context.roster.enemy.talents.battle.actionDelays = delays - 1
             emitAvoidanceEvent(
                 effectKind: .controlActionSkipped,
                 abilityName: "Delay",

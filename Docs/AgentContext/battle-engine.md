@@ -14,7 +14,9 @@ an exact roster ID and matching role; role alone cannot address live battle stat
 Modifier lookup uses the same roster ID resolver, without reserved role-name aliases.
 Unknown combatants return empty read projections and cannot replace a roster member.
 `CombatantRuntime` owns all personal Talent preparations/history and Unique equipment
-readiness, counters, and tracked cards. They share its copy-on-write storage, equality,
+readiness, counters, and tracked cards. Stored Impact damage and independent action
+delays likewise travel with their recipient runtime. They share its copy-on-write
+storage, equality,
 and hashing with the rest of its rule state; roster copies and updates carry them
 with their owner. Do not add parallel actor-ID or participant-keyed state dictionaries
 on `BattleState`. `CombatResolution` retains action/card frames and activation claims;

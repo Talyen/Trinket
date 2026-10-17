@@ -238,10 +238,8 @@ package extension DamagePipeline {
         var stored = 0
         if CombatTriggerEngine.hasLivingPartyTrigger(\.storedImpact, in: context) {
             for owner in BattleParticipant.party {
-                let member = context.roster[owner]
-                if let val = context.storedBlockedDamageByActorID.removeValue(forKey: member.id) {
-                    stored = SaturatedArithmetic.saturatingAdd(stored, val)
-                }
+                stored = SaturatedArithmetic.saturatingAdd(stored, context.roster[owner].talents.battle.storedBlockedDamage)
+                context.roster[owner].talents.battle.storedBlockedDamage = 0
             }
         }
         if stored > 0 {

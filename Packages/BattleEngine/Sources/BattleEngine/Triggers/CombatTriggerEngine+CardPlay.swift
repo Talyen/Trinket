@@ -19,7 +19,7 @@ package extension CombatTriggerEngine {
         guard context.roster[owner].isAlive else { return }
         if !facts.damageKeywords.isEmpty, triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
            BattleChance.succeeds(probability: triggers.attackDelayEnemyTurnChancePercent, using: &context.rng) {
-            context.additionalControlSkipsByCombatantID[context.roster.enemy.id, default: 0] += 1
+            context.roster.enemy.talents.delayAction()
         }
 
         await cardsPlayedManaIfNeeded(count: count, actor: actor, triggers: triggers, in: &context)

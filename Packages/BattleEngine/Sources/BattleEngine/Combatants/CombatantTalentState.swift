@@ -21,6 +21,8 @@ struct LingeringBlessing: Hashable, Sendable {
 
 struct CombatantTalentState: Hashable, Sendable {
     struct Battle: Hashable, Sendable {
+        var storedBlockedDamage = 0
+        var actionDelays = 0
         var wasBelowHalfHealth = false
         var maximumHealthBonus = 0
         var damageBonus = 0
@@ -130,6 +132,10 @@ struct CombatantTalentState: Hashable, Sendable {
     var turn = Turn()
     var pending = Pending()
     var timed = Timed()
+
+    mutating func delayAction() {
+        battle.actionDelays = SaturatedArithmetic.saturatingAdd(battle.actionDelays, 1)
+    }
 
     mutating func grantDodgeUntilNextTurn(_ amount: Double) {
         turn.dodgeChanceBonus += amount

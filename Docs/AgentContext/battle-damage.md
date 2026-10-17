@@ -47,8 +47,9 @@ and retaliation saturate at integer limits, including when an existing effect
 has already reached its maximum magnitude. Equipment and talent damage additions,
 Backdraft snapshots, combined Block-breaking bonuses, and Golden Crucible storage
 also saturate. Fully capped Thorns and Kindled grants preserve their existing stack
-and report no application or success feedback. Effect-detail totals and percentage
-formatting use the same bounded arithmetic, so inspecting capped preparations cannot crash.
+and report no application or success feedback. Card, talent and Block-driven
+Thorns grants share the same admitted replacement; rejected grants preserve existing
+stacks. Effect-detail totals and percentage formatting use the same bounded arithmetic, so inspecting capped preparations cannot crash.
 Loose Rubble readies a non-stacking one-point reduction on positive Health damage,
 including periodic and retaliation damage, excluding Health costs. The next positive
 outgoing packet consumes it after outgoing calculations and before flat mitigation

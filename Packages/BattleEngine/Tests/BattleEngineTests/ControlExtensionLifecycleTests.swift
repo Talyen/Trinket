@@ -23,7 +23,7 @@ struct ControlExtensionLifecycleTests {
         var battle = extendedControlBattle()
         applyControl(.freeze, source: battle.hero, in: &battle)
         applyControl(.stun, source: battle.hero, in: &battle)
-        battle.additionalControlSkipsByCombatantID[battle.enemy.id] = 1
+        battle.roster.enemy.talents.battle.actionDelays = 1
         _ = CombatExecutor.run { await EffectRemovalOperation.resolveCleanse(
             .all(.freeze), source: battle.companion, target: battle.enemy, abilityName: "Cleanse", in: &battle,
         ) }

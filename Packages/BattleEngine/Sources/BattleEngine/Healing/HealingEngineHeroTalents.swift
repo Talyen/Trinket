@@ -82,7 +82,7 @@ extension HealingEngine {
         await applyAlchemistHealingTalents(request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context)
         await applyDruidHealingTalents(request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context)
         await applyRetrieverHealingTalents(request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context)
-        await applyOwlHealingTalents(request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context)
+        applyOwlHealingTalents(request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context)
         applyFinalCompanionHealingTalents(request: request, restored: restored, sourceTriggers: sourceTriggers, in: &context)
     }
 
@@ -114,7 +114,7 @@ extension HealingEngine {
         restored: Int,
         sourceTriggers: CombatTraitTriggers?,
         in context: inout BattleState,
-    ) async {
+    ) {
         guard restored > 0, let sourceID = request.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.isAlive,
               request.target.role != .enemy, let triggers = sourceTriggers
@@ -142,7 +142,7 @@ extension HealingEngine {
         if triggers.healthRestoreThornsAmount > 0, triggers.healthRestoreThornsChancePercent > 0,
            context.claimTalentAbility(.livingArchive, actorID: sourceID),
            BattleChance.succeeds(probability: triggers.healthRestoreThornsChancePercent, using: &context.rng) {
-            await CombatTriggerEngine.heroTalentThorns(
+            CombatTriggerEngine.heroTalentThorns(
                 to: target, source: actor, amount: triggers.healthRestoreThornsAmount,
                 name: "Living Archive", in: &context,
             )

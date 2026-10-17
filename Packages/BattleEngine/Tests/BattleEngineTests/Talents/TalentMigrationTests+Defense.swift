@@ -10,11 +10,11 @@ extension TalentMigrationTests {
         let target = battle.roster[recipient].combatant
         battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)], for: target)
         _ = battle.resolveTestDamage(10, from: .enemy, to: recipient, options: .reaction())
-        #expect(battle.storedBlockedDamageByActorID[target.id, default: 0] > 0)
+        #expect(battle.roster[recipient].talents.battle.storedBlockedDamage > 0)
         let outcome = battle.resolveTestDamage(10)
         #expect(outcome.healthLost > 10)
         if recipient == .companion {
-            #expect(battle.storedBlockedDamageByActorID.isEmpty)
+            #expect(BattleParticipant.party.allSatisfy { battle.roster[$0].talents.battle.storedBlockedDamage == 0 })
         }
     }
 
@@ -93,7 +93,7 @@ extension TalentMigrationTests {
             [ActiveEffect(id: 1, effect: .shield(.block, initialBlock), remainingTurns: 0)],
             for: battle.companion,
         )
-        CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.companion, in: &battle) }
+        DefensePoolEngine.decayBlock(on: battle.companion, in: &battle)
         let amount = checksThorns ? battle.activeEffects(of: battle.companion).reduce(0) { sum, active in
             guard case let .thorns(stacks) = active.effect else { return sum }
             return sum + stacks

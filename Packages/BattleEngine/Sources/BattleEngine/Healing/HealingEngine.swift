@@ -152,34 +152,26 @@ package enum HealingEngine {
     ) async {
         guard restored > 0, let sourceTriggers,
               let sourceActorID = request.sourceActorID,
-              context.roster.combatant(for: sourceActorID)?.isAlive == true,
+              let source = context.roster.combatant(for: sourceActorID)?.combatant, context.health(of: source) > 0,
               context.roster.health(for: request.target) > 0 else { return }
 
-        if sourceTriggers.onHealGrantBlock > 0,
-           let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID) {
-            let abilityName = context.modifiers(for: sourceID).triggerAbilityName(.onHealGrantBlock, fallback: "Warded Roost")
-            context.applyBlockGain(sourceTriggers.onHealGrantBlock, to: request.target, source: source.combatant, abilityName: abilityName)
+        if sourceTriggers.onHealGrantBlock > 0 {
+            let abilityName = context.modifiers(for: sourceActorID).triggerAbilityName(.onHealGrantBlock, fallback: "Warded Roost")
+            context.applyBlockGain(sourceTriggers.onHealGrantBlock, to: request.target, source: source, abilityName: abilityName)
         }
         if sourceTriggers.onHealCleanseTargetChance > 0,
-           let sourceID = request.sourceActorID, let source = context.roster.combatant(for: sourceID),
            BattleChance.succeeds(probability: sourceTriggers.onHealCleanseTargetChance, using: &context.rng) {
-            let abilityName = context.modifiers(for: sourceID).triggerAbilityName(
-                .onHealCleanseTargetChance,
-                fallback: "Sanctified Scroll",
+            let abilityName = context.modifiers(for: sourceActorID).triggerAbilityName(
+                .onHealCleanseTargetChance, fallback: "Sanctified Scroll",
             )
             await CombatTriggerEngine.performRandomCleanses(
-                source: source.combatant,
-                target: request.target,
-                count: 1,
-                abilityName: abilityName,
-                in: &context,
+                source: source, target: request.target, count: 1, abilityName: abilityName, in: &context,
             )
         }
         guard context.roster.combatant(for: sourceActorID)?.isAlive == true,
               context.roster.health(for: request.target) > 0 else { return }
         if sourceTriggers.healOverTimeOnHealAmount > 0,
-           sourceTriggers.healOverTimeOnHealTurns > 0,
-           !request.isHoTTick, let sourceActorID = request.sourceActorID {
+           sourceTriggers.healOverTimeOnHealTurns > 0, !request.isHoTTick {
             context.roster.mutateRuntime(for: request.target) {
                 $0.talents.timed.lingeringBlessing = LingeringBlessing(
                     amount: sourceTriggers.healOverTimeOnHealAmount,
@@ -188,11 +180,8 @@ package enum HealingEngine {
                 )
             }
         }
-        if let sourceActorID = request.sourceActorID,
-           sourceTriggers.onHealRestoreCasterMana > 0,
-           let caster = context.roster.combatant(for: sourceActorID),
-           caster.id != request.target.id {
-            await context.restoreManaEmitting(sourceTriggers.onHealRestoreCasterMana, to: caster.combatant, abilityName: "Font of Magic")
+        if sourceTriggers.onHealRestoreCasterMana > 0, sourceActorID != request.target.id {
+            await context.restoreManaEmitting(sourceTriggers.onHealRestoreCasterMana, to: source, abilityName: "Font of Magic")
         }
     }
 

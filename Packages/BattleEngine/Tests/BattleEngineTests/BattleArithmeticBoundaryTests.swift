@@ -13,8 +13,8 @@ struct BattleArithmeticBoundaryTests {
         profile.triggers.poisonCriticalDamageBonus = 1
         profile.triggers.storedImpact = true
         var battle = makeBattle(profile: profile)
-        battle.storedBlockedDamageByActorID[battle.hero.id] = Int.max
-        battle.storedBlockedDamageByActorID[battle.companion.id] = Int.max
+        battle.roster.hero.talents.battle.storedBlockedDamage = Int.max
+        battle.roster.companion.talents.battle.storedBlockedDamage = Int.max
         var options = DamageOperation.attack(accuracy: .unavoidable, guaranteedCritical: true)
         options.capturesCardRepeat = true
         let outcome = battle.resolveTestDamage(Int.max, keyword: keyword, options: options)
@@ -59,7 +59,7 @@ struct BattleArithmeticBoundaryTests {
         #expect(gained == 1)
         #expect(full == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == Int.max)
-        CombatExecutor.run { await DefensePoolEngine.decayBlock(on: battle.hero, in: &battle) }
+        DefensePoolEngine.decayBlock(on: battle.hero, in: &battle)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 6917529027641081855)
     }
 

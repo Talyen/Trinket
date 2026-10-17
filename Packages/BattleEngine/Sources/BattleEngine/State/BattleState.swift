@@ -82,8 +82,6 @@ public struct BattleState {
     public package(set) var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
     public package(set) var turnCadence: BattleTurnCadence
 
-    /// Independent action delays; control extensions belong to their active status instead.
-    public package(set) var additionalControlSkipsByCombatantID: [String: Int]
     var additionalControlSkipsByEffectID: [Int: Int] = [:]
     public package(set) var isEchoingSkill: Bool
     /// Retains the shipped automatic-chain limit. CombatExecutor suspends
@@ -91,10 +89,6 @@ public struct BattleState {
     /// Played deck copies remain discarded until the next turn.
     public static let maxDrawAndPlayDepth = 4
     public let enemyFaction: EnemyFaction
-    public package(set) var storedBlockedDamageByActorID: [String: Int] = [:]
-    public var primedRepeatKeywords: Set<Keyword> {
-        roster.hero.talents.turn.primedRepeatKeywords.union(roster.companion.talents.turn.primedRepeatKeywords)
-    }
 
     var resolution = CombatResolution()
     var uniques = UniqueBattleState()
@@ -125,7 +119,6 @@ public struct BattleState {
         nextCardID: Int = 0,
         ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
         turnCadence: BattleTurnCadence = BattleTurnCadence(),
-        additionalControlSkipsByCombatantID: [String: Int] = [:],
         isEchoingSkill: Bool = false,
         enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
@@ -156,7 +149,6 @@ public struct BattleState {
         self.nextCardID = nextCardID
         self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
         self.turnCadence = turnCadence
-        self.additionalControlSkipsByCombatantID = additionalControlSkipsByCombatantID
         self.isEchoingSkill = isEchoingSkill
 
         self.enemyFaction = enemyFaction

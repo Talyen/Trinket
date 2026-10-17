@@ -102,20 +102,11 @@ extension EffectHandlers {
 
 extension EffectApplication {
     func applyStackingAmountBuff(in context: inout BattleState) -> EffectApplyOutcome {
-        guard let amount = EffectHandlers.stackingAmount(effect), amount > 0 else { return EffectApplyOutcome(didApply: false) }
-        let existing = TimedBuffSummary.summedAmount(in: context.roster.activeEffects(for: target)) {
-            $0.kind == effect.kind ? EffectHandlers.stackingAmount($0) : nil
+        guard let total = context.stackAmountBuff(effect, on: target, sourceID: source.id) else {
+            return EffectApplyOutcome(didApply: false)
         }
-        let total = SaturatedArithmetic.saturatingAdd(existing, amount)
-        guard total > existing else { return EffectApplyOutcome(didApply: false) }
-        let stacked: Effect
-        let event: ActionEvent.EffectOutcome
-        switch effect {
-        case .thorns: stacked = .thorns(total); event = .thornsApplied
-        case .nextBurnBonus: stacked = .nextBurnBonus(total); event = .nextBurnBonusApplied
-        default: return EffectApplyOutcome(didApply: false)
-        }
-        return replacingEffect(stacked).store(replacing: { $0.kind == effect.kind }, event: (event, total, effect.keyword), in: &context)
+        emit(effect.kind == .thorns ? .thornsApplied : .nextBurnBonusApplied, amount: total, keyword: effect.keyword, in: &context)
+        return EffectApplyOutcome(didApply: true)
     }
 
     func applyStoredEffect(in context: inout BattleState) -> EffectApplyOutcome {

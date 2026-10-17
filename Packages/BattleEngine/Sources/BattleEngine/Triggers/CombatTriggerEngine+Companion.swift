@@ -139,7 +139,7 @@ package extension CombatTriggerEngine {
         }
         guard context.roster.health(for: actor) > 0 else { return }
         if triggers.bleedCriticalThorns > 0 {
-            await heroTalentThorns(to: actor, source: actor, amount: triggers.bleedCriticalThorns, name: "Spiny Carapace", in: &context)
+            heroTalentThorns(to: actor, source: actor, amount: triggers.bleedCriticalThorns, name: "Spiny Carapace", in: &context)
         }
         let drawName = triggerAbilityName(
             .bleedCriticalDrawChancePercent, for: actor, fallback: "Frenzied Tail", in: context,

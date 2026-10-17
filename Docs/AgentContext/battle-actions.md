@@ -123,7 +123,8 @@ gain summaries report the actual restoration after capacity limits and bonuses.
 Multi-recipient gain summaries saturate their total without reducing individual grants.
 Effect percentage text and event amounts use bounded numeric conversion.
 Action summaries retain typed applied effects only. Log entries store committed events
-and damage packets; their single localized formatter derives wording when displayed,
+and damage totals grouped once by recipient and keyword; their single localized
+formatter derives wording when displayed,
 without building or retaining a separate English transcript during combat.
 Gold effect summaries use the ability's theft marker: Golden Plate gains Gold,
 while Steal and the other theft cards steal it. Gold summaries report the actual

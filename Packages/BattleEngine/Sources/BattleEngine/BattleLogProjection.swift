@@ -84,11 +84,14 @@ public struct LogEntry: Identifiable, Equatable {
     public let id: Int
     private let event: ActionEvent
     private let damage: [ActionEvent]
+    private let healthCost: Int
 
     init(id: Int, event: ActionEvent, damage: [ActionEvent]) {
         self.id = id
         self.event = event
-        self.damage = damage
+        let report = event.kind == .ability ? Self.damageReport(event: event, damage: damage) : (damage: [], healthCost: 0)
+        self.damage = report.damage
+        healthCost = report.healthCost
     }
 
     public func localizedText(locale: Locale) -> String {
@@ -101,9 +104,8 @@ public struct LogEntry: Identifiable, Equatable {
         case .reaction:
             resources = []
         case .ability:
-            let (reported, healthCost) = damageReport()
             var parts = [L10n.log_use(actor, ability)]
-            parts += reported.map {
+            parts += damage.map {
                 L10n.log_damage(actor, $0.amount, $0.keyword.nameResource, ContentCopy.resource($0.targetName), ability)
             }
             if healthCost > 0 {
@@ -161,7 +163,7 @@ public struct LogEntry: Identifiable, Equatable {
         }
     }
 
-    private func damageReport() -> ([ActionEvent], Int) {
+    private static func damageReport(event: ActionEvent, damage: [ActionEvent]) -> (damage: [ActionEvent], healthCost: Int) {
         var totals: [ActionEvent] = []
         var healthCost = 0
         for packet in damage {
