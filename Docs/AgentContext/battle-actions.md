@@ -265,8 +265,9 @@ Auto Battle prioritizes a finishing card by resolving one play on a copy of the
 current battle, including its RNG. Conditions, scaling, defenses and interrupted
 multi-hit actions follow the ordinary engine; the live battle stays unchanged.
 A forecast win must leave its card owner alive. Non-finishing choices retain the
-policy's heuristic scoring, with integer scores saturating instead of trapping.
-Forecasts skip log rebuilding and presentation recording.
+policy's heuristic scoring, using eligible outcomes and opening-state conditional/scaled
+damage estimates with a self-damage penalty for each branch. Integer scores saturate
+instead of trapping. Forecasts skip log rebuilding and presentation recording.
 
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).
 

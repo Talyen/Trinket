@@ -52,75 +52,49 @@ private enum HeuristicCardScoring {
         setupAware: Bool,
         enemyEffects: [ActiveEffect],
     ) -> Int {
-        let ability = card.ability
-        let ownerCombatant = card.owner == .hero ? battle.hero : battle.companion
-        let actorHP = battle.health(of: ownerCombatant)
-        let maxHP = max(battle.maxHealth(of: ownerCombatant), 1)
-        let hpFraction = Double(actorHP) / Double(maxHP)
-
-        let damage = ability.directDamage
-        let selfDamage = ability.operations.lazy.compactMap(\.damageComponent).reduce(0) { total, component in
-            component.target == .actor ? SaturatedArithmetic.saturatingAdd(total, component.amount) : total
+        let actor = battle.roster[card.owner].combatant
+        let action = BattleActionContext(actor: actor, in: battle)
+        let outcomes = BattleAbilityRules.possibleOutcomes(card.ability, action: action, in: battle)
+        let branches = outcomes.branches
+        let total = branches.reduce(0) { sum, branch in
+            SaturatedArithmetic.saturatingAdd(sum, score(
+                branch, action: action, in: battle, setupAware: setupAware, enemyEffects: enemyEffects,
+            ))
         }
-        if selfDamage > 0, selfDamage >= actorHP {
-            return -10000
-        }
-
-        let selfDamagePenalty = (selfDamage > 0 && hpFraction < 0.5) ? SaturatedArithmetic.saturatingAdd(
-            SaturatedArithmetic.saturatingMul(selfDamage, 10),
-            50,
-        ) : SaturatedArithmetic.saturatingMul(selfDamage, 2)
-        var value = SaturatedArithmetic.saturatingSub(damage, selfDamagePenalty)
-
-        if ability.hasLeech {
-            value = SaturatedArithmetic.saturatingAdd(value, 5)
-        }
-
-        value = SaturatedArithmetic.saturatingAdd(value, effectScore(ability: ability, enemyEffects: enemyEffects, setupAware: setupAware))
-        if let branches = ability.outcomeBranches, !branches.isEmpty {
-            value = SaturatedArithmetic.saturatingAdd(
-                value,
-                branchScore(branches: branches, enemyEffects: enemyEffects, setupAware: setupAware),
-            )
-        }
-        return value
+        return SaturatedArithmetic.saturatingAdd(total / max(1, branches.count), outcomes.ability.hasLeech ? 5 : 0)
     }
 
-    private static func branchScore(
-        branches: [AbilityOutcomeBranch],
-        enemyEffects: [ActiveEffect],
+    private static func score(
+        _ branch: AbilityOutcomeBranch,
+        action: BattleActionContext,
+        in battle: BattleState,
         setupAware: Bool,
+        enemyEffects: [ActiveEffect],
     ) -> Int {
-        var total = 0
-        for branch in branches {
-            let branchDamage = branch.operations.lazy.compactMap(\.damageComponent).reduce(0) { sum, comp in
-                comp.target == .actor ? sum : SaturatedArithmetic.saturatingAdd(sum, comp.amount)
-            }
-            var branchEffects = 0
-            for targeted in branch.operations.lazy.compactMap(\.targetedEffect) {
-                branchEffects = SaturatedArithmetic.saturatingAdd(
-                    branchEffects,
-                    effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware),
+        var damage = 0
+        var selfDamage = 0
+        var effects = 0
+        // These are opening-state estimates; the finishing forecast resolves every checkpoint.
+        for operation in branch.operations {
+            switch operation {
+            case let .damage(component):
+                guard let amount = BattleDamageRules.amount(component, action: action, in: battle) else { continue }
+                if action.target(component.target, in: battle).id == action.actor.id {
+                    selfDamage = SaturatedArithmetic.saturatingAdd(selfDamage, amount)
+                } else {
+                    damage = SaturatedArithmetic.saturatingAdd(damage, amount)
+                }
+            case let .effect(targeted):
+                effects = SaturatedArithmetic.saturatingAdd(
+                    effects, effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware),
                 )
             }
-            total = SaturatedArithmetic.saturatingAdd(total, SaturatedArithmetic.saturatingAdd(branchDamage, branchEffects))
         }
-        return total / branches.count
-    }
-
-    private static func effectScore(
-        ability: Ability,
-        enemyEffects: [ActiveEffect],
-        setupAware: Bool,
-    ) -> Int {
-        var value = 0
-        for targeted in ability.operations.lazy.compactMap(\.targetedEffect) {
-            value = SaturatedArithmetic.saturatingAdd(
-                value,
-                effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware),
-            )
-        }
-        return value
+        let lowHealth = HealthThreshold.isBelowHalf(battle.health(of: action.actor), maximum: battle.maxHealth(of: action.actor))
+        let penalty = selfDamage > 0 && lowHealth
+            ? SaturatedArithmetic.saturatingAdd(SaturatedArithmetic.saturatingMul(selfDamage, 10), 50)
+            : SaturatedArithmetic.saturatingMul(selfDamage, 2)
+        return SaturatedArithmetic.saturatingAdd(SaturatedArithmetic.saturatingSub(damage, penalty), effects)
     }
 
     private static func effectValue(

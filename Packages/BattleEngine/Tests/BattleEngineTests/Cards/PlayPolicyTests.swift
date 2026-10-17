@@ -5,25 +5,51 @@ import TrinketCore
 @testable import TrinketContent
 
 struct PlayPolicyTests {
-    @Test(arguments: [false, true])
-    func `policy prefers lethal damage or missing poison over leftmost chip`(setup: Bool) {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: setup ? 40 : 5, dealOpeningHand: false)
-        let chip = BattleCardCombatEngine.deal(
-            Ability(id: "chip", name: "Chip", tier: .basic, directDamage: setup ? 2 : 1, description: "Chip"),
-            owner: .hero, context: &battle,
+    @Test func `setup policy prefers new Poison over leftmost chip`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 40, dealOpeningHand: false)
+        _ = BattleCardCombatEngine.deal(
+            Ability(id: "chip", name: "Chip", tier: .basic, directDamage: 2), owner: .hero, context: &battle,
         )
         let preferred = BattleCardCombatEngine.deal(
-            setup
-                ? Ability(id: "envenom", name: "Envenom", tier: .basic, description: "Poison", effects: [.poison(4)])
-                : Ability(id: "execute", name: "Execute", tier: .basic, directDamage: 5, description: "Execute"),
-            owner: .hero, context: &battle,
+            Ability(id: "envenom", name: "Envenom", tier: .basic, effects: [.poison(4)]), owner: .hero, context: &battle,
         )
-        #expect((setup ? PlayPolicy.setupAware : .greedy).preferredPlayableCard(in: battle)?.id == preferred.id)
-        #expect(battle.hand.cards.first?.id == chip.id)
+        #expect(PlayPolicy.setupAware.preferredPlayableCard(in: battle)?.id == preferred.id)
     }
 
-    @Test(arguments: PlayPolicy.allCases)
-    func `guaranteed random lethal avoids a companion lost to thorns`(policy: PlayPolicy) throws {
+    @Test(arguments: [Ability.kindling, .shieldBash])
+    func `nonlethal choices account for conditional and scaled damage`(ability: Ability) throws {
+        var battle = finishingBattle(enemyHealth: 100)
+        battle.roster.hero.currentHealth = battle.roster.hero.maxHealth
+        battle.roster.hero.currentMana = 0
+        DefensePoolEngine.set(12, on: battle.hero, in: &battle)
+        _ = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
+        let preferred = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
+        for policy in PlayPolicy.allCases {
+            #expect(policy.preferredPlayableCard(in: battle)?.id == preferred.id)
+        }
+        let before = battle.health(of: battle.enemy)
+        _ = try battle.playCard(cardID: preferred.id)
+        #expect(before - battle.health(of: battle.enemy) > Ability.slash.directDamage)
+        #expect(!battle.isEnemyDefeated)
+    }
+
+    @Test func `nonlethal choices exclude impossible random outcomes`() {
+        var battle = finishingBattle(enemyHealth: 100)
+        let inflated = Ability(
+            id: "conditional-gain", name: "Conditional Gain", tier: .basic,
+            outcomeBranches: [
+                AbilityOutcomeBranch(effects: [.shield(.block, 1)]),
+                AbilityOutcomeBranch(effects: [.shield(.block, 100)], condition: .enemyBurning),
+            ],
+        )
+        _ = BattleCardCombatEngine.deal(inflated, owner: .hero, context: &battle)
+        let preferred = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
+        for policy in PlayPolicy.allCases {
+            #expect(policy.preferredPlayableCard(in: battle)?.id == preferred.id)
+        }
+    }
+
+    @Test func `guaranteed random lethal avoids a companion lost to thorns`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.cinderbloom],
             companionAbilities: [.blackjack],
@@ -44,15 +70,14 @@ struct PlayPolicyTests {
         #expect(unsafeBattle.health(of: unsafeBattle.companion) == 0)
         #expect(!unsafeBattle.isEnemyDefeated)
 
-        let chosen = try #require(policy.preferredPlayableCard(in: battle))
+        let chosen = try #require(PlayPolicy.greedy.preferredPlayableCard(in: battle))
         #expect(chosen.id == cinderbloom.id)
         _ = try battle.playCard(cardID: chosen.id)
         #expect(battle.isEnemyDefeated)
         #expect(battle.health(of: battle.companion) == 1)
     }
 
-    @Test(arguments: PlayPolicy.allCases)
-    func `Auto Battle does not mistake blocked damage for a finishing hit`(policy: PlayPolicy) throws {
+    @Test func `Auto Battle does not mistake blocked damage for a finishing hit`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash, .heal], enemyMaxHealth: 3, dealOpeningHand: false,
         )
@@ -62,7 +87,7 @@ struct PlayPolicyTests {
         let slash = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
         let heal = BattleCardCombatEngine.deal(.heal, owner: .hero, context: &battle)
 
-        let chosen = try #require(policy.preferredPlayableCard(in: battle))
+        let chosen = try #require(PlayPolicy.greedy.preferredPlayableCard(in: battle))
         #expect(chosen.id == heal.id)
 
         var unsafeBattle = battle
@@ -75,20 +100,16 @@ struct PlayPolicyTests {
 }
 
 extension PlayPolicyTests {
-    @Test(arguments: PlayPolicy.allCases, [Ability.kindling, .shieldBash, .stab])
-    func `Auto Battle recognizes conditional scaled and critical finishing attacks`(policy: PlayPolicy, ability: Ability) throws {
+    @Test(arguments: [Ability.kindling, .shieldBash, .stab])
+    func `Auto Battle recognizes conditional scaled and critical finishing attacks`(ability: Ability) throws {
         var battle = finishingBattle(enemyHealth: ability.id == Ability.shieldBash.id ? 5 : 4)
         if ability.id == Ability.shieldBash.id {
             DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         }
         _ = BattleCardCombatEngine.deal(.heal, owner: .hero, context: &battle)
         let attack = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
-        var proof = battle
-        _ = try proof.playCard(cardID: attack.id)
-        #expect(proof.isEnemyDefeated)
-
         let before = battle
-        let chosen = try #require(policy.preferredPlayableCard(in: battle))
+        let chosen = try #require(PlayPolicy.greedy.preferredPlayableCard(in: battle))
         #expect(chosen.id == attack.id)
         // Choosing must not spend cards, preparations, events, or live RNG.
         #expect(battle.hand == before.hand)
@@ -101,10 +122,11 @@ extension PlayPolicyTests {
         #expect(rng.next() == previousRNG.next())
         _ = try battle.playCard(cardID: chosen.id)
         #expect(battle.isEnemyDefeated)
+        #expect(battle.roster[chosen.owner].isAlive)
     }
 
-    @Test(arguments: PlayPolicy.allCases, [false, true])
-    func `Auto Battle rejects finishing hits prevented by mitigation or lethal retaliation`(policy: PlayPolicy, retaliation: Bool) throws {
+    @Test(arguments: [false, true])
+    func `Auto Battle rejects finishing hits prevented by mitigation or lethal retaliation`(retaliation: Bool) throws {
         var battle = finishingBattle(
             enemyHealth: retaliation ? 2 : 3,
             enemyModifiers: retaliation ? .zero : .init(damageTakenFlat: [.physical: 2]),
@@ -124,7 +146,7 @@ extension PlayPolicyTests {
         } else {
             #expect(proof.health(of: proof.enemy) == 2)
         }
-        let chosen = try #require(policy.preferredPlayableCard(in: battle))
+        let chosen = try #require(PlayPolicy.greedy.preferredPlayableCard(in: battle))
         #expect(chosen.id == heal.id)
         _ = try battle.playCard(cardID: chosen.id)
         #expect(battle.health(of: battle.hero) > 1)

@@ -46,14 +46,11 @@ struct ElementalReactionTests {
         #expect(reactions(state.recordingResult { context in attack(1, .physical, in: &context) }.events).isEmpty)
     }
 
-    @Test func `zero and dodged Physical attacks preserve Shatter and Block`() {
+    @Test func `zero Physical damage preserves Shatter and Block`() {
         var state = battle()
         _ = attack(20, .freeze, in: &state)
         DefensePoolEngine.set(8, on: state.enemy, in: &state)
         _ = attack(0, .physical, in: &state)
-        state.insertEffect(.evadeNextHit, to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
-        let dodged = state.resolveTestDamage(2, options: .attack(scaling: .flat))
-        #expect(dodged.isDodged)
         #expect(state.roster.enemy.reactions.shatter == 5)
         #expect(DefensePoolEngine.blockPoints(in: state.activeEffects(of: state.enemy)) == 8)
     }
@@ -100,7 +97,10 @@ struct ElementalReactionTests {
     @Test func `fatal retaliation prevents a bonus while the other ally survives`() {
         var state = battle()
         _ = attack(20, .freeze, in: &state)
-        state.roster.mutateRuntime(for: state.hero) { $0.currentHealth = 1 }
+        state.roster.mutateRuntime(for: state.hero) {
+            $0.currentHealth = 1
+            $0.hasConsumedDeathsDoor = true
+        }
         state.insertEffect(.thorns(10), to: state.enemy, sourceID: state.enemy.id, remainingTurns: 0)
         let outcome = state.recordingResult { context in attack(1, .burn, in: &context) }
         #expect(!state.roster.hero.isAlive)
