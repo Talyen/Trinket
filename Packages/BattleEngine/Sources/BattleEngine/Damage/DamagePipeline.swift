@@ -9,8 +9,7 @@ package enum DamagePipeline {
     /// attacker calculations (`OffenseSteps`), target mitigation (`DefenseSteps`,
     /// `ResolutionSteps+Shield`, `+TakeDamage`), Marked's bonus and consumption
     /// (`OffenseSteps`, `+TakeDamage`), stochastic gates, then committed reactions
-    /// (`PostSteps`, `AttackerOnHitEngine`, `TalentReactions`) under one
-    /// `CombatCheckpoint.committedDamage` guard.
+    /// (`PostSteps`, `AttackerOnHitEngine`, `TalentReactions`).
     package static func run(
         state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -66,11 +65,9 @@ package enum DamagePipeline {
             ElementalReactionEngine.recordNaturalTick(keyword, amount: state.healthLost, sourceID: state.sourceActorID, in: &context)
         }
 
-        await CombatCheckpoint.committedDamage.perform(in: &context) { context in
-            applyResourceful(to: &state, in: &context)
-            applyCrackedGuard(to: &state, in: &context)
-            await applyCommittedDamageReactions(to: &state, in: &context)
-        }
+        applyResourceful(to: &state, in: &context)
+        applyCrackedGuard(to: &state, in: &context)
+        await applyCommittedDamageReactions(to: &state, in: &context)
     }
 
     /// Committed-damage reaction order (load-bearing, do not reorder):

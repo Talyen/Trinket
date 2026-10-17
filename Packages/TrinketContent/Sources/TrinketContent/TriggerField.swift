@@ -48,7 +48,7 @@ extension TriggerMerge where Value == Double {
     }
 }
 
-extension TriggerMerge where Value: Numeric {
+extension TriggerMerge where Value: Numeric & Sendable {
     static var mul: Self {
         Self { $0 * $1 }
     }
@@ -58,7 +58,7 @@ extension TriggerMerge where Value: Numeric {
     }
 }
 
-extension TriggerMerge where Value: Comparable {
+extension TriggerMerge where Value: Comparable & Sendable {
     static var max: Self {
         Self { Swift.max($0, $1) }
     }

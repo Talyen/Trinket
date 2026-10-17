@@ -85,9 +85,9 @@ package extension CombatTriggerEngine {
         let avoidance = await enemyAttackAvoidance(in: &context)
         guard !avoidance else { return avoidance }
 
-        await checkpoint.resolve([
-            { await beforeEnemyAttackBleedReactions(in: &$0) },
-        ], in: &context)
+        if checkpoint.allowsContinuation(in: context) {
+            await beforeEnemyAttackBleedReactions(in: &context)
+        }
         guard context.roster.health(for: actor) > 0 else { return true }
         if context.roster.hasPendingActionSkip(for: actor) {
             await BattleTurnEngine.consumeActionSkip(for: actor, context: &context)

@@ -43,9 +43,9 @@ package enum BattleTurnEngine {
             applyStunRecoveryReduction(for: actor, context: &context)
         }
         if actor.role == .enemy, keyword == .stun, recovered {
-            await CombatCheckpoint.controlRecovery(actor.id, .stun).resolve([
-                { await CombatTriggerEngine.afterEnemyStunRecover(in: &$0) },
-            ], in: &context)
+            if CombatCheckpoint.controlRecovery(actor.id, .stun).allowsContinuation(in: context) {
+                await CombatTriggerEngine.afterEnemyStunRecover(in: &context)
+            }
         }
 
         recordAction(for: actor, context: &context)
@@ -178,7 +178,9 @@ package enum BattleTurnEngine {
         }
         _ = context.resolution.prepareAction(facts)
         let checkpoint = CombatCheckpoint.preparedAction(actor.id)
-        await checkpoint.perform(in: &context) { UniqueCombatEngine.prepareResolvedAttack(facts, in: &$0) }
+        if checkpoint.allowsContinuation(in: context) {
+            UniqueCombatEngine.prepareResolvedAttack(facts, in: &context)
+        }
         await executePreparedAction(facts, repeats: repeats, context: &context)
         return true
     }
@@ -192,7 +194,7 @@ package enum BattleTurnEngine {
         var resolvedAbility = prepareTalentAction(ability: facts.ability, actor: actor, in: &context)
 
         await spendManaToEmpowerBurnOrFreezeIfNeeded(for: &resolvedAbility, actor: actor, context: &context)
-        await CombatCheckpoint.preparedAction(actor.id).perform(in: &context) { context in
+        if CombatCheckpoint.preparedAction(actor.id).allowsContinuation(in: context) {
             if resolvedAbility.dealsCombatDamage {
                 await consumeHemorrhageIfActive(for: actor, in: &context)
             }

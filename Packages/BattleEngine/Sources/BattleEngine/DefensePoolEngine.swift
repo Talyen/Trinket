@@ -37,12 +37,13 @@ package enum DefensePoolEngine {
     }
 
     package static func blockPoints(in effects: [ActiveEffect]) -> Int {
-        effects.reduce(0) { sum, active in
+        var sum = 0
+        for active in effects {
             if case let .shield(_, buffer) = active.effect {
-                return SaturatedArithmetic.saturatingAdd(sum, buffer)
+                sum = SaturatedArithmetic.saturatingAdd(sum, buffer)
             }
-            return sum
         }
+        return sum
     }
 
     package struct ShieldPoolReduction {
@@ -216,10 +217,6 @@ package enum DefensePoolEngine {
         in context: BattleState,
     ) -> Bool {
         guard let keyword, keyword == .holy, let sourceActorID else { return false }
-        let srcTriggers = context.modifiers(for: sourceActorID).triggers
-        if srcTriggers.holyIgnoresBlockAndDodge {
-            return true
-        }
-        return false
+        return context.modifiers(for: sourceActorID).triggers.holyIgnoresBlockAndDodge
     }
 }

@@ -51,7 +51,6 @@ public enum ShopPurchaseApplier {
             var candidate = save
             let gold = candidate.applyGoldDelta(-offer.price)
             candidate.inventory.appendUniqueItem(offer.item)
-            guard candidate.inventory.item(matching: offer.item.id) != nil else { return .failure(.alreadyOwned) }
             ShopStockPersistence.setPayload(payload, encounter: encounter, save: &candidate)
             save = candidate
             recordReceipt(SaveEconomicReceipt(kind: .shop(encounter, .init(offer)), effects: .committed(gold: gold)))

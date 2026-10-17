@@ -48,37 +48,42 @@ package extension CombatTriggerEngine {
                 )
             }
         }
-        await CombatCheckpoint.payment(payment).resolve([
-            { await afterHeroTalentSpendMana(actor: actor, amount: amountSpent, in: &$0) },
-            { drawAfterSpendMana(by: actor, in: &$0) },
-            { drawOnManaSpendChance(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
-            { spendManaBlockIfNeeded(actor: actor, triggers: triggers, in: &$0) },
-            { heroSpendManaCompanionIfNeeded(actor: actor, in: &$0) },
-            { await spendManaRefundIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
-            { await spendManaBurnIfNeeded(actor: actor, triggers: triggers, in: &$0) },
-            { await heroSpendManaAfflictionIfNeeded(actor: actor, triggers: triggers, in: &$0) },
-            { spendManaEqualBlockIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
-            { spendManaOverchargeIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
-            { spendManaCleanseIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
-            {
-                await spendManaChaosRiftIfNeeded(payment: payment, actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0)
-            },
-            { spendManaDamageBonusIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &$0) },
-            { await zeroManaRestoreIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
-            { drawOnLastManaIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &$0) },
-            {
-                await spendManaStunIfNeeded(
-                    actor: actor,
-                    triggers: triggers,
-                    amountSpent: amountSpent,
-                    spentLastMana: spentLastMana,
-                    in: &$0,
-                )
-            },
-            { await autoPlayAfterManaSpend(by: actor, amountSpent: amountSpent, in: &$0) },
-            { await spendManaRandomDoTIfNeeded(actor: actor, triggers: triggers, in: &$0) },
-            { await afterFinalCompanionManaSpend(actor: actor, amountSpent: amountSpent, in: &$0) },
-        ], in: &context)
+        let checkpoint = CombatCheckpoint.payment(payment)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await afterHeroTalentSpendMana(actor: actor, amount: amountSpent, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        drawAfterSpendMana(by: actor, in: &context)
+        drawOnManaSpendChance(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &context)
+        spendManaBlockIfNeeded(actor: actor, triggers: triggers, in: &context)
+        heroSpendManaCompanionIfNeeded(actor: actor, in: &context)
+        await spendManaRefundIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await spendManaBurnIfNeeded(actor: actor, triggers: triggers, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await heroSpendManaAfflictionIfNeeded(actor: actor, triggers: triggers, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        spendManaEqualBlockIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &context)
+        spendManaOverchargeIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &context)
+        spendManaCleanseIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &context)
+        await spendManaChaosRiftIfNeeded(payment: payment, actor: actor, triggers: triggers, amountSpent: amountSpent, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        spendManaDamageBonusIfNeeded(actor: actor, triggers: triggers, amountSpent: amountSpent, in: &context)
+        await zeroManaRestoreIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        drawOnLastManaIfNeeded(actor: actor, triggers: triggers, spentLastMana: spentLastMana, in: &context)
+        await spendManaStunIfNeeded(
+            actor: actor,
+            triggers: triggers,
+            amountSpent: amountSpent,
+            spentLastMana: spentLastMana,
+            in: &context,
+        )
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await autoPlayAfterManaSpend(by: actor, amountSpent: amountSpent, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await spendManaRandomDoTIfNeeded(actor: actor, triggers: triggers, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await afterFinalCompanionManaSpend(actor: actor, amountSpent: amountSpent, in: &context)
     }
 
     private static func drawOnLastManaIfNeeded(

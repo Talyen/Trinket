@@ -2,7 +2,14 @@ import Foundation
 
 /// Single backoff truth for save retries: 0.25s, doubling, capped at 30s.
 enum SaveRetryPolicy {
+    #if DEBUG
+    @MainActor static var testInitialDelayOverride: Double?
+    @MainActor static var initialDelay: Double {
+        testInitialDelayOverride ?? 0.25
+    }
+    #else
     static let initialDelay = 0.25
+    #endif
     static let maxDelay = 30.0
 
     static func nextDelay(after current: Double) -> Double {

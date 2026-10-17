@@ -63,11 +63,11 @@ enum LabyrinthSanitizer {
         eligibleRecruitEventIDs: [String],
         eligibleRewards: [RewardModifier],
     ) {
+        var clusterIDs = Set(labyrinth.clusters.map(\.id))
         for boss in labyrinth.nodes.values.filter({ $0.type == .boss && $0.isCleared })
             .sorted(by: { $0.depth < $1.depth }) {
             guard boss.depth < Int.max else { continue }
             let nextDepth = max(0, boss.depth) + 1
-            let clusterIDs = Set(labyrinth.clusters.map(\.id))
             let hasExit = boss.outgoingIDs.contains {
                 guard let target = labyrinth.nodes[$0] else { return false }
                 return target.depth == nextDepth && clusterIDs.contains(target.clusterID)
@@ -81,6 +81,7 @@ enum LabyrinthSanitizer {
                     beyond: boss, in: &labyrinth,
                     eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards,
                 )
+                clusterIDs = Set(labyrinth.clusters.map(\.id))
             }
         }
     }

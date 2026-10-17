@@ -100,7 +100,7 @@ struct PendingSaveRecoveryTests {
         #expect(try recovery.read()?.restoredSave().roster.gold == 42)
 
         for _ in 0 ..< 300 where store.isPersistenceDegraded {
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(for: .milliseconds(2))
         }
         #expect(!store.isPersistenceDegraded)
         #expect(store.lastPersistenceError == nil)
@@ -151,7 +151,7 @@ struct PendingSaveRecoveryTests {
         store.forcesNextDatabaseSaveFailure = true
         #expect(store.persistFixtureBatch(logging: "Recovery fixture") { $0.roster.gold = 47 })
         for _ in 0 ..< 300 where store.isPersistenceDegraded {
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(for: .milliseconds(2))
         }
         #expect(!store.isPersistenceDegraded)
         #expect(try context.makeReloadedStore().roster.gold == 47)
@@ -219,7 +219,7 @@ struct PendingSaveRecoveryTests {
             try store.resetGameplayProgress()
         }
         for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(for: .milliseconds(2))
         }
         #expect(attempts == (reset ? 0 : 100))
         #expect(store.roster.gold == (reset ? 0 : 3))
@@ -248,7 +248,7 @@ struct PendingSaveRecoveryTests {
         }
         #expect(!store.isRetryingSaveAction)
         for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(for: .milliseconds(2))
         }
         #expect(store.roster.activeHeroID == latestID)
         #expect(try context.makeReloadedStore().roster.activeHeroID == latestID)
@@ -270,7 +270,7 @@ struct PendingSaveRecoveryTests {
             }
         }
         for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(for: .milliseconds(2))
         }
         #expect(!store.isRetryingSaveAction)
         #expect(try context.makeReloadedStore().roster.gold == 7)
@@ -296,7 +296,7 @@ struct PendingSaveRecoveryTests {
         }
 
         for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(for: .milliseconds(2))
         }
         #expect(!store.isRetryingSaveAction)
         #expect(attempts == 1)
@@ -323,7 +323,7 @@ struct PendingSaveRecoveryTests {
         #expect(store.roster.gold == 10)
         #expect(store.isRetryingSaveAction)
         for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(for: .milliseconds(2))
         }
         #expect(!store.isRetryingSaveAction)
         #expect(openings == 1)
@@ -357,7 +357,7 @@ struct PendingSaveRecoveryTests {
             #expect(store.persistFixtureBatch(logging: "Other command fixture") { $0.corruptionAltarCooldownRemaining = 1 })
         }
         for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(10))
+            try await Task.sleep(for: .milliseconds(2))
         }
         #expect(!store.isRetryingSaveAction)
         #expect(attempts == (invalid ? 1 : 2))

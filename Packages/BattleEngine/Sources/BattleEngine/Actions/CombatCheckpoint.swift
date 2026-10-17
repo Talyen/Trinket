@@ -4,11 +4,8 @@ enum CombatCheckpoint {
     case preparedAction(String)
     case payment(ManaPayment)
     case attackEligibility(String)
-    case committedDamage
     case controlRecovery(String, Keyword)
     case cardCompletion(String)
-
-    typealias Reaction = (inout BattleState) async -> Void
 
     func allowsContinuation(in context: borrowing BattleState) -> Bool {
         switch self {
@@ -22,8 +19,6 @@ enum CombatCheckpoint {
             } else {
                 false
             }
-        case .committedDamage:
-            true
         case let .controlRecovery(actorID, keyword):
             if let actor = context.roster.combatant(for: actorID) {
                 actor.isAlive && !context.roster.hasPendingActionSkip(for: actor.combatant, keyword: keyword)
@@ -31,17 +26,5 @@ enum CombatCheckpoint {
                 false
             }
         }
-    }
-
-    func resolve(_ reactions: [Reaction], in context: inout BattleState) async {
-        for reaction in reactions {
-            guard allowsContinuation(in: context) else { break }
-            await reaction(&context)
-        }
-    }
-
-    func perform(in context: inout BattleState, _ reaction: (inout BattleState) async -> Void) async {
-        guard allowsContinuation(in: context) else { return }
-        await reaction(&context)
     }
 }

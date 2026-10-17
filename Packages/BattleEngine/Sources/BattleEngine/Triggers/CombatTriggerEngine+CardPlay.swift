@@ -13,14 +13,19 @@ package extension CombatTriggerEngine {
               context.roster[owner].isAlive else { return }
         let triggers = context.modifiers(for: actor.id).triggers
         let keywords = facts.damageKeywords
-        await CombatCheckpoint.cardCompletion(actor.id).resolve([
-            { await spellEchoIfNeeded(ability: ability, actor: actor, owner: owner, abilityTarget: abilityTarget, in: &$0) },
-            { await scholarlySmiteIfNeeded(keywords: keywords, actor: actor, in: &$0) },
-            { await infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &$0) },
-            { await blizzardIfNeeded(keywords: keywords, actor: actor, owner: owner, triggers: triggers, in: &$0) },
-            { await talentRepeatIfNeeded(ability: ability, keywords: keywords, actor: actor, abilityTarget: abilityTarget, in: &$0) },
-            { talentPrimeIfNeeded(keywords: keywords, actor: actor, in: &$0) },
-        ], in: &context)
+        let checkpoint = CombatCheckpoint.cardCompletion(actor.id)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await spellEchoIfNeeded(ability: ability, actor: actor, owner: owner, abilityTarget: abilityTarget, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await scholarlySmiteIfNeeded(keywords: keywords, actor: actor, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await blizzardIfNeeded(keywords: keywords, actor: actor, owner: owner, triggers: triggers, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        await talentRepeatIfNeeded(ability: ability, keywords: keywords, actor: actor, abilityTarget: abilityTarget, in: &context)
+        guard checkpoint.allowsContinuation(in: context) else { return }
+        talentPrimeIfNeeded(keywords: keywords, actor: actor, in: &context)
 
         let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
         context.turnCadence.cardsPlayed[owner] = count

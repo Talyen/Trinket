@@ -23,7 +23,8 @@ final class PersistenceTestContext {
         inMemoryOnly: Bool = false,
         resetState: Bool = false,
     ) throws -> PlayerSaveStore {
-        try SaveTestSupport.makeSaveStore(
+        SaveRetryPolicy.testInitialDelayOverride = 0.005
+        return try SaveTestSupport.makeSaveStore(
             directoryURL: directoryURL,
             resetState: resetState,
             inMemoryOnly: inMemoryOnly,
@@ -32,7 +33,8 @@ final class PersistenceTestContext {
 
     /// In-memory store without touching the temp directory on disk.
     func makeInMemoryStore() throws -> PlayerSaveStore {
-        try PlayerSaveStore(disableCloudSync: true, inMemoryOnly: true)
+        SaveRetryPolicy.testInitialDelayOverride = 0.005
+        return try PlayerSaveStore(disableCloudSync: true, inMemoryOnly: true)
     }
 
     /// Test-side graph inspection without reopening the store.
