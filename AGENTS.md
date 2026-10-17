@@ -24,7 +24,7 @@ and do not reopen a task. This authorization covers Codex chats only.
 - Before editing, inspect scoped status with the router below and every overlapping dirty file's full diff. Preserve in-flight work with surgical edits; clarify unclear ownership. Use `git status --short` only for intentional whole-tree inspection.
 - Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree.
 - Use one isolated worktree and `codex/` task branch per implementation chat, based on committed local `main` unless instructed otherwise. Reuse that chat's suitable worktree; do not inspect other chats to decide whether isolation is needed. Keep the primary checkout on `main` for locked integration only. [Isolated chat workflow](Docs/Platform/Release.md#isolated-chat-workflow) owns commands, locking, and recovery.
-- Implementation tasks authorize task-scoped commits and verified local integration into `main`, unless the user restricts the task. Verified integration automatically deletes and unregisters only the invoking task worktree, including ignored files and build outputs, while retaining its branch. Use `integrate --keep-worktree` for intermediate landings while requested work or a preview still needs it. Pushes, PRs, publication, other destructive cleanup, and unrelated changes require separate authorization. Read [Release](Docs/Platform/Release.md#local-hooks-and-push-discipline) for staging and push rules; hosted CI follows a push, not a prerequisite for it. For TestFlight, read [deployment](Docs/Platform/Release.md#local-testflight-deployment) and use `./Scripts/testflight.sh` and its doctor.
+- Implementation tasks authorize task-scoped commits and verified local integration into `main`, unless the user restricts the task. Verified integration automatically deletes and unregisters only the invoking task worktree, including ignored files and build outputs, while retaining its branch. Use `agent-worktree.mjs integrate --keep-worktree` for intermediate landings while requested work or a preview still needs it. Pushes, PRs, publication, other destructive cleanup, and unrelated changes require separate authorization. Read [Release](Docs/Platform/Release.md#local-hooks-and-push-discipline) for staging and push rules; hosted CI runs after a push and is not a prerequisite for it. For TestFlight, read [deployment](Docs/Platform/Release.md#local-testflight-deployment) and use `./Scripts/testflight.sh` and its doctor.
 - Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Build/handoff handles freshness; `./Scripts/generate.sh` explicitly regenerates.
 - Never kill foreign Xcode/Simulator processes. [Verification](Docs/Platform/Verification.md) owns isolation and diagnostics.
 
@@ -48,7 +48,7 @@ Asset filenames use `--mode assets --files`.
 Documentation filenames use `--mode docs --files`; the default source mode excludes Markdown.
 Scoped `rg --files` and content `rg` remain available after narrowing the surface.
 
-Once paths are known, route them with `brief --task <concern> --paths <file...>` or
+Once paths are known, route them with `agent-brief.py --task <concern> --paths <file...>` or
 `./Scripts/agent-context.sh --agent --status --paths <file...>`.
 Read root/local safeguards and applicable routed ownership/behavior sections; load
 skills by trigger. Reuse unchanged guidance already in context. Reroute across owners.
@@ -75,7 +75,7 @@ Player-facing text changes include localization in the same task. Follow
 translate the affected queue in every configured language, perform a separate AI
 review pass, apply the reviewed response, and rerun `check`. Never stamp review
 records without the review or copy English into other locales to clear a gate.
-The existing agent allowance owns translation; hooks, builds and CI never call AI.
+The working agent performs translation; hooks, builds and CI never call AI.
 
 Fix the owning module's root cause with the simplest complete solution. Keep files
 cohesive; reuse abstractions for confirmed repetition or enforced boundaries, not
@@ -98,11 +98,12 @@ blocked by a required decision or unavailable prerequisite.
 - Default to no new test. Add or expand tests only when they provide high-value protection under [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Do not add low-value tests; medium-value additions are rare exceptions requiring a concrete rationale. Verification does not require new test code. Apply the same value standard to scoped retirement; test counts are not a goal.
 - Keep routine local verification resource-light: no automatic Swift compilation, simulator/UI/performance tests, or broad generation. CI owns those checks; [Verification](Docs/Platform/Verification.md#local-simulator-budget) owns deliberate exceptions and local play.
 - Run `./Scripts/handoff.sh --isolate --quiet --paths <file...>` for requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns gates, limits, failure classification, and advisory change budgets.
-- Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. A local handoff proves only its lightweight checks; report CI-owned checks as pending until hosted evidence confirms them. Do not claim full verification from local handoff alone.
+- Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. A local handoff proves only its lightweight checks; report CI-owned checks as pending until hosted evidence confirms them.
 
 ## Maintain guidance
 
 Update canonical policy owners with behavior changes; follow [documentation editing](Docs/README.md#editing-guidance).
 Load [knowledge](.agents/knowledge/index.md) only for its concern. Record misleading
-guidance or recurring friction in [.agents/FRICTION_LOG.md](.agents/FRICTION_LOG.md)
-with a fix link when resolved; keep one-off failures in session history.
+guidance or recurring friction in [.agents/FRICTION_LOG.md](.agents/FRICTION_LOG.md);
+when resolved, move lasting guidance to its owner and delete the entry. Keep
+one-off failures in session history.

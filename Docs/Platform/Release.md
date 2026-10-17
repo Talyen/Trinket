@@ -357,12 +357,8 @@ main unchanged; repair the task, review and commit the fix, then retry. If the s
 integration command is unavailable, retain reviewed commits on the task branch and
 report that limitation rather than landing through an unguarded command.
 
-No routine chat coordination is needed. Message only for an unresolved concrete
-dependency/conflict that the repository cannot answer; keep exchanges bounded and
-skip acknowledgment-only replies. Do not send startup, ownership, verification-window,
-progress, or completion broadcasts or repeatedly poll peers. After completion,
-stop. Do not message, poll, or wake completed chats unless explicitly asked by the
-user to resume them; unsolicited routine messages do not reopen a task.
+No routine chat coordination is needed; the root guide's
+[communication rules](../../AGENTS.md#communication) own peer messaging.
 
 Successful integration automatically deletes and unregisters only the invoking
 task worktree under the same integration lock, including ignored files and build
