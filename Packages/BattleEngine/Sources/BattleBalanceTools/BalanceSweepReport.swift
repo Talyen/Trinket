@@ -37,7 +37,7 @@ public struct BalanceSweepReport: Codable, Sendable {
     ) -> Self {
         let progressionRecords = slices.flatMap(\.progressionRecords)
         func merge(_ keyPath: KeyPath<Self, [PairedContrastSummary]>) -> [PairedContrastSummary] {
-            BalanceContrastSupport.mergeSummaries(slices.flatMap { $0[keyPath: keyPath] }, config: config)
+            BalanceContrastSupport.mergeSummaries(slices.lazy.flatMap { $0[keyPath: keyPath] }, config: config)
         }
         return Self(
             config: config,

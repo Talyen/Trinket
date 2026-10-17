@@ -112,9 +112,12 @@ public enum BalanceFindingsReporter {
 
     private static func collectFindings(_ report: BalanceSweepReport, snapshots: BalanceTierSnapshots) -> [Finding] {
         var findings: [Finding] = []
-        let recordsByTier = Dictionary(grouping: report.records, by: \.tier)
+        var evidenceByTier: [SimulationPowerTier: EnemyEvidence] = [:]
+        for record in report.records {
+            evidenceByTier[record.tier, default: EnemyEvidence()].record(record)
+        }
         for tier in snapshots.tiers where tier.battles > 0 {
-            let evidence = EnemyEvidence(records: recordsByTier[tier.tier] ?? [])
+            let evidence = evidenceByTier[tier.tier] ?? EnemyEvidence()
             findings.append(contentsOf: identityFindings(tier: tier, evidence: evidence))
             findings.append(contentsOf: stallFindings(tier: tier, evidence: evidence))
         }
@@ -131,31 +134,34 @@ public enum BalanceFindingsReporter {
 
 extension BalanceFindingsReporter {
     private struct EnemyEvidence {
-        let recordsByEnemy: [String: [BalanceBattleRecord]]
-        let abilitiesByEnemy: [String: Set<String>]
-        let abilityOwnerCounts: [String: Int]
+        struct Enemy {
+            var battles = 0
+            var stalls = 0
+            var abilities: Set<String> = []
+            let traits: [String]
+        }
 
-        init(records: [BalanceBattleRecord]) {
-            let grouped = Dictionary(grouping: records, by: \.enemyID)
-            let abilities = grouped.mapValues { Set($0.flatMap(\.enemyAbilityIDs)) }
-            var ownerCounts: [String: Int] = [:]
-            for ids in abilities.values {
-                for id in ids {
-                    ownerCounts[id, default: 0] += 1
-                }
+        var enemies: [String: Enemy] = [:]
+        var abilityOwnerCounts: [String: Int] = [:]
+
+        mutating func record(_ record: BalanceBattleRecord) {
+            enemies[record.enemyID, default: Enemy(traits: record.enemyTraitIDs)].battles += 1
+            if record.result.timedOut {
+                enemies[record.enemyID]?.stalls += 1
             }
-            recordsByEnemy = grouped
-            abilitiesByEnemy = abilities
-            abilityOwnerCounts = ownerCounts
+            for id in record.enemyAbilityIDs where enemies[record.enemyID]?.abilities.insert(id).inserted == true {
+                abilityOwnerCounts[id, default: 0] += 1
+            }
         }
 
         func explanation(for enemyID: String) -> String {
-            let unique = (abilitiesByEnemy[enemyID] ?? []).filter { abilityOwnerCounts[$0] == 1 }.sorted()
+            guard let enemy = enemies[enemyID] else { return "identity vs \(enemyID)" }
+            let unique = enemy.abilities.filter { abilityOwnerCounts[$0] == 1 }.sorted()
             if !unique.isEmpty {
                 return "only enemy with " + unique.map { "`\($0)`" }.joined(separator: ", ")
             }
-            if let traits = recordsByEnemy[enemyID]?.first?.enemyTraitIDs, !traits.isEmpty {
-                return "traits " + traits.map { "`\($0)`" }.joined(separator: ", ")
+            if !enemy.traits.isEmpty {
+                return "traits " + enemy.traits.map { "`\($0)`" }.joined(separator: ", ")
             }
             return "identity vs \(enemyID)"
         }
@@ -183,15 +189,12 @@ extension BalanceFindingsReporter {
     }
 
     private static func stallFindings(tier: BalanceTierStats, evidence: EnemyEvidence) -> [Finding] {
-        let grouped = evidence.recordsByEnemy
-        return grouped.keys.sorted().compactMap { enemyID in
-            let samples = grouped[enemyID] ?? []
-            let stalls = samples.count { $0.result.timedOut }
-            guard stalls > 0 else { return nil }
+        evidence.enemies.sorted { $0.key < $1.key }.compactMap { enemyID, enemy in
+            guard enemy.stalls > 0 else { return nil }
             return Finding(
-                score: Double(stalls) / Double(samples.count),
+                score: Double(enemy.stalls) / Double(enemy.battles),
                 line: "Enemy `\(enemyID)` (\(tier.tier.displayName)): ⚠ STALL · "
-                    + "\(stalls)/\(samples.count) battles reached a simulation cap; "
+                    + "\(enemy.stalls)/\(enemy.battles) battles reached a simulation cap; "
                     + "win rates exclude these unfinished fights.",
             )
         }
@@ -287,11 +290,8 @@ extension BalanceFindingsReporter {
         labels: (String, String),
         tier: SimulationPowerTier,
     ) -> [Finding] {
-        Array(
-            cells.filter(\.flagged)
-                .sorted { abs($0.deltaVsPeer) > abs($1.deltaVsPeer) }
-                .prefix(pairingCap),
-        ).map { cell in
+        // Identity aggregation already emits only flagged cells, ranked by absolute delta.
+        cells.prefix(pairingCap).map { cell in
             Finding(
                 score: abs(cell.deltaVsPeer) * 0.5,
                 line: String(

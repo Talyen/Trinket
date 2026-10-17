@@ -182,18 +182,32 @@ private struct TierAggregation {
         ) -> [WinRateSummary] {
             BalanceIdentityMargins.withinOwnerMargins(
                 records: decided,
-                ownerAndIDs: { record in
-                    record[keyPath: hero].map { (record.heroID, $0) } + record[keyPath: companion].map { (record.companionID, $0) }
-                },
+                heroIDs: hero, companionIDs: companion,
                 ownerRates: ownerRates, threshold: config.peerDeltaFlagThreshold,
             )
         }
+        var rounds = 0.0
+        var partyHP = 0.0
+        var enemyHP = 0.0
+        var timeouts = 0
+        for record in records {
+            rounds += Double(record.result.rounds)
+            if record.result.timedOut {
+                timeouts += 1
+            }
+            guard record.result.isDecided else { continue }
+            if record.result.isVictory {
+                partyHP += record.result.partyHPRemainingFraction
+            } else {
+                enemyHP += record.result.enemyHPRemainingFraction
+            }
+        }
         return BalanceTierStats(
             tier: tier, battles: records.count, decidedBattles: decided.count, wins: wins,
-            timeouts: records.count { $0.result.timedOut },
-            averageRounds: average(records) { Double($0.result.rounds) },
-            averagePartyHPOnWin: average(decided.filter(\.result.isVictory)) { $0.result.partyHPRemainingFraction },
-            averageEnemyHPOnLoss: average(decided.filter { !$0.result.isVictory }) { $0.result.enemyHPRemainingFraction },
+            timeouts: timeouts,
+            averageRounds: records.isEmpty ? 0 : rounds / Double(records.count),
+            averagePartyHPOnWin: wins == 0 ? 0 : partyHP / Double(wins),
+            averageEnemyHPOnLoss: decided.count == wins ? 0 : enemyHP / Double(decided.count - wins),
             trashDuration: durationBucket(isBoss: false),
             bossDuration: durationBucket(isBoss: true),
             enemyDurations: BalanceDurationAggregation.enemyDurationTable(records, flagRate: config.durationFlagRate),
@@ -264,9 +278,5 @@ private struct TierAggregation {
         case .middle: return (0.80, 0.90)
         case .lateGame: return (0.70, 0.80)
         }
-    }
-
-    private func average(_ records: [BalanceBattleRecord], value: (BalanceBattleRecord) -> Double) -> Double {
-        records.isEmpty ? 0 : records.reduce(0.0) { $0 + value($1) } / Double(records.count)
     }
 }

@@ -213,34 +213,15 @@ struct BalanceSweepOrchestrationTests {
     }
 
     @Test func `affix contrast work plan includes starter gear`() {
-        let mixed = BalanceSweepWorkPlan.workerJobs(
-            config: BalanceSweepConfig(
-                mode: .affixContrast,
-                battlesPerTier: 10,
-                tiers: SimulationPowerTier.allCases,
-                heroIDs: ["knight"],
-                companionIDs: ["bear"],
-                focusIDs: ["keen"],
-            ),
+        var config = BalanceSweepConfig(
+            mode: .affixContrast, battlesPerTier: 10, tiers: SimulationPowerTier.allCases,
+            heroIDs: ["knight"], companionIDs: ["bear"], focusIDs: ["keen"],
         )
-        #expect(mixed.map(\.limit).reduce(0, +) == BalanceAffixContrastRunner.workCount(
-            config: BalanceSweepConfig(
-                mode: .affixContrast,
-                battlesPerTier: 10,
-                tiers: SimulationPowerTier.allCases,
-                heroIDs: ["knight"],
-                companionIDs: ["bear"],
-                focusIDs: ["keen"],
-            ),
-        ))
+        let mixed = BalanceSweepWorkPlan.workerJobs(config: config)
+        #expect(mixed.map(\.limit).reduce(0, +) == BalanceAffixContrastRunner.workCount(config: config))
 
-        let earlyOnly = BalanceSweepWorkPlan.workerJobs(
-            config: BalanceSweepConfig(
-                mode: .affixContrast,
-                battlesPerTier: 10,
-                tiers: [.early],
-            ),
-        )
+        config.tiers = [.early]
+        let earlyOnly = BalanceSweepWorkPlan.workerJobs(config: config)
         #expect(!earlyOnly.isEmpty)
     }
 

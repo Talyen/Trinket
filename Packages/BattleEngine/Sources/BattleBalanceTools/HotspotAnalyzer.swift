@@ -55,61 +55,34 @@ public enum HotspotAnalyzer {
         let enemyID: String
     }
 
+    /// Keep the first encounter descriptor even when every sample times out.
+    private struct EncounterTally {
+        let step: ModeProgressionStep
+        var battles = 0
+        var wins = 0
+        var playerLevels = 0.0
+        var enemyLevels = 0.0
+
+        mutating func record(_ record: ProgressionBattleRecord) {
+            guard record.result.isDecided else { return }
+            battles += 1
+            if record.result.isVictory {
+                wins += 1
+            }
+            playerLevels += Double(record.playerLevel)
+            enemyLevels += Double(record.enemyLevel)
+        }
+    }
+
     public static func analyze(records: [ProgressionBattleRecord]) -> [NodeHotspotSummary] {
         // Recovery jobs award XP but are not advancing-content difficulty nodes.
-        let buckets = Dictionary(grouping: records.filter { $0.step.mode != .contract }) {
-            EncounterKey(stepID: $0.step.id, enemyID: $0.step.enemyID)
+        var buckets: [EncounterKey: EncounterTally] = [:]
+        for record in records where record.step.mode != .contract {
+            let key = EncounterKey(stepID: record.step.id, enemyID: record.step.enemyID)
+            buckets[key, default: EncounterTally(step: record.step)].record(record)
         }
 
-        let summaries = buckets.values.map { samples in
-            let step = samples[0].step
-            let recs = samples.filter(\.result.isDecided)
-            let total = recs.count
-            let wins = recs.count { $0.result.isVictory }
-            let winRate = total == 0 ? 0.0 : Double(wins) / Double(total)
-            let wilson = BalanceStatsAggregator.wilson(wins: wins, battles: total)
-
-            let avgPlayer = total == 0 ? 0.0 : recs.reduce(0.0) { $0 + Double($1.playerLevel) } / Double(total)
-            let avgEnemy = total == 0 ? 0.0 : recs.reduce(0.0) { $0 + Double($1.enemyLevel) } / Double(total)
-            let avgPowerRating = total == 0 ? 0 : averageEnemyPowerRating(for: step, averageEnemyLevel: avgEnemy)
-            let levelGap = avgEnemy - avgPlayer
-
-            let status: HotspotStatus
-            let reason: String?
-            let minBattles = BalanceSweepConfig.identityFlagMinBattles
-            let ciExcludesLow = wilson.high < targetLowerBound
-            let ciExcludesHigh = wilson.low > targetUpperBound
-
-            if total >= minBattles, winRate < targetLowerBound, ciExcludesLow {
-                if levelGap >= 3.0 {
-                    status = .levelGapWall
-                    reason = String(format: "Level Gap (+%.1f levels)", levelGap)
-                } else {
-                    status = .overtuned
-                    reason = String(format: "Win rate %.1f%% below 80%%", winRate * 100)
-                }
-            } else if total >= minBattles, winRate > targetUpperBound, ciExcludesHigh {
-                status = .undertuned
-                reason = String(format: "Win rate %.1f%% above 95%%", winRate * 100)
-            } else {
-                status = .smooth
-                reason = nil
-            }
-
-            return NodeHotspotSummary(
-                step: step,
-                battles: total,
-                wins: wins,
-                winRate: winRate,
-                wilsonLow: wilson.low,
-                wilsonHigh: wilson.high,
-                averagePlayerLevel: avgPlayer,
-                averageEnemyLevel: avgEnemy,
-                averageEnemyPowerRating: avgPowerRating,
-                status: status,
-                flagReason: reason,
-            )
-        }
+        let summaries = buckets.values.map(summarize)
 
         return summaries.sorted { lhs, rhs in
             if lhs.step.mode != rhs.step.mode {
@@ -123,6 +96,55 @@ public enum HotspotAnalyzer {
             }
             return lhs.step.enemyID < rhs.step.enemyID
         }
+    }
+
+    private static func summarize(_ tally: EncounterTally) -> NodeHotspotSummary {
+        let step = tally.step
+        let total = tally.battles
+        let wins = tally.wins
+        let winRate = total == 0 ? 0.0 : Double(wins) / Double(total)
+        let wilson = BalanceStatsAggregator.wilson(wins: wins, battles: total)
+
+        let avgPlayer = total == 0 ? 0.0 : tally.playerLevels / Double(total)
+        let avgEnemy = total == 0 ? 0.0 : tally.enemyLevels / Double(total)
+        let avgPowerRating = total == 0 ? 0 : averageEnemyPowerRating(for: step, averageEnemyLevel: avgEnemy)
+        let levelGap = avgEnemy - avgPlayer
+
+        let status: HotspotStatus
+        let reason: String?
+        let minBattles = BalanceSweepConfig.identityFlagMinBattles
+        let ciExcludesLow = wilson.high < targetLowerBound
+        let ciExcludesHigh = wilson.low > targetUpperBound
+
+        if total >= minBattles, winRate < targetLowerBound, ciExcludesLow {
+            if levelGap >= 3.0 {
+                status = .levelGapWall
+                reason = String(format: "Level Gap (+%.1f levels)", levelGap)
+            } else {
+                status = .overtuned
+                reason = String(format: "Win rate %.1f%% below 80%%", winRate * 100)
+            }
+        } else if total >= minBattles, winRate > targetUpperBound, ciExcludesHigh {
+            status = .undertuned
+            reason = String(format: "Win rate %.1f%% above 95%%", winRate * 100)
+        } else {
+            status = .smooth
+            reason = nil
+        }
+
+        return NodeHotspotSummary(
+            step: step,
+            battles: total,
+            wins: wins,
+            winRate: winRate,
+            wilsonLow: wilson.low,
+            wilsonHigh: wilson.high,
+            averagePlayerLevel: avgPlayer,
+            averageEnemyLevel: avgEnemy,
+            averageEnemyPowerRating: avgPowerRating,
+            status: status,
+            flagReason: reason,
+        )
     }
 
     private static func averageEnemyPowerRating(

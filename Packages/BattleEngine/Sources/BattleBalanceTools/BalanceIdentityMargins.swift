@@ -9,7 +9,7 @@ enum BalanceIdentityMargins {
         targetBand: (lower: Double, upper: Double)? = nil,
     ) -> [WinRateSummary] {
         let peerRate = records.isEmpty ? 0 : Double(records.count { $0.result.isVictory }) / Double(records.count)
-        return tally(records) { [$0[keyPath: id]] }.map { id, bucket in
+        return tally(records, key: { $0[keyPath: id] }).map { id, bucket in
             bucket.summary(
                 id: id,
                 ownerID: nil,
@@ -43,11 +43,25 @@ enum BalanceIdentityMargins {
 
     static func withinOwnerMargins(
         records: [BalanceBattleRecord],
-        ownerAndIDs: (BalanceBattleRecord) -> [(String, String)],
+        heroIDs: KeyPath<BalanceBattleRecord, [String]>,
+        companionIDs: KeyPath<BalanceBattleRecord, [String]>,
         ownerRates: [String: Double],
         threshold: Double,
     ) -> [WinRateSummary] {
-        tally(records) { ownerAndIDs($0).map { OwnerID(owner: $0.0, id: $0.1) } }.map { key, bucket in
+        var buckets: [OwnerID: Tally] = [:]
+        for record in records {
+            for id in Set(record[keyPath: heroIDs]) {
+                buckets[OwnerID(owner: record.heroID, id: id), default: Tally()].record(record.result)
+            }
+            var companion = Set(record[keyPath: companionIDs])
+            if record.heroID == record.companionID {
+                companion.subtract(record[keyPath: heroIDs])
+            }
+            for id in companion {
+                buckets[OwnerID(owner: record.companionID, id: id), default: Tally()].record(record.result)
+            }
+        }
+        return buckets.map { key, bucket in
             bucket.summary(
                 id: key.id,
                 ownerID: key.owner,
@@ -72,7 +86,7 @@ enum BalanceIdentityMargins {
         records: [BalanceBattleRecord],
         targetBand: (Bool) -> (lower: Double, upper: Double),
     ) -> [WinRateSummary] {
-        tally(records) { [EnemyID(id: $0.enemyID, isBoss: $0.isBoss)] }
+        tally(records, key: { EnemyID(id: $0.enemyID, isBoss: $0.isBoss) })
             .map { enemy, bucket in
                 let band = targetBand(enemy.isBoss)
                 let ci = bucket.interval
@@ -119,9 +133,9 @@ enum BalanceIdentityMargins {
         peerRate: Double,
         threshold: Double,
     ) -> [PairCellSummary] {
-        let buckets = tally(records) { [PairID(left: $0[keyPath: left], right: $0[keyPath: right])] }
+        let buckets = tally(records, key: { PairID(left: $0[keyPath: left], right: $0[keyPath: right]) })
         return buckets.compactMap { pair, bucket in
-            guard let reason = bucket.flagReason(peerRate: peerRate, threshold: threshold) else { return nil }
+            guard let reason = bucket.flagReason(peerRate: peerRate, threshold: threshold, interval: bucket.interval) else { return nil }
             let delta = bucket.rate - peerRate
             return PairCellSummary(
                 leftID: pair.left,
@@ -163,6 +177,7 @@ enum BalanceIdentityMargins {
             threshold: Double,
             positive: String = "HIGH",
             negative: String = "LOW",
+            interval: (low: Double, high: Double),
         ) -> String? {
             let delta = rate - peerRate
             let ci = interval
@@ -176,7 +191,9 @@ enum BalanceIdentityMargins {
             positiveFlag: String = "HIGH", negativeFlag: String = "LOW", targetBandDelta: Double? = nil,
         ) -> WinRateSummary {
             let ci = interval
-            let reason = flagReason(peerRate: peerRate, threshold: threshold, positive: positiveFlag, negative: negativeFlag)
+            let reason = flagReason(
+                peerRate: peerRate, threshold: threshold, positive: positiveFlag, negative: negativeFlag, interval: ci,
+            )
             return WinRateSummary(
                 id: id, ownerID: ownerID, wins: wins, battles: battles,
                 winRate: rate, wilsonLow: ci.low, wilsonHigh: ci.high,
@@ -193,6 +210,18 @@ enum BalanceIdentityMargins {
         }
     }
 
+    /// Scalar identities cannot repeat within one record; avoid a singleton array and Set per sample.
+    private static func tally<Key: Hashable>(
+        _ records: [BalanceBattleRecord],
+        key: (BalanceBattleRecord) -> Key,
+    ) -> [Key: Tally] {
+        var buckets: [Key: Tally] = [:]
+        for record in records {
+            buckets[key(record), default: Tally()].record(record.result)
+        }
+        return buckets
+    }
+
     /// Counts wins/battles per unique key. Set dedupes repeated keys within one
     /// record (a build can carry the same affix in two slots).
     private static func tally<Key: Hashable>(
@@ -202,9 +231,7 @@ enum BalanceIdentityMargins {
         var buckets: [Key: Tally] = [:]
         for record in records {
             for key in Set(keys(record)) {
-                var bucket = buckets[key] ?? Tally()
-                bucket.record(record.result)
-                buckets[key] = bucket
+                buckets[key, default: Tally()].record(record.result)
             }
         }
         return buckets

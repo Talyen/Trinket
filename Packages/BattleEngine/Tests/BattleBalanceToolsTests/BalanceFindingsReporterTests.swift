@@ -27,8 +27,9 @@ struct BalanceFindingsReporterTests {
             records: records,
             elapsedSeconds: 0,
         )
-        let findings = BalanceFindingsReporter.render(report)
-        let full = BalanceMarkdownReporter.render(report)
+        let snapshots = BalanceTierSnapshots(report: report)
+        let findings = BalanceFindingsReporter.render(report, snapshots: snapshots)
+        let full = BalanceMarkdownReporter.render(report, snapshots: snapshots)
         #expect(findings.contains("`the_forge_golem`"))
         #expect(findings.contains("molten-bulwark"))
         #expect(!findings.contains("Party Abilities (within owner)"))
@@ -259,6 +260,31 @@ struct BalanceFindingsReporterTests {
         #expect(rows.allSatisfy { $0.battles == 3 && $0.wins == 3 && $0.sampleTooLow })
     }
 
+    @Test func `encounter tables compare only matching boss or trash samples`() {
+        let records = Array(repeating: identityRecord(
+            enemyID: "shared", isBoss: false, abilities: [], win: true, seed: 1,
+        ), count: 8) + Array(repeating: identityRecord(
+            enemyID: "shared", isBoss: true, abilities: [], win: false, seed: 2,
+        ), count: 8)
+        let rows = BalanceIdentityMargins.enemyMargins(records: records) { isBoss in
+            isBoss ? (0.7, 0.8) : (0.4, 0.5)
+        }
+        #expect(rows.count == 2)
+        #expect(rows.map(\.battles) == [8, 8])
+        #expect(rows.map(\.flagReason) == ["EASY", "HARD"])
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [.early]), policyID: "greedy-v1",
+            records: records, elapsedSeconds: 0,
+        )
+        let stats = BalanceStatsAggregator.summarize(report: report)[0]
+        for owners in [stats.heroesTrash, stats.heroesBoss, stats.companionsTrash, stats.companionsBoss] {
+            #expect(owners.count == 1)
+            #expect(owners.allSatisfy { $0.deltaVsPeer == 0 && !$0.flagged })
+        }
+    }
+}
+
+extension BalanceFindingsReporterTests {
     @Test func `pairing anomalies surface even when individual owners have equal win rates`() {
         var records: [BalanceBattleRecord] = []
         for hero in 0 ..< 2 {
@@ -282,7 +308,11 @@ struct BalanceFindingsReporterTests {
         #expect(stats.heroes.allSatisfy { !$0.flagged })
         #expect(stats.companions.allSatisfy { !$0.flagged })
         #expect(!stats.heroCompanionCells.isEmpty)
-        #expect(BalanceFindingsReporter.render(report).contains("pairing outlier"))
+        let findings = BalanceFindingsReporter.render(report)
+        let pairings = findings.split(separator: "\n").filter { $0.contains("pairing outlier") }
+        #expect(pairings.count == BalanceFindingsReporter.pairingCap)
+        #expect(pairings.first?.contains("hero `hero-0` × companion `companion-0`") == true)
+        #expect(!pairings.contains { $0.contains("hero `hero-1` × companion `companion-1`") })
     }
 
     @Test func `matchup identities remain distinct when IDs contain separators`() {
@@ -306,33 +336,10 @@ struct BalanceFindingsReporterTests {
             peerRate: 0.5,
             threshold: 0.1,
         )
-        #expect(cells.map { ($0.leftID, $0.rightID) }.map { "\($0.0):\($0.1)" }
-            == ["hero:one|partner", "hero|one:partner"])
+        #expect(cells.map(\.leftID) == ["hero", "hero|one"])
+        #expect(cells.map(\.rightID) == ["one|partner", "partner"])
         #expect(cells.map(\.battles) == [8, 8])
         #expect(cells.map(\.flagReason) == ["LOW", "HIGH"])
-    }
-
-    @Test func `encounter tables compare only matching boss or trash samples`() {
-        let records = Array(repeating: identityRecord(
-            enemyID: "shared", isBoss: false, abilities: [], win: true, seed: 1,
-        ), count: 8) + Array(repeating: identityRecord(
-            enemyID: "shared", isBoss: true, abilities: [], win: false, seed: 2,
-        ), count: 8)
-        let rows = BalanceIdentityMargins.enemyMargins(records: records) { isBoss in
-            isBoss ? (0.7, 0.8) : (0.4, 0.5)
-        }
-        #expect(rows.count == 2)
-        #expect(rows.map(\.battles) == [8, 8])
-        #expect(rows.map(\.flagReason) == ["EASY", "HARD"])
-        let report = BalanceSweepReport(
-            config: BalanceSweepConfig(tiers: [.early]), policyID: "greedy-v1",
-            records: records, elapsedSeconds: 0,
-        )
-        let stats = BalanceStatsAggregator.summarize(report: report)[0]
-        for owners in [stats.heroesTrash, stats.heroesBoss, stats.companionsTrash, stats.companionsBoss] {
-            #expect(owners.count == 1)
-            #expect(owners.allSatisfy { $0.deltaVsPeer == 0 && !$0.flagged })
-        }
     }
 
     private func identityRecord(

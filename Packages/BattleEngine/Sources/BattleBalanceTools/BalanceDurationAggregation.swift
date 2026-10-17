@@ -8,9 +8,13 @@ enum BalanceDurationAggregation {
         maxRounds: Int,
         flagRate: Double,
     ) -> BalanceDurationBucketStats {
-        let total = DurationTally(records, minRounds: minRounds, maxRounds: maxRounds)
-        let worstEnemy = Dictionary(grouping: records, by: \.enemyID)
-            .mapValues { DurationTally($0, minRounds: minRounds, maxRounds: maxRounds) }
+        var total = DurationTally()
+        var enemies: [String: DurationTally] = [:]
+        for record in records {
+            total.record(record, minRounds: minRounds, maxRounds: maxRounds)
+            enemies[record.enemyID, default: DurationTally()].record(record, minRounds: minRounds, maxRounds: maxRounds)
+        }
+        let worstEnemy = enemies.lazy
             .filter { $0.value.battles >= BalanceSweepConfig.identityFlagMinBattles && $0.value.longBattles > 0 }
             .min {
                 if $0.value.longRate != $1.value.longRate {
@@ -42,14 +46,16 @@ enum BalanceDurationAggregation {
         _ records: [BalanceBattleRecord],
         flagRate: Double,
     ) -> [BalanceEnemyDurationStats] {
-        let groups = Dictionary(grouping: records) { EnemyKey(id: $0.enemyID, isBoss: $0.isBoss) }
+        var groups: [EnemyKey: DurationTally] = [:]
+        for record in records {
+            groups[EnemyKey(id: record.enemyID, isBoss: record.isBoss), default: DurationTally()].record(record)
+        }
         return groups.sorted {
             if $0.key.id != $1.key.id {
                 return $0.key.id < $1.key.id
             }
             return !$0.key.isBoss && $1.key.isBoss
-        }.map { key, records in
-            let total = DurationTally(records)
+        }.map { key, total in
             let reason = total.flagReason(rate: flagRate)
             return BalanceEnemyDurationStats(
                 enemyID: key.id,
@@ -70,21 +76,23 @@ enum BalanceDurationAggregation {
         idPath: KeyPath<BalanceBattleRecord, String>,
         flagRate: Double,
     ) -> [BalanceCombatantDurationStats] {
-        Dictionary(grouping: records, by: { $0[keyPath: idPath] })
-            .sorted { $0.key < $1.key }.map { id, records in
-                let total = DurationTally(records)
-                let reason = total.flagReason(rate: flagRate)
-                return BalanceCombatantDurationStats(
-                    combatantID: id,
-                    role: role,
-                    battles: total.battles,
-                    averageRounds: total.averageRounds,
-                    shortRate: total.shortRate,
-                    longRate: total.longRate,
-                    flagged: reason != nil,
-                    flagReason: reason,
-                )
-            }
+        var groups: [String: DurationTally] = [:]
+        for record in records {
+            groups[record[keyPath: idPath], default: DurationTally()].record(record)
+        }
+        return groups.sorted { $0.key < $1.key }.map { id, total in
+            let reason = total.flagReason(rate: flagRate)
+            return BalanceCombatantDurationStats(
+                combatantID: id,
+                role: role,
+                battles: total.battles,
+                averageRounds: total.averageRounds,
+                shortRate: total.shortRate,
+                longRate: total.longRate,
+                flagged: reason != nil,
+                flagReason: reason,
+            )
+        }
     }
 
     /// All duration views use the same classification. A cap contributes observed
@@ -98,23 +106,21 @@ enum BalanceDurationAggregation {
         var shortRounds = 0.0
         var longRounds = 0.0
 
-        init(_ records: [BalanceBattleRecord], minRounds: Int? = nil, maxRounds: Int? = nil) {
-            for record in records {
-                let floor = minRounds ??
-                    (record.isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds)
-                let ceiling = maxRounds ??
-                    (record.isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds)
-                let rounds = record.result.rounds
-                battles += 1
-                totalRounds += Double(rounds)
-                self.maxRounds = max(self.maxRounds, rounds)
-                if record.result.isDecided, rounds < floor {
-                    shortBattles += 1
-                    shortRounds += Double(rounds)
-                } else if rounds > ceiling {
-                    longBattles += 1
-                    longRounds += Double(rounds)
-                }
+        mutating func record(_ record: BalanceBattleRecord, minRounds: Int? = nil, maxRounds: Int? = nil) {
+            let floor = minRounds ??
+                (record.isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds)
+            let ceiling = maxRounds ??
+                (record.isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds)
+            let rounds = record.result.rounds
+            battles += 1
+            totalRounds += Double(rounds)
+            self.maxRounds = max(self.maxRounds, rounds)
+            if record.result.isDecided, rounds < floor {
+                shortBattles += 1
+                shortRounds += Double(rounds)
+            } else if rounds > ceiling {
+                longBattles += 1
+                longRounds += Double(rounds)
             }
         }
 

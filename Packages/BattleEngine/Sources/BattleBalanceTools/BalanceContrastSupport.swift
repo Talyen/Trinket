@@ -111,7 +111,7 @@ enum BalanceContrastSupport {
     }
 
     static func mergeSummaries(
-        _ summaries: [PairedContrastSummary],
+        _ summaries: some Sequence<PairedContrastSummary>,
         config: BalanceSweepConfig,
     ) -> [PairedContrastSummary] {
         bucketed(summaries, config: config, make: { row in
@@ -125,7 +125,7 @@ enum BalanceContrastSupport {
     /// Raw outcomes and worker summaries share one fold without allocating
     /// intermediate rows or retaining a closure for every comparison.
     private static func bucketed<Row>(
-        _ rows: [Row],
+        _ rows: some Sequence<Row>,
         config: BalanceSweepConfig,
         make: (Row) -> BalanceContrastFlags.ContrastAcc,
         accumulate: (inout BalanceContrastFlags.ContrastAcc, Row) -> Void,
