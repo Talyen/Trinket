@@ -5,7 +5,8 @@ import TrinketCore
 @testable import BattleEngine
 
 extension BattleTurnEngineTests {
-    @Test func `random enemy support outcomes preserve attack defenses and resolve once`() {
+    @Test(arguments: [false, true])
+    func `random enemy support outcomes preserve attack defenses and resolve once`(attacks: Bool) throws {
         let ability = Ability(
             id: "enemy-choice", name: "Enemy Choice", tier: .basic,
             outcomeBranches: [
@@ -13,26 +14,19 @@ extension BattleTurnEngineTests {
                 AbilityOutcomeBranch(effects: [.shield(.block, 3)]),
             ],
         )
-        var companionProfile = CombatModifierProfile.zero
-        companionProfile.triggers.negateFirstEnemyAttack = true
-        var supportOutcomes = 0
-        for seed in CombatantFixtures.deterministicBattleSeed ..< CombatantFixtures.deterministicBattleSeed + 12 {
-            var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                enemyAbilities: [ability], companionModifiers: companionProfile,
-                rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
-            )
-            var expected = battle
-            let resolved = BattleAbilityRules.resolveOutcome(ability, actor: battle.enemy, in: &expected)
-            let attacks = resolved.dealsCombatDamage
-            if !attacks {
-                supportOutcomes += 1
-            }
-            let events = battle.recordingEvents { context in await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
-            #expect(battle.roster.companion.talents.battle.negatedFirstEnemyAttack == attacks)
-            #expect(events.contains { $0.effectKind == .shieldApplied && $0.targetID == battle.enemy.id } == !attacks)
-            #expect(battle.rng == expected.rng)
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyAbilities: [ability], companionModifiers: .withTriggers { $0.negateFirstEnemyAttack = true },
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        battle.rng = try BattleTestFixtures.rngSelectingOutcome(ability, in: battle, actor: .enemy) {
+            $0.dealsCombatDamage == attacks
         }
-        #expect(supportOutcomes > 0 && supportOutcomes < 12)
+        var expected = battle
+        _ = BattleAbilityRules.resolveOutcome(ability, actor: battle.enemy, in: &expected)
+        let events = battle.recordingEvents { context in await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
+        #expect(battle.roster.companion.talents.battle.negatedFirstEnemyAttack == attacks)
+        #expect(events.contains { $0.effectKind == .shieldApplied && $0.targetID == battle.enemy.id } == !attacks)
+        #expect(battle.rng == expected.rng)
     }
 
     @Test func `attack avoidance preserves enemy support actions and warning bark`() {

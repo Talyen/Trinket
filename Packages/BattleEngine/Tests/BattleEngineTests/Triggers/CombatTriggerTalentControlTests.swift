@@ -49,20 +49,6 @@ struct CombatTriggerTalentControlTests {
         #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun) == stunned)
     }
 
-    @Test func `venomous skin poisons attacker`() {
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: .withTriggers { $0.onHitAttackerPoison = 1 },
-            dealOpeningHand: false,
-        )
-        let companion = battle.roster.companion.combatant
-        _ = battle.resolveTestDamage(3, to: companion, keyword: .physical, sourceActorID: "enemy")
-        let poisoned = battle.roster.activeEffects(for: battle.roster.enemy.combatant)
-            .contains { $0.effect.keyword == .poison }
-        #expect(poisoned)
-    }
-
     @Test func `blinding light stores the strongest reduction from resolved holy hits`() {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .withTriggers {

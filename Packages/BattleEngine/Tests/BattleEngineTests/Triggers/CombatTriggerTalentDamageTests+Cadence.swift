@@ -143,31 +143,26 @@ extension CombatTriggerTalentDamageTests {
         }
     }
 
-    @Test(arguments: [1, 8])
-    func `cross contamination rolls twenty percent for full poison damage`(amount: Int) {
-        var successes = 0
-        for seed in UInt64(1) ... 32 {
-            var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroModifiers: .withTriggers { $0.crossContamination = true },
-                rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
-            )
-            var expectedRng = battle.rng
-            let shouldProc = BattleChance.succeeds(probability: 0.20, using: &expectedRng)
-            var hit = DamageResolutionState(
-                amount: amount, combatant: battle.enemy, sourceActorID: battle.hero.id,
-                damageKeyword: .bleed, options: .periodic,
-            )
-            hit.remaining = amount
-            CombatExecutor.run { await DamagePipeline.applyAttackerMirroredReactions(to: &hit, in: &battle) }
-            let poison = battle.activeEffects(of: battle.enemy).first { $0.effect.keyword == .poison }
-            #expect((poison != nil) == shouldProc)
-            if shouldProc {
-                successes += 1
-                #expect(poison?.effect == .poison(amount))
-                #expect(battle.health(of: battle.enemy) == battle.maxHealth(of: battle.enemy) - amount)
-            }
-        }
-        #expect(successes > 0 && successes < 32)
+    @Test(arguments: [1, 8], [false, true])
+    func `cross contamination rolls twenty percent for full poison damage`(amount: Int, shouldProc: Bool) throws {
+        let seed = try #require((UInt64(1) ... 32).first { seed in
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return BattleChance.succeeds(probability: 0.20, using: &rng) == shouldProc
+        })
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: .withTriggers { $0.crossContamination = true },
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        battle.rng = SeededRandomNumberGenerator(seed: seed)
+        var hit = DamageResolutionState(
+            amount: amount, combatant: battle.enemy, sourceActorID: battle.hero.id,
+            damageKeyword: .bleed, options: .periodic,
+        )
+        hit.remaining = amount
+        CombatExecutor.run { await DamagePipeline.applyAttackerMirroredReactions(to: &hit, in: &battle) }
+        let poison = battle.activeEffects(of: battle.enemy).first { $0.effect.keyword == .poison }
+        #expect(poison?.effect == (shouldProc ? .poison(amount) : nil))
+        #expect(battle.health(of: battle.enemy) == battle.maxHealth(of: battle.enemy) - (shouldProc ? amount : 0))
     }
 }
 

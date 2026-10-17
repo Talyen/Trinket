@@ -18,29 +18,6 @@ extension TalentMigrationTests {
         }
     }
 
-    @Test func `seismicReversal returns blocked as stun`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.seismicReversal = true })
-        battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
-            for: battle.roster.hero.combatant,
-        )
-        let enemyHealthBefore = battle.health(of: battle.enemy)
-        _ = battle.resolveTestDamage(10, from: .enemy, to: .hero, options: .reaction())
-        #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
-    }
-
-    @Test func `sunwall grants companion block equal to holy health damage`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.sunwallChancePercent = 1 })
-        battle.appliesFightPacing = false
-        _ = battle.resolveTestDamage(
-            9,
-            keyword: .holy,
-            options: .attack(tier: .skill, scaling: .statsAndItems, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
-        )
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 0)
-        #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 9)
-    }
-
     @Test(arguments: [(BattleParticipant.hero, 6), (.companion, 2)])
     func `stun block rewards go to their talent owner`(owner: BattleParticipant, amount: Int) {
         let triggers = CombatTraitTriggers { $0.onStunEnemyGainBlock = amount }

@@ -107,6 +107,7 @@ extension EffectApplication {
             $0.kind == effect.kind ? EffectHandlers.stackingAmount($0) : nil
         }
         let total = SaturatedArithmetic.saturatingAdd(existing, amount)
+        guard total > existing else { return EffectApplyOutcome(didApply: false) }
         let stacked: Effect
         let event: ActionEvent.EffectOutcome
         switch effect {

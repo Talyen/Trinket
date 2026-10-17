@@ -38,14 +38,14 @@ public enum BattleConditionEvaluator {
         case .enemyPoisoned:
             return context.roster.hasAffliction(.poison, on: enemy)
         case .enemyFrozen:
-            return hasPendingControl(.freeze, on: enemy, in: context)
+            return context.roster.hasControlStatus(for: enemy, keyword: .freeze)
         case .enemyStunned:
-            return hasPendingControl(.stun, on: enemy, in: context)
+            return context.roster.hasControlStatus(for: enemy, keyword: .stun)
         case .enemyStunnedOrFrozen:
-            return hasPendingControl(.stun, on: enemy, in: context)
-                || hasPendingControl(.freeze, on: enemy, in: context)
+            return context.roster.hasControlStatus(for: enemy, keyword: .stun)
+                || context.roster.hasControlStatus(for: enemy, keyword: .freeze)
         case .enemyMarked:
-            return hasMarked(on: enemy, in: context)
+            return context.roster.activeEffects(for: enemy).contains { $0.effect.kind == .marked }
         case .enemyLowerHealthThanActor:
             return context.roster.health(for: enemy) < context.roster.health(for: action.actor)
         case .allyBelowHalfHealth:
@@ -73,20 +73,5 @@ public enum BattleConditionEvaluator {
         BattleActionContext.mostDebuffed(
             in: [context.hero, context.companion], state: context,
         )
-    }
-
-    private static func hasPendingControl(
-        _ keyword: Keyword,
-        on combatant: Combatant,
-        in context: BattleState,
-    ) -> Bool {
-        context.roster.activeEffects(for: combatant).contains { active in
-            guard case let .controlMeter(meterKeyword, amount, threshold) = active.effect else { return false }
-            return meterKeyword == keyword && threshold > 0 && amount >= threshold
-        }
-    }
-
-    private static func hasMarked(on combatant: Combatant, in context: BattleState) -> Bool {
-        context.roster.activeEffects(for: combatant).contains { $0.effect.kind == .marked }
     }
 }

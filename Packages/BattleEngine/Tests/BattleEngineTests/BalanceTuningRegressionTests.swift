@@ -24,26 +24,23 @@ struct BalanceTuningRegressionTests {
         #expect(battle.health(of: battle.hero) == (empowered ? 7 : 6))
     }
 
-    @Test func `Bloodthorn resolves one alternative hit and leeches from either outcome`() {
-        var seen: Set<Keyword> = []
-        for seed in UInt64(1) ... 8 {
-            var profile = CombatModifierProfile.zero
-            profile.triggers.criticalChanceBonus = -1
-            var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroModifiers: profile, rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
-            )
-            battle.roster.hero.currentHealth = 5
-            let events = battle.performTestAction(.bloodthorn)
-            let hits = events.filter { $0.kind == .abilityDamage }
-            #expect(hits.count == 1)
-            #expect(hits.first?.amount == 3)
-            if let keyword = hits.first?.keyword {
-                seen.insert(keyword)
-            }
-            #expect(events.filter { $0.effectKind == .leechHeal }.map(\.amount) == [2])
-            #expect(battle.health(of: battle.hero) == 7)
+    @Test(arguments: [Keyword.bleed, .poison])
+    func `Bloodthorn resolves one alternative hit and leeches from either outcome`(keyword: Keyword) throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+        )
+        battle.roster.hero.currentHealth = 5
+        battle.rng = try BattleTestFixtures.rngSelectingOutcome(.bloodthorn, in: battle) {
+            $0.damageComponents.first?.keyword == keyword
         }
-        #expect(seen == [.bleed, .poison])
+        let events = battle.performTestAction(.bloodthorn)
+        let hits = events.filter { $0.kind == .abilityDamage }
+        #expect(hits.map(\.keyword) == [keyword])
+        #expect(hits.first?.amount == 3)
+        #expect(events.filter { $0.effectKind == .leechHeal }.map(\.amount) == [2])
+        #expect(battle.health(of: battle.hero) == 7)
     }
 
     @Test(arguments: [9, 10, 11])

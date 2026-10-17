@@ -35,9 +35,6 @@ package enum DoTDamage {
             keyword: keyword,
             isCritical: damageOutcome.isCritical,
         )
-        return CombatOutcome(
-            healthDelta: damageOutcome.healthDelta,
-            flags: damageOutcome.flags,
-        )
+        return damageOutcome
     }
 }

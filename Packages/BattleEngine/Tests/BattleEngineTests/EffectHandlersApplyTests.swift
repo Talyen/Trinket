@@ -177,13 +177,18 @@ extension EffectHandlersApplyTests {
         #expect(outcome.events.map(\.amount) == (registered ? [5] : []))
     }
 
-    @Test func `amplification at maximum potency emits no false growth`() {
+    @Test(arguments: [
+        (Effect.burn(Int.max), Effect.multiplyDoT(.burn, 2)),
+        (.thorns(Int.max), .thorns(1)),
+        (.nextBurnBonus(Int.max), .nextBurnBonus(1)),
+    ])
+    func `capped status grants emit no false growth`(existing: Effect, grant: Effect) {
         var battle = BattleStateTestFactory.makeMinimalBattle(appliesFightPacing: false)
-        battle.insertEffect(.burn(Int.max), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-        let before = battle.activeEffects(of: battle.enemy)
-        let outcome = EffectHandlersTestSupport.dispatch(.multiplyDoT(.burn, 2), target: battle.enemy, battle: &battle)
+        battle.insertEffect(existing, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
+        let before = battle.activeEffects(of: battle.hero)
+        let outcome = EffectHandlersTestSupport.dispatch(grant, battle: &battle)
         #expect(!outcome.didApply)
         #expect(outcome.events.isEmpty)
-        #expect(battle.activeEffects(of: battle.enemy) == before)
+        #expect(battle.activeEffects(of: battle.hero) == before)
     }
 }

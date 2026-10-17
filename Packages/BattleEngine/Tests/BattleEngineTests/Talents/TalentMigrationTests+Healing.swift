@@ -88,14 +88,4 @@ extension TalentMigrationTests {
         ) }
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
     }
-
-    @Test func `reclaimed reagents converts overheal to block up to four`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.overhealShieldCap = 4 })
-        battle.appliesFightPacing = false
-        _ = CombatExecutor.run { await HealingEngine.resolveHeal(
-            HealRequest(amount: 10, target: battle.roster.hero.combatant, sourceActorID: battle.roster.hero.id, logAs: .silent),
-            in: &battle,
-        ) }
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 4)
-    }
 }

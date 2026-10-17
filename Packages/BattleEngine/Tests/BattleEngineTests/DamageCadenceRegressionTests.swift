@@ -33,6 +33,7 @@ struct DamageCadenceRegressionTests {
             basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,
         ) }
         #expect(tick.healthLost == 8)
+        #expect(tick.damageImpact == .landed(blocked: 0, healthLost: 8))
     }
 
     @Test(arguments: ["cauterize", "ashen_wake", "infected"], [false, true])

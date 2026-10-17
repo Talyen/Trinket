@@ -126,6 +126,23 @@ extension BattleTestFixtures {
         )
     }
 
+    /// Find a branch with cheap RNG-only resolution, then execute the battle once.
+    static func rngSelectingOutcome(
+        _ ability: Ability,
+        in battle: BattleState,
+        actor: BattleParticipant = .hero,
+        matching matches: (Ability) -> Bool,
+    ) throws -> SeededRandomNumberGenerator {
+        let outcomes = BattleAbilityRules.possibleOutcomes(
+            ability, action: BattleActionContext(actor: battle.roster[actor].combatant, in: battle), in: battle,
+        )
+        let seed = try #require((UInt64(1) ... 192).first { seed in
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return matches(outcomes.resolve(using: &rng))
+        })
+        return SeededRandomNumberGenerator(seed: seed)
+    }
+
     static func shieldPoints(for combatant: Combatant, in context: BattleState) -> Int {
         context.roster.activeEffects(for: combatant).reduce(0) { sum, active in
             if case let .shield(.block, points) = active.effect {
