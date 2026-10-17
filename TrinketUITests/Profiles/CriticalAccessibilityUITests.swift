@@ -51,7 +51,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
                 try setReduceMotion(original)
             } catch {
                 retainSettingsFailure(error, phase: "restore")
-                XCTFail("Could not restore native Reduce Motion: \(error)")
+                XCTFail("[coverage prerequisite] Could not restore native Reduce Motion: \(error)")
             }
         }
     }
