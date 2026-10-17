@@ -38,10 +38,12 @@ public struct BattleActionContext: Equatable, Sendable {
             }
             return Self.lowestHealthAlly(in: state)
         case .defeatedAlly:
-            let members = allies(in: state)
-            return members.reversed().first { state.health(of: $0) <= 0 } ?? members.first ?? actor
+            if actor.role == .enemy {
+                return state.enemy
+            }
+            return state.roster.companion.isAlive ? state.hero : state.companion
         case .eachAlly:
-            return allies(in: state).first ?? actor
+            return actor.role == .enemy ? state.enemy : state.hero
         }
     }
 

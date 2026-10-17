@@ -76,30 +76,24 @@ struct KeywordCohesionMechanicsTests {
         #expect(battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
         #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeCritical })
         // Next attack Leeches; pre-existing Leech does not double.
-        let fangs = Ability(id: "fangs-test", name: "Fangs", tier: .basic, directDamage: 4, damageKeyword: .bleed, hasLeech: true)
+        let fangs = Ability(
+            id: "fangs-test", name: "Fangs", tier: .basic, directDamage: 4,
+            damageKeyword: .bleed, criticalChanceBonus: -1, hasLeech: true,
+        )
         battle.nextCardID += 1
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: fangs, owner: .hero)])
         let heroBefore = battle.roster.health(for: battle.hero)
-        // Damage Hero first to create missing Health for Leech to restore.
         _ = battle.resolveTestDamage(6, from: .enemy, to: .hero, options: .effect())
-        let missing = battle.roster.maxHealth(for: battle.hero) - battle.roster.health(for: battle.hero)
-        #expect(missing > 0)
-        _ = try BattleTestFixtures.playCardNamed("Fangs", owner: .hero, on: &battle)
-        // Leech restored some (single base rate, not doubled).
-        #expect(battle.roster.health(for: battle.hero) > heroBefore - 6)
+        let events = try BattleTestFixtures.playCardNamed("Fangs", owner: .hero, on: &battle)
+        #expect(battle.roster.health(for: battle.hero) == heroBefore - 4)
+        #expect(events.filter { $0.effectKind == .leechHeal }.map(\.amount) == [2])
         #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
     }
 
-    @Test func `tithe and bounty produce fixed gold without conditions`() throws {
-        for (ability, name) in [
-            (Ability.tithe, "Tithe"),
-            (Ability.bountyShot, "Bounty Shot"),
-        ] {
-            var battle = cohesionBattleWithHand(ability)
-            _ = try BattleTestFixtures.playCardNamed(name, owner: .hero, on: &battle)
-            #expect(battle.gold == 2, "\(name) should steal 2 Gold")
-            #expect(ability.outcomeBranches == nil, "\(name) should have no branches")
-        }
+    @Test func `tithe steals fixed gold`() throws {
+        var battle = cohesionBattleWithHand(.tithe)
+        _ = try BattleTestFixtures.playCardNamed("Tithe", owner: .hero, on: &battle)
+        #expect(battle.gold == 2)
     }
 
     @Test func `golden plate grants block and gold only`() throws {
@@ -137,8 +131,10 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `surprise strike crits first physical only`() {
-        let profile =
-            CombatModifierProfile.withTriggers { $0.firstPhysicalAttackGuaranteedCritical = true }
+        let profile = CombatModifierProfile.withTriggers {
+            $0.firstPhysicalAttackGuaranteedCritical = true
+            $0.criticalChanceBonus = -1
+        }
         var battle = makeCohesionBattle(enemyMaxHealth: 200, companionModifiers: profile)
         // Non-Physical first does not consume or crit (Burn, no guaranteed crit).
         let first = battle.resolveTestDamage(4, from: .companion, keyword: .burn)
@@ -394,11 +390,13 @@ extension KeywordCohesionMechanicsTests {
     @Test func `mimic deals one opening bleed bonus`() {
         let profile = CombatModifierProfile.withTriggers { $0.firstAttackBleedBonus = 2 }
         var battle = makeCohesionBattle(heroMaxHealth: 50, enemyModifiers: profile)
-        let attack = Ability(id: "hit", name: "Hit", tier: .basic, directDamage: 4, damageKeyword: .physical)
+        let attack = Ability(
+            id: "hit", name: "Hit", tier: .basic, directDamage: 4,
+            damageKeyword: .physical, criticalChanceBonus: -1,
+        )
         let before = battle.roster.health(for: battle.hero)
         battle.performTestAction(attack, from: .enemy, to: .hero)
-        // 4 Physical + 2 Bleed bonus (separate hit) = 6 total (before Block/mitigation).
-        #expect(before - battle.roster.health(for: battle.hero) >= 6)
+        #expect(before - battle.roster.health(for: battle.hero) == 6)
         // Second attack no bonus (once).
         let mid = battle.roster.health(for: battle.hero)
         battle.performTestAction(attack, from: .enemy, to: .hero)

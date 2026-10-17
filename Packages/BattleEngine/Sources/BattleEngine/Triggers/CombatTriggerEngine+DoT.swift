@@ -156,23 +156,26 @@ package extension CombatTriggerEngine {
         context.resolution.enter(.detonation)
         defer { context.resolution.leave(.detonation) }
 
-        let currentEffects = context.roster.activeEffects(for: target)
-        let bleeds = currentEffects.filter { $0.effect.isBleed && $0.remainingTurns > 0 }
-        let poisons = includePoison ? currentEffects.filter { $0.effect.kind == .poison } : []
-        guard !bleeds.isEmpty || !poisons.isEmpty else { return }
-
-        context.roster.setActiveEffects(
-            currentEffects.filter { active in
+        guard context.roster.activeEffects(for: target).contains(where: {
+            $0.effect.isBleed && $0.remainingTurns > 0 || includePoison && $0.effect.kind == .poison
+        }) else { return }
+        var bleeds: [ActiveEffect] = []
+        var poisons: [ActiveEffect] = []
+        context.roster.mutateEffects(for: target) { effects in
+            effects.removeAll { active in
                 if active.effect.isBleed {
-                    return false
+                    if active.remainingTurns > 0 {
+                        bleeds.append(active)
+                    }
+                    return true
                 }
-                if includePoison, case .poison = active.effect {
-                    return false
+                if includePoison, active.effect.kind == .poison {
+                    poisons.append(active)
+                    return true
                 }
-                return true
-            },
-            for: target,
-        )
+                return false
+            }
+        }
 
         await Self.detonateBleedStacks(bleeds, on: target, sourceActorID: sourceActorID, in: &context)
 

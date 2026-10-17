@@ -59,6 +59,8 @@ helpers live in `Support/`. All remain in the same test target.
   `BattleState` construction; `BattleTestFixtures` composes it for combat scenarios
   and provides play, catalog-build, effect-dispatch, and assertion helpers.
 - Use `BattleStateTestFactory.makeMinimalBattle(...)` for pipeline tests that must skip deck bootstrap.
+  It shares production runtime initialization, including percentage stat bonuses,
+  starting-resource clamps, active Mana capacity, and defeat progress.
 - Pass `appliesFightPacing: false` to battle factories for unpaced probes; full
   factories apply it before bootstrap so opening effects use the same rules.
 - Use `performTestAction` and `chargeTestControl` for synchronous rule probes;

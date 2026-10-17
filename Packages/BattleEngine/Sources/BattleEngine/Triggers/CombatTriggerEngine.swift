@@ -51,13 +51,6 @@ package enum CombatTriggerEngine {
         }
     }
 
-    static func livingAllyModifiers(in context: BattleState) -> [CombatModifierProfile] {
-        var result: [CombatModifierProfile] = []
-        result.reserveCapacity(2)
-        forEachLivingAllyModifier(in: context) { result.append($0) }
-        return result
-    }
-
     static func hasLivingPartyTrigger(_ keyPath: KeyPath<CombatTraitTriggers, Bool>, in context: BattleState) -> Bool {
         (context.roster.hero.isAlive && context.heroModifiers.triggers[keyPath: keyPath])
             || (context.roster.companion.isAlive && context.companionModifiers.triggers[keyPath: keyPath])
@@ -83,8 +76,8 @@ package enum CombatTriggerEngine {
         guard target.role == .enemy else { return 1 }
         let isBurning = context.roster.hasAffliction(.burn, on: target)
         guard isBurning else { return 1 }
-        let reduction = livingAllies(in: context)
-            .reduce(0.0) { $0 + $1.profile.triggers.burnReducesEnemyHealingAndLeechPercent }
+        var reduction = 0.0
+        forEachLivingAllyModifier(in: context) { reduction += $0.triggers.burnReducesEnemyHealingAndLeechPercent }
         return max(0, 1 - min(1, reduction))
     }
 

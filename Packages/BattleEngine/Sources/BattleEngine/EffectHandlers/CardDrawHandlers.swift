@@ -75,17 +75,19 @@ extension EffectApplication {
         let otherOwner: BattleParticipant = firstOwner == .hero ? .companion : .hero
 
         for index in 0 ..< targetCount {
-            let countBefore = drawnCards.count
             let owner = index.isMultiple(of: 2) ? firstOwner : otherOwner
             let fallback: BattleParticipant = owner == .hero ? .companion : .hero
-            let candidates = allowFallback ? [owner, fallback] : [owner]
-            for candidate in candidates where canDrawAndPlay(candidate, in: context) {
-                guard let card = BattleCardCombatEngine.drawOne(for: candidate, context: &context) else { continue }
-                drawnCards.append(card)
+            let candidate: BattleParticipant
+            if canDrawAndPlay(owner, in: context) {
+                candidate = owner
+            } else if allowFallback, canDrawAndPlay(fallback, in: context) {
+                candidate = fallback
+            } else {
+                // Collection cannot restore exhausted or blocked decks.
                 break
             }
-            // Collection does not resolve cards, so exhausted or blocked decks cannot recover here.
-            guard drawnCards.count > countBefore else { break }
+            guard let card = BattleCardCombatEngine.drawOne(for: candidate, context: &context) else { break }
+            drawnCards.append(card)
         }
 
         return drawnCards

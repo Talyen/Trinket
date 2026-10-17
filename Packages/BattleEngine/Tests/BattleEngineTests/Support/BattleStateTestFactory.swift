@@ -119,35 +119,23 @@ enum BattleStateTestFactory {
         appliesFightPacing: Bool = true,
     ) -> BattleState {
         let maxExistingEffectID = max(
-            heroEffects.map(\.id).max() ?? 0,
-            companionEffects.map(\.id).max() ?? 0,
-            enemyEffects.map(\.id).max() ?? 0,
+            heroEffects.lazy.map(\.id).max() ?? 0,
+            companionEffects.lazy.map(\.id).max() ?? 0,
+            enemyEffects.lazy.map(\.id).max() ?? 0,
         )
         return BattleState(
             roster: BattleRoster(
-                hero: CombatantRuntime(
-                    combatant: hero,
-                    initialHealth: heroHealth,
-                    initialMana: heroMana,
-                    initialActiveEffects: heroEffects,
-                    maximumHealthBonus: heroModifiers.maximumHealthBonus,
-                    maximumManaBonus: heroModifiers.maximumManaBonus,
+                hero: BattleState.startingRuntime(
+                    for: hero, modifiers: heroModifiers,
+                    health: heroHealth, mana: heroMana, effects: heroEffects,
                 ),
-                companion: CombatantRuntime(
-                    combatant: companion,
-                    initialHealth: companionHealth,
-                    initialMana: companionMana,
-                    initialActiveEffects: companionEffects,
-                    maximumHealthBonus: companionModifiers.maximumHealthBonus,
-                    maximumManaBonus: companionModifiers.maximumManaBonus,
+                companion: BattleState.startingRuntime(
+                    for: companion, modifiers: companionModifiers,
+                    health: companionHealth, mana: companionMana, effects: companionEffects,
                 ),
-                enemy: CombatantRuntime(
-                    combatant: enemy,
-                    initialHealth: enemyHealth,
-                    initialMana: enemyMana,
-                    initialActiveEffects: enemyEffects,
-                    maximumHealthBonus: enemyModifiers.maximumHealthBonus,
-                    maximumManaBonus: enemyModifiers.maximumManaBonus,
+                enemy: BattleState.startingRuntime(
+                    for: enemy, modifiers: enemyModifiers,
+                    health: enemyHealth, mana: enemyMana, effects: enemyEffects,
                 ),
             ),
             rng: SeededRandomNumberGenerator(seed: rngSeed),

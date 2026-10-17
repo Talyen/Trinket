@@ -83,7 +83,9 @@ extension BattleTurnEngine {
         }
 
         // Consume before request preparation, which may start nested reactions.
-        ActiveEffectMutation.removeMatching(from: actor, in: &context) { nextStrike.contains($0.kind) }
+        if !nextStrike.isEmpty {
+            ActiveEffectMutation.removeMatching(from: actor, in: &context) { nextStrike.contains($0.kind) }
+        }
         let options: DamageOperation = isSelfHealthCost
             ? .healthCost
             : .attack(
@@ -171,6 +173,7 @@ extension BattleTurnEngine {
         isCritical: Bool = false,
         context: inout BattleState,
     ) async {
+        guard keyword == .burn || keyword == .poison || keyword == .bleed else { return }
         let profile = context.modifiers(for: sourceActorID)
         let criticalDurationBonus = keyword == .bleed && isCritical
             ? profile.triggers.bleedDurationFromCriticalBonus : 0

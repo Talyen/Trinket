@@ -23,14 +23,17 @@ struct CombatantMaxValuesTests {
             enemy: enemy,
             enemyEffects: [ActiveEffect(id: 1, effect: .maximumManaBonus(3), remainingTurns: 0)],
             enemyHealth: requested, enemyMana: requested,
-            enemyModifiers: .init(maximumHealthBonus: 2, maximumManaBonus: 3),
+            enemyModifiers: .init(
+                maximumHealthPercentBonus: 0.5, maximumHealthBonus: 2,
+                maximumManaBonus: 3, maximumManaPercentBonus: 0.5,
+            ),
         )
         let runtime = battle.roster.enemy
         let defeated = requested < 0
-        #expect(runtime.currentHealth == (defeated ? 0 : 22))
-        #expect(runtime.currentMana == (defeated ? 0 : 16))
+        #expect(runtime.currentHealth == (defeated ? 0 : 33))
+        #expect(runtime.currentMana == (defeated ? 0 : 23))
         #expect(battle.isEnemyDefeated == defeated)
-        #expect(runtime.defeatProgress.remainingHealth == (defeated ? 0 : 22))
+        #expect(runtime.defeatProgress.remainingHealth == (defeated ? 0 : 33))
     }
 
     @Test func `maximum stats saturate overflowing flat bonuses`() {

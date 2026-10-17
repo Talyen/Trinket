@@ -184,9 +184,9 @@ public struct BattleState {
     ) {
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
         let maxExistingEffectID = max(
-            activeEnemyEffects.map(\.id).max() ?? 0,
-            activeHeroEffects.map(\.id).max() ?? 0,
-            activeCompanionEffects.map(\.id).max() ?? 0,
+            activeEnemyEffects.lazy.map(\.id).max() ?? 0,
+            activeHeroEffects.lazy.map(\.id).max() ?? 0,
+            activeCompanionEffects.lazy.map(\.id).max() ?? 0,
         )
         self.init(
             roster: BattleRoster(
@@ -398,12 +398,12 @@ public struct BattleState {
     }
 }
 
-private extension BattleState {
+extension BattleState {
     static func startingRuntime(
-        for combatant: Combatant, modifiers: CombatModifierProfile, health: Int? = nil, effects: [ActiveEffect],
+        for combatant: Combatant, modifiers: CombatModifierProfile, health: Int? = nil, mana: Int? = nil, effects: [ActiveEffect],
     ) -> CombatantRuntime {
         CombatantRuntime(
-            combatant: combatant, initialHealth: health, initialActiveEffects: effects,
+            combatant: combatant, initialHealth: health, initialMana: mana, initialActiveEffects: effects,
             maximumHealthBonus: CombatantMaxValues.maxHealth(for: combatant, modifiers: modifiers) - combatant.maxHealth,
             maximumManaBonus: SaturatedArithmetic.saturatingSub(
                 CombatantMaxValues.maxMana(for: combatant, modifiers: modifiers), combatant.maxMana,
