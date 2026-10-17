@@ -144,6 +144,25 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             self.assertFalse((passed_stage / "raw").exists())
             self.assertTrue((passed_stage / "ci-diagnostics.json").exists())
 
+            # Refresh only a staging directory owned by this results root. A
+            # mistyped destination must never erase unrelated or legacy output.
+            maintenance = load_script('artifact_maintenance', 'diagnostic_maintenance.py')
+            stale = passed_stage / 'stale.txt'
+            stale.write_text('old staged report')
+            maintenance.stage(results, passed_stage)
+            self.assertFalse(stale.exists())
+            marker = passed_stage / maintenance.ARTIFACT_OWNER
+            original = marker.read_text()
+            retained = passed_stage / 'keep.txt'
+            retained.write_text('unrelated evidence')
+            for identity in ('broken JSON', json.dumps({'schema': 1, 'results': str(results.parent)})):
+                with self.subTest(identity=identity):
+                    marker.write_text(identity)
+                    with self.assertRaisesRegex(SystemExit, 'unowned artifact directory'):
+                        maintenance.stage(results, passed_stage)
+                    self.assertEqual(retained.read_text(), 'unrelated evidence')
+            marker.write_text(original)
+
             raw.mkdir(exist_ok=True)
             (raw / "pass.log").write_text("failure evidence\n", encoding="utf-8")
             (results / "pass.xcresult").mkdir(exist_ok=True)
@@ -169,7 +188,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             foreign_alias = root / "foreign-alias"
             foreign_alias.symlink_to(foreign, target_is_directory=True)
             for destination in (results.parent, alias, results / "raw" / "artifact",
-                                foreign_alias, foreign_alias / "nested", foreign_alias / '..' / 'foreign'):
+                                foreign, foreign_alias, foreign_alias / "nested", foreign_alias / '..' / 'foreign'):
                 with self.subTest(destination=destination):
                     evidence.parent.mkdir(parents=True, exist_ok=True)
                     evidence.write_text("failure evidence\n")

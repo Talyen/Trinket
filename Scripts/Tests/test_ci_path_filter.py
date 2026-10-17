@@ -25,18 +25,25 @@ class CIPathFilterTests(unittest.TestCase):
 
     def test_compare_includes_rename_source_and_fails_closed_at_file_limit(self) -> None:
         cases = [
-            ({"files": [{"filename": "Docs/archived.swift", "previous_filename": "Trinket/App.swift"}]},
+            ({"status": "ahead", "files": [{"filename": "Docs/archived.swift", "previous_filename": "Trinket/App.swift"}]},
              ["Docs/archived.swift", "Trinket/App.swift"]),
-            ({"files": [{"filename": f"Docs/{index}.md"} for index in range(299)]},
+            ({"status": "ahead", "files": [{"filename": f"Docs/{index}.md"} for index in range(299)]},
              [f"Docs/{index}.md" for index in range(299)]),
-            ({"files": [{"filename": f"Docs/{index}.md"} for index in range(300)]}, None),
-            ({"files": []}, []),
+            ({"status": "ahead", "files": [{"filename": f"Docs/{index}.md"} for index in range(300)]}, None),
+            ({"status": "identical", "files": []}, []),
+            ({"status": "ahead", "files": []}, []),
+            # Rewritten history can remove product changes while the merge-base
+            # comparison contains only docs (or no files). Never narrow CI then.
+            ({"status": "behind", "files": []}, None),
+            ({"status": "diverged", "files": [{"filename": "Docs/README.md"}]}, None),
+            ({"status": "unknown", "files": []}, None),
+            ({"files": []}, None),
             ({}, None),
             ([], None),
-            ({"files": [None]}, None),
-            ({"files": [{"filename": "Docs/a.md", "status": "renamed"}]}, None),
-            ({"files": [{"filename": "Docs/a.md", "previous_filename": 1}]}, None),
-            ({"files": [], "truncated": True}, None),
+            ({"status": "ahead", "files": [None]}, None),
+            ({"status": "ahead", "files": [{"filename": "Docs/a.md", "status": "renamed"}]}, None),
+            ({"status": "ahead", "files": [{"filename": "Docs/a.md", "previous_filename": 1}]}, None),
+            ({"status": "ahead", "files": [], "truncated": True}, None),
         ]
         for payload, expected in cases:
             with self.subTest(payload=payload), patch.object(self.filter.urllib.request, "urlopen") as request:

@@ -10,6 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from internal.cli import ROOT, read_json
+from internal.performance.performance_model import load_baseline
 
 
 def test_measurements(source: str) -> dict[str, list[str]]:
@@ -41,6 +42,9 @@ def select(baseline: dict, selectors: list[str]) -> dict:
     inventory = baseline['coverage']
     if set(inventory) != set(baseline['scenarios']):
         raise ValueError('coverage inventory and baseline scenarios differ')
+    # Validate the complete baseline before filtering: a typo must not disappear
+    # with an unselected scenario or survive until after a costly Simulator run.
+    load_baseline(baseline)
     plan = read_json(ROOT / 'BattlePerformance.xctestplan')
     classes = set(plan['testTargets'][0]['selectedTests'])
     measurements = {
@@ -70,6 +74,9 @@ def select(baseline: dict, selectors: list[str]) -> dict:
     result = dict(baseline)
     result['scenarios'] = [s for s in baseline['scenarios'] if (not selectors and inventory[s]["group"] != "diagnostic") or s in selected]
     result['coverage'] = {s: inventory[s] for s in result['scenarios']}
+    if 'scenarioGoals' in baseline:
+        result['scenarioGoals'] = {s: goals for s, goals in baseline['scenarioGoals'].items()
+                                   if s in result['coverage']}
     result['testScenarios'] = {}
     for scenario, entry in result['coverage'].items():
         result['testScenarios'].setdefault(entry['test'], []).append(scenario)

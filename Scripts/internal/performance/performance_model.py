@@ -82,6 +82,9 @@ def load_baseline(baseline: dict[str, Any]) -> tuple[list[str], str]:
         overrides = baseline.get("scenarioGoals", {})
         if not isinstance(goals, dict) or not isinstance(overrides, dict):
             raise ValueError("goals and scenarioGoals must be objects")
+        unknown_scenarios = overrides.keys() - set(scenarios)
+        if unknown_scenarios:
+            raise ValueError(f"unknown performance scenarios: {sorted(unknown_scenarios)}")
         for _, goal, *_ in GOAL_CHECKS[:3]:
             finite_number(goals, goal)
         for settings in (goals, *overrides.values()):

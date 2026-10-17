@@ -11,6 +11,8 @@ from pathlib import Path
 from ci_ui_retry import recovery_valid
 from internal.output_retention import KEEP, expire_results, process_snapshot, protection, safe_path
 
+ARTIFACT_OWNER = '.trinket-artifact-owner.json'
+
 
 def require_results_dir(value: str) -> Path:
     original = Path(value).absolute()
@@ -59,9 +61,20 @@ def prepare_artifact_dir(root: Path, artifact_dir: Path) -> None:
     destination = artifact_dir.resolve()
     if destination == root or destination in root.parents or root in destination.parents:
         raise SystemExit("artifact directory must not overlap TestResults")
+    owner = artifact_dir / ARTIFACT_OWNER
+    identity = {'schema': 1, 'results': str(root)}
     if artifact_dir.exists():
+        if not artifact_dir.is_dir():
+            raise SystemExit("artifact destination must be a directory")
+        if any(artifact_dir.iterdir()):
+            try:
+                if owner.is_symlink() or json.loads(owner.read_text()) != identity:
+                    raise ValueError('unrecognized artifact owner')
+            except (OSError, ValueError):
+                raise SystemExit("refusing to replace an unowned artifact directory; choose a fresh destination") from None
         shutil.rmtree(artifact_dir)
     artifact_dir.mkdir(parents=True, exist_ok=True)
+    owner.write_text(json.dumps(identity) + '\n')
 
 
 def stage_gate(root: Path, artifact_dir: Path) -> None:
@@ -73,10 +86,11 @@ def stage_gate(root: Path, artifact_dir: Path) -> None:
         'Gate diagnostics: at most 128 files, 1 MiB per file, 16 MiB total; '
         'large files retain their beginning and end.\n'
     ).encode()
-    remaining_bytes = 16 * maximum_file_bytes - len(policy)
+    remaining_bytes = 16 * maximum_file_bytes - len(policy) - (artifact_dir / ARTIFACT_OWNER).stat().st_size
     paths = [root / 'gate.log']
     paths += sorted(root.glob('script-tests.*/*'))
-    for path in paths[:127]:
+    # Reserve two files for the policy and ownership receipt.
+    for path in paths[:126]:
         if path.is_symlink() or not path.is_file() or path.parent.is_symlink():
             continue
         budget = min(maximum_file_bytes, remaining_bytes)

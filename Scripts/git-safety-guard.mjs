@@ -74,7 +74,7 @@ function isDestructive(parsedArgs) {
   }
   if (cmd === "push") {
     return (
-      parsedArgs.some((a) => a.startsWith("--force") || a.startsWith("+")
+      parsedArgs.some((a) => a === "--mirror" || a.startsWith("--force") || a.startsWith("+")
         || /^-[vqnfd]*f[vqnfd]*$/.test(a))
     );
   }

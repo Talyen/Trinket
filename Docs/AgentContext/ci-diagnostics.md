@@ -227,6 +227,11 @@ attachments are staged only when the aggregate category is failed or unknown. Us
 `python3 ./Scripts/ci-diagnostics.py --full <RESULTS_DIR> <OUTPUT_PATH>` when an investigation
 needs the uncompressed aggregate invocation payload.
 
+Artifact staging accepts a fresh or empty destination, or replaces a directory
+with its own ownership receipt for the same results directory. It refuses to
+replace other nonempty directories; choose a fresh destination for legacy artifacts
+without a receipt. Existing symlink and overlapping-directory guards still apply.
+
 Hosted failure artifacts also retain 14 days; names include the run attempt so a
 rerun can retain new evidence without colliding with the original upload. The
 repository retention setting and large product-transfer exceptions are owned by

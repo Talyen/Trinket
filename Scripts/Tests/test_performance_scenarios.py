@@ -69,6 +69,15 @@ class PerformanceScenarioTests(unittest.TestCase):
         one = module.select(self.baseline, [scenario])
         self.assertEqual(one['scenarios'], [scenario])
         self.assertEqual(one['testScenarios'], {one['coverage'][scenario]['test']: [scenario]})
+        # Narrow runs must retain their own stricter goals and discard only
+        # other valid scenarios' overrides after validating the full baseline.
+        scenario = next(iter(self.baseline['scenarioGoals']))
+        one = module.select(self.baseline, [scenario])
+        self.assertEqual(one['scenarioGoals'], {scenario: self.baseline['scenarioGoals'][scenario]})
+        broken = copy.deepcopy(self.baseline)
+        broken['scenarioGoals']['misspelled-scenario'] = {'maximumFrameMs': 20}
+        with self.assertRaisesRegex(SystemExit, 'unknown.*scenario'):
+            module.select(broken, [scenario])
 
     def test_unknown_selection_and_unregistered_tests_fail(self) -> None:
         with self.assertRaisesRegex(ValueError, 'unknown'):
@@ -92,6 +101,7 @@ class PerformanceScenarioTests(unittest.TestCase):
             baseline = {
                 'scenarios': ['options-reset-cancel'],
                 'coverage': {'options-reset-cancel': {'group': 'app', 'test': 'FixtureUITests/testOptions'}},
+                'goals': self.baseline['goals'],
             }
             for body in ('', 'measured("options-controls") {}',
                          '// measured("options-reset-cancel") {}\n',

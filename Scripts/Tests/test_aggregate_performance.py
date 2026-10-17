@@ -70,7 +70,8 @@ class AggregatePerformanceTests(unittest.TestCase):
                 {
                     "scenarios": scenarios or ["navigation"],
                     "mode": mode,
-                    "scenarioGoals": {"real-card-play": {"maximumMissedDeadlineCount": 0, "maximumFrameMs": 20}},
+                    "scenarioGoals": {name: {"maximumMissedDeadlineCount": 0, "maximumFrameMs": 20}
+                                      for name in scenarios or ["navigation"] if name == "real-card-play"},
                     "goals": {"minimumAverageFPS": 59, "minimumOnePercentLowFPS": 59, "maximumSevereStallCount": 0},
                 },
             )

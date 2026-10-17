@@ -29,7 +29,9 @@ TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/performance.sh --scenario real-card-play
 ```
 
 Scenario and group selectors can be combined. The runner snapshots the selected
-baseline and validates exactly that coverage. Test prerequisites still run, but
+baseline and validates exactly that coverage. It validates the full baseline before
+selection, rejects unknown scenario overrides, and retains only selected overrides
+in the snapshot. Test prerequisites still run, but
 unselected steps after the last requested measurement do not. Each invocation
 uses a new output directory: a clean rerun never erases an earlier finding.
 `TRINKET_PERFORMANCE_REPETITIONS=2` is an optional consistency check, not a

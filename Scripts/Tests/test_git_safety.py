@@ -21,6 +21,7 @@ class GitSafetyTests(ScriptRegressionTestCase):
                                              ("2", ["origin", "+HEAD:main"], False),
                                              ("0", ["origin", "+HEAD:main"], True),
                                              ("1", ["-vf", "origin", "HEAD:main"], False),
+                                             ("1", ["--mirror", "origin"], False),
                                              ("1", ["origin", "HEAD:main"], True)):
                 with self.subTest(dirty=dirty, arguments=arguments):
                     capture.unlink(missing_ok=True)

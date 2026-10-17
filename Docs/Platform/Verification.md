@@ -245,6 +245,8 @@ select the full portfolio. Narrow selection requires all manifests to match the
 reviewed layout fingerprints in `ci-path-filter.py`; any changed manifest retains
 full coverage until its target/input ownership is reviewed and its fingerprint
 deliberately updated. Tests and handoff never refresh these fingerprints.
+Rewound or divergent push history, unknown comparison status, and incomplete file
+inventories select all gates because merge-base comparisons can omit removed changes.
 Standard manual and scheduled runs retain full package coverage; partial push
 verification does not substitute for it. Native qualification follows the
 [executed-scope contract](#native-pure-logic-qualification). Dispatch

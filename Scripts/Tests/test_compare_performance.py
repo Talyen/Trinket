@@ -121,6 +121,7 @@ class ComparePerformanceTests(unittest.TestCase):
         for invalid in (None, baseline | {"goals": []},
                         baseline | {"goals": baseline["goals"] | {"minimumAverageFPS": True}},
                         baseline | {"scenarioGoals": {"navigation": {"maximumFrameMs": float("nan")}}},
+                        baseline | {"scenarioGoals": {"navigaton": {"maximumFrameMs": 20}}},
                         baseline | {"refreshTargetHz": "sixty"}, baseline | {"minimumReportSchema": True},
                         baseline | {"goals": baseline["goals"] | {"maximumFrameMS": 20}},
                         baseline | {"goals": baseline["goals"] | {"minimumAverageFPS": 10 ** 400}}):

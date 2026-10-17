@@ -335,6 +335,10 @@ def compare_filenames(repo: str, before: str, sha: str, token: str) -> list[str]
         raise SystemExit(f"compare API failed ({error.code}): {body}") from error
     except (OSError, ValueError):
         return None
+    # Merge-base comparisons omit changes removed by a rewind or divergent push.
+    # Only an ancestor-to-descendant comparison can safely narrow verification.
+    if payload.get("status") not in ("ahead", "identical"):
+        return None
     files = payload.get("files")
     # Compare pagination only pages commits; files stop at 300 on page one.
     if not isinstance(files, list) or payload.get("truncated") or len(files) >= 300:
