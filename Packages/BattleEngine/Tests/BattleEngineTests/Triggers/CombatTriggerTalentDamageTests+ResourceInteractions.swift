@@ -118,9 +118,9 @@ extension CombatTriggerTalentDamageTests {
         battle.companionDeck = CombatDeck(abilities: [.kindling, .block])
         let result = battle.recordingEvents { battle in _ = await EffectApplication(
             effect: .drawAndPlayCards(1),
-            ability: .packTactics,
+            ability: Ability(id: "automatic-draw", name: "Automatic Draw", tier: .ultimate),
             source: battle.hero,
-            target: battle.hero,
+            target: battle.companion,
         ).apply(in: &battle) }
         #expect(result.contains { $0.kind == .ability && $0.abilityID == Ability.kindling.id })
         #expect(!result.contains { $0.kind == .ability && $0.abilityID == Ability.block.id })

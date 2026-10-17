@@ -189,9 +189,10 @@ empowerment paid once. Physical card movement, action cadence, and card-completi
 rewards occur once. One-shot hit bonuses retain their ordinary consumption rules.
 Repeats cannot consume a freshly readied repeat; an action granting
 `playNextCardTwice` leaves that preparation for a later card. Stop repeating after
-combat ends, caster defeat, or an unaffordable Health cost. Other draw-and-play
-effects retain automatic play and their existing
-alternating-deck rules. Draw-and-play collection stops when no candidate can draw;
+combat ends, caster defeat, or an unaffordable Health cost. Draw-and-play
+effects start with the targeted owner; multi-card requests alternate decks and may
+fall back to the other owner, while a single-card request uses only its target.
+Draw-and-play collection stops when no candidate can draw;
 its work is bounded by available cards rather than the requested count.
 
 Unique returns move the exact physical copy from discard or draw pile into hand,
@@ -266,7 +267,8 @@ current battle, including its RNG. Conditions, scaling, defenses and interrupted
 multi-hit actions follow the ordinary engine; the live battle stays unchanged.
 A forecast win must leave its card owner alive. Non-finishing choices retain the
 policy's heuristic scoring, using eligible outcomes and opening-state conditional/scaled
-damage estimates with a self-damage penalty for each branch. Integer scores saturate
+damage estimates with a self-damage penalty for each branch. Conditional effects
+contribute only when their condition holds in that opening state. Integer scores saturate
 instead of trapping. Forecasts skip log rebuilding and presentation recording.
 
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).

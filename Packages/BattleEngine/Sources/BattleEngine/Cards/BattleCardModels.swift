@@ -45,6 +45,10 @@ public struct CombatDeck: Hashable, Sendable {
         drawPile = abilities.map { Entry(ability: $0, copyID: nil) }
     }
 
+    package var firstAbility: Ability? {
+        drawPile.first?.ability
+    }
+
     public var isEmpty: Bool {
         drawPile.isEmpty
     }

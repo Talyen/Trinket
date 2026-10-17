@@ -1,12 +1,5 @@
-import Foundation
-import os
 import TrinketContent
 import TrinketCore
-
-private let cardDrawLogger = Logger(
-    subsystem: "com.trinket.battle",
-    category: "CardDrawHandlers",
-)
 
 extension EffectApplication {
     func applyDrawCards(in context: inout BattleState) -> EffectApplyOutcome {
@@ -18,7 +11,7 @@ extension EffectApplication {
            let sourceOwner = context.roster.participant(for: source), sourceOwner.isPartyMember {
             let allyOwner: BattleParticipant = sourceOwner == .hero ? .companion : .hero
             if BattleCardCombatEngine.canDrawFromDeck(for: allyOwner, in: context),
-               !BattleCardCombatEngine.deck(for: allyOwner, in: context).abilities.isEmpty {
+               !BattleCardCombatEngine.deck(for: allyOwner, in: context).isEmpty {
                 drawTarget = context.roster[allyOwner].combatant
             } else {
                 drawTarget = source
@@ -48,12 +41,9 @@ extension EffectApplication {
         guard let firstOwner = context.roster.participant(for: target), firstOwner.isPartyMember else {
             return EffectApplyOutcome(didApply: false)
         }
-        let drawOwner: BattleParticipant = ability.id == Ability.packTactics.id
-            ? (firstOwner == .hero ? .companion : .hero)
-            : firstOwner
         let drawnCards = collectDrawnCards(
-            targetCount: count, firstOwner: drawOwner,
-            allowFallback: ability.id == Ability.packTactics.id || count > 1,
+            targetCount: count, firstOwner: firstOwner,
+            allowFallback: count > 1,
             in: &context,
         )
         guard !drawnCards.isEmpty else {
@@ -61,8 +51,15 @@ extension EffectApplication {
         }
 
         emit(.cardsDrawn, amount: drawnCards.count, keyword: .physical, origin: .automatic, in: &context)
+        context.resolution.enter(.draw)
+        defer { context.resolution.leave(.draw) }
         let played = await context.withAutomaticPlay { context in
-            await autoPlayDrawnCards(drawnCards, in: &context)
+            var criticalAttackActorIDs: Set<String> = []
+            for card in drawnCards {
+                guard let played = try? await BattleCardCombatEngine.resolveDrawnCard(card, context: &context) else { continue }
+                criticalAttackActorIDs.formUnion(played)
+            }
+            return criticalAttackActorIDs
         }
 
         return EffectApplyOutcome(didApply: true, criticalAttackActorIDs: played)
@@ -97,34 +94,8 @@ extension EffectApplication {
     private func canDrawAndPlay(_ owner: BattleParticipant, in context: BattleState) -> Bool {
         guard BattleCardCombatEngine.canDrawFromDeck(for: owner, in: context) else { return false }
         guard !context.ownersSkippingThisPlayerTurn.contains(owner) else { return false }
-        let ability = owner == .hero ? context.heroDeck.abilities.first : context.companionDeck.abilities.first
+        let ability = BattleCardCombatEngine.deck(for: owner, in: context).firstAbility
         guard let ability else { return false }
         return BattleAbilityRules.canPayHealthCost(ability, actor: context.roster[owner].combatant, in: context)
-    }
-
-    private func autoPlayDrawnCards(
-        _ drawnCards: [BattleCard],
-        in context: inout BattleState,
-    ) async -> Set<String> {
-        context.resolution.enter(.draw)
-        defer { context.resolution.leave(.draw) }
-        guard context.resolution.depth(.draw) <= BattleState.maxDrawAndPlayDepth else {
-            return []
-        }
-
-        var criticalAttackActorIDs: Set<String> = []
-        for card in drawnCards {
-            guard BattleCardCombatEngine.playError(for: card, in: context, allowsTurnPreparation: true) == nil else { continue }
-            do {
-                let played = try await BattleCardCombatEngine.resolveDrawnCard(card, context: &context)
-
-                criticalAttackActorIDs.formUnion(played)
-            } catch {
-                cardDrawLogger.info(
-                    "Draw-and-play card \(card.id, privacy: .public) failed: \(error.localizedDescription, privacy: .public)",
-                )
-            }
-        }
-        return criticalAttackActorIDs
     }
 }

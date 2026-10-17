@@ -85,6 +85,10 @@ private enum HeuristicCardScoring {
                     damage = SaturatedArithmetic.saturatingAdd(damage, amount)
                 }
             case let .effect(targeted):
+                if let condition = targeted.condition,
+                   !BattleConditionEvaluator.isMet(condition, action: action, in: battle) {
+                    continue
+                }
                 effects = SaturatedArithmetic.saturatingAdd(
                     effects, effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware),
                 )

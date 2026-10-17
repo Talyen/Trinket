@@ -33,16 +33,16 @@ struct PlayPolicyTests {
         #expect(!battle.isEnemyDefeated)
     }
 
-    @Test func `nonlethal choices exclude impossible random outcomes`() {
+    @Test(arguments: [Ability.blackjack, .coldSnap, Ability(
+        id: "conditional-gain", name: "Conditional Gain", tier: .basic,
+        outcomeBranches: [
+            AbilityOutcomeBranch(effects: [.shield(.block, 1)]),
+            AbilityOutcomeBranch(effects: [.shield(.block, 100)], condition: .enemyBurning),
+        ],
+    )])
+    func `nonlethal choices exclude inactive effects and impossible outcomes`(ability: Ability) {
         var battle = finishingBattle(enemyHealth: 100)
-        let inflated = Ability(
-            id: "conditional-gain", name: "Conditional Gain", tier: .basic,
-            outcomeBranches: [
-                AbilityOutcomeBranch(effects: [.shield(.block, 1)]),
-                AbilityOutcomeBranch(effects: [.shield(.block, 100)], condition: .enemyBurning),
-            ],
-        )
-        _ = BattleCardCombatEngine.deal(inflated, owner: .hero, context: &battle)
+        _ = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
         let preferred = BattleCardCombatEngine.deal(.slash, owner: .hero, context: &battle)
         for policy in PlayPolicy.allCases {
             #expect(policy.preferredPlayableCard(in: battle)?.id == preferred.id)
