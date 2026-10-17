@@ -4,11 +4,10 @@ import TrinketCore
 
 extension EffectHandlers {
     static func summarizeControlMeter(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let meterStacks = stacks.filter { activeEffect in
+        guard let meter = stacks.first(where: { activeEffect in
             guard case let .controlMeter(meterKeyword, _, _) = activeEffect.effect else { return false }
             return meterKeyword == keyword
-        }
-        guard let meter = meterStacks.first else { return nil }
+        }) else { return nil }
 
         if meter.effect.isActionSkipPending {
             let alias = ContentCopy.resource(keyword.statusAlias ?? keyword.rawValue)

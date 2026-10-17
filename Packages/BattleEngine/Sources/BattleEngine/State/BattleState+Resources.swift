@@ -13,7 +13,7 @@ package extension BattleState {
         isDirectCardGain: Bool = false,
         isLeechOverflow: Bool = false,
     ) async -> Int {
-        guard amount > 0, roster.health(for: combatant) > 0 else { return 0 }
+        guard amount > 0, goldFlow.gained < Int.max, roster.health(for: combatant) > 0 else { return 0 }
         if isLeechOverflow {
             resolution.enter(.leechOverflowGold)
         }
@@ -22,10 +22,8 @@ package extension BattleState {
                 resolution.leave(.leechOverflowGold)
             }
         }
-        let theftBonus = isTheft && amount > 0 && roster.health(for: combatant) > 0
-            ? modifiers(for: combatant.id).triggers.goldStealFlatBonus : 0
-        let baseGold = goldGranted(for: SaturatedArithmetic.saturatingAdd(amount, theftBonus), sourceActorID: combatant.id)
-        var granted = baseGold
+        let theftBonus = isTheft ? modifiers(for: combatant.id).triggers.goldStealFlatBonus : 0
+        var granted = goldGranted(for: SaturatedArithmetic.saturatingAdd(amount, theftBonus), sourceActorID: combatant.id)
         if isTheft, granted > 0,
            roster.runtime(for: combatant)?.talents.pending.doubleNextGoldSteal == true {
             granted = SaturatedArithmetic.saturatingMul(granted, 2)
@@ -44,8 +42,13 @@ package extension BattleState {
         }
         let previousEarned = goldFlow.gained
         granted = recordGoldGain(granted)
-        if isTheft, granted > 0, modifiers(for: combatant.id).triggers.gildedClaws {
-            roster.mutateRuntime(for: combatant) { $0.talents.history.stolenGoldDamage += granted }
+        guard granted > 0 else { return 0 }
+        if isTheft, modifiers(for: combatant.id).triggers.gildedClaws {
+            roster.mutateRuntime(for: combatant) {
+                $0.talents.history.stolenGoldDamage = SaturatedArithmetic.saturatingAdd(
+                    $0.talents.history.stolenGoldDamage, granted,
+                )
+            }
         }
         UniqueCombatEngine.gainedGold(granted, by: combatant, in: &self)
         let currentEarned = goldFlow.gained
@@ -58,7 +61,7 @@ package extension BattleState {
             keyword: .gold,
             origin: isDirectCardGain ? .direct : .automatic,
         )
-        if isTheft, granted > 0 {
+        if isTheft {
             await CombatTriggerEngine.afterGoldTheft(by: combatant, amount: granted, in: &self)
         }
         await CombatTriggerEngine.afterGoldGained(

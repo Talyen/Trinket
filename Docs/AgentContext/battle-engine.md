@@ -89,6 +89,11 @@ with selective duration rules supply an extractor.
 `EffectApplication` owns immutable effect/ability/source/target attribution and
 exhaustively dispatches the closed `Effect` set. Its store and event operations
 share that attribution; stored-effect ticks and summaries live in `EffectHandlers`.
+The specialized Burn/Poison and Bleed applicators report committed Health damage
+or stored status, including lethal immediate hits. The keyword dispatcher instead
+reports whether it handled the keyword. Revival returns actual restored Health and
+requires a registered roster identity; callers do not infer application from event
+IDs or stack counts.
 Stored buffs share replacement and feedback while retaining their stacking rules.
 Thorns and Kindled share saturating amount-buff operations. Block grants use
 `BattleState.applyBlockGain`; all other insertion uses `insertEffect`.

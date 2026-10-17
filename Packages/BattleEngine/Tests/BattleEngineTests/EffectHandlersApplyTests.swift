@@ -1,5 +1,6 @@
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
 @testable import BattleEngine
 
@@ -150,5 +151,52 @@ extension EffectHandlersApplyTests {
         #expect(battle.gold == 10 + amount)
         #expect(battle.goldFlow == BattleGoldFlow(gained: amount))
         #expect(events.contains { $0.effectKind == .resourceGain && $0.amount == amount })
+    }
+}
+
+extension EffectHandlersApplyTests {
+    @Test(arguments: [Effect.burn(2), .poison(2), .bleed(2)])
+    func `a lethal damage over time application still reports its committed hit`(effect: Effect) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 1, dealOpeningHand: false, appliesFightPacing: false)
+        let ability = Ability(
+            id: "lethal-dot", name: "Lethal Status", tier: .skill,
+            targetedEffects: [TargetedEffect(effect, target: .enemy)],
+        )
+        let events = battle.performTestAction(ability)
+        #expect(battle.isEnemyDefeated)
+        #expect(events.last { $0.kind == .ability }?.appliedEffects == [effect])
+    }
+
+    @Test(arguments: [Effect.burn(2), .poison(2)])
+    func `fully absorbed decaying damage does not report an applied effect`(effect: Effect) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(appliesFightPacing: false)
+        DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
+        let ability = Ability(
+            id: "absorbed-dot", name: "Absorbed Status", tier: .skill,
+            targetedEffects: [TargetedEffect(effect, target: .enemy)],
+        )
+        let events = battle.performTestAction(ability)
+        #expect(events.last { $0.kind == .ability }?.appliedEffects.isEmpty == true)
+        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT })
+    }
+
+    @Test(arguments: [false, true])
+    func `revival restores only a defeated member of the live roster`(registered: Bool) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(companionHealth: 0)
+        let target = registered ? battle.companion : CombatantFixtures.passiveCompanion(id: "absent")
+        let outcome = EffectHandlersTestSupport.dispatch(.revive(5), target: target, battle: &battle)
+        #expect(outcome.didApply == registered)
+        #expect(battle.health(of: battle.companion) == (registered ? 5 : 0))
+        #expect(outcome.events.map(\.amount) == (registered ? [5] : []))
+    }
+
+    @Test func `amplification at maximum potency emits no false growth`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(appliesFightPacing: false)
+        battle.insertEffect(.burn(Int.max), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+        let before = battle.activeEffects(of: battle.enemy)
+        let outcome = EffectHandlersTestSupport.dispatch(.multiplyDoT(.burn, 2), target: battle.enemy, battle: &battle)
+        #expect(!outcome.didApply)
+        #expect(outcome.events.isEmpty)
+        #expect(battle.activeEffects(of: battle.enemy) == before)
     }
 }

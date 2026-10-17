@@ -36,7 +36,8 @@ package enum CombatTriggerEngine {
     }
 
     static func hasLivingPartyTrigger(_ keyPath: KeyPath<CombatTraitTriggers, Bool>, in context: BattleState) -> Bool {
-        livingAllies(in: context).contains { $0.profile.triggers[keyPath: keyPath] }
+        (context.roster.hero.isAlive && context.heroModifiers.triggers[keyPath: keyPath])
+            || (context.roster.companion.isAlive && context.companionModifiers.triggers[keyPath: keyPath])
     }
 
     static func frozenTargetCannotBlockOrHeal(_ target: Combatant, in context: BattleState) -> Bool {
@@ -47,7 +48,7 @@ package enum CombatTriggerEngine {
 
     static func incomingHealMultiplier(for target: Combatant, in context: BattleState) -> Double {
         var multiplier = burnAuraHealMultiplier(for: target, in: context)
-        let affliction = context.roster.activeEffects(for: target).compactMap { active -> Double? in
+        let affliction = context.roster.activeEffects(for: target).lazy.compactMap { active -> Double? in
             guard case let .healingReductionPercent(percent, _) = active.effect else { return nil }
             return percent
         }.max() ?? 0

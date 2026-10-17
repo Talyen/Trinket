@@ -170,13 +170,15 @@ struct BattleBoundaryRegressionTests {
             _ = battle.recordGoldGain(Int.max)
         }
 
+        battle.roster.hero.talents.pending.doubleNextGoldSteal = true
         let gain = battle.recordingResult { battle in await battle.grantGold(
-            atCapacity ? 1 : 0, to: battle.hero, abilityName: "Gold",
+            atCapacity ? 1 : 0, to: battle.hero, abilityName: "Gold", isTheft: true,
         ) }
 
         #expect(gain.value == 0)
         #expect(battle.health(of: battle.hero) == 10)
-        #expect(!gain.events.contains { $0.effectKind == .instantHeal })
+        #expect(gain.events.isEmpty)
+        #expect(battle.roster.hero.talents.pending.doubleNextGoldSteal)
         if !atCapacity {
             battle.grantGoldEvent(1, to: battle.hero, abilityName: "Gold")
             #expect(battle.health(of: battle.hero) == 12)
@@ -300,6 +302,14 @@ struct BattleBoundaryRegressionTests {
         #expect(battle.health(of: battle.hero) == 20)
         #expect(battle.storedBlockedDamageByActorID[battle.hero.id] == Int.max)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 1)
+    }
+
+    @Test func `Gilded Claws retains a saturated preparation when more Gold arrives`() {
+        var battle = makeBattle(profile: .withTriggers { $0.gildedClaws = true })
+        battle.roster.hero.talents.history.stolenGoldDamage = Int.max
+        battle.grantGoldEvent(1, to: battle.hero, abilityName: "Steal", isTheft: true)
+        #expect(battle.gold == 1)
+        #expect(battle.roster.hero.talents.history.stolenGoldDamage == Int.max)
     }
 
     private func makeBattle(profile: CombatModifierProfile) -> BattleState {

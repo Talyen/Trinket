@@ -247,24 +247,19 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `loyal companion draws on real heal once per turn`() throws {
-        let profile = CombatModifierProfile.withTriggers { $0.healCompanionDrawsCompanionCard = true }
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.heal], heroModifiers: profile, appliesFightPacing: false,
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            heroModifiers: .withTriggers { $0.healCompanionDrawsCompanionCard = true },
+            appliesFightPacing: false,
         )
-        _ = battle.resolveTestDamage(5, from: .enemy, to: .companion, options: .effect())
-        let deckBefore = battle.companionDeck.count
-        battle.nextCardID += 1
-        battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero)])
-        _ = try BattleTestFixtures.playCardNamed("Heal", owner: .hero, on: &battle)
-        // Heal targets lowestHealthAlly (companion, damaged) with 6, restores 5 (missing), draws 1 Companion card (claimed before draw).
-        #expect(battle.companionDeck.count == max(0, deckBefore - 1))
-        // Second heal same turn does not draw again (once per turn).
-        _ = battle.resolveTestDamage(1, from: .enemy, to: .companion, options: .effect())
-        battle.nextCardID += 1
-        battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero)])
-        let deckMid = battle.companionDeck.count
-        _ = try BattleTestFixtures.playCardNamed("Heal", owner: .hero, on: &battle)
-        #expect(battle.companionDeck.count == deckMid)
+        battle.companionDeck = CombatDeck(abilities: [.slash, .block])
+        for expectedDraws in [1, 0] {
+            battle.roster.companion.currentHealth = 10
+            let card = BattleCardCombatEngine.deal(.heal, owner: .hero, context: &battle)
+            let events = try battle.playCard(cardID: card.id).events
+            #expect(events.count { $0.effectKind == .cardsDrawn } == expectedDraws)
+            #expect(battle.hand.cards.map(\.owner) == [.companion])
+            #expect(battle.companionDeck.count == 1)
+        }
     }
 
     @Test func `forbidden knowledge pays health before drawing on cadence`() {

@@ -107,28 +107,6 @@ enum BattleTestFixtures {
         }
         return try battle.playCard(cardID: card.id).events
     }
-
-    static func playUntilAbility(
-        _ abilityName: String,
-        owner: BattleParticipant = .hero,
-        on battle: inout BattleState,
-        maxRounds: Int = 20,
-    ) throws -> [ActionEvent]? {
-        for _ in 0 ..< maxRounds {
-            if let card = battle.hand.cards.first(where: {
-                $0.ability.name == abilityName && $0.owner == owner && battle.isCardPlayable($0)
-            }) {
-                return try battle.playCard(cardID: card.id).events
-            }
-            if try playFirstPlayableCard(owner: owner, on: &battle) == nil {
-                _ = battle.endTurn()
-            }
-            if battle.isBattleOver {
-                break
-            }
-        }
-        return nil
-    }
 }
 
 extension BattleTestFixtures {

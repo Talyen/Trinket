@@ -17,8 +17,10 @@ extension EffectApplication {
             return EffectApplyOutcome(didApply: false)
         }
         var total = 0
+        var grew = false
         for index in effects.indices where isDetonatableDoT(effects[index].effect, keyword: keyword) {
             let multiplied = SaturatedArithmetic.saturatingMul(effects[index].effect.potency ?? 0, factor)
+            grew = grew || multiplied > (effects[index].effect.potency ?? 0)
             switch keyword {
             case .burn: effects[index].effect = .burn(multiplied)
             case .poison: effects[index].effect = .poison(multiplied)
@@ -27,6 +29,7 @@ extension EffectApplication {
             }
             total = SaturatedArithmetic.saturatingAdd(total, multiplied)
         }
+        guard grew else { return EffectApplyOutcome(didApply: false) }
         context.roster.setActiveEffects(effects, for: target)
         emit(.dotAmplified, amount: total, keyword: keyword, origin: .automatic, in: &context)
         return EffectApplyOutcome(didApply: true)

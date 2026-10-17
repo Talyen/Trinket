@@ -105,12 +105,13 @@ struct CleanseIntegrationTests {
             ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
         ] : []
         let buffs = shielded ? [ActiveEffect(id: 3, effect: .shield(.block, 10), remainingTurns: 6)] : []
-        var battle = makeCleanseBattle(activeHeroEffects: debuffs + buffs)
+        var battle = makeCleanseBattle(activeHeroEffects: debuffs + buffs, dealOpeningHand: false)
         battle.appliesFightPacing = false
         battle.roster.hero.currentHealth = heroHealth
         battle.roster.companion.currentHealth = companionHealth
 
-        let events = try #require(try BattleTestFixtures.playUntilAbility("Panacea Potion", on: &battle))
+        let card = BattleCardCombatEngine.deal(.panaceaPotion, owner: .hero, context: &battle)
+        let events = try battle.playCard(cardID: card.id).events
         #expect(!battle.activeEffects(of: battle.hero).contains { $0.effect.isRemovableDebuff })
         #expect(battle.health(of: battle.hero) == expectedHero)
         #expect(battle.health(of: battle.companion) == expectedCompanion)

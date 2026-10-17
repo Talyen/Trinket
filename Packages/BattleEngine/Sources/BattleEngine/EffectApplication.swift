@@ -12,18 +12,8 @@ struct EffectApplication {
     func apply(in context: inout BattleState) async -> EffectApplyOutcome {
         switch effect {
         case let .burn(potency), let .poison(potency):
-            await context.applyDecayingDoT(
+            let didApply = await DoTApplicator.applyDecayingDoT(
                 keyword: effect.keyword,
-                potency: potency,
-                to: target,
-                sourceActorID: source.id,
-                application: .ability,
-                provenance: context.resolution.damageProvenance(for: source.id),
-            )
-            return EffectApplyOutcome(didApply: true)
-        case let .bleed(potency):
-            let bleedsBefore = context.roster.activeEffects(for: target).count(where: \.effect.isBleed)
-            await DoTApplicator.applyBleed(
                 potency: potency,
                 to: target,
                 sourceActorID: source.id,
@@ -31,7 +21,16 @@ struct EffectApplication {
                 provenance: context.resolution.damageProvenance(for: source.id),
                 in: &context,
             )
-            let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
+            return EffectApplyOutcome(didApply: didApply)
+        case let .bleed(potency):
+            let didApply = await DoTApplicator.applyBleed(
+                potency: potency,
+                to: target,
+                sourceActorID: source.id,
+                application: .ability,
+                provenance: context.resolution.damageProvenance(for: source.id),
+                in: &context,
+            )
             return EffectApplyOutcome(didApply: didApply)
         case let .controlMeter(keyword, amount, _):
             let outcome = await ControlMeterEngine.applyMeterCharge(
@@ -68,7 +67,7 @@ struct EffectApplication {
                 amount, to: source, abilityID: ability.id, abilityName: ability.name,
                 isTheft: ability.stealsGold, isDirectCardGain: true,
             )
-            return EffectApplyOutcome(didApply: true, grantedGold: gain)
+            return EffectApplyOutcome(didApply: gain > 0, grantedGold: gain)
         case .resourceGain: return EffectApplyOutcome(didApply: false)
         case .drawCards: return applyDrawCards(in: &context)
         case .drawAndPlayCards: return await applyDrawAndPlayCards(in: &context)
@@ -152,11 +151,7 @@ struct EffectApplication {
         case .avatar: return await applyAvatar(in: &context)
         case .blessedAegis: return await applyBlessedAegis(in: &context)
         case let .revive(health):
-            guard health > 0 else {
-                return EffectApplyOutcome(didApply: false)
-            }
-            let firstEventID = context.nextEventID
-            context.reviveEmitting(
+            let restored = context.reviveEmitting(
                 target,
                 health: health,
                 source: source,
@@ -164,7 +159,7 @@ struct EffectApplication {
                 abilityName: ability.name,
                 origin: .direct,
             )
-            return EffectApplyOutcome(didApply: context.nextEventID > firstEventID)
+            return EffectApplyOutcome(didApply: restored > 0)
         case .damageReductionPercent, .damageReductionFlat, .healingReductionPercent:
             let applied = context.insertEffect(effect, to: target, sourceID: source.id, remainingTurns: effect.durationTurns)
             return EffectApplyOutcome(didApply: applied)

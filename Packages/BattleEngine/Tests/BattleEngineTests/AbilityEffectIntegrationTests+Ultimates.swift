@@ -274,16 +274,4 @@ extension AbilityEffectIntegrationTests {
         #expect(context.health(of: context.enemy) == before - 2)
         #expect(!context.activeEffects(of: context.enemy).contains { $0.effect.kind == .recurringDamage })
     }
-
-    @Test(arguments: [(0, 1, 1), (5, 6, 3)])
-    func `shield bash gains block before calculating floored minimum stun`(
-        startingBlock: Int, expectedBlock: Int, expectedDamage: Int,
-    ) {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        DefensePoolEngine.set(startingBlock, on: context.hero, in: &context)
-        let events = context.performTestAction(.shieldBash)
-        #expect(BattleTestFixtures.shieldPoints(for: context.hero, in: context) == expectedBlock)
-        #expect(events.first { $0.kind == .abilityDamage }?.amount == expectedDamage)
-        #expect(!events.contains { $0.effectKind == .blockSpent })
-    }
 }

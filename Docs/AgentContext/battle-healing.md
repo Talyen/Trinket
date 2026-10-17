@@ -17,7 +17,9 @@ Healing emits original overflow as an `overheal` event, including at full Health
 Floating feedback combines it with restored Health in the existing healing number;
 restoration events, battle-log totals, and healing triggers still use actual restoration.
 Gold grants require a positive request and a living recipient before flat bonuses;
-Gold-gain reactions require a positive actual grant, including when the Gold ledger is saturated.
+Gold-gain reactions and feedback require a positive actual grant, including when the Gold ledger is saturated.
+A saturated Gold ledger preserves theft preparations. Gilded Claws damage storage
+saturates independently of the current Gold grant.
 Nonpositive Mana restoration leaves the balance unchanged. Raw Health loss and
 Mana spending clamp requests to zero through the current balance before subtracting.
 Block grants reject defeated recipients before preparations, feedback, or partner

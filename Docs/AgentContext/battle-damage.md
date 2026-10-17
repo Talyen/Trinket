@@ -38,7 +38,8 @@ subtracting it and clamping damage. Burn and Poison detonations preserve source-
 decay and tick rules, plus applicable living-party enemy-pool decay Talents.
 Resolution depth limits recursion, never changes the meaning of a request.
 DoT amplification multiplies every matching stack, retaining each stack's source
-and duration; its feedback reports the combined amplified potency. Legacy
+and duration; its feedback reports the combined amplified potency only when at
+least one stack grows. Fully capped pools emit no amplification feedback. Legacy
 `multiplyDoT` respects negative-status protection on the existing debuff; growth
 does not consume Fae Ward's interception of a new debuff.
 Card preparations, DoT attachment/growth/detonation, and triggered Thorns gains
