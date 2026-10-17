@@ -87,12 +87,6 @@ public enum BattleConditionEvaluator {
     }
 
     private static func hasMarked(on combatant: Combatant, in context: BattleState) -> Bool {
-        context.roster.activeEffects(for: combatant).contains { active in
-            if case .marked = active.effect {
-                true
-            } else {
-                false
-            }
-        }
+        context.roster.activeEffects(for: combatant).contains { $0.effect.kind == .marked }
     }
 }

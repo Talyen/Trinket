@@ -45,7 +45,7 @@ struct BattleCardCombatTests {
         }
     }
 
-    @Test func `dark pact draws two cards for owner`() throws {
+    @Test func `dark pact draws two cards and health cost ignores block`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.darkPact, .slash, .heal, .smite],
             companionAbilities: [.bash, .serratedEdge, .bloodthorn],
@@ -53,6 +53,10 @@ struct BattleCardCombatTests {
         )
         battle.heroDeck.putOnBottom(.heal)
         battle.heroDeck.putOnBottom(.smite)
+        battle.roster.setActiveEffects(
+            [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)],
+            for: battle.roster.hero.combatant,
+        )
 
         battle.hand = BattleHand()
         _ = BattleCardCombatEngine.deal(.darkPact, owner: .hero, context: &battle)
@@ -65,28 +69,7 @@ struct BattleCardCombatTests {
         try #expect(battle.hand.bufferCount == 1)
         try #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
         try #expect(battle.health(of: battle.hero) == 19)
-    }
-
-    @Test func `dark pact health cost ignores block`() throws {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.darkPact, .slash, .heal, .smite],
-            enemyMaxHealth: 500,
-        )
-        battle.heroDeck.putOnBottom(.heal)
-        battle.heroDeck.putOnBottom(.smite)
-        battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 6)],
-            for: battle.roster.hero.combatant,
-        )
-        battle.hand = BattleHand()
-        _ = BattleCardCombatEngine.deal(.darkPact, owner: .hero, context: &battle)
-
-        _ = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
-
-        try #expect(battle.health(of: battle.hero) == 19)
-        let shield = battle.activeEffects(of: battle.hero).first {
-            $0.effect.kind == .shield
-        }
+        let shield = battle.activeEffects(of: battle.hero).first { $0.effect.kind == .shield }
         guard case let .shield(_, buffer) = shield?.effect else {
             Issue.record("Block should survive Dark Pact's Health cost")
             return

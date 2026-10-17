@@ -41,7 +41,7 @@ public struct BattleActionContext: Equatable, Sendable {
             let members = allies(in: state)
             return members.reversed().first { state.health(of: $0) <= 0 } ?? members.first ?? actor
         case .eachAlly:
-            return targets(target, in: state).first ?? actor
+            return allies(in: state).first ?? actor
         }
     }
 

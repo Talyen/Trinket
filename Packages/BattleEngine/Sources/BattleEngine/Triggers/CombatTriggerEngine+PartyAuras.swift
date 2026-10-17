@@ -14,7 +14,6 @@ package extension CombatTriggerEngine {
         if source.role != .enemy, state.options.isAttackHit {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, enrageAuraBonus(in: context))
         }
-        let living = livingAllyModifiers(in: context)
         let companion = context.roster.companion.combatant
         let companionFullHealth = source.role != .enemy && context.roster.companion.isAlive
             && context.roster.maxHealth(for: companion) > 0
@@ -23,7 +22,7 @@ package extension CombatTriggerEngine {
             for: damageKeyword,
             triggers: context.modifiers(for: source.id).triggers,
         )
-        for profile in living {
+        forEachLivingAllyModifier(in: context) { profile in
             let triggers = profile.triggers
             if source.role == .companion {
                 if targetIsPoisoned {
@@ -86,7 +85,7 @@ package extension CombatTriggerEngine {
     ) -> (multiplier: Double, abilityNames: [String]) {
         var excess = 0.0
         var names: [String] = []
-        for profile in livingAllyModifiers(in: context) {
+        forEachLivingAllyModifier(in: context) { profile in
             if targetIsPoisoned {
                 accumulateAfflictedAura(
                     multiplier: profile.triggers.damageVsPoisonedMultiplier,

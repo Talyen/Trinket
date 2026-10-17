@@ -54,30 +54,14 @@ package enum BattleTurnEngine {
     private static func applyStunRecoveryReduction(for actor: Combatant, context: inout BattleState) {
         var multiplier = 1.0
         var sourceID: String?
-        if actor.role == .enemy {
-            if context.roster.hero.isAlive {
-                let m = context.heroModifiers.triggers.stunnedEnemyNextTurnDamageMultiplier
-                if m < 1 {
-                    multiplier *= m
-                    if sourceID == nil {
-                        sourceID = context.hero.id
-                    }
-                }
-            }
-            if context.roster.companion.isAlive {
-                let m = context.companionModifiers.triggers.stunnedEnemyNextTurnDamageMultiplier
-                if m < 1 {
-                    multiplier *= m
-                    if sourceID == nil {
-                        sourceID = context.companion.id
-                    }
-                }
-            }
-        } else if context.roster.enemy.isAlive {
-            let m = context.enemyModifiers.triggers.stunnedEnemyNextTurnDamageMultiplier
+        let opponents = BattleActionContext(actor: actor, in: context).opponents(in: context)
+        for opponent in opponents where context.roster.runtime(for: opponent)?.isAlive == true {
+            let m = context.modifiers(for: opponent.id).triggers.stunnedEnemyNextTurnDamageMultiplier
             if m < 1 {
                 multiplier *= m
-                sourceID = context.enemy.id
+                if sourceID == nil {
+                    sourceID = opponent.id
+                }
             }
         }
         guard multiplier < 1, let sourceID else { return }

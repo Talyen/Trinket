@@ -62,7 +62,7 @@ extension HealingEngine {
         var enemyMultiplier = 1.0
         if request.target.role == .enemy {
             if context.roster.hasAffliction(.bleed, on: request.target) {
-                for profile in CombatTriggerEngine.livingAllyModifiers(in: context) {
+                CombatTriggerEngine.forEachLivingAllyModifier(in: context) { profile in
                     enemyMultiplier *= profile.triggers.bleedingEnemyHealingMultiplier
                 }
             }

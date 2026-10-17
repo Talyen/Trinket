@@ -243,8 +243,6 @@ package extension DamagePipeline {
                     stored = SaturatedArithmetic.saturatingAdd(stored, val)
                 }
             }
-        } else if triggers.storedImpact {
-            stored = context.storedBlockedDamageByActorID.removeValue(forKey: source.id) ?? 0
         }
         if stored > 0 {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, stored)

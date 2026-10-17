@@ -79,7 +79,7 @@ package extension BattleState {
         var percent = max(0, profile.goldGainedPercent)
         let isPartySource = sourceActorID == roster.hero.id || sourceActorID == roster.companion.id
         if isPartySource {
-            for profile in CombatTriggerEngine.livingAllyModifiers(in: self) {
+            CombatTriggerEngine.forEachLivingAllyModifier(in: self) { profile in
                 percent += max(0, profile.triggers.partyGoldGainedPercent)
             }
         }

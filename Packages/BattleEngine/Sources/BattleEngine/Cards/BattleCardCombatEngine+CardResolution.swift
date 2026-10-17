@@ -51,8 +51,13 @@ extension BattleCardCombatEngine {
         let previousUniqueCard = context.uniques.card
         context.uniques.card = UniqueCombatEngine.prepareCard(card, in: &context)
         defer { context.uniques.card = previousUniqueCard }
-        let livingParty = [context.roster.hero, context.roster.companion].filter(\.isAlive).map(\.id)
-        let partyDamageBonus = context.resolution.reservePartyCardDamage(livingSourceIDs: livingParty)
+        let partyDamageBonus: Int
+        if context.resolution.hasPendingPartyCardDamage {
+            let livingParty = [context.roster.hero, context.roster.companion].filter(\.isAlive).map(\.id)
+            partyDamageBonus = context.resolution.reservePartyCardDamage(livingSourceIDs: livingParty)
+        } else {
+            partyDamageBonus = 0
+        }
         let playSerial = context.resolution.beginCard(
             actorID: actor.id,
             partyDamageBonus: partyDamageBonus,

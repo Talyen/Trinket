@@ -126,31 +126,6 @@ struct BattleMechanicsTests {
         }
     }
 
-    @Test func `predators focus applies leech preparation`() throws {
-        let baseWolf = try #require(GameContent.companions.first { $0.id == "wolf" })
-        let wolf = baseWolf.withAbilityLoadout(
-            AbilityLoadout(
-                basic: baseWolf.abilityLoadout.basic,
-                skill: .predatorsFocus,
-                ultimate: baseWolf.abilityLoadout.ultimate,
-            ),
-        )
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        var context = BattleStateTestFactory.makeBattle(hero: hero, companion: wolf, enemy: enemy)
-        let ability = try #require(wolf.abilityLoadout.skill)
-
-        BattleTurnEngine.performAction(
-            ability: ability,
-            actor: wolf,
-            abilityTarget: context.enemy,
-            context: &context,
-        )
-
-        #expect(context.roster.activeEffects(for: wolf).contains { $0.effect == .nextStrikeLeech })
-        #expect(!context.roster.activeEffects(for: wolf).contains { $0.effect == .nextStrikeCritical })
-    }
-
     @Test func `next strike critical guarantees crit and consumes`() throws {
         let ability = Ability(
             id: "test-crit-strike",

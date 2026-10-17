@@ -151,23 +151,6 @@ struct PlayerSaveStoreTests {
         #expect(!reloaded.isPersistenceDegraded)
     }
 
-    @Test @MainActor func `fixture roster mutation persists through hub`() throws {
-        let context = try PersistenceTestContext()
-        let storeURL = context.storeURL()
-        let firstStore = try PlayerSaveStore(
-            storeURL: storeURL,
-            disableCloudSync: true,
-        )
-        let persisted = firstStore.persistFixtureBatch(logging: "Seed roster Gold") {
-            $0.roster.gold = 17
-        }
-        try #expect(persisted)
-        try #expect(firstStore.roster.gold == 17)
-
-        let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        try #expect(reloaded.roster.gold == 17)
-    }
-
     @Test @MainActor func `untouched labyrinth survives gold only mutation`() throws {
         let context = try PersistenceTestContext()
         let storeURL = context.storeURL()

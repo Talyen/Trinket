@@ -42,15 +42,19 @@ package enum CombatTriggerEngine {
         return result
     }
 
+    static func forEachLivingAllyModifier(in context: BattleState, _ body: (CombatModifierProfile) throws -> Void) rethrows {
+        if context.roster.hero.isAlive {
+            try body(context.heroModifiers)
+        }
+        if context.roster.companion.isAlive {
+            try body(context.companionModifiers)
+        }
+    }
+
     static func livingAllyModifiers(in context: BattleState) -> [CombatModifierProfile] {
         var result: [CombatModifierProfile] = []
         result.reserveCapacity(2)
-        if context.roster.hero.isAlive {
-            result.append(context.heroModifiers)
-        }
-        if context.roster.companion.isAlive {
-            result.append(context.companionModifiers)
-        }
+        forEachLivingAllyModifier(in: context) { result.append($0) }
         return result
     }
 

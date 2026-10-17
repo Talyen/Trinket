@@ -133,37 +133,7 @@ struct StageRewardTests {
         try #expect(save.roster.gold == expected)
     }
 
-    @Test func `completing stage twice does not double rewards`() throws {
-        var save = SaveTestSupport.makeSave()
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-
-        StageCompletion.complete(
-            firstStage,
-            hero: hero,
-            companion: companion,
-            in: GameContent.chapters,
-            save: &save,
-            recordReceipt: { _ in },
-        )
-        let goldAfterFirst = save.roster.gold
-        let heroXPAfterFirst = save.roster.progression(for: hero).currentXP
-        let itemCountAfterFirst = save.inventory.items.count
-
-        StageCompletion.claimRewardsIfNeeded(
-            for: firstStage,
-            hero: hero,
-            companion: companion,
-            save: &save,
-            recordReceipt: { _ in },
-        )
-
-        try #expect(save.roster.gold == goldAfterFirst)
-        try #expect(save.roster.progression(for: hero).currentXP == heroXPAfterFirst)
-        try #expect(save.inventory.items.count == itemCountAfterFirst)
-    }
-
-    @Test func `claimed stage replay rejects additional battle gold and duplicate loot`() throws {
+    @Test func `completing claimed stage rejects additional battle gold and duplicate rewards`() throws {
         var save = SaveTestSupport.makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
@@ -185,6 +155,8 @@ struct StageRewardTests {
             recordReceipt: { _ in },
         )
         let goldAfterFirst = save.roster.gold
+        let heroXPAfterFirst = save.roster.progression(for: hero).currentXP
+        let itemCountAfterFirst = save.inventory.items.count
 
         StageCompletion.complete(
             firstStage,
@@ -195,8 +167,17 @@ struct StageRewardTests {
             save: &save,
             recordReceipt: { _ in },
         )
+        StageCompletion.claimRewardsIfNeeded(
+            for: firstStage,
+            hero: hero,
+            companion: companion,
+            save: &save,
+            recordReceipt: { _ in },
+        )
 
         try #expect(save.roster.gold == goldAfterFirst)
+        try #expect(save.roster.progression(for: hero).currentXP == heroXPAfterFirst)
+        try #expect(save.inventory.items.count == itemCountAfterFirst)
         try #expect(save.inventory.items.count(where: { $0.id == loot.item.id }) == 1)
     }
 

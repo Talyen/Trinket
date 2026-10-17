@@ -314,8 +314,10 @@ extension AttackerOnHitEngine {
         guard state.options.isBasicAttackHit, context.roster.health(for: state.combatant) > 0 else { return }
         let target = state.combatant
         if state.damageKeyword != .holy {
-            let holyBonus = CombatTriggerEngine.livingAllyModifiers(in: context)
-                .reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.triggers.partyBasicAttackHolyBonus) }
+            var holyBonus = 0
+            CombatTriggerEngine.forEachLivingAllyModifier(in: context) {
+                holyBonus = SaturatedArithmetic.saturatingAdd(holyBonus, $0.triggers.partyBasicAttackHolyBonus)
+            }
             _ = await DamagePipeline.resolveNestedDamage(
                 amount: holyBonus,
                 keyword: .holy,

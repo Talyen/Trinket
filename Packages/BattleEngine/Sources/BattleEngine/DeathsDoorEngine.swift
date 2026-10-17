@@ -4,7 +4,7 @@ import TrinketCore
 
 package enum DeathsDoorEngine {
     package static func applies(to combatant: Combatant) -> Bool {
-        combatant.role == .hero || combatant.role == .companion
+        combatant.role != .enemy
     }
 
     package static func isActive(for combatant: Combatant, in context: BattleState) -> Bool {
@@ -52,7 +52,6 @@ package enum DeathsDoorEngine {
             }
         }
         if context.roster.health(for: combatant) == 0,
-           combatant.id != context.roster.enemy.id,
            context.roster.enemy.isAlive {
             let explosion = context.modifiers(for: combatant.id).triggers.onDeathDealPhysicalDamageAllEnemies
             if explosion > 0 {

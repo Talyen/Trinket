@@ -172,8 +172,13 @@ struct CombatResolution {
         partyDamageByRecipient[recipientID] = amount
     }
 
+    var hasPendingPartyCardDamage: Bool {
+        !partyCardDamageBySource.isEmpty
+    }
+
     mutating func reservePartyCardDamage(livingSourceIDs: [String]) -> Int {
-        livingSourceIDs.reduce(0) {
+        guard !partyCardDamageBySource.isEmpty else { return 0 }
+        return livingSourceIDs.reduce(0) {
             SaturatedArithmetic.saturatingAdd($0, partyCardDamageBySource.removeValue(forKey: $1) ?? 0)
         }
     }

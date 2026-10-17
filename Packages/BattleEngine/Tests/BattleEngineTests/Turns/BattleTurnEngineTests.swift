@@ -218,9 +218,7 @@ struct BattleTurnEngineTests {
         #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 3)?.id == skill.id)
         #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 6)?.id == ultimate.id)
     }
-}
 
-struct BattleTurnEngineBurnBonusTests {
     @Test(arguments: [false, true])
     func `kindling doubles against an unburning enemy and consumes any existing burn bonus`(hasBonus: Bool) throws {
         var context = makeTurnContext(
@@ -235,9 +233,7 @@ struct BattleTurnEngineBurnBonusTests {
             #expect(!events.contains { $0.effectKind == .nextBurnBonusApplied })
         }
     }
-}
 
-struct BattleTurnEngineComponentTests {
     @Test func `next holy strike burn uses authored not doubled potency`() throws {
         let ability = Ability(id: "holy-strike", name: "Holy Strike", tier: .basic, damageComponents: [DamageComponent(10, keyword: .holy)])
         var context = makeTurnContext(
