@@ -60,9 +60,13 @@ missing native text controls fail visibly without fallback. Xcode 27's command-l
 download rejects pre-26 runtimes ([FB24836279](https://developer.apple.com/forums/thread/847134)).
 CI exports Apple's iOS 18.0 runtime with Xcode 26.6 on `macos-26`, transfers the
 archive with one-day retention, then imports it on the verified Xcode 27 runner.
-The disposable hosted compatibility runner removes its preinstalled runtimes
-before transfer and deletes the archive after import to leave room for test
-products. Its build and test simulator requests both require the iOS 18 profile.
+The disposable hosted compatibility runner removes eligible preinstalled iOS
+images before transfer and deletes the archive after import to leave room for test
+products. `ci-runtime-cleanup.py` validates the complete image inventory before any
+deletion, preserves busy/non-iOS images, and retains inventory/retry receipts. Only
+the read-only inventory receives one timeout retry; deletion errors fail visibly.
+Cleanup failures retain the `ios18-runtime-cleanup` phase. Its build and test
+simulator requests both require the iOS 18 profile.
 Compilation and tests still use the verified toolchain. Other profiles install the
 requested minimum runtime (`27.1` for Duo, otherwise the major's `.0`) when absent.
 They request Apple's `arm64` variant on Apple silicon and `universal` on Intel;

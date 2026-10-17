@@ -48,6 +48,14 @@ The same run passed 1,006 Engine tests and exposed one Searing Bind fixture that
 seeded effect ID 1 without advancing the allocator. Seed Burn through the existing
 insertion helper; preserve the one-versus-two skipped-action assertions. The
 combined control-extension lifecycle coverage passed and remains intact.
+The original Content shard exhausted its budget following two slow simulator boots;
+its infrastructure verdict retained the boot and retry evidence, without claiming
+executed tests. State's retained session contains Core, Persistence and AppState
+results together (65, 396 and 213 passed tests).
+Player compatibility run 39055440293 failed before runtime import because blanket
+runtime deletion encountered a watchOS image already being deleted. Replace that
+cleanup with complete validated iOS-only image selection and retained phase/retry
+receipts, preserving the disposable-runner guard and failing on mutation errors.
 Push the reviewed task branch for immutable
 hosted qualification. Run `ci.yml` with `toolchain=verified`,
 `scope=exhaustive-pilot` to exercise the full portfolio and new parity jobs without
@@ -68,7 +76,7 @@ requested daily follow-up after push, keeping unchanged or non-actionable result
 quiet and notifying on recurrence, completion, failure or required user action.
 The thread follow-up `trinket-ci-seven-day-review` was created for October 18–24,
 but the app subsequently reported it missing and its local record disappeared.
-Clarification is pending before recreating a possibly user-deleted follow-up.
+The user requested leaving it removed; do not recreate a scheduled follow-up.
 Evaluate prevention only on revisions containing this implementation and its
 hosted corrections; older remote-main runs remain baseline observations. Lack of
 rollout or insufficient exposure cannot establish a reduction in failures.
