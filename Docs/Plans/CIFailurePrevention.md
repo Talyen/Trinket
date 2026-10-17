@@ -39,6 +39,11 @@ harness. No shipping purchase behavior or requested accessibility coverage chang
 The user authorized pushing the branch, hosted validation and seven-day follow-up.
 Local integration at `577efc7e0` passed all 55 selected script suites and lightweight
 handoff gates; Swift compilation and simulator journeys remain hosted checks.
+The first full [qualified run](https://github.com/Talyen/Trinket/actions/runs/39054474255)
+found an actor-transfer compiler error in the new audit helper. The helper uses no
+test-instance state and is now static. Queued latest run 39054746972 and Player run
+39054627132 were cancelled to restart on this correction; these cancellations are
+not test failures and their requested coverage must be rerun in full.
 Push the reviewed task branch for immutable
 hosted qualification. Run `ci.yml` with `toolchain=verified`,
 `scope=exhaustive-pilot` to exercise the full portfolio and new parity jobs without

@@ -7,6 +7,7 @@ extension TrinketUITestCase {
         continueAfterFailure = true
         defer { continueAfterFailure = originalContinueAfterFailure }
         let application = try XCTUnwrap(app)
+        let auditType = Self.self
         try trinketOnMainActor {
             let types: [(String, XCUIAccessibilityAuditType)] = [
                 ("contrast", .contrast), ("element-detection", .elementDetection), ("hit-region", .hitRegion),
@@ -15,16 +16,16 @@ extension TrinketUITestCase {
             ]
             for (name, type) in types {
                 do {
-                    try performProductAudit(application, screen: screen, name: name, type: type, attempt: 1)
+                    try auditType.performProductAudit(application, screen: screen, name: name, type: type, attempt: 1)
                 } catch let error as NSError where error.domain == "com.apple.xcode.xctest.accessibilityAudit" && error.code == -56 {
                     // Retry one native audit timeout; violations and a second timeout still fail.
-                    try performProductAudit(application, screen: screen, name: name, type: type, attempt: 2)
+                    try auditType.performProductAudit(application, screen: screen, name: name, type: type, attempt: 2)
                 }
             }
         }
     }
 
-    @MainActor private func performProductAudit(
+    @MainActor private static func performProductAudit(
         _ application: XCUIApplication, screen: String, name: String, type: XCUIAccessibilityAuditType, attempt: Int,
     ) throws {
         try XCTContext.runActivity(named: "Accessibility: \(screen)/\(name), attempt \(attempt)") { activity in
