@@ -16,8 +16,7 @@ def report(jobs: dict, title: str, required: list[str]) -> tuple[str, bool]:
     missing = [name for name in required if jobs.get(name, {}).get('result') != 'success']
     failed = [name for name, job in jobs.items() if job['result'] == 'failure']
     cancelled = [name for name, job in jobs.items() if job['result'] == 'cancelled']
-    unavailable = [name for name in missing if jobs.get(name, {}).get('result') != 'cancelled']
-    outcome = 'failed' if failed or unavailable else 'cancelled' if cancelled else 'passed'
+    outcome = 'failed' if failed else 'cancelled' if cancelled else 'failed' if missing else 'passed'
     lines = [f'### {title}: {outcome}', '', '| Job | Result |', '|---|---|']
     for name, job in jobs.items():
         name = name.replace('|', '\\|').replace('\n', ' ')

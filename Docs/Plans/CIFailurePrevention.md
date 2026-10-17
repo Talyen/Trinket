@@ -56,6 +56,14 @@ Player compatibility run 39055440293 failed before runtime import because blanke
 runtime deletion encountered a watchOS image already being deleted. Replace that
 cleanup with complete validated iOS-only image selection and retained phase/retry
 receipts, preserving the disposable-runner guard and failing on mutation errors.
+The baseline-build isolated smoke selector passed in run 39057528818. The corrected
+full run 39055438737 still failed smoke during launch-readiness AX snapshotting;
+its screenshot is empty, so neither a product cause nor a framework cause is proven.
+The initial parity dependency also skipped valid Core evidence after unrelated unit
+failures. Export each complete comparator even when another package fails, run
+requested parity after failed shards, and require its result. Cancellation still
+reports cancelled unless an original job failure exists; missing execution never
+passes. Preparation inventory logs now retain each timed-out attempt on stderr.
 Push the reviewed task branch for immutable
 hosted qualification. Run `ci.yml` with `toolchain=verified`,
 `scope=exhaustive-pilot` to exercise the full portfolio and new parity jobs without

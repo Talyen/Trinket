@@ -328,12 +328,13 @@ jobs:
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test-ci-packages.sh ${{ matrix.packages }}
       - name: Export exact-run iOS comparator evidence
-        if: (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
+        id: ios-proof
+        if: always() && !cancelled() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
         env:
           PACKAGE: ${{ matrix.name == 'Engine' && 'BattleEngine' || 'TrinketCore' }}
         run: python3 Scripts/native-test-results.py export-ios "$PACKAGE" .DerivedData/TestResults/timing-log.jsonl .DerivedData/ParityProof/ios.json
       - name: Retain required iOS comparator evidence
-        if: (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
+        if: always() && steps.ios-proof.outcome == 'success'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: ${{ inputs.artifact-prefix }}ios-parity-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -354,7 +355,7 @@ jobs:
   native-parity:
     name: Native parity (${{ matrix.name }})
     needs: [unit]
-    if: github.event_name != 'push' && needs.unit.result == 'success'
+    if: always() && !cancelled() && github.event_name != 'push' && needs.unit.result != 'skipped'
     strategy:
       fail-fast: false
       matrix:
@@ -580,7 +581,7 @@ jobs:
       - name: Report required checks separately from advisory coverage
         env:
           JOB_RESULTS: ${{ toJSON(needs) }}
-          REQUIRE_PARITY: ${{ github.event_name != 'push' && needs.unit.result == 'success' }}
+          REQUIRE_PARITY: ${{ github.event_name != 'push' && needs.unit.result != 'skipped' }}
         run: |
           required=()
           if [[ "$REQUIRE_PARITY" == true ]]; then required+=(native-parity); fi

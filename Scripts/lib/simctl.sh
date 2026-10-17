@@ -66,6 +66,7 @@ try:
                                     stdout=subprocess.PIPE, text=True, check=True, timeout=timeout)
             break
         except subprocess.TimeoutExpired:
+            print(f"Simulator guest inventory attempt {1 if timeout == 10 else 2}/2 timed out after {timeout}s", file=sys.stderr)
             if timeout == 30:
                 raise
     print(result.stdout, end="")
