@@ -44,6 +44,10 @@ found an actor-transfer compiler error in the new audit helper. The helper uses 
 test-instance state and is now static. Queued latest run 39054746972 and Player run
 39054627132 were cancelled to restart on this correction; these cancellations are
 not test failures and their requested coverage must be rerun in full.
+The same run passed 1,006 Engine tests and exposed one Searing Bind fixture that
+seeded effect ID 1 without advancing the allocator. Seed Burn through the existing
+insertion helper; preserve the one-versus-two skipped-action assertions. The
+combined control-extension lifecycle coverage passed and remains intact.
 Push the reviewed task branch for immutable
 hosted qualification. Run `ci.yml` with `toolchain=verified`,
 `scope=exhaustive-pilot` to exercise the full portfolio and new parity jobs without
@@ -62,4 +66,9 @@ three guest-inventory timeouts, five native-settings failures and five audit-tim
 failures. Do not treat those overlapping counts as independent defects. Arrange the
 requested daily follow-up after push, keeping unchanged or non-actionable results
 quiet and notifying on recurrence, completion, failure or required user action.
-The thread follow-up `trinket-ci-seven-day-review` is active for October 18–24.
+The thread follow-up `trinket-ci-seven-day-review` was created for October 18–24,
+but the app subsequently reported it missing and its local record disappeared.
+Clarification is pending before recreating a possibly user-deleted follow-up.
+Evaluate prevention only on revisions containing this implementation and its
+hosted corrections; older remote-main runs remain baseline observations. Lack of
+rollout or insufficient exposure cannot establish a reduction in failures.

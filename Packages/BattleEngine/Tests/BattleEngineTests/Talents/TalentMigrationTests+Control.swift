@@ -70,10 +70,7 @@ extension TalentMigrationTests {
             var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.stunExtendVsBurning = true })
             battle.appliesFightPacing = false
             if burning {
-                battle.roster.setActiveEffects(
-                    [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
-                    for: battle.roster.enemy.combatant,
-                )
+                battle.insertEffect(.burn(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
             }
             _ = battle.chargeTestControl(
                 20,
