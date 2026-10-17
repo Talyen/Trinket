@@ -28,10 +28,12 @@ public extension AbilityCatalog {
 
     static let bloodthorn = Ability(
         id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
-        damageComponents: [
-            DamageComponent(2, keyword: .bleed, hasLeech: true),
-            DamageComponent(1, keyword: .poison),
+        description: "Deal 3 Bleed or Poison damage\nLeech",
+        outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .bleed)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(3, keyword: .poison)]),
         ],
+        hasLeech: true,
     )
 
     static let combustion = Ability(

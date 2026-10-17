@@ -5,7 +5,7 @@ import TrinketCore
 @testable import TrinketContent
 
 extension AbilityEffectIntegrationTests {
-    @Test(arguments: [0, 2, 4], [false, true])
+    @Test(arguments: [0, 1, 4], [false, true])
     func `Blackjack steals once for existing or newly applied Stun`(initialStun: Int, finishingHit: Bool) {
         var profile = CombatModifierProfile.zero
         profile.triggers.criticalChanceBonus = -1
@@ -24,7 +24,7 @@ extension AbilityEffectIntegrationTests {
 
         let events = battle.performTestAction(.blackjack)
 
-        let qualifies = initialStun == 4 || (initialStun == 2 && !finishingHit)
+        let qualifies = initialStun == 4 || (initialStun == 1 && !finishingHit)
         let theft = events.filter { $0.effectKind == .resourceGain && $0.abilityID == "blackjack" && $0.keyword == .gold }
         #expect(battle.gold == (qualifies ? 3 : 0))
         #expect(theft.count == (qualifies ? 1 : 0))

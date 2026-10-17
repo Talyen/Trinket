@@ -1,7 +1,7 @@
 id	name	tier	summary
 apple	Apple	basic	Restore 3 Health
 bash	Bash	basic	Deal 3 Stun damage
-blackjack	Blackjack	basic	Deal 2 Stun damage\nSteal 3 Gold if the enemy is Stunned
+blackjack	Blackjack	basic	Deal 3 Stun damage\nSteal 3 Gold if the enemy is Stunned
 block	Block	basic	Gain 3 Block
 caustic-jab	Caustic Jab	basic	Deal 1 Poison damage\nHalve the enemy's Block
 fangs	Fangs	basic	Deal 1 Bleed damage\nLeech
@@ -49,7 +49,7 @@ astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage
 avatar-of-justice	Avatar	ultimate	Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block
 blessed-aegis	Blessed Aegis	ultimate	Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage
 blizzard	Blizzard	ultimate	Deal 6 Freeze damage this turn and next
-bloodthorn	Bloodthorn	ultimate	Deal 2 Bleed damage with Leech\nDeal 1 Poison damage
+bloodthorn	Bloodthorn	ultimate	Deal 3 Bleed or Poison damage\nLeech
 combustion	Combustion	ultimate	Deal 6 Burn damage\nDetonate all enemy Burn
 earthquake	Earthquake	ultimate	Deal 6 Stun damage this turn and next
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health\nDeal 4 Burn damage\nDraw 1 card

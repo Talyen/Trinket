@@ -15,10 +15,35 @@ struct BalanceTuningRegressionTests {
         let ability = empowered ? Ability(
             id: "empowered-leech", name: "Empowered Leech", tier: .skill,
             damageComponents: [DamageComponent(2, keyword: .burn, hasLeech: true), DamageComponent(1, keyword: .poison)],
-        ).empoweredByMana(amount: 2) : .bloodthorn
+        ).empoweredByMana(amount: 2) : Ability(
+            id: "split-leech", name: "Split Leech", tier: .ultimate,
+            damageComponents: [DamageComponent(2, keyword: .bleed, hasLeech: true), DamageComponent(1, keyword: .poison)],
+        )
         let events = battle.performTestAction(ability)
         #expect(events.count { $0.effectKind == .leechHeal } == 1)
         #expect(battle.health(of: battle.hero) == (empowered ? 7 : 6))
+    }
+
+    @Test func `Bloodthorn resolves one alternative hit and leeches from either outcome`() {
+        var seen: Set<Keyword> = []
+        for seed in UInt64(1) ... 8 {
+            var profile = CombatModifierProfile.zero
+            profile.triggers.criticalChanceBonus = -1
+            var battle = BattleStateTestFactory.makeBattleWithAbilities(
+                heroModifiers: profile, rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
+            )
+            battle.roster.hero.currentHealth = 5
+            let events = battle.performTestAction(.bloodthorn)
+            let hits = events.filter { $0.kind == .abilityDamage }
+            #expect(hits.count == 1)
+            #expect(hits.first?.amount == 3)
+            if let keyword = hits.first?.keyword {
+                seen.insert(keyword)
+            }
+            #expect(events.filter { $0.effectKind == .leechHeal }.map(\.amount) == [2])
+            #expect(battle.health(of: battle.hero) == 7)
+        }
+        #expect(seen == [.bleed, .poison])
     }
 
     @Test(arguments: [9, 10, 11])
@@ -45,7 +70,7 @@ struct BalanceTuningRegressionTests {
 
     @Test func `lucky break draws once per turn on actual Gold gains`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.slash, .bash, .block],
+            heroAbilities: [.slash, .pounce, .hemorrhage],
             heroModifiers: CombatantTalentCatalog.profile(for: ["wildcard_gold_t4_1"]),
             dealOpeningHand: false, appliesFightPacing: false,
         )

@@ -14,7 +14,7 @@ public extension AbilityCatalog {
 
     static let blackjack = Ability(
         id: "blackjack", name: "Blackjack", tier: .basic,
-        damageComponents: [DamageComponent(2, keyword: .stun)],
+        damageComponents: [DamageComponent(3, keyword: .stun)],
         targetedEffects: [
             TargetedEffect(.resourceGain(.gold, 3), condition: .enemyStunned),
         ],

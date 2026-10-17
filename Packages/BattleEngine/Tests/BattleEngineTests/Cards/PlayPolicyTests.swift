@@ -49,7 +49,12 @@ struct PlayPolicyTests {
         #expect(!battle.isEnemyDefeated)
     }
 
-    @Test(arguments: [Ability.blackjack, .coldSnap, Ability(
+    @Test(arguments: [Ability(
+        id: "conditional-theft", name: "Conditional Theft", tier: .basic,
+        damageComponents: [DamageComponent(2, keyword: .stun)],
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 3), condition: .enemyStunned)],
+        stealsGold: true,
+    ), .coldSnap, Ability(
         id: "conditional-gain", name: "Conditional Gain", tier: .basic,
         outcomeBranches: [
             AbilityOutcomeBranch(effects: [.shield(.block, 1)]),
@@ -66,9 +71,10 @@ struct PlayPolicyTests {
     }
 
     @Test func `guaranteed random lethal avoids a companion lost to thorns`() throws {
+        let unsafeStrike = Ability(id: "unsafe-strike", name: "Unsafe Strike", tier: .basic, directDamage: 2, damageKeyword: .stun)
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.cinderbloom],
-            companionAbilities: [.blackjack],
+            companionAbilities: [unsafeStrike],
             enemyMaxHealth: 3,
             dealOpeningHand: false,
         )
@@ -78,11 +84,11 @@ struct PlayPolicyTests {
         battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.hand = BattleHand()
 
-        let blackjack = BattleCardCombatEngine.deal(.blackjack, owner: .companion, context: &battle)
+        let unsafeCard = BattleCardCombatEngine.deal(unsafeStrike, owner: .companion, context: &battle)
         let cinderbloom = BattleCardCombatEngine.deal(.cinderbloom, owner: .hero, context: &battle)
 
         var unsafeBattle = battle
-        _ = try unsafeBattle.playCard(cardID: blackjack.id)
+        _ = try unsafeBattle.playCard(cardID: unsafeCard.id)
         #expect(unsafeBattle.health(of: unsafeBattle.companion) == 0)
         #expect(!unsafeBattle.isEnemyDefeated)
 

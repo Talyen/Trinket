@@ -1225,6 +1225,8 @@ public enum ContentCopy {
             (L10n.authored_780393cf038bb7e6, [])
         case "Cutpurse":
             (L10n.authored_78f15b045cebef44, [])
+        case "Deal 3 Bleed or Poison damage\nLeech":
+            (L10n.authored_792968de8ef3ff99(3), [3])
         case "The Wolf":
             (L10n.authored_79f86ba0255acd8d, [])
         case "Cinder":
@@ -4459,6 +4461,7 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Freeze\\ damage\\\nDraw\\ a\\ cards?\\ if\\ the\\ enemy\\ is\\ Frozen$"), count: 1, make: { values in L10n.authored_571d6a1b2c939913(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Purge\\ all\\ buffs?\\ when\\ you\\ Stun\\ an\\ enemy\\\nDeal\\ ([0-9]+)\\ Holy\\ damage\\ per\\ buffs?\\ removed$"), count: 1, make: { values in L10n.authored_6ad421ff35f8ad4b(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Bleed\\ damage\\\nReduces\\ Health\\ restored\\ by\\ enemies\\ by\\ ([0-9]+)%\\ for\\ ([0-9]+)\\ turns?$"), count: 3, make: { values in L10n.authored_6ee786aa7f7a23c9(values[0], values[1], values[2]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Bleed\\ or\\ Poison\\ damage\\\nLeech$"), count: 1, make: { values in L10n.authored_792968de8ef3ff99(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^When\\ empowering\\ a\\ Freeze\\ cards?,\\ spend\\ ([0-9]+)\\ Block\\ per\\ missing\\ Mana$"), count: 1, make: { values in L10n.authored_84db54a03c7a660e(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ to\\ ([0-9]+)\\ Burn\\ damage$"), count: 2, make: { values in L10n.authored_a54f62394e652e95(values[0], values[1]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Physical\\ damage\\\nDraw\\ a\\ cards?\\ from\\ your\\ ally's\\ deck\\\nIf\\ unavailable,\\ draw\\ from\\ your\\ deck$"), count: 1, make: { values in L10n.authored_afae16a3cf881d1d(values[0]) }),

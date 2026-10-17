@@ -15,6 +15,7 @@ enum AbilityValidator {
         "bash",
         "blessed-aegis",
         "blood-offering",
+        "bloodthorn",
         "cold-snap",
         "cinderbloom",
         "combustion",
@@ -125,7 +126,7 @@ enum AbilityValidator {
 
     private static func allowsAuthoredDamageTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
-        case "bash", "fire-arrow", "maul", "slash":
+        case "bash", "blackjack", "fire-arrow", "maul", "slash":
             total == 3
         case "blood-offering", "cold-snap", "dark-pact", "predators-focus":
             total == 1

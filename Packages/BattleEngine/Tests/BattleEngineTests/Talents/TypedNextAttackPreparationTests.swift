@@ -61,16 +61,20 @@ struct TypedNextAttackPreparationTests {
         #expect(battle.roster.companion.talents.pending.nextPhysicalDamageBonus == nil)
     }
 
-    @Test func `Noxious Reaction reserves its Critical Hit beyond the creating Bloodthorn card repeat`() throws {
+    @Test func `Noxious Reaction reserves its Critical Hit beyond the creating multi hit card repeat`() throws {
         let fixtures = UniqueCollectionTests()
         let profile = CombatantTalentCatalog.profile(for: ["rogue_poison_t2_1"])
         var battle = try fixtures.battle([], extra: profile)
         readyRepeat(in: &battle)
-        // Only the first Poison hit crits; Bloodthorn now rolls Leech healing on its Bleed hits only.
+        // Only the first Poison hit crits, so a later critical cannot recreate a consumed preparation.
         battle.rng = SeededRandomNumberGenerator(seed: CombatantFixtures.deterministicBattleSeedVariant(15))
+        let ability = Ability(
+            id: "split-leech", name: "Split Leech", tier: .ultimate,
+            damageComponents: [DamageComponent(2, keyword: .bleed, hasLeech: true), DamageComponent(1, keyword: .poison)],
+        )
 
-        let events = try fixtures.play(.bloodthorn, in: &battle)
-        let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.bloodthorn.id }
+        let events = try fixtures.play(ability, in: &battle)
+        let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == ability.id }
         #expect(hits.map(\.keyword) == [.bleed, .poison, .bleed, .poison])
         #expect(hits.map(\.isCritical) == [false, true, false, false])
         #expect(battle.roster.hero.talents.pending.guaranteedBleedCritical?.value == true)

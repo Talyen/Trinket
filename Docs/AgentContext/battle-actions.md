@@ -74,8 +74,8 @@ assessment and prepared action facts. Pass the bound action target to these rule
 Evaluate amounts at each operation checkpoint, rather than caching them before
 earlier effects and reactions. Health costs require strictly more Health than the
 largest possible branch cost.
-Blackjack evaluates its Stun-conditioned theft after damage: existing Stun and
-Stun newly caused by that hit both qualify.
+Blackjack deals 3 Stun damage and evaluates its Stun-conditioned theft after damage:
+existing Stun and Stun newly caused by that hit both qualify.
 Paid in Full banks one bonus after theft for the next attack of any damage type;
 Bounty Blade retains its separate Physical-only bonus. Repeated theft refreshes
 these pending bonuses without stacking them; ongoing damage does not consume them.
@@ -281,8 +281,8 @@ action frame. Do not toggle a separate automatic-play flag.
 
 ## Ability strategy
 
-Bloodthorn grants intrinsic Leech only to its Bleed hit; its Poison hit can still
-receive Leech from independent talents, equipment or a next-attack preparation.
+Bloodthorn selects one equally likely 3-damage Bleed or Poison hit at preparation;
+either result has Leech. It never applies both damage types in one action.
 Hit-specific Leech survives damage amplification, keyword resolution and Mana
 empowerment. Card-wide Leech retains its existing all-hit rule.
 

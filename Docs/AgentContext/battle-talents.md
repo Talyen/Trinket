@@ -330,7 +330,7 @@ and Tithe; the marker survives outcome resolution and empowerment.
 Volatile Remedy likewise reserves its Poison bonus for a later ability;
 Leech restoration during Poison Dagger cannot strengthen that card's second hit.
 Sanguine Overflow and Sated Fury retain the action and card that restored full
-Health; Bloodthorn cannot spend that readiness on its own later hit. Bounty
+Health; a multi-hit attack cannot spend that readiness on its own later hit. Bounty
 Blade, Primal Rage, Bone Burst, and Bloodkindling likewise reserve their typed
 damage beyond the creating action and card, including supported card repeats.
 

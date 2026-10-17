@@ -28771,6 +28771,48 @@
         }
       }
     },
+    "authored.792968de8ef3ff99": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Ultimate.swift: description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verursache <value id=\"quantity_1\">%1$lld</value> Schaden vom Typ <keyword id=\"bleed\">Blutung</keyword> oder <keyword id=\"poison\">Gift</keyword>\n<keyword id=\"leech\">Lebensraub</keyword>"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Bleed</keyword> or <keyword id=\"poison\">Poison</keyword> damage\n<keyword id=\"leech\">Leech</keyword>"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inflige <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"bleed\">Saignement</keyword> ou de <keyword id=\"poison\">Poison</keyword>\n<keyword id=\"leech\">Vol de vie</keyword>"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"bleed\">出血</keyword>または<keyword id=\"poison\">毒</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える\n<keyword id=\"leech\">吸収</keyword>"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"bleed\">출혈</keyword> 또는 <keyword id=\"poison\">독</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 줌\n<keyword id=\"leech\">흡혈</keyword>"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"bleed\">流血</keyword>或<keyword id=\"poison\">中毒</keyword>傷害\n<keyword id=\"leech\">吸血</keyword>"
+          }
+        }
+      }
+    },
     "authored.79f86ba0255acd8d": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/Mystery/MysteryEventPool+Events.swift: title",
       "extractionState": "manual",

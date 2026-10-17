@@ -32,7 +32,7 @@ struct LeechDefenseRewardTests {
         let result = battle.resolveTestDamage(4, from: .companion, options: .attack(accuracy: .unavoidable, guaranteedCritical: true))
         #expect(result.healthLost == 8)
         #expect(battle.health(of: battle.companion) == 5)
-        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 3)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 4)
     }
 
     @Test func `Vitality Infusion does not reward a fully blocked Leech Critical Hit`() {

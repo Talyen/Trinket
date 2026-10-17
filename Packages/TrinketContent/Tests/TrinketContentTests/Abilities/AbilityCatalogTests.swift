@@ -188,20 +188,19 @@ struct AbilityCatalogTests {
         try #expect(ranger.abilityChoices.skills.map(\.id) == ["bounty-shot", "pounce", "predators-focus", "serrated-edge"])
     }
 
-    @Test func `bloodthorn grants leech only to its bleed hit`() throws {
+    @Test func `bloodthorn chooses one bleed or poison hit with leech`() throws {
         let bloodthorn = try #require(AbilityCatalog.ability(id: "bloodthorn"))
-        try #expect(bloodthorn.outcomeBranches == nil)
-        try #expect(bloodthorn.damageComponents == [
-            DamageComponent(2, keyword: .bleed, hasLeech: true),
-            DamageComponent(1, keyword: .poison),
+        try #expect(bloodthorn.outcomeBranches?.map(\.damageComponents) == [
+            [DamageComponent(3, keyword: .bleed)],
+            [DamageComponent(3, keyword: .poison)],
         ])
-        try #expect(!bloodthorn.hasLeech)
+        try #expect(bloodthorn.hasLeech)
         try #expect(bloodthorn.identityKeywords.contains(.leech))
     }
 
     @Test func `branched abilities show shared riders`() throws {
         let bloodthorn = try #require(AbilityCatalog.ability(id: "bloodthorn"))
-        try #expect(bloodthorn.summary == "Deal 2 Bleed damage with Leech\nDeal 1 Poison damage")
+        try #expect(bloodthorn.summary == "Deal 3 Bleed or Poison damage\nLeech")
         for ability in AbilityCatalog.all where ability.descriptionOverride == nil {
             if ability.hasLeech {
                 try #expect(ability.summary.contains("Leech"), "\(ability.id) hides Leech")

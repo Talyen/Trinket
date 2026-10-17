@@ -70,8 +70,9 @@ struct BattleLogProjectionTests {
             abilityID: "strike", abilityName: "Strike", targetID: "enemy", targetName: "Enemy",
             amount: Int.max, keyword: .physical,
         ))
+        let maximum = Int.max.formatted(.number.locale(english))
         #expect(BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) } == [
-            "Hero uses Strike.\nHero deals \(Int.max) Physical damage to Enemy (Strike).\nHero loses \(Int.max) Health.",
+            "Hero uses Strike.\nHero deals \(maximum) Physical damage to Enemy (Strike).\nHero loses \(maximum) Health.",
         ])
     }
 
@@ -191,9 +192,13 @@ struct BattleLogProjectionTests {
         #expect(projection.entries == entries)
     }
 
-    @Test func `bloodthorn logs both damage types`() throws {
+    @Test func `mixed damage attacks log both damage types`() throws {
         var battle = makeActionDamageLogBattle()
-        let events = battle.performTestAction(.bloodthorn)
+        let ability = Ability(
+            id: "split-hit", name: "Split Hit", tier: .ultimate,
+            damageComponents: [DamageComponent(2, keyword: .bleed), DamageComponent(1, keyword: .poison)],
+        )
+        let events = battle.performTestAction(ability)
         let summary = try #require(events.last { $0.kind == .ability })
         let line = try #require(BattleLogProjection.entries(from: events).first { $0.id == events.firstIndex(of: summary) })
         let text = line.localizedText(locale: english)
