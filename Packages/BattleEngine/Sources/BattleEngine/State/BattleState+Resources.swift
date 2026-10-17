@@ -96,15 +96,15 @@ package extension BattleState {
 
     @discardableResult
     mutating func restoreMana(_ amount: Int, to combatant: Combatant, isResolved: Bool = false) -> Int {
+        guard amount > 0, let participant = roster.participant(for: combatant), roster[participant].isAlive else { return 0 }
         let standalone = resolution.beginStandaloneRestoration()
         defer {
             if standalone {
                 resolution.endStandaloneRestoration()
             }
         }
-        guard let participant = roster.participant(for: combatant), roster[participant].isAlive else { return 0 }
         let profile = modifiers(for: combatant.id)
-        let deepRoots = amount > 0 && profile.triggers.deepRoots &&
+        let deepRoots = profile.triggers.deepRoots &&
             roster[participant].activeEffects.contains { $0.effect.kind == .thorns }
         let requested = requestedMana(amount, profile: profile, hasThorns: deepRoots, isResolved: isResolved)
 

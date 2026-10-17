@@ -20,11 +20,19 @@ enum EffectRemoval {
         from effects: inout [ActiveEffect],
         using rng: inout SeededRandomNumberGenerator,
     ) -> ActiveEffect? {
-        let count = effects.count(where: \.effect.isRemovableDebuff)
+        removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableDebuff }
+    }
+
+    private static func removeRandom(
+        from effects: inout [ActiveEffect],
+        using rng: inout SeededRandomNumberGenerator,
+        where matches: (ActiveEffect) -> Bool,
+    ) -> ActiveEffect? {
+        let count = effects.count(where: matches)
         guard count > 0 else { return nil }
         // Match randomElement's range and stack order without allocating its candidates.
         var offset = Int.random(in: 0 ..< count, using: &rng)
-        for index in effects.indices where effects[index].effect.isRemovableDebuff {
+        for index in effects.indices where matches(effects[index]) {
             if offset == 0 {
                 return effects.remove(at: index)
             }
@@ -49,6 +57,12 @@ enum EffectRemoval {
         using rng: inout SeededRandomNumberGenerator,
     ) -> [ActiveEffect] {
         guard count > 0 else { return [] }
+        if count == 1 {
+            let removed = removeRandom(from: &effects, using: &rng) {
+                $0.effect.isRemovableBuff && !(preservingBlock && $0.effect.kind == .shield)
+            }
+            return removed.map { [$0] } ?? []
+        }
         var candidates = effects.indices.filter {
             effects[$0].effect.isRemovableBuff && !(preservingBlock && effects[$0].effect.kind == .shield)
         }

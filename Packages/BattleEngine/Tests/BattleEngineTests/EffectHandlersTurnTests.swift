@@ -74,7 +74,7 @@ struct EffectHandlersTurnTests {
         _ = EffectHandlersTestSupport.dispatch(
             effect, target: battle.enemy, battle: &battle,
         )
-        for expectedAmount in [2, 4] {
+        for expectedAmount in [2, 4, 6] {
             #expect(battle.health(of: battle.enemy) == 200 - expectedAmount)
             #expect(battle.activeEffects(of: battle.enemy).contains {
                 if case let .controlMeter(appliedKeyword, amount, _) = $0.effect {
@@ -82,13 +82,11 @@ struct EffectHandlersTurnTests {
                 }
                 return false
             })
-            if expectedAmount == 2 {
-                _ = EffectHandlersTestSupport.dispatchTick(
-                    ActiveEffect(id: 10, effect: effect, remainingTurns: 2, sourceActorID: battle.hero.id),
-                    target: battle.enemy, battle: &battle,
-                )
+            if expectedAmount < 6 {
+                CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
             }
         }
+        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .recurringDamage })
     }
 
     @Test(arguments: [

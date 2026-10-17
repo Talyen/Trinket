@@ -61,7 +61,7 @@ struct EffectApplication {
             return EffectApplyOutcome(didApply: outcome.healthRestored > 0)
         case let .resourceGain(.mana, amount):
             let restored = await restoreMana(amount, in: &context)
-            return EffectApplyOutcome(didApply: true, restoredMana: restored)
+            return EffectApplyOutcome(didApply: restored > 0, restoredMana: restored)
         case let .resourceGain(.gold, amount):
             let gain = await context.grantGold(
                 amount, to: source, abilityID: ability.id, abilityName: ability.name,
@@ -197,7 +197,9 @@ struct EffectApplication {
 
     private func restoreMana(_ amount: Int, in context: inout BattleState) async -> Int {
         let restored = context.restoreMana(context.paced(amount, sourceActorID: source.id), to: target)
-        emit(.resourceGain, amount: restored, keyword: .mana, in: &context)
+        if restored > 0 {
+            emit(.resourceGain, amount: restored, keyword: .mana, in: &context)
+        }
         await CombatTriggerEngine.manaRestorationReactions(for: target, restored: restored, in: &context)
         return restored
     }

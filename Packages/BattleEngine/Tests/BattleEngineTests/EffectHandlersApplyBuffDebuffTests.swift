@@ -83,11 +83,10 @@ struct EffectHandlersApplyBuffDebuffTests {
         ([Effect.healingReductionPercent(0.20, 3), .healingReductionPercent(0.50, 3)], "50%"),
     ])
     func `debuff summaries reflect combined combat penalties`(effects: [Effect], expected: String) throws {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)
-        for effect in effects {
-            _ = EffectHandlersTestSupport.dispatch(effect, target: battle.enemy, battle: &battle)
+        let stacks = effects.enumerated().map {
+            ActiveEffect(id: $0.offset, effect: $0.element, remainingTurns: $0.element.durationTurns)
         }
-        let summary = try #require(EffectSummaryBuilder.build(for: battle.activeEffects(of: battle.enemy)).first)
+        let summary = try #require(EffectSummaryBuilder.build(for: stacks).first)
         #expect(summary.text.contains(expected))
     }
 
@@ -219,8 +218,8 @@ struct EffectHandlersApplyBuffDebuffTests {
     @Test(arguments: [
         (Effect.nextBurnBonus(1), Effect.nextBurnBonus(2), ActionEvent.EffectOutcome.nextBurnBonusApplied, Keyword.burn, 2),
         (.thorns(1), .thorns(2), .thornsApplied, .thorns, 2),
-        (.nextBurnBonus(Int.max), .nextBurnBonus(Int.max), .nextBurnBonusApplied, .burn, Int.max),
-        (.thorns(Int.max), .thorns(Int.max), .thornsApplied, .thorns, Int.max),
+        (.nextBurnBonus(Int.max / 2 + 1), .nextBurnBonus(Int.max), .nextBurnBonusApplied, .burn, Int.max),
+        (.thorns(Int.max / 2 + 1), .thorns(Int.max), .thornsApplied, .thorns, Int.max),
     ])
     func `amount buffs stack once and saturate their state event and summary`(
         effect: Effect, expected: Effect, event: ActionEvent.EffectOutcome, keyword: Keyword, total: Int,

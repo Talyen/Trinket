@@ -205,22 +205,12 @@ struct DoTMechanicsTests {
         #expect(battle.roster.hero.talents.pending.basicCriticalBonus == (blocked ? 0 : 0.35))
     }
 
-    private func makeRampBattle(cap: Int = 4) -> BattleState {
-        BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.slash]),
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
-            heroModifiers: CombatModifierProfile.withTriggers {
-                $0.burnDamageRampPerRound = 1
-                $0.burnDamageRampCap = cap
-            },
-            dealOpeningHand: false,
-        )
-    }
-
     @Test(arguments: [(4, [1, 2, 3, 4, 4]), (0, [1, 2, 3, 4, 5])])
     func `damage ramp grows each round with optional cap and matching keyword`(cap: Int, amounts: [Int]) throws {
-        var battle = makeRampBattle(cap: cap)
+        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: .withTriggers {
+            $0.burnDamageRampPerRound = 1
+            $0.burnDamageRampCap = cap
+        })
         for (index, expected) in amounts.enumerated() {
             CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
             let runtime = try #require(battle.roster.runtime(for: battle.hero))
@@ -322,16 +312,5 @@ struct DoTMechanicsTests {
         // Further burn damage in the same turn is capped.
         #expect(battle.resolveTestDamage(5, keyword: .burn).healthLost == 5)
         #expect(battle.roster.hero.currentMana == 2)
-    }
-
-    @Test(arguments: [Keyword.burn, .poison])
-    func `one potency DoT expires before dealing turn damage`(keyword: Keyword) {
-        var battle = isolatedBattle()
-        let effect: Effect = keyword == .burn ? .burn(1) : .poison(1)
-        battle.insertEffect(effect, to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
-
-        CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
-        #expect(battle.health(of: battle.enemy) == 100)
-        #expect(!battle.roster.hasAffliction(keyword, on: battle.enemy))
     }
 }

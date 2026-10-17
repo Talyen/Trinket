@@ -9,14 +9,10 @@ package extension BattleState {
     ) -> Value? {
         let cardSerial = resolution.cardTalents?.playSerial
         let actionID = resolution.actionID
-        var consumed: Value?
-        roster.mutateRuntime(for: actor) { runtime in
-            guard let preparation = runtime.talents.pending[keyPath: keyPath],
-                  let value = preparation.availableValue(cardSerial: cardSerial, actionID: actionID) else { return }
-            consumed = value
-            runtime.talents.pending[keyPath: keyPath] = nil
-        }
-        return consumed
+        guard let preparation = roster.runtime(for: actor)?.talents.pending[keyPath: keyPath],
+              let value = preparation.availableValue(cardSerial: cardSerial, actionID: actionID) else { return nil }
+        roster.mutateRuntime(for: actor) { $0.talents.pending[keyPath: keyPath] = nil }
+        return value
     }
 
     internal mutating func prepareAttackBonus(

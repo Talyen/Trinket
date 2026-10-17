@@ -5,6 +5,20 @@ import TrinketCore
 @testable import BattleEngine
 
 struct EffectHandlersApplyTests {
+    @Test func `full Mana cards omit false gains while preserving overflow rewards`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxMana: 8),
+            heroMana: 8,
+            heroModifiers: .withTriggers { $0.livingConduit = true },
+            appliesFightPacing: false,
+        )
+        let outcome = EffectHandlersTestSupport.dispatch(.resourceGain(.mana, 2), battle: &battle)
+        #expect(!outcome.didApply)
+        #expect(battle.mana(of: battle.hero) == 8)
+        #expect(!outcome.events.contains { $0.effectKind == .resourceGain && $0.keyword == .mana })
+        #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .thorns(2) })
+    }
+
     @Test(arguments: [false, true])
     func `companion auto play draws its own card even after hero defeat`(heroDefeated: Bool) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)

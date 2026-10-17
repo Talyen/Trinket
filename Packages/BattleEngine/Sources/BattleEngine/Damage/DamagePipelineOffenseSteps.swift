@@ -302,35 +302,33 @@ package extension DamagePipeline {
     ) {
         guard let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID)?.combatant else { return }
-        let sourceIsFrozen = context.roster.hasControlStatus(for: source, keyword: .freeze)
-        let sourceIsPoisoned = context.roster.hasAffliction(.poison, on: source)
-        let sourceIsBleeding = context.roster.hasAffliction(.bleed, on: source)
-        let sourceIsBurning = context.roster.hasAffliction(.burn, on: source)
-        let sourceBleedStacks = context.roster.activeEffects(for: source).count(where: { $0.effect.isBleed })
+        let sourceEffects = context.roster.activeEffects(for: source)
+        let sourceStatus = DamageTargetStatus(for: source, in: context)
+        let sourceBleedStacks = sourceEffects.count(where: \.effect.isBleed)
         var reductionFlat = 0
         var reductionMultiplier = 1.0
         for opponent in BattleActionContext(actor: source, in: context).opponents(in: context)
             where context.roster.health(for: opponent) > 0 {
             let t = context.modifiers(for: opponent.id).triggers
-            if sourceIsFrozen {
+            if sourceStatus.isFrozen {
                 reductionFlat = SaturatedArithmetic.saturatingAdd(reductionFlat, t.frozenEnemyDamageReductionFlat)
             }
-            if sourceIsBleeding {
+            if sourceStatus.isBleeding {
                 reductionFlat = SaturatedArithmetic.saturatingAdd(reductionFlat, t.bleedingEnemyDamageReductionFlat)
                 reductionMultiplier *= t.bleedingEnemyOutgoingDamageMultiplier
             }
-            if sourceIsBurning {
+            if sourceStatus.isBurning {
                 reductionFlat = SaturatedArithmetic.saturatingAdd(reductionFlat, t.burningEnemyDamageReductionFlat)
             }
-            if sourceIsPoisoned {
+            if sourceStatus.isPoisoned {
                 reductionMultiplier *= (1 - min(1, t.poisonedEnemyAccuracyPenaltyPercent))
             }
-            if sourceIsBleeding, t.enemyBleedStacksDamageReductionStacks > 0,
+            if sourceStatus.isBleeding, t.enemyBleedStacksDamageReductionStacks > 0,
                sourceBleedStacks >= t.enemyBleedStacksDamageReductionStacks {
                 reductionMultiplier *= (1 - min(1, t.enemyBleedStacksDamageReductionPercent))
             }
         }
-        for active in context.roster.activeEffects(for: source) {
+        for active in sourceEffects {
             switch active.effect {
             case let .damageReductionPercent(percent, _):
                 reductionMultiplier *= (1 - min(1, percent))
@@ -377,12 +375,12 @@ package extension DamagePipeline {
         if let source = context.roster.combatant(for: sourceActorID) {
             bonus = SaturatedArithmetic.saturatingAdd(
                 bonus,
-                context.roster.runtime(for: source.combatant)?.talents.battle.keywordDamageRamp[keyword, default: 0] ?? 0,
+                source.talents.battle.keywordDamageRamp[keyword, default: 0],
             )
             if let sharedKeyword {
                 bonus = SaturatedArithmetic.saturatingAdd(
                     bonus,
-                    context.roster.runtime(for: source.combatant)?.talents.battle.keywordDamageRamp[sharedKeyword, default: 0] ?? 0,
+                    source.talents.battle.keywordDamageRamp[sharedKeyword, default: 0],
                 )
             }
         }
@@ -419,7 +417,7 @@ package extension DamagePipeline {
         var multiplier = 2.0
         if let sourceActorID,
            let source = context.roster.combatant(for: sourceActorID) {
-            multiplier += context.roster.runtime(for: source.combatant)?.talents.battle.criticalMultiplierBonus ?? 0
+            multiplier += source.talents.battle.criticalMultiplierBonus
         }
         return multiplier
     }
