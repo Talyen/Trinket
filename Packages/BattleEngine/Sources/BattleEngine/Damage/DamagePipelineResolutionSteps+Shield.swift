@@ -35,15 +35,10 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) async -> Int {
         guard state.remaining > 0, !state.options.isHealthCost else { return 0 }
-        let effects = context.roster.activeEffects(for: owner)
-        guard let shield = effects.first(where: {
-            if case let .shield(_, points) = $0.effect {
-                return points > 0
-            }
-            return false
-        }), case let .shield(keyword, _) = shield.effect else { return 0 }
+        let pool = blockPool(for: owner, in: context)
+        guard let keyword = pool.keyword else { return 0 }
         let isBorrowed = owner.id != state.combatant.id
-        let buffer = DefensePoolEngine.blockPoints(in: effects)
+        let buffer = pool.amount
         guard isBorrowed || CombatRounding.scaled(buffer, multiplier: blockMultiplier) > 0 else { return 0 }
 
         var sourceTriggers = state.sourceActorID.map { context.modifiers(for: $0).triggers }
@@ -66,8 +61,12 @@ package extension DamagePipeline {
             damageKeyword: state.damageKeyword,
             isAttackHit: state.options.isAttackHit,
         )
-        let reduced = DefensePoolEngine.reduce(blockRemoval, in: effects)
-        let blockBroken = reduced?.broken ?? false
+        var blockBroken = false
+        if blockRemoval > 0 {
+            context.roster.mutateEffects(for: owner) {
+                blockBroken = DefensePoolEngine.consume(blockRemoval, from: &$0)
+            }
+        }
         if absorbed > 0 {
             state.blockedAmount += absorbed
             appendAbsorption(
@@ -83,7 +82,6 @@ package extension DamagePipeline {
         if !isBorrowed {
             state.heroCardBlockBroken = blockBroken
         }
-        context.roster.setActiveEffects(reduced?.effects ?? effects, for: owner)
         recordBlockAbsorption(absorbed, owner: owner, to: &state, in: &context)
 
         await applyBlockAbsorptionReactions(
@@ -111,6 +109,19 @@ package extension DamagePipeline {
             await CombatTriggerEngine.afterBlockBroken(on: owner, attackerID: state.sourceActorID, in: &context)
         }
         return min(buffer, max(0, stripBeforeAbsorption))
+    }
+
+    private static func blockPool(for owner: Combatant, in context: BattleState) -> (amount: Int, keyword: Keyword?) {
+        var amount = 0
+        var keyword: Keyword?
+        for active in context.roster.activeEffects(for: owner) {
+            guard case let .shield(stackKeyword, buffer) = active.effect else { continue }
+            amount = SaturatedArithmetic.saturatingAdd(amount, buffer)
+            if buffer > 0, keyword == nil {
+                keyword = stackKeyword
+            }
+        }
+        return (amount, keyword)
     }
 
     private static func allyBlockProtector(

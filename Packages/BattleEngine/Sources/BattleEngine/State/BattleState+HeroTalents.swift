@@ -85,27 +85,28 @@ package extension BattleState {
     mutating func removeTalentPoints(_ count: Int, kind: EffectKind, from target: Combatant) {
         guard count > 0, roster.health(for: target) > 0 else { return }
         var remaining = count
-        let effects = roster.activeEffects(for: target).compactMap { active -> ActiveEffect? in
-            guard remaining > 0, active.effect.kind == kind else { return active }
-            let amount: Int
-            switch active.effect {
-            case let .burn(value), let .poison(value), let .thorns(value), let .shield(_, value): amount = max(0, value)
-            default: return active
+        roster.mutateEffects(for: target) { effects in
+            ActiveEffectMutation.update(&effects) { active in
+                guard remaining > 0, active.effect.kind == kind else { return active }
+                let amount: Int
+                switch active.effect {
+                case let .burn(value), let .poison(value), let .thorns(value), let .shield(_, value): amount = max(0, value)
+                default: return active
+                }
+                let removed = min(remaining, amount)
+                remaining -= removed
+                let retained = amount - removed
+                guard retained > 0 else { return nil }
+                var updated = active
+                switch active.effect {
+                case .burn: updated.effect = .burn(retained)
+                case .poison: updated.effect = .poison(retained)
+                case .thorns: updated.effect = .thorns(retained)
+                case let .shield(keyword, _): updated.effect = .shield(keyword, retained)
+                default: break
+                }
+                return updated
             }
-            let removed = min(remaining, amount)
-            remaining -= removed
-            let retained = amount - removed
-            guard retained > 0 else { return nil }
-            var updated = active
-            switch active.effect {
-            case .burn: updated.effect = .burn(retained)
-            case .poison: updated.effect = .poison(retained)
-            case .thorns: updated.effect = .thorns(retained)
-            case let .shield(keyword, _): updated.effect = .shield(keyword, retained)
-            default: break
-            }
-            return updated
         }
-        roster.setActiveEffects(effects, for: target)
     }
 }

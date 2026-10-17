@@ -102,12 +102,10 @@ extension EffectHandlers {
 
         drawCardOnBleedTick(active: active, sourceTriggers: sourceTriggers, target: target, in: &context)
 
-        if let sourceTriggers, sourceTriggers.bleedStripsBlockPerTurn > 0,
-           let reduced = DefensePoolEngine.reduce(
-               sourceTriggers.bleedStripsBlockPerTurn,
-               in: context.roster.activeEffects(for: target),
-           ) {
-            context.roster.setActiveEffects(reduced.effects, for: target)
+        if let sourceTriggers, sourceTriggers.bleedStripsBlockPerTurn > 0 {
+            context.roster.mutateEffects(for: target) {
+                DefensePoolEngine.consume(sourceTriggers.bleedStripsBlockPerTurn, from: &$0)
+            }
         }
 
         guard var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) else {

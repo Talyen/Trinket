@@ -20,14 +20,14 @@ package enum EffectTurnEngine {
             if participant != .enemy,
                context.roster[participant].isAlive,
                CombatTriggerEngine.partyDebuffsExpireFaster(in: context) {
-                context.roster[participant].activeEffects = context.roster[participant].activeEffects.compactMap { active in
-                    guard active.effect.isRemovableDebuff,
-                          !active.effect.isDecayingDoT,
-                          active.remainingTurns > 0
-                    else { return active }
-                    var updated = active
-                    updated.remainingTurns -= 1
-                    return updated.remainingTurns > 0 ? updated : nil
+                context.roster.mutateEffects(for: combatant) { effects in
+                    ActiveEffectMutation.update(&effects) { active in
+                        guard active.effect.isRemovableDebuff, !active.effect.isDecayingDoT, active.remainingTurns > 0
+                        else { return active }
+                        var updated = active
+                        updated.remainingTurns -= 1
+                        return updated.remainingTurns > 0 ? updated : nil
+                    }
                 }
             }
         }
@@ -43,7 +43,9 @@ package enum EffectTurnEngine {
             context.resolution.naturalReactionPhase = NaturalReactionPhase(turn: context.turnCount)
         }
         // Keep the original schedule without retaining the array handlers mutate.
-        let scheduledEffectIDs = context.roster.activeEffects(for: target).map(\.id)
+        let scheduledEffectIDs = context.roster.activeEffects(for: target).compactMap {
+            $0.effect.advancesEachTurn ? $0.id : nil
+        }
         let previousFeedbackGroup = context.resolution.beginFeedbackGroup(eventID: context.nextEventID + 1)
         let wasAdvancingEffects = context.resolution.isAdvancingEffects
         context.resolution.isAdvancingEffects = true

@@ -80,27 +80,31 @@ enum EffectRemovalOperation {
         origin: ActionEvent.Origin = .automatic,
         in context: inout BattleState,
     ) async -> Outcome {
-        var effects = context.roster.activeEffects(for: target)
-        var removed: [ActiveEffect] = switch selection {
-        case let .all(keyword): EffectRemoval.removeDebuffs(from: &effects, keyword: keyword)
-        case let .keywords(keywords):
-            EffectRemoval.removeDebuffs(from: &effects, keywords: keywords)
-        case .randomDebuff: EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng).map { [$0] } ?? []
-        }
-        if !removed.isEmpty {
-            let triggers = context.modifiers(for: source.id).triggers
-            if triggers.cleanseRemovesFreezeBuildup {
-                removed.append(contentsOf: EffectRemoval.removeDebuffs(from: &effects, keyword: .freeze))
+        var removed: [ActiveEffect] = []
+        if let participant = context.roster.participant(for: target) {
+            removed = switch selection {
+            case let .all(keyword):
+                EffectRemoval.removeDebuffs(from: &context.roster[participant].activeEffects, keyword: keyword)
+            case let .keywords(keywords):
+                EffectRemoval.removeDebuffs(from: &context.roster[participant].activeEffects, keywords: keywords)
+            case .randomDebuff:
+                EffectRemoval.removeRandomDebuff(from: &context.roster[participant].activeEffects, using: &context.rng).map { [$0] } ?? []
             }
-            if triggers.firstCleanseExtraRemovalPerTurn > 0,
-               context.claimHeroTalent(.faeWard, actorID: source.id),
-               effects.contains(where: \.effect.isRemovableDebuff),
-               let extra = EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng) {
-                removed.append(extra)
+            if !removed.isEmpty {
+                let triggers = context.modifiers(for: source.id).triggers
+                if triggers.cleanseRemovesFreezeBuildup {
+                    removed.append(contentsOf: EffectRemoval.removeDebuffs(
+                        from: &context.roster[participant].activeEffects,
+                        keyword: .freeze,
+                    ))
+                }
+                if triggers.firstCleanseExtraRemovalPerTurn > 0,
+                   context.claimHeroTalent(.faeWard, actorID: source.id),
+                   context.roster[participant].activeEffects.contains(where: \.effect.isRemovableDebuff),
+                   let extra = EffectRemoval.removeRandomDebuff(from: &context.roster[participant].activeEffects, using: &context.rng) {
+                    removed.append(extra)
+                }
             }
-        }
-        if !removed.isEmpty {
-            context.roster.setActiveEffects(effects, for: target)
         }
         for effect in removed {
             context.additionalControlSkipsByEffectID.removeValue(forKey: effect.id)
@@ -197,21 +201,28 @@ enum EffectRemovalOperation {
         origin: ActionEvent.Origin = .automatic,
         in context: inout BattleState,
     ) async -> Outcome {
-        var effects = context.roster.activeEffects(for: target)
         // Purge-only by design: sealedSarcophagus guards .shield Block, which
         // is always a removable buff. Cleanse strips debuffs, so the flag
         // would be meaningless on that path.
         let preservingBlock = context.modifiers(for: target.id).triggers.sealedSarcophagus
-        let removed: [ActiveEffect] = switch selection {
-        case let .all(keyword):
-            EffectRemoval.removeBuffs(from: &effects, keyword: keyword, preservingBlock: preservingBlock)
-        case let .randomBuffs(count):
-            EffectRemoval.removeBuffs(from: &effects, count: count, preservingBlock: preservingBlock, using: &context.rng)
+        var removed: [ActiveEffect] = []
+        if let participant = context.roster.participant(for: target) {
+            removed = switch selection {
+            case let .all(keyword):
+                EffectRemoval.removeBuffs(
+                    from: &context.roster[participant].activeEffects,
+                    keyword: keyword,
+                    preservingBlock: preservingBlock,
+                )
+            case let .randomBuffs(count):
+                EffectRemoval.removeBuffs(
+                    from: &context.roster[participant].activeEffects, count: count, preservingBlock: preservingBlock, using: &context.rng,
+                )
+            }
         }
         guard !removed.isEmpty else {
             return Outcome(removed: [], application: EffectApplyOutcome(didApply: false))
         }
-        context.roster.setActiveEffects(effects, for: target)
         CombatTriggerEngine.protectPurgedEffects(removed, source: source, target: target, in: &context)
         let triggers = context.modifiers(for: source.id).triggers
         emitRemovalEvents(

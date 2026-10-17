@@ -128,6 +128,17 @@ enum TimedBuffSummary {
 }
 
 enum ActiveEffectMutation {
+    /// Updates existing stacks in order, removing nil results without building another effect array.
+    static func update(_ effects: inout [ActiveEffect], _ transform: (ActiveEffect) -> ActiveEffect?) {
+        var retainedCount = 0
+        for index in effects.indices {
+            guard let updated = transform(effects[index]) else { continue }
+            effects[retainedCount] = updated
+            retainedCount += 1
+        }
+        effects.removeLast(effects.count - retainedCount)
+    }
+
     static func finishTurn(
         _ active: ActiveEffect,
         replacement: ActiveEffect?,

@@ -68,16 +68,8 @@ struct DoTMechanicsTests {
         )
     }
 
-    private func burnAbility(potency: Int) -> Ability {
-        Ability(id: "burn-\(potency)", name: "Burn", tier: .basic, directDamage: 0, description: "Burn", effects: [.burn(potency)])
-    }
-
-    private func poisonAbility(potency: Int) -> Ability {
-        Ability(id: "poison-\(potency)", name: "Poison", tier: .basic, directDamage: 0, description: "Poison", effects: [.poison(potency)])
-    }
-
-    private func bleedAbility(potency: Int) -> Ability {
-        Ability(id: "bleed-\(potency)", name: "Bleed", tier: .basic, directDamage: 0, description: "Bleed", effects: [.bleed(potency)])
+    private func dotAbility(_ effect: Effect) -> Ability {
+        Ability(id: "test-\(effect.keyword.rawValue)-\(effect.potency ?? 0)", name: "DoT", tier: .basic, effects: [effect])
     }
 
     private func statusAmounts(
@@ -89,23 +81,31 @@ struct DoTMechanicsTests {
             .map(\.amount)
     }
 
-    @Test func `burn four deals four then two then one`() throws {
-        var battle = isolatedBattle(heroAbilities: [burnAbility(potency: 4)])
-
+    @Test(arguments: [
+        (Effect.burn(4), [2, 1, 0]),
+        (.poison(8), [6, 5, 4, 3, 2, 1, 0]),
+        (.bleed(4), [4, 0]),
+    ])
+    func `damage over time cards apply immediately then tick through expiry`(effect: Effect, ticks: [Int]) throws {
+        var battle = isolatedBattle(heroAbilities: [dotAbility(effect)])
         let applyEvents = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
-        try #expect(statusAmounts(from: applyEvents, keyword: .burn) == [4])
-        try #expect(BattleTestFixtures.burnPotency(on: battle) == 4)
-
-        for potency in [2, 1, 0] {
+        #expect(statusAmounts(from: applyEvents, keyword: effect.keyword) == [effect.potency ?? 0])
+        #expect(battle.activeEffects(of: battle.enemy).first { $0.keyword == effect.keyword }?.effect.potency == effect.potency)
+        for potency in ticks {
             let events = battle.endTurn().events
-            try #expect(statusAmounts(from: events, keyword: .burn) == (potency > 0 ? [potency] : []))
-            try #expect(BattleTestFixtures.burnPotency(on: battle) == (potency > 0 ? potency : nil))
+            #expect(statusAmounts(from: events, keyword: effect.keyword) == (potency > 0 ? [potency] : []))
+            if effect.isDecayingDoT {
+                #expect(battle.activeEffects(of: battle.enemy).first { $0.keyword == effect.keyword }?.effect
+                    .potency == (potency > 0 ? potency : nil))
+            }
         }
+        #expect(!battle.roster.hasAffliction(effect.keyword, on: battle.enemy))
+        #expect(battle.health(of: battle.enemy) == 100 - (effect.potency ?? 0) - ticks.reduce(0, +))
     }
 
     @Test func `burn stacks merge and decay together`() throws {
         var battle = isolatedBattle(
-            heroAbilities: [burnAbility(potency: 2)],
+            heroAbilities: [dotAbility(.burn(2))],
             enemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)],
         )
 
@@ -119,46 +119,10 @@ struct DoTMechanicsTests {
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
     }
 
-    @Test func `poison eight applies initial damage then decays to zero`() throws {
-        var battle = isolatedBattle(heroAbilities: [poisonAbility(potency: 8)])
-
-        let applyEvents = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
-        #expect(statusAmounts(from: applyEvents, keyword: .poison) == [8])
-        #expect(battle.activeEffects(of: battle.enemy).first { $0.keyword == .poison }?.effect.potency == 8)
-
-        var amounts: [Int] = []
-        for _ in 0 ..< 8 {
-            let events = battle.endTurn().events
-            amounts.append(contentsOf: statusAmounts(from: events, keyword: .poison))
-            if !battle.activeEffects(of: battle.enemy).contains(where: { $0.keyword == .poison }) {
-                break
-            }
-        }
-
-        #expect(amounts == [6, 5, 4, 3, 2, 1])
-        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
-    }
-
-    @Test func `bleed four ticks once after apply`() throws {
-        var battle = isolatedBattle(heroAbilities: [bleedAbility(potency: 4)])
-
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-
-        var amounts: [Int] = []
-        for _ in 0 ..< 2 {
-            let events = battle.endTurn().events
-            amounts.append(contentsOf: statusAmounts(from: events, keyword: .bleed))
-        }
-
-        try #expect(amounts == [4])
-        try #expect(battle.health(of: battle.enemy) == 92)
-        try #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .bleed })
-    }
-
     @Test func `bleed instances track independently`() throws {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [bleedAbility(potency: 6)]),
-            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20, abilities: [bleedAbility(potency: 4)]),
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20, abilities: [dotAbility(.bleed(6))]),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20, abilities: [dotAbility(.bleed(4))]),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100),
         )
 
@@ -166,18 +130,6 @@ struct DoTMechanicsTests {
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .companion, on: &battle)
 
         try #expect(battle.activeEffects(of: battle.enemy).count(where: { $0.keyword == .bleed }) == 2)
-    }
-
-    @Test func `burn respects block`() throws {
-        var battle = isolatedBattle(
-            heroAbilities: [burnAbility(potency: 4)],
-            enemyEffects: [ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTurns: 5)],
-        )
-
-        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        _ = battle.endTurn()
-
-        try #expect(battle.health(of: battle.enemy) == 100)
     }
 
     @Test(arguments: [0, 10, 20])

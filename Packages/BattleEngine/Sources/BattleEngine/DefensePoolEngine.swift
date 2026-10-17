@@ -46,46 +46,32 @@ package enum DefensePoolEngine {
         return sum
     }
 
-    package struct ShieldPoolReduction {
-        package let effects: [ActiveEffect]
-        package let keyword: Keyword
-        package let absorbed: Int
-        package let broken: Bool
-    }
-
-    package static func reduce(
+    /// Consumes the pool in stack order; reports whether the last positive stack broke.
+    @discardableResult
+    static func consume(
         _ amount: Int,
-        in effects: [ActiveEffect],
-    ) -> ShieldPoolReduction? {
-        guard amount > 0 else { return nil }
+        from effects: inout [ActiveEffect],
+    ) -> Bool {
+        guard amount > 0 else { return false }
         var remaining = amount
-        var keyword: Keyword?
-        var updated: [ActiveEffect] = []
         var hasRemainingBlock = false
-        for active in effects {
-            guard case let .shield(shieldKeyword, buffer) = active.effect, buffer > 0 else {
-                updated.append(active)
-                continue
-            }
-            guard remaining > 0 else {
+        ActiveEffectMutation.update(&effects) { active in
+            if case let .shield(keyword, buffer) = active.effect, buffer > 0 {
+                let removed = min(remaining, buffer)
+                remaining -= removed
+                if removed == buffer {
+                    return nil
+                }
                 hasRemainingBlock = true
-                updated.append(active)
-                continue
+                if removed > 0 {
+                    var updated = active
+                    updated.effect = .shield(keyword, buffer - removed)
+                    return updated
+                }
             }
-            if keyword == nil {
-                keyword = shieldKeyword
-            }
-            let removed = min(remaining, buffer)
-            remaining -= removed
-            if buffer > removed {
-                hasRemainingBlock = true
-                var retained = active
-                retained.effect = .shield(shieldKeyword, buffer - removed)
-                updated.append(retained)
-            }
+            return active
         }
-        guard let keyword else { return nil }
-        return ShieldPoolReduction(effects: updated, keyword: keyword, absorbed: amount - remaining, broken: !hasRemainingBlock)
+        return remaining < amount && !hasRemainingBlock
     }
 
     @discardableResult
@@ -149,10 +135,10 @@ package enum DefensePoolEngine {
         guard context.roster.participant(for: target) != nil else { return }
         // Replacing a retained pool is not a new gain, so buff prevention cannot erase it.
         let effectID = amount > 0 ? context.consumeNextEffectID() : nil
-        context.roster.mutateRuntime(for: target) { runtime in
-            runtime.removeEffects { $0.effect.kind == .shield }
+        context.roster.mutateEffects(for: target) { effects in
+            effects.removeAll { $0.effect.kind == .shield }
             if let effectID {
-                runtime.activeEffects.append(ActiveEffect(
+                effects.append(ActiveEffect(
                     id: effectID, effect: .shield(.block, amount),
                     remainingTurns: 0, sourceActorID: target.id,
                 ))

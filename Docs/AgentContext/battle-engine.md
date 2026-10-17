@@ -95,8 +95,12 @@ or stored status, including lethal immediate hits. The keyword dispatcher instea
 reports whether it handled the keyword. Revival returns actual restored Health and
 requires a registered roster identity; callers do not infer application from event
 IDs or stack counts.
-Status-only mutations borrow the roster effect array through `mutateEffects`, keeping
-Mana capacity and reaction expiry synchronized once at the end of each mutation.
+Status-only mutations borrow the roster effect array through `mutateEffects`, or
+directly through the participant when RNG is borrowed alongside it. Mana capacity
+and reaction expiry synchronize once at the end of each borrow.
+Replacement removes and inserts within one borrow, so those checks see the complete
+replacement. Block consumption, Talent point drains, and accelerated expiry compact
+surviving stacks in place; callers retain rule facts rather than replacement arrays.
 Stored buffs share replacement and feedback while retaining their stacking rules.
 Thorns and Kindled share saturating amount-buff operations. Block grants use
 `BattleState.applyBlockGain`; all other insertion uses `insertEffect`.

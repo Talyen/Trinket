@@ -106,12 +106,12 @@ package extension BattleState {
             remainingTurns: remainingTurns,
             sourceActorID: sourceID,
         )
-        roster.mutateRuntime(for: target) { runtime in
-            runtime.activeEffects.removeAll { matches($0.effect) }
+        roster.mutateEffects(for: target) { effects in
+            effects.removeAll { matches($0.effect) }
             if let index {
-                runtime.activeEffects.insert(activeEffect, at: index)
+                effects.insert(activeEffect, at: index)
             } else {
-                runtime.activeEffects.append(activeEffect)
+                effects.append(activeEffect)
             }
         }
         return true
