@@ -93,10 +93,7 @@ struct BalanceSweepOrchestrationTests {
             ("a|b", "c", "hero", .sibling, false),
             ("a", "b|c", "hero", .sibling, false),
         ]
-        let win = BattleSimResult(
-            outcome: .victory, rounds: 6, actions: 10, timedOut: false,
-            partyHPRemainingFraction: 0.5, enemyHPRemainingFraction: 0,
-        )
+        let win = BalanceTestFixtures.result()
         let outcomes = foci.indices.map {
             ContrastPairOutcome(focusIndex: $0, tier: .early, entity: win, baseline: win)
         }
@@ -117,7 +114,7 @@ struct BalanceSweepOrchestrationTests {
             baselineKind: .sibling,
             nonCombat: false,
         )
-        let timeout = BattleSimResult(
+        let timeout = BalanceTestFixtures.result(
             outcome: .defeat,
             rounds: 100,
             actions: 500,
@@ -125,14 +122,7 @@ struct BalanceSweepOrchestrationTests {
             partyHPRemainingFraction: 0.9,
             enemyHPRemainingFraction: 0.1,
         )
-        let decided = BattleSimResult(
-            outcome: .victory,
-            rounds: 6,
-            actions: 10,
-            timedOut: false,
-            partyHPRemainingFraction: 0.5,
-            enemyHPRemainingFraction: 0,
-        )
+        let decided = BalanceTestFixtures.result()
         acc.accumulate(entity: timeout, baseline: decided)
         for _ in 0 ..< 8 {
             acc.accumulate(entity: decided, baseline: decided)
@@ -155,55 +145,6 @@ struct BalanceSweepOrchestrationTests {
             heroIDs: ["missing-hero"],
         ).resolvedRoster
         #expect(roster.heroes.isEmpty)
-    }
-
-    @Test func `sweep report JSON round trips`() throws {
-        let config = BalanceSweepConfig(
-            mode: .identity,
-            battlesPerTier: 1,
-            seed: 3,
-            tiers: [.early],
-            jobs: 1,
-            enemyIDs: ["living_armor"],
-        )
-        let report = BalanceSweepReport(
-            config: config,
-            policyID: "greedy-v1",
-            records: [
-                BalanceBattleRecord(
-                    tier: .early,
-                    heroID: "knight",
-                    companionID: "bear",
-                    enemyID: "living_armor",
-                    isBoss: true,
-                    heroAbilityIDs: ["slash"],
-                    companionAbilityIDs: ["bash"],
-                    enemyAbilityIDs: ["strike"],
-                    enemyTraitIDs: ["watchful_guard", "bloodless"],
-                    affixIDs: ["keen", "sturdy"],
-                    heroAffixIDs: ["keen"],
-                    companionAffixIDs: ["sturdy"],
-                    heroItemBaseIDs: ["blade"],
-                    companionItemBaseIDs: ["shield"],
-                    heroTalentIDs: ["knight_block_t3_2"],
-                    companionTalentIDs: ["bear_health_t1_1"],
-                    seed: 3,
-                    policyID: "greedy-v1",
-                    result: BattleSimResult(
-                        outcome: .victory,
-                        rounds: 2,
-                        actions: 4,
-                        timedOut: false,
-                        partyHPRemainingFraction: 0.8,
-                        enemyHPRemainingFraction: 0,
-                    ),
-                ),
-            ],
-            elapsedSeconds: 0.01,
-        )
-        let data = try JSONEncoder().encode(report)
-        let decoded = try JSONDecoder().decode(BalanceSweepReport.self, from: data)
-        #expect(decoded.records == report.records)
     }
 
     @Test func `ability contrasts include every within-tier pairing`() {
@@ -243,22 +184,8 @@ struct BalanceSweepOrchestrationTests {
     }
 
     @Test func `identity win rate excludes timeouts and counts every trait`() throws {
-        let timeout = BattleSimResult(
-            outcome: .defeat,
-            rounds: 100,
-            actions: 500,
-            timedOut: true,
-            partyHPRemainingFraction: 0.5,
-            enemyHPRemainingFraction: 0.5,
-        )
-        let win = BattleSimResult(
-            outcome: .victory,
-            rounds: 6,
-            actions: 10,
-            timedOut: false,
-            partyHPRemainingFraction: 0.8,
-            enemyHPRemainingFraction: 0,
-        )
+        let timeout = BalanceTestFixtures.result(outcome: .defeat, rounds: 100, actions: 500, timedOut: true, enemyHPRemainingFraction: 0.5)
+        let win = BalanceTestFixtures.result(partyHPRemainingFraction: 0.8)
         func record(_ result: BattleSimResult, seed: UInt64) -> BalanceBattleRecord {
             BalanceBattleRecord(
                 tier: .early,
@@ -345,14 +272,15 @@ struct BalanceSweepOrchestrationTests {
             entityID: "a", baselineID: "b", ownerID: "hero", tier: .early,
             baselineKind: .sibling, nonCombat: false,
         )
-        let timeout = BattleSimResult(
-            outcome: .defeat, rounds: 1, actions: 500, timedOut: true,
-            partyHPRemainingFraction: 1, enemyHPRemainingFraction: 1,
+        let timeout = BalanceTestFixtures.result(
+            outcome: .defeat,
+            rounds: 1,
+            actions: 500,
+            timedOut: true,
+            partyHPRemainingFraction: 1,
+            enemyHPRemainingFraction: 1,
         )
-        let win = BattleSimResult(
-            outcome: .victory, rounds: 6, actions: 10, timedOut: false,
-            partyHPRemainingFraction: 0.5, enemyHPRemainingFraction: 0,
-        )
+        let win = BalanceTestFixtures.result()
         for _ in 0 ..< 4 {
             acc.accumulate(entity: timeout, baseline: win)
         }

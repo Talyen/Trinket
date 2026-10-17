@@ -7,9 +7,13 @@ struct BalanceFindingsReporterTests {
         let step = try #require(ModeProgressionTracker.campaign().steps.first)
         let sample = ProgressionBattleRecord(
             step: step, playerLevel: 1, enemyLevel: step.enemyLevel, seed: 1,
-            result: BattleSimResult(
-                outcome: .defeat, rounds: 1, actions: 1, timedOut: true,
-                partyHPRemainingFraction: 1, enemyHPRemainingFraction: 1,
+            result: BalanceTestFixtures.result(
+                outcome: .defeat,
+                rounds: 1,
+                actions: 1,
+                timedOut: true,
+                partyHPRemainingFraction: 1,
+                enemyHPRemainingFraction: 1,
             ),
         )
         let report = BalanceSweepReport(
@@ -102,12 +106,16 @@ struct BalanceFindingsReporterTests {
         #expect(lines.contains(
             "| `cinderbloom` | `fireball` | sibling | `phoenix` | Early | 0.0% | 0.0% | +18.8 pp | +0.00 | +0.0 | \(Int.max) | \(Int.max - 1) | ⚠ HIGH |",
         ))
+        var largeReport = report
+        largeReport.abilityContrasts = [large]
+        let largeFindings = BalanceFindingsReporter.render(largeReport)
+        #expect(largeFindings.contains("n=\(Int.max - 1) decided"))
+        #expect(largeFindings.contains("timeouts 0/\(Int.max) entity, 0/\(Int.max) baseline"))
     }
 
     @Test func `findings list progression hotspots without node census`() {
-        let step = ModeProgressionStep(
+        let step = BalanceTestFixtures.step(
             id: "stage-3-10",
-            mode: .campaign,
             containerID: "chapter-3",
             containerTitle: "Chapter 3: Desert",
             stepIndex: 10,
@@ -129,17 +137,7 @@ struct BalanceFindingsReporterTests {
             status: .overtuned,
             flagReason: "Win rate 50.0% below 80%",
         )
-        let smoothStep = ModeProgressionStep(
-            id: "stage-1-1",
-            mode: .campaign,
-            containerID: "chapter-1",
-            containerTitle: "Chapter 1: Forest",
-            stepIndex: 1,
-            displayTitle: "Stage 1-1",
-            enemyID: "slime",
-            enemyLevel: 1,
-            isBoss: false,
-        )
+        let smoothStep = BalanceTestFixtures.step(id: "stage-1-1", containerTitle: "Chapter 1: Forest", enemyID: "slime", enemyLevel: 1)
         let smooth = NodeHotspotSummary(
             step: smoothStep,
             battles: 32,
@@ -255,6 +253,12 @@ struct BalanceFindingsReporterTests {
         #expect(hero.shortRate == 0.25 && hero.longRate == 0.25 && hero.flagReason == "FAST SLOW")
         #expect(companion.battles == hero.battles && companion.averageRounds == hero.averageRounds)
         #expect(companion.shortRate == hero.shortRate && companion.longRate == hero.longRate)
+        let markdown = BalanceMarkdownReporter.render(report)
+        #expect(markdown.contains("| `shared` | regular | 8 |"))
+        #expect(markdown.contains("| `shared` | boss | 8 |"))
+        let findings = BalanceFindingsReporter.render(report)
+        #expect(findings.contains("Enemy `shared` (Early duration)"))
+        #expect(findings.contains("Boss `shared` (Early duration)"))
     }
 
     @Test func `equal duration outliers select the same enemy regardless of record order`() {
@@ -265,6 +269,41 @@ struct BalanceFindingsReporterTests {
             let stats = BalanceDurationAggregation.durationStats(source, minRounds: 5, maxRounds: 15, flagRate: 0.15)
             #expect(stats.worstEnemyID == "alpha")
         }
+    }
+
+    @Test func `cross-tier warnings count tiers rather than boss and regular rows`() {
+        let early = [false, true].flatMap { isBoss in
+            Array(repeating: identityRecord(enemyID: "shared", isBoss: isBoss, abilities: [], win: false, seed: 1), count: 8)
+        }
+        var middle = identityRecord(enemyID: "sparse", isBoss: false, abilities: [], win: true, seed: 2)
+        middle.tier = .middle
+        var report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [.early, .middle]), policyID: "greedy-v1",
+            records: early + [middle], elapsedSeconds: 0,
+        )
+        #expect(!BalanceFindingsReporter.render(report).contains("Cross-Tier Outlier"))
+        report.records += early.map { record in
+            var record = record
+            record.tier = .middle
+            return record
+        }
+        let warnings = BalanceFindingsReporter.render(report).split(separator: "\n").filter { $0.contains("Cross-Tier Outlier") }
+        #expect(warnings.count == 1)
+        #expect(warnings.first?.contains("flagged in 2 tiers (Early, Middle)") == true)
+    }
+
+    @Test func `affix findings identify the owner whose build benefits or suffers`() {
+        var win = identityRecord(enemyID: "enemy", isBoss: false, abilities: [], win: true, seed: 1)
+        win.heroAffixIDs = ["keen"]
+        var loss = identityRecord(enemyID: "enemy", isBoss: false, abilities: [], win: false, seed: 2)
+        loss.companionAffixIDs = ["keen"]
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [.early]), policyID: "greedy-v1",
+            records: Array(repeating: win, count: 8) + Array(repeating: loss, count: 8), elapsedSeconds: 0,
+        )
+        let findings = BalanceFindingsReporter.render(report)
+        #expect(findings.contains("Affix `keen` (Early, on `knight`): ⚠ HIGH"))
+        #expect(findings.contains("Affix `keen` (Early, on `bear`): ⚠ LOW"))
     }
 
     @Test func `repeated affix counts once per owner per battle`() {
@@ -389,11 +428,10 @@ extension BalanceFindingsReporterTests {
             companionTalentIDs: [],
             seed: seed,
             policyID: "greedy-v1",
-            result: BattleSimResult(
+            result: BalanceTestFixtures.result(
                 outcome: win ? .victory : .defeat,
                 rounds: win ? 6 : 18,
                 actions: 12,
-                timedOut: false,
                 partyHPRemainingFraction: win ? 0.8 : 0,
                 enemyHPRemainingFraction: win ? 0 : 0.7,
             ),

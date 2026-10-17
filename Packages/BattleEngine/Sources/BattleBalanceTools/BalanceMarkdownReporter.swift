@@ -100,7 +100,7 @@ public enum BalanceMarkdownReporter {
             "",
             "- Win rates are under `\(report.policyID)` autoplay, not human play. Timeouts are excluded from win rate.",
             "- Identity party ability/affix/talent rows are within-owner presence margins; contrasts isolate a sibling swap.",
-            "- Identity spends available talent points (1 per even level) on a legal kit: early a 1-node spend at L4 plus one basic aligned item, middle a partial spend, late the full 18-node kit. The early→middle cliff includes level, gear, and talents.",
+            "- Identity spends available talent points (1 per even level) on a legal kit: early a 1-node spend at L4 plus one basic aligned item, middle and late spend up to their earned budgets. A full catalog is used only when affordable. The early→middle cliff includes level, gear, and talents.",
             "- Enemy ability/trait rows are presence margins (opposing kit); ⚠ EASY / ⚠ HARD are player win rate vs tier peer.",
             "- Contrast lifts hold partner/enemy/gear/loadout fixed and swap only the focus entity.",
             "- Contrast background builds use \(report.config.usesTierTalents ? "shared tier-legal talent kits" : "minimal talents (diagnostic)"). Talent sibling contrasts preserve their required prefix and swap only the focused choice; kit contrasts require enough points for the full catalog.",

@@ -94,11 +94,11 @@ enum BalanceMarkdownTables {
         table(
             into: &lines,
             heading: "### Enemy duration",
-            header: "| Enemy | n | Avg rounds | SHORT% | LONG% |",
-            separator: "|---|---:|---:|---:|---:|",
+            header: "| Enemy | Role | n | Avg rounds | SHORT% | LONG% |",
+            separator: "|---|---|---:|---:|---:|---:|",
             rows: stats.map { row in
                 """
-                | `\(row.enemyID)` | \(row.battles) | \(decimal(row.averageRounds)) | \
+                | `\(row.enemyID)` | \(row.isBoss ? "boss" : "regular") | \(row.battles) | \(decimal(row.averageRounds)) | \
                 \(decimal(row.shortRate * 100))% | \(decimal(row.longRate * 100))% |
                 """
             },

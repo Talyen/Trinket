@@ -20,20 +20,6 @@ public struct BattleSimResult: Equatable, Codable, Sendable {
     }
 }
 
-private enum SimAction: Equatable {
-    case playCard(id: Int)
-    case endTurn
-}
-
-private extension PlayPolicy {
-    func nextAction(in battle: BattleState) -> SimAction {
-        guard let best = preferredPlayableCard(in: battle) else {
-            return .endTurn
-        }
-        return .playCard(id: best.id)
-    }
-}
-
 public enum BattleSimulator {
     public static let defaultMaxRounds = 100
     public static let defaultMaxActions = 500
@@ -85,15 +71,13 @@ public enum BattleSimulator {
                 break
             }
             actions += 1
-            switch policy.nextAction(in: battle) {
-            case let .playCard(cardID):
+            if let card = policy.preferredPlayableCard(in: battle) {
                 do {
-                    _ = try battle.playCard(cardID: cardID, rebuildLog: false)
+                    _ = try battle.playCard(cardID: card.id, rebuildLog: false)
                 } catch {
                     _ = battle.endTurn(rebuildLog: false)
                 }
-            case .endTurn:
-                guard battle.phase == .playerTurn else { break }
+            } else if battle.phase == .playerTurn {
                 _ = battle.endTurn(rebuildLog: false)
             }
         }

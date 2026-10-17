@@ -9,14 +9,16 @@ struct ModeProgressionToolingTests {
         let records = ["goblin", "skeleton"].flatMap { enemyID in
             (0 ..< 8).map { sample in
                 ProgressionBattleRecord(
-                    step: ModeProgressionStep(
-                        id: "random-stage", mode: .campaign, containerID: "chapter", containerTitle: "Chapter",
-                        stepIndex: 1, displayTitle: "Random battle", enemyID: enemyID, enemyLevel: 10, isBoss: false,
+                    step: BalanceTestFixtures.step(
+                        enemyID: enemyID,
+                        enemyLevel: 10,
                     ),
                     playerLevel: 10, enemyLevel: 10, seed: UInt64(sample),
-                    result: BattleSimResult(
-                        outcome: enemyID == "goblin" ? .defeat : .victory, rounds: 10, actions: 40,
-                        timedOut: false, partyHPRemainingFraction: 0, enemyHPRemainingFraction: 0,
+                    result: BalanceTestFixtures.result(
+                        outcome: enemyID == "goblin" ? .defeat : .victory,
+                        rounds: 10,
+                        actions: 40,
+                        partyHPRemainingFraction: 0,
                     ),
                 )
             }
@@ -85,10 +87,7 @@ struct ModeProgressionToolingTests {
     }
 
     @Test func `defeats award existing peak depletion XP without clearing the encounter`() {
-        let step = ModeProgressionStep(
-            id: "wall", mode: .campaign, containerID: "test", containerTitle: "Test", stepIndex: 5,
-            displayTitle: "Wall", enemyID: "goblin", enemyLevel: 10, isBoss: false,
-        )
+        let step = BalanceTestFixtures.step(enemyLevel: 10)
         let controller = InterleavingPlayerController(
             campaignTracker: .init(steps: [step]), spireTracker: .init(steps: []), labyrinthTracker: .init(steps: []),
             initialState: PlayerProgressionState(heroLevel: 10, companionLevel: 10),
@@ -104,10 +103,7 @@ struct ModeProgressionToolingTests {
     }
 
     @Test func `Easy Contracts earn recovery XP without clearing or prolonging advancing content`() throws {
-        let step = ModeProgressionStep(
-            id: "wall", mode: .campaign, containerID: "chapter", containerTitle: "Chapter",
-            stepIndex: 1, displayTitle: "Wall", enemyID: "goblin", enemyLevel: 20, isBoss: false,
-        )
+        let step = BalanceTestFixtures.step(enemyLevel: 20)
         let controller = InterleavingPlayerController(
             campaignTracker: .init(steps: [step]), spireTracker: .init(steps: []), labyrinthTracker: .init(steps: []),
             initialState: PlayerProgressionState(heroLevel: 10, companionLevel: 10), worldSeed: 43,
@@ -155,17 +151,7 @@ extension ModeProgressionToolingTests {
         let controller = InterleavingPlayerController()
         let initialLevel = controller.state.heroLevel
 
-        let step = ModeProgressionStep(
-            id: "test-step",
-            mode: .campaign,
-            containerID: "chapter-1",
-            containerTitle: "Chapter 1",
-            stepIndex: 1,
-            displayTitle: "Stage 1-1",
-            enemyID: "goblin",
-            enemyLevel: 5,
-            isBoss: false,
-        )
+        let step = BalanceTestFixtures.step()
 
         for _ in 0 ..< 10 {
             controller.recordOutcome(step: step, won: true)
@@ -185,17 +171,7 @@ extension ModeProgressionToolingTests {
     func `hotspot analyzer classifies decided envelopes`(
         wins: Int, defeats: Int, timeouts: Int, level: Int, expected: HotspotStatus,
     ) throws {
-        let step = ModeProgressionStep(
-            id: "step-1",
-            mode: .campaign,
-            containerID: "c1",
-            containerTitle: "Chapter 1",
-            stepIndex: 1,
-            displayTitle: "Stage 1",
-            enemyID: "goblin",
-            enemyLevel: 5,
-            isBoss: false,
-        )
+        let step = BalanceTestFixtures.step()
 
         let records = (0 ..< (wins + defeats + timeouts)).map { index in
             ProgressionBattleRecord(
@@ -203,7 +179,7 @@ extension ModeProgressionToolingTests {
                 playerLevel: level,
                 enemyLevel: level,
                 seed: UInt64(index),
-                result: BattleSimResult(
+                result: BalanceTestFixtures.result(
                     outcome: (index < wins) ? .victory : .defeat,
                     rounds: 10,
                     actions: 20,
@@ -232,17 +208,7 @@ extension ModeProgressionToolingTests {
         let controller = InterleavingPlayerController(
             initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),
         )
-        let step = ModeProgressionStep(
-            id: "test-step",
-            mode: .campaign,
-            containerID: "chapter-1",
-            containerTitle: "Chapter 1",
-            stepIndex: 1,
-            displayTitle: "Stage 1-1",
-            enemyID: "living_armor",
-            enemyLevel: 20,
-            isBoss: false,
-        )
+        let step = BalanceTestFixtures.step(enemyID: "living_armor", enemyLevel: 20)
         let matchup = controller.makeMatchup(for: step, seed: 11)
         let budget = CombatantProgression.at(level: 20).totalTalentPoints
         #expect(matchup.context.heroTalentIDs.count == budget)
@@ -253,17 +219,7 @@ extension ModeProgressionToolingTests {
         let controller = InterleavingPlayerController(
             initialState: PlayerProgressionState(heroLevel: 2, companionLevel: 2),
         )
-        let step = ModeProgressionStep(
-            id: "test-step",
-            mode: .campaign,
-            containerID: "chapter-1",
-            containerTitle: "Chapter 1",
-            stepIndex: 1,
-            displayTitle: "Stage 1-1",
-            enemyID: "slime",
-            enemyLevel: 1,
-            isBoss: false,
-        )
+        let step = BalanceTestFixtures.step(enemyID: "slime", enemyLevel: 1)
         let matchup = controller.makeMatchup(for: step, seed: 11)
         #expect(matchup.context.heroTalentIDs.count == 1)
         #expect(matchup.context.companionTalentIDs.count == 1)
@@ -275,7 +231,7 @@ extension ModeProgressionToolingTests {
         let controller = InterleavingPlayerController(
             initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),
         )
-        let step = ModeProgressionStep(
+        let step = BalanceTestFixtures.step(
             id: "spire-step",
             mode: .spire,
             containerID: "resonanceHall",
@@ -323,10 +279,7 @@ extension ModeProgressionToolingTests {
         let controller = InterleavingPlayerController(
             initialState: PlayerProgressionState(heroLevel: 3, companionLevel: 2),
         )
-        let step = ModeProgressionStep(
-            id: "mode-floor", mode: mode, containerID: "container", containerTitle: "Container",
-            stepIndex: 1, displayTitle: "Encounter", enemyID: "goblin", enemyLevel: 20, isBoss: false,
-        )
+        let step = BalanceTestFixtures.step(mode: mode, enemyLevel: 20)
         let matchup = controller.makeMatchup(for: step, seed: 1772)
         let enemy = try #require(GameContent.enemy(matching: step.enemyID))
         #expect(controller.encounterLevel(for: step) == expectedLevel)
@@ -337,24 +290,18 @@ extension ModeProgressionToolingTests {
         let controller = InterleavingPlayerController(
             initialState: PlayerProgressionState(heroLevel: 15, companionLevel: 16),
         )
-        let step = ModeProgressionStep(
-            id: "mixed-party", mode: .campaign, containerID: "container", containerTitle: "Container",
-            stepIndex: 1, displayTitle: "Encounter", enemyID: "goblin", enemyLevel: 20, isBoss: false,
-        )
+        let step = BalanceTestFixtures.step(enemyLevel: 20)
         #expect(controller.encounterLevel(for: step) == 18)
     }
 
     @Test func `overleveled spire win awards no XP`() {
-        let step = ModeProgressionStep(
+        let step = BalanceTestFixtures.step(
             id: "spire-step",
             mode: .spire,
             containerID: "ironVein",
             containerTitle: "Iron Vein",
-            stepIndex: 1,
             displayTitle: "Iron Vein Floor 1",
-            enemyID: "goblin",
             enemyLevel: 2,
-            isBoss: false,
         )
         let controller = InterleavingPlayerController(
             campaignTracker: .init(steps: []),

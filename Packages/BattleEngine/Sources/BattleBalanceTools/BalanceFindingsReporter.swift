@@ -23,7 +23,7 @@ public enum BalanceFindingsReporter {
         return lines.joined(separator: "\n")
     }
 
-    fileprivate struct Finding {
+    private struct Finding {
         var score: Double
         var line: String
     }
@@ -81,7 +81,7 @@ public enum BalanceFindingsReporter {
     private static func snapshotLine(_ tier: BalanceTierStats, report: BalanceSweepReport, comparedTiers: [BalanceTierStats]) -> String {
         let winPct = BalanceStatsAggregator.winPercent(wins: tier.wins, decided: tier.decidedBattles)
         var line = String(
-            format: "- %@: %d battles, %.1f%% win, %d timeouts, avg %.1f rounds",
+            format: "- %@: %ld battles, %.1f%% win, %ld timeouts, avg %.1f rounds",
             tier.tier.displayName,
             tier.battles,
             winPct,
@@ -194,8 +194,6 @@ extension BalanceFindingsReporter {
             findings += rosterFindings(rows, kind: kind, tier: tier.tier)
         }
         findings += rosterFindings(tier.enemies, kind: "enemy", tier: tier.tier, enemyEvidence: evidence)
-        findings += collapsedSplit(split: tier.heroesBoss, kind: "hero", vs: "bosses", tier: tier.tier)
-        findings += collapsedSplit(split: tier.companionsBoss, kind: "companion", vs: "bosses", tier: tier.tier)
         findings += pairingFindings(tier.heroCompanionCells, labels: ("hero", "companion"), tier: tier.tier)
         findings += pairingFindings(tier.heroEnemyCells, labels: ("hero", "enemy"), tier: tier.tier)
         return findings
@@ -230,10 +228,10 @@ extension BalanceFindingsReporter {
             return Finding(
                 score: abs(row.deltaVsPeer),
                 line: String(
-                    format: "%@ `%@` (%@): ⚠ %@ · %.1f%% win [%.1f–%.1f] · n=%d · %+.1f pp · %@",
+                    format: "%@ `%@` (%@): ⚠ %@ · %.1f%% win [%.1f–%.1f] · n=%ld · %+.1f pp · %@",
                     kind.capitalized,
                     row.id,
-                    tier.displayName,
+                    row.ownerID.map { "\(tier.displayName), on `\($0)`" } ?? tier.displayName,
                     row.flagReason ?? "",
                     row.winRate * 100,
                     row.wilsonLow * 100,
@@ -244,35 +242,6 @@ extension BalanceFindingsReporter {
                 ),
             )
         }
-    }
-
-    private static func collapsedSplit(
-        split: [WinRateSummary],
-        kind: String,
-        vs: String,
-        tier: SimulationPowerTier,
-    ) -> [Finding] {
-        let flagged = split.filter(\.flagged)
-        guard flagged.count >= 2, flagged.count == split.count else { return [] }
-        let reasons = Set(flagged.compactMap(\.flagReason))
-        guard reasons.count == 1, let reason = reasons.first else { return [] }
-        let rates = flagged.map(\.winRate)
-        let meanDelta = flagged.map(\.deltaVsPeer).reduce(0, +) / Double(flagged.count)
-        return [
-            Finding(
-                score: abs(meanDelta),
-                line: String(
-                    format: "All %@s vs %@ (%@): ⚠ %@ · %.1f–%.1f%% win · n=%d each · same story, not listed per id",
-                    kind,
-                    vs,
-                    tier.displayName,
-                    reason,
-                    (rates.min() ?? 0) * 100,
-                    (rates.max() ?? 0) * 100,
-                    flagged.first?.battles ?? 0,
-                ),
-            ),
-        ]
     }
 
     private static func durationFinding(
@@ -308,7 +277,7 @@ extension BalanceFindingsReporter {
             Finding(
                 score: abs(cell.deltaVsPeer) * 0.5,
                 line: String(
-                    format: "%@ `%@` × %@ `%@` (%@): ⚠ %@ · %.1f%% win · n=%d · %+.1f pp · pairing outlier",
+                    format: "%@ `%@` × %@ `%@` (%@): ⚠ %@ · %.1f%% win · n=%ld · %+.1f pp · pairing outlier",
                     labels.0,
                     cell.leftID,
                     labels.1,
@@ -329,7 +298,7 @@ extension BalanceFindingsReporter {
     ) -> [Finding] {
         rows.filter(\.flagged).map { row in
             durationFinding(
-                id: row.enemyID, kind: "Enemy",
+                id: row.enemyID, kind: row.isBoss ? "Boss" : "Enemy",
                 stats: (
                     averageRounds: row.averageRounds, shortRate: row.shortRate, longRate: row.longRate,
                     battles: row.battles, reason: row.flagReason,
@@ -364,7 +333,7 @@ extension BalanceFindingsReporter {
         Finding(
             score: max(stats.shortRate, stats.longRate),
             line: String(
-                format: "%@ `%@` (%@ duration): ⚠ %@ · avg %.1f rounds · SHORT %.0f%% · LONG %.0f%% · n=%d",
+                format: "%@ `%@` (%@ duration): ⚠ %@ · avg %.1f rounds · SHORT %.0f%% · LONG %.0f%% · n=%ld",
                 kind,
                 id,
                 tier.displayName,
@@ -380,16 +349,17 @@ extension BalanceFindingsReporter {
     private static func crossTierFindings(tiers: [BalanceTierStats]) -> [Finding] {
         let activeTiers = tiers.filter { $0.battles > 0 }
         guard activeTiers.count >= 2 else { return [] }
-        var enemyFlags: [String: [String]] = [:]
+        var enemyFlags: [String: Set<SimulationPowerTier>] = [:]
         for tier in activeTiers {
             for enemy in tier.enemies where enemy.flagged {
-                enemyFlags[enemy.id, default: []].append(tier.tier.displayName)
+                enemyFlags[enemy.id, default: []].insert(tier.tier)
             }
         }
         return enemyFlags.filter { $0.value.count >= 2 }.sorted { $0.key < $1.key }.map { id, tierList in
-            Finding(
+            let labels = SimulationPowerTier.allCases.filter(tierList.contains).map(\.displayName).joined(separator: ", ")
+            return Finding(
                 score: 100.0 + Double(tierList.count),
-                line: "Cross-Tier Outlier `\(id)`: ⚠ flagged in \(tierList.count) tiers (\(tierList.joined(separator: ", "))) — priority tuning candidate",
+                line: "Cross-Tier Outlier `\(id)`: ⚠ flagged in \(tierList.count) tiers (\(labels)) — priority tuning candidate",
             )
         }
     }
@@ -400,7 +370,7 @@ extension BalanceFindingsReporter {
             Finding(
                 score: max(abs(row.lift), abs(row.meanDeltaPartyHP), abs(row.meanDeltaRounds) / 10),
                 line: String(
-                    format: "%@ `%@` vs `%@` on `%@` (%@, %@): ⚠ %@ · lift %+.1f pp · ΔHP %+.2f · Δrounds %+.1f · n=%d decided · timeouts %d/%d entity, %d/%d baseline",
+                    format: "%@ `%@` vs `%@` on `%@` (%@, %@): ⚠ %@ · lift %+.1f pp · ΔHP %+.2f · Δrounds %+.1f · n=%ld decided · timeouts %ld/%ld entity, %ld/%ld baseline",
                     kind.capitalized,
                     row.entityID,
                     row.baselineID,
