@@ -25,10 +25,10 @@ package enum HealingEngine {
             return .empty
         }
         let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
-        var flags: Set<CombatFlag> = []
+        var isCritical = false
         let incomingMultiplier = CombatTriggerEngine.incomingHealMultiplier(for: request.target, in: context)
         let baseAmount = incomingMultiplier > 0
-            ? resolvedAmount(request, sourceTriggers: sourceTriggers, flags: &flags, in: &context) : 0
+            ? resolvedAmount(request, sourceTriggers: sourceTriggers, isCritical: &isCritical, in: &context) : 0
         let boostedAmount = incomingMultiplier > 0
             ? adjustedHeroHealingAmount(baseAmount, request: request, in: &context) : 0
         let amount = CombatRounding.scaled(
@@ -47,7 +47,7 @@ package enum HealingEngine {
             maxHealth: maxHealth, allocation: &allocation, in: &context,
         )
 
-        appendHealLog(request: request, restored: restored, flags: flags, in: &context)
+        appendHealLog(request: request, restored: restored, isCritical: isCritical, in: &context)
         if overflow > 0, !request.suppressTalentReactions {
             context.nextEvent(
                 kind: .effect(.overheal),
@@ -56,7 +56,7 @@ package enum HealingEngine {
                 target: request.target,
                 amount: overflow,
                 keyword: .health,
-                isCritical: flags.contains(.critical),
+                isCritical: isCritical,
                 origin: request.isHoTTick ? .periodic : (request.isDirectCardHeal ? .direct : .automatic),
             )
         }
@@ -67,7 +67,7 @@ package enum HealingEngine {
 
         return HealingResult(
             allocation: allocation,
-            isLeech: request.origin == .leech, isCritical: flags.contains(.critical),
+            isLeech: request.origin == .leech, isCritical: isCritical,
         )
     }
 
@@ -199,7 +199,7 @@ package enum HealingEngine {
     private static func appendHealLog(
         request: HealRequest,
         restored: Int,
-        flags: Set<CombatFlag>,
+        isCritical: Bool,
         in context: inout BattleState,
     ) {
         switch request.logAs {
@@ -214,7 +214,7 @@ package enum HealingEngine {
                 target: request.target,
                 amount: restored,
                 keyword: keyword,
-                isCritical: flags.contains(.critical),
+                isCritical: isCritical,
                 origin: request.isDirectCardHeal ? .direct : .automatic,
             )
         }
@@ -264,7 +264,7 @@ package enum HealingEngine {
     private static func resolvedAmount(
         _ request: HealRequest,
         sourceTriggers: CombatTraitTriggers?,
-        flags: inout Set<CombatFlag>,
+        isCritical: inout Bool,
         in context: inout BattleState,
     ) -> Int {
         if request.amountBasis == .resolved {
@@ -279,9 +279,7 @@ package enum HealingEngine {
             amount = context.paced(amount, sourceActorID: sourceActorID)
         }
 
-        if let crit = rollRestorationCritical(for: request, amount: &amount, in: &context) {
-            flags.insert(crit)
-        }
+        isCritical = rollRestorationCritical(for: request, amount: &amount, in: &context)
 
         if let sourceTriggers,
            sourceTriggers.healingBelowHealthPercentThreshold > 0,
@@ -299,6 +297,7 @@ package enum HealingEngine {
             guard !context.isBattleOver else { break }
             let target = context.roster[owner].combatant
             let echoes = context.roster[owner].talents.pending.healingEchoes
+            guard !echoes.isEmpty else { continue }
             context.roster.mutateRuntime(for: target) { $0.talents.pending.healingEchoes.removeAll() }
             for echo in echoes {
                 guard !context.isBattleOver else { break }
@@ -321,14 +320,14 @@ package enum HealingEngine {
         for request: HealRequest,
         amount: inout Int,
         in context: inout BattleState,
-    ) -> CombatFlag? {
+    ) -> Bool {
         guard amount > 0,
               let sourceActorID = request.sourceActorID,
               context.roster.combatant(for: sourceActorID) != nil
-        else { return nil }
+        else { return false }
 
-        guard let critKeyword = request.origin.criticalKeyword else { return nil }
-        guard critKeyword.allowsCriticalHits else { return nil }
+        guard let critKeyword = request.origin.criticalKeyword else { return false }
+        guard critKeyword.allowsCriticalHits else { return false }
 
         guard CriticalChanceEngine.rollSucceeds(
             actorID: sourceActorID,
@@ -336,9 +335,9 @@ package enum HealingEngine {
             usePartyMaximum: context.modifiers(for: sourceActorID).triggers.contagiousJoy,
             in: &context,
         )
-        else { return nil }
+        else { return false }
 
         amount = SaturatedArithmetic.saturatingMul(amount, 2)
-        return .critical
+        return true
     }
 }

@@ -10,27 +10,29 @@ extension EffectApplication {
         guard case let .multiplyDoT(keyword, factor) = effect, factor > 1 else {
             return EffectApplyOutcome(didApply: false)
         }
-        var effects = context.roster.activeEffects(for: target)
-        guard let firstIndex = effects.firstIndex(where: { isDetonatableDoT($0.effect, keyword: keyword) }),
-              !CombatTriggerEngine.preventsDebuff(effects[firstIndex].effect, on: target, in: context)
+        guard let first = context.roster.activeEffects(for: target).first(where: { isDetonatableDoT($0.effect, keyword: keyword) }),
+              !CombatTriggerEngine.preventsDebuff(first.effect, on: target, in: context)
         else {
             return EffectApplyOutcome(didApply: false)
         }
+        guard context.roster.activeEffects(for: target).contains(where: {
+            isDetonatableDoT($0.effect, keyword: keyword)
+                && SaturatedArithmetic.saturatingMul($0.effect.potency ?? 0, factor) > ($0.effect.potency ?? 0)
+        }) else { return EffectApplyOutcome(didApply: false) }
         var total = 0
-        var grew = false
-        for index in effects.indices where isDetonatableDoT(effects[index].effect, keyword: keyword) {
-            let multiplied = SaturatedArithmetic.saturatingMul(effects[index].effect.potency ?? 0, factor)
-            grew = grew || multiplied > (effects[index].effect.potency ?? 0)
-            switch keyword {
-            case .burn: effects[index].effect = .burn(multiplied)
-            case .poison: effects[index].effect = .poison(multiplied)
-            case .bleed: effects[index].effect = .bleed(multiplied)
-            default: return EffectApplyOutcome(didApply: false)
+        context.roster.mutateEffects(for: target) { effects in
+            for index in effects.indices where isDetonatableDoT(effects[index].effect, keyword: keyword) {
+                let potency = effects[index].effect.potency ?? 0
+                let multiplied = SaturatedArithmetic.saturatingMul(potency, factor)
+                switch keyword {
+                case .burn: effects[index].effect = .burn(multiplied)
+                case .poison: effects[index].effect = .poison(multiplied)
+                case .bleed: effects[index].effect = .bleed(multiplied)
+                default: break
+                }
+                total = SaturatedArithmetic.saturatingAdd(total, multiplied)
             }
-            total = SaturatedArithmetic.saturatingAdd(total, multiplied)
         }
-        guard grew else { return EffectApplyOutcome(didApply: false) }
-        context.roster.setActiveEffects(effects, for: target)
         emit(.dotAmplified, amount: total, keyword: keyword, origin: .automatic, in: &context)
         return EffectApplyOutcome(didApply: true)
     }

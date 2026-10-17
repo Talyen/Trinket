@@ -20,7 +20,17 @@ enum EffectRemoval {
         from effects: inout [ActiveEffect],
         using rng: inout SeededRandomNumberGenerator,
     ) -> ActiveEffect? {
-        removeRandom(from: &effects, using: &rng) { $0.effect.isRemovableDebuff }
+        let count = effects.count(where: \.effect.isRemovableDebuff)
+        guard count > 0 else { return nil }
+        // Match randomElement's range and stack order without allocating its candidates.
+        var offset = Int.random(in: 0 ..< count, using: &rng)
+        for index in effects.indices where effects[index].effect.isRemovableDebuff {
+            if offset == 0 {
+                return effects.remove(at: index)
+            }
+            offset -= 1
+        }
+        return nil
     }
 
     @discardableResult
@@ -72,16 +82,6 @@ enum EffectRemoval {
             return true
         }
         return removed
-    }
-
-    private static func removeRandom(
-        from effects: inout [ActiveEffect],
-        using rng: inout SeededRandomNumberGenerator,
-        where matches: (ActiveEffect) -> Bool,
-    ) -> ActiveEffect? {
-        let candidates = effects.indices.filter { matches(effects[$0]) }
-        guard let index = candidates.randomElement(using: &rng) else { return nil }
-        return effects.remove(at: index)
     }
 
     /// Distinct keywords in stable order for per-keyword removal events.

@@ -61,8 +61,14 @@ package enum DefensePoolEngine {
         var remaining = amount
         var keyword: Keyword?
         var updated: [ActiveEffect] = []
+        var hasRemainingBlock = false
         for active in effects {
-            guard remaining > 0, case let .shield(shieldKeyword, buffer) = active.effect, buffer > 0 else {
+            guard case let .shield(shieldKeyword, buffer) = active.effect, buffer > 0 else {
+                updated.append(active)
+                continue
+            }
+            guard remaining > 0 else {
+                hasRemainingBlock = true
                 updated.append(active)
                 continue
             }
@@ -72,19 +78,14 @@ package enum DefensePoolEngine {
             let removed = min(remaining, buffer)
             remaining -= removed
             if buffer > removed {
+                hasRemainingBlock = true
                 var retained = active
                 retained.effect = .shield(shieldKeyword, buffer - removed)
                 updated.append(retained)
             }
         }
         guard let keyword else { return nil }
-        let broken = !updated.contains {
-            if case let .shield(_, buffer) = $0.effect {
-                return buffer > 0
-            }
-            return false
-        }
-        return ShieldPoolReduction(effects: updated, keyword: keyword, absorbed: amount - remaining, broken: broken)
+        return ShieldPoolReduction(effects: updated, keyword: keyword, absorbed: amount - remaining, broken: !hasRemainingBlock)
     }
 
     @discardableResult

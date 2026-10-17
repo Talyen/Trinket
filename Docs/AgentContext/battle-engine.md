@@ -35,7 +35,8 @@ order, independently of retained battle history and optional action recording.
 Card/turn orchestration does not reconstruct command events from child return
 values. Damage, healing, and Leech outcomes carry rule facts only; their nested
 reactions emit directly into the enclosing command output without copying local
-event ranges. Internal card plays and enemy/turn-start phases likewise emit
+event ranges. Outcome Health and impact facts are immutable; internal result flags
+use a compact bitset rather than allocated sets. Internal card plays and enemy/turn-start phases likewise emit
 without returning parallel arrays. Explicit test observers use `collectingEvents`
 or `collectingResult` at the operation boundary, including when retained battle
 history is disabled.
@@ -94,6 +95,8 @@ or stored status, including lethal immediate hits. The keyword dispatcher instea
 reports whether it handled the keyword. Revival returns actual restored Health and
 requires a registered roster identity; callers do not infer application from event
 IDs or stack counts.
+Status-only mutations borrow the roster effect array through `mutateEffects`, keeping
+Mana capacity and reaction expiry synchronized once at the end of each mutation.
 Stored buffs share replacement and feedback while retaining their stacking rules.
 Thorns and Kindled share saturating amount-buff operations. Block grants use
 `BattleState.applyBlockGain`; all other insertion uses `insertEffect`.

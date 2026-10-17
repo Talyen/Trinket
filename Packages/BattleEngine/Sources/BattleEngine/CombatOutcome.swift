@@ -4,14 +4,14 @@ public struct CombatOutcome: Equatable {
         case landed(blocked: Int, healthLost: Int)
     }
 
-    public var healthDelta: Int
-    public var damageImpact: DamageImpact?
-    var flags: Set<CombatFlag>
+    public let healthDelta: Int
+    public let damageImpact: DamageImpact?
+    let flags: CombatFlags
     var elementalHit: ElementalReactionHit?
 
-    public init(
+    init(
         healthDelta: Int = 0,
-        flags: Set<CombatFlag> = [],
+        flags: CombatFlags = [],
         damageImpact: DamageImpact? = nil,
     ) {
         self.healthDelta = healthDelta
@@ -40,25 +40,23 @@ public struct CombatOutcome: Equatable {
     }
 }
 
-public enum CombatFlag: Hashable, Sendable {
-    case critical
-    case dodged
-    case shieldAbsorbed
-    case leeched
-    case controlTriggered
+struct CombatFlags: OptionSet, Hashable, Sendable {
+    let rawValue: UInt8
+
+    static let critical = Self(rawValue: 1 << 0)
+    static let dodged = Self(rawValue: 1 << 1)
+    static let leeched = Self(rawValue: 1 << 2)
+    static let controlTriggered = Self(rawValue: 1 << 3)
 }
 
 extension CombatOutcome {
     static func fromDamage(state: DamageResolutionState) -> CombatOutcome {
-        var flags: Set<CombatFlag> = []
+        var flags: CombatFlags = []
         if state.isCritical {
             flags.insert(.critical)
         }
         if state.isDodged {
             flags.insert(.dodged)
-        }
-        if state.blockedAmount > 0 {
-            flags.insert(.shieldAbsorbed)
         }
         if state.didLeech {
             flags.insert(.leeched)

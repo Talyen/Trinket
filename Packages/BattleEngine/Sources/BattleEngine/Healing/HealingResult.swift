@@ -56,7 +56,7 @@ struct HealingResult {
     }
 
     var combatOutcome: CombatOutcome {
-        var flags: Set<CombatFlag> = []
+        var flags: CombatFlags = []
         if isCritical {
             flags.insert(.critical)
         }

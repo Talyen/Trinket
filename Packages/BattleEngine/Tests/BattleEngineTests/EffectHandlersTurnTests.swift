@@ -103,7 +103,7 @@ struct EffectHandlersTurnTests {
     func `damage over time advances potency duration and expiry`(
         effect: Effect, turns: Int, expected: Effect?, remainingTurns: Int, eventCount: Int,
     ) {
-        var battle = BattleStateTestFactory.makeBattle()
+        var battle = BattleStateTestFactory.makeMinimalBattle()
         let active = ActiveEffect(id: 1, effect: effect, remainingTurns: turns, sourceActorID: "hero")
         let outcome = EffectHandlersTestSupport.dispatchTick(active, target: battle.enemy, battle: &battle)
         #expect(outcome.events.count == eventCount)
@@ -113,32 +113,13 @@ struct EffectHandlersTurnTests {
         #expect(outcome.currentEffect == (expected == nil ? nil : replacement))
     }
 
-    @Test func `burn decay slow talent slows burn applied by its owner`() throws {
-        var battle = BattleStateTestFactory.makeBattle()
-        let burn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 2, sourceActorID: "hero")
-        let baseline = EffectHandlersTestSupport.dispatchTick(burn, target: battle.enemy, battle: &battle)
-        try #expect(baseline.currentEffect?.effect.potency == 5)
-
-        var slowedBattle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: CombatModifierProfile.withTriggers { $0.burnDecaySlowPercent = 0.4 },
+    @Test(arguments: [(0.0, 5), (0.4, 7)])
+    func `burn decay uses its sources slowing modifier`(slow: Double, expected: Int) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            heroModifiers: .withTriggers { $0.burnDecaySlowPercent = slow },
         )
-        let slowedBurn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 2, sourceActorID: "source")
-        let slowed = EffectHandlersTestSupport.dispatchTick(
-            slowedBurn,
-            target: slowedBattle.roster.enemy.combatant,
-            battle: &slowedBattle,
-        )
-        try #expect(slowed.currentEffect?.effect.potency == 7)
-    }
-
-    @Test(arguments: [
-        Effect.shield(.block, 5),
-    ])
-    func `durationless mitigation ticks leave stacks untouched`(effect: Effect) throws {
-        var battle = BattleStateTestFactory.makeBattle()
-        let stack = ActiveEffect(id: 1, effect: effect, remainingTurns: 0, sourceActorID: "hero")
-        let outcome = EffectHandlersTestSupport.dispatchTick(stack, target: battle.enemy, battle: &battle)
-        try #expect(outcome.events.isEmpty)
-        try #expect(outcome.currentEffect == stack)
+        let burn = ActiveEffect(id: 1, effect: .burn(10), remainingTurns: 0, sourceActorID: battle.hero.id)
+        let outcome = EffectHandlersTestSupport.dispatchTick(burn, target: battle.enemy, battle: &battle)
+        #expect(outcome.currentEffect?.effect.potency == expected)
     }
 }

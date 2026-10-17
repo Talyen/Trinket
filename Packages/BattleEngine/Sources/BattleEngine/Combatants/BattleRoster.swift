@@ -177,6 +177,10 @@ public struct BattleRoster {
         body(&self[participant])
     }
 
+    mutating func mutateEffects(for combatant: Combatant, _ body: (inout [ActiveEffect]) -> Void) {
+        mutateRuntime(for: combatant) { body(&$0.activeEffects) }
+    }
+
     mutating func mutateRuntime(forID id: String, _ body: (inout CombatantRuntime) -> Void) {
         guard let participant = participant(for: id) else { return }
         body(&self[participant])

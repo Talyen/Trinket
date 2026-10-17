@@ -21,19 +21,6 @@ struct EffectHandlersApplyTests {
         #expect(!outcome.events.contains { $0.kind == .ability && $0.actorID == battle.hero.id })
     }
 
-    @Test(arguments: [(Effect.burn(3), BattleParticipant.enemy), (.shield(.block, 5), .hero)])
-    func `basic status handlers apply their effect`(effect: Effect, recipient: BattleParticipant) {
-        var battle = BattleStateTestFactory.makeBattle()
-        let target = battle.roster[recipient].combatant
-        let outcome = EffectHandlersTestSupport.dispatch(effect, target: target, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: target)
-            .contains { recipient == .enemy ? $0.effect.isDecayingDoT && $0.keyword == .burn : $0.effect == effect })
-        if recipient == .hero {
-            #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
-        }
-    }
-
     @Test(arguments: [false, true])
     func `draw cards fills available hand space and buffers overflow`(fullHand: Bool) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false)

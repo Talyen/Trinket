@@ -94,26 +94,25 @@ package enum DoTApplicator {
         }
         guard appliedPotency > 0, context.roster.health(for: effectTarget) > 0 else { return didDamage }
 
-        var currentEffects = context.roster.activeEffects(for: effectTarget)
         let appliedEffect = Effect.decayingDoT(keyword: keyword, potency: appliedPotency)
         guard !context.interceptDebuff(appliedEffect, on: effectTarget) else { return didDamage }
-        if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
-            let existingPotency = currentEffects[index].effect.potency ?? 0
-            currentEffects[index].effect = Effect.decayingDoT(
-                keyword: keyword,
-                potency: SaturatedArithmetic.saturatingAdd(existingPotency, appliedPotency),
-            )
-        } else {
-            currentEffects.append(
-                ActiveEffect(
-                    id: context.consumeNextEffectID(),
-                    effect: appliedEffect,
-                    remainingTurns: 0,
-                    sourceActorID: sourceActorID,
-                ),
-            )
+        let existingIndex = context.roster.activeEffects(for: effectTarget).firstIndex {
+            $0.effect.keyword == keyword && $0.effect.isDecayingDoT
         }
-        context.roster.setActiveEffects(currentEffects, for: effectTarget)
+        let newEffectID = existingIndex == nil ? context.consumeNextEffectID() : nil
+        context.roster.mutateEffects(for: effectTarget) { effects in
+            if let index = existingIndex {
+                effects[index].effect = .decayingDoT(
+                    keyword: keyword,
+                    potency: SaturatedArithmetic.saturatingAdd(effects[index].effect.potency ?? 0, appliedPotency),
+                )
+            } else if let newEffectID {
+                effects.append(ActiveEffect(
+                    id: newEffectID, effect: appliedEffect,
+                    remainingTurns: 0, sourceActorID: sourceActorID,
+                ))
+            }
+        }
         if application.triggersApplicationReactions {
             CombatTriggerEngine.afterDecayingDoTApplied(keyword: keyword, to: effectTarget, sourceActorID: sourceActorID, in: &context)
         }
@@ -219,16 +218,19 @@ package enum DoTApplicator {
     ) -> Int {
         guard amount > 0 else { return 0 }
         var remaining = amount
-        var effects = context.roster.activeEffects(for: target)
-        for index in effects.indices where effects[index].effect.keyword == keyword && effects[index].effect.isDecayingDoT {
-            guard remaining > 0 else { break }
-            let potency = effects[index].effect.potency ?? 0
-            let consumed = min(potency, remaining)
-            effects[index].effect = .decayingDoT(keyword: keyword, potency: potency - consumed)
-            remaining -= consumed
+        guard context.roster.activeEffects(for: target).contains(where: {
+            $0.effect.keyword == keyword && $0.effect.isDecayingDoT
+        }) else { return 0 }
+        context.roster.mutateEffects(for: target) { effects in
+            for index in effects.indices where effects[index].effect.keyword == keyword && effects[index].effect.isDecayingDoT {
+                guard remaining > 0 else { break }
+                let potency = effects[index].effect.potency ?? 0
+                let consumed = min(potency, remaining)
+                effects[index].effect = .decayingDoT(keyword: keyword, potency: potency - consumed)
+                remaining -= consumed
+            }
+            effects.removeAll { $0.effect.keyword == keyword && $0.effect.isDecayingDoT && $0.effect.potency == 0 }
         }
-        effects.removeAll { $0.effect.keyword == keyword && $0.effect.isDecayingDoT && $0.effect.potency == 0 }
-        context.roster.setActiveEffects(effects, for: target)
         return amount - remaining
     }
 }

@@ -36,30 +36,7 @@ public struct BattleActionContext: Equatable, Sendable {
             if actor.role == .enemy {
                 return state.enemy
             }
-            let hero = state.hero
-            let companion = state.companion
-            let heroHealth = state.health(of: hero)
-            let companionHealth = state.health(of: companion)
-            let heroAlive = heroHealth > 0
-            let companionAlive = companionHealth > 0
-            if heroAlive && !companionAlive {
-                return hero
-            }
-            if companionAlive && !heroAlive {
-                return companion
-            }
-            if !heroAlive && !companionAlive {
-                return hero
-            }
-            let heroInjured = heroHealth < state.maxHealth(of: hero)
-            let companionInjured = companionHealth < state.maxHealth(of: companion)
-            if heroInjured && !companionInjured {
-                return hero
-            }
-            if companionInjured && !heroInjured {
-                return companion
-            }
-            return companionHealth < heroHealth ? companion : hero
+            return Self.lowestHealthAlly(in: state)
         case .defeatedAlly:
             let members = allies(in: state)
             return members.reversed().first { state.health(of: $0) <= 0 } ?? members.first ?? actor
@@ -81,21 +58,25 @@ public struct BattleActionContext: Equatable, Sendable {
         state.health(of: actor) > 0
     }
 
-    static func lowestHealth(in members: [Combatant], state: BattleState) -> Combatant {
-        var selected: Combatant?
-        var lowestHealth = Int.max
-        var selectedIsInjured = false
-        for member in members {
-            let health = state.health(of: member)
-            guard health > 0 else { continue }
-            let injured = health < state.maxHealth(of: member)
-            if selected == nil || injured && !selectedIsInjured || injured == selectedIsInjured && health < lowestHealth {
-                selected = member
-                lowestHealth = health
-                selectedIsInjured = injured
-            }
+    static func lowestHealthAlly(in state: BattleState) -> Combatant {
+        let hero = state.roster.hero
+        let companion = state.roster.companion
+        guard companion.isAlive else { return hero.combatant }
+        guard hero.isAlive else { return companion.combatant }
+        let heroInjured = hero.currentHealth < hero.maxHealth
+        let companionInjured = companion.currentHealth < companion.maxHealth
+        if heroInjured != companionInjured {
+            return heroInjured ? hero.combatant : companion.combatant
         }
-        return selected ?? members.first ?? state.hero
+        return companion.currentHealth < hero.currentHealth ? companion.combatant : hero.combatant
+    }
+
+    func hasLivingAlly(in state: BattleState, where matches: (CombatantRuntime) -> Bool) -> Bool {
+        if actor.role == .enemy {
+            return state.roster.enemy.isAlive && matches(state.roster.enemy)
+        }
+        return state.roster.hero.isAlive && matches(state.roster.hero)
+            || state.roster.companion.isAlive && matches(state.roster.companion)
     }
 
     static func mostDebuffed(in members: [Combatant], state: BattleState) -> Combatant {

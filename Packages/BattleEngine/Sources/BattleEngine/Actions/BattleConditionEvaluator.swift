@@ -49,13 +49,9 @@ public enum BattleConditionEvaluator {
         case .enemyLowerHealthThanActor:
             return context.roster.health(for: enemy) < context.roster.health(for: action.actor)
         case .allyBelowHalfHealth:
-            return action.allies(in: context).contains {
-                context.health(of: $0) > 0 && context.roster.isBelowHalfHealth(for: $0)
-            }
+            return action.hasLivingAlly(in: context) { $0.isBelowHalfHealth }
         case .allyMissingHealth:
-            return action.allies(in: context).contains {
-                context.health(of: $0) > 0 && context.health(of: $0) < context.maxHealth(of: $0)
-            }
+            return action.hasLivingAlly(in: context) { $0.currentHealth < $0.maxHealth }
         case .enemyHasBuff:
             return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)
         case .enemyHasBlock:
@@ -70,9 +66,7 @@ public enum BattleConditionEvaluator {
     }
 
     public static func lowestHealthAlly(in context: BattleState) -> Combatant {
-        BattleActionContext.lowestHealth(
-            in: [context.hero, context.companion], state: context,
-        )
+        BattleActionContext.lowestHealthAlly(in: context)
     }
 
     public static func mostDebuffedAlly(in context: BattleState) -> Combatant {
