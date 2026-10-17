@@ -1,6 +1,4 @@
 {
-  "file_stem": "MitigationTriggers",
-  "family": "mitigation",
   "fields": [
     {
       "name": "passiveMitigationFlat",

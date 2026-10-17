@@ -1,6 +1,4 @@
 {
-  "file_stem": "AttackTriggers",
-  "family": "attack",
   "fields": [
     {
       "name": "firstCriticalHitRepeatsPerTurn",

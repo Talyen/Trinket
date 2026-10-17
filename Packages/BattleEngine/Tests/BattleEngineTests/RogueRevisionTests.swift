@@ -57,7 +57,7 @@ struct RogueRevisionTests {
         let affix = try #require(GameContent.itemAffixDefinition(matching: "gilded"))
         let saved = ItemAffixPower(
             description: "Gain 1 Block for every 3 Gold earned",
-            triggers: .configured { $0.blockPerGoldEarnedEvery = 3 },
+            triggers: .init { $0.blockPerGoldEarnedEvery = 3 },
         )
         let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([saved]))
         let ring = try ItemFixtures.makeBareItem(

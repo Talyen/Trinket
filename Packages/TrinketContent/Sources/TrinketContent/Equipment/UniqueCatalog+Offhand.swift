@@ -8,10 +8,10 @@ extension UniqueCatalog {
             base: "leather_buckler",
             keywords: [.block, .dodge],
             description: "Keep Block between turns\nDodging spends half your Block to deal that much Physical damage",
-            triggers: CombatTraitTriggers(
-                block: BlockTriggers { $0.retainAllBlockBetweenTurns = true },
-                dodge: DodgeTriggers { $0.dodgeSpendsHalfBlockAsPhysical = true },
-            ),
+            triggers: CombatTraitTriggers {
+                $0.retainAllBlockBetweenTurns = true
+                $0.dodgeSpendsHalfBlockAsPhysical = true
+            },
             supports: ["elusive", "untouchable", "defenders"],
             pinned: ["elusive", "untouchable"],
         ),
@@ -21,7 +21,7 @@ extension UniqueCatalog {
             base: "kite_shield",
             keywords: [.block],
             description: "The first time each turn your Block absorbs attack damage, immediately use your Basic ability",
-            triggers: CombatTraitTriggers(block: BlockTriggers { $0.blockedAttackBasicOncePerTurn = true }),
+            triggers: CombatTraitTriggers { $0.blockedAttackBasicOncePerTurn = true },
             supports: ["concussive", "dazed", "defenders"],
         ),
         unique(
@@ -30,7 +30,7 @@ extension UniqueCatalog {
             base: "quiver",
             keywords: [.physical],
             description: "Your first Physical card each turn returns to your hand",
-            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.recoverLastAttackCardEachTurn = true }),
+            triggers: CombatTraitTriggers { $0.recoverLastAttackCardEachTurn = true },
             supports: ["keen", "envenomed", "infected"],
         ),
         unique(
@@ -39,7 +39,7 @@ extension UniqueCatalog {
             base: "spellbook",
             keywords: [.burn, .freeze, .holy],
             description: "Burn, Freeze, or Holy damage has a 10% chance to restore 1 Mana to the wearer",
-            triggers: CombatTraitTriggers(mana: ManaTriggers { $0.threefoldElementalDamageManaChancePercent = 0.10 }),
+            triggers: CombatTraitTriggers { $0.threefoldElementalDamageManaChancePercent = 0.10 },
             supports: ["smoldering", "glacial", "consecrated"],
         ),
     ]

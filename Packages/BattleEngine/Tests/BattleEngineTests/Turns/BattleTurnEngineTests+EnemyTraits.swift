@@ -216,7 +216,7 @@ extension BattleTurnEngineTests {
             [],
             owner: .companion,
             extra: profile,
-            enemyExtra: .init(triggers: CombatTraitTriggers.configured { $0.burnIgnoresBlockAndMitigation = true }),
+            enemyExtra: .init(triggers: CombatTraitTriggers { $0.burnIgnoresBlockAndMitigation = true }),
         )
         context.roster.companion.currentMana = 1
         context.roster.companion.talents.pending.nextIncomingDamageMultiplier = PreparedTalentBonus(value: 0.5)
@@ -313,7 +313,7 @@ extension BattleTurnEngineTests {
     func `decaying pulses attach only their actual health damage`(keyword: Keyword, block: Int) {
         let profile = CombatModifierProfile(
             damageDealtBonus: [keyword: 5],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = keyword
                 $0.turnRandomDamageAllEnemiesKeywordB = keyword
                 $0.turnRandomDamageAllEnemiesAmount = 4

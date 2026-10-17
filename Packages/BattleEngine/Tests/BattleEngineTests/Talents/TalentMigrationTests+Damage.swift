@@ -7,7 +7,7 @@ extension TalentMigrationTests {
     @Test(arguments: [49, 50])
     func `war chest guarantees physical critical at its gold threshold`(gold: Int) {
         var battle = makeBattle(
-            heroTriggers: CombatTraitTriggers.configured { $0.warChest = true },
+            heroTriggers: CombatTraitTriggers { $0.warChest = true },
             initialGold: gold,
         )
         let outcome = battle.resolveDamage(.directAbilityHit(
@@ -18,7 +18,7 @@ extension TalentMigrationTests {
 
     @Test(arguments: [
         (
-            CombatTraitTriggers.configured { $0.poisonDamageVsStunnedMultiplier = 1.2 },
+            CombatTraitTriggers { $0.poisonDamageVsStunnedMultiplier = 1.2 },
             BattleParticipant.companion,
             Effect.controlMeter(.stun, 100, 10),
             0,
@@ -26,8 +26,8 @@ extension TalentMigrationTests {
             Keyword.poison,
             DamageOperation.reaction(),
         ),
-        (CombatTraitTriggers.configured { $0.septicemia = true }, .hero, .poison(2), 2, 6, .bleed, .reaction()),
-        (CombatTraitTriggers.configured { $0.elementalParadox = true }, .hero, .burn(2), 2, 8, .freeze, .reaction()),
+        (CombatTraitTriggers { $0.septicemia = true }, .hero, .poison(2), 2, 6, .bleed, .reaction()),
+        (CombatTraitTriggers { $0.elementalParadox = true }, .hero, .burn(2), 2, 8, .freeze, .reaction()),
     ])
     func `status damage talents amplify their owners qualifying hits`(
         triggers: CombatTraitTriggers, owner: BattleParticipant, effect: Effect, turns: Int,
@@ -45,7 +45,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `companion critical prepares doubled hero poison attack`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.toxicTransfusion = true })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.toxicTransfusion = true })
         _ = battle.resolveTestDamage(
             2,
             from: .companion,
@@ -64,7 +64,7 @@ extension TalentMigrationTests {
     @Test(arguments: [false, true])
     func `pressure point doubles only critical damage against poison`(critical: Bool) {
         func damage(equipped: Bool, poisoned: Bool = true) -> Int {
-            var battle = makeBattle(heroTriggers: .configured {
+            var battle = makeBattle(heroTriggers: .init {
                 $0.pressurePoint = equipped
                 $0.criticalChanceBonus = -1
             })
@@ -82,7 +82,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `intense heat only boosts phoenix damage against burning enemies`() {
-        var battle = makeBattle(companionTriggers: CombatTraitTriggers.configured { $0.companionDamageVsBurningMultiplier = 1.25 })
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers { $0.companionDamageVsBurningMultiplier = 1.25 })
         battle.appliesFightPacing = false
         battle.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
@@ -94,7 +94,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `pickpocket steals extra gold from poisoned enemies`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers {
             $0.onAttackStealGold = 1
             $0.stealGoldBonusVsPoisoned = 1
         })
@@ -108,7 +108,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `bone crushing bites harder through block`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.physicalDamageVsBlockedBonus = 2 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.physicalDamageVsBlockedBonus = 2 })
         battle.appliesFightPacing = false
         battle.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],

@@ -154,17 +154,8 @@ extension [ActionEvent] {
     }
 }
 
-/// Keep trigger-only fixtures independent of the generated family initializer nesting.
-extension CombatTraitTriggers {
-    static func configured(_ configure: (inout Self) -> Void) -> Self {
-        var triggers = Self()
-        configure(&triggers)
-        return triggers
-    }
-}
-
 extension CombatModifierProfile {
-    static func withTriggers(_ configure: (inout CombatTraitTriggers) -> Void) -> Self {
-        Self(triggers: .configured(configure))
+    static func withTriggers(_ configure: (inout CombatTraitTriggers.Fields) -> Void) -> Self {
+        Self(triggers: .init(configure))
     }
 }

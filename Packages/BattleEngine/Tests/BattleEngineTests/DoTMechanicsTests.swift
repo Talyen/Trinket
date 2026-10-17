@@ -240,7 +240,7 @@ struct DoTMechanicsTests {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(
                 damageDealtBonus: [.burn: 2],
-                triggers: CombatTraitTriggers.configured {
+                triggers: CombatTraitTriggers {
                     $0.criticalChanceBonus = -1
                     $0.burnDamageDoubleChancePercent = 1
                     $0.burnTicksTwicePerTurn = true
@@ -266,7 +266,7 @@ struct DoTMechanicsTests {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(
                 damageDealtBonus: [.bleed: 2],
-                triggers: CombatTraitTriggers.configured {
+                triggers: CombatTraitTriggers {
                     $0.criticalChanceBonus = 1
                     $0.bleedTickCritChancePercent = specialCrit ? 1 : 0
                 },

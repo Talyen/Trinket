@@ -6,10 +6,10 @@ struct HiddenCacheCompatibilityTests {
         let current = try #require(GameContent.itemAffixDefinition(matching: "smugglers_map"))
         let old = ItemAffixPower(
             description: "Gain 4 additional Gold on victory.", modifiers: [.maximumHealth(6)],
-            triggers: CombatTraitTriggers(gold: GoldTriggers {
+            triggers: CombatTraitTriggers {
                 $0.goldPerTurn = 2
                 $0.victoryGoldFlat = 4
-            }),
+            },
         )
         let template = try #require(GameContent.trinketItems.first { $0.templateID == "smugglers_map" })
         let saved = InventoryItem(

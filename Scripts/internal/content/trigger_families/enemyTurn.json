@@ -1,6 +1,4 @@
 {
-  "file_stem": "EnemyTurnTriggers",
-  "family": "enemyTurn",
   "fields": [
     {
       "name": "negateFirstEnemyAttack",

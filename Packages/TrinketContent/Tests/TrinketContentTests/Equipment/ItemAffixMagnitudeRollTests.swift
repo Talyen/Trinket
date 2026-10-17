@@ -21,7 +21,7 @@ struct ItemAffixMagnitudeRollTests {
         let old = ItemAffixPower(
             description: "Leech restores 13% more Health.",
             modifiers: [.leechGainedPercent(0.13), .maximumHealth(7)],
-            triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechThornsWithoutThorns = 2 }),
+            triggers: CombatTraitTriggers { $0.leechThornsWithoutThorns = 2 },
         )
         let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
         let item = try ItemFixtures.makeBareItem(

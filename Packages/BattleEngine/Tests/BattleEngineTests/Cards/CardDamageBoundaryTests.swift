@@ -38,7 +38,7 @@ struct CardDamageBoundaryTests {
 
     @Test func `legacy Steam Explosion saturates consumed Burn added to a Freeze card`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: .init(triggers: .init(dot: DotTriggers { $0.steamExplosion = true })),
+            heroModifiers: .init(triggers: .init { $0.steamExplosion = true }),
             dealOpeningHand: false,
         )
         battle.insertEffect(.burn(Int.max), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
@@ -56,7 +56,7 @@ struct CardDamageBoundaryTests {
     @Test(arguments: [false, true])
     func `Poison card amplification saturates damage and attached effects`(sealedVial: Bool) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: .init(triggers: .init(dot: DotTriggers { $0.sealedVial = sealedVial })),
+            heroModifiers: .init(triggers: .init { $0.sealedVial = sealedVial }),
             dealOpeningHand: false,
         )
         if !sealedVial {

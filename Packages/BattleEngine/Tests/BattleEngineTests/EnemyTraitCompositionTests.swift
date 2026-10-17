@@ -24,11 +24,11 @@ struct EnemyTraitCompositionTests {
     private static let expectedTraits: [String: CombatModifierProfile] = [
         "living_armor": baseline(
             modifiers: [.damageTakenPercent(.bleed, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.blockPerTurn = 1 },
+            triggers: CombatTraitTriggers { $0.blockPerTurn = 1 },
         ),
         "mimic": baseline(
             modifiers: [],
-            triggers: CombatTraitTriggers.configured { $0.firstAttackBleedBonus = 2 },
+            triggers: CombatTraitTriggers { $0.firstAttackBleedBonus = 2 },
         ),
         "mud_elemental": baseline(
             modifiers: [.damageTakenPercent(.physical, 0.20), .damageTakenPercent(.poison, 0.20)],
@@ -36,7 +36,7 @@ struct EnemyTraitCompositionTests {
         ),
         "necromancer": baseline(
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.leechChancePercent = 0.10 },
+            triggers: CombatTraitTriggers { $0.leechChancePercent = 0.10 },
         ),
         "plague_doctor": baseline(
             modifiers: [.damageTakenPercent(.poison, 0.30)],
@@ -48,7 +48,7 @@ struct EnemyTraitCompositionTests {
         ),
         "the_blight_treant": baseline(
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .poison
                 $0.turnRandomDamageAllEnemiesKeywordB = .bleed
                 $0.turnRandomDamageAllEnemiesAmount = 1
@@ -57,7 +57,7 @@ struct EnemyTraitCompositionTests {
         ),
         "the_forge_golem": baseline(
             modifiers: [],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .stun
                 $0.turnRandomDamageAllEnemiesKeywordB = .burn
                 $0.turnRandomDamageAllEnemiesAmount = 1
@@ -66,14 +66,14 @@ struct EnemyTraitCompositionTests {
         ),
         "the_frostwarden": baseline(
             modifiers: [.damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.turnFreezeDamageAllEnemies = 1
                 $0.turnFreezeDamageAllEnemiesInterval = 2
             },
         ),
         "the_iron_bear": baseline(
             modifiers: [],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .physical
                 $0.turnRandomDamageAllEnemiesKeywordB = .stun
                 $0.turnRandomDamageAllEnemiesAmount = 1
@@ -86,11 +86,11 @@ struct EnemyTraitCompositionTests {
         ),
         "fire_elemental": baseline(
             modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.onHitAttackerBurn = 1 },
+            triggers: CombatTraitTriggers { $0.onHitAttackerBurn = 1 },
         ),
         "frost_elemental": baseline(
             modifiers: [.damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.basicAttackFreezeBuildup = 1 },
+            triggers: CombatTraitTriggers { $0.basicAttackFreezeBuildup = 1 },
         ),
         "slime": baseline(
             modifiers: [.damageTakenPercent(.physical, 0.10), .damageTakenPercent(.poison, 0.10)],
@@ -102,11 +102,11 @@ struct EnemyTraitCompositionTests {
         ),
         "bandit": baseline(
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.firstHitDoubleDamage = true },
+            triggers: CombatTraitTriggers { $0.firstHitDoubleDamage = true },
         ),
         "ogre": baseline(
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.physicalBlockBreakMultiplier = 2.0 },
+            triggers: CombatTraitTriggers { $0.physicalBlockBreakMultiplier = 2.0 },
         ),
         "fire_imp": baseline(
             modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
@@ -114,7 +114,7 @@ struct EnemyTraitCompositionTests {
         ),
         "hellhound": baseline(
             modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.damageVsBurningMultiplier = 1.25 },
+            triggers: CombatTraitTriggers { $0.damageVsBurningMultiplier = 1.25 },
         ),
         "pyromancer": baseline(
             modifiers: [.damageTakenPercent(.burn, 0.20), .damageTakenVulnerability(.freeze, 0.30)],
@@ -122,11 +122,11 @@ struct EnemyTraitCompositionTests {
         ),
         "giant_spider": baseline(
             modifiers: [.damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.attacksApplyPoison = 1 },
+            triggers: CombatTraitTriggers { $0.attacksApplyPoison = 1 },
         ),
         "giant_snake": baseline(
             modifiers: [.damageTakenVulnerability(.freeze, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.poisonStripsBlockBeforeHealth = 1 },
+            triggers: CombatTraitTriggers { $0.poisonStripsBlockBeforeHealth = 1 },
         ),
         "blood_cultist": baseline(
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
@@ -134,18 +134,18 @@ struct EnemyTraitCompositionTests {
         ),
         "dire_wolf": baseline(
             modifiers: [.damageTakenPercent(.physical, 0.10)],
-            triggers: CombatTraitTriggers.configured { $0.damageVsBleedingBonus = 1 },
+            triggers: CombatTraitTriggers { $0.damageVsBleedingBonus = 1 },
         ),
         "vampire": baseline(
             modifiers: [.damageTakenVulnerability(.holy, 0.30), .damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.nextAttackBonusOnFullHealth = 1
                 $0.leechChancePercent = 0.10
             },
         ),
         "the_blood_countess": baseline(
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .bleed
                 $0.turnRandomDamageAllEnemiesKeywordB = .bleed
                 $0.turnRandomDamageAllEnemiesAmount = 1
@@ -154,29 +154,29 @@ struct EnemyTraitCompositionTests {
         ),
         "zealot": baseline(
             modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.holyDamageNextAttackHolyBonus = 1 },
+            triggers: CombatTraitTriggers { $0.holyDamageNextAttackHolyBonus = 1 },
         ),
         "cleric": baseline(
             modifiers: [],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.blockPerTurn = 1
                 $0.holyDamageHealLowestAllyFlat = 1
             },
         ),
         "inquisitor": baseline(
             modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.holyDamageNextAttackHolyBonus = 1 },
+            triggers: CombatTraitTriggers { $0.holyDamageNextAttackHolyBonus = 1 },
         ),
         "paladin": baseline(
             modifiers: [.damageTakenPercent(.holy, 0.30)],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.holyDamageBlockFlat = 1
                 $0.stunDamageBlockFlat = 1
             },
         ),
         "the_seraph": baseline(
             modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .holy
                 $0.turnRandomDamageAllEnemiesKeywordB = .holy
                 $0.turnRandomDamageAllEnemiesAmount = 1
@@ -185,7 +185,7 @@ struct EnemyTraitCompositionTests {
         ),
         "winter_wolf": baseline(
             modifiers: [.damageTakenVulnerability(.burn, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.basicAttackFreezeBuildup = 1 },
+            triggers: CombatTraitTriggers { $0.basicAttackFreezeBuildup = 1 },
         ),
         "ice_wraith": baseline(
             modifiers: [
@@ -193,7 +193,7 @@ struct EnemyTraitCompositionTests {
                 .damageTakenVulnerability(.burn, 0.30),
                 .damageTakenVulnerability(.holy, 0.30),
             ],
-            triggers: CombatTraitTriggers.configured { $0.frozenEnemyDamageReductionFlat = 1 },
+            triggers: CombatTraitTriggers { $0.frozenEnemyDamageReductionFlat = 1 },
         ),
         "yeti": baseline(
             modifiers: [
@@ -202,19 +202,19 @@ struct EnemyTraitCompositionTests {
                 .damageTakenVulnerability(.physical, 0.20),
                 .damageTakenVulnerability(.stun, 0.20),
             ],
-            triggers: CombatTraitTriggers.configured { $0.onEnemyFrozenGainBlock = 1 },
+            triggers: CombatTraitTriggers { $0.onEnemyFrozenGainBlock = 1 },
         ),
         "banshee": baseline(
             modifiers: [.damageTakenVulnerability(.holy, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.damageWhileTargetStunnedBonus = 1 },
+            triggers: CombatTraitTriggers { $0.damageWhileTargetStunnedBonus = 1 },
         ),
         "brawler": baseline(
             modifiers: [.damageTakenVulnerability(.bleed, 0.30)],
-            triggers: CombatTraitTriggers.configured { $0.stunnedEnemyNextTurnDamageMultiplier = 0.75 },
+            triggers: CombatTraitTriggers { $0.stunnedEnemyNextTurnDamageMultiplier = 0.75 },
         ),
         "stone_golem": baseline(
             modifiers: [],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.blockPerTurn = 1
                 $0.shieldDamageBonusWhileBlocked = 1
             },
@@ -225,7 +225,7 @@ struct EnemyTraitCompositionTests {
         ),
         "the_stone_titan": baseline(
             modifiers: [],
-            triggers: CombatTraitTriggers.configured {
+            triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .physical
                 $0.turnRandomDamageAllEnemiesKeywordB = .physical
                 $0.turnRandomDamageAllEnemiesAmount = 1

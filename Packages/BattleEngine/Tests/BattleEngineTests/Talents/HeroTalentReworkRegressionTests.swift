@@ -19,9 +19,8 @@ struct HeroTalentReworkRegressionTests {
     }
 
     @Test func `holy revive allowance waits until companion is defeated`() {
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .init(triggers: .init(
-            revival: RevivalTriggers { $0.holyDamageReviveCompanionChancePercent = 1 },
-        )))
+        var battle = BattleTestFixtures
+            .makePipelineContext(heroModifiers: .init(triggers: .init { $0.holyDamageReviveCompanionChancePercent = 1 }))
         _ = battle.resolution.beginCard(actorID: battle.hero.id)
         CombatExecutor.run { await CombatTriggerEngine.afterHolyDamageDealt(to: battle.enemy, source: battle.hero, in: &battle) }
         battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 0 }

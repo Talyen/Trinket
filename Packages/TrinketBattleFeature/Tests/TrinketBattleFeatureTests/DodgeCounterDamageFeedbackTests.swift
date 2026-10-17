@@ -10,9 +10,7 @@ struct DodgeCounterDamageFeedbackTests {
     @Test func `Whiplash folds its prepared bonus into one attack damage chip after Block`() throws {
         let hero = CombatantFixtures.passiveHero()
         let enemy = CombatantFixtures.passiveEnemy(maxHealth: 100)
-        let profile = CombatModifierProfile(triggers: CombatTraitTriggers(
-            control: ControlTriggers { $0.dodgeNextStunAttackBonus = 3 },
-        ))
+        let profile = CombatModifierProfile(triggers: CombatTraitTriggers { $0.dodgeNextStunAttackBonus = 3 })
         var battle = BattleState(
             hero: hero, companion: CombatantFixtures.passiveCompanion(), enemy: enemy,
             heroModifiers: profile, rngSeed: CombatantFixtures.deterministicBattleSeed,

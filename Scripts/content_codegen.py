@@ -16,7 +16,7 @@ from internal.content.abilities import (
     generate_ability_shorthand,
 )
 from internal.content.content_codegen_triggers import _trigger_families
-from internal.content.content_codegen_triggers import generate_trigger_families, generate_trigger_root
+from internal.content.content_codegen_triggers import generate_trigger_root
 from internal.content.homestead import (
     HomesteadNodeRow,
     generate_homestead_catalog,
@@ -153,13 +153,12 @@ def main() -> int:
     generate_item_bases_catalog(rows.item_bases)
     generate_encounter_art_catalog(rows.stages)
     generate_modifiers()
-    generate_trigger_families()
     generate_trigger_root()
     generate_affix_rolling(_trigger_families())
     generate_talent_catalog(rows.talents, [row.id for row in rows.combatants])
     generate_ability_shorthand()
     generate_ability_inventory()
-    print(f"Generated {rows.summary()}, and {len(_trigger_families())} trigger families")
+    print(f"Generated {rows.summary()}, and {len(_trigger_families())} trigger schema families")
     return 0
 
 

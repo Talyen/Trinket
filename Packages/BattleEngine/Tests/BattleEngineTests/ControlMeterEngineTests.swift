@@ -169,7 +169,7 @@ struct ControlMeterEngineTests {
     @Test func `legacy freeze extra action skips maps to twenty percent`() {
         assertControlSkips(
             keyword: .freeze,
-            triggers: CombatTraitTriggers.configured { $0.freezeExtraActionSkips = 1 },
+            triggers: CombatTraitTriggers { $0.freezeExtraActionSkips = 1 },
             seed: 0, expected: 2,
         )
     }

@@ -70,19 +70,18 @@ These are literal hints, not a semantic consumer graph. `--reference-limit` and
 ## Trigger schemas
 
 Trigger definitions live one family per JSON under `Scripts/internal/content/trigger_families/`;
-`index.json` preserves generation order. Edit the relevant family, not the index,
+`index.json` preserves generation order; filenames identify families. Edit the relevant family, not the index,
 for a field change. `Scripts/internal/content/modifiers.json` owns modifier DSL
 names, Swift cases, numeric kinds and keyword arguments. It generates the
 `AffixModifier` enum and mechanical transforms; gameplay application, presentation,
 and magnitude bump policy remain authored. Preserve case names, associated-value
 shapes, and Codable representations when evolving these definitions.
 Generation derives `CombatTriggerField` identities and one root field registry from
-the same schema. Its typed descriptors address family storage directly and share
+the same schema. Its typed descriptors address one flat value payload and share
 flat save keys, neutral defaults, and type-compatible merge policies across decoding,
-sparse encoding, populated-field traversal, and equipment stacking. Families own gameplay
-values and initialize through typed configuration closures (for example,
-`BlockTriggers { $0.blockPerTurn = 2 }`). Stored-property defaults are the sole
-initialization defaults; there is no parallel per-field constructor parameter list.
+sparse encoding, populated-field traversal, and equipment stacking. Construct values
+with `CombatTraitTriggers { $0.blockPerTurn = 2 }`; families organize schema authoring
+without separate Swift wrapper types. Stored-property defaults own initialization.
 The root registry owns merging, entering copy-on-write storage once per merge.
 `CombatTriggerField` also supplies the Codable keys, including unknown-key tolerance.
 Root dynamic-member mutations pass through the same copy-on-write storage. Combat provenance and affix-roll policy use those typed identities;
@@ -153,7 +152,7 @@ Use `./Scripts/generate.sh` for project inputs; XcodeGen always runs uncached.
 
 ## Generation tooling
 
-**Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (trigger families are `public`; catalog blobs are `internal` and reached through `GameContent`), optionally prepares art/music/SFX (`--assets`), then runs XcodeGen (always uncached). Pass `--skip-xcodegen` for content/asset codegen only; see [Verification.md](../Platform/Verification.md#generated-project-consistency).
+**Single entry:** `./Scripts/generate.sh` validates ContentManifest TSVs, regenerates content catalogs (the trigger model is `public`; catalog blobs are `internal` and reached through `GameContent`), optionally prepares art/music/SFX (`--assets`), then runs XcodeGen (always uncached). Pass `--skip-xcodegen` for content/asset codegen only; see [Verification.md](../Platform/Verification.md#generated-project-consistency).
 
 Local build preparation tracks both generation inputs and registered content/project
 outputs, including shared Xcode schemes, so missing or changed outputs trigger repair.

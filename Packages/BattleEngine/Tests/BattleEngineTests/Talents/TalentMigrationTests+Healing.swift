@@ -12,7 +12,7 @@ extension TalentMigrationTests {
     func `purifying waters heals cleansed allies from either living party owner`(
         owner: BattleParticipant, recipient: BattleParticipant, removed: Int,
     ) {
-        let triggers = CombatTraitTriggers.configured { $0.purifyingWaters = true }
+        let triggers = CombatTraitTriggers { $0.purifyingWaters = true }
         var battle = makeBattle(
             heroTriggers: owner == .hero ? triggers : .init(),
             companionTriggers: owner == .companion ? triggers : .init(),
@@ -35,7 +35,7 @@ extension TalentMigrationTests {
 
     @Test(arguments: [1, 2])
     func `clean slate cleanses once per excess restoration`(restorations: Int) {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.cleanSlate = true })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.cleanSlate = true })
         battle.roster.setActiveEffects(
             Array([ActiveEffect(id: 1, effect: .poison(1), remainingTurns: restorations),
                    ActiveEffect(id: 2, effect: .burn(1), remainingTurns: restorations)].prefix(restorations)), for: battle.hero,
@@ -48,7 +48,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `clean slate preserves enemy debuffs on overhealing`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.cleanSlate = true })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.cleanSlate = true })
         let target = battle.enemy
         battle.insertEffect(.poison(2), to: target, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.roster.mutateRuntime(for: target) { $0.currentHealth = $0.maxHealth - 1 }
@@ -58,7 +58,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `bloodprice heals on attacks against bleeding enemies`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.onAttackBleedingEnemyHeal = 2 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.onAttackBleedingEnemyHeal = 2 })
         battle.appliesFightPacing = false
         battle.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
@@ -73,7 +73,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `aether shield grants block on first overheal each turn`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.overhealFirstBlockPerTurn = 3 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.overhealFirstBlockPerTurn = 3 })
         for expected in [3, 3] {
             _ = CombatExecutor.run { await HealingEngine.resolveHeal(
                 HealRequest(amount: 5, target: battle.roster.hero.combatant, sourceActorID: battle.roster.hero.id, logAs: .silent),
@@ -90,7 +90,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `reclaimed reagents converts overheal to block up to four`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.overhealShieldCap = 4 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.overhealShieldCap = 4 })
         battle.appliesFightPacing = false
         _ = CombatExecutor.run { await HealingEngine.resolveHeal(
             HealRequest(amount: 10, target: battle.roster.hero.combatant, sourceActorID: battle.roster.hero.id, logAs: .silent),

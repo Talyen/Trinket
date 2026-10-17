@@ -95,7 +95,7 @@ struct HealingReductionTests {
             heroModifiers: CombatModifierProfile(blockGainedBonus: 7),
             companionModifiers: CombatModifierProfile(
                 blockGainedBonus: 3,
-                triggers: CombatTraitTriggers.configured { $0.onHealGrantBlock = 2 },
+                triggers: CombatTraitTriggers { $0.onHealGrantBlock = 2 },
             ), appliesFightPacing: false,
         )
         let hero = battle.roster.hero.combatant

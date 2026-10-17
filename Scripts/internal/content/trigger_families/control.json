@@ -1,6 +1,4 @@
 {
-  "file_stem": "ControlTriggers",
-  "family": "control",
   "fields": [
     {
       "name": "stunDamageAddsEnemyBlock",

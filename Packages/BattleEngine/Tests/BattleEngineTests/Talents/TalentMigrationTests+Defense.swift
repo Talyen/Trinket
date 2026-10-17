@@ -6,7 +6,7 @@ import TrinketCore
 extension TalentMigrationTests {
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `stored impact converts either allies blocked damage into the next hero attack`(recipient: BattleParticipant) {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.storedImpact = true })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.storedImpact = true })
         let target = battle.roster[recipient].combatant
         battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)], for: target)
         _ = battle.resolveTestDamage(10, from: .enemy, to: recipient, options: .reaction())
@@ -19,7 +19,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `seismicReversal returns blocked as stun`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.seismicReversal = true })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.seismicReversal = true })
         battle.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
             for: battle.roster.hero.combatant,
@@ -30,7 +30,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `sunwall grants companion block equal to holy health damage`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.sunwallChancePercent = 1 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.sunwallChancePercent = 1 })
         battle.appliesFightPacing = false
         _ = battle.resolveTestDamage(
             9,
@@ -43,7 +43,7 @@ extension TalentMigrationTests {
 
     @Test(arguments: [(BattleParticipant.hero, 6), (.companion, 2)])
     func `stun block rewards go to their talent owner`(owner: BattleParticipant, amount: Int) {
-        let triggers = CombatTraitTriggers.configured { $0.onStunEnemyGainBlock = amount }
+        let triggers = CombatTraitTriggers { $0.onStunEnemyGainBlock = amount }
         var battle = makeBattle(
             heroTriggers: owner == .hero ? triggers : .init(),
             companionTriggers: owner == .companion ? triggers : .init(),
@@ -57,7 +57,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `slip away dodges the first attack each combat`() {
-        var battle = makeBattle(companionTriggers: CombatTraitTriggers.configured { $0.dodgeFirstAttackEachCombat = true })
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers { $0.dodgeFirstAttackEachCombat = true })
         CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(battle.activeEffects(of: battle.companion).contains { $0.effect == .evadeNextHit })
     }
@@ -65,7 +65,7 @@ extension TalentMigrationTests {
     @Test(arguments: [0, 10])
     func `golden guard grants block while carrying enough gold`(gold: Int) {
         var battle = makeBattle(
-            heroTriggers: CombatTraitTriggers.configured {
+            heroTriggers: CombatTraitTriggers {
                 $0.blockWhileGoldThreshold = 10
                 $0.blockWhileGoldAmount = 2
             },
@@ -79,7 +79,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `vanish guarantees critical after dodge`() {
-        var battle = makeBattle(companionTriggers: CombatTraitTriggers.configured { $0.onDodgeNextAttackGuaranteedCritical = true })
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers { $0.onDodgeNextAttackGuaranteedCritical = true })
         CombatExecutor.run { await CombatTriggerEngine.afterDodge(
             by: battle.roster.companion.combatant, attackerID: battle.roster.enemy.id, in: &battle,
         ) }
@@ -87,7 +87,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `scorched earth weakens burning attackers`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.burningEnemyDamageReductionFlat = 1 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.burningEnemyDamageReductionFlat = 1 })
         battle.appliesFightPacing = false
         battle.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .burn(3), remainingTurns: 0)],
@@ -98,20 +98,20 @@ extension TalentMigrationTests {
     }
 
     @Test func `plated hide grants block when hit`() {
-        var battle = makeBattle(companionTriggers: CombatTraitTriggers.configured { $0.onHitGainBlock = 2 })
+        var battle = makeBattle(companionTriggers: CombatTraitTriggers { $0.onHitGainBlock = 2 })
         battle.appliesFightPacing = false
         _ = battle.resolveTestDamage(3, from: .enemy, to: .companion)
         #expect(BattleTestFixtures.shieldPoints(for: battle.companion, in: battle) == 2)
     }
 
     @Test(arguments: [
-        (BlockTriggers { $0.retainedBlockGainThornsPercent = 0.5 }, 8, true, 2),
-        (BlockTriggers { $0.blockRetainsHalf = true }, 50, false, 25),
+        (CombatTraitTriggers { $0.retainedBlockGainThornsPercent = 0.5 }, 8, true, 2),
+        (CombatTraitTriggers { $0.blockRetainsHalf = true }, 50, false, 25),
     ])
     func `companion block decay honors retention and thorns talents`(
-        triggers: BlockTriggers, initialBlock: Int, checksThorns: Bool, expected: Int,
+        triggers: CombatTraitTriggers, initialBlock: Int, checksThorns: Bool, expected: Int,
     ) {
-        var battle = makeBattle(companionTriggers: CombatTraitTriggers(block: triggers))
+        var battle = makeBattle(companionTriggers: triggers)
         battle.roster.setActiveEffects(
             [ActiveEffect(id: 1, effect: .shield(.block, initialBlock), remainingTurns: 0)],
             for: battle.companion,

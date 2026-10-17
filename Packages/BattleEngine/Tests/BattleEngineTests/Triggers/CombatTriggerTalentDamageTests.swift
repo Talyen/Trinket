@@ -22,26 +22,26 @@ struct CombatTriggerTalentDamageTests {
 
     @Test(arguments: [
         (
-            DamageTriggers { $0.damageVsBleedingBonus = 3 },
+            CombatTraitTriggers { $0.damageVsBleedingBonus = 3 },
             [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
             4,
             Keyword.physical,
             7,
         ),
         (
-            DamageTriggers { $0.damageVsFrozenMultiplier = 2 },
+            CombatTraitTriggers { $0.damageVsFrozenMultiplier = 2 },
             [ActiveEffect(id: 1, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)],
             4,
             .physical,
             8,
         ),
-        (DamageTriggers { $0.burnDamageVsNoBlockMultiplier = 2 }, [], 3, .burn, 6),
+        (CombatTraitTriggers { $0.burnDamageVsNoBlockMultiplier = 2 }, [], 3, .burn, 6),
     ])
     func `damage bonuses honor their target status and keyword`(
-        triggers: DamageTriggers, effects: [ActiveEffect], amount: Int, keyword: Keyword, expected: Int,
+        triggers: CombatTraitTriggers, effects: [ActiveEffect], amount: Int, keyword: Keyword, expected: Int,
     ) {
         var battle = BattleTestFixtures.makePipelineContext(
-            targetEffects: effects, heroModifiers: .init(triggers: CombatTraitTriggers(damage: triggers)),
+            targetEffects: effects, heroModifiers: .init(triggers: triggers),
         )
         let outcome = battle.resolveTestDamage(amount, to: battle.enemy, keyword: keyword, sourceActorID: "source")
         #expect(outcome.healthLost == expected)
@@ -139,7 +139,7 @@ struct CombatTriggerTalentDamageTests {
     func `afflicted damage auras stack additively`(heroHasAura: Bool) {
         func aura(named name: String) -> CombatModifierProfile {
             .init(
-                triggers: CombatTraitTriggers.configured { $0.damageVsBurningMultiplier = 1.25 },
+                triggers: CombatTraitTriggers { $0.damageVsBurningMultiplier = 1.25 },
                 triggerAbilityNames: [.damageVsBurningMultiplier: name],
             )
         }

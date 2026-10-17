@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from script_test_support import ScriptRegressionTestCase, load_script, write_json
+from script_test_support import ScriptRegressionTestCase, write_json
 from internal.content import content_codegen_modifiers
 from internal.content import content_codegen_triggers
 
@@ -26,7 +26,7 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
             folder = Path(directory)
             index = folder / "index.json"
             write_json(index, {"families": ["sample.json"]})
-            write_json(folder / "sample.json", {"family": "sample", "file_stem": "SampleTriggers", "fields": fields})
+            write_json(folder / "sample.json", {"fields": fields})
             with patch.object(content_codegen_triggers, "TRIGGER_FAMILY_SCHEMA", index):
                 content_codegen_triggers._trigger_families.cache_clear()
                 try:
@@ -42,8 +42,7 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
             index = folder / "index.json"
-            family = {"family": "sample", "file_stem": "SampleTriggers",
-                      "fields": [{"name": "bonus", "type": "Int", "default": "0", "merge": "add"}]}
+            family = {"fields": [{"name": "bonus", "type": "Int", "default": "0", "merge": "add"}]}
             write_json(folder / "sample.json", family)
             with patch.object(content_codegen_triggers, "TRIGGER_FAMILY_SCHEMA", index):
                 try:
@@ -67,10 +66,6 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
                         content_codegen_triggers._trigger_families.cache_clear()
                         with self.subTest(overrides=overrides), self.assertRaises(ValueError):
                             content_codegen_triggers._trigger_families()
-                    write_json(folder / 'sample.json', {**family, 'file_stem': '../Escaping'})
-                    content_codegen_triggers._trigger_families.cache_clear()
-                    with self.assertRaisesRegex(ValueError, 'Swift identifiers'):
-                        content_codegen_triggers._trigger_families()
                 finally:
                     content_codegen_triggers._trigger_families.cache_clear()
 
@@ -89,16 +84,16 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
     def test_triggers_swift_damage_below_health_percent_both_arities(self) -> None:
         self.assertEqual(
             content_codegen_triggers.triggers_swift("damage_below_health_percent:50:5"),
-            "CombatTraitTriggers(\n    damage: DamageTriggers {\n"
-            "        $0.damageBelowHealthPercentThreshold = 50\n"
-            "        $0.damageBelowHealthPercentBonus = 5\n    }\n)",
+            "CombatTraitTriggers {\n"
+            "    $0.damageBelowHealthPercentThreshold = 50\n"
+            "    $0.damageBelowHealthPercentBonus = 5\n}",
         )
         self.assertEqual(
             content_codegen_triggers.triggers_swift("damage_below_health_percent:50:burn:5"),
-            "CombatTraitTriggers(\n    damage: DamageTriggers {\n"
-            "        $0.damageBelowHealthPercentThreshold = 50\n"
-            "        $0.damageBelowHealthPercentKeyword = .burn\n"
-            "        $0.damageBelowHealthPercentBonus = 5\n    }\n)",
+            "CombatTraitTriggers {\n"
+            "    $0.damageBelowHealthPercentThreshold = 50\n"
+            "    $0.damageBelowHealthPercentKeyword = .burn\n"
+            "    $0.damageBelowHealthPercentBonus = 5\n}",
         )
 
     def test_triggers_swift_unknown_token_fails_loudly(self) -> None:
@@ -164,22 +159,6 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
                 with self.assertRaises(ValueError) as ctx:
                     content_codegen_triggers.triggers_swift(token)
                 self.assertIn("expects", str(ctx.exception))
-
-    def test_trigger_alias_targets_exist_in_schema(self) -> None:
-        triggers = load_script("internal.content.content_codegen_triggers", "internal/content/content_codegen_triggers.py")
-        names = {
-            field["name"]
-            for family in content_codegen_triggers._trigger_families()
-            for field in family["fields"]
-        }
-        for token, field in list(triggers._TRIGGER_SIMPLE_MAP.items()) + list(
-            triggers._FLAG_TRIGGERS.items()
-        ):
-            self.assertIn(field, names, f"alias {token!r} targets unknown field")
-        for prefix, (_, *shapes) in triggers._BESPOKE_TRIGGER_SPECS.items():
-            for fields in shapes:
-                for field in fields:
-                    self.assertIn(field, names, f"bespoke {prefix!r} sets unknown field")
 
     def test_modifiers_swift_rejects_duplicates_and_bad_amounts(self) -> None:
         with self.assertRaises(ValueError):

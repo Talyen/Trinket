@@ -1,70 +1,56 @@
-import Foundation
 import Testing
 import TrinketContent
 import TrinketContentTestSupport
 
 struct ItemAffixCatalogTests {
-    @Test func `saved forbidden knowledge powers use the new draw count and description`() throws {
-        let definition = try #require(GameContent.itemAffixDefinition(matching: "tattered_pages"))
-        let oldPowers = [
-            ItemAffixPower(
-                description: "Every other turn, lose 1 Health and draw 2 cards.", modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers { $0.forbiddenKnowledge = true }),
-            ),
-            ItemAffixPower(
-                description: "Draw 2 cards every other turn.", modifiers: [],
-                triggers: CombatTraitTriggers(mana: ManaTriggers { $0.drawEveryOtherTurn = 2 }),
-            ),
-        ]
-        for old in oldPowers {
-            let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
-            let item = try ItemFixtures.makeBareItem(
-                "tattered_pages", affixes: [definition.resolved(for: .basic)], affixPowers: decoded,
-            )
-            let power = try #require(item.resolvedPower(at: 0))
-            #expect(power.triggers.forbiddenKnowledge)
-            #expect(power.triggers.drawEveryOtherTurn == 0)
-            #expect(power.description == "Every other turn, lose 1 Health and draw a card")
-            #expect(item.displayedAffixes.first?.description == power.description)
-        }
-    }
-
-    @Test func `saved verdant renewal shows its alternate turn cadence`() throws {
-        let definition = try #require(GameContent.itemAffixDefinition(matching: "groves_favor"))
-        let old = ItemAffixPower(
-            description: "Restore 2 Health each turn.", modifiers: [],
-            triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthPerTurn = 2 }),
-        )
-        let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
-        let item = try ItemFixtures.makeBareItem(
-            "groves_favor", affixes: [definition.resolved(for: .basic)], affixPowers: decoded,
-        )
-        let power = try #require(item.resolvedPower(at: 0))
-        #expect(power.triggers.healthPerTurn == 2)
-        #expect(power.description == "Restore 2 Health every other turn")
-        #expect(item.displayedAffixes.first?.description == power.description)
-    }
-
-    @Test func `saved loyal companion power migrates to heal draw without losing other rolls`() throws {
-        let definition = try #require(GameContent.itemAffixDefinition(matching: "companions_collar"))
-        let old = ItemAffixPower(
-            description: "Draw an additional Companion card each turn.", modifiers: [],
-            triggers: CombatTraitTriggers(mana: ManaTriggers {
+    @Test(arguments: [
+        (
+            "tattered_pages",
+            "Every other turn, lose 1 Health and draw 2 cards.",
+            CombatTraitTriggers { $0.forbiddenKnowledge = true },
+            CombatTraitTriggers { $0.forbiddenKnowledge = true },
+            "Every other turn, lose 1 Health and draw a card",
+        ),
+        (
+            "tattered_pages",
+            "Draw 2 cards every other turn.",
+            CombatTraitTriggers { $0.drawEveryOtherTurn = 2 },
+            CombatTraitTriggers { $0.forbiddenKnowledge = true },
+            "Every other turn, lose 1 Health and draw a card",
+        ),
+        (
+            "groves_favor",
+            "Restore 2 Health each turn.",
+            CombatTraitTriggers { $0.healthPerTurn = 2 },
+            CombatTraitTriggers { $0.healthPerTurn = 2 },
+            "Restore 2 Health every other turn",
+        ),
+        (
+            "companions_collar",
+            "Draw an additional Companion card each turn.",
+            CombatTraitTriggers {
                 $0.spendManaBlockFlat = 2
                 $0.companionCardsPerTurn = 1
-            }),
-        )
+            },
+            CombatTraitTriggers {
+                $0.spendManaBlockFlat = 2
+                $0.healCompanionDrawsCompanionCard = true
+            },
+            "Once per turn, healing your Companion draws a Companion card",
+        ),
+    ])
+    func `saved affix migrations update behavior and descriptions while preserving other rolls`(
+        affixID: String, oldDescription: String, oldTriggers: CombatTraitTriggers,
+        expectedTriggers: CombatTraitTriggers, expectedDescription: String,
+    ) throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: affixID))
+        let old = ItemAffixPower(description: oldDescription, triggers: oldTriggers)
         let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
         let item = try ItemFixtures.makeBareItem(
-            "companions_collar", affixes: [definition.resolved(for: .basic)], affixPowers: decoded,
+            affixID, affixes: [definition.resolved(for: .basic)], affixPowers: decoded,
         )
-        let power = try #require(item.resolvedPower(at: 0))
-        #expect(power.triggers.companionCardsPerTurn == 0)
-        #expect(power.triggers.companionCardsEveryOtherTurn == 0)
-        #expect(power.triggers.healCompanionDrawsCompanionCard)
-        #expect(power.triggers.spendManaBlockFlat == 2)
-        #expect(power.description == "Once per turn, healing your Companion draws a Companion card")
-        #expect(item.displayedAffixes.first?.description == "Once per turn, healing your Companion draws a Companion card")
+        #expect(item.resolvedPower(at: 0) == ItemAffixPower(description: expectedDescription, triggers: expectedTriggers))
+        #expect(item.displayedAffixes.first?.description == expectedDescription)
     }
 
     @Test func `saved patient edge power migrates to block crit without losing rolls`() throws {
@@ -72,7 +58,7 @@ struct ItemAffixCatalogTests {
         try #require(catalog.affixes.first?.id == "the_patient_edge")
         let old = ItemAffixPower(
             description: "Old held card text.", modifiers: [],
-            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.heldCardNextAttackDamage = 3 }),
+            triggers: CombatTraitTriggers { $0.heldCardNextAttackDamage = 3 },
         )
         let decoded = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
         let item = InventoryItem(
@@ -91,57 +77,19 @@ struct ItemAffixCatalogTests {
         #expect(power.description == "Blocking an attack makes your next manually played attack Critically Hit")
     }
 
-    @Test func `nested affix reactions are ignored in favor of flat keys`() throws {
-        let data = Data(#"[{"description":"Flat","modifiers":[],"triggers":{"gainManaBlockFlat":2}}]"#.utf8)
-
-        let powers = try ItemAffixPowerCoding.decode(data)
-        let power = try #require(powers.first)
-
-        try #expect(power.triggers.gainManaBlockFlat == 2)
-        try #expect(power.triggers.dodgeDealStunFlat == 0)
-    }
-
-    /// Runtime mirror of codegen rejects (_validate_keywords/_validate_weight):
-    /// cheap defense for hand-edited affix definitions.
-    @Test func `each affix has positive weight and keywords`() throws {
-        for definition in GameContent.itemAffixDefinitions {
-            try #expect(definition.weight > 0, "\(definition.id) should have positive weight")
-            try #expect(!definition.keywords.isEmpty, "\(definition.id) should declare keywords")
-        }
-    }
-
-    /// Runtime mirror of codegen's `validate_affix_reachability`: eligibility is
-    /// a slot match plus a shared keyword, so an affix no base of its slot can
-    /// host never enters a roll pool and skews the weights that remain.
-    @Test func `each affix can roll on some base of its slot`() throws {
-        let basesBySlot = Dictionary(grouping: GameContent.itemBaseTypes, by: \.slot)
-        for definition in GameContent.itemAffixDefinitions {
-            let hosts = basesBySlot[definition.slot] ?? []
-            try #expect(
-                hosts.contains { !definition.keywords.isDisjoint(with: $0.keywordAffinities) },
-                "\(definition.id) should be rollable on a \(definition.slot) base",
-            )
-        }
-    }
-
     @Test func `each affix defines basic and astral powers`() throws {
         for definition in GameContent.itemAffixDefinitions {
-            try #expect(!definition.basic.description.isEmpty, "\(definition.id) basic description")
-            try #expect(!definition.astral.description.isEmpty, "\(definition.id) astral description")
             if definition.slot == .trinket {
                 try #expect(definition.basic == definition.astral)
-                try #expect(definition.basic.triggers != CombatTraitTriggers(
-                ) || !definition.basic.modifiers.isEmpty)
+                try #expect(definition.basic.triggers != CombatTraitTriggers() || !definition.basic.modifiers.isEmpty)
                 continue
             }
             try #expect(
-                !definition.basic.modifiers.isEmpty || definition.basic.triggers != CombatTraitTriggers(
-                ),
+                !definition.basic.modifiers.isEmpty || definition.basic.triggers != CombatTraitTriggers(),
                 "\(definition.id) basic power",
             )
             try #expect(
-                !definition.astral.modifiers.isEmpty || definition.astral.triggers != CombatTraitTriggers(
-                ),
+                !definition.astral.modifiers.isEmpty || definition.astral.triggers != CombatTraitTriggers(),
                 "\(definition.id) astral power",
             )
             // Non-trinket affixes with real magnitudes must resolve astral

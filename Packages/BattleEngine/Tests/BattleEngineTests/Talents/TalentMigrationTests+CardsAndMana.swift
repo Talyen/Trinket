@@ -30,7 +30,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `closedCircuit spends mana deals stun`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.closedCircuit = true })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.closedCircuit = true })
         let enemyHealthBefore = battle.health(of: battle.enemy)
         CombatExecutor.run { await CombatTriggerEngine.afterSpendMana(
             ManaPayment(
@@ -44,14 +44,14 @@ extension TalentMigrationTests {
     }
 
     @Test func `eyeOfTheStorm stun restores mana`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.eyeOfTheStorm = true })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.eyeOfTheStorm = true })
         battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentMana = 0 }
         _ = battle.resolveTestDamage(6, keyword: .stun)
         #expect(battle.mana(of: battle.hero) > 0)
     }
 
     @Test func `phantom counter plays a drawn card without consuming ordinary card rewards`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured {
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers {
             $0.thirdCardReturnsToHand = true
             $0.phantomCounter = true
         })
@@ -71,7 +71,7 @@ extension TalentMigrationTests {
 
     @Test func `snapping jaws resolves fangs bleed and leech`() {
         var battle = makeBattle(
-            heroTriggers: CombatTraitTriggers.configured { $0.onDodgeCounterBasicAttack = true },
+            heroTriggers: CombatTraitTriggers { $0.onDodgeCounterBasicAttack = true },
             heroAbilities: [.fangs],
         )
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 5 }
@@ -84,7 +84,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `dazing swipe only delays after damaging cards`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.attackDelayEnemyTurnChancePercent = 1 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.attackDelayEnemyTurnChancePercent = 1 })
         for ability in [Ability.block, .slash] {
             _ = cardReactions(
                 ability,
@@ -97,7 +97,7 @@ extension TalentMigrationTests {
 
     @Test func `primed repeat expires at turn end`() {
         var battle = makeBattle(
-            heroTriggers: CombatTraitTriggers.configured { $0.furnaceRhythm = true },
+            heroTriggers: CombatTraitTriggers { $0.furnaceRhythm = true },
             heroAbilities: [.slash],
         )
         _ = cardReactions(
@@ -110,7 +110,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `pyromancer restores mana on burn empowerment`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.onEmpowerBurnRestoreMana = 1 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.onEmpowerBurnRestoreMana = 1 })
         var ability = Ability.meteor
         CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.roster.hero.combatant, context: &battle,
@@ -119,7 +119,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `frost guard adds freeze damage to empowerment`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.empowerFreezeDamageBonus = 1 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.empowerFreezeDamageBonus = 1 })
         var ability = Ability.frostbolt
         CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.roster.hero.combatant, context: &battle,
@@ -128,7 +128,7 @@ extension TalentMigrationTests {
     }
 
     @Test func `dark recovery deals stun when spending last mana`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.spendLastManaStunDamage = 3 })
+        var battle = makeBattle(heroTriggers: CombatTraitTriggers { $0.spendLastManaStunDamage = 3 })
         battle.appliesFightPacing = false
         battle.roster.mutateRuntime(for: battle.roster.hero.combatant) { $0.currentMana = 0 }
         let before = battle.health(of: battle.enemy)

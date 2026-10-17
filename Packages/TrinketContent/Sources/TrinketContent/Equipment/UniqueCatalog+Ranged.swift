@@ -8,7 +8,7 @@ extension UniqueCatalog {
             base: "longbow",
             keywords: [.physical],
             description: "Your Physical Critical Hits that remove Health draw from your Companion's deck",
-            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.huntsmasterPhysicalCriticalDrawsCompanion = true }),
+            triggers: CombatTraitTriggers { $0.huntsmasterPhysicalCriticalDrawsCompanion = true },
             supports: ["keen", "serrated", "envenomed"],
         ),
         unique(
@@ -17,7 +17,7 @@ extension UniqueCatalog {
             base: "shortbow",
             keywords: [.physical],
             description: "Playing your second card each turn draws a card and grants 10% Dodge until your next turn",
-            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.secondCardDrawAndDodgePercent = 0.1 }),
+            triggers: CombatTraitTriggers { $0.secondCardDrawAndDodgePercent = 0.1 },
             supports: ["keen", "infected", "contagion"],
         ),
         unique(
@@ -26,7 +26,7 @@ extension UniqueCatalog {
             base: "recurve_bow",
             keywords: [.dodge],
             description: "Once per turn, Dodging returns the last card you played to your hand",
-            triggers: CombatTraitTriggers(attack: AttackTriggers { $0.thirdCardReturnsToHand = true }),
+            triggers: CombatTraitTriggers { $0.thirdCardReturnsToHand = true },
             supports: ["keen", "serrated", "lingering"],
         ),
         unique(
@@ -35,7 +35,7 @@ extension UniqueCatalog {
             base: "wand",
             keywords: [.burn, .freeze, .mana],
             description: "Once per turn, spending your last Mana to empower a Burn or Freeze card repeats its damage",
-            triggers: CombatTraitTriggers(mana: ManaTriggers { $0.lastManaEmpowermentRepeatsDamage = true }),
+            triggers: CombatTraitTriggers { $0.lastManaEmpowermentRepeatsDamage = true },
             supports: ["smoldering", "glacial", "channeled"],
         ),
     ]

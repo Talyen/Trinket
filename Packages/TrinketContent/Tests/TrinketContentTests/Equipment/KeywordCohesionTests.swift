@@ -15,7 +15,7 @@ struct KeywordCohesionTests {
             // Ambush doubles any attack damage; its former Holy weakness is now a separate trait.
             if trait.id == "ambush" {
                 #expect(trait.modifiers.isEmpty)
-                #expect(trait.triggers == CombatTraitTriggers(damage: DamageTriggers { $0.firstHitDoubleDamage = true }))
+                #expect(trait.triggers == CombatTraitTriggers { $0.firstHitDoubleDamage = true })
             } else {
                 missing.append("trait:\(trait.id)")
             }
