@@ -267,4 +267,70 @@ struct DeathsDoorEngineTests {
         #expect(battle.roster.health(for: target) == min(9, battle.roster.maxHealth(for: target)))
         #expect(battle.roster.activeEffects(for: target).contains { $0.effect.isRemovableDebuff })
     }
+
+    @Test func `deathgrip grants block when entering deaths door`() {
+        var context = BattleStateTestFactory.makeBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50),
+            heroModifiers: CombatModifierProfile.withTriggers { $0.blockOnDeathsDoor = 8 },
+        )
+        context.roster.hero.currentHealth = 5
+        let hero = context.hero
+
+        let events = context.recordingResult { observation in observation.resolveTestDamage(
+            40,
+            to: hero,
+            options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ) }.events
+
+        #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
+        let expectedBlock = context.paced(8, sourceActorID: hero.id)
+        #expect(events.contains { $0.abilityName == "Deathgrip" && $0.amount == expectedBlock })
+        #expect(context.roster.health(for: hero) == 1)
+        #expect(
+            context.roster.activeEffects(for: hero).contains {
+                if case let .shield(keyword, points) = $0.effect {
+                    return keyword == .block && points == expectedBlock
+                }
+                return false
+            },
+        )
+    }
+
+    @Test(arguments: [1, 2])
+    func `Forbidden Lore restores Mana when Health loss enters Deaths Door`(initialHealth: Int) throws {
+        let hero = try #require(GameContent.hero(matching: "warlock"))
+        let enemy = CombatantFixtures.passiveEnemy(maxHealth: 40)
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: hero,
+            enemy: enemy,
+            heroHealth: initialHealth,
+            heroMana: 0,
+            heroModifiers: CombatantTalentCatalog.profile(for: ["warlock_mana_t1_2"]), appliesFightPacing: false,
+        )
+
+        _ = battle.resolveTestDamage(1, to: hero, keyword: .physical, sourceActorID: enemy.id, options: .attack(accuracy: .unavoidable))
+
+        #expect(battle.roster.hero.currentHealth == 1)
+        #expect(battle.roster.hero.currentMana == 1)
+        #expect(battle.roster.hero.hasConsumedDeathsDoor == (initialHealth == 1))
+    }
+
+    @Test(arguments: [1, 2])
+    func `Blood Omen draws after a Health loss protected by Deaths Door`(initialHealth: Int) {
+        var modifiers = CombatModifierProfile.zero
+        modifiers.triggers.drawOnHealthLoss = 1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.slash], heroModifiers: modifiers,
+            dealOpeningHand: false,
+        )
+        let hero = battle.hero
+        battle.roster.mutateRuntime(for: hero) { $0.currentHealth = initialHealth }
+        battle.appliesFightPacing = false
+
+        _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
+
+        #expect(battle.roster.hero.currentHealth == 1)
+        #expect(battle.hand.cards.count == 1)
+        #expect(battle.turnCadence.healthLossDrawOwners.contains(.hero))
+    }
 }

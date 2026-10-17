@@ -50,35 +50,6 @@ struct BattleTurnEngineTests {
         #expect(context.actionCount == 1)
     }
 
-    @Test func `deathgrip grants block when entering deaths door`() {
-        var context = makeTurnContext(
-            heroMaxHealth: 50,
-            heroHealth: 5,
-            heroModifiers: CombatModifierProfile.withTriggers { $0.blockOnDeathsDoor = 8 },
-            seed: 0,
-        )
-        let hero = context.hero
-
-        let events = context.recordingResult { observation in observation.resolveTestDamage(
-            40,
-            to: hero,
-            options: .attack(scaling: .flat, accuracy: .unavoidable),
-        ) }.events
-
-        #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
-        let expectedBlock = context.paced(8, sourceActorID: hero.id)
-        #expect(events.contains { $0.abilityName == "Deathgrip" && $0.amount == expectedBlock })
-        #expect(context.roster.health(for: hero) == 1)
-        #expect(
-            context.roster.activeEffects(for: hero).contains {
-                if case let .shield(keyword, points) = $0.effect {
-                    return keyword == .block && points == expectedBlock
-                }
-                return false
-            },
-        )
-    }
-
     @Test func `ability event includes actor ability and tier`() throws {
         var context = makeTurnContext()
         let enemy = context.roster.enemy.combatant

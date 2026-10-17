@@ -121,4 +121,34 @@ struct TalentCatalogRoundTripTests {
         )
         #expect(battle.roster.health(for: hero) == 0)
     }
+
+    @Test func `sacrificial guard spends companion block before hero health`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t3_1"]),
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        battle.roster.hero.currentHealth = 10
+        DefensePoolEngine.set(6, on: battle.companion, in: &battle)
+
+        _ = battle.resolveTestDamage(4, from: .enemy, to: .hero, options: .reaction())
+
+        #expect(battle.roster.hero.currentHealth == 10)
+        #expect(battle.roster.companion.currentHealth == battle.roster.companion.maxHealth)
+        #expect(talentPoints(.shield, on: .companion, in: battle) == 2)
+    }
+
+    @Test func `returning bloom restores the wounded Hero when the Companion is full`() throws {
+        var battle = capstoneBattle(hero: ["druid_poison_t2_2"])
+        battle.roster.hero.currentHealth = 5
+        seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
+
+        let events = battle.recordingEvents { battle in await EffectTurnEngine.advanceAll(context: &battle) }
+
+        #expect(!battle.roster.hasAffliction(.poison, on: battle.enemy))
+        #expect(battle.roster.hero.currentHealth == 8)
+        #expect(battle.roster.companion.currentHealth == battle.roster.companion.maxHealth)
+        let restoration = try #require(events.first { $0.abilityName == "Returning Bloom" })
+        #expect(restoration.targetID == battle.hero.id)
+        #expect(restoration.amount == 3)
+    }
 }

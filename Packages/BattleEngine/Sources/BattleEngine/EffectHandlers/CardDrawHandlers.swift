@@ -11,7 +11,7 @@ extension EffectApplication {
            let sourceOwner = context.roster.participant(for: source), sourceOwner.isPartyMember {
             let allyOwner: BattleParticipant = sourceOwner == .hero ? .companion : .hero
             if BattleCardCombatEngine.canDrawFromDeck(for: allyOwner, in: context),
-               !BattleCardCombatEngine.deck(for: allyOwner, in: context).isEmpty {
+               !BattleCardCombatEngine.isDeckEmpty(for: allyOwner, in: context) {
                 drawTarget = context.roster[allyOwner].combatant
             } else {
                 drawTarget = source
@@ -94,7 +94,7 @@ extension EffectApplication {
     private func canDrawAndPlay(_ owner: BattleParticipant, in context: BattleState) -> Bool {
         guard BattleCardCombatEngine.canDrawFromDeck(for: owner, in: context) else { return false }
         guard !context.ownersSkippingThisPlayerTurn.contains(owner) else { return false }
-        let ability = BattleCardCombatEngine.deck(for: owner, in: context).firstAbility
+        let ability = BattleCardCombatEngine.firstDeckAbility(for: owner, in: context)
         guard let ability else { return false }
         return BattleAbilityRules.canPayHealthCost(ability, actor: context.roster[owner].combatant, in: context)
     }

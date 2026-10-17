@@ -72,14 +72,7 @@ public enum VictoryRewardApplier {
         hero: Combatant,
         companion: Combatant,
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
-    ) {
-        apply(settlement, hero: hero, companion: companion, save: &save, claim: nil, recordReceipt: recordReceipt)
-    }
-
-    static func apply(
-        _ settlement: BattleRewardSettlement, hero: Combatant, companion: Combatant,
-        save: inout PlayerSave, claim: CloudEconomicAction.Claim?,
+        claim: CloudEconomicAction.Claim? = nil,
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) {
         let award = settlement.award

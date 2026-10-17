@@ -102,50 +102,70 @@ package extension BattleState {
                 resolution.endStandaloneRestoration()
             }
         }
-        guard var runtime = roster.runtime(for: combatant), runtime.isAlive else { return 0 }
+        guard let participant = roster.participant(for: combatant), roster[participant].isAlive else { return 0 }
         let profile = modifiers(for: combatant.id)
         let deepRoots = amount > 0 && profile.triggers.deepRoots &&
-            roster.activeEffects(for: combatant).contains { $0.effect.kind == .thorns }
-        let requested = amount > 0 && !isResolved
-            ? SaturatedArithmetic.saturatingAdd(
-                CombatRounding.scaled(
-                    SaturatedArithmetic.saturatingAdd(amount, profile.manaRestoredBonus),
-                    multiplier: 1 + profile.manaRestoredPercent,
-                ), deepRoots ? 1 : 0,
-            ) : amount
-        let actual = runtime.restoreMana(requested)
-        var total = actual
-        var overflow = max(0, requested - actual)
-        if !isResolved, actual > 0, profile.triggers.manaGainDoubleChancePercent > 0,
-           BattleChance.succeeds(probability: profile.triggers.manaGainDoubleChancePercent, using: &rng) {
-            let doubled = runtime.restoreMana(requested)
-            total += doubled
-            overflow = SaturatedArithmetic.saturatingAdd(overflow, max(0, requested - doubled))
+            roster[participant].activeEffects.contains { $0.effect.kind == .thorns }
+        let requested = requestedMana(amount, profile: profile, hasThorns: deepRoots, isResolved: isResolved)
+
+        var total = 0
+        var overflow = 0
+        roster.mutateRuntime(for: combatant) { runtime in
+            total = runtime.restoreMana(requested)
+            overflow = max(0, requested - total)
         }
-        if !isResolved, actual > 0, profile.triggers.manaRestorationDoubleChancePercent > 0,
-           claimTalentAbility(.arcaneReservoir, actorID: combatant.id),
-           BattleChance.succeeds(probability: profile.triggers.manaRestorationDoubleChancePercent, using: &rng) {
-            let doubled = runtime.restoreMana(requested)
-            total += doubled
-            overflow = SaturatedArithmetic.saturatingAdd(overflow, max(0, requested - doubled))
+        if !isResolved, total > 0 {
+            if profile.triggers.manaGainDoubleChancePercent > 0,
+               BattleChance.succeeds(probability: profile.triggers.manaGainDoubleChancePercent, using: &rng) {
+                applyDoubledMana(requested, for: combatant, total: &total, overflow: &overflow)
+            }
+            if profile.triggers.manaRestorationDoubleChancePercent > 0,
+               claimTalentAbility(.arcaneReservoir, actorID: combatant.id),
+               BattleChance.succeeds(probability: profile.triggers.manaRestorationDoubleChancePercent, using: &rng) {
+                applyDoubledMana(requested, for: combatant, total: &total, overflow: &overflow)
+            }
         }
-        if overflow > 0, profile.triggers.livingConduit {
-            runtime.talents.pending.manaOverflowThorns = SaturatedArithmetic.saturatingAdd(
-                runtime.talents.pending.manaOverflowThorns,
-                overflow,
-            )
+        if overflow > 0 {
+            applyManaOverflow(overflow, profile: profile, for: combatant)
         }
-        if overflow > 0, profile.triggers.excessManaRestorationBlock {
-            let block = SaturatedArithmetic.saturatingMul(
-                overflow, max(0, profile.triggers.excessManaRestorationBlockPerMana),
-            )
-            runtime.talents.pending.manaOverflowBlock = SaturatedArithmetic.saturatingAdd(
-                runtime.talents.pending.manaOverflowBlock,
-                block,
-            )
-        }
-        roster.update(runtime)
         return total
+    }
+
+    private func requestedMana(_ amount: Int, profile: CombatModifierProfile, hasThorns: Bool, isResolved: Bool) -> Int {
+        guard amount > 0, !isResolved else { return amount }
+        let bonus = SaturatedArithmetic.saturatingAdd(amount, profile.manaRestoredBonus)
+        let scaled = CombatRounding.scaled(bonus, multiplier: 1 + profile.manaRestoredPercent)
+        return SaturatedArithmetic.saturatingAdd(scaled, hasThorns ? 1 : 0)
+    }
+
+    private mutating func applyDoubledMana(
+        _ requested: Int,
+        for combatant: Combatant,
+        total: inout Int,
+        overflow: inout Int,
+    ) {
+        roster.mutateRuntime(for: combatant) { runtime in
+            let doubled = runtime.restoreMana(requested)
+            total += doubled
+            overflow = SaturatedArithmetic.saturatingAdd(overflow, max(0, requested - doubled))
+        }
+    }
+
+    private mutating func applyManaOverflow(_ overflow: Int, profile: CombatModifierProfile, for combatant: Combatant) {
+        guard profile.triggers.livingConduit || profile.triggers.excessManaRestorationBlock else { return }
+        roster.mutateRuntime(for: combatant) { runtime in
+            if profile.triggers.livingConduit {
+                runtime.talents.pending.manaOverflowThorns = SaturatedArithmetic.saturatingAdd(
+                    runtime.talents.pending.manaOverflowThorns, overflow,
+                )
+            }
+            if profile.triggers.excessManaRestorationBlock {
+                let block = SaturatedArithmetic.saturatingMul(overflow, max(0, profile.triggers.excessManaRestorationBlockPerMana))
+                runtime.talents.pending.manaOverflowBlock = SaturatedArithmetic.saturatingAdd(
+                    runtime.talents.pending.manaOverflowBlock, block,
+                )
+            }
+        }
     }
 
     mutating func restoreManaEmitting(

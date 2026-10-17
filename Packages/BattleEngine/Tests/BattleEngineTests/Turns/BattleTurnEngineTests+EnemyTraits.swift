@@ -349,6 +349,20 @@ extension BattleTurnEngineTests {
         #expect(context.roster.hasAffliction(.poison, on: target))
     }
 
+    @Test func `mimic opening bleed reports its actual health damage once`() throws {
+        var context = try enemyTraitContext("mimic")
+        let initialHealth = context.health(of: context.hero)
+        let events = context.performTestAction(.fangs, from: .enemy, to: .hero)
+        let direct = events.filter { $0.kind == .abilityDamage && $0.actorID == context.enemy.id }
+            .reduce(0) { $0 + $1.amount }
+        let bonus = events.filter { $0.kind == .status && $0.abilityName == "Hidden Fangs" }
+        #expect(bonus.count == 1)
+        #expect(bonus.first?.amount == 2)
+        #expect(initialHealth - context.health(of: context.hero) == direct + bonus.reduce(0) { $0 + $1.amount })
+        let next = context.performTestAction(.fangs, from: .enemy, to: .hero)
+        #expect(!next.contains { $0.abilityName == "Hidden Fangs" })
+    }
+
     private func enemyTraitContext(
         _ enemyID: String,
         heroModifiers: CombatModifierProfile = .zero,

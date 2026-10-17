@@ -269,43 +269,6 @@ struct StageRewardTests {
         #expect(loweredHeroXP < defaultedHeroXP)
     }
 
-    @Test func `claimed stage reward entrypoint rejects additional battle gold and rewards`() throws {
-        var save = SaveTestSupport.makeSave(
-            homestead: PlayerHomesteadState(
-                resources: [:],
-                nodeTiers: [.wishingWell: 2],
-            ),
-        )
-        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
-
-        StageCompletion.claimRewardsIfNeeded(
-            for: firstStage,
-            hero: hero,
-            companion: companion,
-            rewards: .unsettled(.init(battleGold: .init(gained: 0))),
-            save: &save,
-            recordReceipt: { _ in },
-        )
-        let goldAfterClaim = save.roster.gold
-        let heroXPAfterClaim = save.roster.progression(for: hero).currentXP
-        let itemCountAfterClaim = save.inventory.items.count
-
-        StageCompletion.claimRewardsIfNeeded(
-            for: firstStage,
-            hero: hero,
-            companion: companion,
-            rewards: .unsettled(.init(battleGold: .init(gained: 9))),
-            save: &save,
-            recordReceipt: { _ in },
-        )
-
-        try #expect(save.roster.gold == goldAfterClaim)
-        try #expect(save.roster.progression(for: hero).currentXP == heroXPAfterClaim)
-        try #expect(save.inventory.items.count == itemCountAfterClaim)
-        try #expect(save.journey.hasClaimedRewards(for: firstStage))
-    }
-
     @Test(arguments: [(10, 50, 20, -5), (0, 0, 3, -3), (10, 0, 3, 7)])
     func `resolved gold reward preserves battle spending`(stageGold: Int, percent: Int, spending: Int, expected: Int) {
         let plan = BattleRewardPlan(

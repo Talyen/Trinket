@@ -261,11 +261,19 @@ package enum BattleCardCombatEngine {
             && !context.roster.hasPendingActionSkip(for: combatant, keyword: .stun)
     }
 
-    static func deck(for owner: BattleParticipant, in context: BattleState) -> CombatDeck {
+    static func isDeckEmpty(for owner: BattleParticipant, in context: BattleState) -> Bool {
         switch owner {
-        case .hero: context.heroDeck
-        case .companion: context.companionDeck
-        case .enemy: CombatDeck()
+        case .hero: context.heroDeck.isEmpty
+        case .companion: context.companionDeck.isEmpty
+        case .enemy: true
+        }
+    }
+
+    static func firstDeckAbility(for owner: BattleParticipant, in context: BattleState) -> Ability? {
+        switch owner {
+        case .hero: context.heroDeck.firstAbility
+        case .companion: context.companionDeck.firstAbility
+        case .enemy: nil
         }
     }
 }

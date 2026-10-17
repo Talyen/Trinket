@@ -68,12 +68,12 @@ struct ReturningGaleRegressionTests {
         try #require(context.heroDeck.discarded.contains { $0.ability.id == "played" })
         _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         // 3. Same ability returns from deck, no copy remains in deck.
-        try #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
-        try #expect(!context.heroDeck.abilities.contains { $0.id == "played" })
+        #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
+        #expect(!context.heroDeck.abilities.contains { $0.id == "played" })
         // 4. Complete enemy turn, state resets, normal next-turn draws.
         _ = context.endTurn()
         // 5. Returned ability remains available in visible hand or buffer.
-        try #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
+        #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
     }
 
     // 6: Full hand + buffered cards preserves FIFO, no loss, later promotion.
@@ -94,13 +94,13 @@ struct ReturningGaleRegressionTests {
         context.insertEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0, at: 0)
         _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         // Returned card enters buffer FIFO (no overflow loss), visible hand unchanged.
-        try #expect(context.hand.cards.map(\.ability.id) == ["held1", "held2", "held3"])
-        try #expect(context.hand.buffer.map(\.ability.id) == ["buffered", "played"])
+        #expect(context.hand.cards.map(\.ability.id) == ["held1", "held2", "held3"])
+        #expect(context.hand.buffer.map(\.ability.id) == ["buffered", "played"])
         // Later promotion when a slot opens preserves order.
         _ = context.hand.remove(id: 101)
         BattleCardCombatEngine.promoteFromBuffer(context: &context)
-        try #expect(context.hand.cards.map(\.ability.id) == ["held2", "held3", "buffered"])
-        try #expect(context.hand.buffer.map(\.ability.id) == ["played"])
+        #expect(context.hand.cards.map(\.ability.id) == ["held2", "held3", "buffered"])
+        #expect(context.hand.buffer.map(\.ability.id) == ["played"])
     }
 
     // 7: Repeat Dodge before replaying does not duplicate.
@@ -116,7 +116,7 @@ struct ReturningGaleRegressionTests {
         }
         let copies = (context.hand.cards + context.hand.buffer).count(where: { $0.owner == .hero && $0.ability.id == "played" })
             + context.heroDeck.abilities.count(where: { $0.id == "played" })
-        try #expect(copies == 1)
+        #expect(copies == 1)
     }
 
     @Test func `gale ignores no prior play held absent and restrictions`() throws {
@@ -124,7 +124,7 @@ struct ReturningGaleRegressionTests {
         var context = try battle(["the_returning_gale"])
         context.insertEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0, at: 0)
         _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
-        try #expect(context.hand.totalCount == 0)
+        #expect(context.hand.totalCount == 0)
         // Already held -> do nothing (no duplicate).
         context = try battle(["the_returning_gale"], heroDeck: [attack(id: "played")])
         try play(attack(id: "played"), owner: .hero, in: &context)
@@ -133,7 +133,7 @@ struct ReturningGaleRegressionTests {
         let totalBefore = context.hand.totalCount + context.heroDeck.count
         context.insertEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0, at: 0)
         _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
-        try #expect(context.hand.totalCount + context.heroDeck.count == totalBefore)
+        #expect(context.hand.totalCount + context.heroDeck.count == totalBefore)
         // Absent from deck (already consumed) is covered by repeated dodge above.
         // A stunned owner cannot draw, so Dodge creates no additional copy.
         context = try battle(["the_returning_gale"], heroDeck: [attack(id: "played")])
@@ -143,7 +143,7 @@ struct ReturningGaleRegressionTests {
         _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         let copies = (context.hand.cards + context.hand.buffer).count(where: { $0.ability.id == "played" })
             + context.heroDeck.abilities.count(where: { $0.id == "played" })
-        try #expect(copies <= 2)
+        #expect(copies == 2)
     }
 
     @Test func `gale and flight together do not duplicate`() throws {
@@ -153,13 +153,13 @@ struct ReturningGaleRegressionTests {
         )
         // First Physical card returns immediately via Flight (to hand, not deck).
         try play(attack(id: "played", keyword: .physical), owner: .hero, in: &context)
-        try #expect((context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
+        #expect((context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
         // Dodge later finds already held, does nothing (no duplicate).
         context.insertEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0, at: 0)
         _ = context.performTestAction(attack(id: "enemy-hit"), from: .enemy, to: .hero)
         let copies = (context.hand.cards + context.hand.buffer).count(where: { $0.ability.id == "played" })
             + context.heroDeck.abilities.count(where: { $0.id == "played" })
-        try #expect(copies == 1)
+        #expect(copies == 1)
     }
 
     @Test func `flight returns first physical once and moves without deck cycle`() throws {
@@ -170,16 +170,16 @@ struct ReturningGaleRegressionTests {
         let deckBefore = context.heroDeck.count
         try play(attack(id: "played", keyword: .physical), owner: .hero, in: &context)
         // Returned to hand (not cycled to deck): deck unchanged (still has "other", no "played" added).
-        try #expect((context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
-        try #expect(!context.heroDeck.abilities.contains { $0.id == "played" })
-        try #expect(context.heroDeck.count == deckBefore)
-        try #expect(context.roster[.hero].uniques.returnedFlightThisTurn == true)
+        #expect((context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
+        #expect(!context.heroDeck.abilities.contains { $0.id == "played" })
+        #expect(context.heroDeck.count == deckBefore)
+        #expect(context.roster[.hero].uniques.returnedFlightThisTurn == true)
         // Replaying cannot repeatedly return (allowance claimed).
         let returnedCard = try #require((context.hand.cards + context.hand.buffer).first { $0.ability.id == "played" })
         _ = try CombatExecutor.run { try await BattleCardCombatEngine.resolveDrawnCard(returnedCard, context: &context) }
-        try #expect(!(context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
+        #expect(!(context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
         // Second play cycled to deck (not returned).
-        try #expect(context.heroDeck.discarded.contains { $0.ability.id == "played" })
+        #expect(context.heroDeck.discarded.contains { $0.ability.id == "played" })
     }
 
     @Test func `gale tracks non-damaging ordinary but not automatic`() throws {
@@ -189,14 +189,14 @@ struct ReturningGaleRegressionTests {
         )
         // Non-damaging ordinary support qualifies (Sniff Out / Predator's Focus style).
         try play(support(id: "tracked"), owner: .hero, in: &context)
-        try #expect(context.roster[.hero].uniques.lastOrdinaryCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
+        #expect(context.roster[.hero].uniques.lastOrdinaryCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
             .copyID)
         // Automatic abilities do not replace tracked ordinary card.
         _ = try context.withAutomaticPlay { context in
             let card = BattleCardCombatEngine.deal(attack(id: "auto"), owner: .hero, context: &context)
             return try CombatExecutor.run { try await BattleCardCombatEngine.resolveDrawnCard(card, context: &context) }
         }
-        try #expect(context.roster[.hero].uniques.lastOrdinaryCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
+        #expect(context.roster[.hero].uniques.lastOrdinaryCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
             .copyID)
     }
 }

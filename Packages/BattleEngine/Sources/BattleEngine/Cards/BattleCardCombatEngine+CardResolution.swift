@@ -20,19 +20,16 @@ extension BattleCardCombatEngine {
             throw error
         }
         let actor = context.roster[card.owner].combatant
-        guard context.hand.card(id: card.id) != nil
-            || (allowBufferedRemoval && context.hand.buffer.contains(where: { $0.id == card.id })) else {
+        let removedCard = allowBufferedRemoval
+            ? context.hand.removeFromAnyLocation(id: card.id)
+            : context.hand.remove(id: card.id)
+        guard removedCard != nil else {
             throw BattlePlayError.cardNotInHand
         }
         // A caller supplying its own hand may skip the optional opening deal.
         // Only a manual command consumes it; automatic turn-start cards do not.
         if !allowBufferedRemoval {
             context.turnState = .playerTurn
-        }
-        if allowBufferedRemoval {
-            _ = context.hand.removeFromAnyLocation(id: card.id)
-        } else {
-            _ = context.hand.remove(id: card.id)
         }
         discardPlayedCard(card, context: &context)
         context.commandOutput?.beginCard(card)

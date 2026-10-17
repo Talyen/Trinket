@@ -97,23 +97,23 @@ public struct BattleRoster {
     }
 
     public func health(for combatant: Combatant) -> Int {
-        runtime(for: combatant)?.currentHealth ?? 0
+        participant(for: combatant).map { self[$0].currentHealth } ?? 0
     }
 
     public func maxHealth(for combatant: Combatant) -> Int {
-        runtime(for: combatant)?.maxHealth ?? 0
+        participant(for: combatant).map { self[$0].maxHealth } ?? 0
     }
 
     func isBelowHalfHealth(for combatant: Combatant) -> Bool {
-        runtime(for: combatant)?.isBelowHalfHealth ?? false
+        participant(for: combatant).map { self[$0].isBelowHalfHealth } ?? false
     }
 
     func isAboveHalfHealth(for combatant: Combatant) -> Bool {
-        runtime(for: combatant)?.isAboveHalfHealth ?? false
+        participant(for: combatant).map { self[$0].isAboveHalfHealth } ?? false
     }
 
     public func maxMana(for combatant: Combatant) -> Int {
-        runtime(for: combatant)?.maxMana ?? 0
+        participant(for: combatant).map { self[$0].maxMana } ?? 0
     }
 
     public var enemyAttackTarget: Combatant {
@@ -137,31 +137,35 @@ public struct BattleRoster {
         enemy.currentHealth == 0
     }
 
+    private func withEffects<T>(for combatant: Combatant, _ body: ([ActiveEffect]) -> T) -> T? {
+        guard let participant = participant(for: combatant) else { return nil }
+        return body(self[participant].activeEffects)
+    }
+
     public func hasPendingActionSkip(for combatant: Combatant) -> Bool {
-        activeEffects(for: combatant).contains(where: \.isAwaitingActionSkip)
+        withEffects(for: combatant) { $0.contains(where: \.isAwaitingActionSkip) } ?? false
     }
 
     public func hasPendingActionSkip(for combatant: Combatant, keyword: Keyword) -> Bool {
-        activeEffects(for: combatant).contains { activeEffect in
-            activeEffect.keyword == keyword && activeEffect.isAwaitingActionSkip
-        }
+        withEffects(for: combatant) { effects in
+            effects.contains { $0.keyword == keyword && $0.isAwaitingActionSkip }
+        } ?? false
     }
 
     public func hasControlStatus(for combatant: Combatant, keyword: Keyword) -> Bool {
-        activeEffects(for: combatant).contains { activeEffect in
-            activeEffect.keyword == keyword && activeEffect.effect.isActionSkipPending
-        }
+        withEffects(for: combatant) { effects in
+            effects.contains { $0.keyword == keyword && $0.effect.isActionSkipPending }
+        } ?? false
     }
 
     func hasAffliction(_ keyword: Keyword, on combatant: Combatant) -> Bool {
-        activeEffects(for: combatant).contains { active in
-            guard active.effect.keyword == keyword else { return false }
-            return active.isActiveAffliction
-        }
+        withEffects(for: combatant) { effects in
+            effects.contains { $0.effect.keyword == keyword && $0.isActiveAffliction }
+        } ?? false
     }
 
     public func hasControlStatus(for combatant: Combatant) -> Bool {
-        activeEffects(for: combatant).contains(where: \.effect.isActionSkipPending)
+        withEffects(for: combatant) { $0.contains(where: \.effect.isActionSkipPending) } ?? false
     }
 
     package mutating func clearControlStatusLinger(for combatant: Combatant) {
@@ -187,11 +191,13 @@ public struct BattleRoster {
     }
 
     public func hasConsumedDeathsDoor(for combatant: Combatant) -> Bool {
-        runtime(for: combatant)?.hasConsumedDeathsDoor ?? false
+        participant(for: combatant).map { self[$0].hasConsumedDeathsDoor } ?? false
     }
 
     public func isDeathsDoorActive(for combatant: Combatant) -> Bool {
-        activeEffects(for: combatant).contains { $0.effect.kind == .deathsDoor }
+        withEffects(for: combatant) { effects in
+            effects.contains { $0.effect.kind == .deathsDoor }
+        } ?? false
     }
 }
 

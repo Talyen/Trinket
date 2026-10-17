@@ -243,4 +243,29 @@ extension UniqueCollectionTests {
         #expect(context.roster[source].currentMana == 0)
         #expect(outcome.events.count { $0.abilityName == "Threefold Grace" && $0.keyword == .mana } == 1)
     }
+
+    @Test func `Last Wager rewards a counterattack once across critical Gold and theft`() throws {
+        var profile = CombatantTalentCatalog.profile(for: ["wildcard_gold_t3_1"])
+        let fortunateStrike = try #require(GameContent.itemAffixDefinition(matching: "lucky_clover"))
+        fortunateStrike.basic.triggers.apply(to: &profile, abilityName: fortunateStrike.title)
+        profile.triggers.criticalChanceBonus = 1
+        var context = try battle(["the_knights_answer"], extra: profile, heroBasic: .blackjack)
+        context.roster.hero.currentHealth = 50
+        context.heroDeck = CombatDeck(abilities: [.slash, .block, .maul])
+        let threshold = ControlMeterEngine.threshold(for: context.enemy, in: context)
+        context.insertEffect(
+            .controlMeter(.stun, threshold - 1, threshold), to: context.enemy,
+            sourceID: context.hero.id, remainingTurns: 0,
+        )
+        block(5, owner: .hero, in: &context)
+
+        let hit = context.recordingResult { context in enemyHit(1, in: &context) }
+
+        #expect(context.gold == 4)
+        #expect(hit.events.count { $0.effectKind == .cardsDrawn && $0.abilityName == "Last Wager" } == 1)
+        #expect(context.hand.cards.map(\.ability.id) == [Ability.slash.id])
+
+        context.grantGoldEvent(1, to: context.hero, abilityName: "Separate reward")
+        #expect(context.hand.cards.map(\.ability.id) == [Ability.slash.id, Ability.block.id])
+    }
 }
