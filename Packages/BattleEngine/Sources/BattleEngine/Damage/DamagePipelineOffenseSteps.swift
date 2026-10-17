@@ -150,45 +150,43 @@ package extension DamagePipeline {
     ) {
         guard state.options.isAttackHit,
               let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              let runtime = context.roster.runtime(for: source.combatant)
-        else { return }
-        if runtime.talents.pending.doubleDamageAfterDodge {
-            state.remaining = SaturatedArithmetic.saturatingMul(state.remaining, 2)
-            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.doubleDamageAfterDodge = false }
-        }
-        if runtime.talents.pending.doubleNextAttackAfterDeathsDoor {
-            state.remaining = SaturatedArithmetic.saturatingMul(state.remaining, 2)
-            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.doubleNextAttackAfterDeathsDoor = false }
-        }
-        let preparedDamage = SaturatedArithmetic.saturatingAdd(
-            runtime.talents.pending.cardDamageBonus,
-            runtime.talents.pending.feintStrikeDamageBonus,
-        )
-        if preparedDamage > 0 {
-            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, preparedDamage)
-            context.roster.mutateRuntime(for: source.combatant) {
-                $0.talents.pending.cardDamageBonus = 0
-                $0.talents.pending.feintStrikeDamageBonus = 0
+              let source = context.roster.combatant(for: sourceActorID)?.combatant else { return }
+        let cardSerial = context.resolution.cardTalents?.playSerial
+        let actionID = context.resolution.actionID
+        let turn = context.turnCount
+        // No reactions run between these preparations; borrow their owner once.
+        context.roster.mutateRuntime(for: source) { runtime in
+            if runtime.talents.pending.doubleDamageAfterDodge {
+                state.remaining = SaturatedArithmetic.saturatingMul(state.remaining, 2)
+                runtime.talents.pending.doubleDamageAfterDodge = false
             }
-        }
-        if runtime.talents.pending.cardDamagePercent > 0 {
-            state.remaining = CombatRounding.scaled(
-                state.remaining,
-                multiplier: 1 + runtime.talents.pending.cardDamagePercent,
+            if runtime.talents.pending.doubleNextAttackAfterDeathsDoor {
+                state.remaining = SaturatedArithmetic.saturatingMul(state.remaining, 2)
+                runtime.talents.pending.doubleNextAttackAfterDeathsDoor = false
+            }
+            let preparedDamage = SaturatedArithmetic.saturatingAdd(
+                runtime.talents.pending.cardDamageBonus, runtime.talents.pending.feintStrikeDamageBonus,
             )
-            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.cardDamagePercent = 0 }
-        }
-        applyOvercharge(to: &state, source: source.combatant, in: &context)
-        if runtime.talents.pending.damageAfterDodge > 0 {
-            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, runtime.talents.pending.damageAfterDodge)
-            context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.damageAfterDodge = 0 }
-        }
-        if runtime.talents.timed.damage.amount > 0, context.turnCount < runtime.talents.timed.damage.expiresAtTurn {
-            state.remaining = CombatRounding.scaled(
-                state.remaining,
-                multiplier: 1 + runtime.talents.timed.damage.amount,
-            )
+            if preparedDamage > 0 {
+                state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, preparedDamage)
+                runtime.talents.pending.cardDamageBonus = 0
+                runtime.talents.pending.feintStrikeDamageBonus = 0
+            }
+            if runtime.talents.pending.cardDamagePercent > 0 {
+                state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + runtime.talents.pending.cardDamagePercent)
+                runtime.talents.pending.cardDamagePercent = 0
+            }
+            if let percent = runtime.talents.pending.overchargePercent?.availableValue(cardSerial: cardSerial, actionID: actionID) {
+                state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + percent)
+                runtime.talents.pending.overchargePercent = nil
+            }
+            if runtime.talents.pending.damageAfterDodge > 0 {
+                state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, runtime.talents.pending.damageAfterDodge)
+                runtime.talents.pending.damageAfterDodge = 0
+            }
+            if runtime.talents.timed.damage.amount > 0, turn < runtime.talents.timed.damage.expiresAtTurn {
+                state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + runtime.talents.timed.damage.amount)
+            }
         }
     }
 

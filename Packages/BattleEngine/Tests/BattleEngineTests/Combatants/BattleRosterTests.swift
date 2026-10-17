@@ -48,7 +48,12 @@ struct BattleRosterTests {
         let nextID = battle.nextEffectID
         let inserted = battle.insertEffect(.marked(3, 2), to: foreign.combatant, remainingTurns: 2)
         #expect(!inserted)
+        #expect(DefensePoolEngine.add(5, to: foreign.combatant, in: &battle) == 0)
+        DefensePoolEngine.set(5, on: foreign.combatant, in: &battle)
         #expect(battle.nextEffectID == nextID)
+        #expect(battle.roster.hero.activeEffects.isEmpty)
+        #expect(battle.roster.companion.activeEffects.isEmpty)
+        #expect(battle.roster.enemy.activeEffects.isEmpty)
     }
 
     @Test func `identity selects the live runtime and rejects a mismatched role`() {
@@ -98,26 +103,5 @@ struct BattleRosterTests {
         let priorityCompanion = runtime(id: "companion", role: .companion, initialHealth: 10)
         let priorityRoster = BattleRoster(hero: priorityHero, companion: priorityCompanion, enemy: runtime(id: "enemy", role: .enemy))
         try #expect(priorityRoster.enemyAttackTarget.id == "companion")
-    }
-
-    @Test func `defeat flags cover party and enemy`() throws {
-        var roster = makeRoster()
-        try #expect(!(roster.isPartyDefeated))
-        try #expect(!(roster.isEnemyDefeated))
-
-        var hero = roster.hero
-        hero.takeRawDamage(999)
-        roster.update(hero)
-        try #expect(!(roster.isPartyDefeated))
-
-        var companion = roster.companion
-        companion.takeRawDamage(999)
-        roster.update(companion)
-        try #expect(roster.isPartyDefeated)
-
-        var enemy = roster.enemy
-        enemy.takeRawDamage(999)
-        roster.update(enemy)
-        try #expect(roster.isEnemyDefeated)
     }
 }

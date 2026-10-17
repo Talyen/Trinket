@@ -19,7 +19,10 @@ package enum EffectTurnEngine {
             await EnemyTraitEngine.turnRandomDamageAllEnemies(for: combatant, context: &context)
             if participant != .enemy,
                context.roster[participant].isAlive,
-               CombatTriggerEngine.partyDebuffsExpireFaster(in: context) {
+               CombatTriggerEngine.partyDebuffsExpireFaster(in: context),
+               context.roster.activeEffects(for: combatant).contains(where: {
+                   $0.effect.isRemovableDebuff && !$0.effect.isDecayingDoT && $0.remainingTurns > 0
+               }) {
                 context.roster.setActiveEffects(
                     accelerateDebuffExpiration(context.roster.activeEffects(for: combatant)),
                     for: combatant,

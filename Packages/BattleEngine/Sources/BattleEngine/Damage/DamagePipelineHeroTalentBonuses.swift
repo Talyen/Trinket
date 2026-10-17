@@ -11,15 +11,6 @@ package extension DamagePipeline {
         context.roster.mutateRuntime(for: source.combatant) { $0.talents.pending.doubleNextPoisonDamage = false }
     }
 
-    static func applyOvercharge(
-        to state: inout DamageResolutionState,
-        source: Combatant,
-        in context: inout BattleState,
-    ) {
-        guard let percent = context.consumeTalentPreparation(\.overchargePercent, for: source) else { return }
-        state.remaining = CombatRounding.scaled(state.remaining, multiplier: 1 + percent)
-    }
-
     static func applyTalentStatusMultipliers(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -187,8 +178,11 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard let source = context.roster.combatant(for: sourceActorID)?.combatant else { return }
-        let sourceBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source))
         let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+        let needsBlock = ((keyword == .physical || sharedKeyword == .physical) && triggers.physicalDamageFromBlockPercent > 0)
+            || (keyword == .stun && triggers.lightningRod)
+            || (keyword == .holy && triggers.holyDamageWhileBlockedMultiplier > 1)
+        let sourceBlock = needsBlock ? DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source)) : 0
         if keyword == .physical || sharedKeyword == .physical,
            triggers.physicalDamageFromBlockPercent > 0, sourceBlock > 0 {
             let bonus = CombatRounding.scaled(sourceBlock, multiplier: triggers.physicalDamageFromBlockPercent)

@@ -18,8 +18,10 @@ Floating feedback combines it with restored Health in the existing healing numbe
 restoration events, battle-log totals, and healing triggers still use actual restoration.
 Gold grants require a positive request and a living recipient before flat bonuses;
 Gold-gain reactions require a positive actual grant, including when the Gold ledger is saturated.
-Nonpositive Mana restoration leaves the balance unchanged. Block grants reject
-defeated recipients before preparations, feedback, or partner sharing; capacity-limited
+Nonpositive Mana restoration leaves the balance unchanged. Raw Health loss and
+Mana spending clamp requests to zero through the current balance before subtracting.
+Block grants reject defeated recipients before preparations, feedback, or partner
+sharing; capacity-limited
 zero gains preserve preparations and emit no success feedback. Rejected Maximum Mana
 and Mana Shield buffs grant neither restoration nor application feedback.
 `CombatGain` owns bounded applied gains; proportional effects use `CombatRounding`

@@ -44,7 +44,7 @@ extension TalentMigrationTests {
         _ = EffectHandlersTestSupport.dispatch(
             .purge(nil),
             ability: Ability(id: "test-purge", name: "purge", tier: .basic, targetedEffects: [TargetedEffect(.purge(nil))]),
-            target: battle.enemy, battle: &battle,
+            source: battle.roster[owner].combatant, target: battle.enemy, battle: &battle,
         )
         #expect(battle.health(of: battle.enemy) < enemyHealthBefore)
     }

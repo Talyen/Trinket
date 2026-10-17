@@ -43,14 +43,18 @@ enum EffectRemoval {
             effects[$0].effect.isRemovableBuff && !(preservingBlock && effects[$0].effect.kind == .shield)
         }
         guard !candidates.isEmpty else { return [] }
+        var selected = Array(repeating: false, count: effects.count)
         var removed: [ActiveEffect] = []
         for _ in 0 ..< min(count, candidates.count) {
             guard let offset = candidates.indices.randomElement(using: &rng) else { break }
             let index = candidates.remove(at: offset)
-            removed.append(effects.remove(at: index))
-            for candidate in candidates.indices where candidates[candidate] > index {
-                candidates[candidate] -= 1
-            }
+            selected[index] = true
+            removed.append(effects[index])
+        }
+        var index = 0
+        effects.removeAll { _ in
+            defer { index += 1 }
+            return selected[index]
         }
         return removed
     }

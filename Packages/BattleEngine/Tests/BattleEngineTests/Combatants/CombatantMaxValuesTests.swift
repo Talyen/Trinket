@@ -5,23 +5,32 @@ import TrinketCore
 @testable import TrinketContent
 
 struct CombatantMaxValuesTests {
+    @Test(arguments: [(Int.min, 0, 0), (7, 7, 7), (Int.max, 20, 10)])
+    func `resource losses never create resources or exceed the current balance`(requested: Int, damage: Int, spent: Int) {
+        var runtime = CombatantRuntime(combatant: CombatantFixtures.passiveEnemy(maxHealth: 20, maxMana: 10))
+
+        #expect(runtime.takeRawDamage(requested) == damage)
+        #expect(runtime.spendMana(requested) == spent)
+        #expect(runtime.currentHealth == 20 - damage)
+        #expect(runtime.currentMana == 10 - spent)
+        #expect(runtime.defeatProgress.remainingHealth == 20 - damage)
+    }
+
     @Test(arguments: [Int.min, Int.max])
     func `starting resources are bounded before defeat and resource checks`(requested: Int) {
         let enemy = CombatantFixtures.passiveEnemy(maxHealth: 20, maxMana: 10)
-        let runtime = CombatantRuntime(
-            combatant: enemy, initialHealth: requested, initialMana: requested,
-            initialActiveEffects: [ActiveEffect(id: 1, effect: .maximumManaBonus(3), remainingTurns: 0)],
+        let battle = BattleStateTestFactory.makeMinimalBattle(
+            enemy: enemy,
+            enemyEffects: [ActiveEffect(id: 1, effect: .maximumManaBonus(3), remainingTurns: 0)],
+            enemyHealth: requested, enemyMana: requested,
+            enemyModifiers: .init(maximumHealthBonus: 2, maximumManaBonus: 3),
         )
+        let runtime = battle.roster.enemy
         let defeated = requested < 0
-        #expect(runtime.currentHealth == (defeated ? 0 : 20))
-        #expect(runtime.currentMana == (defeated ? 0 : 13))
-        let roster = BattleRoster(
-            hero: CombatantRuntime(combatant: CombatantFixtures.passiveHero()),
-            companion: CombatantRuntime(combatant: CombatantFixtures.passiveCompanion()),
-            enemy: runtime,
-        )
-        #expect(roster.isEnemyDefeated == defeated)
-        #expect(runtime.defeatProgress.remainingHealth == (defeated ? 0 : 20))
+        #expect(runtime.currentHealth == (defeated ? 0 : 22))
+        #expect(runtime.currentMana == (defeated ? 0 : 16))
+        #expect(battle.isEnemyDefeated == defeated)
+        #expect(runtime.defeatProgress.remainingHealth == (defeated ? 0 : 22))
     }
 
     @Test func `maximum stats saturate overflowing flat bonuses`() {

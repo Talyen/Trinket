@@ -211,14 +211,14 @@ public struct CombatantRuntime: Hashable {
     }
 
     package mutating func takeRawDamage(_ amount: Int) -> Int {
-        let actual = min(amount, currentHealth)
-        currentHealth = max(0, currentHealth - amount)
+        let actual = min(max(0, amount), currentHealth)
+        currentHealth -= actual
         return actual
     }
 
     package mutating func spendMana(_ amount: Int) -> Int {
-        let actual = min(amount, currentMana)
-        currentMana = max(0, currentMana - amount)
+        let actual = min(max(0, amount), currentMana)
+        currentMana -= actual
         return actual
     }
 

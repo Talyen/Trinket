@@ -148,6 +148,8 @@ enum BattleStateTestFactory {
                     initialHealth: enemyHealth,
                     initialMana: enemyMana,
                     initialActiveEffects: enemyEffects,
+                    maximumHealthBonus: enemyModifiers.maximumHealthBonus,
+                    maximumManaBonus: enemyModifiers.maximumManaBonus,
                 ),
             ),
             rng: SeededRandomNumberGenerator(seed: rngSeed),

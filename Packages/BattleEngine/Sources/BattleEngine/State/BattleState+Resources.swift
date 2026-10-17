@@ -199,12 +199,11 @@ package extension BattleState {
     }
 
     internal mutating func payMana(_ amount: Int, for combatant: Combatant) -> ManaPayment {
-        guard var runtime = roster.runtime(for: combatant) else {
+        guard let participant = roster.participant(for: combatant) else {
             return ManaPayment(payer: combatant, balanceBefore: 0, balanceAfter: 0)
         }
-        let before = runtime.currentMana
-        _ = runtime.spendMana(amount)
-        roster.update(runtime)
-        return ManaPayment(payer: combatant, balanceBefore: before, balanceAfter: runtime.currentMana)
+        let before = roster[participant].currentMana
+        _ = roster[participant].spendMana(amount)
+        return ManaPayment(payer: combatant, balanceBefore: before, balanceAfter: roster[participant].currentMana)
     }
 }

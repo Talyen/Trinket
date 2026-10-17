@@ -18,22 +18,13 @@ extension TalentMigrationTests {
 
     @Test(arguments: [
         (
-            CombatTraitTriggers.configured { $0.pressurePoint = true },
-            BattleParticipant.hero,
-            Effect.poison(3),
-            2,
-            10,
-            Keyword.physical,
-            DamageOperation.attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
-        ),
-        (
             CombatTraitTriggers.configured { $0.poisonDamageVsStunnedMultiplier = 1.2 },
-            .companion,
-            .controlMeter(.stun, 100, 10),
+            BattleParticipant.companion,
+            Effect.controlMeter(.stun, 100, 10),
             0,
             8,
-            .poison,
-            .reaction(),
+            Keyword.poison,
+            DamageOperation.reaction(),
         ),
         (CombatTraitTriggers.configured { $0.septicemia = true }, .hero, .poison(2), 2, 6, .bleed, .reaction()),
         (CombatTraitTriggers.configured { $0.elementalParadox = true }, .hero, .burn(2), 2, 8, .freeze, .reaction()),
@@ -72,18 +63,22 @@ extension TalentMigrationTests {
 
     @Test(arguments: [false, true])
     func `pressure point doubles only critical damage against poison`(critical: Bool) {
-        func damage(equipped: Bool) -> Int {
+        func damage(equipped: Bool, poisoned: Bool = true) -> Int {
             var battle = makeBattle(heroTriggers: .configured {
                 $0.pressurePoint = equipped
                 $0.criticalChanceBonus = -1
             })
             battle.appliesFightPacing = false
-            battle.insertEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+            if poisoned {
+                battle.insertEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+            }
             return battle.resolveTestDamage(10, options: .attack(
                 accuracy: .unavoidable, guaranteedCritical: critical,
             )).healthLost
         }
-        #expect(damage(equipped: true) == damage(equipped: false) * (critical ? 2 : 1))
+        let baseline = damage(equipped: false)
+        #expect(damage(equipped: true) == baseline * (critical ? 2 : 1))
+        #expect(damage(equipped: true, poisoned: false) == baseline)
     }
 
     @Test func `intense heat only boosts phoenix damage against burning enemies`() {

@@ -95,7 +95,8 @@ package enum DefensePoolEngine {
         applyFightPacing: Bool = true,
         in context: inout BattleState,
     ) -> Int {
-        guard !CombatTriggerEngine.preventsPurgedEffect(.shield(keyword, amount), on: target, in: context) else { return 0 }
+        guard context.roster.participant(for: target) != nil,
+              !CombatTriggerEngine.preventsPurgedEffect(.shield(keyword, amount), on: target, in: context) else { return 0 }
         let pacedAmount = applyFightPacing
             ? (sourceActorID.map { context.paced(amount, sourceActorID: $0) } ?? amount)
             : amount
@@ -143,6 +144,7 @@ package enum DefensePoolEngine {
         on target: Combatant,
         in context: inout BattleState,
     ) {
+        guard context.roster.participant(for: target) != nil else { return }
         // Replacing a retained pool is not a new gain, so buff prevention cannot erase it.
         let effectID = amount > 0 ? context.consumeNextEffectID() : nil
         context.roster.mutateRuntime(for: target) { runtime in
