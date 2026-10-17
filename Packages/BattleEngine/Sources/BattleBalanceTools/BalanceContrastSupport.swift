@@ -162,8 +162,11 @@ enum BalanceContrastSupport {
         pairSeed: UInt64,
     ) -> ContrastMatchupBase {
         var rng = SeededRandomNumberGenerator(seed: pairSeed)
-        let partner = pickPartner(for: owner, from: context, using: &rng)
-        let enemy = roundRobinEnemy(enemies: context.enemies, pairIndex: pairIndex)
+        let partners = owner.role == .hero ? context.companions : context.heroes
+        guard let partner = partners.randomElement(using: &rng) else {
+            preconditionFailure("Contrast partner pool empty after roster guard")
+        }
+        let enemy = context.enemies[pairIndex % context.enemies.count]
         let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(for: owner, using: &rng)
         let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(for: partner, using: &rng)
         var talentRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 29)
@@ -212,29 +215,19 @@ enum BalanceContrastSupport {
         let trees = CombatantTalentCatalog.config(for: owner.id).trees
         var rng = SeededRandomNumberGenerator(seed: seed &+ 31)
         while common.count + reserved < points {
+            let entityBuild = common.union(entityChoice)
+            let baselineBuild = common.union(baselineChoice)
             let candidates = trees.flatMap { tree in
                 tree.nodes.filter { node in
                     !common.contains(node.id) && !excluded.contains(node.id)
-                        && tree.canUnlock(node: node, unlockedNodeIDs: common.union(entityChoice), availablePoints: 1)
-                        && tree.canUnlock(node: node, unlockedNodeIDs: common.union(baselineChoice), availablePoints: 1)
+                        && tree.canUnlock(node: node, unlockedNodeIDs: entityBuild, availablePoints: 1)
+                        && tree.canUnlock(node: node, unlockedNodeIDs: baselineBuild, availablePoints: 1)
                 }
             }
             guard let pick = candidates.randomElement(using: &rng) else { break }
             common.insert(pick.id)
         }
         return common
-    }
-
-    static func pickPartner(
-        for owner: Combatant,
-        from context: BalanceContrastContext,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> Combatant {
-        let partnerPool = owner.role == .hero ? context.companions : context.heroes
-        guard let partner = partnerPool.randomElement(using: &randomNumberGenerator) else {
-            preconditionFailure("Contrast partner pool empty after roster guard")
-        }
-        return partner
     }
 
     /// Sampled base with shared-bias gear both sides wear. Ability and talent
@@ -269,11 +262,6 @@ enum BalanceContrastSupport {
             &+ UInt64(tier.level) &* primes.tier
             &+ UInt64(pairIndex) &* primes.pair
             &+ stableHash64(entityID)
-    }
-
-    static func roundRobinEnemy(enemies: [Enemy], pairIndex: Int) -> Enemy {
-        precondition(!enemies.isEmpty, "roundRobinEnemy requires a non-empty enemy list")
-        return enemies[pairIndex % enemies.count]
     }
 
     static func workCount(fociCount: Int, config: BalanceSweepConfig) -> Int {

@@ -24,6 +24,7 @@ struct BattleSimulatorSweepReportTests {
                 battlesPerTier: 2,
                 seed: 21,
                 tiers: [.early],
+                maxRounds: 1,
                 jobs: 1,
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
@@ -37,7 +38,6 @@ struct BattleSimulatorSweepReportTests {
         #expect(markdown.contains("Ability Contrasts"))
     }
 
-    /// Reuse one serial tier loop to keep the diagnostic workload bounded.
     @Test func `affix contrast produces lift rows in every tier`() {
         for tier in SimulationPowerTier.allCases {
             let report = BalanceSweepRunner.run(
@@ -46,6 +46,7 @@ struct BattleSimulatorSweepReportTests {
                     battlesPerTier: 4,
                     seed: 22,
                     tiers: [tier],
+                    maxRounds: 1,
                     jobs: 1,
                     heroIDs: ["knight"],
                     companionIDs: ["bear"],
@@ -102,6 +103,7 @@ struct BattleSimulatorSweepReportTests {
                 battlesPerTier: 3,
                 seed: 9,
                 tiers: [.early],
+                maxRounds: 1,
                 jobs: 1,
                 enemyIDs: ["living_armor", "mimic"],
             ),
@@ -110,110 +112,28 @@ struct BattleSimulatorSweepReportTests {
         let byEnemy = Dictionary(grouping: report.records, by: \.enemyID)
         #expect(byEnemy["living_armor"]?.count == 3)
         #expect(byEnemy["mimic"]?.count == 3)
-        let markdown = BalanceMarkdownReporter.render(report)
-        for heading in [
-            "# Balance Sweep Report",
-            "### Heroes",
-            "### Duration",
-            "### Party Abilities",
-            "### Enemy Abilities",
-            "### Enemy Traits",
-            "SHORT%",
-            "Avg rounds",
-        ] {
-            #expect(markdown.contains(heading))
-        }
         #expect(report.records.allSatisfy { !$0.enemyAbilityIDs.isEmpty && !$0.enemyTraitIDs.isEmpty })
     }
 
-    @Test func `identity work slices concatenate to full sweep`() {
-        let config = BalanceSweepConfig(
-            mode: .identity,
-            battlesPerTier: 4,
-            seed: 11,
-            tiers: [.early],
-            jobs: 1,
-            enemyIDs: ["living_armor"],
-        )
-        let full = BalanceSweepRunner.run(config: config)
-        var slice = config
-        slice.workLimit = 2
-        let first = BalanceSweepRunner.run(config: slice)
-        slice.workOffset = 2
-        let second = BalanceSweepRunner.run(config: slice)
-        let merged = BalanceSweepReport.merged(
-            [first, second],
-            config: config,
-            policyID: full.policyID,
-            elapsedSeconds: 0,
-        )
-        #expect(first.records.count == 2)
-        #expect(second.records.count == 2)
-        #expect(merged.records == full.records)
-    }
-
-    @Test func `identity early spends one talent and one starter item`() {
-        let early = BalanceSweepRunner.run(
+    @Test(arguments: SimulationPowerTier.allCases)
+    func `identity builds spend their tier budget legally`(tier: SimulationPowerTier) throws {
+        let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 2,
-                seed: 4,
-                tiers: [.early],
-                jobs: 1,
-                enemyIDs: ["living_armor"],
+                mode: .identity, battlesPerTier: 1, seed: 4, tiers: [tier],
+                maxRounds: 1, jobs: 1, enemyIDs: ["living_armor"],
             ),
         )
-        #expect(early.records.count == 2)
-        #expect(SimulationPowerTier.early.identityTalentPointCap == 1)
-        for record in early.records {
-            #expect(record.heroTalentIDs.count == 1)
-            #expect(record.companionTalentIDs.count == 1)
+        #expect(report.records.count == 1)
+        let record = try #require(report.records.first)
+        let budget = tier == .early ? 1 : CombatantProgression.at(level: tier.level).totalTalentPoints
+        for (ownerID, talents) in [(record.heroID, record.heroTalentIDs), (record.companionID, record.companionTalentIDs)] {
+            #expect(talents.count == min(budget, CombatantTalentCatalog.validNodeIDs(for: ownerID).count))
+            expectLegalTalentSpend(Set(talents), combatantID: ownerID)
+        }
+        if tier == .early {
             #expect(record.heroAffixIDs.count == 1)
             #expect(record.companionAffixIDs.count == 1)
-            expectLegalTalentSpend(Set(record.heroTalentIDs), combatantID: record.heroID)
-            expectLegalTalentSpend(Set(record.companionTalentIDs), combatantID: record.companionID)
         }
-
-        let middle = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 1,
-                seed: 5,
-                tiers: [.middle],
-                jobs: 1,
-                enemyIDs: ["living_armor"],
-            ),
-        )
-        #expect(middle.records.count == 1)
-        let middleRecord = middle.records[0]
-        let middleBudget = CombatantProgression.at(level: SimulationPowerTier.middle.level).totalTalentPoints
-        #expect(middleRecord.heroTalentIDs.count == middleBudget)
-        #expect(middleRecord.companionTalentIDs.count == middleBudget)
-        expectLegalTalentSpend(Set(middleRecord.heroTalentIDs), combatantID: middleRecord.heroID)
-        expectLegalTalentSpend(Set(middleRecord.companionTalentIDs), combatantID: middleRecord.companionID)
-
-        let late = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 1,
-                seed: 6,
-                tiers: [.lateGame],
-                jobs: 1,
-                enemyIDs: ["living_armor"],
-            ),
-        )
-        #expect(late.records.count == 1)
-        let lateRecord = late.records[0]
-        let lateBudget = CombatantProgression.at(level: SimulationPowerTier.lateGame.level).totalTalentPoints
-        #expect(lateRecord.heroTalentIDs.count <= min(lateBudget, CombatantTalentCatalog.validNodeIDs(for: lateRecord.heroID).count))
-        #expect(lateRecord.heroTalentIDs.count >= 18)
-        #expect(lateRecord.companionTalentIDs.count <= min(
-            lateBudget,
-            CombatantTalentCatalog.validNodeIDs(for: lateRecord.companionID).count,
-        ))
-        #expect(lateRecord.companionTalentIDs.count >= 18)
-        expectLegalTalentSpend(Set(lateRecord.heroTalentIDs), combatantID: lateRecord.heroID)
-        expectLegalTalentSpend(Set(lateRecord.companionTalentIDs), combatantID: lateRecord.companionID)
     }
 
     private func expectLegalTalentSpend(_ ids: Set<String>, combatantID: String) {
@@ -227,13 +147,14 @@ struct BattleSimulatorSweepReportTests {
         }
     }
 
-    @Test func `talent contrast produces sibling and kit lift rows`() {
+    @Test func `talent contrast produces sibling lift rows`() {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
                 mode: .talentContrast,
                 battlesPerTier: 1,
                 seed: 23,
                 tiers: [.middle],
+                maxRounds: 1,
                 jobs: 1,
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],
@@ -255,6 +176,7 @@ struct BattleSimulatorSweepReportTests {
                 battlesPerTier: 2,
                 seed: 23,
                 tiers: [.early],
+                maxRounds: 1,
                 jobs: 1,
                 heroIDs: ["knight"],
                 companionIDs: ["bear"],

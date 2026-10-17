@@ -101,6 +101,8 @@ how many equipped slots carry it. These are associations; use the paired ability
 talent, and affix modes to isolate changes. Pairing outliers can appear even when
 neither partner is individually unusual. Flags are investigation candidates,
 not proof of causation or a correction for testing many comparisons.
+Hero and Companion peer comparisons use the same decided encounter sample as
+their table; Boss-only and regular-enemy tables each use their own peer win rate.
 
 Use `--mode all` to include identity, card, talent, affix, and progression checks;
 identity alone does not test every combination. Early/middle/late are fixed

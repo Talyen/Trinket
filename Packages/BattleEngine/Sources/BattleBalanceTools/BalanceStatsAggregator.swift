@@ -223,7 +223,7 @@ private struct TierAggregation {
         isBoss: Bool = false,
     ) -> [WinRateSummary] {
         BalanceIdentityMargins.ownerMargins(
-            records: records, id: id, peerRate: winRate,
+            records: records, id: id,
             threshold: config.peerDeltaFlagThreshold, targetBand: targetBand(isBoss: isBoss),
         )
     }

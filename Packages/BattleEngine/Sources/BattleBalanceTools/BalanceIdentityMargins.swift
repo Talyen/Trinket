@@ -5,11 +5,11 @@ enum BalanceIdentityMargins {
     static func ownerMargins(
         records: [BalanceBattleRecord],
         id: KeyPath<BalanceBattleRecord, String>,
-        peerRate: Double,
         threshold: Double,
         targetBand: (lower: Double, upper: Double)? = nil,
     ) -> [WinRateSummary] {
-        tally(records) { [$0[keyPath: id]] }.map { id, bucket in
+        let peerRate = records.isEmpty ? 0 : Double(records.count { $0.result.isVictory }) / Double(records.count)
+        return tally(records) { [$0[keyPath: id]] }.map { id, bucket in
             bucket.summary(
                 id: id,
                 ownerID: nil,

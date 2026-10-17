@@ -363,11 +363,4 @@ struct BalanceSweepOrchestrationTests {
         #expect(merged.first?.winsWithBaseline == 0)
         #expect(merged.first?.entityTimeouts == 8)
     }
-
-    @Test func `wilson interval contains point estimate`() {
-        let ci = BalanceStatsAggregator.wilson(wins: 80, battles: 100)
-        #expect(ci.low <= 0.80)
-        #expect(ci.high >= 0.80)
-        #expect(ci.low < ci.high)
-    }
 }

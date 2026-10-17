@@ -12,12 +12,12 @@ enum BalanceDurationAggregation {
         let worstEnemy = Dictionary(grouping: records, by: \.enemyID)
             .mapValues { DurationTally($0, minRounds: minRounds, maxRounds: maxRounds) }
             .filter { $0.value.battles >= BalanceSweepConfig.identityFlagMinBattles && $0.value.longBattles > 0 }
-            .sorted {
+            .min {
                 if $0.value.longRate != $1.value.longRate {
                     return $0.value.longRate > $1.value.longRate
                 }
                 return $0.key < $1.key
-            }.first?.key
+            }?.key
         let reason = total.flagReason(rate: flagRate, short: "SHORT", long: "LONG")
         return BalanceDurationBucketStats(
             battles: total.battles,

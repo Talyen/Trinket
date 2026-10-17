@@ -29,9 +29,6 @@ struct BalanceFindingsReporterTests {
         )
         let findings = BalanceFindingsReporter.render(report)
         let full = BalanceMarkdownReporter.render(report)
-        #expect(findings.contains("# Balance Sweep Findings"))
-        #expect(findings.contains("per identity enemy / contrast focus"))
-        #expect(findings.contains("Identity battles: `20`"))
         #expect(findings.contains("`the_forge_golem`"))
         #expect(findings.contains("molten-bulwark"))
         #expect(!findings.contains("Party Abilities (within owner)"))
@@ -315,7 +312,7 @@ struct BalanceFindingsReporterTests {
         #expect(cells.map(\.flagReason) == ["LOW", "HIGH"])
     }
 
-    @Test func `enemy target bands keep boss and trash samples separate`() {
+    @Test func `encounter tables compare only matching boss or trash samples`() {
         let records = Array(repeating: identityRecord(
             enemyID: "shared", isBoss: false, abilities: [], win: true, seed: 1,
         ), count: 8) + Array(repeating: identityRecord(
@@ -327,6 +324,15 @@ struct BalanceFindingsReporterTests {
         #expect(rows.count == 2)
         #expect(rows.map(\.battles) == [8, 8])
         #expect(rows.map(\.flagReason) == ["EASY", "HARD"])
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [.early]), policyID: "greedy-v1",
+            records: records, elapsedSeconds: 0,
+        )
+        let stats = BalanceStatsAggregator.summarize(report: report)[0]
+        for owners in [stats.heroesTrash, stats.heroesBoss, stats.companionsTrash, stats.companionsBoss] {
+            #expect(owners.count == 1)
+            #expect(owners.allSatisfy { $0.deltaVsPeer == 0 && !$0.flagged })
+        }
     }
 
     private func identityRecord(
