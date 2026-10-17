@@ -78,13 +78,15 @@ public struct BattleActionContext: Equatable, Sendable {
     static func lowestHealth(in members: [Combatant], state: BattleState) -> Combatant {
         var selected: Combatant?
         var lowestHealth = Int.max
-        let hasInjuredAlly = members.contains { state.health(of: $0) > 0 && state.health(of: $0) < state.maxHealth(of: $0) }
+        var selectedIsInjured = false
         for member in members {
             let health = state.health(of: member)
-            guard health > 0, !hasInjuredAlly || health < state.maxHealth(of: member) else { continue }
-            if selected == nil || health < lowestHealth {
+            guard health > 0 else { continue }
+            let injured = health < state.maxHealth(of: member)
+            if selected == nil || injured && !selectedIsInjured || injured == selectedIsInjured && health < lowestHealth {
                 selected = member
                 lowestHealth = health
+                selectedIsInjured = injured
             }
         }
         return selected ?? members.first ?? state.hero

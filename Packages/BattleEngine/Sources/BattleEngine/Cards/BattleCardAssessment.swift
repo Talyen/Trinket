@@ -151,6 +151,10 @@ private extension BattleState {
 
 extension BattleCardAssessment {
     static func commonResources(_ outcomes: [[ResourceUse]]) -> [ResourceUse] {
+        // A selected deterministic outcome already merged each payer's resource use.
+        if outcomes.count == 1 {
+            return outcomes[0]
+        }
         var keys: [ResourceUse] = []
         for use in outcomes.lazy.flatMap(\.self) where !keys.contains(where: { $0.matches(use) }) {
             keys.append(use)

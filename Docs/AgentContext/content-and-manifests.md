@@ -36,6 +36,8 @@ all definition fields and synthesized equality/hash behavior. Combat transformat
 copy that payload and edit only their changed fields; avoid rebuilding a definition
 by forwarding every field, which can silently drop newly added mechanics.
 Generated descriptions, gameplay/identity keywords, and presentation keywords are cached lazily in that storage.
+Damage-component and targeted-effect projections are derived once per immutable
+definition and shared by repeated reads; ordered operations remain authoritative.
 Keep caches outside value equality/hashing; transformations must receive fresh storage
 so empowered or resolved cards cannot reuse the original card's text or keywords.
 Actor-targeted damage components pay Health costs and contribute no damage keyword

@@ -72,6 +72,9 @@ decision at compile time; `AffixModifier.apply(to:)` delegates to it.
 Content's `CombatantMaxValues` owns maximum Health/Mana calculations, using shared
 saturating arithmetic and combat rounding for extreme inputs. The engine's
 `CombatantMaxValues+Effects.swift` adds active Maximum Mana stack totals.
+`CombatantRuntime` clamps explicit starting Health and Mana to zero through their
+capacity before recording defeat progress. Initial Mana capacity includes active
+effects; omitted starting Mana still uses the build's ordinary starting value.
 `CombatBuild` exposes the build's maximum values; build resolution, modifier profiles,
 and catalog-to-profile adapters live in Content's `Roster/` folder, including
 `CombatBuildResolver.swift` and `CombatModifierProfile+Catalogs.swift`.

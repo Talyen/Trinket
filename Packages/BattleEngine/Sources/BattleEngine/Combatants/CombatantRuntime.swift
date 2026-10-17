@@ -153,11 +153,17 @@ public struct CombatantRuntime: Hashable {
         self.hasTriggeredSecondWind = hasTriggeredSecondWind
         self.hasTriggeredDeathRevive = hasTriggeredDeathRevive
         self.hasTriggeredPhoenixGift = hasTriggeredPhoenixGift
-        currentHealth = initialHealth ?? CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus)
-        currentMana = initialMana ?? CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus)
+        let healthCapacity = CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus)
+        let startingMana = CombatantMaxValues.maxMana(for: combatant, flatBonus: maximumManaBonus)
+        let manaCapacity = CombatantMaxValues.maxMana(
+            for: combatant, flatBonus: maximumManaBonus,
+            effectBonus: CombatantMaxValues.maximumManaBonus(in: initialActiveEffects),
+        )
+        currentHealth = min(healthCapacity, max(0, initialHealth ?? healthCapacity))
+        currentMana = min(manaCapacity, max(0, initialMana ?? startingMana))
         activeEffects = initialActiveEffects
         actionCount = 0
-        runtimeStateStorage.referenceMaxHealth = max(1, CombatantMaxValues.maxHealth(for: combatant, flatBonus: maximumHealthBonus))
+        runtimeStateStorage.referenceMaxHealth = max(1, healthCapacity)
         recordEnemyHealthProgress()
     }
 

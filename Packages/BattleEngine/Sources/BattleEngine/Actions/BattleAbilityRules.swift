@@ -46,13 +46,14 @@ enum BattleAbilityRules {
 
     static func canPayHealthCost(_ ability: Ability, action: BattleActionContext, in context: BattleState) -> Bool {
         let outcomes = possibleOutcomes(ability, action: action, in: context)
-        let cost = outcomes.branches.map { healthCost($0.damageComponents, action: action, in: context) }.max() ?? 0
-        return context.roster.health(for: action.actor) > cost
+        let health = context.roster.health(for: action.actor)
+        return health > 0 && outcomes.branches.allSatisfy { health > healthCost($0.operations, action: action, in: context) }
     }
 
-    static func healthCost(_ components: [DamageComponent], action: BattleActionContext, in context: BattleState) -> Int {
-        components.reduce(0) { total, component in
-            guard action.target(component.target, in: context).id == action.actor.id,
+    static func healthCost(_ operations: [AbilityOperation], action: BattleActionContext, in context: BattleState) -> Int {
+        operations.reduce(0) { total, operation in
+            guard case let .damage(component) = operation,
+                  action.target(component.target, in: context).id == action.actor.id,
                   let amount = BattleDamageRules.amount(component, action: action, in: context) else { return total }
             return SaturatedArithmetic.saturatingAdd(total, max(0, amount))
         }

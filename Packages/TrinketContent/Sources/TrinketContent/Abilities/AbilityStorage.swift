@@ -22,6 +22,8 @@ final class AbilityStorage: Hashable, Sendable {
     }
 
     let definition: Definition
+    let damageComponents: [DamageComponent]
+    let targetedEffects: [TargetedEffect]
     // Derived values belong to this immutable definition, not its ID.
     // Separate locks allow presentation resolution to request gameplay keywords and text.
     private let descriptionCache = Mutex<String?>(nil)
@@ -35,6 +37,8 @@ final class AbilityStorage: Hashable, Sendable {
 
     init(_ definition: Definition) {
         self.definition = definition
+        damageComponents = definition.operations.compactMap(\.damageComponent)
+        targetedEffects = definition.operations.compactMap(\.targetedEffect)
     }
 
     func keywords(identityOnly: Bool, make: () -> [Keyword]) -> [Keyword] {

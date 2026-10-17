@@ -5,6 +5,25 @@ import TrinketCore
 @testable import TrinketContent
 
 struct CombatantMaxValuesTests {
+    @Test(arguments: [Int.min, Int.max])
+    func `starting resources are bounded before defeat and resource checks`(requested: Int) {
+        let enemy = CombatantFixtures.passiveEnemy(maxHealth: 20, maxMana: 10)
+        let runtime = CombatantRuntime(
+            combatant: enemy, initialHealth: requested, initialMana: requested,
+            initialActiveEffects: [ActiveEffect(id: 1, effect: .maximumManaBonus(3), remainingTurns: 0)],
+        )
+        let defeated = requested < 0
+        #expect(runtime.currentHealth == (defeated ? 0 : 20))
+        #expect(runtime.currentMana == (defeated ? 0 : 13))
+        let roster = BattleRoster(
+            hero: CombatantRuntime(combatant: CombatantFixtures.passiveHero()),
+            companion: CombatantRuntime(combatant: CombatantFixtures.passiveCompanion()),
+            enemy: runtime,
+        )
+        #expect(roster.isEnemyDefeated == defeated)
+        #expect(runtime.defeatProgress.remainingHealth == (defeated ? 0 : 20))
+    }
+
     @Test func `maximum stats saturate overflowing flat bonuses`() {
         let hero = CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 20)
         let stacks = [

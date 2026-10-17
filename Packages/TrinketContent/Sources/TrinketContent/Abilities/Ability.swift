@@ -48,7 +48,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var damageComponents: [DamageComponent] {
-        operations.compactMap(\.damageComponent)
+        storage.damageComponents
     }
 
     public var descriptionOverride: String? {
@@ -56,7 +56,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var targetedEffects: [TargetedEffect] {
-        operations.compactMap(\.targetedEffect)
+        storage.targetedEffects
     }
 
     public var outcomeBranches: [AbilityOutcomeBranch]? {
