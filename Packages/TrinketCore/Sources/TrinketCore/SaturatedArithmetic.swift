@@ -36,6 +36,10 @@ public enum SaturatedArithmetic {
     /// multipliers saturate at `Int.max`, including floating-point product overflow.
     public static func scaled(_ value: Int, multiplier: Double) -> Int {
         guard value > 0, multiplier.isFinite, multiplier > 0 else { return 0 }
+        // A neutral multiplier must preserve integers beyond Double's exact range.
+        if multiplier == 1 {
+            return value
+        }
         let product = Double(value) * multiplier
         return product.isFinite ? rounded(product) : Int.max
     }

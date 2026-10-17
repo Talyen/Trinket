@@ -119,12 +119,11 @@ struct BattleBoundaryRegressionTests {
         #expect(bonus == Int.max)
     }
 
-    @Test func `maximum Mana gain reports actual restoration at capacity`() throws {
+    @Test func `maximum Mana at capacity emits no restoration feedback`() {
         var battle = makeBattle(profile: CombatModifierProfile(maximumManaBonus: Int.max))
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = Int.max }
         let outcome = EffectHandlersTestSupport.dispatch(.maximumManaBonus(1), battle: &battle)
-        let gain = try #require(outcome.events.first { $0.effectKind == .resourceGain })
-        #expect(gain.amount == 0)
+        #expect(!outcome.events.contains { $0.effectKind == .resourceGain })
         #expect(battle.mana(of: battle.hero) == Int.max)
     }
 
