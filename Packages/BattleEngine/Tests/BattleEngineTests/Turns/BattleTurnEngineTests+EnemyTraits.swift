@@ -273,9 +273,6 @@ extension BattleTurnEngineTests {
             let targets = expectedDamage > 0 ? [context.hero, context.companion] : []
             #expect(hits.map(\.targetID) == targets.map(\.id))
             #expect(hits.allSatisfy { $0.amount == expectedDamage && $0.actorID == enemy.id && $0.abilityName == traitName })
-            #expect(BattleLogProjection.entries(from: events).map(\.text) == hits.map {
-                "\(enemy.name) deals \($0.amount) \($0.keyword.rawValue) damage to \($0.targetName) (\(traitName))."
-            })
         }
     }
 

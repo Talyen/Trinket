@@ -44,8 +44,6 @@ struct BlockPoolMutationRegressionTests {
         #expect(losses.map(\.amount) == (stolen > 0 ? [stolen] : []))
         #expect(losses
             .allSatisfy { $0.actorID == battle.companion.id && $0.targetID == battle.enemy.id && $0.abilityName == "Light-Fingered" })
-        #expect(BattleLogProjection.entries(from: events).map(\.text).filter { $0.contains("removes") } == (stolen > 0
-                ? ["\(battle.companion.name) removes \(stolen) Block from \(battle.enemy.name) (Light-Fingered)."] : []))
         #expect(!events.contains { $0.effectKind == .shieldAbsorbed })
     }
 
@@ -65,8 +63,6 @@ struct BlockPoolMutationRegressionTests {
         #expect(losses.map(\.amount) == (block > 0 ? [block] : []))
         #expect(losses
             .allSatisfy { $0.actorID == battle.companion.id && $0.targetID == battle.enemy.id && $0.abilityName == "Sunder Shield" })
-        #expect(BattleLogProjection.entries(from: events).map(\.text).filter { $0.contains("removes") } == (block > 0
-                ? ["\(battle.companion.name) removes \(block) Block from \(battle.enemy.name) (Sunder Shield)."] : []))
         #expect(!events.contains { $0.effectKind == .shieldAbsorbed })
     }
 

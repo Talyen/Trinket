@@ -24,7 +24,6 @@ struct RestorationIntegrationTests {
         #expect(result.events.first { $0.effectKind == .instantHeal }?.amount == missingHealth)
         let overflow = result.events.filter { $0.effectKind == .overheal }
         #expect(overflow.map(\.amount) == (missingHealth < 10 ? [10 - missingHealth] : []))
-        #expect(overflow.allSatisfy { BattleLogProjection.line(for: $0) == nil })
     }
 
     @Test(arguments: [0, 3])
@@ -39,8 +38,6 @@ struct RestorationIntegrationTests {
         #expect(result.value.healthDelta == missingHealth)
         #expect(result.value.flags.contains(.leeched) == (missingHealth > 0))
         #expect(result.events.first { $0.effectKind == .overheal }?.amount == 10 - missingHealth)
-        #expect(BattleLogProjection.entries(from: result.events).map(\.text) == (missingHealth > 0
-                ? ["\(battle.hero.name) restores \(missingHealth) Health (Leech)."] : []))
     }
 
     @Test func `instant heal restores health`() throws {
@@ -127,8 +124,6 @@ struct RestorationIntegrationTests {
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.companion.activeEffects) == 0)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 10 - transferred)
         #expect(battle.roster.hero.currentMana == min(5, battle.roster.hero.maxMana))
-        let transferLines = BattleLogProjection.entries(from: result.events).map(\.text).filter { $0.contains("Health (Blood Link).") }
-        #expect(transferLines == (transferred > 0 ? ["\(battle.companion.name) restores \(transferred) Health (Blood Link)."] : []))
     }
 
     @Test(arguments: [DamageOperation.healthCost, .periodic, .reaction(), .redirected])

@@ -25,9 +25,6 @@ enum EffectHandlersTestSupport {
         let outcome = battle.recordingResult { battle in
             await EffectApplication(effect: effect, ability: ability, source: source, target: target).apply(in: &battle)
         }
-        if battle.tracksLog {
-            battle.syncLog()
-        }
         return ApplicationObservation(didApply: outcome.value.didApply, events: outcome.events)
     }
 
@@ -43,9 +40,6 @@ enum EffectHandlersTestSupport {
         battle.nextEffectID = max(battle.nextEffectID, active.id + 1)
         let outcome = battle.recordingEvents { battle in
             await EffectHandlers.advanceTurn(active, on: target, in: &battle)
-        }
-        if battle.tracksLog {
-            battle.syncLog()
         }
         return TickObservation(
             events: outcome,

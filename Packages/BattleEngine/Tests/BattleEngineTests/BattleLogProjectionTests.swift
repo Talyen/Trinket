@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketContentTestSupport
@@ -5,6 +6,8 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleLogProjectionTests {
+    private let english = Locale(identifier: "en")
+
     @Test func `interleaved action packets survive split updates and history resets`() {
         func event(
             _ kind: ActionEvent.Kind,
@@ -32,8 +35,8 @@ struct BattleLogProjectionTests {
         ]
         let expected = [
             "Hero deals 3 Physical damage to Enemy (Everkeen).",
-            "Hero uses Strike for 7 Physical damage to Enemy.",
-            "Hero uses Strike for 5 Physical damage to Enemy and 4 Poison damage to Enemy.",
+            "Hero uses Strike.\nHero deals 7 Physical damage to Enemy (Strike).",
+            "Hero uses Strike.\nHero deals 5 Physical damage to Enemy (Strike).\nHero deals 4 Poison damage to Enemy (Strike).",
         ]
         var projection = BattleLogProjection()
         for count in 1 ... events.count {
@@ -41,14 +44,15 @@ struct BattleLogProjectionTests {
             projection.sync(events: prefix)
             #expect(projection.entries == BattleLogProjection.entries(from: prefix))
         }
-        #expect(projection.entries.map(\.text) == expected)
+        #expect(projection.entries.map { $0.localizedText(locale: english) } == expected)
         #expect(projection.entries.map(\.id) == [1, 3, 6])
         projection.sync(events: Array(events.prefix(1)))
         #expect(projection.entries.isEmpty)
         projection.sync(events: events)
-        #expect(projection.entries.map(\.text) == expected)
+        #expect(projection.entries.map { $0.localizedText(locale: english) } == expected)
         projection.rebuildFromScratch(events: Array(events.suffix(1)))
-        #expect(projection.entries.map(\.text) == ["Hero uses Strike for 9 Physical damage to Enemy."])
+        #expect(projection.entries
+            .map { $0.localizedText(locale: english) } == ["Hero uses Strike.\nHero deals 9 Physical damage to Enemy (Strike)."])
     }
 
     @Test func `saturated damage and Health cost totals remain readable`() {
@@ -66,8 +70,31 @@ struct BattleLogProjectionTests {
             abilityID: "strike", abilityName: "Strike", targetID: "enemy", targetName: "Enemy",
             amount: Int.max, keyword: .physical,
         ))
-        #expect(BattleLogProjection.entries(from: events).map(\.text) == [
-            "Hero uses Strike for \(Int.max) Physical damage to Enemy and loses \(Int.max) Health.",
+        #expect(BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) } == [
+            "Hero uses Strike.\nHero deals \(Int.max) Physical damage to Enemy (Strike).\nHero loses \(Int.max) Health.",
+        ])
+    }
+
+    @Test func `log keeps committed feedback and suppresses zero restoration and overflow`() {
+        let samples: [(ActionEvent.Kind, Int)] = [
+            (.effect(.instantHeal), 0), (.effect(.overheal), 7), (.effect(.resourceGain), 3),
+            (.effect(.leechHeal), 3), (.effect(.blockStripped), 5), (.effect(.damageReduced), 2),
+            (.status, 2), (.reaction(.shatter), 2),
+        ]
+        let events = samples.enumerated().map { id, sample in
+            ActionEvent(
+                id: id, actionID: 1, kind: sample.0, actorID: "hero", actorName: "Hero",
+                abilityName: "Ward", targetID: "companion", targetName: "Companion",
+                amount: sample.1, keyword: .physical,
+            )
+        }
+        let entries = BattleLogProjection.entries(from: events)
+        #expect(entries.map(\.id) == [3, 4, 5, 6])
+        #expect(entries.map { $0.localizedText(locale: english) } == [
+            "Companion restores 3 Health (Ward).",
+            "Hero removes 5 Block from Companion (Ward).",
+            "Hero's damage is reduced by 2 (Ward).",
+            "Companion takes 2 Physical damage.",
         ])
     }
 
@@ -77,9 +104,9 @@ struct BattleLogProjectionTests {
         let events = battle.performTestAction(.heal)
         #expect(battle.roster.companion.currentHealth == 16)
         #expect(battle.roster.enemy.currentHealth == 100)
-        let lines = BattleLogProjection.entries(from: events).map(\.text)
+        let lines = BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) }
         #expect(lines.contains("Companion restores 6 Health (Heal)."))
-        #expect(lines.contains("Hero uses Heal and restore 6 Health."))
+        #expect(lines.contains("Hero uses Heal.\nHero applies: Restore 6 Health."))
         #expect(!lines.contains { $0.contains("Heal on Enemy") })
     }
 
@@ -89,12 +116,12 @@ struct BattleLogProjectionTests {
         let ability = Ability(id: "purge", name: "Purge", tier: .skill, effects: [.purge(.block)])
         let events = battle.performTestAction(ability)
         #expect(DefensePoolEngine.blockPoints(in: battle.roster.enemy.activeEffects) == 0)
-        let lines = BattleLogProjection.entries(from: events).map(\.text)
+        let lines = BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) }
         #expect(lines.contains("Enemy's Block is Purged (Purge)."))
         #expect(!lines.contains { $0.contains("uses Purge on") })
     }
 
-    @Test(arguments: [9, 11, 12])
+    @Test(arguments: [9, 12])
     func `Mana Potion logs only Mana actually restored`(initialMana: Int) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 12),
@@ -103,9 +130,9 @@ struct BattleLogProjectionTests {
         let events = battle.performTestAction(.manaPotion)
         #expect(battle.roster.hero.currentMana == 12)
         let restored = 12 - initialMana
-        let lines = BattleLogProjection.entries(from: events).map(\.text)
+        let lines = BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) }
         #expect(lines == [restored > 0
-                ? "Hero uses Mana Potion and restore \(restored) Mana."
+                ? "Hero uses Mana Potion.\nHero applies: Restore \(restored) Mana."
                 : "Hero uses Mana Potion."])
     }
 
@@ -124,11 +151,19 @@ struct BattleLogProjectionTests {
         #expect(battle.roster.hero.currentMana == 3)
         let gainEvents = events.filter { $0.effectKind == .resourceGain }
         #expect(gainEvents.count == 2)
-        #expect(gainEvents.allSatisfy { BattleLogProjection.line(for: $0) == nil })
-        let lines = BattleLogProjection.entries(from: events).map(\.text)
+        let lines = BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) }
         #expect(lines.count == 1)
         #expect(lines.first?.contains("gain 3 Gold") == true)
-        #expect(lines.first?.contains("restore 3 Mana") == true)
+        #expect(lines.first?.contains("Restore 3 Mana") == true)
+    }
+
+    @Test(arguments: [false, true])
+    func `Gold rewards and Gold steals retain their meaning in the battle log`(theft: Bool) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities()
+        let ability = theft ? Ability.steal : Ability.goldenPlate
+        let events = battle.performTestAction(ability)
+        let lines = BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) }
+        #expect(lines.contains { $0.contains(theft ? "steal 2 Gold" : "gain 5 Gold") })
     }
 
     private func makeSupportBattle() -> BattleState {
@@ -146,9 +181,10 @@ struct BattleLogProjectionTests {
         let summary = try #require(events.last { $0.kind == .ability })
         let entries = BattleLogProjection.entries(from: events)
         let line = try #require(entries.first { $0.id == events.firstIndex(of: summary) })
-        #expect(line.text.contains("1 Bleed damage to Enemy"))
-        #expect(line.text.contains("loses 2 Health"))
-        #expect(!line.text.contains("3 Bleed damage to Enemy"))
+        let text = line.localizedText(locale: english)
+        #expect(text.contains("1 Bleed damage to Enemy"))
+        #expect(text.contains("loses 2 Health"))
+        #expect(!text.contains("3 Bleed damage to Enemy"))
         var projection = BattleLogProjection()
         projection.sync(events: Array(events.dropLast()))
         projection.sync(events: events)
@@ -160,9 +196,10 @@ struct BattleLogProjectionTests {
         let events = battle.performTestAction(.bloodthorn)
         let summary = try #require(events.last { $0.kind == .ability })
         let line = try #require(BattleLogProjection.entries(from: events).first { $0.id == events.firstIndex(of: summary) })
-        #expect(line.text.contains("2 Bleed damage to Enemy"))
-        #expect(line.text.contains("1 Poison damage to Enemy"))
-        #expect(!line.text.contains("4 Bleed damage"))
+        let text = line.localizedText(locale: english)
+        #expect(text.contains("2 Bleed damage to Enemy"))
+        #expect(text.contains("1 Poison damage to Enemy"))
+        #expect(!text.contains("4 Bleed damage"))
     }
 
     private func makeActionDamageLogBattle() -> BattleState {

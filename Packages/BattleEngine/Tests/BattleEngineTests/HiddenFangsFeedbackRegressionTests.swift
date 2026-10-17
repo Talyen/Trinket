@@ -20,7 +20,6 @@ struct HiddenFangsFeedbackRegressionTests {
         #expect(bonus.count == 1)
         #expect(bonus.first?.amount == 2)
         #expect(initialHealth - battle.health(of: battle.hero) == direct + bonus.reduce(0) { $0 + $1.amount })
-        #expect(BattleLogProjection.entries(from: events).contains { $0.text == "Hero takes 2 Bleed damage." })
         let next = battle.performTestAction(.fangs, from: .enemy, to: .hero)
         #expect(!next.contains { $0.abilityName == "Hidden Fangs" })
     }

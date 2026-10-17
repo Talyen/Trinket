@@ -1,3 +1,5 @@
+import Foundation
+import TrinketContent
 import TrinketCore
 
 /// Projects an append-only event history. Damage packets precede their action
@@ -37,8 +39,8 @@ public struct BattleLogProjection {
                 pendingDamage[ActionKey(event), default: []].append(event)
             } else {
                 let damage = event.kind == .ability ? pendingDamage.removeValue(forKey: ActionKey(event)) ?? [] : []
-                if let text = Self.line(for: event, damage: damage) {
-                    entries.append(LogEntry(id: index, text: text, event: event, damage: damage))
+                if Self.isVisible(event) {
+                    entries.append(LogEntry(id: index, event: event, damage: damage))
                 }
             }
         }
@@ -50,7 +52,116 @@ public struct BattleLogProjection {
         sync(events: events)
     }
 
-    static func damageReport(for event: ActionEvent, damage: [ActionEvent]) -> ([ActionEvent], Int) {
+    private static func isVisible(_ event: ActionEvent) -> Bool {
+        switch event.kind {
+        case .milestone, .ability:
+            true
+        case .reaction:
+            false
+        case .abilityDamage:
+            event.abilityID.isEmpty && !event.abilityName.isEmpty && event.amount > 0
+        case .status:
+            event.amount > 0
+        case let .effect(outcome):
+            switch outcome {
+            case .deathsDoorTriggered, .deathsDoorExpired, .controlTriggered:
+                true
+            case .shieldApplied, .instantHeal, .leechHeal:
+                event.amount > 0 && !event.abilityName.isEmpty
+            case .thornsTriggered, .blockStripped, .damageReduced, .hemorrhageTriggered:
+                event.amount > 0
+            case .cleanseApplied, .purgeApplied:
+                !event.abilityName.isEmpty
+            default:
+                false
+            }
+        }
+    }
+}
+
+/// Retain committed facts; format only when the log is displayed, in its current locale.
+public struct LogEntry: Identifiable, Equatable {
+    public let id: Int
+    private let event: ActionEvent
+    private let damage: [ActionEvent]
+
+    init(id: Int, event: ActionEvent, damage: [ActionEvent]) {
+        self.id = id
+        self.event = event
+        self.damage = damage
+    }
+
+    public func localizedText(locale: Locale) -> String {
+        let actor = ContentCopy.resource(event.actorName)
+        let target = ContentCopy.resource(event.targetName)
+        let ability = ContentCopy.resource(event.abilityName)
+        let keyword = event.keyword.nameResource
+        let resources: [LocalizedStringResource]
+        switch event.kind {
+        case .reaction:
+            resources = []
+        case .ability:
+            let (reported, healthCost) = damageReport()
+            var parts = [L10n.log_use(actor, ability)]
+            parts += reported.map {
+                L10n.log_damage(actor, $0.amount, $0.keyword.nameResource, ContentCopy.resource($0.targetName), ability)
+            }
+            if healthCost > 0 {
+                parts.append(L10n.log_cost(actor, healthCost))
+            }
+            let effects = localizedEffects(locale: locale)
+            if !effects.isEmpty {
+                parts.append(L10n.log_applies(actor, BattleCopy.list(effects)))
+            }
+            resources = parts
+        case .abilityDamage:
+            resources = [L10n.log_damage(actor, event.amount, keyword, target, ability)]
+        case .status:
+            resources = [L10n.log_status(target, event.amount, keyword)]
+        case let .milestone(milestone):
+            switch milestone {
+            case let .battleStarted(hero, companion):
+                resources = [L10n.log_start(ContentCopy.resource(hero), ContentCopy.resource(companion), target)]
+            case .enemyDefeated: resources = [L10n.log_defeated(target)]
+            case .partyDefeated: resources = [L10n.log_party_defeated(target)]
+            }
+        case let .effect(outcome):
+            switch outcome {
+            case .deathsDoorTriggered: resources = [L10n.log_door(target)]
+            case .deathsDoorExpired: resources = [L10n.log_door_fades(target)]
+            case .controlTriggered: resources = [L10n.log_control(
+                    target,
+                    ContentCopy.resource(event.keyword.statusAlias ?? event.keyword.rawValue),
+                )]
+            case .shieldApplied: resources = [L10n.log_block(target, event.amount, ability)]
+            case .instantHeal, .leechHeal: resources = [L10n.log_heal(target, event.amount, ability)]
+            case .thornsTriggered:
+                resources = event.abilityName.isEmpty ? [L10n.log_reflect(actor, event.amount, keyword, target)]
+                    : [L10n.log_damage(actor, event.amount, keyword, target, ability)]
+            case .cleanseApplied: resources = [L10n.log_cleanse(target, keyword, ability)]
+            case .purgeApplied: resources = [L10n.log_purge(target, keyword, ability)]
+            case .blockStripped: resources = [L10n.log_strip(actor, event.amount, target, ability)]
+            case .damageReduced: resources = [L10n.log_reduced(actor, event.amount, ability)]
+            case .hemorrhageTriggered: resources = [L10n.log_hemorrhage(target, event.amount)]
+            default: resources = []
+            }
+        }
+        return resources.map { LocalizedGameText($0, locale: locale).text }.joined(separator: "\n")
+    }
+
+    private func localizedEffects(locale: Locale) -> [LocalizedStringResource] {
+        event.appliedEffects.map { effect -> LocalizedStringResource in
+            if case let .resourceGain(.gold, amount) = effect {
+                return event.stealsGold ? L10n.log_steal_gold(amount) : L10n.log_gain_gold(amount)
+            }
+            return LocalizedStringResource(String.LocalizationValue(stringLiteral: EffectPresentation.localizedDescription(
+                for: effect,
+                locale: locale,
+            ).markedText))
+        }
+    }
+
+    private func damageReport() -> ([ActionEvent], Int) {
         var totals: [ActionEvent] = []
         var healthCost = 0
         for packet in damage {
@@ -63,92 +174,5 @@ public struct BattleLogProjection {
             }
         }
         return (damage.isEmpty && event.amount > 0 ? [event] : totals, healthCost)
-    }
-
-    private static func actionLine(for event: ActionEvent, damage: [ActionEvent]) -> String {
-        let (reported, healthCost) = damageReport(for: event, damage: damage)
-        var text = "\(event.actorName) uses \(event.abilityName)"
-        // Older summary-only events retain their aggregate damage fallback.
-        let damageClauses = reported.map {
-            "\($0.amount) \($0.keyword.rawValue) damage to \($0.targetName)"
-        }
-        if !damageClauses.isEmpty {
-            text += " for " + damageClauses.joined(separator: " and ")
-        }
-        if healthCost > 0 {
-            text += " and loses \(healthCost) Health"
-        }
-        if !event.appliedEffects.isEmpty {
-            let effects = event.appliedEffects.map { effect in
-                if case let .resourceGain(.gold, amount) = effect {
-                    return "\(event.stealsGold ? "steal" : "gain") \(amount) Gold"
-                }
-                return effect.summary
-            }
-            text += " and " + effects.joined(separator: ", ")
-        }
-        return text + "."
-    }
-
-    static func line(for event: ActionEvent, damage: [ActionEvent] = []) -> String? {
-        switch event.kind {
-        case let .milestone(milestone):
-            return milestoneLine(for: event, milestone: milestone)
-        case .reaction:
-            return nil
-        case .ability:
-            return actionLine(for: event, damage: damage)
-        case .abilityDamage:
-            guard event.abilityID.isEmpty, !event.abilityName.isEmpty, event.amount > 0 else { return nil }
-            return "\(event.actorName) deals \(event.amount) \(event.keyword.rawValue) damage to \(event.targetName) (\(event.abilityName))."
-        case .status:
-            guard event.amount > 0 else { return nil }
-            return "\(event.targetName) takes \(event.amount) \(event.keyword.rawValue) damage."
-        case let .effect(outcome):
-            return effectLine(for: event, outcome: outcome)
-        }
-    }
-
-    private static func effectLine(for event: ActionEvent, outcome: ActionEvent.EffectOutcome) -> String? {
-        switch outcome {
-        case .deathsDoorTriggered:
-            "\(event.targetName) is on Death's Door."
-        case .deathsDoorExpired:
-            "\(event.targetName)'s Death's Door fades."
-        case .controlTriggered:
-            "\(event.targetName) is \(event.keyword.statusAlias ?? event.keyword.rawValue)."
-        case .shieldApplied where event.amount > 0 && !event.abilityName.isEmpty:
-            "\(event.targetName) gains \(event.amount) Block (\(event.abilityName))."
-        case .instantHeal where event.amount > 0 && !event.abilityName.isEmpty,
-             .leechHeal where event.amount > 0 && !event.abilityName.isEmpty:
-            "\(event.targetName) restores \(event.amount) Health (\(event.abilityName))."
-        case .thornsTriggered where event.amount > 0 && !event.abilityName.isEmpty:
-            "\(event.actorName) deals \(event.amount) \(event.keyword.rawValue) damage to \(event.targetName) (\(event.abilityName))."
-        case .thornsTriggered where event.amount > 0:
-            "\(event.actorName) reflects \(event.amount) \(event.keyword.rawValue) damage to \(event.targetName)."
-        case .cleanseApplied where !event.abilityName.isEmpty:
-            "\(event.targetName) Cleanses \(event.keyword.rawValue) (\(event.abilityName))."
-        case .purgeApplied where !event.abilityName.isEmpty:
-            "\(event.targetName)'s \(event.keyword.rawValue) is Purged (\(event.abilityName))."
-        case .blockStripped where event.amount > 0:
-            "\(event.actorName) removes \(event.amount) Block from \(event.targetName) (\(event.abilityName))."
-        case .damageReduced where event.amount > 0:
-            "\(event.actorName)'s damage is reduced by \(event.amount) (\(event.abilityName))."
-        case .hemorrhageTriggered where event.amount > 0:
-            "\(event.targetName) suffers \(event.amount) Bleed damage from Hemorrhage."
-        default:
-            nil
-        }
-    }
-
-    private static func milestoneLine(for event: ActionEvent, milestone: ActionEvent.Milestone) -> String {
-        switch milestone {
-        case let .battleStarted(heroName, companionName):
-            "\(heroName) and \(companionName) face \(event.targetName)."
-        case .enemyDefeated:
-            "\(event.targetName) is defeated."
-        case .partyDefeated:
-            "Your party has been defeated by \(event.targetName)."
-        }
     }
 }

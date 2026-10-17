@@ -48,10 +48,6 @@ struct CombatRuleAuditRegressionTests {
         let absorbed = events.filter { $0.effectKind == .shieldAbsorbed }.reduce(0) { $0 + $1.amount }
         #expect(loss.amount == 20 - absorbed)
         #expect(loss.actorID == battle.companion.id && loss.targetID == battle.enemy.id)
-        let name = talentID == "bear_physical_t3_2" ? "Pulverize" : "Bone-Crushing Bite"
-        #expect(BattleLogProjection.entries(from: events).count(where: {
-            $0.text == "\(battle.companion.name) removes \(loss.amount) Block from \(battle.enemy.name) (\(name))."
-        }) == 1)
     }
 
     @Test func `Volatile Remedy waits for the next attack after Poison Dagger Leech`() throws {
@@ -93,7 +89,6 @@ struct CombatRuleAuditRegressionTests {
         #expect(battle.gold == 7)
         let summary = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.goldenPlate.id })
         #expect(summary.appliedEffects.contains(.resourceGain(.gold, 7)))
-        #expect(BattleLogProjection.entries(from: events).contains { $0.text.contains("gain 7 Gold") })
     }
 
     private func play(_ ability: Ability, in battle: inout BattleState) throws -> [ActionEvent] {

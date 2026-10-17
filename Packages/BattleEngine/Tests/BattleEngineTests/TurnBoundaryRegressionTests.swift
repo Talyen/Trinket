@@ -61,15 +61,6 @@ struct TurnBoundaryRegressionTests {
         #expect(events.first { $0.abilityName == "Mana Shield" }?.amount == 2)
     }
 
-    @Test(arguments: [false, true])
-    func `Gold rewards and Gold steals retain their meaning in the battle log`(theft: Bool) {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities()
-        let ability = theft ? Ability.steal : Ability.goldenPlate
-        let events = battle.performTestAction(ability)
-        let lines = BattleLogProjection.entries(from: events).map(\.text)
-        #expect(lines.contains { $0.contains(theft ? "steal 2 Gold" : "gain 5 Gold") })
-    }
-
     @Test func `loyal companion draws for companion on alternating turns`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionAbilities: [.slash],
