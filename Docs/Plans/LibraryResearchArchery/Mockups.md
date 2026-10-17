@@ -13,21 +13,24 @@ and scope specification. Exact generation and correction prompts are preserved i
 
 | Board | Depicted flow | Selected generated output |
 |---|---|---|
-| [Library / Bestiary](library-bestiary-v3.png) | Two Library activities; landscape enemies with undiscovered art in grayscale in the same list | `exec-3d7dd6f1-b484-4cd4-92c6-4ef77e61ecbe.png` |
-| [Research](research-projects-v3.png) | No item-collection project; three Forest objectives and a portrait reward thumbnail | `exec-34cc417a-519d-45f9-b3f5-a579650dee1e.png` |
+| [Library / Bestiary](library-bestiary-v4.png) | Artwork-only landscape gallery, colored discovered enemies and disabled grayscale unknowns | `exec-cf49fdb5-0bd4-40fb-a61e-f5f14450ef7e.png` |
+| [Research browser](research-browser-v4.png) | Portrait reward illustrations, compact project rows and small objective marks | `exec-71248663-cda3-483e-95a7-01bd9ba6cee2.png` |
+| [Research detail](research-detail-v4.png) | Portrait recipe reward and three landscape defeat objectives, with source guidance collapsed | `exec-ebc97aed-3b7b-42d5-b27e-e68fd9afc5b1.png` |
 | [Archery](archery-crafting-v3.png) | Portrait recipe cards and preview; one prominent Craft action | `exec-92d83b0d-5f7a-437b-b4e9-169f05b3c354.png` |
 
 All selected outputs are copied unchanged into this directory. Original generated
 outputs remain in the task's Codex generated-images directory. The boards show
 independent example states rather than one synchronized player save.
 
-The initial [Library](library-guide.png), [Research](research-projects.png), and
-[Archery](archery-crafting.png) boards and intermediate
-[Library v2](library-guide-v2.png), [Research v2](research-projects-v2.png), and
-[Archery v2](archery-crafting-v2.png) remain as exact editing inputs and preserve
-previous chat links. Their item archive, undiscovered disclosure, five-objective
-project and compressed artwork layouts are superseded. The implementation plan
-embeds only v3. No original asset was overwritten.
+Earlier boards remain as generation inputs and preserve previous chat links:
+[Library v1](library-guide.png), [Research v1](research-projects.png),
+[Archery v1](archery-crafting.png), [Library v2](library-guide-v2.png),
+[Research v2](research-projects-v2.png), [Archery v2](archery-crafting-v2.png),
+[Library v3](library-bestiary-v3.png), and [Research v3](research-projects-v3.png).
+Their superseded designs include an item archive, undiscovered disclosure,
+Bestiary labels/status, inspection of unknown enemies, five-objective research
+and the oversized text-only project presentation. Current intent follows the
+four boards above and the written plan. No original asset was overwritten.
 
 ## Actual screenshot references
 
@@ -65,10 +68,10 @@ live under the shared Asset Library; no master or asset-catalog file was edited.
 |---|---|
 | `portrait_background / library` | Library building; research headers in superseded initial boards only |
 | `portrait_background / archeryRange` | Range building behind Craft sheet |
-| `combatant / slime`, `combatant / goblin` | Landscape Bestiary entries; Slime also supplied to initial research generation |
+| `combatant / slime`, `combatant / goblin`, `combatant / the_blight_treant` | Landscape Bestiary art and Research objective thumbnails |
 | `item / shortbow-basic` | Recipe card, research reward and focused-preview base art |
 | `item / longbow-basic`, `item / quiver-basic` | Standard crafting cards |
-| `item / crossbow-basic` | Correction replacing the initial misleading placeholder |
+| `item / crossbow-basic` | Standard recipe art and the Arms and Armor reward thumbnail |
 
 Raw portraits use the manifest-selected `Library - Portrait.jpeg` and
 `Archery Range - Portrait.jpeg`; item inputs use their selected `- Basic.jpeg`
@@ -92,43 +95,61 @@ original portrait Shortbow. V3 Archery uses Archery v2, actual Forge, original
 portrait Shortbow. These inputs correct the earlier board crops while retaining
 the native screenshot references. Existing masters were inspected before editing.
 
+V4 Bestiary inputs, in order: Library v3, actual Forge, original landscape Slime,
+original landscape Goblin. Research browser inputs: actual Collection, original
+portrait Shortbow, Longbow, Crossbow. Research detail inputs: actual Collection,
+original portrait Shortbow, original landscape Slime, Goblin, The Blight Treant.
+The initial Research detail output was
+`exec-04f9dd05-80c1-4f92-a3ad-8cb4690204ef.png`. A correction uses that output,
+actual Collection, original Slime, Goblin, Treant, in order; it removes the phone
+hardware, reduces the reward image and restores wider objective thumbnails.
+The selected corrected output is in the table above. The unselected initial
+render remains in Codex generated-images, not in the application or artwork catalog.
+All artwork is already selected in the manifest. Each request stays within the
+built-in tool's five-reference limit; no synthetic contact sheet or new art master.
+
 ## Visual review and implementation corrections
 
-Inspected all three v3 outputs. Library now exposes Bestiary and Research only;
-Trinkets/Uniques stay in Collection, with no parallel item archive. The Bestiary
-shows colored Slime and grayscale Goblin landscape art together, named and
-inspectable. There is no category switch or undiscovered disclosure. Research
-removes Relic Curiosities, shows exactly three Forest targets (Slime, Goblin,
-The Blight Treant), and uses a portrait Shortbow reward thumbnail. Archery's
-standard recipe cards and preview use portrait item artwork. Earlier minimal
-layout decisions remain: plain research list, one reward row, no repeated Library
-hero, quiet utility typography and Craft as the only prominent primary action.
+The Bestiary v4 board removes every enemy caption/status and shows color Slime
+and grayscale Goblin together without reordering. Grayscale is the sole visible
+discovery treatment. The written interaction contract disables that entry until
+first encounter, then opens the same prepared combatant detail sheet used in
+battle; no victory requirement or separate Bestiary detail page. Sheet reuse was
+checked against `PlayBattleOverlay`, `CombatantDetailSheet` and
+`CombatantDetailPane` source. Static images cannot prove this interaction.
+
+Research browser v4 uses portrait recipe art, concise titles/reward names and
+three small objective marks instead of large text rows/fractions. Completed
+milestones have one line and a check/chevron; repeated archive subtitles are gone.
+Research detail uses a portrait reward and three landscape enemy objectives,
+removing the flavor paragraph, Reward/workshop labels and the long objective list.
+Where to find is a single collapsed source disclosure. All three objective enemies
+in its example are discovered, so each is colored; the Treant's open completion
+mark means not defeated, not undiscovered. Discovery and objective completion
+must remain independent. Research objective names are intentional; only the
+Bestiary gallery hides names.
 
 Known concept-only deviations to resolve in shipping SwiftUI:
 
-- ImageGen approximates dimensions. Bestiary images are landscape but wider than
-  the original approximately 4:3 masters; production must retain selected source
-  framing. Every equipment image must use exact 3:4 portrait layout, including
-  the smallest reward/focused-recipe thumbnail. Use real prepared artwork and
-  native components rather than generated crops or measured raster coordinates.
-- Archery's browser is an illustrative excerpt. Shipping contains all five standard
-  recipes, including Recurve Bow, in the written catalog order before Focused
-  Recipes. V3 fully shows the first two and clips the next row, whose sample
-  ordering is inaccurate (Quiver precedes Recurve Bow). Use the plan's authored
-  order, with Recurve Bow third, Crossbow fourth and Quiver fifth; never jump to
-  Focused Recipes before all five standard recipes.
-- Preserve the actual Resources toolbar action on the building and the native
-  in-sheet Back control on recipe preview. V3 Archery restores Resources but still
-  omits its in-sheet Back despite the prompt. The underlying building Back is not
-  a substitute for returning from a recipe to the Craft browser.
-- Completed research rows remain inspectable and expose a native navigation
-  affordance; a completion check must not imply that the row stopped working.
-- Research tier requirements, locked recipe requirements, empty/pending states,
-  completed buildings and localization are specified in the plan, not exhaustively
-  pictured here. Sample counts do not assert an actual game's progress.
-- The preview's 48 Wood / 24 Iron / 8 Herbs is a proposed price, not balance proof.
-- Gold outlines, SF-style icons, body fonts, herbs and other small details may be
-  approximated by ImageGen. Reuse real controls and resource assets in production.
+- ImageGen approximates dimensions. Use exact 3:4 portrait item layout and selected
+  landscape enemy framing, including small thumbnails. Reuse real prepared artwork
+  and native components rather than generated crops or measured raster coordinates.
+- Research cards must wrap at larger text sizes instead of truncating required
+  target names. Count/floor objectives and insufficient Library tiers are specified
+  in the plan; the examples show three enemy objectives and eligible tiers.
+- Static mockups do not verify grayscale hit testing, accessibility activation,
+  encounter-without-victory unlocks, sheet dismissal or return position. Check
+  these in native implementation, including stale requests and reset.
+- Archery's retained v3 browser fully shows the first two and clips a sample next
+  row whose ordering is inaccurate. Shipping order is Shortbow, Longbow, Recurve
+  Bow, Crossbow, Quiver, then Focused Recipes. Keep every recipe.
+- Archery v3 restores Resources but still omits the in-sheet Back despite its
+  prompt. Preserve the actual sheet Back; building Back is not a substitute.
+- Completed projects remain inspectable. Source hints and unlock/cost constraints
+  must stay reachable when reducing copy; native hit areas remain unchanged.
+- The recipe's 48 Wood / 24 Iron / 8 Herbs remains a proposed price, not balance proof.
+- Gold accents, icons, type and small resource details may be approximated. Use the
+  existing controls, symbols and resource assets in production. An omitted exterior
+  concept caption does not make a generated image an implemented screenshot.
 
-These deliberate limitations are reasons for a native rendered review during
-implementation. They do not require generating new production artwork.
+These limits call for native rendered review during implementation, not new art.

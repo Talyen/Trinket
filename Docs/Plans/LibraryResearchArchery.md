@@ -22,7 +22,7 @@ proposed tuning inputs, not balance-verified values. Preserve this active plan f
 implementation and use `--keep-plan` when handing off the planning task.
 
 Source baseline: committed local main `5cb25b7d8`, inspected October 17, 2026.
-The full plan was refined against local main `4787d3b69` on the same date.
+The full plan was refined against local main `1ea67e55d` on the same date.
 Recheck source paths and current main when implementing. After implementation,
 move durable behavior into canonical product/platform owners and retire this plan
 under [plan lifecycle](README.md).
@@ -66,15 +66,19 @@ a new visual system for research.
 - Reading screens use opaque semantic backgrounds and native titles. Reserve
   cinematic art for buildings and actual creature/item details; do not repeat
   the Library painting on every research page.
-- Research uses one short scrolling list with In Progress and Completed sections.
-  Five projects do not need a filter, dashboard, thumbnail tiles or global counter.
-  Each row has a title, short reward label and one trailing progress/requirement.
-- A project shows its title, objectives and one tappable reward row. The row
-  opens the recipe; no second View Recipe button or permanent explanation of
-  automatic progress is needed.
-- Bestiary entries keep their catalog positions. Show actual landscape enemy art;
-  undiscovered entries use that same artwork in grayscale with a text status.
-  Do not separate, collapse or sort undiscovered enemies into another group.
+- Research uses compact illustrated rows in In Progress and Completed sections.
+  A recipe's existing portrait, project name, short recipe name and up to three
+  small progress marks replace the oversized text list. Completed milestones are
+  quiet text rows without repeated archive subtitles. No filter or global counter.
+- Recipe-project detail shows a modest portrait reward and up to three landscape
+  objective cards. Let artwork carry the content; remove the purpose paragraph,
+  repeated workshop/reward labels and separate View Recipe button. Source guidance
+  lives behind one optional disclosure.
+- Bestiary entries keep their catalog positions and show landscape artwork only:
+  no visible enemy names, status labels or badges. Grayscale means undiscovered
+  and disabled; color means encountered and tappable. Defeat is not required to
+  unlock inspection and has no separate Bestiary presentation. Do not separate,
+  collapse or sort undiscovered enemies into another group.
 - Every item image stays 3:4 portrait, including recipe cards, compact reward
   thumbnails, previews and results. Enemy images retain their landscape framing.
 - Recipe costs and Craft are one decision in the safe-area dock. Craft is the only
@@ -85,7 +89,9 @@ a new visual system for research.
 
 These are acceptance criteria for native review, not pixel measurements from
 ImageGen. Retain native text sizes and the platform/design-system minimum hit
-areas. Simplifying appearance must not hide costs, requirements, status or navigation.
+areas. Simplifying appearance must keep costs, requirements and navigation readable.
+Bestiary discovery is conveyed visually through grayscale; native accessibility
+semantics retain the appropriate name, availability and activation behavior.
 
 ## Existing system and reuse
 
@@ -112,11 +118,14 @@ Reuse these specific owners:
 | [Forge persistence](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Inventory/BlacksmithForge.swift) | Atomic spending/insertion and cancellation-safe retry ownership |
 | [Item reward generator](../../Packages/TrinketContent/Sources/TrinketContent/Equipment/ItemRewardGenerator.swift) | Tier filtering, base selection, keyword-affix guarantee |
 | [Collection](../../Trinket/Features/Collection/CollectionView.swift) | Existing portrait/card labels and actual-item destination; equipment management stays here |
+| [Combatant detail presentation](../../Trinket/Features/Shared/CombatantDetailPresentation.swift) | Existing prepared-artwork sheet chrome, dismissal and read-only inspection |
+| [Combatant detail pane](../../Packages/TrinketFeatureSupport/Sources/TrinketFeatureAdapters/Shared/Detail/CombatantDetailPane.swift) | Existing enemy name, traits, abilities and level-qualified stats; same content used in battle |
 
 The existing save records current inventory and progression, not a complete
 lifetime enemy encounter/defeat history. Only that history is added; existing
 Collection owns Trinkets and Uniques, with no second item archive or item-discovery
-tracking in Homestead. Do not infer lifetime Contract victories from a regenerating offer board.
+tracking in Homestead. Do not infer lifetime Contract victories from a
+regenerating offer board.
 
 ## Player flows and screen specifications
 
@@ -150,64 +159,101 @@ Field Guide hub, Creatures/Relics segmented control or duplicated Collection.
 No new collectible category called Relics is introduced.
 
 Keep all entries together in authored catalog order, regardless of discovery.
-An undiscovered entry displays its actual existing landscape artwork in full
-grayscale, its name and `Undiscovered`. Encountering it restores the original
-color and changes the text to `Encountered`; victory changes that to `Defeated`.
-Defeated implies encountered. Never reorder cards on discovery, hide them in a
-disclosure, replace them with question marks, or split them into discovery groups.
-Status text and VoiceOver convey discovery independently of color. Grayscale is
-an image treatment, not a disabled-control treatment: all entries are inspectable.
+Each entry is **landscape artwork only**: no visible name, `Defeated`,
+`Encountered` or `Undiscovered` label, checkmark, badge or tappable chevron.
+Undiscovered enemies use the full artwork in grayscale and cannot be activated.
+The first accepted encounter restores original color and enables inspection;
+winning is unnecessary. A discovered-but-never-defeated enemy looks exactly like
+one already defeated. Defeat history remains solely an input to research.
+Never reorder on discovery, collapse unknown entries or add question-mark tiles.
 
 Use one column at compact widths so landscape scenes have room to breathe.
-Enemy card and detail images preserve the selected source's landscape aspect
-ratio and composition (the supplied Slime/Goblin masters are 1200×896, about 4:3).
-Do not force enemies into portrait cards or panoramic 16:9 crops. Wider layouts
-may add columns while retaining that framing. Names and one quiet status line sit
-below the image. Use existing prepared landscape artwork variants, not newly
-painted or generated crops. No aggregate progress header, filter or native search
-is needed unless rendered review demonstrates a finding problem.
+Images preserve the selected source's landscape aspect ratio and composition
+(the supplied Slime/Goblin masters are 1200×896, about 4:3), with native margins
+and a small consistent gap. No captions or reserved label space below them.
+Do not force portrait cards or panoramic 16:9 crops. Wider layouts may add columns
+while retaining framing. Use existing prepared landscape artwork variants, not
+newly painted or generated crops. No aggregate progress header, filter or legend.
+With no encounters, show the full grayscale gallery; no separate empty state.
 
-Enemy detail reuses landscape art and canonical traits/ability descriptions,
-then shows related project progress. Numeric enemy values must name their level;
-reuse the current Standard Contract policy and clearly label that reference,
-without adding a level picker or parallel scaling formula. Existing encounter
-inspection remains authoritative for that encounter. Combat information is never
-withheld behind research. Merely inspecting an enemy in Contracts or the Bestiary
-does not count as encountering it. An undiscovered detail retains grayscale art
-and the explicit status while keeping its information readable.
+A discovered image opens the **existing combatant detail sheet used in battle**,
+through `CombatantDetailSheet` and read-only `CombatantDetailPane`. Keep its normal
+name, enemy traits, abilities and level-qualified statistics inside the sheet;
+no new Bestiary detail screen or extra research section. Use the existing artwork
+preparation, sheet chrome, dismissal and ability-inspection behavior. Dismissal
+returns to the exact gallery position. Avoid a competing sheet or navigation stack.
 
-With no encounters, retain the full grayscale catalog. One short contextual hint
-may explain that encountering enemies reveals their colors; no empty screen,
-compulsory onboarding, new notification badge or forced tutorial.
+Resolve a read-only enemy at the existing Standard Contract reference level and
+label that context concisely. Do not present a fabricated live battle, current
+wounds/effects, encounter-specific modifiers or editable equipment. Actual battle
+inspection continues to show that battle's snapshot. Discovery never gates
+inspection of an active opponent through the existing battle/encounter UI.
+Merely inspecting or preparing an image records no encounter.
+
+Gate tap, accessibility activation and deferred presentation on the same live
+encountered-ID set and save generation. An undiscovered image has no action or
+press feedback; never let a stale/deep-linked selection reveal its sheet. Use a
+generic unavailable-enemy accessibility label and trait without visible captions.
+An encountered enemy has its real accessible name and native button semantics.
+Reset/account changes dismiss stale detail requests. Victory also records an
+encounter, but defeating an enemy is never the Bestiary unlock condition.
 
 ### Research browser and project detail
 
-Use a single list with In Progress and Completed sections, omitting empty sections.
-Keep authored order within each section, captured for the visit. A newly completed
-row updates in place; move it to Completed on the next visit rather than animating
-the player's current target away. Completed is already its status label.
+Use one scrolling surface with In Progress and Completed sections, omitting empty
+sections. Keep authored order within each section for the visit. A newly completed
+row updates in place; move it to Completed on the next visit, preserving the
+player's target. Five projects need no filter, dashboard or global counter.
 
-Rows use a title, concise reward subtitle and one trailing value, for example
-`Forest Field Notes` / `Poison Shortbow recipe` / `2/3`. If facts are complete but
-Library tier is insufficient, show `Library II` instead of the fraction; opening
-the project shows all objective checks and the requirement. VoiceOver receives
-the full objective count and requirement, not an unexplained fraction. Avoid
-decorative thumbnails, duplicated keyword icons, extra progress bars and a filter.
+In-progress recipe projects are compact illustrated rows in one quiet group:
 
-Project detail is a quiet reading page: native title, short purpose only where it
-adds context, explicit objective rows, and one tappable reward row. Recipe rewards
-use a small existing **3:4 portrait** item thumbnail (for example 54×72 pt),
-recipe name, workshop and chevron. Never crop the thumbnail square. Archive
-records use text with a native symbol only if it improves recognition. No repeated
-Library hero, oversized reward heading, separate View Recipe button, or permanent
-`Research completes automatically` footer. Show checks plus text, not color alone.
-There is no Accept, timer, active slot, currency, donation cost or manual claim.
+- Existing reward art is **3:4 portrait**, about 54×72 or 72×96 pt depending on the
+  current component size; never a square icon or large hero card.
+- Use a normal-size project title and one short secondary recipe name, for example
+  `Forest Field Notes` / `Poison Shortbow`. Omit the repeated word `recipe`.
+- Show one small native checked/open mark per defeat objective, at most three,
+  rather than an extra fraction or sentence. Expose the full progress to native
+  accessibility. A count objective can use one concise `1/3` value instead of
+  inventing subobjectives. Library tier replaces this progress treatment only
+  when all facts are met and the tier blocks completion.
+- The whole row opens the project. Use one trailing native chevron, subtle
+  separators and existing surfaces, without ornamental borders or icon tiles.
 
-Named creature objectives can open existing enemy inspection even before an
-actual encounter; undiscovered Bestiary entries remain inspectable. Reading
-this information never records an encounter. A project with a remaining target
-offers textual source guidance in detail, using the existing modes and actual
-regional pools; do not promise an available Contract or auto-start a battle.
+Archive milestones without a recipe use a compact title/progress row, not a fake
+book painting or unrelated item thumbnail. Completed rows remain inspectable,
+with title, quiet native check and chevron. Omit redundant `Archive record`
+subtitles and completed progress counters.
+
+Recipe-project detail is a visual summary with the project title in native
+navigation, **one modest portrait reward**, then up to three visual objectives.
+The reward image and short recipe name form one tappable element with a quiet
+chevron. It opens the read-only recipe preview; show workshop/guarantee details
+there. No second View Recipe control, `Reward` heading, purpose paragraph,
+permanent automatic-progress footer or repeated workshop subtitle here.
+
+For named-enemy objectives, use up to three **landscape** thumbnail cards in an
+adaptive strip. Each shows its enemy name below the image and a small checked/open
+mark for the **defeat** objective. A single `Defeat` section label establishes the
+action, instead of repeating a sentence for every target. Preserve readable names,
+including The Blight Treant; wrap cards into fewer columns at larger text sizes.
+All encountered objective images remain full color even when not yet defeated.
+Only undiscovered images are grayscale. Completion marks, never desaturation,
+express objective progress. Item portraits and enemy landscapes keep their own
+aspect ratios in every compact layout.
+
+Objective inspection follows Bestiary discovery: encountered targets may open the
+same combatant detail sheet; undiscovered targets remain noninteractive. Research
+can still name its required targets and offer **Where to find**, one collapsed
+source-guidance disclosure, so the task is actionable without bypassing discovery.
+Do not auto-start a battle or promise a currently available random Contract.
+Within an existing Craft sheet, inspect a discovered objective using the current
+sheet's navigation and reused combatant detail content, rather than stacking a
+second sheet. A normal Library project may use the shared combatant detail sheet.
+
+Count/floor projects use a concise goal/progress row instead of an artificial
+three-card strip. Completed archive prose appears in that project's detail only;
+do not repeat it in the browser. There is no Accept, timer, active slot, currency,
+donation cost, manual claim or pinning feature in this cut.
 
 Every project tracks all relevant facts automatically. Completion requires its
 facts AND minimum Library tier. The player can finish facts before building or
@@ -377,7 +423,7 @@ Completion records remain visible if transient notification is interrupted.
 
 | State | Expected behavior |
 |---|---|
-| No encounters | Show the full grayscale Bestiary with names/status; entries remain inspectable |
+| No encounters | Full grayscale artwork-only Bestiary; all images disabled until actually encountered |
 | Objective met, Library tier too low | Show checks and required Library tier; no recipe grant yet |
 | Project complete, Range unbuilt | Recipe learned permanently; show Build Archery Range requirement |
 | All research complete | Show Completed with archive entries and recipe links; no empty In Progress panel |
@@ -426,16 +472,18 @@ uses existing 3:4 portrait variants, including the smallest thumbnails.
 | Actual crafted result | Existing item-art reference, including Astral/Unique mapping |
 | Costs | Existing Wood, Iron, Hide, Herbs resource illustrations |
 
-Three refined screenshot-guided ImageGen boards accompany this plan: Library/Bestiary,
-research list/detail, and Archery browser/preview. They are proposed UI, not
-implemented features or pixel-accurate SwiftUI specifications. Written rules take
+Four current screenshot-guided ImageGen boards accompany this plan: Library/Bestiary,
+Research browser, Research detail, and Archery browser/preview. They are proposed
+UI, not implemented features or pixel-accurate SwiftUI specifications. Written rules take
 precedence when labels/spacing differ. Illustrative counts/prices show example
 states, not real save evidence or validated balance. Reference provenance, exact
 prompts and visual review are in [mockup notes](LibraryResearchArchery/Mockups.md).
 
-![Library and Bestiary proposal](LibraryResearchArchery/library-bestiary-v3.png)
+![Library and artwork-only Bestiary proposal](LibraryResearchArchery/library-bestiary-v4.png)
 
-![Research browser and project detail proposal](LibraryResearchArchery/research-projects-v3.png)
+![Illustrated Research browser proposal](LibraryResearchArchery/research-browser-v4.png)
+
+![Visual Research project detail proposal](LibraryResearchArchery/research-detail-v4.png)
 
 ![Archery crafting proposal](LibraryResearchArchery/archery-crafting-v3.png)
 
@@ -605,7 +653,8 @@ expansion or live Apple ID requirement is introduced.
 - [ ] **5. UI:** Library activities, Bestiary, research, Range Craft, preview/reveal
   and bounded cross-navigation. Reuse cards, artwork pins, feedback, accessibility
   IDs without duplicating Collection. Check the Minimal UI contract, in-place
-  grayscale discovery, landscape enemies, portrait items, three-objective maximum,
+  grayscale discovery gating, reused combatant detail sheets, illustrated Research,
+  landscape enemies, portrait items, three-objective maximum,
   stable list ordering and return-to-origin navigation before adding chrome.
 - [ ] **6. Localization/native review:** run the repository translation plan,
   translate all configured languages, perform separate AI review, apply reviewed
@@ -629,14 +678,15 @@ Do not write tests that merely mirror these five catalog rows.
 |---|---|
 | Automatic completion | One fact completes eligible projects once; low Library tier retains progress; upgrade finishes them without repeated play |
 | Actual enemy identity | Random battle/replaced offer/party change cannot misattribute victory; prepared/failed launches do not count |
+| Discovery gating | Encounter without victory enables art/button/sheet; grayscale targets reject tap/accessibility/stale selection; inspection earns no discovery; reset clears pending presentation |
 | Persistence | Legacy snapshot/delta/recovery migrates; backfill idempotent with proven IDs; empty differs from uninitialized; failed write rolls back facts/unlocks |
 | Mixed versions | Old writer rejects new format without overwriting progress; legacy import cannot erase discoveries; unsupported payload bytes survive |
 | Cloud/reset | Same-epoch union and combined objectives; duplicate completion harmless; stale epoch/callback cannot resurrect history |
 | Focused recipe | Exact base and keyword for Basic/Astral, normal affix slots, no collectible outcome or alternate-base fallback |
 | Craft lifetime | Locked/unbuilt/insufficient/stale spends nothing; retry retains exact item; reopen/background/reset cannot charge twice or grant late |
 | Forge regression | Existing 11 recipes, IDs, costs, quality, selected-base Unique and reveal unchanged |
-| Native flow | Project/recipe links return to origin without stack growth or nested sheets; only Range commits crafting; named unknown targets remain inspectable |
-| Minimal presentation | Bestiary and Research only; grayscale entries stay in place and inspectable; maximum three objectives; no redundant collection/counters/heroes/filters; cost dock remains usable |
+| Native flow | Project/recipe links return to origin without stack growth or nested sheets; only Range commits crafting; discovered enemies reuse combatant detail; grayscale targets cannot open it |
+| Minimal presentation | Artwork-only Bestiary with no visible names/status; illustrated Research rows and maximum three visual objectives; no redundant collection/prose/counters/filters; cost dock remains usable |
 | Artwork | Existing manifest entries only; landscape enemy cards/details and 3:4 item images at every size; mockups excluded from runtime; no whole-Bestiary full-resolution warmup |
 
 Verify interrupted feedback and reopening never replay a historical celebration.
