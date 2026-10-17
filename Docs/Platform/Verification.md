@@ -177,7 +177,15 @@ case without skips or issues; a positive aggregate count is insufficient.
 
 Manual/nightly standard runs keep the full iOS package scopes and compare native
 Engine/Core executed identities, expanded parameterized case counts, and results
-on the same revision. The manual
+on the same revision. Native comparators run in separate 25-minute hosted jobs,
+with three minutes reserved for diagnostics. The iOS lane transfers compact
+successful execution proof bound to repository, commit, run, attempt, package and
+selected Xcode identity; missing, incomplete or mismatched proof fails comparison.
+Partial reruns must include the producing iOS lanes as well as native comparators;
+an earlier attempt's proof cannot qualify a new attempt.
+Requested parity remains part of `CI OK`. Standard checks reused by an ordinary
+manual follow-up do not request a new comparator; `qualification`, latest-toolchain
+and exhaustive-pilot runs bypass that reuse. The manual
 `qualification` scope runs only those two native/iOS comparator lanes; it does not
 establish app, UI, Release, or other-package proof. Qualification mismatches fail
 the run. Structured proof uses the versioned

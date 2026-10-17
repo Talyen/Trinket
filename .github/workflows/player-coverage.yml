@@ -191,15 +191,19 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          sparse-checkout: Scripts
       - name: Report actual requested-job conclusions
         env:
-          IOS18_RUNTIME: ${{ needs.ios18-runtime.result }}
-          COMPATIBILITY: ${{ needs.compatibility.result }}
-          PROFILES: ${{ needs.profiles.result }}
-          SOAK: ${{ needs.soak.result }}
+          JOB_RESULTS: ${{ toJSON(needs) }}
+          COMPATIBILITY_REQUESTED: ${{ github.event.schedule == '0 8 * * *' || inputs.scope == 'compatibility' || inputs.scope == 'all' }}
+          PROFILES_REQUESTED: ${{ github.event.schedule == '0 8 * * *' || inputs.scope == 'profiles' || inputs.scope == 'all' }}
+          SOAK_REQUESTED: ${{ github.event.schedule == '0 9 * * 0' || inputs.scope == 'soak' || inputs.scope == 'all' }}
         shell: bash
         run: |
-          printf 'iOS 18 runtime: %s\niOS 18: %s\nProfiles: %s\nSoak: %s\n' "$IOS18_RUNTIME" "$COMPATIBILITY" "$PROFILES" "$SOAK" >> "$GITHUB_STEP_SUMMARY"
-          for result in "$IOS18_RUNTIME" "$COMPATIBILITY" "$PROFILES" "$SOAK"; do
-            [[ "$result" == success || "$result" == skipped ]] || exit 1
-          done
+          required=()
+          if [[ "$COMPATIBILITY_REQUESTED" == true ]]; then required+=(ios18-runtime compatibility); fi
+          if [[ "$PROFILES_REQUESTED" == true ]]; then required+=(profiles); fi
+          if [[ "$SOAK_REQUESTED" == true ]]; then required+=(soak); fi
+          python3 Scripts/report-ci-status.py --title 'Player coverage (advisory for pushes)' --require "${required[@]}"

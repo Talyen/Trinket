@@ -33,7 +33,7 @@ extension TrinketUITestCase {
             XCTAssertFalse(costs.isEmpty, "Upgrade must display its actual cost")
         }
         if audit {
-            try auditProductAccessibility()
+            try auditProductAccessibility(screen: "homestead-upgrade")
             retainScreenshot(named: "reachable-upgrade-controls")
         } else {
             attachSuccessScreenshot(named: "reachable-upgrade-controls")

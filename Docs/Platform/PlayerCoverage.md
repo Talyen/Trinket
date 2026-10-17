@@ -91,7 +91,12 @@ retry; a repeated timeout or any product
 violation still fails the profile. Settings navigation waits for the retained Motion
 screen, dismisses native search, and selects named back actions and destination
 cells rather than matching titles or keyboard buttons. It scrolls toward retained
-offscreen rows in either direction, including during settings restoration.
+offscreen rows in either direction, including during settings restoration. Each
+class starts Settings from its root/sidebar and reacquires controls after navigation
+and mutation. Preparation failures carry a `[coverage prerequisite]` marker and
+native Settings screenshot/hierarchy; they fail as configuration, not completed
+product audits. Each audit attempt retains its profile, screen, audit type and
+runtime context, with separate issue/error attachments and foreground screenshots.
 
 Settings-profile reward checks enter the existing victory fixture, then audit and tap
 the real claim and verify next-stage access. Earned victory remains smoke-owned;

@@ -177,8 +177,9 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
         self.assertIn("release-device", aggregate.split("if: always()", 1)[0])
         command = aggregate.split("        run: |\n", 1)[1].split("\n  #", 1)[0]
         for outcome, status in (("success", 0), ("skipped", 0), ("failure", 1), ("cancelled", 1)):
-            result = subprocess.run(["bash", "-ec", command], capture_output=True,
-                                    env={**os.environ, "RESULTS": f"success {outcome}"})
+            result = subprocess.run(["bash", "-ec", command], capture_output=True, cwd=ROOT,
+                                    env={**os.environ, "REQUIRE_PARITY": "false", "JOB_RESULTS": json.dumps({
+                                        "build": {"result": "success"}, "release-device": {"result": outcome}})})
             self.assertEqual(result.returncode, status)
 
     def test_ci_transfer_validation_and_job_local_xcode_selection(self):

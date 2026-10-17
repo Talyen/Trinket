@@ -18,15 +18,15 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         super.setUp()
         preparationFailure.withLock { $0 = nil }
         trinketOnMainActor {
-            settings.launch()
             defer { settings.terminate() }
             do {
                 let control = try reduceMotionControl()
                 let original = try reduceMotionValue(control)
                 originalReduceMotion.withLock { $0 = original }
-                try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1", control: control)
+                try setReduceMotion(ProcessInfo.processInfo.environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1")
             } catch {
-                preparationFailure.withLock { $0 = "Could not apply native Reduce Motion: \(error)" }
+                retainSettingsFailure(error, phase: "apply")
+                preparationFailure.withLock { $0 = "[coverage prerequisite] Could not apply native Reduce Motion: \(error)" }
             }
         }
     }
@@ -45,24 +45,46 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
             return value
         }) else { return }
         trinketOnMainActor {
-            settings.activate()
             defer { settings.terminate() }
             do {
-                try setReduceMotion(original, control: reduceMotionControl())
+                _ = try reduceMotionControl()
+                try setReduceMotion(original)
             } catch {
+                retainSettingsFailure(error, phase: "restore")
                 XCTFail("Could not restore native Reduce Motion: \(error)")
             }
         }
     }
 
-    @MainActor private static func reduceMotionControl() throws -> XCUIElement {
-        let control = settings.switches.matching(NSPredicate(
+    @MainActor private static var reduceMotionSwitch: XCUIElement {
+        settings.switches.matching(NSPredicate(
             format: "identifier IN %@ OR label BEGINSWITH %@", ["ReduceMotion", "Reduce Motion"], "Reduce Motion",
         )).firstMatch
-        if control.exists {
-            try revealSettingsElement(control, scrolling: settingsContent())
-            return control
+    }
+
+    @MainActor private static func retainSettingsFailure(_ error: Error, phase: String) {
+        XCTContext.runActivity(named: "Native settings prerequisite: \(phase)") { activity in
+            let details = "\(error)\nRuntime: \(ProcessInfo.processInfo.operatingSystemVersionString)\n"
+                + "Profile: \(ProcessInfo.processInfo.environment["TRINKET_PROFILE_NAME"] ?? "unspecified")\n"
+                + settings.debugDescription
+            let attachment = XCTAttachment(string: String(details.suffix(16000)))
+            attachment.name = "native-settings-\(phase)"
+            attachment.lifetime = .keepAlways
+            activity.add(attachment)
+            if settings.state == .runningForeground {
+                let screenshot = XCTAttachment(screenshot: settings.screenshot())
+                screenshot.name = "native-settings-\(phase)"
+                screenshot.lifetime = .keepAlways
+                activity.add(screenshot)
+            }
         }
+    }
+
+    @MainActor private static func reduceMotionControl() throws -> XCUIElement {
+        // Settings retains its previous pane across launches. Navigate from its
+        // root/sidebar each time, rather than reusing a control from another pane.
+        settings.terminate()
+        settings.launch()
         let cancelSearch = settings.buttons["Cancel"].firstMatch
         if settings.searchFields.firstMatch.exists, cancelSearch.exists {
             cancelSearch.tap()
@@ -71,8 +93,9 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         let accessibilityButton = settings.buttons["com.apple.settings.accessibility"].firstMatch
         let accessibilityCell = settings.cells.containing(.staticText, identifier: "Accessibility").firstMatch
         if !sidebar.exists {
-            for _ in 0 ..< 4 {
-                if accessibilityButton.exists || accessibilityCell.exists {
+            for _ in 0 ..< 6 {
+                if accessibilityButton.exists || accessibilityCell.exists,
+                   !settings.navigationBars["Accessibility"].exists {
                     break
                 }
                 let back = settings.navigationBars.buttons.matching(
@@ -89,13 +112,13 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         let motion = motionCell.exists ? motionCell : settings.cells.containing(.staticText, identifier: "Motion").firstMatch
         try revealSettingsElement(motion, scrolling: settingsContent())
         motion.tap()
-        guard control.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout) else {
+        guard reduceMotionSwitch.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout) else {
             throw NativeSettingsFailure(
                 description: "Reduce Motion switch missing after opening Motion. \(settings.debugDescription.suffix(10000))",
             )
         }
-        try revealSettingsElement(control, scrolling: settingsContent())
-        return control
+        try revealSettingsElement(reduceMotionSwitch, scrolling: settingsContent())
+        return reduceMotionSwitch
     }
 
     @MainActor private static func settingsContent() -> XCUIElement {
@@ -132,12 +155,12 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         return value == "1"
     }
 
-    @MainActor private static func setReduceMotion(_ enabled: Bool, control: XCUIElement) throws {
-        if try reduceMotionValue(control) != enabled {
-            control.tap()
+    @MainActor private static func setReduceMotion(_ enabled: Bool) throws {
+        if try reduceMotionValue(reduceMotionSwitch) != enabled {
+            reduceMotionSwitch.tap()
         }
         guard trinketWaitUntil(timeout: TrinketUITestCase.defaultTimeout, condition: {
-            control.value as? String == (enabled ? "1" : "0")
+            reduceMotionSwitch.value as? String == (enabled ? "1" : "0")
         }) else {
             throw NativeSettingsFailure(description: "Native Reduce Motion did not match requested value \(enabled)")
         }
@@ -155,7 +178,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         assertExists(card)
         card.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
-        try auditProductAccessibility()
+        try auditProductAccessibility(screen: "card-inspection")
         retainScreenshot(named: "card-inspection")
         dismissSheet(AccessibilityID.Battle.abilityDetail)
         tapWhenReady(battle.handCards.firstMatch)
@@ -163,7 +186,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         tapButton(AccessibilityID.Battle.retreat)
         assertExists(AccessibilityID.Battle.defeat)
         assertExistsAfterScroll(AccessibilityID.Battle.defeatLeaveButton, requireHittable: true)
-        try auditProductAccessibility()
+        try auditProductAccessibility(screen: "defeat-leave")
         // Native Dynamic Type audits can change the scroll position while exercising sizes.
         assertExistsAfterScroll(AccessibilityID.Battle.defeatLeaveButton, requireHittable: true)
         retainScreenshot(named: "defeat-leave")
@@ -178,7 +201,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         waitUntil("Restore must leave a usable control") { self.button(AccessibilityID.FullGame.restore).isEnabled }
         tapButton(AccessibilityID.FullGame.options)
         assertPurchaseProductLoaded()
-        try auditProductAccessibility()
+        try auditProductAccessibility(screen: "purchase-entry")
         retainScreenshot(named: "purchase-entry")
         dismissSheet(AccessibilityID.FullGame.offer)
     }
@@ -189,7 +212,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         try assertRequestedEnvironment()
         assertExists(AccessibilityID.Battle.victory)
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
-        try auditProductAccessibility()
+        try auditProductAccessibility(screen: "reward-claim")
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         retainScreenshot(named: "reward-claim")
         tapButton(AccessibilityID.Battle.continueButton)
@@ -209,7 +232,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
                 && environment["largestText"] as? Bool == large
                 && environment["reduceMotion"] as? Bool == reduced
         }) else {
-            throw NativeSettingsFailure(description: "Native settings did not reach SwiftUI: \(environment)")
+            throw NativeSettingsFailure(description: "[coverage prerequisite] Native settings did not reach SwiftUI: \(environment)")
         }
     }
 }

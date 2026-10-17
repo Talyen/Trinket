@@ -40,6 +40,19 @@ dispatch conventions belong in the owning test guide, including
 [BattleEngine](../../Packages/BattleEngine/Tests/README.md#conventions) and
 [Persistence](../../Packages/TrinketPersistence/Tests/README.md).
 
+When an API signature or combat rule changes, review consumers across production
+code, package tests and shared fixtures using the existing
+[caller investigation](../AgentContext/Retrieval.md#caller-navigation). Include
+unchanged consumers and migrate them in the same change. Repeat that review after
+incorporating current main before integration; a lightweight handoff does not prove
+Swift compilation. Retire an old expectation only after identifying the surviving
+behavioral contract.
+
+For balance changes, use authored catalog values to construct fixtures while keeping
+explicit expected gameplay outcomes that can catch an incorrect authored value.
+Assert numeric rules through typed results; localized-string assertions belong to
+presentation contracts and must use the intended locale/formatting behavior.
+
 Seed streams are separate universes, not one constant: the battle RNG seed
 (`CombatantFixtures.deterministicBattleSeed`, with
 `deterministicBattleSeedVariant(_:)` for independent streams) is the shared
@@ -78,7 +91,7 @@ Known intentional forks (do not "fix" toward a single default):
     conformances even when the parent type already has them.
 - **Lifecycle:** Prefer `@Suite` on package tests. Use `@MainActor` when UI/layout/store isolation requires it. Use `final class` + `init() throws` only for teardown ownership (`AppTestContext` / `PersistenceTestContext`).
 - **Stores (persistence reload semantics):** mutate → close/reload from disk → `#expect`; an in-memory accessor/setter round trip is not persistence coverage.
-- **Async/debounce:** inject short intervals in production inits; poll in tests — never `Task.sleep` for multi-second production delays.
+- **Async/debounce:** await an owned scheduled task when its completion is the contract; otherwise use bounded polling. Inject short intervals when testing a delay; never `Task.sleep` for multi-second production delays. Main-actor contention must not turn successful scheduled work into a failed wall-clock poll.
 - **Events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
 - **Script runners:** exercise real selection and execution with minimal sentinel
   suites; avoid recursively running unrelated regression suites just to prove runner

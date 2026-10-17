@@ -43,6 +43,18 @@ as infrastructure, SDK lookup timeouts as tooling; compiler errors and assertion
 take precedence over infrastructure noise. Setup failures publish their own
 diagnostic artifact even when no build/test step starts.
 
+Unit and native-comparator jobs each set an explicit diagnostics session inherited
+by every phase, staging and summary command. Preparation inventory timeouts are
+tooling failures, with `simulator-process-inventory` or `output-inventory` phase
+context; they do not establish a failed test. Read-only process and worktree
+inventories retry a transient timeout once and still refuse cleanup when ownership
+cannot be established. Real assertions and source compiler errors retain precedence
+when mixed with preparation noise.
+
+Required CI and advisory Player coverage summaries list each job's actual result
+and count failed and cancelled jobs separately. Requested execution cannot pass
+through a skipped job. Advisory exhaustive coverage remains independent of `CI OK`.
+
 Native Swift Testing failures extract assertions, test identities and source
 locations from the event stream, with compiler diagnostics from the raw log.
 An interrupted event stream does not discard earlier assertions. Successful native

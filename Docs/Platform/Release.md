@@ -325,7 +325,10 @@ primary `.tools` on `PATH`; integration supplies task-local then primary `.tools
 on `PATH` automatically. Existing pin checks still reject mismatched versions;
 build directories and generated resources are not shared.
 
-Review the complete task diff and relevant integration contracts, run the required
+For API or combat-semantic migrations, repeat the
+[consumer review](Testing.md#fixtures) after incorporating current main; include
+unchanged downstream tests and shared fixtures. Review the complete task diff and
+relevant integration contracts, run the required
 handoff, and commit only task-related files under the staging discipline below.
 Then, **from the task worktree**, run:
 

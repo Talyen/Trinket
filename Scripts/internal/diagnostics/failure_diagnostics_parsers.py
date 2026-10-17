@@ -121,6 +121,7 @@ def _prioritize_issues(issues: list[DiagnosticIssue]) -> list[DiagnosticIssue]:
 
 
 _CONFIGURATION_PATTERNS = (
+    r"\[coverage prerequisite\]",
     r"scheme .{0,80}not found",
     r"workspace .{0,40}does not contain",
     r"test plan",
@@ -346,6 +347,7 @@ def parse_build_results(build: dict[str, Any]) -> list[IssueObservation]:
 
 
 LOG_PATTERNS: tuple[tuple[str, str, str], ...] = (
+    (r"\[coverage prerequisite\]", "configuration", "Coverage prerequisite"),
     (r"\*\*\s*(?:TEST )?BUILD FAILED\s*\*\*", "build-failure", "Build failure"),
     (r"(?:undefined symbols for architecture|symbol\(s\) not found|duplicate symbol|linker command failed|ld: .*error|framework .* not found|library .* not found)", "build-failure", "Linker failure"),
     (r"xcrun.*--show-sdk-version.*timed out", "tooling", "SDK lookup timeout"),

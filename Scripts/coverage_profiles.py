@@ -126,6 +126,7 @@ def run_profiles(udid, output):
         for name, size, reduced in [('default', TEXT_SIZES[0], False), ('largest', TEXT_SIZES[1], False),
                                      ('largest-reduced', TEXT_SIZES[1], True)]:
             environment = dict(os.environ, TRINKET_UI_PLAN='Profiles', TRINKET_UI_SUCCESS_SCREENSHOTS='1',
+                               TEST_RUNNER_TRINKET_PROFILE_NAME=f'{output.name}/{name}',
                                TEST_RUNNER_TRINKET_PROFILE_LARGE_TEXT=str(int(size != 'large')),
                                TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION=str(int(reduced)))
             apply_size(size)

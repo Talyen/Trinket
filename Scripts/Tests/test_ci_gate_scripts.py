@@ -143,6 +143,19 @@ trinket_run_full_gate
             self.assertIn('::warning::Advisory exhaustive shard', result.stdout)
             self.assertIn('attention required', summary_path.read_text())
 
+    def test_status_report_preserves_cancellation_and_requires_requested_execution(self):
+        module = load_script('required_status_report', 'report-ci-status.py')
+        jobs = {'unit': {'result': 'success'}, 'native-parity': {'result': 'success'}}
+        summary, failed = module.report(jobs, 'Required CI checks', ['native-parity'])
+        self.assertFalse(failed)
+        self.assertIn('passed', summary)
+        for result in ('failure', 'cancelled', 'skipped'):
+            summary, failed = module.report({**jobs, 'native-parity': {'result': result}},
+                                            'Required CI checks', ['native-parity'])
+            self.assertTrue(failed)
+            self.assertIn(f'| native-parity | {result} |', summary)
+        self.assertTrue(module.report({'unit': jobs['unit']}, 'Required CI checks', ['native-parity'])[1])
+
     def test_requested_ui_aggregate_fails_on_skipped_failed_or_unavailable_execution(self):
         with tempfile.TemporaryDirectory() as directory:
             jobs = Path(directory) / 'jobs.json'

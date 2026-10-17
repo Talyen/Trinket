@@ -277,6 +277,8 @@ jobs:
     # so smoke/UI can start without waiting on package test products.
     # Sharded 4-way (Engine/State/Content/Battle) for faster push feedback.
     timeout-minutes: ${{ matrix.name == 'Battle' && 30 || 25 }}
+    env:
+      TRINKET_DIAGNOSTICS_SESSION_ID: unit-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Reserve diagnostic time
         shell: bash
@@ -323,43 +325,119 @@ jobs:
         uses: ./.github/actions/test-job
         with:
           artifact-name: unit-${{ matrix.name }}
-          defer-cleanup: ${{ (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push' }}
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test-ci-packages.sh ${{ matrix.packages }}
-      - name: Native and iOS pure-logic parity
+      - name: Export exact-run iOS comparator evidence
         if: (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
         env:
-          CI: true
-          NATIVE_PACKAGE: ${{ matrix.name == 'Engine' && 'BattleEngine' || 'TrinketCore' }}
-        run: python3 Scripts/ci-run-budget.py -- ./Scripts/test-package-host.sh --compare-ios "$NATIVE_PACKAGE"
-      - name: Summarize native qualification diagnostics
-        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
-        run: |
-          ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
-          if [[ "${{ job.status }}" != success ]]; then
-            ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/NativeQualification-artifact
-          fi
-      - name: Retain native qualification evidence
-        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
+          PACKAGE: ${{ matrix.name == 'Engine' && 'BattleEngine' || 'TrinketCore' }}
+        run: python3 Scripts/native-test-results.py export-ios "$PACKAGE" .DerivedData/TestResults/timing-log.jsonl .DerivedData/ParityProof/ios.json
+      - name: Retain required iOS comparator evidence
+        if: (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
-          name: native-proof-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            .DerivedData/TestResults/native-*
-            .DerivedData/TestResults/verification-budget-*
-            .DerivedData/TestResults/ci-diagnostics.json
-            .DerivedData/TestResults/timing-log.jsonl
-            .DerivedData/TestResults/raw/native-*
-            .DerivedData/NativeQualification-artifact
+          name: ${{ inputs.artifact-prefix }}ios-parity-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/ParityProof/ios.json
           retention-days: 14
-      - name: Clean retained comparator diagnostics
-        if: always() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
-        run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
+          if-no-files-found: error
 
       - name: Prune package build state
         if: success() && steps.package-cache.outputs.cache-hit != 'true'
         run: ./Scripts/prune-derived-data-cache.sh --ci
       - name: Save package build state
+        if: success() && steps.package-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
+        with:
+          path: ${{ steps.package-cache.outputs.cache-path }}
+          key: ${{ steps.package-cache.outputs.cache-key }}
+
+  native-parity:
+    name: Native parity (${{ matrix.name }})
+    needs: [unit]
+    if: github.event_name != 'push' && needs.unit.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Engine
+            package: BattleEngine
+            source-shard: Engine
+          - name: Core
+            package: TrinketCore
+            source-shard: ${{ inputs.qualify-native && 'Core' || 'State' }}
+    runs-on: xcode-27
+    timeout-minutes: 25
+    env:
+      CI: true
+      TRINKET_DIAGNOSTICS_SESSION_ID: parity-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+      TRINKET_IOS_COMPARATOR_PROOF: ${{ github.workspace }}/.DerivedData/Comparator/ios.json
+    steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 25 * 60 - 180 ))" >> "$GITHUB_ENV"
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: true
+          sparse-checkout: |
+            Scripts
+            Packages
+            Trinket
+            TrinketUITests
+            Trinket.xcodeproj
+            StoreKit
+            ContentManifest
+            Localization
+            ArtManifest
+            MusicManifest
+            SoundManifest
+            .github
+      - name: Assert sparse checkout kept root build inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f project.yml
+          test -f StoreKit/Trinket.storekit
+          test -f Smoke.xctestplan
+          test -f FullUI.xctestplan
+          test -f BattlePerformance.xctestplan
+      - uses: ./.github/actions/setup-trinket
+        with:
+          xcode-channel: ${{ inputs.xcode-channel }}
+          xcode-build: ${{ inputs.xcode-build }}
+      - uses: ./.github/actions/package-cache
+        id: package-cache
+        with:
+          shard: ${{ matrix.name }}
+          native-only: 'true'
+      - name: Download same-attempt iOS execution proof
+        uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317 # v4
+        with:
+          name: ${{ inputs.artifact-prefix }}ios-parity-${{ matrix.source-shard }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/Comparator
+      - name: Verify native execution and iOS parity
+        uses: ./.github/actions/test-job
+        with:
+          artifact-name: native-${{ matrix.name }}
+          artifact-prefix: ${{ inputs.artifact-prefix }}
+          defer-cleanup: 'true'
+          command: ./Scripts/test-package-host.sh --compare-ios ${{ matrix.package }}
+      - name: Retain native qualification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: ${{ inputs.artifact-prefix }}native-proof-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .DerivedData/TestResults/native-*
+            .DerivedData/TestResults/verification-budget-*
+            .DerivedData/TestResults/ci-diagnostics.json
+            .DerivedData/Comparator/ios.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Clean retained comparator diagnostics
+        if: always()
+        run: ./Scripts/ci-diagnostics.sh --cleanup .DerivedData/TestResults
+      - name: Save native compiler state
         if: success() && steps.package-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
         with:
@@ -491,22 +569,22 @@ jobs:
   # Exhaustive UI is advisory (nightly/dispatch) so it never blocks pushes.
   ci-ok:
     name: CI OK
-    needs: [changes, reuse, gate, assets-gate, build, release-device, unit]
+    needs: [changes, reuse, gate, assets-gate, build, release-device, unit, native-parity]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Verify all jobs succeeded or were skipped
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          sparse-checkout: Scripts
+      - name: Report required checks separately from advisory coverage
         env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
+          JOB_RESULTS: ${{ toJSON(needs) }}
+          REQUIRE_PARITY: ${{ github.event_name != 'push' && needs.unit.result == 'success' }}
         run: |
-          echo "Job results: $RESULTS"
-          for result in $RESULTS; do
-            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
-              echo "::error::A required job failed or was cancelled."
-              exit 1
-            fi
-          done
+          required=()
+          if [[ "$REQUIRE_PARITY" == true ]]; then required+=(native-parity); fi
+          python3 Scripts/report-ci-status.py --title 'Required CI checks' --require "${required[@]}"
 
   # Advisory aggregate — visible but not a required gate. Useful for nightly
   # dashboards; always succeeds on push so it never blocks ci-ok.

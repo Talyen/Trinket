@@ -6,15 +6,35 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import subprocess
 
 from script_test_support import load_script, write_json
 
 REUSE = load_script('ci_reuse_test', 'ci-reuse.py')
 RETRY = load_script('ci_retry_test', 'ci_ui_retry.py')
 AGGREGATE = load_script('ci_aggregate_test', 'ci-diagnostics.py')
+from internal import cli
 
 
 class CIEffortTests(unittest.TestCase):
+    def test_worktree_inventory_retries_only_timeout_and_never_caches_missing_ownership(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / '.git').mkdir()
+            listing = b'worktree ' + os.fsencode(root) + b'\0\0'
+            for recovers in (True, False):
+                cli.worktree_roots.cache_clear()
+                timeout = subprocess.TimeoutExpired(['git', 'worktree', 'list'], 10)
+                with patch.object(cli.subprocess, 'check_output', side_effect=[timeout, listing if recovers else timeout]) as query:
+                    if recovers:
+                        self.assertEqual(cli.worktree_roots(root), (root.resolve(),))
+                    else:
+                        with self.assertRaises(subprocess.TimeoutExpired):
+                            cli.worktree_roots(root)
+                        self.assertEqual(cli.worktree_roots.cache_info().currsize, 0)
+                    self.assertEqual([call.kwargs['timeout'] for call in query.call_args_list], [10, 30])
+            cli.worktree_roots.cache_clear()
+
     def proof_fixture(self):
         run = dict(id=10, head_sha='abc', head_branch='main', event='push', status='completed', conclusion='success')
         names = ['tests / CI OK', 'tests / gate / Generate and style', 'tests / Build and smoke UI']

@@ -247,46 +247,6 @@ class TrinketUITestCase: XCTestCase {
         return try XCTUnwrap(JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any])
     }
 
-    func auditProductAccessibility() throws {
-        let originalContinueAfterFailure = continueAfterFailure
-        continueAfterFailure = true
-        defer { continueAfterFailure = originalContinueAfterFailure }
-        let application = try XCTUnwrap(app)
-        try trinketOnMainActor {
-            // Keep every iOS audit, but give each its own native deadline on older runtimes.
-            let types: [XCUIAccessibilityAuditType] = [
-                .contrast, .elementDetection, .hitRegion, .sufficientElementDescription,
-                .dynamicType, .textClipped, .trait,
-            ]
-            for type in types {
-                @MainActor func audit() throws {
-                    try application.performAccessibilityAudit(for: type) { issue in
-                        // Exclude only the opt-in Debug observation label, never product controls.
-                        if issue.element?.identifier == AccessibilityID.Debug.coverageDiagnostics {
-                            return true
-                        }
-                        let detail = "\(issue.compactDescription)\n\(issue.detailedDescription)\n"
-                            + String((issue.element?.debugDescription ?? "No element").prefix(3000))
-                        let attachment = XCTAttachment(string: detail)
-                        let activityName = "Native audit \(issue.auditType.rawValue)"
-                        attachment.name = activityName
-                        attachment.lifetime = .keepAlways
-                        XCTContext.runActivity(named: activityName) { activity in
-                            activity.add(attachment)
-                        }
-                        return false
-                    }
-                }
-                do {
-                    try audit()
-                } catch let error as NSError where error.domain == "com.apple.xcode.xctest.accessibilityAudit" && error.code == -56 {
-                    // Retry one native audit timeout; violations and a second timeout still fail.
-                    try audit()
-                }
-            }
-        }
-    }
-
     func retainScreenshot(named name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name

@@ -237,6 +237,7 @@ def normalise_report(
         {
             "label": label,
             "action": manifest.get("action", "unknown"),
+            "phase": manifest.get("phase", payload.get("phase", "")),
             "classification": classification,
             "exit_code": exit_code,
             "status": status,
@@ -448,6 +449,7 @@ def main(argv: list[str] | None = None, environ: dict[str, str] | None = None) -
         return {
             "label": report.get("label", ""),
             "action": report.get("action", "unknown"),
+            "phase": report.get("phase", ""),
             "classification": report.get("classification", "unknown"),
             "exit_code": report.get("exit_code", 1),
             "status": report.get("status", "unknown"),

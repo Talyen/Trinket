@@ -15,6 +15,7 @@ from internal.diagnostics.diagnostic_model import (
 )
 from internal.diagnostics.diagnostic_rendering import render_annotation
 from internal.diagnostics.failure_diagnostics_parsers import parse_log
+from internal.diagnostics.execution_identity import execution_identity, require_hosted_identity
 
 PACKAGES = ('BattleEngine', 'TrinketCore')
 
@@ -148,6 +149,37 @@ def compare(native: dict, rows: list[dict], commit: str) -> dict:
             'native': 'passed', 'ios': 'passed'}
 
 
+def ios_transfer(package: str, rows: list[dict], identity: dict) -> dict:
+    require_hosted_identity(identity)
+    candidates = [row for row in rows if row.get('mode') == 'package:' + package]
+    if len(candidates) != 1:
+        raise ValueError('Transfer requires exactly one iOS comparator invocation')
+    row = candidates[0]
+    summary, tests = row.get('summary', {}), row.get('tests', [])
+    if (row.get('commit') != identity['commit'] or row.get('execution_identity') != identity
+            or summary.get('result') != 'Passed' or type(summary.get('passed')) is not int
+            or not tests or summary['passed'] != len(tests)
+            or any(type(summary.get(key)) is not int or summary[key] != 0 for key in ('failed', 'skipped'))
+            or any(not isinstance(test, dict) or test.get('result') != 'Passed'
+                   or not isinstance(test.get('id'), str) or '/' not in test['id']
+                   or not isinstance(test.get('arguments'), list)
+                   or any(result != 'Passed' for result in test['arguments']) for test in tests)
+            or len({test['id'] for test in tests}) != len(tests)):
+        raise ValueError('Transfer requires complete successful same-run iOS execution evidence')
+    return {'schema_version': 1, 'package': package, 'execution_identity': identity, 'ios': row}
+
+
+def compare_transfer(native: dict, transfer: dict, identity: dict) -> dict:
+    require_hosted_identity(identity)
+    if (type(transfer.get('schema_version')) is not int or transfer['schema_version'] != 1
+            or transfer.get('execution_identity') != identity or native.get('execution_identity') != identity
+            or transfer.get('package') not in PACKAGES
+            or native.get('native_test', {}).get('package') != transfer['package']):
+        raise ValueError('Parity evidence differs in repository, revision, run, attempt, toolchain or package')
+    validated = ios_transfer(transfer['package'], [transfer['ios']], identity)
+    return compare(native, [validated['ios']], identity['commit'])
+
+
 def write_receipt(output: Path, result: dict) -> None:
     result = {'schema_version': 1, 'generated_at': datetime.now(timezone.utc).isoformat(),
               'session_id': os.environ.get('TRINKET_DIAGNOSTICS_SESSION_ID', ''), **result}
@@ -167,12 +199,28 @@ def main() -> None:
     parity = sub.add_parser('compare')
     for name in ('native', 'timing', 'output'):
         parity.add_argument(name, type=Path)
+    transfer = sub.add_parser('export-ios')
+    transfer.add_argument('package', choices=PACKAGES)
+    transfer.add_argument('timing', type=Path)
+    transfer.add_argument('output', type=Path)
+    transferred = sub.add_parser('compare-transfer')
+    for name in ('native', 'ios', 'output'):
+        transferred.add_argument(name, type=Path)
     args = parser.parse_args()
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
-    if args.action == 'compare':
+    identity = execution_identity(commit)
+    if args.action == 'export-ios':
+        result = ios_transfer(args.package, [json.loads(line) for line in args.timing.read_text().splitlines()], identity)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(result) + '\n')
+        return
+    if args.action in ('compare', 'compare-transfer'):
         try:
-            result = compare(json.loads(args.native.read_text()),
-                             [json.loads(line) for line in args.timing.read_text().splitlines()], commit)
+            native = json.loads(args.native.read_text())
+            if args.action == 'compare-transfer':
+                result = compare_transfer(native, json.loads(args.ios.read_text()), identity)
+            else:
+                result = compare(native, [json.loads(line) for line in args.timing.read_text().splitlines()], commit)
         except (OSError, ValueError, KeyError, TypeError) as error:
             message = f'{args.native.name}: {error}'
             write_receipt(args.output.with_name('native-parity-diagnostics.json'),
@@ -201,6 +249,7 @@ def main() -> None:
               'status': 'passed' if status == 0 else 'failed', 'exit_code': status,
               'classification': classification, 'issues': issues,
               'commit': commit, 'native_test': proof, 'test_execution_proven': status == 0,
+              'execution_identity': identity,
               'native_artifacts': [str(args.events), str(args.catalog), str(args.log)],
               'completion_source': 'process-exit', 'raw_log_path': str(args.log),
               'generated_at': datetime.now(timezone.utc).isoformat(),

@@ -24,10 +24,16 @@ def worktree_roots(root: Path) -> tuple[Path, ...]:
     root = root.resolve()
     if not (root / ".git").exists():
         return (root,)
-    listing = subprocess.check_output(
-        ["git", "-C", str(root), "worktree", "list", "--porcelain", "-z"],
-        timeout=10,
-    )
+    for timeout in (10, 30):
+        try:
+            listing = subprocess.check_output(
+                ["git", "-C", str(root), "worktree", "list", "--porcelain", "-z"],
+                timeout=timeout,
+            )
+            break
+        except subprocess.TimeoutExpired:
+            if timeout == 30:
+                raise
     roots = tuple(Path(os.fsdecode(field[len(b"worktree "):])).resolve()
                   for field in listing.split(b"\0") if field.startswith(b"worktree "))
     if not roots:

@@ -258,6 +258,78 @@ class CIImprovementsTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 NATIVE.compare(native, rows, 'other-sha')
 
+    def test_transferred_parity_rejects_foreign_attempt_toolchain_and_incomplete_scope(self):
+        with tempfile.TemporaryDirectory() as directory:
+            events, catalog, _ = self.native_fixture(Path(directory))
+            proof = NATIVE.execution('TrinketCore', events, catalog)
+            identity = dict(commit='a' * 40, GITHUB_REPOSITORY='owner/repo', GITHUB_RUN_ID='10',
+                            GITHUB_RUN_ATTEMPT='2', XCODE_VERSION='27.1', XCODE_BUILD='27A9275')
+            native = dict(native_test=proof, commit=identity['commit'], execution_identity=identity,
+                          status='passed', exit_code=0, issues=[])
+            row = dict(mode='package:TrinketCore', commit=identity['commit'], execution_identity=identity,
+                       summary=dict(result='Passed', passed=1, failed=0, skipped=0),
+                       tests=[dict(id=proof['executed_tests'][0], result='Passed', arguments=['Passed'])])
+            transfer = NATIVE.ios_transfer('TrinketCore', [row], identity)
+            self.assertEqual(NATIVE.compare_transfer(native, transfer, identity)['matched_tests'], 1)
+            for key, value in [('commit', 'b' * 40), ('GITHUB_REPOSITORY', 'fork/repo'), ('GITHUB_RUN_ID', '11'),
+                               ('GITHUB_RUN_ATTEMPT', '1'), ('XCODE_VERSION', '27.2'), ('XCODE_BUILD', '27B5028f')]:
+                with self.subTest(key=key):
+                    wrong = {**identity, key: value}
+                    with self.assertRaises(ValueError):
+                        NATIVE.compare_transfer(native, {**transfer, 'execution_identity': wrong}, identity)
+                    with self.assertRaises(ValueError):
+                        NATIVE.compare_transfer({**native, 'execution_identity': wrong}, transfer, identity)
+                    with self.assertRaises(ValueError):
+                        NATIVE.ios_transfer('TrinketCore', [{**row, 'execution_identity': wrong}], identity)
+            for altered in ([], [row, row], [{**row, 'tests': []}],
+                            [{**row, 'summary': {**row['summary'], 'skipped': 1}}],
+                            [{**row, 'tests': [{**row['tests'][0], 'arguments': ['Not Run']}]}]):
+                with self.assertRaises(ValueError):
+                    NATIVE.ios_transfer('TrinketCore', altered, identity)
+            with self.assertRaises(ValueError):
+                NATIVE.compare_transfer(native, {**transfer, 'package': 'BattleEngine'}, identity)
+            with self.assertRaises(ValueError):
+                NATIVE.ios_transfer('TrinketCore', [row], {})
+
+    def test_inventory_preparation_is_tooling_and_preserves_mixed_assertions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            results = Path(directory)
+            environment = {'TRINKET_DIAGNOSTICS_SESSION_ID': 'unit-State-10-2'}
+            messages = [
+                ('Simulator guest process inspection failed: ps timed out after 30 seconds', 'simulator-process-inventory'),
+                ("Output cleanup refused: Command ['git', 'worktree', 'list'] timed out after 30 seconds", 'output-inventory'),
+            ]
+            for message, phase in messages:
+                BUDGET.preparation_report(['test'], results, environment, 1, 40, message, 'package-test')
+                reports = [json.loads(path.read_text()) for path in results.glob('*-diagnostics.json')]
+                self.assertTrue(any(row['phase'] == phase and row['classification'] == 'tooling' for row in reports))
+            AGGREGATE.main([directory, str(results / 'ci-diagnostics.json')], environment)
+            aggregate = json.loads((results / 'ci-diagnostics.json').read_text())
+            self.assertEqual(aggregate['category'], 'tooling')
+            self.assertEqual({row['phase'] for row in aggregate['invocations']}, {phase for _, phase in messages})
+            BUDGET.preparation_report(['test'], results, environment, 1, 40,
+                                      messages[0][0] + '\nExpectation failed: savedReward == 10', 'package-test')
+            AGGREGATE.main([directory, str(results / 'ci-diagnostics.json')], environment)
+            self.assertEqual(json.loads((results / 'ci-diagnostics.json').read_text())['category'], 'test-failure')
+            BUDGET.preparation_report(['test'], results, environment, 1, 40,
+                                      messages[0][0] + '\nTest process crashed: signal SIGABRT', 'package-test')
+            self.assertTrue(any(any(issue['kind'] == 'test-failure' and 'SIGABRT' in issue['message']
+                                    for issue in json.loads(path.read_text())['issues'])
+                                for path in results.glob('preparation-*-diagnostics.json')))
+
+    def test_unit_and_parity_jobs_keep_sessions_and_separate_execution_deadlines(self):
+        workflow = (ROOT / '.github/workflows/tests.yml').read_text()
+        unit = workflow.split('  unit:\n', 1)[1].split('  native-parity:\n', 1)[0]
+        parity = workflow.split('  native-parity:\n', 1)[1].split('  exhaustive-ui:\n', 1)[0]
+        self.assertIn('TRINKET_DIAGNOSTICS_SESSION_ID: unit-', unit)
+        self.assertNotIn('test-package-host.sh --compare-ios', unit)
+        self.assertIn('export-ios', unit)
+        self.assertIn('TRINKET_DIAGNOSTICS_SESSION_ID: parity-', parity)
+        self.assertIn('timeout-minutes: 25', parity)
+        self.assertIn('+ 25 * 60 - 180', parity)
+        self.assertIn('ios-parity-${{ matrix.source-shard }}-${{ github.run_id }}-${{ github.run_attempt }}', parity)
+        self.assertIn('unit, native-parity]', workflow.split('  ci-ok:\n', 1)[1])
+
     def test_deadline_exhaustion_preserves_failure_and_never_starts_work(self):
         with tempfile.TemporaryDirectory() as directory:
             marker = Path(directory) / 'started'

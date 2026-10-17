@@ -16,6 +16,7 @@ from internal.output_retention import read_timing, update_timing
 from pathlib import Path
 
 from internal.diagnostics.xcresult_diagnostics import run_xcresulttool, walk_test_nodes
+from internal.diagnostics.execution_identity import execution_identity
 
 
 def duration_number(value: object) -> float:
@@ -218,7 +219,12 @@ def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
                 pass
         parsed = parse_xcresult(path, manifest)
         recorded_xcresult = str(path)
-    append_entry(results_dir, log_path, {"recorded_at": datetime.now(timezone.utc).isoformat(), "commit": current_commit(), "run": run, "mode": mode, "targets": values["targets"], "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds, "xcresult": recorded_xcresult, **parsed})
+    commit = current_commit()
+    append_entry(results_dir, log_path, {"recorded_at": datetime.now(timezone.utc).isoformat(), "commit": commit,
+                                       "execution_identity": execution_identity(commit),
+                                       "run": run, "mode": mode, "targets": values["targets"],
+                                       "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds,
+                                       "xcresult": recorded_xcresult, **parsed})
     # Quiet test runs print nothing on success; this single line is the
     # terminal-visible proof that tests executed and their outcome.
     summary = parsed["summary"]

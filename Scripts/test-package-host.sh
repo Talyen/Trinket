@@ -42,6 +42,10 @@ for package in "$@"; do
   python3 Scripts/native-test-results.py record "$package" "$data.events.jsonl" "$data.catalog" \
     "$RESULTS_DIR/raw/native-$package.log" "$prefix-diagnostics.json" --exit-code "$status"
   if [[ "$compare" == true ]]; then
-    python3 Scripts/native-test-results.py compare "$prefix-diagnostics.json" "$RESULTS_DIR/timing-log.jsonl" "$prefix-parity.json"
+    if [[ -n "${TRINKET_IOS_COMPARATOR_PROOF:-}" ]]; then
+      python3 Scripts/native-test-results.py compare-transfer "$prefix-diagnostics.json" "$TRINKET_IOS_COMPARATOR_PROOF" "$prefix-parity.json"
+    else
+      python3 Scripts/native-test-results.py compare "$prefix-diagnostics.json" "$RESULTS_DIR/timing-log.jsonl" "$prefix-parity.json"
+    fi
   fi
 done

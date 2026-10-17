@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+import re
 import signal
 import shlex
 import subprocess
@@ -19,6 +20,27 @@ from internal.diagnostics.diagnostic_model import CLASSIFICATION_PRECEDENCE, Dia
 from internal.diagnostics.failure_diagnostics_parsers import parse_log
 
 
+def preparation_observations(log: Path, status: int, output: str, phase: str) -> tuple[str, list]:
+    observations = [item for item in parse_log(log, status) if item.kind != 'unknown']
+    inventory_phases = (
+        ('Simulator guest process inspection failed:', 'simulator-process-inventory'),
+        ('Output cleanup refused:', 'output-inventory'),
+    )
+    inventory = next((name for marker, name in inventory_phases if marker in output), '')
+    # The generic log parser treats "inspection failed" as a test failure. These
+    # safety checks run before tests; preserve real assertions/compiler errors if mixed in.
+    if inventory:
+        phase = inventory
+        observations = [item for item in observations
+                        if item.kind != 'test-failure'
+                        or not any(marker in item.message for marker, _ in inventory_phases)
+                        or re.search(r'XCTAssert|XCTFail|[Aa]ssertion failed|[Ee]xpectation failed|Issue recorded:', item.message)]
+        observations.append(IssueObservation('tooling', 'Preparation inventory', output.strip()[-2000:]))
+    if phase == 'toolchain':
+        observations = [IssueObservation('tooling', 'Xcode preparation', output.strip()[-2000:])]
+    return phase, observations
+
+
 def preparation_report(command: list[str], results: Path, environment: dict[str, str],
                        status: int, elapsed: float, output: str, phase: str) -> None:
     results.mkdir(parents=True, exist_ok=True)
@@ -26,10 +48,7 @@ def preparation_report(command: list[str], results: Path, environment: dict[str,
     log = results / 'raw' / (label + '.log')
     log.parent.mkdir(parents=True, exist_ok=True)
     log.write_text(output)
-    observations = [item for item in parse_log(log, status) if item.kind != 'unknown']
-    # SDK/toolchain introspection can time out before a test process exists.
-    if phase == 'toolchain':
-        observations = [IssueObservation('tooling', 'Xcode preparation', output.strip()[-2000:] or shlex.join(command))]
+    phase, observations = preparation_observations(log, status, output, phase)
     if not observations:
         observations = [IssueObservation('unknown', 'Command preparation', output.strip()[-2000:] or
                                          f'{shlex.join(command)} exited {status} before recording an invocation')]
@@ -82,7 +101,7 @@ def timeout_report(command: list[str], results: Path, environment: dict[str, str
     log = results / 'raw/verification-budget.log'
     log.parent.mkdir(parents=True, exist_ok=True)
     log.write_text(output)
-    observations = [item for item in parse_log(log, 124) if item.kind != 'unknown']
+    phase, observations = preparation_observations(log, 124, output, phase)
     observations.append(IssueObservation('tooling', 'Verification deadline', message, details=shlex.join(command)))
     kinds = {item.kind for item in observations}
     classification = next(kind for kind in CLASSIFICATION_PRECEDENCE if kind in kinds)
@@ -106,7 +125,7 @@ def run(command: list[str], environment: dict[str, str], phase: str = 'command-p
     environment = {**environment, 'TRINKET_DIAGNOSTICS_SESSION_ID': environment.get('TRINKET_DIAGNOSTICS_SESSION_ID') or 'ci-budget-' + uuid.uuid4().hex}
     results = Path(environment.get('RESULTS_DIR', '.DerivedData/TestResults')).resolve()
     if seconds is not None and seconds <= 0:
-        timeout_report(command, results, environment)
+        timeout_report(command, results, environment, phase=phase)
         return 124
     # Give xcode-runner time to produce its ordinary completion manifest first.
     env = dict(environment)

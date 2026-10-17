@@ -234,13 +234,14 @@ esac
                     ('failure', 'skipped', 'skipped', 'skipped', 1), ('cancelled', 'skipped', 'skipped', 'skipped', 1),
                     ('skipped', 'skipped', 'success', 'skipped', 0)]:
                 result = run_captured(
-                    ['bash', '-ec', command],
+                    ['bash', '-ec', command], cwd=ROOT,
                     env={
                         **os.environ,
-                        'IOS18_RUNTIME': runtime,
-                        'COMPATIBILITY': compatibility,
-                        'PROFILES': profiles,
-                        'SOAK': soak,
+                        'JOB_RESULTS': json.dumps({name: {'result': result} for name, result in zip(
+                            ('ios18-runtime', 'compatibility', 'profiles', 'soak'), (runtime, compatibility, profiles, soak))}),
+                        'COMPATIBILITY_REQUESTED': str(runtime != 'skipped').lower(),
+                        'PROFILES_REQUESTED': str(profiles != 'skipped').lower(),
+                        'SOAK_REQUESTED': str(soak != 'skipped').lower(),
                         'GITHUB_STEP_SUMMARY': str(Path(temporary) / 'summary'),
                     },
                 )

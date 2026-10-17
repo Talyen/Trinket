@@ -322,6 +322,7 @@ class ReporterTests(unittest.TestCase):
                 "simulator-infrastructure",
             ),
             ("xcodebuild: error: Scheme 'Trinket' not found", "configuration"),
+            ('failed: caught error: "[coverage prerequisite] Could not apply native Reduce Motion"', "configuration"),
             ("xcode-select: error: toolchain is not configured", "tooling"),
         )
         with tempfile.TemporaryDirectory() as temporary:
