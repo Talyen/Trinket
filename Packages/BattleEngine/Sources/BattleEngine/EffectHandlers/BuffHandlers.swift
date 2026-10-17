@@ -138,10 +138,8 @@ extension EffectApplication {
         case .nextStrikeLeech: event = (.leechApplied, 0, effect.keyword)
         case .nextStrikeDamageKeywordOverride: event = (.damageKeywordOverrideApplied, 0, effect.keyword)
         case .freezeNextAttacker: event = (.controlApplied, 0, effect.keyword)
-        case let .restoreManaOnHit(amount, turns):
-            context.insertEffect(effect, to: target, sourceID: source.id, remainingTurns: turns)
-            emit(.manaShieldApplied, amount: amount, keyword: .mana, in: &context)
-            return EffectApplyOutcome(didApply: true)
+        case let .restoreManaOnHit(amount, _):
+            return store(replacing: { _ in false }, event: (.manaShieldApplied, amount, .mana), in: &context)
         default:
             return EffectApplyOutcome(didApply: false)
         }

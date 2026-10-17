@@ -11,16 +11,13 @@ extension EffectApplication {
             return EffectApplyOutcome(didApply: false)
         }
         var effects = context.roster.activeEffects(for: target)
-        let indices = effects.indices.filter {
-            isDetonatableDoT(effects[$0].effect, keyword: keyword)
-        }
-        guard let firstIndex = indices.first,
+        guard let firstIndex = effects.firstIndex(where: { isDetonatableDoT($0.effect, keyword: keyword) }),
               !CombatTriggerEngine.preventsDebuff(effects[firstIndex].effect, on: target, in: context)
         else {
             return EffectApplyOutcome(didApply: false)
         }
         var total = 0
-        for index in indices {
+        for index in effects.indices where isDetonatableDoT(effects[index].effect, keyword: keyword) {
             let multiplied = SaturatedArithmetic.saturatingMul(effects[index].effect.potency ?? 0, factor)
             switch keyword {
             case .burn: effects[index].effect = .burn(multiplied)
@@ -44,18 +41,17 @@ extension EffectApplication {
         }
         context.resolution.enter(.detonation)
         defer { context.resolution.leave(.detonation) }
-        var effects = context.roster.activeEffects(for: target)
-        let matching = effects.filter {
-            isDetonatableDoT($0.effect, keyword: keyword)
+        var matching: [ActiveEffect] = []
+        context.roster.mutateRuntime(for: target) { runtime in
+            runtime.activeEffects.removeAll { active in
+                guard isDetonatableDoT(active.effect, keyword: keyword) else { return false }
+                matching.append(active)
+                return true
+            }
         }
         guard !matching.isEmpty else {
             return EffectApplyOutcome(didApply: false)
         }
-        effects.removeAll {
-            isDetonatableDoT($0.effect, keyword: keyword)
-        }
-        context.roster.setActiveEffects(effects, for: target)
-
         for active in matching {
             await detonate(active, factor: factor, in: &context)
         }

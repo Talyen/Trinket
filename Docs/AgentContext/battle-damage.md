@@ -172,6 +172,9 @@ Removal events report what was actually removed: one event per removed buff for
 purge, one per distinct keyword for cleanse. Empty purge reports `didApply:false`;
 empty cleanse still reports any heal and side-effect events as applied
 (`didApply` reflects emitted events).
+Random Purge selects from the surviving eligible buffs in original stack order,
+preserving the seeded RNG stream. Multi-keyword Cleanse retains keyword order and
+original stack order within each keyword for reflection.
 Legacy debuff reflection returns a triggered Stun or Freeze at the recipient's control
 threshold, so a larger enemy Health pool cannot turn the reflected status into
 partial buildup. Untriggered buildup retains its removed amount.

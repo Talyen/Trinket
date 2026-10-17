@@ -84,9 +84,7 @@ enum EffectRemovalOperation {
         var removed: [ActiveEffect] = switch selection {
         case let .all(keyword): EffectRemoval.removeDebuffs(from: &effects, keyword: keyword)
         case let .keywords(keywords):
-            keywords.sorted { $0.rawValue < $1.rawValue }.flatMap {
-                EffectRemoval.removeDebuffs(from: &effects, keyword: $0)
-            }
+            EffectRemoval.removeDebuffs(from: &effects, keywords: keywords)
         case .randomDebuff: EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng).map { [$0] } ?? []
         }
         if !removed.isEmpty {
@@ -101,7 +99,9 @@ enum EffectRemovalOperation {
                 removed.append(extra)
             }
         }
-        context.roster.setActiveEffects(effects, for: target)
+        if !removed.isEmpty {
+            context.roster.setActiveEffects(effects, for: target)
+        }
         for effect in removed {
             context.additionalControlSkipsByEffectID.removeValue(forKey: effect.id)
         }
@@ -206,7 +206,7 @@ enum EffectRemovalOperation {
         case let .all(keyword):
             EffectRemoval.removeBuffs(from: &effects, keyword: keyword, preservingBlock: preservingBlock)
         case let .randomBuffs(count):
-            EffectRemoval.removeBuffs(from: &effects, count: max(0, count), preservingBlock: preservingBlock, using: &context.rng)
+            EffectRemoval.removeBuffs(from: &effects, count: count, preservingBlock: preservingBlock, using: &context.rng)
         }
         guard !removed.isEmpty else {
             return Outcome(removed: [], application: EffectApplyOutcome(didApply: false))

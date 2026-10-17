@@ -43,7 +43,8 @@ package extension BattleState {
             applyFightPacing: amountBasis == .base,
             in: &self,
         )
-        if applied > 0, spendsPreparation {
+        guard applied > 0 else { return 0 }
+        if spendsPreparation {
             roster.mutateRuntime(for: target) {
                 $0.talents.pending.nextBlockGainMultiplier = nil
             }
@@ -95,7 +96,8 @@ package extension BattleState {
         at index: Int? = nil,
         replacing matches: (Effect) -> Bool = { _ in false },
     ) -> Bool {
-        guard !CombatTriggerEngine.preventsPurgedEffect(effect, on: target, in: self),
+        guard roster.participant(for: target) != nil,
+              !CombatTriggerEngine.preventsPurgedEffect(effect, on: target, in: self),
               !interceptDebuff(effect, on: target) else { return false }
         let effectID = consumeNextEffectID()
         let activeEffect = ActiveEffect(

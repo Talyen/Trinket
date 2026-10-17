@@ -43,6 +43,12 @@ struct BattleRosterTests {
         #expect(roster.hero.currentHealth == 20)
         #expect(roster.companion.currentHealth == 20)
         #expect(roster.enemy.currentHealth == 20)
+
+        var battle = BattleStateTestFactory.makeMinimalBattle()
+        let nextID = battle.nextEffectID
+        let inserted = battle.insertEffect(.marked(3, 2), to: foreign.combatant, remainingTurns: 2)
+        #expect(!inserted)
+        #expect(battle.nextEffectID == nextID)
     }
 
     @Test func `identity selects the live runtime and rejects a mismatched role`() {

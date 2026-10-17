@@ -19,7 +19,9 @@ restoration events, battle-log totals, and healing triggers still use actual res
 Gold grants require a positive request and a living recipient before flat bonuses;
 Gold-gain reactions require a positive actual grant, including when the Gold ledger is saturated.
 Nonpositive Mana restoration leaves the balance unchanged. Block grants reject
-defeated recipients before preparations, feedback, or partner sharing.
+defeated recipients before preparations, feedback, or partner sharing; capacity-limited
+zero gains preserve preparations and emit no success feedback. Rejected Maximum Mana
+and Mana Shield buffs grant neither restoration nor application feedback.
 `CombatGain` owns bounded applied gains; proportional effects use `CombatRounding`
 without an implicit minimum-one grant. Lingering Blessing stores its amount,
 source, and remaining duration together. Pruning removes its requested Thorns

@@ -129,12 +129,12 @@ struct EffectApplication {
             guard amount > 0 else {
                 return EffectApplyOutcome(didApply: false)
             }
-            context.insertEffect(
+            guard context.insertEffect(
                 .maximumManaBonus(amount),
                 to: target,
                 sourceID: source.id,
                 remainingTurns: 0,
-            )
+            ) else { return EffectApplyOutcome(didApply: false) }
             _ = await restoreMana(amount, in: &context)
             return EffectApplyOutcome(didApply: true)
         case let .partyDamageBonus(amount):

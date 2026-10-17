@@ -212,6 +212,7 @@ package enum DoTApplicator {
         var remaining = amount
         var effects = context.roster.activeEffects(for: target)
         for index in effects.indices where effects[index].effect.keyword == keyword && effects[index].effect.isDecayingDoT {
+            guard remaining > 0 else { break }
             let potency = effects[index].effect.potency ?? 0
             let consumed = min(potency, remaining)
             effects[index].effect = .decayingDoT(keyword: keyword, potency: potency - consumed)

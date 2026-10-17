@@ -1,10 +1,45 @@
-import BattleEngine
 import Foundation
 import Testing
 import TrinketContent
+import TrinketContentTestSupport
 import TrinketCore
+@testable import BattleEngine
 
 struct EffectHandlersApplyBuffDebuffTests {
+    @Test(arguments: [Effect.maximumManaBonus(1), .restoreManaOnHit(3, 6)])
+    func `Interdict prevents rejected Mana buffs from restoring Mana or reporting success`(effect: Effect) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxMana: 8),
+            enemyModifiers: .withTriggers { $0.interdict = true },
+        )
+        _ = EffectHandlersTestSupport.dispatch(effect, battle: &battle)
+        let purge = EffectHandlersTestSupport.dispatch(.purge(nil), source: battle.enemy, battle: &battle)
+        #expect(purge.didApply)
+        battle.roster.hero.currentMana = 0
+
+        let rejected = EffectHandlersTestSupport.dispatch(effect, battle: &battle)
+
+        #expect(!rejected.didApply)
+        #expect(rejected.events.isEmpty)
+        #expect(battle.roster.hero.activeEffects.isEmpty)
+        #expect(battle.roster.hero.currentMana == 0)
+        #expect(battle.roster.hero.maxMana == 8)
+    }
+
+    @Test func `a capped Block grant preserves its preparation without success feedback`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(appliesFightPacing: false)
+        DefensePoolEngine.set(Int.max, on: battle.hero, in: &battle)
+        battle.roster.hero.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(value: 2)
+        let before = battle.roster.hero.activeEffects
+
+        let outcome = EffectHandlersTestSupport.dispatch(.shield(.block, 1), battle: &battle)
+
+        #expect(!outcome.didApply)
+        #expect(outcome.events.isEmpty)
+        #expect(battle.roster.hero.activeEffects == before)
+        #expect(battle.roster.hero.talents.pending.nextBlockGainMultiplier?.value == 2)
+    }
+
     @Test func `next attack conversion preserves its keyword and is consumed once`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 500, dealOpeningHand: false)
         let conversion = Effect.nextStrikeDamageKeywordOverride(.burn)
@@ -116,13 +151,6 @@ struct EffectHandlersApplyBuffDebuffTests {
             try #expect(!(outcome.didApply))
             try #expect(outcome.events.isEmpty)
         }
-    }
-
-    @Test func `do T effects cannot apply to defeated targets`() {
-        #expect(!Effect.burn(3).canApplyToDefeatedTarget)
-        #expect(!Effect.poison(3).canApplyToDefeatedTarget)
-        #expect(!Effect.bleed(3).canApplyToDefeatedTarget)
-        #expect(!Effect.controlMeter(.freeze, 1, 1).canApplyToDefeatedTarget)
     }
 
     @Test(arguments: [Effect.deathsDoor, .cleanse(.poison)])

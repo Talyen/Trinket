@@ -8,6 +8,14 @@ enum EffectRemoval {
         removeMatching(from: &effects, keyword: keyword) { $0.effect.isRemovableDebuff }
     }
 
+    static func removeDebuffs(from effects: inout [ActiveEffect], keywords: Set<Keyword>) -> [ActiveEffect] {
+        let removed = removeMatching(from: &effects, keyword: nil) {
+            $0.effect.isRemovableDebuff && keywords.contains($0.keyword)
+        }
+        // Stable sorting preserves stack order within each reflected keyword.
+        return removed.sorted { $0.keyword.rawValue < $1.keyword.rawValue }
+    }
+
     static func removeRandomDebuff(
         from effects: inout [ActiveEffect],
         using rng: inout SeededRandomNumberGenerator,
@@ -30,12 +38,19 @@ enum EffectRemoval {
         preservingBlock: Bool = false,
         using rng: inout SeededRandomNumberGenerator,
     ) -> [ActiveEffect] {
+        guard count > 0 else { return [] }
+        var candidates = effects.indices.filter {
+            effects[$0].effect.isRemovableBuff && !(preservingBlock && effects[$0].effect.kind == .shield)
+        }
+        guard !candidates.isEmpty else { return [] }
         var removed: [ActiveEffect] = []
-        for _ in 0 ..< count {
-            guard let buff = removeRandom(from: &effects, using: &rng, where: {
-                $0.effect.isRemovableBuff && !(preservingBlock && $0.effect.kind == .shield)
-            }) else { break }
-            removed.append(buff)
+        for _ in 0 ..< min(count, candidates.count) {
+            guard let offset = candidates.indices.randomElement(using: &rng) else { break }
+            let index = candidates.remove(at: offset)
+            removed.append(effects.remove(at: index))
+            for candidate in candidates.indices where candidates[candidate] > index {
+                candidates[candidate] -= 1
+            }
         }
         return removed
     }
