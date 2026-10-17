@@ -31,7 +31,7 @@ public enum BalanceSweepRunner {
         let comparedRecords: [BalanceBattleRecord]
         let comparedPolicyID: String?
         if config.comparePolicies, config.mode == .identity || config.mode == .all {
-            let other = config.comparePolicy
+            let other: PlayPolicy = resolvedPolicy == .setupAware ? .greedy : .setupAware
             comparedPolicyID = other.id
             comparedRecords = runIdentitySweep(
                 config: config,

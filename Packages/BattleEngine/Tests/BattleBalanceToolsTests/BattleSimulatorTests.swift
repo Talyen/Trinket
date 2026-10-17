@@ -5,6 +5,22 @@ import TrinketCore
 @testable import BattleBalanceTools
 
 struct BattleSimulatorTests {
+    @Test func `matchup attribution includes only compatible equipped gear`() throws {
+        let hero = try #require(GameContent.hero(matching: "knight"))
+        let inventory = GameContent.uniqueItems
+        let item = try #require(inventory.first { $0.baseType.slot == .weapon })
+        var equipment = EquipmentLoadout()
+        equipment.equip(item, in: .weapon, inventory: inventory)
+        let matchup = try SimulationMatchupBuilder.build(
+            hero: hero, companion: #require(GameContent.companions.first),
+            enemy: #require(GameContent.enemies.first), tier: .middle,
+            heroLoadout: hero.abilityLoadout, companionLoadout: AbilityLoadout(), seed: 42,
+            heroGear: .init(inventory: inventory, loadout: equipment),
+        )
+        #expect(matchup.context.heroItemBaseIDs == [item.baseType.id])
+        #expect(matchup.context.heroAffixIDs == item.affixes.map(\.id))
+    }
+
     @Test func `greedy policy reaches outcome deterministically`() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let companion = try #require(GameContent.companions.first)
@@ -25,29 +41,6 @@ struct BattleSimulatorTests {
 
         #expect(first == second)
         #expect(first.timedOut == false || first.actions > 0)
-    }
-
-    @Test func `tracks events false keeps event log empty`() throws {
-        let hero = try #require(GameContent.heroes.first)
-        let companion = try #require(GameContent.companions.first)
-        let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
-        var battle = BattleState(
-            hero: hero,
-            companion: companion,
-            enemy: enemy.combatant,
-            rngSeed: 7,
-            tracksLog: false,
-            tracksEvents: false,
-        )
-        #expect(battle.events.isEmpty)
-
-        if let card = battle.hand.cards.first(where: { battle.isCardPlayable($0) }) {
-            _ = try battle.playCard(cardID: card.id, rebuildLog: false)
-        } else {
-            _ = battle.endTurn(rebuildLog: false)
-        }
-
-        #expect(battle.events.isEmpty)
     }
 
     @Test func `mid tier gear uses build aligned affixes only`() throws {

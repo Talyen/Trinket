@@ -9,7 +9,6 @@ enum BalanceTalentContrastRunner {
         var focusID: String
         var siblingID: String?
         var prefix: Set<String>
-        var treeKeyword: Keyword
     }
 
     struct KitFocus {
@@ -31,7 +30,6 @@ enum BalanceTalentContrastRunner {
                             focusID: focus.id,
                             siblingID: nodes.first(where: { $0.id != focus.id })?.id,
                             prefix: prefix,
-                            treeKeyword: tree.keyword,
                         )
                     }
                 }
@@ -126,7 +124,7 @@ enum BalanceTalentContrastRunner {
                 baselineID: f.siblingID ?? "none",
                 ownerID: f.owner.id,
                 baselineKind: f.siblingID == nil ? .none : .sibling,
-                nonCombat: f.treeKeyword == .gold,
+                nonCombat: false,
             )
         case let .kit(f):
             (

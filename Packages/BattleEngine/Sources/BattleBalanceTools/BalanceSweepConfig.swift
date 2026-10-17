@@ -95,10 +95,6 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         self.usesTierTalentBuilds = usesTierTalentBuilds
     }
 
-    public func sliceWork<Item>(_ items: [Item]) -> [Item] {
-        Array(items[workIndices(count: items.count)])
-    }
-
     /// Select global indices before constructing work so each worker only plans
     /// its assigned slice. Clamp the length before adding to avoid overflow.
     func workIndices(count: Int) -> Range<Int> {
@@ -121,11 +117,5 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
 
     public var policy: PlayPolicy {
         PlayPolicy(rawValue: policyID) ?? .greedy
-    }
-
-    public var comparePolicy: PlayPolicy {
-        policyID == PlayPolicy.setupAware.rawValue
-            ? .greedy
-            : .setupAware
     }
 }

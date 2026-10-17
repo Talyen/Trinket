@@ -32,10 +32,8 @@ enum BalanceMarkdownTables {
         ] as [(String, [WinRateSummary], Int?)] {
             appendSection(title: title, summaries: summaries, into: &lines, flaggedPlusTop: limit)
         }
-        if tierStats.tier.includesGear {
-            appendSection(title: "Item Bases (within owner)", summaries: tierStats.items, into: &lines, flaggedPlusTop: 25)
-            appendSection(title: "Item Affixes (within owner)", summaries: tierStats.affixes, into: &lines, flaggedPlusTop: 25)
-        }
+        appendSection(title: "Item Bases (within owner)", summaries: tierStats.items, into: &lines, flaggedPlusTop: 25)
+        appendSection(title: "Item Affixes (within owner)", summaries: tierStats.affixes, into: &lines, flaggedPlusTop: 25)
         for (title, cells) in [
             ("Hero × companion (flagged)", tierStats.heroCompanionCells),
             ("Hero × enemy (flagged)", tierStats.heroEnemyCells),
@@ -204,8 +202,11 @@ enum BalanceMarkdownTables {
             identityLow.append(contentsOf: tier.heroes)
             identityLow.append(contentsOf: tier.companions)
             identityLow.append(contentsOf: tier.enemies)
+            identityLow.append(contentsOf: tier.items)
             identityLow.append(contentsOf: tier.abilities)
             identityLow.append(contentsOf: tier.talents)
+            identityLow.append(contentsOf: tier.enemyAbilities)
+            identityLow.append(contentsOf: tier.enemyTraits)
             identityLow.append(contentsOf: tier.affixes)
         }
         identityLow = identityLow.filter(\.sampleTooLow)

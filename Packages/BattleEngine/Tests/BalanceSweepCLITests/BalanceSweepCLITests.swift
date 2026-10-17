@@ -18,6 +18,11 @@ struct BalanceSweepCLITests {
     @Test func `CLI flags use the canonical configuration`() throws {
         #expect(try BalanceSweepCLI.parseInvocation([]).config == BalanceSweepConfig())
         #expect(try BalanceSweepCLI.parseInvocation(["--tiers", ""]).config.tiers == BalanceSweepConfig().tiers)
+        #expect(try BalanceSweepCLI.parseInvocation(["--tiers", "early,mid,middle,early,late"]).config.tiers == [
+            .early,
+            .middle,
+            .lateGame,
+        ])
         let parsed = try BalanceSweepCLI.parseInvocation([
             "--mode", "affix-contrast", "--samples", "7", "--seed", "42", "--tiers", "mid,late",
             "--jobs", "3", "--max-rounds", "9", "--max-actions", "11", "--pacing", "off",

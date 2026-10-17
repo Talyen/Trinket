@@ -146,6 +146,7 @@ extension BalanceSweepCLI {
     static func parseTiers(_ raw: String) throws -> [SimulationPowerTier] {
         let parts = raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         guard !parts.isEmpty else { return SimulationPowerTier.allCases }
+        var seen: Set<SimulationPowerTier> = []
         return try parts.map { part -> SimulationPowerTier in
             guard let tier = SimulationPowerTier(rawValue: part)
                 ?? SimulationPowerTier(rawValue: part.lowercased())
@@ -154,7 +155,7 @@ extension BalanceSweepCLI {
                 throw CLIError.invalidTier(raw)
             }
             return tier
-        }
+        }.filter { seen.insert($0).inserted }
     }
 
     static let aliasTier: [String: SimulationPowerTier] = [

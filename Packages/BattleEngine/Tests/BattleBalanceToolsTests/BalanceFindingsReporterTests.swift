@@ -3,6 +3,26 @@ import Testing
 @testable import BattleBalanceTools
 
 struct BalanceFindingsReporterTests {
+    @Test func `unfinished progression cannot report a clean bill of health`() throws {
+        let step = try #require(ModeProgressionTracker.campaign().steps.first)
+        let sample = ProgressionBattleRecord(
+            step: step, playerLevel: 1, enemyLevel: step.enemyLevel, seed: 1,
+            result: BattleSimResult(
+                outcome: .defeat, rounds: 1, actions: 1, timedOut: true,
+                partyHPRemainingFraction: 1, enemyHPRemainingFraction: 1,
+            ),
+        )
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(mode: .modeProgression), policyID: "greedy-v1",
+            progressionHotspots: HotspotAnalyzer.analyze(records: [sample]), progressionRecords: [sample],
+            progressionPlayerStates: [PlayerProgressionState()], progressionTruncatedRuns: 1, elapsedSeconds: 0,
+        )
+        let findings = BalanceFindingsReporter.render(report)
+        #expect(findings.contains("STALL"))
+        #expect(findings.contains("INCOMPLETE"))
+        #expect(!findings.contains("No flags"))
+    }
+
     @Test func `findings omit presence tables and include flagged enemy`() {
         var records: [BalanceBattleRecord] = []
         for index in 0 ..< 10 {
@@ -251,6 +271,7 @@ struct BalanceFindingsReporterTests {
         var record = identityRecord(enemyID: "enemy", isBoss: false, abilities: [], win: true, seed: 1)
         record.heroAffixIDs = ["keen", "keen", "keen"]
         record.companionAffixIDs = ["keen", "keen"]
+        record.heroItemBaseIDs = ["blade"]
         let report = BalanceSweepReport(
             config: BalanceSweepConfig(tiers: [.early]), policyID: "greedy-v1",
             records: Array(repeating: record, count: 3), elapsedSeconds: 0,
@@ -258,6 +279,10 @@ struct BalanceFindingsReporterTests {
         let rows = BalanceStatsAggregator.summarize(report: report)[0].affixes
         #expect(rows.count == 2)
         #expect(rows.allSatisfy { $0.battles == 3 && $0.wins == 3 && $0.sampleTooLow })
+        let markdown = BalanceMarkdownReporter.render(report)
+        #expect(markdown.contains("Item Bases (within owner)"))
+        #expect(markdown.contains("Item Affixes (within owner)"))
+        #expect(markdown.contains("`blade`"))
     }
 
     @Test func `encounter tables compare only matching boss or trash samples`() {

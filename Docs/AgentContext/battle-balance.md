@@ -73,7 +73,9 @@ sweeps use the shell's selected toolchain; the required CI pin does not select i
 for this command (see [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder)).
 
 Within each process, `SweepWorkerPool.map` bounds concurrent simulations and
-returns non-nil results in input order. Shared claims and result storage use
+returns non-nil results in input order. Requested work slices apply within each
+selected mode before worker chunking, and the merged report retains that request.
+Shared claims and result storage use
 `Mutex`; simulation work stays outside the lock. Keep results `Sendable` rather
 than bypassing concurrency checks on a shared collection.
 
@@ -95,12 +97,16 @@ when the decided battles look healthy. Raw paired results and worker summaries
 share one accumulation path, keyed by typed identities including tier, entity, baseline, owner, and baseline kind.
 Worker merges weight HP and round deltas by decided-pair counts and recompute flags
 using the parent configuration.
+Progression findings also identify capped battles and incomplete runs, even when
+there are no decided samples from which to flag a difficulty hotspot.
 
 Affix contrasts remove or replace only the focused affix, preserving other
 affixes and their rolled powers on the compared item and all shared gear.
 
 Presence tables count an item or affix once per owner per battle, regardless of
-how many equipped slots carry it. These are associations; use the paired ability,
+how many equipped slots carry it. Attribution includes only gear that survives
+loadout sanitization, including early starter gear; unequipped inventory is excluded.
+These are associations; use the paired ability,
 talent, and affix modes to isolate changes. Pairing outliers can appear even when
 neither partner is individually unusual. Flags are investigation candidates,
 not proof of causation or a correction for testing many comparisons.
@@ -136,6 +142,9 @@ Talent contrasts include every authored row. A focused node is compared with
 its sibling when present, or with the same prerequisite build without that node
 for a single-node row. Reordered nodes use their current positions for legality;
 tiers without enough talent points are skipped rather than given illegal builds.
+Gold talent comparisons remain eligible for findings: their Block, damage, draw,
+and healing effects can change combat outcomes. Do not suppress a whole tree
+based on its keyword.
 
 Wizard's Mana Shield talent grants base Block equal to unspent Mana, capped at
 six per turn, without spending Mana. Ordinary Block gain modifiers still apply;

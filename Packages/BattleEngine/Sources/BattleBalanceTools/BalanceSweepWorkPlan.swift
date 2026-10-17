@@ -48,11 +48,12 @@ public enum BalanceSweepWorkPlan {
     public static func workerJobs(config: BalanceSweepConfig) -> [BalanceSweepWorkerJob] {
         let modes = config.mode == .all ? modeChunks : modeChunks.filter { $0.mode == config.mode }
         return modes.flatMap { mode, size in
-            chunkRanges(
-                workCount: workCount(for: mode, config: config),
+            let work = config.workIndices(count: workCount(for: mode, config: config))
+            return chunkRanges(
+                workCount: work.count,
                 chunkSize: size,
             ).map { range in
-                BalanceSweepWorkerJob(mode: mode, offset: range.offset, limit: range.limit)
+                BalanceSweepWorkerJob(mode: mode, offset: work.lowerBound + range.offset, limit: range.limit)
             }
         }
     }

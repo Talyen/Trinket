@@ -5,6 +5,17 @@ import TrinketCore
 @testable import BattleBalanceTools
 
 struct BalanceTalentContrastTests {
+    @Test func `gold talents retain combat findings`() {
+        let report = BalanceSweepRunner.run(config: BalanceSweepConfig(
+            mode: .talentContrast, battlesPerTier: 8, tiers: [.early], maxRounds: 1, jobs: 1,
+            heroIDs: ["rogue"], companionIDs: ["bear"], enemyIDs: ["living_armor"],
+            focusIDs: ["rogue_gold_t1_2"],
+        ))
+        #expect(report.talentContrasts.count == 1)
+        #expect(report.talentContrasts.first?.flagged == true)
+        #expect(report.talentContrasts.first?.flagReason == "ENTITY STALL, BASELINE STALL")
+    }
+
     @Test func `paired talent builds preserve the partner and differ only by the focused choice`() throws {
         let wizard = try #require(GameContent.hero(matching: "wizard"))
         let wolf = try #require(GameContent.companion(matching: "wolf"))

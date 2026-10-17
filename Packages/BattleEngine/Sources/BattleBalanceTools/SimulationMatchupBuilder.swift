@@ -275,17 +275,21 @@ public enum SimulationMatchupBuilder {
             using: &randomNumberGenerator,
         ) ?? GearOverride(inventory: [], loadout: EquipmentLoadout())
 
+        let equipment = gear.loadout.sanitized(for: scaled, inventory: gear.inventory)
+        let equipped = scaled.role.equipmentSlots.compactMap { slot in
+            equipment.itemID(for: slot).flatMap { id in gear.inventory.first { $0.id == id } }
+        }
         let build = CombatBuildResolver.build(
             combatant: scaled,
-            equipmentLoadout: gear.loadout.sanitized(for: scaled, inventory: gear.inventory),
-            inventory: gear.inventory,
+            equipmentLoadout: equipment,
+            inventory: equipped,
             unlockedTalents: slot.talents,
         )
         return (
             build,
             loadout,
-            gear.inventory.flatMap { $0.affixes.map(\.id) },
-            gear.inventory.map(\.baseType.id),
+            equipped.flatMap { $0.affixes.map(\.id) },
+            equipped.map(\.baseType.id),
         )
     }
 }

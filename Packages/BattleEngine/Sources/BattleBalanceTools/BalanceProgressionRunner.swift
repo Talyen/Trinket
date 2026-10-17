@@ -16,10 +16,13 @@ public enum BalanceProgressionRunner {
         truncatedRuns: Int,
     ) {
         let totalRuns = max(1, config.battlesPerTier)
-        let work = config.sliceWork(Array(0 ..< totalRuns))
+        let work = config.workIndices(count: totalRuns)
+        guard !work.isEmpty else { return ([], [], [], 0) }
+        let roster = config.resolvedRoster
+        precondition(!roster.heroes.isEmpty && !roster.companions.isEmpty)
 
         let results = SweepWorkerPool.map(count: work.count, jobs: config.resolvedJobs) { index in
-            simulateRun(config: config, policy: policy, runIndex: work[index])
+            simulateRun(config: config, policy: policy, roster: roster, runIndex: work.lowerBound + index)
         }
 
         let allRecords = results.flatMap(\.records)
@@ -33,12 +36,12 @@ public enum BalanceProgressionRunner {
     private static func simulateRun(
         config: BalanceSweepConfig,
         policy: PlayPolicy,
+        roster: BalanceSweepRoster,
         runIndex: Int,
     ) -> (records: [ProgressionBattleRecord], endState: PlayerProgressionState, didTruncate: Bool) {
         let runSeed = config.seed &+ UInt64(runIndex) &* 1000003
-        let roster = config.resolvedRoster
         let hero = roster.heroes[runIndex % roster.heroes.count]
-        let companion = roster.companions[(runIndex / max(roster.heroes.count, 1)) % roster.companions.count]
+        let companion = roster.companions[(runIndex / roster.heroes.count) % roster.companions.count]
         let controller = InterleavingPlayerController(
             hero: hero, companion: companion,
             campaignTracker: .campaign(worldSeed: runSeed), worldSeed: runSeed,

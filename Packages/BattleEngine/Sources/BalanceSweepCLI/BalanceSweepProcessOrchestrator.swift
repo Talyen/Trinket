@@ -44,8 +44,8 @@ enum BalanceSweepProcessOrchestrator {
             + Double(elapsed.components.attoseconds) / 1e18
         return BalanceSweepReport.merged(
             slices,
-            config: unsliced(config),
-            policyID: slices.first?.policyID ?? "greedy-v1",
+            config: config,
+            policyID: config.policy.id,
             elapsedSeconds: elapsedSeconds,
         )
     }
@@ -97,13 +97,6 @@ enum BalanceSweepProcessOrchestrator {
             let data = try Data(contentsOf: item.output)
             return try JSONDecoder().decode(BalanceSweepReport.self, from: data)
         }
-    }
-
-    private static func unsliced(_ config: BalanceSweepConfig) -> BalanceSweepConfig {
-        var copy = config
-        copy.workOffset = 0
-        copy.workLimit = nil
-        return copy
     }
 }
 

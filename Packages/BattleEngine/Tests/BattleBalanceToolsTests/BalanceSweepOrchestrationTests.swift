@@ -6,6 +6,23 @@ import TrinketCore
 @testable import BattleBalanceTools
 
 struct BalanceSweepOrchestrationTests {
+    @Test func `worker jobs honor requested slices without repeating other work`() {
+        var config = BalanceSweepConfig(
+            battlesPerTier: 20, tiers: [.early, .middle],
+            workOffset: 17, workLimit: 19, enemyIDs: ["living_armor"],
+        )
+        let jobs = BalanceSweepWorkPlan.workerJobs(config: config)
+        #expect(jobs.map(\.offset) == [17, 33])
+        #expect(jobs.map(\.limit) == [16, 3])
+        config.workOffset = 39
+        #expect(BalanceSweepWorkPlan.workerJobs(config: config).map(\.limit) == [1])
+        config.workOffset = 40
+        #expect(BalanceSweepWorkPlan.workerJobs(config: config).isEmpty)
+        config.workOffset = 0
+        config.workLimit = 0
+        #expect(BalanceSweepWorkPlan.workerJobs(config: config).isEmpty)
+    }
+
     @Test func `work plan chunks cover exact count`() {
         let ranges = BalanceSweepWorkPlan.chunkRanges(workCount: 34, chunkSize: 16)
         #expect(ranges.map(\.offset) == [0, 16, 32])
@@ -306,6 +323,9 @@ struct BalanceSweepOrchestrationTests {
         let report = BalanceSweepRunner.run(
             config: config, heroes: heroes, companions: companions, enemies: enemies,
         )
+        for candidate in enemies {
+            #expect(report.records.count { $0.enemyID == candidate.id } == 12)
+        }
         let enemy = try #require(enemies.last)
         let records = report.records.filter { $0.enemyID == enemy.id }
         let pairs = Set(records.map { "\($0.heroID)|\($0.companionID)" })

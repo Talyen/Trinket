@@ -125,6 +125,19 @@ public enum BalanceFindingsReporter {
             findings.append(contentsOf: contrastFindings(section.rows, kind: section.kind))
         }
         findings.append(contentsOf: progressionFindings(report.progressionHotspots))
+        let unfinished = report.progressionRecords.count { $0.result.timedOut }
+        if unfinished > 0 {
+            findings.append(Finding(
+                score: 1,
+                line: "Progression: ⚠ STALL · \(unfinished)/\(report.progressionRecords.count) battles reached a simulation cap; win rates exclude these unfinished fights.",
+            ))
+        }
+        if report.progressionTruncatedRuns > 0 {
+            findings.append(Finding(
+                score: 1,
+                line: "Progression: ⚠ INCOMPLETE · \(report.progressionTruncatedRuns)/\(report.progressionPlayerStates.count) runs ended before advancing content completed.",
+            ))
+        }
         findings.append(contentsOf: crossTierFindings(tiers: snapshots.tiers))
         return findings.sorted {
             $0.score != $1.score ? $0.score > $1.score : $0.line < $1.line

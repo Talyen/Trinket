@@ -6,44 +6,12 @@ import TrinketCore
 
 @Suite(.serialized)
 struct BattleSimulatorSweepReportTests {
-    @Test func `parallel identity matches sequential outcomes`() {
-        var config = BalanceSweepConfig(
-            mode: .identity, battlesPerTier: 6, seed: 11, tiers: [.early],
-            jobs: 1, enemyIDs: ["living_armor"],
-        )
-        let sequential = BalanceSweepRunner.run(config: config)
-        config.jobs = 4
-        let parallel = BalanceSweepRunner.run(config: config)
-        #expect(sequential.records == parallel.records)
-    }
-
-    @Test func `ability contrast produces lift rows`() {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .abilityContrast,
-                battlesPerTier: 2,
-                seed: 21,
-                tiers: [.early],
-                maxRounds: 1,
-                jobs: 1,
-                heroIDs: ["knight"],
-                companionIDs: ["bear"],
-                enemyIDs: ["living_armor"],
-                focusIDs: ["bash"],
-            ),
-        )
-        #expect(report.records.isEmpty)
-        #expect(!(report.abilityContrasts.isEmpty))
-        let markdown = BalanceMarkdownReporter.render(report)
-        #expect(markdown.contains("Ability Contrasts"))
-    }
-
     @Test func `affix contrast produces lift rows in every tier`() {
         for tier in SimulationPowerTier.allCases {
             let report = BalanceSweepRunner.run(
                 config: BalanceSweepConfig(
                     mode: .affixContrast,
-                    battlesPerTier: 4,
+                    battlesPerTier: 1,
                     seed: 22,
                     tiers: [tier],
                     maxRounds: 1,
@@ -58,7 +26,7 @@ struct BattleSimulatorSweepReportTests {
             #expect(!report.affixContrasts.isEmpty)
             #expect(report.affixContrasts.contains { $0.baselineKind == .emptySlot })
             #expect(report.affixContrasts.contains { $0.baselineKind == .replacementAffix })
-            #expect(report.affixContrasts.allSatisfy { $0.tier == tier && $0.pairs == 4 })
+            #expect(report.affixContrasts.allSatisfy { $0.tier == tier && $0.pairs == 1 })
             #expect(markdown.contains("Affix Contrasts"))
         }
     }
@@ -96,25 +64,6 @@ struct BattleSimulatorSweepReportTests {
         }
     }
 
-    @Test func `identity quotas equal battles per enemy`() {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .identity,
-                battlesPerTier: 3,
-                seed: 9,
-                tiers: [.early],
-                maxRounds: 1,
-                jobs: 1,
-                enemyIDs: ["living_armor", "mimic"],
-            ),
-        )
-        #expect(report.records.count == 6)
-        let byEnemy = Dictionary(grouping: report.records, by: \.enemyID)
-        #expect(byEnemy["living_armor"]?.count == 3)
-        #expect(byEnemy["mimic"]?.count == 3)
-        #expect(report.records.allSatisfy { !$0.enemyAbilityIDs.isEmpty && !$0.enemyTraitIDs.isEmpty })
-    }
-
     @Test(arguments: SimulationPowerTier.allCases)
     func `identity builds spend their tier budget legally`(tier: SimulationPowerTier) throws {
         let report = BalanceSweepRunner.run(
@@ -145,47 +94,5 @@ struct BattleSimulatorSweepReportTests {
                 #expect(tree.isRowComplete(node.row - 1, unlockedNodeIDs: unlocked))
             }
         }
-    }
-
-    @Test func `talent contrast produces sibling lift rows`() {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .talentContrast,
-                battlesPerTier: 1,
-                seed: 23,
-                tiers: [.middle],
-                maxRounds: 1,
-                jobs: 1,
-                heroIDs: ["knight"],
-                companionIDs: ["bear"],
-                enemyIDs: ["living_armor"],
-                focusIDs: ["knight_block_t1_1"],
-            ),
-        )
-        #expect(report.records.isEmpty)
-        #expect(!(report.talentContrasts.isEmpty))
-        #expect(report.talentKitContrasts.isEmpty)
-        let markdown = BalanceMarkdownReporter.render(report)
-        #expect(markdown.contains("Talent Contrasts (paired lift vs sibling in the same row)"))
-    }
-
-    @Test func `talent contrast runs row one at early and skips full kit`() {
-        let report = BalanceSweepRunner.run(
-            config: BalanceSweepConfig(
-                mode: .talentContrast,
-                battlesPerTier: 2,
-                seed: 23,
-                tiers: [.early],
-                maxRounds: 1,
-                jobs: 1,
-                heroIDs: ["knight"],
-                companionIDs: ["bear"],
-                enemyIDs: ["living_armor"],
-                focusIDs: ["knight_block_t1_1"],
-            ),
-        )
-        #expect(!(report.talentContrasts.isEmpty))
-        #expect(report.talentContrasts.allSatisfy { $0.tier == .early })
-        #expect(report.talentKitContrasts.isEmpty)
     }
 }

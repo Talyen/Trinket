@@ -38,11 +38,24 @@ struct BalanceSweepSliceTests {
     @Test func `work slices clip oversized limits without overflow or allocation`() {
         let config = BalanceSweepConfig(workOffset: 7, workLimit: Int.max)
         #expect(config.workIndices(count: 10) == 7 ..< 10)
-        #expect(config.sliceWork(Array(0 ..< 10)) == [7, 8, 9])
         #expect(config.workIndices(count: 0).isEmpty)
         #expect(BalanceSweepConfig(workOffset: Int.max).workIndices(count: 10).isEmpty)
         #expect(BalanceSweepConfig(workLimit: 0).workIndices(count: Int.max).isEmpty)
         #expect(BalanceSweepConfig(workOffset: Int.max - 2, workLimit: 1).workIndices(count: Int.max) == (Int.max - 2) ..< (Int.max - 1))
+        let empty = BalanceProgressionRunner.run(
+            config: BalanceSweepConfig(battlesPerTier: Int.max, workLimit: 0), policy: .greedy,
+        )
+        #expect(empty.records.isEmpty && empty.playerStates.isEmpty && empty.truncatedRuns == 0)
+    }
+
+    @Test func `policy comparison uses the other policy after an explicit override`() {
+        var config = Self.config(mode: .identity)
+        config.comparePolicies = true
+        config.workLimit = 1
+        let report = BalanceSweepRunner.run(config: config, policy: .setupAware)
+        #expect(report.policyID == "setup-v1")
+        #expect(report.comparedPolicyID == "greedy-v1")
+        #expect(report.comparedRecords.map(\.policyID) == ["greedy-v1"])
     }
 
     private static func config(mode: BalanceSweepMode) -> BalanceSweepConfig {
@@ -60,6 +73,7 @@ struct BalanceSweepSliceTests {
             var slice = config
             slice.workOffset = range.offset
             slice.workLimit = range.limit
+            slice.jobs = 2
             return slice
         }
     }
