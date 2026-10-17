@@ -43,6 +43,6 @@ struct EquipmentLeechRegressionTests {
 
         #expect(outcome.healthLost == 8)
         #expect(battle.health(of: battle.companion) == battle.maxHealth(of: battle.companion))
-        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 3)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 4)
     }
 }

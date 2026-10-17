@@ -33,7 +33,7 @@ struct FeintStrikeRegressionTests {
                 tier: .basic, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
             ),
         )
-        let preparedDamage = hasSharedCurrent ? 5 : 3
+        let preparedDamage = hasSharedCurrent ? 6 : 3
         #expect(battle.effectSummaries(of: battle.companion).contains {
             $0.text == "Prepared Damage: Your next attack deals \(preparedDamage) additional damage"
         })

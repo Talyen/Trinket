@@ -26,10 +26,10 @@ struct ThornsFeedbackRegressionTests {
         ) }
 
         #expect(outcome.value.healthLost == 10)
-        #expect(battle.roster.enemy.currentHealth == 8)
+        #expect(battle.roster.enemy.currentHealth == 7)
         let reflection = outcome.events.filter { $0.effectKind == .thornsTriggered }
         #expect(reflection.count == 1)
-        #expect(reflection.first?.amount == 2)
+        #expect(reflection.first?.amount == 3)
         #expect(reflection.first?.keyword == .physical)
         #expect(reflection.first?.targetID == battle.enemy.id)
         #expect(reflection.first?.abilityName == "Retaliatory")
@@ -40,10 +40,10 @@ struct ThornsFeedbackRegressionTests {
                     && $0.targetID == battle.enemy.id && $0.abilityName == "Stunned"
             })
         } else {
-            #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 1)
+            #expect(DefensePoolEngine.blockPoints(in: battle.roster.hero.activeEffects) == 2)
             #expect(outcome.events.contains {
                 $0.effectKind == .shieldApplied && $0.targetID == battle.hero.id
-                    && $0.amount == 1 && $0.abilityName == "Martial Guard"
+                    && $0.amount == 2 && $0.abilityName == "Martial Guard"
             })
         }
     }

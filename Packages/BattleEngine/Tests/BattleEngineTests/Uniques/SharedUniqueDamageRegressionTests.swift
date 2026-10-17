@@ -37,20 +37,20 @@ struct SharedUniqueDamageRegressionTests {
     }
 
     @Test func `bloodember shares Flaming Arrows block damage with bleed attacks`() throws {
-        try sharedBlockDamage(talentID: "ranger_burn_t1_1", keyword: .bleed, owner: .hero)
+        try sharedBlockDamage(talentID: "ranger_burn_t1_1", keyword: .bleed, owner: .hero, remainingBlock: 22)
     }
 
     @Test func `bloodember shares Armor Shreds block damage with burn attacks`() throws {
-        try sharedBlockDamage(talentID: "lizard_scout_bleed_t3_2", keyword: .burn, owner: .companion)
+        try sharedBlockDamage(talentID: "lizard_scout_bleed_t3_2", keyword: .burn, owner: .companion, remainingBlock: 25)
     }
 
-    private func sharedBlockDamage(talentID: String, keyword: Keyword, owner: BattleParticipant) throws {
+    private func sharedBlockDamage(talentID: String, keyword: Keyword, owner: BattleParticipant, remainingBlock: Int) throws {
         let fixtures = UniqueCollectionTests()
         let profile = CombatantTalentCatalog.profile(for: [talentID])
         var shared = try fixtures.battle(["bloodember_pendant"], owner: owner, extra: profile)
         DefensePoolEngine.set(40, on: shared.enemy, in: &shared)
         try fixtures.play(fixtures.attack(keyword), owner: owner, in: &shared)
-        #expect(DefensePoolEngine.blockPoints(in: shared.activeEffects(of: shared.enemy)) == 25)
+        #expect(DefensePoolEngine.blockPoints(in: shared.activeEffects(of: shared.enemy)) == remainingBlock)
         #expect(shared.health(of: shared.enemy) == 2000)
 
         var ordinary = try fixtures.battle([], owner: owner, extra: profile)

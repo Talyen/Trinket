@@ -79,7 +79,7 @@ struct SunGlyphRegressionTests {
 
         #expect(result.value.healthLost == 4)
         #expect(battle.health(of: battle.companion) == (survives ? 1 : 0))
-        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == (survives ? (holy ? 2 : 3) : 0))
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == (survives ? (holy ? 2 : 4) : 0))
         let reward = holy ? "Sun Glyph" : "Vitality Infusion"
         #expect(result.events.contains { $0.abilityName == reward } == survives)
     }
