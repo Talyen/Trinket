@@ -558,8 +558,7 @@ Death's Door, including its ongoing Burn damage.
 ### Block theft and protection
 
 Block theft transfers only available Block without multiplying the amount.
-Fox's Light-Fingered rolls once per stealing ability to steal all available enemy
-Block. Adamant Carapace increases its owner's Block absorption by 50% for all damage
+Adamant Carapace increases its owner's Block absorption by 50% for all damage
 types through the ordinary absorption calculation. The numeric absorption trigger
 uses a neutral multiplier of one; the legacy doubling field remains readable for
 retained serialized powers.
