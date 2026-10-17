@@ -193,7 +193,7 @@ extension UniqueCollectionTests {
         var triggers = CombatTraitTriggers()
         triggers.blockGainThornsPercent = 0.5
         triggers.retainedBlockGainThornsPercent = 0.5
-        let events = context.recordingEvents { context in await CombatTriggerEngine.applyBlockThorns(
+        let events = context.recordingEvents { context in CombatTriggerEngine.applyBlockThorns(
             amount: 10,
             triggers: triggers,
             actor: enemy,

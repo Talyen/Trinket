@@ -50,13 +50,25 @@ public enum BattleLoot {
         )
         let itemModifier = modifier?.isItemFocused == true ? modifier
             : additionalModifier?.isItemFocused == true ? additionalModifier : nil
-        let modifiers = [modifier, additionalModifier].compactMap(\.self)
-        let focuses = modifiers.compactMap(\.materialFocus)
+        var focuses: [HomesteadResource] = []
+        if let f = modifier?.materialFocus {
+            focuses.append(f)
+        }
+        if let f = additionalModifier?.materialFocus {
+            focuses.append(f)
+        }
         let range = quantityRange(forLevel: encounterLevel)
         let multiplier = enemyIsBoss ? 2 : 1
 
+        var goldBonus = request.goldFoundPercent
+        if let m = modifier {
+            goldBonus += m.goldBonusPercent
+        }
+        if let a = additionalModifier {
+            goldBonus += a.goldBonusPercent
+        }
         var gold = Int.random(in: range, using: &rng) * multiplier
-        gold = CombatRounding.scaled(gold, byPercent: request.goldFoundPercent + modifiers.reduce(0) { $0 + $1.goldBonusPercent })
+        gold = CombatRounding.scaled(gold, byPercent: goldBonus)
 
         var materials = rollDistinctMaterials(
             range: range,
@@ -65,8 +77,12 @@ public enum BattleLoot {
             using: &rng,
         )
         materials = materials.map { material in
-            let bonus = modifiers.reduce(request.materialsFoundPercent) { total, modifier in
-                total + (modifier == .materials || modifier.materialFocus == material.resource ? RewardModifier.bonusPercent : 0)
+            var bonus = request.materialsFoundPercent
+            if let m = modifier, m == .materials || m.materialFocus == material.resource {
+                bonus += RewardModifier.bonusPercent
+            }
+            if let a = additionalModifier, a == .materials || a.materialFocus == material.resource {
+                bonus += RewardModifier.bonusPercent
             }
             return ResourceAmount(material.resource, CombatRounding.scaled(material.quantity, byPercent: bonus))
         }

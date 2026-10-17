@@ -2,7 +2,6 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    // swiftlint:disable:next function_body_length - critical resolution keeps seeded rolls and events together
     static func applyDodgeGate(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
@@ -17,12 +16,7 @@ package extension DamagePipeline {
         if state.combatant.role == .enemy {
             return
         }
-        let hasEvadeNextHit = context.roster.activeEffects(for: state.combatant).contains {
-            if case .evadeNextHit = $0.effect {
-                return true
-            }
-            return false
-        }
+        let hasEvadeNextHit = context.roster.activeEffects(for: state.combatant).contains { $0.effect == .evadeNextHit }
         let profile = context.modifiers(for: state.combatant.id)
         let autoDodge = profile.triggers.autoDodgeAfterFirstHitPerTurn
             && (context.roster.runtime(for: state.combatant)?.talents.turn.tookAttackHit ?? false)
@@ -47,12 +41,7 @@ package extension DamagePipeline {
             return
         }
         if hasEvadeNextHit {
-            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-                if case .evadeNextHit = $0 {
-                    return true
-                }
-                return false
-            }
+            ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) { $0 == .evadeNextHit }
         }
         context.nextEvent(
             kind: .effect(.dodgeApplied),
@@ -90,16 +79,17 @@ package extension DamagePipeline {
         attackerID: String?,
         in context: BattleState,
     ) -> Double {
-        if combatant.role == .enemy {
-            return 0
-        }
+        guard combatant.role != .enemy else { return 0 }
         let history = context.roster.runtime(for: combatant)?.talents.history
         var chance = 0.10 + Double(history?.dodgeGrowth ?? 0) / 100
         let profile = context.modifiers(for: combatant.id)
         chance += profile.triggers.dodgeChanceBonus
+        let currentHealth = context.roster.health(for: combatant)
+        let maxHealth = context.roster.maxHealth(for: combatant)
+        let isFullHealth = maxHealth > 0 && currentHealth == maxHealth
         if context.roster.hero.isAlive {
             let grove = context.heroModifiers.triggers
-            if context.roster.health(for: combatant) == context.roster.maxHealth(for: combatant) {
+            if isFullHealth {
                 chance += grove.quietGroveDodgeAtFullHealth
             }
             if combatant.role == .companion, context.roster.hero.currentMana > 0 {
@@ -113,8 +103,7 @@ package extension DamagePipeline {
         if context.roster.runtime(for: combatant)?.talents.turn.subzeroMistActive == true {
             chance += 0.20
         }
-        if context.roster.isDeathsDoorActive(for: combatant),
-           profile.triggers.deathsDoorDodgeAndDebuffImmunity {
+        if context.roster.isDeathsDoorActive(for: combatant), profile.triggers.deathsDoorDodgeAndDebuffImmunity {
             chance += 0.5
         }
         if let attackerID,
@@ -122,29 +111,25 @@ package extension DamagePipeline {
            context.roster.hasAffliction(.bleed, on: attacker.combatant) {
             chance += profile.triggers.dodgeChanceVsBleedingEnemiesBonus
         }
-        if context.roster.hero.isAlive,
-           context.roster.hasAffliction(.burn, on: context.roster.enemy.combatant) {
+        if context.roster.hero.isAlive, context.roster.hasAffliction(.burn, on: context.roster.enemy.combatant) {
             chance += context.heroModifiers.triggers.partyDodgeVsBurningBonus
         }
         if profile.triggers.dodgeChanceBelowHealthPercentThreshold > 0,
            profile.triggers.dodgeChanceBelowHealthPercentBonus > 0,
-           context.roster.maxHealth(for: combatant) > 0 {
-            let percent = Double(context.roster.health(for: combatant)) /
-                Double(context.roster.maxHealth(for: combatant))
-            if percent < profile.triggers.dodgeChanceBelowHealthPercentThreshold {
-                chance += profile.triggers.dodgeChanceBelowHealthPercentBonus
-            }
+           maxHealth > 0,
+           Double(currentHealth) / Double(maxHealth) < profile.triggers.dodgeChanceBelowHealthPercentThreshold {
+            chance += profile.triggers.dodgeChanceBelowHealthPercentBonus
         }
         if context.roster.isAboveHalfHealth(for: combatant) {
             chance += profile.triggers.dodgeChanceAboveHalfHealthBonus
         }
-        if context.roster.health(for: combatant) == context.roster.maxHealth(for: combatant) {
+        if isFullHealth {
             chance += profile.triggers.dodgeAtFullHealthBonus
         }
         if context.roster.companion.isAlive {
             let companion = context.companionModifiers.triggers
             chance += companion.partyDodgeChanceBonus
-            if context.roster.health(for: combatant) == context.roster.maxHealth(for: combatant) {
+            if isFullHealth {
                 chance += companion.partyDodgeAtFullHealthBonus
             }
         }

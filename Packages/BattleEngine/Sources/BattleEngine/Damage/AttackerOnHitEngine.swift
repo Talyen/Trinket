@@ -67,16 +67,25 @@ enum AttackerOnHitEngine {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) async {
-        guard let sourceID = state.sourceActorID,
+        guard state.additionalHolyDamage > 0 || state.additionalPhysicalDamage > 0,
+              let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID)
         else { return }
-        for (bonus, keyword) in [
-            (state.additionalHolyDamage, Keyword.holy),
-            (state.additionalPhysicalDamage, Keyword.physical),
-        ] {
+        if state.additionalHolyDamage > 0 {
             _ = await DamagePipeline.resolveNestedDamage(
-                amount: bonus,
-                keyword: keyword,
+                amount: state.additionalHolyDamage,
+                keyword: .holy,
+                target: state.combatant,
+                sourceActorID: sourceID,
+                requireTargetAlive: true,
+                requireSourceAlive: source.combatant,
+                in: &context,
+            )
+        }
+        if state.additionalPhysicalDamage > 0 {
+            _ = await DamagePipeline.resolveNestedDamage(
+                amount: state.additionalPhysicalDamage,
+                keyword: .physical,
                 target: state.combatant,
                 sourceActorID: sourceID,
                 requireTargetAlive: true,

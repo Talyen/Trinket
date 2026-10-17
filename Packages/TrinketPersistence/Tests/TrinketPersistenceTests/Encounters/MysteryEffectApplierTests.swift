@@ -212,10 +212,10 @@ struct MysteryEffectApplierTests {
         )
 
         let item = try #require(result.grantedItems.first)
-        try #expect(item.baseType.id == "sapphire_ring")
-        try #expect(item.affixes.contains { $0.id == "manabound" })
-        try #expect(save.inventory.items.contains(where: { $0.id == item.id }))
-        try #expect(item.rarity == .basic || item.rarity == .astral)
+        #expect(item.baseType.id == "sapphire_ring")
+        #expect(item.affixes.contains { $0.id == "manabound" })
+        #expect(save.inventory.items.contains(where: { $0.id == item.id }))
+        #expect(item.rarity == .basic || item.rarity == .astral)
     }
 
     @Test func `resolved offer grants its exact item and secondary reward`() throws {
@@ -252,13 +252,13 @@ struct MysteryEffectApplierTests {
             using: &randomNumberGenerator,
         )
 
-        try #expect(
+        #expect(
             result.grantedMaterials
                 .contains(ResourceAmount(.herbs, MysteryRewardResolver.materialQuantity(forLevel: 1))),
         )
         let ring = try #require(result.grantedItems.first)
-        try #expect(ring.baseType.id == "sapphire_ring")
-        try #expect(ring.affixes.contains { $0.id == "manabound" })
+        #expect(ring.baseType.id == "sapphire_ring")
+        #expect(ring.affixes.contains { $0.id == "manabound" })
     }
 
     @Test func `shared mystery XP respects the smaller grant ceiling`() {
@@ -279,7 +279,7 @@ struct MysteryEffectApplierTests {
         #expect(result.companionGrantedExperience == 30)
     }
 
-    @Test func `unlock combatant effects handle hero and companion idempotently`() throws {
+    @Test func `unlock combatant effects handle hero and companion idempotently`() {
         var save = SaveTestSupport.makeSave(roster: .freshStart)
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
@@ -292,8 +292,8 @@ struct MysteryEffectApplierTests {
             save: &save,
             using: &randomNumberGenerator,
         )
-        try #expect(first.unlockedCombatantIDs == ["rogue"])
-        try #expect(save.roster.isHeroUnlocked("rogue"))
+        #expect(first.unlockedCombatantIDs == ["rogue"])
+        #expect(save.roster.isHeroUnlocked("rogue"))
 
         let second = MysteryEffectApplier.apply(
             [.unlockCombatant("rogue")],
@@ -304,7 +304,7 @@ struct MysteryEffectApplierTests {
             save: &save,
             using: &randomNumberGenerator,
         )
-        try #expect(second.unlockedCombatantIDs.isEmpty)
+        #expect(second.unlockedCombatantIDs.isEmpty)
 
         let result = MysteryEffectApplier.apply(
             [.unlockCombatant("bear")],
@@ -316,8 +316,8 @@ struct MysteryEffectApplierTests {
             using: &randomNumberGenerator,
         )
 
-        try #expect(result.unlockedCombatantIDs == ["bear"])
-        try #expect(save.roster.isCompanionUnlocked("bear"))
+        #expect(result.unlockedCombatantIDs == ["bear"])
+        #expect(save.roster.isCompanionUnlocked("bear"))
     }
 
     @Test func `resolved encounter level preserves campaign minimum`() throws {

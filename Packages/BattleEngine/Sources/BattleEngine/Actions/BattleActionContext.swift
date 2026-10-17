@@ -2,32 +2,12 @@ import TrinketContent
 import TrinketCore
 
 public struct BattleActionContext: Equatable, Sendable {
-    private final class Participants: Equatable, Sendable {
-        let actor: Combatant
-        let selectedTarget: Combatant
-
-        init(actor: Combatant, selectedTarget: Combatant) {
-            self.actor = actor
-            self.selectedTarget = selectedTarget
-        }
-
-        static func == (lhs: Participants, rhs: Participants) -> Bool {
-            lhs === rhs || (lhs.actor == rhs.actor && lhs.selectedTarget == rhs.selectedTarget)
-        }
-    }
-
-    private let participants: Participants
-
-    public var actor: Combatant {
-        participants.actor
-    }
-
-    public var selectedTarget: Combatant {
-        participants.selectedTarget
-    }
+    public let actor: Combatant
+    public let selectedTarget: Combatant
 
     public init(actor: Combatant, selectedTarget: Combatant) {
-        participants = Participants(actor: actor, selectedTarget: selectedTarget)
+        self.actor = actor
+        self.selectedTarget = selectedTarget
     }
 
     public init(actor: Combatant, in state: borrowing BattleState) {
@@ -53,7 +33,33 @@ public struct BattleActionContext: Equatable, Sendable {
         case .companion:
             return state.companion
         case .lowestHealthAlly:
-            return Self.lowestHealth(in: allies(in: state), state: state)
+            if actor.role == .enemy {
+                return state.enemy
+            }
+            let hero = state.hero
+            let companion = state.companion
+            let heroHealth = state.health(of: hero)
+            let companionHealth = state.health(of: companion)
+            let heroAlive = heroHealth > 0
+            let companionAlive = companionHealth > 0
+            if heroAlive && !companionAlive {
+                return hero
+            }
+            if companionAlive && !heroAlive {
+                return companion
+            }
+            if !heroAlive && !companionAlive {
+                return hero
+            }
+            let heroInjured = heroHealth < state.maxHealth(of: hero)
+            let companionInjured = companionHealth < state.maxHealth(of: companion)
+            if heroInjured && !companionInjured {
+                return hero
+            }
+            if companionInjured && !heroInjured {
+                return companion
+            }
+            return companionHealth < heroHealth ? companion : hero
         case .defeatedAlly:
             let members = allies(in: state)
             return members.reversed().first { state.health(of: $0) <= 0 } ?? members.first ?? actor

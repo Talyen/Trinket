@@ -68,13 +68,9 @@ public enum LabyrinthGenerator {
         guard floorCount > 1 else { return generated }
 
         for floor in 1 ..< floorCount {
-            guard let bossID = generated.clusters
-                .first(where: { $0.depthBand == floor })?
-                .nodeIDs
-                .compactMap({ generated.nodes[$0] })
-                .first(where: { $0.type == .boss })?
-                .id,
-                var boss = generated.nodes[bossID]
+            guard let cluster = generated.clusters.first(where: { $0.depthBand == floor }),
+                  let bossID = cluster.nodeIDs.first(where: { generated.nodes[$0]?.type == .boss }),
+                  var boss = generated.nodes[bossID]
             else { break }
             boss.isCleared = true
             generated.nodes[bossID] = boss

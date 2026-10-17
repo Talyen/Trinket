@@ -57,7 +57,7 @@ struct BattleConditionEvaluatorTests {
         #expect(battle.activeEffects(of: fallen).count == 2)
     }
 
-    @Test func `lowest health ally prefers living combatant when hero is defeated`() throws {
+    @Test func `lowest health ally prefers living combatant when hero is defeated`() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -72,15 +72,15 @@ struct BattleConditionEvaluatorTests {
 
         let target = BattleConditionEvaluator.lowestHealthAlly(in: context)
 
-        try #expect(target.id == companion.id)
+        #expect(target.id == companion.id)
     }
 
-    @Test func `enemy bleeding requires active bleed stack`() throws {
+    @Test func `enemy bleeding requires active bleed stack`() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         let expiredBleed = ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 0, sourceActorID: hero.id)
-        var context = BattleStateTestFactory.makeMinimalBattle(
+        let context = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
             companion: companion,
             enemy: enemy,
@@ -88,7 +88,7 @@ struct BattleConditionEvaluatorTests {
             rngSeed: 0,
         )
 
-        try #expect(!BattleConditionEvaluator.isMet(
+        #expect(!BattleConditionEvaluator.isMet(
             .enemyBleeding,
             actor: hero,
             in: context,

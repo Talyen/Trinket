@@ -92,7 +92,7 @@ package enum UniqueCombatEngine {
             }
             context.uniques.retainedStunByEffectID = context.uniques.retainedStunByEffectID.filter { activeIDs.contains($0.key) }
         }
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             context.roster[owner].uniques.resetTurn()
         }
         context.uniques.pendingBlockAnswerOwners = []

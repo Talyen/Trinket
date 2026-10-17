@@ -65,7 +65,7 @@ package enum BattleCardCombatEngine {
         promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         await CombatTriggerEngine.atPlayerTurnStart(in: &context)
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             UniqueCombatEngine.recoverStunBeforeClearing(on: context.roster[owner].combatant, in: &context)
             context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
         }
@@ -75,7 +75,7 @@ package enum BattleCardCombatEngine {
     static func restoreManaAtPlayerTurnStart(
         context: inout BattleState,
     ) async {
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             guard !context.isBattleOver else { break }
             let runtime = context.roster[owner]
             guard runtime.isAlive, runtime.maxMana > 0 else { continue }
@@ -163,7 +163,7 @@ package enum BattleCardCombatEngine {
 
     static func skippingOwners(in context: BattleState) -> Set<BattleParticipant> {
         var skipping: Set<BattleParticipant> = []
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             let combatant = context.roster[owner].combatant
             if context.roster[owner].isAlive, context.roster.hasPendingActionSkip(for: combatant) {
                 skipping.insert(owner)
@@ -173,7 +173,7 @@ package enum BattleCardCombatEngine {
     }
 
     static func advanceRoundCommon(context: inout BattleState) async {
-        for owner in [BattleParticipant.hero, .companion] where context.ownersSkippingThisPlayerTurn.contains(owner) {
+        for owner in BattleParticipant.party where context.ownersSkippingThisPlayerTurn.contains(owner) {
             let combatant = context.roster[owner].combatant
             if context.roster.hasPendingActionSkip(for: combatant) {
                 await BattleTurnEngine.consumeActionSkip(for: combatant, context: &context)
@@ -186,7 +186,7 @@ package enum BattleCardCombatEngine {
         }
 
         await CombatTriggerEngine.atPlayerEndTurn(in: &context)
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             context.roster.mutateRuntime(for: context.roster[owner].combatant) { $0.talents.turn.primedRepeatKeywords.removeAll() }
         }
         if await finishRoundIfBattleOver(context: &context) {

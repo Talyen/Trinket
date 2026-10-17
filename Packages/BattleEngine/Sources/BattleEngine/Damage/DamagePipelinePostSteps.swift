@@ -89,7 +89,7 @@ package extension DamagePipeline {
               state.partySource(in: context) != nil,
               state.combatant.role == .enemy,
               keyword == .burn || keyword == .freeze || keyword == .holy else { return }
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             let wearer = context.roster[owner]
             guard wearer.isAlive, wearer.currentMana < wearer.maxMana else { continue }
             let chance = context.modifiers(for: wearer.combatant.id).triggers.threefoldElementalDamageManaChancePercent

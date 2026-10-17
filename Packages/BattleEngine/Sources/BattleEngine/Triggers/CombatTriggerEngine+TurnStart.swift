@@ -68,7 +68,7 @@ package extension CombatTriggerEngine {
                 fallback: "Trait",
                 in: context,
             )
-            for targetOwner in [BattleParticipant.hero, .companion] {
+            for targetOwner in BattleParticipant.party {
                 guard !context.isBattleOver, context.roster[owner].isAlive else { break }
                 let target = context.roster[targetOwner]
                 guard target.isAlive else { continue }

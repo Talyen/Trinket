@@ -17,25 +17,41 @@ package enum CombatTriggerEngine {
         owner: BattleParticipant,
         member: CombatantRuntime,
     )] {
-        [BattleParticipant.hero, .companion].compactMap { owner in
-            let member = context.roster[owner]
-            return member.isAlive ? (owner, member) : nil
+        var result: [(owner: BattleParticipant, member: CombatantRuntime)] = []
+        result.reserveCapacity(2)
+        if context.roster.hero.isAlive {
+            result.append((.hero, context.roster.hero))
         }
+        if context.roster.companion.isAlive {
+            result.append((.companion, context.roster.companion))
+        }
+        return result
     }
 
     static func livingAllies(
         in context: BattleState,
     ) -> [(combatant: Combatant, profile: CombatModifierProfile)] {
-        livingPartyMembers(in: context).map { owner, member in
-            (member.combatant, owner == .hero ? context.heroModifiers : context.companionModifiers)
+        var result: [(combatant: Combatant, profile: CombatModifierProfile)] = []
+        result.reserveCapacity(2)
+        if context.roster.hero.isAlive {
+            result.append((context.roster.hero.combatant, context.heroModifiers))
         }
+        if context.roster.companion.isAlive {
+            result.append((context.roster.companion.combatant, context.companionModifiers))
+        }
+        return result
     }
 
     static func livingAllyModifiers(in context: BattleState) -> [CombatModifierProfile] {
-        [BattleParticipant.hero, .companion].compactMap { owner in
-            guard context.roster[owner].isAlive else { return nil }
-            return owner == .hero ? context.heroModifiers : context.companionModifiers
+        var result: [CombatModifierProfile] = []
+        result.reserveCapacity(2)
+        if context.roster.hero.isAlive {
+            result.append(context.heroModifiers)
         }
+        if context.roster.companion.isAlive {
+            result.append(context.companionModifiers)
+        }
+        return result
     }
 
     static func hasLivingPartyTrigger(_ keyPath: KeyPath<CombatTraitTriggers, Bool>, in context: BattleState) -> Bool {

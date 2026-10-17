@@ -18,7 +18,7 @@ package enum CriticalChanceEngine {
             countsBleedingDefender: countsBleedingDefender, in: context,
         )
         if usePartyMaximum, let actor = context.roster.combatant(for: actorID), actor.role != .enemy {
-            for owner in [BattleParticipant.hero, .companion] where context.roster[owner].isAlive {
+            for owner in BattleParticipant.party where context.roster[owner].isAlive {
                 chance = max(chance, Self.chance(actorID: context.roster[owner].id, defender: defender, in: context))
             }
         }

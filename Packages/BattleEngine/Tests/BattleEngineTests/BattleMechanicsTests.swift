@@ -147,8 +147,8 @@ struct BattleMechanicsTests {
             context: &context,
         )
 
-        try #expect(context.roster.activeEffects(for: wolf).contains { $0.effect == .nextStrikeLeech })
-        try #expect(!context.roster.activeEffects(for: wolf).contains { $0.effect == .nextStrikeCritical })
+        #expect(context.roster.activeEffects(for: wolf).contains { $0.effect == .nextStrikeLeech })
+        #expect(!context.roster.activeEffects(for: wolf).contains { $0.effect == .nextStrikeCritical })
     }
 
     @Test func `next strike critical guarantees crit and consumes`() throws {
@@ -177,13 +177,13 @@ struct BattleMechanicsTests {
         ) }
 
         let damageEvent = try #require(events.first { $0.kind == .abilityDamage })
-        try #expect(damageEvent.isCritical)
-        try #expect(!(context.roster.activeEffects(for: hero).contains {
+        #expect(damageEvent.isCritical)
+        #expect(!(context.roster.activeEffects(for: hero).contains {
             $0.effect.kind == .nextStrikeCritical
         }))
     }
 
-    @Test func `corrosive venom strips block before the poison packet is absorbed`() throws {
+    @Test func `corrosive venom strips block before the poison packet is absorbed`() {
         let venom = CombatModifierProfile.withTriggers { $0.poisonStripsBlockBeforeHealth = 1 }
         let hero = CombatantFixtures.passiveHero(maxHealth: 30)
 
@@ -199,8 +199,8 @@ struct BattleMechanicsTests {
         // The strip lands before absorption, so a packet larger than the
         // defender's Block reaches Health in full.
         let penetrated = blocking.resolveTestDamage(5, from: .enemy, to: .hero, keyword: .poison, options: .attack(accuracy: .unavoidable))
-        try #expect(penetrated.healthLost == 5)
-        try #expect(BattleTestFixtures.shieldPoints(for: blocking.hero, in: blocking) == 0)
+        #expect(penetrated.healthLost == 5)
+        #expect(BattleTestFixtures.shieldPoints(for: blocking.hero, in: blocking) == 0)
 
         var absorbed = BattleStateTestFactory.makeMinimalBattle(
             hero: hero,
@@ -212,8 +212,8 @@ struct BattleMechanicsTests {
         )
 
         let stopped = absorbed.resolveTestDamage(3, from: .enemy, to: .hero, keyword: .poison, options: .attack(accuracy: .unavoidable))
-        try #expect(stopped.healthLost == 0)
+        #expect(stopped.healthLost == 0)
         // Absorb 3, strip 1: Block drops by exactly absorbed + strip.
-        try #expect(BattleTestFixtures.shieldPoints(for: absorbed.hero, in: absorbed) == 6)
+        #expect(BattleTestFixtures.shieldPoints(for: absorbed.hero, in: absorbed) == 6)
     }
 }

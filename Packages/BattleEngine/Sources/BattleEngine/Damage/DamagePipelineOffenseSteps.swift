@@ -237,7 +237,7 @@ package extension DamagePipeline {
         guard keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit, !state.options.isRetaliation else { return }
         var stored = 0
         if CombatTriggerEngine.hasLivingPartyTrigger(\.storedImpact, in: context) {
-            for owner in [BattleParticipant.hero, .companion] {
+            for owner in BattleParticipant.party {
                 let member = context.roster[owner]
                 if let val = context.storedBlockedDamageByActorID.removeValue(forKey: member.id) {
                     stored = SaturatedArithmetic.saturatingAdd(stored, val)

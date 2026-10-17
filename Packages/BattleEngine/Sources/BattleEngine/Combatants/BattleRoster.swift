@@ -6,6 +6,7 @@ public enum BattleParticipant: CaseIterable, Sendable {
     case companion
     case enemy
 
+    public static let party: [Self] = [.hero, .companion]
     public static let effectTurnOrder: [Self] = [.enemy, .hero, .companion]
 
     public var isPartyMember: Bool {

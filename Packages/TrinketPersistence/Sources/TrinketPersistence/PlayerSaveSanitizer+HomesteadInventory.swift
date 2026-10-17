@@ -1,5 +1,6 @@
 import os
 import TrinketContent
+import TrinketCore
 
 extension PlayerSaveSanitizer {
     static func sanitizeHomestead(_ homestead: PlayerHomesteadState) -> PlayerHomesteadState {
@@ -22,12 +23,13 @@ extension PlayerSaveSanitizer {
         if hadGoldResource {
             logger.notice("Sanitized homestead: dropped gold from resources (roster owns gold)")
         }
-        sanitized.nodeTiers = Dictionary(
-            uniqueKeysWithValues: homestead.nodeTiers.compactMap { nodeID, tier in
-                guard let maxTier = HomesteadNodeCatalog.maxTierByNodeID[nodeID] else { return nil }
-                return (nodeID, min(max(tier, 0), maxTier))
-            },
-        )
+        var tiers: [HomesteadNodeID: Int] = [:]
+        tiers.reserveCapacity(homestead.nodeTiers.count)
+        for (nodeID, tier) in homestead.nodeTiers {
+            guard let maxTier = HomesteadNodeCatalog.maxTierByNodeID[nodeID] else { continue }
+            tiers[nodeID] = min(max(tier, 0), maxTier)
+        }
+        sanitized.nodeTiers = tiers
         return sanitized
     }
 

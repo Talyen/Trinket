@@ -49,17 +49,17 @@ extension AbilityEffectIntegrationTests {
         #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.holy])
     }
 
-    @Test func `feint draws a manual card and dodges the next hit`() throws {
+    @Test func `feint draws a manual card and dodges the next hit`() {
         var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         context.heroDeck = CombatDeck(abilities: [.slash])
         let enemyBefore = context.health(of: context.enemy)
 
         let feintEvents = context.performTestAction(AbilityCatalog.feint)
-        try #expect(!feintEvents.contains { $0.abilityID == Ability.slash.id && $0.kind == .abilityDamage })
-        try #expect(context.health(of: context.enemy) == enemyBefore)
-        try #expect(context.heroDeck.isEmpty)
-        try #expect(context.hand.cards.map(\.ability.id) == [Ability.slash.id])
-        try #expect(context.activeEffects(of: context.hero).contains { $0.effect == .evadeNextHit })
+        #expect(!feintEvents.contains { $0.abilityID == Ability.slash.id && $0.kind == .abilityDamage })
+        #expect(context.health(of: context.enemy) == enemyBefore)
+        #expect(context.heroDeck.isEmpty)
+        #expect(context.hand.cards.map(\.ability.id) == [Ability.slash.id])
+        #expect(context.activeEffects(of: context.hero).contains { $0.effect == .evadeNextHit })
 
         let enemyAttack = Ability(
             id: "enemy-attack",
@@ -71,9 +71,9 @@ extension AbilityEffectIntegrationTests {
         )
         let heroBefore = context.health(of: context.hero)
         let dodgeEvents = context.performTestAction(enemyAttack, from: .enemy, to: .hero)
-        try #expect(context.health(of: context.hero) == heroBefore)
-        try #expect(dodgeEvents.contains { $0.effectKind == .dodgeApplied })
-        try #expect(!context.activeEffects(of: context.hero).contains { $0.effect == .evadeNextHit })
+        #expect(context.health(of: context.hero) == heroBefore)
+        #expect(dodgeEvents.contains { $0.effectKind == .dodgeApplied })
+        #expect(!context.activeEffects(of: context.hero).contains { $0.effect == .evadeNextHit })
     }
 
     @Test func `blizzard and earthquake deal six damage twice`() {
@@ -134,7 +134,7 @@ extension AbilityEffectIntegrationTests {
         #expect(events.first { $0.kind == .abilityDamage }?.amount == 3)
     }
 
-    @Test func `damage component applies do T stack without immediate tick`() throws {
+    @Test func `damage component applies do T stack without immediate tick`() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, abilities: [.kindling])
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
@@ -154,12 +154,12 @@ extension AbilityEffectIntegrationTests {
             context: &context,
         ) }
 
-        try #expect(context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .burn })
+        #expect(context.roster.activeEffects(for: enemy).contains { $0.effect.keyword == .burn })
         let abilityDamage = events
             .filter { $0.kind == ActionEvent.Kind.abilityDamage }
             .reduce(0) { $0 + $1.amount }
-        try #expect(context.roster.health(for: enemy) == startingHealth - abilityDamage)
-        try #expect(!events.contains { $0.kind == ActionEvent.Kind.status && $0.keyword == .burn })
+        #expect(context.roster.health(for: enemy) == startingHealth - abilityDamage)
+        #expect(!events.contains { $0.kind == ActionEvent.Kind.status && $0.keyword == .burn })
     }
 
     @Test(arguments: [false, true])

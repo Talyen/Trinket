@@ -46,7 +46,7 @@ struct BattleArithmeticBoundaryTests {
         #expect(battle.gold == Int.max)
         #expect(battle.goldFlow.gained == Int.max)
         #expect(first.first?.amount == Int.max)
-        #expect(second.first?.amount == 0)
+        #expect(second.isEmpty)
     }
 
     @Test func `Block at capacity admits only the available gain`() {

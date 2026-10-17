@@ -261,7 +261,7 @@ package extension CombatTriggerEngine {
     static func afterPartyCardPlayed(in context: inout BattleState) async {
         let count = context.turnCadence.cardsPlayed.values.reduce(0, +)
 
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             let actor = context.roster[owner].combatant
             let triggers = context.modifiers(for: actor.id).triggers
             guard context.roster[owner].isAlive, triggers.cardsPlayedHealPartyThreshold > 0,

@@ -3,7 +3,7 @@ import TrinketCore
 
 package extension CombatTriggerEngine {
     static func atPlayerEndTurn(in context: inout BattleState) async {
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             guard !context.isBattleOver else { return }
             let actor = context.roster[owner].combatant
             guard context.roster[owner].isAlive else { continue }

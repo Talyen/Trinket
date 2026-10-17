@@ -52,16 +52,37 @@ package enum BattleTurnEngine {
     }
 
     private static func applyStunRecoveryReduction(for actor: Combatant, context: inout BattleState) {
-        let opponents = BattleActionContext(actor: actor, in: context).opponents(in: context)
-            .filter { context.health(of: $0) > 0 }
-        let multiplier = opponents.reduce(1.0) {
-            $0 * context.modifiers(for: $1.id).triggers.stunnedEnemyNextTurnDamageMultiplier
+        var multiplier = 1.0
+        var sourceID: String?
+        if actor.role == .enemy {
+            if context.roster.hero.isAlive {
+                let m = context.heroModifiers.triggers.stunnedEnemyNextTurnDamageMultiplier
+                if m < 1 {
+                    multiplier *= m
+                    if sourceID == nil {
+                        sourceID = context.hero.id
+                    }
+                }
+            }
+            if context.roster.companion.isAlive {
+                let m = context.companionModifiers.triggers.stunnedEnemyNextTurnDamageMultiplier
+                if m < 1 {
+                    multiplier *= m
+                    if sourceID == nil {
+                        sourceID = context.companion.id
+                    }
+                }
+            }
+        } else if context.roster.enemy.isAlive {
+            let m = context.enemyModifiers.triggers.stunnedEnemyNextTurnDamageMultiplier
+            if m < 1 {
+                multiplier *= m
+                sourceID = context.enemy.id
+            }
         }
-        guard multiplier < 1, let source = opponents.first(where: {
-            context.modifiers(for: $0.id).triggers.stunnedEnemyNextTurnDamageMultiplier < 1
-        }) else { return }
+        guard multiplier < 1, let sourceID else { return }
         // Round expiry follows this skipped action; retain the reduction through the recovery turn.
-        context.insertEffect(.damageReductionPercent(1 - multiplier, 2), to: actor, sourceID: source.id, remainingTurns: 2)
+        context.insertEffect(.damageReductionPercent(1 - multiplier, 2), to: actor, sourceID: sourceID, remainingTurns: 2)
     }
 
     package static func performAction(

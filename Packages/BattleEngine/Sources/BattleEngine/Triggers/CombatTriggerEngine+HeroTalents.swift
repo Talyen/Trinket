@@ -286,7 +286,7 @@ package extension CombatTriggerEngine {
     // MARK: - Turn lifecycle
 
     static func startHeroTalentTurn(in context: inout BattleState) {
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             let actor = context.roster[owner].combatant
             context.roster.mutateRuntime(for: actor) { $0.talents.history.spentMana = false }
         }

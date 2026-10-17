@@ -295,7 +295,7 @@ package enum HealingEngine {
     }
 
     static func resolveHealingEchoes(in context: inout BattleState) async {
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             guard !context.isBattleOver else { break }
             let target = context.roster[owner].combatant
             let echoes = context.roster[owner].talents.pending.healingEchoes

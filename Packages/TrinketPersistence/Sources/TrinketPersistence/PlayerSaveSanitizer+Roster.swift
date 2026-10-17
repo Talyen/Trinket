@@ -9,13 +9,12 @@ extension PlayerSaveSanitizer {
         heroIDs: Set<String> = Set(GameContent.heroes.map(\.id)),
         companionIDs: Set<String> = Set(GameContent.companions.map(\.id)),
     ) -> PlayerRosterState {
-        let validHeroIDs = heroIDs
-        let validCompanionIDs = companionIDs
+        let validCombatantIDs = heroIDs.union(companionIDs)
 
         var sanitized = roster
         sanitized.gold = PlayerRosterState.clampedGoldBalance(roster.gold)
-        sanitized.unlockedHeroIDs = roster.unlockedHeroIDs.intersection(validHeroIDs)
-        sanitized.unlockedCompanionIDs = roster.unlockedCompanionIDs.intersection(validCompanionIDs)
+        sanitized.unlockedHeroIDs = roster.unlockedHeroIDs.intersection(heroIDs)
+        sanitized.unlockedCompanionIDs = roster.unlockedCompanionIDs.intersection(companionIDs)
 
         if sanitized.unlockedHeroIDs.isEmpty {
             logger.notice("Sanitized roster: injected starter hero (unlocked set was empty)")
@@ -46,12 +45,12 @@ extension PlayerSaveSanitizer {
 
         sanitized.progressions = sanitizeProgressions(
             roster.progressions,
-            validCombatantIDs: validHeroIDs.union(validCompanionIDs),
+            validCombatantIDs: validCombatantIDs,
         )
 
         sanitized.unlockedTalents = sanitizeUnlockedTalents(
             roster.unlockedTalents,
-            validCombatantIDs: validHeroIDs.union(validCompanionIDs),
+            validCombatantIDs: validCombatantIDs,
             progressions: sanitized.progressions,
         )
 

@@ -40,17 +40,17 @@ struct BattleTurnEngineTests {
 
         let events = context.recordingEvents { context in await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context) }
 
-        try #expect(events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
-        try #expect(!(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
-        try #expect(context.roster.hasControlStatus(for: enemy, keyword: .stun))
-        try #expect(context.roster.activeEffects(for: enemy).contains { active in
+        #expect(events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
+        #expect(!(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
+        #expect(context.roster.hasControlStatus(for: enemy, keyword: .stun))
+        #expect(context.roster.activeEffects(for: enemy).contains { active in
             active.effect.isActionSkipPending && active.remainingTurns == BattleTiming.controlStatusLingerTurns
         })
-        try #expect(try #require(context.roster.runtime(for: enemy)?.actionCount) == before + 1)
-        try #expect(context.actionCount == 1)
+        #expect(try #require(context.roster.runtime(for: enemy)?.actionCount) == before + 1)
+        #expect(context.actionCount == 1)
     }
 
-    @Test func `deathgrip grants block when entering deaths door`() throws {
+    @Test func `deathgrip grants block when entering deaths door`() {
         var context = makeTurnContext(
             heroMaxHealth: 50,
             heroHealth: 5,
@@ -65,11 +65,11 @@ struct BattleTurnEngineTests {
             options: .attack(scaling: .flat, accuracy: .unavoidable),
         ) }.events
 
-        try #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
+        #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
         let expectedBlock = context.paced(8, sourceActorID: hero.id)
-        try #expect(events.contains { $0.abilityName == "Deathgrip" && $0.amount == expectedBlock })
-        try #expect(context.roster.health(for: hero) == 1)
-        try #expect(
+        #expect(events.contains { $0.abilityName == "Deathgrip" && $0.amount == expectedBlock })
+        #expect(context.roster.health(for: hero) == 1)
+        #expect(
             context.roster.activeEffects(for: hero).contains {
                 if case let .shield(keyword, points) = $0.effect {
                     return keyword == .block && points == expectedBlock
@@ -189,34 +189,34 @@ struct BattleTurnEngineTests {
             context: &context,
         ) }
 
-        try #expect(context.roster.health(for: enemy) == 0)
+        #expect(context.roster.health(for: enemy) == 0)
         if grantGold {
-            try #expect(context.gold == 3)
+            #expect(context.gold == 3)
         } else {
-            try #expect(!(context.roster.activeEffects(for: enemy).contains {
+            #expect(!(context.roster.activeEffects(for: enemy).contains {
                 $0.effect.kind == .marked
             }))
             let abilityEvent = try #require(events.first { $0.kind == .ability })
-            try #expect(!(abilityEvent.appliedEffects.contains {
+            #expect(!(abilityEvent.appliedEffects.contains {
                 $0.kind == .marked
             }))
         }
     }
 
-    @Test func `preferred tier follows enemy cadence`() throws {
-        try #expect(BattleTurnEngine.preferredTier(for: 1) == .basic)
-        try #expect(BattleTurnEngine.preferredTier(for: 2) == .basic)
-        try #expect(BattleTurnEngine.preferredTier(for: 3) == .skill)
-        try #expect(BattleTurnEngine.preferredTier(for: 6) == .ultimate)
-        try #expect(BattleTurnEngine.preferredTier(for: 9) == .skill)
-        try #expect(BattleTurnEngine.preferredTier(for: 12) == .ultimate)
+    @Test func `preferred tier follows enemy cadence`() {
+        #expect(BattleTurnEngine.preferredTier(for: 1) == .basic)
+        #expect(BattleTurnEngine.preferredTier(for: 2) == .basic)
+        #expect(BattleTurnEngine.preferredTier(for: 3) == .skill)
+        #expect(BattleTurnEngine.preferredTier(for: 6) == .ultimate)
+        #expect(BattleTurnEngine.preferredTier(for: 9) == .skill)
+        #expect(BattleTurnEngine.preferredTier(for: 12) == .ultimate)
 
         let basic = Ability(id: "basic", name: "Basic", tier: .basic, directDamage: 1, description: "Basic")
         let skill = Ability(id: "skill", name: "Skill", tier: .skill, directDamage: 5, description: "Skill")
         let ultimate = Ability(id: "ult", name: "Ult", tier: .ultimate, directDamage: 9, description: "Ult")
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30, abilities: [basic, skill, ultimate])
-        try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 3)?.id == skill.id)
-        try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 6)?.id == ultimate.id)
+        #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 3)?.id == skill.id)
+        #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 6)?.id == ultimate.id)
     }
 }
 

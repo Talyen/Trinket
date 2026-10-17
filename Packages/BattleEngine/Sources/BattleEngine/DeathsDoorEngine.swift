@@ -233,7 +233,7 @@ package enum DeathsDoorEngine {
             return
         }
 
-        for owner in [BattleParticipant.hero, .companion] {
+        for owner in BattleParticipant.party {
             let member = context.roster[owner]
             guard member.isAlive else { continue }
             let maxHealth = context.roster.maxHealth(for: member.combatant)
@@ -277,7 +277,7 @@ package enum DeathsDoorEngine {
             )
         }
         if triggers.surviveDeathsDoorPartyBlockFlat > 0, context.roster.enemy.isAlive {
-            for owner in [BattleParticipant.hero, .companion] {
+            for owner in BattleParticipant.party {
                 let member = context.roster[owner]
                 guard member.isAlive else { continue }
                 context.applyBlockGain(
