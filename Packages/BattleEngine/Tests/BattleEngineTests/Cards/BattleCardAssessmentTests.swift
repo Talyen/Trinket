@@ -220,6 +220,24 @@ struct BattleCardAssessmentTests {
         #expect(state.roster.hero.currentMana == 1)
     }
 
+    @Test func `repeated empowerment leaves its cost uncertain when spending can restore Mana`() throws {
+        var profile = CombatModifierProfile.zero
+        profile.triggers.onReachZeroManaRestoreMana = 3
+        profile.triggers.criticalChanceBonus = -1
+        var state = battle(heroMana: 3, heroModifiers: profile)
+        let ability = Ability(
+            id: "repeat-restoration", name: "Repeat Restoration", tier: .skill,
+            directDamage: 1, damageKeyword: .burn, repeatsManaEmpowerment: true,
+        )
+        let card = deal(ability, in: &state)
+        let use = try #require(state.assessCard(card).resources.first { $0.keyword == .mana })
+        #expect(use.amount == nil)
+        let events = try state.playCard(cardID: card.id).events
+        #expect(events.filter { $0.effectKind == .resourceGain && $0.keyword == .mana }.map(\.amount) == [3])
+        #expect(events.filter { $0.kind == .abilityDamage && $0.abilityID == ability.id }.map(\.amount) == [3])
+        #expect(state.mana(of: state.hero) == 0)
+    }
+
     @Test func `block substitution is quoted without treating missing mana as denial`() throws {
         var profile = CombatModifierProfile.zero
         profile.triggers.freezeEmpowermentBlockPerMana = 3

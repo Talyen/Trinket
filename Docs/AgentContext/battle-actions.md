@@ -137,6 +137,8 @@ Turn cadences recheck battle completion and source survival between operations a
 party recipients, including End Turn, Purifying Aura, and Gold/Health regeneration.
 A victory during one of these reactions stops the remaining cadence rewards,
 including the other party member's ordinary turn-start Mana restoration.
+Card completion records its play count even if a completion reaction defeats the
+owner; the living partner can still earn a party-wide card-count reward.
 A Dodge-triggered automatic card chain rechecks its owner before later Dodge
 rewards; defeat during the drawn card cannot grant Tailwind afterward.
 
@@ -256,7 +258,8 @@ Targets that depend on preceding effects remain unresolved; Panacea exposes
 its cleanse recipient, while healing remains unresolved after debuff removal when
 multiple allies are alive because Cleanse reactions can change Health. A sole living
 ally remains a certain recipient. Branch-dependent costs and reactive repeated payments remain non-quantitative;
-only resolved combat events establish the result. Mana-to-Block quotes include every living
+this includes last-Mana restoration that can fund another empowerment purchase.
+Only resolved combat events establish the result. Mana-to-Block quotes include every living
 recipient; conversions after earlier operations or recipient reactions retain an
 unspecified amount because the opening balance may have changed. Static discounts such as
 Pyromancer’s Spark still allow a quantitative repeated-payment quote. The legacy

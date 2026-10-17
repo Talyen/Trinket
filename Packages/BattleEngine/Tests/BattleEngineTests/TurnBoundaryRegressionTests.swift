@@ -5,6 +5,38 @@ import TrinketCore
 @testable import BattleEngine
 
 struct TurnBoundaryRegressionTests {
+    @Test func `a card keeps its play credit when its owner falls during a completion echo`() throws {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 3),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroHealth: 2, companionHealth: 5, heroMana: 3,
+            heroModifiers: .withTriggers {
+                $0.empoweredSkillEchoes = true
+                $0.criticalChanceBonus = -1
+                $0.dodgeChanceBonus = -1
+            },
+            companionModifiers: .withTriggers {
+                $0.cardsPlayedHealPartyThreshold = 1
+                $0.cardsPlayedHealPartyAmount = 2
+                $0.criticalChanceBonus = -1
+            },
+            enemyModifiers: .withTriggers {
+                $0.onHitAttackerHoly = 1
+                $0.criticalChanceBonus = -1
+            },
+            appliesFightPacing: false,
+        )
+        battle.roster.hero.hasConsumedDeathsDoor = true
+        let card = BattleCardCombatEngine.deal(.fireball, owner: .hero, context: &battle)
+        let events = try battle.playCard(cardID: card.id).events
+
+        #expect(!battle.roster.hero.isAlive)
+        #expect(events.count { $0.kind == .abilityDamage && $0.abilityID == Ability.fireball.id } == 2)
+        #expect(battle.turnCadence.cardsPlayed[.hero] == 1)
+        #expect(battle.health(of: battle.companion) == 7)
+    }
+
     private func makeManaShieldBattle(attackDamage: Int, heroMana: Int) -> BattleState {
         let attack = Ability(
             id: "enemy-attack", name: "Enemy Attack", tier: .basic,

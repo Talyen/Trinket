@@ -7,12 +7,34 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) async {
         let actor = facts.action.actor
-        let ability = facts.originalAbility
-        let abilityTarget = facts.action.selectedTarget
         guard let owner = context.roster.participant(for: actor), owner.isPartyMember,
               context.roster[owner].isAlive else { return }
         let triggers = context.modifiers(for: actor.id).triggers
+        await cardCompletionReactions(facts, owner: owner, in: &context)
+
+        // Completion reactions may defeat the owner; the played card still counts.
+        let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
+        context.turnCadence.cardsPlayed[owner] = count
+
+        guard context.roster[owner].isAlive else { return }
+        if !facts.damageKeywords.isEmpty, triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
+           BattleChance.succeeds(probability: triggers.attackDelayEnemyTurnChancePercent, using: &context.rng) {
+            context.additionalControlSkipsByCombatantID[context.roster.enemy.id, default: 0] += 1
+        }
+
+        await cardsPlayedManaIfNeeded(count: count, actor: actor, triggers: triggers, in: &context)
+    }
+
+    private static func cardCompletionReactions(
+        _ facts: ResolvedActionFacts,
+        owner: BattleParticipant,
+        in context: inout BattleState,
+    ) async {
+        let actor = facts.action.actor
+        let ability = facts.originalAbility
+        let abilityTarget = facts.action.selectedTarget
         let keywords = facts.damageKeywords
+        let triggers = context.modifiers(for: actor.id).triggers
         let checkpoint = CombatCheckpoint.cardCompletion(actor.id)
         guard checkpoint.allowsContinuation(in: context) else { return }
         await spellEchoIfNeeded(ability: ability, actor: actor, owner: owner, abilityTarget: abilityTarget, in: &context)
@@ -26,17 +48,6 @@ package extension CombatTriggerEngine {
         await talentRepeatIfNeeded(ability: ability, keywords: keywords, actor: actor, abilityTarget: abilityTarget, in: &context)
         guard checkpoint.allowsContinuation(in: context) else { return }
         talentPrimeIfNeeded(keywords: keywords, actor: actor, in: &context)
-
-        let count = context.turnCadence.cardsPlayed[owner, default: 0] + 1
-        context.turnCadence.cardsPlayed[owner] = count
-
-        guard context.roster[owner].isAlive else { return }
-        if !keywords.isEmpty, triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
-           BattleChance.succeeds(probability: triggers.attackDelayEnemyTurnChancePercent, using: &context.rng) {
-            context.additionalControlSkipsByCombatantID[context.roster.enemy.id, default: 0] += 1
-        }
-
-        await cardsPlayedManaIfNeeded(count: count, actor: actor, triggers: triggers, in: &context)
     }
 
     private static func spellEchoIfNeeded(

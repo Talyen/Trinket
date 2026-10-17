@@ -70,9 +70,20 @@ private extension BattleState {
 
     var hasPredictableRepeatedPayments: Bool {
         [roster.hero, roster.companion].allSatisfy { runtime in
-            let triggers = modifiers(for: runtime.id).triggers
-            return triggers.spendManaRefundChancePercent == 0
-                && triggers.barkweaveOnEmpowerBlock == 0
+            // Only these passive empowerment settings are modeled by the budget.
+            // Other reactions can restore Mana, add Block, or interrupt later purchases.
+            var triggers = modifiers(for: runtime.id).triggers
+            triggers.repeatManaEmpowerment = false
+            triggers.empowermentCostReduction = 0
+            triggers.empowerBurnCostReduction = 0
+            triggers.firstEmpowermentCostReduction = 0
+            triggers.healingEmpowermentCostReduction = 0
+            triggers.empowermentDamageBonus = 0
+            triggers.freezeEmpowermentBlockPerMana = 0
+            triggers.dragonPatronage = false
+            triggers.prismaticScales = false
+            triggers.flashFreeze = false
+            return triggers == CombatTraitTriggers()
         }
     }
 
