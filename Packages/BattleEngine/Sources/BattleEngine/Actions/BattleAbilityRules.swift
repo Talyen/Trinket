@@ -25,7 +25,9 @@ enum BattleAbilityRules {
         } else {
             selected = ability
         }
-        let branches = selected.outcomeBranches ?? [AbilityOutcomeBranch(operations: selected.operations)]
+        guard let branches = selected.outcomeBranches else {
+            return Outcomes(ability: selected, branches: [AbilityOutcomeBranch(operations: selected.operations)])
+        }
         let eligible = branches.filter { branch in
             branch.condition.map { BattleConditionEvaluator.isMet($0, action: action, in: context) } ?? true
         }
@@ -45,9 +47,15 @@ enum BattleAbilityRules {
     }
 
     static func canPayHealthCost(_ ability: Ability, action: BattleActionContext, in context: BattleState) -> Bool {
-        let outcomes = possibleOutcomes(ability, action: action, in: context)
         let health = context.roster.health(for: action.actor)
-        return health > 0 && outcomes.branches.allSatisfy { health > healthCost($0.operations, action: action, in: context) }
+        guard health > 0 else { return false }
+        // Ordinary cards quote their ordered operations without constructing an outcome.
+        // Conditional and random cards retain the shared selection and fallback rules.
+        if ability.conditionalOutcome == nil, ability.outcomeBranches == nil {
+            return health > healthCost(ability.operations, action: action, in: context)
+        }
+        let outcomes = possibleOutcomes(ability, action: action, in: context)
+        return outcomes.branches.allSatisfy { health > healthCost($0.operations, action: action, in: context) }
     }
 
     static func healthCost(_ operations: [AbilityOperation], action: BattleActionContext, in context: BattleState) -> Int {
@@ -60,7 +68,8 @@ enum BattleAbilityRules {
     }
 
     static func preparationRecipient(for actor: Combatant, in context: BattleState) -> Combatant {
-        BattleActionContext(actor: actor, in: context).allies(in: context)
-            .first { $0.id != actor.id && context.health(of: $0) > 0 } ?? actor
+        guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return actor }
+        let partner = context.roster[owner == .hero ? .companion : .hero]
+        return partner.isAlive ? partner.combatant : actor
     }
 }

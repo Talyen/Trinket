@@ -19,7 +19,9 @@ private enum HeuristicCardScoring {
         guard !battle.hand.cards.isEmpty else { return nil }
         var bestCard: BattleCard?
         var bestScore = Int.min
-        for card in battle.hand.cards where battle.isCardPlayable(card) {
+        // Membership is established by traversing the live hand; avoid comparing
+        // each complete ability against another lookup of the same physical card.
+        for card in battle.hand.cards where BattleCardCombatEngine.playError(for: card, in: battle) == nil {
             if finishesBattle(card, in: battle) {
                 return card
             }

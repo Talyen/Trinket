@@ -13,13 +13,34 @@ extension BattleTurnEngine {
         }
     }
 
+    private struct NextStrikePreparation: OptionSet {
+        let rawValue: UInt8
+
+        static let holy = Self(rawValue: 1 << 0)
+        static let doubleDamage = Self(rawValue: 1 << 1)
+        static let critical = Self(rawValue: 1 << 2)
+        static let leech = Self(rawValue: 1 << 3)
+        static let burnBonus = Self(rawValue: 1 << 4)
+
+        func consumes(_ effect: Effect) -> Bool {
+            switch effect {
+            case .nextHolyStrike: contains(.holy)
+            case .nextStrikeDouble: contains(.doubleDamage)
+            case .nextStrikeCritical: contains(.critical)
+            case .nextStrikeLeech: contains(.leech)
+            case .nextBurnBonus: contains(.burnBonus)
+            default: false
+            }
+        }
+    }
+
     private struct PreparedDamageComponent {
         let request: DamageRequest
         let target: Combatant
         let keyword: Keyword
         let stackPotency: Int
         let holyStrikeBurnPotency: Int
-        let nextStrike: Set<EffectKind>
+        let nextStrike: NextStrikePreparation
         let logDamageKeyword: Keyword?
     }
 
@@ -78,13 +99,13 @@ extension BattleTurnEngine {
         let nextStrike = preparation.consumption
         amount = SaturatedArithmetic.saturatingAdd(amount, preparation.burnBonus)
         let holyStrikeBurnPotency = amount
-        if nextStrike.contains(.nextHolyStrike) || nextStrike.contains(.nextStrikeDouble) {
+        if nextStrike.contains(.holy) || nextStrike.contains(.doubleDamage) {
             amount = SaturatedArithmetic.saturatingMul(amount, 2)
         }
 
         // Consume before request preparation, which may start nested reactions.
         if !nextStrike.isEmpty {
-            ActiveEffectMutation.removeMatching(from: actor, in: &context) { nextStrike.contains($0.kind) }
+            ActiveEffectMutation.removeMatching(from: actor, in: &context) { nextStrike.consumes($0) }
         }
         let options: DamageOperation = isSelfHealthCost
             ? .healthCost
@@ -93,8 +114,8 @@ extension BattleTurnEngine {
                 origin: context.resolution.attackOrigin,
                 abilityCriticalChanceBonus: ability.criticalChanceBonus,
                 guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
-                guaranteedCritical: guaranteedCritical || nextStrike.contains(.nextStrikeCritical),
-                abilityHasLeech: ability.hasLeech || component.hasLeech || nextStrike.contains(.nextStrikeLeech),
+                guaranteedCritical: guaranteedCritical || nextStrike.contains(.critical),
+                abilityHasLeech: ability.hasLeech || component.hasLeech || nextStrike.contains(.leech),
             )
         var request = DamageRequest(
             amount: amount, target: target, keyword: keyword,
@@ -124,7 +145,7 @@ extension BattleTurnEngine {
         }
         let dealt = damageOutcome.healthLost
 
-        let componentEvent = context.nextEvent(
+        context.nextEvent(
             kind: .abilityDamage,
             actionID: context.resolution.actionID,
             source: .init(actor),
@@ -139,7 +160,7 @@ extension BattleTurnEngine {
         )
 
         if case .landed = damageOutcome.damageImpact {
-            if prepared.nextStrike.contains(.nextHolyStrike) {
+            if prepared.nextStrike.contains(.holy) {
                 await context.applyDecayingDoT(
                     keyword: .burn, potency: prepared.holyStrikeBurnPotency, to: prepared.target,
                     sourceActorID: actor.id, application: .ability,
@@ -151,7 +172,7 @@ extension BattleTurnEngine {
                     ? dealt : prepared.stackPotency,
                 to: prepared.target,
                 sourceActorID: actor.id,
-                isCritical: componentEvent.isCritical,
+                isCritical: damageOutcome.isCritical,
                 context: &context,
             )
         }
@@ -224,20 +245,20 @@ extension BattleTurnEngine {
         damageKeyword: Keyword,
         isSelfHealthCost: Bool,
         effects: [ActiveEffect],
-    ) -> (consumption: Set<EffectKind>, burnBonus: Int) {
+    ) -> (consumption: NextStrikePreparation, burnBonus: Int) {
         guard amount > 0, !isSelfHealthCost else { return ([], 0) }
-        var consumption: Set<EffectKind> = []
+        var consumption: NextStrikePreparation = []
         var burnBonus = 0
         for active in effects {
             switch active.effect {
             case .nextHolyStrike where damageKeyword == .holy:
-                consumption.insert(.nextHolyStrike)
+                consumption.insert(.holy)
             case .nextStrikeDouble:
-                consumption.insert(.nextStrikeDouble)
+                consumption.insert(.doubleDamage)
             case .nextStrikeCritical:
-                consumption.insert(.nextStrikeCritical)
+                consumption.insert(.critical)
             case .nextStrikeLeech:
-                consumption.insert(.nextStrikeLeech)
+                consumption.insert(.leech)
             case let .nextBurnBonus(bonus) where damageKeyword == .burn:
                 burnBonus = SaturatedArithmetic.saturatingAdd(burnBonus, bonus)
             default:
@@ -245,11 +266,11 @@ extension BattleTurnEngine {
             }
         }
         // Holy Strike takes priority; the ordinary double remains ready for a later hit.
-        if consumption.contains(.nextHolyStrike) {
-            consumption.remove(.nextStrikeDouble)
+        if consumption.contains(.holy) {
+            consumption.remove(.doubleDamage)
         }
         if burnBonus > 0 {
-            consumption.insert(.nextBurnBonus)
+            consumption.insert(.burnBonus)
         }
         return (consumption, max(0, burnBonus))
     }

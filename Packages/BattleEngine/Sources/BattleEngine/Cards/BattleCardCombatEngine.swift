@@ -109,6 +109,7 @@ package enum BattleCardCombatEngine {
         for owner: BattleParticipant,
         context: inout BattleState,
     ) -> Int {
+        guard count > 0 else { return 0 }
         var drawn = 0
         for _ in 0 ..< count {
             if drawOne(for: owner, context: &context) != nil {
@@ -257,8 +258,7 @@ package enum BattleCardCombatEngine {
     static func canDrawFromDeck(for owner: BattleParticipant, in context: BattleState) -> Bool {
         guard owner.isPartyMember, context.roster[owner].isAlive else { return false }
         let combatant = context.roster[owner].combatant
-        return !context.roster.hasPendingActionSkip(for: combatant, keyword: .freeze)
-            && !context.roster.hasPendingActionSkip(for: combatant, keyword: .stun)
+        return !context.roster.hasPendingActionSkip(for: combatant)
     }
 
     static func isDeckEmpty(for owner: BattleParticipant, in context: BattleState) -> Bool {

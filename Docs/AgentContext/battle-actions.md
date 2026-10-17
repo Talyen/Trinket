@@ -36,7 +36,10 @@ combatant that played the priming card. Partner cards cannot consume them; End T
 ## Action identity and selected outcomes
 
 `CombatResolution` owns nested action/card identity, selected outcomes, automatic-play
-ancestry, and associated mutable talent action/card bookkeeping. Its value-owned
+ancestry, and associated mutable talent action/card bookkeeping. Actions use one
+LIFO stack; automatic-play scopes retain a nesting depth rather than placeholder
+action frames. Counterattack ancestry also classifies nested feedback as automatic.
+Its value-owned
 `CombatActivationLedger` partitions claims by cadence: action, card, and standalone
 restoration completion release only their own bucket; turn and standalone-action
 claims retire the previous cadence on first use. Battle claims survive nested

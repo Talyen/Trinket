@@ -40,35 +40,44 @@ public extension BattleState {
         let selected = possibilities.ability
         let outcomes = possibilities.branches
         let keywordOverride = BattleTurnEngine.activeDamageKeywordOverride(for: actor, in: self)?.keyword
-        let candidates = outcomes.map {
+        var targets = outcomes.first.map {
             assessmentTargets($0, action: action, abilityID: selected.id, keywordOverride: keywordOverride)
-        }
-        var targets: [BattleCardAssessment.Target] = []
-        for target in candidates.first ?? [] {
-            let common: BattleCardAssessment.Target
-            if candidates.dropFirst().allSatisfy({ $0.contains(target) }) {
-                common = target
-            } else if case .damage = target.intent,
-                      candidates.dropFirst().allSatisfy({ branch in
-                          branch.contains { other in
+        } ?? []
+        // Intersect one branch at a time. Once no recipient is certain, later
+        // branches cannot restore one and need no target projection.
+        for branch in outcomes.dropFirst() {
+            guard !targets.isEmpty else { break }
+            let candidates = assessmentTargets(branch, action: action, abilityID: selected.id, keywordOverride: keywordOverride)
+            var retained = 0
+            for index in targets.indices {
+                let target = targets[index]
+                let common: BattleCardAssessment.Target
+                if candidates.contains(target) {
+                    common = target
+                } else if case .damage = target.intent,
+                          candidates.contains(where: { other in
                               guard other.combatantID == target.combatantID else { return false }
                               if case .damage = other.intent {
                                   return true
                               }
                               return false
-                          }
-                      }) {
-                common = .init(combatantID: target.combatantID, intent: .damage(nil))
-            } else {
-                continue
+                          }) {
+                    common = .init(combatantID: target.combatantID, intent: .damage(nil))
+                } else {
+                    continue
+                }
+                targets[retained] = common
+                retained += 1
             }
-            if !targets.contains(common) {
-                targets.append(common)
-            }
+            targets.removeLast(targets.count - retained)
+        }
+        var uniqueTargets: [BattleCardAssessment.Target] = []
+        for target in targets where !uniqueTargets.contains(target) {
+            uniqueTargets.append(target)
         }
         let payments = outcomes.map { assessmentResources($0, original: selected, action: action) }
         return BattleCardAssessment(
-            actorID: actor.id, denial: nil, targets: targets,
+            actorID: actor.id, denial: nil, targets: uniqueTargets,
             resources: BattleCardAssessment.commonResources(payments),
         )
     }

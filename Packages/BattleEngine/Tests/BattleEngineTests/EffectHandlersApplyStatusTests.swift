@@ -18,7 +18,7 @@ struct EffectHandlersApplyStatusTests {
     private func `cleanse removes selected debuffs and preserves buffs`(
         effect: Effect, stacks: [ActiveEffect], remaining: [ActiveEffect], feedback: Set<Keyword>?,
     ) {
-        var battle = BattleStateTestFactory.makeBattle()
+        var battle = BattleStateTestFactory.makeMinimalBattle()
         battle.seedActiveEffects(stacks, for: battle.hero)
         let outcome = EffectHandlersTestSupport.dispatch(
             effect, battle: &battle,
@@ -38,7 +38,7 @@ struct EffectHandlersApplyStatusTests {
     private func `purge removes selected buffs and emits per-keyword feedback`(
         effect: Effect, stacks: [ActiveEffect], remaining: [ActiveEffect], feedback: Set<Keyword>,
     ) {
-        var battle = BattleStateTestFactory.makeBattle()
+        var battle = BattleStateTestFactory.makeMinimalBattle()
         battle.seedActiveEffects(stacks, for: battle.enemy)
         let outcome = EffectHandlersTestSupport.dispatch(
             effect, target: battle.enemy, battle: &battle,
@@ -52,7 +52,7 @@ struct EffectHandlersApplyStatusTests {
 
     @Test(arguments: [false, true])
     func `random removal removes one eligible effect`(purge: Bool) {
-        var battle = BattleStateTestFactory.makeBattle()
+        var battle = BattleStateTestFactory.makeMinimalBattle()
         let target = purge ? battle.enemy : battle.hero
         let stacks = purge ? [Self.block, Self.thorns] : [Self.poison, Self.burn]
         battle.seedActiveEffects(stacks, for: target)

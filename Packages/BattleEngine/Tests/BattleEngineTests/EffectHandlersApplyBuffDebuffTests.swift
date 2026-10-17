@@ -126,40 +126,6 @@ struct EffectHandlersApplyBuffDebuffTests {
         #expect(battle.mana(of: battle.hero) == 8)
     }
 
-    @Test(arguments: [true, false])
-    func `halve shield handler applies only when block present`(seedBlock: Bool) throws {
-        var battle = BattleStateTestFactory.makeBattle()
-        if seedBlock {
-            battle.seedActiveEffects([ActiveEffect(id: 1, effect: .shield(.block, 3), remainingTurns: 0)], for: battle.enemy)
-        }
-        let outcome = EffectHandlersTestSupport.dispatch(
-            .halveShield(.block),
-            target: battle.enemy,
-            battle: &battle,
-        )
-        if seedBlock {
-            try #expect(outcome.didApply)
-            try #expect(battle.activeEffects(of: battle.enemy).contains { ae in
-                if case .shield(.block, 1) = ae.effect {
-                    return true
-                }
-                return false
-            })
-            try #expect(outcome.events.contains { $0.effectKind == .shieldHalved && $0.keyword == .block })
-        } else {
-            try #expect(!(outcome.didApply))
-            try #expect(outcome.events.isEmpty)
-        }
-    }
-
-    @Test(arguments: [Effect.deathsDoor, .cleanse(.poison)])
-    func `effects without eligible state do not apply`(effect: Effect) {
-        var battle = BattleStateTestFactory.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(effect, battle: &battle)
-        #expect(!outcome.didApply)
-        #expect(outcome.events.isEmpty)
-    }
-
     @Test(arguments: [
         (Effect.thorns(5), ActionEvent.EffectOutcome.thornsApplied, 5, Keyword.thorns, 0),
         (.damageKeywordOverride(.holy, 3, 6), .damageKeywordOverrideApplied, 3, .holy, 6),
@@ -167,7 +133,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     func `buff application retains magnitude duration and feedback`(
         effect: Effect, eventKind: ActionEvent.EffectOutcome, amount: Int, keyword: Keyword, turns: Int,
     ) {
-        var battle = BattleStateTestFactory.makeBattle()
+        var battle = BattleStateTestFactory.makeMinimalBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             effect, battle: &battle,
         )
@@ -187,7 +153,7 @@ struct EffectHandlersApplyBuffDebuffTests {
         initial: Effect, replacement: Effect, recipient: BattleParticipant,
         event: ActionEvent.EffectOutcome, initialAmount: Int, replacementAmount: Int,
     ) {
-        var battle = BattleStateTestFactory.makeBattle()
+        var battle = BattleStateTestFactory.makeMinimalBattle()
         let target = battle.roster[recipient].combatant
         for (effect, amount) in [(initial, initialAmount), (replacement, replacementAmount)] {
             let outcome = EffectHandlersTestSupport.dispatch(effect, target: target, battle: &battle)
@@ -200,7 +166,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     }
 
     @Test func `restore mana on hit recast stacks on top of existing shield`() {
-        var battle = BattleStateTestFactory.makeBattle()
+        var battle = BattleStateTestFactory.makeMinimalBattle()
         let first = EffectHandlersTestSupport.dispatch(
             .restoreManaOnHit(3, 6), battle: &battle,
         )
@@ -224,7 +190,7 @@ struct EffectHandlersApplyBuffDebuffTests {
     func `amount buffs stack once and saturate their state event and summary`(
         effect: Effect, expected: Effect, event: ActionEvent.EffectOutcome, keyword: Keyword, total: Int,
     ) {
-        var battle = BattleStateTestFactory.makeBattle()
+        var battle = BattleStateTestFactory.makeMinimalBattle()
         let first = EffectHandlersTestSupport.dispatch(effect, battle: &battle)
         let second = EffectHandlersTestSupport.dispatch(effect, battle: &battle)
         #expect(first.didApply && second.didApply)

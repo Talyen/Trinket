@@ -42,13 +42,9 @@ struct CombatResolution {
         var talents: HeroTalentCardFacts?
     }
 
-    private enum Frame {
-        case action(Action)
-        case automaticPlay
-    }
-
     private var depths: [Scope: Int] = [:]
-    private var frames: [Frame] = []
+    private var actions: [Action] = []
+    private var automaticPlayDepth = 0
     private var nextActionID = 0
     private var nextStandaloneRestorationID = 0
     private(set) var standaloneRestorationID: Int?
@@ -84,12 +80,7 @@ struct CombatResolution {
     }
 
     private var currentAction: Action? {
-        for frame in frames.reversed() {
-            if case let .action(action) = frame {
-                return action
-            }
-        }
-        return nil
+        actions.last
     }
 
     var actionOutcome: ResolvedActionFacts? {
@@ -105,16 +96,8 @@ struct CombatResolution {
     }
 
     mutating func recordCriticalAttack(by actorID: String) {
-        guard let index = frames.lastIndex(where: {
-            if case .action = $0 {
-                return true
-            }
-            return false
-        }), case var .action(action) = frames[index], action.context.actor.id == actorID else {
-            return
-        }
-        action.didCriticalHit = true
-        frames[index] = .action(action)
+        guard let index = actions.indices.last, actions[index].context.actor.id == actorID else { return }
+        actions[index].didCriticalHit = true
     }
 
     func hasCriticalHit(by actorID: String) -> Bool {
@@ -131,20 +114,16 @@ struct CombatResolution {
     }
 
     var isAutomaticPlay: Bool {
-        frames.contains { frame in
-            switch frame {
-            case .automaticPlay: true
-            case let .action(action): action.origin == .counterattack
-            }
-        }
+        automaticPlayDepth > 0 || actions.contains { $0.origin == .counterattack }
     }
 
     mutating func beginAutomaticPlay() {
-        frames.append(.automaticPlay)
+        automaticPlayDepth += 1
     }
 
     mutating func endAutomaticPlay() {
-        guard case .automaticPlay = frames.removeLast() else { preconditionFailure() }
+        precondition(automaticPlayDepth > 0)
+        automaticPlayDepth -= 1
     }
 
     func cardOutcome(for actorID: String) -> ResolvedActionFacts? {
@@ -238,10 +217,8 @@ struct CombatResolution {
     }
 
     mutating func prepareActionTalents(_ talents: TalentActionFacts) {
-        guard case var .action(action) = frames.last else { preconditionFailure() }
-        precondition(action.talents == nil && action.context.actor.id == talents.actorID)
-        action.talents = talents
-        frames[frames.count - 1] = .action(action)
+        precondition(actions.last?.talents == nil && actions.last?.context.actor.id == talents.actorID)
+        actions[actions.count - 1].talents = talents
     }
 
     func actionTalents(for actorID: String) -> TalentActionFacts? {
@@ -276,20 +253,14 @@ struct CombatResolution {
     }
 
     mutating func loadedStrikeDouble(for actorID: String, using rng: inout some RandomNumberGenerator) -> Bool {
-        guard let index = frames.lastIndex(where: {
-            if case .action = $0 {
-                return true
-            }
-            return false
-        }), case var .action(action) = frames[index], action.context.actor.id == actorID else {
+        guard let index = actions.indices.last, actions[index].context.actor.id == actorID else {
             return Bool.random(using: &rng)
         }
-        if let stored = action.loadedStrikeDouble {
+        if let stored = actions[index].loadedStrikeDouble {
             return stored
         }
         let doubled = Bool.random(using: &rng)
-        action.loadedStrikeDouble = doubled
-        frames[index] = .action(action)
+        actions[index].loadedStrikeDouble = doubled
         return doubled
     }
 
@@ -304,23 +275,17 @@ struct CombatResolution {
         for actorID: String?,
         _ body: (inout TalentActionFacts) -> Value,
     ) -> Value? {
-        guard let index = frames.lastIndex(where: { frame in
-            if case let .action(action) = frame {
-                return action.talents != nil
-            }
-            return false
-        }), case var .action(action) = frames[index],
-        var talents = action.talents, talents.actorID == actorID else { return nil }
+        guard let index = actions.lastIndex(where: { $0.talents != nil }),
+              var talents = actions[index].talents, talents.actorID == actorID else { return nil }
+        actions[index].talents = nil
         let value = body(&talents)
-        action.talents = talents
-        frames[index] = .action(action)
+        actions[index].talents = talents
         return value
     }
 
     mutating func prepareAction(_ facts: ResolvedActionFacts) -> Bool {
-        guard case var .action(action) = frames.last else { preconditionFailure() }
-        action.outcome = facts
-        frames[frames.count - 1] = .action(action)
+        precondition(!actions.isEmpty)
+        actions[actions.count - 1].outcome = facts
         guard cards.last?.actorID == facts.action.actor.id, cards.last?.outcome == nil,
               facts.origin == .card || facts.origin == .ordinaryCard else { return false }
         cards[cards.count - 1].outcome = facts
@@ -350,13 +315,13 @@ struct CombatResolution {
             cards.last?.actorID == context.actor.id ? cards.last?.id : nil
         default: nil
         }
-        frames.append(.action(Action(id: nextActionID, cardID: cardID, context: context, origin: origin)))
+        actions.append(Action(id: nextActionID, cardID: cardID, context: context, origin: origin))
         nextActionID += 1
         return nextActionID - 1
     }
 
     mutating func endAction() {
-        guard case let .action(action) = frames.removeLast() else { preconditionFailure() }
+        let action = actions.removeLast()
         claims.finish(.action(action.id))
     }
 
