@@ -283,7 +283,7 @@ enum ItemAffixCatalogGenerated {
             keywords: [.mana, .burn, .freeze],
             weight: 8,
             basic: ItemAffixPower(description: "Increase Maximum Mana by 4", modifiers: [.maximumMana(4)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Increase Maximum Mana by 8", modifiers: [.maximumMana(8)], triggers: CombatTraitTriggers())
+            astral: ItemAffixPower(description: "Increase Maximum Mana by 10", modifiers: [.maximumMana(10)], triggers: CombatTraitTriggers())
         ),
         ItemAffixCatalog.affix(
             id: "beastbond",
@@ -379,7 +379,7 @@ enum ItemAffixCatalogGenerated {
             keywords: [.physical, .dodge],
             weight: 8,
             basic: ItemAffixPower(description: "Deal 3 additional damage on your next attack after Dodging", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.damageAfterDodgeBonus = 3 })),
-            astral: ItemAffixPower(description: "Deal 6 additional damage on your next attack after Dodging", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.damageAfterDodgeBonus = 6 }))
+            astral: ItemAffixPower(description: "Deal 8 additional damage on your next attack after Dodging", modifiers: [], triggers: CombatTraitTriggers(damage: DamageTriggers { $0.damageAfterDodgeBonus = 8 }))
         ),
         ItemAffixCatalog.affix(
             id: "cascading",
@@ -516,7 +516,7 @@ enum ItemAffixCatalogGenerated {
             keywords: [.physical, .thorns],
             weight: 8,
             basic: ItemAffixPower(description: "Reflect 10% of Health lost as Physical damage", modifiers: [], triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.thornsPercent = 0.10 })),
-            astral: ItemAffixPower(description: "Reflect 20% of Health lost as Physical damage", modifiers: [], triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.thornsPercent = 0.20 }))
+            astral: ItemAffixPower(description: "Reflect 25% of Health lost as Physical damage", modifiers: [], triggers: CombatTraitTriggers(mitigation: MitigationTriggers { $0.thornsPercent = 0.25 }))
         ),
         ItemAffixCatalog.affix(
             id: "shredding",
@@ -719,8 +719,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.freeze],
             weight: 1,
-            basic: ItemAffixPower(description: "Freeze has a 20% chance to last an additional turn", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers { $0.freezeExtendChancePercent = 0.20 })),
-            astral: ItemAffixPower(description: "Freeze has a 20% chance to last an additional turn", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers { $0.freezeExtendChancePercent = 0.20 }))
+            basic: ItemAffixPower(description: "Freeze has a 30% chance to last an additional turn", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers { $0.freezeExtendChancePercent = 0.30 })),
+            astral: ItemAffixPower(description: "Freeze has a 30% chance to last an additional turn", modifiers: [], triggers: CombatTraitTriggers(control: ControlTriggers { $0.freezeExtendChancePercent = 0.30 }))
         ),
         ItemAffixCatalog.affix(
             id: "stunned_pocketwatch",
@@ -971,7 +971,7 @@ enum ItemAffixCatalogGenerated {
             keywords: [.leech, .block],
             weight: 8,
             basic: ItemAffixPower(description: "Leech has a 10% chance to also grant an equal amount of Block", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechBlockChancePercent = 0.10 })),
-            astral: ItemAffixPower(description: "Leech has a 20% chance to also grant an equal amount of Block", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechBlockChancePercent = 0.20 }))
+            astral: ItemAffixPower(description: "Leech has a 30% chance to also grant an equal amount of Block", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechBlockChancePercent = 0.30 }))
         ),
         ItemAffixCatalog.affix(
             id: "clearheaded",
@@ -988,7 +988,7 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.cleanse, .health],
             weight: 8,
-            basic: ItemAffixPower(description: "Restoring Health has a 10% chance to Cleanse a debuff from the target", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.onHealCleanseTargetChance = 0.10 })),
+            basic: ItemAffixPower(description: "Restoring Health has a 15% chance to Cleanse a debuff from the target", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.onHealCleanseTargetChance = 0.15 })),
             astral: ItemAffixPower(description: "Restoring Health has a 20% chance to Cleanse a debuff from the target", modifiers: [], triggers: CombatTraitTriggers(healing: HealingTriggers { $0.onHealCleanseTargetChance = 0.20 }))
         ),
         ItemAffixCatalog.affix(
@@ -1016,7 +1016,7 @@ enum ItemAffixCatalogGenerated {
             keywords: [.purge, .block],
             weight: 8,
             basic: ItemAffixPower(description: "Gain 2 Block when you Purge an enemy", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers { $0.onPurgeGainBlock = 2 })),
-            astral: ItemAffixPower(description: "Gain 4 Block when you Purge an enemy", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers { $0.onPurgeGainBlock = 4 }))
+            astral: ItemAffixPower(description: "Gain 6 Block when you Purge an enemy", modifiers: [], triggers: CombatTraitTriggers(cleanse: CleanseTriggers { $0.onPurgeGainBlock = 6 }))
         ),
         ItemAffixCatalog.affix(
             id: "denouncing",
@@ -1061,7 +1061,7 @@ enum ItemAffixCatalogGenerated {
             keywords: [.thorns, .block],
             weight: 8,
             basic: ItemAffixPower(description: "Gain 1 Thorns each turn you retain Block", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers { $0.retainedBlockThornsFlat = 1 })),
-            astral: ItemAffixPower(description: "Gain 3 Thorns each turn you retain Block", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers { $0.retainedBlockThornsFlat = 3 }))
+            astral: ItemAffixPower(description: "Gain 4 Thorns each turn you retain Block", modifiers: [], triggers: CombatTraitTriggers(block: BlockTriggers { $0.retainedBlockThornsFlat = 4 }))
         ),
         ItemAffixCatalog.affix(
             id: "spiteful",

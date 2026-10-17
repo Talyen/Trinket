@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContentTestSupport
 import TrinketCore
@@ -5,6 +6,32 @@ import TrinketCore
 @testable import TrinketContent
 
 struct ManaArithmeticBoundaryTests {
+    @Test(arguments: [false, true], [3, Int.max])
+    func `Mana Absorption preserves saved conversion and saturates overflow Block`(updated: Bool, amount: Int) throws {
+        let saved = updated
+            ? #"{"excessManaRestorationBlock":true,"excessManaRestorationBlockPerMana":2}"#
+            : #"{"excessManaRestorationBlock":true}"#
+        var profile = CombatModifierProfile.zero
+        profile.triggers = try JSONDecoder().decode(CombatTraitTriggers.self, from: Data(saved.utf8))
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxMana: 3),
+            heroMana: 2, heroModifiers: profile, appliesFightPacing: false,
+        )
+
+        CombatExecutor.run { await battle.restoreManaEmitting(amount, to: battle.hero, abilityName: "Restore") }
+
+        let firstBlock = amount == 3 ? (updated ? 4 : 2) : (updated ? Int.max : Int.max - 1)
+        #expect(battle.mana(of: battle.hero) == 3)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == firstBlock)
+        #expect(battle.roster.hero.talents.pending.manaOverflowBlock == 0)
+
+        CombatExecutor.run { await battle.restoreManaEmitting(1, to: battle.hero, abilityName: "Restore") }
+
+        let totalBlock = amount == 3 ? (updated ? 6 : 3) : Int.max
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == totalBlock)
+        #expect(battle.roster.hero.talents.pending.manaOverflowBlock == 0)
+    }
+
     @Test func `Arcane Thorns combines with saturated Living Conduit overflow`() {
         var profile = CombatModifierProfile.zero
         profile.triggers.livingConduit = true

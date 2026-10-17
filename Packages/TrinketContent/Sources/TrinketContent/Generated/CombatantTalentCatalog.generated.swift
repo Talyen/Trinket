@@ -7,8 +7,8 @@ public extension CombatantTalentCatalog {
             "ranger_poison_t1_1": CombatantTalentEffect(
                 name: "Venomous Arrows",
                 iconID: "sf:figure.archery",
-                description: "Poison attacks deal 2 additional damage to Bleeding enemies",
-                triggers: CombatTraitTriggers(damage: DamageTriggers { $0.poisonAttackVsBleedingBonus = 2 })
+                description: "Poison attacks deal 3 additional damage to Bleeding enemies",
+                triggers: CombatTraitTriggers(damage: DamageTriggers { $0.poisonAttackVsBleedingBonus = 3 })
             ),
             "ranger_poison_t1_2": CombatantTalentEffect(
                 name: "Paralytic Poison",
@@ -48,8 +48,8 @@ public extension CombatantTalentCatalog {
             "ranger_burn_t1_1": CombatantTalentEffect(
                 name: "Flaming Arrows",
                 iconID: "sf:figure.archery",
-                description: "Burn attacks deal 50% more damage to enemy Block",
-                triggers: CombatTraitTriggers(block: BlockTriggers { $0.burnAttackBlockBreakMultiplier = 1.5 })
+                description: "Burn attacks deal 75% more damage to enemy Block",
+                triggers: CombatTraitTriggers(block: BlockTriggers { $0.burnAttackBlockBreakMultiplier = 1.75 })
             ),
             "ranger_burn_t1_2": CombatantTalentEffect(
                 name: "Slow Burn",
@@ -636,8 +636,8 @@ public extension CombatantTalentCatalog {
             "druid_mana_t3_1": CombatantTalentEffect(
                 name: "Shared Current",
                 iconID: "sf:waveform",
-                description: "Mana empowerment adds 2 damage to your Companion’s next attack",
-                triggers: CombatTraitTriggers(mana: ManaTriggers { $0.sharedCurrentCompanionNextAttackBonus = 2 })
+                description: "Mana empowerment adds 3 damage to your Companion’s next attack",
+                triggers: CombatTraitTriggers(mana: ManaTriggers { $0.sharedCurrentCompanionNextAttackBonus = 3 })
             ),
             "druid_mana_t3_2": CombatantTalentEffect(
                 name: "Deep Roots",
@@ -1391,8 +1391,8 @@ public extension CombatantTalentCatalog {
             "frost_whelp_mana_t1_1": CombatantTalentEffect(
                 name: "Dragon Spark",
                 iconID: "sf:sparkles",
-                description: "Spending Mana has a 10% chance to draw a card",
-                triggers: CombatTraitTriggers(mana: ManaTriggers { $0.spendManaDrawChancePercent = 0.10 })
+                description: "Spending Mana has a 15% chance to draw a card",
+                triggers: CombatTraitTriggers(mana: ManaTriggers { $0.spendManaDrawChancePercent = 0.15 })
             ),
             "frost_whelp_mana_t1_2": CombatantTalentEffect(
                 name: "Arcane Breath",
@@ -1403,8 +1403,13 @@ public extension CombatantTalentCatalog {
             "frost_whelp_mana_t2_1": CombatantTalentEffect(
                 name: "Mana Absorption",
                 iconID: "sf:shield.fill",
-                description: "Excess Mana restored becomes Block",
-                triggers: CombatTraitTriggers(mana: ManaTriggers { $0.excessManaRestorationBlock = true })
+                description: "Gain 2 Block for each excess Mana restored",
+                triggers: CombatTraitTriggers(
+                    mana: ManaTriggers {
+                        $0.excessManaRestorationBlock = true
+                        $0.excessManaRestorationBlockPerMana = 2
+                    }
+                )
             ),
             "frost_whelp_mana_t2_2": CombatantTalentEffect(
                 name: "Aetherial Armor",
@@ -1670,8 +1675,8 @@ public extension CombatantTalentCatalog {
             "panther_leech_t1_1": CombatantTalentEffect(
                 name: "Blood Hunger",
                 iconID: "sf:drop.fill",
-                description: "Bleed attacks gain Leech while below 30% Health",
-                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.bleedAttackLeechBelowHealthThreshold = 0.30 })
+                description: "Bleed attacks gain Leech while below 50% Health",
+                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.bleedAttackLeechBelowHealthThreshold = 0.50 })
             ),
             "panther_leech_t1_2": CombatantTalentEffect(
                 name: "Shared Feast",
@@ -1682,8 +1687,8 @@ public extension CombatantTalentCatalog {
             "panther_leech_t2_1": CombatantTalentEffect(
                 name: "Vitality Infusion",
                 iconID: "sf:heart.fill",
-                description: "Leech Critical Hits grant your ally 3 Block",
-                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechCriticalAllyBlock = 3 })
+                description: "Leech Critical Hits grant your ally 4 Block",
+                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.leechCriticalAllyBlock = 4 })
             ),
             "panther_leech_t2_2": CombatantTalentEffect(
                 name: "Sanguine Resistance",
@@ -1774,10 +1779,10 @@ public extension CombatantTalentCatalog {
             "phoenix_burn_t1_1": CombatantTalentEffect(
                 name: "Blazing Feathers",
                 iconID: "sf:bird.fill",
-                description: "Taking damage has a 10% chance to return 4 Burn damage",
+                description: "Taking damage has a 15% chance to return 4 Burn damage",
                 triggers: CombatTraitTriggers(
                     dot: DotTriggers {
-                        $0.onDamageBurnRetaliationChancePercent = 0.10
+                        $0.onDamageBurnRetaliationChancePercent = 0.15
                         $0.onDamageBurnRetaliationDamage = 4
                     }
                 )
@@ -2119,8 +2124,8 @@ public extension CombatantTalentCatalog {
             "library_owl_health_t1_1": CombatantTalentEffect(
                 name: "Safe Perch",
                 iconID: "sf:bird.fill",
-                description: "Above half Health, gain +15% Dodge chance",
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers { $0.dodgeChanceAboveHalfHealthBonus = 0.15 })
+                description: "Above half Health, gain +20% Dodge chance",
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers { $0.dodgeChanceAboveHalfHealthBonus = 0.20 })
             ),
             "library_owl_health_t1_2": CombatantTalentEffect(
                 name: "Warded Roost",
@@ -2632,8 +2637,8 @@ public extension CombatantTalentCatalog {
             "shield_scarab_stun_t2_1": CombatantTalentEffect(
                 name: "Prolonged Daze",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Stun has a 20% chance to last another turn",
-                triggers: CombatTraitTriggers(control: ControlTriggers { $0.stunExtendChancePercent = 0.20 })
+                description: "Stun has a 30% chance to last another turn",
+                triggers: CombatTraitTriggers(control: ControlTriggers { $0.stunExtendChancePercent = 0.30 })
             ),
             "shield_scarab_stun_t2_2": CombatantTalentEffect(
                 name: "Seismic Impact",

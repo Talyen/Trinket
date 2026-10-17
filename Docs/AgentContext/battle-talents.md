@@ -581,6 +581,14 @@ after a Holy attack hit. Consume it once for that enemy ability. Subzero Mist
 rolls its authored extension chance when its owner triggers Freeze, extending
 control through the ordinary action-skip lifecycle.
 
+### Mana Absorption
+
+Mana Absorption grants 2 resolved Block per excess Mana restored, including at
+full Mana. Only overflow funds the grant; actually restored Mana remains separate.
+The conversion and pending Block accumulation saturate at integer capacity.
+The existing enable flag remains serialized, with a separate per-Mana amount
+defaulting to 1 for older profiles. Merging uses the strongest conversion amount.
+
 ## Distinct engine triggers
 
 These supported fields are separate from the current talents above. Keep their

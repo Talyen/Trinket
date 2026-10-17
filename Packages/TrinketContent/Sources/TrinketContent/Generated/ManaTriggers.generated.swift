@@ -87,6 +87,7 @@ public struct ManaTriggers: Equatable, Hashable, Sendable {
     public var manaRestorationDrawChancePercent: Double = 0
     public var selfManaSpendNextAttackBonus: Int = 0
     public var threefoldElementalDamageManaChancePercent: Double = 0
+    public var excessManaRestorationBlockPerMana: Int = 1
 
     public init(_ configure: (inout Self) -> Void = { _ in }) {
         configure(&self)

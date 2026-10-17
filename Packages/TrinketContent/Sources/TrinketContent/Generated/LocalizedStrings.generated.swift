@@ -6730,8 +6730,8 @@ enum L10n {
         LocalizedStringResource("talents.frost_whelp_mana_t1_2.name", defaultValue: "Arcane Breath", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static var talents_frost_whelp_mana_t2_1_description: LocalizedStringResource {
-        LocalizedStringResource("talents.frost_whelp_mana_t2_1.description", defaultValue: "Excess <keyword id=\"mana\">Mana</keyword> restored becomes <keyword id=\"block\">Block</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func talents_frost_whelp_mana_t2_1_description(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("talents.frost_whelp_mana_t2_1.description", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"block\">Block</keyword> for each excess <keyword id=\"mana\">Mana</keyword> restored", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_frost_whelp_mana_t2_1_name: LocalizedStringResource {

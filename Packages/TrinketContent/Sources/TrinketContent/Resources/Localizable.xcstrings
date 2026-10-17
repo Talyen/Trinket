@@ -71312,37 +71312,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Überschüssig wiederhergestelltes <keyword id=\"mana\">Mana</keyword> wird zu <keyword id=\"block\">Block</keyword>"
+            "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> pro überschüssig wiederhergestelltem <keyword id=\"mana\">Mana</keyword>"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Excess <keyword id=\"mana\">Mana</keyword> restored becomes <keyword id=\"block\">Block</keyword>"
+            "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> for each excess <keyword id=\"mana\">Mana</keyword> restored"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le <keyword id=\"mana\">Mana</keyword> restauré en excès devient du <keyword id=\"block\">Blocage</keyword>"
+            "value": "Votre <keyword id=\"block\">Blocage</keyword> augmente de <value id=\"quantity_1\">%1$lld</value> par point de <keyword id=\"mana\">Mana</keyword> restauré en excès"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "過剰に回復した<keyword id=\"mana\">マナ</keyword>を<keyword id=\"block\">ブロック</keyword>に変換"
+            "value": "過剰に回復した<keyword id=\"mana\">マナ</keyword>1につき、<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "초과 <keyword id=\"mana\">마나</keyword> 회복량을 <keyword id=\"block\">방어도</keyword>로 전환"
+            "value": "초과 회복한 <keyword id=\"mana\">마나</keyword> 1당 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "過量恢復的<keyword id=\"mana\">魔力</keyword>轉化為<keyword id=\"block\">格擋</keyword>"
+            "value": "每點超額恢復的<keyword id=\"mana\">魔力</keyword>使你獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"
           }
         }
       }

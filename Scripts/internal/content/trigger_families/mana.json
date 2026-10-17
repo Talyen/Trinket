@@ -396,6 +396,12 @@
     {
       "name": "threefoldElementalDamageManaChancePercent",
       "type": "Double"
+    },
+    {
+      "name": "excessManaRestorationBlockPerMana",
+      "type": "Int",
+      "default": "1",
+      "merge": "max"
     }
   ]
 }

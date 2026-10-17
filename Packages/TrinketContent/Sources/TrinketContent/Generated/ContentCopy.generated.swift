@@ -287,8 +287,8 @@ public enum ContentCopy {
             (L10n.affixes_bloodstone_basic_description(1), [1])
         case "Bloodstone":
             (L10n.affixes_bloodstone_title, [])
-        case "Leech has a 20% chance to also grant an equal amount of Block":
-            (L10n.affixes_bloodward_astral_description(20), [20])
+        case "Leech has a 30% chance to also grant an equal amount of Block":
+            (L10n.affixes_bloodward_astral_description(30), [30])
         case "Leech has a 10% chance to also grant an equal amount of Block":
             (L10n.affixes_bloodward_basic_description(10), [10])
         case "Bloodward":
@@ -453,8 +453,8 @@ public enum ContentCopy {
             (L10n.affixes_frostburn_basic_description(2), [2])
         case "Frostburn":
             (L10n.affixes_frostburn_title, [])
-        case "Freeze has a 20% chance to last an additional turn":
-            (L10n.affixes_frozen_pocketwatch_astral_description(20), [20])
+        case "Freeze has a 30% chance to last an additional turn":
+            (L10n.affixes_frozen_pocketwatch_astral_description(30), [30])
         case "Deep Freeze":
             (L10n.affixes_frozen_pocketwatch_title, [])
         case "Increase Gold gained by 20%":
@@ -519,8 +519,8 @@ public enum ContentCopy {
             (L10n.affixes_insulated_basic_description(10), [10])
         case "Insulated":
             (L10n.affixes_insulated_title, [])
-        case "Gain 3 Thorns each turn you retain Block":
-            (L10n.affixes_ironbriar_astral_description(3), [3])
+        case "Gain 4 Thorns each turn you retain Block":
+            (L10n.affixes_ironbriar_astral_description(4), [4])
         case "Gain 1 Thorns each turn you retain Block":
             (L10n.affixes_ironbriar_basic_description(1), [1])
         case "Ironbriar":
@@ -569,6 +569,8 @@ public enum ContentCopy {
             (L10n.affixes_lucky_clover_astral_description(8, 1), [8, 1])
         case "Fortunate Strike":
             (L10n.affixes_lucky_clover_title, [])
+        case "Increase Maximum Mana by 10":
+            (L10n.affixes_manabound_astral_description(10), [10])
         case "Manabound":
             (L10n.affixes_manabound_title, [])
         case "Deal 2 bonus Holy damage\nTake 25% less Holy damage", "Deal 2 bonus Holy damage. Take 25% less Holy damage":
@@ -627,12 +629,12 @@ public enum ContentCopy {
             (L10n.affixes_resourceful_title, [])
         case "Restoring Health has a 20% chance to Cleanse a debuff from the target":
             (L10n.affixes_restorative_astral_description(20, 1), [20, 1])
-        case "Restoring Health has a 10% chance to Cleanse a debuff from the target":
-            (L10n.affixes_restorative_basic_description(10, 1), [10, 1])
+        case "Restoring Health has a 15% chance to Cleanse a debuff from the target":
+            (L10n.affixes_restorative_basic_description(15, 1), [15, 1])
         case "Restorative":
             (L10n.affixes_restorative_title, [])
-        case "Reflect 20% of Health lost as Physical damage":
-            (L10n.affixes_retaliatory_astral_description(20), [20])
+        case "Reflect 25% of Health lost as Physical damage":
+            (L10n.affixes_retaliatory_astral_description(25), [25])
         case "Reflect 10% of Health lost as Physical damage":
             (L10n.affixes_retaliatory_basic_description(10), [10])
         case "Retaliatory":
@@ -645,8 +647,8 @@ public enum ContentCopy {
             (L10n.affixes_rimed_basic_description(10), [10])
         case "Rimed":
             (L10n.affixes_rimed_title, [])
-        case "Deal 6 additional damage on your next attack after Dodging":
-            (L10n.affixes_riposte_astral_description(6), [6])
+        case "Deal 8 additional damage on your next attack after Dodging":
+            (L10n.affixes_riposte_astral_description(8), [8])
         case "Deal 3 additional damage on your next attack after Dodging":
             (L10n.affixes_riposte_basic_description(3), [3])
         case "Riposte":
@@ -783,8 +785,8 @@ public enum ContentCopy {
             (L10n.affixes_unmaking_basic_description(1, 1), [1, 1])
         case "Unmaking":
             (L10n.affixes_unmaking_title, [])
-        case "Gain 4 Block when you Purge an enemy":
-            (L10n.affixes_unraveling_astral_description(4), [4])
+        case "Gain 6 Block when you Purge an enemy":
+            (L10n.affixes_unraveling_astral_description(6), [6])
         case "Gain 2 Block when you Purge an enemy":
             (L10n.affixes_unraveling_basic_description(2), [2])
         case "Unraveling":
@@ -2619,8 +2621,8 @@ public enum ContentCopy {
             (L10n.talents_druid_mana_t2_2_description, [])
         case "Living Conduit":
             (L10n.talents_druid_mana_t2_2_name, [])
-        case "Mana empowerment adds 2 damage to your Companion’s next attack":
-            (L10n.talents_druid_mana_t3_1_description(2), [2])
+        case "Mana empowerment adds 3 damage to your Companion’s next attack":
+            (L10n.talents_druid_mana_t3_1_description(3), [3])
         case "Shared Current":
             (L10n.talents_druid_mana_t3_1_name, [])
         case "Restore 1 additional Mana while you have Thorns":
@@ -2799,16 +2801,16 @@ public enum ContentCopy {
             (L10n.talents_frost_whelp_freeze_t4_1_description, [])
         case "Winter’s Dominion":
             (L10n.talents_frost_whelp_freeze_t4_1_name, [])
-        case "Spending Mana has a 10% chance to draw a card":
-            (L10n.talents_frost_whelp_mana_t1_1_description(10), [10])
+        case "Spending Mana has a 15% chance to draw a card":
+            (L10n.talents_frost_whelp_mana_t1_1_description(15), [15])
         case "Dragon Spark":
             (L10n.talents_frost_whelp_mana_t1_1_name, [])
         case "Mana empowerment adds 1 damage to Freeze attacks":
             (L10n.talents_frost_whelp_mana_t1_2_description(1), [1])
         case "Arcane Breath":
             (L10n.talents_frost_whelp_mana_t1_2_name, [])
-        case "Excess Mana restored becomes Block":
-            (L10n.talents_frost_whelp_mana_t2_1_description, [])
+        case "Gain 2 Block for each excess Mana restored":
+            (L10n.talents_frost_whelp_mana_t2_1_description(2), [2])
         case "Mana Absorption":
             (L10n.talents_frost_whelp_mana_t2_1_name, [])
         case "While you have Mana, take 25% less damage":
@@ -3019,6 +3021,8 @@ public enum ContentCopy {
             (L10n.talents_library_owl_cleanse_t4_1_description, [])
         case "Lesson Learned":
             (L10n.talents_library_owl_cleanse_t4_1_name, [])
+        case "Above half Health, gain +20% Dodge chance":
+            (L10n.talents_library_owl_health_t1_1_description(20), [20])
         case "Safe Perch":
             (L10n.talents_library_owl_health_t1_1_name, [])
         case "Restoring Health reduces that ally's next incoming damage by 20%":
@@ -3305,16 +3309,16 @@ public enum ContentCopy {
             (L10n.talents_panther_dodge_t4_1_description, [])
         case "Killing Grace":
             (L10n.talents_panther_dodge_t4_1_name, [])
-        case "Bleed attacks gain Leech while below 30% Health":
-            (L10n.talents_panther_leech_t1_1_description(30), [30])
+        case "Bleed attacks gain Leech while below 50% Health":
+            (L10n.talents_panther_leech_t1_1_description(50), [50])
         case "Blood Hunger":
             (L10n.talents_panther_leech_t1_1_name, [])
         case "Excess Leech Health restoration is shared with your ally":
             (L10n.talents_panther_leech_t1_2_description, [])
         case "Shared Feast":
             (L10n.talents_panther_leech_t1_2_name, [])
-        case "Leech Critical Hits grant your ally 3 Block":
-            (L10n.talents_panther_leech_t2_1_description(3), [3])
+        case "Leech Critical Hits grant your ally 4 Block":
+            (L10n.talents_panther_leech_t2_1_description(4), [4])
         case "Vitality Infusion":
             (L10n.talents_panther_leech_t2_1_name, [])
         case "Enemies cannot Leech from you":
@@ -3333,8 +3337,8 @@ public enum ContentCopy {
             (L10n.talents_panther_leech_t4_1_description, [])
         case "Blood Feast":
             (L10n.talents_panther_leech_t4_1_name, [])
-        case "Taking damage has a 10% chance to return 4 Burn damage":
-            (L10n.talents_phoenix_burn_t1_1_description(10, 4), [10, 4])
+        case "Taking damage has a 15% chance to return 4 Burn damage":
+            (L10n.talents_phoenix_burn_t1_1_description(15, 4), [15, 4])
         case "Blazing Feathers":
             (L10n.talents_phoenix_burn_t1_1_name, [])
         case "Ignition Spark":
@@ -3525,6 +3529,8 @@ public enum ContentCopy {
             (L10n.talents_ranger_bleed_t4_1_description, [])
         case "Pin and Rend":
             (L10n.talents_ranger_bleed_t4_1_name, [])
+        case "Burn attacks deal 75% more damage to enemy Block":
+            (L10n.talents_ranger_burn_t1_1_description(75), [75])
         case "Flaming Arrows":
             (L10n.talents_ranger_burn_t1_1_name, [])
         case "Burn fades 30% slower on Bleeding enemies":
@@ -3551,8 +3557,8 @@ public enum ContentCopy {
             (L10n.talents_ranger_burn_t4_1_description(15), [15])
         case "Firebrand":
             (L10n.talents_ranger_burn_t4_1_name, [])
-        case "Poison attacks deal 2 additional damage to Bleeding enemies":
-            (L10n.talents_ranger_poison_t1_1_description(2), [2])
+        case "Poison attacks deal 3 additional damage to Bleeding enemies":
+            (L10n.talents_ranger_poison_t1_1_description(3), [3])
         case "Venomous Arrows":
             (L10n.talents_ranger_poison_t1_1_name, [])
         case "Poisoned enemies have 15% less accuracy":
@@ -3797,6 +3803,8 @@ public enum ContentCopy {
             (L10n.talents_shield_scarab_stun_t1_1_name, [])
         case "Heavy Slam":
             (L10n.talents_shield_scarab_stun_t1_2_name, [])
+        case "Stun has a 30% chance to last another turn":
+            (L10n.talents_shield_scarab_stun_t2_1_description(30), [30])
         case "Prolonged Daze":
             (L10n.talents_shield_scarab_stun_t2_1_name, [])
         case "Increase Stun build-up by 20%":
@@ -4571,6 +4579,7 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Frozen\\ enemies\\ take\\ ([0-9]+)%\\ increased\\ damage$"), count: 1, make: { values in L10n.talents_frost_whelp_freeze_t3_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Spending\\ Mana\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ draw\\ a\\ cards?$"), count: 1, make: { values in L10n.talents_frost_whelp_mana_t1_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Mana\\ empowerment\\ adds\\ ([0-9]+)\\ damage\\ to\\ Freeze\\ attacks$"), count: 1, make: { values in L10n.talents_frost_whelp_mana_t1_2_description(values[0]) }),
+        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ for\\ each\\ excess\\ Mana\\ restored$"), count: 1, make: { values in L10n.talents_frost_whelp_mana_t2_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^While\\ you\\ have\\ Mana,\\ take\\ ([0-9]+)%\\ less\\ damage$"), count: 1, make: { values in L10n.talents_frost_whelp_mana_t2_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Spending\\ Mana\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ refund\\ it$"), count: 1, make: { values in L10n.talents_frost_whelp_mana_t3_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Mana\\ empowerment\\ costs\\ ([0-9]+)\\ less\\ Mana$"), count: 1, make: { values in L10n.talents_frost_whelp_mana_t3_2_description(values[0]) }),

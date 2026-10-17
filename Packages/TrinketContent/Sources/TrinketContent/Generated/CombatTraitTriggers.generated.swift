@@ -635,6 +635,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case manaRestorationDrawChancePercent
     case selfManaSpendNextAttackBonus
     case threefoldElementalDamageManaChancePercent
+    case excessManaRestorationBlockPerMana
     case carrionClaim
     case lightFingered
     case goldGainedNextHolyDamage
@@ -1551,6 +1552,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.mana.manaRestorationDrawChancePercent, .manaRestorationDrawChancePercent, default: 0, merging: .add),
         .init(\.mana.selfManaSpendNextAttackBonus, .selfManaSpendNextAttackBonus, default: 0, merging: .add),
         .init(\.mana.threefoldElementalDamageManaChancePercent, .threefoldElementalDamageManaChancePercent, default: 0, merging: .add),
+        .init(\.mana.excessManaRestorationBlockPerMana, .excessManaRestorationBlockPerMana, default: 1, merging: .max),
         .init(\.gold.carrionClaim, .carrionClaim, default: false, merging: .or),
         .init(\.gold.lightFingered, .lightFingered, default: false, merging: .or),
         .init(\.gold.goldGainedNextHolyDamage, .goldGainedNextHolyDamage, default: false, merging: .or),

@@ -133,9 +133,12 @@ package extension BattleState {
             )
         }
         if overflow > 0, profile.triggers.excessManaRestorationBlock {
+            let block = SaturatedArithmetic.saturatingMul(
+                overflow, max(0, profile.triggers.excessManaRestorationBlockPerMana),
+            )
             runtime.talents.pending.manaOverflowBlock = SaturatedArithmetic.saturatingAdd(
                 runtime.talents.pending.manaOverflowBlock,
-                overflow,
+                block,
             )
         }
         roster.update(runtime)
