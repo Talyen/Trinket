@@ -114,16 +114,9 @@ enum BattleStateTestFactory {
         companionModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64 = CombatantFixtures.deterministicBattleSeed,
-        nextEffectID: Int? = nil,
-        nextEventID: Int = 0,
         appliesFightPacing: Bool = true,
     ) -> BattleState {
-        let maxExistingEffectID = max(
-            heroEffects.lazy.map(\.id).max() ?? 0,
-            companionEffects.lazy.map(\.id).max() ?? 0,
-            enemyEffects.lazy.map(\.id).max() ?? 0,
-        )
-        return BattleState(
+        BattleState(
             roster: BattleRoster(
                 hero: BattleState.startingRuntime(
                     for: hero, modifiers: heroModifiers,
@@ -139,10 +132,6 @@ enum BattleStateTestFactory {
                 ),
             ),
             rng: SeededRandomNumberGenerator(seed: rngSeed),
-            nextEffectID: nextEffectID ?? maxExistingEffectID + 1,
-            nextEventID: nextEventID,
-            events: [],
-            gold: 0,
             initialGold: 0,
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,

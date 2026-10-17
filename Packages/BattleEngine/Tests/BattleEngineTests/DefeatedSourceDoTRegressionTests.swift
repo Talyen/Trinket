@@ -7,19 +7,17 @@ import TrinketCore
 struct DefeatedSourceDoTRegressionTests {
     @Test(arguments: [false, true], [false, true])
     func `lingering Burn rewards only its living source while preserving ally reactions`(survives: Bool, detonates: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.onBurnDamageHealLowestAllyFlat = 2
-        profile.triggers.onBurnDamageGainBlock = 3
-        profile.triggers.onBurnDamageRestoreManaFlat = 1
-        var companionProfile = CombatModifierProfile.zero
-        companionProfile.triggers.onAllyBurnDamageGainBlock = 1
         let burn = ActiveEffect(id: 100, effect: .burn(8), remainingTurns: 0, sourceActorID: "hero")
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 3),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             enemyEffects: [burn], heroHealth: survives ? 20 : 0, companionHealth: 5,
-            heroMana: 0, heroModifiers: profile, companionModifiers: companionProfile, appliesFightPacing: false,
+            heroMana: 0, heroModifiers: .withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.onBurnDamageHealLowestAllyFlat = 2
+                $0.onBurnDamageGainBlock = 3
+                $0.onBurnDamageRestoreManaFlat = 1
+            }, companionModifiers: .withTriggers { $0.onAllyBurnDamageGainBlock = 1 }, appliesFightPacing: false,
         )
 
         if detonates {

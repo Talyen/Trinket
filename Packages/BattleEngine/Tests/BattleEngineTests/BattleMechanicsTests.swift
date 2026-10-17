@@ -84,9 +84,10 @@ struct BattleMechanicsTests {
 
     @Test(arguments: [DamageOperation.periodic, .reaction()])
     func `repeating nonattack damage preserves attack resources and rewards`(operation: DamageOperation) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onAttackStealGold = 2
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
+        var battle = BattleTestFixtures.makePipelineContext(
+            heroModifiers: .withTriggers { $0.onAttackStealGold = 2 },
+            appliesFightPacing: false,
+        )
         battle.roster.hero.talents.pending.nextAttackHolyBonus = 3
         let result = battle.resolveTestDamage(4, options: operation.repeated())
         #expect(result.healthLost == 4)
@@ -102,7 +103,6 @@ struct BattleMechanicsTests {
             companion: CombatantFixtures.combatant(id: "companion", role: .companion),
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30),
             enemyEffects: [ActiveEffect(id: 2, effect: .marked(bonus, 6), remainingTurns: 6, sourceActorID: "hero")],
-            nextEffectID: 3,
         )
         if block == 0 {
             let dot = context.resolveDamage(.doTTick(amount: 3, target: context.enemy, keyword: .burn, sourceActorID: context.hero.id))
@@ -141,8 +141,6 @@ struct BattleMechanicsTests {
             companion: companion,
             enemy: enemy,
             heroEffects: [ActiveEffect(id: 1, effect: .nextStrikeCritical, remainingTurns: 0)],
-            nextEffectID: 2,
-            nextEventID: 0,
         )
         let events = context.recordingEvents { context in await BattleTurnEngine.performAction(
             ability: ability,
@@ -168,7 +166,7 @@ struct BattleMechanicsTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
             heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTurns: 0)],
             enemyModifiers: venom,
-            nextEffectID: 2, appliesFightPacing: false,
+            appliesFightPacing: false,
         )
 
         // The strip lands before absorption, so a packet larger than the
@@ -183,7 +181,7 @@ struct BattleMechanicsTests {
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 30),
             heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 0)],
             enemyModifiers: venom,
-            nextEffectID: 2, appliesFightPacing: false,
+            appliesFightPacing: false,
         )
 
         let stopped = absorbed.resolveTestDamage(3, from: .enemy, to: .hero, keyword: .poison, options: .attack(accuracy: .unavoidable))

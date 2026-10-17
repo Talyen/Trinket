@@ -6,13 +6,13 @@ import TrinketCore
 
 struct CombatBoundaryRegressionTests {
     @Test func `Mana restoration cannot reward a defeated recipient`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.livingConduit = true
-        profile.triggers.excessManaRestorationBlock = true
-        profile.triggers.gainManaBlockFlat = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 3),
-            heroHealth: 0, heroMana: 0, heroModifiers: profile,
+            heroHealth: 0, heroMana: 0, heroModifiers: .withTriggers {
+                $0.livingConduit = true
+                $0.excessManaRestorationBlock = true
+                $0.gainManaBlockFlat = 3
+            },
         )
 
         let events = battle.recordingEvents { battle in await battle.restoreManaEmitting(5, to: battle.hero, abilityName: "Restore") }
@@ -53,15 +53,15 @@ struct CombatBoundaryRegressionTests {
     }
 
     @Test func `turn start Mana restoration stops when the first owner's reaction wins`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onGainManaHealFlat = 1
-        profile.triggers.onHealDealHoly = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 3),
             companion: CombatantFixtures.passiveCompanion(maxMana: 3),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 10, enemyHealth: 1, heroMana: 0, companionMana: 0,
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.onGainManaHealFlat = 1
+                $0.onHealDealHoly = 1
+            }, appliesFightPacing: false,
         )
         battle.roster.enemy.hasConsumedDeathsDoor = true
 

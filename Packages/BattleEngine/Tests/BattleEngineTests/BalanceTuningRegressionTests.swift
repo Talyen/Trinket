@@ -6,10 +6,8 @@ import TrinketCore
 struct BalanceTuningRegressionTests {
     @Test(arguments: [false, true])
     func `hit scoped Leech stays on one hit through Mana empowerment`(empowered: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 }, dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.roster.hero.currentHealth = 5
         let ability = empowered ? Ability(
@@ -26,10 +24,8 @@ struct BalanceTuningRegressionTests {
 
     @Test(arguments: [Keyword.bleed, .poison])
     func `Bloodthorn resolves one alternative hit and leeches from either outcome`(keyword: Keyword) throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 }, dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.roster.hero.currentHealth = 5
         battle.rng = try BattleTestFixtures.rngSelectingOutcome(.bloodthorn, in: battle) {

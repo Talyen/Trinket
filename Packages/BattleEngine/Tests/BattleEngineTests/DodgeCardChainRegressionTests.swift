@@ -85,10 +85,8 @@ struct DodgeCardChainRegressionTests {
     }
 
     @Test func `Dance of Blades draws its wearers card even with Pack Tactics equipped`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onDodgeDrawAndPlayCardChainOnCrit = true
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.packTactics], heroModifiers: profile,
+            heroAbilities: [.packTactics], heroModifiers: .withTriggers { $0.onDodgeDrawAndPlayCardChainOnCrit = true },
             dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.heroDeck = CombatDeck(abilities: [.slash])

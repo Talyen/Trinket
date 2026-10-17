@@ -29,12 +29,10 @@ struct CombatExecutorTests {
     }
 
     @Test func `Winter Wake preview cannot publish Guardian block into the live command`() {
-        var hero = CombatModifierProfile.zero
-        hero.triggers.wintersWake = true
-        var companion = CombatModifierProfile.zero
-        companion.triggers.guardianHeroBlockFlat = 2
         var battle = BattleStateTestFactory.makeBattle(
-            heroModifiers: hero, companionModifiers: companion, dealOpeningHand: false, appliesFightPacing: false,
+            heroModifiers: .withTriggers { $0.wintersWake = true }, companionModifiers: .withTriggers { $0.guardianHeroBlockFlat = 2 },
+            dealOpeningHand: false,
+            appliesFightPacing: false,
         )
         battle.insertEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let start = battle.events.count

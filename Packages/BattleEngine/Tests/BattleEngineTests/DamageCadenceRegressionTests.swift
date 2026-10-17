@@ -24,10 +24,10 @@ struct DamageCadenceRegressionTests {
     }
 
     @Test func `Stormbreak doubles Bleed ticks against Stunned enemies`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.stunnedDamageMultiplier = 2
-        profile.triggers.criticalChanceBonus = -1
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, appliesFightPacing: false)
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .withTriggers {
+            $0.stunnedDamageMultiplier = 2
+            $0.criticalChanceBonus = -1
+        }, appliesFightPacing: false)
         battle.insertEffect(.controlMeter(.stun, 10, 10), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
         let tick = CombatExecutor.run { await DoTDamage.resolveDamage(
             basePotency: 4, keyword: .bleed, target: battle.enemy, sourceActorID: battle.hero.id, in: &battle,

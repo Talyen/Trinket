@@ -33,8 +33,6 @@ struct FightPacingTests {
             companionHealth: companionHP,
             enemyHealth: enemyHP,
             rngSeed: 0,
-            nextEffectID: 0,
-            nextEventID: 0,
         )
         context.turnCount = turnCount
         return context
@@ -110,9 +108,6 @@ struct FightPacingTests {
             heroHealth: 10,
             companionHealth: 10,
             enemyHealth: 100,
-            rngSeed: CombatantFixtures.deterministicBattleSeed,
-            nextEffectID: 0,
-            nextEventID: 0,
         )
         context.turnCount = 8
 

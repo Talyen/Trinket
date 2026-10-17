@@ -6,10 +6,10 @@ import TrinketCore
 
 struct HealthRestorationTargetingTests {
     @Test func `Spiteful heals a wounded partner when the wearer is full`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.firstThornsDamageHealPerTurn = 2
-        profile.triggers.criticalChanceBonus = -1
-        var battle = battle(heroModifiers: profile)
+        var battle = battle(heroModifiers: .withTriggers {
+            $0.firstThornsDamageHealPerTurn = 2
+            $0.criticalChanceBonus = -1
+        })
         DefensePoolEngine.set(1, on: battle.hero, in: &battle)
         battle.insertEffect(.thorns(3), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))

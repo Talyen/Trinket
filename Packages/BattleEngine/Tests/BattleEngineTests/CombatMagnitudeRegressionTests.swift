@@ -6,9 +6,7 @@ import TrinketCore
 
 struct CombatMagnitudeRegressionTests {
     @Test func `repeated dodge preparations saturate and are spent by the next attack`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.damageAfterDodgeBonus = Int.max / 2 + 1
-        var battle = makeBattle(profile: profile)
+        var battle = makeBattle(profile: .withTriggers { $0.damageAfterDodgeBonus = Int.max / 2 + 1 })
         for _ in 0 ..< 2 {
             CombatExecutor.run { await CombatTriggerEngine.afterDodge(
                 by: battle.hero, attackerID: battle.enemy.id, in: &battle,
@@ -46,9 +44,7 @@ struct CombatMagnitudeRegressionTests {
     }
 
     @Test func `Venomtrail preserves capped Poison tick damage at maximum potency`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.poisonDamageVsBleedingFlat = 1
-        var battle = makeBattle(profile: profile)
+        var battle = makeBattle(profile: .withTriggers { $0.poisonDamageVsBleedingFlat = 1 })
         battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
 
         let outcome = battle.resolveDoTTick(
@@ -74,12 +70,10 @@ struct CombatMagnitudeRegressionTests {
     private func makeBattle(profile: CombatModifierProfile = .zero) -> BattleState {
         var heroProfile = profile
         heroProfile.triggers.criticalChanceBonus = -1
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.maxDamagePerHitCap = 3
         return BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
             heroModifiers: heroProfile,
-            enemyModifiers: enemyProfile, appliesFightPacing: false,
+            enemyModifiers: .withTriggers { $0.maxDamagePerHitCap = 3 }, appliesFightPacing: false,
         )
     }
 }

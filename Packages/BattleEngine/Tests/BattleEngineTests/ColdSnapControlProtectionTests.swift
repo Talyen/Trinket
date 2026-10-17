@@ -10,15 +10,13 @@ struct ColdSnapControlProtectionTests {
     )
 
     @Test func `Steadfast blocks control multiplication from doubling existing Freeze buildup`() throws {
-        var heroModifiers = CombatModifierProfile.zero
-        heroModifiers.triggers.blockedControlPrevention = true
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, abilities: [.coldSnap]),
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 4), remainingTurns: 0),
                 ActiveEffect(id: 2, effect: .shield(.block, 3), remainingTurns: 0),
             ],
-            heroModifiers: heroModifiers,
+            heroModifiers: .withTriggers { $0.blockedControlPrevention = true },
             dealOpeningHand: false, appliesFightPacing: false,
         )
 

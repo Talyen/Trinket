@@ -19,10 +19,10 @@ public struct BattleState {
 
     public package(set) var roster: BattleRoster
     public package(set) var rng: SeededRandomNumberGenerator
-    public package(set) var turnCount: Int
+    public package(set) var turnCount: Int = 0
     public package(set) var nextEffectID: Int
-    public package(set) var nextEventID: Int
-    public package(set) var events: [ActionEvent]
+    public package(set) var nextEventID: Int = 0
+    public package(set) var events: [ActionEvent] = []
     public package(set) var gold: Int {
         get { SaturatedArithmetic.saturatingAdd(initialGold, goldFlow.net) }
         set { goldFlow.record(delta: SaturatedArithmetic.saturatingSub(newValue, gold)) }
@@ -62,10 +62,10 @@ public struct BattleState {
         modifierProfiles.enemy
     }
 
-    public package(set) var actionCount: Int
-    public package(set) var hasLoggedDefeat: Bool
-    public package(set) var hasLoggedPartyDefeat: Bool
-    public package(set) var lastEnemyDefeatWasCritical: Bool
+    public package(set) var actionCount: Int = 0
+    public package(set) var hasLoggedDefeat: Bool = false
+    public package(set) var hasLoggedPartyDefeat: Bool = false
+    public package(set) var lastEnemyDefeatWasCritical: Bool = false
     package var lastEnemyDefeatSourceActorID: String?
 
     var turnState: BattleTurnState = .playerTurn
@@ -74,16 +74,16 @@ public struct BattleState {
         turnState.phase
     }
 
-    public package(set) var hand: BattleHand
-    public package(set) var heroDeck: CombatDeck
-    public package(set) var companionDeck: CombatDeck
+    public package(set) var hand: BattleHand = .init()
+    public package(set) var heroDeck: CombatDeck = .init()
+    public package(set) var companionDeck: CombatDeck = .init()
     var nextScheduledDrawOwner: BattleParticipant = .hero
-    public package(set) var nextCardID: Int
-    public package(set) var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
-    public package(set) var turnCadence: BattleTurnCadence
+    public package(set) var nextCardID: Int = 0
+    public package(set) var ownersSkippingThisPlayerTurn: Set<BattleParticipant> = []
+    public package(set) var turnCadence: BattleTurnCadence = .init()
 
     var additionalControlSkipsByEffectID: [Int: Int] = [:]
-    public package(set) var isEchoingSkill: Bool
+    public package(set) var isEchoingSkill: Bool = false
     /// Retains the shipped automatic-chain limit. CombatExecutor suspends
     /// nested plays on the heap, independently of the caller's stack size.
     /// Played deck copies remain discarded until the next turn.
@@ -100,26 +100,10 @@ public struct BattleState {
     package init(
         roster: BattleRoster,
         rng: SeededRandomNumberGenerator,
-        turnCount: Int = 0,
-        nextEffectID: Int,
-        nextEventID: Int,
-        events: [ActionEvent],
-        gold: Int,
         initialGold: Int,
         heroModifiers: CombatModifierProfile,
         companionModifiers: CombatModifierProfile,
         enemyModifiers: CombatModifierProfile,
-        actionCount: Int = 0,
-        hasLoggedDefeat: Bool = false,
-        hasLoggedPartyDefeat: Bool = false,
-        lastEnemyDefeatWasCritical: Bool = false,
-        hand: BattleHand = BattleHand(),
-        heroDeck: CombatDeck = CombatDeck(),
-        companionDeck: CombatDeck = CombatDeck(),
-        nextCardID: Int = 0,
-        ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
-        turnCadence: BattleTurnCadence = BattleTurnCadence(),
-        isEchoingSkill: Bool = false,
         enemyFaction: EnemyFaction = .mortal,
         tracksLog: Bool = false,
         tracksEvents: Bool = true,
@@ -132,24 +116,14 @@ public struct BattleState {
         self.appliesFightPacing = appliesFightPacing
         self.roster = roster
         self.rng = rng
-        self.turnCount = turnCount
-        self.nextEffectID = nextEffectID
-        self.nextEventID = nextEventID
-        self.events = events
-        goldFlow = BattleGoldFlow(gained: max(0, gold - initialGold), spent: max(0, initialGold - gold))
+        nextEffectID = max(
+            roster.hero.activeEffects.lazy.map(\.id).max() ?? 0,
+            roster.companion.activeEffects.lazy.map(\.id).max() ?? 0,
+            roster.enemy.activeEffects.lazy.map(\.id).max() ?? 0,
+        ) + 1
+        goldFlow = BattleGoldFlow()
         self.initialGold = initialGold
         modifierProfiles = ModifierProfiles(hero: heroModifiers, companion: companionModifiers, enemy: enemyModifiers)
-        self.actionCount = actionCount
-        self.hasLoggedDefeat = hasLoggedDefeat
-        self.hasLoggedPartyDefeat = hasLoggedPartyDefeat
-        self.lastEnemyDefeatWasCritical = lastEnemyDefeatWasCritical
-        self.hand = hand
-        self.heroDeck = heroDeck
-        self.companionDeck = companionDeck
-        self.nextCardID = nextCardID
-        self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
-        self.turnCadence = turnCadence
-        self.isEchoingSkill = isEchoingSkill
 
         self.enemyFaction = enemyFaction
     }
@@ -175,11 +149,6 @@ public struct BattleState {
         appliesFightPacing: Bool = true,
     ) {
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
-        let maxExistingEffectID = max(
-            activeEnemyEffects.lazy.map(\.id).max() ?? 0,
-            activeHeroEffects.lazy.map(\.id).max() ?? 0,
-            activeCompanionEffects.lazy.map(\.id).max() ?? 0,
-        )
         self.init(
             roster: BattleRoster(
                 hero: Self.startingRuntime(
@@ -191,10 +160,6 @@ public struct BattleState {
                 enemy: Self.startingRuntime(for: resolvedEnemy, modifiers: enemyModifiers, effects: activeEnemyEffects),
             ),
             rng: SeededRandomNumberGenerator(seed: rngSeed ?? Self.defaultRNGSeed),
-            nextEffectID: maxExistingEffectID + 1,
-            nextEventID: 0,
-            events: [],
-            gold: initialGold,
             initialGold: initialGold,
             heroModifiers: heroModifiers,
             companionModifiers: companionModifiers,

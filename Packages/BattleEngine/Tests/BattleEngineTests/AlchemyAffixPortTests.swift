@@ -5,29 +5,11 @@ import TrinketCore
 @testable import BattleEngine
 
 struct AlchemyAffixPortTests {
-    private func makeAffixBattle(
-        heroHealth: Int? = nil,
-        heroEffects: [ActiveEffect] = [],
-        enemyEffects: [ActiveEffect] = [],
-        modifiers: CombatModifierProfile = .zero,
-    ) -> BattleState {
-        BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroEffects: heroEffects,
-            enemyEffects: enemyEffects,
-            heroHealth: heroHealth,
-            heroModifiers: modifiers, appliesFightPacing: false,
-        )
-    }
-
     @Test(arguments: [false, true])
     func `Spitebloom strengthens the existing Thorns hit against Poisoned enemies`(poisoned: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.thornsDamageVsPoisonedFlat = 2
-        var battle = makeAffixBattle(
+        var battle = BattleTestFixtures.makeAffixBattle(
             heroEffects: [ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 0)],
-            modifiers: profile,
+            modifiers: .withTriggers { $0.thornsDamageVsPoisonedFlat = 2 },
         )
         if poisoned {
             battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
@@ -43,23 +25,24 @@ struct AlchemyAffixPortTests {
     @Test func `Bloodroot needs actual Leech restoration and no existing Thorns`() {
         var profile = CombatModifierProfile.zero
         profile.triggers.leechThornsWithoutThorns = 2
-        var battle = makeAffixBattle(heroHealth: 10, modifiers: profile)
+        var battle = BattleTestFixtures.makeAffixBattle(heroHealth: 10, modifiers: profile)
 
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle) }
-        #expect(thorns(on: battle.hero, in: battle) == 2)
+        #expect(BattleTestFixtures.thorns(on: battle.hero, in: battle) == 2)
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle) }
-        #expect(thorns(on: battle.hero, in: battle) == 2)
+        #expect(BattleTestFixtures.thorns(on: battle.hero, in: battle) == 2)
 
-        var full = makeAffixBattle(modifiers: profile)
+        var full = BattleTestFixtures.makeAffixBattle(modifiers: profile)
         _ = CombatExecutor.run { await HealingEngine.leechFromDamage(8, sourceActorID: full.hero.id, abilityHasLeech: true, in: &full) }
-        #expect(thorns(on: full.hero, in: full) == 0)
+        #expect(BattleTestFixtures.thorns(on: full.hero, in: full) == 0)
     }
 
     @Test func `Scarfeast grants Leech only to Physical attacks below half Health`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.physicalAttackLeechBelowHalfHealth = true
         func strike(at health: Int, keyword: Keyword) -> Int {
-            var battle = makeAffixBattle(heroHealth: health, modifiers: profile)
+            var battle = BattleTestFixtures.makeAffixBattle(
+                heroHealth: health,
+                modifiers: .withTriggers { $0.physicalAttackLeechBelowHalfHealth = true },
+            )
             _ = battle.resolveTestDamage(8, keyword: keyword, options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable))
             return battle.health(of: battle.hero)
         }
@@ -70,11 +53,11 @@ struct AlchemyAffixPortTests {
 
     @Test(arguments: [false, true], [false, true])
     func `Heartshock increases the existing Leech heal only below half Health against Stunned enemies`(belowHalf: Bool, stunned: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.leechHealVsStunnedBelowHalfFlat = 2
-        profile.triggers.leechChancePercent = 1
-        profile.triggers.criticalChanceBonus = -1
-        var battle = makeAffixBattle(heroHealth: belowHalf ? 10 : 20, modifiers: profile)
+        var battle = BattleTestFixtures.makeAffixBattle(heroHealth: belowHalf ? 10 : 20, modifiers: .withTriggers {
+            $0.leechHealVsStunnedBelowHalfFlat = 2
+            $0.leechChancePercent = 1
+            $0.criticalChanceBonus = -1
+        })
         if stunned {
             battle.insertEffect(.controlMeter(.stun, 8, 8), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
         }
@@ -89,12 +72,10 @@ struct AlchemyAffixPortTests {
     }
 
     @Test func `Venomtrail adds flat Poison damage while Bleed is active, including periodic ticks`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.poisonDamageVsBleedingFlat = 2
         func damage(bleeding: Bool, operation: DamageOperation) -> Int {
-            var battle = makeAffixBattle(
+            var battle = BattleTestFixtures.makeAffixBattle(
                 enemyEffects: bleeding ? [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)] : [],
-                modifiers: profile,
+                modifiers: .withTriggers { $0.poisonDamageVsBleedingFlat = 2 },
             )
             _ = battle.resolveTestDamage(4, keyword: .poison, options: operation)
             return 40 - battle.health(of: battle.enemy)
@@ -108,12 +89,10 @@ struct AlchemyAffixPortTests {
     }
 
     @Test func `Hallowguard grants Block only after an unguarded Holy attack damages Health`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.holyAttackBlockIfNone = 3
         func block(startingWith initialBlock: Int, operation: DamageOperation) -> Int {
             let effects = initialBlock > 0
                 ? [ActiveEffect(id: 1, effect: .shield(.block, initialBlock), remainingTurns: 2)] : []
-            var battle = makeAffixBattle(heroEffects: effects, modifiers: profile)
+            var battle = BattleTestFixtures.makeAffixBattle(heroEffects: effects, modifiers: .withTriggers { $0.holyAttackBlockIfNone = 3 })
             _ = battle.resolveTestDamage(4, keyword: .holy, options: operation)
             return DefensePoolEngine.blockPoints(in: battle.roster.activeEffects(for: battle.hero))
         }
@@ -126,10 +105,8 @@ struct AlchemyAffixPortTests {
     }
 
     @Test func `Hallowbreak increases Holy damage to Stunned enemies`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.holyDamageVsStunnedPercent = 0.25
         func holyDamage(stunned: Bool) -> Int {
-            var battle = makeAffixBattle(modifiers: profile)
+            var battle = BattleTestFixtures.makeAffixBattle(modifiers: .withTriggers { $0.holyDamageVsStunnedPercent = 0.25 })
             if stunned {
                 _ = battle.chargeTestControl(20, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false)
             }
@@ -142,14 +119,5 @@ struct AlchemyAffixPortTests {
         }
         #expect(holyDamage(stunned: false) == 8)
         #expect(holyDamage(stunned: true) == 10)
-    }
-
-    private func thorns(on combatant: Combatant, in battle: BattleState) -> Int {
-        battle.roster.activeEffects(for: combatant).reduce(0) { total, active in
-            if case let .thorns(amount) = active.effect {
-                return total + amount
-            }
-            return total
-        }
     }
 }

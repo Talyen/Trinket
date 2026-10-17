@@ -16,10 +16,10 @@ extension UniqueCollectionTests {
 
     @Test(arguments: [Keyword.burn, .bleed], [false, true])
     func `bloodfire followups deal one damage and stop at the chain limit`(keyword: Keyword, chained: Bool) throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.burnProcsBleedChancePercent = keyword == .burn || chained ? 1 : 0
-        profile.triggers.bleedProcsBurnChancePercent = keyword == .bleed || chained ? 1 : 0
-        var context = try battle([], extra: profile)
+        var context = try battle([], extra: .withTriggers {
+            $0.burnProcsBleedChancePercent = keyword == .burn || chained ? 1 : 0
+            $0.bleedProcsBurnChancePercent = keyword == .bleed || chained ? 1 : 0
+        })
         let enemy = context.roster.enemy.combatant
         let before = context.roster.enemy.currentHealth
         let effect: Effect = keyword == .burn ? .burn(20) : .bleed(10)
@@ -36,10 +36,10 @@ extension UniqueCollectionTests {
 
     @Test(arguments: [Keyword.burn, .bleed], [false, true])
     func `bloodfire reacts to direct damage and standalone ticks`(keyword: Keyword, periodic: Bool) throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.burnProcsBleedChancePercent = keyword == .burn ? 1 : 0
-        profile.triggers.bleedProcsBurnChancePercent = keyword == .bleed ? 1 : 0
-        var context = try battle([], extra: profile)
+        var context = try battle([], extra: .withTriggers {
+            $0.burnProcsBleedChancePercent = keyword == .burn ? 1 : 0
+            $0.bleedProcsBurnChancePercent = keyword == .bleed ? 1 : 0
+        })
         let before = context.roster.enemy.currentHealth
         let options: DamageOperation = periodic ? .periodic : .attack(
             accuracy: .unavoidable, abilityCriticalChanceBonus: -1,

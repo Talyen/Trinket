@@ -6,9 +6,7 @@ import TrinketCore
 struct FinalSparkRegressionTests {
     @Test func `repeat does not consume the Burn newly attached after Backdraft`() throws {
         let fixtures = UniqueCollectionTests()
-        var extra = CombatModifierProfile.zero
-        extra.triggers.backdraft = true
-        var battle = try fixtures.battle(["the_final_spark"], extra: extra)
+        var battle = try fixtures.battle(["the_final_spark"], extra: .withTriggers { $0.backdraft = true })
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentMana = 3 }
         battle.insertEffect(.burn(4), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 

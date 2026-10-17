@@ -19,13 +19,11 @@ struct TalentCatalogRoundTripTests {
     func `block bypass applies to intercede and the recipients block`(
         keyword: Keyword, physicalIgnore: Double, healthLost: Int, heroBlock: Int, companionBlock: Int,
     ) {
-        var heroProfile = CombatModifierProfile.zero
-        heroProfile.triggers.blockAbsorbsCompanionDamage = true
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.burnIgnoresBlockAndMitigation = true
-        enemyProfile.triggers.physicalBlockIgnorePercent = physicalIgnore
         var battle = BattleStateTestFactory.makeBattle(
-            heroModifiers: heroProfile, enemyModifiers: enemyProfile, dealOpeningHand: false, appliesFightPacing: false,
+            heroModifiers: .withTriggers { $0.blockAbsorbsCompanionDamage = true }, enemyModifiers: .withTriggers {
+                $0.burnIgnoresBlockAndMitigation = true
+                $0.physicalBlockIgnorePercent = physicalIgnore
+            }, dealOpeningHand: false, appliesFightPacing: false,
         )
         DefensePoolEngine.set(10, on: battle.hero, in: &battle)
         DefensePoolEngine.set(4, on: battle.companion, in: &battle)

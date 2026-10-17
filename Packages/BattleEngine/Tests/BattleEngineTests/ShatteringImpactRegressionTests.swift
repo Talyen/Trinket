@@ -43,13 +43,10 @@ struct ShatteringImpactRegressionTests {
         let trait = try #require(GameContent.trait(id: "shattering_impact"))
         var attackerProfile = CombatModifierProfile.zero
         trait.apply(to: &attackerProfile)
-        var heroProfile = CombatModifierProfile.zero
-        heroProfile.triggers.blockAbsorbsCompanionDamage = true
-        var companionProfile = CombatModifierProfile.zero
-        companionProfile.triggers.companionBlockAbsorbsHeroDamage = true
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
-            heroModifiers: heroProfile, companionModifiers: companionProfile,
+            heroModifiers: .withTriggers { $0.blockAbsorbsCompanionDamage = true },
+            companionModifiers: .withTriggers { $0.companionBlockAbsorbsHeroDamage = true },
             enemyModifiers: attackerProfile, appliesFightPacing: false,
         )
         let owner: BattleParticipant = recipient == .hero ? .companion : .hero
@@ -71,11 +68,9 @@ struct ShatteringImpactRegressionTests {
         let trait = try #require(GameContent.trait(id: "shattering_impact"))
         var profile = CombatModifierProfile.zero
         trait.apply(to: &profile)
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
-            heroHealth: 1, heroModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            heroHealth: 1, heroModifiers: profile, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 3 }, appliesFightPacing: false,
         )
         battle.roster.hero.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(2, on: battle.enemy, in: &battle)

@@ -7,35 +7,33 @@ import TrinketCore
 struct DodgeSurvivalRegressionTests {
     @Test(arguments: [false, true])
     func `lethal retaliation during a Dodge reward stops later uncommitted rewards`(healsFromGold: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.dodgeGoldFlat = healsFromGold ? 1 : 0
-        profile.triggers.gainGoldBonusHealSelf = healsFromGold ? 1 : 0
-        profile.triggers.dodgeHealFlat = healsFromGold ? 0 : 1
-        profile.triggers.onHealDealHoly = 1
-        profile.triggers.onDodgeGrantHeroBlock = 3
-        profile.triggers.onDodgePartyMana = 2
-        profile.triggers.onDodgeDrawCardForHero = 1
-        profile.triggers.dodgeNextStunAttackBonus = 3
-        profile.triggers.dodgeNextFreezeAttackBonus = 2
-        profile.triggers.dodgeNextBleedAttackBonus = 2
-        profile.triggers.dodgeBleedChancePercent = 1
-        profile.triggers.dodgeBleedDamage = 2
-        profile.triggers.dodgeBurnChancePercent = 1
-        profile.triggers.dodgeBurnDamage = 2
-        profile.triggers.dodgeApplyPoison = 2
-        profile.triggers.onDodgeCounterDamage = 2
-        profile.triggers.onDodgeApplyPoisonOrBleed = 2
-        profile.triggers.onDodgeAttackerStunBuildup = 2
-        profile.triggers.onDodgeDelayAttackerTurn = true
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 30, maxMana: 10),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: 1, heroMana: 0,
-            companionModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            companionModifiers: .withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.dodgeGoldFlat = healsFromGold ? 1 : 0
+                $0.gainGoldBonusHealSelf = healsFromGold ? 1 : 0
+                $0.dodgeHealFlat = healsFromGold ? 0 : 1
+                $0.onHealDealHoly = 1
+                $0.onDodgeGrantHeroBlock = 3
+                $0.onDodgePartyMana = 2
+                $0.onDodgeDrawCardForHero = 1
+                $0.dodgeNextStunAttackBonus = 3
+                $0.dodgeNextFreezeAttackBonus = 2
+                $0.dodgeNextBleedAttackBonus = 2
+                $0.dodgeBleedChancePercent = 1
+                $0.dodgeBleedDamage = 2
+                $0.dodgeBurnChancePercent = 1
+                $0.dodgeBurnDamage = 2
+                $0.dodgeApplyPoison = 2
+                $0.onDodgeCounterDamage = 2
+                $0.onDodgeApplyPoisonOrBleed = 2
+                $0.onDodgeAttackerStunBuildup = 2
+                $0.onDodgeDelayAttackerTurn = true
+            }, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 3 }, appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.heroDeck = CombatDeck(abilities: [.block])
@@ -62,15 +60,15 @@ struct DodgeSurvivalRegressionTests {
     }
 
     @Test func `a surviving Dodge winner still completes healing and ally card support`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onDodgeDrawAndPlayCardChainOnCrit = true
-        profile.triggers.dodgeHealFlat = 2
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.firstDodgeDrawForAlly = true
         var battle = BattleStateTestFactory.makeMinimalBattle(
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1),
-            companionHealth: 3, companionModifiers: profile, appliesFightPacing: false,
+            companionHealth: 3, companionModifiers: .withTriggers {
+                $0.onDodgeDrawAndPlayCardChainOnCrit = true
+                $0.dodgeHealFlat = 2
+                $0.criticalChanceBonus = -1
+                $0.firstDodgeDrawForAlly = true
+            }, appliesFightPacing: false,
         )
         battle.companionDeck = CombatDeck(abilities: [.stab])
         battle.heroDeck = CombatDeck(abilities: [.block])

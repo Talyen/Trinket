@@ -7,12 +7,11 @@ struct CombatRuleAuditRegressionTests {
     @Test func `Concussive Blow reduces the recovered enemy action and then expires`() {
         var hero = CombatantTalentCatalog.profile(for: ["knight_stun_t1_2"])
         hero.triggers.dodgeChanceBonus = -1
-        var companion = CombatModifierProfile.zero
-        companion.triggers.dodgeChanceBonus = -1
         let attack = Ability(id: "recovery-hit", name: "Recovery Hit", tier: .basic, directDamage: 10)
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [attack], heroMaxHealth: 100, companionMaxHealth: 100,
-            heroModifiers: hero, companionModifiers: companion, dealOpeningHand: false, appliesFightPacing: false,
+            heroModifiers: hero, companionModifiers: .withTriggers { $0.dodgeChanceBonus = -1 }, dealOpeningHand: false,
+            appliesFightPacing: false,
         )
         _ = battle.chargeTestControl(
             ControlMeterEngine.threshold(for: battle.enemy, in: battle),
@@ -30,9 +29,9 @@ struct CombatRuleAuditRegressionTests {
 
     @Test(arguments: ["bear_physical_t3_2", "wolf_physical_t2_1"])
     func `Physical Critical removal talents report remaining Block stripped on a counterattacking Basic`(talentID: String) throws {
-        let profile = CombatantTalentCatalog.profile(for: [talentID])
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionAbilities: [.slash], companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            companionAbilities: [.slash], companionModifiers: CombatantTalentCatalog.profile(for: [talentID]), dealOpeningHand: false,
+            appliesFightPacing: false,
         )
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
         battle.insertEffect(.nextStrikeCritical, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
@@ -65,12 +64,12 @@ struct CombatRuleAuditRegressionTests {
     }
 
     @Test func `Denouncing prepares a later Holy attack while Meteor finishes its Mana empowerment`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.manaEmpowerPurgeCount = 1
-        profile.triggers.purgeNextHolyAttackBonus = 2
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 1, heroMaxMana: 9, heroMana: 9,
-            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.manaEmpowerPurgeCount = 1
+                $0.purgeNextHolyAttackBonus = 2
+            }, dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         _ = try play(.meteor, in: &battle)

@@ -19,15 +19,15 @@ struct CompanionAttackSurvivalTests {
         profile.triggers.holyAttackDrawChancePercent = 1
         profile.triggers.holyAttackCleanseAllyChancePercent = 1
         profile.triggers.holyCritEnemyNextAttackMissChance = 1
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 3
-        enemyProfile.triggers.sealedSarcophagus = true
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 30),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: 1,
-            companionModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            companionModifiers: profile, enemyModifiers: .withTriggers {
+                $0.onBlockHitDealHoly = 3
+                $0.sealedSarcophagus = true
+            }, appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.companionDeck = CombatDeck(abilities: [.block])
@@ -63,13 +63,11 @@ struct CompanionAttackSurvivalTests {
         profile.triggers.onHealDealHoly = 1
         profile.triggers.holyCriticalStunDamage = goldReaction ? 0 : 1
         profile.triggers.holyCritEnemyNextAttackMissChance = 1
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionHealth: 1,
-            companionModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            companionModifiers: profile, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 3 }, appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)

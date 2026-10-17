@@ -15,11 +15,9 @@ struct BlockCostRollbackRegressionTests {
             id: "block-cost-attack", name: "Block Cost Attack", tier: .basic,
             damageComponents: [DamageComponent(1)], blockCost: 3,
         )
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onDodgeDrawAndPlayCardChainOnCrit = nestedBlock > 0
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [attack],
-            heroModifiers: profile,
+            heroModifiers: .withTriggers { $0.onDodgeDrawAndPlayCardChainOnCrit = nestedBlock > 0 },
             companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t2_2"]),
             dealOpeningHand: false, appliesFightPacing: false,
         )

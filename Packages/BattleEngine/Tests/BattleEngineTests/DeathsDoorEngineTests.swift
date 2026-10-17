@@ -6,9 +6,7 @@ import TrinketCore
 
 struct DeathsDoorEngineTests {
     @Test func `Death's Door duration saturates when its bonus reaches the integer limit`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.deathsDoorDurationBonusTurns = Int.max
-        var battle = makeContext(heroHP: 1, heroModifiers: profile)
+        var battle = makeContext(heroHP: 1, heroModifiers: .withTriggers { $0.deathsDoorDurationBonusTurns = Int.max })
 
         _ = battle.resolveTestDamage(2, from: .enemy, to: .hero, options: .reaction())
 
@@ -317,10 +315,8 @@ struct DeathsDoorEngineTests {
 
     @Test(arguments: [1, 2])
     func `Blood Omen draws after a Health loss protected by Deaths Door`(initialHealth: Int) {
-        var modifiers = CombatModifierProfile.zero
-        modifiers.triggers.drawOnHealthLoss = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.slash], heroModifiers: modifiers,
+            heroAbilities: [.slash], heroModifiers: .withTriggers { $0.drawOnHealthLoss = 1 },
             dealOpeningHand: false,
         )
         let hero = battle.hero

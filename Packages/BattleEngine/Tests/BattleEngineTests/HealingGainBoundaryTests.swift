@@ -6,10 +6,8 @@ import TrinketCore
 
 struct HealingGainBoundaryTests {
     @Test func `defeated Companion cannot gain Block or share a ghost Shield Bond`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.companionBlockSharesToHeroPercent = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            companionHealth: 0, companionModifiers: profile, appliesFightPacing: false,
+            companionHealth: 0, companionModifiers: .withTriggers { $0.companionBlockSharesToHeroPercent = 1 }, appliesFightPacing: false,
         )
         let gain = battle.recordingResult { battle in
             battle.applyBlockGain(4, to: battle.companion, source: battle.hero, abilityName: "Ally Block")
@@ -63,12 +61,12 @@ struct HealingGainBoundaryTests {
     }
 
     @Test func `maximum Health conversion spends only the remaining capacity`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.overhealConvertsToMaxHealth = true
-        profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: Int.max - 1),
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.overhealConvertsToMaxHealth = true
+                $0.criticalChanceBonus = -1
+            }, appliesFightPacing: false,
         )
 
         let result = CombatExecutor.run { await HealingEngine.resolveHealing(
@@ -230,11 +228,9 @@ struct HealingGainBoundaryTests {
         sourceProfile.triggers.providedOverhealConvertsToBlock = full
         sourceProfile.triggers.providedOverhealToBlockPercent = 0.5
         sourceProfile.blockGainedBonus = 9
-        var targetProfile = CombatModifierProfile.zero
-        targetProfile.triggers.overhealToBlockPercent = 0.25
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionMaxHealth: 10,
-            heroModifiers: sourceProfile, companionModifiers: targetProfile,
+            heroModifiers: sourceProfile, companionModifiers: .withTriggers { $0.overhealToBlockPercent = 0.25 },
             dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.roster.hero.currentHealth = alive ? battle.roster.hero.maxHealth - 2 : 0

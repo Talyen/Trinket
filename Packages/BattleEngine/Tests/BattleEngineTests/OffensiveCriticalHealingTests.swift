@@ -58,12 +58,11 @@ struct OffensiveCriticalHealingTests {
 
     @Test(arguments: [UInt64(9), 4])
     func `Lastlight grants restoration critical chance while Deaths Door is active without doubling attack bonus`(rngSeed: UInt64) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.deathsDoorCriticalChanceBonus = 0.20
         var ordinary = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 40),
-            heroHealth: 1, companionHealth: 10, heroModifiers: profile, rngSeed: rngSeed, appliesFightPacing: false,
+            heroHealth: 1, companionHealth: 10, heroModifiers: .withTriggers { $0.deathsDoorCriticalChanceBonus = 0.20 }, rngSeed: rngSeed,
+            appliesFightPacing: false,
         )
         var lastlight = ordinary
         lastlight.insertEffect(.deathsDoor, to: lastlight.hero, sourceID: lastlight.hero.id, remainingTurns: 2)

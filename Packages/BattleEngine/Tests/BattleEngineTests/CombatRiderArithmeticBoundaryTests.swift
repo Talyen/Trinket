@@ -18,14 +18,12 @@ struct CombatRiderArithmeticBoundaryTests {
     }
 
     @Test func `living party Basic Attack Holy riders saturate before resolving damage`() {
-        var heroProfile = CombatModifierProfile.zero
-        heroProfile.triggers.partyBasicAttackHolyBonus = Int.max
-        heroProfile.triggers.criticalChanceBonus = -1
-        var companionProfile = CombatModifierProfile.zero
-        companionProfile.triggers.partyBasicAttackHolyBonus = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
-            heroModifiers: heroProfile, companionModifiers: companionProfile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.partyBasicAttackHolyBonus = Int.max
+                $0.criticalChanceBonus = -1
+            }, companionModifiers: .withTriggers { $0.partyBasicAttackHolyBonus = 1 }, appliesFightPacing: false,
         )
 
         let outcome = battle.resolveTestDamage(1, options: .attack(tier: .basic, accuracy: .unavoidable))
@@ -35,13 +33,13 @@ struct CombatRiderArithmeticBoundaryTests {
     }
 
     @Test func `Pickpocket combines Poison theft bonuses without overflowing`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onAttackStealGold = Int.max
-        profile.triggers.stealGoldBonusVsPoisoned = 1
-        profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemyEffects: [ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 0)],
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.onAttackStealGold = Int.max
+                $0.stealGoldBonusVsPoisoned = 1
+                $0.criticalChanceBonus = -1
+            }, appliesFightPacing: false,
         )
 
         _ = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
@@ -50,15 +48,13 @@ struct CombatRiderArithmeticBoundaryTests {
     }
 
     @Test func `living party Bleed attack reactions saturate before enemy damage`() {
-        var heroProfile = CombatModifierProfile.zero
-        heroProfile.triggers.bleedingEnemyAttackDealDamage = Int.max
-        heroProfile.triggers.criticalChanceBonus = -1
-        var companionProfile = CombatModifierProfile.zero
-        companionProfile.triggers.bleedingEnemyAttackDealDamage = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
             enemyEffects: [ActiveEffect(id: 1, effect: .bleed(1), remainingTurns: 2)],
-            heroModifiers: heroProfile, companionModifiers: companionProfile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.bleedingEnemyAttackDealDamage = Int.max
+                $0.criticalChanceBonus = -1
+            }, companionModifiers: .withTriggers { $0.bleedingEnemyAttackDealDamage = 1 }, appliesFightPacing: false,
         )
 
         CombatExecutor.run { await CombatTriggerEngine.beforeEnemyAttackBleedReactions(in: &battle) }
@@ -83,12 +79,12 @@ struct CombatRiderArithmeticBoundaryTests {
     }
 
     @Test func `secondary Cleanse preserves Dodge through a saturated expiry turn`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.cleanseDodgeChanceBonus = 0.25
-        profile.triggers.cleanseDodgeChanceBonusTurns = Int.max
         var battle = BattleStateTestFactory.makeMinimalBattle(
             companionEffects: [ActiveEffect(id: 1, effect: .poison(1), remainingTurns: 0)],
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.cleanseDodgeChanceBonus = 0.25
+                $0.cleanseDodgeChanceBonusTurns = Int.max
+            }, appliesFightPacing: false,
         )
         battle.turnCount = 2
         let source = battle.hero

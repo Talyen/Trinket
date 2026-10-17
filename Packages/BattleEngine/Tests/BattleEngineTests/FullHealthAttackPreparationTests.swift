@@ -9,10 +9,8 @@ struct FullHealthAttackPreparationTests {
     func `Sanguine Overflow waits until a later ability even when a multi hit Leech attack repeats`(cardFrame: Bool) {
         var profile = CombatantTalentCatalog.profile(for: ["warlock_leech_t3_1"])
         profile.triggers.criticalChanceBonus = -1
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.dodgeChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            heroHealth: 19, heroModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            heroHealth: 19, heroModifiers: profile, enemyModifiers: .withTriggers { $0.dodgeChanceBonus = -1 }, appliesFightPacing: false,
         )
         let card = cardFrame ? battle.resolution.beginCard(actorID: battle.hero.id) : nil
         let ability = Ability(

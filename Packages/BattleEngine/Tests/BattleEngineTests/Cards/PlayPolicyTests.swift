@@ -175,11 +175,10 @@ extension PlayPolicyTests {
     }
 
     private func finishingBattle(enemyHealth: Int, enemyModifiers: CombatModifierProfile = .zero) -> BattleState {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: enemyHealth),
-            heroModifiers: profile, enemyModifiers: enemyModifiers, dealOpeningHand: false, appliesFightPacing: false,
+            heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 }, enemyModifiers: enemyModifiers, dealOpeningHand: false,
+            appliesFightPacing: false,
         )
         battle.roster.hero.currentHealth = 1
         // Consume the optional opening so the fixture models a ready player turn.

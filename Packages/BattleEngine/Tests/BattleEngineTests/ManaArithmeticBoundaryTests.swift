@@ -33,10 +33,10 @@ struct ManaArithmeticBoundaryTests {
     }
 
     @Test func `Arcane Thorns combines with saturated Living Conduit overflow`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.livingConduit = true
-        profile.triggers.arcaneThornsOnManaRestore = 1
-        var battle = makeBattle(heroModifiers: profile)
+        var battle = makeBattle(heroModifiers: .withTriggers {
+            $0.livingConduit = true
+            $0.arcaneThornsOnManaRestore = 1
+        })
         _ = battle.restoreMana(Int.max, to: battle.hero)
         _ = battle.restoreMana(4, to: battle.hero)
         #expect(battle.roster.hero.talents.pending.manaOverflowThorns == Int.max)
@@ -53,9 +53,7 @@ struct ManaArithmeticBoundaryTests {
 
     @Test(arguments: [false, true])
     func `Mana damage preparation saturates multiplication and accumulated bonus`(existingBonus: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.spendManaDamageBonusPerMana = existingBonus ? 1 : Int.max
-        var battle = makeBattle(heroModifiers: profile)
+        var battle = makeBattle(heroModifiers: .withTriggers { $0.spendManaDamageBonusPerMana = existingBonus ? 1 : Int.max })
         battle.roster.hero.currentMana = 4
         battle.roster.hero.talents.pending.cardDamageBonus = existingBonus ? Int.max : 0
         let payment = battle.payMana(3, for: battle.hero)
@@ -66,9 +64,7 @@ struct ManaArithmeticBoundaryTests {
     }
 
     @Test func `hero Mana spend saturates the companion's existing damage preparation`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onHeroSpendManaCompanionNextAttackBonus = 1
-        var battle = makeBattle(companionModifiers: profile)
+        var battle = makeBattle(companionModifiers: .withTriggers { $0.onHeroSpendManaCompanionNextAttackBonus = 1 })
         battle.roster.hero.currentMana = 4
         battle.roster.companion.talents.pending.cardDamageBonus = Int.max
         let payment = battle.payMana(1, for: battle.hero)

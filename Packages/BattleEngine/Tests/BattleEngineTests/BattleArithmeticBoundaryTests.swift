@@ -50,9 +50,7 @@ struct BattleArithmeticBoundaryTests {
     }
 
     @Test func `Block at capacity admits only the available gain`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.blockRetainsThreeQuarters = true
-        var battle = makeBattle(profile: profile)
+        var battle = makeBattle(profile: .withTriggers { $0.blockRetainsThreeQuarters = true })
         DefensePoolEngine.set(Int.max - 1, on: battle.hero, in: &battle)
         let gained = DefensePoolEngine.add(10, to: battle.hero, in: &battle)
         let full = DefensePoolEngine.add(1, to: battle.hero, in: &battle)

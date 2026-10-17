@@ -10,14 +10,14 @@ struct StunEquipmentOwnershipTests {
         source: BattleParticipant?,
         purgeAll: Bool,
     ) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.stunDealPhysicalFlat = 3
-        profile.triggers.enemyStunnedApplyMarked = true
-        profile.triggers.enemyStunnedPurgeCount = purgeAll ? 0 : 1
-        profile.triggers.enemyStunnedPurgeAll = purgeAll
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.stunDealPhysicalFlat = 3
+                $0.enemyStunnedApplyMarked = true
+                $0.enemyStunnedPurgeCount = purgeAll ? 0 : 1
+                $0.enemyStunnedPurgeAll = purgeAll
+            }, appliesFightPacing: false,
         )
         battle.insertEffect(.thorns(2), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         let sourceActorID = source.map { battle.roster[$0].id }
@@ -33,16 +33,14 @@ struct StunEquipmentOwnershipTests {
     }
 
     @Test func `Knockout retaliation stops the defeated wearers remaining Stun reactions`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.stunDealPhysicalFlat = 3
-        profile.triggers.enemyStunnedApplyMarked = true
-        profile.triggers.enemyStunnedPurgeAll = true
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroHealth: 1, heroModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            heroHealth: 1, heroModifiers: .withTriggers {
+                $0.stunDealPhysicalFlat = 3
+                $0.enemyStunnedApplyMarked = true
+                $0.enemyStunnedPurgeAll = true
+            }, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 3 }, appliesFightPacing: false,
         )
         battle.roster.hero.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
@@ -58,16 +56,16 @@ struct StunEquipmentOwnershipTests {
     }
 
     @Test func `Wardbreaker stops after a Purge reaction defeats its wearer`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.stunPurgeDealHolyPerEffect = 2
-        profile.triggers.crownfall = true
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.sealedSarcophagus = true
-        enemyProfile.triggers.onBlockHitDealHoly = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroHealth: 1, heroModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            heroHealth: 1, heroModifiers: .withTriggers {
+                $0.stunPurgeDealHolyPerEffect = 2
+                $0.crownfall = true
+            }, enemyModifiers: .withTriggers {
+                $0.sealedSarcophagus = true
+                $0.onBlockHitDealHoly = 3
+            }, appliesFightPacing: false,
         )
         battle.roster.hero.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)

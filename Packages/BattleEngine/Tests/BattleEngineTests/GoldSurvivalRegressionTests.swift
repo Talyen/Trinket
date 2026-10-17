@@ -7,24 +7,20 @@ import TrinketCore
 struct GoldSurvivalRegressionTests {
     @Test(arguments: ["Windfall", "Health is Wealth", "Golden Recovery"])
     func `Gold keeps its committed gain but stops later rewards when restoration kills its owner`(checkpoint: String) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.onHealDealHoly = 1
-        profile.triggers.gainGoldBonusHealSelf = checkpoint == "Windfall" ? 2 : 0
-        profile.triggers.goldGainHealChancePercent = checkpoint == "Golden Recovery" ? 0 : 1
-        profile.triggers.goldGainHealAmount = 2
-        profile.triggers.onGainGoldHealParty = 2
-        var partnerProfile = CombatModifierProfile.zero
-        partnerProfile.triggers.blockPerGoldEarnedEvery = 1
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 4
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 30),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 1, companionHealth: 5,
-            heroModifiers: profile, companionModifiers: partnerProfile,
-            enemyModifiers: enemyProfile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.onHealDealHoly = 1
+                $0.gainGoldBonusHealSelf = checkpoint == "Windfall" ? 2 : 0
+                $0.goldGainHealChancePercent = checkpoint == "Golden Recovery" ? 0 : 1
+                $0.goldGainHealAmount = 2
+                $0.onGainGoldHealParty = 2
+            }, companionModifiers: .withTriggers { $0.blockPerGoldEarnedEvery = 1 },
+            enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 4 }, appliesFightPacing: false,
         )
         battle.roster.hero.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(6, on: battle.enemy, in: &battle)
@@ -44,20 +40,18 @@ struct GoldSurvivalRegressionTests {
     }
 
     @Test func `Shared Spoils cannot trigger Gold restoration after its owner falls`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.onHealDealHoly = 1
-        profile.triggers.goldTheftHealAllyFlat = 2
-        profile.triggers.gainGoldBonusHealSelf = 2
-        profile.triggers.onGainGoldHealParty = 2
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 4
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 30),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 5, companionHealth: 1,
-            companionModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            companionModifiers: .withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.onHealDealHoly = 1
+                $0.goldTheftHealAllyFlat = 2
+                $0.gainGoldBonusHealSelf = 2
+                $0.onGainGoldHealParty = 2
+            }, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 4 }, appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(6, on: battle.enemy, in: &battle)
@@ -73,17 +67,17 @@ struct GoldSurvivalRegressionTests {
     }
 
     @Test func `Gold restoration that wins still finishes support rewards for a living owner`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.gainGoldBonusHealSelf = 2
-        profile.triggers.onHealDealHoly = 1
-        profile.triggers.onGainGoldHealParty = 2
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 30),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 1, companionHealth: 5, enemyHealth: 1,
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.gainGoldBonusHealSelf = 2
+                $0.onHealDealHoly = 1
+                $0.onGainGoldHealParty = 2
+            }, appliesFightPacing: false,
         )
 
         battle.grantGoldEvent(1, to: battle.hero, abilityName: "Gold")

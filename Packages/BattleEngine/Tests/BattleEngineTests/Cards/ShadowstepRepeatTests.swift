@@ -6,9 +6,7 @@ import TrinketCore
 struct ShadowstepRepeatTests {
     @Test(arguments: [false, true])
     func `repeat preserves prepared Criticals and consumes one shot bonuses`(enemyFullHealth: Bool) throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        var battle = makeBattle(profile: profile)
+        var battle = makeBattle(profile: .withTriggers { $0.criticalChanceBonus = -1 })
         readyRepeat(on: battle.hero, in: &battle)
         let ability: Ability
         if enemyFullHealth {
@@ -119,9 +117,7 @@ struct ShadowstepRepeatTests {
     }
 
     @Test func `an empowered Skill echo cannot spend a freshly readied repeat`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.empoweredSkillEchoes = true
-        var battle = makeBattle(profile: profile)
+        var battle = makeBattle(profile: .withTriggers { $0.empoweredSkillEchoes = true })
         let ability = Ability(
             id: "echo-preparation", name: "Echo Preparation", tier: .skill,
             damageComponents: [DamageComponent(2, keyword: .burn)],

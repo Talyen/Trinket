@@ -7,8 +7,11 @@ struct SharedPreparedDamageRegressionTests {
     @Test(arguments: [false, true])
     func `bloodember spends Ashen Vitality on Bleed only when sharing is equipped`(shared: Bool) throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["phoenix_health_t3_2"])
-        var battle = try fixtures.battle(shared ? ["bloodember_pendant"] : [], owner: .companion, extra: profile)
+        var battle = try fixtures.battle(
+            shared ? ["bloodember_pendant"] : [],
+            owner: .companion,
+            extra: CombatantTalentCatalog.profile(for: ["phoenix_health_t3_2"]),
+        )
         CombatExecutor.run { await battle.healEmitting(
             amount: 1, target: battle.companion, source: battle.companion, abilityName: "Heal",
         ) }
@@ -24,8 +27,11 @@ struct SharedPreparedDamageRegressionTests {
     @Test(arguments: [false, true])
     func `bloodember spends Redline on Burn only when sharing is equipped`(shared: Bool) throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["panther_bleed_t4_2"])
-        var battle = try fixtures.battle(shared ? ["bloodember_pendant"] : [], owner: .companion, extra: profile)
+        var battle = try fixtures.battle(
+            shared ? ["bloodember_pendant"] : [],
+            owner: .companion,
+            extra: CombatantTalentCatalog.profile(for: ["panther_bleed_t4_2"]),
+        )
         _ = fixtures.enemyHit(110, target: .companion, in: &battle)
         #expect(battle.roster.companion.talents.pending.doubleNextBleedAttack != nil)
 
@@ -39,8 +45,10 @@ struct SharedPreparedDamageRegressionTests {
     @Test(arguments: [false, true])
     func `oathkeeper spends Feigned Miss on Holy only when sharing is equipped`(shared: Bool) throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t3_2"])
-        var battle = try fixtures.battle(shared ? ["oathkeeper"] : [], extra: profile)
+        var battle = try fixtures.battle(
+            shared ? ["oathkeeper"] : [],
+            extra: CombatantTalentCatalog.profile(for: ["wildcard_physical_t3_2"]),
+        )
         fixtures.block(20, owner: .enemy, in: &battle)
         try fixtures.play(fixtures.attack(.physical, amount: 20), in: &battle)
         #expect(battle.health(of: battle.enemy) == 2000)
@@ -60,8 +68,7 @@ struct SharedPreparedDamageRegressionTests {
         let item = nimble ? "bloodember_pendant" : "oathkeeper"
         let sharedKeyword: Keyword = nimble ? .burn : .holy
         let originalKeyword: Keyword = nimble ? .bleed : .physical
-        let profile = CombatantTalentCatalog.profile(for: [talentID])
-        var battle = try fixtures.battle(shared ? [item] : [], owner: .companion, extra: profile)
+        var battle = try fixtures.battle(shared ? [item] : [], owner: .companion, extra: CombatantTalentCatalog.profile(for: [talentID]))
         battle.insertEffect(.evadeNextHit, to: battle.companion, sourceID: battle.companion.id, remainingTurns: 0)
         let avoided = battle.resolveTestDamage(
             1,
@@ -95,9 +102,7 @@ struct SharedPreparedDamageRegressionTests {
     @Test(arguments: [false, true])
     func `oathkeeper shares physicalDamageVsBlockedBonus with Holy damage`(shared: Bool) throws {
         let fixtures = UniqueCollectionTests()
-        var profile = CombatModifierProfile.zero
-        profile.triggers.physicalDamageVsBlockedBonus = 5
-        var battle = try fixtures.battle(shared ? ["oathkeeper"] : [], extra: profile)
+        var battle = try fixtures.battle(shared ? ["oathkeeper"] : [], extra: .withTriggers { $0.physicalDamageVsBlockedBonus = 5 })
         fixtures.block(20, owner: .enemy, in: &battle)
         try fixtures.play(fixtures.attack(.holy, amount: 10), in: &battle)
         #expect(fixtures.blockAmount(.enemy, in: battle) == (shared ? 5 : 10))
@@ -107,9 +112,11 @@ struct SharedPreparedDamageRegressionTests {
     @Test(arguments: [false, true])
     func `bloodember shares manaEmpowerBurnFreezeDamageMultiplier with Bleed damage`(shared: Bool) throws {
         let fixtures = UniqueCollectionTests()
-        var profile = CombatModifierProfile.zero
-        profile.triggers.manaEmpowerBurnFreezeDamageMultiplier = 2.0
-        var battle = try fixtures.battle(shared ? ["bloodember_pendant"] : [], owner: .companion, extra: profile)
+        var battle = try fixtures.battle(
+            shared ? ["bloodember_pendant"] : [],
+            owner: .companion,
+            extra: .withTriggers { $0.manaEmpowerBurnFreezeDamageMultiplier = 2.0 },
+        )
         battle.resolution.beginAction(BattleActionContext(actor: battle.companion, in: battle), origin: .ability)
         battle.resolution.prepareActionTalents(TalentActionFacts(actorID: battle.companion.id, empoweredByMana: true))
         defer { battle.resolution.endAction() }
@@ -121,9 +128,7 @@ struct SharedPreparedDamageRegressionTests {
     @Test(arguments: [false, true])
     func `oathkeeper consumes storedImpact on Holy attacks`(shared: Bool) throws {
         let fixtures = UniqueCollectionTests()
-        var profile = CombatModifierProfile.zero
-        profile.triggers.storedImpact = true
-        var battle = try fixtures.battle(shared ? ["oathkeeper"] : [], extra: profile)
+        var battle = try fixtures.battle(shared ? ["oathkeeper"] : [], extra: .withTriggers { $0.storedImpact = true })
         fixtures.block(15, owner: .hero, in: &battle)
         _ = fixtures.enemyHit(10, in: &battle)
         #expect(battle.roster.hero.talents.battle.storedBlockedDamage == 10)

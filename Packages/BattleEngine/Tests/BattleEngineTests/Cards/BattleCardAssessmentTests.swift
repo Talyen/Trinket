@@ -180,11 +180,12 @@ struct BattleCardAssessmentTests {
     }
 
     @Test func `shared discounted empowerment quotes both actual payers`() throws {
-        var hero = CombatModifierProfile.zero
-        hero.triggers.empowermentCostReduction = 1
-        var companion = CombatModifierProfile.zero
-        companion.triggers.dragonPatronage = true
-        var state = battle(heroMana: 1, companionMana: 5, heroModifiers: hero, companionModifiers: companion)
+        var state = battle(
+            heroMana: 1,
+            companionMana: 5,
+            heroModifiers: .withTriggers { $0.empowermentCostReduction = 1 },
+            companionModifiers: .withTriggers { $0.dragonPatronage = true },
+        )
         let card = deal(.frostbolt, in: &state)
         let uses = state.assessCard(card).resources
         #expect(uses.first { $0.combatantID == state.hero.id }?.amount == 1)
@@ -195,8 +196,7 @@ struct BattleCardAssessmentTests {
     }
 
     @Test func `meteor quotes predictable Pyromancers Spark discounted mana spend`() throws {
-        let profile = CombatantTalentCatalog.profile(for: ["wizard_burn_t3_2"])
-        var state = battle(heroMana: 8, heroModifiers: profile)
+        var state = battle(heroMana: 8, heroModifiers: CombatantTalentCatalog.profile(for: ["wizard_burn_t3_2"]))
         let card = deal(.meteor, in: &state)
         let rng = state.rng
         #expect(state.assessCard(card).resources.first { $0.keyword == .mana }?.amount == 8)
@@ -206,10 +206,10 @@ struct BattleCardAssessmentTests {
     }
 
     @Test func `repeated empowerment quotes total spend with first purchase discount`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.empowermentCostReduction = 1
-        profile.triggers.firstEmpowermentCostReduction = 1
-        var state = battle(heroMana: 8, heroModifiers: profile)
+        var state = battle(heroMana: 8, heroModifiers: .withTriggers {
+            $0.empowermentCostReduction = 1
+            $0.firstEmpowermentCostReduction = 1
+        })
         let ability = Ability(
             id: "repeat", name: "Repeat", tier: .skill,
             directDamage: 1, damageKeyword: .burn, repeatsManaEmpowerment: true,
@@ -221,10 +221,10 @@ struct BattleCardAssessmentTests {
     }
 
     @Test func `repeated empowerment leaves its cost uncertain when spending can restore Mana`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onReachZeroManaRestoreMana = 3
-        profile.triggers.criticalChanceBonus = -1
-        var state = battle(heroMana: 3, heroModifiers: profile)
+        var state = battle(heroMana: 3, heroModifiers: .withTriggers {
+            $0.onReachZeroManaRestoreMana = 3
+            $0.criticalChanceBonus = -1
+        })
         let ability = Ability(
             id: "repeat-restoration", name: "Repeat Restoration", tier: .skill,
             directDamage: 1, damageKeyword: .burn, repeatsManaEmpowerment: true,
@@ -239,9 +239,7 @@ struct BattleCardAssessmentTests {
     }
 
     @Test func `block substitution is quoted without treating missing mana as denial`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.freezeEmpowermentBlockPerMana = 3
-        var state = battle(heroMana: 1, heroModifiers: profile)
+        var state = battle(heroMana: 1, heroModifiers: .withTriggers { $0.freezeEmpowermentBlockPerMana = 3 })
         DefensePoolEngine.set(8, on: state.hero, in: &state)
         let card = deal(.frostbolt, in: &state)
         let assessment = state.assessCard(card)

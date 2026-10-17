@@ -17,8 +17,6 @@ struct LeechSurvivalRegressionTests {
         profile.triggers.leechSharesToHeroPercent = 1
         profile.triggers.firstLeechRestorationShareAlly = true
         profile.triggers.onCompanionLeechRestoreHeroMana = 2
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 30, maxMana: 10),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
@@ -27,7 +25,7 @@ struct LeechSurvivalRegressionTests {
             companionHealth: companionSource ? 1 : 10, heroMana: 0,
             heroModifiers: companionSource ? .zero : profile,
             companionModifiers: companionSource ? profile : .zero,
-            enemyModifiers: enemyProfile, appliesFightPacing: false,
+            enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 3 }, appliesFightPacing: false,
         )
         let source = companionSource ? battle.companion : battle.hero
         let ally = companionSource ? battle.hero : battle.companion
@@ -54,21 +52,19 @@ struct LeechSurvivalRegressionTests {
 
     @Test(arguments: FirstShare.allCases)
     private func `lethal retaliation from a Leech share stops later shares and ally Mana`(firstShare: FirstShare) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.onHealDealHoly = 1
-        profile.triggers.companionLeechSharePercent = firstShare == .symbiosis ? 1 : 0
-        profile.triggers.leechSharesToHeroPercent = firstShare == .soulSharing ? 0 : 1
-        profile.triggers.firstLeechRestorationShareAlly = true
-        profile.triggers.onCompanionLeechRestoreHeroMana = 2
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 30, maxMana: 10),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 10, companionHealth: 1, heroMana: 0,
-            companionModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            companionModifiers: .withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.onHealDealHoly = 1
+                $0.companionLeechSharePercent = firstShare == .symbiosis ? 1 : 0
+                $0.leechSharesToHeroPercent = firstShare == .soulSharing ? 0 : 1
+                $0.firstLeechRestorationShareAlly = true
+                $0.onCompanionLeechRestoreHeroMana = 2
+            }, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 3 }, appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)

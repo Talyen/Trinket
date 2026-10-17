@@ -5,12 +5,12 @@ import TrinketCore
 
 struct LingeringBlessingRefreshRegressionTests {
     @Test func `ordinary turn Mana healing preserves the due blessing and queues its own repeat`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onGainManaHealFlat = 2
-        profile.triggers.healthRestorationRepeatNextTurnChancePercent = 1
-        profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionMaxMana: 1, companionMana: 0, companionModifiers: profile,
+            companionMaxMana: 1, companionMana: 0, companionModifiers: .withTriggers {
+                $0.onGainManaHealFlat = 2
+                $0.healthRestorationRepeatNextTurnChancePercent = 1
+                $0.criticalChanceBonus = -1
+            },
             dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.roster.companion.currentHealth = 1

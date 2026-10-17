@@ -7,8 +7,7 @@ struct TalentPreparationSummaryTests {
     @Test(arguments: ["panther_bleed_t4_2", "shield_scarab_stun_t3_1", "wildcard_physical_t3_2", "shield_scarab_block_t3_2"])
     func `earned damage preparations appear in details until consumed`(talentID: String) throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: [talentID])
-        var context = try fixtures.battle([], owner: .companion, extra: profile)
+        var context = try fixtures.battle([], owner: .companion, extra: CombatantTalentCatalog.profile(for: [talentID]))
         let actor = context.companion
         let keyword: Keyword
         switch talentID {
@@ -104,10 +103,8 @@ struct TalentPreparationSummaryTests {
     ])
     func `legacy purge protection details name the buff that cannot return until protection expires`(effect: Effect, name: String) throws {
         let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl")
-        var profile = CombatModifierProfile.zero
-        profile.triggers.interdict = true
         var battle = BattleStateTestFactory.makeBattle(
-            companion: owl.combatant, companionModifiers: profile, dealOpeningHand: false,
+            companion: owl.combatant, companionModifiers: .withTriggers { $0.interdict = true }, dealOpeningHand: false,
         )
         battle.insertEffect(effect, to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 2)
         _ = CombatExecutor.run { await EffectRemovalOperation.resolvePurge(

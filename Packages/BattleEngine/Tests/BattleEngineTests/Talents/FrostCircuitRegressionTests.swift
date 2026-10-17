@@ -11,9 +11,8 @@ struct FrostCircuitRegressionTests {
     ) throws {
         let fixtures = UniqueCollectionTests()
         let basic = Ability(id: "freeze-basic", name: "Freeze Basic", tier: .basic, directDamage: 4, damageKeyword: .freeze)
-        let profile = CombatantTalentCatalog.profile(for: ["wizard_mana_t4_1"])
         var battle = try fixtures.battle(
-            counterattack ? ["the_knights_answer"] : [], extra: profile, heroBasic: basic,
+            counterattack ? ["the_knights_answer"] : [], extra: CombatantTalentCatalog.profile(for: ["wizard_mana_t4_1"]), heroBasic: basic,
         )
         if blocked {
             DefensePoolEngine.set(100, on: battle.enemy, in: &battle)

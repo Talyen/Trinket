@@ -95,10 +95,10 @@ struct SharedUniqueDamageRegressionTests {
     @Test(arguments: [Keyword.burn, .poison])
     func `adding allied damage preserves the original decaying stack owners rules`(keyword: Keyword) throws {
         let fixtures = UniqueCollectionTests()
-        var profile = CombatModifierProfile.zero
-        profile.triggers.burnDecaySlowPercent = 0.4
-        profile.triggers.poisonDecaySlowPercent = 0.4
-        var context = try fixtures.battle([], extra: profile)
+        var context = try fixtures.battle([], extra: .withTriggers {
+            $0.burnDecaySlowPercent = 0.4
+            $0.poisonDecaySlowPercent = 0.4
+        })
         for owner in [BattleParticipant.hero, .companion] {
             CombatExecutor.run { await DoTApplicator.applyDecayingDoT(
                 keyword: keyword, potency: 10, to: context.enemy,
@@ -131,8 +131,7 @@ struct SharedUniqueDamageRegressionTests {
     @Test(arguments: [false, true])
     func `bloodember shares thermal shock only against frozen targets`(frozen: Bool) throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["wizard_freeze_t2_1"])
-        var context = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        var context = try fixtures.battle(["bloodember_pendant"], extra: CombatantTalentCatalog.profile(for: ["wizard_freeze_t2_1"]))
         if frozen {
             context.insertEffect(
                 .controlMeter(.freeze, 400, 400), to: context.enemy,
@@ -148,8 +147,7 @@ struct SharedUniqueDamageRegressionTests {
     @Test(arguments: [99, 100])
     func `bloodember shares scorching ash below the sources half health boundary`(health: Int) throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["warlock_burn_t1_2"])
-        var context = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        var context = try fixtures.battle(["bloodember_pendant"], extra: CombatantTalentCatalog.profile(for: ["warlock_burn_t1_2"]))
         context.roster.hero.currentHealth = health
 
         try fixtures.play(fixtures.attack(.bleed, amount: 20), in: &context)
@@ -176,8 +174,7 @@ struct SharedUniqueDamageRegressionTests {
     @Test(arguments: ["warlock_mana_t4_1", "ranger_burn_t2_1"])
     func `bloodember shares Void Focus and Woundfire with Bleed`(talentID: String) throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: [talentID])
-        var context = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        var context = try fixtures.battle(["bloodember_pendant"], extra: CombatantTalentCatalog.profile(for: [talentID]))
         context.insertEffect(.bleed(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 2)
         try fixtures.play(fixtures.attack(.bleed, amount: 20), in: &context)
         #expect(context.roster.enemy.currentHealth == 1975)
@@ -185,16 +182,18 @@ struct SharedUniqueDamageRegressionTests {
 
     @Test func `bloodember shares Inferno Barrages Critical damage with Bleed`() throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["ranger_burn_t3_2"])
-        var context = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        var context = try fixtures.battle(["bloodember_pendant"], extra: CombatantTalentCatalog.profile(for: ["ranger_burn_t3_2"]))
         try fixtures.play(fixtures.attack(.bleed), critical: true, in: &context)
         #expect(context.roster.enemy.currentHealth == 1976)
     }
 
     @Test func `bloodember shares Savage Tears Critical damage with Burn`() throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["wolf_bleed_t3_2"])
-        var context = try fixtures.battle(["bloodember_pendant"], owner: .companion, extra: profile)
+        var context = try fixtures.battle(
+            ["bloodember_pendant"],
+            owner: .companion,
+            extra: CombatantTalentCatalog.profile(for: ["wolf_bleed_t3_2"]),
+        )
         try fixtures.play(fixtures.attack(.burn), owner: .companion, critical: true, in: &context)
         #expect(context.roster.enemy.currentHealth == 1970)
     }
@@ -249,8 +248,7 @@ extension SharedUniqueDamageRegressionTests {
 
     @Test func `oathkeeper consumes Bounty Blades prepared damage on a Holy attack`() throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t4_1"])
-        var battle = try fixtures.battle(["oathkeeper"], extra: profile)
+        var battle = try fixtures.battle(["oathkeeper"], extra: CombatantTalentCatalog.profile(for: ["rogue_gold_t4_1"]))
         battle.grantGoldEvent(1, to: battle.hero, abilityName: "Steal", isTheft: true)
 
         try fixtures.play(fixtures.attack(.holy, amount: 20), in: &battle)
@@ -262,8 +260,7 @@ extension SharedUniqueDamageRegressionTests {
 
     @Test func `bloodember shares Soul Burns prepared bonus with the next Bleed attack`() throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["warlock_burn_t2_2"])
-        var battle = try fixtures.battle(["bloodember_pendant"], extra: profile)
+        var battle = try fixtures.battle(["bloodember_pendant"], extra: CombatantTalentCatalog.profile(for: ["warlock_burn_t2_2"]))
         battle.roster.hero.currentMana = 3
 
         // Empowering this Burn card spends the last Mana and prepares a later attack.

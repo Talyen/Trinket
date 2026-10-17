@@ -5,10 +5,9 @@ import TrinketCore
 
 struct CombatAdmissionRegressionTests {
     @Test func `cards admitted after midturn Freeze cannot bypass pending control`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroMaxHealth: 20, heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            heroMaxHealth: 20, heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 }, dealOpeningHand: false,
+            appliesFightPacing: false,
         )
         battle.insertEffect(.controlMeter(.freeze, 3, 4), to: battle.hero, remainingTurns: 0)
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
@@ -77,10 +76,8 @@ struct CombatAdmissionRegressionTests {
     }
 
     @Test func `Saintfall stops its remaining damage and restoration after its wearer falls`() {
-        var enemy = CombatModifierProfile.zero
-        enemy.triggers.onBlockHitDealHoly = 2
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            heroHealth: 1, companionHealth: 5, enemyModifiers: enemy, appliesFightPacing: false,
+            heroHealth: 1, companionHealth: 5, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 2 }, appliesFightPacing: false,
         )
         battle.roster.hero.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(20, on: battle.enemy, in: &battle)

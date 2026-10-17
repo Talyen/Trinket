@@ -7,10 +7,10 @@ import TrinketCore
 
 struct BattleBoundaryRegressionTests {
     @Test func `combined Companion draw bonuses saturate and draw only available cards`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.companionCardsPerTurn = Int.max
-        profile.triggers.companionCardsEveryOtherTurn = 1
-        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: profile, appliesFightPacing: false)
+        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: .withTriggers {
+            $0.companionCardsPerTurn = Int.max
+            $0.companionCardsEveryOtherTurn = 1
+        }, appliesFightPacing: false)
         battle.companionDeck = CombatDeck(abilities: [.slash, .block])
 
         let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
@@ -35,9 +35,7 @@ struct BattleBoundaryRegressionTests {
     }
 
     @Test func `stacked readied attack bonuses saturate when combined with battle bonuses`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        var battle = makeBattle(profile: profile)
+        var battle = makeBattle(profile: .withTriggers { $0.criticalChanceBonus = -1 })
         battle.roster.hero.talents.pending.nextHitBonus = Int.max
         battle.roster.hero.talents.pending.attackBonusOnFullHealth = PreparedTalentBonus(value: 1)
         battle.roster.hero.talents.battle.damageBonus = 1
@@ -252,9 +250,7 @@ struct BattleBoundaryRegressionTests {
     }
 
     @Test func `critical Bleed extensions cap before duration multiplication can overflow`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onCritDoubleBleedDuration = true
-        var battle = makeBattle(profile: profile)
+        var battle = makeBattle(profile: .withTriggers { $0.onCritDoubleBleedDuration = true })
         battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: Int.max)
 
         CombatExecutor.run { await CombatTriggerEngine.afterCriticalHit(
@@ -283,9 +279,7 @@ struct BattleBoundaryRegressionTests {
     }
 
     @Test func `Stun purge damage resolves multiple removed buffs without overflowing`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.stunPurgeDealHolyPerEffect = Int.max
-        var battle = makeBattle(profile: profile)
+        var battle = makeBattle(profile: .withTriggers { $0.stunPurgeDealHolyPerEffect = Int.max })
         battle.insertEffect(.shield(.block, 1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.insertEffect(.thorns(1), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
 
@@ -298,9 +292,7 @@ struct BattleBoundaryRegressionTests {
     }
 
     @Test func `Stored Impact continues absorbing damage at accumulated capacity`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.storedImpact = true
-        var battle = makeBattle(profile: profile)
+        var battle = makeBattle(profile: .withTriggers { $0.storedImpact = true })
         battle.roster.hero.talents.battle.storedBlockedDamage = Int.max
         DefensePoolEngine.set(2, on: battle.hero, in: &battle)
 

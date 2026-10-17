@@ -234,12 +234,12 @@ extension BattleCardCombatTests {
 
     @Test(arguments: [false, true])
     func `turn start lethal damage ends the battle`(opening: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.everyNTurnsStunBuildupInterval = 1
-        profile.triggers.everyNTurnsStunBuildupAmount = 100
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 1),
-            heroModifiers: profile,
+            heroModifiers: .withTriggers {
+                $0.everyNTurnsStunBuildupInterval = 1
+                $0.everyNTurnsStunBuildupAmount = 100
+            },
         )
         battle.turnCount = opening ? 1 : 0
         battle.turnState = opening ? .opening([]) : .playerTurn
@@ -250,11 +250,9 @@ extension BattleCardCombatTests {
 
     @Test(arguments: [false, true])
     func `turn start cleanse restores the cleansed owners card play`(opening: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.autoCleanseTeamPerTurn = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             heroEffects: [ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 0)],
-            companionModifiers: profile,
+            companionModifiers: .withTriggers { $0.autoCleanseTeamPerTurn = 1 },
         )
         battle.turnState = opening ? .opening([]) : .playerTurn
         _ = opening ? battle.drawOpeningHand() : battle.endTurn()

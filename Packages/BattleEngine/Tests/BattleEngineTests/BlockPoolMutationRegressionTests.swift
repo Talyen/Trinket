@@ -80,10 +80,8 @@ struct BlockPoolMutationRegressionTests {
     }
 
     @Test func `resolved enemy Block does not repeat Burning gain reduction`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.burningEnemyBlockGainMultiplier = 0.5
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            heroModifiers: .withTriggers { $0.burningEnemyBlockGainMultiplier = 0.5 }, dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.insertEffect(.burn(2), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
 

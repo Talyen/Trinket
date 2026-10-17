@@ -7,19 +7,17 @@ import TrinketCore
 struct CleanseSurvivalRegressionTests {
     @Test(arguments: [false, true])
     func `cleanse retains its removal but requires a surviving caster for later rewards`(survives: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.cleanseHolyDamage = 3
-        profile.triggers.cleanseSelfHeal = 2
-        profile.triggers.cleansePartyBlock = 3
-        profile.triggers.cleanseAffectsBothHeroAndCompanion = true
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.onBlockHitDealHoly = 2
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 30),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 5, companionHealth: survives ? 20 : 1,
-            companionModifiers: profile, enemyModifiers: enemyProfile, appliesFightPacing: false,
+            companionModifiers: .withTriggers {
+                $0.cleanseHolyDamage = 3
+                $0.cleanseSelfHeal = 2
+                $0.cleansePartyBlock = 3
+                $0.cleanseAffectsBothHeroAndCompanion = true
+            }, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 2 }, appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
         battle.insertEffect(.poison(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)

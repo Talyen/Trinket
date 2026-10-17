@@ -85,10 +85,8 @@ extension TalentCatalogRoundTripTests {
     }
 
     @Test func `legacy purge protection prevents purged avatar from dealing damage or granting block`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.interdict = true
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile,
+            companionModifiers: .withTriggers { $0.interdict = true },
             dealOpeningHand: false,
             appliesFightPacing: false,
         )

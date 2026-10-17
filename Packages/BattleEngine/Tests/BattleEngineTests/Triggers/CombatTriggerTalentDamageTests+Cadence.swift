@@ -169,10 +169,8 @@ extension CombatTriggerTalentDamageTests {
 extension CombatTriggerTalentDamageTests {
     @Test(arguments: [DamageOperation.attack(scaling: .flat, accuracy: .unavoidable), .reaction(), .resolvedPeriodic])
     func `concussive force builds stun from every physical damage origin`(operation: DamageOperation) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.physicalStunBuildupPercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile,
+            heroModifiers: .withTriggers { $0.physicalStunBuildupPercent = 1 },
             dealOpeningHand: false,
             appliesFightPacing: false,
         )
@@ -183,10 +181,8 @@ extension CombatTriggerTalentDamageTests {
 
     @Test(arguments: [DamageOperation.attack(scaling: .flat, accuracy: .unavoidable), .reaction(), .resolvedPeriodic])
     func `martial guard grants block from physical reaction and periodic damage`(operation: DamageOperation) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.physicalDamageBlockPercent = 0.5
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile,
+            heroModifiers: .withTriggers { $0.physicalDamageBlockPercent = 0.5 },
             dealOpeningHand: false,
             appliesFightPacing: false,
         )

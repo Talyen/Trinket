@@ -47,15 +47,15 @@ struct ManaEmpowermentLifetimeTests {
     }
 
     private func makeBattle(echoes: Bool = false) -> BattleState {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
-        profile.triggers.manaEmpowerDamageChancePercent = 1
-        profile.triggers.manaEmpowerDamageMultiplier = 2
-        profile.triggers.manaEmpowerBurnFreezeDamageMultiplier = 2
-        profile.triggers.empoweredSkillEchoes = echoes
-        return BattleStateTestFactory.makeBattleWithAbilities(
+        BattleStateTestFactory.makeBattleWithAbilities(
             enemyMaxHealth: 200, companionMaxMana: 3, companionMana: 3,
-            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            companionModifiers: .withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.manaEmpowerDamageChancePercent = 1
+                $0.manaEmpowerDamageMultiplier = 2
+                $0.manaEmpowerBurnFreezeDamageMultiplier = 2
+                $0.empoweredSkillEchoes = echoes
+            }, dealOpeningHand: false, appliesFightPacing: false,
         )
     }
 }

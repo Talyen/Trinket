@@ -63,8 +63,7 @@ struct TypedNextAttackPreparationTests {
 
     @Test func `Noxious Reaction reserves its Critical Hit beyond the creating multi hit card repeat`() throws {
         let fixtures = UniqueCollectionTests()
-        let profile = CombatantTalentCatalog.profile(for: ["rogue_poison_t2_1"])
-        var battle = try fixtures.battle([], extra: profile)
+        var battle = try fixtures.battle([], extra: CombatantTalentCatalog.profile(for: ["rogue_poison_t2_1"]))
         readyRepeat(in: &battle)
         // Only the first Poison hit crits, so a later critical cannot recreate a consumed preparation.
         battle.rng = SeededRandomNumberGenerator(seed: CombatantFixtures.deterministicBattleSeedVariant(15))

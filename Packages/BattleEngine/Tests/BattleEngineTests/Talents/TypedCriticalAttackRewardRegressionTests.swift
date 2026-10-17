@@ -19,9 +19,8 @@ struct TypedCriticalAttackRewardRegressionTests {
             damageComponents: [DamageComponent(1, keyword: keyword), DamageComponent(1, keyword: keyword)],
             guaranteedCriticalIfEnemyBuffed: true,
         )
-        let profile = CombatantTalentCatalog.profile(for: [talent])
         var battle = try fixtures.battle(
-            counterattack ? ["the_knights_answer"] : [], owner: owner, extra: profile,
+            counterattack ? ["the_knights_answer"] : [], owner: owner, extra: CombatantTalentCatalog.profile(for: [talent]),
             heroBasic: basic, companionBasic: basic,
         )
         battle.heroDeck = CombatDeck(abilities: [.slash, .slash])

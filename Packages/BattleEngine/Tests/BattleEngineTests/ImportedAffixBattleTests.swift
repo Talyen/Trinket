@@ -5,51 +5,31 @@ import TrinketCore
 @testable import BattleEngine
 
 struct ImportedAffixBattleTests {
-    private func makeAffixBattle(
-        heroHealth: Int? = nil,
-        heroEffects: [ActiveEffect] = [],
-        modifiers: CombatModifierProfile = .zero,
-    ) -> BattleState {
-        BattleStateTestFactory.makeMinimalBattle(
-            hero: CombatantFixtures.passiveHero(maxHealth: 40),
-            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
-            heroEffects: heroEffects,
-            heroHealth: heroHealth,
-            heroModifiers: modifiers, appliesFightPacing: false,
-        )
-    }
-
     @Test func `Thornwrought grants Thorns only at battle start`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.startBattleThorns = 1
-        var battle = makeAffixBattle(modifiers: profile)
+        var battle = BattleTestFixtures.makeAffixBattle(modifiers: .withTriggers { $0.startBattleThorns = 1 })
 
         let first = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
         #expect(first.contains { $0.effectKind == .thornsApplied && $0.amount == 1 })
-        #expect(thorns(on: battle.hero, in: battle) == 1)
+        #expect(BattleTestFixtures.thorns(on: battle.hero, in: battle) == 1)
         battle.turnCount = 1
         CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        #expect(thorns(on: battle.hero, in: battle) == 1)
+        #expect(BattleTestFixtures.thorns(on: battle.hero, in: battle) == 1)
     }
 
     @Test func `Briarward adds Thorns when Block breaks`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.blockBrokenThornsFlat = 2
-        var battle = makeAffixBattle(modifiers: profile)
+        var battle = BattleTestFixtures.makeAffixBattle(modifiers: .withTriggers { $0.blockBrokenThornsFlat = 2 })
 
         let events = battle.recordingEvents { battle in await CombatTriggerEngine.afterBlockBroken(
             on: battle.hero, attackerID: battle.enemy.id, in: &battle,
         ) }
         #expect(events.contains { $0.effectKind == .thornsApplied && $0.amount == 2 })
-        #expect(thorns(on: battle.hero, in: battle) == 2)
+        #expect(BattleTestFixtures.thorns(on: battle.hero, in: battle) == 2)
     }
 
     @Test func `Barbed increases only an existing Thorns retaliation`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.thornsDamageFlat = 1
-        var battle = makeAffixBattle(
+        var battle = BattleTestFixtures.makeAffixBattle(
             heroEffects: [ActiveEffect(id: 1, effect: .thorns(3), remainingTurns: 0)],
-            modifiers: profile,
+            modifiers: .withTriggers { $0.thornsDamageFlat = 1 },
         )
 
         let outcome = battle.recordingResult { context in context.resolveTestDamage(
@@ -62,13 +42,11 @@ struct ImportedAffixBattleTests {
         ) }
         #expect(outcome.events.contains { $0.effectKind == .thornsTriggered && $0.amount == 4 })
         #expect(battle.health(of: battle.enemy) == 36)
-        #expect(thorns(on: battle.hero, in: battle) == 0)
+        #expect(BattleTestFixtures.thorns(on: battle.hero, in: battle) == 0)
     }
 
     @Test func `Bloodward grants Block equal to Health restored on a successful Leech roll`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.leechBlockChancePercent = 1
-        var battle = makeAffixBattle(heroHealth: 10, modifiers: profile)
+        var battle = BattleTestFixtures.makeAffixBattle(heroHealth: 10, modifiers: .withTriggers { $0.leechBlockChancePercent = 1 })
 
         let outcome = CombatExecutor.run { await HealingEngine.leechFromDamage(
             8, sourceActorID: battle.hero.id, abilityHasLeech: true, in: &battle,
@@ -104,14 +82,5 @@ struct ImportedAffixBattleTests {
         #expect(battle.health(of: battle.companion) == (finallyDefeated ? 5 : 7))
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == (finallyDefeated ? 0 : 1))
         #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .poison } == finallyDefeated)
-    }
-
-    private func thorns(on combatant: Combatant, in battle: BattleState) -> Int {
-        battle.roster.activeEffects(for: combatant).reduce(0) { total, active in
-            if case let .thorns(amount) = active.effect {
-                return total + amount
-            }
-            return total
-        }
     }
 }

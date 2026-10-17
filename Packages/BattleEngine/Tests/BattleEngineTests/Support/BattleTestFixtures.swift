@@ -5,6 +5,31 @@ import TrinketCore
 @testable import TrinketContent
 
 enum BattleTestFixtures {
+    static func makeAffixBattle(
+        heroHealth: Int? = nil,
+        heroEffects: [ActiveEffect] = [],
+        enemyEffects: [ActiveEffect] = [],
+        modifiers: CombatModifierProfile = .zero,
+    ) -> BattleState {
+        BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 40),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
+            heroEffects: heroEffects,
+            enemyEffects: enemyEffects,
+            heroHealth: heroHealth,
+            heroModifiers: modifiers, appliesFightPacing: false,
+        )
+    }
+
+    static func thorns(on combatant: Combatant, in battle: BattleState) -> Int {
+        battle.roster.activeEffects(for: combatant).reduce(0) { total, active in
+            if case let .thorns(amount) = active.effect {
+                return total + amount
+            }
+            return total
+        }
+    }
+
     static func makePipelineContext(
         targetMaxHealth: Int = 50,
         targetEffects: [ActiveEffect] = [],
@@ -41,39 +66,16 @@ enum BattleTestFixtures {
         )
     }
 
-    static func standardParty(
-        hero: Combatant,
-        companion: Combatant? = nil,
-        enemy: Combatant? = nil,
-        activeHeroEffects: [ActiveEffect] = [],
-        activeEnemyEffects: [ActiveEffect] = [],
-        activeCompanionEffects: [ActiveEffect] = [],
-        initialGold: Int = 0,
-    ) -> BattleState {
-        BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion ?? CombatantFixtures.passiveCompanion(),
-            enemy: enemy,
-            activeEnemyEffects: activeEnemyEffects,
-            activeHeroEffects: activeHeroEffects,
-            activeCompanionEffects: activeCompanionEffects,
-            initialGold: initialGold,
-        )
-    }
-
     static func partyWithPendingActionSkip(
         keyword: Keyword,
         hero: Combatant? = nil,
         companion: Combatant? = nil,
         enemy: Combatant? = nil,
     ) -> BattleState {
-        let resolvedHero = hero ?? CombatantFixtures.passiveHero()
-        let resolvedCompanion = companion ?? CombatantFixtures.passiveCompanion()
-        let resolvedEnemy = enemy ?? attackingEnemy(abilities: [.slash])
-        return standardParty(
-            hero: resolvedHero,
-            companion: resolvedCompanion,
-            enemy: resolvedEnemy,
+        BattleStateTestFactory.makeBattle(
+            hero: hero,
+            companion: companion,
+            enemy: enemy ?? attackingEnemy(abilities: [.slash]),
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(keyword, 1, 1), remainingTurns: 0),
             ],

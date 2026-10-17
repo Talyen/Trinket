@@ -57,14 +57,12 @@ struct ManaEmpowermentTests {
     }
 
     @Test func `shared payment keeps the patrons last mana fact through an automatic refill`() {
-        var heroProfile = CombatModifierProfile.zero
-        heroProfile.triggers.spendManaThresholdAutoPlayCard = 1
-        var companionProfile = CombatModifierProfile.zero
-        companionProfile.triggers.dragonPatronage = true
-        companionProfile.triggers.spendLastManaStunDamage = 3
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: 1, heroMana: 1, companionMaxMana: 2, companionMana: 2,
-            heroModifiers: heroProfile, companionModifiers: companionProfile, dealOpeningHand: false, appliesFightPacing: false,
+            heroModifiers: .withTriggers { $0.spendManaThresholdAutoPlayCard = 1 }, companionModifiers: .withTriggers {
+                $0.dragonPatronage = true
+                $0.spendLastManaStunDamage = 3
+            }, dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.heroDeck = CombatDeck(abilities: [Ability(
             id: "refill-patron", name: "Refill Patron", tier: .basic,
@@ -307,12 +305,10 @@ extension ManaEmpowermentTests {
     }
 
     @Test func `large saved Mana capacities remain usable for shared and discounted empowerment`() throws {
-        var patron = CombatModifierProfile.zero
-        patron.triggers.dragonPatronage = true
         let battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: Int.max, heroMana: 1,
             companionMaxMana: Int.max, companionMana: 2,
-            companionModifiers: patron, dealOpeningHand: false,
+            companionModifiers: .withTriggers { $0.dragonPatronage = true }, dealOpeningHand: false,
         )
         var shared = ManaEmpowermentBudget(ability: .frostbolt, actor: battle.hero, in: battle)
         let sharedPayment = shared.nextPayment()
@@ -320,11 +316,9 @@ extension ManaEmpowermentTests {
         #expect(payment.ownMana == 1 && payment.partnerMana == 2)
         #expect(shared.nextPayment() == nil)
 
-        var discounted = CombatModifierProfile.zero
-        discounted.triggers.empowermentCostReduction = 2
         var discountedBattle = BattleStateTestFactory.makeBattleWithAbilities(
             heroMaxMana: Int.max, heroMana: 1,
-            heroModifiers: discounted, dealOpeningHand: false,
+            heroModifiers: .withTriggers { $0.empowermentCostReduction = 2 }, dealOpeningHand: false,
         )
         discountedBattle.roster.hero.talents.pending.nextManaEmpowerDiscount = 1
         var repeated = ManaEmpowermentBudget(ability: .meteor, actor: discountedBattle.hero, in: discountedBattle)

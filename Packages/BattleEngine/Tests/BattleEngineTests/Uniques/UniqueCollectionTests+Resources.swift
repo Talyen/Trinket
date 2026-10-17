@@ -52,9 +52,7 @@ extension UniqueCollectionTests {
     }
 
     @Test func `final spark qualifies before refunds and does not repeat utility`() throws {
-        var extra = CombatModifierProfile.zero
-        extra.triggers.spendManaRefundChancePercent = 1
-        var context = try battle(["the_final_spark"], extra: extra)
+        var context = try battle(["the_final_spark"], extra: .withTriggers { $0.spendManaRefundChancePercent = 1 })
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentMana = 3 }
         let spell = Ability(
             id: "spell",
@@ -177,9 +175,7 @@ extension UniqueCollectionTests {
     }
 
     @Test func `crucible gold from holy hit prepares next hit`() throws {
-        var extra = CombatModifierProfile.zero
-        extra.triggers.onAttackStealGold = 2
-        var context = try battle(["the_golden_crucible"], extra: extra)
+        var context = try battle(["the_golden_crucible"], extra: .withTriggers { $0.onAttackStealGold = 2 })
         context.grantGoldEvent(5, to: context.roster.hero.combatant, abilityName: "Grant")
         try play(attack(.holy), in: &context)
         #expect(context.roster.enemy.currentHealth == 1985)
@@ -226,9 +222,11 @@ extension UniqueCollectionTests {
         packet: (Keyword, DamageOperation),
         owner: BattleParticipant,
     ) throws {
-        var bonus = CombatModifierProfile.zero
-        bonus.triggers.threefoldElementalDamageManaChancePercent = 0.90
-        var context = try battle(["threefold_grace"], owner: owner, extra: bonus)
+        var context = try battle(
+            ["threefold_grace"],
+            owner: owner,
+            extra: .withTriggers { $0.threefoldElementalDamageManaChancePercent = 0.90 },
+        )
         let source: BattleParticipant = owner == .hero ? .companion : .hero
         let outcome = context.recordingResult { context in context.resolveTestDamage(
             5,

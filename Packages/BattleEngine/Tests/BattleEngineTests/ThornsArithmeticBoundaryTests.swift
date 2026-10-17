@@ -7,14 +7,14 @@ import TrinketCore
 struct ThornsArithmeticBoundaryTests {
     @Test(arguments: [false, true])
     func `capped Thorns preserves its stack without gain feedback and still retaliates`(talentGain: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.blockGainThornsPercent = 1
-        profile.triggers.thornsDamageFlat = 1
-        profile.triggers.thornsDamageDoubleWhileBlocked = true
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroEffects: [ActiveEffect(id: 1, effect: .thorns(Int.max), remainingTurns: 0)],
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.blockGainThornsPercent = 1
+                $0.thornsDamageFlat = 1
+                $0.thornsDamageDoubleWhileBlocked = true
+            }, appliesFightPacing: false,
         )
         battle.roster.enemy.hasConsumedDeathsDoor = true
         let original = battle.roster.hero.activeEffects

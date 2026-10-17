@@ -25,9 +25,7 @@ struct CombatSafetyRegressionTests {
     }
 
     @Test func `backdraft saturates both damage snapshots`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.backdraft = true
-        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: profile)
+        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: .withTriggers { $0.backdraft = true })
         battle.insertEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         var damage = packet(in: battle)
         damage.isCritical = true
@@ -40,11 +38,11 @@ struct CombatSafetyRegressionTests {
     }
 
     @Test func `combined block breaking stops at the remaining pool`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.sunderingBlockMultiplier = Double(Int.max)
-        profile.triggers.physicalBlockBreakMultiplier = Double(Int.max)
-        profile.triggers.criticalChanceBonus = -1
-        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: profile, appliesFightPacing: false)
+        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: .withTriggers {
+            $0.sunderingBlockMultiplier = Double(Int.max)
+            $0.physicalBlockBreakMultiplier = Double(Int.max)
+            $0.criticalChanceBonus = -1
+        }, appliesFightPacing: false)
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
         let result = battle.resolveTestDamage(1, options: .attack(accuracy: .unavoidable))
         #expect(result.healthLost == 0)
@@ -52,9 +50,7 @@ struct CombatSafetyRegressionTests {
     }
 
     @Test func `golden crucible saturates accumulated gold`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.goldGainedNextHolyDamage = true
-        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: profile)
+        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: .withTriggers { $0.goldGainedNextHolyDamage = true })
         battle.roster.hero.uniques.goldDamage = Int.max
         UniqueCombatEngine.gainedGold(1, by: battle.hero, in: &battle)
         #expect(battle.roster.hero.uniques.goldDamage == Int.max)
@@ -96,9 +92,11 @@ struct CombatSafetyRegressionTests {
     }
 
     @Test func `pruning removes only available thorns in bounded work`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.pruningHealthRemoveEnemyThorns = Int.max
-        var battle = BattleStateTestFactory.makeMinimalBattle(heroHealth: 1, heroModifiers: profile, appliesFightPacing: false)
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            heroHealth: 1,
+            heroModifiers: .withTriggers { $0.pruningHealthRemoveEnemyThorns = Int.max },
+            appliesFightPacing: false,
+        )
         battle.insertEffect(.thorns(Int.max), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         battle.insertEffect(.thorns(2), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
         _ = battle.resolveHeal(HealRequest(amount: 1, target: battle.hero, sourceActorID: battle.hero.id))
@@ -107,9 +105,10 @@ struct CombatSafetyRegressionTests {
 
     @Test(arguments: [3, 6])
     func `empowerment preview pays card block cost first`(block: Int) throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.freezeEmpowermentBlockPerMana = 1
-        var battle = BattleStateTestFactory.makeMinimalBattle(heroModifiers: profile, appliesFightPacing: false)
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            heroModifiers: .withTriggers { $0.freezeEmpowermentBlockPerMana = 1 },
+            appliesFightPacing: false,
+        )
         battle.roster.hero.currentMana = 0
         DefensePoolEngine.set(block, on: battle.hero, in: &battle)
         battle.hand = BattleHand()

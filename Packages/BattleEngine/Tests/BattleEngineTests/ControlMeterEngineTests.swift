@@ -201,18 +201,14 @@ private func preventedActions(in context: inout BattleState, for actor: Combatan
 
 extension ControlMeterEngineTests {
     @Test func `large control extensions resolve promptly and saturate their skip allowance`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.freezeExtendChancePercent = Double(Int.max)
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .withTriggers { $0.freezeExtendChancePercent = Double(Int.max) })
         _ = battle.chargeTestControl(10, keyword: .freeze, to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false)
         let status = try #require(battle.activeEffects(of: battle.enemy).first { $0.isAwaitingActionSkip })
         #expect(battle.additionalControlSkipsByEffectID[status.id] == Int.max)
     }
 
     @Test func `a fallen Stun source cannot earn Block from lingering control damage`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onStunEnemyGainBlock = 6
-        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile)
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: .withTriggers { $0.onStunEnemyGainBlock = 6 })
         battle.roster.hero.currentHealth = 0
         let events = battle.chargeTestControl(10, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false)
         #expect(battle.roster.hasPendingActionSkip(for: battle.enemy, keyword: .stun))

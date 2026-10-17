@@ -66,9 +66,7 @@ extension UniqueCollectionTests {
     }
 
     @Test func `lingering bell retains reduced threshold and does not restore cleansed stun`() throws {
-        var extra = CombatModifierProfile.zero
-        extra.triggers.enemyStunThresholdReductionPercent = 0.25
-        var context = try battle(["the_lingering_bell"], extra: extra)
+        var context = try battle(["the_lingering_bell"], extra: .withTriggers { $0.enemyStunThresholdReductionPercent = 0.25 })
         let enemy = context.roster.enemy.combatant
         _ = context.chargeTestControl(1000, keyword: .stun, to: enemy, sourceActorID: context.roster.hero.id, applyFightPacing: false)
         #expect(context.uniques.retainedStunByEffectID.values.first == 75)
@@ -161,9 +159,7 @@ extension UniqueCollectionTests {
     }
 
     @Test func `wardbreaker damage counts only buffs actually purged`() throws {
-        var protection = CombatModifierProfile.zero
-        protection.triggers.sealedSarcophagus = true
-        var context = try battle(["wardbreaker"], enemyExtra: protection)
+        var context = try battle(["wardbreaker"], enemyExtra: .withTriggers { $0.sealedSarcophagus = true })
         let enemy = context.enemy
         context.insertEffect(.shield(.block, 10), to: enemy, sourceID: enemy.id, remainingTurns: 0)
         context.insertEffect(.thorns(2), to: enemy, sourceID: enemy.id, remainingTurns: 0)
@@ -177,9 +173,7 @@ extension UniqueCollectionTests {
 
     @Test(arguments: [CombatTriggerField.blockGainThornsPercent, .retainedBlockGainThornsPercent])
     func `interdict prevents thorns returning from block rewards`(abilityKey: CombatTriggerField) throws {
-        var extra = CombatModifierProfile.zero
-        extra.triggers.interdict = true
-        var context = try battle([], extra: extra)
+        var context = try battle([], extra: .withTriggers { $0.interdict = true })
         let enemy = context.enemy
         context.insertEffect(.thorns(2), to: enemy, sourceID: enemy.id, remainingTurns: 0)
         CombatExecutor.run { await CombatTriggerEngine.applyPurge(

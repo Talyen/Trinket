@@ -7,10 +7,9 @@ import TrinketCore
 extension AbilityEffectIntegrationTests {
     @Test(arguments: [0, 1, 4], [false, true])
     func `Blackjack steals once for existing or newly applied Stun`(initialStun: Int, finishingHit: Bool) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 20, heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            enemyMaxHealth: 20, heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 }, dealOpeningHand: false,
+            appliesFightPacing: false,
         )
         if initialStun > 0 {
             battle.insertEffect(
@@ -31,11 +30,9 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `enemy basic freeze bonus does not repeat on the Bleed tick`() throws {
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.basicAttackFreezeBuildup = 1
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100),
-            enemyModifiers: enemyProfile, dealOpeningHand: false, appliesFightPacing: false,
+            enemyModifiers: .withTriggers { $0.basicAttackFreezeBuildup = 1 }, dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.performTestAction(.fangs, from: .enemy, to: .hero)
         #expect(battle.health(of: battle.hero) == 98)
@@ -113,11 +110,11 @@ extension AbilityEffectIntegrationTests {
     }
 
     @Test func `typed leech does not apply to other damage types`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.poisonDamageLeechChancePercent = 1
-        profile.triggers.freezeDamageLeechChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile,
+            heroModifiers: .withTriggers {
+                $0.poisonDamageLeechChancePercent = 1
+                $0.freezeDamageLeechChancePercent = 1
+            },
             dealOpeningHand: false,
             appliesFightPacing: false,
         )

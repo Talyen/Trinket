@@ -6,16 +6,16 @@ import TrinketCore
 
 struct ItemAffixKeywordExpansionTests {
     @Test func `healing cleanse grants clearheaded block and solace mana only when a status is removed`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onHealCleanseTargetChance = 1
-        profile.triggers.cleanseSelfBlockFlat = 2
-        profile.triggers.onCleanseRestoreMana = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40, maxMana: 10),
             heroEffects: [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 0)],
             heroHealth: 10,
             heroMana: 0,
-            heroModifiers: profile,
+            heroModifiers: .withTriggers {
+                $0.onHealCleanseTargetChance = 1
+                $0.cleanseSelfBlockFlat = 2
+                $0.onCleanseRestoreMana = 1
+            },
         )
         let hero = battle.hero
 
@@ -36,15 +36,15 @@ struct ItemAffixKeywordExpansionTests {
     }
 
     @Test func `a successful Purge grants Block and prepares Holy damage while an empty Purge cannot rearm it`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.manaEmpowerPurgeCount = 1
-        profile.triggers.onPurgeGainBlock = 2
-        profile.triggers.purgeNextHolyAttackBonus = 2
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40, maxMana: 10),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             enemyEffects: [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 2)],
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.manaEmpowerPurgeCount = 1
+                $0.onPurgeGainBlock = 2
+                $0.purgeNextHolyAttackBonus = 2
+            }, appliesFightPacing: false,
         )
         let hero = battle.hero
         let enemy = battle.enemy
@@ -104,15 +104,15 @@ struct ItemAffixKeywordExpansionTests {
     }
 
     @Test func `death door entry burns and surviving its expiry heals`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.enterDeathsDoorBurnDamage = 3
-        profile.triggers.deathsDoorCriticalChanceBonus = 1
-        profile.triggers.affixDeathsDoorSurviveHealFlat = 3
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroHealth: 5,
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.enterDeathsDoorBurnDamage = 3
+                $0.deathsDoorCriticalChanceBonus = 1
+                $0.affixDeathsDoorSurviveHealFlat = 3
+            }, appliesFightPacing: false,
         )
         let hero = battle.hero
 
@@ -130,16 +130,16 @@ struct ItemAffixKeywordExpansionTests {
     }
 
     @Test func `retained block grows thorns and only the first damaging retaliation heals`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.retainedBlockThornsFlat = 1
-        profile.triggers.thornsDamageFlatWhileBlocked = 2
-        profile.triggers.firstThornsDamageHealPerTurn = 2
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 40),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 40),
             heroEffects: [ActiveEffect(id: 1, effect: .shield(.block, 10), remainingTurns: 2)],
             heroHealth: 10,
-            heroModifiers: profile, appliesFightPacing: false,
+            heroModifiers: .withTriggers {
+                $0.retainedBlockThornsFlat = 1
+                $0.thornsDamageFlatWhileBlocked = 2
+                $0.firstThornsDamageHealPerTurn = 2
+            }, appliesFightPacing: false,
         )
         let hero = battle.hero
 

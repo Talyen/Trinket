@@ -70,8 +70,7 @@ extension UniqueCollectionTests {
 
     @Test(arguments: [false, true])
     func `Golden Verdict grants Gold for committed Holy Thorns only while its wearer lives`(defeated: Bool) throws {
-        let talents = CombatantTalentCatalog.profile(for: ["knight_holy_t2_1"])
-        var context = try battle(["golden_verdict"], extra: talents)
+        var context = try battle(["golden_verdict"], extra: CombatantTalentCatalog.profile(for: ["knight_holy_t2_1"]))
         context.roster.hero.currentHealth = 1
         context.roster.hero.hasConsumedDeathsDoor = defeated
         let threshold = ControlMeterEngine.threshold(for: context.enemy, in: context)

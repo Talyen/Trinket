@@ -205,10 +205,9 @@ extension TalentCatalogRoundTripTests {
     }
 
     @Test func `legacy block theft chance applies only on a gold theft proc`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.goldTheftStealEnemyBlockChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            companionModifiers: .withTriggers { $0.goldTheftStealEnemyBlockChancePercent = 1 }, dealOpeningHand: false,
+            appliesFightPacing: false,
         )
         DefensePoolEngine.set(5, on: battle.enemy, in: &battle)
         battle.grantGoldEvent(2, to: battle.companion, abilityName: "Gold")

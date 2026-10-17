@@ -47,9 +47,7 @@ struct CleanseIntegrationTests {
         ActiveEffect(id: 90, effect: .damageReductionFlat(3, 3), remainingTurns: 2),
     ])
     func `legacy reflection preserves removed effect`(cleanse: Effect, debuff: ActiveEffect) throws {
-        var reflection = CombatModifierProfile.zero
-        reflection.triggers.cleanseReflectDebuffToEnemy = true
-        var battle = BattleStateTestFactory.makeMinimalBattle(companionModifiers: reflection)
+        var battle = BattleStateTestFactory.makeMinimalBattle(companionModifiers: .withTriggers { $0.cleanseReflectDebuffToEnemy = true })
         var applied = debuff
         applied.sourceActorID = battle.enemy.id
         battle.roster.hero.activeEffects = [applied]
@@ -71,11 +69,11 @@ struct CleanseIntegrationTests {
     }
 
     @Test func `reflected bleed preserves duration on a poisoned enemy`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.cleanseReflectDebuffToEnemy = true
-        profile.triggers.bleedDurationVsPoisonedBonus = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroModifiers: profile, dealOpeningHand: false,
+            heroModifiers: .withTriggers {
+                $0.cleanseReflectDebuffToEnemy = true
+                $0.bleedDurationVsPoisonedBonus = 1
+            }, dealOpeningHand: false,
         )
         battle.insertEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         battle.insertEffect(.bleed(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 1)
@@ -194,12 +192,10 @@ struct CleanseIntegrationTests {
 extension CleanseIntegrationTests {
     @Test(arguments: [Keyword.stun, .freeze])
     func `legacy reflection returns triggered control to a tougher enemy`(keyword: Keyword) throws {
-        var reflection = CombatModifierProfile.zero
-        reflection.triggers.cleanseReflectDebuffToEnemy = true
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20),
             companion: CombatantFixtures.passiveCompanion(), enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            companionModifiers: reflection, dealOpeningHand: false, appliesFightPacing: false,
+            companionModifiers: .withTriggers { $0.cleanseReflectDebuffToEnemy = true }, dealOpeningHand: false, appliesFightPacing: false,
         )
         let hero = battle.hero
         let enemy = battle.enemy

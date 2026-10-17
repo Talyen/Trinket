@@ -97,13 +97,11 @@ struct BlockTalentOwnershipRegressionTests {
     }
 
     @Test func `Ironhide does not reduce bypass damage while Block remains`() {
-        var enemyProfile = CombatModifierProfile.zero
-        enemyProfile.triggers.physicalBlockIgnorePercent = 0.5
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: CombatantTalentCatalog.profile(for: ["bear_block_t3_1"]),
-            enemyModifiers: enemyProfile, appliesFightPacing: false,
+            enemyModifiers: .withTriggers { $0.physicalBlockIgnorePercent = 0.5 }, appliesFightPacing: false,
         )
         DefensePoolEngine.set(8, on: battle.companion, in: &battle)
 

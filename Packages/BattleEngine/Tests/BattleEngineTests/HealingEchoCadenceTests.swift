@@ -7,14 +7,12 @@ import TrinketCore
 struct HealingEchoCadenceTests {
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `Living Archive stops later echoes when the first echo wins`(laterRecipient: BattleParticipant) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.onHealDealHoly = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 30),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 30),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: 10, companionHealth: 10, enemyHealth: 1,
-            companionModifiers: profile, appliesFightPacing: false,
+            companionModifiers: .withTriggers { $0.onHealDealHoly = 1 }, appliesFightPacing: false,
         )
         battle.roster.enemy.hasConsumedDeathsDoor = true
         let sourceID = battle.companion.id

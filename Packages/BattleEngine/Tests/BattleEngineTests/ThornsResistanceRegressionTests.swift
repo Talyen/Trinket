@@ -39,12 +39,10 @@ struct ThornsResistanceRegressionTests {
 
     @Test(arguments: [Keyword.physical, .holy])
     func `Briar Ward resists actual Thorns including converted retaliation`(keyword: Keyword) {
-        var hero = CombatModifierProfile.zero
-        hero.triggers.thornsDealHoly = keyword == .holy
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
-            heroModifiers: hero,
+            heroModifiers: .withTriggers { $0.thornsDealHoly = keyword == .holy },
             enemyModifiers: .init(modifiers: [.damageTakenPercent(.thorns, 0.5)]), appliesFightPacing: false,
         )
         battle.insertEffect(.thorns(8), to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)

@@ -18,14 +18,12 @@ struct CombatModifierIntegrationTests {
 
     @Test(arguments: [(4, 0.0, 0), (4, 0.5, 0), (14, 0.5, 9), (4, 1.0, 4)])
     func `shredding scales flat defenses before clamping damage`(damage: Int, ignored: Double, expected: Int) {
-        var attacker = CombatModifierProfile.zero
-        attacker.triggers.ignoreEnemyMitigationPercent = ignored
         var passive = CombatModifierProfile.zero
         passive.triggers.passiveMitigationFlat = 10
         for defender in [CombatModifierProfile(damageTakenFlat: [.physical: 10]), passive] {
             var battle = BattleStateTestFactory.makeMinimalBattle(
                 enemy: CombatantFixtures.passiveEnemy(maxHealth: 200),
-                heroModifiers: attacker,
+                heroModifiers: .withTriggers { $0.ignoreEnemyMitigationPercent = ignored },
                 enemyModifiers: defender, appliesFightPacing: false,
             )
             let outcome = battle.resolveTestDamage(damage, options: .reaction())

@@ -56,10 +56,9 @@ extension CombatTriggerTalentDamageTests {
 extension CombatTriggerTalentDamageTests {
     @Test(arguments: [4, 5, 12])
     func `arcane burst keeps excess after every crossed threshold`(amount: Int) {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.spendManaThresholdAutoPlayCard = 5
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroMaxMana: 12, heroMana: amount, heroModifiers: profile, dealOpeningHand: false,
+            heroMaxMana: 12, heroMana: amount, heroModifiers: .withTriggers { $0.spendManaThresholdAutoPlayCard = 5 },
+            dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck(abilities: Array(repeating: .block, count: amount / 5))
         let payment = battle.payMana(amount, for: battle.hero)
@@ -69,10 +68,8 @@ extension CombatTriggerTalentDamageTests {
     }
 
     @Test func `automatic payment ancestry suppresses recursive arcane burst and then restores`() throws {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.spendManaThresholdAutoPlayCard = 3
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroMaxMana: 6, heroMana: 6, heroModifiers: profile, dealOpeningHand: false,
+            heroMaxMana: 6, heroMana: 6, heroModifiers: .withTriggers { $0.spendManaThresholdAutoPlayCard = 3 }, dealOpeningHand: false,
         )
         battle.heroDeck = CombatDeck(abilities: [.kindling])
         let card = BattleCardCombatEngine.deal(.kindling, owner: .hero, context: &battle)
@@ -89,11 +86,11 @@ extension CombatTriggerTalentDamageTests {
     }
 
     @Test func `mana reactions stop when automatic play defeats the payer`() {
-        var profile = CombatModifierProfile.zero
-        profile.triggers.spendManaThresholdAutoPlayCard = 3
-        profile.triggers.spendManaRandomDoTFlat = 5
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            companionMaxMana: 3, companionMana: 3, companionModifiers: profile, dealOpeningHand: false,
+            companionMaxMana: 3, companionMana: 3, companionModifiers: .withTriggers {
+                $0.spendManaThresholdAutoPlayCard = 3
+                $0.spendManaRandomDoTFlat = 5
+            }, dealOpeningHand: false,
         )
         battle.roster.companion.currentHealth = 1
         battle.roster.companion.hasConsumedDeathsDoor = true

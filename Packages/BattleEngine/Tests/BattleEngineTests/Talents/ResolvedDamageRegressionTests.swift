@@ -23,9 +23,9 @@ struct ResolvedDamageRegressionTests {
     }
 
     @Test func `Frozen enemy does not amplify stored Burn a second time`() {
-        let profile = CombatantTalentCatalog.profile(for: ["mana_moth_burn_t4_2"])
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 1000, companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+            enemyMaxHealth: 1000, companionModifiers: CombatantTalentCatalog.profile(for: ["mana_moth_burn_t4_2"]), dealOpeningHand: false,
+            appliesFightPacing: false,
         )
         battle.insertEffect(.controlMeter(.freeze, 100, 100), to: battle.enemy, sourceID: battle.companion.id, remainingTurns: 0)
         let result = CombatExecutor.run { await DoTDamage.resolveDamage(

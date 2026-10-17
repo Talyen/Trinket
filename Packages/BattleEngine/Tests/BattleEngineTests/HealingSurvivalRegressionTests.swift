@@ -121,14 +121,13 @@ struct HealingSurvivalRegressionTests {
     ) -> BattleState {
         var companionProfile = profile
         companionProfile.triggers.criticalChanceBonus = -1
-        var enemy = CombatModifierProfile.zero
-        enemy.triggers.onBlockHitDealHoly = 2
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20, maxMana: 5),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: heroHealth, companionHealth: 1, heroMana: 0,
-            heroModifiers: heroModifiers, companionModifiers: companionProfile, enemyModifiers: enemy, appliesFightPacing: false,
+            heroModifiers: heroModifiers, companionModifiers: companionProfile, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 2 },
+            appliesFightPacing: false,
         )
         battle.roster.companion.hasConsumedDeathsDoor = true
         DefensePoolEngine.set(6, on: battle.enemy, in: &battle)

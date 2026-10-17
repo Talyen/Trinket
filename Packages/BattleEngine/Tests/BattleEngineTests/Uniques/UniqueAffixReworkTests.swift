@@ -60,9 +60,11 @@ extension UniqueCollectionTests {
 
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `Threefold restores its wearer Mana from either party member's elemental damage`(owner: BattleParticipant) throws {
-        var bonus = CombatModifierProfile.zero
-        bonus.triggers.threefoldElementalDamageManaChancePercent = 0.90
-        var context = try battle(["threefold_grace"], owner: owner, extra: bonus)
+        var context = try battle(
+            ["threefold_grace"],
+            owner: owner,
+            extra: .withTriggers { $0.threefoldElementalDamageManaChancePercent = 0.90 },
+        )
         let attacker: BattleParticipant = owner == .hero ? .companion : .hero
         let target = context.roster.enemy.combatant
 
@@ -89,9 +91,7 @@ extension UniqueCollectionTests {
     }
 
     @Test func `Golden Verdict's Holy Stun pays Gold theft bonuses`() throws {
-        var bonus = CombatModifierProfile.zero
-        bonus.triggers.goldStealFlatBonus = 2
-        var context = try battle(["golden_verdict"], extra: bonus)
+        var context = try battle(["golden_verdict"], extra: .withTriggers { $0.goldStealFlatBonus = 2 })
         let target = context.roster.enemy.combatant
         let threshold = ControlMeterEngine.threshold(for: target, in: context)
 

@@ -148,9 +148,9 @@ extension KeywordCohesionMechanicsTests {
     }
 
     @Test func `guardian blocks only the first qualifying attack each combat`() {
-        let profile = CombatantTalentCatalog.profile(for: ["golden_retriever_block_t1_1"])
         var battle = makeCohesionBattle(
-            heroModifiers: .withTriggers { $0.dodgeChanceBonus = -1 }, companionModifiers: profile,
+            heroModifiers: .withTriggers { $0.dodgeChanceBonus = -1 },
+            companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t1_1"]),
         )
         // Ongoing damage must not spend Guardian before the first attack.
         _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .periodic)
@@ -206,9 +206,8 @@ extension KeywordCohesionMechanicsTests {
 
     @Test func `shieldbreaker doubles consumed block after dense bones absorption`() throws {
         let ogre = try #require(GameContent.enemies.first { $0.id == "ogre" })
-        let denseBones = CombatantTalentCatalog.profile(for: ["risen_skeleton_physical_t2_2"])
         var battle = makeCohesionBattle(
-            companionModifiers: denseBones,
+            companionModifiers: CombatantTalentCatalog.profile(for: ["risen_skeleton_physical_t2_2"]),
             enemyModifiers: CombatBuildResolver.build(enemy: ogre).modifiers,
         )
         DefensePoolEngine.set(10, on: battle.companion, in: &battle)

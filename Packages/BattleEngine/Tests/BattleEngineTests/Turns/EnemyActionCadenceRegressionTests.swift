@@ -8,13 +8,11 @@ struct EnemyActionCadenceRegressionTests {
     func `enemy Skills cannot pay Health for an unavailable deck benefit`(enemyID: String) throws {
         let enemy = try #require(GameContent.enemy(matching: enemyID))
         let ability = try #require(enemy.combatant.abilityLoadout.skill)
-        var heroModifiers = CombatModifierProfile.zero
-        heroModifiers.triggers.dodgeChanceBonus = -1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 1000),
             companion: CombatantFixtures.passiveCompanion(maxHealth: 1000),
             enemy: enemy.combatant,
-            heroModifiers: heroModifiers, appliesFightPacing: false,
+            heroModifiers: .withTriggers { $0.dodgeChanceBonus = -1 }, appliesFightPacing: false,
         )
         let health = battle.health(of: battle.enemy)
         _ = battle.performTestAction(ability, from: .enemy, to: .hero)
@@ -26,11 +24,9 @@ struct EnemyActionCadenceRegressionTests {
     private let skill = Ability(id: "cadence-skill", name: "Skill", tier: .skill, directDamage: 1)
 
     @Test func `dodged enemy attack advances the ability cadence`() {
-        var companionModifiers = CombatModifierProfile.zero
-        companionModifiers.triggers.negateFirstEnemyAttack = true
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [basic, skill], heroMaxHealth: 100, companionMaxHealth: 100,
-            companionModifiers: companionModifiers, dealOpeningHand: false, appliesFightPacing: false,
+            companionModifiers: .withTriggers { $0.negateFirstEnemyAttack = true }, dealOpeningHand: false, appliesFightPacing: false,
         )
 
         let dodged = battle.recordingEvents { context in await BattleCardCombatEngine.resolveEnemyTurn(context: &context) }
