@@ -56,22 +56,26 @@ struct HeroTalentReworkRegressionTests {
         #expect(battle.roster.hero.talents.pending.guaranteedBleedCritical == nil)
     }
 
-    @Test func `taste for blood increases leech critical chance against bleeding enemies`() {
-        var leechCriticals = 0
-        var ordinaryCriticals = 0
-        for seed in UInt64(1) ... 64 {
-            func critical(hasLeech: Bool) -> Bool {
-                var battle = BattleTestFixtures.makePipelineContext(
-                    targetEffects: [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)],
-                    heroModifiers: CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"]), seed: seed, appliesFightPacing: false,
-                )
-                return battle.resolveTestDamage(2, options: .attack(scaling: .items, accuracy: .unavoidable, abilityHasLeech: hasLeech))
-                    .isCritical
-            }
-            leechCriticals += critical(hasLeech: true) ? 1 : 0
-            ordinaryCriticals += critical(hasLeech: false) ? 1 : 0
-        }
-        #expect(leechCriticals > ordinaryCriticals)
+    @Test(arguments: [false, true], [(false, false), (true, false), (false, true)])
+    func `taste for blood requires a bleeding target and a leech attack`(
+        bleeding: Bool, leech: (ability: Bool, talent: Bool),
+    ) throws {
+        // A roll between the ordinary 10% and talented 35% chances distinguishes eligibility in one hit.
+        let seed = try #require((UInt64(1) ... 64).first { seed in
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return (0.10 ..< 0.35).contains(Double.random(in: 0 ..< 1, using: &rng))
+        })
+        var profile = CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"])
+        profile.triggers.attackLeechPercent = leech.talent ? 0.5 : 0
+        var battle = BattleTestFixtures.makePipelineContext(
+            targetEffects: bleeding ? [ActiveEffect(id: 1, effect: .bleed(2), remainingTurns: 2)] : [],
+            heroModifiers: profile, appliesFightPacing: false,
+        )
+        battle.rng = SeededRandomNumberGenerator(seed: seed)
+        let outcome = battle.resolveTestDamage(2, options: .attack(
+            scaling: .items, accuracy: .unavoidable, abilityHasLeech: leech.ability,
+        ))
+        #expect(outcome.isCritical == (bleeding && (leech.ability || leech.talent)))
     }
 
     @Test func `shared prescription transfers only available excess healing`() {

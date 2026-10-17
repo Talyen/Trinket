@@ -45,13 +45,15 @@ struct DecayingDoTProgression {
     init(type: DecayingDoT, sourceActorID: String?, target: Combatant, in context: BattleState) {
         self.type = type
         let triggers = sourceActorID.map { context.modifiers(for: $0).triggers }
-        let partyTriggers = target.role == .enemy
-            ? [BattleParticipant.hero, .companion].compactMap { owner -> CombatTraitTriggers? in
-                let member = context.roster[owner]
-                return member.currentHealth > 0 ? context.modifiers(for: member.id).triggers : nil
-            } : []
         func strongest(_ field: KeyPath<CombatTraitTriggers, Double>) -> Double {
-            partyTriggers.map { $0[keyPath: field] }.max() ?? 0
+            guard target.role == .enemy else { return 0 }
+            switch (context.roster.hero.isAlive, context.roster.companion.isAlive) {
+            case (true, true):
+                return max(context.heroModifiers.triggers[keyPath: field], context.companionModifiers.triggers[keyPath: field])
+            case (true, false): return context.heroModifiers.triggers[keyPath: field]
+            case (false, true): return context.companionModifiers.triggers[keyPath: field]
+            case (false, false): return 0
+            }
         }
         switch type {
         case .burn:

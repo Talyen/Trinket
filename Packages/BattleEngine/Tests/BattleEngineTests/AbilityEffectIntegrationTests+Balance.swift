@@ -30,42 +30,41 @@ extension AbilityEffectIntegrationTests {
         #expect(theft.count == (qualifies ? 1 : 0))
     }
 
-    @Test(arguments: [Ability.fangs])
-    func `enemy basic freeze bonus does not repeat on later ticks`(ability: Ability) throws {
+    @Test func `enemy basic freeze bonus does not repeat on the Bleed tick`() throws {
         var enemyProfile = CombatModifierProfile.zero
         enemyProfile.triggers.basicAttackFreezeBuildup = 1
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100),
             enemyModifiers: enemyProfile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        battle.performTestAction(ability, from: .enemy, to: .hero)
+        battle.performTestAction(.fangs, from: .enemy, to: .hero)
         #expect(battle.health(of: battle.hero) == 98)
-        let kind: EffectKind = ability.id == "ray-of-frost" ? .recurringDamage : .bleed
-        let active = try #require(battle.activeEffects(of: battle.hero).first { $0.effect.kind == kind })
+        let active = try #require(battle.activeEffects(of: battle.hero).first { $0.effect.isBleed })
         CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: battle.hero, in: &battle) }
         #expect(battle.health(of: battle.hero) == 97)
     }
 
-    @Test(arguments: [Keyword.poison, .freeze])
-    func `typed leech chance can succeed and fail on ongoing damage`(keyword: Keyword) {
-        var healed: Set<Bool> = []
-        for seed in UInt64(1) ... 32 {
-            var profile = CombatModifierProfile.zero
-            profile.triggers.criticalChanceBonus = -1
+    @Test(arguments: [Keyword.poison, .freeze], [false, true])
+    func `typed leech chance succeeds or fails on ongoing damage`(keyword: Keyword, succeeds: Bool) throws {
+        let seed = try #require((UInt64(1) ... 32).first { seed in
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return BattleChance.succeeds(probability: 0.5, using: &rng) == succeeds
+        })
+        let profile = CombatModifierProfile.withTriggers {
+            $0.criticalChanceBonus = -1
             if keyword == .poison {
-                profile.triggers.poisonDamageLeechChancePercent = 0.5
+                $0.poisonDamageLeechChancePercent = 0.5
             } else {
-                profile.triggers.freezeDamageLeechChancePercent = 0.5
+                $0.freezeDamageLeechChancePercent = 0.5
             }
-            var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroModifiers: profile, rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
-            )
-            battle.roster.hero.currentHealth = 1
-            _ = battle.resolveDamage(.doTTick(amount: 8, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id))
-            #expect([1, 5].contains(battle.roster.hero.currentHealth))
-            healed.insert(battle.roster.hero.currentHealth > 1)
         }
-        #expect(healed == [false, true])
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+        )
+        battle.rng = SeededRandomNumberGenerator(seed: seed)
+        battle.roster.hero.currentHealth = 1
+        _ = battle.resolveDamage(.doTTick(amount: 8, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id))
+        #expect(battle.roster.hero.currentHealth == (succeeds ? 5 : 1))
     }
 
     @Test func `blessed aegis grants actor block heals lowest ally and deals holy damage`() {

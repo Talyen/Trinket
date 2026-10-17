@@ -37,10 +37,6 @@ extension UniqueCollectionTests {
     // (`flight returns first physical once and moves without deck cycle`,
     // `gale and flight together do not duplicate`).
 
-    // The Patient Edge partner-damage rule is retired (replaced by Block-prepares-Crit).
-    // Coverage survives in KeywordCohesionMechanicsTests
-    // (`patient edge block prepares crit and refreshes`).
-
     @Test(
         arguments: [
             CombatantFixtures.deterministicBattleSeed,

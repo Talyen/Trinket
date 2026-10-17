@@ -37,12 +37,13 @@ extension TalentCatalogRoundTripTests {
         #expect(later.contains { $0.abilityName == "Playful Energy" })
     }
 
-    @Test func `safe perch grants dodge only at full health`() {
+    @Test func `safe perch grants dodge only above half health`() {
         var battle = capstoneBattle(companion: ["library_owl_health_t1_1"])
-        let full = DamagePipeline.dodgeChance(for: battle.companion, attackerID: battle.enemy.id, in: battle)
-        battle.roster.companion.currentHealth -= 1
-        let injured = DamagePipeline.dodgeChance(for: battle.companion, attackerID: battle.enemy.id, in: battle)
-        #expect(abs(full - injured - 0.20) < 0.0001)
+        for (health, expectedChance) in [(40, 0.30), (21, 0.30), (20, 0.10)] {
+            battle.roster.companion.currentHealth = health
+            let chance = DamagePipeline.dodgeChance(for: battle.companion, attackerID: battle.enemy.id, in: battle)
+            #expect(abs(chance - expectedChance) < 0.0001)
+        }
     }
 
     @Test func `natural poison expiry pays the last source and explicit removal does not`() {
@@ -106,11 +107,11 @@ extension TalentCatalogRoundTripTests {
         CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
             for: &ability, actor: battle.hero, context: &battle,
         ) }
-        #expect(battle.roster.companion.talents.pending.cardDamageBonus == 2)
+        #expect(battle.roster.companion.talents.pending.cardDamageBonus == 3)
         let hit = battle.resolveTestDamage(3, from: .companion, options: DamageOperation.attack(
             tier: .basic, scaling: .items, accuracy: .unavoidable, abilityCriticalChanceBonus: -1,
         ))
-        #expect(hit.healthLost == 5)
+        #expect(hit.healthLost == 6)
         #expect(battle.roster.companion.talents.pending.cardDamageBonus == 0)
     }
 

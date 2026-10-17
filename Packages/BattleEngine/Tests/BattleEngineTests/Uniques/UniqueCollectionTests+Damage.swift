@@ -106,16 +106,19 @@ extension UniqueCollectionTests {
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `everkeen repeats one critical packet without multiplying again`(owner: BattleParticipant) throws {
         var context = try battle(["everkeen"], owner: owner)
+        let nonphysical = try play(attack(.holy), owner: owner, critical: true, in: &context)
+        #expect(!nonphysical.contains { $0.abilityName == "Everkeen" })
+        let before = context.roster.enemy.currentHealth
         block(5, owner: .enemy, in: &context)
         let first = try play(attack(), owner: owner, critical: true, in: &context)
-        #expect(context.roster.enemy.currentHealth == 1965)
+        #expect(context.roster.enemy.currentHealth == before - 35)
         #expect(first.filter { $0.abilityName == "Everkeen" }.map(\.amount) == [20])
         try play(attack(), owner: owner, critical: true, in: &context)
-        #expect(context.roster.enemy.currentHealth == 1945)
+        #expect(context.roster.enemy.currentHealth == before - 55)
         UniqueCombatEngine.startTurn(in: &context)
         let next = try play(attack(), owner: owner, critical: true, in: &context)
         #expect(next.count(where: { $0.abilityName == "Everkeen" }) == 1)
-        #expect(context.roster.enemy.currentHealth == 1905)
+        #expect(context.roster.enemy.currentHealth == before - 95)
     }
 
     @Test func `everkeen uses outgoing damage before current defenses`() throws {

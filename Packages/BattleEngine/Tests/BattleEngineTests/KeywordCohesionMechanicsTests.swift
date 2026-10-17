@@ -49,34 +49,22 @@ private func makeCohesionBattle(
 }
 
 struct KeywordCohesionMechanicsTests {
-    @Test func `sniff out grants generic damage once and refreshes`() throws {
-        var battle = cohesionBattleWithHand(.sniffOut)
-        _ = try BattleTestFixtures.playCardNamed("Sniff Out", owner: .hero, on: &battle)
-        try #expect(battle.resolution.pendingPartyDamage(for: battle.companion.id) == 1)
-        // Reapplication refreshes rather than accumulating.
-        battle.nextCardID += 1
-        battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .sniffOut, owner: .hero)])
-        _ = try BattleTestFixtures.playCardNamed("Sniff Out", owner: .hero, on: &battle)
-        try #expect(battle.resolution.pendingPartyDamage(for: battle.companion.id) == 1)
-        // Next ordinary party attack consumes once on one hit.
-        let slash = Ability(id: "slash-test", name: "Slash", tier: .basic, directDamage: 2, damageKeyword: .physical)
-
-        battle.nextCardID += 1
-        battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: slash, owner: .companion)])
-        _ = try BattleTestFixtures.playCardNamed("Slash", owner: .companion, on: &battle)
-        try #expect(battle.resolution.pendingPartyDamage(for: battle.companion.id) == 0)
-    }
-
-    @Test func `sniff out applies generic bonus to nonphysical partner attack`() throws {
-        var battle = cohesionBattleWithHand(.sniffOut)
-        _ = try BattleTestFixtures.playCardNamed("Sniff Out", owner: .hero, on: &battle)
-        let frostbolt = Ability(id: "frostbolt-test", name: "Frostbolt", tier: .basic, directDamage: 2, damageKeyword: .freeze)
-        battle.nextCardID += 1
-        battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: frostbolt, owner: .companion)])
-        let before = battle.roster.enemy.currentHealth
-        _ = try BattleTestFixtures.playCardNamed("Frostbolt", owner: .companion, on: &battle)
-        try #expect(before - battle.roster.enemy.currentHealth == 3)
-        try #expect(battle.resolution.pendingPartyDamage(for: battle.companion.id) == 0)
+    @Test func `sniff out refreshes one bonus for the partners next attack`() throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
+        for _ in 0 ..< 2 {
+            let card = BattleCardCombatEngine.deal(.sniffOut, owner: .hero, context: &battle)
+            _ = try battle.playCard(cardID: card.id)
+        }
+        let attack = Ability(
+            id: "partner-freeze", name: "Partner Freeze", tier: .basic,
+            directDamage: 2, damageKeyword: .freeze, criticalChanceBonus: -1,
+        )
+        for expected in [3, 2] {
+            let card = BattleCardCombatEngine.deal(attack, owner: .companion, context: &battle)
+            let before = battle.health(of: battle.enemy)
+            _ = try battle.playCard(cardID: card.id)
+            #expect(before - battle.health(of: battle.enemy) == expected)
+        }
     }
 
     @Test func `predators focus bleeds and leeches without critical preparation`() throws {
@@ -84,9 +72,9 @@ struct KeywordCohesionMechanicsTests {
         let before = battle.roster.enemy.currentHealth
         _ = try BattleTestFixtures.playCardNamed("Predator's Focus", owner: .hero, on: &battle)
         let hero = battle.hero
-        try #expect(before - battle.roster.enemy.currentHealth == 1)
-        try #expect(battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
-        try #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeCritical })
+        #expect(before - battle.roster.enemy.currentHealth == 1)
+        #expect(battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
+        #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeCritical })
         // Next attack Leeches; pre-existing Leech does not double.
         let fangs = Ability(id: "fangs-test", name: "Fangs", tier: .basic, directDamage: 4, damageKeyword: .bleed, hasLeech: true)
         battle.nextCardID += 1
@@ -95,11 +83,11 @@ struct KeywordCohesionMechanicsTests {
         // Damage Hero first to create missing Health for Leech to restore.
         _ = battle.resolveTestDamage(6, from: .enemy, to: .hero, options: .effect())
         let missing = battle.roster.maxHealth(for: battle.hero) - battle.roster.health(for: battle.hero)
-        try #expect(missing > 0)
+        #expect(missing > 0)
         _ = try BattleTestFixtures.playCardNamed("Fangs", owner: .hero, on: &battle)
         // Leech restored some (single base rate, not doubled).
-        try #expect(battle.roster.health(for: battle.hero) > heroBefore - 6)
-        try #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
+        #expect(battle.roster.health(for: battle.hero) > heroBefore - 6)
+        #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
     }
 
     @Test func `tithe and bounty produce fixed gold without conditions`() throws {
@@ -109,111 +97,89 @@ struct KeywordCohesionMechanicsTests {
         ] {
             var battle = cohesionBattleWithHand(ability)
             _ = try BattleTestFixtures.playCardNamed(name, owner: .hero, on: &battle)
-            try #expect(battle.gold == 2, "\(name) should steal 2 Gold")
-            try #expect(ability.outcomeBranches == nil, "\(name) should have no branches")
+            #expect(battle.gold == 2, "\(name) should steal 2 Gold")
+            #expect(ability.outcomeBranches == nil, "\(name) should have no branches")
         }
     }
 
     @Test func `golden plate grants block and gold only`() throws {
         var battle = cohesionBattleWithHand(.goldenPlate)
         _ = try BattleTestFixtures.playCardNamed("Golden Plate", owner: .hero, on: &battle)
-        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 8)
-        try #expect(battle.gold == 5)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 8)
+        #expect(battle.gold == 5)
     }
 
-    @Test func `avatar deals once and prepares holy attack`() throws {
-        var battle = makeCohesionBattle()
-        battle.performTestAction(.avatarOfJustice)
-        try #expect(battle.roster.enemy.currentHealth == 94)
-        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 6)
-        try #expect(battle.activeEffects(of: battle.hero).contains {
-            $0.effect == .nextStrikeDamageKeywordOverride(.holy)
-        })
-    }
-
-    @Test func `sunburst heals each living ally without reviving`() throws {
-        var battle = makeCohesionBattle()
-        // Damage Hero, defeat Companion directly (bypass Death's Door) to test no revive.
-        _ = battle.resolveTestDamage(10, from: .enemy, to: .hero, options: .effect())
-        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 0 }
-        try #require(battle.roster.health(for: battle.companion) <= 0)
-        let heroBefore = battle.roster.health(for: battle.hero)
-        battle.performTestAction(.sunburst)
-        try #expect(battle.roster.health(for: battle.hero) >= min(20, heroBefore + 3))
-        try #expect(battle.roster.health(for: battle.companion) <= 0)
-        try #expect(battle.roster.enemy.currentHealth == 94)
+    @Test(arguments: [BattleParticipant.hero, .enemy])
+    func `sunburst heals its living allies without reviving`(owner: BattleParticipant) {
+        var battle = makeCohesionBattle(
+            heroHealth: 10, companionHealth: 0, enemyHealth: 50,
+            heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 },
+        )
+        let events = battle.performTestAction(.sunburst, from: owner, to: owner == .hero ? .enemy : .hero)
+        #expect(battle.roster.hero.currentHealth == (owner == .hero ? 13 : 4))
+        #expect(battle.roster.companion.currentHealth == 0)
+        #expect(battle.roster.enemy.currentHealth == (owner == .hero ? 44 : 53))
+        let recipient = battle.roster[owner].id
+        #expect(events.filter { $0.effectKind == .instantHeal }.map(\.targetID) == [recipient])
     }
 }
 
 extension KeywordCohesionMechanicsTests {
-    @Test func `enemy sunburst heals only the enemy`() throws {
-        var battle = makeCohesionBattle()
-        battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 10 }
-        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 10 }
-        battle.roster.mutateRuntime(for: battle.enemy) { $0.currentHealth = 50 }
-        let (events, performed) = battle.recordingResult { battle in await BattleTurnEngine.performEnemyAction(
-            ability: .sunburst, abilityTarget: battle.hero, context: &battle,
-        ) }
-        try #require(performed)
-        // The 6 Holy damage lands on the hero; no heal reaches the party.
-        try #expect(battle.roster.health(for: battle.hero) == 4)
-        try #expect(battle.roster.health(for: battle.companion) == 10)
-        try #expect(battle.roster.health(for: battle.enemy) == 53)
-        try #expect(events.contains { $0.effectKind == .instantHeal && $0.targetID == battle.enemy.id })
-        try #expect(!events.contains { $0.effectKind == .instantHeal && $0.targetID != battle.enemy.id })
-    }
-
-    @Test func `thick hide reduces only physical`() throws {
+    @Test func `thick hide reduces only physical`() {
         let profile = CombatModifierProfile.withTriggers { $0.passivePhysicalMitigationFlat = 2 }
         var battle = makeCohesionBattle(companionModifiers: profile)
         // Companion takes Physical (reduced) vs Burn (not reduced). Use companion as defender via enemy targeting companion.
-        let companion = battle.companion
         let physical = battle.resolveTestDamage(5, from: .enemy, to: .companion)
-        try #expect(physical.healthLost == 3)
+        #expect(physical.healthLost == 3)
         let burn = battle.resolveTestDamage(5, from: .enemy, to: .companion, keyword: .burn)
         // Burn takes full (no Block, no mitigation) = 5, modulo enemy scaling? Use healthLost relative.
-        try #expect(burn.healthLost == 5)
+        #expect(burn.healthLost == 5)
     }
 
-    @Test func `surprise strike crits first physical only`() throws {
+    @Test func `surprise strike crits first physical only`() {
         let profile =
             CombatModifierProfile.withTriggers { $0.firstPhysicalAttackGuaranteedCritical = true }
         var battle = makeCohesionBattle(enemyMaxHealth: 200, companionModifiers: profile)
         // Non-Physical first does not consume or crit (Burn, no guaranteed crit).
         let first = battle.resolveTestDamage(4, from: .companion, keyword: .burn)
-        try #expect(!first.isCritical)
+        #expect(!first.isCritical)
         // First Physical Crits.
         let physical = battle.resolveTestDamage(4, from: .companion)
-        try #expect(physical.isCritical)
+        #expect(physical.isCritical)
         // Second Physical does not Crit (allowance spent).
         let second = battle.resolveTestDamage(4, from: .companion)
-        try #expect(!second.isCritical)
+        #expect(!second.isCritical)
     }
 
-    @Test func `guardian grants block once per attack`() throws {
-        let profile = CombatModifierProfile.withTriggers { $0.guardianHeroBlockFlat = 2 }
-        var battle = makeCohesionBattle(companionModifiers: profile)
-        // Multi-hit attack (two components in one action) grants Block once, not per component.
+    @Test func `guardian blocks only the first qualifying attack each combat`() {
+        let profile = CombatantTalentCatalog.profile(for: ["golden_retriever_block_t1_1"])
+        var battle = makeCohesionBattle(
+            heroModifiers: .withTriggers { $0.dodgeChanceBonus = -1 }, companionModifiers: profile,
+        )
+        // Ongoing damage must not spend Guardian before the first attack.
+        _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .periodic)
         let multi = Ability(id: "multi", name: "Multi", tier: .basic, damageComponents: [
             DamageComponent(3, keyword: .physical), DamageComponent(3, keyword: .physical),
         ])
-        battle.performTestAction(multi, from: .enemy, to: .hero)
-        // First hit granted 2 Block (absorbed 2 of 3), second hit also absorbed by remaining? Total Block 2 absorbs 2 of 6, health lost 4.
-        // Exact numbers depend on no other mitigation; assert Block was granted (shield points consumed, so 0 left, but damage reduced).
-        try #expect(battle.roster.health(for: battle.hero) < battle.roster.maxHealth(for: battle.hero))
+        for expectedLoss in [1, 6] {
+            let before = battle.health(of: battle.hero)
+            let events = battle.performTestAction(multi, from: .enemy, to: .hero)
+            #expect(before - battle.health(of: battle.hero) == expectedLoss)
+            #expect(events.filter { $0.effectKind == .shieldApplied }.map(\.amount) == (expectedLoss == 1 ? [5] : []))
+        }
     }
 
-    @Test func `dense bones doubles physical block`() throws {
+    @Test func `dense bones doubles physical block`() {
         let profile = CombatModifierProfile.withTriggers { $0.doublePhysicalBlockAbsorption = true }
         var battle = makeCohesionBattle(companionModifiers: profile)
         DefensePoolEngine.set(2, on: battle.companion, in: &battle)
         // 3 Physical with 2 Block (doubled capacity 4) absorbs all 3, consumes 2 (rounded 1.5->2).
         let physical = battle.resolveTestDamage(3, from: .enemy, to: .companion)
-        try #expect(physical.healthLost == 0)
+        #expect(physical.healthLost == 0)
         // Non-Physical with same Block uses normal efficiency.
         DefensePoolEngine.set(2, on: battle.companion, in: &battle)
         let burn = battle.resolveTestDamage(3, from: .enemy, to: .companion, keyword: .burn)
-        try #expect(burn.healthLost == 1)
+        #expect(burn.healthLost == 1)
     }
 
     @Test(arguments: [false, true])
@@ -291,17 +257,17 @@ extension KeywordCohesionMechanicsTests {
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero)])
         _ = try BattleTestFixtures.playCardNamed("Heal", owner: .hero, on: &battle)
         // Heal targets lowestHealthAlly (companion, damaged) with 6, restores 5 (missing), draws 1 Companion card (claimed before draw).
-        try #expect(battle.companionDeck.count == max(0, deckBefore - 1))
+        #expect(battle.companionDeck.count == max(0, deckBefore - 1))
         // Second heal same turn does not draw again (once per turn).
         _ = battle.resolveTestDamage(1, from: .enemy, to: .companion, options: .effect())
         battle.nextCardID += 1
         battle.hand = BattleHand(cards: [BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero)])
         let deckMid = battle.companionDeck.count
         _ = try BattleTestFixtures.playCardNamed("Heal", owner: .hero, on: &battle)
-        try #expect(battle.companionDeck.count == deckMid)
+        #expect(battle.companionDeck.count == deckMid)
     }
 
-    @Test func `forbidden knowledge pays health before drawing on cadence`() throws {
+    @Test func `forbidden knowledge pays health before drawing on cadence`() {
         let profile = CombatModifierProfile.withTriggers { $0.forbiddenKnowledge = true }
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash, .bash, .block],
@@ -310,19 +276,19 @@ extension KeywordCohesionMechanicsTests {
         )
         let heroBefore = battle.roster.health(for: battle.hero)
         let first = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        try #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)
-        try #expect(first.first { $0.effectKind == .cardsDrawn }?.amount == 1)
+        #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)
+        #expect(first.first { $0.effectKind == .cardsDrawn }?.amount == 1)
 
         battle.turnCount = 1
         let second = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        try #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)
-        try #expect(!second.contains { $0.effectKind == .cardsDrawn })
+        #expect(battle.roster.health(for: battle.hero) == heroBefore - 1)
+        #expect(!second.contains { $0.effectKind == .cardsDrawn })
 
         battle.turnCount = 2
         battle.heroDeck = CombatDeck(abilities: [.slash])
         let third = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        try #expect(battle.roster.health(for: battle.hero) == heroBefore - 2)
-        try #expect(third.first { $0.effectKind == .cardsDrawn }?.amount == 1)
+        #expect(battle.roster.health(for: battle.hero) == heroBefore - 2)
+        #expect(third.first { $0.effectKind == .cardsDrawn }?.amount == 1)
     }
 
     @Test func `a forbidden knowledge death stops Purifying Aura`() {
@@ -430,41 +396,18 @@ extension KeywordCohesionMechanicsTests {
         #expect(battle.roster.health(for: battle.companion) == 14)
     }
 
-    @Test func `mimic deals one opening bleed bonus`() throws {
+    @Test func `mimic deals one opening bleed bonus`() {
         let profile = CombatModifierProfile.withTriggers { $0.firstAttackBleedBonus = 2 }
         var battle = makeCohesionBattle(heroMaxHealth: 50, enemyModifiers: profile)
         let attack = Ability(id: "hit", name: "Hit", tier: .basic, directDamage: 4, damageKeyword: .physical)
         let before = battle.roster.health(for: battle.hero)
         battle.performTestAction(attack, from: .enemy, to: .hero)
         // 4 Physical + 2 Bleed bonus (separate hit) = 6 total (before Block/mitigation).
-        try #expect(before - battle.roster.health(for: battle.hero) >= 6)
+        #expect(before - battle.roster.health(for: battle.hero) >= 6)
         // Second attack no bonus (once).
         let mid = battle.roster.health(for: battle.hero)
         battle.performTestAction(attack, from: .enemy, to: .hero)
-        try #expect(mid - battle.roster.health(for: battle.hero) == 4)
-    }
-
-    @Test func `everkeen requires physical crit and does not spend on other`() throws {
-        var battle = makeCohesionBattle(
-            enemyMaxHealth: 200,
-            heroModifiers: CombatModifierProfile.withTriggers { $0.firstCriticalHitRepeatsPerTurn = true },
-        )
-        // Non-Physical Crit does not spend allowance or repeat.
-        battle.insertEffect(.nextStrikeCritical, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
-        battle.performTestAction(Ability(id: "burn", name: "Burn", tier: .basic, directDamage: 4, damageKeyword: .burn))
-        // Allowance preserved (not spent) – next Physical Crit still repeats (would need full card flow to verify repeat; assert flag not
-        // set).
-        // For unit check, assert enemy took only base + crit (no repeat yet would be separate event; flag preserved means next Physical can
-        // still repeat).
-        try #expect(battle.roster[.hero].uniques.repeatedCritical != true)
-    }
-
-    @Test func `patient edge block prepares crit and refreshes`() throws {
-        let profile = CombatModifierProfile.withTriggers { $0.blockPreparesCritical = true }
-        var battle = makeCohesionBattle(heroModifiers: profile)
-        DefensePoolEngine.set(5, on: battle.hero, in: &battle)
-        _ = battle.resolveTestDamage(3, from: .enemy, to: .hero)
-        try #expect(battle.roster[.hero].uniques.patientEdgeReady == true)
+        #expect(mid - battle.roster.health(for: battle.hero) == 4)
     }
 
     @Test func `companion cards per turn draws alongside draw every other turn`() {

@@ -57,33 +57,26 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.shield, on: .enemy, in: battle) == 1)
     }
 
-    @Test func `improving odds grows on connected dodgeable attacks including block and resets on dodge`() {
-        var battle = heroTalentBattle("wildcard_dodge_t3_2")
-        seedHeroTalentEffect(.shield(.block, 1000), on: .hero, in: &battle)
-        var exceededFive = false
-        for _ in 0 ..< 60 {
-            let previous = battle.roster.combatant(for: battle.hero.id)?.talents.history.dodgeGrowth ?? 0
-            let outcome = battle.resolveTestDamage(
-                1,
-                from: .enemy,
-                to: .hero,
-                options: DamageOperation.attack(scaling: .flat),
-            )
-            let growth = battle.roster.combatant(for: battle.hero.id)?.talents.history.dodgeGrowth ?? 0
-            #expect(growth == (outcome.flags.contains(.dodged) ? 0 : previous + 5))
-            #expect(outcome.healthLost == 0)
-            exceededFive = exceededFive || growth > 5
-            #expect(DamagePipeline.dodgeChance(for: battle.hero, attackerID: battle.enemy.id, in: battle) <= 0.75)
-        }
-        #expect(exceededFive)
-        let before = battle.roster.combatant(for: battle.hero.id)?.talents.history.dodgeGrowth
-        _ = battle.resolveTestDamage(
-            1,
-            from: .enemy,
-            to: .hero,
-            options: DamageOperation.attack(accuracy: .unavoidable),
+    @Test func `improving odds grows on blocked attacks resets on dodge and caps chance`() {
+        var profile = CombatantTalentCatalog.profile(for: ["wildcard_dodge_t3_2"])
+        profile.triggers.dodgeChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        #expect(battle.roster.combatant(for: battle.hero.id)?.talents.history.dodgeGrowth == before)
+        seedHeroTalentEffect(.shield(.block, 10), on: .hero, in: &battle)
+        for expected in [5, 10] {
+            let outcome = battle.resolveTestDamage(1, from: .enemy, to: .hero)
+            #expect(outcome.healthLost == 0)
+            #expect(battle.roster.hero.talents.history.dodgeGrowth == expected)
+        }
+        _ = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .attack(accuracy: .unavoidable))
+        #expect(battle.roster.hero.talents.history.dodgeGrowth == 10)
+        battle.roster.hero.talents.history.dodgeGrowth = 200
+        #expect(DamagePipeline.dodgeChance(for: battle.hero, attackerID: battle.enemy.id, in: battle) == 0.75)
+        seedHeroTalentEffect(.evadeNextHit, on: .hero, in: &battle)
+        let dodged = battle.resolveTestDamage(1, from: .enemy, to: .hero)
+        #expect(dodged.flags.contains(.dodged))
+        #expect(battle.roster.hero.talents.history.dodgeGrowth == 0)
     }
 
     @Test func `blind spot refreshes and covers every physical hit of only the next owned card`() throws {
