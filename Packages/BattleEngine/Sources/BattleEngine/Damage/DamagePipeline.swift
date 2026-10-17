@@ -17,13 +17,11 @@ package enum DamagePipeline {
     ) async {
         if state.options.isElementalReaction {
             state.remaining = state.amount
-            state.dealt = state.amount
             await applyElementalHealthLoss(to: &state, in: &context)
             return
         }
         if state.options.isHealthCost {
             state.remaining = state.amount
-            state.dealt = state.amount
             await applyTakeDamage(to: &state, in: &context)
             await applyDeathsDoor(to: &state, in: &context)
             if state.healthLost > 0,
@@ -219,7 +217,6 @@ package enum DamagePipeline {
     ) {
         if state.options.usesResolvedOutgoingDamage {
             state.remaining = state.amount
-            state.dealt = state.amount
             state.isCritical = state.options.guaranteedCritical
             if !state.options.isResolvedCardRepeat {
                 applyConditionalDamageBonuses(to: &state, in: context)
@@ -235,10 +232,15 @@ package enum DamagePipeline {
             applyFightPacing(to: &state, in: &context)
             applyMarkedBonus(to: &state, in: &context)
             UniqueCombatEngine.applyStoredDamage(to: &state, in: &context)
-            var outgoing = state
-            outgoing.remaining -= state.options.partnerFirstAttackBonus
-            applyCriticalMultiply(to: &outgoing, in: &context)
-            state.unique.outgoingDamage = outgoing.remaining
+            // Only Final Spark and Everkeen need a pre-defense critical snapshot.
+            if state.options.capturesCardRepeat
+                || (state.options.isOrdinaryUniqueCardDamage && state.isCritical && state.damageKeyword == .physical
+                    && state.sourceActorID.map { context.modifiers(for: $0).triggers.firstCriticalHitRepeatsPerTurn } == true) {
+                var outgoing = state
+                outgoing.remaining -= state.options.partnerFirstAttackBonus
+                applyCriticalMultiply(to: &outgoing, in: &context)
+                state.unique.outgoingDamage = outgoing.remaining
+            }
         }
         // Freeze offense for Final Spark; the repeat rechecks recipient defenses.
         let cardRepeatAmount: Int = {

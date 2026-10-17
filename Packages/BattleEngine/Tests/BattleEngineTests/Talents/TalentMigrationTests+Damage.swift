@@ -70,20 +70,20 @@ extension TalentMigrationTests {
         #expect(!battle.roster.hero.talents.pending.doubleNextPoisonAttack)
     }
 
-    @Test func `pressurePoint needs critical`() {
-        var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.pressurePoint = true })
-        battle.roster.setActiveEffects([ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2)], for: battle.roster.enemy.combatant)
-        let nonCrit = battle.resolveTestDamage(10, options: .attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal))
-        var critBattle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.pressurePoint = true })
-        critBattle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .poison(3), remainingTurns: 2)],
-            for: critBattle.roster.enemy.combatant,
-        )
-        let crit = critBattle.resolveTestDamage(
-            10,
-            options: .attack(tier: .basic, scaling: .statsAndItems, accuracy: .normal, guaranteedCritical: true),
-        )
-        #expect(crit.healthLost > nonCrit.healthLost)
+    @Test(arguments: [false, true])
+    func `pressure point doubles only critical damage against poison`(critical: Bool) {
+        func damage(equipped: Bool) -> Int {
+            var battle = makeBattle(heroTriggers: .configured {
+                $0.pressurePoint = equipped
+                $0.criticalChanceBonus = -1
+            })
+            battle.appliesFightPacing = false
+            battle.insertEffect(.poison(3), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+            return battle.resolveTestDamage(10, options: .attack(
+                accuracy: .unavoidable, guaranteedCritical: critical,
+            )).healthLost
+        }
+        #expect(damage(equipped: true) == damage(equipped: false) * (critical ? 2 : 1))
     }
 
     @Test func `intense heat only boosts phoenix damage against burning enemies`() {

@@ -16,6 +16,22 @@ struct PlayPolicyTests {
         #expect(PlayPolicy.setupAware.preferredPlayableCard(in: battle)?.id == preferred.id)
     }
 
+    @Test func `setup policy does not mistake a Burn ward for an affliction`() {
+        var battle = finishingBattle(enemyHealth: 100)
+        battle.roster.hero.currentHealth = battle.roster.hero.maxHealth
+        battle.insertEffect(.onHitDamage(.burn, 2), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        let chip = BattleCardCombatEngine.deal(
+            Ability(id: "chip", name: "Chip", tier: .basic, directDamage: 8), owner: .hero, context: &battle,
+        )
+        let setup = BattleCardCombatEngine.deal(
+            Ability(id: "setup", name: "Setup", tier: .basic, effects: [.burn(2)]),
+            owner: .hero, context: &battle,
+        )
+        #expect(PlayPolicy.setupAware.preferredPlayableCard(in: battle)?.id == setup.id)
+        battle.insertEffect(.burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        #expect(PlayPolicy.setupAware.preferredPlayableCard(in: battle)?.id == chip.id)
+    }
+
     @Test(arguments: [Ability.kindling, .shieldBash])
     func `nonlethal choices account for conditional and scaled damage`(ability: Ability) throws {
         var battle = finishingBattle(enemyHealth: 100)

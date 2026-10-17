@@ -47,20 +47,14 @@ extension TalentMigrationTests {
         #expect(!battle.activeEffects(of: battle.hero).contains { $0.keyword == .poison || $0.keyword == .burn })
     }
 
-    @Test func `cleanSlate does not cleanse when enemy overheals`() {
+    @Test func `clean slate preserves enemy debuffs on overhealing`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured { $0.cleanSlate = true })
-        battle.roster.setActiveEffects(
-            [ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTurns: 0)],
-            for: battle.roster.enemy.combatant,
-        )
-        battle.roster.mutateRuntime(for: battle.roster.enemy.combatant) { $0.currentHealth = $0.maxHealth - 1 }
-        battle.healEmitting(
-            amount: 10,
-            target: battle.roster.enemy.combatant,
-            source: battle.roster.enemy.combatant,
-            abilityName: "test-heal",
-        )
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.kind == .shield })
+        let target = battle.enemy
+        battle.insertEffect(.poison(2), to: target, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.roster.mutateRuntime(for: target) { $0.currentHealth = $0.maxHealth - 1 }
+        battle.healEmitting(amount: 10, target: target, source: target, abilityName: "Test Heal")
+        #expect(battle.health(of: target) == battle.maxHealth(of: target))
+        #expect(battle.roster.hasAffliction(.poison, on: target))
     }
 
     @Test func `bloodprice heals on attacks against bleeding enemies`() {

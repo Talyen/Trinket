@@ -74,7 +74,6 @@ package extension DamagePipeline {
         guard state.damageKeyword == .burn || sharedKeyword == .burn, state.options.isAttackHit,
               let bonus = context.consumeTalentPreparation(\.nextBurnDamageBonus, for: source) else { return }
         state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-        state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
     }
 
     static func reserveCompanionBlockIgnore(
@@ -145,19 +144,16 @@ package extension DamagePipeline {
         let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
         if keyword == .bleed || sharedKeyword == .bleed, triggers.bleedAttackDamageBonus > 0 {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.bleedAttackDamageBonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, triggers.bleedAttackDamageBonus)
         }
         if keyword == .stun, triggers.firstStunAttackBonusPerTurn > 0,
            context.claimHeroTalent(.groundSlam, actorID: sourceActorID) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.firstStunAttackBonusPerTurn)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, triggers.firstStunAttackBonusPerTurn)
         }
         if keyword == .physical || sharedKeyword == .physical, triggers.firstPhysicalAttackBlockDamagePercent > 0,
            context.claimHeroTalent(.batteringRam, actorID: sourceActorID) {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
             let bonus = CombatRounding.scaled(block, multiplier: triggers.firstPhysicalAttackBlockDamagePercent)
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
     }
 

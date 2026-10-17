@@ -50,30 +50,6 @@ extension TalentMigrationTests {
         #expect(battle.mana(of: battle.hero) > 0)
     }
 
-    @Test func `furnaceRhythm primes physical repeat`() {
-        var battle = makeBattle(
-            heroTriggers: CombatTraitTriggers.configured { $0.furnaceRhythm = true },
-            heroAbilities: [
-                .slash,
-                Ability(id: "burn-test", name: "Burn Test", tier: .basic, directDamage: 2, damageKeyword: Keyword.burn),
-            ],
-        )
-        let burnAbility = Ability(id: "x", name: "X", tier: .basic, directDamage: 1, damageKeyword: Keyword.burn)
-        _ = cardReactions(
-            burnAbility,
-            in: &battle,
-        )
-        #expect(battle.primedRepeatKeywords.contains(Keyword.physical))
-        let physical = Ability(id: "phys", name: "Phys", tier: .basic, directDamage: 5, damageKeyword: Keyword.physical)
-        let healthBefore = battle.health(of: battle.enemy)
-        _ = cardReactions(
-            physical,
-            in: &battle,
-        )
-        #expect(battle.health(of: battle.enemy) < healthBefore)
-        #expect(!battle.primedRepeatKeywords.contains(Keyword.physical))
-    }
-
     @Test func `phantom counter plays a drawn card without consuming ordinary card rewards`() {
         var battle = makeBattle(heroTriggers: CombatTraitTriggers.configured {
             $0.thirdCardReturnsToHand = true

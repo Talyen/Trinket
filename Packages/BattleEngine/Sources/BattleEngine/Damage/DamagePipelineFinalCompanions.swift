@@ -53,7 +53,6 @@ package extension DamagePipeline {
         if multiplier != 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: multiplier)
         }
-        state.dealt = state.remaining
     }
 
     private static func applyFinalCompanionFlatAndPreparedBonuses(

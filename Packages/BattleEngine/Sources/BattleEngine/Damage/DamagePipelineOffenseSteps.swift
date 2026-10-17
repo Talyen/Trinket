@@ -12,7 +12,6 @@ package extension DamagePipeline {
         if state.options.isAttackHit, state.amount > 0 {
             let bonus = context.resolution.consumeGoldDamage(for: state.sourceActorID)
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         if state.amount > 0 {
             state.remaining = SaturatedArithmetic.saturatingAdd(
@@ -27,7 +26,6 @@ package extension DamagePipeline {
         applyOneShotEmpowers(to: &state)
         applyOutgoingReductions(to: &state, in: &context)
         applyPhysicalDamageRolls(to: &state, in: &context)
-        state.dealt = state.remaining
     }
 
     private static func applyPhysicalDamageRolls(
@@ -92,39 +90,38 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
+        var statBonus = 0
+        var itemBonus = 0
         if let sourceActorID = state.sourceActorID,
            let damageKeyword = state.damageKeyword,
            let actor = context.roster.combatant(for: sourceActorID) {
-            state.statBonus = state.options.applyStatBonus
-                ? CombatRounding.scaled(state.amount, multiplier: context.modifiers(for: sourceActorID).outgoingDamagePercent)
+            let profile = context.modifiers(for: sourceActorID)
+            statBonus = state.options.applyStatBonus
+                ? CombatRounding.scaled(state.amount, multiplier: profile.outgoingDamagePercent)
                 : 0
-            state.itemBonus = state.options.applyItemBonus
+            itemBonus = state.options.applyItemBonus
                 ? outgoingDamageBonus(
                     for: sourceActorID,
                     keyword: damageKeyword,
                     in: context,
                 )
                 : 0
-            if state.options.isAttackHit,
-               var runtime = context.roster.runtime(for: actor.combatant) {
-                let profile = context.modifiers(for: sourceActorID)
-                if !runtime.hasTriggeredFirstHitBonus, profile.triggers.firstHitDoubleDamage {
-                    state.itemBonus = SaturatedArithmetic.saturatingAdd(
-                        state.itemBonus, SaturatedArithmetic.saturatingAdd(state.amount, state.statBonus),
-                    )
-                    runtime.hasTriggeredFirstHitBonus = true
-                    context.roster.update(runtime)
-                }
+            if state.options.isAttackHit, profile.triggers.firstHitDoubleDamage,
+               !actor.hasTriggeredFirstHitBonus {
+                itemBonus = SaturatedArithmetic.saturatingAdd(
+                    itemBonus, SaturatedArithmetic.saturatingAdd(state.amount, statBonus),
+                )
+                context.roster.mutateRuntime(for: actor.combatant) { $0.hasTriggeredFirstHitBonus = true }
             }
             if state.options.applyItemBonus {
-                state.itemBonus = SaturatedArithmetic.saturatingAdd(
-                    state.itemBonus,
+                itemBonus = SaturatedArithmetic.saturatingAdd(
+                    itemBonus,
                     CombatTriggerEngine.damageBonus(for: state, in: &context),
                 )
             }
         }
         state.remaining = SaturatedArithmetic.saturatingAdd(
-            SaturatedArithmetic.saturatingAdd(state.amount, state.statBonus), state.itemBonus,
+            SaturatedArithmetic.saturatingAdd(state.amount, statBonus), itemBonus,
         )
         applyConditionalDamageBonuses(to: &state, in: context)
     }
@@ -144,7 +141,6 @@ package extension DamagePipeline {
         }
         percent = max(0, percent)
         let percentBonus = CombatRounding.scaled(max(0, state.remaining), multiplier: percent)
-        state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, percentBonus)
         state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, percentBonus)
     }
 
@@ -366,7 +362,6 @@ package extension DamagePipeline {
     ) {
         guard state.remaining > 0 else { return }
         state.remaining = context.paced(state.remaining, sourceActorID: state.sourceActorID)
-        state.dealt = state.remaining
     }
 
     static func outgoingDamageBonus(
@@ -433,7 +428,6 @@ package extension DamagePipeline {
                 state.remaining, context.modifiers(for: sourceActorID).triggers.poisonCriticalDamageBonus,
             )
         }
-        state.dealt = state.remaining
     }
 
     static func criticalMultiplier(for sourceActorID: String?, in context: BattleState) -> Double {
@@ -476,7 +470,6 @@ package extension DamagePipeline {
             }
         }
         state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-        state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
     }
 
     static func applyHallowbreak(to state: inout DamageResolutionState, in context: BattleState) {
@@ -498,7 +491,6 @@ package extension DamagePipeline {
         for active in context.roster.activeEffects(for: state.combatant) {
             if case let .marked(bonus, _) = active.effect {
                 state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-                state.dealt = SaturatedArithmetic.saturatingAdd(state.dealt, bonus)
                 state.markedBonusApplied = true
                 break
             }

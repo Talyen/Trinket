@@ -155,14 +155,7 @@ public struct BattleRoster {
     func hasAffliction(_ keyword: Keyword, on combatant: Combatant) -> Bool {
         activeEffects(for: combatant).contains { active in
             guard active.effect.keyword == keyword else { return false }
-            switch active.effect {
-            case let .bleed(potency):
-                return potency > 0 && active.remainingTurns > 0
-            case let .burn(potency), let .poison(potency):
-                return potency > 0
-            default:
-                return active.effect.isRemovableDebuff
-            }
+            return active.isActiveAffliction
         }
     }
 
@@ -194,5 +187,16 @@ public struct BattleRoster {
 
     public func isDeathsDoorActive(for combatant: Combatant) -> Bool {
         activeEffects(for: combatant).contains { $0.effect.kind == .deathsDoor }
+    }
+}
+
+/// Share affliction eligibility between live queries and hit-time snapshots.
+extension ActiveEffect {
+    var isActiveAffliction: Bool {
+        switch effect {
+        case let .bleed(potency): potency > 0 && remainingTurns > 0
+        case let .burn(potency), let .poison(potency): potency > 0
+        default: effect.isRemovableDebuff
+        }
     }
 }

@@ -73,7 +73,6 @@ package extension DamagePipeline {
         if keyword == .poison, state.options.isAttackHit, state.targetStatus.isBleeding,
            triggers.poisonAttackVsBleedingBonus > 0 {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.poisonAttackVsBleedingBonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, triggers.poisonAttackVsBleedingBonus)
         }
         if keyword == .poison, state.targetStatus.isBleeding, triggers.poisonDamageVsBleedingMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.poisonDamageVsBleedingMultiplier)
@@ -84,7 +83,6 @@ package extension DamagePipeline {
         if keyword == .freeze, state.targetStatus.isPoisoned, context.roster.hero.isAlive {
             let bonus = context.heroModifiers.triggers.coolMossFreezeBonus
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
         if keyword == .bleed || sharedKeyword == .bleed,
@@ -131,7 +129,6 @@ package extension DamagePipeline {
         if keyword == .bleed || sharedKeyword == .bleed, state.options.isAttackHit,
            let bonus = context.consumeTalentPreparation(\.nextBleedDamageBonus, for: source) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         if state.isCritical, triggers.manaEmpoweredCriticalMultiplier > 1,
            context.resolution.actionTalents(for: source.id)?.empoweredByMana == true {
@@ -167,7 +164,6 @@ package extension DamagePipeline {
         }
         guard let bonus = context.consumeTalentPreparation(keyPath, for: source) else { return }
         state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-        state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
     }
 
     private static func applyPreparedPoisonAttackBonus(
@@ -181,7 +177,6 @@ package extension DamagePipeline {
             context.consumeTalentPreparation(\.nextToxicRemedyDamageBonus, for: source) ?? 0,
         )
         state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-        state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
     }
 
     private static func applyBlockAndAttackBonuses(
@@ -198,17 +193,14 @@ package extension DamagePipeline {
            triggers.physicalDamageFromBlockPercent > 0, sourceBlock > 0 {
             let bonus = CombatRounding.scaled(sourceBlock, multiplier: triggers.physicalDamageFromBlockPercent)
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         if keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit,
            let bonus = context.consumeTalentPreparation(\.nextPhysicalDamageBonus, for: source) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         if state.options.isAttackHit,
            let bonus = context.consumeTalentPreparation(\.nextAttackDamageBonus, for: source) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         if keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit,
            context.consumeTalentPreparation(\.doubleNextPhysicalAttack, for: source) == true {
@@ -217,7 +209,6 @@ package extension DamagePipeline {
         if keyword == .stun, triggers.lightningRod, sourceBlock > 0 {
             let bonus = sourceBlock / 2
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-            state.itemBonus = SaturatedArithmetic.saturatingAdd(state.itemBonus, bonus)
         }
         if keyword == .stun, state.isCritical, triggers.stunCriticalDamageMultiplier > 1 {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.stunCriticalDamageMultiplier)

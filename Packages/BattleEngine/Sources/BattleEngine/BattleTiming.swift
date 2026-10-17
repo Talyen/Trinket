@@ -8,8 +8,4 @@ public enum BattleTiming {
     static func remainingDurationResource(turns: Int) -> LocalizedStringResource {
         L10n.duration_remaining(turns)
     }
-
-    public static func remainingDurationLabel(turns: Int) -> String {
-        turns == 1 ? "1 turn left" : "\(turns) turns left"
-    }
 }

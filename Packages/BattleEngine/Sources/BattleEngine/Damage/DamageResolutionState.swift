@@ -14,10 +14,15 @@ package struct DamageTargetStatus: Equatable {
     /// Reaction continuation must live-query Health and effects because earlier
     /// committed reactions can change them.
     init(for combatant: Combatant, in context: BattleState) {
-        isBurning = context.roster.hasAffliction(.burn, on: combatant)
-        isPoisoned = context.roster.hasAffliction(.poison, on: combatant)
-        isBleeding = context.roster.hasAffliction(.bleed, on: combatant)
         for active in context.roster.activeEffects(for: combatant) {
+            if active.isActiveAffliction {
+                switch active.keyword {
+                case .burn: isBurning = true
+                case .poison: isPoisoned = true
+                case .bleed: isBleeding = true
+                default: break
+                }
+            }
             switch active.effect.keyword {
             case .freeze where active.effect.isActionSkipPending: isFrozen = true
             case .stun where active.effect.isActionSkipPending: isStunned = true
@@ -56,15 +61,8 @@ package struct DamageResolutionState {
     var provenance: DamageProvenance?
     var elementalHit: ElementalReactionHit?
 
-    /// Damage still to be dealt after each pipeline stage. `dealt`
-    /// is the outgoing-damage snapshot used for crit/pacing math, not a second
-    /// running total.
+    /// Damage still to be dealt after each pipeline stage.
     public var remaining: Int = 0
-
-    public var dealt: Int = 0
-
-    public var statBonus: Int = 0
-    public var itemBonus: Int = 0
 
     public var healthLost: Int = 0
 

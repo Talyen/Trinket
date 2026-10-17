@@ -17,7 +17,6 @@ public enum PlayPolicy: String, Sendable, CaseIterable {
 private enum HeuristicCardScoring {
     static func preferredPlayableCard(in battle: BattleState, setupAware: Bool) -> BattleCard? {
         guard !battle.hand.cards.isEmpty else { return nil }
-        let enemyEffects = battle.roster.activeEffects(for: battle.enemy)
         var bestCard: BattleCard?
         var bestScore = Int.min
         for card in battle.hand.cards where battle.isCardPlayable(card) {
@@ -26,7 +25,6 @@ private enum HeuristicCardScoring {
             }
             let cardScore = score(
                 card, in: battle, setupAware: setupAware,
-                enemyEffects: enemyEffects,
             )
             if cardScore > bestScore {
                 bestScore = cardScore
@@ -50,7 +48,6 @@ private enum HeuristicCardScoring {
         _ card: BattleCard,
         in battle: BattleState,
         setupAware: Bool,
-        enemyEffects: [ActiveEffect],
     ) -> Int {
         let actor = battle.roster[card.owner].combatant
         let action = BattleActionContext(actor: actor, in: battle)
@@ -58,7 +55,7 @@ private enum HeuristicCardScoring {
         let branches = outcomes.branches
         let total = branches.reduce(0) { sum, branch in
             SaturatedArithmetic.saturatingAdd(sum, score(
-                branch, action: action, in: battle, setupAware: setupAware, enemyEffects: enemyEffects,
+                branch, action: action, in: battle, setupAware: setupAware,
             ))
         }
         return SaturatedArithmetic.saturatingAdd(total / max(1, branches.count), outcomes.ability.hasLeech ? 5 : 0)
@@ -69,7 +66,6 @@ private enum HeuristicCardScoring {
         action: BattleActionContext,
         in battle: BattleState,
         setupAware: Bool,
-        enemyEffects: [ActiveEffect],
     ) -> Int {
         var damage = 0
         var selfDamage = 0
@@ -90,7 +86,7 @@ private enum HeuristicCardScoring {
                     continue
                 }
                 effects = SaturatedArithmetic.saturatingAdd(
-                    effects, effectValue(targeted.effect, enemyEffects: enemyEffects, setupAware: setupAware),
+                    effects, effectValue(targeted.effect, in: battle, setupAware: setupAware),
                 )
             }
         }
@@ -103,7 +99,7 @@ private enum HeuristicCardScoring {
 
     private static func effectValue(
         _ effect: Effect,
-        enemyEffects: [ActiveEffect],
+        in battle: BattleState,
         setupAware: Bool,
     ) -> Int {
         switch effect {
@@ -118,18 +114,18 @@ private enum HeuristicCardScoring {
         case let .instantHeal(_, amount):
             amount
         case let .burn(amount):
-            dotScore(amount: amount, keyword: .burn, enemyEffects: enemyEffects, setupAware: setupAware)
+            dotScore(amount: amount, keyword: .burn, in: battle, setupAware: setupAware)
         case let .poison(amount):
-            dotScore(amount: amount, keyword: .poison, enemyEffects: enemyEffects, setupAware: setupAware)
+            dotScore(amount: amount, keyword: .poison, in: battle, setupAware: setupAware)
         case let .bleed(amount):
-            dotScore(amount: amount, keyword: .bleed, enemyEffects: enemyEffects, setupAware: setupAware)
+            dotScore(amount: amount, keyword: .bleed, in: battle, setupAware: setupAware)
         case let .resourceGain(keyword, amount):
             keyword == .mana ? SaturatedArithmetic.saturatingMul(amount, 2) : amount
         case .convertManaToBlock:
             4
         case .controlMeter:
             if setupAware {
-                enemyEffects.contains(where: \.effect.isActionSkipPending) ? 4 : 12
+                battle.roster.hasControlStatus(for: battle.enemy) ? 4 : 12
             } else {
                 2
             }
@@ -141,11 +137,11 @@ private enum HeuristicCardScoring {
     private static func dotScore(
         amount: Int,
         keyword: Keyword,
-        enemyEffects: [ActiveEffect],
+        in battle: BattleState,
         setupAware: Bool,
     ) -> Int {
         guard setupAware else { return SaturatedArithmetic.saturatingMul(amount, 2) }
-        let hasDot = enemyEffects.contains { $0.effect.keyword == keyword }
+        let hasDot = battle.roster.hasAffliction(keyword, on: battle.enemy)
         return SaturatedArithmetic.saturatingMul(amount, hasDot ? 3 : 5)
     }
 }
