@@ -14,7 +14,7 @@ Adventures fill the Library with discoveries. Completing finite research project
 teaches recipes that the player can use at Archery Range. Existing building,
 creature, item, and resource artwork carries the expansion's identity.
 
-This is an implementation-ready design proposal, not a description of shipped
+This is a detailed design and implementation proposal, not a description of shipped
 behavior. The user approved this direction and requested a detailed plan and
 screenshot-based ImageGen mockups. This task delivers those planning artifacts;
 game implementation remains intentionally unstarted. Numeric prices below are
@@ -22,6 +22,7 @@ proposed tuning inputs, not balance-verified values. Preserve this active plan f
 implementation and use `--keep-plan` when handing off the planning task.
 
 Source baseline: committed local main `5cb25b7d8`, inspected October 17, 2026.
+The full plan was refined against local main `308afa46e` on the same date.
 Recheck source paths and current main when implementing. After implementation,
 move durable behavior into canonical product/platform owners and retire this plan
 under [plan lifecycle](README.md).
@@ -53,6 +54,35 @@ Starter research must remain attainable with free content. An objective can coun
 an accessible Contract enemy without requiring completion of its Campaign region.
 Research never grants access to premium floors or characters. Existing ownership
 and inspection restrictions remain in force.
+
+## Minimal UI contract
+
+Let existing artwork identify the place and actual content identify the choice.
+Use the existing native typography, materials, spacing and controls; do not create
+a new visual system for research.
+
+- Building details keep their painting and existing title. Field Guide/Research
+  share one quiet activity group, above separate Upgrade and benefits panels.
+- Reading screens use opaque semantic backgrounds and native titles. Reserve
+  cinematic art for buildings and actual creature/item details; do not repeat
+  the Library painting on every research page.
+- Research uses one short scrolling list with In Progress and Completed sections.
+  Six projects do not need a filter, dashboard, thumbnail tiles or global counter.
+  Each row has a title, short reward label and one trailing progress/requirement.
+- A project shows its title, objectives and one tappable reward row. The row
+  opens the recipe; no second View Recipe button or permanent explanation of
+  automatic progress is needed.
+- Guide cards show discovered art and useful status. Collapse undiscovered entries
+  behind a disclosure instead of filling the screen with blank cards.
+- Recipe costs and Craft are one decision in the safe-area dock. Craft is the only
+  emphasized primary action; navigation/reward inspection stays quiet.
+- Use native press/transition/selection feedback. Avoid decorative gold outlines,
+  nested translucent panels, repeated icons, notification dots and idle animation.
+  Keep paintings prominent rather than shrinking them to fit additional chrome.
+
+These are acceptance criteria for native review, not pixel measurements from
+ImageGen. Retain native text sizes and the platform/design-system minimum hit
+areas. Simplifying appearance must not hide costs, requirements, status or navigation.
 
 ## Existing system and reuse
 
@@ -89,13 +119,14 @@ Contract victories from a regenerating offer board.
 ### Library building
 
 Keep its existing portrait, centered building title, Back/Resources controls,
-four-tier progress, upgrade flow, and XP benefit. Above Upgrade show two matching
-activity rows:
+four-tier progress, upgrade flow, and XP benefit. Above Upgrade show one restrained
+activity group with two rows, separated by an inset divider:
 
-1. **Field Guide**, native book symbol and chevron; secondary text such as
-   `12 creatures encountered` once useful.
-2. **Research**, native magnifying-glass symbol and chevron; secondary text
-   `2 of 6 complete`.
+1. **Field Guide**, small native book symbol and chevron.
+2. **Research**, small native magnifying-glass symbol and chevron.
+
+No progress subtitles or icon-background tiles on these entry rows. Upgrade and
+the static XP benefit remain separate from the activity group and each other.
 
 Tier zero exposes the activity rows with an adjacent `Build Library` requirement;
 actions remain disabled until tier one. Tracking always runs. Building Library
@@ -109,9 +140,12 @@ detail's tab-bar treatment; do not introduce an independent tab or double sheets
 
 ### Field Guide browser
 
-Use a native title, Creatures/Relics segmented control, and portrait cards matching
-Collection. Start with catalog order and stable ordering during a visit. Native
-search is unnecessary for the first cut unless review demonstrates a finding problem.
+Use a native title, one Creatures/Relics segmented control, and portrait cards
+matching Collection. Discovered entries appear first in catalog order; keep order
+stable during the visit. Unknown entries sit in a collapsed native disclosure,
+`Undiscovered (N)`, expanding the neutral question-mark treatment only on request.
+Do not add an aggregate encountered/defeated header. Native search is unnecessary
+for this catalog size unless review demonstrates a finding problem.
 
 Creatures uses the 39 existing enemies, including seven bosses. A discovered card
 uses its existing portrait, name, and one status line: `Encountered` or `Defeated`.
@@ -121,19 +155,23 @@ Research does not add a separate mastery level to every creature.
 
 Creature detail reuses the portrait and canonical traits/ability descriptions,
 then shows related project progress. Numeric enemy values must name their level;
-default to the party-scaled Standard Contract reference level, explicitly labeled
-as a reference, rather than implying all modes use that level. Existing encounter
+reuse the current Standard Contract policy and clearly label that reference,
+without adding a level picker or parallel scaling formula. Existing encounter
 inspection remains authoritative for that encounter. Combat information is never
 withheld behind research. Merely inspecting an enemy in Contracts or the guide
 does not count as encountering it.
 
-Relics has Trinkets/Uniques sections using the authored catalogs. Cards distinguish
-`Discovered - Owned` and `Discovered - Not Owned`. Historical knowledge never
-creates an InventoryItem, equips anything, or changes collectible drop eligibility.
+Relics has Trinkets/Uniques sections using the authored catalogs. Owned cards use
+the normal discovered presentation; an absent historical item adds `Not Owned`
+in its detail, avoiding two redundant status labels on every card. Historical
+knowledge never creates an InventoryItem, equips anything, or changes drop eligibility.
 Missing entries retain current locked-item inspection rules. Owned items can link
 to the actual Collection item. Previously discovered but absent relics show a
-read-only archive entry, without salvage/equip controls. Do not repurpose the
-current Collection's locked card to grant otherwise unavailable item inspection.
+read-only archive entry, without salvage/equip controls. Current rules prohibit
+salvaging or corrupting either Trinkets or Uniques. Historical ownership protects
+against legitimate future changes/imports; this expansion does not introduce a
+way to consume, sell or donate a relic. Do not repurpose Collection's locked card
+to grant otherwise unavailable item inspection.
 
 Empty state: `Discover creatures and relics on your adventures`; keep both
 sections navigable. No forced tutorial, new notification badge, or compulsory
@@ -141,24 +179,41 @@ onboarding step.
 
 ### Research browser and project detail
 
-Show In Progress/Complete filters, with projects in authored order and higher-tier
-projects inspectable. A row contains an existing subject/reward thumbnail or
-native symbol, title, objective summary, and exact reward. A Library-tier
-requirement is separate from objective progress. For example:
+Use a single list with In Progress and Completed sections, omitting empty sections.
+Keep authored order within each section, captured for the visit. A newly completed
+row updates in place; move it to Completed on the next visit rather than animating
+the player's current target away. Completed is already its status label.
 
-`Forest Field Notes` / `4 of 5 creatures defeated` / `Unlocks Poison Shortbow`.
+Rows use a title, concise reward subtitle and one trailing value, for example
+`Forest Field Notes` / `Poison Shortbow recipe` / `4/5`. If facts are complete but
+Library tier is insufficient, show `Library II` instead of the fraction; opening
+the project shows all objective checks and the requirement. VoiceOver receives
+the full objective count and requirement, not an unexplained fraction. Avoid
+decorative thumbnails, duplicated keyword icons, extra progress bars and a filter.
 
-Project detail shows existing subject art, a short purpose, explicit objective
-rows, Library-tier requirement when relevant, and a reward section. Each creature
-objective links to that guide entry; the reward links to its recipe. Show native
-checkmarks plus text, not color alone. No Accept, research timer, active project
-slot, research currency, donation cost, or manual reward-claim action.
+Project detail is a quiet reading page: native title, short purpose only where it
+adds context, explicit objective rows, and one tappable reward row. Recipe rewards
+use a small existing item thumbnail, recipe name, workshop and chevron. Archive
+records use text with a native symbol only if it improves recognition. No repeated
+Library hero, oversized reward heading, separate View Recipe button, or permanent
+`Research completes automatically` footer. Show checks plus text, not color alone.
+There is no Accept, timer, active slot, currency, donation cost or manual claim.
+
+Named creature objectives can open existing enemy inspection even before an
+actual encounter; do not send a player to a disabled unknown guide card. Reading
+this information never records an encounter. A project with a remaining target
+offers textual source guidance in detail, using the existing modes and actual
+regional pools; do not promise an available Contract or auto-start a battle.
 
 Every project tracks all relevant facts automatically. Completion requires its
 facts AND minimum Library tier. The player can finish facts before building or
 upgrading; the next eligible Library upgrade completes the project without
 repeating play. Completed projects and taught recipes are permanent within
-the save/reset epoch. No pinning feature is required in this cut.
+the save/reset epoch. All three archive milestones require only Library I; do not
+gate a collection record behind an unrelated late upgrade. Recipe studies retain
+Library I/II/III requirements. Library IV still increases its existing XP benefit;
+it does not need another activity or filler research unlock. No pinning feature
+is required in this cut.
 
 ### Archery Range
 
@@ -169,14 +224,18 @@ Library. No prerequisite Library building is imposed on standard crafting.
 
 Craft opens the same kind of native sheet as Forge. Standard Recipes uses the
 five equipment cards below. Focused Recipes uses compact rows, reusing the base
-thumbnail with keyword text. Show learned entries first, then locked entries in
-catalog order captured on opening. Locked entries remain inspectable and name
+thumbnail with keyword text, not another large grid of the same item paintings.
+Use the system section-title role. Show learned entries first, then locked entries
+in catalog order captured on opening. Locked entries remain inspectable and name
 their research project; returning from research preserves browsing position.
 
 Recipe preview uses the existing material dock and portrait/name arrangement.
 Focused previews additionally state `Guarantees a Poison affix` (or the actual
-keyword) and `Basic or Astral`. Locked previews replace Craft with their visible
-requirement and a View Research action; no button that appears to spend resources.
+keyword) and `Basic or Astral`, grouped beside the recipe name rather than scattered
+around the sheet. Recipe titles such as Poison Shortbow describe a crafting
+guarantee; they do not rename the crafted Shortbow base or create a collectible.
+Locked previews replace Craft with a visible requirement and a View Research
+action; no button that appears to spend resources.
 Unavailable material quantities use the existing insufficient-cost styling.
 Ordinary previews retain Forge's concise presentation.
 
@@ -186,11 +245,20 @@ the actual item through the current item-detail pattern. No automatic equip.
 Reopening the saved result never crafts again. Background/navigation suppresses
 late presentation but preserves any accepted item.
 
-Cross-links carry stable project/recipe IDs. Use the current Homestead stack to
-navigate to the destination building and present the requested activity; avoid
-nested modal stacks. Returning restores the originating guide/project where
-practical. If the Range is unbuilt, View Recipe shows the recipe and build
-requirement, while crafting remains disabled.
+Cross-links carry stable IDs and an origin in the current Homestead path:
+
+- Library project to recipe: show a read-only recipe preview on the current
+  stack. Its action is Open Archery Range, never a remote Craft operation.
+- Open Archery Range: navigate to that building, then present its one Craft sheet
+  with the selected recipe. The player commits crafting only there. An unbuilt
+  Range instead shows its building detail and normal Build requirement.
+- Range recipe to research: push a read-only project detail inside the existing
+  Craft sheet, even if Library is unbuilt. Explain the building/tier requirement
+  there; inspection does not complete research or bypass building requirements.
+- When a linked project/recipe is already an ancestor, pop to it. Never append a
+  second copy in a Research-to-Recipe-to-Research loop. Back restores the actual
+  origin and scroll position. Dismissal closes the sheet, not the underlying
+  building. Keep one sheet and one local navigation path; no new global router.
 
 ## Initial research catalog
 
@@ -203,9 +271,9 @@ review. This cut adds no material, Gold, XP, or permanent-stat rewards to resear
 | `forest-field-notes` | 1 | Defeat Slime, Mud Elemental, Goblin, Will-o-Wisp, The Blight Treant | `archery-shortbow-poison` |
 | `relic-curiosities` | 1 | Discover three distinct Trinket template IDs | Archive passage: Relic Curiosities |
 | `predator-anatomy` | 2 | Defeat Giant Spider, Giant Snake, Dire Wolf | `archery-longbow-bleed` |
-| `companion-chronicles` | 2 | Recruit three distinct Companions, including the starter | Archive passage: Companion Chronicles |
+| `companion-chronicles` | 1 | Recruit three distinct Companions, including the starter | Archive passage: Companion Chronicles |
 | `arms-and-armor` | 3 | Defeat Goblin, Bandit, Living Armor | `archery-crossbow-physical` |
-| `spire-records` | 4 | Clear floor 10 of any Spire | Archive passage: Spire Records |
+| `spire-records` | 1 | Clear floor 10 of any Spire | Archive passage: Spire Records |
 
 Enemy IDs come from the actual catalog: `slime`, `mud_elemental`, `goblin`,
 `will_o_wisp`, `the_blight_treant`, `giant_spider`, `giant_snake`, `dire_wolf`,
@@ -214,6 +282,14 @@ Named targets can be encountered through existing modes; Contracts ordinarily
 draws from the full ordinary/boss pools. Do not add forced target spawning or
 Contract rerolls. Explain known source regions and Contracts as possible sources
 without promising a currently available offer.
+
+Source guidance should also expose known deterministic opportunities. At this
+baseline, Serpent Hollow floors 1/2 supply Giant Spider/Giant Snake, Sanguine Court
+floor 2 supplies Dire Wolf, and Iron Vein floors 1/2/4 supply Goblin/Bandit/Living
+Armor. Derive hints from current catalog data rather than maintain a parallel
+enemy-location list. Respect permanent completion: a cleared floor is historical
+context, not a replay button. Use Voyage/Contracts/Labyrinth guidance for repeat
+opportunities without asserting that a random target is currently available.
 
 Initial archive passages:
 
@@ -224,9 +300,11 @@ Initial archive passages:
 - **Spire Records:** Each Spire turns one form of power into a different trial.
   Reaching its tenth floor earns a place in the Library's climbing records.
 
-Passages appear in completed project details; no illustrated book or separate
-reward item. Creature pages can link to multiple projects without a research
-rank. Future edits must preserve already-earned rewards and stable IDs.
+Passages appear in completed project details. These three entries are optional
+collection milestones, not an additional source of combat power or a promise of
+substantial new story content. No illustrated book or separate reward item.
+Creature pages can link to multiple projects without a research rank. Future
+edits must preserve already-earned rewards and stable IDs.
 
 ## Recipe catalog and economic rules
 
@@ -276,7 +354,10 @@ Research progress commits with the gameplay operation that earns it. A victory
 may add one compact Research Complete row after ordinary reward information;
 coalesce multiple completions and keep the normal Continue flow. Recipe unlock
 text names both recipe and workshop. No forced modal or automatic departure from
-Play. Reopening a result must not replay completion sound/haptics.
+Play. Reopening a result must not replay completion sound/haptics. Return newly
+completed IDs with the successful domain outcome and consume that transient
+presentation once. Do not reconstruct celebrations on view appearance by comparing
+all saved completions, and do not persist a separate notification inbox.
 
 Building/upgrading Library may complete older projects. Finish the existing build
 celebration first, then expose a quiet `N research projects complete` summary linked
@@ -288,6 +369,7 @@ Completion records remain visible if transient notification is interrupted.
 | No discoveries | Explain discovery through adventures; preserve guide structure |
 | Objective met, Library tier too low | Show checks and required Library tier; no recipe grant yet |
 | Project complete, Range unbuilt | Recipe learned permanently; show Build Archery Range requirement |
+| All research complete | Show Completed with archive entries and recipe links; no empty In Progress panel |
 | Missing materials | Inspectable recipe, exact insufficient costs, disabled Craft |
 | Pending save | Existing pending treatment and silent retry; no success yet |
 | Interrupted accepted craft | Item remains in Collection; no late forced navigation |
@@ -299,6 +381,22 @@ Use existing typography, semantic keyword colors, safe-area resource docks,
 native large-text wrapping, reduced-motion behavior, and explicit image labels or
 decorative semantics. Critical controls get stable accessibility IDs. No custom
 accessibility mode or device-specific layout branch.
+
+## Economic review before implementation
+
+The current [salvage rules](../../Packages/TrinketContent/Sources/TrinketContent/Equipment/ItemSalvage.swift)
+return 8 Iron + 4 Wood for a Basic Weapon-slot item and 16 Iron + 8 Wood for an
+Astral one, including Quiver. Trinkets and Uniques cannot be salvaged. The proposed
+Shortbow spends 16 Iron + 32 Wood, so even its Astral outcome loses 24 Wood; Quiver
+spends Hide/Wood and returns Iron/Wood. That is a material conversion, not a free
+Iron source. Evaluate combinations with Blacksmith and resource exchanges rather
+than requiring every craft to lose every individual resource.
+
+No proposed Range craft returns all its inputs through salvage. This establishes
+only that narrow arithmetic check, not expected loot value or good prices.
+Validate ordinary/focused Basic/Astral outcomes, Unique eligibility and conversion
+cycles during tuning. A focused guarantee is useful even when rarity is Basic;
+it does not promise higher item power.
 
 ## Artwork and mockup references
 
@@ -316,18 +414,18 @@ question marks, and navigation.
 | Actual crafted result | Existing item-art reference, including Astral/Unique mapping |
 | Costs | Existing Wood, Iron, Hide, Herbs resource illustrations |
 
-Three screenshot-guided ImageGen boards accompany this plan: Library/guide,
+Three refined screenshot-guided ImageGen boards accompany this plan: Library/guide,
 research list/detail, and Archery browser/preview. They are proposed UI, not
 implemented features or pixel-accurate SwiftUI specifications. Written rules take
 precedence when labels/spacing differ. Illustrative counts/prices show example
 states, not real save evidence or validated balance. Reference provenance, exact
 prompts and visual review are in [mockup notes](LibraryResearchArchery/Mockups.md).
 
-![Library and Field Guide proposal](LibraryResearchArchery/library-guide.png)
+![Library and Field Guide proposal](LibraryResearchArchery/library-guide-v2.png)
 
-![Research browser and project detail proposal](LibraryResearchArchery/research-projects.png)
+![Research browser and project detail proposal](LibraryResearchArchery/research-projects-v2.png)
 
-![Archery crafting proposal](LibraryResearchArchery/archery-crafting.png)
+![Archery crafting proposal](LibraryResearchArchery/archery-crafting-v2.png)
 
 ## Ownership and proposed data contract
 
@@ -374,6 +472,10 @@ so catalog retirement does not revoke rewards. Keep unknown stable IDs inert and
 round-trippable; grant no unknown effects. Enforce defeated as a subset of
 encountered on readable state.
 
+Count recognized Trinket template IDs, not raw set size: unknown or Unique IDs
+cannot satisfy the three-Trinket objective. Count the starter Companion's real
+unlocked ID once, not both starter-selection state and roster membership.
+
 Definitions are a small authored Swift catalog beside existing Homestead content;
 avoid a new manifest/generator DSL for six projects. Recipe models can be shared
 between Blacksmith and Range because both are confirmed consumers. Preserve
@@ -406,9 +508,10 @@ Blacksmith IDs and behavior; review consumers before deleting old APIs.
    insertion/discovery together. Use the existing economic receipt path; neither
    UI nor Content writes journals or supplies trusted prices.
 
-Extend common durable commit reconciliation only as needed for discovery; do not
-copy award handlers into the guide. Transient completion presentation derives
-from committed before/after IDs and never performs a second reward transaction.
+Keep fact collection at owning transactions with one pure evaluator. Avoid
+scanning/re-evaluating the entire catalog on unrelated wallet/selection changes,
+or installing feature observers in the save-store hub. Transient presentation
+derives from committed before/after IDs and never performs a second reward transaction.
 Generation changes invalidate retained commands, pending craft presentations,
 and cross-links to obsolete state.
 
@@ -421,13 +524,21 @@ backfill, unsupported/unreadable means preserve and isolate, not silently reset.
 Standard Range crafting can work without readable discovery; focused eligibility
 requires trusted learned records.
 
-At the inspected baseline, PlayerSave wire version is 18 and SwiftData uses a
-versioned schema/migration plan. Inspect current readers/writers before selecting
-an additive codec or a version bump. An unconditional wire-version increment
-would currently reject old recovery/cloud snapshots. Establish an explicit
-compatible decoder/migration and freeze prior model schemas as needed before
-adding the graph field. Modifying the current root class alone is not sufficient
-evidence of migration safety for distributed TestFlight saves.
+At this baseline, PlayerSave wire version is 18 and SwiftData has its own distinct
+schema/migration plan. Adding an optional JSON key alone is insufficient: an older
+writer could read the same known version and omit new history on its next write.
+Advance the wire format with an explicit legacy-reader migration; if the baseline
+is still 18, the proposal is 18-to-19. New readers upgrade complete legacy
+snapshots, including recovery files and cloud ancestor/outbox snapshots/deltas.
+Older readers reject newer formats safely and retain their progress instead of
+writing a stripped version back. A legacy same-epoch import with no discovery
+data cannot erase known discovery sets on a current reader.
+
+Freeze prior SwiftData models as needed and test the additive graph migration
+separately. Do not confuse payload, wire and SwiftData versions, or simply change
+an equality constant that currently rejects old recovery snapshots. Migration
+must cover distributed TestFlight saves. Future payload bytes remain preserved
+and inert when unsupported.
 
 Trace the field through PlayerSave, PlayerSaveSection domain comparison, root
 mapping/write validation/repair, local recovery snapshots, CloudSaveSnapshot
@@ -440,17 +551,22 @@ Historical backfill is repeatable and unions provable facts:
 
 - Current inventory establishes retained relic discoveries.
 - Unlocked Companions and Spire floors establish their project facts.
-- Completed fixed-enemy Campaign stages establish those enemies' defeats.
-- Cleared Spire floors and retained Labyrinth/Voyage nodes establish defeats only
-  where the resolved enemy identity is retained and unambiguous.
+- Fixed-enemy Campaign stages and Spire floors can establish defeats only through
+  a reviewed, frozen legacy-ID mapping valid for supported save versions. Current
+  catalog contents alone are not evidence when an enemy may have changed; skip
+  ambiguous credits.
+- Retained cleared Labyrinth/Voyage nodes establish defeats where the saved
+  resolved enemy ID is unambiguous. Ignore current/random previews.
 - A random Campaign stage with no saved target, replaced Contract offer,
-  discarded route, or absent salvaged item does not prove a specific discovery.
+  discarded route, or absent item does not prove a specific discovery.
 
 Do not invent lifetime totals or award every enemy in a completed region. Show
 no historical celebration queue. Run backfill for each payload/catalog migration
 version, safely resumable inside the durable commit boundary; later awards are
-event-based. A content change cannot rewrite which enemy an old random stage
-must have contained.
+event-based. Store a backfill version in the payload envelope; an empty discovery
+set must not mean uninitialized, since empty is valid for a fresh player. A
+catalog change cannot rewrite historical enemies. Named targets remain available
+through repeatable modes when conservative backfill skips a credit.
 
 Within the same cloud account/reset epoch, readable history/completion/recipe
 sets merge by union; evaluate projects after combined evidence merges. Never
@@ -472,7 +588,8 @@ expansion or live Apple ID requirement is introduced.
   preserving Blacksmith.
 - [ ] **2. Durable discoveries:** payload/version migration, observed slice,
   backfill, storage/codec/delta/merge/reset paths, immutable projections, and
-  recovery/reload/merge proofs before UI relies on them.
+  recovery/reload/merge/mixed-version proofs before UI relies on them. Freeze
+  proven legacy encounter mappings and use a separate backfill marker.
 - [ ] **3. Gameplay facts:** extend launched battle claim context, record actual
   encounters and accepted victories across all five modes, cover item acquisition
   paths, and evaluate after recruitment, Spire progress and Library upgrades.
@@ -481,7 +598,8 @@ expansion or live Apple ID requirement is introduced.
   Verify exact identity, costs, and no profitable craft-salvage exchange loop.
 - [ ] **5. UI:** Library activities, guide, research, Range Craft, preview/reveal
   and bounded cross-navigation. Reuse cards, artwork pins, feedback, accessibility
-  IDs and Collection management.
+  IDs and Collection management. Check the Minimal UI contract, collapsed unknown
+  entries, stable list ordering and return-to-origin navigation before adding chrome.
 - [ ] **6. Localization/native review:** run the repository translation plan,
   translate all configured languages, perform separate AI review, apply reviewed
   responses, and rerun check. Exercise supported compact/expanded/rotated windows,
@@ -504,14 +622,20 @@ Do not write tests that merely mirror these six catalog rows.
 |---|---|
 | Automatic completion | One fact completes eligible projects once; low Library tier retains progress; upgrade finishes them without repeated play |
 | Actual enemy identity | Random battle/replaced offer/party change cannot misattribute victory; prepared/failed launches do not count |
-| Relic history | Acquire, remove/salvage, reload retains history; unclaimed/rejected offers do not count; Voyage bonus item counts |
-| Persistence | Old save opens; backfill idempotent; payload survives reload; failed write rolls back facts/unlocks; accepted recovery survives launch |
+| Relic history | Accepted acquisition/reload retains IDs; unclaimed/rejected offers do not count; Voyage bonus counts; relic salvage/corruption remain prohibited |
+| Persistence | Legacy snapshot/delta/recovery migrates; backfill idempotent with proven IDs; empty differs from uninitialized; failed write rolls back facts/unlocks |
+| Mixed versions | Old writer rejects new format without overwriting progress; legacy import cannot erase discoveries; unsupported payload bytes survive |
 | Cloud/reset | Same-epoch union and combined objectives; duplicate completion harmless; stale epoch/callback cannot resurrect history |
 | Focused recipe | Exact base and keyword for Basic/Astral, normal affix slots, no collectible outcome or alternate-base fallback |
 | Craft lifetime | Locked/unbuilt/insufficient/stale spends nothing; retry retains exact item; reopen/background/reset cannot charge twice or grant late |
 | Forge regression | Existing 11 recipes, IDs, costs, quality, selected-base Unique and reveal unchanged |
-| Native flow | Library to project to locked recipe and back; completion to learned recipe to craft to actual Collection item; empty/pending/unbuilt states |
+| Native flow | Project/recipe links return to origin without stack growth or nested sheets; only Range commits crafting; named unknown targets remain inspectable |
+| Minimal presentation | No repeated counters/heroes/filters; unknown entries collapsed; all-complete list readable; cost dock and native hit areas remain usable |
 | Artwork | Existing manifest entries only; mockups excluded from runtime; no whole-guide full-resolution warmup |
+
+History surviving an absent relic may use an explicit storage/import fixture, not
+a fictional player salvage action. Reuse current salvage eligibility coverage.
+Verify interrupted feedback and reopening never replay a historical celebration.
 
 Rendered review must compare shipping SwiftUI with mockup intent, including text
 fit, actual portraits, native bars, safe-area Craft dock, insufficient materials,
@@ -527,9 +651,9 @@ No elapsed-time promise is established by these prices or mockups.
 
 The defaults above resolve the initial cut: two guide sections, six projects,
 three focused recipes, no consumables/research economy, existing Homestead free
-access, automatic progress/completion, and tier-based research groups. Outstanding
-work is price/pacing evidence and archive copy/localization review during
-implementation, not a blocker to finishing these planning artifacts.
+access, automatic progress/completion, tiered recipe studies and tier-one archive
+milestones. Outstanding work is price/pacing evidence and archive copy/localization
+review during implementation, not a blocker to finishing these planning artifacts.
 
 Planning validation: review linked owners, verify art identities against the
 manifest, inspect boards and record limitations, run scoped documentation and

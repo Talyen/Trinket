@@ -9,18 +9,23 @@ The [design and implementation plan](../LibraryResearchArchery.md) is the behavi
 and scope specification. Exact generation and correction prompts are preserved in
 [Prompts.md](Prompts.md). No CLI/API fallback or new art-generation pipeline was used.
 
-## Final boards
+## Current refined boards
 
 | Board | Depicted flow | Selected generated output |
 |---|---|---|
-| [Library / guide](library-guide.png) | Building activity rows and discovered/unknown creature cards | `exec-7e1cdd2a-360a-4485-b452-43f03fc47db2.png` |
-| [Research](research-projects.png) | Project browser, automatic progress, objective checks and recipe reward | `exec-23f0862b-bad7-4fae-b40f-8fd5d782ac10.png` |
-| [Archery](archery-crafting.png) | Existing building backdrop, craft browser and focused recipe cost preview | `exec-be63b7b2-c26c-4dde-bf3f-caabc947d783.png` |
+| [Library / guide](library-guide-v2.png) | Shared activity group, separate benefits, discovered cards and collapsed unknown entries | `exec-5e825843-0d53-4071-bebf-3dfa0172160b.png` |
+| [Research](research-projects-v2.png) | Plain native list, objective checks and one tappable recipe reward row | `exec-1660471c-fa29-48e7-b445-630dd3b7ca83.png` |
+| [Archery](archery-crafting-v2.png) | Restrained browser rows, grouped guarantee and one prominent Craft action | `exec-c26558fb-5d28-416a-98cb-622fbb7ded35.png` |
 
 All selected outputs are copied unchanged into this directory. Original generated
 outputs remain in the task's Codex generated-images directory. Rejected initial
 variants need not be kept in the repository. The boards show independent example
 states rather than one synchronized player save.
+
+The previous [Library](library-guide.png), [Research](research-projects.png), and
+[Archery](archery-crafting.png) boards remain as exact editing inputs and preserve
+the earlier chat's links. They are superseded for current layout intent; the
+implementation plan embeds only v2. No original asset was overwritten.
 
 ## Actual screenshot references
 
@@ -74,27 +79,33 @@ Library, Slime, Goblin. Research uses Forge, Library, Shortbow, Slime, Homestead
 Archery uses Forge, Range, Shortbow, Longbow, Quiver. Research correction uses its
 initial generated board; Archery correction uses its initial board plus Crossbow.
 
+The refinement pass edits those selected boards with the actual screenshots again:
+Library and Archery each use their prior board plus Forge; Research uses its prior
+board plus Collection. All new prompts are preserved in Prompts.md. No new game
+painting or asset-library source was introduced.
+
 ## Visual review and implementation corrections
 
-Inspected all three initial boards and both corrected outputs. The selected
-boards communicate recognizable existing buildings/creatures/items, readable
-research objectives, the recipe reward, and the existing Forge-like cost dock.
-The research correction removes misleading Slime/Shortbow subject thumbnails
-from unrelated projects, replacing them with native symbols. The Archery
-correction makes Crossbow look available and uses its existing artwork.
+Inspected the initial/corrected boards and all three refined outputs. V2 removes
+the building-entry counters, repeated Library heroes, research filters, decorative
+project thumbnails, redundant View Recipe button and permanent explanatory text.
+The Library benefit is now separate from Upgrade; unknown guide entries are a
+single disclosure. Research is a plain native list and recipe rewards are rows.
+Craft's guarantee/rarity copy is grouped with the item, and only Craft is emphasized.
 
 Known concept-only deviations to resolve in shipping SwiftUI:
 
-- Field Guide's generated serif heading must use the existing native browser
-  typography. Building/cinematic art titles retain their established role.
-- Library's XP benefit should be its own existing-style benefit panel, separate
-  from Upgrade; the image visually groups them more closely.
 - Some list/grid card proportions and sheet detents are compressed for the board.
   Actual views must follow the current Collection/Forge components and safe areas.
 - Archery's browser is an illustrative excerpt. Shipping contains all five standard
   recipes, including Recurve Bow, in the written catalog order before Focused
-  Recipes. Do not implement the image's `More recipes below` annotation as a
-  special control or omit the fifth recipe.
+  Recipes. Do not omit the fifth recipe or copy the sample's shortened order.
+- Preserve the actual Resources toolbar action on the building and the native
+  in-sheet Back control on recipe preview. ImageGen omits some of these in the
+  refined Archery board; the underlying building Back is not a substitute for
+  returning from a recipe to the Craft browser.
+- Completed research rows remain inspectable and expose a native navigation
+  affordance; a completion check must not imply that the row stopped working.
 - Research tier requirements, locked recipe requirements, empty/pending states,
   completed buildings and localization are specified in the plan, not exhaustively
   pictured here. Sample counts do not assert an actual game's progress.

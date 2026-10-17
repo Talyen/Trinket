@@ -1,10 +1,47 @@
 # ImageGen prompts
 
+## Minimal UI refinement
+
+The following built-in ImageGen edits produce the current v2 boards. Each uses
+its matching original board as image 1. Library/Archery use the preserved actual
+Forge screenshot as image 2; Research uses the actual Collection screenshot.
+These refinements supersede the initial layout prompts for current design intent.
+
+### Library and guide refinement
+
+```text
+Use case: ui-mockup. Refine the supplied TWO-SCREEN Trinket Library/Field Guide proposal (image1) for a minimal, polished, elegant native iOS interface. Image2 is the actual Forge screenshot, the authority for real game controls and surfaces. Keep existing Library, Slime and Goblin paintings recognizable and unchanged. Do not add artwork or change subjects. Two complete upright screens side by side on a near-black board, small external label "PROPOSED UI - EXISTING ART".
+LEFT: Preserve existing Library portrait background and centered serif "Library". Native back/resource controls remain. Replace separate heavy Field Guide/Research cards with ONE restrained shared dark material group containing two simple full-width rows separated by one subtle inset divider. Each row: small native book or magnifier symbol, label "Field Guide" or "Research", trailing chevron. NO count subtitle, icon tile backgrounds, thick gold border or notification dot. Below group keep a separate Upgrade control with the existing four tier segments, first filled. Below Upgrade make a SEPARATE modest static benefit panel "Gain 5% more Experience"; do not nest this inside Upgrade. Let the warm existing painting remain prominent. No tab bar.
+RIGHT: Near-black utility browser. Native gold back and a restrained SYSTEM SANS-SERIF title "Field Guide", not a giant serif display. Keep the single native Creatures/Relics segmented control. REMOVE aggregate "encountered/defeated" count line. Show the existing Slime and Goblin portraits in a two-column 3:4 grid, names below and small quiet "Defeated" status. REPLACE the entire second row of huge question-mark portrait placeholders with ONE simple collapsed native disclosure row: chevron then "Undiscovered (37)". Leave breathing room below; no filler content, badge, rings or extra panel. Native safe areas.
+Polish principles: familiar native control sizes, body text comfortably readable, fine separators, soft shared material only over painting, mostly opaque dark content for guide, gold reserved for navigation/action accents, no decorative outlines around every surface, no custom ornamental chrome. Keep all supplied artwork existing, no new illustration, books, enemies, currencies, glows or scenery.
+```
+
+### Research refinement
+
+```text
+Use case: ui-mockup. Refine supplied TWO-SCREEN Trinket Research UI board (image1) into minimal, polished, elegant native iOS reading screens. Image2 actual game Collection screenshot is the authority for dark content and system typography. Keep exact existing Shortbow painting in the right reward thumbnail, no invented art. Small exterior label "PROPOSED UI - EXISTING ART". Two full portrait screens, no device mockup hardware.
+LEFT RESEARCH LIST: Remove Library painting header entirely, remove permanent explanatory subtitle and segmented filter, remove large thumbnail/icon tiles. Near-black background with native back and system title "Research". Single scrolling list, two modest text sections "In Progress" and "Completed". In Progress has three airy rows with subtle separators: "Forest Field Notes", secondary "Poison Shortbow recipe", quiet trailing "4/5" and chevron; "Predator Anatomy", secondary "Bleed Longbow recipe", trailing "2/3"; "Relic Curiosities", secondary "Archive record", trailing "1/3". Completed section shows one row "Companion Chronicles", secondary "Archive record", small native checkmark. Use system sans-serif throughout. No progress bars, global count, filter chips, parchment, symbols repeated beside reward text, acceptance or claim buttons.
+RIGHT PROJECT DETAIL: Remove large Library painting header and its wasted height. Native back, near-black body, fully readable title "Forest Field Notes" in native system sans-serif, one short secondary line "Document the creatures inhabiting the Forest". Five simple objective rows, checks on Slime, Mud Elemental, Goblin, The Blight Treant; open circle on Will-o-Wisp. Below one fine separator and a modest "Reward" caption, then ONE tappable reward row with existing Shortbow thumbnail (small, around 72pt wide), name "Poison Shortbow", secondary "Archery Range", trailing native chevron. Remove separate big outlined View Recipe button, Recipe Reward heading and explanatory footer "Research completes automatically". Do not add another button. The reward row itself opens the recipe.
+Hierarchy is title -> objectives -> reward. Keep generous but efficient spacing and subtle semantic secondary labels. Gold only for native back/accent checks if needed, no gold borders around sections. No extra cards, new images, invented stats, timers, currencies, glows, status HUD, desktop controls or gameplay controls. Complete readable screens, plain dark safe areas.
+```
+
+### Archery refinement
+
+```text
+Use case: ui-mockup. Refine supplied TWO-SCREEN Trinket Archery crafting board (image1) into a minimal, elegant native iOS design. Image2 actual Forge screenshot is the authority for native sheet and resource dock. Keep the existing Archery Range painting, existing Shortbow/Longbow/Quiver/Crossbow art and the right recipe costs unchanged. No new artwork. Two complete upright screens side by side, near-black exterior canvas with small "PROPOSED UI - EXISTING ART".
+LEFT: Keep existing Archery Range backdrop and building title. Dark native Craft sheet expanded with grabber. Use system sans-serif for all utility headings. Show modest "Standard Recipes" heading and portrait card grid for existing Shortbow, Longbow, Quiver, Crossbow, using the same paintings. Clearly this is a SCROLLED RECIPE BROWSER EXCERPT, not a complete inventory. REMOVE "More recipes below" text and decorative down arrow. Under visible cards, show quiet native "Focused Recipes" text heading and ONE simple compact row: small existing Shortbow thumbnail, name "Poison Shortbow", quiet secondary "Poison affix guaranteed", trailing chevron. Remove repeated "Learned from Forest Field Notes" sentence from browser. No outlines or background card around every recipe row, no icon tile behind chevron.
+RIGHT: Preserve existing Shortbow preview and building behind the sheet. Native top bar "Craft" with only one Back control. Moderate-size central portrait, name "Poison Shortbow", secondary "Poison affix guaranteed" in existing semantic green; quiet "Basic or Astral" adjacent in the same description group, not floating beneath the bottom button. Keep Wood48, Iron24, Herbs8 row using existing resource illustrations. Craft is the ONE prominent primary action, full width, existing gold-tinted native style, fixed in bottom safe-area dock. Do not add redundant reward labels, extra confirmation step, counters, rarity odds, huge headings or callout cards.
+Maintain original painting identities. No new equipment/scenery/currencies/art icons. Dark semantic sheet, calm typography, fine separators where useful, adequate finger targets, no ornamental gold frames or decorative effects. If content needs to scroll it must not obscure costs or Craft. This is a concept reference using existing game art, not an implemented screenshot.
+```
+
+
+## Initial generation
+
 Built-in ImageGen was used, with local screenshot and existing-art references.
 Prompts below are exact. Corrections edit only the earlier generated board.
 Generated raster pixels are illustrative; runtime must reuse the existing assets.
 
-## Library and guide
+### Library and guide
 
 ```text
 Use case: ui-mockup. Create one high fidelity design board with TWO complete upright iPhone app screens side by side on a plain near-black canvas. Small board label outside screens: "PROPOSED UI - EXISTING ART". No phone hardware, no perspective.
@@ -14,7 +51,7 @@ RIGHT: Field Guide destination, near-black background, native gold back top-left
 Constraints: Reuse the exact supplied building and character artwork, preserve recognizable appearances and compositions. New interface arrangement only. No invented paintings, illustrated books, parchment UI, fantasy filigree, new HUD currency, neon glows, art badges, progress bars over portraits, decorative confetti or simulator overlays. Match modern native iOS and game screenshots. Legible exact labels, complete upright screens uncropped.
 ```
 
-## Research
+### Research
 
 ```text
 Use case: ui-mockup. High fidelity concept board, TWO complete portrait iPhone screens side by side, near-black exterior canvas, small external label "PROPOSED UI - EXISTING ART". No device hardware or perspective.
@@ -24,7 +61,7 @@ RIGHT SCREEN: Project detail. Native gold back. Upper roughly 30% uses exact sup
 Constraints: Existing artwork only. Keep Shortbow recognizable as same dark wood bow and arrow on angular beige-grey background. Do not create any other illustration. Native SF-style checkmarks, paw and sparkles allowed. No parchment, ornamental borders, invented items, vials, lab art, floating HUD, red notification badges or new stat boosts. Large readable text, full screens with safe areas. Proposed UI should feel like native Trinket from screenshots, not a web dashboard.
 ```
 
-## Archery
+### Archery
 
 ```text
 Use case: ui-mockup. High fidelity interface proposal board with TWO complete portrait iPhone screens side by side on near-black canvas, external small caption "PROPOSED UI - EXISTING ART". No phone hardware or perspective.
@@ -34,13 +71,13 @@ RIGHT: Focused recipe preview matching actual Forge screenshot's sheet. Archery 
 Constraints: Preserve item painting identities and actual resource icon appearances; only existing supplied game art and native interface symbols. No new architecture, weapon designs, fancy blueprint paper, laboratory or extra currency. No rarity odds meter, equipment selection wizard, quantity stepper, upgrade segments inside sheet or tabs. Keep sheet readable, safe areas correct, same dark iOS feel as source Forge.
 ```
 
-## Research correction
+### Research correction
 
 ```text
 Edit the supplied proposed Trinket UI board (image1), keeping the two-screen arrangement, existing Library paintings, text content, objective checks, right-screen Shortbow reward and buttons unchanged. Correct ONLY two misleading project-list thumbnails on the LEFT screen: "Predator Anatomy" must use a plain native pawprint symbol on a neutral dark tile, not the Slime painting; "Relic Curiosities" must use a plain native sparkles symbol on a neutral dark tile, not the Shortbow painting. Preserve the first row's Shortbow painting. Also use native sans-serif system typography for the LEFT screen project row titles and list title, while keeping the RIGHT cinematic Forest Field Notes title serif. No new illustrations. Preserve all readable exact text, especially 4 of 5, 2 of 3, 1 of 3, View Recipe, and the unchecked Will-o-Wisp. Maintain calm iOS materials and spacing. Do not add art, equipment, currencies, cards, visual effects, borders or UI controls. This is a proposed UI reference made exclusively with existing game art and native symbols.
 ```
 
-## Archery correction
+### Archery correction
 
 ```text
 Edit the existing proposed Trinket Archery UI board (image1) with ONE focused correction. Preserve the entire RIGHT recipe-preview screen, the background Archery Range paintings on both screens, the first-row Shortbow and Longbow art and labels, and all resource costs and Craft button. On the LEFT recipe browser, replace the dark placeholder card labeled "Crossbow" with the actual existing Crossbow artwork supplied as image2, crop it to the same dimensions as adjacent Quiver card. Crossbow is an available standard recipe, so it must not look locked or disabled. Keep label "Crossbow" white like Quiver. Do not invent a weapon or alter Crossbow's existing appearance. After the Quiver/Crossbow row add a quiet native text line "More recipes below" to indicate the scrollable Recurve Bow recipe is offscreen; preserve the existing Focused Recipes row underneath if room. No change to locked/unlocked status elsewhere. Use native sans-serif for "Standard Recipes" and "Focused Recipes" headings. Do not add new art, gear, timers, currencies or illustrations. Keep external PROPOSED UI caption. This is a design mockup referencing existing art, not an implemented game screenshot.
