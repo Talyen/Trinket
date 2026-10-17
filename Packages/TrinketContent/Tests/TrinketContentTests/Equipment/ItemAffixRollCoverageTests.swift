@@ -173,9 +173,11 @@ struct ItemAffixRollCoverageTests {
         #expect(max.description == "Gain 2 Block and Purge 2 buffs.")
     }
 
-    @Test func `sundering charm stays frozen to match its wording`() throws {
+    @Test func `Shatterguard rolls bonus damage while preserving its fixed Block multiplier`() throws {
         let sundering = try #require(GameContent.itemAffixDefinition(matching: "sundering_charm"))
-        #expect(!sundering.basic.hasRollableMagnitudes)
-        #expect(sundering.basic.rolledMax() == sundering.basic)
+        let maximum = sundering.basic.rolledMax()
+        #expect(maximum.modifiers == [.damageDealt(.physical, 2)])
+        #expect(maximum.triggers.sunderingBlockMultiplier == 1)
+        #expect(maximum.description == "Increase Physical damage by 2. Physical and Stun damage remove twice as much Block")
     }
 }

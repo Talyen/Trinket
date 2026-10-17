@@ -43,7 +43,7 @@ struct CombatReactionFeedbackTests {
         lane.limitCornerItems()
         #expect(lane.evictedItemIDs == [1])
         #expect(lane.activeItems.allSatisfy { $0.expiresAt == start.addingTimeInterval(1.6) })
-        lane.resetPresentation()
+        lane.clear()
         #expect(lane.activeItems.isEmpty)
     }
 
