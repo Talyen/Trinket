@@ -98,7 +98,8 @@ struct ThemedGearGeneratorTests {
         #expect(build.loadout.itemIDsBySlot.isEmpty)
     }
 
-    @Test func `companion trinket slots use distinct bases`() throws {
+    @Test(arguments: [(Rarity.basic, 1), (.astral, 3)])
+    func `companion trinket slots use distinct authored items`(tier: (Rarity, Int)) throws {
         let boneCharm = try #require(GameContent.itemBaseType(matching: "bone_charm"))
         let collar = try #require(GameContent.itemBaseType(matching: "companions_collar"))
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
@@ -107,8 +108,8 @@ struct ThemedGearGeneratorTests {
             var rng = SeededRandomNumberGenerator(seed: 1)
             let build = ThemedGearGenerator(baseTypes: bases, includeTrinkets: true).generate(
                 for: bear,
-                rarity: .basic,
-                fixedAffixCount: 1,
+                rarity: tier.0,
+                fixedAffixCount: tier.1,
                 idPrefix: "trinkets",
                 keywordBias: [.health],
                 using: &rng,
@@ -117,7 +118,22 @@ struct ThemedGearGeneratorTests {
             #expect(build.inventory.count == bases.count)
             #expect(Set(build.inventory.map(\.baseType.id)).count == bases.count)
             #expect(Set(build.inventory.map(\.id)) == Set(build.loadout.itemIDsBySlot.values))
+            for item in build.inventory {
+                #expect(item == GameContent.trinketItems.first { $0.baseType.id == item.baseType.id })
+            }
         }
+    }
+
+    @Test(arguments: [Set([Keyword.poison]), Set([.poison, .holy])])
+    func `trinket alignment uses its own signature`(bias: Set<Keyword>) throws {
+        let censer = try #require(GameContent.itemBaseType(matching: "brass_censer"))
+        let bear = try #require(GameContent.companions.first { $0.id == "bear" })
+        var rng = SeededRandomNumberGenerator(seed: 1)
+        let build = ThemedGearGenerator(baseTypes: [censer], includeTrinkets: true).generateSinglePiece(
+            for: bear, rarity: .basic, fixedAffixCount: 1, idPrefix: "aligned-trinket",
+            keywordBias: bias, requireBuildAlignment: true, using: &rng,
+        )
+        #expect(build.inventory == (bias.contains(.holy) ? GameContent.trinketItems.filter { $0.baseType.id == censer.id } : []))
     }
 
     @Test func `require build alignment rejects mismatched damage affixes`() throws {

@@ -106,7 +106,10 @@ their table; Boss-only and regular-enemy tables each use their own peer win rate
 
 Use `--mode all` to include identity, card, talent, affix, and progression checks;
 identity alone does not test every combination. Early/middle/late are fixed
-loadout profiles; early affix contrasts use one starter item per party member. A lack of flags
+loadout profiles; early affix contrasts use one starter item per party member.
+Themed gear uses authored Trinkets, with their own signature alignment, rather than
+rolling ordinary gear affixes onto Trinket bases. This changes seeded builds from
+older sweeps; compare reports produced by the same gear-generation revision. A lack of flags
 with sparse samples or omitted modes does not establish balance. Increase
 `--samples`, confirm across seeds, and use `--policy-compare` to check whether an
 identity finding depends on autoplay choices. Durations are battle rounds, not

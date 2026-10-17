@@ -80,7 +80,7 @@ public struct ThemedGearGenerator: Sendable {
                 requireBuildAlignment: requireBuildAlignment, loadout: loadout, inventory: inventory,
                 using: &randomNumberGenerator,
             ) else { continue }
-            let item = itemGenerator.generate(
+            let item = GameContent.trinketItems.first { $0.baseType == baseType } ?? itemGenerator.generate(
                 id: id, baseType: baseType, rarity: rarity, fixedAffixCount: fixedAffixCount,
                 keywordBias: resolvedBias, requireBuildAlignment: requireBuildAlignment,
                 using: &randomNumberGenerator,
@@ -103,21 +103,32 @@ public struct ThemedGearGenerator: Sendable {
         inventory: [InventoryItem],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemBaseType? {
-        let candidates = baseTypes.filter { baseType in
+        var candidates: [ItemBaseType] = []
+        var maximumAffinity = -1
+        for baseType in baseTypes {
             guard loadout.canEquip(baseType: baseType, candidateID: itemID, in: slot, inventory: inventory) else {
-                return false
+                continue
             }
-            guard requireBuildAlignment else { return true }
-            return itemGenerator.affixDefinitions.contains { definition in
-                definition.isEligible(for: baseType)
-                    && definition.isAligned(withBuildKeywords: keywordBias)
+            if baseType.slot == .trinket {
+                guard GameContent.trinketItems.contains(where: { $0.baseType == baseType }) else { continue }
+                if requireBuildAlignment {
+                    guard GameContent.itemAffixDefinition(matching: baseType.id)?
+                        .isAligned(withBuildKeywords: keywordBias) == true else { continue }
+                }
+            } else if requireBuildAlignment {
+                guard itemGenerator.affixDefinitions.contains(where: {
+                    $0.weight > 0 && $0.isEligible(for: baseType) && $0.isAligned(withBuildKeywords: keywordBias)
+                }) else { continue }
+            }
+            let affinity = baseType.keywordAffinities.count(where: keywordBias.contains)
+            if affinity > maximumAffinity {
+                maximumAffinity = affinity
+                candidates.removeAll(keepingCapacity: true)
+            }
+            if affinity == maximumAffinity {
+                candidates.append(baseType)
             }
         }
-        guard !candidates.isEmpty else { return nil }
-        return ItemBasePolicy.maxAffinityBase(
-            from: candidates,
-            keywordBias: keywordBias,
-            using: &randomNumberGenerator,
-        )
+        return candidates.randomElement(using: &randomNumberGenerator)
     }
 }

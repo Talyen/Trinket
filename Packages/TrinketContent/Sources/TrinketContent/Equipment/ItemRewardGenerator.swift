@@ -99,40 +99,29 @@ public enum ItemRewardGenerator {
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemBaseType {
         if let keyword = requiredKeyword {
-            let candidates = baseTypes.filter { base in
+            func supportsKeyword(_ base: ItemBaseType) -> Bool {
                 base.slot != .trinket && base.keywordAffinities.contains(keyword)
                     && itemGenerator.affixDefinitions.contains {
                         $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: base)
                     }
             }
-            if let selected = candidates.randomElement(using: &randomNumberGenerator) {
+            if let selected = baseTypes.filter(supportsKeyword).randomElement(using: &randomNumberGenerator) {
                 return selected
             }
-            if let fallback = fallbackBaseType,
-               fallback.slot != .trinket,
-               fallback.keywordAffinities.contains(keyword),
-               itemGenerator.affixDefinitions.contains(where: {
-                   $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: fallback)
-               }) {
+            if let fallback = fallbackBaseType, supportsKeyword(fallback) {
                 return fallback
             }
-            let globalCandidates = GameContent.itemBaseTypes.filter { base in
-                base.slot != .trinket && base.keywordAffinities.contains(keyword)
-                    && itemGenerator.affixDefinitions.contains {
-                        $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: base)
-                    }
-            }
-            if let selected = globalCandidates.randomElement(using: &randomNumberGenerator) {
+            if let selected = GameContent.itemBaseTypes.filter(supportsKeyword).randomElement(using: &randomNumberGenerator) {
                 return selected
             }
-            return ItemBasePolicy.uniformFallbackBase(
-                from: baseTypes, keywordBias: keywordBias, fallback: fallbackBaseType,
-                using: &randomNumberGenerator,
-            )
+            preconditionFailure("Required keyword must have an eligible base and affix")
         }
-        return ItemBasePolicy.uniformFallbackBase(
-            from: baseTypes, keywordBias: keywordBias, fallback: fallbackBaseType,
-            using: &randomNumberGenerator,
-        )
+        let normalBases = fallbackBaseType.map { [$0] } ?? baseTypes.filter { $0.slot != .trinket }
+        precondition(!normalBases.isEmpty, "Item rewards require at least one non-Trinket base type.")
+        let biasedBases = keywordBias.isEmpty
+            ? normalBases
+            : normalBases.filter { !$0.keywordAffinities.isDisjoint(with: keywordBias) }
+        let pool = biasedBases.isEmpty ? normalBases : biasedBases
+        return pool.randomElement(using: &randomNumberGenerator) ?? pool[0]
     }
 }

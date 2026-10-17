@@ -72,6 +72,8 @@ compilation, content tests, and idempotence proof to CI under
 Themed gear builds retain only equipped items. Candidate bases must satisfy the
 same weapon-pair and duplicate-Trinket rules as `EquipmentLoadout`, so simulation
 inventory and loadout metadata describe the same gear.
+Trinkets use their authored singleton powers and rarity, independent of the
+ordinary gear tier's affix count. Build alignment checks a Trinket's own signature.
 
 ## Combat trigger value semantics
 
