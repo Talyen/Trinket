@@ -34,14 +34,10 @@ struct EffectApplication {
             let didApply = context.roster.activeEffects(for: target).count(where: \.effect.isBleed) > bleedsBefore
             return EffectApplyOutcome(didApply: didApply)
         case let .controlMeter(keyword, amount, _):
-            guard amount > 0 else {
-                return EffectApplyOutcome(didApply: false)
-            }
-            let firstEventID = context.nextEventID
-            let effectsBefore = context.roster.activeEffects(for: target)
-            await ControlMeterEngine.applyMeterCharge(amount, keyword: keyword, to: target, sourceActorID: source.id, in: &context)
-            let didApply = context.nextEventID > firstEventID || context.roster.activeEffects(for: target) != effectsBefore
-            return EffectApplyOutcome(didApply: didApply)
+            let outcome = await ControlMeterEngine.applyMeterCharge(
+                amount, keyword: keyword, to: target, sourceActorID: source.id, in: &context,
+            )
+            return EffectApplyOutcome(didApply: outcome.didApply)
         case let .shield(_, amount):
             let gain = context.applyBlockGain(
                 amount,

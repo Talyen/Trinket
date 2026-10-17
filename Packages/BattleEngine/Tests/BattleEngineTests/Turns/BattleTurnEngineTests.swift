@@ -197,8 +197,8 @@ struct BattleTurnEngineTests {
                 $0.effect.kind == .marked
             }))
             let abilityEvent = try #require(events.first { $0.kind == .ability })
-            try #expect(!(abilityEvent.appliedEffectSummaries.contains {
-                $0.localizedCaseInsensitiveContains("mark")
+            try #expect(!(abilityEvent.appliedEffects.contains {
+                $0.kind == .marked
             }))
         }
     }

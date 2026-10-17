@@ -2,28 +2,15 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-struct ControlMeterOutcome {
+package struct ControlMeterOutcome {
+    let didApply: Bool
     let didTrigger: Bool
-    static let empty = Self(didTrigger: false)
+    static let empty = Self(didApply: false, didTrigger: false)
 }
 
 package enum ControlMeterEngine {
-    package static func applyMeterCharge(
-        _ amount: Int,
-        keyword: Keyword,
-        to combatant: Combatant,
-        sourceActorID: String?,
-        applyFightPacing: Bool = true,
-        in context: inout BattleState,
-    ) async {
-        await resolveMeterCharge(
-            amount, keyword: keyword, to: combatant, sourceActorID: sourceActorID,
-            applyFightPacing: applyFightPacing, in: &context,
-        )
-    }
-
     @discardableResult
-    static func resolveMeterCharge( // swiftlint:disable:this function_body_length - control status mutation is one atomic pipeline
+    package static func applyMeterCharge( // swiftlint:disable:this function_body_length - control status mutation is one atomic pipeline
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -91,7 +78,7 @@ package enum ControlMeterEngine {
                 in: &context,
             )
             await ElementalReactionEngine.finishControl(in: &context)
-            return ControlMeterOutcome(didTrigger: true)
+            return ControlMeterOutcome(didApply: true, didTrigger: true)
         }
 
         updateBuildup(
@@ -106,7 +93,7 @@ package enum ControlMeterEngine {
             currentEffects: &currentEffects,
             in: &context,
         )
-        return .empty
+        return ControlMeterOutcome(didApply: true, didTrigger: false)
     }
 
     package static func threshold(for combatant: Combatant, in context: BattleState) -> Int {
@@ -197,7 +184,6 @@ package enum ControlMeterEngine {
             target: combatant,
             amount: 0,
             keyword: keyword,
-            appliedEffectSummaries: [],
         )
 
         if keyword == .stun, combatant.id == context.roster.enemy.id {
@@ -400,13 +386,13 @@ extension ControlMeterEngine {
         abilityID: String = "",
         abilityName: String,
         in context: inout BattleState,
-    ) async {
+    ) async -> Bool {
         guard factor > 1,
               keyword == .freeze,
               context.roster.health(for: combatant) > 0,
               !context.roster.hasControlStatus(for: combatant, keyword: keyword)
         else {
-            return
+            return false
         }
         var currentEffects = context.roster.activeEffects(for: combatant)
         guard let existingIndex = currentEffects.firstIndex(where: { activeEffect in
@@ -417,12 +403,12 @@ extension ControlMeterEngine {
             currentAmount > 0,
             threshold > currentAmount
         else {
-            return
+            return false
         }
-        guard !isProtected(currentEffects[existingIndex].effect, on: combatant, in: context) else { return }
+        guard !isProtected(currentEffects[existingIndex].effect, on: combatant, in: context) else { return false }
 
         let newAmount = min(SaturatedArithmetic.saturatingMul(currentAmount, factor), threshold)
-        guard newAmount > currentAmount else { return }
+        guard newAmount > currentAmount else { return false }
 
         context.nextEvent(
             kind: .effect(.dotAmplified),
@@ -448,7 +434,7 @@ extension ControlMeterEngine {
                 in: &context,
             )
             await ElementalReactionEngine.finishControl(in: &context)
-            return
+            return true
         }
 
         updateBuildup(
@@ -463,6 +449,7 @@ extension ControlMeterEngine {
             currentEffects: &currentEffects,
             in: &context,
         )
+        return true
     }
 
     private static func isProtected(_ effect: Effect, on combatant: Combatant, in context: BattleState) -> Bool {

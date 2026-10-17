@@ -92,7 +92,7 @@ struct CombatRuleAuditRegressionTests {
         let events = try play(.goldenPlate, in: &battle)
         #expect(battle.gold == 7)
         let summary = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.goldenPlate.id })
-        #expect(summary.appliedEffectSummaries.contains("gain 7 Gold"))
+        #expect(summary.appliedEffects.contains(.resourceGain(.gold, 7)))
         #expect(BattleLogProjection.entries(from: events).contains { $0.text.contains("gain 7 Gold") })
     }
 

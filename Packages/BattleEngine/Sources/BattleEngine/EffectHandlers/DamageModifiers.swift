@@ -47,16 +47,11 @@ extension EffectHandlers {
 
 extension EffectApplication {
     func applyMultiplyControlMeter(in context: inout BattleState) async -> EffectApplyOutcome {
-        guard case let .multiplyControlMeter(keyword, factor) = effect,
-              keyword == .freeze,
-              factor > 1
-        else {
+        guard case let .multiplyControlMeter(keyword, factor) = effect else {
             return EffectApplyOutcome(didApply: false)
         }
 
-        let firstEventID = context.nextEventID
-        let effectsBefore = context.roster.activeEffects(for: target)
-        await ControlMeterEngine.multiplyBuildup(
+        let didApply = await ControlMeterEngine.multiplyBuildup(
             factor,
             keyword: keyword,
             to: target,
@@ -64,7 +59,6 @@ extension EffectApplication {
             abilityID: ability.id, abilityName: ability.name,
             in: &context,
         )
-        let didApply = context.nextEventID > firstEventID || context.roster.activeEffects(for: target) != effectsBefore
         return EffectApplyOutcome(didApply: didApply)
     }
 }

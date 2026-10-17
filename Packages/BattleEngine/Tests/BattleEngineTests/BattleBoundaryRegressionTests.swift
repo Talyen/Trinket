@@ -200,7 +200,7 @@ struct BattleBoundaryRegressionTests {
         #expect(battle.mana(of: battle.companion) == Int.max)
         #expect(events.filter { $0.effectKind == .resourceGain }.map(\.amount) == [Int.max, Int.max])
         let summary = try #require(events.last { $0.kind == .ability })
-        #expect(summary.appliedEffectSummaries == ["restore \(Int.max) Mana"])
+        #expect(summary.appliedEffects == [.resourceGain(.mana, Int.max)])
     }
 
     @Test func `Holy damage preparations preserve saturated bonuses`() {

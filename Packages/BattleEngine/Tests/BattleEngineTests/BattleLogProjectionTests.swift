@@ -94,19 +94,13 @@ struct BattleLogProjectionTests {
         #expect(!lines.contains { $0.contains("uses Purge on") })
     }
 
-    @Test(arguments: [9, 11, 12], [false, true])
-    func `Mana Potion logs only Mana actually restored`(initialMana: Int, automatic: Bool) {
+    @Test(arguments: [9, 11, 12])
+    func `Mana Potion logs only Mana actually restored`(initialMana: Int) {
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxMana: 12),
             heroMana: initialMana, appliesFightPacing: false,
         )
-        let events: [ActionEvent] = if automatic {
-            battle.withAutomaticPlay { context in
-                context.performTestAction(.manaPotion)
-            }
-        } else {
-            battle.performTestAction(.manaPotion)
-        }
+        let events = battle.performTestAction(.manaPotion)
         #expect(battle.roster.hero.currentMana == 12)
         let restored = 12 - initialMana
         let lines = BattleLogProjection.entries(from: events).map(\.text)

@@ -61,7 +61,6 @@ package extension DamagePipeline {
             target: state.combatant,
             amount: 0,
             keyword: .dodge,
-            appliedEffectSummaries: [],
         )
         state.isDodged = true
         await applyWinterWake(to: &state, in: &context)

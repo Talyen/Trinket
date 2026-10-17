@@ -119,6 +119,8 @@ effects; committed effect events identify their actual recipients. Direct Mana
 gain summaries report the actual restoration after capacity limits and bonuses.
 Multi-recipient gain summaries saturate their total without reducing individual grants.
 Effect percentage text and event amounts use bounded numeric conversion.
+Action summaries retain typed applied effects only; both default and localized log
+projections derive their wording from those effects.
 Gold effect summaries use the ability's theft marker: Golden Plate gains Gold,
 while Steal and the other theft cards steal it. Gold summaries report the actual
 grant after equipment and talent bonuses.

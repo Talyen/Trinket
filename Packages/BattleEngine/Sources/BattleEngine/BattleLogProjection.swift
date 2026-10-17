@@ -78,8 +78,14 @@ public struct BattleLogProjection {
         if healthCost > 0 {
             text += " and loses \(healthCost) Health"
         }
-        if !event.appliedEffectSummaries.isEmpty {
-            text += " and " + event.appliedEffectSummaries.joined(separator: ", ")
+        if !event.appliedEffects.isEmpty {
+            let effects = event.appliedEffects.map { effect in
+                if case let .resourceGain(.gold, amount) = effect {
+                    return "\(event.stealsGold ? "steal" : "gain") \(amount) Gold"
+                }
+                return effect.summary
+            }
+            text += " and " + effects.joined(separator: ", ")
         }
         return text + "."
     }

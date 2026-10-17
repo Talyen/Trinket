@@ -317,75 +317,41 @@ extension BattleTurnEngine {
         await DoTApplicator.applyBleed(potency: hemorrhageDamage, to: actor, sourceActorID: casterID, application: .afterHit, in: &context)
     }
 
-    struct AppliedEffectLogs {
-        var text: [String] = []
-        var effects: [Effect] = []
-    }
-
-    static func applyTargetedEffects(
-        _ effects: [TargetedEffect],
+    static func applyTargetedEffect(
+        _ targeted: TargetedEffect,
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
         context: inout BattleState,
-    ) async -> AppliedEffectLogs {
-        var appliedEffectLogs = AppliedEffectLogs()
+    ) async -> Effect? {
         let action = BattleActionContext(actor: actor, selectedTarget: abilityTarget)
-        for targetedEffect in effects {
-            guard action.canContinue(in: context) else { break }
-            if let condition = targetedEffect.condition,
-               !BattleConditionEvaluator.isMet(
-                   condition,
-                   actor: actor,
-                   abilityTarget: abilityTarget,
-                   in: context,
-               ) {
-                continue
-            }
-
-            let effect = targetedEffect.effect
-            let effectTargets = action.targets(targetedEffect.target, in: context)
-
-            var didApply = false
-            var grantedGold = 0
-            var restoredMana = 0
-            for effectTarget in effectTargets {
-                guard action.canContinue(in: context) else { break }
-                guard context.roster.health(for: effectTarget) > 0 || effect.canApplyToDefeatedTarget,
-                      !CombatTriggerEngine.preventsPurgedEffect(effect, on: effectTarget, in: context)
-                else { continue }
-                let outcome = await EffectApplication(
-                    effect: effect,
-                    ability: ability,
-                    source: actor,
-                    target: effectTarget,
-                ).apply(in: &context)
-
-                grantedGold = SaturatedArithmetic.saturatingAdd(grantedGold, outcome.grantedGold)
-                restoredMana = SaturatedArithmetic.saturatingAdd(restoredMana, outcome.restoredMana)
-                didApply = didApply || outcome.didApply
-            }
-            if didApply, let summary = appliedEffectSummary(
-                effect, ability: ability, grantedGold: grantedGold, restoredMana: restoredMana,
-            ) {
-                appliedEffectLogs.text.append(summary)
-                switch effect {
-                case .resourceGain(.gold, _): appliedEffectLogs.effects.append(.resourceGain(.gold, grantedGold))
-                case .resourceGain(.mana, _): appliedEffectLogs.effects.append(.resourceGain(.mana, restoredMana))
-                default: appliedEffectLogs.effects.append(effect)
-                }
-            }
+        guard action.canContinue(in: context) else { return nil }
+        if let condition = targeted.condition,
+           !BattleConditionEvaluator.isMet(condition, actor: actor, abilityTarget: abilityTarget, in: context) {
+            return nil
         }
-        return appliedEffectLogs
-    }
 
-    private static func appliedEffectSummary(
-        _ effect: Effect, ability: Ability, grantedGold: Int, restoredMana: Int,
-    ) -> String? {
+        let effect = targeted.effect
+        var didApply = false
+        var grantedGold = 0
+        var restoredMana = 0
+        for effectTarget in action.targets(targeted.target, in: context) {
+            guard action.canContinue(in: context) else { break }
+            guard context.roster.health(for: effectTarget) > 0 || effect.canApplyToDefeatedTarget,
+                  !CombatTriggerEngine.preventsPurgedEffect(effect, on: effectTarget, in: context)
+            else { continue }
+            let outcome = await EffectApplication(
+                effect: effect, ability: ability, source: actor, target: effectTarget,
+            ).apply(in: &context)
+            grantedGold = SaturatedArithmetic.saturatingAdd(grantedGold, outcome.grantedGold)
+            restoredMana = SaturatedArithmetic.saturatingAdd(restoredMana, outcome.restoredMana)
+            didApply = didApply || outcome.didApply
+        }
+        guard didApply else { return nil }
         switch effect {
-        case .resourceGain(.gold, _): "\(ability.stealsGold ? "steal" : "gain") \(grantedGold) Gold"
-        case .resourceGain(.mana, _): restoredMana > 0 ? "restore \(restoredMana) Mana" : nil
-        default: effect.summary
+        case .resourceGain(.gold, _): return .resourceGain(.gold, grantedGold)
+        case .resourceGain(.mana, _): return restoredMana > 0 ? .resourceGain(.mana, restoredMana) : nil
+        default: return effect
         }
     }
 }

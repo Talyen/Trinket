@@ -150,7 +150,7 @@ enum ActiveEffectMutation {
             return
         case let .controlMeter(keyword, amount, threshold):
             // Reflect the status itself; recipient resistance still applies to partial buildup.
-            await ControlMeterEngine.resolveMeterCharge(
+            await ControlMeterEngine.applyMeterCharge(
                 amount, keyword: keyword, to: target, sourceActorID: source.id, applyFightPacing: false,
                 preservingTriggeredStatus: threshold > 0 && amount >= threshold, in: &context,
             )

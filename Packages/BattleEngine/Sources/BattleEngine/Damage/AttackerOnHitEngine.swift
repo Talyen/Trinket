@@ -134,7 +134,7 @@ enum AttackerOnHitEngine {
             state.remaining,
             multiplier: triggers.holyStunBuildupPercent,
         )
-        let stun = await ControlMeterEngine.resolveMeterCharge(
+        let stun = await ControlMeterEngine.applyMeterCharge(
             buildup,
             keyword: .stun,
             to: state.combatant,

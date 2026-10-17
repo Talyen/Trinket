@@ -230,7 +230,6 @@ package extension HealingEngine {
                 target: actorCombatant,
                 amount: actualRestored,
                 keyword: .leech,
-                appliedEffectSummaries: [],
                 isCritical: healing.isCritical,
             )
         }

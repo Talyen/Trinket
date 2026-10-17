@@ -87,7 +87,6 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
     public let targetName: String
     public private(set) var amount: Int
     public let keyword: Keyword
-    public let appliedEffectSummaries: [String]
     public let appliedEffects: [Effect]
     public let stealsGold: Bool
     public var milestone: Milestone? {
@@ -110,7 +109,6 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         targetName: String,
         amount: Int,
         keyword: Keyword,
-        appliedEffectSummaries: [String] = [],
         appliedEffects: [Effect] = [],
         stealsGold: Bool = false,
         isCritical: Bool = false,
@@ -133,7 +131,6 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         self.targetName = targetName
         self.amount = amount
         self.keyword = keyword
-        self.appliedEffectSummaries = appliedEffectSummaries
         self.appliedEffects = appliedEffects
         self.stealsGold = stealsGold
         self.isCritical = isCritical

@@ -66,8 +66,8 @@ struct TurnBoundaryRegressionTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities()
         let ability = theft ? Ability.steal : Ability.goldenPlate
         let events = battle.performTestAction(ability)
-        let summary = events.first { $0.kind == .ability && $0.abilityID == ability.id }?.appliedEffectSummaries
-        #expect(summary?.contains(theft ? "steal 2 Gold" : "gain 5 Gold") == true)
+        let lines = BattleLogProjection.entries(from: events).map(\.text)
+        #expect(lines.contains { $0.contains(theft ? "steal 2 Gold" : "gain 5 Gold") })
     }
 
     @Test func `loyal companion draws for companion on alternating turns`() {

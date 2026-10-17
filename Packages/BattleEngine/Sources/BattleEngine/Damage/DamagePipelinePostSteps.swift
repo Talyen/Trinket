@@ -152,7 +152,7 @@ package extension DamagePipeline {
         } else {
             1
         }
-        await ControlMeterEngine.resolveMeterCharge(
+        await ControlMeterEngine.applyMeterCharge(
             CombatRounding.scaled(state.remaining, multiplier: criticalMultiplier),
             keyword: damageKeyword,
             to: state.combatant,
