@@ -30,7 +30,7 @@ helpers live in `Support/`. All remain in the same test target.
 | Engine cadence, fight pacing, control states | `BattleTurnEngineTests`, `FightPacingTests`, `ControlMeter*Tests`, `DeathsDoorEngineTests` |
 | Cross-boundary card combat | `BattleCardCombatTests` plus `*IntegrationTests` |
 | Builds, triggers, talents, traits, affixes, items, trinkets | `CombatModifierIntegrationTests`, `TalentCatalogRoundTripTests` (+`Damage`/`Capstone*`/`Hero*` splits), `TalentMigrationTests` (legacy trait-trigger side), `CombatTriggerTalent*Tests` (`Damage`+`Cadence`+`ResourceInteractions`, standalone `Control`), `*BattleTests` |
-| Uniques | `UniqueCollectionTests` (+`Cards`/`Damage`/`Defense`/`Resources`; base file holds helpers only) plus `ReturningGaleRegressionTests` |
+| Uniques | `UniqueCollectionTests` (+`Cards`/`Damage`/`Defense`/`Resources`) plus `ReturningGaleRegressionTests` |
 | Cards, opening hand, assessment, Auto Battle | `BattleCardCombatTests` (+`Buffer`/`BlockTiming`/`Feedback`), `BattleCardAssessmentTests`, `PlayPolicyTests` |
 | Single-concern mechanics | `BattleConditionEvaluatorTests`, `BattleRosterTests`, `BattleStateTests`, `BattleOutcomeBranchTests`, `CleanseIntegrationTests`, `FaeWardTests`, `HealingReductionTests`, `KeywordCohesionMechanicsTests`, `ManaEmpowermentTests`, `RestorationIntegrationTests`, `RogueRevisionTests` |
 | Catalog ability combos | `AbilityEffectIntegrationTests` (including `+Balance`, which stays in this default target despite the name) |
