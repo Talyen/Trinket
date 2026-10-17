@@ -1,8 +1,8 @@
 import Foundation
 
-public extension EffectPresentation {
+public enum EffectPresentation {
     // swiftlint:disable:next function_body_length - Keep the complete Effect-to-resource mapping exhaustive beside its typed semantic values
-    static func localizedDescription(for effect: Effect, locale: Locale) -> LocalizedGameText {
+    public static func localizedDescription(for effect: Effect, locale: Locale) -> LocalizedGameText {
         let resource: LocalizedStringResource
         var values: [String: Int] = [:]
         switch effect {

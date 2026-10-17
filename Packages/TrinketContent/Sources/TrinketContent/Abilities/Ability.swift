@@ -97,7 +97,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var effects: [Effect] {
-        operations.compactMap { $0.targetedEffect?.effect }
+        targetedEffects.map(\.effect)
     }
 
     public init(
@@ -183,13 +183,13 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var directDamage: Int {
-        operations.lazy.compactMap(\.damageComponent)
+        damageComponents.lazy
             .filter { $0.target == .abilityTarget }
             .reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.amount) }
     }
 
     public var damageKeyword: Keyword {
-        operations.lazy.compactMap(\.damageComponent)
+        damageComponents
             .first { $0.target == .abilityTarget }?.keyword ?? .physical
     }
 
@@ -227,7 +227,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 true
             }
         }
-        for targetedEffect in operations.lazy.compactMap(\.targetedEffect) {
+        for targetedEffect in targetedEffects {
             guard qualifies(targetedEffect.effect) else { continue }
             result.append(targetedEffect.effect.keyword)
             if case .blessedAegis = targetedEffect.effect {
@@ -255,12 +255,15 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 return op.keyword
             })
         }
-        let leechOperations = operations + (outcomeBranches?.flatMap(\.operations) ?? [])
-            + ((conditionalOutcome?.contributesToIdentity == true || !identityOnly) ? (conditionalOutcome?.operations ?? []) : [])
-        if hasLeech || leechOperations.contains(where: {
-            guard let component = $0.damageComponent, component.target != .actor else { return false }
-            return component.hasLeech && (!identityOnly || component.condition == nil || component.bonusAmount > 0)
-        }) {
+        func hasComponentLeech(_ operations: [AbilityOperation]) -> Bool {
+            operations.contains {
+                guard case let .damage(component) = $0, component.target != .actor else { return false }
+                return component.hasLeech && (!identityOnly || component.condition == nil || component.bonusAmount > 0)
+            }
+        }
+        if hasLeech || hasComponentLeech(operations)
+            || outcomeBranches?.contains(where: { hasComponentLeech($0.operations) }) == true
+            || conditionalOutcome.map({ (!identityOnly || $0.contributesToIdentity) && hasComponentLeech($0.operations) }) == true {
             result.append(.leech)
         }
     }

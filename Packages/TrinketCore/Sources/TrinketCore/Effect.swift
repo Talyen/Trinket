@@ -285,10 +285,6 @@ public enum Effect: Hashable, Sendable {
         min(1, max(0, value))
     }
 
-    public var summary: String {
-        EffectPresentation.applyPhrase(for: self)
-    }
-
     public static func defaultTarget(for effect: Self) -> EffectTarget {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveShield, .purge, .purgeRandom, .marked,

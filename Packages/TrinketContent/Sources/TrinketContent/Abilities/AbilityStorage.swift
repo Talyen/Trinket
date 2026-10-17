@@ -1,3 +1,4 @@
+import Foundation
 import Synchronization
 import TrinketCore
 
@@ -61,7 +62,7 @@ final class AbilityStorage: Hashable, Sendable {
             if let cached {
                 return cached
             }
-            let description = AbilityDescriptionFormatter.format(ability)
+            let description = ability.localizedGeneratedSummary(locale: Locale(identifier: "en")).text
             cached = description
             return description
         }

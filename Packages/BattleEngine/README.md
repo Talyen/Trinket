@@ -89,7 +89,7 @@ Read only the matching detail: [hands and actions](../../Docs/AgentContext/battl
 1. Add the payload case to Core's `Effect` and its dispatch identity to
    `EffectKind`. Update the exhaustive kind/lifecycle mappings in
    `Effect+Properties.swift` and the effect's targeting, duration, magnitude,
-   keyword, and presentation mappings in `Effect.swift` / `EffectPresentation.swift`.
+   keyword, and presentation mappings in `Effect.swift` / `EffectPresentation+Localization.swift`.
 2. Add the application case in `EffectApplication.swift`, reusing its storage
    and attribution operations. Add specialized ticks or summaries through
    `EffectHandlers/Registry.swift` when the shared lifecycle does not suffice.

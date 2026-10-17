@@ -97,6 +97,7 @@ def _ability_inventory_digest() -> str:
     for package in (TRINKET_CONTENT_PACKAGE, ROOT / "Packages/TrinketCore"):
         inputs.append(package / "Package.swift")
         inputs.extend((package / "Sources").rglob("*.swift"))
+        inputs.extend((package / "Sources").rglob("*.xcstrings"))
     hasher = hashlib.sha256()
     for path in sorted(inputs):
         hasher.update(str(path.relative_to(ROOT)).encode() + b"\0")

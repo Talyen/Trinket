@@ -63,26 +63,6 @@ struct EffectModelTests {
         #expect(Effect.poison(Int.min).potencyAfterTurn() == 0)
     }
 
-    @Test func `flag effect summary phrases are registered`() {
-        for effect in [
-            Effect.nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .evadeNextHit, .nextStrikeCritical,
-            .nextStrikeLeech, .partyDamageBonus(3), .freezeNextAttacker,
-            .nextStrikeDamageKeywordOverride(.holy),
-        ] {
-            #expect(!EffectPresentation.requiredBattleSummaryPhrase(for: effect).isEmpty)
-            #expect(EffectPresentation.battleSummaryPhrase(for: effect) != nil)
-        }
-        #expect(EffectPresentation.battleSummaryPhrase(for: .burn(2)) == nil)
-        #expect(
-            EffectPresentation.battleSummaryPhrase(for: .nextStrikeDamageKeywordOverride(.holy))
-                == "Avatar: Next attack deals Holy damage",
-        )
-        #expect(
-            EffectPresentation.battleSummaryPhrase(for: .nextStrikeDamageKeywordOverride(.burn))
-                == "Next attack deals Burn damage",
-        )
-    }
-
     @Test func `burn decay clamps negative inputs and underflow to zero`() {
         #expect(Effect.burn(0).potencyAfterTurn() == 0)
         #expect(Effect.burn(-5).potencyAfterTurn() == 0)

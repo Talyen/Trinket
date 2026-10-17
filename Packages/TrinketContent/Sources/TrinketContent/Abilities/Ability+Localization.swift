@@ -7,6 +7,10 @@ public extension Ability {
         if let descriptionOverride {
             return ContentCopy.description(descriptionOverride, locale: locale)
         }
+        return localizedGeneratedSummary(locale: locale)
+    }
+
+    internal func localizedGeneratedSummary(locale: Locale) -> LocalizedGameText {
         let operations: [LocalizedGameText]
         if let outcomeBranches, !outcomeBranches.isEmpty {
             let alternatives = outcomeBranches.map { branch in

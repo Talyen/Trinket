@@ -11,7 +11,7 @@ Module map: `Keyword.swift` (cases, rules) with `KeywordHighlighting.swift`
 (highlight pattern, term lookup, `referenced(in:)`), `Effect.swift` (`Effect`,
 `DamageComponent`, potency, decay, targets), `Effect+Properties.swift`
 (`EffectKind` registry key plus behavior flags),
-`EffectPresentation.swift` (apply phrases plus battle summary phrases), `CombatRounding.swift` with
+`EffectPresentation+Localization.swift` (typed localized effect descriptions), `CombatRounding.swift` with
 `SaturatedArithmetic.swift` (shared saturating `Int` math), `CombatantProgression.swift`,
 `ExperienceScaling.swift` with `EnemyPowerCurve.swift`
 (shared mid/late thresholds live on `EnemyPowerCurve`), `TalentModels.swift`,

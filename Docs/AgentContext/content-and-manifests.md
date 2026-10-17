@@ -36,6 +36,8 @@ all definition fields and synthesized equality/hash behavior. Combat transformat
 copy that payload and edit only their changed fields; avoid rebuilding a definition
 by forwarding every field, which can silently drop newly added mechanics.
 Generated descriptions, gameplay/identity keywords, and presentation keywords are cached lazily in that storage.
+Generated English descriptions use the same typed rule renderer as localized
+summaries, with an explicit English locale and without applying authored overrides.
 Damage-component and targeted-effect projections are derived once per immutable
 definition and shared by repeated reads; ordered operations remain authoritative.
 Keep caches outside value equality/hashing; transformations must receive fresh storage
@@ -45,11 +47,12 @@ to gameplay or identity, including alternative outcomes. Presentation still deri
 their Health keyword from the summary.
 Multi-hit direct-damage totals saturate, including after Mana empowerment.
 
-`AbilityValidator` inspects base, random-branch, and conditional operations through
-one traversal. Keep alternatives separate when totaling tier damage; both normal
-attack targets and explicit enemy targets count. Cleansing (including Panacea)
-targets allies, while purge targets enemies. `AbilityValidationTests` owns these
-checks; `AbilityCatalogTests` owns catalog identity and player-facing descriptions.
+`AbilityValidationTests` checks every base, random-branch, and conditional operation:
+Cleansing (including Panacea) targets allies, while Purge targets enemies. It also
+rejects redundant description overrides. Catalog tests protect identity and shared
+rule visibility; engine tests own combat behavior. Avoid per-ability snapshots of
+authored numbers or copy, damage-tier heuristics, and ID allowlists that turn balance
+or wording edits into parallel test maintenance.
 
 ## Manifests
 

@@ -15,12 +15,16 @@ class CodegenAbilitiesTests(ScriptRegressionTestCase):
     def test_inventory_digest_tracks_formatter_and_dependency_changes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            files = ["Scripts/content_codegen.py", "Scripts/tool-versions.env",
-                     "Packages/TrinketContent/Package.swift", "Packages/TrinketCore/Package.swift",
-                     "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityDescriptionFormatter.swift",
-                     "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift",
-                     "Scripts/internal/content/abilities.py"]
-            for name in files:
+            dependencies = [
+                "Packages/TrinketContent/Sources/TrinketContent/Abilities/Ability+Localization.swift",
+                "Packages/TrinketCore/Sources/TrinketCore/EffectPresentation+Localization.swift",
+                "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift",
+                "Packages/TrinketCore/Sources/TrinketCore/Resources/Localizable.xcstrings",
+                "Packages/TrinketContent/Sources/TrinketContent/Resources/Localizable.xcstrings",
+                "Scripts/internal/content/abilities.py",
+            ]
+            for name in ["Scripts/content_codegen.py", "Scripts/tool-versions.env",
+                         "Packages/TrinketContent/Package.swift", "Packages/TrinketCore/Package.swift"] + dependencies:
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text("initial")
@@ -29,7 +33,7 @@ class CodegenAbilitiesTests(ScriptRegressionTestCase):
             ):
                 previous = abilities._ability_inventory_digest()
                 self.assertEqual(previous, abilities._ability_inventory_digest())
-                for name in files[-3:]:
+                for name in dependencies:
                     path = root / name
                     path.write_text("changed")
                     current = abilities._ability_inventory_digest()

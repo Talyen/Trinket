@@ -226,9 +226,18 @@ struct BattleBoundaryRegressionTests {
         let outcome = EffectHandlersTestSupport.dispatch(.criticalChanceBonus(1e20, 2), battle: &battle)
         let event = try #require(outcome.events.first { $0.effectKind == .criticalChanceApplied })
         #expect(event.amount == Int.max)
-        #expect(Effect.criticalChanceBonus(1e20, 2).summary.contains("+\(Int.max)%"))
-        #expect(Effect.damageReductionPercent(1e20, 2).summary.contains("\(Int.max)%"))
-        #expect(Effect.healingReductionPercent(1e20, 2).summary.contains("\(Int.max)%"))
+        let locale = Locale(identifier: "en")
+        for (effect, valueID) in [
+            (Effect.criticalChanceBonus(1e20, 2), "chance"),
+            (.damageReductionPercent(1e20, 2), "percent"),
+            (.healingReductionPercent(1e20, 2), "percent"),
+        ] {
+            let details = EffectPresentation.localizedDescription(for: effect, locale: locale)
+            #expect(details.values[valueID] == Int.max)
+        }
+        let ability = Ability(id: "large-critical", name: "Large Critical", tier: .skill, criticalChanceBonus: 1e20)
+        // Reading card details previously converted this percentage to Int without saturation.
+        #expect(ability.generatedDescription.contains("% Critical chance"))
         let summary = try #require(EffectSummaryBuilder.build(for: battle.activeEffects(of: battle.hero)).first)
         let displayedMaximum = Int.max.formatted(.number.locale(Locale(identifier: "en")))
         #expect(summary.text.contains("+\(displayedMaximum)%"))
