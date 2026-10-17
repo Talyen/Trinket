@@ -2713,8 +2713,8 @@ public enum ContentCopy {
             (L10n.talents_fox_gold_t3_2_description(3), [3])
         case "Golden Recovery":
             (L10n.talents_fox_gold_t3_2_name, [])
-        case "Stealing Gold has a 10% chance to steal all of an enemy's Block":
-            (L10n.talents_fox_gold_t4_1_description(10), [10])
+        case "Your first Gold steal each turn also steals half the enemy's Block":
+            (L10n.talents_fox_gold_t4_1_description, [])
         case "Light-Fingered":
             (L10n.talents_fox_gold_t4_1_name, [])
         case "Dodging has a 20% chance to deal 4 Stun damage":
@@ -3879,7 +3879,7 @@ public enum ContentCopy {
             (L10n.talents_warlock_leech_t3_2_description, [])
         case "Soul Ward":
             (L10n.talents_warlock_leech_t3_2_name, [])
-        case "Your first Burn attack each turn gains Leech":
+        case "Your first Burn attack each turn gains Leech if you are below half Health":
             (L10n.talents_warlock_leech_t4_1_description, [])
         case "Emberdrinker":
             (L10n.talents_warlock_leech_t4_1_name, [])
@@ -3963,6 +3963,8 @@ public enum ContentCopy {
             (L10n.talents_wildcard_gold_t3_2_description(15), [15])
         case "Sleight of Coin":
             (L10n.talents_wildcard_gold_t3_2_name, [])
+        case "Your first Gold gain each turn draws a card":
+            (L10n.talents_wildcard_gold_t4_1_description, [])
         case "Lucky Break":
             (L10n.talents_wildcard_gold_t4_1_name, [])
         case "Your Physical attacks deal 1 additional damage to Burning or Frozen enemies":
@@ -4563,7 +4565,6 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Critical\\ Hits\\ have\\ a\\ ([0-9]+)%\\ chance\\ to\\ steal\\ ([0-9]+)\\ Gold$"), count: 2, make: { values in L10n.talents_fox_gold_t2_2_description(values[0], values[1]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Stealing\\ Gold\\ grants\\ \\+([0-9]+)%\\ Critical\\ Hit\\ chance\\ on\\ your\\ next\\ attack$"), count: 1, make: { values in L10n.talents_fox_gold_t3_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Below\\ half\\ Health,\\ your\\ first\\ Gold\\ gain\\ each\\ turns?\\ restores\\ ([0-9]+)\\ Health$"), count: 1, make: { values in L10n.talents_fox_gold_t3_2_description(values[0]) }),
-        NumericTemplate(regex: try? NSRegularExpression(pattern: "^Stealing\\ Gold\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ steal\\ all\\ of\\ an\\ enemy's\\ Block$"), count: 1, make: { values in L10n.talents_fox_gold_t4_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Dodging\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ deal\\ ([0-9]+)\\ Stun\\ damage$"), count: 2, make: { values in L10n.talents_fox_stun_t1_1_description(values[0], values[1]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Stunned\\ enemies\\ take\\ ([0-9]+)%\\ increased\\ damage\\ from\\ your\\ attacks$"), count: 1, make: { values in L10n.talents_fox_stun_t1_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Stun\\ attacks\\ gain\\ \\+([0-9]+)%\\ Critical\\ Hit\\ chance$"), count: 1, make: { values in L10n.talents_fox_stun_t2_2_description(values[0]) }),

@@ -19,6 +19,9 @@ helper's fallback display name may describe an older, distinct trigger.
 
 ### Victory Gold and theft
 
+Lucky Break draws a card on its owner's first positive actual Gold gain each turn,
+including theft. Zero or rejected grants do not spend its turn allowance.
+
 Dig for Treasure adds 10 percentage points to victory Gold scaling over encounter
 Gold plus combat gains, before spending. The selected party's bonus is captured
 at launch and survives Companion defeat. It uses ordinary reward remainders,
@@ -101,8 +104,10 @@ Talent reaction chain. Wishspring prepares a later free Mana empowerment.
 Shield Scarab's Radiant Shell rolls on the first qualifying Block absorption
 in an incoming ability, reflecting that absorbed amount in one Holy hit. The reflected hit
 qualifies for Sun Glyph and Crownfall, each limited to once per turn. Fox's
-Snatch, Lucky Strike, and Light-Fingered roll once per eligible ability; its
-first successful Gold steal doubles only once per combat. Dodge retaliation
+Snatch and Lucky Strike roll once per eligible ability. Light-Fingered steals half
+the enemy's current Block, truncating the stolen amount, on Fox's first actual
+Gold theft each turn; a first theft against zero Block still spends the allowance.
+Its first successful Gold steal doubles only once per combat. Dodge retaliation
 chances roll once per Dodge and preparations refresh rather than stack.
 Golden Recovery and Stolen Breath finish their healing for a living Fox even when
 the qualifying Gold gain or preceding Dodge retaliation defeats the enemy.
@@ -461,8 +466,10 @@ contribution to an already-Leeching hit. Symbiotic Venom grants Leech only to
 Poison attacks, excluding ticks and reaction damage. Overhealing keeps its emitted
 reactions even when no Health is restored.
 
-Emberdrinker reserves Leech for its owner's first Burn attack action each turn,
-including all Burn components and attack checkpoint qualification. Later actions,
+Emberdrinker reserves Leech for its owner's first Burn attack action each turn
+only if the owner starts that action strictly below half Health. The first Burn
+action spends the allowance even above that threshold. All Burn components of
+the qualifying action retain Leech if healing crosses half Health. Later actions,
 card repeats, ticks, and detonations do not reuse the allowance. The separate
 `burnDamageLeech` rule still includes ongoing Burn damage.
 

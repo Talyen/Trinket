@@ -281,6 +281,11 @@ action frame. Do not toggle a separate automatic-play flag.
 
 ## Ability strategy
 
+Bloodthorn grants intrinsic Leech only to its Bleed hit; its Poison hit can still
+receive Leech from independent talents, equipment or a next-attack preparation.
+Hit-specific Leech survives damage amplification, keyword resolution and Mana
+empowerment. Card-wide Leech retains its existing all-hit rule.
+
 - Avatar reserves its Holy conversion at the next direct attack's first eligible
   hit, before reactions. All direct hits in that action share it; nested attacks
   and recurring damage cannot spend that reservation. A fresh Avatar preparation

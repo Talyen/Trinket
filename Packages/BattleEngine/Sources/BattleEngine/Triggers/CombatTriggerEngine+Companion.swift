@@ -445,6 +445,12 @@ package extension CombatTriggerEngine {
             }
         }
 
+        if triggers.firstGoldTheftStealHalfBlockPerTurn, context.roster.enemy.isAlive,
+           context.claimHeroTalent(.firstGoldTheftHalfBlock, actorID: actor.id) {
+            let enemy = context.roster.enemy.combatant
+            let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: enemy))
+            DefensePoolEngine.steal(block / 2, from: enemy, to: actor, abilityName: "Light-Fingered", in: &context)
+        }
         if triggers.goldTheftStealEnemyBlockChancePercent > 0, context.roster.enemy.isAlive {
             let enemy = context.roster.enemy.combatant
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: enemy))

@@ -50,6 +50,9 @@ Party additional-damage auras add their extra percents across living allies and 
 
 ## Balance sweep
 
+Will-o-Wisp uses Ray of Frost, Frostbolt and Blizzard. Its Basic no longer doubles
+damage against an already Frozen target; player-owned Ice Shot is unchanged.
+
 Manual CLI only — **no CI gates** or scheduled automations. Use the script's
 `--help` output for current modes, defaults, and tuning flags.
 

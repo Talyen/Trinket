@@ -11,7 +11,8 @@ extension BattleTurnEngine {
         var action = TalentActionFacts(actorID: actor.id)
         if context.modifiers(for: actor.id).triggers.firstBurnAttackLeech,
            context.resolution.actionOutcome?.damageKeywords.contains(.burn) == true {
-            action.burnAttackLeech = context.claimTurnGuard(.emberdrinker, actorID: actor.id)
+            let isFirstBurnAttack = context.claimTurnGuard(.emberdrinker, actorID: actor.id)
+            action.burnAttackLeech = isFirstBurnAttack && context.roster.isBelowHalfHealth(for: actor)
         }
         var components = ability.damageComponents
         var effects = ability.targetedEffects
@@ -129,6 +130,7 @@ extension BattleTurnEngine {
                 return DamageComponent(
                     SaturatedArithmetic.saturatingMul(component.amount, 2), keyword: .poison, target: component.target,
                     bonusAmount: SaturatedArithmetic.saturatingMul(component.bonusAmount, 2), condition: component.condition,
+                    scaling: component.scaling, hasLeech: component.hasLeech,
                 )
             }
             effects = effects.map { targeted in
@@ -157,6 +159,7 @@ extension BattleTurnEngine {
             components[index] = DamageComponent(
                 SaturatedArithmetic.saturatingAdd(component.amount, amount), keyword: keyword, target: component.target,
                 bonusAmount: component.bonusAmount,
+                condition: component.condition, scaling: component.scaling, hasLeech: component.hasLeech,
             )
         } else {
             components.append(DamageComponent(amount, keyword: keyword))

@@ -5842,6 +5842,10 @@ enum L10n {
         LocalizedStringResource("rule.ability.random_damage", defaultValue: "Deal <value id=\"damage\">\(value1)</value> Random damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static func rule_ability_with_leech(_ value1: String) -> LocalizedStringResource {
+        LocalizedStringResource("rule.ability.with_leech", defaultValue: "\(value1) with <keyword id=\"leech\">Leech</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var spire_aureatechoir_epithet: LocalizedStringResource {
         LocalizedStringResource("spire.aureatechoir.epithet", defaultValue: "Light that judges", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -6538,8 +6542,8 @@ enum L10n {
         LocalizedStringResource("talents.fox_gold_t3_2.name", defaultValue: "Golden Recovery", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func talents_fox_gold_t4_1_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("talents.fox_gold_t4_1.description", defaultValue: "Stealing <keyword id=\"gold\">Gold</keyword> has a <value id=\"quantity_1\">\(value1)</value>% chance to steal all of an enemy's <keyword id=\"block\">Block</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static var talents_fox_gold_t4_1_description: LocalizedStringResource {
+        LocalizedStringResource("talents.fox_gold_t4_1.description", defaultValue: "Your first <keyword id=\"gold\">Gold</keyword> steal each turn also steals half the enemy's <keyword id=\"block\">Block</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_fox_gold_t4_1_name: LocalizedStringResource {
@@ -8923,7 +8927,7 @@ enum L10n {
     }
 
     static var talents_warlock_leech_t4_1_description: LocalizedStringResource {
-        LocalizedStringResource("talents.warlock_leech_t4_1.description", defaultValue: "Your first <keyword id=\"burn\">Burn</keyword> attack each turn gains <keyword id=\"leech\">Leech</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("talents.warlock_leech_t4_1.description", defaultValue: "Your first <keyword id=\"burn\">Burn</keyword> attack each turn gains <keyword id=\"leech\">Leech</keyword> if you are below half <keyword id=\"health\">Health</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_warlock_leech_t4_1_name: LocalizedStringResource {
@@ -9090,8 +9094,8 @@ enum L10n {
         LocalizedStringResource("talents.wildcard_gold_t3_2.name", defaultValue: "Sleight of Coin", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func talents_wildcard_gold_t4_1_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("talents.wildcard_gold_t4_1.description", defaultValue: "Gaining <keyword id=\"gold\">Gold</keyword> has a <value id=\"quantity_1\">\(value1)</value>% chance to draw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static var talents_wildcard_gold_t4_1_description: LocalizedStringResource {
+        LocalizedStringResource("talents.wildcard_gold_t4_1.description", defaultValue: "Your first <keyword id=\"gold\">Gold</keyword> gain each turn draws a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_wildcard_gold_t4_1_name: LocalizedStringResource {

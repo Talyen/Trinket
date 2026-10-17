@@ -283,6 +283,14 @@
     {
       "name": "dodgeGoldIsTheft",
       "type": "Bool"
+    },
+    {
+      "name": "firstGoldGainDrawCardPerTurn",
+      "type": "Bool"
+    },
+    {
+      "name": "firstGoldTheftStealHalfBlockPerTurn",
+      "type": "Bool"
     }
   ]
 }

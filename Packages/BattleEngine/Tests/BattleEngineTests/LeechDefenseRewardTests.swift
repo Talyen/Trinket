@@ -11,6 +11,7 @@ struct LeechDefenseRewardTests {
             targetEffects: [ActiveEffect(id: 1, effect: .shield(.block, 8), remainingTurns: 0)],
             heroModifiers: profile, appliesFightPacing: false,
         )
+        battle.roster.hero.currentHealth = 1
         let ability = Ability(
             id: "burn-strike", name: "Burn Strike", tier: .basic,
             damageComponents: [DamageComponent(8, keyword: .burn)],

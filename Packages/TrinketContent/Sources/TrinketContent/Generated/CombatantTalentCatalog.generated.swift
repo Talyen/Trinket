@@ -783,7 +783,7 @@ public extension CombatantTalentCatalog {
             "warlock_leech_t4_1": CombatantTalentEffect(
                 name: "Emberdrinker",
                 iconID: "sf:flame.fill",
-                description: "Your first Burn attack each turn gains Leech",
+                description: "Your first Burn attack each turn gains Leech if you are below half Health",
                 triggers: CombatTraitTriggers(dot: DotTriggers { $0.firstBurnAttackLeech = true })
             )
     ]
@@ -962,8 +962,8 @@ public extension CombatantTalentCatalog {
             "wildcard_gold_t4_1": CombatantTalentEffect(
                 name: "Lucky Break",
                 iconID: "sf:suit.club.fill",
-                description: "Gaining Gold has a 10% chance to draw a card",
-                triggers: CombatTraitTriggers(gold: GoldTriggers { $0.goldGainDrawChancePercent = 0.10 })
+                description: "Your first Gold gain each turn draws a card",
+                triggers: CombatTraitTriggers(gold: GoldTriggers { $0.firstGoldGainDrawCardPerTurn = true })
             ),
             "wildcard_dodge_t1_1": CombatantTalentEffect(
                 name: "False Opening",
@@ -2858,8 +2858,8 @@ public extension CombatantTalentCatalog {
             "fox_gold_t4_1": CombatantTalentEffect(
                 name: "Light-Fingered",
                 iconID: "sf:hand.pinch.fill",
-                description: "Stealing Gold has a 10% chance to steal all of an enemy's Block",
-                triggers: CombatTraitTriggers(gold: GoldTriggers { $0.goldTheftStealEnemyBlockChancePercent = 0.10 })
+                description: "Your first Gold steal each turn also steals half the enemy's Block",
+                triggers: CombatTraitTriggers(gold: GoldTriggers { $0.firstGoldTheftStealHalfBlockPerTurn = true })
             ),
             "fox_stun_t4_1": CombatantTalentEffect(
                 name: "Stolen Thunder",

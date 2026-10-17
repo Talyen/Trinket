@@ -41,6 +41,8 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case firstGoldTheftDouble
     case firstGoldTheftDraw
     case firstGoldTheftHeal
+    case firstGoldGainDraw
+    case firstGoldTheftHalfBlock
     case flameShield
     case fontOfMagic
     case goldGainDrawChance

@@ -204,8 +204,8 @@ extension TalentCatalogRoundTripTests {
         #expect(talentPoints(.shield, on: .companion, in: battle) == first + 6)
     }
 
-    @Test func `light fingered steals enemy block only on a gold theft proc`() {
-        var profile = CombatantTalentCatalog.profile(for: ["fox_gold_t4_1"])
+    @Test func `legacy block theft chance applies only on a gold theft proc`() {
+        var profile = CombatModifierProfile.zero
         profile.triggers.goldTheftStealEnemyBlockChancePercent = 1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,

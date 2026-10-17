@@ -698,6 +698,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case victoryGoldBonusPercent
     case goldTheftAllyBlock
     case dodgeGoldIsTheft
+    case firstGoldGainDrawCardPerTurn
+    case firstGoldTheftStealHalfBlockPerTurn
     case contagiousJoy
     case livingArchive
     case marrowmend
@@ -1615,6 +1617,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.gold.victoryGoldBonusPercent, .victoryGoldBonusPercent, default: 0, merging: .add),
         .init(\.gold.goldTheftAllyBlock, .goldTheftAllyBlock, default: false, merging: .or),
         .init(\.gold.dodgeGoldIsTheft, .dodgeGoldIsTheft, default: false, merging: .or),
+        .init(\.gold.firstGoldGainDrawCardPerTurn, .firstGoldGainDrawCardPerTurn, default: false, merging: .or),
+        .init(\.gold.firstGoldTheftStealHalfBlockPerTurn, .firstGoldTheftStealHalfBlockPerTurn, default: false, merging: .or),
         .init(\.healing.contagiousJoy, .contagiousJoy, default: false, merging: .or),
         .init(\.healing.livingArchive, .livingArchive, default: false, merging: .or),
         .init(\.healing.marrowmend, .marrowmend, default: false, merging: .or),

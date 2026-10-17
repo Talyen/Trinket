@@ -65,6 +65,8 @@ public struct GoldTriggers: Equatable, Hashable, Sendable {
     public var victoryGoldBonusPercent: Int = 0
     public var goldTheftAllyBlock: Bool = false
     public var dodgeGoldIsTheft: Bool = false
+    public var firstGoldGainDrawCardPerTurn: Bool = false
+    public var firstGoldTheftStealHalfBlockPerTurn: Bool = false
 
     public init(_ configure: (inout Self) -> Void = { _ in }) {
         configure(&self)

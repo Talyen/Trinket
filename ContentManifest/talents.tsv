@@ -411,7 +411,7 @@ wildcard_gold_t2_1	Jackpot	sf:rectangle.3.group.fill	Critical Hits that steal Go
 wildcard_gold_t2_2	Lucky Charm	sf:suit.club.fill	Gaining Gold has a 20% chance to Cleanse a debuff		goldGainCleanseChancePercent:0.20
 wildcard_gold_t3_1	Last Wager	sf:die.face.5.fill	Gaining Gold while below half Health draws a card		goldGainBelowHalfDrawCard:true
 wildcard_gold_t3_2	Sleight of Coin	sf:hand.pinch.fill	Stealing Gold grants +15% Dodge until your next turn		goldTheftDodgeBonus:0.15
-wildcard_gold_t4_1	Lucky Break	sf:suit.club.fill	Gaining Gold has a 10% chance to draw a card		goldGainDrawChancePercent:0.10
+wildcard_gold_t4_1	Lucky Break	sf:suit.club.fill	Your first Gold gain each turn draws a card		firstGoldGainDrawCardPerTurn:true
 wildcard_dodge_t1_1	False Opening	sf:burst.fill	Dodging grants +20% Critical Hit chance on your next attack		dodgeNextAttackCritBonus:0.20
 wildcard_dodge_t1_2	Missed Opportunity	sf:shield.lefthalf.filled	Dodging below half Health draws a card		dodgeBelowHalfDrawCard:true
 wildcard_dodge_t2_1	Passing Luck	sf:suit.club.fill	Dodging makes your Companion’s next attack Critically Hit		passingLuck:true
@@ -426,7 +426,7 @@ wildcard_physical_t2_2	Cracked Guard	sf:shield.slash.fill	Breaking enemy Block w
 wildcard_physical_t3_1	Cold Read	sf:eye.fill	Physical attacks against Frozen enemies gain +15% Critical Hit chance		physicalVsFrozenCritBonus:0.15
 wildcard_physical_t3_2	Feigned Miss	sf:theatermasks.fill	An enemy fully Blocking your attack doubles your next Physical attack		blockedAttackNextPhysicalDouble:true
 wildcard_physical_t4_1	Paid in Full	sf:circle.circle.fill	Stealing Gold adds 2 damage to your next attack		goldStealNextAttackBonus:2
-warlock_leech_t4_1	Emberdrinker	sf:flame.fill	Your first Burn attack each turn gains Leech		firstBurnAttackLeech:true
+warlock_leech_t4_1	Emberdrinker	sf:flame.fill	Your first Burn attack each turn gains Leech if you are below half Health		firstBurnAttackLeech:true
 frost_whelp_mana_t4_1	Dragon’s Patronage	sf:person.2.fill	Mana empowerment grants your ally 2 Block		manaEmpowerAllyBlock:2
 frost_whelp_dodge_t4_1	Winter’s Wake	sf:cloud.snow.fill	Dodging makes your next Freeze attack ignore enemy Block		dodgeNextFreezeIgnoreBlock:true
 lizard_scout_gold_t4_1	Shared Spoils	sf:hand.pinch.fill	Stealing Gold restores 2 Health to your ally		goldTheftHealAllyFlat:2
@@ -443,5 +443,5 @@ mana_moth_freeze_t4_1	Ghostfrost	sf:snowflake	Freeze damage ignores enemy Block	
 pixie_health_t4_1	Wishspring	sf:wand.and.stars	Your excess healing makes your next Mana empowerment free		excessHealthNextManaEmpowerFree:true
 shield_scarab_block_t4_1	Adamant Carapace	sf:lock.shield.fill	Your Block absorbs 50% more damage		blockAbsorptionMultiplier:1.5
 shield_scarab_stun_t4_1	Resonant Shell	sf:waveform	While you have Thorns, Stun attacks deal 25% more damage		stunDamageMultiplierWhileThorns:1.25
-fox_gold_t4_1	Light-Fingered	sf:hand.pinch.fill	Stealing Gold has a 10% chance to steal all of an enemy's Block		goldTheftStealEnemyBlockChancePercent:0.10
+fox_gold_t4_1	Light-Fingered	sf:hand.pinch.fill	Your first Gold steal each turn also steals half the enemy's Block		firstGoldTheftStealHalfBlockPerTurn:true
 fox_stun_t4_1	Stolen Thunder	sf:bolt.fill	Stunning an enemy makes your next attack Critically Hit		onStunNextAttackGuaranteedCritical:true

@@ -66,7 +66,8 @@ struct TypedNextAttackPreparationTests {
         let profile = CombatantTalentCatalog.profile(for: ["rogue_poison_t2_1"])
         var battle = try fixtures.battle([], extra: profile)
         readyRepeat(in: &battle)
-        battle.rng = SeededRandomNumberGenerator(seed: CombatantFixtures.deterministicBattleSeed)
+        // Only the first Poison hit crits; Bloodthorn now rolls Leech healing on its Bleed hits only.
+        battle.rng = SeededRandomNumberGenerator(seed: CombatantFixtures.deterministicBattleSeedVariant(15))
 
         let events = try fixtures.play(.bloodthorn, in: &battle)
         let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.bloodthorn.id }

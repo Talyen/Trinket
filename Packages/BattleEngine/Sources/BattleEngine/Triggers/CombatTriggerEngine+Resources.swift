@@ -206,6 +206,16 @@ package extension CombatTriggerEngine {
                let owner = context.roster.participant(for: combatant) {
                 drawCards(1, for: owner, actor: combatant, abilityName: "Last Wager", in: &context)
             }
+            if triggers.firstGoldGainDrawCardPerTurn, context.roster.enemy.isAlive,
+               let owner = context.roster.participant(for: combatant),
+               context.claimHeroTalent(.firstGoldGainDraw, actorID: combatant.id) {
+                drawCards(
+                    1, for: owner, actor: combatant,
+                    abilityName: triggerAbilityName(
+                        .firstGoldGainDrawCardPerTurn, for: combatant, fallback: "Lucky Break", in: context,
+                    ), in: &context,
+                )
+            }
             if triggers.goldGainDrawChancePercent > 0, context.roster.enemy.isAlive,
                context.claimTalentAbility(.goldGainDrawChance, actorID: combatant.id),
                BattleChance.succeeds(probability: triggers.goldGainDrawChancePercent, using: &context.rng),

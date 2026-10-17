@@ -56,13 +56,16 @@ enum AbilityDescriptionFormatter {
     }
 
     private static func formatEnemyDamage(_ component: DamageComponent) -> [String] {
-        let text = if let scaling = component.scaling {
+        var text = if let scaling = component.scaling {
             switch scaling {
             case let .actorBlockFraction(divisor, _):
                 "deal \(component.keyword.rawValue) damage equal to \(fractionPhrase(divisor: divisor)) your Block"
             }
         } else {
             "deal \(component.amount) \(component.keyword.rawValue) damage"
+        }
+        if component.hasLeech {
+            text += " with Leech"
         }
         guard let condition = component.condition else { return [text] }
         let conditionPhrase = condition.sentenceFragment

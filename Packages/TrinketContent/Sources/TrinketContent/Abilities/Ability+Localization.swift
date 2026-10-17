@@ -59,7 +59,7 @@ public extension Ability {
                     values: ["health": component.amount],
                 )]
             }
-            let text: LocalizedGameText
+            var text: LocalizedGameText
             let keyword = component.keyword.markedName(locale: locale)
             if let scaling = component.scaling {
                 switch scaling {
@@ -76,6 +76,9 @@ public extension Ability {
                     locale: locale,
                     values: ["damage": component.amount],
                 )
+            }
+            if component.hasLeech {
+                text = LocalizedGameText(L10n.rule_ability_with_leech(text.markedText), locale: locale, values: text.values)
             }
             guard let condition = component.condition else { return [text] }
             if component.bonusAmount > 0 {

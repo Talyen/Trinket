@@ -92,7 +92,7 @@ extension BattleTurnEngine {
                 abilityCriticalChanceBonus: ability.criticalChanceBonus,
                 guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
                 guaranteedCritical: guaranteedCritical || nextStrike.contains(.nextStrikeCritical),
-                abilityHasLeech: ability.hasLeech || nextStrike.contains(.nextStrikeLeech),
+                abilityHasLeech: ability.hasLeech || component.hasLeech || nextStrike.contains(.nextStrikeLeech),
             )
         var request = DamageRequest(
             amount: amount, target: target, keyword: keyword,

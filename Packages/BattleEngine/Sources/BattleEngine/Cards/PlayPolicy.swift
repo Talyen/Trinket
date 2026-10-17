@@ -58,7 +58,10 @@ private enum HeuristicCardScoring {
                 branch, action: action, in: battle, setupAware: setupAware,
             ))
         }
-        return SaturatedArithmetic.saturatingAdd(total / max(1, branches.count), outcomes.ability.hasLeech ? 5 : 0)
+        let hasLeechHit = outcomes.ability.hasLeech || branches.contains { branch in
+            branch.damageComponents.contains { $0.hasLeech && $0.target != .actor }
+        }
+        return SaturatedArithmetic.saturatingAdd(total / max(1, branches.count), hasLeechHit ? 5 : 0)
     }
 
     private static func score(

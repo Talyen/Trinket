@@ -83,6 +83,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         storage.definition.guaranteedCriticalIfEnemyBuffed
     }
 
+    /// Card-wide Leech; individual damage components can grant it independently.
     public var hasLeech: Bool {
         storage.definition.hasLeech
     }
@@ -254,7 +255,12 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 return op.keyword
             })
         }
-        if hasLeech {
+        let leechOperations = operations + (outcomeBranches?.flatMap(\.operations) ?? [])
+            + ((conditionalOutcome?.contributesToIdentity == true || !identityOnly) ? (conditionalOutcome?.operations ?? []) : [])
+        if hasLeech || leechOperations.contains(where: {
+            guard let component = $0.damageComponent, component.target != .actor else { return false }
+            return component.hasLeech && (!identityOnly || component.condition == nil || component.bonusAmount > 0)
+        }) {
             result.append(.leech)
         }
     }
@@ -287,6 +293,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 target: component.target,
                 bonusAmount: component.bonusAmount,
                 condition: component.condition,
+                scaling: component.scaling, hasLeech: component.hasLeech,
             ))
         }
         return updatingDefinition {

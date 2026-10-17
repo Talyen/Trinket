@@ -22,6 +22,7 @@ public struct DamageComponent: Hashable, Sendable {
     public let bonusAmount: Int
     public let condition: DamageCondition?
     public let scaling: DamageScaling?
+    public let hasLeech: Bool
 
     public init(
         _ amount: Int,
@@ -30,6 +31,7 @@ public struct DamageComponent: Hashable, Sendable {
         bonusAmount: Int = 0,
         condition: DamageCondition? = nil,
         scaling: DamageScaling? = nil,
+        hasLeech: Bool = false,
     ) {
         self.amount = amount
         self.keyword = keyword
@@ -37,6 +39,7 @@ public struct DamageComponent: Hashable, Sendable {
         self.bonusAmount = bonusAmount
         self.condition = condition
         self.scaling = scaling
+        self.hasLeech = hasLeech
     }
 
     /// Component-level rule: any Burn/Freeze damage component. The effect-level
@@ -55,6 +58,7 @@ public struct DamageComponent: Hashable, Sendable {
             bonusAmount: bonusAmount > 0 ? SaturatedArithmetic.saturatingAdd(bonusAmount, amount) : 0,
             condition: condition,
             scaling: scaling,
+            hasLeech: hasLeech,
         )
     }
 

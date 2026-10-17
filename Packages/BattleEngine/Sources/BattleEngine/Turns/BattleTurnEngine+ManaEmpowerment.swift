@@ -123,6 +123,7 @@ private extension BattleTurnEngine {
                     target: component.target,
                     bonusAmount: SaturatedArithmetic.saturatingMul(component.bonusAmount, 2),
                     condition: component.condition,
+                    scaling: component.scaling, hasLeech: component.hasLeech,
                 ))
             case let .effect(targeted):
                 guard case let .recurringDamage(keyword, amount, turns) = targeted.effect else { return operation }

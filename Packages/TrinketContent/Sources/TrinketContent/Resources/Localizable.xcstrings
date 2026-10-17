@@ -61801,6 +61801,48 @@
         }
       }
     },
+    "rule.ability.with_leech": {
+      "comment": "Wrap a complete damage clause with Leech applying only to that hit. Preserve the clause placeholder and the Leech keyword tag.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ mit <keyword id=\"leech\">Lebensraub</keyword>"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ with <keyword id=\"leech\">Leech</keyword>"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ avec <keyword id=\"leech\">Vol de vie</keyword>"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@（<keyword id=\"leech\">吸収</keyword>）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (<keyword id=\"leech\">흡혈</keyword>)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@，附帶<keyword id=\"leech\">吸血</keyword>"
+          }
+        }
+      }
+    },
     "spire.aureatechoir.epithet": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Encounters/SpireCatalog.swift: aureateChoir, epithet",
       "extractionState": "manual",
@@ -69296,37 +69338,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das Stehlen von <keyword id=\"gold\">Gold</keyword> stiehlt mit <value id=\"quantity_1\">%1$lld</value>%% Chance den gesamten <keyword id=\"block\">Block</keyword> eines Gegners"
+            "value": "Dein erster <keyword id=\"gold\">Gold</keyword>diebstahl pro Zug stiehlt auch die Hälfte des gegnerischen <keyword id=\"block\">Blocks</keyword>"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stealing <keyword id=\"gold\">Gold</keyword> has a <value id=\"quantity_1\">%1$lld</value>%% chance to steal all of an enemy's <keyword id=\"block\">Block</keyword>"
+            "value": "Your first <keyword id=\"gold\">Gold</keyword> steal each turn also steals half the enemy's <keyword id=\"block\">Block</keyword>"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voler de l’<keyword id=\"gold\">Or</keyword> a <value id=\"quantity_1\">%1$lld</value>%% de chances de voler tout le <keyword id=\"block\">Blocage</keyword> d’un ennemi"
+            "value": "Votre premier vol d’<keyword id=\"gold\">Or</keyword> de chaque tour vole aussi la moitié du <keyword id=\"block\">Blocage</keyword> de l’ennemi"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"gold\">ゴールド</keyword>を盗むと<value id=\"quantity_1\">%1$lld</value>%%の確率で敵の<keyword id=\"block\">ブロック</keyword>をすべて奪う"
+            "value": "各ターンで最初に<keyword id=\"gold\">ゴールド</keyword>を盗むと、敵の<keyword id=\"block\">ブロック</keyword>も半分奪う"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"gold\">골드</keyword>를 훔치면 <value id=\"quantity_1\">%1$lld</value>%% 확률로 적의 모든 <keyword id=\"block\">방어도</keyword> 훔치기"
+            "value": "매 턴 처음 <keyword id=\"gold\">골드</keyword>를 훔칠 때 적의 <keyword id=\"block\">방어도</keyword>도 절반 훔칩니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "偷取<keyword id=\"gold\">金幣</keyword>時，有<value id=\"quantity_1\">%1$lld</value>%%機率偷取敵人所有<keyword id=\"block\">格擋</keyword>"
+            "value": "每回合首次竊取<keyword id=\"gold\">金幣</keyword>時，也會竊取敵人一半的<keyword id=\"block\">格擋</keyword>"
           }
         }
       }
@@ -94628,37 +94670,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dein erster <keyword id=\"burn\">Brand</keyword>-Angriff in jedem Zug erhält <keyword id=\"leech\">Lebensraub</keyword>"
+            "value": "Dein erster <keyword id=\"burn\">Brand</keyword>angriff pro Zug erhält <keyword id=\"leech\">Lebensraub</keyword>, wenn du weniger als die Hälfte deiner <keyword id=\"health\">Gesundheit</keyword> hast"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your first <keyword id=\"burn\">Burn</keyword> attack each turn gains <keyword id=\"leech\">Leech</keyword>"
+            "value": "Your first <keyword id=\"burn\">Burn</keyword> attack each turn gains <keyword id=\"leech\">Leech</keyword> if you are below half <keyword id=\"health\">Health</keyword>"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre première attaque de <keyword id=\"burn\">Brûlure</keyword> de chaque tour bénéficie de <keyword id=\"leech\">Vol de vie</keyword>"
+            "value": "Votre première attaque de <keyword id=\"burn\">Brûlure</keyword> de chaque tour gagne <keyword id=\"leech\">Vol de vie</keyword> si votre <keyword id=\"health\">Santé</keyword> est inférieure à la moitié de son maximum"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "各ターンで最初の<keyword id=\"burn\">炎上</keyword>攻撃に<keyword id=\"leech\">吸収</keyword>を付与"
+            "value": "各ターンで最初の<keyword id=\"burn\">炎上</keyword>攻撃時、<keyword id=\"health\">体力</keyword>が半分未満なら<keyword id=\"leech\">吸収</keyword>を付与"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "매 턴 첫 <keyword id=\"burn\">화상</keyword> 공격에 <keyword id=\"leech\">흡혈</keyword> 부여"
+            "value": "매 턴 첫 <keyword id=\"burn\">화상</keyword> 공격 시 <keyword id=\"health\">체력</keyword>이 절반 미만이면 <keyword id=\"leech\">흡혈</keyword>을 얻습니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "每回合首次<keyword id=\"burn\">燃燒</keyword>攻擊獲得<keyword id=\"leech\">吸血</keyword>"
+            "value": "每回合的首次<keyword id=\"burn\">燃燒</keyword>攻擊，若你當時的<keyword id=\"health\">生命值</keyword>低於一半，便會獲得<keyword id=\"leech\">吸血</keyword>"
           }
         }
       }
@@ -96452,37 +96494,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Erhalt von <keyword id=\"gold\">Gold</keyword> lässt dich mit <value id=\"quantity_1\">%1$lld</value>%% Chance eine Karte ziehen"
+            "value": "Wenn du pro Zug zum ersten Mal <keyword id=\"gold\">Gold</keyword> erhältst, ziehst du eine Karte"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gaining <keyword id=\"gold\">Gold</keyword> has a <value id=\"quantity_1\">%1$lld</value>%% chance to draw a card"
+            "value": "Your first <keyword id=\"gold\">Gold</keyword> gain each turn draws a card"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gagner de l’<keyword id=\"gold\">Or</keyword> a <value id=\"quantity_1\">%1$lld</value>%% de chances de faire piocher une carte"
+            "value": "Votre premier gain d’<keyword id=\"gold\">Or</keyword> de chaque tour vous fait piocher une carte"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"gold\">ゴールド</keyword>を獲得すると<value id=\"quantity_1\">%1$lld</value>%%の確率でカードを1枚引く"
+            "value": "各ターンで最初に<keyword id=\"gold\">ゴールド</keyword>を獲得すると、カードを1枚引く"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"gold\">골드</keyword> 획득 시 <value id=\"quantity_1\">%1$lld</value>%% 확률로 카드 한 장 뽑기"
+            "value": "매 턴 처음 <keyword id=\"gold\">골드</keyword>를 얻을 때 카드를 1장 뽑습니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "獲得<keyword id=\"gold\">金幣</keyword>時，有<value id=\"quantity_1\">%1$lld</value>%%機率抽一張牌"
+            "value": "每回合首次獲得<keyword id=\"gold\">金幣</keyword>時，抽一張牌"
           }
         }
       }
