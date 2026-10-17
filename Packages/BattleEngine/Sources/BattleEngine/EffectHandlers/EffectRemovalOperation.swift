@@ -10,6 +10,7 @@ import TrinketCore
 enum EffectRemovalOperation {
     enum CleanseSelection {
         case all(Keyword?)
+        case keywords(Set<Keyword>)
         case randomDebuff
     }
 
@@ -89,6 +90,10 @@ enum EffectRemovalOperation {
         var effects = context.roster.activeEffects(for: target)
         var removed: [ActiveEffect] = switch selection {
         case let .all(keyword): EffectRemoval.removeDebuffs(from: &effects, keyword: keyword)
+        case let .keywords(keywords):
+            keywords.sorted { $0.rawValue < $1.rawValue }.flatMap {
+                EffectRemoval.removeDebuffs(from: &effects, keyword: $0)
+            }
         case .randomDebuff: EffectRemoval.removeRandomDebuff(from: &effects, using: &context.rng).map { [$0] } ?? []
         }
         if !removed.isEmpty {

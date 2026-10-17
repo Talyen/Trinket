@@ -203,9 +203,10 @@ extension HealingEngine {
                 sourceTriggers.pruningHealthRemoveEnemyThorns, kind: .thorns, from: context.roster.enemy.combatant,
             )
         }
-        if sourceTriggers.cleansingDew, context.roster.hasAffliction(.poison, on: request.target) {
+        if sourceTriggers.cleansingDew,
+           context.roster.hasAffliction(.poison, on: request.target) || context.roster.hasAffliction(.bleed, on: request.target) {
             _ = await EffectRemovalOperation.resolveCleanse(
-                .all(.poison), source: source, target: request.target,
+                .keywords([.poison, .bleed]), source: source, target: request.target,
                 abilityName: "Cleansing Dew", in: &context,
             )
         }

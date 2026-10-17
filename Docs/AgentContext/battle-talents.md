@@ -492,6 +492,14 @@ owner's first positive Thorns Health damage each turn, with normal Poison
 application. It leaves Physical and other Thorns conversions intact; other
 allies cannot use the owner's allowance.
 
+### Cleansing Dew
+
+Cleansing Dew removes Poison and Bleed from the healed recipient after actual
+Health restoration. Both statuses belong to one Cleanse operation, so combined
+removal does not multiply per-operation reactions. Other debuffs remain unless
+another Cleanse talent explicitly removes them. Shared Roots still requires the
+healer to survive the Cleanse reactions.
+
 ### Library Owl restoration and Cleanse
 
 Owl's Aether Shield and Living Archive each roll once per restoring ability

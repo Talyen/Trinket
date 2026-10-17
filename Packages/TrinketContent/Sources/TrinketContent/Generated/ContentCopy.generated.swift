@@ -293,8 +293,8 @@ public enum ContentCopy {
             (L10n.affixes_bloodward_basic_description(10), [10])
         case "Bloodward":
             (L10n.affixes_bloodward_title, [])
-        case "Gain 25% Dodge chance while below 50% Health":
-            (L10n.affixes_blur_astral_description(25, 50), [25, 50])
+        case "Gain 20% Dodge chance while below 50% Health":
+            (L10n.affixes_blur_astral_description(20, 50), [20, 50])
         case "Gain 15% Dodge chance while below 50% Health":
             (L10n.affixes_blur_basic_description(15, 50), [15, 50])
         case "Blur":
@@ -565,8 +565,8 @@ public enum ContentCopy {
             (L10n.affixes_lucky_basic_description(1), [1])
         case "Lucky":
             (L10n.affixes_lucky_title, [])
-        case "Gain 10% Critical chance\nGain 1 Gold on Critical Hit":
-            (L10n.affixes_lucky_clover_astral_description(10, 1), [10, 1])
+        case "Gain 8% Critical chance\nGain 1 Gold on Critical Hit":
+            (L10n.affixes_lucky_clover_astral_description(8, 1), [8, 1])
         case "Fortunate Strike":
             (L10n.affixes_lucky_clover_title, [])
         case "Manabound":
@@ -2591,7 +2591,7 @@ public enum ContentCopy {
             (L10n.talents_druid_health_t2_2_description(3), [3])
         case "Shelter Seed":
             (L10n.talents_druid_health_t2_2_name, [])
-        case "Restoring Health also Cleanses Poison":
+        case "Restoring Health also Cleanses Poison and Bleed":
             (L10n.talents_druid_health_t3_1_description, [])
         case "Cleansing Dew":
             (L10n.talents_druid_health_t3_1_name, [])
@@ -3019,8 +3019,6 @@ public enum ContentCopy {
             (L10n.talents_library_owl_cleanse_t4_1_description, [])
         case "Lesson Learned":
             (L10n.talents_library_owl_cleanse_t4_1_name, [])
-        case "At full Health, gain +20% Dodge chance":
-            (L10n.talents_library_owl_health_t1_1_description(20), [20])
         case "Safe Perch":
             (L10n.talents_library_owl_health_t1_1_name, [])
         case "Restoring Health reduces that ally's next incoming damage by 20%":
@@ -3207,8 +3205,8 @@ public enum ContentCopy {
             (L10n.talents_mana_moth_freeze_t2_1_description(20), [20])
         case "Blinding Frost":
             (L10n.talents_mana_moth_freeze_t2_1_name, [])
-        case "Freeze has a 20% chance to last an extra turn":
-            (L10n.talents_mana_moth_freeze_t2_2_description(20), [20])
+        case "Freeze has a 30% chance to last an extra turn":
+            (L10n.talents_mana_moth_freeze_t2_2_description(30), [30])
         case "Subzero Mist":
             (L10n.talents_mana_moth_freeze_t2_2_name, [])
         case "Mana empowerment increases Freeze build-up by 25%":
@@ -3231,8 +3229,8 @@ public enum ContentCopy {
             (L10n.talents_mana_moth_mana_t1_2_description(1), [1])
         case "Aetherial Surge":
             (L10n.talents_mana_moth_mana_t1_2_name, [])
-        case "Your Block absorbs 25% more damage while you have Mana":
-            (L10n.talents_mana_moth_mana_t2_1_description(25), [25])
+        case "Your Block absorbs 40% more damage while you have Mana":
+            (L10n.talents_mana_moth_mana_t2_1_description(40), [40])
         case "Mana Cocoon":
             (L10n.talents_mana_moth_mana_t2_1_name, [])
         case "Spending Mana adds 2 damage to your next attack":
@@ -3453,8 +3451,8 @@ public enum ContentCopy {
             (L10n.talents_pixie_health_t1_2_description(25), [25])
         case "Emergency Mend":
             (L10n.talents_pixie_health_t1_2_name, [])
-        case "Restoring Health has a 10% chance to repeat next turn":
-            (L10n.talents_pixie_health_t2_1_description(10), [10])
+        case "Restoring Health has a 20% chance to repeat next turn":
+            (L10n.talents_pixie_health_t2_1_description(20), [20])
         case "Lingering Blessing":
             (L10n.talents_pixie_health_t2_1_name, [])
         case "Allies at full Health gain +10% Dodge chance":
@@ -3729,8 +3727,8 @@ public enum ContentCopy {
             (L10n.talents_rogue_poison_t2_2_description(20), [20])
         case "Blinding Fumes":
             (L10n.talents_rogue_poison_t2_2_name, [])
-        case "Enemy Poison has a 25% chance to grow instead of fading":
-            (L10n.talents_rogue_poison_t3_1_description(25), [25])
+        case "Enemy Poison has a 35% chance to grow instead of fading":
+            (L10n.talents_rogue_poison_t3_1_description(35), [35])
         case "Poisoned enemies take 25% additional damage":
             (L10n.talents_rogue_poison_t3_2_description(25), [25])
         case "Deadly Dose":
@@ -4602,7 +4600,6 @@ public enum ContentCopy {
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Cleansing\\ ([0-9]+)\\ debuffs?\\ grants\\ ([0-9]+)\\ Block\\ per\\ effect\\ removed$"), count: 2, make: { values in L10n.talents_library_owl_cleanse_t2_1_description(values[0], values[1]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Cleansing\\ debuffs?\\ deals\\ ([0-9]+)\\ Holy\\ damage$"), count: 1, make: { values in L10n.talents_library_owl_cleanse_t3_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Cleansing\\ an\\ ally\\ grants\\ \\+([0-9]+)%\\ Critical\\ Hit\\ chance\\ on\\ their\\ next\\ attack$"), count: 1, make: { values in L10n.talents_library_owl_cleanse_t3_2_description(values[0]) }),
-        NumericTemplate(regex: try? NSRegularExpression(pattern: "^At\\ full\\ Health,\\ gain\\ \\+([0-9]+)%\\ Dodge\\ chance$"), count: 1, make: { values in L10n.talents_library_owl_health_t1_1_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Restoring\\ Health\\ reduces\\ that\\ ally's\\ next\\ incoming\\ damage\\ by\\ ([0-9]+)%$"), count: 1, make: { values in L10n.talents_library_owl_health_t1_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^Restoring\\ Health\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ grant\\ equal\\ Block$"), count: 1, make: { values in L10n.talents_library_owl_health_t2_2_description(values[0]) }),
         NumericTemplate(regex: try? NSRegularExpression(pattern: "^When\\ either\\ ally\\ enters\\ Death's\\ Door,\\ they\\ restore\\ ([0-9]+)\\ Health$"), count: 1, make: { values in L10n.talents_library_owl_health_t3_1_description(values[0]) }),

@@ -66776,37 +66776,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das Wiederherstellen von <keyword id=\"health\">Gesundheit</keyword> reinigt auch <keyword id=\"poison\">Gift</keyword>"
+            "value": "Das Wiederherstellen von <keyword id=\"health\">Gesundheit</keyword> reinigt auch <keyword id=\"poison\">Gift</keyword> und <keyword id=\"bleed\">Blutung</keyword>"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restoring <keyword id=\"health\">Health</keyword> also Cleanses <keyword id=\"poison\">Poison</keyword>"
+            "value": "Restoring <keyword id=\"health\">Health</keyword> also Cleanses <keyword id=\"poison\">Poison</keyword> and <keyword id=\"bleed\">Bleed</keyword>"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restaurer de la <keyword id=\"health\">Santé</keyword> purifie aussi le <keyword id=\"poison\">Poison</keyword>"
+            "value": "Restaurer de la <keyword id=\"health\">Santé</keyword> purifie aussi le <keyword id=\"poison\">Poison</keyword> et le <keyword id=\"bleed\">Saignement</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">体力</keyword>を回復すると<keyword id=\"poison\">毒</keyword>も浄化"
+            "value": "<keyword id=\"health\">体力</keyword>を回復すると<keyword id=\"poison\">毒</keyword>と<keyword id=\"bleed\">出血</keyword>も浄化"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">체력</keyword> 회복 시 <keyword id=\"poison\">독</keyword>도 정화"
+            "value": "<keyword id=\"health\">체력</keyword> 회복 시 <keyword id=\"poison\">독</keyword>과 <keyword id=\"bleed\">출혈</keyword>도 정화"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "恢復<keyword id=\"health\">生命值</keyword>時，也會淨化<keyword id=\"poison\">中毒</keyword>"
+            "value": "恢復<keyword id=\"health\">生命值</keyword>時，也會淨化<keyword id=\"poison\">中毒</keyword>和<keyword id=\"bleed\">流血</keyword>"
           }
         }
       }
@@ -75968,37 +75968,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bei voller <keyword id=\"health\">Gesundheit</keyword> erhältst du +<value id=\"quantity_1\">%1$lld</value>%% Chance auf <keyword id=\"dodge\">Ausweichen</keyword>"
+            "value": "Oberhalb halber <keyword id=\"health\">Gesundheit</keyword> erhältst du +<value id=\"quantity_1\">%1$lld</value>%% Chance auf <keyword id=\"dodge\">Ausweichen</keyword>"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "At full <keyword id=\"health\">Health</keyword>, gain +<value id=\"quantity_1\">%1$lld</value>%% <keyword id=\"dodge\">Dodge</keyword> chance"
+            "value": "Above half <keyword id=\"health\">Health</keyword>, gain +<value id=\"quantity_1\">%1$lld</value>%% <keyword id=\"dodge\">Dodge</keyword> chance"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "À pleine <keyword id=\"health\">Santé</keyword>, gagnez +<value id=\"quantity_1\">%1$lld</value>%% de chances d’<keyword id=\"dodge\">Esquive</keyword>"
+            "value": "Au-dessus de la moitié de votre <keyword id=\"health\">Santé</keyword>, gagnez +<value id=\"quantity_1\">%1$lld</value>%% de chances d’<keyword id=\"dodge\">Esquive</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">体力</keyword>が満タンの間、<keyword id=\"dodge\">回避</keyword>率が<value id=\"quantity_1\">%1$lld</value>%%上昇"
+            "value": "<keyword id=\"health\">体力</keyword>が半分を超えている間、<keyword id=\"dodge\">回避</keyword>率が<value id=\"quantity_1\">%1$lld</value>%%上昇"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">체력</keyword>이 가득 차 있으면 <keyword id=\"dodge\">회피</keyword> 확률 +<value id=\"quantity_1\">%1$lld</value>%%"
+            "value": "<keyword id=\"health\">체력</keyword>이 절반 초과이면 <keyword id=\"dodge\">회피</keyword> 확률 +<value id=\"quantity_1\">%1$lld</value>%%"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"health\">生命值</keyword>全滿時，<keyword id=\"dodge\">閃避</keyword>機率提高<value id=\"quantity_1\">%1$lld</value>%%"
+            "value": "<keyword id=\"health\">生命值</keyword>高於一半時，<keyword id=\"dodge\">閃避</keyword>機率提高<value id=\"quantity_1\">%1$lld</value>%%"
           }
         }
       }

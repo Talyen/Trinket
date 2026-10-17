@@ -294,8 +294,8 @@ public extension CombatantTalentCatalog {
             "rogue_poison_t3_1": CombatantTalentEffect(
                 name: "Contagion",
                 iconID: "sf:arrow.clockwise",
-                description: "Enemy Poison has a 25% chance to grow instead of fading",
-                triggers: CombatTraitTriggers(dot: DotTriggers { $0.enemyPoisonDecayIncreaseChance = 0.25 })
+                description: "Enemy Poison has a 35% chance to grow instead of fading",
+                triggers: CombatTraitTriggers(dot: DotTriggers { $0.enemyPoisonDecayIncreaseChance = 0.35 })
             ),
             "rogue_poison_t3_2": CombatantTalentEffect(
                 name: "Deadly Dose",
@@ -552,7 +552,7 @@ public extension CombatantTalentCatalog {
             "druid_health_t3_1": CombatantTalentEffect(
                 name: "Cleansing Dew",
                 iconID: "sf:drop.fill",
-                description: "Restoring Health also Cleanses Poison",
+                description: "Restoring Health also Cleanses Poison and Bleed",
                 triggers: CombatTraitTriggers(healing: HealingTriggers { $0.cleansingDew = true })
             ),
             "druid_health_t3_2": CombatantTalentEffect(
@@ -2119,8 +2119,8 @@ public extension CombatantTalentCatalog {
             "library_owl_health_t1_1": CombatantTalentEffect(
                 name: "Safe Perch",
                 iconID: "sf:bird.fill",
-                description: "At full Health, gain +20% Dodge chance",
-                triggers: CombatTraitTriggers(dodge: DodgeTriggers { $0.dodgeAtFullHealthBonus = 0.20 })
+                description: "Above half Health, gain +15% Dodge chance",
+                triggers: CombatTraitTriggers(dodge: DodgeTriggers { $0.dodgeChanceAboveHalfHealthBonus = 0.15 })
             ),
             "library_owl_health_t1_2": CombatantTalentEffect(
                 name: "Warded Roost",
@@ -2322,8 +2322,8 @@ public extension CombatantTalentCatalog {
             "mana_moth_mana_t2_1": CombatantTalentEffect(
                 name: "Mana Cocoon",
                 iconID: "sf:fossil.shell.fill",
-                description: "Your Block absorbs 25% more damage while you have Mana",
-                triggers: CombatTraitTriggers(block: BlockTriggers { $0.blockAbsorptionMultiplierWhileMana = 1.25 })
+                description: "Your Block absorbs 40% more damage while you have Mana",
+                triggers: CombatTraitTriggers(block: BlockTriggers { $0.blockAbsorptionMultiplierWhileMana = 1.40 })
             ),
             "mana_moth_mana_t2_2": CombatantTalentEffect(
                 name: "Aetherial Flow",
@@ -2369,8 +2369,8 @@ public extension CombatantTalentCatalog {
             "mana_moth_freeze_t2_2": CombatantTalentEffect(
                 name: "Subzero Mist",
                 iconID: "sf:cloud.fog.fill",
-                description: "Freeze has a 20% chance to last an extra turn",
-                triggers: CombatTraitTriggers(control: ControlTriggers { $0.freezeExtendChancePercent = 0.20 })
+                description: "Freeze has a 30% chance to last an extra turn",
+                triggers: CombatTraitTriggers(control: ControlTriggers { $0.freezeExtendChancePercent = 0.30 })
             ),
             "mana_moth_freeze_t3_1": CombatantTalentEffect(
                 name: "Flash Freeze",
@@ -2503,8 +2503,8 @@ public extension CombatantTalentCatalog {
             "pixie_health_t2_1": CombatantTalentEffect(
                 name: "Lingering Blessing",
                 iconID: "sf:hourglass.bottomhalf.filled",
-                description: "Restoring Health has a 10% chance to repeat next turn",
-                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestorationRepeatNextTurnChancePercent = 0.10 })
+                description: "Restoring Health has a 20% chance to repeat next turn",
+                triggers: CombatTraitTriggers(healing: HealingTriggers { $0.healthRestorationRepeatNextTurnChancePercent = 0.20 })
             ),
             "pixie_health_t2_2": CombatantTalentEffect(
                 name: "Protective Bloom",

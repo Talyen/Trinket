@@ -670,10 +670,10 @@ enum ItemAffixCatalogGenerated {
                     $0.dodgeChanceBelowHealthPercentBonus = 0.15
                 }
             )),
-            astral: ItemAffixPower(description: "Gain 25% Dodge chance while below 50% Health", modifiers: [], triggers: CombatTraitTriggers(
+            astral: ItemAffixPower(description: "Gain 20% Dodge chance while below 50% Health", modifiers: [], triggers: CombatTraitTriggers(
                 dodge: DodgeTriggers {
                     $0.dodgeChanceBelowHealthPercentThreshold = 0.50
-                    $0.dodgeChanceBelowHealthPercentBonus = 0.25
+                    $0.dodgeChanceBelowHealthPercentBonus = 0.20
                 }
             ))
         ),
@@ -764,12 +764,12 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.gold],
             weight: 1,
-            basic: ItemAffixPower(description: "Gain 10% Critical chance\nGain 1 Gold on Critical Hit", modifiers: [], triggers: CombatTraitTriggers(
-                damage: DamageTriggers { $0.criticalChanceBonus = 0.10 },
+            basic: ItemAffixPower(description: "Gain 8% Critical chance\nGain 1 Gold on Critical Hit", modifiers: [], triggers: CombatTraitTriggers(
+                damage: DamageTriggers { $0.criticalChanceBonus = 0.08 },
                 gold: GoldTriggers { $0.criticalActionGoldFlat = 1 }
             )),
-            astral: ItemAffixPower(description: "Gain 10% Critical chance\nGain 1 Gold on Critical Hit", modifiers: [], triggers: CombatTraitTriggers(
-                damage: DamageTriggers { $0.criticalChanceBonus = 0.10 },
+            astral: ItemAffixPower(description: "Gain 8% Critical chance\nGain 1 Gold on Critical Hit", modifiers: [], triggers: CombatTraitTriggers(
+                damage: DamageTriggers { $0.criticalChanceBonus = 0.08 },
                 gold: GoldTriggers { $0.criticalActionGoldFlat = 1 }
             ))
         ),

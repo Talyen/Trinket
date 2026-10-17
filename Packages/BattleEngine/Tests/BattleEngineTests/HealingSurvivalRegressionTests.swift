@@ -47,18 +47,45 @@ struct HealingSurvivalRegressionTests {
         #expect(battle.roster.hero.currentMana == 0)
     }
 
-    @Test func `Shared Roots requires its Druid to survive Cleansing Dew`() {
+    @Test(arguments: [Keyword.poison, .bleed])
+    func `Shared Roots requires its Druid to survive Cleansing Dew`(keyword: Keyword) {
         var profile = CombatModifierProfile.zero
         profile.triggers.cleansingDew = true
         profile.triggers.cleanseHolyDamage = 3
         profile.triggers.sharedRootsHealPercent = 1
         var battle = makeBattle(profile: profile, heroHealth: 5)
-        battle.insertEffect(.poison(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 0)
+        battle.insertEffect(keyword == .poison ? .poison(2) : .bleed(2), to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
 
         _ = battle.resolveHeal(HealRequest(amount: 1, target: battle.companion, sourceActorID: battle.companion.id))
 
         #expect(!battle.roster.companion.isAlive)
         #expect(battle.health(of: battle.hero) == 5)
+    }
+
+    @Test(arguments: [false, true])
+    func `Cleansing Dew removes Poison and Bleed in one operation only after actual healing`(missingHealth: Bool) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 20),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            companionHealth: missingHealth ? 10 : 20,
+            heroModifiers: .withTriggers {
+                $0.cleansingDew = true
+                $0.cleanseHolyDamage = 3
+                $0.criticalChanceBonus = -1
+            },
+            appliesFightPacing: false,
+        )
+        for effect in [Effect.poison(2), .bleed(2), .burn(2)] {
+            battle.insertEffect(effect, to: battle.companion, sourceID: battle.enemy.id, remainingTurns: 2)
+        }
+
+        _ = battle.resolveHeal(HealRequest(amount: 1, target: battle.companion, sourceActorID: battle.hero.id))
+
+        #expect(battle.roster.hasAffliction(.poison, on: battle.companion) == !missingHealth)
+        #expect(battle.roster.hasAffliction(.bleed, on: battle.companion) == !missingHealth)
+        #expect(battle.roster.hasAffliction(.burn, on: battle.companion))
+        #expect(battle.health(of: battle.enemy) == (missingHealth ? 97 : 100))
     }
 
     @Test(arguments: [false, true])

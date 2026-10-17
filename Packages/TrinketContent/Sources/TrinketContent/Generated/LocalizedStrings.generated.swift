@@ -6299,7 +6299,7 @@ enum L10n {
     }
 
     static var talents_druid_health_t3_1_description: LocalizedStringResource {
-        LocalizedStringResource("talents.druid_health_t3_1.description", defaultValue: "Restoring <keyword id=\"health\">Health</keyword> also Cleanses <keyword id=\"poison\">Poison</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("talents.druid_health_t3_1.description", defaultValue: "Restoring <keyword id=\"health\">Health</keyword> also Cleanses <keyword id=\"poison\">Poison</keyword> and <keyword id=\"bleed\">Bleed</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_druid_health_t3_1_name: LocalizedStringResource {
@@ -7163,7 +7163,7 @@ enum L10n {
     }
 
     static func talents_library_owl_health_t1_1_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("talents.library_owl_health_t1_1.description", defaultValue: "At full <keyword id=\"health\">Health</keyword>, gain +<value id=\"quantity_1\">\(value1)</value>% <keyword id=\"dodge\">Dodge</keyword> chance", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("talents.library_owl_health_t1_1.description", defaultValue: "Above half <keyword id=\"health\">Health</keyword>, gain +<value id=\"quantity_1\">\(value1)</value>% <keyword id=\"dodge\">Dodge</keyword> chance", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_library_owl_health_t1_1_name: LocalizedStringResource {
