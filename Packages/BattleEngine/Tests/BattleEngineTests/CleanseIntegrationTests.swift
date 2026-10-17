@@ -13,14 +13,13 @@ struct CleanseIntegrationTests {
     private func makeCleanseBattle(
         heroAbility: Ability = .panaceaPotion,
         heroMaxHealth: Int = 20,
-        enemyMaxHealth: Int = 100,
         activeHeroEffects: [ActiveEffect] = [],
         heroModifiers: CombatModifierProfile = .zero,
         dealOpeningHand: Bool = true,
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: heroMaxHealth, abilities: [heroAbility]),
-            enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: enemyMaxHealth),
+            enemy: CombatantFixtures.combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeHeroEffects: activeHeroEffects,
             heroModifiers: heroModifiers,
             dealOpeningHand: dealOpeningHand,
@@ -48,10 +47,9 @@ struct CleanseIntegrationTests {
         ActiveEffect(id: 90, effect: .damageReductionFlat(3, 3), remainingTurns: 2),
     ])
     func `legacy reflection preserves removed effect`(cleanse: Effect, debuff: ActiveEffect) throws {
-        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl")
         var reflection = CombatModifierProfile.zero
         reflection.triggers.cleanseReflectDebuffToEnemy = true
-        var battle = BattleStateTestFactory.makeBattle(companion: owl.combatant, companionModifiers: reflection)
+        var battle = BattleStateTestFactory.makeMinimalBattle(companionModifiers: reflection)
         var applied = debuff
         applied.sourceActorID = battle.enemy.id
         battle.roster.hero.activeEffects = [applied]
@@ -121,59 +119,6 @@ struct CleanseIntegrationTests {
             #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .shield })
             #expect(events.count { $0.effectKind == .instantHeal } == 1)
         }
-    }
-
-    @Test func `cleanse specific keyword removes matching debuffs on use`() throws {
-        let cleansePoison = Ability(
-            id: "cleanse-poison",
-            name: "Cleanse Poison",
-            tier: .basic,
-            description: "Cleanse Poisoned.",
-            effects: [.cleanse(.poison)],
-        )
-        var battle = makeCleanseBattle(
-            heroAbility: cleansePoison,
-            activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .poison(4), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .burn(4), remainingTurns: 0),
-            ],
-        )
-
-        let events = try BattleTestFixtures.playCardNamed("Cleanse Poison", owner: .hero, on: &battle)
-
-        try #expect(events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
-        try #expect(!(battle.hasHeroEffect {
-            if case .poison = $0 {
-                return true
-            }; return false
-        }))
-        try #expect(battle.hasHeroEffect {
-            if case .burn = $0 {
-                return true
-            }; return false
-        })
-    }
-
-    @Test func `cleanse stun removes control meter buildup`() throws {
-        let cleanseAbility = Ability(
-            id: "test-cleanse",
-            name: "Test Cleanse",
-            tier: .basic,
-            description: "Cleanse Stunned.",
-            targetedEffects: [TargetedEffect(.cleanse(.stun))],
-        )
-        var battle = makeCleanseBattle(
-            heroAbility: cleanseAbility,
-            heroMaxHealth: 50,
-            enemyMaxHealth: 10,
-            activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0),
-            ],
-        )
-
-        _ = try BattleTestFixtures.playCardNamed("Test Cleanse", owner: .hero, on: &battle)
-
-        try #expect(!battle.hasHeroEffect { $0.kind == .controlMeter }, "Cleanse removed buildup")
     }
 
     @Test func `cleanse all debuffs triggers toxic backlash trait damage when curing poison`() throws {
@@ -248,12 +193,11 @@ struct CleanseIntegrationTests {
 extension CleanseIntegrationTests {
     @Test(arguments: [Keyword.stun, .freeze])
     func `legacy reflection returns triggered control to a tougher enemy`(keyword: Keyword) throws {
-        let owl = try BattleTestFixtures.catalogBuild(combatantID: "library_owl")
         var reflection = CombatModifierProfile.zero
         reflection.triggers.cleanseReflectDebuffToEnemy = true
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20),
-            companion: owl.combatant, enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            companion: CombatantFixtures.passiveCompanion(), enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             companionModifiers: reflection, dealOpeningHand: false, appliesFightPacing: false,
         )
         let hero = battle.hero

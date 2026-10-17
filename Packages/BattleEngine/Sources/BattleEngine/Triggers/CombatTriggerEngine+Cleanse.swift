@@ -84,7 +84,10 @@ package extension CombatTriggerEngine {
         if allowMassCleanse {
             await dispelMagicPurge(triggers: triggers, source: source, in: &context)
             guard context.roster.health(for: source) > 0 else { return }
-            await cleansePartyReactions(triggers: triggers, source: source, target: target, in: &context)
+            if triggers.cleanseDodgeChanceBonus > 0 {
+                EffectRemovalOperation.grantSecondaryCleanseDodge(source: source, target: target, in: &context)
+            }
+            await cleanseOtherPartyMember(source: source, target: target, in: &context)
         }
         guard context.roster.health(for: source) > 0 else { return }
         if source.role != .enemy, Self.hasLivingPartyTrigger(\.purifyingWaters, in: context), removedCount > 0 {
@@ -96,23 +99,6 @@ package extension CombatTriggerEngine {
                 abilityName: "Purifying Waters",
             )
         }
-    }
-
-    static func afterCleanseKeywordReaction(
-        source: Combatant,
-        removedKeyword: Keyword,
-        removedCount: Int,
-        in context: inout BattleState,
-    ) async {
-        let triggers = context.modifiers(for: source.id).triggers
-
-        await toxicBacklashDamage(
-            triggers: triggers,
-            source: source,
-            removedKeyword: removedKeyword,
-            removedCount: removedCount,
-            in: &context,
-        )
     }
 
     private static func cleanseShieldBonuses(
@@ -168,17 +154,13 @@ package extension CombatTriggerEngine {
         )
     }
 
-    private static func toxicBacklashDamage(
-        triggers: CombatTraitTriggers,
+    static func toxicBacklashDamage(
         source: Combatant,
-        removedKeyword: Keyword,
         removedCount: Int,
         in context: inout BattleState,
     ) async {
-        guard triggers.onCleansePoisonDealDamagePerStack > 0, removedKeyword == .poison,
-              removedCount > 0, context.roster.enemy.isAlive,
-              context.roster.health(for: context.roster.enemy.combatant) > 0
-        else { return }
+        let triggers = context.modifiers(for: source.id).triggers
+        guard removedCount > 0, triggers.onCleansePoisonDealDamagePerStack > 0, context.roster.enemy.isAlive else { return }
         _ = await context.dealReactionDamage(
             SaturatedArithmetic.saturatingMul(triggers.onCleansePoisonDealDamagePerStack, removedCount), to: context.roster.enemy.combatant,
             keyword: .physical, sourceActorID: source.id,
@@ -197,18 +179,6 @@ package extension CombatTriggerEngine {
         for active in removed where active.sourceActorID == enemy.id {
             await ActiveEffectMutation.reflect(active, to: enemy, source: source, in: &context)
         }
-    }
-
-    private static func cleansePartyReactions(
-        triggers: CombatTraitTriggers,
-        source: Combatant,
-        target: Combatant,
-        in context: inout BattleState,
-    ) async {
-        if triggers.cleanseDodgeChanceBonus > 0 {
-            EffectRemovalOperation.grantSecondaryCleanseDodge(source: source, target: target, in: &context)
-        }
-        await cleanseOtherPartyMember(source: source, target: target, in: &context)
     }
 
     static func cleanseOtherPartyMember(
@@ -234,25 +204,6 @@ package extension CombatTriggerEngine {
         _ = await EffectRemovalOperation.resolveCleanse(
             .all(nil), source: source, target: other, abilityName: abilityName,
             propagation: .secondary, in: &context,
-        )
-    }
-
-    static func bonusHealAfterCleanse(
-        source: Combatant,
-        target: Combatant,
-        amount: Int,
-        requireWoundedTarget: Bool,
-        in context: inout BattleState,
-    ) async -> CombatOutcome {
-        guard amount > 0 else { return .empty }
-        if requireWoundedTarget {
-            guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return .empty }
-        }
-        return await resolveBonusHeal(
-            amount: amount,
-            source: source,
-            target: target,
-            in: &context,
         )
     }
 

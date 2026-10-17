@@ -24,16 +24,6 @@ enum EffectRemoval {
         }
     }
 
-    static func removeRandomBuff(
-        from effects: inout [ActiveEffect],
-        preservingBlock: Bool = false,
-        using rng: inout SeededRandomNumberGenerator,
-    ) -> ActiveEffect? {
-        removeRandom(from: &effects, using: &rng) {
-            $0.effect.isRemovableBuff && !(preservingBlock && $0.effect.kind == .shield)
-        }
-    }
-
     static func removeBuffs(
         from effects: inout [ActiveEffect],
         count: Int,
@@ -42,8 +32,10 @@ enum EffectRemoval {
     ) -> [ActiveEffect] {
         var removed: [ActiveEffect] = []
         for _ in 0 ..< count {
-            guard let keyword = removeRandomBuff(from: &effects, preservingBlock: preservingBlock, using: &rng) else { break }
-            removed.append(keyword)
+            guard let buff = removeRandom(from: &effects, using: &rng, where: {
+                $0.effect.isRemovableBuff && !(preservingBlock && $0.effect.kind == .shield)
+            }) else { break }
+            removed.append(buff)
         }
         return removed
     }
@@ -55,16 +47,11 @@ enum EffectRemoval {
         where matches: (ActiveEffect) -> Bool,
     ) -> [ActiveEffect] {
         var removed: [ActiveEffect] = []
-        var remaining: [ActiveEffect] = []
-        for effect in effects {
-            let isMatch = matches(effect) && (keyword == nil || effect.keyword == keyword)
-            if isMatch {
-                removed.append(effect)
-            } else {
-                remaining.append(effect)
-            }
+        effects.removeAll { effect in
+            guard matches(effect), keyword == nil || effect.keyword == keyword else { return false }
+            removed.append(effect)
+            return true
         }
-        effects = remaining
         return removed
     }
 
@@ -73,10 +60,9 @@ enum EffectRemoval {
         using rng: inout SeededRandomNumberGenerator,
         where matches: (ActiveEffect) -> Bool,
     ) -> ActiveEffect? {
-        let candidates = effects.filter(matches)
-        guard let removed = candidates.randomElement(using: &rng) else { return nil }
-        effects.removeAll { $0.id == removed.id }
-        return removed
+        let candidates = effects.indices.filter { matches(effects[$0]) }
+        guard let index = candidates.randomElement(using: &rng) else { return nil }
+        return effects.remove(at: index)
     }
 
     /// Distinct keywords in stable order for per-keyword removal events.

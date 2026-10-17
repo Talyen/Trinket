@@ -11,7 +11,7 @@ struct EffectHandlersApplyStatusTests {
     private static let stun = ActiveEffect(id: 5, effect: .controlMeter(.stun, 5, 10), remainingTurns: 0)
 
     @Test(arguments: [
-        (Effect.cleanse(.poison), [Self.poison], [], Set<Keyword>?.some([.poison])),
+        (Effect.cleanse(.poison), [Self.poison, Self.burn], [Self.burn], Set<Keyword>?.some([.poison])),
         (.cleanse(nil), [Self.poison, Self.burn, Self.block], [Self.block], nil),
         (.cleanse(.stun), [Self.stun], [], nil),
     ])

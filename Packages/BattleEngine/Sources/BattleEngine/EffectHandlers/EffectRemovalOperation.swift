@@ -1,12 +1,7 @@
 import TrinketContent
 import TrinketCore
 
-/// Single owner for stripping effects: cleanse removes debuffs, purge removes buffs.
-/// Previously two near-duplicate operations (`CleanseOperation`, `PurgeOperation`) with
-/// identical `Outcome` shapes and per-keyword event loops. The two paths stay separate
-/// below because their side effects differ on purpose: cleanse fans out to heal/draw/
-/// reflect reactions and reports heal-only empty removals as applied (Panacea), while
-/// purge only guards Block (`sealedSarcophagus`) and reports empty removals as unapplied.
+/// Commits removals before resolving their Cleanse or Purge reactions.
 enum EffectRemovalOperation {
     enum CleanseSelection {
         case all(Keyword?)
@@ -43,7 +38,7 @@ enum EffectRemovalOperation {
         let keywords: [Keyword] = effectKind == .cleanseApplied
             ? EffectRemoval.distinctSortedKeywords(from: removed)
             : removed.map(\.keyword).sorted { $0.rawValue < $1.rawValue }
-        _ = keywords.map { keyword in
+        for keyword in keywords {
             context.nextEvent(
                 kind: .effect(effectKind),
                 source: .init(source),
@@ -56,8 +51,6 @@ enum EffectRemovalOperation {
         }
     }
 
-    /// Secondary-propagation dodge grant shared by the cleanse resolve path and the
-    /// mass-cleanse party reaction (previously duplicated in both places).
     static func grantSecondaryCleanseDodge(
         source: Combatant,
         target: Combatant,
@@ -120,25 +113,11 @@ enum EffectRemovalOperation {
             baseHeal, SaturatedArithmetic.saturatingMul(healPerDebuff, removed.count),
         )
         let firstEventID = context.nextEventID
-        // Empty-removal still reports heal/side-effect events as applied
-        // (Panacea heal-only case). Purge has no such side effects, so its
-        // empty path reports didApply:false. The asymmetry is intentional.
-        guard !removed.isEmpty else {
-            await CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: [], in: &context)
-            if healAmount > 0, context.roster.health(for: source) > 0 {
-                let recipient = healTarget.map { BattleActionContext(actor: source, in: context).target($0, in: context) } ?? target
-                await context.healEmitting(
-                    amount: healAmount, target: recipient, source: source, abilityID: abilityID, abilityName: abilityName,
-                    isDirectCardHeal: context.hasHeroCard(for: source.id),
-                )
-            }
-            return Outcome(removed: [], application: EffectApplyOutcome(didApply: context.nextEventID > firstEventID))
-        }
-        if propagation == .secondary {
+        if !removed.isEmpty, propagation == .secondary {
             grantSecondaryCleanseDodge(source: source, target: target, in: &context)
         }
 
-        if source.role != .enemy, target.role != .enemy,
+        if !removed.isEmpty, source.role != .enemy, target.role != .enemy,
            context.modifiers(for: source.id).triggers.clearMind,
            context.roster.runtime(for: source)?.currentMana == 0,
            let owner = context.roster.participant(for: source) {
@@ -149,7 +128,8 @@ enum EffectRemovalOperation {
             healAmount: healAmount, healTarget: healTarget,
             allowMassCleanse: propagation == .primary, origin: origin, in: &context,
         )
-        return Outcome(removed: removed, application: EffectApplyOutcome(didApply: true))
+        // Panacea can apply healing even when there was nothing to remove.
+        return Outcome(removed: removed, application: EffectApplyOutcome(didApply: !removed.isEmpty || context.nextEventID > firstEventID))
     }
 
     private static func cleanseReactions(
@@ -165,7 +145,6 @@ enum EffectRemovalOperation {
         in context: inout BattleState,
     ) async {
         let triggers = context.modifiers(for: source.id).triggers
-        let orderedKeywords = EffectRemoval.distinctSortedKeywords(from: removed)
         await CombatTriggerEngine.afterHeroCleanse(source: source, target: target, removed: removed.map(\.keyword), in: &context)
         emitRemovalEvents(
             removed, effectKind: .cleanseApplied, source: source, target: target,
@@ -183,14 +162,14 @@ enum EffectRemovalOperation {
                 isDirectCardHeal: context.hasHeroCard(for: source.id),
             )
         }
+        guard !removed.isEmpty, context.roster.health(for: source) > 0 else { return }
+        if context.roster.health(for: target) < context.roster.maxHealth(for: target) {
+            _ = await CombatTriggerEngine.resolveBonusHeal(amount: triggers.cleanseBonusHeal, source: source, target: target, in: &context)
+        }
         guard context.roster.health(for: source) > 0 else { return }
-        _ = await CombatTriggerEngine.bonusHealAfterCleanse(
-            source: source, target: target, amount: triggers.cleanseBonusHeal, requireWoundedTarget: true, in: &context,
-        )
-        guard context.roster.health(for: source) > 0 else { return }
-        _ = await CombatTriggerEngine.bonusHealAfterCleanse(
-            source: source, target: BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context),
-            amount: triggers.cleanseSelfHeal, requireWoundedTarget: false, in: &context,
+        _ = await CombatTriggerEngine.resolveBonusHeal(
+            amount: triggers.cleanseSelfHeal, source: source,
+            target: BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context), in: &context,
         )
         guard context.roster.health(for: source) > 0 else { return }
         CombatTriggerEngine.drawAfterCleanse(source: source, removedCount: removed.count, in: &context)
@@ -201,15 +180,10 @@ enum EffectRemovalOperation {
             allowMassCleanse: allowMassCleanse,
             in: &context,
         )
-        for keyword in orderedKeywords {
-            guard context.roster.health(for: source) > 0 else { return }
-            await CombatTriggerEngine.afterCleanseKeywordReaction(
-                source: source,
-                removedKeyword: keyword,
-                removedCount: removed.count(where: { $0.keyword == keyword }),
-                in: &context,
-            )
-        }
+        guard context.roster.health(for: source) > 0 else { return }
+        await CombatTriggerEngine.toxicBacklashDamage(
+            source: source, removedCount: removed.count(where: { $0.keyword == .poison }), in: &context,
+        )
         guard context.roster.health(for: source) > 0 else { return }
         await CombatTriggerEngine.reflectCleansedEffects(removed, source: source, in: &context)
     }
@@ -240,11 +214,6 @@ enum EffectRemovalOperation {
         context.roster.setActiveEffects(effects, for: target)
         CombatTriggerEngine.protectPurgedEffects(removed, source: source, target: target, in: &context)
         let triggers = context.modifiers(for: source.id).triggers
-        // One event per removed buff (sorted for determinism), so direct
-        // purges report what was actually removed instead of collapsing to
-        // a single generic line. This matches the long-standing triggered
-        // path; only the direct `.all` path changes. `origin` is
-        // intentionally ignored for the keyword choice.
         emitRemovalEvents(
             removed, effectKind: .purgeApplied, source: source, target: target,
             abilityID: abilityID, abilityName: abilityName, origin: origin, in: &context,

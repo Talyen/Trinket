@@ -29,24 +29,23 @@ extension TalentCatalogRoundTripTests {
     }
 
     @Test func `fae swiftness clears freeze before fae ward chooses its extra effect`() {
-        for seed in 0 ..< 8 {
-            var battle = capstoneBattle(companion: ["pixie_cleanse_t2_1", "pixie_cleanse_t3_1"])
-            battle.rng = SeededRandomNumberGenerator(seed: UInt64(seed))
-            battle.seedActiveEffects(
-                [
-                    ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0),
-                    ActiveEffect(id: 2, effect: .controlMeter(.freeze, 3, 10), remainingTurns: 0),
-                    ActiveEffect(id: 3, effect: .burn(2), remainingTurns: 0),
-                ],
-                for: battle.hero,
-            )
-            let result = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
-                .all(.poison), source: battle.companion, target: battle.hero,
-                abilityName: "Cleanse", in: &battle,
-            ) }
-            #expect(result.value.removed.count == 3)
-            #expect(battle.activeEffects(of: battle.hero).filter(\.effect.isRemovableDebuff).isEmpty)
-        }
+        var battle = capstoneBattle(companion: ["pixie_cleanse_t2_1", "pixie_cleanse_t3_1"])
+        // This seed would spend the extra removal on Freeze if it ran before Fae Swiftness.
+        battle.rng = SeededRandomNumberGenerator(seed: 1)
+        battle.seedActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .poison(2), remainingTurns: 0),
+                ActiveEffect(id: 2, effect: .controlMeter(.freeze, 3, 10), remainingTurns: 0),
+                ActiveEffect(id: 3, effect: .burn(2), remainingTurns: 0),
+            ],
+            for: battle.hero,
+        )
+        let result = battle.recordingResult { battle in await EffectRemovalOperation.resolveCleanse(
+            .all(.poison), source: battle.companion, target: battle.hero,
+            abilityName: "Cleanse", in: &battle,
+        ) }
+        #expect(result.value.removed.count == 3)
+        #expect(battle.activeEffects(of: battle.hero).filter(\.effect.isRemovableDebuff).isEmpty)
     }
 
     @Test func `critical miss preparations credit their own talent`() {
