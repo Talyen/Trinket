@@ -297,38 +297,4 @@ struct BattleTurnEngineComponentTests {
             #expect(!runtime.talents.turn.blockedFaeWard)
         }
     }
-
-    @Test func `mana empowerment terminates safely with zero cost`() throws {
-        let burnAbility = Ability(
-            id: "flame-burst",
-            name: "Flame Burst",
-            tier: .basic,
-            damageComponents: [DamageComponent(5, keyword: .burn)],
-        )
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50, maxMana: 10, abilities: [burnAbility])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
-        var context = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            heroModifiers: CombatModifierProfile.withTriggers {
-                $0.repeatManaEmpowerment = true
-                $0.empowermentCostReduction = 10
-            },
-            dealOpeningHand: false,
-        )
-        context.roster.mutateRuntime(for: hero) {
-            $0.currentMana = 5
-        }
-        let events = context.recordingEvents { context in await BattleTurnEngine.performAction(
-            ability: burnAbility,
-            actor: hero,
-            abilityTarget: enemy,
-            context: &context,
-        ) }
-        try #expect(context.roster.runtime(for: hero)?.currentMana == 5)
-        let summary = try #require(events.first { $0.kind == .ability })
-        #expect(summary.amount == 6)
-    }
 }

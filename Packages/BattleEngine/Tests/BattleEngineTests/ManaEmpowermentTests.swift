@@ -116,11 +116,18 @@ struct ManaEmpowermentTests {
         #expect(battle.hand.cards.contains { $0.ability.id == Ability.kindling.id })
     }
 
-    @Test func `dragon spark discounts only first empowerment and preserves its effect`() {
+    @Test func `dragon spark waits for affordable empowerment then discounts only once`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [], heroMaxMana: 4, heroMana: 4,
+            heroAbilities: [], heroMaxMana: 4, heroMana: 0,
             heroModifiers: .withTriggers { $0.firstEmpowermentCostReduction = 2 },
         )
+        var unpayable = Ability.frostbolt
+        CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
+            for: &unpayable, actor: battle.hero, context: &battle,
+        ) }
+        #expect(unpayable.directDamage == Ability.frostbolt.directDamage)
+
+        battle.roster.hero.currentMana = 4
         for expectedMana in [3, 0] {
             var ability = Ability.frostbolt
             CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
@@ -129,24 +136,6 @@ struct ManaEmpowermentTests {
             #expect(battle.mana(of: battle.hero) == expectedMana)
             #expect(ability.directDamage == Ability.frostbolt.directDamage + 1)
         }
-    }
-
-    @Test func `dragon spark does not consume discount without enough mana`() {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [], heroMaxMana: 4, heroMana: 0,
-            heroModifiers: .withTriggers { $0.firstEmpowermentCostReduction = 2 },
-        )
-        var ability = Ability.frostbolt
-        CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
-            for: &ability, actor: battle.hero, context: &battle,
-        ) }
-        #expect(ability.directDamage == Ability.frostbolt.directDamage)
-        _ = battle.endTurn()
-        CombatExecutor.run { await BattleTurnEngine.spendManaToEmpowerBurnOrFreezeIfNeeded(
-            for: &ability, actor: battle.hero, context: &battle,
-        ) }
-        #expect(battle.mana(of: battle.hero) == 0)
-        #expect(ability.directDamage == Ability.frostbolt.directDamage + 1)
     }
 
     @Test(arguments: [0, 1])
@@ -206,62 +195,30 @@ struct ManaEmpowermentTests {
         #expect(recurring?.effect.potency == 7)
     }
 
-    @Test func `burn branch spends mana poison branch does not`() throws {
-        let burnOnly = Ability(
-            id: "burn-only",
-            name: "Burn Only",
-            tier: .basic,
-            damageComponents: [DamageComponent(2, keyword: .burn)],
-            targetedEffects: [TargetedEffect(.burn(2))],
+    @Test(arguments: [(Keyword.burn, Effect.burn(2), 0), (.poison, .poison(2), 3)])
+    func `burn branch spends mana poison branch does not`(keyword: Keyword, effect: Effect, expectedMana: Int) throws {
+        let ability = Ability(
+            id: "\(keyword.rawValue)-only", name: keyword.rawValue, tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: keyword)],
+            targetedEffects: [TargetedEffect(effect)],
         )
-        let poisonOnly = Ability(
-            id: "poison-only",
-            name: "Poison Only",
-            tier: .basic,
-            damageComponents: [DamageComponent(2, keyword: .poison)],
-            targetedEffects: [TargetedEffect(.poison(2))],
-        )
-
-        var burnBattle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [burnOnly], heroMaxMana: 3, heroMana: 3)
-        let burnCard = try #require(burnBattle.hand.cards.first { $0.ability.id == burnOnly.id })
-        _ = try burnBattle.playCard(cardID: burnCard.id)
-        try #expect(burnBattle.mana(of: burnBattle.hero) == 0)
-
-        var poisonBattle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [poisonOnly], heroMaxMana: 3, heroMana: 3)
-        let poisonCard = try #require(poisonBattle.hand.cards.first { $0.ability.id == poisonOnly.id })
-        _ = try poisonBattle.playCard(cardID: poisonCard.id)
-        try #expect(poisonBattle.mana(of: poisonBattle.hero) == 3)
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [ability], heroMaxMana: 3, heroMana: 3)
+        let card = try #require(battle.hand.cards.first { $0.ability.id == ability.id })
+        _ = try battle.playCard(cardID: card.id)
+        #expect(battle.mana(of: battle.hero) == expectedMana)
     }
 
-    @Test func `mana regenerates at start of player turn for mana users`() throws {
+    @Test(arguments: [true, false])
+    func `mana regenerates at start of player turn only for mana users`(hasManaPool: Bool) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.slash],
-            companionAbilities: [.bash],
-            enemyAbilities: [],
-            heroMaxMana: 5,
-            heroMana: 2,
-            companionMaxMana: 4,
-            companionMana: 1,
+            heroAbilities: [.slash], companionAbilities: [.bash], enemyAbilities: [],
+            heroMaxMana: hasManaPool ? 5 : 0, heroMana: hasManaPool ? 2 : 0,
+            companionMaxMana: hasManaPool ? 4 : 0, companionMana: hasManaPool ? 1 : 0,
         )
         let events = battle.endTurn().events
-
-        try #expect(battle.mana(of: battle.hero) == 3)
-        try #expect(battle.mana(of: battle.companion) == 2)
-        try #expect(events.count(where: { $0.effectKind == .resourceGain && $0.keyword == .mana }) == 2)
-    }
-
-    @Test func `mana does not regenerate without mana pool`() throws {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: [.slash],
-            companionAbilities: [.bash],
-            heroMaxMana: 0,
-            companionMaxMana: 0,
-        )
-        let events = battle.endTurn().events
-
-        try #expect(battle.mana(of: battle.hero) == 0)
-        try #expect(battle.mana(of: battle.companion) == 0)
-        try #expect(!events.contains { $0.effectKind == .resourceGain && $0.keyword == .mana })
+        #expect(battle.mana(of: battle.hero) == (hasManaPool ? 3 : 0))
+        #expect(battle.mana(of: battle.companion) == (hasManaPool ? 2 : 0))
+        #expect(events.count(where: { $0.effectKind == .resourceGain && $0.keyword == .mana }) == (hasManaPool ? 2 : 0))
     }
 
     @Test func `aetherward triggers on mana empower spend`() throws {

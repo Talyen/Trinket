@@ -255,16 +255,10 @@ package enum BattleCardCombatEngine {
     }
 
     static func canDrawFromDeck(for owner: BattleParticipant, in context: BattleState) -> Bool {
-        guard context.roster[owner].isAlive else { return false }
-        guard owner == .hero || owner == .companion else { return false }
-        return !isDeckDrawBlocked(for: owner, in: context)
-    }
-
-    static func isDeckDrawBlocked(for owner: BattleParticipant, in context: BattleState) -> Bool {
-        guard owner.isPartyMember else { return false }
+        guard owner.isPartyMember, context.roster[owner].isAlive else { return false }
         let combatant = context.roster[owner].combatant
-        return context.roster.hasPendingActionSkip(for: combatant, keyword: .freeze)
-            || context.roster.hasPendingActionSkip(for: combatant, keyword: .stun)
+        return !context.roster.hasPendingActionSkip(for: combatant, keyword: .freeze)
+            && !context.roster.hasPendingActionSkip(for: combatant, keyword: .stun)
     }
 
     static func deck(for owner: BattleParticipant, in context: BattleState) -> CombatDeck {

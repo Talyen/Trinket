@@ -20,7 +20,7 @@ extension UniqueCombatEngine {
 
     static func afterDamage(_ damage: DamageResolutionState, in context: inout BattleState) async {
         guard context.resolution.depth(.uniqueReaction) == 0 else { return }
-        await answerBlockedAttack(damage, in: &context)
+        answerBlockedAttack(damage, in: &context)
         await physicalCriticalRewards(damage, in: &context)
         guard damage.options.isOrdinaryUniqueCardDamage,
               damage.amount > 0,
@@ -95,7 +95,7 @@ extension UniqueCombatEngine {
     private static func answerBlockedAttack(
         _ damage: DamageResolutionState,
         in context: inout BattleState,
-    ) async {
+    ) {
         guard damage.options.isAttackHit, damage.sourceActorID == context.roster.enemy.id else { return }
 
         for actor in damage.blockAbsorbingOwners {
@@ -104,15 +104,9 @@ extension UniqueCombatEngine {
                   context.roster[owner].uniques.answeredBlock != true
             else { continue }
             context.roster[owner].uniques.answeredBlock = true
-            // Never nest a full Basic inside damage resolution.
-            if context.resolution.depth(.damage) > 0 {
-                if !context.uniques.pendingBlockAnswerOwners.contains(owner) {
-                    context.uniques.pendingBlockAnswerOwners.append(owner)
-                }
-            } else {
-                context.resolution.enter(.uniqueReaction)
-                await useBasic(owner: owner, in: &context)
-                context.resolution.leave(.uniqueReaction)
+            // Never nest a full Basic inside damage resolution; CombatResolver drains queued answers after damage completes.
+            if !context.uniques.pendingBlockAnswerOwners.contains(owner) {
+                context.uniques.pendingBlockAnswerOwners.append(owner)
             }
         }
     }
@@ -135,10 +129,6 @@ extension UniqueCombatEngine {
     }
 
     static func drainPendingBlockAnswers(in context: inout BattleState) async {
-        guard !context.uniques.pendingBlockAnswerOwners.isEmpty else {
-            return
-        }
-
         while !context.uniques.pendingBlockAnswerOwners.isEmpty {
             let owner = context.uniques.pendingBlockAnswerOwners.removeFirst()
             await useBasic(owner: owner, in: &context)

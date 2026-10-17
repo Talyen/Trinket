@@ -14,10 +14,11 @@ package extension DamagePipeline {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
         }
         if state.amount > 0 {
-            state.remaining = SaturatedArithmetic.saturatingAdd(
-                state.remaining, context.resolution.consumePartyCardDamage(from: state.provenance),
+            let bonus = SaturatedArithmetic.saturatingAdd(
+                context.resolution.consumePartyCardDamage(from: state.provenance),
+                context.resolution.consumePartyDamage(from: state.provenance),
             )
-            applyPartyDamageBonus(to: &state, in: &context)
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
         }
         applyPercentBonus(to: &state, in: &context)
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
@@ -284,16 +285,6 @@ package extension DamagePipeline {
         }
     }
 
-    private static func applyPartyDamageBonus(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState,
-    ) {
-        guard state.amount > 0 else { return }
-        let bonus = context.resolution.consumePartyDamage(from: state.provenance)
-        guard bonus > 0 else { return }
-        state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
-    }
-
     static func reserveAttackEmpowers(to state: inout DamageResolutionState, in context: inout BattleState) {
         guard state.options.isAttackHit, let sourceID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceID) else { return }
@@ -420,11 +411,9 @@ package extension DamagePipeline {
             if keyword == .burn || sharedKeyword == .burn {
                 state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.burnCriticalDamageBonus)
             }
-        }
-        if state.damageKeyword == .poison, state.options.isAttackHit, let sourceActorID = state.sourceActorID {
-            state.remaining = SaturatedArithmetic.saturatingAdd(
-                state.remaining, context.modifiers(for: sourceActorID).triggers.poisonCriticalDamageBonus,
-            )
+            if keyword == .poison {
+                state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.poisonCriticalDamageBonus)
+            }
         }
     }
 

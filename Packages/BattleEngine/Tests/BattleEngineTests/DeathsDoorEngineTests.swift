@@ -92,7 +92,7 @@ struct DeathsDoorEngineTests {
         try #expect(context.roster.isDeathsDoorActive(for: hero))
     }
 
-    @Test func `expiry round do T does not kill`() throws {
+    @Test func `expiry round do T does not kill until the following round`() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         _ = context.resolveTestDamage(5, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
@@ -105,28 +105,14 @@ struct DeathsDoorEngineTests {
             _ = context.endTurn()
         }
 
-        try #expect(context.roster.health(for: hero) == 1)
-        try #expect(context.roster.hero.isAlive)
-        try #expect(!(context.roster.isDeathsDoorActive(for: hero)))
-        try #expect(context.roster.runtime(for: hero)?.deathsDoorExpiredAtTurn == context.turnCount)
-    }
+        #expect(context.roster.health(for: hero) == 1)
+        #expect(context.roster.hero.isAlive)
+        #expect(!context.roster.isDeathsDoorActive(for: hero))
+        #expect(context.roster.runtime(for: hero)?.deathsDoorExpiredAtTurn == context.turnCount)
 
-    @Test func `do T kills on the round after deaths door expires`() throws {
-        var context = makeContext(heroHP: 5)
-        let hero = context.roster.hero.combatant
-        _ = context.resolveTestDamage(5, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
-        var effects = context.roster.activeEffects(for: hero)
-        let burnID = (effects.map(\.id).max() ?? 0) + 1
-        effects.append(ActiveEffect(id: burnID, effect: .burn(8), remainingTurns: 0, sourceActorID: context.enemy.id))
-        context.roster.setActiveEffects(effects, for: hero)
-
-        for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
-            _ = context.endTurn()
-        }
         _ = context.endTurn()
-
-        try #expect(context.roster.health(for: hero) == 0)
-        try #expect(!(context.roster.hero.isAlive))
+        #expect(context.roster.health(for: hero) == 0)
+        #expect(!context.roster.hero.isAlive)
     }
 
     @Test func `second wind does not preempt deaths door on lethal hit`() throws {
@@ -247,32 +233,19 @@ struct DeathsDoorEngineTests {
         #expect(expiryEvents.contains { $0.abilityName == "Afterglow" })
     }
 
-    private func makeLegionContext(heroHealth: Int) -> BattleState {
-        BattleStateTestFactory.makeMinimalBattle(
+    @Test(arguments: [(3, 10, [7]), (12, 12, [])])
+    func `endless legion raises health to floor only when below floor`(
+        initialHealth: Int, expectedHealth: Int, expectedHeals: [Int],
+    ) {
+        var context = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
-            heroHealth: heroHealth,
+            heroHealth: initialHealth,
             heroModifiers: CombatModifierProfile.withTriggers { $0.deathsDoorExpiredHealFlat = 10 },
         )
-    }
-
-    @Test func `endless legion raises health to floor exactly`() throws {
-        var context = makeLegionContext(heroHealth: 3)
         let hero = context.roster.hero.combatant
-
         let events = context.recordingEvents { context in await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &context) }
-
-        try #expect(context.roster.health(for: hero) == 10)
-        try #expect(events.contains { $0.effectKind == .instantHeal && $0.amount == 7 })
-    }
-
-    @Test func `endless legion does nothing at or above floor`() throws {
-        var context = makeLegionContext(heroHealth: 12)
-        let hero = context.roster.hero.combatant
-
-        let events = context.recordingEvents { context in await DeathsDoorEngine.afterDeathsDoorExpired(on: hero, in: &context) }
-
-        try #expect(events.isEmpty)
-        try #expect(context.roster.health(for: hero) == 12)
+        #expect(context.roster.health(for: hero) == expectedHealth)
+        #expect(events.filter { $0.effectKind == .instantHeal }.map(\.amount) == expectedHeals)
     }
 
     @Test(arguments: [BattleParticipant.hero, .companion])

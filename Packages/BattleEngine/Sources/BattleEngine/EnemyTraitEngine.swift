@@ -3,28 +3,49 @@ import TrinketContent
 import TrinketCore
 
 package enum EnemyTraitEngine {
-    static func firstAttackBleedBonus(from state: DamageResolutionState, context: inout BattleState) async {
-        guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
-              let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              source.role == .enemy,
-              context.roster.health(for: source.combatant) > 0,
-              context.roster.health(for: state.combatant) > 0
+    static func applyOutgoingAttackTraits(from state: DamageResolutionState, context: inout BattleState) async {
+        guard state.sourceActorID == context.enemy.id,
+              state.combatant.role != .enemy,
+              context.health(of: state.combatant) > 0,
+              context.roster.enemy.isAlive
         else { return }
-        let triggers = context.modifiers(for: sourceActorID).triggers
+        await basicFreezeDamage(from: state, context: &context)
+        guard state.options.isAttackHit, !state.options.isRetaliation,
+              context.health(of: state.combatant) > 0,
+              context.roster.enemy.isAlive
+        else { return }
+        await firstAttackBleedBonus(from: state, context: &context)
+        guard context.health(of: state.combatant) > 0,
+              context.roster.enemy.isAlive
+        else { return }
+        let triggers = context.enemyModifiers.triggers
+        if triggers.attacksApplyPoison > 0 {
+            await context.applyDecayingDoT(
+                keyword: .poison,
+                potency: triggers.attacksApplyPoison,
+                to: state.combatant,
+                sourceActorID: context.enemy.id,
+                application: .reaction,
+            )
+        }
+    }
+
+    private static func firstAttackBleedBonus(from state: DamageResolutionState, context: inout BattleState) async {
+        let source = context.roster.enemy
+        let modifiers = context.enemyModifiers
+        let triggers = modifiers.triggers
         guard triggers.firstAttackBleedBonus > 0,
-              let runtime = context.roster.runtime(for: source.combatant),
-              !runtime.hasTriggeredFirstHitBonus
+              !source.hasTriggeredFirstHitBonus
         else { return }
-        context.roster.mutateRuntime(for: source.combatant) { $0.hasTriggeredFirstHitBonus = true }
+        context.roster.enemy.hasTriggeredFirstHitBonus = true
 
         let amount = triggers.firstAttackBleedBonus
-        let outcome = await context.dealReactionDamage(amount, to: state.combatant, keyword: .bleed, sourceActorID: sourceActorID)
+        let outcome = await context.dealReactionDamage(amount, to: state.combatant, keyword: .bleed, sourceActorID: source.id)
 
         if outcome.healthLost > 0 {
             context.nextEvent(
                 kind: .status, source: .init(source),
-                abilityName: context.modifiers(for: sourceActorID).triggerAbilityName(
+                abilityName: modifiers.triggerAbilityName(
                     .firstAttackBleedBonus, fallback: "Hidden Fangs",
                 ),
                 target: state.combatant, amount: outcome.healthLost, keyword: .bleed,
@@ -33,15 +54,13 @@ package enum EnemyTraitEngine {
         await DoTApplicator.applyBleed(
             potency: amount,
             to: state.combatant,
-            sourceActorID: sourceActorID,
+            sourceActorID: source.id,
             application: .afterHit,
             in: &context,
         )
     }
 
-    static func basicFreezeDamage(from state: DamageResolutionState, context: inout BattleState) async {
-        guard state.sourceActorID == context.enemy.id, state.combatant.role != .enemy,
-              context.health(of: state.combatant) > 0, context.roster.enemy.isAlive else { return }
+    private static func basicFreezeDamage(from state: DamageResolutionState, context: inout BattleState) async {
         let amount = context.enemyModifiers.triggers.basicAttackFreezeBuildup
         let immediateBasic = state.provenance != nil
             && state.provenance == context.resolution.damageProvenance(for: context.enemy.id)
@@ -53,25 +72,6 @@ package enum EnemyTraitEngine {
             ) else { return }
         }
         _ = await context.dealReactionDamage(amount, to: state.combatant, keyword: .freeze, sourceActorID: context.enemy.id)
-    }
-
-    static func attacksApplyPoison(from state: DamageResolutionState, context: inout BattleState) async {
-        guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
-              let sourceActorID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              source.role == .enemy,
-              context.roster.health(for: source.combatant) > 0,
-              context.roster.health(for: state.combatant) > 0
-        else { return }
-        let triggers = context.modifiers(for: sourceActorID).triggers
-        guard triggers.attacksApplyPoison > 0 else { return }
-        await context.applyDecayingDoT(
-            keyword: .poison,
-            potency: triggers.attacksApplyPoison,
-            to: state.combatant,
-            sourceActorID: sourceActorID,
-            application: .reaction,
-        )
     }
 
     package static func turnFreeze(
@@ -141,14 +141,14 @@ package enum EnemyTraitEngine {
                 )
             }
             let stackPotency = keyword == .bleed ? amount : outcome.healthLost
-            if await DoTApplicator.applyDoT(
+            await DoTApplicator.applyDoT(
                 keyword: keyword,
                 potency: stackPotency,
                 to: target,
                 sourceActorID: source.id,
                 application: .attached,
                 in: &context,
-            ) {}
+            )
         }
     }
 

@@ -47,26 +47,18 @@ struct FrostCircuitRegressionTests {
 
     @Test func `Ray of Frost restores Mana for each Critical Hit`() throws {
         var profile = CombatantTalentCatalog.profile(for: ["wizard_mana_t4_1"])
-        profile.triggers.criticalChanceBonus = 0.65
-        var foundTwoCriticalHits = false
-
-        for seed in UInt64(1) ... 16 {
-            var battle = BattleStateTestFactory.makeBattleWithAbilities(
-                heroAbilities: [.rayOfFrost], enemyMaxHealth: 100,
-                heroMaxMana: 10, heroMana: 0, heroModifiers: profile,
-                rngSeed: seed, appliesFightPacing: false,
-            )
-            let card = try #require(battle.hand.cards.first { $0.owner == .hero })
-            let events = try battle.playCard(cardID: card.id).events
-            let criticalHits = events.count {
-                $0.kind == .abilityDamage && $0.abilityID == Ability.rayOfFrost.id && $0.isCritical
-            }
-            guard criticalHits == 2 else { continue }
-
-            foundTwoCriticalHits = true
-            #expect(battle.roster.hero.currentMana == 2)
-            break
+        profile.triggers.guaranteedCritWhileOnDeathsDoor = true
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.rayOfFrost], enemyMaxHealth: 100,
+            heroMaxMana: 10, heroMana: 0, heroModifiers: profile, appliesFightPacing: false,
+        )
+        battle.insertEffect(.deathsDoor, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 2)
+        let card = try #require(battle.hand.cards.first { $0.owner == .hero })
+        let events = try battle.playCard(cardID: card.id).events
+        let criticalHits = events.count {
+            $0.kind == .abilityDamage && $0.abilityID == Ability.rayOfFrost.id && $0.isCritical
         }
-        #expect(foundTwoCriticalHits)
+        #expect(criticalHits == 2)
+        #expect(battle.roster.hero.currentMana == 2)
     }
 }

@@ -100,9 +100,7 @@ package enum DamagePipeline {
             CombatTriggerEngine.removeBlockAfterPhysicalCriticalHit(by: state.sourceActorID, in: &context)
         }
 
-        await EnemyTraitEngine.basicFreezeDamage(from: state, context: &context)
-        await EnemyTraitEngine.firstAttackBleedBonus(from: state, context: &context)
-        await EnemyTraitEngine.attacksApplyPoison(from: state, context: &context)
+        await EnemyTraitEngine.applyOutgoingAttackTraits(from: state, context: &context)
         await applyDoTDamageReactions(to: &state, in: &context)
         await applyCompanionDamageRetaliation(to: &state, in: &context)
         await applyLeech(to: &state, in: &context)
@@ -212,12 +210,16 @@ package enum DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
+        var cardRepeatAmount = 0
         if state.options.usesResolvedOutgoingDamage {
             state.remaining = state.amount
             state.isCritical = state.options.guaranteedCritical
             if !state.options.isResolvedCardRepeat {
                 applyConditionalDamageBonuses(to: &state, in: context)
                 applyPreparedPoisonDamage(to: &state, in: &context)
+            }
+            if state.options.capturesCardRepeat {
+                cardRepeatAmount = state.remaining
             }
         } else {
             reserveAttackEmpowers(to: &state, in: &context)
@@ -237,17 +239,17 @@ package enum DamagePipeline {
                 outgoing.remaining -= state.options.partnerFirstAttackBonus
                 applyCriticalMultiply(to: &outgoing, in: &context)
                 state.unique.outgoingDamage = outgoing.remaining
+                if state.options.capturesCardRepeat {
+                    if state.options.partnerFirstAttackBonus == 0 {
+                        cardRepeatAmount = outgoing.remaining
+                    } else {
+                        var repeated = state
+                        applyCriticalMultiply(to: &repeated, in: &context)
+                        cardRepeatAmount = repeated.remaining
+                    }
+                }
             }
         }
-        // Freeze offense for Final Spark; the repeat rechecks recipient defenses.
-        let cardRepeatAmount: Int = {
-            guard state.options.capturesCardRepeat else { return 0 }
-            var outgoing = state
-            if !state.options.usesResolvedOutgoingDamage {
-                applyCriticalMultiply(to: &outgoing, in: &context)
-            }
-            return outgoing.remaining
-        }()
         applyTakenPercentAdjustments(to: &state, in: &context)
         if !state.options.usesResolvedOutgoingDamage {
             applyCriticalMultiply(to: &state, in: &context)

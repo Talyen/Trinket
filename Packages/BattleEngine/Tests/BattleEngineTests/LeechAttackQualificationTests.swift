@@ -17,33 +17,22 @@ struct LeechAttackQualificationTests {
         #expect((battle.health(of: battle.hero) > 1) == attack)
     }
 
-    @Test func `Taste for Blood recognizes equipment Leech before rolling Critical chance`() {
+    @Test(arguments: [false, true])
+    func `Taste for Blood recognizes equipment and Scarfeast Leech before rolling Critical chance`(scarfeast: Bool) {
         var profile = CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"])
-        profile.triggers.attackLeechPercent = 0.1
+        if scarfeast {
+            profile.triggers.physicalAttackLeechBelowHalfHealth = true
+        } else {
+            profile.triggers.attackLeechPercent = 0.1
+        }
         var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, seed: 9, appliesFightPacing: false)
         battle.roster.hero.currentHealth = 10
         battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
 
-        let result = battle.resolveTestDamage(10, options: .attack(scaling: .flat, accuracy: .unavoidable))
-
         // Seed 9 rolls above ordinary Critical chance and below Taste for Blood's bonus.
+        let result = battle.resolveTestDamage(10, options: .attack(scaling: .flat, accuracy: .unavoidable))
         #expect(result.isCritical)
         #expect(result.healthLost == 20)
-    }
-
-    @Test func `Taste for Blood recognizes Scarfeast before rolling Critical chance`() {
-        var profile = CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"])
-        profile.triggers.physicalAttackLeechBelowHalfHealth = true
-        profile.triggers.criticalChanceBonus = -0.1
-        var criticals = 0
-        for seed in 1 ... 32 {
-            var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, seed: UInt64(seed), appliesFightPacing: false)
-            battle.roster.hero.currentHealth = 10
-            battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
-            let result = battle.resolveTestDamage(8, options: .attack(accuracy: .unavoidable))
-            criticals += result.isCritical ? 1 : 0
-        }
-        #expect(criticals > 0)
     }
 
     @Test(arguments: [false, true])

@@ -19,14 +19,16 @@ package enum EffectTurnEngine {
             await EnemyTraitEngine.turnRandomDamageAllEnemies(for: combatant, context: &context)
             if participant != .enemy,
                context.roster[participant].isAlive,
-               CombatTriggerEngine.partyDebuffsExpireFaster(in: context),
-               context.roster.activeEffects(for: combatant).contains(where: {
-                   $0.effect.isRemovableDebuff && !$0.effect.isDecayingDoT && $0.remainingTurns > 0
-               }) {
-                context.roster.setActiveEffects(
-                    accelerateDebuffExpiration(context.roster.activeEffects(for: combatant)),
-                    for: combatant,
-                )
+               CombatTriggerEngine.partyDebuffsExpireFaster(in: context) {
+                context.roster[participant].activeEffects = context.roster[participant].activeEffects.compactMap { active in
+                    guard active.effect.isRemovableDebuff,
+                          !active.effect.isDecayingDoT,
+                          active.remainingTurns > 0
+                    else { return active }
+                    var updated = active
+                    updated.remainingTurns -= 1
+                    return updated.remainingTurns > 0 ? updated : nil
+                }
             }
         }
     }
@@ -60,17 +62,6 @@ package enum EffectTurnEngine {
         context.resolution.naturalReactionPhase = previousPhase
         if isNaturalEnemyPhase, let completedPhase {
             await ElementalReactionEngine.finishNaturalPhase(completedPhase, in: &context)
-        }
-    }
-
-    private static func accelerateDebuffExpiration(_ effects: [ActiveEffect]) -> [ActiveEffect] {
-        effects.compactMap { active in
-            guard active.effect.isRemovableDebuff else { return active }
-            guard !active.effect.isDecayingDoT else { return active }
-            guard active.remainingTurns > 0 else { return active }
-            var updated = active
-            updated.remainingTurns -= 1
-            return updated.remainingTurns > 0 ? updated : nil
         }
     }
 }

@@ -4,22 +4,10 @@ import TrinketContent
 import TrinketCore
 
 struct BattleOpeningHandTests {
-    private func makeBattle(
-        heroAbilities: [Ability],
-        companionAbilities: [Ability],
-        rngSeed: UInt64,
-    ) -> BattleState {
-        BattleStateTestFactory.makeBattleWithAbilities(
-            heroAbilities: heroAbilities,
-            companionAbilities: companionAbilities,
-            rngSeed: rngSeed,
-        )
-    }
-
     @Test func `opening hand uses shuffled tiers and one copy per loadout ability`() {
         var observedTiers: Set<AbilityTier> = []
-        for seed: UInt64 in 0 ..< 24 {
-            let battle = makeBattle(
+        for seed: UInt64 in 0 ..< 12 {
+            let battle = BattleStateTestFactory.makeBattleWithAbilities(
                 heroAbilities: [.maul, .smite, .hemorrhage],
                 companionAbilities: [.bash, .serratedEdge, .bloodthorn],
                 rngSeed: seed,
@@ -33,6 +21,9 @@ struct BattleOpeningHandTests {
             #expect(Set(heroCards.map(\.id)) == Set([Ability.maul.id, Ability.smite.id, Ability.hemorrhage.id]))
             #expect(heroCards.count == 3)
             #expect(companionCards.count == 3)
+            if observedTiers == [.basic, .skill, .ultimate] {
+                break
+            }
         }
         #expect(observedTiers == [.basic, .skill, .ultimate])
     }

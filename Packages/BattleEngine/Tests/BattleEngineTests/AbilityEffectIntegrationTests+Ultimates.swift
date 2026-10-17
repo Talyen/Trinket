@@ -5,12 +5,37 @@ import TrinketCore
 @testable import TrinketContent
 
 extension AbilityEffectIntegrationTests {
-    @Test func `avatar refresh survives consuming the previous conversion`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 500, dealOpeningHand: false)
+    @Test func `avatar conversion survives recast, non-attack cards, and recurring damage before converting all hits of the next attack`() {
+        var context = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 500,
+            heroModifiers: CombatModifierProfile(damageDealtBonus: [.holy: 2]),
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
         for _ in 0 ..< 2 {
             context.performTestAction(.avatarOfJustice)
         }
+        #expect(BattleTestFixtures.shieldPoints(for: context.hero, in: context) == 12)
+        context.performTestAction(.block)
+        context.performTestAction(.blizzard)
         #expect(context.activeEffects(of: context.hero).contains {
+            $0.effect == .nextStrikeDamageKeywordOverride(.holy)
+        })
+
+        let attack = Ability(
+            id: "two-hit-attack",
+            name: "Two Hit Attack",
+            tier: .basic,
+            damageComponents: [
+                DamageComponent(2, keyword: .physical),
+                DamageComponent(3, keyword: .burn),
+            ],
+            criticalChanceBonus: -1,
+        )
+        let events = context.performTestAction(attack)
+        let damage = events.filter { $0.kind == .abilityDamage }
+        #expect(damage.map(\.keyword) == [.holy, .holy])
+        #expect(damage.map(\.amount) == [4, 5])
+        #expect(!context.activeEffects(of: context.hero).contains {
             $0.effect == .nextStrikeDamageKeywordOverride(.holy)
         })
     }
@@ -22,36 +47,6 @@ extension AbilityEffectIntegrationTests {
         context.performTestAction(.avatarOfJustice)
         let events = context.performTestAction(.packTactics)
         #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [.holy])
-    }
-
-    @Test func `recurring damage does not spend avatar attack conversion`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 500, dealOpeningHand: false)
-        context.performTestAction(.avatarOfJustice)
-        context.performTestAction(.blizzard)
-        #expect(context.activeEffects(of: context.hero).contains {
-            $0.effect == .nextStrikeDamageKeywordOverride(.holy)
-        })
-    }
-
-    @Test func `avatar conversion enters the holy damage pipeline`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 500,
-            heroModifiers: CombatModifierProfile(damageDealtBonus: [.holy: 2]),
-            dealOpeningHand: false, appliesFightPacing: false,
-        )
-        context.performTestAction(.avatarOfJustice)
-
-        let attack = Ability(
-            id: "converted-attack",
-            name: "Converted Attack",
-            tier: .basic,
-            damageComponents: [DamageComponent(2, keyword: .physical)],
-            criticalChanceBonus: -1,
-        )
-        let events = context.performTestAction(attack)
-        let damage = events.first { $0.kind == .abilityDamage }
-        #expect(damage?.keyword == .holy)
-        #expect(damage?.amount == 4)
     }
 
     @Test func `feint draws a manual card and dodges the next hit`() throws {
@@ -79,43 +74,6 @@ extension AbilityEffectIntegrationTests {
         try #expect(context.health(of: context.hero) == heroBefore)
         try #expect(dodgeEvents.contains { $0.effectKind == .dodgeApplied })
         try #expect(!context.activeEffects(of: context.hero).contains { $0.effect == .evadeNextHit })
-    }
-
-    @Test func `avatar deals holy damage and converts the next attack`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
-        let openingHealth = context.health(of: context.enemy)
-        context.performTestAction(.avatarOfJustice)
-        #expect(context.health(of: context.enemy) == openingHealth - 6)
-        #expect(BattleTestFixtures.shieldPoints(for: context.hero, in: context) == 6)
-        #expect(context.activeEffects(of: context.hero).contains {
-            $0.effect == .nextStrikeDamageKeywordOverride(.holy)
-        })
-
-        let attack = Ability(
-            id: "two-hit-attack",
-            name: "Two Hit Attack",
-            tier: .basic,
-            damageComponents: [
-                DamageComponent(2, keyword: .physical),
-                DamageComponent(3, keyword: .burn),
-            ],
-            criticalChanceBonus: -1,
-        )
-        let events = context.performTestAction(attack)
-        let damage = events.filter { $0.kind == .abilityDamage }
-        #expect(damage.map(\.keyword) == [.holy, .holy])
-        #expect(!context.activeEffects(of: context.hero).contains {
-            $0.effect == .nextStrikeDamageKeywordOverride(.holy)
-        })
-    }
-
-    @Test func `avatar conversion remains through a non damaging card`() {
-        var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
-        context.performTestAction(.avatarOfJustice)
-        context.performTestAction(.block)
-        #expect(context.activeEffects(of: context.hero).contains {
-            $0.effect == .nextStrikeDamageKeywordOverride(.holy)
-        })
     }
 
     @Test func `blizzard and earthquake deal six damage twice`() {

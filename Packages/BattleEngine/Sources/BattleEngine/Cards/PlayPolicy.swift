@@ -93,7 +93,7 @@ private enum HeuristicCardScoring {
                 )
             }
         }
-        let lowHealth = HealthThreshold.isBelowHalf(battle.health(of: action.actor), maximum: battle.maxHealth(of: action.actor))
+        let lowHealth = battle.roster.isBelowHalfHealth(for: action.actor)
         let penalty = selfDamage > 0 && lowHealth
             ? SaturatedArithmetic.saturatingAdd(SaturatedArithmetic.saturatingMul(selfDamage, 10), 50)
             : SaturatedArithmetic.saturatingMul(selfDamage, 2)

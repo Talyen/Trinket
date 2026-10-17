@@ -119,33 +119,24 @@ struct DoTMechanicsTests {
         try #expect(BattleTestFixtures.burnPotency(on: battle) == 2)
     }
 
-    @Test func `poison eight decays to zero`() throws {
-        var battle = isolatedBattle(
-            enemyEffects: [ActiveEffect(id: 1, effect: .poison(8), remainingTurns: 0)],
-        )
+    @Test func `poison eight applies initial damage then decays to zero`() throws {
+        var battle = isolatedBattle(heroAbilities: [poisonAbility(potency: 8)])
+
+        let applyEvents = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
+        #expect(statusAmounts(from: applyEvents, keyword: .poison) == [8])
+        #expect(battle.activeEffects(of: battle.enemy).first { $0.keyword == .poison }?.effect.potency == 8)
 
         var amounts: [Int] = []
         for _ in 0 ..< 8 {
             let events = battle.endTurn().events
             amounts.append(contentsOf: statusAmounts(from: events, keyword: .poison))
-            if battle.activeEffects(of: battle.enemy).contains(where: { $0.keyword == .poison }) == false {
+            if !battle.activeEffects(of: battle.enemy).contains(where: { $0.keyword == .poison }) {
                 break
             }
         }
 
-        try #expect(amounts == [6, 5, 4, 3, 2, 1])
-        try #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
-    }
-
-    @Test func `poison applies initial damage`() throws {
-        var battle = isolatedBattle(heroAbilities: [poisonAbility(potency: 8)])
-
-        let applyEvents = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
-
-        try #expect(statusAmounts(from: applyEvents, keyword: .poison) == [8])
-        try #expect(
-            battle.activeEffects(of: battle.enemy).first { $0.keyword == .poison }?.effect.potency == 8,
-        )
+        #expect(amounts == [6, 5, 4, 3, 2, 1])
+        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
     }
 
     @Test func `bleed four ticks once after apply`() throws {
@@ -276,12 +267,16 @@ struct DoTMechanicsTests {
     }
 
     @Test(arguments: [(4, [1, 2, 3, 4, 4]), (0, [1, 2, 3, 4, 5])])
-    func `damage ramp grows each round with optional cap`(cap: Int, amounts: [Int]) throws {
+    func `damage ramp grows each round with optional cap and matching keyword`(cap: Int, amounts: [Int]) throws {
         var battle = makeRampBattle(cap: cap)
-        for expected in amounts {
+        for (index, expected) in amounts.enumerated() {
             CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
             let runtime = try #require(battle.roster.runtime(for: battle.hero))
             #expect(runtime.talents.battle.keywordDamageRamp[.burn] == expected)
+            if index == 0 {
+                #expect(DamagePipeline.outgoingDamageBonus(for: battle.roster.hero.id, keyword: .burn, in: battle) == 1)
+                #expect(DamagePipeline.outgoingDamageBonus(for: battle.roster.hero.id, keyword: .bleed, in: battle) == 0)
+            }
         }
         if cap > 0 {
             let companion = try #require(battle.roster.runtime(for: battle.companion))
@@ -289,23 +284,6 @@ struct DoTMechanicsTests {
         }
     }
 
-    @Test func `damage ramp applies to matching keyword only`() {
-        var battle = makeRampBattle(cap: 4)
-        CombatExecutor.run { await CombatTriggerEngine.atPlayerTurnStart(in: &battle) }
-        #expect(DamagePipeline.outgoingDamageBonus(
-            for: battle.roster.hero.id,
-            keyword: .burn,
-            in: battle,
-        ) == 1)
-        #expect(DamagePipeline.outgoingDamageBonus(
-            for: battle.roster.hero.id,
-            keyword: .bleed,
-            in: battle,
-        ) == 0)
-    }
-}
-
-extension DoTMechanicsTests {
     @Test func `burn bonuses are stored once and double tick preserves resolved potency`() throws {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .init(
@@ -362,54 +340,36 @@ extension DoTMechanicsTests {
         #expect(battle.activeEffects(of: enemy).first?.effect.potency == 4)
         #expect(battle.activeEffects(of: enemy).first?.remainingTurns == 1)
     }
-}
 
-extension DoTMechanicsTests {
-    private static func makeBurnManaBattle(
-        threshold: Int = 0,
-        perTurnCap: Int = 0,
-    ) -> BattleState {
-        BattleStateTestFactory.makeBattleWithAbilities(
-            enemyMaxHealth: 100,
-            heroMaxMana: 5,
-            heroMana: 0,
+    @Test func `burn damage and ticks restore mana within threshold and per-turn cap`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 100, heroMaxMana: 5, heroMana: 0,
             heroModifiers: CombatModifierProfile.withTriggers {
                 $0.criticalChanceBonus = -1
-                $0.burnDamageManaRestoreThreshold = threshold
-                $0.onBurnDamageRestoreManaPerTurnCap = perTurnCap
+                $0.burnDamageManaRestoreThreshold = 4
+                $0.onBurnDamageRestoreManaPerTurnCap = 2
                 $0.onBurnDamageRestoreManaFlat = 1
             },
             dealOpeningHand: false, appliesFightPacing: false,
         )
-    }
+        // Below threshold (3 < 4) does not restore mana.
+        #expect(battle.resolveTestDamage(3, keyword: .burn).healthLost == 3)
+        #expect(battle.roster.hero.currentMana == 0)
 
-    @Test func `direct burn damage restores mana up to the per-turn cap`() {
-        var battle = Self.makeBurnManaBattle(perTurnCap: 2)
-        for expected in [1, 2, 2] {
-            let outcome = battle.resolveTestDamage(3, keyword: .burn)
-            #expect(outcome.healthLost == 3)
-            #expect(battle.roster.hero.currentMana == expected)
-        }
-        #expect(battle.turnCadence.burnManaRestored[.hero] == 2)
-    }
-
-    @Test(arguments: [(3, 0), (5, 1)])
-    func `direct burn damage honors the mana restore threshold`(damage: Int, expectedMana: Int) {
-        var battle = Self.makeBurnManaBattle(threshold: 4)
-        let outcome = battle.resolveTestDamage(damage, keyword: .burn)
-        #expect(outcome.healthLost == damage)
-        #expect(battle.roster.hero.currentMana == expectedMana)
-    }
-
-    @Test func `burn tick restores mana exactly once`() {
-        var battle = Self.makeBurnManaBattle(perTurnCap: 2)
-        let hero = battle.roster.hero.combatant
-        let enemy = battle.roster.enemy.combatant
-        let active = ActiveEffect(id: 100, effect: .burn(4), remainingTurns: 0, sourceActorID: hero.id)
-        battle.roster.setActiveEffects([active], for: enemy)
-        CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: enemy, in: &battle) }
+        // Direct hit at/above threshold restores 1 mana.
+        #expect(battle.resolveTestDamage(5, keyword: .burn).healthLost == 5)
         #expect(battle.roster.hero.currentMana == 1)
-        #expect(battle.turnCadence.burnManaRestored[.hero] == 1)
+
+        // Burn tick of 4 (from potency 8) restores 1 mana and reaches the per-turn cap of 2.
+        let active = ActiveEffect(id: 100, effect: .burn(8), remainingTurns: 0, sourceActorID: battle.hero.id)
+        battle.roster.setActiveEffects([active], for: battle.enemy)
+        CombatExecutor.run { await EffectHandlers.advanceTurn(active, on: battle.enemy, in: &battle) }
+        #expect(battle.roster.hero.currentMana == 2)
+        #expect(battle.turnCadence.burnManaRestored[.hero] == 2)
+
+        // Further burn damage in the same turn is capped.
+        #expect(battle.resolveTestDamage(5, keyword: .burn).healthLost == 5)
+        #expect(battle.roster.hero.currentMana == 2)
     }
 
     @Test(arguments: [Keyword.burn, .poison])

@@ -97,23 +97,14 @@ package extension CombatTriggerEngine {
                 await emitGold(.defeatEnemyGoldFlat, "Bounty", amount: amount, to: actor, in: &context)
             }
         }
-
-        for (_, member) in livingPartyMembers(in: context) {
-            await afterEnemyDefeatedReactions(for: member.combatant, in: &context)
+        if context.lastEnemyDefeatWasCritical,
+           let sourceID = context.lastEnemyDefeatSourceActorID,
+           let source = context.roster.combatant(for: sourceID), source.isAlive {
+            let amount = context.modifiers(for: sourceID).triggers.critOnDefeatGold
+            if amount > 0 {
+                await emitGold(.critOnDefeatGold, "Bounty Hunter", amount: amount, to: source.combatant, in: &context)
+            }
         }
-    }
-
-    private static func afterEnemyDefeatedReactions(
-        for actor: Combatant,
-        in context: inout BattleState,
-    ) async {
-        guard context.roster.health(for: actor) > 0,
-              context.lastEnemyDefeatWasCritical,
-              context.lastEnemyDefeatSourceActorID == actor.id
-        else { return }
-        let triggers = context.modifiers(for: actor.id).triggers
-        guard triggers.critOnDefeatGold > 0 else { return }
-        await emitGold(.critOnDefeatGold, "Bounty Hunter", amount: triggers.critOnDefeatGold, to: actor, in: &context)
     }
 
     static func afterVictory(in context: inout BattleState) async {

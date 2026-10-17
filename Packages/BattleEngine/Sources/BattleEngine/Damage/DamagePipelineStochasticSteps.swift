@@ -172,7 +172,9 @@ package extension DamagePipeline {
             return
         }
         var abilityBonus = state.options.abilityCriticalChanceBonus
-        abilityBonus += consumePendingCriticalChanceBonus(for: state, actor: actor.combatant, in: &context)
+        if state.options.isAttackHit {
+            abilityBonus += context.consumeTalentPreparation(\.nextAttackCriticalBonus, for: actor.combatant) ?? 0
+        }
         abilityBonus += consumeSanctifiedCriticalBonus(for: state, actor: actor.combatant, in: &context)
         if state.options.isAttackHit,
            state.options.abilityHasLeech || context.modifiers(for: sourceActorID).triggers.attackLeechPercent > 0
@@ -210,40 +212,26 @@ package extension DamagePipeline {
         state.isCritical = true
     }
 
-    private static func consumePendingCriticalChanceBonus(
-        for state: DamageResolutionState,
-        actor: Combatant,
-        in context: inout BattleState,
-    ) -> Double {
-        guard state.options.isAttackHit else { return 0 }
-        return context.consumeTalentPreparation(\.nextAttackCriticalBonus, for: actor) ?? 0
-    }
-
     private static func resolveGuaranteedCrit(
         to state: inout DamageResolutionState,
         actor: CombatantRuntime,
         in context: inout BattleState,
     ) -> Bool {
-        guard let sourceActorID = state.sourceActorID else {
-            return false
-        }
+        guard let sourceActorID = state.sourceActorID else { return false }
+        let sourceTriggers = context.modifiers(for: sourceActorID).triggers
         var guaranteed = state.options.guaranteedCritical
-        if state.options.guaranteedCriticalIfEnemyBuffed,
-           context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
-            guaranteed = true
-        }
-        if state.options.isAttackHit,
-           context.modifiers(for: sourceActorID).triggers.firstAttackGuaranteedCritical,
-           context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
-            guaranteed = true
-        }
-        if state.options.isAttackHit,
-           state.damageKeyword == .physical,
-           context.modifiers(for: sourceActorID).triggers.firstPhysicalAttackGuaranteedCritical,
-           context.claimBattleGuard(.surpriseStrikePhysical, actorID: actor.combatant.id) {
-            guaranteed = true
-        }
+            || (state.options.guaranteedCriticalIfEnemyBuffed
+                && context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff))
         if state.options.isAttackHit {
+            if sourceTriggers.firstAttackGuaranteedCritical,
+               context.claimBattleGuard(.surpriseStrike, actorID: actor.combatant.id) {
+                guaranteed = true
+            }
+            if state.damageKeyword == .physical,
+               sourceTriggers.firstPhysicalAttackGuaranteedCritical,
+               context.claimBattleGuard(.surpriseStrikePhysical, actorID: actor.combatant.id) {
+                guaranteed = true
+            }
             for (_, member) in CombatTriggerEngine.livingPartyMembers(in: context) {
                 guard member.talents.pending.guaranteedCriticalAfterDodge,
                       member.id == sourceActorID
@@ -254,53 +242,30 @@ package extension DamagePipeline {
                 }
                 guaranteed = true
             }
-        }
-        if state.options.isAttackHit, state.options.isBasicAttackHit,
-           context.roster.runtime(for: actor.combatant)?.talents.pending.basicGuaranteedCritical == true {
-            context.roster.mutateRuntime(for: actor.combatant) {
-                $0.talents.pending.basicGuaranteedCritical = false
+            if state.options.isBasicAttackHit,
+               context.roster.runtime(for: actor.combatant)?.talents.pending.basicGuaranteedCritical == true {
+                context.roster.mutateRuntime(for: actor.combatant) {
+                    $0.talents.pending.basicGuaranteedCritical = false
+                }
+                guaranteed = true
             }
-            guaranteed = true
+            if context.consumeTalentPreparation(\.nextAttackGuaranteedCritical, for: actor.combatant) == true
+                || (state.damageKeyword == .bleed
+                    && context.consumeTalentPreparation(\.guaranteedBleedCritical, for: actor.combatant) == true) {
+                guaranteed = true
+            }
+            if context.consumeTalentPreparation(\.nextStunPreparedCritical, for: actor.combatant) == true {
+                guaranteed = true
+            }
         }
-        if state.options.isAttackHit,
-           consumePreparedHeroCritical(keyword: state.damageKeyword, actor: actor.combatant, in: &context) {
-            guaranteed = true
-        }
-        if consumeStunPreparedCritical(for: state, actor: actor.combatant, in: &context) {
-            guaranteed = true
-        }
-        if context.roster.isDeathsDoorActive(for: actor.combatant),
-           context.modifiers(for: sourceActorID).triggers.guaranteedCritWhileOnDeathsDoor {
-            guaranteed = true
-        }
-        if context.modifiers(for: sourceActorID).triggers.warChest,
-           state.damageKeyword == .physical,
-           context.gold >= 50 {
+        if (sourceTriggers.guaranteedCritWhileOnDeathsDoor && context.roster.isDeathsDoorActive(for: actor.combatant))
+            || (sourceTriggers.warChest && state.damageKeyword == .physical && context.gold >= 50) {
             guaranteed = true
         }
         if guaranteed {
             state.isCritical = true
         }
         return guaranteed
-    }
-
-    private static func consumeStunPreparedCritical(
-        for state: DamageResolutionState,
-        actor: Combatant,
-        in context: inout BattleState,
-    ) -> Bool {
-        state.options.isAttackHit && context.consumeTalentPreparation(\.nextStunPreparedCritical, for: actor) == true
-    }
-
-    private static func consumePreparedHeroCritical(
-        keyword: Keyword?,
-        actor: Combatant,
-        in context: inout BattleState,
-    ) -> Bool {
-        if context.consumeTalentPreparation(\.nextAttackGuaranteedCritical, for: actor) == true {
-            return true
-        }
-        return keyword == .bleed && context.consumeTalentPreparation(\.guaranteedBleedCritical, for: actor) == true
     }
 
     static func applyCriticalBlockSteal(

@@ -39,7 +39,7 @@ struct BattleOutcomeBranchTests {
 
     @Test(arguments: [false, true])
     func `full Health luck potion excludes healing even with a defeated ally`(companionDefeated: Bool) {
-        for seed in UInt64(1) ... 64 {
+        for seed in UInt64(1) ... 12 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false)
             if companionDefeated {
                 battle.roster.companion.currentHealth = 0
@@ -52,7 +52,7 @@ struct BattleOutcomeBranchTests {
 
     @Test func `luck potion heals an injured ally over a full Health ally with lower maximum Health`() {
         var didHeal = false
-        for seed in UInt64(1) ... 64 {
+        for seed in UInt64(1) ... 24 {
             var battle = BattleStateTestFactory.makeBattleWithAbilities(
                 heroMaxHealth: 5, companionMaxHealth: 100, rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false,
             )

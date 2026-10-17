@@ -413,8 +413,6 @@ enum CombatResolver {
                 await UniqueCombatEngine.drainPendingBlockAnswers(in: &context)
             }
             context.uniques.isDrainingOutOfTurnAttacks = false
-        }
-        if context.resolution.depth(.damage) == 0, !context.uniques.isDrainingOutOfTurnAttacks {
             await ElementalReactionEngine.finishControl(in: &context)
         }
         if !request.options.defersElementalPayoff, let hit = state.elementalHit {

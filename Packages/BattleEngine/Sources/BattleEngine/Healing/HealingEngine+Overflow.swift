@@ -250,11 +250,11 @@ extension HealingEngine {
         let transferAmount = CombatGain.amount(
             allocation.remaining, current: context.roster.companion.currentHealth, cap: context.roster.companion.maxHealth,
         )
-        if request.origin == .leech, sourceTriggers?.leechOverhealTransfersToCompanion == true,
-           request.sourceActorID == context.hero.id, request.target.id == context.hero.id,
+        if sourceTriggers?.leechOverhealTransfersToCompanion == true,
+           sourceActorID == context.hero.id, request.target.id == context.hero.id,
            context.roster.companion.isAlive, transferAmount > 0 {
             var transfer = HealRequest(
-                amount: transferAmount, target: context.companion, sourceActorID: request.sourceActorID,
+                amount: transferAmount, target: context.companion, sourceActorID: sourceActorID,
                 origin: .leech, logAs: .silent,
             )
             transfer.amountBasis = .resolved
@@ -271,9 +271,9 @@ extension HealingEngine {
         }
         guard context.roster.combatant(for: sourceActorID)?.isAlive == true else { return }
         await convertLeechOverflowToMana(allocation: &allocation, request: request, sourceTriggers: sourceTriggers, in: &context)
-        guard context.roster.combatant(for: sourceActorID)?.isAlive == true else { return }
-        if request.origin == .leech, sourceTriggers?.marrowmend == true,
-           request.sourceActorID == request.target.id,
+        guard let source = context.roster.combatant(for: sourceActorID), source.isAlive else { return }
+        if sourceTriggers?.marrowmend == true,
+           sourceActorID == request.target.id,
            context.claimHeroTalent(.marrowmend, actorID: request.target.id) {
             let converted = CombatRounding.scaled(allocation.remaining, multiplier: 0.5)
             if converted > 0 {
@@ -284,19 +284,15 @@ extension HealingEngine {
                 allocation.allocate(gain, to: .block)
             }
         }
-        if request.origin == .leech,
-           let sourceActorID = request.sourceActorID,
-           let source = context.roster.combatant(for: sourceActorID) {
-            let bonus = context.modifiers(for: sourceActorID).triggers.leechOverhealDamageBonus
-            if bonus > 0 {
-                context.roster.mutateRuntime(for: source.combatant) { runtime in
-                    let current = runtime.talents.battle.leechOverhealDamageBonus
-                    let allowed = max(0, 4 - current)
-                    let toAdd = min(bonus, allowed)
-                    if toAdd > 0 {
-                        runtime.talents.battle.leechOverhealDamageBonus += toAdd
-                        runtime.talents.battle.damageBonus = SaturatedArithmetic.saturatingAdd(runtime.talents.battle.damageBonus, toAdd)
-                    }
+        let bonus = context.modifiers(for: sourceActorID).triggers.leechOverhealDamageBonus
+        if bonus > 0 {
+            context.roster.mutateRuntime(for: source.combatant) { runtime in
+                let current = runtime.talents.battle.leechOverhealDamageBonus
+                let allowed = max(0, 4 - current)
+                let toAdd = min(bonus, allowed)
+                if toAdd > 0 {
+                    runtime.talents.battle.leechOverhealDamageBonus += toAdd
+                    runtime.talents.battle.damageBonus = SaturatedArithmetic.saturatingAdd(runtime.talents.battle.damageBonus, toAdd)
                 }
             }
         }

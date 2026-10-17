@@ -22,10 +22,7 @@ package extension CombatTriggerEngine {
             if triggers.nextAttackDoubleAfterDodge {
                 runtime.talents.pending.doubleDamageAfterDodge = true
             }
-            if triggers.onDodgeNextPartyHitGuaranteedCritical {
-                runtime.talents.pending.guaranteedCriticalAfterDodge = true
-            }
-            if triggers.onDodgeNextAttackGuaranteedCritical {
+            if triggers.onDodgeNextPartyHitGuaranteedCritical || triggers.onDodgeNextAttackGuaranteedCritical {
                 runtime.talents.pending.guaranteedCriticalAfterDodge = true
             }
             if triggers.nextAttackBleedAfterDodge > 0 {
@@ -243,8 +240,6 @@ package extension CombatTriggerEngine {
     }
 
     static func drainPendingCounterAttacks(in context: inout BattleState) async {
-        guard !context.uniques.pendingCounterAttacks.isEmpty else { return }
-
         while !context.uniques.pendingCounterAttacks.isEmpty {
             let counter = context.uniques.pendingCounterAttacks.removeFirst()
             guard let actor = context.roster.combatant(for: counter.actorID)?.combatant else { continue }
