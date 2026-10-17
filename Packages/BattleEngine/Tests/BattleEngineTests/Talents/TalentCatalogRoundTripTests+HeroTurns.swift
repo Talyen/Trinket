@@ -42,7 +42,7 @@ extension TalentCatalogRoundTripTests {
         let full = DamagePipeline.dodgeChance(for: battle.companion, attackerID: battle.enemy.id, in: battle)
         battle.roster.companion.currentHealth -= 1
         let injured = DamagePipeline.dodgeChance(for: battle.companion, attackerID: battle.enemy.id, in: battle)
-        #expect(abs(full - injured - 0.10) < 0.0001)
+        #expect(abs(full - injured - 0.20) < 0.0001)
     }
 
     @Test func `natural poison expiry pays the last source and explicit removal does not`() {

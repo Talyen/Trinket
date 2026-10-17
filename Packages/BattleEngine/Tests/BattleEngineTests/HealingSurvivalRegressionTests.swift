@@ -61,6 +61,32 @@ struct HealingSurvivalRegressionTests {
         #expect(battle.health(of: battle.hero) == 5)
     }
 
+    @Test(arguments: [false, true])
+    func `party card healing stops when its source falls during the first heal`(survives: Bool) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 20),
+            companion: CombatantFixtures.passiveCompanion(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroHealth: survives ? 10 : 1, companionHealth: 5,
+            heroModifiers: .withTriggers {
+                $0.cardsPlayedHealPartyThreshold = 1
+                $0.cardsPlayedHealPartyAmount = 2
+                $0.onHealDealHoly = 3
+                $0.criticalChanceBonus = -1
+            },
+            enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 4 },
+            appliesFightPacing: false,
+        )
+        battle.roster.hero.hasConsumedDeathsDoor = true
+        battle.turnCadence.cardsPlayed[.hero] = 1
+        DefensePoolEngine.set(6, on: battle.enemy, in: &battle)
+
+        CombatExecutor.run { await CombatTriggerEngine.afterPartyCardPlayed(in: &battle) }
+
+        #expect(battle.roster.hero.isAlive == survives)
+        #expect(battle.health(of: battle.companion) == (survives ? 7 : 5))
+    }
+
     private func makeBattle(
         profile: CombatModifierProfile,
         heroHealth: Int,

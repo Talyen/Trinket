@@ -41,6 +41,26 @@ struct TurnBoundaryRegressionTests {
         }
     }
 
+    @Test func `Mana Shield uses Mana restored by the preceding party regeneration`() {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionMaxMana: 4, companionMana: 0,
+            heroModifiers: .withTriggers {
+                $0.partyRegenPerRound = 4
+                $0.wishspring = true
+                $0.criticalChanceBonus = -1
+            },
+            companionModifiers: .withTriggers { $0.unspentManaConvertsToBlock = true },
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        battle.roster.companion.currentHealth = battle.roster.companion.maxHealth - 1
+
+        let events = battle.recordingEvents { battle in await CombatTriggerEngine.atPlayerEndTurn(in: &battle) }
+
+        #expect(battle.mana(of: battle.companion) == 2)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.companion)) == 2)
+        #expect(events.first { $0.abilityName == "Mana Shield" }?.amount == 2)
+    }
+
     @Test(arguments: [false, true])
     func `Gold rewards and Gold steals retain their meaning in the battle log`(theft: Bool) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities()

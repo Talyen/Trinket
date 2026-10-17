@@ -3,39 +3,27 @@ import TrinketCore
 
 package extension CombatTriggerEngine {
     static func atPlayerEndTurn(in context: inout BattleState) async {
-        for (_, runtime) in livingPartyMembers(in: context) {
-            let actor = runtime.combatant
+        for owner in [BattleParticipant.hero, .companion] {
+            guard !context.isBattleOver else { return }
+            let actor = context.roster[owner].combatant
+            guard context.roster[owner].isAlive else { continue }
             let triggers = context.modifiers(for: actor.id).triggers
-            let steps: [CombatCheckpoint.Reaction] = [
-                { endOfTurnBlockConversion(runtime: runtime, actor: actor, triggers: triggers, in: &$0) },
-                { context in
-                    guard triggers.endTurnZeroManaCleanse,
-                          let current = context.roster.runtime(for: actor),
-                          current.maxMana > 0, current.currentMana == 0 else { return }
-                    await performRandomCleanses(source: actor, target: actor, count: 1, abilityName: "Arcane Cleansing", in: &context)
-                },
-                { await hibernationHeal(actor: actor, triggers: triggers, in: &$0) },
-                { await campfireComfortHeal(actor: actor, triggers: triggers, in: &$0) },
-                { await partyRegenHeal(actor: actor, triggers: triggers, in: &$0) },
-                { hoardArmorBlock(actor: actor, triggers: triggers, in: &$0) },
-            ]
-            for step in steps {
-                guard !context.isBattleOver else { return }
-                guard context.health(of: actor) > 0 else { break }
-                await step(&context)
+            let mana = context.roster[owner].currentMana
+            if triggers.unspentManaConvertsToBlock, context.roster[owner].maxMana > 0, mana > 0 {
+                emitBlock(.unspentManaConvertsToBlock, "Mana Shield", amount: min(mana, 6), to: actor, source: actor, in: &context)
             }
+            if triggers.endTurnZeroManaCleanse, context.roster[owner].maxMana > 0, context.roster[owner].currentMana == 0 {
+                await performRandomCleanses(source: actor, target: actor, count: 1, abilityName: "Arcane Cleansing", in: &context)
+            }
+            guard !context.isBattleOver, context.roster[owner].isAlive else { continue }
+            await hibernationHeal(actor: actor, triggers: triggers, in: &context)
+            guard !context.isBattleOver, context.roster[owner].isAlive else { continue }
+            await campfireComfortHeal(actor: actor, triggers: triggers, in: &context)
+            guard !context.isBattleOver, context.roster[owner].isAlive else { continue }
+            await partyRegenHeal(actor: actor, triggers: triggers, in: &context)
+            guard !context.isBattleOver, context.roster[owner].isAlive else { continue }
+            hoardArmorBlock(actor: actor, triggers: triggers, in: &context)
         }
-    }
-
-    private static func endOfTurnBlockConversion(
-        runtime: CombatantRuntime,
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) {
-        guard triggers.unspentManaConvertsToBlock, runtime.maxMana > 0, runtime.currentMana > 0 else { return }
-        let converted = min(runtime.currentMana, 6)
-        emitBlock(.unspentManaConvertsToBlock, "Mana Shield", amount: converted, to: actor, source: actor, in: &context)
     }
 
     private static func hoardArmorBlock(

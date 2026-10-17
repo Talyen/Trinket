@@ -25,13 +25,13 @@ package extension CombatTriggerEngine {
         resetTurnCadenceState(in: &context)
         startHeroTalentTurn(in: &context)
         guard !context.isBattleOver else { return }
-        let partyMembers = livingPartyMembers(in: context)
-        // Consume due repeats before any start-turn healing can replace them.
-        for (_, runtime) in partyMembers {
-            guard var blessing = runtime.talents.timed.lingeringBlessing,
+        // Preserve only due repeats; all other cadence state stays live in the roster.
+        let dueBlessings = livingPartyMembers(in: context).map { (owner: $0.0, blessing: $0.1.talents.timed.lingeringBlessing) }
+        for (owner, dueBlessing) in dueBlessings {
+            guard var blessing = dueBlessing,
                   context.roster.combatant(for: blessing.sourceActorID) != nil else { continue }
             blessing.turnsRemaining -= 1
-            context.roster.mutateRuntime(for: runtime.combatant) {
+            context.roster.mutateRuntime(for: context.roster[owner].combatant) {
                 $0.talents.timed.lingeringBlessing = blessing.turnsRemaining > 0 ? blessing : nil
             }
         }
@@ -42,9 +42,9 @@ package extension CombatTriggerEngine {
         await HealingEngine.resolveHealingEchoes(in: &context)
         guard !context.isBattleOver else { return }
         await cleanseTeamIfNeeded(in: &context)
-        for (owner, runtime) in partyMembers {
+        for (owner, blessing) in dueBlessings {
             guard !context.isBattleOver else { break }
-            await startOfTurnCadence(for: owner, runtime: runtime, in: &context)
+            await startOfTurnCadence(for: owner, blessing: blessing, in: &context)
         }
     }
 
@@ -83,31 +83,28 @@ package extension CombatTriggerEngine {
         }
     }
 
-    /// The ordered start-of-turn cadence. Steps run in list order with a
-    /// battle-over/alive recheck between each, since earlier reactions can
-    /// defeat members or end the battle.
     private static func startOfTurnCadence(
         for owner: BattleParticipant,
-        runtime: CombatantRuntime,
+        blessing: LingeringBlessing?,
         in context: inout BattleState,
     ) async {
-        let actor = runtime.combatant
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return }
+        let actor = context.roster[owner].combatant
         let triggers = context.modifiers(for: actor.id).triggers
-        let steps: [CombatCheckpoint.Reaction] = [
-            { await startOfTurnRegen(runtime: runtime, actor: actor, triggers: triggers, in: &$0) },
-            { await forbiddenKnowledgeIfNeeded(for: owner, actor: actor, triggers: triggers, in: &$0) },
-            { companionCardsIfNeeded(for: owner, actor: actor, triggers: triggers, in: &$0) },
-            { await purifyingAuraIfNeeded(actor: actor, triggers: triggers, in: &$0) },
-            { await startOfTurnRecovery(actor: actor, triggers: triggers, in: &$0) },
-            { await startOfTurnMana(for: owner, actor: actor, triggers: triggers, in: &$0) },
-            { startOfTurnDrawCadence(for: owner, actor: actor, triggers: triggers, in: &$0) },
-            { await startOfTurnCombatBonuses(actor: actor, triggers: triggers, in: &$0) },
-        ]
-
-        for step in steps {
-            await step(&context)
-            guard !context.isBattleOver, context.roster[owner].isAlive else { return }
-        }
+        await startOfTurnRegen(blessing: blessing, actor: actor, triggers: triggers, in: &context)
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return }
+        await forbiddenKnowledgeIfNeeded(for: owner, actor: actor, triggers: triggers, in: &context)
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return }
+        companionCardsIfNeeded(for: owner, actor: actor, triggers: triggers, in: &context)
+        await purifyingAuraIfNeeded(actor: actor, triggers: triggers, in: &context)
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return }
+        await startOfTurnRecovery(actor: actor, triggers: triggers, in: &context)
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return }
+        await startOfTurnMana(for: owner, actor: actor, triggers: triggers, in: &context)
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return }
+        startOfTurnDrawCadence(for: owner, actor: actor, triggers: triggers, in: &context)
+        await startOfTurnCombatBonuses(actor: actor, triggers: triggers, in: &context)
+        guard !context.isBattleOver, context.roster[owner].isAlive else { return }
         applyDamageRamp(for: actor, triggers: triggers, in: &context)
     }
 
@@ -203,10 +200,8 @@ package extension CombatTriggerEngine {
             guard perRound > 0 else { continue }
             context.roster.mutateRuntime(for: actor) { runtime in
                 let current: Int = runtime.talents.battle.keywordDamageRamp[keyword, default: 0]
-                var ramp: [Keyword: Int] = runtime.talents.battle.keywordDamageRamp
                 let increased = SaturatedArithmetic.saturatingAdd(current, perRound)
-                ramp[keyword] = cap > 0 ? min(increased, cap) : increased
-                runtime.talents.battle.keywordDamageRamp = ramp
+                runtime.talents.battle.keywordDamageRamp[keyword] = cap > 0 ? min(increased, cap) : increased
             }
         }
     }
@@ -288,7 +283,7 @@ package extension CombatTriggerEngine {
     }
 
     private static func startOfTurnRegen(
-        runtime: CombatantRuntime,
+        blessing: LingeringBlessing?,
         actor: Combatant,
         triggers: CombatTraitTriggers,
         in context: inout BattleState,
@@ -304,7 +299,7 @@ package extension CombatTriggerEngine {
             await emitHeal(.healthPerTurn, "Grove's Favor", amount: triggers.healthPerTurn, to: target, source: actor, in: &context)
         }
         guard !context.isBattleOver, context.health(of: actor) > 0 else { return }
-        if let blessing = runtime.talents.timed.lingeringBlessing,
+        if let blessing,
            let source = context.roster.combatant(for: blessing.sourceActorID) {
             let amount = blessing.amount
             var request = HealRequest(

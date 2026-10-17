@@ -6,8 +6,10 @@ import TrinketCore
 struct BlockPoolMutationRegressionTests {
     @Test(arguments: [0, -1])
     func `nonpositive Block requests do not create bonus Block or spend the next gain`(amount: Int) {
+        var profile = CombatModifierProfile.zero
+        profile.blockGainedBonus = 7
         var battle = BattleStateTestFactory.makeMinimalBattle(
-            companionModifiers: CombatModifierProfile(blockGainedBonus: 7), appliesFightPacing: false,
+            companionModifiers: profile, appliesFightPacing: false,
         )
         battle.roster.companion.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(value: 2)
 

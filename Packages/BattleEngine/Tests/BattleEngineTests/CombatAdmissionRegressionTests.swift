@@ -44,7 +44,8 @@ struct CombatAdmissionRegressionTests {
 
     @Test(arguments: [0, -1])
     func `nonpositive healing cannot manufacture restoration or spend Sprite Touch`(amount: Int) {
-        var profile = CombatModifierProfile(healthRestoredBonus: 5)
+        var profile = CombatModifierProfile.zero
+        profile.healthRestoredBonus = 5
         profile.triggers.criticalChanceBonus = -1
         profile.triggers.firstHealthRestorationBonusPerTurn = 2
         profile.triggers.onHealDealHoly = 1

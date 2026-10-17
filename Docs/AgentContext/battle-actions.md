@@ -126,7 +126,9 @@ grant after equipment and talent bonuses.
 ## Turn ordering
 
 End-of-player-turn talents resolve before the enemy action. Mana Shield's Block
-can absorb that action, and end-turn healing and Cleanse finish before it begins.
+can absorb that action and reads the wearer's current Mana when its step runs,
+including restoration from an earlier party member's reactions. End-turn healing
+and Cleanse finish before the enemy action begins.
 Round effects and passive Block decay follow the enemy action.
 Turn cadences recheck battle completion and source survival between operations and
 party recipients, including End Turn, Purifying Aura, and Gold/Health regeneration.

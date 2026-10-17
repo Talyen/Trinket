@@ -43,7 +43,8 @@ Holy attack that removes Health per wearer per turn. Blocked attacks and raw
 Thorns do not spend Beacon's allowance. Personal rewards require their owner to
 survive. Holy restoration, Block, Cleanse,
 Mana and preparation rewards likewise require a living source; committed offensive
-consequences retain their own eligibility.
+consequences retain their own eligibility. Party-wide card healing rechecks its
+source before each recipient; a lethal reaction to the first heal stops later heals.
 Sun Glyph and Vitality Infusion grant ally Block after the hit's retaliation and
 keyword reactions, only if their Companion owner still lives.
 Bloodward rolls only when Leech directly restores Health, then grants a resolved

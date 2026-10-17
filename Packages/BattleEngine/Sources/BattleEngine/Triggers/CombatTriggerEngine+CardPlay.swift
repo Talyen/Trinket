@@ -245,17 +245,19 @@ package extension CombatTriggerEngine {
     static func afterPartyCardPlayed(in context: inout BattleState) async {
         let count = context.turnCadence.cardsPlayed.values.reduce(0, +)
 
-        for (_, actor) in livingPartyMembers(in: context) {
+        for owner in [BattleParticipant.hero, .companion] {
+            let actor = context.roster[owner].combatant
             let triggers = context.modifiers(for: actor.id).triggers
-            guard triggers.cardsPlayedHealPartyThreshold > 0,
+            guard context.roster[owner].isAlive, triggers.cardsPlayedHealPartyThreshold > 0,
                   count == triggers.cardsPlayedHealPartyThreshold,
                   context.resolution.claim(.heroTalent(.playfulEnergy), actorID: actor.id, cadence: .turn(context.turnCount))
             else { continue }
             for (_, target) in livingPartyMembers(in: context) {
+                guard context.roster[owner].isAlive else { break }
                 await emitHeal(
                     .cardsPlayedHealPartyThreshold, "Playful Energy",
                     amount: triggers.cardsPlayedHealPartyAmount,
-                    to: target.combatant, source: actor.combatant, in: &context,
+                    to: target.combatant, source: actor, in: &context,
                 )
             }
         }
