@@ -1,7 +1,6 @@
 ---
 type: execution-plan
-status: blocked
-reason: Separate push authorization is required before validating the new hosted workflows.
+status: active
 created: 2026-10-17
 updated: 2026-10-17
 expires: 2026-10-24
@@ -17,8 +16,10 @@ verification and the existing post-push workflow.
 - [x] Complete bounded read-only preparation retries without weakening ownership.
 - [x] Improve native Settings readiness and per-screen audit evidence.
 - [x] Document atomic consumer/fixture migrations and deterministic assertions.
-- [ ] Review, run lightweight handoff, commit and integrate with the shared lock.
-- [ ] Obtain separate push authorization for new hosted workflow validation.
+- [x] Review, run lightweight handoff, commit and integrate with the shared lock.
+- [x] Obtain separate push authorization for new hosted workflow validation.
+- [ ] Complete qualified and latest hosted qualification and Player coverage.
+- [ ] Compare seven days of distinct failure signatures.
 
 Existing primary-main fixes for process inspection retries, simulator runtime
 architecture, profile continuation and auto-end task awaiting must be preserved.
@@ -27,13 +28,18 @@ be represented as completed by local checks.
 
 ## Hosted follow-up
 
-The exact-build declined Ask to Buy reproduction is
-[run 39052408277](https://github.com/Talyen/Trinket/actions/runs/39052408277),
-using source run 39027879263 and its latest toolchain products. It does not validate
-this branch's new harness. Product purchase behavior and accessibility checks remain
-unchanged pending exact-build evidence.
+The exact-build declined Ask to Buy reproductions failed on both
+[latest](https://github.com/Talyen/Trinket/actions/runs/39052408277) (source
+39027879263) and [qualified](https://github.com/Talyen/Trinket/actions/runs/39053179787)
+(source 39003902224) toolchains. Both fail reopening the Full Game offer after a
+decline; retained screenshots show Warlock details instead. This confirms a
+baseline failure, without establishing its cause or validating this branch's new
+harness. No shipping purchase behavior or requested accessibility coverage changed.
 
-After separate push authorization, push the reviewed task branch for immutable
+The user authorized pushing the branch, hosted validation and seven-day follow-up.
+Local integration at `577efc7e0` passed all 55 selected script suites and lightweight
+handoff gates; Swift compilation and simulator journeys remain hosted checks.
+Push the reviewed task branch for immutable
 hosted qualification. Run `ci.yml` with `toolchain=verified`,
 `scope=exhaustive-pilot` to exercise the full portfolio and new parity jobs without
 reuse, followed by `toolchain=latest`, `scope=exhaustive-pilot`, and
@@ -51,3 +57,4 @@ three guest-inventory timeouts, five native-settings failures and five audit-tim
 failures. Do not treat those overlapping counts as independent defects. Arrange the
 requested daily follow-up after push, keeping unchanged or non-actionable results
 quiet and notifying on recurrence, completion, failure or required user action.
+The thread follow-up `trinket-ci-seven-day-review` is active for October 18–24.
