@@ -364,7 +364,9 @@ extension KeywordCohesionMechanicsTests {
             buffer: [BattleCard(id: 3, ability: .block, owner: .companion)],
         )
 
-        _ = battle.finalizeOpeningHand()
+        battle.heroDeck = CombatDeck()
+        battle.companionDeck = CombatDeck()
+        _ = battle.drawOpeningHand()
 
         #expect(battle.roster.health(for: battle.hero) == 0)
         #expect(battle.hand.cards.map(\.owner) == [.companion, .companion])

@@ -12,7 +12,6 @@ struct BattleTurnLifecycleTests {
         let eventCount = battle.events.count
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 3)
         #expect(battle.drawOpeningHand().events.isEmpty)
-        #expect(battle.finalizeOpeningHand().isEmpty)
         #expect(battle.roster.hero == settled)
         #expect(battle.events.count == eventCount)
 
@@ -23,25 +22,16 @@ struct BattleTurnLifecycleTests {
         #expect(BattleTestFixtures.shieldPoints(for: custom.hero, in: custom) == 0)
     }
 
-    @Test func `unfinished turn cannot advance again and settlement restores Mana only once`() throws {
+    @Test func `End Turn settles the round and Mana before returning playable cards`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash], enemyMaxHealth: 1000, heroMaxMana: 10, heroMana: 0,
         )
         let card = try #require(battle.hand.cards.first)
-        battle.endTurnWithoutDraw()
-        let round = battle.turnCount
-        #expect(!battle.isCardPlayable(card))
-        #expect(throws: BattlePlayError.notPlayerTurn) { try battle.playCard(cardID: card.id) }
-        #expect(battle.endTurn().events.isEmpty)
-        #expect(battle.turnCount == round)
-        while battle.drawNextTurnStartCard() {}
-        // Exhausting the queue must not lose its unsettled Mana grant.
-        #expect(!battle.isCardPlayable(card))
-        battle.finalizeTurnStart()
+        battle.endTurn()
+        #expect(battle.turnCount == 1)
         #expect(battle.roster.hero.currentMana == 1)
         #expect(battle.isCardPlayable(card))
-        #expect(battle.finalizeTurnStart().isEmpty)
-        #expect(battle.roster.hero.currentMana == 1)
         #expect(battle.drawOpeningHand().events.isEmpty)
+        #expect(battle.roster.hero.currentMana == 1)
     }
 }

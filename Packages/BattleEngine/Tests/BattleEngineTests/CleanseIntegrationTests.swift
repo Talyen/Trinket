@@ -30,7 +30,7 @@ struct CleanseIntegrationTests {
     func `cleansing control lets an ally play newly drawn cards this turn`(keyword: Keyword) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [.slash], dealOpeningHand: false)
         battle.insertEffect(.controlMeter(keyword, 10, 10), to: battle.hero, sourceID: battle.enemy.id, remainingTurns: 0)
-        _ = battle.finalizeOpeningHand()
+        _ = battle.drawOpeningHand()
         #expect(battle.ownersSkippingThisPlayerTurn.contains(.hero))
 
         _ = EffectHandlersTestSupport.dispatch(

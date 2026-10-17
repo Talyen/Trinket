@@ -18,31 +18,14 @@ package enum BattleCardCombatEngine {
         context.ownersSkippingThisPlayerTurn = []
     }
 
-    package static func bootstrapDecksAndOpeningHand(context: inout BattleState) async {
-        bootstrapDecks(context: &context)
-        await drawOpeningHand(context: &context)
-    }
-
     package static func drawOpeningHand(
         context: inout BattleState,
     ) async {
-        while drawNextOpeningHandCard(context: &context) {}
-        await finalizeOpeningHand(context: &context)
-    }
-
-    @discardableResult
-    package static func drawNextOpeningHandCard(context: inout BattleState) -> Bool {
-        while let owner = context.turnState.nextDraw(opening: true) {
-            if drawOne(for: owner, context: &context) != nil {
-                return true
-            }
+        guard case let .opening(draws) = context.turnState else { return }
+        context.turnState = .resolving
+        for owner in draws {
+            drawOne(for: owner, context: &context)
         }
-
-        return false
-    }
-
-    package static func finalizeOpeningHand(context: inout BattleState) async {
-        guard context.turnState.beginTurnStart(opening: true) else { return }
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         // Later rounds receive this grant during effect advancement; opening
         // has no preceding round to advance.
@@ -69,18 +52,24 @@ package enum BattleCardCombatEngine {
             return
         }
 
-        await endTurnWithoutDraw(context: &context)
-        if context.phase == .ended {
-            return
-        }
+        context.turnState = .resolving
+        await advanceRoundCommon(context: &context)
+        guard context.phase != .ended else { return }
 
-        while drawNextTurnStartCard(context: &context) {
-            promoteFromBuffer(context: &context)
+        UniqueCombatEngine.startTurn(in: &context)
+        context.heroDeck.recycleDiscards()
+        context.companionDeck.recycleDiscards()
+        for owner in scheduledDraws(in: &context) {
+            drawOne(for: owner, context: &context)
         }
-        // Not redundant with the inner loop: draws can exhaust (empty deck,
-        // blocked owner) while buffered cards remain, so drain the buffer.
         promoteFromBuffer(context: &context)
-        await finalizeTurnStart(context: &context)
+        context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
+        await CombatTriggerEngine.atPlayerTurnStart(in: &context)
+        for owner in [BattleParticipant.hero, .companion] {
+            UniqueCombatEngine.recoverStunBeforeClearing(on: context.roster[owner].combatant, in: &context)
+            context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
+        }
+        await finishPlayerTurnStart(context: &context)
     }
 
     static func restoreManaAtPlayerTurnStart(
@@ -184,7 +173,7 @@ package enum BattleCardCombatEngine {
     }
 
     static func advanceRoundCommon(context: inout BattleState) async {
-        for owner in context.ownersSkippingThisPlayerTurn {
+        for owner in [BattleParticipant.hero, .companion] where context.ownersSkippingThisPlayerTurn.contains(owner) {
             let combatant = context.roster[owner].combatant
             if context.roster.hasPendingActionSkip(for: combatant) {
                 await BattleTurnEngine.consumeActionSkip(for: combatant, context: &context)

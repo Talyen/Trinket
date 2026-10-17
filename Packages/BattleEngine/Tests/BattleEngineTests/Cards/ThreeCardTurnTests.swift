@@ -57,7 +57,7 @@ struct ThreeCardTurnTests {
         _ = BattleCardCombatEngine.deal(.bash, owner: .companion, context: &state)
         _ = BattleCardCombatEngine.deal(.heal, owner: .hero, context: &state)
         _ = state.hand.remove(id: hero.id)
-        _ = BattleCardCombatEngine.promoteNextFromBuffer(context: &state)
+        BattleCardCombatEngine.promoteFromBuffer(context: &state)
         #expect(state.hand.cards.map(\.owner) == [.companion, .companion, .hero])
     }
 

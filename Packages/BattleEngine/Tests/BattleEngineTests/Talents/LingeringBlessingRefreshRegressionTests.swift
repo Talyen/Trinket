@@ -17,21 +17,14 @@ struct LingeringBlessingRefreshRegressionTests {
         battle.roster.companion.talents.timed.lingeringBlessing = LingeringBlessing(
             amount: 3, sourceActorID: battle.companion.id, turnsRemaining: 1,
         )
-        battle.turnCount = 1
-        battle.turnState = .drawing([])
-
-        let first = battle.finalizeTurnStart()
+        let first = battle.endTurn().events
 
         #expect(battle.roster.companion.currentMana == 1)
         #expect(battle.health(of: battle.companion) == 6)
         #expect(first.filter { $0.abilityName == "Lingering Blessing" }.map(\.amount) == [3])
         #expect(battle.roster.companion.talents.timed.lingeringBlessing?.amount == 2)
         #expect(battle.roster.companion.talents.timed.lingeringBlessing?.turnsRemaining == 1)
-        #expect(battle.finalizeTurnStart().isEmpty)
-
-        battle.turnCount = 2
-        battle.turnState = .drawing([])
-        let next = battle.finalizeTurnStart()
+        let next = battle.endTurn().events
 
         #expect(battle.health(of: battle.companion) == 8)
         #expect(next.filter { $0.abilityName == "Lingering Blessing" }.map(\.amount) == [2])

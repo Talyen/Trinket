@@ -185,36 +185,20 @@ public struct BattleHand: Hashable, Sendable {
     public mutating func promoteFromBuffer(
         isOwnerAlive: (BattleParticipant) -> Bool,
     ) -> [BattleCard] {
-        guard !buffer.isEmpty else { return [] }
+        guard !isFull, !buffer.isEmpty else { return [] }
+        var consumed = 0
         var discarded: [BattleCard] = []
-        while !isFull, !buffer.isEmpty {
-            let result = promoteNextFromBuffer(isOwnerAlive: isOwnerAlive)
-            discarded.append(contentsOf: result.discarded)
-            guard result.promoted != nil else { break }
-        }
-        return discarded
-    }
-
-    @discardableResult
-    public mutating func promoteNextFromBuffer(
-        isOwnerAlive: (BattleParticipant) -> Bool,
-    ) -> (promoted: BattleCard?, discarded: [BattleCard]) {
-        guard !isFull, !buffer.isEmpty else {
-            return (nil, [])
-        }
-        var discarded: [BattleCard] = []
-        // Consume the prefix once so defeated owners don't cause repeated FIFO shifts.
-        for index in buffer.indices {
-            let card = buffer[index]
+        for card in buffer {
+            guard !isFull else { break }
+            consumed += 1
             if isOwnerAlive(card.owner) {
-                buffer.removeFirst(index + 1)
                 cards.append(card)
-                return (card, discarded)
+            } else {
+                discarded.append(card)
             }
-            discarded.append(card)
         }
-        buffer.removeAll(keepingCapacity: true)
-        return (nil, discarded)
+        buffer.removeFirst(consumed)
+        return discarded
     }
 
     public var isFull: Bool {

@@ -71,9 +71,7 @@ struct ReturningGaleRegressionTests {
         try #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
         try #expect(!context.heroDeck.abilities.contains { $0.id == "played" })
         // 4. Complete enemy turn, state resets, normal next-turn draws.
-        _ = context.endTurnWithoutDraw()
-        _ = BattleCardCombatEngine.drawNextTurnStartCard(context: &context)
-        _ = context.finalizeTurnStart()
+        _ = context.endTurn()
         // 5. Returned ability remains available in visible hand or buffer.
         try #expect((context.hand.cards + context.hand.buffer).contains { $0.owner == .hero && $0.ability.id == "played" })
     }
@@ -100,7 +98,7 @@ struct ReturningGaleRegressionTests {
         try #expect(context.hand.buffer.map(\.ability.id) == ["buffered", "played"])
         // Later promotion when a slot opens preserves order.
         _ = context.hand.remove(id: 101)
-        _ = BattleCardCombatEngine.promoteNextFromBuffer(context: &context)
+        BattleCardCombatEngine.promoteFromBuffer(context: &context)
         try #expect(context.hand.cards.map(\.ability.id) == ["held2", "held3", "buffered"])
         try #expect(context.hand.buffer.map(\.ability.id) == ["played"])
     }

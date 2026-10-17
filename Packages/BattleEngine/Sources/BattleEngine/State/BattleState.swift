@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-// swiftlint:disable:next type_body_length - BattleState is intentional battle facade
 public struct BattleState {
     public var defeatProgress: BattleDefeatProgress {
         roster.enemy.defeatProgress
@@ -224,10 +223,9 @@ public struct BattleState {
             )
         }
 
+        BattleCardCombatEngine.bootstrapDecks(context: &self)
         if dealOpeningHand {
-            CombatExecutor.run { await BattleCardCombatEngine.bootstrapDecksAndOpeningHand(context: &self) }
-        } else {
-            BattleCardCombatEngine.bootstrapDecks(context: &self)
+            CombatExecutor.run { await BattleCardCombatEngine.drawOpeningHand(context: &self) }
         }
 
         if tracksLog {
@@ -296,60 +294,6 @@ public struct BattleState {
         try await operation(&self)
         finishMutation(rebuildLog: rebuildLog)
         return output.result
-    }
-
-    @discardableResult
-    package mutating func drawNextOpeningHandCard(rebuildLog: Bool = true) -> Bool {
-        let drew = BattleCardCombatEngine.drawNextOpeningHandCard(context: &self)
-        if drew {
-            finishMutation(rebuildLog: rebuildLog)
-        }
-        return drew
-    }
-
-    @discardableResult
-    package mutating func finalizeOpeningHand(rebuildLog: Bool = true) -> [ActionEvent] {
-        CombatExecutor.run {
-            await performCommand(rebuildLog: rebuildLog) { context in
-                await BattleCardCombatEngine.finalizeOpeningHand(context: &context)
-            }
-        }.events
-    }
-
-    @discardableResult
-    package mutating func endTurnWithoutDraw(rebuildLog: Bool = true) -> [ActionEvent] {
-        CombatExecutor.run {
-            await performCommand(rebuildLog: rebuildLog) { context in
-                await BattleCardCombatEngine.endTurnWithoutDraw(context: &context)
-            }
-        }.events
-    }
-
-    @discardableResult
-    package mutating func drawNextTurnStartCard(rebuildLog: Bool = true) -> Bool {
-        let drew = BattleCardCombatEngine.drawNextTurnStartCard(context: &self)
-        if drew {
-            finishMutation(rebuildLog: rebuildLog)
-        }
-        return drew
-    }
-
-    @discardableResult
-    package mutating func finalizeTurnStart(rebuildLog: Bool = true) -> [ActionEvent] {
-        CombatExecutor.run {
-            await performCommand(rebuildLog: rebuildLog) { context in
-                await BattleCardCombatEngine.finalizeTurnStart(context: &context)
-            }
-        }.events
-    }
-
-    @discardableResult
-    package mutating func promoteNextTurnBufferCard(rebuildLog: Bool = true) -> BattleCard? {
-        let card = BattleCardCombatEngine.promoteNextFromBuffer(context: &self)
-        if card != nil {
-            finishMutation(rebuildLog: rebuildLog)
-        }
-        return card
     }
 
     public func isCardPlayable(_ card: BattleCard) -> Bool {

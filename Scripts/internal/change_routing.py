@@ -86,7 +86,7 @@ RUNTIME_RULES = (
 )
 ENGINE_RULES = (
     (('*/Sources/BattleEngine/ManaEmpowermentBudget.swift',), actions('card-preparations', 'action-identity-and-selected-outcomes', 'mana-payments-and-cadence', 'card-assessment')),
-    (('*/Sources/BattleEngine/Cards/BattleCardCombatEngine+OpeningHand.swift', '*/Sources/BattleEngine/Cards/BattleCardCombatEngine+TurnDraw.swift'), actions('hand-contract', 'turn-ordering')),
+    (('*/Sources/BattleEngine/Cards/BattleCardCombatEngine+OpeningHand.swift', '*/Sources/BattleEngine/Cards/BattleCardCombatEngine.swift'), actions('hand-contract', 'turn-ordering')),
     (('*/Sources/BattleEngine/Cards/BattleCardAssessment.swift', '*/Sources/BattleEngine/Cards/BattleCardAssessment+Resources.swift'), actions('action-identity-and-selected-outcomes', 'mana-payments-and-cadence', 'card-assessment')),
     (('*/Sources/BattleBalanceTools/*', '*/Sources/BalanceSweepCLI/*', '*/Tests/BattleBalanceToolsTests/*'), (BALANCE,)),
     (('*/Triggers/CombatTriggerEngine+Damage.swift', '*/Triggers/CombatTriggerEngine+BlockAndDefense.swift', '*/Triggers/CombatTriggerEngine+Dodge.swift', '*/Turns/BattleTurnEngine+Resolution.swift', '*/Damage/*', '*/EffectHandlers/*', '*DoT*', '*EffectTurnEngine*', '*DamagePipeline*'), ('Docs/AgentContext/battle-damage.md',)),

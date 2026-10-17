@@ -247,7 +247,7 @@ struct ControlMeterIntegrationTests {
         try #expect(outcome.events.contains { $0.effectKind == .controlTriggered && $0.keyword == keyword })
     }
 
-    @Test func `promote next from buffer returns dead owner card to bottom of deck`() {
+    @Test func `buffer promotion returns dead owner cards to bottom of deck`() {
         var battle = makeControlBattle(
             heroAbilities: [.slash],
             companionAbilities: [.bash],
@@ -261,15 +261,21 @@ struct ControlMeterIntegrationTests {
             buffer: [
                 BattleCard(id: 2, ability: .bash, owner: .companion),
                 BattleCard(id: 3, ability: .slash, owner: .hero),
+                BattleCard(id: 4, ability: .heal, owner: .hero),
+                BattleCard(id: 5, ability: .bash, owner: .companion),
             ],
         )
         battle.roster.mutateRuntime(for: battle.companion) { $0.takeRawDamage(1000) }
 
-        let promoted = battle.promoteNextTurnBufferCard(rebuildLog: false)
-
-        #expect(promoted?.id == 3)
-        #expect(battle.hand.cards.map(\.id) == [1, 3])
-        #expect(battle.hand.buffer.isEmpty)
+        BattleCardCombatEngine.promoteFromBuffer(context: &battle)
+        #expect(battle.hand.cards.map(\.id) == [1, 3, 4])
+        #expect(battle.hand.buffer.map(\.id) == [5])
         #expect(battle.companionDeck.abilities.map(\.id) == [Ability.bash.id])
+
+        _ = battle.hand.remove(id: 1)
+        BattleCardCombatEngine.promoteFromBuffer(context: &battle)
+        #expect(battle.hand.cards.map(\.id) == [3, 4])
+        #expect(battle.hand.buffer.isEmpty)
+        #expect(battle.companionDeck.abilities.map(\.id) == [Ability.bash.id, Ability.bash.id])
     }
 }
