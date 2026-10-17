@@ -107,7 +107,7 @@ struct BattleStateTests {
             enemy: CombatantFixtures.combatant(id: "strong", role: .enemy, maxHealth: 100, abilities: [.slash]),
         )
 
-        while !battle.isBattleOver {
+        for _ in 0 ..< 20 where !battle.isBattleOver {
             _ = battle.endTurn()
         }
 

@@ -60,7 +60,7 @@ helpers live in `Support/`. All remain in the same test target.
   and provides play, catalog-build, effect-dispatch, and assertion helpers.
 - Use `BattleStateTestFactory.makeMinimalBattle(...)` for pipeline tests that must skip deck bootstrap.
 - Pass `appliesFightPacing: false` to battle factories for unpaced probes; full
-  factories apply this after bootstrap to preserve opening-hand behavior.
+  factories apply it before bootstrap so opening effects use the same rules.
 - Use `performTestAction` and `chargeTestControl` for synchronous rule probes;
   these retain the engine entry points and ordered executor boundary.
 - Dispatch applications through `EffectHandlersTestSupport`; advance stored effects with `EffectHandlers.advanceTurn`.

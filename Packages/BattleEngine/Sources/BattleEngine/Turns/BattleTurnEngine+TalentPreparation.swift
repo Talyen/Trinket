@@ -14,20 +14,19 @@ extension BattleTurnEngine {
             let isFirstBurnAttack = context.claimTurnGuard(.emberdrinker, actorID: actor.id)
             action.burnAttackLeech = isFirstBurnAttack && context.roster.isBelowHalfHealth(for: actor)
         }
-        var components = ability.damageComponents
-        var effects = ability.targetedEffects
+        var operations = ability.operations
         if actor.role == .enemy, ability.dealsCombatDamage {
             action.blindingReduction = context.roster.runtime(for: actor)?.talents.history.blindingReduction ?? 0
             context.roster.mutateRuntime(for: actor) { $0.talents.history.blindingReduction = 0 }
         } else if context.hasHeroCard(for: actor.id) {
             action.goldDamage = context.resolution.cardTalents?.gildedDamage ?? 0
             context.mutateHeroCard { $0.gildedDamage = 0 }
-            prepareCardDamage(components: &components, actor: actor, in: &context)
+            prepareCardDamage(operations: &operations, actor: actor, in: &context)
             if context.resolution.actionOutcome?.damageKeywords.contains(.freeze) == true,
                context.modifiers(for: actor.id).triggers.steamExplosion {
                 let burn = DoTApplicator.consume(.burn, on: context.roster.enemy.combatant, in: &context)
                 if burn > 0 {
-                    increaseCardDamage(burn, keyword: .freeze, components: &components)
+                    increaseCardDamage(burn, keyword: .freeze, operations: &operations)
                 }
             }
         } else if ability.dealsCombatDamage {
@@ -40,32 +39,9 @@ extension BattleTurnEngine {
                 }
             }
         }
-        preparePoisonAttack(components: &components, effects: &effects, actor: actor, in: &context)
+        preparePoisonAttack(operations: &operations, actor: actor, in: &context)
         context.resolution.prepareActionTalents(action)
-        return ability.replacingOperations(preparedOperations(ability, components: components, effects: effects))
-    }
-
-    private static func preparedOperations(
-        _ ability: Ability, components: [DamageComponent], effects: [TargetedEffect],
-    ) -> [AbilityOperation] {
-        let originalDamageCount = ability.damageComponents.count
-        var result = originalDamageCount == 0 ? components.map(AbilityOperation.damage) : []
-        var damageIndex = 0
-        var effectIndex = 0
-        for operation in ability.operations {
-            switch operation {
-            case .damage:
-                result.append(.damage(components[damageIndex]))
-                damageIndex += 1
-                if damageIndex == originalDamageCount {
-                    result.append(contentsOf: components.dropFirst(originalDamageCount).map(AbilityOperation.damage))
-                }
-            case .effect:
-                result.append(.effect(effects[effectIndex]))
-                effectIndex += 1
-            }
-        }
-        return result
+        return operations == ability.operations ? ability : ability.replacingOperations(operations)
     }
 
     private static func captureTalentPreparations(for actor: Combatant, in context: inout BattleState) {
@@ -94,19 +70,18 @@ extension BattleTurnEngine {
     }
 
     private static func prepareCardDamage(
-        components: inout [DamageComponent],
+        operations: inout [AbilityOperation],
         actor: Combatant,
         in context: inout BattleState,
     ) {
         guard let card = context.resolution.cardTalents else { return }
         if card.preparations.contains(.bleedDamage), context.claimHeroCardBonus(.redline, actorID: actor.id) {
-            increaseCardDamage(2, keyword: .bleed, components: &components)
+            increaseCardDamage(2, keyword: .bleed, operations: &operations)
         }
     }
 
     private static func preparePoisonAttack(
-        components: inout [DamageComponent],
-        effects: inout [TargetedEffect],
+        operations: inout [AbilityOperation],
         actor: Combatant,
         in context: inout BattleState,
     ) {
@@ -124,45 +99,43 @@ extension BattleTurnEngine {
                 context.roster.mutateRuntime(for: actor) { $0.talents.history.preparations.remove(.doublePoison) }
             }
         }
-        if sealedVial || unstableCulture {
-            components = components.map { component in
-                guard component.keyword == .poison, component.target != .actor else { return component }
-                return DamageComponent(
+        guard sealedVial || unstableCulture else { return }
+        for index in operations.indices {
+            switch operations[index] {
+            case let .damage(component) where component.keyword == .poison && component.target != .actor:
+                operations[index] = .damage(DamageComponent(
                     SaturatedArithmetic.saturatingMul(component.amount, 2), keyword: .poison, target: component.target,
                     bonusAmount: SaturatedArithmetic.saturatingMul(component.bonusAmount, 2), condition: component.condition,
                     scaling: component.scaling, hasLeech: component.hasLeech,
-                )
-            }
-            effects = effects.map { targeted in
+                ))
+            case let .effect(targeted) where targeted.target != .actor:
                 let effect: Effect
                 switch targeted.effect {
                 case let .poison(amount): effect = .poison(SaturatedArithmetic.saturatingMul(amount, 2))
-                case let .recurringDamage(.poison, amount, turns): effect = .recurringDamage(
-                        .poison,
-                        SaturatedArithmetic.saturatingMul(amount, 2),
-                        turns,
-                    )
-                default: return targeted
+                case let .recurringDamage(.poison, amount, turns):
+                    effect = .recurringDamage(.poison, SaturatedArithmetic.saturatingMul(amount, 2), turns)
+                default: continue
                 }
-                guard targeted.target != .actor else { return targeted }
-                return TargetedEffect(effect, target: targeted.target, condition: targeted.condition)
+                operations[index] = .effect(TargetedEffect(effect, target: targeted.target, condition: targeted.condition))
+            default: continue
             }
         }
     }
 
-    private static func increaseCardDamage(_ amount: Int, keyword: Keyword, components: inout [DamageComponent]) {
-        if let index = components.firstIndex(where: {
-            $0.keyword == keyword && $0.amount > 0 && $0.condition == nil
-                && ($0.target == .abilityTarget || $0.target == .enemy)
-        }) {
-            let component = components[index]
-            components[index] = DamageComponent(
+    private static func increaseCardDamage(_ amount: Int, keyword: Keyword, operations: inout [AbilityOperation]) {
+        if let index = operations.firstIndex(where: {
+            guard case let .damage(component) = $0 else { return false }
+            return component.keyword == keyword && component.amount > 0 && component.condition == nil
+                && (component.target == .abilityTarget || component.target == .enemy)
+        }), case let .damage(component) = operations[index] {
+            operations[index] = .damage(DamageComponent(
                 SaturatedArithmetic.saturatingAdd(component.amount, amount), keyword: keyword, target: component.target,
                 bonusAmount: component.bonusAmount,
                 condition: component.condition, scaling: component.scaling, hasLeech: component.hasLeech,
-            )
+            ))
         } else {
-            components.append(DamageComponent(amount, keyword: keyword))
+            let insertion = operations.lastIndex { $0.damageComponent != nil }.map { $0 + 1 } ?? 0
+            operations.insert(.damage(DamageComponent(amount, keyword: keyword)), at: insertion)
         }
     }
 }

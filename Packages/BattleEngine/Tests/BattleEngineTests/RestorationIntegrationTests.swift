@@ -40,32 +40,23 @@ struct RestorationIntegrationTests {
         #expect(result.events.first { $0.effectKind == .overheal }?.amount == 10 - missingHealth)
     }
 
-    @Test func `instant heal restores health`() throws {
-        let heal = Ability(id: "heal", name: "Heal", tier: .basic, description: "Restore 3 Health.", effects: [.instantHeal(.health, 3)])
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 10, abilities: [heal]),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
-            activeHeroEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTurns: 0)],
+    @Test(arguments: [
+        (Ability(id: "heal", name: "Heal", tier: .basic, effects: [.instantHeal(.health, 3)]), 10),
+        (Ability(id: "leech-slash", name: "Leech Slash", tier: .basic, directDamage: 2, hasLeech: true), 9),
+    ])
+    func `played healing and Leech cards restore actual missing Health`(ability: Ability, expectedHealth: Int) throws {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 10), heroHealth: 8,
+            heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 }, appliesFightPacing: false,
         )
-        _ = battle.endTurn()
-        #expect(battle.health(of: battle.hero) == 8)
-        let events = try BattleTestFixtures.playCardNamed("Heal", owner: .hero, on: &battle)
-        #expect(battle.health(of: battle.hero) == 10)
-        #expect(events.contains { $0.effectKind == .instantHeal && $0.amount > 0 })
-    }
-
-    @Test func `leech heals attacker on damage dealt`() throws {
-        let leechSlash = Ability(id: "leech-slash", name: "Leech Slash", tier: .basic, directDamage: 2, hasLeech: true)
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 10, abilities: [leechSlash]),
-            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy),
-            activeHeroEffects: [ActiveEffect(id: 1, effect: .burn(5), remainingTurns: 0)],
-        )
-        _ = battle.endTurn()
-        #expect(battle.health(of: battle.hero) == 8)
-        let events = try BattleTestFixtures.playCardNamed("Leech Slash", owner: .hero, on: &battle)
-        #expect(battle.health(of: battle.hero) > 8)
-        #expect(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech && $0.amount > 0 })
+        let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
+        let events = try battle.playCard(cardID: card.id).events
+        #expect(battle.health(of: battle.hero) == expectedHealth)
+        #expect(battle.health(of: battle.enemy) == (ability.hasLeech ? 98 : 100))
+        #expect(events.contains {
+            $0.effectKind == (ability.hasLeech ? .leechHeal : .instantHeal)
+                && $0.keyword == (ability.hasLeech ? .leech : .health) && $0.amount == expectedHealth - 8
+        })
     }
 
     @Test func `enemy instant heal restores health when below max`() {

@@ -12,15 +12,19 @@ struct ElementalReactionState: Hashable {
     var toxicShock = 0
     var consecratedBy: String?
 
+    var hasStatusPreparation: Bool {
+        shatter != 0 || frostfire != 0 || rupture != 0 || consecratedBy != nil
+    }
+
     mutating func expire(with effects: [ActiveEffect]) {
-        if !effects.contains(where: { $0.keyword == .freeze && $0.isAwaitingActionSkip }) {
+        if shatter != 0 || frostfire != 0, !effects.contains(where: { $0.keyword == .freeze && $0.isAwaitingActionSkip }) {
             shatter = 0
             frostfire = 0
         }
-        if !effects.contains(where: { $0.keyword == .stun && $0.isAwaitingActionSkip }) {
+        if rupture != 0, !effects.contains(where: { $0.keyword == .stun && $0.isAwaitingActionSkip }) {
             rupture = 0
         }
-        if !effects.contains(where: { $0.effect.isBleed && $0.remainingTurns > 0 }) {
+        if consecratedBy != nil, !effects.contains(where: { $0.effect.isBleed && $0.remainingTurns > 0 }) {
             consecratedBy = nil
         }
     }

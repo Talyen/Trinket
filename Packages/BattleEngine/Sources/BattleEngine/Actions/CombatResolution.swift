@@ -220,6 +220,8 @@ struct CombatResolution {
     mutating func mutateCardTalents(_ body: (inout HeroTalentCardFacts) -> Void) {
         guard let index = cards.lastIndex(where: { $0.talents != nil }),
               var talents = cards[index].talents else { return }
+        // Move the value out before mutation so its collections do not copy the stored value.
+        cards[index].talents = nil
         body(&talents)
         cards[index].talents = talents
     }

@@ -129,16 +129,17 @@ struct ControlMeterEngineTests {
         try #expect(!(context.roster.hasPendingActionSkip(for: target, keyword: .freeze)))
     }
 
-    @Test func `stun and freeze meters coexist on same target`() throws {
-        let context = BattleTestFixtures.makePipelineContext(
-            targetEffects: [
-                ActiveEffect(id: 1, effect: .controlMeter(.stun, 4, 10), remainingTurns: 0),
-                ActiveEffect(id: 2, effect: .controlMeter(.freeze, 7, 10), remainingTurns: 0),
-            ],
-        )
-        let target = context.roster.enemy.combatant
-        let meters = context.roster.activeEffects(for: target).compactMap(\.effect.controlMeterValues)
-        try #expect(meters.count == 2)
+    @Test func `stun and freeze buildup advances independently on the same target`() {
+        var context = BattleTestFixtures.makePipelineContext(appliesFightPacing: false)
+        let target = context.enemy
+        for (keyword, amount) in [(Keyword.stun, 4), (.freeze, 7), (.stun, 2)] {
+            _ = context.chargeTestControl(amount, keyword: keyword, to: target, sourceActorID: context.hero.id, applyFightPacing: false)
+        }
+        let effects = context.activeEffects(of: target)
+        #expect(effects.count { $0.effect.kind == .controlMeter } == 2)
+        #expect(effects.first { $0.keyword == .stun }?.effect.controlMeterValues?.amount == 6)
+        #expect(effects.first { $0.keyword == .freeze }?.effect.controlMeterValues?.amount == 7)
+        #expect(!context.roster.hasPendingActionSkip(for: target))
     }
 
     @Test func `reduced stun threshold still registers full meter and skip`() throws {

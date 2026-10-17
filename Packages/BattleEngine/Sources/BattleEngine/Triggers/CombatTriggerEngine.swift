@@ -32,7 +32,10 @@ package enum CombatTriggerEngine {
     }
 
     static func livingAllyModifiers(in context: BattleState) -> [CombatModifierProfile] {
-        livingAllies(in: context).map(\.profile)
+        [BattleParticipant.hero, .companion].compactMap { owner in
+            guard context.roster[owner].isAlive else { return nil }
+            return owner == .hero ? context.heroModifiers : context.companionModifiers
+        }
     }
 
     static func hasLivingPartyTrigger(_ keyPath: KeyPath<CombatTraitTriggers, Bool>, in context: BattleState) -> Bool {

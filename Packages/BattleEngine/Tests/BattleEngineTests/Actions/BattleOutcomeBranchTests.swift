@@ -39,15 +39,21 @@ struct BattleOutcomeBranchTests {
 
     @Test(arguments: [false, true])
     func `full Health luck potion excludes healing even with a defeated ally`(companionDefeated: Bool) {
-        for seed in UInt64(1) ... 12 {
-            var battle = BattleStateTestFactory.makeBattleWithAbilities(rngSeed: seed, dealOpeningHand: false, appliesFightPacing: false)
-            if companionDefeated {
-                battle.roster.companion.currentHealth = 0
-            }
-            let selected = BattleAbilityRules.resolveOutcome(.luckPotion, actor: battle.hero, in: &battle)
-            #expect(!selected.targetedEffects.contains { $0.effect.keyword == .health })
-            #expect(selected.targetedEffects.contains { $0.effect == .drawCards(1) })
+        var battle = BattleStateTestFactory.makeMinimalBattle(rngSeed: 7, appliesFightPacing: false)
+        if companionDefeated {
+            battle.roster.companion.currentHealth = 0
         }
+        let outcomes = BattleAbilityRules.possibleOutcomes(
+            .luckPotion, action: BattleActionContext(actor: battle.hero, in: battle), in: battle,
+        )
+        #expect(!outcomes.branches.isEmpty)
+        for branch in outcomes.branches {
+            #expect(!branch.operations.contains { $0.keyword == .health })
+            #expect(branch.operations.contains { $0.targetedEffect?.effect == .drawCards(1) })
+        }
+        let selected = BattleAbilityRules.resolveOutcome(.luckPotion, actor: battle.hero, in: &battle)
+        #expect(!selected.targetedEffects.contains { $0.effect.keyword == .health })
+        #expect(selected.targetedEffects.contains { $0.effect == .drawCards(1) })
     }
 
     @Test func `luck potion heals an injured ally over a full Health ally with lower maximum Health`() {

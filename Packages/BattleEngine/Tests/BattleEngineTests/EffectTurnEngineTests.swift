@@ -31,18 +31,12 @@ struct EffectTurnEngineTests {
         enemyHP: Int = 50,
         enemyEffects: [ActiveEffect] = [],
     ) -> BattleState {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50)
-        var battle = BattleStateTestFactory.makeBattle(
-            hero: hero,
-            companion: companion,
-            enemy: enemy,
-            activeEnemyEffects: enemyEffects,
+        BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50),
+            companion: CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50),
+            enemy: CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 50),
+            enemyEffects: enemyEffects, heroHealth: heroHP, enemyHealth: enemyHP,
         )
-        battle.roster.hero.currentHealth = heroHP
-        battle.roster.enemy.currentHealth = enemyHP
-        return battle
     }
 
     @Test func `do T tick preserves shield depletion through tick all`() throws {

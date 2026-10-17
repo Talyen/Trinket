@@ -48,10 +48,24 @@ struct FightPacingTests {
         try #expect(FightPacing.clockMultiplier(isBoss: isBoss, in: context) == 1.0)
     }
 
-    @Test func `paced returns authored amount when fight pacing disabled`() {
-        var context = makeContext(heroHP: 15, companionHP: 15, enemyHP: 45, turnCount: 8)
-        context.appliesFightPacing = false
-        #expect(context.paced(10, sourceActorID: context.hero.id) == 10)
+    @Test(arguments: [false, true])
+    func `unpaced battle setup disables scaling before opening effects`(withAbilities: Bool) {
+        let profile = CombatModifierProfile.withTriggers {
+            $0.forbiddenKnowledge = true
+            $0.startBattleBlock = 100
+        }
+        let battle = withAbilities
+            ? BattleStateTestFactory.makeBattleWithAbilities(
+                heroMaxHealth: 2, companionMaxHealth: 1, heroModifiers: profile, appliesFightPacing: false,
+            )
+            : BattleStateTestFactory.makeBattle(
+                hero: CombatantFixtures.passiveHero(maxHealth: 2),
+                companion: CombatantFixtures.passiveCompanion(maxHealth: 1),
+                heroModifiers: profile, appliesFightPacing: false,
+            )
+        #expect(battle.health(of: battle.hero) == 1)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 100)
+        #expect(battle.paced(100, sourceActorID: battle.hero.id) == 100)
     }
 
     @Test(arguments: [false, true])

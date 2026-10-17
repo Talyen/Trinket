@@ -22,7 +22,7 @@ enum BattleStateTestFactory {
         dealOpeningHand: Bool = true,
         appliesFightPacing: Bool = true,
     ) -> BattleState {
-        var battle = BattleState(
+        BattleState(
             hero: hero ?? CombatantFixtures.passiveHero(),
             companion: companion ?? CombatantFixtures.passiveCompanion(),
             enemy: enemy,
@@ -38,10 +38,8 @@ enum BattleStateTestFactory {
             tracksLog: tracksLog,
             tracksEvents: tracksEvents,
             dealOpeningHand: dealOpeningHand,
+            appliesFightPacing: appliesFightPacing,
         )
-        // Configure after bootstrap, matching tests that disable pacing after construction.
-        battle.appliesFightPacing = appliesFightPacing
-        return battle
     }
 
     static func makeBattleWithAbilities(
@@ -88,6 +86,7 @@ enum BattleStateTestFactory {
             rngSeed: rngSeed,
             tracksLog: tracksLog,
             dealOpeningHand: dealOpeningHand,
+            appliesFightPacing: appliesFightPacing,
         )
         if let heroMana {
             battle.roster.mutateRuntime(for: hero) { $0.currentMana = heroMana }
@@ -95,7 +94,6 @@ enum BattleStateTestFactory {
         if let companionMana {
             battle.roster.mutateRuntime(for: companion) { $0.currentMana = companionMana }
         }
-        battle.appliesFightPacing = appliesFightPacing
         return battle
     }
 

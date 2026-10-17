@@ -105,7 +105,7 @@ public struct CombatantRuntime: Hashable {
     public package(set) var activeEffects: [ActiveEffect] {
         didSet {
             currentMana = min(currentMana, maxMana)
-            if combatant.role == .enemy {
+            if combatant.role == .enemy, runtimeStateStorage.reactions.hasStatusPreparation {
                 let effects = activeEffects
                 reactions.expire(with: effects)
             }
