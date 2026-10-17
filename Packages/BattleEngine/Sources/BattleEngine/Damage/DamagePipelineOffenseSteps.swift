@@ -255,11 +255,11 @@ package extension DamagePipeline {
     ) {
         guard let source = state.partySource(in: context) else { return }
         let target = state.combatant
-        let names = CombatTriggerEngine.partyAfflictedDamageAuras(
+        let names = CombatTriggerEngine.partyAfflictedDamageNames(
             targetIsPoisoned: state.targetStatus.isPoisoned,
             targetIsBurning: state.targetStatus.isBurning,
             in: context,
-        ).abilityNames
+        )
         for name in names {
             context.nextEvent(
                 kind: .ability,

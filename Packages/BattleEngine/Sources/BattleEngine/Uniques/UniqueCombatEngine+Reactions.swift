@@ -267,25 +267,34 @@ extension UniqueCombatEngine {
     }
 
     static func recoveredStun(_ active: ActiveEffect, in context: inout BattleState) -> ActiveEffect? {
-        guard let retained = context.uniques.retainedStunByEffectID.removeValue(forKey: active.id),
-              let values = active.effect.controlMeterValues
-        else { return nil }
-        var updated = active
-        updated.effect = .controlMeter(.stun, retained, values.threshold)
-        updated.remainingTurns = 0
-        return updated
+        recoveredStun(active, retained: &context.uniques.retainedStunByEffectID)
     }
 
     static func recoverStunBeforeClearing(on actor: Combatant, in context: inout BattleState) {
-        var effects = context.roster.activeEffects(for: actor)
+        guard let participant = context.roster.participant(for: actor) else { return }
+        recoverStunBeforeClearing(
+            effects: &context.roster[participant].activeEffects,
+            retained: &context.uniques.retainedStunByEffectID,
+        )
+    }
+
+    private static func recoverStunBeforeClearing(effects: inout [ActiveEffect], retained: inout [Int: Int]) {
         for index in effects.indices {
             let active = effects[index]
             if active.effect.isActionSkipPending, !active.isAwaitingActionSkip,
-               let restored = recoveredStun(active, in: &context) {
+               let restored = recoveredStun(active, retained: &retained) {
                 effects[index] = restored
             }
         }
-        context.roster.setActiveEffects(effects, for: actor)
+    }
+
+    private static func recoveredStun(_ active: ActiveEffect, retained: inout [Int: Int]) -> ActiveEffect? {
+        guard let amount = retained.removeValue(forKey: active.id),
+              let values = active.effect.controlMeterValues else { return nil }
+        var updated = active
+        updated.effect = .controlMeter(.stun, amount, values.threshold)
+        updated.remainingTurns = 0
+        return updated
     }
 
     static func afterEmpowermentSpend(

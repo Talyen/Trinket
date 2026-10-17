@@ -17,6 +17,10 @@ struct ControlMeterEngineTests {
         #expect(!context.roster.hasPendingActionSkip(for: target, keyword: .stun))
         _ = context.chargeTestControl(5, keyword: .stun, to: target, sourceActorID: context.roster.hero.id, applyFightPacing: false)
         #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+        let triggered = try #require(context.roster.activeEffects(for: target).first { $0.keyword == .stun }?.effect.controlMeterValues)
+        let baseThreshold = ControlMeterEngine.threshold(for: target, in: context)
+        #expect(triggered.amount == baseThreshold)
+        #expect(triggered.threshold == baseThreshold)
     }
 
     @Test func `reduced stun threshold triggers from another attackers buildup`() {
@@ -140,28 +144,6 @@ struct ControlMeterEngineTests {
         #expect(effects.first { $0.keyword == .stun }?.effect.controlMeterValues?.amount == 6)
         #expect(effects.first { $0.keyword == .freeze }?.effect.controlMeterValues?.amount == 7)
         #expect(!context.roster.hasPendingActionSkip(for: target))
-    }
-
-    @Test func `reduced stun threshold still registers full meter and skip`() throws {
-        var context = BattleTestFixtures.makePipelineContext(
-            targetMaxHealth: 100,
-            heroModifiers: CombatModifierProfile.withTriggers { $0.enemyStunThresholdReductionPercent = 0.25 },
-        )
-        let target = context.roster.enemy.combatant
-        let baseThreshold = ControlMeterEngine.threshold(for: target, in: context)
-
-        let events = context.chargeTestControl(baseThreshold, keyword: .stun, to: target, sourceActorID: "source")
-
-        try #expect(events.contains { $0.effectKind == .controlTriggered })
-        try #expect(context.roster.hasControlStatus(for: target, keyword: .stun))
-        try #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
-        let meter = try #require(
-            context.roster.activeEffects(for: target)
-                .first { $0.keyword == .stun }?
-                .effect.controlMeterValues,
-        )
-        try #expect(meter.threshold == baseThreshold, "stored basis stays canonical (base)")
-        try #expect(meter.amount == baseThreshold, "a full meter reads as full against its stored basis")
     }
 
     @Test(arguments: [

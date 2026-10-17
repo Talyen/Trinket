@@ -222,14 +222,18 @@ package enum DoTApplicator {
             $0.effect.keyword == keyword && $0.effect.isDecayingDoT
         }) else { return 0 }
         context.roster.mutateEffects(for: target) { effects in
-            for index in effects.indices where effects[index].effect.keyword == keyword && effects[index].effect.isDecayingDoT {
-                guard remaining > 0 else { break }
-                let potency = effects[index].effect.potency ?? 0
-                let consumed = min(potency, remaining)
-                effects[index].effect = .decayingDoT(keyword: keyword, potency: potency - consumed)
+            ActiveEffectMutation.update(&effects) { active in
+                guard active.keyword == keyword, active.effect.isDecayingDoT else { return active }
+                let potency = active.effect.potency ?? 0
+                let consumed = remaining > 0 ? min(potency, remaining) : 0
                 remaining -= consumed
+                let retained = potency - consumed
+                guard retained != 0 else { return nil }
+                guard consumed != 0 else { return active }
+                var updated = active
+                updated.effect = .decayingDoT(keyword: keyword, potency: retained)
+                return updated
             }
-            effects.removeAll { $0.effect.keyword == keyword && $0.effect.isDecayingDoT && $0.effect.potency == 0 }
         }
         return amount - remaining
     }

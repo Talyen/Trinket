@@ -101,7 +101,9 @@ and reaction expiry synchronize once at the end of each borrow.
 Replacement removes and inserts within one borrow, so those checks see the complete
 replacement. Block consumption, Talent point drains, and accelerated expiry compact
 surviving stacks in place; callers retain rule facts rather than replacement arrays.
-Stored buffs share replacement and feedback while retaining their stacking rules.
+Control buildup borrows the live effect list, commits the meter before control reactions,
+and retains an existing stack's ID, source and duration. Stored buffs share
+replacement and feedback while retaining their stacking rules.
 Thorns and Kindled share saturating amount-buff operations. Block grants use
 `BattleState.applyBlockGain`; all other insertion uses `insertEffect`.
 For a new effect kind, add its application dispatch case and any specialized lifecycle rules. Existing handler and turn-processing

@@ -12,28 +12,28 @@ package enum DefensePoolEngine {
     ) {
         guard amount > 0, context.roster.health(for: target) > 0, context.roster.health(for: actor) > 0,
               !context.modifiers(for: target.id).triggers.sealedSarcophagus else { return }
-        let block = blockPoints(in: context.roster.activeEffects(for: target))
-        let stolen = min(block, amount)
+        let stolen = strip(amount, from: target, source: .init(actor), abilityName: abilityName, in: &context)
         guard stolen > 0 else { return }
-        strip(stolen, from: target, source: .init(actor), abilityName: abilityName, in: &context)
         context.applyBlockGain(stolen, to: actor, source: actor, abilityName: abilityName, amountBasis: .resolved)
     }
 
+    @discardableResult
     package static func strip(
         _ amount: Int,
         from target: Combatant,
         source: CombatEventSource,
         abilityName: String,
         in context: inout BattleState,
-    ) {
+    ) -> Int {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
         let removed = min(current, max(0, amount))
-        guard removed > 0 else { return }
+        guard removed > 0 else { return 0 }
         set(current - removed, on: target, in: &context)
         context.nextEvent(
             kind: .effect(.blockStripped), source: source, abilityName: abilityName,
             target: target, amount: removed, keyword: .block,
         )
+        return removed
     }
 
     package static func blockPoints(in effects: [ActiveEffect]) -> Int {

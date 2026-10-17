@@ -71,55 +71,41 @@ package extension CombatTriggerEngine {
         targetIsBurning: Bool,
         in context: BattleState,
     ) -> Double {
-        partyAfflictedDamageAuras(
-            targetIsPoisoned: targetIsPoisoned,
-            targetIsBurning: targetIsBurning,
-            in: context,
-        ).multiplier
+        var excess = 0.0
+        forEachAfflictedAura(targetIsPoisoned: targetIsPoisoned, targetIsBurning: targetIsBurning, in: context) { multiplier, _, _ in
+            excess += multiplier - 1
+        }
+        return 1 + excess
     }
 
-    static func partyAfflictedDamageAuras(
+    static func partyAfflictedDamageNames(
         targetIsPoisoned: Bool,
         targetIsBurning: Bool,
         in context: BattleState,
-    ) -> (multiplier: Double, abilityNames: [String]) {
-        var excess = 0.0
+    ) -> [String] {
         var names: [String] = []
-        forEachLivingAllyModifier(in: context) { profile in
-            if targetIsPoisoned {
-                accumulateAfflictedAura(
-                    multiplier: profile.triggers.damageVsPoisonedMultiplier,
-                    key: .damageVsPoisonedMultiplier,
-                    profile: profile,
-                    excess: &excess,
-                    names: &names,
-                )
-            }
-            if targetIsBurning {
-                accumulateAfflictedAura(
-                    multiplier: profile.triggers.damageVsBurningMultiplier,
-                    key: .damageVsBurningMultiplier,
-                    profile: profile,
-                    excess: &excess,
-                    names: &names,
-                )
+        forEachAfflictedAura(targetIsPoisoned: targetIsPoisoned, targetIsBurning: targetIsBurning, in: context) { _, key, profile in
+            let name = profile.triggerAbilityName(key, fallback: "")
+            if !name.isEmpty {
+                names.append(name)
             }
         }
-        return (1 + excess, names)
+        return names
     }
 
-    private static func accumulateAfflictedAura(
-        multiplier: Double,
-        key: CombatTriggerField,
-        profile: CombatModifierProfile,
-        excess: inout Double,
-        names: inout [String],
+    private static func forEachAfflictedAura(
+        targetIsPoisoned: Bool,
+        targetIsBurning: Bool,
+        in context: BattleState,
+        apply: (Double, CombatTriggerField, CombatModifierProfile) -> Void,
     ) {
-        guard multiplier > 1 else { return }
-        excess += multiplier - 1
-        let name = profile.triggerAbilityName(key, fallback: "")
-        if !name.isEmpty {
-            names.append(name)
+        forEachLivingAllyModifier(in: context) { profile in
+            if targetIsPoisoned, profile.triggers.damageVsPoisonedMultiplier > 1 {
+                apply(profile.triggers.damageVsPoisonedMultiplier, .damageVsPoisonedMultiplier, profile)
+            }
+            if targetIsBurning, profile.triggers.damageVsBurningMultiplier > 1 {
+                apply(profile.triggers.damageVsBurningMultiplier, .damageVsBurningMultiplier, profile)
+            }
         }
     }
 }

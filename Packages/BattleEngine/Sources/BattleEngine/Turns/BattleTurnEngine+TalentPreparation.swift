@@ -46,8 +46,8 @@ extension BattleTurnEngine {
 
     private static func captureTalentPreparations(for actor: Combatant, in context: inout BattleState) {
         guard context.hasHeroCard(for: actor.id), let card = context.resolution.cardTalents,
-              !card.capturedPreparations, let outcome = context.resolution.cardOutcome(for: actor.id) else { return }
-        guard var history = context.roster.runtime(for: actor)?.talents.history else { return }
+              !card.capturedPreparations, let outcome = context.resolution.cardOutcome(for: actor.id),
+              context.roster.participant(for: actor) != nil else { return }
         var eligible: Set<TalentPreparation> = []
         if outcome.damageKeywords.contains(.physical) {
             eligible.formUnion([.bleedDamage, .ignorePhysicalBlock])
@@ -55,13 +55,16 @@ extension BattleTurnEngine {
         if outcome.damageKeywords.contains(.poison) {
             eligible.insert(.doublePoison)
         }
-        let preparations = history.preparations.intersection(eligible)
-        history.preparations.subtract(preparations)
-        let goldDamage = outcome.damageKeywords.isEmpty ? 0 : history.stolenGoldDamage
-        if !outcome.damageKeywords.isEmpty {
-            history.stolenGoldDamage = 0
+        var preparations: Set<TalentPreparation> = []
+        var goldDamage = 0
+        context.roster.mutateRuntime(for: actor) { runtime in
+            preparations = runtime.talents.history.preparations.intersection(eligible)
+            runtime.talents.history.preparations.subtract(preparations)
+            if !outcome.damageKeywords.isEmpty {
+                goldDamage = runtime.talents.history.stolenGoldDamage
+                runtime.talents.history.stolenGoldDamage = 0
+            }
         }
-        context.roster.mutateRuntime(for: actor) { $0.talents.history = history }
         context.mutateHeroCard {
             $0.capturedPreparations = true
             $0.preparations = preparations

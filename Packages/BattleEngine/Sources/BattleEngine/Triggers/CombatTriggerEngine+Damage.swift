@@ -351,11 +351,11 @@ package extension CombatTriggerEngine {
             await detonateBleedAndPoison(on: enemy, sourceActorID: source.id, in: &context)
         }
         if profile.triggers.onCritDoubleBleedDuration {
-            var effects = context.roster.activeEffects(for: enemy)
-            for index in effects.indices where effects[index].effect.isBleed {
-                effects[index].remainingTurns = min(10, SaturatedArithmetic.saturatingMul(effects[index].remainingTurns, 2))
+            context.roster.mutateEffects(for: enemy) { effects in
+                for index in effects.indices where effects[index].effect.isBleed {
+                    effects[index].remainingTurns = min(10, SaturatedArithmetic.saturatingMul(effects[index].remainingTurns, 2))
+                }
             }
-            context.roster.setActiveEffects(effects, for: enemy)
         }
         if profile.triggers.criticalVsStunnedEnemyGold > 0,
            context.roster.health(for: source) > 0,

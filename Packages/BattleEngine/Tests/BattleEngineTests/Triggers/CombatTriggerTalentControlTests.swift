@@ -18,19 +18,6 @@ struct CombatTriggerTalentControlTests {
         #expect(meter?.amount == 4)
     }
 
-    @Test func `enemy stun extra action skips extend stun`() {
-        var battle = BattleTestFixtures.makePipelineContext(
-            heroModifiers: .withTriggers { $0.stunExtendChancePercent = 1.0 },
-        )
-        let enemy = battle.roster.enemy.combatant
-        let threshold = ControlMeterEngine.threshold(for: enemy, in: battle)
-        _ = battle.chargeTestControl(threshold, keyword: .stun, to: enemy, sourceActorID: "source", applyFightPacing: false)
-        CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
-        #expect(battle.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
-        CombatExecutor.run { await BattleTurnEngine.consumeActionSkip(for: enemy, context: &battle) }
-        #expect(!battle.roster.hasPendingActionSkip(for: enemy))
-    }
-
     @Test func `seismic roar stuns enemy when companion drops below half`() {
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),

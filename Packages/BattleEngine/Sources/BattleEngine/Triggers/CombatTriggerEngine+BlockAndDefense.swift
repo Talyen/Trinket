@@ -457,23 +457,10 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) {
         let markedEffect = Effect.marked(Effect.standardMarkedBonus, Effect.standardMarkedDuration)
-        guard !context.interceptDebuff(markedEffect, on: target) else { return }
-        var effects = context.roster.activeEffects(for: target)
-        effects.removeAll {
-            if case .marked = $0.effect {
-                return true
-            }
-            return false
-        }
-        effects.append(
-            ActiveEffect(
-                id: context.consumeNextEffectID(),
-                effect: markedEffect,
-                remainingTurns: Effect.standardMarkedDuration,
-                sourceActorID: source.id,
-            ),
-        )
-        context.roster.setActiveEffects(effects, for: target)
+        guard context.insertEffect(
+            markedEffect, to: target, sourceID: source.id, remainingTurns: Effect.standardMarkedDuration,
+            replacing: { $0.kind == .marked },
+        ) else { return }
         context.nextEvent(
             kind: .effect(.markedApplied),
             source: .init(source),

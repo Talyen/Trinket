@@ -7,12 +7,16 @@ package extension BattleState {
         _ keyPath: WritableKeyPath<CombatantTalentState.Pending, PreparedTalentBonus<Value>?>,
         for actor: Combatant,
     ) -> Value? {
-        guard let preparation = roster.runtime(for: actor)?.talents.pending[keyPath: keyPath],
-              let value = preparation.availableValue(
-                  cardSerial: resolution.cardTalents?.playSerial, actionID: resolution.actionID,
-              ) else { return nil }
-        roster.mutateRuntime(for: actor) { $0.talents.pending[keyPath: keyPath] = nil }
-        return value
+        let cardSerial = resolution.cardTalents?.playSerial
+        let actionID = resolution.actionID
+        var consumed: Value?
+        roster.mutateRuntime(for: actor) { runtime in
+            guard let preparation = runtime.talents.pending[keyPath: keyPath],
+                  let value = preparation.availableValue(cardSerial: cardSerial, actionID: actionID) else { return }
+            consumed = value
+            runtime.talents.pending[keyPath: keyPath] = nil
+        }
+        return consumed
     }
 
     internal mutating func prepareAttackBonus(

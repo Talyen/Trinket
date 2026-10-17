@@ -10,7 +10,7 @@ package struct ControlMeterOutcome {
 
 package enum ControlMeterEngine {
     @discardableResult
-    package static func applyMeterCharge( // swiftlint:disable:this function_body_length - control status mutation is one atomic pipeline
+    package static func applyMeterCharge(
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -49,51 +49,26 @@ package enum ControlMeterEngine {
         } else {
             threshold
         }
-        var currentEffects = context.roster.activeEffects(for: combatant)
         guard !context.interceptDebuff(
             .controlMeter(keyword, adjustedAmount, effectiveThreshold),
             on: combatant,
         ) else { return .empty }
-        let existingIndex = currentEffects.firstIndex { activeEffect in
-            if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword {
-                return true
-            }
-            return false
-        }
-        let existingAmount = existingMeterAmount(at: existingIndex, in: currentEffects)
+        let existingAmount = meter(keyword, on: combatant, in: context)?.effect.controlMeterValues?.amount ?? 0
         let newAmount = min(SaturatedArithmetic.saturatingAdd(existingAmount, adjustedAmount), effectiveThreshold)
-
-        if newAmount >= effectiveThreshold {
-            await applyThresholdReached(
-                ControlMeterThresholdContext(
-                    keyword: keyword,
-                    combatant: combatant,
-                    sourceActorID: sourceActorID,
-                    existingIndex: existingIndex,
-                    baseThreshold: threshold,
-                    triggeredAmount: effectiveThreshold,
-                    setupHealthDamage: setupHealthDamage,
-                ),
-                currentEffects: &currentEffects,
-                in: &context,
+        let triggered = newAmount >= effectiveThreshold
+        storeMeter(
+            keyword, amount: triggered ? threshold : newAmount,
+            threshold: triggered ? threshold : effectiveThreshold,
+            on: combatant, sourceActorID: sourceActorID, in: &context,
+        )
+        if triggered {
+            await thresholdReached(
+                keyword, on: combatant, sourceActorID: sourceActorID,
+                triggeredAmount: effectiveThreshold, setupHealthDamage: setupHealthDamage, in: &context,
             )
             await ElementalReactionEngine.finishControl(in: &context)
-            return ControlMeterOutcome(didApply: true, didTrigger: true)
         }
-
-        updateBuildup(
-            ControlMeterUpdate(
-                keyword: keyword,
-                newAmount: newAmount,
-                threshold: effectiveThreshold,
-                combatant: combatant,
-                sourceActorID: sourceActorID,
-                existingIndex: existingIndex,
-            ),
-            currentEffects: &currentEffects,
-            in: &context,
-        )
-        return ControlMeterOutcome(didApply: true, didTrigger: false)
+        return ControlMeterOutcome(didApply: true, didTrigger: triggered)
     }
 
     package static func threshold(for combatant: Combatant, in context: BattleState) -> Int {
@@ -101,56 +76,23 @@ package enum ControlMeterEngine {
         return max(1, CombatRounding.rounded(Double(maxHealth) * 0.20))
     }
 
-    private static func existingMeterAmount(
-        at existingIndex: Int?,
-        in currentEffects: [ActiveEffect],
-    ) -> Int {
-        guard let existingIndex,
-              case let .controlMeter(_, amount, _) = currentEffects[existingIndex].effect
-        else { return 0 }
-        return amount
-    }
-
-    package struct ControlMeterThresholdContext {
-        let keyword: Keyword
-        let combatant: Combatant
-        let sourceActorID: String?
-        let existingIndex: Int?
-        let baseThreshold: Int
-        let triggeredAmount: Int
-        var setupHealthDamage: Int = 0
-    }
-
-    // swiftlint:disable:next function_body_length - control decay keeps status and meter changes ordered
-    package static func applyThresholdReached(
-        _ thresholdContext: ControlMeterThresholdContext,
-        currentEffects: inout [ActiveEffect],
+    // swiftlint:disable:next function_body_length - control rewards follow the committed status in their existing order
+    private static func thresholdReached(
+        _ keyword: Keyword,
+        on combatant: Combatant,
+        sourceActorID: String?,
+        triggeredAmount: Int,
+        setupHealthDamage: Int = 0,
         in context: inout BattleState,
     ) async {
         context.resolution.controlDepth += 1
         defer { context.resolution.controlDepth -= 1 }
-        let keyword = thresholdContext.keyword
-        let combatant = thresholdContext.combatant
-        let sourceActorID = thresholdContext.sourceActorID
-
-        updateBuildup(
-            ControlMeterUpdate(
-                keyword: keyword,
-                newAmount: thresholdContext.baseThreshold,
-                threshold: thresholdContext.baseThreshold,
-                combatant: combatant,
-                sourceActorID: sourceActorID,
-                existingIndex: thresholdContext.existingIndex,
-            ),
-            currentEffects: &currentEffects,
-            in: &context,
-        )
         ElementalReactionEngine.prepareControl(
-            keyword, target: combatant, healthDamage: thresholdContext.setupHealthDamage, sourceID: sourceActorID, in: &context,
+            keyword, target: combatant, healthDamage: setupHealthDamage, sourceID: sourceActorID, in: &context,
         )
         if keyword == .stun {
             UniqueCombatEngine.retainStun(
-                thresholdContext.triggeredAmount,
+                triggeredAmount,
                 on: combatant,
                 sourceActorID: sourceActorID,
                 in: &context,
@@ -278,39 +220,26 @@ package enum ControlMeterEngine {
         }
     }
 
-    package struct ControlMeterUpdate {
-        let keyword: Keyword
-        let newAmount: Int
-        let threshold: Int
-        let combatant: Combatant
-        let sourceActorID: String?
-        let existingIndex: Int?
+    private static func meter(_ keyword: Keyword, on combatant: Combatant, in context: BattleState) -> ActiveEffect? {
+        context.roster.activeEffects(for: combatant).first { active in
+            active.effect.kind == .controlMeter && active.keyword == keyword
+        }
     }
 
-    package static func updateBuildup(
-        _ update: ControlMeterUpdate,
-        currentEffects: inout [ActiveEffect],
-        in context: inout BattleState,
+    private static func storeMeter(
+        _ keyword: Keyword, amount: Int, threshold: Int,
+        on combatant: Combatant, sourceActorID: String?, in context: inout BattleState,
     ) {
-        let buildup = Effect.controlMeter(update.keyword, update.newAmount, update.threshold)
-        if let existingIndex = update.existingIndex {
-            currentEffects[existingIndex] = ActiveEffect(
-                id: currentEffects[existingIndex].id,
-                effect: buildup,
-                remainingTurns: currentEffects[existingIndex].remainingTurns,
-                sourceActorID: currentEffects[existingIndex].sourceActorID,
-            )
-        } else {
-            currentEffects.append(
-                ActiveEffect(
-                    id: context.consumeNextEffectID(),
-                    effect: buildup,
-                    remainingTurns: 0,
-                    sourceActorID: update.sourceActorID,
-                ),
-            )
+        let existing = meter(keyword, on: combatant, in: context)
+        let effectID = existing?.id ?? context.consumeNextEffectID()
+        context.roster.mutateEffects(for: combatant) { effects in
+            let buildup = Effect.controlMeter(keyword, amount, threshold)
+            if let index = effects.firstIndex(where: { $0.id == effectID }) {
+                effects[index].effect = buildup
+            } else {
+                effects.append(ActiveEffect(id: effectID, effect: buildup, remainingTurns: 0, sourceActorID: sourceActorID))
+            }
         }
-        context.roster.setActiveEffects(currentEffects, for: update.combatant)
     }
 }
 
@@ -394,18 +323,12 @@ extension ControlMeterEngine {
         else {
             return false
         }
-        var currentEffects = context.roster.activeEffects(for: combatant)
-        guard let existingIndex = currentEffects.firstIndex(where: { activeEffect in
-            guard case let .controlMeter(meterKeyword, _, _) = activeEffect.effect else { return false }
-            return meterKeyword == keyword
-        }),
-            case let .controlMeter(_, currentAmount, threshold) = currentEffects[existingIndex].effect,
-            currentAmount > 0,
-            threshold > currentAmount
-        else {
-            return false
-        }
-        guard !isProtected(currentEffects[existingIndex].effect, on: combatant, in: context) else { return false }
+        guard let existing = meter(keyword, on: combatant, in: context),
+              let values = existing.effect.controlMeterValues,
+              values.amount > 0, values.threshold > values.amount,
+              !isProtected(existing.effect, on: combatant, in: context) else { return false }
+        let currentAmount = values.amount
+        let threshold = values.threshold
 
         let newAmount = min(SaturatedArithmetic.saturatingMul(currentAmount, factor), threshold)
         guard newAmount > currentAmount else { return false }
@@ -420,35 +343,11 @@ extension ControlMeterEngine {
             origin: .direct,
         )
 
+        storeMeter(keyword, amount: newAmount, threshold: threshold, on: combatant, sourceActorID: sourceActorID, in: &context)
         if newAmount >= threshold {
-            await applyThresholdReached(
-                ControlMeterThresholdContext(
-                    keyword: keyword,
-                    combatant: combatant,
-                    sourceActorID: sourceActorID,
-                    existingIndex: existingIndex,
-                    baseThreshold: threshold,
-                    triggeredAmount: newAmount,
-                ),
-                currentEffects: &currentEffects,
-                in: &context,
-            )
+            await thresholdReached(keyword, on: combatant, sourceActorID: sourceActorID, triggeredAmount: newAmount, in: &context)
             await ElementalReactionEngine.finishControl(in: &context)
-            return true
         }
-
-        updateBuildup(
-            ControlMeterUpdate(
-                keyword: keyword,
-                newAmount: newAmount,
-                threshold: threshold,
-                combatant: combatant,
-                sourceActorID: sourceActorID,
-                existingIndex: existingIndex,
-            ),
-            currentEffects: &currentEffects,
-            in: &context,
-        )
         return true
     }
 
