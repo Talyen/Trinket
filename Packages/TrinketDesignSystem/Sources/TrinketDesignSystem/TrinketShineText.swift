@@ -6,12 +6,13 @@ private struct ShineTextModifier: ViewModifier {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var clock = DecorativeLoopClock()
+    @State private var isInScrollViewport = true
 
     func body(content: Content) -> some View {
         if colors.isEmpty {
             content
         } else {
-            let paused = reduceMotion || !isMotionActive || scenePhase != .active
+            let paused = reduceMotion || !isMotionActive || scenePhase != .active || !isInScrollViewport
             // Stops are phase-independent: build once per body evaluation,
             // not on every TimelineView tick.
             let sweepStops = textShineStops(colors: colors)
@@ -31,6 +32,11 @@ private struct ShineTextModifier: ViewModifier {
                         ),
                     )
             }
+            .onGeometryChange(for: Bool.self) { geometry in
+                guard let viewport = geometry.bounds(of: .scrollView) else { return true }
+                // Include the existing text outline and its antialiased ink edge.
+                return viewport.intersects(CGRect(origin: .zero, size: geometry.size).insetBy(dx: -2, dy: -2))
+            } action: { isInScrollViewport = $0 }
             .onAppear { clock.setActive(!paused, at: Date()) }
             .onChange(of: paused) { _, isPaused in
                 clock.setActive(!isPaused, at: Date())

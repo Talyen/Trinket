@@ -193,10 +193,17 @@ current preparation generation.
 
 `trinketDecorativeMotion` parks shine and plasma clocks for hidden presentations,
 unselected tabs, and launch prewarm surfaces; nested scopes cannot re-enable an
-ancestor's parked clocks. Scene inactivity also pauses those clocks. A parked plasma timeline keeps its
-shader subtree mounted for first-render preparation; Reduced Motion retains its
-static-gradient accommodation. Finite gameplay
-effects keep their existing timing and lifecycle contracts.
+ancestor's parked clocks. Scene inactivity also pauses those clocks.
+
+Shine text and borders also park while fully outside their nearest scroll viewport;
+keep this visibility state local to the renderer and retain partially visible ink.
+Text resumes its frozen phase; borders retain their existing wall-clock rotation.
+Border fills use a native angular-gradient view through a static stroke mask so
+moving colors do not require repainting a conic-gradient stroke.
+
+A parked plasma timeline keeps its shader subtree mounted for first-render
+preparation; Reduced Motion retains its static-gradient accommodation. Finite
+gameplay effects keep their existing timing and lifecycle contracts.
 Activation and slice particles cache configuration and geometry-dependent values
 for the mounted effect, refreshing when those inputs change. Frame sampling keeps
 the original equations, counts, and timings. Uniform dissolve masks use a constant

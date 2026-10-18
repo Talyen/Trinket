@@ -20,6 +20,7 @@ enum PerformanceFixtures {
         let wantsTalentFixture = wantsTalentPair || arguments.contains("-performance-talent-reward")
             || arguments.contains("-performance-talent-point")
         let wantsTalentPoint = arguments.contains("-performance-talent-point")
+        let wantsShineLoadout = arguments.contains("-performance-shine-loadout")
         let wantsLabyrinthScroll = arguments.contains("-performance-labyrinth-scroll")
         let labyrinthNodeType: LabyrinthNodeType? = {
             guard let marker = arguments.firstIndex(of: "-performance-labyrinth-node"),
@@ -28,14 +29,14 @@ enum PerformanceFixtures {
             return LabyrinthNodeType(rawValue: arguments[marker + 1])
         }()
         guard mysteryEvent != nil || wantsHomesteadBuild || wantsStrongParty
-            || wantsTalentFixture || wantsLabyrinthScroll || labyrinthNodeType != nil
+            || wantsTalentFixture || wantsShineLoadout || wantsLabyrinthScroll || labyrinthNodeType != nil
         else { return }
 
         state.playerSave.installPerformanceFixtures(
             mysteryEvent: mysteryEvent, wantsHomesteadBuild: wantsHomesteadBuild,
             wantsStrongParty: wantsStrongParty, wantsTalentFixture: wantsTalentFixture,
             wantsTalentPoint: wantsTalentPoint, wantsLabyrinthScroll: wantsLabyrinthScroll,
-            labyrinthNodeType: labyrinthNodeType, wantsTalentPair: wantsTalentPair,
+            labyrinthNodeType: labyrinthNodeType, wantsTalentPair: wantsTalentPair, wantsShineLoadout: wantsShineLoadout,
         )
     }
 }

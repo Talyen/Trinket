@@ -7,7 +7,7 @@ public extension PlayerSaveStore {
     func installPerformanceFixtures(
         mysteryEvent: String?, wantsHomesteadBuild: Bool, wantsStrongParty: Bool,
         wantsTalentFixture: Bool, wantsTalentPoint: Bool, wantsLabyrinthScroll: Bool,
-        labyrinthNodeType: LabyrinthNodeType?, wantsTalentPair: Bool = false,
+        labyrinthNodeType: LabyrinthNodeType?, wantsTalentPair: Bool = false, wantsShineLoadout: Bool = false,
     ) {
         // "TRIN" in hex; retained fixture seed keeps map comparisons deterministic.
         let labyrinthFixtureSeed: UInt64 = 0x5452_494E
@@ -30,6 +30,13 @@ public extension PlayerSaveStore {
                     ? .at(level: 2)
                     : CombatantProgression(level: 1, currentXP: 9, requiredXP: 10)
                 save.roster.unlockedTalents[hero] = []
+            }
+            if wantsShineLoadout {
+                save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(itemIDsBySlot: [
+                    .weapon: "longsword-astral", .armor: "plate_armor-astral",
+                    .secondaryWeapon: "dagger-astral", .accessory: "ruby_ring-astral",
+                    .secondaryAccessory: "sapphire_amulet-astral",
+                ])
             }
             if wantsTalentPair {
                 let companion = save.roster.activeCompanionID

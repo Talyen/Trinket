@@ -45,26 +45,32 @@ private struct BorderTimeline: View {
     @Environment(\.isDecorativeMotionActive) private var isPresentationMotionActive
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isInScrollViewport = true
 
     var body: some View {
         let motionEnabled = isMotionActive && isPresentationMotionActive && scenePhase == .active && !reduceMotion
         let gradient = Gradient(stops: gradientStops(for: colors, motionEnabled: motionEnabled))
         let shape = TrinketDesign.shape(cornerRadius: cornerRadius)
+        let paused = !motionEnabled || !isInScrollViewport
         ZStack {
             shape
                 .strokeBorder(TrinketDesign.Colors.panel, lineWidth: lineWidth)
 
-            TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !motionEnabled)) { context in
+            TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: paused)) { context in
                 let angle = motionEnabled
                     ? TrinketMotion.Shine.phase(at: context.date.timeIntervalSinceReferenceDate) * 360
                     : 0
-                shape
-                    .strokeBorder(
-                        AngularGradient(gradient: gradient, center: .center, angle: .degrees(angle)),
-                        lineWidth: lineWidth,
-                    )
+                // Separate the moving fill from the static stroke to avoid CPU conic-stroke painting.
+                AngularGradient(gradient: gradient, center: .center, angle: .degrees(angle))
+                    .mask {
+                        shape.strokeBorder(TrinketDesign.Colors.Overlay.paper, lineWidth: lineWidth)
+                    }
             }
         }
+        .onGeometryChange(for: Bool.self) { geometry in
+            guard let viewport = geometry.bounds(of: .scrollView) else { return true }
+            return viewport.intersects(CGRect(origin: .zero, size: geometry.size).insetBy(dx: -2, dy: -2))
+        } action: { isInScrollViewport = $0 }
         .allowsHitTesting(false)
         .animation(nil, value: isMotionActive)
     }

@@ -100,7 +100,9 @@ accessibility identities or labels rather than recyclable child indices. Fixture
 must contain enough content to scroll. Short item details and the fixed resource
 wallet fit their viewport; they receive presentation/interaction coverage instead
 of claiming a successful content scroll. Shared long detail layouts are measured
-with populated combatant/equipment content.
+with populated combatant/equipment content. Combatant-detail scrolling equips five
+Astral items with available talents, then idles for ten seconds before gesture
+capture; older Basic-loadout captures represent a lighter workload.
 
 Functional UI and headless/package journeys own payment/ownership, onboarding,
 loadout persistence, reset safety, save recovery, and StoreKit entitlement behavior.
