@@ -4,6 +4,27 @@ import Testing
 
 @MainActor
 struct RewardRevealSequenceStateTests {
+    @Test(arguments: [false, true])
+    func `refreshed wallet rewards survive a pending reveal`(beforeReveal: Bool) async {
+        let clock = ControlledRewardRevealClock()
+        let state = RewardRevealSequenceState(clock: clock)
+        state.start(walletCount: 1)
+        #expect(await waitUntil { clock.isSleeping })
+        if !beforeReveal {
+            clock.advance()
+            #expect(await waitUntil { clock.isSleeping })
+        }
+        state.updateWalletCount(3)
+        clock.advance()
+        if beforeReveal {
+            #expect(await waitUntil { clock.isSleeping })
+            #expect(state.visibleWalletRewardCount == 3)
+            clock.advance()
+        }
+        #expect(await waitUntil { state.isSequenceComplete })
+        #expect(state.visibleWalletRewardCount == 3)
+    }
+
     @Test func `a gold loss remains visible in the reward sequence`() async {
         let state = makeState()
         let count = RewardRevealLootSection.walletRewardCount(gold: -5, materials: [])

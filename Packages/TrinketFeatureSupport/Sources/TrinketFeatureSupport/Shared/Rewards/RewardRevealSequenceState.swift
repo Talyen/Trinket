@@ -21,6 +21,7 @@ public final class RewardRevealSequenceState {
     public private(set) var areItemsVisible = false
     public private(set) var isSequenceComplete = false
     private var hasStarted = false
+    private var latestWalletCount = 0
     private var revealedItemIDs: Set<String> = []
     private var suppressesExceptionalReveals = false
     private var revealTask: Task<Void, Never>?
@@ -52,17 +53,18 @@ public final class RewardRevealSequenceState {
     public func start(walletCount: Int) {
         guard !hasStarted else { return }
         hasStarted = true
+        latestWalletCount = walletCount
         revealTask?.cancel()
         revealTask = Task { @MainActor in
             try? await clock.sleep(for: .seconds(TrinketMotion.Reward.entranceDelay))
             guard !Task.isCancelled else { return }
             withAnimation(TrinketMotion.Reward.lootReveal) {
                 areItemsVisible = true
-                visibleWalletRewardCount = walletCount
+                visibleWalletRewardCount = latestWalletCount
             }
             try? await clock.sleep(for: .seconds(TrinketMotion.Reward.revealDuration))
             guard !Task.isCancelled else { return }
-            finish(walletCount: walletCount)
+            finish(walletCount: latestWalletCount)
             revealTask = nil
         }
     }
@@ -75,6 +77,7 @@ public final class RewardRevealSequenceState {
     }
 
     public func updateWalletCount(_ count: Int) {
+        latestWalletCount = count
         guard hasStarted, count > visibleWalletRewardCount else { return }
         withAnimation(TrinketMotion.Reward.lootReveal) {
             visibleWalletRewardCount = count
