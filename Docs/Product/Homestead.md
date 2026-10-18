@@ -13,8 +13,10 @@ reserves a bottom dock for costs and Forge/Done while its artwork scrolls above.
 
 The overview keeps its full-bleed landscape hero, centered eight-resource wallet,
 and artwork category cards: Farming, Crafting, Alchemy, Training, Arcana.
-The wallet uses the large resource presentation. Category cards fill the content
-width with 16:9 artwork and stay vertically stacked.
+The wallet keeps its compact artwork beside each name and amount in two rows of
+four. Growing balances shrink to fit without changing the column count. Category
+cards fill the content width at their artwork's native aspect ratio and stay
+vertically stacked.
 Cards show tier-sum constructed progress and push stable two-column portrait
 building galleries. Buildings have centered names beneath their portraits, without
 visible upgrade segments in the galleries. Gallery cards retain accessibility

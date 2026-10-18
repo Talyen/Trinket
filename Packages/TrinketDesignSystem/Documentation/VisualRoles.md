@@ -68,13 +68,12 @@ This does not recolor the illustrated resources or change wallet/category tints.
 
 Wallet grids wrap resources into fewer columns when their intrinsic labels do
 not fit by default, then measure row height at the placed width. Homestead keeps
-its eight resources in two rows of four equal-width columns, with artwork above
-the name and amount so growing balances do not rearrange the wallet. Its grid
-disables wrapping; resource amounts retain single-line text fitting. Native text
+its eight resources in two rows of four equal-width columns, with compact artwork
+beside the name and amount. Its grid disables wrapping; growing resource amounts
+shrink to fit their single line instead of rearranging the wallet. Resource names
+also shrink on one line instead of splitting across rows. Native text
 scaling must not force labels into fixed-height rows. Wallet captions use opaque
-paper text to preserve contrast over the shared material. Large control size
-enlarges resource artwork and uses body-size labels; the Homestead overview
-selects this presentation while sheets and other wallets retain compact content.
+paper text to preserve contrast over the shared material.
 
 ## Keyword styling
 

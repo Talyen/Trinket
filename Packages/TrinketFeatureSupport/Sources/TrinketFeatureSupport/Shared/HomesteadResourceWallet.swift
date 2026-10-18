@@ -46,7 +46,6 @@ public struct HomesteadResourceWallet: View {
                 TrinketMotion.Interaction.walletIncreaseMaximumDelay,
             ),
             keepsArtworkStationary: keepsArtworkStationary,
-            axis: .vertical,
         ) {
             walletArtwork(for: resource)
                 .anchorPreference(key: HomesteadWalletArtworkAnchors.self, value: .bounds) {

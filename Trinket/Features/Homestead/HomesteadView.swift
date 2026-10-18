@@ -58,7 +58,6 @@ struct HomesteadView: View {
                     increaseAnimationDelays: Self.immediateWalletDelays,
                     keepsArtworkStationary: true,
                 )
-                .controlSize(.large)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
 
@@ -283,7 +282,8 @@ struct HomesteadView: View {
                 subtitle: progress.subtitle,
                 icon: category.icon,
                 artID: category.artID,
-                aspectRatio: 16.0 / 9.0,
+                aspectRatio: ArtCatalog.backgroundArtByID[category.artID].map { CGFloat($0.sourceAspectRatio) }
+                    ?? HubArtworkLayout.aspectRatio,
             )
             .overlay {
                 if showsCategoryProgress, requestedCategory == category {

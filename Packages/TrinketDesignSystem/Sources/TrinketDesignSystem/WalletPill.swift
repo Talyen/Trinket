@@ -8,9 +8,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     private let showsIncreasePrefix: Bool
     private let increaseAnimationDelay: TimeInterval
     private let keepsArtworkStationary: Bool
-    private let axis: Axis
     private let artwork: Artwork
-    @Environment(\.controlSize) private var controlSize
     @State private var increaseAnimationTrigger = 0
 
     private var displayedAmount: String {
@@ -23,7 +21,6 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         showsIncreasePrefix: Bool = false,
         increaseAnimationDelay: TimeInterval = 0,
         keepsArtworkStationary: Bool = false,
-        axis: Axis = .horizontal,
         @ViewBuilder artwork: () -> Artwork,
     ) {
         self.title = title
@@ -31,7 +28,6 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         self.showsIncreasePrefix = showsIncreasePrefix
         self.increaseAnimationDelay = increaseAnimationDelay
         self.keepsArtworkStationary = keepsArtworkStationary
-        self.axis = axis
         self.artwork = artwork()
     }
 
@@ -47,27 +43,15 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         formattedValue == nil
     }
 
-    private var usesLargeContent: Bool {
-        controlSize == .large || controlSize == .extraLarge
-    }
-
-    private var artworkSize: CGFloat {
-        TrinketDesign.Layout.walletResourceArtworkSize * (usesLargeContent ? 4.0 / 3.0 : 1)
-    }
-
     private var titleLabel: some View {
-        Text(title).trinketTypography(usesLargeContent ? .body : .caption)
+        Text(title).trinketTypography(.caption)
             .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
-            .trinketFittedText()
+            .trinketSingleLineFittedText()
     }
 
     public var body: some View {
-        let layout = axis == .vertical
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall))
-            : AnyLayout(HStackLayout(spacing: TrinketDesign.Spacing.small))
-
-        layout {
-            artwork.frame(width: artworkSize, height: artworkSize)
+        HStack(spacing: TrinketDesign.Spacing.small) {
+            artwork.frame(width: TrinketDesign.Layout.walletResourceArtworkSize, height: TrinketDesign.Layout.walletResourceArtworkSize)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
                 titleLabel
@@ -83,7 +67,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
             }
             .animation(animatesAmountChanges ? TrinketMotion.Interaction.walletIncrease : nil, value: amount)
         }
-        .frame(minHeight: max(TrinketDesign.Layout.walletResourceRowMinHeight, artworkSize), alignment: .leading)
+        .frame(minHeight: TrinketDesign.Layout.walletResourceRowMinHeight, alignment: .leading)
         .trinketWalletIncreaseBump(
             trigger: increaseAnimationTrigger,
             delay: increaseAnimationDelay,
