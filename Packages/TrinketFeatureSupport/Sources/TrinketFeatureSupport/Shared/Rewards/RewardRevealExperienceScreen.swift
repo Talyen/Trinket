@@ -205,6 +205,10 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
             preparedRewardArtworkNames = names
             revealSequence.start(walletCount: walletRewardCount)
         }
+        .onChange(of: walletRewardCount) { _, count in
+            // A stale-settlement refresh can add wallet rewards without a new reveal.
+            revealSequence.updateWalletCount(count)
+        }
         .onAppear {
             if focusedItemID == nil {
                 focusedItemID = loot.items.first?.id

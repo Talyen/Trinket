@@ -61,6 +61,41 @@ public struct BattleView: View {
         BattleViewInput(session: battleSession, presentation: presentation)
     }
 
+    /// Collapses payload-only outcome changes so a refreshed settlement does not
+    /// replay the screen crossfade or the success/defeat haptic.
+    private var outcomeStage: Int {
+        switch spectacle.outcomePresentation {
+        case .battle: 0
+        case .pendingVictory: 1
+        case .victory: 2
+        case .defeat: 3
+        }
+    }
+
+    private func handleOutcomePresentationChange(
+        _ oldValue: BattleOutcomePresentation,
+        _ newValue: BattleOutcomePresentation,
+    ) {
+        let wasVictory = if case .victory = oldValue {
+            true
+        } else {
+            false
+        }
+        let wasDefeat = if case .defeat = oldValue {
+            true
+        } else {
+            false
+        }
+        switch newValue {
+        case .victory where !wasVictory:
+            victoryFeedbackToken &+= 1
+        case .defeat where !wasDefeat:
+            defeatFeedbackToken &+= 1
+        case .battle, .pendingVictory, .victory, .defeat:
+            break
+        }
+    }
+
     private func bodyContent(battleSession: BattleSession) -> some View {
         outcomeContent(battleSession: battleSession)
             .allowsHitTesting(input.isCurrent)
@@ -77,7 +112,9 @@ public struct BattleView: View {
                 if input.isCurrent, !spectacle.outcomePresentation.isOutcomePresented {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         BattleAutoToggle(battleSession: battleSession, input: input)
+                            .disabled(!battleSession.canAcceptBattleCommands)
                         battleActionsMenu(canRetreat: battleSession.canRetreat)
+                            .disabled(!battleSession.canAcceptBattleCommands)
                     }
                 }
             }
@@ -105,14 +142,13 @@ public struct BattleView: View {
             .accessibilityIdentifier(AccessibilityID.Battle.skipCombat)
             #endif
 
-            if canRetreat {
-                Button(role: .destructive) {
-                    input.perform { $0.retreatFromBattle() }
-                } label: {
-                    Label(String(localized: L10n.ui_battleview_retreat_e6e5c), systemImage: "figure.run")
-                }
-                .accessibilityIdentifier(AccessibilityID.Battle.retreat)
+            Button(role: .destructive) {
+                input.perform { $0.retreatFromBattle() }
+            } label: {
+                Label(String(localized: L10n.ui_battleview_retreat_e6e5c), systemImage: "figure.run")
             }
+            .disabled(!canRetreat)
+            .accessibilityIdentifier(AccessibilityID.Battle.retreat)
         } label: {
             Image(systemName: "ellipsis")
                 .frame(minWidth: 44, minHeight: 44)
@@ -161,19 +197,10 @@ public struct BattleView: View {
                 .transition(.identity)
             }
         }
-        .animation(TrinketMotion.Screen.crossfade, value: spectacle.outcomePresentation)
+        .animation(TrinketMotion.Screen.crossfade, value: outcomeStage)
         .trinketSensoryFeedback(.success, trigger: victoryFeedbackToken, enabled: battleSession.hapticsEnabled)
         .trinketSensoryFeedback(.error, trigger: defeatFeedbackToken, enabled: battleSession.hapticsEnabled)
-        .onChange(of: spectacle.outcomePresentation) { _, newValue in
-            switch newValue {
-            case .victory:
-                victoryFeedbackToken &+= 1
-            case .defeat:
-                defeatFeedbackToken &+= 1
-            case .battle, .pendingVictory:
-                break
-            }
-        }
+        .onChange(of: spectacle.outcomePresentation, handleOutcomePresentationChange)
     }
 
     private func defeatContent(battleSession: BattleSession, settlement: BattleRewardSettlement) -> some View {

@@ -12,6 +12,7 @@ struct DefeatView: View {
     let onAction: (BattleDefeatAction) -> Bool
 
     @State private var isCompleting = false
+    @Environment(\.locale) private var locale
 
     var body: some View {
         RewardRevealShell(
@@ -19,8 +20,8 @@ struct DefeatView: View {
             eyebrowAccessibilityIdentifier: nil,
             title: String(localized: L10n.ui_defeatview_defeat_2be4c),
             subtitle: didRetreat
-                ? String(localized: L10n.ui_defeatview_your_party_retreated_from_1_86965("\(configuration.enemy?.name ?? "Enemy")"))
-                : String(localized: L10n.ui_defeatview_your_party_fell_to_1_e9b8d("\(configuration.enemy?.name ?? "Enemy")")),
+                ? String(localized: L10n.ui_defeatview_your_party_retreated_from_1_86965(enemyName))
+                : String(localized: L10n.ui_defeatview_your_party_fell_to_1_e9b8d(enemyName)),
             titleAccessibilityIdentifier: AccessibilityID.Battle.defeat,
             titleColor: TrinketDesign.Colors.accent,
             content: {
@@ -34,6 +35,10 @@ struct DefeatView: View {
             contentTopPadding: TrinketDesign.Spacing.extraSmall,
             contentStackSpacing: TrinketDesign.Spacing.large,
         )
+    }
+
+    private var enemyName: String {
+        ContentCopy.localized(configuration.enemy?.name ?? "Enemy", locale: locale)
     }
 
     private func complete(_ action: BattleDefeatAction) {

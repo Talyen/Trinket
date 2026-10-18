@@ -61,6 +61,7 @@ struct BlacksmithForgePreview: View {
             displayedItem == nil ? String(localized: L10n.ui_blacksmithforgepreview_forge_8899e) :
             String(localized: L10n.ui_blacksmithforgepreview_forged_ac158))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .task(id: recipe.id) { await preparePreviewArtwork() }
         .task(id: result?.id) { await prepareArtwork() }
         .onChange(of: displayedItem?.id) { _, _ in
@@ -117,7 +118,10 @@ struct BlacksmithForgePreview: View {
         }
         .trinketArtworkCardButtonStyle()
         .disabled(displayedItem == nil)
-        .accessibilityLabel(displayedItem?.localizedDisplayName(locale: locale) ?? recipe.baseType.localizedName(locale: locale))
+        .accessibilityLabel(
+            displayedItem?.localizedDisplayName(locale: locale)
+                ?? LibraryCopy.recipe(recipe, locale: locale),
+        )
         .accessibilityIdentifier(AccessibilityID.Homestead.forgeResult)
     }
 
@@ -147,10 +151,6 @@ struct BlacksmithForgePreview: View {
                 }
                 if !learned, let projectID = recipe.researchID {
                     Text(LibraryCopy.title(projectID, locale: locale)).foregroundStyle(.secondary)
-                    if readOnly {
-                        Button { onViewResearch?(projectID) } label: { Text(L10n.library_view_research) }
-                            .disabled(onViewResearch == nil)
-                    }
                 }
                 if readOnly {
                     Button { onOpenWorkshop?() } label: { Text(L10n.library_open_range).frame(maxWidth: .infinity) }

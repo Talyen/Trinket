@@ -74,6 +74,13 @@ public final class RewardRevealSequenceState {
         isSequenceComplete = true
     }
 
+    public func updateWalletCount(_ count: Int) {
+        guard hasStarted, count > visibleWalletRewardCount else { return }
+        withAnimation(TrinketMotion.Reward.lootReveal) {
+            visibleWalletRewardCount = count
+        }
+    }
+
     public func cancel(walletCount: Int) {
         revealTask?.cancel()
         revealTask = nil

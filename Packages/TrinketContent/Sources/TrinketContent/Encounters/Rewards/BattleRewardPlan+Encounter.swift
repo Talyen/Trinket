@@ -39,7 +39,10 @@ public extension BattleRewardPlan {
             gemsFindPercent: effects.gemsFindPercent,
             initialRewardRemainders: homestead.rewardRemainders ?? .zero,
             goldOverflowExperience: RewardExperiencePolicy.encounterAward(
-                encounterLevel: encounterLevel, hero: party.hero, companion: party.companion, percent: victoryPercent,
+                encounterLevel: encounterLevel, hero: party.hero, companion: party.companion,
+                // Overflow XP replaces earned Gold, so it carries the Library's
+                // earned-Experience percentage like the battle XP recipients.
+                percent: SaturatedArithmetic.saturatingAdd(victoryPercent, effects.experienceBonusPercent),
             ),
             heroExperience: experience(for: party.hero, highestLevel: highestLevels.hero, percent: victoryPercent),
             companionExperience: experience(for: party.companion, highestLevel: highestLevels.companion, percent: victoryPercent),

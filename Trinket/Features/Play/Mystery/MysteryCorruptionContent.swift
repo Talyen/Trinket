@@ -72,7 +72,9 @@ struct MysteryCorruptionRevealContent: View {
     }
 
     private func eyebrow(for item: InventoryItem) -> String {
-        let tag = item.isTrinket ? String(localized: L10n.ui_mysterycorruptioncontent_trinket_6faed) : item.rarity.label
+        let tag = item.isTrinket
+            ? String(localized: L10n.ui_mysterycorruptioncontent_trinket_6faed)
+            : LocalizedGameText(CoreCopy.resource(item.rarity.label), locale: locale).text
         return item.isCorrupted ? String(localized: L10n.ui_mysterycorruptioncontent_1_corrupted_7db4d("\(tag)")) : tag
     }
 }

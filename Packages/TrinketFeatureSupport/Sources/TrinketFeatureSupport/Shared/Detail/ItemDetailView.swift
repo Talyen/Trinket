@@ -104,7 +104,7 @@ public struct ItemDetailView: View {
             title: item.localizedDisplayName(locale: locale),
             header: { baseHeight in
                 DetailHeroHeader(
-                    eyebrow: Self.eyebrow(for: item),
+                    eyebrow: eyebrow(for: item),
                     title: item.localizedDisplayName(locale: locale),
                     titleShine: item.displayTextShine,
                     baseHeight: baseHeight,
@@ -132,8 +132,10 @@ public struct ItemDetailView: View {
         }
     }
 
-    private static func eyebrow(for item: InventoryItem) -> String {
-        let tag = item.isTrinket ? String(localized: L10n.ui_itemdetailview_trinket_6faed) : item.rarity.label
+    private func eyebrow(for item: InventoryItem) -> String {
+        let tag = item.isTrinket
+            ? String(localized: L10n.ui_itemdetailview_trinket_6faed)
+            : LocalizedGameText(CoreCopy.resource(item.rarity.label), locale: locale).text
         return item.isCorrupted ? String(localized: L10n.ui_itemdetailview_1_corrupted_7db4d("\(tag)")) : tag
     }
 

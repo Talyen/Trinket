@@ -13,6 +13,7 @@ struct VoyageView: View {
     @Environment(EncounterPlayMode.self) private var encounters
     @Environment(\.isBattleActive) private var isBattleActive
     @Environment(\.presentPlayCombatantDetail) private var presentPlayCombatantDetail
+    @Environment(\.locale) private var locale
     @State private var displayed: PlayerVoyageState?
     @State private var artworkPins = PreparedArtworkPinSet()
     @State private var message: StageMapMessage?
@@ -118,7 +119,10 @@ struct VoyageView: View {
         let run = state.activeRun
         let heroID = run?.offer.chapterID ?? "gameModeVoyage"
         return StageSelectScreen(
-            eyebrow: run.map { String(localized: L10n.ui_voyageview_1_voyage_2e333("\($0.offer.difficulty.title)")) },
+            eyebrow: run.map {
+                let difficulty = ContentCopy.localized($0.offer.difficulty.title, locale: locale)
+                return String(localized: L10n.ui_voyageview_1_voyage_2e333(difficulty))
+            },
             title: run.flatMap { GameContent.chapter(id: $0.offer.chapterID)?.title } ?? String(localized: L10n.ui_voyageview_voyage_10d91),
             subtitle: nil,
             heroModifier: run.map { run in

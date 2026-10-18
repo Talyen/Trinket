@@ -7,6 +7,7 @@ import TrinketPersistence
 
 struct ItemSlotPickerView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(\.locale) private var locale
 
     let slot: ItemSlot
     let equipmentLoadout: EquipmentLoadout
@@ -240,7 +241,8 @@ struct ItemSlotPickerView: View {
             return String(localized: unequipTitle)
         }
         if let wearer = otherWearerName(for: item) {
-            return String(localized: L10n.ui_itemslotpickerview_move_from_1_7bb90("\(wearer)"))
+            let localizedWearer = ContentCopy.localized(wearer, locale: locale)
+            return String(localized: L10n.ui_itemslotpickerview_move_from_1_7bb90(localizedWearer))
         }
         return String(localized: equipTitle)
     }
@@ -256,9 +258,11 @@ struct ItemSlotPickerView: View {
                 .frame(width: 24, height: 24)
                 .background(TrinketDesign.Colors.panel, in: Circle())
                 .padding(TrinketDesign.Spacing.tight)
-                .accessibilityLabel(otherWearer
-                    .map { String(localized: L10n.ui_itemslotpickerview_equipped_by_1_a51ee("\($0)")) } ??
-                    String(localized: L10n.ui_itemslotpickerview_equipped_by_this_combatant_6179d))
+                .accessibilityLabel(otherWearer.map { wearer in
+                    String(localized: L10n.ui_itemslotpickerview_equipped_by_1_a51ee(
+                        ContentCopy.localized(wearer, locale: locale),
+                    ))
+                } ?? String(localized: L10n.ui_itemslotpickerview_equipped_by_this_combatant_6179d))
         }
     }
 }

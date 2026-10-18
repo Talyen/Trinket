@@ -151,9 +151,14 @@ package extension CombatTriggerEngine {
             if member.id == combatant.id, percent > 0 {
                 let block = CombatRounding.scaled(granted, multiplier: percent)
                 if block > 0 {
-                    emitBlock(
-                        .goldGainBlockPercent, "Golden Guard",
-                        amount: block, to: member.combatant, source: member.combatant, in: &context,
+                    // The Gold amount is already scaled; resolved Block avoids
+                    // repeating Block-gain bonuses and fight pacing.
+                    context.applyBlockGain(
+                        block, to: member.combatant, source: member.combatant,
+                        abilityName: triggerAbilityName(
+                            .goldGainBlockPercent, for: member.combatant, fallback: "Golden Guard", in: context,
+                        ),
+                        amountBasis: .resolved,
                     )
                 }
             }
