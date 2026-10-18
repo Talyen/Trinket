@@ -43,12 +43,14 @@ public enum VictoryRewardApplier {
         save: PlayerSave,
     ) -> BattleRewardPlan {
         var payableItem = loot.item
-        var consolationGold = 0
+        let consolationGold: Int
         if let candidate = loot.item,
            InventoryDuplicatePolicy.containsDuplicate(of: candidate, in: save.inventory.items) {
             payableItem = nil
             let range = BattleLoot.quantityRange(forLevel: encounterLevel)
-            consolationGold = (range.lowerBound + range.upperBound) / 2
+            consolationGold = range.lowerBound + (range.upperBound - range.lowerBound) / 2
+        } else {
+            consolationGold = 0
         }
         return BattleRewardPlan.forEncounter(
             party: (save.roster.progression(for: party.hero), save.roster.progression(for: party.companion)),

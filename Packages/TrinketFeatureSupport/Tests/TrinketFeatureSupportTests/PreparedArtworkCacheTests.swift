@@ -552,6 +552,22 @@ extension PreparedArtworkCacheTests {
     }
 }
 
+extension PreparedArtworkCacheTests {
+    @Test func `cache budget stays within hitch floor and resident cap`() {
+        let floor = 160 * 1024 * 1024
+        let cap = 260 * 1024 * 1024
+        var previous = 0
+        for gigabytes in [1, 4, 6, 8, 16] {
+            let limit = PreparedArtworkCache.totalCostLimit(forPhysicalMemory: gigabytes * 1024 * 1024 * 1024)
+            #expect(limit >= floor)
+            #expect(limit <= cap)
+            #expect(limit <= PreparedArtworkMemoryBudget.residentArtworkByteCount)
+            #expect(limit >= previous)
+            previous = limit
+        }
+    }
+}
+
 private actor RetryingDecodeSource {
     private(set) var attemptCount = 0
     let image: UIImage
