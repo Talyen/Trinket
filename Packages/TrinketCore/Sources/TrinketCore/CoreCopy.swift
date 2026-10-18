@@ -2,8 +2,15 @@ import Foundation
 
 /// Presentation lookup for canonical domain labels; raw values remain save identities.
 public enum CoreCopy {
+    /// Canonical English is locale-independent; render only the matched rule
+    /// in the caller's locale rather than rendering every rule for each lookup.
+    private static let keywordByRulesText = Dictionary(
+        Keyword.allCases.map { ($0.rulesText, $0) },
+        uniquingKeysWith: { first, _ in first },
+    )
+
     public static func description(_ english: String, locale: Locale = .current) -> LocalizedGameText {
-        if let keyword = Keyword.allCases.first(where: { $0.rulesText == english }) {
+        if let keyword = keywordByRulesText[english] {
             return keyword.localizedRules(locale: locale)
         }
         if let keyword = Keyword.allCases.first(where: { $0.rawValue == english }) {

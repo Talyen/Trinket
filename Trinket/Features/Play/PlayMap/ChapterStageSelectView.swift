@@ -16,19 +16,6 @@ struct ChapterStageSelectView: View {
     let onStageTap: (Stage) -> Bool
     let onEnemyTap: (Stage) -> Void
 
-    private var chapter: Chapter {
-        presentation.chapter
-    }
-
-    private var isChapterLocked: Bool {
-        !playerSave.contentAccess.allowsChapter(chapter.number)
-    }
-
-    private func isStageLockedContent(_ stage: Stage) -> Bool {
-        guard isChapterLocked else { return false }
-        return presentation.rows.first(where: \.isActive)?.item.id == stage.id
-    }
-
     private var presentation: CampaignMapSnapshot {
         retainedPresentation ?? CampaignMapSnapshot(journey: journey, playerSave: playerSave)
     }
@@ -40,6 +27,8 @@ struct ChapterStageSelectView: View {
     var body: some View {
         let presentation = presentation
         let chapter = presentation.chapter
+        let isChapterLocked = !playerSave.contentAccess.allowsChapter(chapter.number)
+        let lockedStageID = isChapterLocked ? presentation.rows.first(where: \.isActive)?.item.id : nil
         StageSelectScreen(
             eyebrow: String(localized: L10n.ui_chapterstageselectview_chapter_1_c98b7("\(chapter.number)")),
             title: chapter.title,
@@ -57,12 +46,12 @@ struct ChapterStageSelectView: View {
         } content: {
             Group {
                 if presentation.isComplete {
-                    campaignCompletionState
+                    campaignCompletionState(chapter: chapter)
                 } else {
                     StageSelectList(
                         rows: presentation.rows,
-                        isPrimaryActionDisabled: { isChapterLocked && !isStageLockedContent($0) },
-                        isLockedContent: isStageLockedContent(_:),
+                        isPrimaryActionDisabled: { isChapterLocked && $0.id != lockedStageID },
+                        isLockedContent: { $0.id == lockedStageID },
                         onArtworkTap: onEnemyTap,
                         onPrimaryAction: handlePrimaryAction,
                         artwork: { stage, isActive in
@@ -102,7 +91,7 @@ struct ChapterStageSelectView: View {
         }
     }
 
-    private var campaignCompletionState: some View {
+    private func campaignCompletionState(chapter: Chapter) -> some View {
         StageSelectCompletionPanel(
             title: String(localized: L10n.ui_chapterstageselectview_campaign_complete_a2b42),
             description: String(localized: L10n.ui_chapterstageselectview_every_chapter_stage_is_complete_bd88c),
