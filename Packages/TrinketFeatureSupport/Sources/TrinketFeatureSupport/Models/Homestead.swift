@@ -56,20 +56,3 @@ public extension HomesteadNodeCategory {
         }
     }
 }
-
-public extension [ResourceAmount] {
-    var formattedYieldList: String {
-        let parts = map { "\($0.quantity) \($0.resource.displayName)" }
-        switch parts.count {
-        case 0:
-            return "nothing"
-        case 1:
-            return parts[0]
-        case 2:
-            return String(localized: L10n.ui_homestead_1_and_2_16d5b("\(parts[0])", "\(parts[1])"))
-        default:
-            let head = parts.dropLast().joined(separator: ", ")
-            return String(localized: L10n.ui_homestead_1_and_2_2ac9d("\(head)", "\(parts[parts.count - 1])"))
-        }
-    }
-}

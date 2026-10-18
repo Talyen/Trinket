@@ -19,13 +19,6 @@ enum CombatFeedbackClass: String, CaseIterable, Hashable {
 struct CombatFeedbackKeyframeSample: Equatable {
     let value: Double
     let duration: TimeInterval
-    let usesSpring: Bool
-
-    init(value: Double, duration: TimeInterval, usesSpring: Bool = true) {
-        self.value = value
-        self.duration = duration
-        self.usesSpring = usesSpring
-    }
 }
 
 enum CombatFeedbackTypographyTier: Hashable, CaseIterable {

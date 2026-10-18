@@ -5,7 +5,7 @@ enum CampaignRewardLevel {
         let completedCampaign = chapters.lazy.flatMap(\.stages)
             .filter { save.journey.completedStageIDs.contains($0.id) && $0.encounter.isCombat }
             .map { EncounterLevelResolver.journeyEnemyLevel(for: $0, in: chapters) }.max() ?? 0
-        let clearedSpires = save.spires.highestClearedFloorBySpireID.values.lazy.map { $0 * 2 }.max() ?? 0
+        let clearedSpires = save.spires.highestClearedFloorOverall * 2
         let clearedLabyrinth = save.labyrinth.nodes.values.lazy
             .filter { $0.isCleared && $0.type.isCombat }
             .map { EncounterLevelResolver.labyrinthEnemyLevel(for: $0) }.max() ?? 0

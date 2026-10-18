@@ -49,20 +49,16 @@ public enum ArtworkViewportPrewarm {
         prefetchRows: Int = defaultPrefetchRows,
         estimatedColumns: Int = collectionEstimatedColumns,
     ) async where Item.ID: Hashable {
-        if !visibleIDs.isEmpty {
-            try? await Task.sleep(for: viewportDebounceInterval)
+        await prewarm(hasVisibleIDs: !visibleIDs.isEmpty) {
+            let latestIDs: Set<Item.ID> = currentVisibleIDs?() ?? visibleIDs
+            return windowNames(
+                orderedItems: orderedItems,
+                visibleIDs: latestIDs,
+                thumbnailName: thumbnailName,
+                prefetchRows: prefetchRows,
+                estimatedColumns: estimatedColumns,
+            )
         }
-        guard !Task.isCancelled else { return }
-        let latestIDs: Set<Item.ID> = currentVisibleIDs?() ?? visibleIDs
-        let names = windowNames(
-            orderedItems: orderedItems,
-            visibleIDs: latestIDs,
-            thumbnailName: thumbnailName,
-            prefetchRows: prefetchRows,
-            estimatedColumns: estimatedColumns,
-        )
-        guard !names.isEmpty else { return }
-        await PreparedArtworkCache.shared.prepare(names: names)
     }
 
     @MainActor
@@ -74,17 +70,26 @@ public enum ArtworkViewportPrewarm {
         prefetchRows: Int = defaultPrefetchRows,
         estimatedColumns: Int = collectionEstimatedColumns,
     ) async where Item.ID: Hashable {
-        if !visibleIDs.isEmpty {
+        await prewarm(hasVisibleIDs: !visibleIDs.isEmpty) {
+            let latestIDs: Set<Item.ID> = currentVisibleIDs?() ?? visibleIDs
+            return windowNames(
+                window: window, visibleIDs: latestIDs, thumbnailName: thumbnailName,
+                prefetchRows: prefetchRows, estimatedColumns: estimatedColumns,
+            )
+        }
+    }
+
+    /// Debounce, re-read the visible IDs, then prepare. Both overloads share
+    /// this tail; only `windowNames` resolution differs.
+    @MainActor
+    private static func prewarm(hasVisibleIDs: Bool, names: () -> [String]) async {
+        if hasVisibleIDs {
             try? await Task.sleep(for: viewportDebounceInterval)
         }
         guard !Task.isCancelled else { return }
-        let latestIDs: Set<Item.ID> = currentVisibleIDs?() ?? visibleIDs
-        let names = windowNames(
-            window: window, visibleIDs: latestIDs, thumbnailName: thumbnailName,
-            prefetchRows: prefetchRows, estimatedColumns: estimatedColumns,
-        )
-        guard !names.isEmpty else { return }
-        await PreparedArtworkCache.shared.prepare(names: names)
+        let resolved = names()
+        guard !resolved.isEmpty else { return }
+        await PreparedArtworkCache.shared.prepare(names: resolved)
     }
 
     public static func windowNames<Item: Identifiable>(

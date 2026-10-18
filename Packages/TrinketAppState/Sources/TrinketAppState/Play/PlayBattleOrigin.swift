@@ -29,10 +29,6 @@ public enum PlayBattleOrigin: Hashable, Sendable {
         }
     }
 
-    public func matches(mode: PlayBattleMode) -> Bool {
-        self.mode == mode
-    }
-
     public var runKey: BattleRunKey {
         switch self {
         case let .journey(stageID):

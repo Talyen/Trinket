@@ -1,10 +1,10 @@
 import TrinketCore
 
 extension InventoryItem {
-    /// Rounds a stored fraction to a whole percent without trapping on a
-    /// fractional value beyond `Int.max / 100`.
+    /// Typed adapter required by the localization inventory for compatibility
+    /// descriptions; the rounding itself lives in `CombatRounding.wholePercent`.
     private static func wholePercent(_ fraction: Double) -> Int {
-        CombatRounding.rounded(min(fraction, Double(Int.max) / 100) * 100)
+        CombatRounding.wholePercent(fraction)
     }
 
     static func normalizedPower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {

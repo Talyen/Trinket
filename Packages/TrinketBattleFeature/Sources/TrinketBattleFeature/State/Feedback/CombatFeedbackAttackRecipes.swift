@@ -37,9 +37,9 @@ enum CombatFeedbackAttackRecipes {
             .init(value: 0, duration: 0.45),
         ],
         rotation: [
-            .init(value: -4, duration: 0.40, usesSpring: false),
-            .init(value: 3, duration: 0.15, usesSpring: false),
-            .init(value: 0, duration: 0.45, usesSpring: false),
+            .init(value: -4, duration: 0.40),
+            .init(value: 3, duration: 0.15),
+            .init(value: 0, duration: 0.45),
         ],
     )
 }

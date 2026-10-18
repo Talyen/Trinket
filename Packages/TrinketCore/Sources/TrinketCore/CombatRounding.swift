@@ -16,4 +16,10 @@ public enum CombatRounding {
     public static func scaled(_ value: Int, byPercent percent: Int) -> Int {
         SaturatedArithmetic.scaled(value, byPercent: percent)
     }
+
+    /// Rounds a stored fraction to a whole percent. Clamping before the ×100
+    /// keeps a fractional value beyond `Int.max / 100` from trapping.
+    public static func wholePercent(_ fraction: Double) -> Int {
+        rounded(min(fraction, Double(Int.max) / 100) * 100)
+    }
 }

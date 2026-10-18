@@ -12,6 +12,12 @@ public struct PlayerSpiresState: Codable, Equatable, Sendable {
         highestClearedFloorBySpireID[spireID] ?? 0
     }
 
+    /// Highest floor cleared in any Spire. Sanitization drops unknown Spire IDs,
+    /// so iterating the catalog here would add no coverage.
+    public var highestClearedFloorOverall: Int {
+        highestClearedFloorBySpireID.values.max() ?? 0
+    }
+
     public func activeFloor(for spireID: String, floorCount: Int) -> Int {
         min(highestClearedFloor(for: spireID) + 1, max(floorCount, 1))
     }

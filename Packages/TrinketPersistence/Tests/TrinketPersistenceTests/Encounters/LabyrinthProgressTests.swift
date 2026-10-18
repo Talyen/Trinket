@@ -360,7 +360,7 @@ extension LabyrinthProgressTests {
         #expect(loaded.worldSeed == 55)
         #expect(loaded.isMapPayloadUnreadable)
 
-        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(loaded)
+        let sanitized = LabyrinthSanitizer.sanitize(loaded)
         #expect(sanitized.hasMap)
         #expect(!sanitized.isMapPayloadUnreadable)
         #expect(sanitized.worldSeed == 55)
@@ -390,7 +390,7 @@ extension LabyrinthProgressTests {
         mystery.isRevealed = true
         original.nodes[mysteryID] = mystery
 
-        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(original)
+        let sanitized = LabyrinthSanitizer.sanitize(original)
         let preserved = try #require(sanitized.nodes[mysteryID])
         #expect(preserved.mysteryEventID == "hidden-cache")
         #expect(preserved.mysteryOffersPayload == mystery.mysteryOffersPayload)

@@ -124,7 +124,7 @@ extension PlayBattleCoordinator {
             return Self.activationFailureMessage
         }
         guard let configuration = battle.activeBattle,
-              let run = activeRegistration(for: configuration) else { return nil }
+              let run = activeRegistration(for: configuration) else { return Self.activationFailureMessage }
         if let restriction = playerSave.accessRestriction(for: run.route?.origin) {
             endBattleReturningToOrigin(onFinished: onFinished)
             return restriction

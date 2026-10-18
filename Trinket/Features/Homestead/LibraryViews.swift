@@ -196,14 +196,14 @@ struct LibraryResearchView: View {
         let progress = project.progress(
             in: history,
             companionIDs: playerSave.roster.unlockedCompanionIDs,
-            highestSpireFloor: GameContent.spires.map { playerSave.spires.highestClearedFloor(for: $0.id.rawValue) }.max() ?? 0,
+            highestSpireFloor: playerSave.spires.highestClearedFloorOverall,
         )
         if progress.allSatisfy(\.self), playerSave.homestead.tier(for: .library) < project.minimumLibraryTier {
             Text(LibraryCopy.tier(project.minimumLibraryTier, locale: locale)).foregroundStyle(.secondary)
         } else if case let .companions(count) = project.objectives.first {
             Text("\(min(count, playerSave.roster.companions.count))/\(count)").monospacedDigit()
         } else if case let .spireFloor(floor) = project.objectives.first {
-            let highest = GameContent.spires.map { playerSave.spires.highestClearedFloor(for: $0.id.rawValue) }.max() ?? 0
+            let highest = playerSave.spires.highestClearedFloorOverall
             Text("\(min(floor, highest))/\(floor)").monospacedDigit()
         } else {
             HStack(spacing: TrinketDesign.Spacing.small) {
@@ -232,7 +232,7 @@ struct LibraryResearchProjectView: View {
         project.progress(
             in: playerSave.library.progress,
             companionIDs: playerSave.roster.unlockedCompanionIDs,
-            highestSpireFloor: GameContent.spires.map { playerSave.spires.highestClearedFloor(for: $0.id.rawValue) }.max() ?? 0,
+            highestSpireFloor: playerSave.spires.highestClearedFloorOverall,
         )
     }
 
@@ -281,17 +281,28 @@ struct LibraryResearchProjectView: View {
                             }
                         }
                     }
-                } else {
+                } else if let goal = project.objectives.first {
+                    // Goal copy and progress derive from the objective so catalog
+                    // changes cannot desync this screen from the actual target.
                     HStack(spacing: TrinketDesign.Spacing.small) {
                         ResearchCheck(complete: progress.allSatisfy(\.self))
-                        Text(project.id == "companion-chronicles" ? LibraryCopy.localized(L10n.library_goal_companions, locale: locale)
-                            : LibraryCopy.localized(L10n.library_goal_spire, locale: locale))
+                        switch goal {
+                        case .companions:
+                            Text(LibraryCopy.localized(L10n.library_goal_companions, locale: locale))
+                        case .spireFloor, .defeat:
+                            Text(LibraryCopy.localized(L10n.library_goal_spire, locale: locale))
+                        }
                     }
-                    if project.id == "companion-chronicles" {
-                        Text("\(min(3, playerSave.roster.companions.count))/3").monospacedDigit().foregroundStyle(.secondary)
-                    } else {
-                        let floor = GameContent.spires.map { playerSave.spires.highestClearedFloor(for: $0.id.rawValue) }.max() ?? 0
-                        Text("\(min(10, floor))/10").monospacedDigit().foregroundStyle(.secondary)
+                    switch goal {
+                    case let .companions(count):
+                        Text("\(min(count, playerSave.roster.companions.count))/\(count)")
+                            .monospacedDigit().foregroundStyle(.secondary)
+                    case let .spireFloor(floor):
+                        let highest = playerSave.spires.highestClearedFloorOverall
+                        Text("\(min(floor, highest))/\(floor)")
+                            .monospacedDigit().foregroundStyle(.secondary)
+                    case .defeat:
+                        EmptyView()
                     }
                     if playerSave.library.progress.completedResearchIDs.contains(project.id) {
                         Text(LibraryCopy.archive(project.id, locale: locale)).foregroundStyle(.secondary)

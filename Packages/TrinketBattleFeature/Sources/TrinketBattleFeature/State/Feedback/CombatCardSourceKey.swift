@@ -12,4 +12,11 @@ struct CombatCardSourceKey: Hashable {
         actorID = event.actorID
         abilityID = event.abilityID
     }
+
+    /// Card-ability keys present in one event batch. Passive reactions share a
+    /// group with the card that triggered them, so only a matching `.ability`
+    /// event proves an effect is card output.
+    static func cardSources(in events: [ActionEvent]) -> Set<Self> {
+        Set(events.lazy.filter { $0.kind == .ability }.compactMap(Self.init))
+    }
 }

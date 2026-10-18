@@ -73,10 +73,6 @@ public extension Stage {
         String(localized: L10n.ui_stagemappresentation_stage_1_2_387d4("\(chapterNumber)", "\(stageNumber)"))
     }
 
-    var mapMetaLabel: String {
-        "\(mapLabel) · \(encounterTypeTitle)"
-    }
-
     func encounterCombatantArtReference(worldSeed: UInt64) -> CombatantArtReference? {
         guard let enemyID = resolvedBattleEnemyID(worldSeed: worldSeed) else { return nil }
         return GameContent.enemy(matching: enemyID)?.combatant.artReference

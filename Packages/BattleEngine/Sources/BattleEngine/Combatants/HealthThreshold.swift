@@ -7,6 +7,6 @@ enum HealthThreshold {
 
     static func isAboveHalf(_ health: Int, maximum: Int) -> Bool {
         let half = maximum / 2
-        return health > half || health == half && maximum % 2 < 0
+        return health > half
     }
 }

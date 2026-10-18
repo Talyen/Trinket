@@ -77,26 +77,18 @@ final class CombatFeedbackChipBridge {
             return
         }
         view.onEvict = { [weak self] ids in self?.suppress(ids) }
-        let previous = hosts[key]
-        let metadataChanged = previous == nil
-            || previous?.view !== view
-            || previous?.combatantID != combatantID
-            || previous?.layoutDirection != layoutDirection
-            || previous?.displayScale != displayScale
         hosts[key] = WeakHost(
             view: view,
             combatantID: combatantID,
             layoutDirection: layoutDirection,
             displayScale: displayScale,
         )
-        if metadataChanged {
-            // Retain unmounted fragments until remount, but discard obsolete scale/direction contexts.
-            let liveContexts = Set(hosts.values.map {
-                ResolutionKey(combatantID: $0.combatantID, layoutDirection: $0.layoutDirection, displayScale: $0.displayScale)
-            })
-            liveRasters = liveRasters.filter { liveContexts.contains($0.key) }
-            refreshHosts(for: [combatantID], hostKeys: [key], at: .now)
-        }
+        // Retain unmounted fragments until remount, but discard obsolete scale/direction contexts.
+        let liveContexts = Set(hosts.values.map {
+            ResolutionKey(combatantID: $0.combatantID, layoutDirection: $0.layoutDirection, displayScale: $0.displayScale)
+        })
+        liveRasters = liveRasters.filter { liveContexts.contains($0.key) }
+        refreshHosts(for: [combatantID], hostKeys: [key], at: .now)
     }
 
     func unregister(_ view: CombatFeedbackRasterUIView) {

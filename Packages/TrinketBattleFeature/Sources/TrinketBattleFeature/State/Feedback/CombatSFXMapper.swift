@@ -89,7 +89,7 @@ enum CombatSFXMapper {
         didDrawCards: Bool = false,
     ) -> String? {
         var selection = Selection()
-        let cardSources = Set(events.lazy.filter { $0.kind == .ability }.compactMap(CombatCardSourceKey.init))
+        let cardSources = CombatCardSourceKey.cardSources(in: events)
         let thornsSources = Set(events.filter { $0.effectKind == .thornsApplied }.compactMap(CombatCardSourceKey.init))
         let recorded = Set(damage.map { DamageKey(targetID: $0.targetID, keyword: $0.keyword) })
         for (index, hit) in damage.enumerated() {

@@ -70,7 +70,7 @@ enum PlayerSaveSanitizer {
             sanitized.contracts = save.contracts.sanitized()
         }
         if targets.contains(.labyrinth) {
-            sanitized.labyrinth = sanitizeLabyrinth(
+            sanitized.labyrinth = LabyrinthSanitizer.sanitize(
                 sanitized.labyrinth,
                 eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs,
                 eligibleRewards: RewardOwnership(sanitized).eligibleModifiers,
@@ -120,14 +120,6 @@ enum PlayerSaveSanitizer {
         // requiredXP recomputed), so validate skips the redundant sub-check; the
         // DEBUG assert in sanitizeAndValidate guards the post-sanitize invariant.
         try validateEncodedAffixPowers(save.inventory)
-    }
-
-    static func sanitizeLabyrinth(
-        _ labyrinth: PlayerLabyrinthState,
-        eligibleRecruitEventIDs: [String] = [],
-        eligibleRewards: [RewardModifier] = RewardModifier.allCases,
-    ) -> PlayerLabyrinthState {
-        LabyrinthSanitizer.sanitize(labyrinth, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards)
     }
 }
 

@@ -133,7 +133,7 @@ enum CombatFeedbackPresenter {
     }
 
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
-        let cardSources = Set(events.lazy.filter { $0.kind == .ability }.compactMap(CombatCardSourceKey.init))
+        let cardSources = CombatCardSourceKey.cardSources(in: events)
         return events.filter { event in
             switch event.kind {
             case .ability, .milestone:

@@ -75,7 +75,7 @@ public struct PlayerLibraryState: Codable, Equatable, Sendable {
         progress.evaluate(
             libraryTier: save.homestead.tier(for: .library),
             companionIDs: save.roster.unlockedCompanionIDs,
-            highestSpireFloor: GameContent.spires.map { save.spires.highestClearedFloor(for: $0.id.rawValue) }.max() ?? 0,
+            highestSpireFloor: save.spires.highestClearedFloorOverall,
         )
     }
 }

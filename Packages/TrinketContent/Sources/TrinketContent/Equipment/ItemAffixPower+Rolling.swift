@@ -198,7 +198,7 @@ private enum AffixMagnitude: Equatable {
     var text: String {
         switch self {
         case let .int(value): "\(value)"
-        case let .percent(value): "\(CombatRounding.rounded(min(value, Double(Int.max) / 100) * 100))%"
+        case let .percent(value): "\(CombatRounding.wholePercent(value))%"
         }
     }
 
