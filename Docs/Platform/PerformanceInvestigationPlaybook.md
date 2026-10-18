@@ -306,6 +306,58 @@ Simulator evidence does not establish physical-device performance. Before claimi
 
 MetricKit `MXAnimationMetric.hitchTimeRatio` supplies production trend evidence for tracked animations on iOS 26+. On iOS 18, Trinket records `scrollHitchTimeRatio`, which covers scrolling only. Keep these differently scoped metrics separate when comparing trends. They complement—and do not replace—reproducible local scenarios and Instruments traces.
 
+### Physical-device profiling over Wi-Fi
+
+Wireless profiling requires a paired, reachable iPhone with Developer Mode enabled
+and a development-signed app. Use an optimized development build for measurements:
+`./Scripts/install-device.sh --device '<physical UDID>' --release`. Release
+optimization and distribution signing are separate choices: the TestFlight export
+removes `get-task-allow`, so it cannot be launched or attached to for debugging by
+Instruments. Do not add that entitlement to the distribution export.
+
+Check `xcrun devicectl device info details --device '<physical UDID>'` for the
+connection transport and `device info ddiServices` for compatible, usable developer
+services. A successful app launch or process listing proves device communication,
+but does not prove Instruments attachment or sustained recording.
+
+Prepare system symbols after an iOS update with
+`xcodebuild -prepareDeviceSupport -destination 'id=<physical UDID>'`. Keep the
+phone unlocked while it copies and extracts. Symbols must match its OS, model,
+and architecture; compatible developer services alone do not establish that the
+Mac has them. See Apple's [symbol preparation guidance](https://developer.apple.com/documentation/xcode/acquiring-operating-system-symbol-information).
+
+Unlike Simulator captures, select the physical target with `xctrace --device`.
+The host-only `record-time-profiler.sh` wrapper does not target an iPhone. Launch
+the development-signed app directly through Instruments:
+
+```sh
+xcrun xctrace record --device '<physical UDID>' --instrument 'Time Profiler' \
+  --time-limit 8s --output /tmp/trinket-device.trace \
+  --launch -- com.ryanmcintire.Trinket
+xcrun xctrace export --input /tmp/trinket-device.trace --toc \
+  --output /tmp/trinket-device-toc.xml
+```
+
+Inspect the exported run's target, duration, end reason, and recorded data before
+accepting it. `xctrace` can exit zero and save a partial trace after reporting
+`Device got disconnected`; neither is evidence that the requested interval was
+captured. If attachment cannot find a confirmed running process, a launch through
+Instruments can expose the underlying signing/permission error. Do not infer a
+Wi-Fi failure from that process-lookup message alone.
+Once the recording acknowledges its time limit, allow stopping and saving to
+finish; a fixed wall-clock timeout can interrupt a valid capture during that work.
+
+On October 18, 2026, iPhone 14 Pro / iOS 27.0.1 (24A446) with Xcode 27A9275
+completed an eight-second Time Profiler launch capture over `localNetwork` using
+the development-signed build 39 archive. Exported evidence identified Trinket,
+2,351 CPU samples, and `Time limit reached` as the end reason. Attachment by name
+or confirmed PID failed; device-wide captures disconnected after about 1.4 seconds
+despite saving successfully. This establishes the direct-launch CPU workflow,
+not reliable attachment, device-wide recording, or player-interaction hitch
+performance. Artifacts are under
+`.DerivedData/PerformanceResults/wifi-profiling-20261018/`; check availability
+before reuse.
+
 ### Unresolved device evidence
 
 The September 2026 artwork, remediation, and scroll investigations are closed
