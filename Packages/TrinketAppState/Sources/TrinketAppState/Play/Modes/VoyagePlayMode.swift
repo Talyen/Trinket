@@ -38,31 +38,28 @@ public final class VoyagePlayMode {
     }
 
     public func refresh() {
-        playerSave.performSaveAction(key: SaveRetryKey.voyageRefresh) { [weak self] _ in
-            guard let self, encounters.canBeginTransientEncounter else { return }
-            _ = playerSave.refreshVoyage()
-        }
+        mutateVoyage(key: SaveRetryKey.voyageRefresh) { _ = $0.refreshVoyage() }
     }
 
     public func embark(offerID: String) {
-        playerSave.performSaveAction(key: SaveRetryKey.voyageEmbark(offerID)) { [weak self] _ in
-            guard let self, encounters.canBeginTransientEncounter else { return }
-            _ = playerSave.embarkVoyage(offerID: offerID)
-        }
+        mutateVoyage(key: SaveRetryKey.voyageEmbark(offerID)) { _ = $0.embarkVoyage(offerID: offerID) }
     }
 
     public func abandon(runID: String) {
-        playerSave.performSaveAction(key: SaveRetryKey.voyageAbandon(runID)) { [weak self] _ in
-            guard let self, encounters.canBeginTransientEncounter else { return }
-            _ = playerSave.abandonVoyage(runID: runID)
-            prunePrepared()
+        mutateVoyage(key: SaveRetryKey.voyageAbandon(runID)) { [weak self] store in
+            _ = store.abandonVoyage(runID: runID)
+            self?.prunePrepared()
         }
     }
 
     public func dismissCompleted() {
-        playerSave.performSaveAction(key: SaveRetryKey.voyageCompleted) { [weak self] _ in
+        mutateVoyage(key: SaveRetryKey.voyageCompleted) { _ = $0.dismissCompletedVoyage() }
+    }
+
+    private func mutateVoyage(key: SaveRetryKey, _ mutate: @escaping (PlayerSaveStore) -> Void) {
+        playerSave.performSaveAction(key: key) { [weak self] _ in
             guard let self, encounters.canBeginTransientEncounter else { return }
-            _ = playerSave.dismissCompletedVoyage()
+            mutate(playerSave)
         }
     }
 

@@ -39,7 +39,7 @@ struct LabyrinthEncounterIdentityTests {
         } else {
             #expect(state.encounters.purchaseShopOffer(session: current, offerID: offer.id) == .committed)
             #expect(state.playerSave.roster.gold == before.roster.gold - offer.price)
-            #expect(current.purchasePresentation?.offerID == offer.id)
+            #expect(current.lastPurchasedOfferID == offer.id)
             #expect(state.encounters.finishShopEncounter(session: current))
             #expect(state.playerSave.labyrinth.nodes[nodeID]?.isCleared == true)
             #expect(state.encounters.activeShopEncounter == nil)

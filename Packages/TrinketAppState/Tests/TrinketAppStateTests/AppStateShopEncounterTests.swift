@@ -38,10 +38,9 @@ struct AppStateShopEncounterTests {
         }
 
         #expect(state.encounters.purchaseShopOffer(session: firstSession, offerID: offer.id) == .committed)
-        #expect(firstSession.purchasePresentation?.offerID == offer.id)
-        #expect(firstSession.purchasePresentation?.sequence == 1)
+        #expect(firstSession.lastPurchasedOfferID == offer.id)
         #expect(state.encounters.purchaseShopOffer(session: firstSession, offerID: offer.id) == .rejected)
-        #expect(firstSession.purchasePresentation?.sequence == 1)
+        #expect(firstSession.lastPurchasedOfferID == offer.id)
         let goldAfterFirst = state.playerSave.roster.gold
         let itemsAfterFirst = state.playerSave.inventory.items.count
 
@@ -213,7 +212,7 @@ struct AppStateShopEncounterTests {
         #expect(state.encounters.purchaseShopOffer(session: retired, offerID: offer.id) == .rejected)
         #expect(!state.encounters.finishShopEncounter(session: retired))
         #expect(state.encounters.activeShopEncounter === replacement)
-        #expect(replacement.purchasePresentation == nil)
+        #expect(replacement.lastPurchasedOfferID == nil)
         #expect(state.playerSave.currentSave == before)
         #expect(!state.playerSave.isRetryingSaveAction)
 
@@ -222,7 +221,7 @@ struct AppStateShopEncounterTests {
         #expect(state.encounters.purchaseShopOffer(session: retired, offerID: offer.id) == .rejected)
         #expect(!state.encounters.finishShopEncounter(session: retired))
         try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { state.playerSave.isRetryingSaveAction }
-        #expect(replacement.purchasePresentation?.offerID == offer.id)
+        #expect(replacement.lastPurchasedOfferID == offer.id)
         #expect(state.playerSave.roster.gold == before.roster.gold - offer.price)
     }
 
@@ -263,7 +262,7 @@ struct AppStateShopEncounterTests {
 
         playerSave.forcesNextSaveFailure = true
         #expect(state.encounters.purchaseShopOffer(session: session, offerID: offer.id) == .retrying)
-        #expect(session.purchasePresentation == nil)
+        #expect(session.lastPurchasedOfferID == nil)
         // The accepted attempt's rolled-back write left the save intact.
         #expect(playerSave.roster.gold == offer.price * 3)
         #expect(playerSave.inventory.items.count == itemsBefore)
@@ -271,8 +270,7 @@ struct AppStateShopEncounterTests {
         try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
         #expect(playerSave.roster.gold == offer.price * 2)
         #expect(playerSave.inventory.items.count == itemsBefore + 1)
-        #expect(session.purchasePresentation?.offerID == offer.id)
-        #expect(session.purchasePresentation?.sequence == 1)
+        #expect(session.lastPurchasedOfferID == offer.id)
     }
 
     @Test func `busy shop rejection cannot reuse an unrelated write failure`() throws {

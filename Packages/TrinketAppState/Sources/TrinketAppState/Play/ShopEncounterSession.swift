@@ -18,11 +18,6 @@ public enum ShopPurchaseOutcome: Equatable {
     case retrying
 }
 
-public struct ShopPurchasePresentation: Equatable {
-    public let sequence: Int
-    public let offerID: String
-}
-
 @MainActor
 @Observable
 public final class ShopEncounterSession: Identifiable {
@@ -39,7 +34,7 @@ public final class ShopEncounterSession: Identifiable {
 
     public let offers: [ShopOffer]
     public private(set) var isPurchasing = false
-    public private(set) var purchasePresentation: ShopPurchasePresentation?
+    public private(set) var lastPurchasedOfferID: String?
 
     public init(
         origin: PlayEncounterOrigin,
@@ -57,9 +52,7 @@ public final class ShopEncounterSession: Identifiable {
     }
 
     func publishPurchase(offerID: String) {
-        purchasePresentation = ShopPurchasePresentation(
-            sequence: (purchasePresentation?.sequence ?? 0) + 1, offerID: offerID,
-        )
+        lastPurchasedOfferID = offerID
     }
 
     func markPurchaseFinished() {

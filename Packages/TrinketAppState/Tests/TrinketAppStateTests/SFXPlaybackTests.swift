@@ -65,13 +65,6 @@ struct SFXPlaybackTests {
         #expect(events.values.filter { $0.hasPrefix("startVoice:") } == ["startVoice:0", "startVoice:1", "startVoice:2", "startVoice:0"])
     }
 
-    @Test func `external engine suspension restarts all retained voices`() {
-        var policy = SFXVoiceStartPolicy()
-        policy.didStart(nodeCount: 3)
-        #expect(policy.indicesToStart(nodeCount: 3, engineWasRunning: true).isEmpty)
-        #expect(policy.indicesToStart(nodeCount: 3, engineWasRunning: false) == 0 ..< 3)
-    }
-
     @Test(arguments: [SFXCommand.stop, .release])
     func `invalidation prevents a suspended decode from restarting audio`(_ command: SFXCommand) async {
         let events = SFXEvents()
@@ -298,7 +291,7 @@ private struct TestSFXBackend: SFXPlaybackBackend {
     let events: SFXEvents
     private var nextVoice = 0
     private var isRunning = false
-    private var voiceStartPolicy = SFXVoiceStartPolicy()
+    private var startedVoiceCount = 0
 
     init(events: SFXEvents) {
         self.events = events
@@ -317,10 +310,10 @@ private struct TestSFXBackend: SFXPlaybackBackend {
     mutating func start() -> Bool {
         events.append("start")
         guard events.canStart else { return false }
-        for index in voiceStartPolicy.indicesToStart(nodeCount: nextVoice, engineWasRunning: isRunning) {
+        for index in (isRunning ? startedVoiceCount : 0) ..< nextVoice {
             events.append("startVoice:\(index)")
         }
-        voiceStartPolicy.didStart(nodeCount: nextVoice)
+        startedVoiceCount = nextVoice
         isRunning = true
         return true
     }
@@ -332,7 +325,7 @@ private struct TestSFXBackend: SFXPlaybackBackend {
     mutating func stop() {
         events.append("stop")
         isRunning = false
-        voiceStartPolicy.reset()
+        startedVoiceCount = 0
     }
 
     mutating func releaseResources() {

@@ -10,39 +10,31 @@ final class PreparedBattleRegistry {
         let handle: any PreparedBattleRunHandle
     }
 
-    @MainActor
-    private final class Storage {
-        var entries: [BattleRunKey: Entry] = [:]
-
-        func invalidateAll() {
-            for entry in entries.values {
-                entry.handle.invalidate()
-            }
-            entries.removeAll()
-        }
-    }
-
-    private let storage = Storage()
+    private var entriesStorage: [BattleRunKey: Entry] = [:]
     private var selectedKey: BattleRunKey?
     var entries: [BattleRunKey: Entry] {
-        storage.entries
+        entriesStorage
     }
 
     deinit {
-        let storage = storage
-        MainActorCleanup.perform { storage.invalidateAll() }
+        let entries = entriesStorage
+        MainActorCleanup.perform {
+            for entry in entries.values {
+                entry.handle.invalidate()
+            }
+        }
     }
 
     func install(_ entry: Entry, for key: BattleRunKey) {
-        if let previous = entries[key], previous.handle !== entry.handle {
+        if let previous = entriesStorage[key], previous.handle !== entry.handle {
             previous.handle.invalidate()
         }
-        storage.entries[key] = entry
+        entriesStorage[key] = entry
     }
 
     /// Activation transfers the matched resource to the runtime only on success.
     func consume(_ key: BattleRunKey) {
-        storage.entries[key] = nil
+        entriesStorage[key] = nil
         if selectedKey == key {
             selectedKey = nil
         }
@@ -56,14 +48,14 @@ final class PreparedBattleRegistry {
     }
 
     func retain(where keep: (BattleRunKey, Entry) -> Bool) {
-        storage.entries = entries.filter { key, entry in
+        entriesStorage = entriesStorage.filter { key, entry in
             if keep(key, entry) {
                 return true
             }
             entry.handle.invalidate()
             return false
         }
-        if let selectedKey, entries[selectedKey] == nil {
+        if let selectedKey, entriesStorage[selectedKey] == nil {
             self.selectedKey = nil
         }
     }

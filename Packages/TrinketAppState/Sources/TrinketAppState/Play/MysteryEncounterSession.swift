@@ -31,14 +31,9 @@ public final class MysteryEncounterSession: Identifiable {
         case reward(MysteryEffectResult)
     }
 
-    private enum ChoiceAttempt {
-        case ready
-        case resolving
-        case failed(String)
-    }
-
     private var presentation: Presentation = .reading
-    private var choiceAttempt: ChoiceAttempt = .ready
+    private(set) var isResolvingChoice = false
+    private(set) var persistFailureMessage: String?
     @ObservationIgnored private var hasCollectedReward = false
 
     public var unlockedCombatantID: String? {
@@ -59,18 +54,6 @@ public final class MysteryEncounterSession: Identifiable {
     public var applyResult: MysteryEffectResult? {
         guard case let .reward(result) = presentation else { return nil }
         return result
-    }
-
-    public var isResolvingChoice: Bool {
-        if case .resolving = choiceAttempt {
-            return true
-        }
-        return false
-    }
-
-    public var persistFailureMessage: String? {
-        guard case let .failed(message) = choiceAttempt else { return nil }
-        return message
     }
 
     public var narrative: String {
@@ -139,12 +122,14 @@ public final class MysteryEncounterSession: Identifiable {
 
 extension MysteryEncounterSession {
     func markChoiceStarted() {
-        choiceAttempt = .resolving
+        isResolvingChoice = true
+        persistFailureMessage = nil
     }
 
     private func present(_ presentation: Presentation) {
         self.presentation = presentation
-        choiceAttempt = .ready
+        isResolvingChoice = false
+        persistFailureMessage = nil
     }
 
     func returnToReading() {
@@ -152,7 +137,8 @@ extension MysteryEncounterSession {
     }
 
     func markPersistFailed(_ message: String) {
-        choiceAttempt = .failed(message)
+        isResolvingChoice = false
+        persistFailureMessage = message
     }
 
     func markChoiceUnavailable() {
@@ -160,9 +146,7 @@ extension MysteryEncounterSession {
     }
 
     func clearPersistFailure() {
-        if case .failed = choiceAttempt {
-            choiceAttempt = .ready
-        }
+        persistFailureMessage = nil
     }
 
     func applyOutcome(_ outcome: MysteryChoiceOutcome, inventory: PlayerInventoryState? = nil) {

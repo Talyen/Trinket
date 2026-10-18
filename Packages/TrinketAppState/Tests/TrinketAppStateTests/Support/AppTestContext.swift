@@ -116,11 +116,6 @@ final class AppTestContext {
     }
 
     @MainActor
-    func makePlaySession(environment: AppEnvironment) throws -> PlaySession {
-        try makeAppState(environment: environment).play
-    }
-
-    @MainActor
     private func buildAppState(
         environment: AppEnvironment,
         playerSave: PlayerSaveStore,

@@ -98,20 +98,12 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
 
     public var navigationPath: [Self] {
         switch self {
-        case .campaign:
-            [.campaign]
-        case .explore:
-            [.explore]
-        case .spiresHub:
-            [.explore, .spiresHub]
-        case let .spireClimb(spireID):
-            [.explore, .spiresHub, .spireClimb(spireID)]
-        case .labyrinthMap:
-            [.explore, .labyrinthMap]
-        case .voyage:
-            [.explore, .voyage]
-        case .contracts:
-            [.explore, .contracts]
+        case .campaign, .explore:
+            [self]
+        case .spiresHub, .labyrinthMap, .voyage, .contracts:
+            [.explore, self]
+        case .spireClimb:
+            [.explore, .spiresHub, self]
         }
     }
 

@@ -46,7 +46,7 @@ extension AppState {
             equipmentPickerFixture: environment.equipmentPickerFixture,
         )
 
-        let resolvedShellSession = ShellSession(selectedTab: selectedTab(environment: environment))
+        let resolvedShellSession = ShellSession(selectedTab: environment.launchTab ?? launchResolution(for: environment.launchScreen).tab)
 
         let resolvedOptions = OptionsStore(defaults: userDefaults)
 
@@ -138,10 +138,6 @@ private extension AppState {
     static let launchBattleStageID = "chapter-1-stage-1"
     static let launchShopStageID = "chapter-2-stage-8"
     static let launchMysteryStageID = "chapter-1-stage-2"
-
-    static func selectedTab(environment: AppEnvironment) -> AppTab {
-        environment.launchTab ?? launchResolution(for: environment.launchScreen).tab
-    }
 
     private struct LaunchResolution {
         let tab: AppTab

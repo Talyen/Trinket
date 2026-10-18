@@ -20,26 +20,10 @@ protocol SFXPlaybackBackend {
 
 /// Nodes are append-only between releases. A running engine only needs to start
 /// the newly appended suffix; a resumed engine must revisit every retained node.
-struct SFXVoiceStartPolicy {
-    private var startedCount = 0
-
-    func indicesToStart(nodeCount: Int, engineWasRunning: Bool) -> Range<Int> {
-        (engineWasRunning ? startedCount : 0) ..< nodeCount
-    }
-
-    mutating func didStart(nodeCount: Int) {
-        startedCount = nodeCount
-    }
-
-    mutating func reset() {
-        startedCount = 0
-    }
-}
-
 struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
     private lazy var engine = AVAudioEngine()
     private var nodes: [AVAudioPlayerNode] = []
-    private var voiceStartPolicy = SFXVoiceStartPolicy()
+    private var startedVoiceCount = 0
     private let logger = AudioSupport.logger()
 
     @concurrent
@@ -97,7 +81,7 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
                 return false
             }
         }
-        for index in voiceStartPolicy.indicesToStart(nodeCount: nodes.count, engineWasRunning: engineWasRunning) {
+        for index in (engineWasRunning ? startedVoiceCount : 0) ..< nodes.count {
             let node = nodes[index]
             if !node.isPlaying {
                 node.play()
@@ -108,7 +92,7 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
             AudioCoverageDiagnostics.sfxStarted()
         }
         #endif
-        voiceStartPolicy.didStart(nodeCount: nodes.count)
+        startedVoiceCount = nodes.count
         return true
     }
 
@@ -130,7 +114,7 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
             node.stop()
         }
         engine.pause()
-        voiceStartPolicy.reset()
+        startedVoiceCount = 0
     }
 
     mutating func releaseResources() {

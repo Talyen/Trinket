@@ -80,9 +80,11 @@ public final class OptionsStore {
         rememberAutoBattlePreference = rememberAutoValue
         autoBattleEnabled = autoBattleValue
 
-        // Persist the resolved preference before removing its legacy spelling.
-        defaults.set(autoBattleValue, forKey: Self.autoBattleEnabledKey)
-        defaults.removeObject(forKey: Self.legacyAutoBattleEnabledKey)
+        // Migrate the legacy spelling once; avoid a UserDefaults write on every launch.
+        if defaults.object(forKey: Self.legacyAutoBattleEnabledKey) != nil {
+            defaults.set(autoBattleValue, forKey: Self.autoBattleEnabledKey)
+            defaults.removeObject(forKey: Self.legacyAutoBattleEnabledKey)
+        }
     }
 
     private static func readVolume(from defaults: UserDefaults, key: String, default defaultValue: Double) -> Double {

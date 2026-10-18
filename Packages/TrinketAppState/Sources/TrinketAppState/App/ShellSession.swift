@@ -14,13 +14,10 @@ public final class ShellSession {
     }
 
     public func popToRoot(_ tab: AppTab) {
-        switch tab {
-        case .play:
+        if tab == .play {
             playPath.removeAll()
-        case .homestead:
+        } else if tab == .homestead {
             homesteadPath.removeAll()
-        case .collection, .options:
-            break
         }
     }
 }

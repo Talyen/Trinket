@@ -254,15 +254,13 @@ public final class AppState {
 
     private func handleScenePhaseSideEffects(_ phase: ScenePhase) {
         switch phase {
-        case .background:
-            play.battle.setSuspendedForScenePhase(true)
-            musicPlayer.cancelActiveFades()
-            trimMemoryFootprint()
-            playerSave.flushPendingPersistence()
-        case .inactive:
+        case .background, .inactive:
             play.battle.setSuspendedForScenePhase(true)
             musicPlayer.cancelActiveFades()
             playerSave.flushPendingPersistence()
+            if phase == .background {
+                trimMemoryFootprint()
+            }
         case .active:
             play.battle.setSuspendedForScenePhase(false)
         @unknown default:

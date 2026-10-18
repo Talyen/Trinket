@@ -98,12 +98,12 @@ struct ShopEncounterView: View {
                 trailingAppeared: $offersAppeared,
             )
         }
-        .onChange(of: session.purchasePresentation) { _, presentation in
-            guard let presentation else { return }
+        .onChange(of: session.lastPurchasedOfferID) { _, offerID in
+            guard let offerID else { return }
             selectedOffer = nil
             guard scenePhase == .active else { return }
-            purchaseFeedbackTrigger = presentation.sequence
-            offerPurchaseTriggers[presentation.offerID] = presentation.sequence
+            purchaseFeedbackTrigger += 1
+            offerPurchaseTriggers[offerID, default: 0] += 1
         }
         .trinketSensoryFeedback(
             .success,
