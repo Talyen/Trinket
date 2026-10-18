@@ -58,7 +58,7 @@ class FakePortal
 end
 
 class FixtureDeployment < TrinketTestFlight::Deployment
-  attr_accessor :dirty, :fail_gate, :changed_commit
+  attr_accessor :dirty, :fail_gate, :fail_ci, :changed_commit
   attr_reader :commands
 
   def initialize(*args)
@@ -74,6 +74,7 @@ class FixtureDeployment < TrinketTestFlight::Deployment
   def command(label, env, *args)
     @commands << [label, env, args]
     raise TrinketTestFlight::Failure, 'gate failed' if fail_gate
+    raise TrinketTestFlight::Failure, 'CI failed' if fail_ci && label == 'verification-ci'
   end
 
   def build
@@ -116,6 +117,25 @@ end
 original_stdout = $stdout
 $stdout = StringIO.new
 begin
+  fixture do |deploy, portal, factory|
+    deploy.fail_ci = true
+    rejects('CI failed') { deploy.execute }
+    assert(deploy.receipt['verification_mode'] == 'beta')
+    assert(deploy.receipt['stage'] == 'exported')
+    assert(deploy.receipt['focused_verified'])
+    assert(!deploy.receipt['verified'])
+    assert(portal.calls.empty?, 'an archive cannot authorize upload before CI passes')
+    resumed = factory.call(resume: deploy.run_dir)
+    resumed.execute
+    assert(resumed.commands.map(&:first) == ['verification-ci'], 'resume must retain focused checks and signed artifacts')
+    assert(portal.calls == [:upload, :distribute])
+    full = factory.call(full_ui: true)
+    full.execute
+    assert(full.receipt['verification_mode'] == 'ui')
+    assert(full.commands.map(&:first) == ['verification', 'build'])
+    assert(full.commands.first.last == ['./Scripts/test-deploy.sh', '--mode', 'ui'])
+  end
+
   Dir.mktmpdir do |root|
     TrinketTestFlight.capture('git', '-C', root, 'init', '--quiet')
     File.write(File.join(root, 'source.txt'), 'committed source')

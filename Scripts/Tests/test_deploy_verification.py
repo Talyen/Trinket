@@ -14,6 +14,55 @@ DEPLOY = load_script('deploy_verification_test', 'deploy-verification.py')
 
 
 class DeployVerificationTests(unittest.TestCase):
+    def test_beta_reuses_proven_smoke_but_executes_missing_smoke_and_never_runs_fullui_or_packages(self):
+        for hosted_smoke in (False, True):
+            with self.subTest(hosted_smoke=hosted_smoke), tempfile.TemporaryDirectory() as directory:
+                identity = dict(build=dict(commit='abc'))
+                calls = []
+                state = Path(directory) / 'verification.json'
+                verification = DEPLOY.Verification(state, identity, True,
+                    execute=lambda command, **_: calls.append(command))
+                args = type('Args', (), dict(ci_only=True, focused_only=False, no_build=True))()
+                def capture(*command):
+                    return 'abc' if command[:2] == ('git', 'rev-parse') else ''
+                with patch.object(DEPLOY, 'wait_for_beta_ci', return_value=dict(smoke=hosted_smoke, run_id=42)), \
+                        patch.object(DEPLOY, 'capture', side_effect=capture):
+                    DEPLOY.verify_beta(args, verification, identity)
+                self.assertEqual(calls, [] if hosted_smoke else [['./Scripts/test.sh', 'smoke', '--no-build']])
+                self.assertEqual(set(json.loads(state.read_text())['completed']), {'ci', 'smoke'})
+
+    def test_beta_selection_compares_shipping_changes_and_unknown_product_ownership_fails_broad(self):
+        self.assertEqual(DEPLOY.focused_cases([]), [])
+        self.assertEqual(DEPLOY.focused_cases(['Scripts/internal/testflight.rb', 'Docs/Platform/Release.md']), [])
+        self.assertEqual(DEPLOY.focused_cases(['Packages/TrinketPersistence/Sources/Cloud/CloudSaveMerge.swift']),
+                         [DEPLOY.CRITICAL_CASES['save']])
+        self.assertEqual(DEPLOY.focused_cases(['StoreKit/Trinket.storekit']), [DEPLOY.CRITICAL_CASES['purchase']])
+        self.assertEqual(DEPLOY.focused_cases(['Packages/BattleEngine/Sources/Combat.swift']), [DEPLOY.CRITICAL_CASES['battle']])
+        for paths in (None, ['Trinket/App/ContentView.swift'], ['project.yml'], ['NewProductInput/input.json']):
+            self.assertEqual(DEPLOY.focused_cases(paths), sorted(DEPLOY.CRITICAL_CASES.values()))
+        # Selectors must exist as concrete non-inherited methods in their owner.
+        retry = load_script('beta_selector_check', 'ci_ui_retry.py')
+        self.assertEqual(set(retry.expected_cases(list(DEPLOY.CRITICAL_CASES.values()))), set(DEPLOY.CRITICAL_CASES.values()))
+
+    def test_beta_ci_requires_latest_exact_commit_gate_and_actual_smoke_step(self):
+        run = dict(id=10, head_sha='abc', head_branch='main', event='push', status='completed', conclusion='success')
+        jobs = [dict(id=1, name='tests / CI OK', conclusion='success'),
+                dict(id=2, name='tests / Build and smoke UI', conclusion='success',
+                     steps=[dict(name='Run smoke on the build runner', conclusion='success')])]
+        def status(runs, selected=jobs):
+            with patch.object(DEPLOY.REUSE, 'api', side_effect=[[dict(workflow_runs=runs)], [dict(jobs=selected)]]):
+                return DEPLOY.beta_ci_status('owner/repo', 'abc', 'main')
+        self.assertTrue(status([run])['smoke'])
+        self.assertFalse(status([run], jobs[:1])['smoke'])
+        for changes in ({'head_sha': 'old'}, {'head_branch': 'other'}, {'event': 'schedule'},
+                        {'event': 'workflow_dispatch', 'display_title': 'Trinket CI (latest)'}):
+            self.assertEqual(status([{**run, **changes}])['status'], 'missing')
+        for conclusion in ('skipped', 'failure', 'cancelled'):
+            self.assertEqual(status([{**run, 'conclusion': conclusion}])['conclusion'], conclusion)
+        with self.assertRaisesRegex(ValueError, 'no successful CI OK'):
+            status([run], jobs[1:])
+        self.assertEqual(status([run, {**run, 'id': 11, 'conclusion': 'failure'}])['conclusion'], 'failure')
+
     def test_ui_overlaps_hosted_verification_and_missing_proof_runs_all_remaining_checks(self):
         for hosted in (None, {'run-id': '10'}):
             with self.subTest(hosted=hosted), tempfile.TemporaryDirectory() as directory:

@@ -19,7 +19,8 @@ trinket_ensure_diagnostics_session
 MODE="ui"
 NO_BUILD=false
 COMPILE_ONLY=false
-TEST_DEPLOY_USAGE="Usage: $0 [--mode smoke|ui] [--no-build] [--compile-only]"
+PHASE=()
+TEST_DEPLOY_USAGE="Usage: $0 [--mode beta|smoke|ui] [--no-build] [--compile-only] [--focused-only|--ci-only]"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --help|-h)
@@ -29,12 +30,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --mode)
       if [[ $# -lt 2 ]]; then
-        trinket_die "--mode requires smoke or ui" "$TEST_DEPLOY_USAGE"
+        trinket_die "--mode requires beta, smoke or ui" "$TEST_DEPLOY_USAGE"
       fi
       MODE="$2"
       shift 2
       case "$MODE" in
-        smoke|ui) ;;
+        beta|smoke|ui) ;;
         *)
           trinket_die "Unknown mode: $MODE" "$TEST_DEPLOY_USAGE"
           ;;
@@ -46,6 +47,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --compile-only)
       COMPILE_ONLY=true
+      shift
+      ;;
+    --focused-only|--ci-only)
+      PHASE+=("$1")
       shift
       ;;
     --)
@@ -64,4 +69,4 @@ trinket_require_heavy_verification "Deploy test suites" || exit $?
 verification_args=(--mode "$MODE")
 [[ "$NO_BUILD" != true ]] || verification_args+=(--no-build)
 [[ "$COMPILE_ONLY" != true ]] || verification_args+=(--compile-only)
-exec python3 Scripts/deploy-verification.py "${verification_args[@]}"
+exec python3 Scripts/deploy-verification.py "${verification_args[@]}" "${PHASE[@]}"

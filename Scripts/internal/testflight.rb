@@ -166,6 +166,9 @@ module TrinketTestFlight
           'cloud_sync' => @options[:cloud] || @settings.fetch('cloud_sync'),
           'developer_dir' => ENV.fetch('DEVELOPER_DIR'), 'xcode' => TrinketTestFlight.capture('xcodebuild', '-version'),
           'stage' => 'created', 'created_at' => Time.now.utc.iso8601)
+        @receipt['verification_mode'] = @options[:full_ui] ? 'ui' : 'beta'
+        @receipt['verification_base_commit'] = previous.select { |item| item['stage'] == 'ready' }
+          .max_by { |item| item.fetch('build').to_s.split('.').first.to_i }&.fetch('commit')
         @receipt['notes'] = @options[:notes] ? File.read(@options[:notes]) : "Trinket #{@receipt['version']} (#{number}). Source: #{commit[0, 12]}."
         raise Failure, 'TestFlight notes must contain 1–4000 characters.' unless (1..4000).cover?(@receipt['notes'].length)
         save
@@ -198,9 +201,25 @@ module TrinketTestFlight
              ENV.fetch('DEVELOPER_DIR') == @receipt.fetch('developer_dir')
         raise Failure, 'Source commit or Xcode changed. Start a new deployment; this run cannot rebuild different inputs.'
       end
+      verification_env = { 'TRINKET_ISOLATE' => '1', 'SKIP_GENERATE' => nil,
+        'TRINKET_DEPLOY_VERIFICATION_STATE' => File.join(@run_dir, 'verification.json'),
+        'TRINKET_DEPLOY_BASE_COMMIT' => @receipt['verification_base_commit'] }
+      mode = @receipt.fetch('verification_mode', 'ui') # Legacy receipts keep their original gate.
+      raise Failure, 'Unsupported verification mode in receipt.' unless %w[beta ui].include?(mode)
       unless @receipt['verified']
-        command('verification', { 'TRINKET_ISOLATE' => '1', 'SKIP_GENERATE' => nil,
-          'TRINKET_DEPLOY_VERIFICATION_STATE' => File.join(@run_dir, 'verification.json') }, './Scripts/test-deploy.sh')
+        if mode == 'beta'
+          unless @receipt['focused_verified']
+            command('verification', verification_env, './Scripts/test-deploy.sh', '--mode', 'beta', '--focused-only')
+            @receipt['focused_verified'] = true
+            save
+          end
+          # Archive while hosted CI finishes; upload remains gated by green CI and Smoke.
+          raise Failure, 'Source changed before archive.' unless clean_commit == @receipt['commit']
+          build unless @receipt['stage'] == 'exported'
+          command('verification-ci', verification_env, './Scripts/test-deploy.sh', '--mode', 'beta', '--ci-only')
+        else
+          command('verification', verification_env, './Scripts/test-deploy.sh', '--mode', 'ui')
+        end
         raise Failure, 'Source changed during verification; start again from a clean checkout.' unless clean_commit == @receipt['commit']
         @receipt['verified'] = true
         save
@@ -233,6 +252,8 @@ module TrinketTestFlight
     end
 
     def build
+      command('preparation', { 'TRINKET_ISOLATE' => '1', 'SKIP_GENERATE' => nil }, 'bash', '-ec',
+        'source Scripts/run-env.sh; source Scripts/build-freshness.sh; trinket_run_env_init; prepare_generated_inputs "$RESULTS_DIR"')
       artifacts = File.join(@run_dir, "artifacts-#{SecureRandom.hex(3)}")
       FileUtils.mkdir_p(artifacts)
       archive = File.join(artifacts, 'Trinket.xcarchive')
@@ -241,7 +262,7 @@ module TrinketTestFlight
               '-authenticationKeyID', @config.fetch('key_id'), '-authenticationKeyIssuerID', @config.fetch('issuer_id')]
       command('archive', {}, 'xcodebuild', '-project', 'Trinket.xcodeproj', '-scheme', 'Trinket',
         '-configuration', 'Release', '-destination', 'generic/platform=iOS', '-archivePath', archive,
-        '-derivedDataPath', File.join(artifacts, 'DerivedData'), '-disableAutomaticPackageResolution',
+        '-derivedDataPath', File.join(@state_root, 'build-cache', Digest::SHA256.hexdigest(@root + @receipt.fetch('xcode'))[0, 16]), '-disableAutomaticPackageResolution',
         '-resultBundlePath', File.join(artifacts, 'archive.xcresult'), *auth,
         "CURRENT_PROJECT_VERSION=#{@receipt.fetch('build')}", "MARKETING_VERSION=#{@receipt.fetch('version')}",
         "DEVELOPMENT_TEAM=#{@receipt.fetch('team')}", 'CODE_SIGN_STYLE=Automatic',
@@ -373,6 +394,7 @@ module TrinketTestFlight
       opts.on('--config FILE', 'Local JSON (default ~/.config/trinket/testflight.json)') { |value| options[:config] = value }
       opts.on('--notes FILE', 'UTF-8 What to Test notes, at most 4000 characters') { |value| options[:notes] = File.expand_path(value) }
       opts.on('--cloud-sync YES|NO', %w[YES NO], 'Explicit override; YES requires CloudKit readiness gates') { |value| options[:cloud] = value }
+      opts.on('--full-ui', 'Require the complete FullUI portfolio for this pre-release candidate') { options[:full_ui] = true }
       opts.on('--timeout SECONDS', Integer, 'Processing/distribution timeout (default 1800)') { |value| options[:timeout] = value }
       opts.on('-h', '--help') { puts opts; return 0 }
     end
@@ -380,12 +402,13 @@ module TrinketTestFlight
     raise Failure, 'Choose one mode and pass no positional arguments.' unless modes.length <= 1 && argv.empty?
     raise Failure, '--timeout must be positive.' unless options[:timeout].positive?
     raise Failure, '--resume uses the original notes and CloudKit setting.' if options[:resume] && (options[:notes] || options[:cloud])
+    raise Failure, '--resume uses the original verification mode.' if options[:resume] && options[:full_ui]
     root = File.realpath(File.join(__dir__, '../..'))
     settings = project(root)
     if modes.include?(:dry_run)
       puts "Would deploy #{settings['bundle_id']} version #{settings['version']} to internal TestFlight."
       puts "Cloud sync: #{options[:cloud] || settings['cloud_sync']}; build number: next above Apple/local reservations."
-      puts 'Require clean checkout → API/signing preflight → isolated full deploy gate → signed Release archive/export → upload → wait → internal group.'
+      puts "Require clean checkout → API/signing preflight → #{options[:full_ui] ? 'full UI verification' : 'focused UI + green CI and Smoke'} → signed Release archive/export → upload → wait → internal group."
       puts 'No commit, tag, push, marketing-version bump, external distribution, or App Review submission.'
       return 0
     end

@@ -229,9 +229,12 @@ Required pushes use an explicitly qualified toolchain; admission, preference and
 [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder). Latest-toolchain
 manual runs cannot reuse qualified-toolchain checks; exhaustive UI remains advisory.
 
-`Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Default deploy verification
-runs FullUI; main CI supplies smoke coverage separately. The release workflow
-requires green main CI. Use `--mode smoke` for the optional local smoke canary.
+`Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Routine internal TestFlight
+uses green exact-commit CI, actual hosted or local Smoke, and focused high-risk
+journeys selected against the last available beta. FullUI is nightly/on-demand;
+`testflight.sh --full-ui` and the formal `release.sh` retain the complete portfolio.
+The [beta policy](Release.md#local-testflight-deployment) owns selection, baseline,
+and known-failure handling. Use `--mode smoke` for the optional local smoke canary.
 Release verification runs UI classes separately and stops after a failed class;
 successful classes and packages remain checkpointed for the same clean inputs.
 Before pushing a release candidate, `test-deploy.sh --compile-only` can expose

@@ -151,9 +151,9 @@ After one-time setup, deploy a committed, clean checkout with:
 TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/testflight.sh
 ```
 
-This is the canonical agent entry point for TestFlight. It runs the full
-[deploy verification gate](Verification.md#gate-composition) with simulator
-isolation, archives and exports a signed Release build, uploads it, and waits
+This is the canonical agent entry point for TestFlight. Routine internal betas
+require green exact-commit CI, Smoke, and focused critical UI journeys for changes
+since the last internally available build. It archives and exports a signed Release build, uploads it, and waits
 for the exact build to be available to the configured internal testing group.
 Fastlane is [free, MIT-licensed local tooling](https://github.com/fastlane/fastlane);
 there is no additional hosted service or subscription. Agents manage the tooling.
@@ -166,11 +166,25 @@ override requires both `TRINKET_SIM_DEVICE_TYPE` and `TRINKET_SIM_OS_VERSION`
 (or `TRINKET_SIM_OS_MAJOR`); unavailable profiles fail without falling back.
 Doctor checks this prerequisite without creating or booting a simulator.
 
-Successful exact-commit push CI can supply generation/style, package, and smoke
-evidence using the same complete-job proof as manual CI. Missing or incomplete
-proof runs those checks locally. Compatible local test products are reused only
-after the normal source-snapshot and toolchain checks. FullUI still runs locally,
-one class at a time, stopping on the first failed class.
+CI's successful `CI OK` gate owns path-selected package and static verification.
+Beta uploads wait for that gate on the exact commit; failed, cancelled, missing,
+or unreadable evidence cannot authorize upload. Successful hosted Smoke is reused;
+otherwise the local Smoke plan must pass. Compatible local test products are
+reused only after source-snapshot and toolchain checks.
+
+Focused UI selection compares against the last available build's recorded commit,
+including changes already pushed in earlier CI runs. It covers purchase denial/retry,
+durable rewards, battle/background lifecycle, navigation, and real audio recovery
+when their owners change. Shared or unknown product ownership selects all five
+critical journeys. An absent baseline also selects all five; an unreadable recorded
+baseline fails closed. Deployment-only tooling changes add no player journey.
+These checks protect a critical subset, not every FullUI scenario.
+
+FullUI runs nightly and on demand. Use `--full-ui` before an App Store/release
+candidate or for a deliberate complete local UI pass. A known relevant FullUI
+failure still needs triage and resolution before a beta; moving the suite nightly
+does not authorize ignoring a known regression. No UI assertion is relaxed by
+the beta policy.
 
 The command preserves the marketing version and allocates a build number above
 Apple's existing builds for that version, the project baseline, and retained
@@ -229,6 +243,7 @@ only during an actual deployment, through Xcode automatic signing.
 ```sh
 ./Scripts/testflight.sh --dry-run
 TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/testflight.sh --notes /absolute/path/beta-notes.txt
+TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/testflight.sh --full-ui
 TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/testflight.sh --resume /absolute/path/to/.DerivedData/testflight/RUN
 ```
 
@@ -251,6 +266,13 @@ phase timings and local or hosted evidence. Resume runs only missing phases for
 the same clean commit, checkout, toolchain/SDK, architecture, and simulator
 profile. A changed identity invalidates the checkpoints; a failed phase never
 becomes a checkpoint. Missing build products are rebuilt before remaining tests.
+New beta receipts record their verification mode and source baseline. Legacy
+receipts retain their original FullUI requirement. After focused UI passes, signed
+archive/export runs while hosted CI finishes; upload waits for CI and Smoke.
+An interrupted CI wait retains the signed IPA and focused results for resume.
+Release compiler intermediates use a shared cache keyed by checkout and Xcode,
+so repeated archives in the same checkout can compile incrementally. Signed
+archives and IPA checksums remain separate per deployment.
 Keep these artifacts through the beta's debugging window; do not delete them
 while a run needs recovery. This directory is outside routine simulator-run
 cleanup. Retention is manual because archives and symbols may be needed later.
@@ -276,7 +298,7 @@ to start a new deployment, which allocates a new number.
 | Missing configuration/key, 401, or 403 | Run doctor; check key path/permissions, revocation, issuer, team, and role. An account owner may need to grant access. |
 | Missing/wrong internal group | Doctor lists existing internal groups. Save the intended group ID; do not invent a new app/group or add testers. |
 | Dirty checkout or generated drift | Resolve with the owner of the changes; do not commit or stash automatically. Retry from a clean commit. |
-| Verification fails | Follow [verification failure handling](Verification.md#failures-and-reporting); there is no TestFlight skip-tests switch. |
+| Verification fails | Follow [verification failure handling](Verification.md#failures-and-reporting); resume retains passed phases. Routine beta and `--full-ui` requirements are explicit; there is no skip-verification switch. |
 | Certificate, private-key, provisioning, or keychain error | Read archive/export logs, check signing permissions and the local keychain. API access alone does not establish signing access. Do not revoke unrelated certificates. |
 | Unsupported Xcode/SDK | Check [Apple's upload requirements](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds), select an accepted installation with `DEVELOPER_DIR`, and start a new run. Do not change global `xcode-select`. |
 | Agreements or export compliance | Report Apple's exact error; the account owner resolves legal/account answers in App Store Connect. Never guess new compliance answers. |
@@ -299,7 +321,7 @@ filter valid signed entitlements or skip the denial assertion to accommodate it.
 Until requalified, select an existing managed iOS 26.2 simulator through
 the default release profile or an explicit runtime/type pair, and confirm its actual
 runtime in the test evidence. A newer runtime is not automatically qualified.
-Retain the complete release gate and the player-facing denial and retry checks;
+Retain the selected beta or full-release gate and the player-facing denial and retry checks;
 legacy `SKTestTransaction.state` can remain deferred after a correctly resolved
 denial. This finding concerns local StoreKit testing, not production App Store
 behavior. Apple's [Ask to Buy testing contract](https://developer.apple.com/documentation/storekit/testing-ask-to-buy-in-xcode)

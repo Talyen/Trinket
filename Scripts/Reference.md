@@ -118,8 +118,8 @@ for their required deploy suites; doctor and dry-run need no opt-in. See
 | Command | Purpose |
 |---|---|
 | `./Scripts/setup-testflight.sh` | Install local Ruby/Bundler/Fastlane tooling with locked gems; [configuration](../Docs/Platform/Release.md#one-time-testflight-setup) stays outside Git |
-| `./Scripts/testflight.sh [--doctor \| --dry-run \| --resume RUN] [--config FILE] [--notes FILE] [--cloud-sync YES\|NO] [--timeout SECONDS]` | Verify a clean checkout, archive/sign, upload, and confirm internal TestFlight availability; retain evidence for recovery; no Git mutations or review submission |
-| `./Scripts/test-deploy.sh [--mode smoke\|ui] [--no-build] [--compile-only]` | Checkpointed deploy suites; complete exact-commit CI evidence and compatible products are reused. `--compile-only` runs the gate and compiles every test target before a release-candidate push; it does not certify a release |
+| `./Scripts/testflight.sh [--doctor \| --dry-run \| --resume RUN] [--full-ui] [--config FILE] [--notes FILE] [--cloud-sync YES\|NO] [--timeout SECONDS]` | Internal beta: green CI + Smoke + focused critical journeys; `--full-ui` requests the complete pre-release portfolio. Archive/sign, upload, and confirm internal availability; retain evidence for recovery; no Git mutations or review submission |
+| `./Scripts/test-deploy.sh [--mode beta\|smoke\|ui] [--no-build] [--compile-only]` | Checkpointed suites; `ui` remains the default for formal release. Beta uses exact-commit CI and focused journeys; `--focused-only` / `--ci-only` let TestFlight prepare the archive while CI finishes. `--compile-only` compiles every test target; it does not certify a release |
 | `./Scripts/release.sh [--version X.Y.Z] [--since-tag TAG] [--skip-tests] [--dry-run] [--no-tag]` | Preview or prepare a release (`--version` pins semver, `--since-tag` sets the notes range, `--skip-tests` skips deploy verification); isolated release preparation uses `--no-tag`, then tags the verified integrated commit under [the release procedure](../Docs/Platform/Release.md#produce-release-artifacts) |
 
 ### Diagnostics
