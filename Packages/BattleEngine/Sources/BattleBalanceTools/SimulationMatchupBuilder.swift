@@ -201,16 +201,17 @@ public enum SimulationMatchupBuilder {
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> GearOverride? {
         guard tier.usesStarterGear else { return nil }
-        let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
+        let withLoadout = combatant.withAbilityLoadout(loadout, fillsMissingSelections: false)
         let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: level ?? tier.level)
         let bias = gearKeywordBias ?? Set(scaled.abilities.flatMap(\.keywords))
-        let build = gearGenerator.generateSinglePiece(
+        let build = gearGenerator.generate(
             for: scaled,
             rarity: .basic,
             fixedAffixCount: 1,
             idPrefix: idPrefix,
             keywordBias: bias,
             requireBuildAlignment: true,
+            singlePiece: true,
             using: &randomNumberGenerator,
         )
         guard !build.inventory.isEmpty else { return nil }
@@ -265,7 +266,7 @@ public enum SimulationMatchupBuilder {
         slot: PartySlot,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> (build: CombatBuild, loadout: AbilityLoadout, affixIDs: [String], itemBaseIDs: [String]) {
-        let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(loadout)
+        let withLoadout = combatant.withAbilityLoadout(loadout, fillsMissingSelections: false)
         let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: slot.level)
 
         let gear = slot.gearOverride ?? generateGear(

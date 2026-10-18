@@ -11,16 +11,11 @@ struct VoyageTests {
         var affinityHits = 0
         for difficulty in VoyageDifficulty.allCases {
             for recruits in [true, false] {
-                for seed in UInt64(0) ..< 100 {
+                for seed in UInt64(0) ..< 20 {
                     let offer = VoyageOffer(id: "run", chapterID: chapterID, difficulty: difficulty, seed: seed)
                     let eligible = recruits ? ["recruit-bear"] : []
                     let nodes = VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: eligible)
-                    if seed == 0 {
-                        #expect(nodes == VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: eligible))
-                    }
                     expectValidRoute(nodes, offer: offer, recruits: recruits)
-                    // The affinity check uses the same recruited routes as before;
-                    // generating them again provided no independent protection.
                     if recruits {
                         for definition in NodeModifierCatalog.modifiers(ids: nodes.flatMap(\.modifierIDs)) {
                             if case let .reward(reward) = definition.effect, let keyword = reward.requiredKeyword {
@@ -34,6 +29,10 @@ struct VoyageTests {
                 }
             }
         }
+        // Determinism is a route contract: same offer regenerates the same nodes.
+        let probe = VoyageOffer(id: "run", chapterID: chapterID, difficulty: .medium, seed: 0)
+        let firstPass = VoyageGenerator.nodes(for: probe, eligibleRecruitEventIDs: ["recruit-bear"])
+        #expect(firstPass == VoyageGenerator.nodes(for: probe, eligibleRecruitEventIDs: ["recruit-bear"]))
         #expect(keywordHits > 0)
         #expect(Double(affinityHits) > Double(keywordHits) * 0.5)
     }

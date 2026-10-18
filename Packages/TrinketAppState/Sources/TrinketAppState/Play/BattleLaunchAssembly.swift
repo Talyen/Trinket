@@ -73,7 +73,7 @@ extension PlayBattleCoordinator {
     ) -> BattleRunConfiguration.PartyMember {
         let progression = rosterState.progression(for: combatant)
         let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
-        let unlockedTalents = rosterState.unlockedTalents(for: combatant)
+        let unlockedTalents = rosterState.unlockedTalents(for: combatant.id)
         let build = CombatBuildResolver.build(
             combatant: CombatantLevelScaler.scale(
                 combatant: combatant,

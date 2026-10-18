@@ -32,13 +32,14 @@ struct ThemedGearGeneratorTests {
     @Test func `generates single aligned piece`() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var rng = SeededRandomNumberGenerator(seed: 44)
-        let build = ThemedGearGenerator().generateSinglePiece(
+        let build = ThemedGearGenerator().generate(
             for: knight,
             rarity: .basic,
             fixedAffixCount: 1,
             idPrefix: "starter",
             keywordBias: Set(knight.abilities.flatMap(\.keywords)),
             requireBuildAlignment: true,
+            singlePiece: true,
             using: &rng,
         )
         try #expect(build.inventory.count == 1)
@@ -86,11 +87,12 @@ struct ThemedGearGeneratorTests {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var rng = SeededRandomNumberGenerator(seed: 1)
 
-        let build = ThemedGearGenerator(baseTypes: [quiver]).generateSinglePiece(
+        let build = ThemedGearGenerator(baseTypes: [quiver]).generate(
             for: knight,
             rarity: .basic,
             fixedAffixCount: 1,
             idPrefix: "starter",
+            singlePiece: true,
             using: &rng,
         )
 
@@ -129,9 +131,9 @@ struct ThemedGearGeneratorTests {
         let censer = try #require(GameContent.itemBaseType(matching: "brass_censer"))
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         var rng = SeededRandomNumberGenerator(seed: 1)
-        let build = ThemedGearGenerator(baseTypes: [censer], includeTrinkets: true).generateSinglePiece(
+        let build = ThemedGearGenerator(baseTypes: [censer], includeTrinkets: true).generate(
             for: bear, rarity: .basic, fixedAffixCount: 1, idPrefix: "aligned-trinket",
-            keywordBias: bias, requireBuildAlignment: true, using: &rng,
+            keywordBias: bias, requireBuildAlignment: true, singlePiece: true, using: &rng,
         )
         #expect(build.inventory == (bias.contains(.holy) ? GameContent.trinketItems.filter { $0.baseType.id == censer.id } : []))
     }

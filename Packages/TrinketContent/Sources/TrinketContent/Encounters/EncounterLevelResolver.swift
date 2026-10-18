@@ -7,7 +7,7 @@ public enum EncounterLevelResolver {
         switch difficulty {
         case .easy: return max(1, level - 3)
         case .standard: return level
-        case .hard: return level + min(3, Int.max - level)
+        case .hard: return SaturatedArithmetic.saturatingAdd(level, 3)
         }
     }
 
@@ -24,7 +24,7 @@ public enum EncounterLevelResolver {
 
     private static func adjusted(_ level: Int, partyAverageLevel: Int, minimum: Int) -> Int {
         let partyLevel = min(level, max(1, partyAverageLevel))
-        let partyCeiling = partyLevel + min(3, level - partyLevel)
+        let partyCeiling = min(level, SaturatedArithmetic.saturatingAdd(partyLevel, 3))
         return max(minimum, partyCeiling)
     }
 

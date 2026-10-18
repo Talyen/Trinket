@@ -89,17 +89,6 @@ struct PlayerRosterStateTests {
         #expect(roster.gold == 10)
     }
 
-    @Test func `equipment loadout equip and unequip`() throws {
-        let item = try #require(GameContent.sampleInventoryItems.first { $0.id == "wand-basic" })
-        var loadout = EquipmentLoadout()
-
-        loadout.equip(item, inventory: [item])
-        try #expect(loadout.itemID(for: .weapon) == "wand-basic")
-
-        loadout.unequip(.weapon)
-        try #expect(loadout.itemID(for: .weapon) == nil)
-    }
-
     @Test func `unequip by item ID removes item from all loadouts`() {
         var roster = PlayerRosterState.freshStart
         var loadout1 = EquipmentLoadout()

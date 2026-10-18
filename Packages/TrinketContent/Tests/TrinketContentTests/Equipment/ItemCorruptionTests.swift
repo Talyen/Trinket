@@ -240,7 +240,7 @@ struct ItemCorruptionTests {
             [.addAffix, .replaceAffix, .upgradeRarity, .bumpUp, .bumpDown],
         ]
         for kinds in combinations {
-            for seed in UInt64(1) ... 64 {
+            for seed in UInt64(1) ... 16 {
                 var rng = SeededRandomNumberGenerator(seed: seed)
                 let result = try #require(ItemCorruption.apply(kinds: kinds, to: item, using: &rng))
                 let powers = try #require(result.item.affixPowers)

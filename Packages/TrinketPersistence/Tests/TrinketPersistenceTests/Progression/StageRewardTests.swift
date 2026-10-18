@@ -384,7 +384,7 @@ extension StageRewardTests {
         let companion = try #require(GameContent.companions.first { $0.id == "wolf" })
         save.labyrinth.ensureMap(
             seed: save.worldSeed,
-            eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs,
+            eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs(access: .fullGame),
         )
         let node = try #require(save.labyrinth.nodes.values.first { $0.type.isCombat })
         let effects = save.labyrinth.effects(for: node.id)
@@ -435,7 +435,7 @@ extension StageRewardTests {
         var dungeonSave = SaveTestSupport.makeSave()
         dungeonSave.labyrinth.ensureMap(
             seed: dungeonSave.worldSeed,
-            eligibleRecruitEventIDs: dungeonSave.roster.eligibleRecruitEventIDs,
+            eligibleRecruitEventIDs: dungeonSave.roster.eligibleRecruitEventIDs(access: .fullGame),
         )
         let node = try #require(dungeonSave.labyrinth.nodes.values.first { $0.type.isCombat })
         LabyrinthCompletion.complete(

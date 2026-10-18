@@ -12,7 +12,6 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     public var experienceBonusPercent: Int
 
     public static let zero = Self()
-    public static let empty = zero
 
     public init(
         heroModifiers: [AffixModifier] = [],

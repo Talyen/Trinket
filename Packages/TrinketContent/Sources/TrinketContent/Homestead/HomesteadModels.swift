@@ -26,7 +26,7 @@ public struct HomesteadNodeTier: Hashable, Sendable {
         stageName: String,
         cost: [ResourceAmount],
         bonus: HomesteadBonus,
-        combatBonus: HomesteadTierCombatBonus = .empty,
+        combatBonus: HomesteadTierCombatBonus = .zero,
         production: [ResourceAmount] = [],
     ) {
         self.tier = tier

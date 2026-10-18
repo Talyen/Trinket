@@ -109,14 +109,9 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         return power.isAtOrAboveRollMax(of: definition.power(for: rarity))
     }
 
-    public var uniqueSignatureIndex: Int? {
-        // UniqueCatalog builds [.bespoke(signature)] + supports, so the signature is always first.
-        guard rarity == .unique, !affixes.isEmpty else { return nil }
-        return 0
-    }
-
     public func isUniqueSignatureAffix(at index: Int) -> Bool {
-        uniqueSignatureIndex == index
+        // UniqueCatalog builds [.bespoke(signature)] + supports, so the signature is always first.
+        rarity == .unique && index == 0 && !affixes.isEmpty
     }
 }
 

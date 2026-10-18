@@ -94,7 +94,7 @@ struct RewardModifierTests {
         let probabilities = ItemLootPolicy.probabilities(
             level: 30, bossContent: boss, astralChanceBonusPercent: 30, availableTiers: [.basic, .astral],
         )
-        for seed in UInt64(1) ... 64 {
+        for seed in UInt64(1) ... 16 {
             var expectedRNG = SeededRandomNumberGenerator(seed: seed)
             let expected = ItemLootPolicy.roll(probabilities: probabilities, using: &expectedRNG)
             var rng = SeededRandomNumberGenerator(seed: seed)

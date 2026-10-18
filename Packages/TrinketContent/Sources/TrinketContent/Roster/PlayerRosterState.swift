@@ -351,10 +351,6 @@ public struct PlayerRosterState: Equatable, Sendable {
 // MARK: - Recruitment
 
 public extension PlayerRosterState {
-    var eligibleRecruitEventIDs: [String] {
-        eligibleRecruitEventIDs(access: .fullGame)
-    }
-
     func eligibleRecruitEventIDs(access: ContentAccessPolicy) -> [String] {
         GameContent.eligibleRecruitEvents(
             unlockedHeroIDs: unlockedHeroIDs, unlockedCompanionIDs: unlockedCompanionIDs, access: access,
@@ -367,26 +363,14 @@ public extension PlayerRosterState {
         unlockedTalents[combatantID] ?? []
     }
 
-    func unlockedTalents(for combatant: Combatant) -> Set<String> {
-        unlockedTalents(for: combatant.id)
-    }
-
     mutating func setUnlockedTalents(_ talents: Set<String>, for combatantID: String) {
         unlockedTalents[combatantID] = talents
-    }
-
-    mutating func setUnlockedTalents(_ talents: Set<String>, for combatant: Combatant) {
-        setUnlockedTalents(talents, for: combatant.id)
     }
 
     func availableTalentPoints(for combatantID: String) -> Int {
         let prog = progressions[combatantID] ?? .initial
         let unlockedCount = unlockedTalents(for: combatantID).count
         return prog.availableTalentPoints(unlockedCount: unlockedCount)
-    }
-
-    func availableTalentPoints(for combatant: Combatant) -> Int {
-        availableTalentPoints(for: combatant.id)
     }
 
     func hasUnlockableTalent(for combatantID: String) -> Bool {

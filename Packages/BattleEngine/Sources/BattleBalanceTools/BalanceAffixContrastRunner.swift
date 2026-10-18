@@ -122,7 +122,7 @@ enum BalanceAffixContrastRunner {
             idPrefix: "contrast-partner",
             using: &fillRNG,
         ) ?? SimulationMatchupBuilder.generateAlignedGear(
-            for: base.partner.withAbilityLoadoutPreservingEmptyTiers(base.partnerLoadout),
+            for: base.partner.withAbilityLoadout(base.partnerLoadout, fillsMissingSelections: false),
             tier: tier,
             keywordBias: base.partner.keywordProfile,
             idPrefix: "contrast-partner",
@@ -154,7 +154,7 @@ enum BalanceAffixContrastRunner {
         )
         var fillRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 41)
         let filler = SimulationMatchupBuilder.generateAlignedGear(
-            for: focus.owner.withAbilityLoadoutPreservingEmptyTiers(ownerLoadout),
+            for: focus.owner.withAbilityLoadout(ownerLoadout, fillsMissingSelections: false),
             tier: tier,
             keywordBias: bias,
             idPrefix: "contrast-fill",

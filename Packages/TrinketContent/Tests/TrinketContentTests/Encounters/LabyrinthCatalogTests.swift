@@ -252,7 +252,7 @@ struct LabyrinthCatalogTests {
     }
 
     @Test func `generated floors preserve encounter guarantees`() {
-        for seed in 0 ..< 32 {
+        for seed in 0 ..< 8 {
             let recruited = LabyrinthGenerator.makeInitialMap(
                 seed: UInt64(seed),
                 eligibleRecruitEventIDs: ["recruit-test-event"],

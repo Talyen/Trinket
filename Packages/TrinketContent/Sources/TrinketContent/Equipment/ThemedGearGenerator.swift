@@ -67,22 +67,6 @@ public struct ThemedGearGenerator: Sendable {
         return ThemedGearBuild(inventory: inventory, loadout: loadout)
     }
 
-    public func generateSinglePiece(
-        for combatant: Combatant,
-        rarity: Rarity,
-        fixedAffixCount: Int,
-        idPrefix: String,
-        keywordBias: Set<Keyword>? = nil,
-        requireBuildAlignment: Bool = false,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ThemedGearBuild {
-        generate(
-            for: combatant, rarity: rarity, fixedAffixCount: fixedAffixCount, idPrefix: idPrefix,
-            keywordBias: keywordBias, requireBuildAlignment: requireBuildAlignment,
-            singlePiece: true, using: &randomNumberGenerator,
-        )
-    }
-
     // swiftlint:disable:next function_parameter_count - gear entry points share the same roll and equipment context
     private func bestBaseType(
         for slot: ItemSlot,

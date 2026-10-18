@@ -37,7 +37,7 @@ struct ContrastMatchupBase {
         let sharedBias = owner.keywordProfile.union(partner.keywordProfile)
         var gearRNG = SeededRandomNumberGenerator(seed: seed &+ 17)
         ownerGear = SimulationMatchupBuilder.generateAlignedGear(
-            for: owner.withAbilityLoadoutPreservingEmptyTiers(ownerLoadout),
+            for: owner.withAbilityLoadout(ownerLoadout, fillsMissingSelections: false),
             tier: tier,
             keywordBias: sharedBias,
             idPrefix: "contrast-owner",
@@ -47,7 +47,7 @@ struct ContrastMatchupBase {
             idPrefix: "contrast-owner", gearKeywordBias: sharedBias, using: &gearRNG,
         )
         partnerGear = SimulationMatchupBuilder.generateAlignedGear(
-            for: partner.withAbilityLoadoutPreservingEmptyTiers(partnerLoadout),
+            for: partner.withAbilityLoadout(partnerLoadout, fillsMissingSelections: false),
             tier: tier,
             keywordBias: sharedBias,
             idPrefix: "contrast-partner",

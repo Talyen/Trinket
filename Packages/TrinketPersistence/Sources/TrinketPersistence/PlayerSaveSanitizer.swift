@@ -72,7 +72,7 @@ enum PlayerSaveSanitizer {
         if targets.contains(.labyrinth) {
             sanitized.labyrinth = LabyrinthSanitizer.sanitize(
                 sanitized.labyrinth,
-                eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs,
+                eligibleRecruitEventIDs: sanitized.roster.eligibleRecruitEventIDs(access: .fullGame),
                 eligibleRewards: RewardOwnership(sanitized).eligibleModifiers,
             )
         }
