@@ -159,15 +159,16 @@ requests, which precede deferred work; queued requests promote when demand chang
 Cancellation detaches the caller from queued and running work, resumes its request,
 and releases its pin demand without waiting for started decodes. Shared started work
 still publishes and occupies its admission slot until decoding ends.
-An indexed priority heap retains original enqueue order within each priority; promotion
-and cancellation update queued priority without scanning the deferred catalog.
+Running jobs stay indexed even without consumers so new callers can join them.
+A priority queue retains original enqueue order within each priority; admission scans
+queued jobs for the most urgent request after promotion or cancellation.
 Inventory and option-picker viewport tracking observes visible IDs separately from the
 grid body. Prewarm task identity includes ordered IDs and resolved artwork names so
 filtering, reordering, and artwork replacement refresh demand without scroll-driven
-reconstruction of the item lists. These observers retain an indexed artwork window
-with its ordered entries, rebuilding it only when entries change. Scroll updates
-resolve visible positions through the index while preserving the same prefetch
-windows, debounce, cancellation, and decode admission.
+reconstruction of the item lists. These observers retain an artwork window with
+its ordered entries, rebuilding it only when entries change. Scroll updates scan
+those entries for visible positions and merge their expanded prefetch intervals,
+preserving debounce, cancellation, and decode admission.
 Before any visible IDs arrive, initial windows resolve only the configured prefix;
 they do not scan the full inventory to establish an empty visible range.
 Preparation and pin publication remain distinct from presentation readiness.

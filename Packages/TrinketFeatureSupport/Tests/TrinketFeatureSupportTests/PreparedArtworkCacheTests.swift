@@ -154,6 +154,38 @@ struct PreparedArtworkCacheTests {
         #expect(await probe.started.count(where: { $0 == "z" }) == 1)
     }
 
+    @Test func `new pins join a running decode after its last consumer cancels`() async throws {
+        let image = makeImage()
+        let probe = DecodeProbe()
+        defer { Task { await probe.releaseAll() } }
+        let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
+            _ = await probe.decode(name)
+            return PreparedArtwork(name: name, image: image)
+        }
+        let abandoned = Task { await cache.acquirePinnedArtwork(names: ["art"]) }
+        defer { abandoned.cancel() }
+        try await waitUntil("the running decode") { await probe.started == ["art"] }
+        abandoned.cancel()
+        #expect(await abandoned.value.isEmpty)
+        #expect(cache.pinDemandCount(for: "art") == 0)
+
+        var finished = false
+        let replacement = Task {
+            let names = await cache.acquirePinnedArtwork(names: ["art"])
+            finished = true
+            return names
+        }
+        defer { replacement.cancel() }
+        try await waitUntil("replacement pin demand") { cache.pinDemandCount(for: "art") == 1 }
+        await probe.release("art")
+        try await waitUntil("replacement preparation to finish") { finished }
+        let acquired = await replacement.value
+        #expect(acquired == ["art"])
+        #expect(await probe.started == ["art"])
+        cache.releasePins(names: acquired)
+        #expect(cache.pinDemandCount(for: "art") == 0)
+    }
+
     @Test func `portrait backgrounds are prepared by their owning surface`() {
         let portraits = Set(ArtCatalog.portraitBackgroundArtByID.values.map(\.imageName))
         #expect(!portraits.isEmpty)

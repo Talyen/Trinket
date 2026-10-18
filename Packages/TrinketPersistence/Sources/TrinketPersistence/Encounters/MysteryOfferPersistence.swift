@@ -60,12 +60,10 @@ public enum MysteryOfferPersistence {
             if saved != nil, resolver.hasCurrentHomesteadReward(offer) {
                 return offer
             }
-            var remainders = save.homestead.rewardRemainders ?? .zero
-            let nominal = offer.homesteadReward?.resolve(remainders: &remainders) ?? offer.bonus
             return MysteryOffer(
                 choiceID: offer.choiceID, item: offer.item,
                 bonus: resolver.settledBonus(
-                    nominal, encounterLevel: level,
+                    offer.bonus, homesteadReward: offer.homesteadReward, encounterLevel: level,
                     experiencePercent: bonuses.experienceEarnedPercent,
                 ),
                 homesteadReward: offer.homesteadReward,

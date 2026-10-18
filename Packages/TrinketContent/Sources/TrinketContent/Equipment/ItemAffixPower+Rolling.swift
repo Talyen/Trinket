@@ -20,7 +20,13 @@ public extension ItemAffixPower {
         if modifier.isPercent {
             return .percent(modifier.numericValue)
         }
-        return .int(Int(modifier.numericValue.rounded()))
+        // Keep saved integer powers exact, including values above Double's precision.
+        var amount = 0
+        _ = modifier.mapInt {
+            amount = $0
+            return $0
+        }
+        return .int(amount)
     }
 
     private func magnitude(for target: BumpTarget) -> AffixMagnitude? {

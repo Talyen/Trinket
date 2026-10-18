@@ -8,7 +8,9 @@ struct PlayBattlePartySnapshot: Equatable {
     let homestead: PlayerHomesteadState
     let worldSeed: UInt64
     let sessionGeneration: UInt64
+}
 
+extension PlayBattlePartySnapshot {
     @MainActor
     init(playerSave: PlayerSaveStore) {
         roster = playerSave.roster

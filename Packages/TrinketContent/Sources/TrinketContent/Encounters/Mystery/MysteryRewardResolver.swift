@@ -117,28 +117,7 @@ public struct MysteryRewardResolver: Sendable {
             goldPercent: goldPercent, materialsPercent: materialsPercent,
         )
         if let reward {
-            var remainders = inputs.rewardRemainders
-            let resolved = reward.resolve(remainders: &remainders)
-            // Flat homestead bonuses apply on both paths; the remainder basis
-            // stays percent-only so saved payloads keep their shape.
-            switch (effect, resolved) {
-            case let (.gainGold(amount), .gold(current)) where amount > 0 && homesteadEffects.goldFindFlat != 0:
-                return (
-                    .gold(SaturatedArithmetic.saturatingAdd(current, homesteadEffects.goldFindFlat)),
-                    reward,
-                )
-            case let (.gainMaterial(.gems), .material(resource, current))
-                where homesteadEffects.gemsFindBonus != 0:
-                return (
-                    .material(
-                        resource,
-                        SaturatedArithmetic.saturatingAdd(current, homesteadEffects.gemsFindBonus),
-                    ),
-                    reward,
-                )
-            default:
-                return (resolved, reward)
-            }
+            return (resolvedHomesteadReward(reward), reward)
         }
         let bonus: MysteryRewardBonus
         switch effect {
@@ -176,11 +155,12 @@ public struct MysteryRewardResolver: Sendable {
     /// Direct effects use the same wallet-cap replacement and shared-XP limits.
     public func settledBonus(
         _ bonus: MysteryRewardBonus,
+        homesteadReward: HomesteadMysteryReward? = nil,
         encounterLevel: Int,
         experiencePercent: Int = 0,
     ) -> MysteryRewardBonus {
         RewardSettlementPolicy.settle(
-            bonus,
+            homesteadReward.map(resolvedHomesteadReward) ?? bonus,
             inputs: inputs,
             replacementExperience: RewardExperiencePolicy.encounterAward(
                 encounterLevel: encounterLevel,
@@ -192,23 +172,26 @@ public struct MysteryRewardResolver: Sendable {
 
     public func hasCurrentHomesteadReward(_ offer: MysteryOffer) -> Bool {
         guard let reward = offer.homesteadReward else { return true }
-        var remainders = inputs.rewardRemainders
-        let resolved = reward.resolve(remainders: &remainders)
-        // Mirror resolveReward: pinned bonuses include flat homestead bonuses.
-        let current: MysteryRewardBonus = switch resolved {
-        case let .gold(value) where reward.amount > 0 && homesteadEffects.goldFindFlat != 0:
-            .gold(SaturatedArithmetic.saturatingAdd(value, homesteadEffects.goldFindFlat))
-        case let .material(resource, value) where resource == .gems && homesteadEffects.gemsFindBonus != 0:
-            .material(resource, SaturatedArithmetic.saturatingAdd(value, homesteadEffects.gemsFindBonus))
-        default: resolved
-        }
-        switch (current, offer.bonus) {
+        switch (resolvedHomesteadReward(reward), offer.bonus) {
         case let (.gold(current), .gold(pinned)): return current == pinned
         case let (.gold(current), .goldAndExperience(_, _, nominalGold, _)): return current == nominalGold
         case let (.material(resource, current), .material(pinnedResource, pinned)):
             return resource == pinnedResource && current == pinned
         case (.gold, .experience): return true
         default: return false
+        }
+    }
+
+    private func resolvedHomesteadReward(_ reward: HomesteadMysteryReward) -> MysteryRewardBonus {
+        var remainders = inputs.rewardRemainders
+        let resolved = reward.resolve(remainders: &remainders)
+        // Keep the saved percentage basis separate from the flat bonus on every path.
+        return switch resolved {
+        case let .gold(value) where reward.amount > 0 && homesteadEffects.goldFindFlat != 0:
+            .gold(SaturatedArithmetic.saturatingAdd(value, homesteadEffects.goldFindFlat))
+        case let .material(resource, value) where resource == .gems && homesteadEffects.gemsFindBonus != 0:
+            .material(resource, SaturatedArithmetic.saturatingAdd(value, homesteadEffects.gemsFindBonus))
+        default: resolved
         }
     }
 }

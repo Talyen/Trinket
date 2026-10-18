@@ -60,7 +60,7 @@ package extension DamagePipeline {
     /// Shared Loaded Strike / Standard Deviation gamble: double, or halve rounding up.
     private static func applyDoubledOrCeilHalved(to state: inout DamageResolutionState, doubled: Bool) {
         state.remaining = doubled ? SaturatedArithmetic.saturatingMul(state.remaining, 2)
-            : CombatRounding.scaled(state.remaining, multiplier: 0.5)
+            : state.remaining / 2 + state.remaining % 2
     }
 
     private static func applyBurnDamageMultipliers(

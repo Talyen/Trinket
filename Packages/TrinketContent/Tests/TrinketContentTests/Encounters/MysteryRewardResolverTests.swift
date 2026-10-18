@@ -111,4 +111,30 @@ struct MysteryRewardResolverTests {
             goldPercent: 0, experiencePercent: -1, materialsPercent: 0,
         )?.bonus == .experience(1))
     }
+
+    @Test(arguments: [HomesteadResource.gold, .gems])
+    func `offer settlement preserves flat bonuses beside percentage remainders`(resource: HomesteadResource) throws {
+        let resolver = MysteryRewardResolver(
+            homesteadEffects: HomesteadEffects(goldFindPercent: 5, goldFindFlat: 3, gemsFindBonus: 3, gemsFindPercent: 5),
+            ownership: RewardOwnership(),
+            inputs: RewardSettlementInputs(
+                gold: 0, reservedGold: 0, goldLimit: GoldBalance.maximum,
+                heroProgression: .initial, companionProgression: .initial,
+                productionDate: Date(timeIntervalSince1970: 0),
+            ),
+        )
+        let item = try #require(GameContent.sampleInventoryItems.first)
+        let effect: MysteryEffect = resource == .gold ? .gainGold(10) : .gainMaterial(.gems)
+        let reward = try #require(resolver.resolveReward(
+            effect, encounterLevel: 1, goldPercent: 0, experiencePercent: 0, materialsPercent: 0,
+        ))
+        let settled = resolver.settledBonus(
+            reward.bonus, homesteadReward: reward.homestead, encounterLevel: 1,
+        )
+        let expected: MysteryRewardBonus = resource == .gold ? .gold(13) : .material(.gems, 7)
+        #expect(settled == expected)
+        #expect(resolver.hasCurrentHomesteadReward(MysteryOffer(
+            choiceID: "take", item: item, bonus: settled, homesteadReward: reward.homestead,
+        )))
+    }
 }

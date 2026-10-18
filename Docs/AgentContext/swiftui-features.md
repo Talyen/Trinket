@@ -28,9 +28,8 @@ Preserve first-screen artwork pins, launch prewarming, and mounted tab/battle
 surfaces. When changing artwork loading, launch covers, tab mounting, or first-frame
 performance, read [UI performance](ui-performance.md) before editing.
 
-Item-label shine derivation uses a bounded cache keyed by the full immutable item
-value, so changed affixes or powers cannot reuse stale appearance. Cached colors
-remain semantic values; resolve them in the rendering environment.
+Item-label shine derives from the current immutable item's displayed affixes.
+Colors remain semantic values; resolve them in the rendering environment.
 
 Sheets use standard native SwiftUI motion throughout the app. Do not
 attach source-linked zoom transitions to sheets; interactive zoom dismissal can

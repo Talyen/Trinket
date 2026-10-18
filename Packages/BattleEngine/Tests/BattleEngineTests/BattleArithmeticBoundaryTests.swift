@@ -5,6 +5,25 @@ import TrinketCore
 @testable import TrinketContent
 
 struct BattleArithmeticBoundaryTests {
+    @Test func `physical gambles preserve odd damage above floating point precision`() {
+        var observedHalving = false
+        for seed in UInt64(1) ... 8 {
+            var battle = makeBattle(profile: .withTriggers { $0.standardDeviation = true })
+            battle.rng = SeededRandomNumberGenerator(seed: seed)
+            var expectedRNG = battle.rng
+            let doubled = Bool.random(using: &expectedRNG)
+            observedHalving = observedHalving || !doubled
+            var state = DamageResolutionState(
+                amount: 9007199254740993, combatant: battle.enemy,
+                sourceActorID: battle.hero.id, damageKeyword: .physical,
+                options: .reaction(),
+            )
+            DamagePipeline.applyDamageBonus(to: &state, in: &battle)
+            #expect(state.remaining == (doubled ? 18014398509481986 : 4503599627370497))
+        }
+        #expect(observedHalving)
+    }
+
     @Test(arguments: [Keyword.physical, .burn, .poison])
     func `large damage and equipment bonuses resolve the hit instead of overflowing`(keyword: Keyword) {
         var profile = CombatModifierProfile(damageDealtBonus: [.physical: 1], outgoingDamagePercent: 1)

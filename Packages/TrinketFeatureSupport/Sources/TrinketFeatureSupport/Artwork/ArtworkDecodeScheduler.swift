@@ -115,8 +115,7 @@ final class ArtworkDecodeScheduler {
             Task(priority: priority == Priority.deferred ? .utility : .userInitiated) {
                 let prepared = await decode(next.name)
                 assert(prepared.name == next.name, "Artwork decode returned mismatched name")
-                // Publish and bookkeeping touch MainActor-owned scheduler, request,
-                // and cache state; an unstructured task does not inherit isolation.
+                // Publish and bookkeeping stay on the scheduler's main actor.
                 await MainActor.run {
                     publish(prepared)
                     jobsByName.removeValue(forKey: next.name)
@@ -158,6 +157,7 @@ final class ArtworkDecodeScheduler {
             guard let job = jobsByName[name] else { continue }
             job.requests.removeAll { $0 === request }
             // Shared started jobs still publish and occupy their slots until decoding ends.
+            guard runningPriorities[name] == nil else { continue }
             guard !job.requests.isEmpty else {
                 if let index = queuedJobs.firstIndex(where: { $0 === job }) {
                     queuedJobs.remove(at: index)

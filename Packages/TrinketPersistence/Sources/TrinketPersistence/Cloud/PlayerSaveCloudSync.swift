@@ -13,10 +13,7 @@ public final class PlayerSaveCloudSync {
         store: PlayerSaveStore,
         transport: any CloudSaveTransport,
         reconcile: @escaping @Sendable (CloudSaveRequest, CloudServerSave?) async throws -> CloudSaveReconciler.Resolution = {
-            try Task.checkCancellation()
-            let resolution = try CloudSaveReconciler.resolve($0, against: $1)
-            try Task.checkCancellation()
-            return resolution
+            try await CloudSavePlanner.resolve($0, against: $1)
         },
     ) {
         self.store = store
@@ -139,11 +136,9 @@ public final class PlayerSaveCloudSync {
 
     private func importRemoteIfUnchanged(_ server: CloudServerSave?, in store: PlayerSaveStore) async throws -> Bool {
         guard let server else { throw CloudSaveError.missingHead }
-        try Task.checkCancellation()
-        guard let transition = try CloudSaveTransitions.importRemote(
+        guard let transition = try await CloudSavePlanner.importRemote(
             server.head, state: store.cloudDeviceState, local: CloudSaveSnapshot(store.currentSave),
         ) else { return false }
-        try Task.checkCancellation()
         return try await apply(transition, in: store)
     }
 
@@ -194,7 +189,7 @@ public final class PlayerSaveCloudSync {
         in store: PlayerSaveStore,
     ) async throws -> Bool {
         try Task.checkCancellation()
-        guard let acknowledgement = try CloudSaveTransitions.acknowledge(
+        guard let acknowledgement = try await CloudSavePlanner.acknowledge(
             request, receipt: receipt, head: server.head, accountID: accountID,
             state: store.cloudDeviceState, local: CloudSaveSnapshot(store.currentSave),
         ), try await apply(acknowledgement.transition, in: store) else { return false }
@@ -202,11 +197,9 @@ public final class PlayerSaveCloudSync {
     }
 
     private func bind(_ accountID: String?, in store: PlayerSaveStore) async throws {
-        try Task.checkCancellation()
-        guard let transition = try CloudSaveTransitions.bind(
+        guard let transition = try await CloudSavePlanner.bind(
             accountID, state: store.cloudDeviceState, local: CloudSaveSnapshot(store.currentSave),
         ) else { return }
-        try Task.checkCancellation()
         guard try await apply(transition, in: store) else { throw CloudSaveError.conflict }
     }
 }

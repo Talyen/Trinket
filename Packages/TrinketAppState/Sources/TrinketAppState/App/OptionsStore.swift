@@ -80,8 +80,9 @@ public final class OptionsStore {
         rememberAutoBattlePreference = rememberAutoValue
         autoBattleEnabled = autoBattleValue
 
-        // Migrate the legacy spelling once; avoid a UserDefaults write on every launch.
-        if defaults.object(forKey: Self.legacyAutoBattleEnabledKey) != nil {
+        // Migrate the old key and clear stale remembered state without rewriting unchanged defaults.
+        if defaults.object(forKey: Self.legacyAutoBattleEnabledKey) != nil
+            || defaults.bool(forKey: Self.autoBattleEnabledKey) != autoBattleValue {
             defaults.set(autoBattleValue, forKey: Self.autoBattleEnabledKey)
             defaults.removeObject(forKey: Self.legacyAutoBattleEnabledKey)
         }
