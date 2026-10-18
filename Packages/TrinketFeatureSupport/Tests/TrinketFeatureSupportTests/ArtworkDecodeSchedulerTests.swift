@@ -22,7 +22,8 @@ struct ArtworkDecodeSchedulerTests {
 
         #expect(Set(published.map(\.name)) == ["a", "b"])
         #expect(published.count == 2)
-        #expect(published.allSatisfy(\.mainThread))
+        let allPublishedOnMainThread = published.allSatisfy(\.mainThread)
+        #expect(allPublishedOnMainThread)
         #expect(finishedCount == 2)
     }
 }
