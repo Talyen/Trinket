@@ -56,7 +56,7 @@ public final class VoyagePlayMode {
         mutateVoyage(key: SaveRetryKey.voyageCompleted) { _ = $0.dismissCompletedVoyage() }
     }
 
-    private func mutateVoyage(key: SaveRetryKey, _ mutate: @escaping (PlayerSaveStore) -> Void) {
+    private func mutateVoyage(key: String, _ mutate: @escaping (PlayerSaveStore) -> Void) {
         playerSave.performSaveAction(key: key) { [weak self] _ in
             guard let self, encounters.canBeginTransientEncounter else { return }
             mutate(playerSave)

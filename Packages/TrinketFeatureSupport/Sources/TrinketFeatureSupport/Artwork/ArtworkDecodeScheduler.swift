@@ -66,7 +66,7 @@ final class ArtworkDecodeScheduler {
         self.publish = publish
     }
 
-    func prepare(_ names: [String], priority: Priority, didPrepare: @escaping () -> Void) async {
+    func prepare(_ names: [String], priority: Priority, didPrepare: @escaping @MainActor () -> Void) async {
         guard !Task.isCancelled, !names.isEmpty else { return }
         let request = Request(priority: priority, didPrepare: didPrepare)
         await withTaskCancellationHandler {

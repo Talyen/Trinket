@@ -5,6 +5,7 @@ import TrinketFeatureContracts
 /// Sole owner of prepared handles, selection, and their preview projection.
 @MainActor
 final class PreparedBattleRegistry {
+    @MainActor
     struct Entry {
         let registration: PlayBattleRunRegistration
         let handle: any PreparedBattleRunHandle

@@ -40,7 +40,7 @@ public struct RosterCombatantDetailView: View {
                 loadout: playerSave.roster.loadout(for: combatant),
                 equipmentLoadout: playerSave.roster.equipmentLoadout(for: combatant),
                 inventoryItems: playerSave.inventory.items,
-                unlockedTalents: playerSave.roster.unlockedTalents(for: combatant),
+                unlockedTalents: playerSave.roster.unlockedTalents(for: combatant.id),
                 allowsEditing: playerSave.roster.isUnlocked(combatant) && playerSave.contentAccess.allowsCombatant(combatant.id),
                 hapticsEnabled: hapticsEnabled,
                 effectsVolume: effectsVolume,

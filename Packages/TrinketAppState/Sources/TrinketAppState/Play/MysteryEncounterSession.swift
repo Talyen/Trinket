@@ -32,8 +32,8 @@ public final class MysteryEncounterSession: Identifiable {
     }
 
     private var presentation: Presentation = .reading
-    private(set) var isResolvingChoice = false
-    private(set) var persistFailureMessage: String?
+    public private(set) var isResolvingChoice = false
+    public private(set) var persistFailureMessage: String?
     @ObservationIgnored private var hasCollectedReward = false
 
     public var unlockedCombatantID: String? {
