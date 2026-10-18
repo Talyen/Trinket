@@ -244,7 +244,7 @@ private struct HomesteadEffectStyle {
         switch key {
         case let .modifier(modifier, _):
             self.init(modifier: modifier)
-        case .astralFind, .forgeAstralOdds:
+        case .astralFind, .forgeAstralOdds, .archeryAstralOdds:
             self.init(symbol: "sparkles", tint: TrinketDesign.Colors.arcane)
         case .experience:
             self.init(symbol: "book.fill", tint: TrinketDesign.Colors.arcane)

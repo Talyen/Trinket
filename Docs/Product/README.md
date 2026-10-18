@@ -12,6 +12,7 @@ Player-facing standing policy. Engineering policy lives in
 | [Contracts.md](Contracts.md) | Renewable contract board, difficulty, rewards, and saved offers |
 | [Overview.md](Overview.md) | Game surfaces and modes in player terms |
 | [Homestead.md](Homestead.md) | Homestead layout and immediate-build rule |
+| [Library.md](Library.md) | Bestiary discovery, research projects and Archery Range crafting |
 | [MysteryEvents.md](MysteryEvents.md) | Mystery choices, themed rewards, and saved offers |
 | [Spires.md](Spires.md) | Fixed-level floors, deterministic keyword modifiers, and completion |
 | [Voyage.md](Voyage.md) | Finite regional routes, offers, difficulty, and completion bonuses |

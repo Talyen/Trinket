@@ -9,11 +9,14 @@ public final class BattleRewardClaim {
     private let labyrinthSeed: UInt64
     private let generation: UInt64
     let destination: BattleCompletionDestination?
+    let enemyID: String?
+    public private(set) var completedResearchIDs: [String] = []
     private let heroID: String
     private let companionID: String
     private(set) var isConsumed = false
 
-    init(store: PlayerSaveStore, destination: BattleCompletionDestination?, heroID: String, companionID: String) {
+    init(store: PlayerSaveStore, destination: BattleCompletionDestination?, heroID: String, companionID: String, enemyID: String? = nil) {
+        self.enemyID = enemyID
         self.store = store
         worldSeed = store.worldSeed
         labyrinthSeed = store.labyrinth.worldSeed
@@ -40,7 +43,8 @@ public final class BattleRewardClaim {
         return (hero, companion)
     }
 
-    func consume() {
+    func consume(completedResearchIDs: [String] = []) {
+        self.completedResearchIDs = completedResearchIDs
         isConsumed = true
     }
 }

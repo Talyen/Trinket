@@ -22,14 +22,20 @@ enum HomesteadDetailSheet: Hashable, Identifiable {
 }
 
 struct HomesteadNodeDetailView: View {
+    @Environment(ShellSession.self) private var shell
+    @Environment(\.locale) private var locale
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @Environment(\.playSFX) private var playSFX
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @State private var researchCompletionIDs: [String] = []
+    @State private var isVisible = false
     @State private var build = HomesteadBuildControl()
     @State private var artworkPins = PreparedArtworkPinSet()
     @State private var sheet: HomesteadDetailSheet?
+    @State private var requestedLibrary: HomesteadRoute?
+    @State private var preparedLibrary: HomesteadRoute?
     @State private var requestedCraft: Bool?
     @State private var preparedCraft: Bool?
     @State private var purchaseCommitted = false
@@ -39,6 +45,7 @@ struct HomesteadNodeDetailView: View {
     @State private var celebrationGeneration = 0
 
     let definition: HomesteadNodeDefinition
+    var initialRecipeID: String?
 
     private var displaysBuiltArtwork: Bool {
         (purchasePresentation?.displayedTierNumber ?? status.currentTier) > 0
@@ -57,7 +64,10 @@ struct HomesteadNodeDetailView: View {
                     Spacer(minLength: TrinketDesign.Spacing.large)
                     ScrollView {
                         VStack(spacing: TrinketDesign.Spacing.medium) {
-                            if definition.id == .blacksmithForge, status.currentTier > 0 {
+                            if definition.id == .library {
+                                libraryActivities
+                            }
+                            if definition.id == .blacksmithForge || definition.id == .archeryRange {
                                 craftSection
                             }
                             upgradeSection
@@ -76,8 +86,18 @@ struct HomesteadNodeDetailView: View {
                 .padding(.top, TrinketDesign.Spacing.small)
             }
         }
+        .preparingArtwork(request: $requestedLibrary, presentation: $preparedLibrary) { LibraryArtworkNames.forRoute($0) }
+        .onChange(of: preparedLibrary) { _, route in
+            guard let route, status.currentTier > 0, playerSave.library.isReadable else { return }
+            LibraryNavigation.open(route, in: shell)
+        }
+        .onChange(of: playerSave.sessionGeneration) { _, _ in
+            requestedLibrary = nil
+            preparedLibrary = nil
+            researchCompletionIDs = []
+        }
         .preparingArtwork(request: $requestedCraft, presentation: $preparedCraft) { _ in
-            BlacksmithRecipe.all.compactMap { $0.forgeArtwork?.thumbnailImageName ?? $0.forgeArtwork?.imageName }
+            EquipmentRecipe.recipes(for: definition.id).compactMap { $0.forgeArtwork?.thumbnailImageName ?? $0.forgeArtwork?.imageName }
         }
         .onChange(of: preparedCraft) { _, prepared in
             guard prepared == true else { return }
@@ -100,21 +120,29 @@ struct HomesteadNodeDetailView: View {
                 build: $build,
                 purchaseCommitted: purchaseCommitted,
                 onPurchase: buildOrUpgrade,
+                initialRecipeID: initialRecipeID,
             )
         }
         .trinketSensoryFeedback(.success, trigger: build.upgradeEventCount, enabled: options.hapticsEnabled)
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {
                 cancelCelebration()
+                researchCompletionIDs = []
             }
         }
         .onAppear {
+            isVisible = true
             preparedCraft = nil
+            preparedLibrary = nil
+            if initialRecipeID != nil, status.currentTier > 0 {
+                requestedCraft = true
+            }
             AppFramePacingSignposts.event(AppFramePacingSignposts.Name.navigationPush, detail: "homestead=\(definition.id)")
         }
         .task(id: celebrationGeneration) { await celebratePurchase() }
         .task(id: definition.id) { await refreshArtworkPins() }
         .onDisappear {
+            isVisible = false
             cancelCelebration()
             artworkPins.release()
         }
@@ -161,11 +189,15 @@ struct HomesteadNodeDetailView: View {
     private var craftSection: some View {
         Button { requestedCraft = true } label: {
             HStack(spacing: TrinketDesign.Spacing.small) {
-                BlacksmithAnvilIcon()
-                    .fill(TrinketDesign.Colors.Overlay.paper)
-                    .frame(width: 28, height: 24)
-                    .frame(width: 36, height: 36)
-                    .accessibilityHidden(true)
+                if definition.id == .blacksmithForge {
+                    BlacksmithAnvilIcon()
+                        .fill(TrinketDesign.Colors.Overlay.paper)
+                        .frame(width: 28, height: 24)
+                        .frame(width: 36, height: 36)
+                        .accessibilityHidden(true)
+                } else {
+                    Image(systemName: "figure.archery").frame(width: 36, height: 36).accessibilityHidden(true)
+                }
                 Text(L10n.ui_homesteaddetailviews_craft_57f64)
                 Spacer()
                 Image(systemName: "chevron.right").accessibilityHidden(true)
@@ -177,7 +209,45 @@ struct HomesteadNodeDetailView: View {
         }
         .buttonStyle(.plain)
         .homesteadNodePanel()
+        .disabled(status.currentTier == 0)
         .accessibilityIdentifier(AccessibilityID.Homestead.craftButton)
+    }
+
+    private var libraryActivities: some View {
+        VStack(spacing: 0) {
+            libraryActivity(.bestiary, title: LibraryCopy.localized(L10n.library_bestiary, locale: locale), symbol: "book")
+            Divider().padding(.leading, TrinketDesign.Spacing.large)
+            libraryActivity(.research, title: LibraryCopy.localized(L10n.library_research, locale: locale), symbol: "magnifyingglass")
+            if !researchCompletionIDs.isEmpty, purchasePresentation == nil, !pendingCelebration {
+                Button { LibraryNavigation.open(.research, in: shell) } label: {
+                    Text(L10n.library_completion_summary(researchCompletionIDs.count))
+                        .trinketTypography(.eyebrow)
+                        .padding(TrinketDesign.Spacing.medium)
+                }.buttonStyle(.plain)
+            }
+        }
+        .homesteadNodePanel()
+    }
+
+    private func libraryActivity(_ route: HomesteadRoute, title: String, symbol: String) -> some View {
+        Button { requestedLibrary = route } label: {
+            HStack(spacing: TrinketDesign.Spacing.medium) {
+                Image(systemName: symbol).accessibilityHidden(true)
+                Text(title)
+                Spacer()
+                if status.currentTier == 0 {
+                    Text(L10n.library_build_required).foregroundStyle(.secondary)
+                }
+                Image(systemName: "chevron.right").accessibilityHidden(true)
+            }
+            .trinketTypography(.rowTitle)
+            .padding(TrinketDesign.Spacing.large)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(status.currentTier == 0 || !playerSave.library.isReadable)
+        .accessibilityIdentifier(route == .bestiary ? AccessibilityID.Homestead.openBestiary : AccessibilityID.Homestead.openResearch)
     }
 
     @ViewBuilder
@@ -261,11 +331,19 @@ struct HomesteadNodeDetailView: View {
             previousTier: status.currentStage,
             targetTier: nextTier,
         )
+        let previousResearch = playerSave.library.progress.completedResearchIDs
+        let generation = playerSave.sessionGeneration
         build.isPending = true
         Task {
             let result = await playerSave.buildOrUpgradeNode(definition.id, targetTier: expectedTier)
             build.isPending = false
-            guard result == .success else { return }
+            guard result == .success, generation == playerSave.sessionGeneration else { return }
+            guard isVisible, scenePhase == .active else {
+                purchaseCommitted = true
+                sheet = nil
+                return
+            }
+            researchCompletionIDs = playerSave.library.progress.completedResearchIDs.subtracting(previousResearch).sorted()
             build.upgradeEventCount += 1
             purchasePresentation = presentation
             purchaseCommitted = true

@@ -20,6 +20,7 @@ enum BlacksmithForgeApplier {
             inventory: save.inventory.items,
             homestead: save.homestead,
             gold: save.roster.gold,
+            unlockedRecipeIDs: save.library.isReadable ? save.library.progress.unlockedRecipeIDs : [],
             using: &random,
         ).mapError(BlacksmithForgeFailure.init)
     }
@@ -34,6 +35,7 @@ enum BlacksmithForgeApplier {
             inventory: &save.inventory.items,
             homestead: &save.homestead,
             gold: &save.roster.gold,
+            unlockedRecipeIDs: save.library.isReadable ? save.library.progress.unlockedRecipeIDs : [],
         ).mapError(BlacksmithForgeFailure.init)
         if case .success = result {
             recordReceipt(.reward(from: before, to: save))
@@ -55,6 +57,11 @@ private extension BlacksmithForgeFailure {
 @MainActor
 public extension PlayerSaveStore {
     func forgeBlacksmithItem(recipeID: String) async -> Result<InventoryItem, BlacksmithForgeFailure> {
+        guard EquipmentRecipe.matching(recipeID)?.buildingID == .blacksmithForge else { return .failure(.unavailable) }
+        return await craftEquipmentItem(recipeID: recipeID)
+    }
+
+    func craftEquipmentItem(recipeID: String) async -> Result<InventoryItem, BlacksmithForgeFailure> {
         var random = SystemRandomNumberGenerator()
         let plan: BlacksmithForgePlan
         switch BlacksmithForgeApplier.prepare(recipeID: recipeID, save: currentSave, using: &random) {

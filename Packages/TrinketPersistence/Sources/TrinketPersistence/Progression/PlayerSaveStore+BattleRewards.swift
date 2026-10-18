@@ -4,9 +4,9 @@ import TrinketCore
 @MainActor
 public extension PlayerSaveStore {
     func prepareBattleRewardClaim(
-        at destination: BattleCompletionDestination?, heroID: String, companionID: String,
+        at destination: BattleCompletionDestination?, heroID: String, companionID: String, enemyID: String? = nil,
     ) -> BattleRewardClaim {
-        BattleRewardClaim(store: self, destination: destination, heroID: heroID, companionID: companionID)
+        BattleRewardClaim(store: self, destination: destination, heroID: heroID, companionID: companionID, enemyID: enemyID)
     }
 
     func completeBattle(
@@ -16,7 +16,12 @@ public extension PlayerSaveStore {
         earnedVoyageRewards: BattleRewardAward? = nil,
         makeContractOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
-        persistBattleReward(claim, award: award, logging: "Failed to complete battle encounter") { save, party, recordReceipt in
+        persistBattleReward(
+            claim,
+            award: award,
+            victory: true,
+            logging: "Failed to complete battle encounter",
+        ) { save, party, recordReceipt in
             let (hero, companion) = party
             guard let destination = claim.destination else {
                 VictoryRewardApplier.apply(award, hero: hero, companion: companion, save: &save, recordReceipt: recordReceipt)
@@ -85,13 +90,14 @@ public extension PlayerSaveStore {
 
 private extension PlayerSaveStore {
     func persistBattleReward(
-        _ claim: BattleRewardClaim, award: BattleRewardSettlement, logging message: String,
+        _ claim: BattleRewardClaim, award: BattleRewardSettlement, victory: Bool = false, logging message: String,
         _ mutation: (inout PlayerSave, (hero: Combatant, companion: Combatant), (SaveEconomicReceipt) -> Void) -> Result<
             Void,
             EncounterCompletionFailure,
         >,
     ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
         guard claim.isCurrent(in: self), !claim.isConsumed else { return .rejected(.unavailable) }
+        let previousResearch = library.progress.completedResearchIDs
         let candidate = makeMutation()
         guard let party = claim.party(in: candidate.save),
               award.inputs == RewardSettlementInputs(
@@ -103,8 +109,11 @@ private extension PlayerSaveStore {
         case let .failure(error): return .rejected(error)
         case .success:
             do {
+                if victory, let enemyID = claim.enemyID {
+                    candidate.save.library.defeat(enemyID)
+                }
                 try commit(candidate)
-                claim.consume()
+                claim.consume(completedResearchIDs: library.progress.completedResearchIDs.subtracting(previousResearch).sorted())
                 return .committed(())
             } catch {
                 notePersistenceFailure(error, logging: message)

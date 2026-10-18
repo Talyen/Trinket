@@ -1,6 +1,90 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "library.range_odds": {
+      "comment": "Archery Range only. Bonus to Astral tier weight when crafting here, not world drops. Argument includes percent sign.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Astralfertigung am Bogenschießplatz"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archery Astral crafting"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fabrication astrale au Terrain de tir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "弓術場の星界級製作"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "궁술장 성운 제작"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "射箭場星界製作"
+          }
+        }
+      }
+    },
+    "library.range_odds_description": {
+      "comment": "Archery Range only. Bonus to Astral tier weight when crafting here, not world drops. Argument includes percent sign.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Astralchancen beim Herstellen am Bogenschießplatz steigen um %1$@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archery crafting Astral odds rise by %1$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les chances d’obtenir le rang Astral en fabriquant au Terrain de tir augmentent de %1$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "弓術場で製作する際の星界級の出現率が%1$@上昇"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "궁술장 제작 시 성운 등급 확률이 %1$@ 증가합니다"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "射箭場製作的星界機率提高 %1$@"
+          }
+        }
+      }
+    },
     "ui.abilitydetailview.traits_e0ab4": {
       "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/AbilityDetailView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",

@@ -27,6 +27,10 @@ public extension PlayerSaveStore {
         observedValue(\.labyrinth, from: \.labyrinth)
     }
 
+    var library: PlayerLibraryState {
+        observedValue(\.library, from: \.library)
+    }
+
     var voyage: PlayerVoyageState {
         observedValue(\.voyage, from: \.voyage)
     }
@@ -100,6 +104,7 @@ public extension PlayerSaveStore {
             case .spires: record(\.spires, \.spires)
             case .labyrinth: record(\.labyrinth, \.labyrinth)
             case .contracts: record(\.contracts, \.contracts)
+            case .library: record(\.library, \.library)
             case .voyage: record(\.voyage, \.voyage)
             }
         }

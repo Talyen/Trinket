@@ -31,7 +31,7 @@ Building details use full-screen portrait artwork, the building name, and native
 gold Back/Resources toolbar controls matching the gallery. A separate Build/Upgrade
 section pairs each building's catalog icon with the action and tier segments.
 Completed buildings retain a noninteractive full tier bar.
-Only building details hide the tab bar. Resources opens a compact expandable
+Building details and their nested activities hide the tab bar. Resources opens a compact expandable
 wallet sheet with a Close control.
 
 The bottom panel contains only current bonuses and production. It shares native
@@ -209,3 +209,18 @@ presented. Transient retries retain the same rolled candidate. Leaving the flow
 never loses an accepted item, and reveal animation never grants one. Native
 navigation, Inventory's item detail presentation, prepared artwork, and existing
 motion/haptic preferences govern presentation.
+
+## Library and Archery Range activities
+
+Library adds Bestiary and Research in one quiet activity group above Upgrade and
+its separate XP benefit. The rows show Build Library until tier one. Archery Range
+adds Craft above Upgrade, with five standard and three research-taught recipes.
+Its existing ranged-damage benefit, Wood production and building costs remain.
+Library is not a prerequisite for standard crafting.
+
+[Library, Research and Archery crafting](Library.md) owns discovery, project
+objectives, recipe prices, unlocks and their native navigation. Both workshops
+share the immutable craft roll, spending/retry ownership and actual-item reveal
+above. Range tiers 2–4 add a Range-only Astral crafting weight bonus of 10/20/30%.
+No workshop consumes an item or adds a new artwork asset. Trinkets and Uniques
+remain in Collection; the Library has no duplicate item archive.

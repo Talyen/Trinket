@@ -98,6 +98,7 @@ struct PlayBattleOverlay: View {
 }
 
 struct PlaySessionPresentationModifier: ViewModifier {
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(BattleSession.self) private var battle
     @Environment(PlaySession.self) private var play
     @Binding var stageMessage: StageMapMessage?
@@ -121,6 +122,23 @@ struct PlaySessionPresentationModifier: ViewModifier {
                 },
             )
             .trinketPlayActionResult($stageMessage)
+            .overlay(alignment: .top) {
+                if !play.researchCompletionIDs.isEmpty {
+                    ResearchCompletionNotice(ids: play.researchCompletionIDs)
+                        .padding(TrinketDesign.Layout.contentMargin)
+                }
+            }
+            .task(id: play.researchCompletionIDs) {
+                let ids = play.researchCompletionIDs
+                guard !ids.isEmpty else { return }
+                do { try await Task.sleep(for: .seconds(5)) } catch { return }
+                play.dismissResearchCompletion(ids)
+            }
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active {
+                    play.dismissResearchCompletion(play.researchCompletionIDs)
+                }
+            }
     }
 }
 

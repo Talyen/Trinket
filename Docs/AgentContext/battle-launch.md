@@ -140,3 +140,13 @@ their last point is spent. Finishing that token exposes the next eligible
 combatant or dismisses the sheet. Additional legal choices replace the token;
 stale completions cannot advance the flow. Dismissal clears the presentation,
 and backgrounding finishes its current confirmation without replaying feedback.
+
+## Library discovery facts
+
+A save-issued battle claim captures the actual launched enemy ID. After successful
+runtime installation, the coordinator records an encounter with a generation-bound,
+idempotent quiet save retry; preparation, selection and inspection never count.
+It does not hold card input for saving. Accepted victory records that same enemy's
+defeat with settlement and research unlocks atomically. Defeat/retreat only retains
+the encounter. The claim returns newly completed research IDs after commit for a
+single transient notice; restored history never reconstructs a notification queue.

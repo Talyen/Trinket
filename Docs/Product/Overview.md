@@ -14,7 +14,7 @@ What the player sees, in player terms. Locked rules live in
 | Contracts | Three renewable single-battle jobs under Explore, with regular rewards and party-based levels. See [Contracts.md](Contracts.md). |
 | Voyage | Finite, repeatable regional adventures under Explore, with saved routes, free retries, and completion bonuses. See [Voyage.md](Voyage.md). |
 | Collection | The party's equipment and talents: hero and companion loadouts plus drill-in detail screens. |
-| Homestead | Permanent progression from gathered resources: art-led overview, category galleries (Farming / Crafting / Alchemy / Training / Arcana), and immediate tier-path builds. See [Homestead.md](Homestead.md). |
+| Homestead | Permanent progression from gathered resources: art-led overview, category galleries (Farming / Crafting / Alchemy / Training / Arcana), immediate tier-path builds, Library Bestiary/Research, and Blacksmith/Archery crafting. See [Homestead.md](Homestead.md) and [Library.md](Library.md). |
 | Shop | Spends rewards between encounters; leaves back to Play. |
 | Options | Device preferences, Full Game purchases/restoration, and support; never gates free play. Identity model: [Identity.md](Identity.md). |
 

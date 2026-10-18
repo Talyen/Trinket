@@ -24,6 +24,7 @@ extension PlayerSaveRoot {
             contracts: PlayerContractsState.decodePayload(contractsPayload),
             voyage: PlayerVoyageState.decodePayload(voyagePayload),
             corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
+            library: PlayerLibraryState(payload: libraryPayload),
         )
     }
 }
@@ -77,6 +78,8 @@ extension PlayerSaveRoot {
                 model.root = self
             case .contracts:
                 contractsPayload = write.contractsPayload
+            case .library:
+                libraryPayload = write.libraryPayload
             case .voyage:
                 voyagePayload = write.voyagePayload
             }

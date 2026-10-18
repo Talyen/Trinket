@@ -25,6 +25,7 @@ struct CloudSaveSnapshotDelta: Codable, Equatable, Sendable {
         case spires(PlayerSpiresState)
         case labyrinth(PlayerLabyrinthState)
         case voyage(Data?)
+        case library(PlayerLibraryState?)
         case contracts(PlayerContractsState)
         case corruptionCooldown(Int)
     }
@@ -59,6 +60,9 @@ struct CloudSaveSnapshotDelta: Codable, Equatable, Sendable {
         }
         if before.labyrinth != after.labyrinth {
             changes.append(.labyrinth(after.labyrinth))
+        }
+        if before.library != after.library {
+            changes.append(.library(after.library))
         }
         if before.voyagePayload != after.voyagePayload {
             changes.append(.voyage(after.voyagePayload))
@@ -126,6 +130,7 @@ struct CloudSaveSnapshotDelta: Codable, Equatable, Sendable {
             case let .homestead(value): snapshot.homestead = value
             case let .spires(value): snapshot.spires = value
             case let .labyrinth(value): snapshot.labyrinth = value
+            case let .library(value): snapshot.library = value
             case let .voyage(value): snapshot.voyagePayload = value
             case let .contracts(value): snapshot.contracts = value
             case let .corruptionCooldown(value): snapshot.corruptionAltarCooldownRemaining = value

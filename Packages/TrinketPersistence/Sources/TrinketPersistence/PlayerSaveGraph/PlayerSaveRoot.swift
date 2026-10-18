@@ -14,6 +14,7 @@ package final class PlayerSaveRoot {
     var corruptionAltarCooldownRemaining: Int = 0
     var contractsPayload: Data?
     var voyagePayload: Data?
+    var libraryPayload: Data?
     var cloudStatePayload: Data?
 
     @Relationship(deleteRule: .cascade, inverse: \JourneyProgressModel.root)
@@ -36,40 +37,43 @@ package final class PlayerSaveRoot {
 
 enum PlayerSaveSchemaV2: VersionedSchema {
     static let versionIdentifier = Schema.Version(2, 0, 0)
+    static let models = PlayerSaveSchemaV3.models.filter { $0 != PlayerSaveSchemaV3.CloudOutboxRecord.self }
+}
 
+enum PlayerSaveSchema: VersionedSchema {
+    static let versionIdentifier = Schema.Version(4, 0, 0)
     static let models: [any PersistentModel.Type] = [
         PlayerSaveRoot.self,
+        HomesteadModel.self,
+        HomesteadResourceBalanceModel.self,
+        HomesteadPendingProductionModel.self,
+        HomesteadNodeTierModel.self,
+        InventoryModel.self,
+        InventoryItemModel.self,
+        ItemAffixModel.self,
         JourneyProgressModel.self,
         JourneyStageProgressModel.self,
+        LabyrinthProgressModel.self,
         RosterModel.self,
+        TalentLoadoutModel.self,
+        TalentNodeUnlockModel.self,
         UnlockedCombatantModel.self,
         CombatantProgressionModel.self,
         AbilityLoadoutModel.self,
         EquipmentLoadoutModel.self,
         EquipmentSlotModel.self,
-        InventoryModel.self,
-        InventoryItemModel.self,
-        ItemAffixModel.self,
-        HomesteadModel.self,
-        HomesteadResourceBalanceModel.self,
-        HomesteadPendingProductionModel.self,
-        HomesteadNodeTierModel.self,
         SpiresProgressModel.self,
         SpireFloorProgressModel.self,
-        LabyrinthProgressModel.self,
-        TalentLoadoutModel.self,
-        TalentNodeUnlockModel.self,
+        CloudOutboxRecord.self,
     ]
 }
 
-enum PlayerSaveSchema: VersionedSchema {
-    static let versionIdentifier = Schema.Version(3, 0, 0)
-    static let models = PlayerSaveSchemaV2.models + [CloudOutboxRecord.self]
-}
-
 enum PlayerSaveMigrationPlan: SchemaMigrationPlan {
-    static let schemas: [any VersionedSchema.Type] = [PlayerSaveSchemaV2.self, PlayerSaveSchema.self]
-    static let stages = [MigrationStage.lightweight(fromVersion: PlayerSaveSchemaV2.self, toVersion: PlayerSaveSchema.self)]
+    static let schemas: [any VersionedSchema.Type] = [PlayerSaveSchemaV2.self, PlayerSaveSchemaV3.self, PlayerSaveSchema.self]
+    static let stages = [
+        MigrationStage.lightweight(fromVersion: PlayerSaveSchemaV2.self, toVersion: PlayerSaveSchemaV3.self),
+        MigrationStage.lightweight(fromVersion: PlayerSaveSchemaV3.self, toVersion: PlayerSaveSchema.self),
+    ]
 }
 
 package enum PlayerSaveGraph {

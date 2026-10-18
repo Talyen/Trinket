@@ -175,6 +175,22 @@ struct ContentView: View {
     @ViewBuilder
     private func homesteadRouteView(for route: HomesteadRoute) -> some View {
         switch route {
+        case .bestiary:
+            LibraryBestiaryView()
+        case .research:
+            LibraryResearchView()
+        case let .researchProject(id):
+            if let project = ResearchProject.matching(id) {
+                LibraryResearchProjectView(project: project)
+            }
+        case let .researchRecipe(id):
+            if let recipe = EquipmentRecipe.matching(id) {
+                LibraryRecipePreview(recipe: recipe)
+            }
+        case let .workshop(id):
+            if let recipe = EquipmentRecipe.matching(id), let definition = GameContent.homesteadNode(matching: recipe.buildingID) {
+                HomesteadNodeDetailView(definition: definition, initialRecipeID: recipe.id)
+            }
         case let .category(category):
             HomesteadCategoryView(category: category, zoomNamespace: homesteadZoomNamespace)
         case let .node(nodeID):

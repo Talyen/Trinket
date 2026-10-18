@@ -87,6 +87,7 @@ extension PlayBattleCoordinator {
             rewardClaim: playerSave.prepareBattleRewardClaim(
                 at: route, heroID: launch.configuration.hero.combatant.id,
                 companionID: launch.configuration.companion.combatant.id,
+                enemyID: launch.configuration.enemy?.id,
             ),
         )
     }
@@ -130,7 +131,10 @@ extension PlayBattleCoordinator {
             endBattle()
             return false
         }
-        return installed
+        if installed, let claim = activeRun?.rewardClaim {
+            playerSave.recordBattleEncounter(claim)
+        }
+        return installed && activeRun != nil
     }
 
     func endBattle() {

@@ -64,6 +64,8 @@ enum CloudSaveMerge {
         mergeExploration(into: &merged, branches: branches)
         mergeContracts(into: &merged, branches: branches)
         mergeCorruptionAltarCooldown(into: &merged, branches: branches)
+        merged.library.merge(branches.other.library)
+        LibraryResearchMutation.reconcile(&merged)
         merged.modifiedAt = max(incoming.modifiedAt, existing.modifiedAt)
         return merged
     }

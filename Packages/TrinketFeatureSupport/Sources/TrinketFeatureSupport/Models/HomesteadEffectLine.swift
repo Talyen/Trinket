@@ -7,6 +7,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case modifier(AffixModifier, companion: Bool)
         case astralFind
         case forgeAstralOdds
+        case archeryAstralOdds
         case goldFind(percent: Bool)
         case experience(percent: Bool)
         case gemsFind(percent: Bool)
@@ -39,6 +40,17 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
                     id: .forgeAstralOdds,
                     label: String(localized: L10n.ui_homesteadeffectline_forge_astral_odds_db78f),
                     value: "\(forgeBonus)%",
+                    resource: nil,
+                ))
+            }
+        }
+        if nodeID == .archeryRange {
+            let bonus = EquipmentRecipe.astralWeightBonusPercent(blacksmithTier: tier.tier)
+            if bonus > 0 {
+                lines.append(Self(
+                    id: .archeryAstralOdds,
+                    label: String(localized: L10n.library_range_odds),
+                    value: "\(bonus)%",
                     resource: nil,
                 ))
             }
@@ -124,6 +136,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
             String(localized: L10n.ui_homesteadeffectline_produce_1_2_per_day_aefb1("\(value)", "\(label)"))
         case .astralFind: String(localized: L10n.ui_homesteadeffectline_astral_drop_rates_rise_by_1_a8f6b("\(value)"))
         case .forgeAstralOdds: String(localized: L10n.ui_homesteadeffectline_astral_forge_odds_rise_by_1_2efdc("\(value)"))
+        case .archeryAstralOdds: String(localized: L10n.library_range_odds_description(value))
         case .goldFind: String(localized: L10n.ui_homesteadeffectline_find_1_more_gold_2d6b4("\(value)"))
         case .experience: String(localized: L10n.ui_homesteadeffectline_gain_1_more_experience_36dd5("\(value)"))
         case .gemsFind: String(localized: L10n.ui_homesteadeffectline_find_1_more_gems_ddc3e("\(value)"))

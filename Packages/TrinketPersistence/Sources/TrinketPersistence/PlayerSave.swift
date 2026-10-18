@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 18
+    public static let currentSchemaVersion = 19
 
     public static let corruptionAltarCooldownAfterEncounter = 6
     public static let testWorldSeed: UInt64 = 0x5445_5354
@@ -20,6 +20,7 @@ public struct PlayerSave: Equatable, Sendable {
     public var spires: PlayerSpiresState
     public var labyrinth: PlayerLabyrinthState
     public var voyage: PlayerVoyageState
+    public var library: PlayerLibraryState
     public var contracts: PlayerContractsState
     public var corruptionAltarCooldownRemaining: Int
 
@@ -93,7 +94,9 @@ public struct PlayerSave: Equatable, Sendable {
         contracts: PlayerContractsState = .freshStart,
         voyage: PlayerVoyageState = .freshStart,
         corruptionAltarCooldownRemaining: Int = 0,
+        library: PlayerLibraryState = .init(),
     ) {
+        self.library = library
         self.schemaVersion = schemaVersion
         self.modifiedAt = modifiedAt
         self.sessionGeneration = sessionGeneration

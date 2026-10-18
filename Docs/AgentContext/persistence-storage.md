@@ -55,8 +55,11 @@ migrated when schemas or serialized identifiers change. Production CloudKit rema
 gated by the [release checklist](../Platform/CloudKitPreShipChecklist.md).
 Historical development-save migrations and retired identifier aliases were removed
 before that distribution; their retirement is not permission to remove support for
-current saves. The current value schema identifier is unchanged. Unsupported value
-schemas are rejected without rewriting their progress. Unsupported Labyrinth map payloads use
+current saves. The current value schema is 19. Distributed wire-18 graphs, recovery snapshots,
+cloud ancestors and outbox snapshots/deltas migrate through the shared codec.
+Older development schemas and future schemas are rejected without rewriting their
+progress. SwiftData graph v3 is frozen, including all relationship inverses; graph
+v4 adds optional Library history through a lightweight migration. Unsupported Labyrinth map payloads use
 the existing unreadable-map recovery path, without translating historical floor
 progress. Current-data validation, relationship repair, and corruption recovery
 remain required.
@@ -372,3 +375,20 @@ rollback, account, and two-device evidence remain the
 ## Voyage payload
 
 Voyage persists a versioned optional `voyagePayload` on the root and in complete-save snapshots. Missing data initializes an empty board; unreadable active-route data is retained verbatim. The Voyage slice participates in change detection, publication, recovery, and reset. See [Voyage](../Product/Voyage.md#persistence).
+
+## Library history
+
+Library persists a separate optional root payload and independently observed slice.
+Its version-one value holds encountered/defeated enemy sets, completed project IDs,
+learned recipe IDs and a backfill version. Unknown IDs remain inert and round-trip;
+unknown or damaged payload bytes remain opaque and disable dependent activities.
+Standard crafting and ordinary play remain available. Reset follows the existing
+save generation and cloud epoch, never a parallel reset mechanism.
+
+The source-owned legacy mapping freezes provable wire-18 Campaign/Spire enemies;
+retained cleared spatial nodes supply explicit enemy IDs. No inference comes from
+current random offers or current catalogs. Backfill never queues celebrations.
+Current companion, Library-tier and Spire changes evaluate a small pure project
+catalog in the same candidate as the triggering write. Wallet and selection-only
+changes do not reevaluate it. Readable same-epoch cloud histories merge by union.
+[Library](../Product/Library.md) owns player-facing unlock and discovery rules.

@@ -16,6 +16,7 @@ struct HomesteadDetailSheetView: View {
     @Binding var build: HomesteadBuildControl
     let purchaseCommitted: Bool
     var onPurchase: (Int) -> Void
+    var initialRecipeID: String?
 
     private var status: HomesteadProjectStatus {
         HomesteadProjectStatus(definition: definition, homestead: playerSave.homestead, gold: playerSave.roster.gold)
@@ -44,7 +45,7 @@ struct HomesteadDetailSheetView: View {
         case .wallet:
             HomesteadWalletSheet()
         case .crafting:
-            BlacksmithForgeView()
+            BlacksmithForgeView(buildingID: definition.id, initialRecipeID: initialRecipeID)
         }
     }
 

@@ -76,6 +76,12 @@ enum PlayerSaveSanitizer {
                 eligibleRewards: RewardOwnership(sanitized).eligibleModifiers,
             )
         }
+        if [18, PlayerSave.currentSchemaVersion].contains(sanitized.schemaVersion) {
+            sanitized.schemaVersion = PlayerSave.currentSchemaVersion
+        }
+        if targets.contains(.library) {
+            LibraryResearchMutation.reconcile(&sanitized)
+        }
         return sanitized
     }
 

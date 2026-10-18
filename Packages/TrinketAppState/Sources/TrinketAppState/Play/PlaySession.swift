@@ -25,6 +25,14 @@ public final class PlaySession: BattleProgressionDelegate {
     let battleCoordinator: PlayBattleCoordinator
     let battleRewardDate: @MainActor () -> Date
 
+    public private(set) var researchCompletionIDs: [String] = []
+
+    public func dismissResearchCompletion(_ ids: [String]) {
+        if researchCompletionIDs == ids {
+            researchCompletionIDs = []
+        }
+    }
+
     public private(set) var pendingDestination: PlayLaunchDestination?
     private var postBattleTalentChoices = PostBattleTalentChoices()
 
@@ -135,6 +143,7 @@ public final class PlaySession: BattleProgressionDelegate {
             },
             onClaimed: { [weak self] in
                 guard let self else { return }
+                researchCompletionIDs = battleCoordinator.activeRun?.rewardClaim.completedResearchIDs ?? []
                 sfxPlayer.play(SFXID.lootCollect, volume: options.effectsVolume)
             },
         )
@@ -171,6 +180,7 @@ public final class PlaySession: BattleProgressionDelegate {
     }
 
     func clearTransientState() {
+        researchCompletionIDs = []
         battleCoordinator.reset()
         battleCoordinator.endBattle()
         dismissPostBattleTalentChoice()

@@ -29,6 +29,10 @@ extension PlayerSaveSnapshot {
             || contracts.highestWonEncounterLevel > 0 {
             return true
         }
+        if let library, !library.isReadable || !library.progress.encounteredEnemyIDs.isEmpty
+            || !library.progress.completedResearchIDs.isEmpty {
+            return true
+        }
         let voyage = PlayerVoyageState.decodePayload(voyagePayload)
         return voyage.activeRun != nil || voyage.isUnreadable
     }

@@ -5,8 +5,7 @@ These are **proposed UI**, generated with the built-in ImageGen tool on October
 existing selected game artwork as compositing references. They are not screenshots
 of implemented features, production artwork, or native visual-test evidence.
 
-The [design and implementation plan](../LibraryResearchArchery.md) is the behavior
-and scope specification. Exact generation and correction prompts are preserved in
+The [Library and Archery contract](../Library.md) owns current behavior and scope. Exact generation and correction prompts are preserved in
 [Prompts.md](Prompts.md). No CLI/API fallback or new art-generation pipeline was used.
 
 ## Current refined boards
@@ -15,7 +14,7 @@ and scope specification. Exact generation and correction prompts are preserved i
 |---|---|---|
 | [Library / Bestiary](library-bestiary-v4.png) | Artwork-only landscape gallery, colored discovered enemies and disabled grayscale unknowns | `exec-cf49fdb5-0bd4-40fb-a61e-f5f14450ef7e.png` |
 | [Research browser](research-browser-v4.png) | Portrait reward illustrations, compact project rows and small objective marks | `exec-71248663-cda3-483e-95a7-01bd9ba6cee2.png` |
-| [Research detail](research-detail-v4.png) | Portrait recipe reward and three landscape defeat objectives, with source guidance collapsed | `exec-ebc97aed-3b7b-42d5-b27e-e68fd9afc5b1.png` |
+| [Research detail](research-detail-v4.png) | Portrait recipe reward and three landscape defeat objectives, source-guidance row superseded and excluded from implementation | `exec-ebc97aed-3b7b-42d5-b27e-e68fd9afc5b1.png` |
 | [Archery](archery-crafting-v3.png) | Portrait recipe cards and preview; one prominent Craft action | `exec-92d83b0d-5f7a-437b-b4e9-169f05b3c354.png` |
 
 All selected outputs are copied unchanged into this directory. Original generated
@@ -30,7 +29,7 @@ Earlier boards remain as generation inputs and preserve previous chat links:
 Their superseded designs include an item archive, undiscovered disclosure,
 Bestiary labels/status, inspection of unknown enemies, five-objective research
 and the oversized text-only project presentation. Current intent follows the
-four boards above and the written plan. No original asset was overwritten.
+current product contract. No original asset was overwritten.
 
 ## Actual screenshot references
 
@@ -123,7 +122,8 @@ three small objective marks instead of large text rows/fractions. Completed
 milestones have one line and a check/chevron; repeated archive subtitles are gone.
 Research detail uses a portrait reward and three landscape enemy objectives,
 removing the flavor paragraph, Reward/workshop labels and the long objective list.
-Where to find is a single collapsed source disclosure. All three objective enemies
+The source-guidance row shown in this concept was subsequently removed by the
+user; implementation contains no Where to find feature. All three objective enemies
 in its example are discovered, so each is colored; the Treant's open completion
 mark means not defeated, not undiscovered. Discovery and objective completion
 must remain independent. Research objective names are intentional; only the
@@ -136,7 +136,7 @@ Known concept-only deviations to resolve in shipping SwiftUI:
   and native components rather than generated crops or measured raster coordinates.
 - Research cards must wrap at larger text sizes instead of truncating required
   target names. Count/floor objectives and insufficient Library tiers are specified
-  in the plan; the examples show three enemy objectives and eligible tiers.
+  in the product contract; the examples show three enemy objectives and eligible tiers.
 - Static mockups do not verify grayscale hit testing, accessibility activation,
   encounter-without-victory unlocks, sheet dismissal or return position. Check
   these in native implementation, including stale requests and reset.
@@ -145,8 +145,8 @@ Known concept-only deviations to resolve in shipping SwiftUI:
   Bow, Crossbow, Quiver, then Focused Recipes. Keep every recipe.
 - Archery v3 restores Resources but still omits the in-sheet Back despite its
   prompt. Preserve the actual sheet Back; building Back is not a substitute.
-- Completed projects remain inspectable. Source hints and unlock/cost constraints
-  must stay reachable when reducing copy; native hit areas remain unchanged.
+- Completed projects remain inspectable. Unlock/cost constraints stay readable;
+  source-location hints are excluded. Native hit areas remain unchanged.
 - The recipe's 48 Wood / 24 Iron / 8 Herbs remains a proposed price, not balance proof.
 - Gold accents, icons, type and small resource details may be approximated. Use the
   existing controls, symbols and resource assets in production. An omitted exterior

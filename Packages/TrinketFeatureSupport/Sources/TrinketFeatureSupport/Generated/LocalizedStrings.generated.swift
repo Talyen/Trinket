@@ -3,6 +3,14 @@ import Foundation
 import TrinketContent
 
 enum L10n {
+    static var library_range_odds: LocalizedStringResource {
+        LocalizedStringResource("library.range_odds", defaultValue: "Archery Astral crafting", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func library_range_odds_description(_ value1: String) -> LocalizedStringResource {
+        LocalizedStringResource("library.range_odds_description", defaultValue: "Archery crafting Astral odds rise by \(ContentCopy.localized(value1))", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var ui_abilitydetailview_traits_e0ab4: LocalizedStringResource {
         LocalizedStringResource("ui.abilitydetailview.traits_e0ab4", defaultValue: "Traits", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }

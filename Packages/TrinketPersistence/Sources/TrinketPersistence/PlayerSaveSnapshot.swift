@@ -14,10 +14,12 @@ struct PlayerSaveSnapshot: Codable, Equatable, Sendable {
     var spires: PlayerSpiresState
     var labyrinth: PlayerLabyrinthState
     var voyagePayload: Data?
+    var library: PlayerLibraryState?
     var contracts: PlayerContractsState
     var corruptionAltarCooldownRemaining: Int
 
     init(_ save: PlayerSave) {
+        library = save.library
         schemaVersion = save.schemaVersion
         modifiedAt = save.modifiedAt
         worldSeed = save.worldSeed
@@ -36,11 +38,11 @@ struct PlayerSaveSnapshot: Codable, Equatable, Sendable {
     /// Decode storage values without applying cloud admission policy. Local
     /// startup owns repair, including regeneration of an unreadable Labyrinth.
     func decodedSave() throws -> PlayerSave {
-        guard schemaVersion == PlayerSave.currentSchemaVersion, modifiedAt.timeIntervalSince1970.isFinite else {
+        guard [18, PlayerSave.currentSchemaVersion].contains(schemaVersion), modifiedAt.timeIntervalSince1970.isFinite else {
             throw PlayerSavePersistenceError.invalidSave("Unsupported save snapshot.")
         }
         return PlayerSave(
-            schemaVersion: schemaVersion,
+            schemaVersion: PlayerSave.currentSchemaVersion,
             modifiedAt: modifiedAt,
             worldSeed: worldSeed,
             starterSelection: starterSelection,
@@ -53,6 +55,7 @@ struct PlayerSaveSnapshot: Codable, Equatable, Sendable {
             contracts: contracts,
             voyage: PlayerVoyageState.decodePayload(voyagePayload),
             corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
+            library: library ?? .init(),
         )
     }
 }

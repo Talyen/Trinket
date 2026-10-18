@@ -10,6 +10,7 @@ struct PlayerSaveGraphWrite {
     let preservesLabyrinthPayload: Bool
     let contractsPayload: Data?
     let voyagePayload: Data?
+    let libraryPayload: Data?
     let itemPowerPayloads: [String: Data]
 
     init(save: PlayerSave, slices: PlayerSaveSlice) throws {
@@ -25,6 +26,7 @@ struct PlayerSaveGraphWrite {
         } else {
             voyagePayload = nil
         }
+        libraryPayload = slices.contains(.library) ? try save.library.encodedPayload() : nil
         var powers: [String: Data] = [:]
         if slices.contains(.inventory) {
             for item in save.inventory.items {
@@ -45,6 +47,7 @@ struct PlayerSaveGraphWrite {
         labyrinthPayload = slices.contains(.labyrinth) ? root.labyrinth?.mapPayload : nil
         contractsPayload = slices.contains(.contracts) ? root.contractsPayload : nil
         voyagePayload = slices.contains(.voyage) ? root.voyagePayload : nil
+        libraryPayload = slices.contains(.library) ? root.libraryPayload : nil
         var powers: [String: Data] = [:]
         if slices.contains(.inventory) {
             for item in root.inventory?.items ?? [] {

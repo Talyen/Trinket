@@ -25,7 +25,7 @@ struct PlayerSaveStoreTests {
     @Test @MainActor func `unsupported development schema is rejected without replacing its stored progress`() throws {
         let context = try PersistenceTestContext()
         var save = PlayerSave.testSeed
-        save.schemaVersion = PlayerSave.currentSchemaVersion - 1
+        save.schemaVersion = 17
         save.roster.gold = 42
         try SaveTestSupport.writeRoot(save, to: context.storeURL())
 

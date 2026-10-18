@@ -21,6 +21,13 @@ struct BlacksmithForgePreview: View {
     let recipe: BlacksmithRecipe
     let resultNamespace: Namespace.ID
     let onOpenResult: (InventoryItem, Bool) -> Void
+    var onViewResearch: ((String) -> Void)?
+    var readOnly = false
+    var onOpenWorkshop: (() -> Void)?
+
+    private var learned: Bool {
+        recipe.researchID == nil || (playerSave.library.isReadable && playerSave.library.progress.unlockedRecipeIDs.contains(recipe.id))
+    }
 
     private var canAfford: Bool {
         recipe.cost.allSatisfy { playerSave.homestead.balance(for: $0.resource, gold: playerSave.roster.gold) >= $0.quantity }
@@ -29,10 +36,15 @@ struct BlacksmithForgePreview: View {
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
-                previewCard
-                    .frame(width: cardWidth(in: geometry.size.width))
-                    .frame(maxWidth: .infinity)
-                    .padding(TrinketDesign.Layout.contentMargin)
+                VStack(spacing: TrinketDesign.Spacing.small) {
+                    previewCard.frame(width: cardWidth(in: geometry.size.width))
+                    if recipe.requiredKeyword != nil {
+                        Text(LibraryCopy.guarantee(recipe, locale: locale)).foregroundStyle(.secondary)
+                        Text(L10n.library_basic_or_astral).foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(TrinketDesign.Layout.contentMargin)
             }
             .scrollBounceBehavior(.basedOnSize)
             .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -45,7 +57,8 @@ struct BlacksmithForgePreview: View {
             .accessibilityIdentifier(AccessibilityID.Homestead.forgePreview)
         }
         .trinketScreenBackground()
-        .navigationTitle(displayedItem == nil ? String(localized: L10n.ui_blacksmithforgepreview_forge_8899e) :
+        .navigationTitle(recipe.buildingID == .archeryRange ? String(localized: L10n.library_craft) :
+            displayedItem == nil ? String(localized: L10n.ui_blacksmithforgepreview_forge_8899e) :
             String(localized: L10n.ui_blacksmithforgepreview_forged_ac158))
         .navigationBarTitleDisplayMode(.inline)
         .task(id: recipe.id) { await preparePreviewArtwork() }
@@ -95,7 +108,7 @@ struct BlacksmithForgePreview: View {
                 if let displayedItem {
                     ItemCardLabel(item: displayedItem, showsAffixCount: false)
                 } else {
-                    Text(balanced: recipe.baseType.localizedName(locale: locale))
+                    Text(balanced: LibraryCopy.recipe(recipe, locale: locale))
                         .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
@@ -132,17 +145,38 @@ struct BlacksmithForgePreview: View {
                         )
                     }
                 }
-                Button(action: forge) {
-                    HStack {
-                        if isPending {
-                            ProgressView()
-                        }
-                        Text(L10n.ui_blacksmithforgepreview_forge_8899e)
+                if !learned, let projectID = recipe.researchID {
+                    Text(LibraryCopy.title(projectID, locale: locale)).foregroundStyle(.secondary)
+                    if readOnly {
+                        Button { onViewResearch?(projectID) } label: { Text(L10n.library_view_research) }
+                            .disabled(onViewResearch == nil)
                     }
-                    .frame(maxWidth: .infinity)
                 }
-                .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.forgeButton)
-                .disabled(!canAfford || isPending || result != nil || playerSave.homestead.tier(for: .blacksmithForge) == 0)
+                if readOnly {
+                    Button { onOpenWorkshop?() } label: { Text(L10n.library_open_range).frame(maxWidth: .infinity) }
+                        .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.openWorkshop)
+                } else if !learned, let projectID = recipe.researchID {
+                    Button { onViewResearch?(projectID) } label: {
+                        Text(L10n.library_view_research).frame(maxWidth: .infinity)
+                    }
+                    .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.viewResearch)
+                    .disabled(onViewResearch == nil)
+                } else {
+                    Button(action: forge) {
+                        HStack {
+                            if isPending {
+                                ProgressView()
+                            }
+                            Text(recipe
+                                .buildingID == .blacksmithForge ? String(localized: L10n.ui_blacksmithforgepreview_forge_8899e) :
+                                String(localized: L10n.library_craft))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.forgeButton)
+                    .disabled(!canAfford || !learned || isPending || result != nil || playerSave.homestead
+                        .tier(for: recipe.buildingID) == 0)
+                }
             }
         }
     }
@@ -152,7 +186,7 @@ struct BlacksmithForgePreview: View {
         hasOpenedResult = false
         isPending = true
         Task {
-            let outcome = await playerSave.forgeBlacksmithItem(recipeID: recipe.id)
+            let outcome = await playerSave.craftEquipmentItem(recipeID: recipe.id)
             isPending = false
             switch outcome {
             case let .success(item): result = item

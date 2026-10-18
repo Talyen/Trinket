@@ -137,9 +137,19 @@ public enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
 public enum HomesteadRoute: Hashable, Identifiable, Sendable {
     case category(HomesteadNodeCategory)
     case node(HomesteadNodeID)
+    case bestiary
+    case research
+    case researchProject(String)
+    case researchRecipe(String)
+    case workshop(String)
 
     public var id: String {
         switch self {
+        case .bestiary: "library-bestiary"
+        case .research: "library-research"
+        case let .researchProject(id): "research-\(id)"
+        case let .researchRecipe(id): "recipe-\(id)"
+        case let .workshop(id): "workshop-\(id)"
         case let .category(category):
             "category-\(category.rawValue)"
         case let .node(nodeID):

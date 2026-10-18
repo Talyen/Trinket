@@ -11,6 +11,7 @@ enum PlayerSaveSection: Int, CaseIterable {
     case homestead = 4
     case journey = 1
     case spires = 5
+    case library = 9
     case voyage = 8
     case contracts = 7
     case labyrinth = 6
@@ -33,6 +34,7 @@ enum PlayerSaveSection: Int, CaseIterable {
         case .spires: snapshot.spires != candidate.spires
         case .labyrinth: snapshot.labyrinth != candidate.labyrinth
         case .contracts: snapshot.contracts != candidate.contracts
+        case .library: snapshot.library != candidate.library
         case .voyage: snapshot.voyage != candidate.voyage
         }
     }
@@ -56,6 +58,7 @@ enum PlayerSaveSection: Int, CaseIterable {
         case .spires: destination.spires = source.spires
         case .labyrinth: destination.labyrinth = source.labyrinth
         case .contracts: destination.contracts = source.contracts
+        case .library: destination.library = source.library
         case .voyage: destination.voyage = source.voyage
         }
     }
@@ -72,6 +75,7 @@ struct PlayerSaveSlice: OptionSet {
     static let spires = PlayerSaveSection.spires.slice
     static let labyrinth = PlayerSaveSection.labyrinth.slice
     static let contracts = PlayerSaveSection.contracts.slice
+    static let library = PlayerSaveSection.library.slice
     static let voyage = PlayerSaveSection.voyage.slice
     static let all = PlayerSaveSection.allCases.reduce(into: Self(rawValue: 0)) { $0.insert($1.slice) }
 
@@ -114,6 +118,7 @@ struct PlayerSaveSlice: OptionSet {
         candidate proposed: PlayerSave,
     ) throws -> (candidate: PlayerSave, changedSlices: Self) {
         var candidate = proposed
+        LibraryResearchMutation.reconcile(&candidate, previous: snapshot)
         let mutationSlices = changed(between: snapshot, and: candidate)
         guard !mutationSlices.isEmpty else { return (snapshot, []) }
         let sanitizeSlices = sanitizeTargets(for: mutationSlices)

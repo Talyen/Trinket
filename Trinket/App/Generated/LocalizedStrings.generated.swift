@@ -3,6 +3,138 @@ import Foundation
 import TrinketContent
 
 enum L10n {
+    static var library_archive_companions: LocalizedStringResource {
+        LocalizedStringResource("library.archive.companions", defaultValue: "No two companions approach a battle alike. These records preserve the growing company that shares your adventures.", table: "Localizable", bundle: .main)
+    }
+
+    static var library_archive_spires: LocalizedStringResource {
+        LocalizedStringResource("library.archive.spires", defaultValue: "Each Spire turns one form of power into a different trial. Reaching its tenth floor earns a place in the Library’s climbing records.", table: "Localizable", bundle: .main)
+    }
+
+    static var library_basic_or_astral: LocalizedStringResource {
+        LocalizedStringResource("library.basic_or_astral", defaultValue: "Basic or Astral", table: "Localizable", bundle: .main)
+    }
+
+    static var library_bestiary: LocalizedStringResource {
+        LocalizedStringResource("library.bestiary", defaultValue: "Bestiary", table: "Localizable", bundle: .main)
+    }
+
+    static var library_build_required: LocalizedStringResource {
+        LocalizedStringResource("library.build_required", defaultValue: "Build Library", table: "Localizable", bundle: .main)
+    }
+
+    static var library_completed: LocalizedStringResource {
+        LocalizedStringResource("library.completed", defaultValue: "Completed", table: "Localizable", bundle: .main)
+    }
+
+    static var library_completion: LocalizedStringResource {
+        LocalizedStringResource("library.completion", defaultValue: "Research complete", table: "Localizable", bundle: .main)
+    }
+
+    static func library_completion_summary(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("library.completion.summary", defaultValue: "Research projects completed: \(value1)", table: "Localizable", bundle: .main)
+    }
+
+    static var library_craft: LocalizedStringResource {
+        LocalizedStringResource("library.craft", defaultValue: "Craft", table: "Localizable", bundle: .main)
+    }
+
+    static var library_defeat: LocalizedStringResource {
+        LocalizedStringResource("library.defeat", defaultValue: "Defeat", table: "Localizable", bundle: .main)
+    }
+
+    static var library_enemy_reference: LocalizedStringResource {
+        LocalizedStringResource("library.enemy.reference", defaultValue: "Standard Contract reference", table: "Localizable", bundle: .main)
+    }
+
+    static var library_enemy_unknown: LocalizedStringResource {
+        LocalizedStringResource("library.enemy.unknown", defaultValue: "Undiscovered enemy", table: "Localizable", bundle: .main)
+    }
+
+    static var library_focused_recipes: LocalizedStringResource {
+        LocalizedStringResource("library.focused_recipes", defaultValue: "Focused Recipes", table: "Localizable", bundle: .main)
+    }
+
+    static var library_goal_companions: LocalizedStringResource {
+        LocalizedStringResource("library.goal.companions", defaultValue: "Recruit three different Companions", table: "Localizable", bundle: .main)
+    }
+
+    static var library_goal_spire: LocalizedStringResource {
+        LocalizedStringResource("library.goal.spire", defaultValue: "Clear floor 10 of any Spire", table: "Localizable", bundle: .main)
+    }
+
+    static var library_guarantee_bleed: LocalizedStringResource {
+        LocalizedStringResource("library.guarantee.bleed", defaultValue: "Bleed affix guaranteed", table: "Localizable", bundle: .main)
+    }
+
+    static var library_guarantee_physical: LocalizedStringResource {
+        LocalizedStringResource("library.guarantee.physical", defaultValue: "Physical affix guaranteed", table: "Localizable", bundle: .main)
+    }
+
+    static var library_guarantee_poison: LocalizedStringResource {
+        LocalizedStringResource("library.guarantee.poison", defaultValue: "Poison affix guaranteed", table: "Localizable", bundle: .main)
+    }
+
+    static var library_in_progress: LocalizedStringResource {
+        LocalizedStringResource("library.in_progress", defaultValue: "In Progress", table: "Localizable", bundle: .main)
+    }
+
+    static var library_open_range: LocalizedStringResource {
+        LocalizedStringResource("library.open_range", defaultValue: "Open Archery Range", table: "Localizable", bundle: .main)
+    }
+
+    static func library_progress(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("library.progress", defaultValue: "\(value1) of \(value2) objectives complete", table: "Localizable", bundle: .main)
+    }
+
+    static var library_project_arms: LocalizedStringResource {
+        LocalizedStringResource("library.project.arms", defaultValue: "Arms and Armor", table: "Localizable", bundle: .main)
+    }
+
+    static var library_project_companions: LocalizedStringResource {
+        LocalizedStringResource("library.project.companions", defaultValue: "Companion Chronicles", table: "Localizable", bundle: .main)
+    }
+
+    static var library_project_forest: LocalizedStringResource {
+        LocalizedStringResource("library.project.forest", defaultValue: "Forest Field Notes", table: "Localizable", bundle: .main)
+    }
+
+    static var library_project_predator: LocalizedStringResource {
+        LocalizedStringResource("library.project.predator", defaultValue: "Predator Anatomy", table: "Localizable", bundle: .main)
+    }
+
+    static var library_project_spires: LocalizedStringResource {
+        LocalizedStringResource("library.project.spires", defaultValue: "Spire Records", table: "Localizable", bundle: .main)
+    }
+
+    static var library_recipe_bleed: LocalizedStringResource {
+        LocalizedStringResource("library.recipe.bleed", defaultValue: "Bleed Longbow", table: "Localizable", bundle: .main)
+    }
+
+    static var library_recipe_physical: LocalizedStringResource {
+        LocalizedStringResource("library.recipe.physical", defaultValue: "Physical Crossbow", table: "Localizable", bundle: .main)
+    }
+
+    static var library_recipe_poison: LocalizedStringResource {
+        LocalizedStringResource("library.recipe.poison", defaultValue: "Poison Shortbow", table: "Localizable", bundle: .main)
+    }
+
+    static var library_research: LocalizedStringResource {
+        LocalizedStringResource("library.research", defaultValue: "Research", table: "Localizable", bundle: .main)
+    }
+
+    static var library_standard_recipes: LocalizedStringResource {
+        LocalizedStringResource("library.standard_recipes", defaultValue: "Standard Recipes", table: "Localizable", bundle: .main)
+    }
+
+    static func library_tier(_ value1: String) -> LocalizedStringResource {
+        LocalizedStringResource("library.tier", defaultValue: "Library \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
+    }
+
+    static var library_view_research: LocalizedStringResource {
+        LocalizedStringResource("library.view_research", defaultValue: "View Research", table: "Localizable", bundle: .main)
+    }
+
     static var ui_battletransitionspreviewview_battle_1b18e: LocalizedStringResource {
         LocalizedStringResource("ui.battletransitionspreviewview.battle_1b18e", defaultValue: "Battle", table: "Localizable", bundle: .main)
     }

@@ -36,6 +36,8 @@ extension PlayerSaveRoot {
             } else {
                 false
             }
+        case .library:
+            libraryPayload == nil
         case .voyage:
             if let payload = voyagePayload {
                 !sanitizedSave.voyage.isUnreadable
