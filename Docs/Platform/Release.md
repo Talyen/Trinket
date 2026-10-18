@@ -160,6 +160,18 @@ there is no additional hosted service or subscription. Agents manage the tooling
 An expressly requested local deployment uses the opt-in above so its required
 deploy verification can execute. Doctor and dry-run need no heavy-local opt-in.
 
+Verification validates the simulator profile before generation or compilation.
+The default is the qualified iPhone 17 Pro / iOS 26.2 profile below. An explicit
+override requires both `TRINKET_SIM_DEVICE_TYPE` and `TRINKET_SIM_OS_VERSION`
+(or `TRINKET_SIM_OS_MAJOR`); unavailable profiles fail without falling back.
+Doctor checks this prerequisite without creating or booting a simulator.
+
+Successful exact-commit push CI can supply generation/style, package, and smoke
+evidence using the same complete-job proof as manual CI. Missing or incomplete
+proof runs those checks locally. Compatible local test products are reused only
+after the normal source-snapshot and toolchain checks. FullUI still runs locally,
+one class at a time, stopping on the first failed class.
+
 The command preserves the marketing version and allocates a build number above
 Apple's existing builds for that version, the project baseline, and retained
 local reservations. It passes the number to Xcode without modifying tracked
@@ -234,6 +246,11 @@ Each new run retains its receipt, archive, IPA, symbols, and logs under the prim
 checkout's `.DerivedData/testflight/`. Legacy receipts in the invoking checkout
 remain resumable. The receipt links command logs and records the source
 commit, Xcode, build number, cloud setting, IPA checksum, and Apple build ID.
+`verification.json` checkpoints successful package suites and UI classes, with
+phase timings and local or hosted evidence. Resume runs only missing phases for
+the same clean commit, checkout, toolchain/SDK, architecture, and simulator
+profile. A changed identity invalidates the checkpoints; a failed phase never
+becomes a checkpoint. Missing build products are rebuilt before remaining tests.
 Keep these artifacts through the beta's debugging window; do not delete them
 while a run needs recovery. This directory is outside routine simulator-run
 cleanup. Retention is manual because archives and symbols may be needed later.
@@ -280,7 +297,7 @@ after denial and passed denial plus a subsequent purchase. This is an iOS 27 loc
 StoreKit testing defect, not evidence of a production App Store failure. Do not
 filter valid signed entitlements or skip the denial assertion to accommodate it.
 Until requalified, select an existing managed iOS 26.2 simulator through
-`TRINKET_SIMULATOR_NAME` when running the command above, and confirm its actual
+the default release profile or an explicit runtime/type pair, and confirm its actual
 runtime in the test evidence. A newer runtime is not automatically qualified.
 Retain the complete release gate and the player-facing denial and retry checks;
 legacy `SKTestTransaction.state` can remain deferred after a correctly resolved

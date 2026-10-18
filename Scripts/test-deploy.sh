@@ -18,7 +18,8 @@ trinket_ensure_diagnostics_session
 
 MODE="ui"
 NO_BUILD=false
-TEST_DEPLOY_USAGE="Usage: $0 [--mode smoke|ui] [--no-build]"
+COMPILE_ONLY=false
+TEST_DEPLOY_USAGE="Usage: $0 [--mode smoke|ui] [--no-build] [--compile-only]"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --help|-h)
@@ -43,6 +44,10 @@ while [[ $# -gt 0 ]]; do
       NO_BUILD=true
       shift
       ;;
+    --compile-only)
+      COMPILE_ONLY=true
+      shift
+      ;;
     --)
       shift
       trinket_die "Unexpected argument: ${1:-}" "$TEST_DEPLOY_USAGE"
@@ -56,34 +61,7 @@ done
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification "Deploy test suites" || exit $?
 
-./Scripts/ci-gate.sh
-# Prevent subsequent build/test wrappers from regenerating after the gate's force generate.
-export SKIP_GENERATE=1
-
-if [[ "$NO_BUILD" == "false" ]]; then
-  echo ""
-  trinket_log_section "Build for testing (app + packages)"
-  ./Scripts/build-for-testing.sh
-fi
-
-echo ""
-trinket_log_section "Unit tests"
-./Scripts/test.sh unit --no-build
-
-if [[ "$MODE" == "ui" ]]; then
-  echo ""
-  trinket_log_section "Additional UI journeys (FullUI plan; smoke runs in main CI)"
-  # Deliberate release-time full run: opt past test.sh's CI-owned full-suite guard.
-  TRINKET_ALLOW_FULL_UI=1 ./Scripts/test.sh ui --no-build
-else
-  echo ""
-  trinket_log_section "Smoke UI canary"
-  ./Scripts/test.sh smoke --no-build
-
-  echo ""
-  trinket_log_section "Smoke timing report"
-  python3 ./Scripts/test-timing.py report --mode smoke --last 1 --top 10
-fi
-
-echo ""
-trinket_log_section "All checks passed"
+verification_args=(--mode "$MODE")
+[[ "$NO_BUILD" != true ]] || verification_args+=(--no-build)
+[[ "$COMPILE_ONLY" != true ]] || verification_args+=(--compile-only)
+exec python3 Scripts/deploy-verification.py "${verification_args[@]}"

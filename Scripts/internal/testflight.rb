@@ -199,7 +199,8 @@ module TrinketTestFlight
         raise Failure, 'Source commit or Xcode changed. Start a new deployment; this run cannot rebuild different inputs.'
       end
       unless @receipt['verified']
-        command('verification', { 'TRINKET_ISOLATE' => '1', 'SKIP_GENERATE' => nil }, './Scripts/test-deploy.sh')
+        command('verification', { 'TRINKET_ISOLATE' => '1', 'SKIP_GENERATE' => nil,
+          'TRINKET_DEPLOY_VERIFICATION_STATE' => File.join(@run_dir, 'verification.json') }, './Scripts/test-deploy.sh')
         raise Failure, 'Source changed during verification; start again from a clean checkout.' unless clean_commit == @receipt['commit']
         @receipt['verified'] = true
         save
@@ -221,6 +222,8 @@ module TrinketTestFlight
       log = File.join(@run_dir, "#{label}.log")
       puts "#{label}: #{log}"
       File.open(log, 'a', 0o600) do |file|
+        file.sync = true
+        $stdout.sync = true
         Open3.popen2e(env, *args, chdir: @root) do |input, output, waiter|
           input.close
           output.each_line { |line| file.write(line); $stdout.write(line) }
@@ -393,6 +396,7 @@ module TrinketTestFlight
     configuration = config(options[:config] || File.join(Dir.home, '.config/trinket/testflight.json'), root)
     portal = Portal.new(configuration, settings.fetch('bundle_id'))
     if modes.include?(:doctor)
+      puts capture('python3', File.join(root, 'Scripts/deploy-verification.py'), '--preflight')
       puts "Apple access OK: #{portal.app.name}; internal group: #{portal.group.name}."
       puts capture('security', 'find-identity', '-v', '-p', 'codesigning')
       puts 'Signing identities above are informational; a signed export proves distribution permissions. Doctor does not provision certificates or profiles.'

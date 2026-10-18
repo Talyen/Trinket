@@ -18,6 +18,7 @@ source "$SCRIPT_DIR/lib/args.sh"
 QUIET=true
 VERBOSE=false
 APP_ONLY=false
+REUSE=false
 while [[ $# -gt 0 ]]; do
   if trinket_args_quiet_verbose "$1"; then shift; continue; fi
   case "$1" in
@@ -25,12 +26,16 @@ while [[ $# -gt 0 ]]; do
       APP_ONLY=true
       shift
       ;;
+    --reuse)
+      REUSE=true
+      shift
+      ;;
     --help|-h)
-      echo "Usage: $0 [--quiet|--verbose] [--app-only]"
+      echo "Usage: $0 [--quiet|--verbose] [--app-only] [--reuse]"
       exit 0
       ;;
     *)
-      trinket_args_unknown "$1" "Usage: $0 [--quiet|--verbose] [--app-only]" >&2
+      trinket_args_unknown "$1" "Usage: $0 [--quiet|--verbose] [--app-only] [--reuse]" >&2
       exit 1
       ;;
   esac
@@ -45,6 +50,28 @@ trinket_set_app_xcodebuild_args "$DERIVED_DATA_PATH"
 
 mkdir -p "$RESULTS_DIR"
 prepare_generated_inputs "$RESULTS_DIR"
+
+reusable_products() {
+  [[ -d "$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app" ]] || return 1
+  local fingerprints=("${TRINKET_BUILD_FINGERPRINTS_APP[@]}")
+  [[ "$APP_ONLY" == true ]] || fingerprints=("${TRINKET_BUILD_FINGERPRINTS_FULL[@]}")
+  local fingerprint package products
+  for fingerprint in "${fingerprints[@]}"; do
+    assert_no_build_inputs_are_fresh "$(build_stamp_path "$RESULTS_DIR" "$fingerprint")" "$fingerprint" || return 1
+  done
+  if [[ "$APP_ONLY" != true ]]; then
+    for package in "${TRINKET_TEST_PACKAGES[@]}"; do
+      products="$(package_derived_data_path "$package")/Build/Products"
+      compgen -G "$products/*.xctestrun" >/dev/null || return 1
+      assert_no_build_inputs_are_fresh "$(build_stamp_path "$RESULTS_DIR" "package_$package")" "package_$package" || return 1
+    done
+  fi
+  compgen -G "$DERIVED_DATA_PATH/Build/Products/*.xctestrun" >/dev/null
+}
+if [[ "$REUSE" == true ]] && reusable_products; then
+  echo "Reusing compatible built products; source snapshots and toolchain match."
+  exit 0
+fi
 
 echo "=== build-for-testing: Trinket app and test bundles ==="
 xcode_runner_prepare "build-app" "$RESULTS_DIR"

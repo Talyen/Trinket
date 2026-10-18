@@ -49,7 +49,7 @@ two local build workers.
 | Command | Purpose |
 |---|---|
 | `./Scripts/assert-generated-output.sh [--regenerate] [--assets] [--strict-assets] --idempotent` | Confirm regeneration produces no diff (`--regenerate` runs `generate.sh` first; `--assets` includes art/music/SFX outputs; `--strict-assets` fingerprints full media trees) |
-| `./Scripts/build-for-testing.sh` | CI-owned compilation of app/package test schemes for `test.sh … --no-build` runs against CI build artifacts |
+| `./Scripts/build-for-testing.sh [--reuse]` | CI-owned compilation of app/package test schemes; `--reuse` validates source snapshots, toolchain, and existing products before avoiding compilation |
 | `./Scripts/build-for-testing.sh --app-only` | Build the app and UI test bundles, skipping package test schemes (CI shared build) |
 | `./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination …] [--iterations …] [--run-tests-until-failure] [--include-balance-sweep-tests] [--quiet] [--verbose] <Package> [Package...]` | CI-owned package tests on iOS Simulator; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition; multiple packages emit an aggregate failure summary with retained report paths, `--verbose` expands worker output |
 | `./Scripts/test-package-host.sh [--compare-ios] [BattleEngine\|TrinketCore ...]` | Native executed-scope proof; `--compare-ios` checks same-revision iOS timing evidence, or strict same-run/attempt/toolchain proof when `TRINKET_IOS_COMPARATOR_PROOF` is set. Manual/nightly native comparators have separate hosted budgets |
@@ -119,7 +119,7 @@ for their required deploy suites; doctor and dry-run need no opt-in. See
 |---|---|
 | `./Scripts/setup-testflight.sh` | Install local Ruby/Bundler/Fastlane tooling with locked gems; [configuration](../Docs/Platform/Release.md#one-time-testflight-setup) stays outside Git |
 | `./Scripts/testflight.sh [--doctor \| --dry-run \| --resume RUN] [--config FILE] [--notes FILE] [--cloud-sync YES\|NO] [--timeout SECONDS]` | Verify a clean checkout, archive/sign, upload, and confirm internal TestFlight availability; retain evidence for recovery; no Git mutations or review submission |
-| `./Scripts/test-deploy.sh [--mode smoke\|ui] [--no-build]` | CI-owned full deploy suites (deliberate local diagnostic opt-in required); `--mode smoke` is an optional canary |
+| `./Scripts/test-deploy.sh [--mode smoke\|ui] [--no-build] [--compile-only]` | Checkpointed deploy suites; complete exact-commit CI evidence and compatible products are reused. `--compile-only` runs the gate and compiles every test target before a release-candidate push; it does not certify a release |
 | `./Scripts/release.sh [--version X.Y.Z] [--since-tag TAG] [--skip-tests] [--dry-run] [--no-tag]` | Preview or prepare a release (`--version` pins semver, `--since-tag` sets the notes range, `--skip-tests` skips deploy verification); isolated release preparation uses `--no-tag`, then tags the verified integrated commit under [the release procedure](../Docs/Platform/Release.md#produce-release-artifacts) |
 
 ### Diagnostics

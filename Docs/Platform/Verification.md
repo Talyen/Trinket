@@ -216,7 +216,7 @@ exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic rese
 | `ci-gate.sh` | Pinned-tool ensure, generation and idempotence, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Check committed prepared assets and manifest/resource integrity without Asset Library |
-| `test-deploy.sh` | Full CI/release test sequence; local execution uses the deliberate heavy-local flag and diagnostic limits. Keep release/TestFlight evidence requirements intact |
+| `test-deploy.sh` | Full CI/release evidence with exact-commit hosted proof reuse and local phase checkpoints; local execution uses the deliberate heavy-local flag and diagnostic limits. [Release recovery](Release.md#options-and-recovery) owns checkpoint identity and invalidation |
 | Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, app build with smoke on the same runner, and package unit for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |
 | Device Release compilation | Nightly and standard manual CI run unsigned device Release compilation serialized behind build+unit with a 30-minute job budget and reserved diagnostic time; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
@@ -232,6 +232,10 @@ manual runs cannot reuse qualified-toolchain checks; exhaustive UI remains advis
 `Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Default deploy verification
 runs FullUI; main CI supplies smoke coverage separately. The release workflow
 requires green main CI. Use `--mode smoke` for the optional local smoke canary.
+Release verification runs UI classes separately and stops after a failed class;
+successful classes and packages remain checkpointed for the same clean inputs.
+Before pushing a release candidate, `test-deploy.sh --compile-only` can expose
+test-target compiler failures together without running the full test portfolio.
 Targeted UI runs require at least one non-skipped execution for every requested
 class or method filter; an absent or entirely skipped filter fails the run.
 
