@@ -68,9 +68,14 @@ enum ElementalReactionEngine {
               let sourceID = request.sourceActorID,
               let source = context.roster.combatant(for: sourceID), source.isAlive, source.role != .enemy,
               let keyword = request.keyword else { return nil }
-        let poison = context.roster.activeEffects(for: context.enemy).reduce(0) { sum, active in
-            guard case let .poison(potency) = active.effect else { return sum }
-            return SaturatedArithmetic.saturatingAdd(sum, potency)
+        // Poison only feeds the burn venomflash payoff; skip the scan otherwise.
+        let poison = if keyword == .burn {
+            context.roster.activeEffects(for: context.enemy).reduce(0) { sum, active in
+                guard case let .poison(potency) = active.effect else { return sum }
+                return SaturatedArithmetic.saturatingAdd(sum, potency)
+            }
+        } else {
+            0
         }
         return ElementalReactionHit(
             sourceID: sourceID, keyword: keyword,

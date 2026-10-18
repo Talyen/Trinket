@@ -220,7 +220,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             ([feature + "Support/Performance/BattlePerformanceScenarioDriver.swift"], both),
             ([feature + "State/BattleSession+Transitions.swift"], {"battle-presentation"}),
             ([launch], {"battle-launch"}),
-            ([app + "PlaySession+BattleLaunch.swift"], {"battle-launch"}),
+            ([app + "PlaySession.swift"], {"battle-launch"}),
             ([app + "PlaySession+BattleCompletion.swift"], {"battle-launch"}),
             ([feature + "State/BattleSession.swift"], both),
             ([feature + "State/BattleSession+Runtime.swift"], both),

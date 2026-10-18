@@ -77,7 +77,7 @@ def storage(*names: str) -> tuple[str, ...]:
 
 RUNTIME_RULES = (
     (('*.md',), ()),
-    (('*/PlaySession+BattleLaunch.swift', '*/PlaySession+BattleCompletion.swift', '*/PlayBattleLaunch+Configuration.swift', '*/BattleSession+Progression.swift'), (LAUNCH,)),
+    (('*/PlaySession.swift', '*/PlaySession+BattleCompletion.swift', '*/PlayBattleLaunch+Configuration.swift', '*/BattleSession+Progression.swift'), (LAUNCH,)),
     (('*/Features/Feedback/*', '*/State/Feedback/*'), presentation('floating-combat-feedback')),
     (('*/Features/BattleAbilityCardView.swift', '*/Features/BattleHandView.swift', '*/Features/BattleFieldLane+CardPlay.swift'), presentation('continuous-card-input', 'card-visibility')),
     (('*/Features/Battlefield/*', '*/Features/Effects/*'), presentation('attack-and-impact-presentation', 'card-visibility')),

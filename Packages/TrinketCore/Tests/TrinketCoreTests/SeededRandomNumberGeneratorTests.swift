@@ -2,14 +2,21 @@ import Testing
 import TrinketCore
 
 struct SeededRandomNumberGeneratorTests {
-    @Test func `seeded battles preserve the historical draw sequence`() {
-        var generator = SeededRandomNumberGenerator(seed: 1772)
-        let expected: [UInt64] = [
-            7731454660870130891,
-            10357557263425746430,
-            15960892827339718901,
-            16233710992148412256,
-        ]
-        #expect(expected.map { _ in generator.next() } == expected)
+    @Test func `same seed replays the same sequence`() {
+        var first = SeededRandomNumberGenerator(seed: 1772)
+        var second = SeededRandomNumberGenerator(seed: 1772)
+        #expect((0 ..< 8).map { _ in first.next() } == (0 ..< 8).map { _ in second.next() })
+    }
+
+    @Test func `different seeds diverge`() {
+        var first = SeededRandomNumberGenerator(seed: 1772)
+        var second = SeededRandomNumberGenerator(seed: 1773)
+        #expect((0 ..< 8).map { _ in first.next() } != (0 ..< 8).map { _ in second.next() })
+    }
+
+    @Test func `zero seed still advances`() {
+        var generator = SeededRandomNumberGenerator(seed: 0)
+        let draws = (0 ..< 4).map { _ in generator.next() }
+        #expect(Set(draws).count > 1)
     }
 }

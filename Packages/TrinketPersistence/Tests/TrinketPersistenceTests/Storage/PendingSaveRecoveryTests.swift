@@ -99,9 +99,7 @@ struct PendingSaveRecoveryTests {
         #expect(store.lastPersistenceError == .writeFailed)
         #expect(try recovery.read()?.restoredSave().roster.gold == 42)
 
-        for _ in 0 ..< 300 where store.isPersistenceDegraded {
-            try await Task.sleep(for: .milliseconds(2))
-        }
+        try await waitUntilSettled(store, \.isPersistenceDegraded)
         #expect(!store.isPersistenceDegraded)
         #expect(store.lastPersistenceError == nil)
         #expect(!recovery.hasPendingSave)
@@ -150,9 +148,7 @@ struct PendingSaveRecoveryTests {
         let store = try context.makeSaveStore()
         store.forcesNextDatabaseSaveFailure = true
         #expect(store.persistFixtureBatch(logging: "Recovery fixture") { $0.roster.gold = 47 })
-        for _ in 0 ..< 300 where store.isPersistenceDegraded {
-            try await Task.sleep(for: .milliseconds(2))
-        }
+        try await waitUntilSettled(store, \.isPersistenceDegraded)
         #expect(!store.isPersistenceDegraded)
         #expect(try context.makeReloadedStore().roster.gold == 47)
     }
@@ -218,9 +214,7 @@ struct PendingSaveRecoveryTests {
         if reset {
             try store.resetGameplayProgress()
         }
-        for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(2))
-        }
+        try await waitUntilSettled(store, \.isRetryingSaveAction)
         #expect(attempts == (reset ? 0 : 100))
         #expect(store.roster.gold == (reset ? 0 : 3))
     }
@@ -247,9 +241,7 @@ struct PendingSaveRecoveryTests {
             #expect(store.selectParty(heroID: latestID) == .committed)
         }
         #expect(!store.isRetryingSaveAction)
-        for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(2))
-        }
+        try await waitUntilSettled(store, \.isRetryingSaveAction)
         #expect(store.roster.activeHeroID == latestID)
         #expect(try context.makeReloadedStore().roster.activeHeroID == latestID)
     }
@@ -269,9 +261,7 @@ struct PendingSaveRecoveryTests {
                 _ = store?.persistFixtureBatch(logging: "Replacement fixture") { $0.roster.gold += 7 }
             }
         }
-        for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(2))
-        }
+        try await waitUntilSettled(store, \.isRetryingSaveAction)
         #expect(!store.isRetryingSaveAction)
         #expect(try context.makeReloadedStore().roster.gold == 7)
     }
@@ -295,9 +285,7 @@ struct PendingSaveRecoveryTests {
             return
         }
 
-        for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(2))
-        }
+        try await waitUntilSettled(store, \.isRetryingSaveAction)
         #expect(!store.isRetryingSaveAction)
         #expect(attempts == 1)
         #expect(store.lastPersistenceError == failure)
@@ -322,9 +310,7 @@ struct PendingSaveRecoveryTests {
         }
         #expect(store.roster.gold == 10)
         #expect(store.isRetryingSaveAction)
-        for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(2))
-        }
+        try await waitUntilSettled(store, \.isRetryingSaveAction)
         #expect(!store.isRetryingSaveAction)
         #expect(openings == 1)
         #expect(claims == 2)
@@ -356,9 +342,7 @@ struct PendingSaveRecoveryTests {
             // including on the initial attempt before registration.
             #expect(store.persistFixtureBatch(logging: "Other command fixture") { $0.corruptionAltarCooldownRemaining = 1 })
         }
-        for _ in 0 ..< 300 where store.isRetryingSaveAction {
-            try await Task.sleep(for: .milliseconds(2))
-        }
+        try await waitUntilSettled(store, \.isRetryingSaveAction)
         #expect(!store.isRetryingSaveAction)
         #expect(attempts == (invalid ? 1 : 2))
         #expect(store.roster.gold == (invalid ? 0 : 3))
@@ -527,5 +511,15 @@ extension PendingSaveRecoveryTests {
         #expect(restored.roster.gold == 42)
         #expect(restored.labyrinth.hasMap)
         #expect(try fixture.makeReloadedStore().roster.gold == 42)
+    }
+}
+
+private extension PendingSaveRecoveryTests {
+    /// Single knob for background-retry settling: one timing constant instead
+    /// of one polling loop per test.
+    func waitUntilSettled(_ store: PlayerSaveStore, _ pending: KeyPath<PlayerSaveStore, Bool>) async throws {
+        for _ in 0 ..< 300 where store[keyPath: pending] {
+            try await Task.sleep(for: .milliseconds(2))
+        }
     }
 }

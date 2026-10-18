@@ -14,15 +14,15 @@ struct MainActorCleanupTests {
         #expect(counter.calls == 1)
     }
 
-    @Test func `background teardown performs cleanup on the main actor once`() async throws {
+    @Test func `background teardown performs cleanup on the main actor once`() async {
         let counter = CleanupCounter()
         await Task.detached {
             Self.dropFromBackground(counter)
         }.value
-        let clock = ContinuousClock()
-        let deadline = clock.now.advanced(by: .seconds(5))
-        while counter.calls == 0, clock.now < deadline {
-            try await Task.sleep(for: .milliseconds(5))
+        // Yield the main actor until the deinit-enqueued hop runs.
+        // Bounded spin, no wall-clock sleeps.
+        for _ in 0 ..< 1000 where counter.calls == 0 {
+            await Task.yield()
         }
         #expect(counter.calls == 1)
     }

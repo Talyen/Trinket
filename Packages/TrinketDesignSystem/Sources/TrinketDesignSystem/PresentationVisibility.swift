@@ -4,13 +4,6 @@ public extension EnvironmentValues {
     @Entry var isDecorativeMotionActive = true
 }
 
-/// Pure contract behind the modifiers below, so the truth table stays pinned by tests.
-enum DecorativeMotionContract {
-    static func isActive(ancestor: Bool, scope: Bool) -> Bool {
-        ancestor && scope
-    }
-}
-
 public extension View {
     /// Enables or suppresses decorative motion (shine, plasma, aura rotation) for this subtree.
     /// Suppression composes with AND: the launch cover, tab selection, and tab prewarm each
@@ -18,7 +11,7 @@ public extension View {
     /// ancestor suppresses it. Flipping an ancestor back on re-enables opted-in descendants.
     func trinketDecorativeMotion(_ isActive: Bool) -> some View {
         transformEnvironment(\.isDecorativeMotionActive) {
-            $0 = DecorativeMotionContract.isActive(ancestor: $0, scope: isActive)
+            $0 = $0 && isActive
         }
     }
 

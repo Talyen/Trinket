@@ -16,7 +16,7 @@ extension CloudSaveSyncTests {
             // head. Its immutable receipt then arrives before its new head.
             let request = try #require(store.cloudDeviceState.account.pending)
             let previous = await transport.account().head
-            let resolution = try await CloudSavePlanner.resolve(request, against: previous)
+            let resolution = try CloudSaveReconciler.resolve(request, against: previous)
             _ = try await transport.commit(
                 accountID: "player-a", replacing: previous, head: resolution.head,
                 receipt: resolution.receipt, backups: resolution.backups,
@@ -44,7 +44,7 @@ extension CloudSaveSyncTests {
         let receiptCount = await transport.account().receipts.count
         let gate = ReconciliationGate()
         let sync = PlayerSaveCloudSync(store: store, transport: transport) { request, server in
-            let resolution = try await CloudSavePlanner.resolve(request, against: server)
+            let resolution = try CloudSaveReconciler.resolve(request, against: server)
             // Model work that completes even after cancellation. The coordinator
             // must still reject its result before any server write.
             await gate.pauseOnce()

@@ -195,8 +195,8 @@ recovery during migration.
 ### Reconciliation
 
 Cloud synchronization separates CPU-bound value planning from main-actor store
-work. `CloudSavePlanner` concurrently restores and merges snapshots, replays offline
-actions, and prepares local transitions; only immutable `Sendable` values cross
+work. `CloudSaveReconciler` restores and merges snapshots and `CloudSaveTransitions`
+prepares local transitions from immutable `Sendable` values; only those values cross
 that boundary. The coordinator retains transport ordering, presentation preparation,
 and durable commits. It rechecks cancellation, account and pending-request identity
 before upload, and transition source state before local publication. New gameplay

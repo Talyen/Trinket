@@ -19,7 +19,7 @@ Module map: `Keyword.swift` (cases, rules) with `KeywordHighlighting.swift`
 `ItemSlot.swift` with `ProgressionEnums.swift`,
 `SeededRandomNumberGenerator.swift`,
 `GoldBalance.swift` (shared wallet bound), `BattleGoldFlow.swift`, `Effect.swift` (also owns `ActiveEffect` and display-only `EffectSummary`),
-`Collection+Safe.swift`, `DamageCondition.swift`
+`DamageCondition.swift`
 (evaluation lives in `BattleEngine.BattleConditionEvaluator`; adding a case
 must update its exhaustive switch).
 
