@@ -92,6 +92,8 @@ targets:
       properties:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # Custom plist keys must be emitted here; Xcode ignores unrecognized INFOPLIST_KEY_* settings.
+        CADisableMinimumFrameDurationOnPhone: true
         TrinketCloudEnvironment: $(CLOUDKIT_ENVIRONMENT)
         TrinketCloudSyncEnabled: $(CLOUDKIT_SYNC_ENABLED)
         ITSAppUsesNonExemptEncryption: false
@@ -125,8 +127,6 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         # Legacy hosting retains the portrait lock before iOS 27.1.
         INFOPLIST_KEY_UIRequiresFullScreen: YES
-        # Unlock >60Hz CADisplayLink / CAAnimation on ProMotion iPhones (Apple opt-in).
-        INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
   TrinketUITests:
     type: bundle.ui-testing
     platform: iOS
