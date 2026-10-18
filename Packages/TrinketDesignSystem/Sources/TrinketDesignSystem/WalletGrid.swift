@@ -2,16 +2,19 @@ import SwiftUI
 
 public struct TrinketWalletGrid<Content: View>: View {
     private let columnCount: Int
+    private let wrapsToFit: Bool
     private let content: Content
 
-    public init(columnCount: Int = 4, @ViewBuilder content: () -> Content) {
+    public init(columnCount: Int = 4, wrapsToFit: Bool = true, @ViewBuilder content: () -> Content) {
         self.columnCount = max(1, columnCount)
+        self.wrapsToFit = wrapsToFit
         self.content = content()
     }
 
     public var body: some View {
         TrinketWalletGridLayout(
             columnCount: columnCount,
+            wrapsToFit: wrapsToFit,
             horizontalSpacing: TrinketDesign.Spacing.medium,
             verticalSpacing: TrinketDesign.Spacing.small,
         ) { content }
@@ -23,6 +26,7 @@ public struct TrinketWalletGrid<Content: View>: View {
 
 private struct TrinketWalletGridLayout: Layout {
     var columnCount: Int
+    var wrapsToFit: Bool
     var horizontalSpacing: CGFloat
     var verticalSpacing: CGFloat
 
@@ -68,9 +72,9 @@ private struct TrinketWalletGridLayout: Layout {
         guard itemCount > 0 else { return Arrangement(size: .zero, frames: []) }
 
         let availableWidth = proposal.width.flatMap { $0.isFinite ? max(0, $0) : nil }
-        // Preserve intrinsic label widths by wrapping resources before compressing text.
+        // Flexible wallets wrap before compressing; fixed wallets keep their column count as balances grow.
         var columns = max(1, min(columnCount, itemCount))
-        while columns > 1, let availableWidth {
+        while wrapsToFit, columns > 1, let availableWidth {
             var widths = Array(repeating: CGFloat.zero, count: columns)
             for index in 0 ..< itemCount {
                 widths[index % columns] = max(widths[index % columns], idealSizes[index].width.rounded(.up))
@@ -90,7 +94,7 @@ private struct TrinketWalletGridLayout: Layout {
         }
 
         let idealWidth = idealColumnWidths.reduce(0, +) + columnGaps
-        let columnWidths: [CGFloat] = if let availableWidth, availableWidth < idealWidth {
+        let columnWidths: [CGFloat] = if let availableWidth, !wrapsToFit || availableWidth < idealWidth {
             Array(repeating: max(0, (availableWidth - columnGaps) / CGFloat(columns)), count: columns)
         } else {
             idealColumnWidths

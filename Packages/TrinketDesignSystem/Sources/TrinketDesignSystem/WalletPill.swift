@@ -8,6 +8,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     private let showsIncreasePrefix: Bool
     private let increaseAnimationDelay: TimeInterval
     private let keepsArtworkStationary: Bool
+    private let axis: Axis
     private let artwork: Artwork
     @Environment(\.controlSize) private var controlSize
     @State private var increaseAnimationTrigger = 0
@@ -22,6 +23,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         showsIncreasePrefix: Bool = false,
         increaseAnimationDelay: TimeInterval = 0,
         keepsArtworkStationary: Bool = false,
+        axis: Axis = .horizontal,
         @ViewBuilder artwork: () -> Artwork,
     ) {
         self.title = title
@@ -29,6 +31,7 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
         self.showsIncreasePrefix = showsIncreasePrefix
         self.increaseAnimationDelay = increaseAnimationDelay
         self.keepsArtworkStationary = keepsArtworkStationary
+        self.axis = axis
         self.artwork = artwork()
     }
 
@@ -59,7 +62,11 @@ public struct TrinketWalletResourcePill<Artwork: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: TrinketDesign.Spacing.small) {
+        let layout = axis == .vertical
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall))
+            : AnyLayout(HStackLayout(spacing: TrinketDesign.Spacing.small))
+
+        layout {
             artwork.frame(width: artworkSize, height: artworkSize)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
