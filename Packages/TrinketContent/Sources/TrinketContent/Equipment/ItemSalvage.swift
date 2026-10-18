@@ -6,8 +6,7 @@ public enum ItemSalvage {
     }
 
     public static func yields(for item: InventoryItem) -> [ResourceAmount] {
-        guard !item.isTrinket,
-              let (primary, secondary) = materials(for: item.baseType.slot) else { return [] }
+        guard let (primary, secondary) = materials(for: item.baseType.slot) else { return [] }
         let quantity: Int
         switch item.rarity {
         case .basic: quantity = 8

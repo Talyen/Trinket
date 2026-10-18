@@ -20,12 +20,7 @@ public extension ItemAffixPower {
         if modifier.isPercent {
             return .percent(modifier.numericValue)
         }
-        var amount = 0
-        _ = modifier.mapInt {
-            amount = $0
-            return $0
-        }
-        return .int(amount)
+        return .int(Int(modifier.numericValue.rounded()))
     }
 
     private func magnitude(for target: BumpTarget) -> AffixMagnitude? {
@@ -138,14 +133,6 @@ public extension ItemAffixPower {
 public enum ItemAffixPowerBumpDirection: Equatable, Sendable {
     case up
     case down
-
-    public var intDelta: Int {
-        self == .up ? 1 : -1
-    }
-
-    public var percentDelta: Double {
-        self == .up ? 0.01 : -0.01
-    }
 }
 
 public enum ItemAffixMagnitudeRoll: Sendable {
@@ -228,11 +215,11 @@ private enum AffixMagnitude: Equatable {
         switch self {
         case let .int(value):
             guard direction == .up || value > 1 else { return nil }
-            let bumped = SaturatedArithmetic.saturatingAdd(value, direction.intDelta)
+            let bumped = SaturatedArithmetic.saturatingAdd(value, direction == .up ? 1 : -1)
             return bumped != value ? .int(bumped) : nil
         case let .percent(value):
             guard value.isFinite, direction == .up || value > 0.01 + 1e-9 else { return nil }
-            let bumped = value + direction.percentDelta
+            let bumped = value + (direction == .up ? 0.01 : -0.01)
             return bumped.isFinite && bumped != value ? .percent(bumped) : nil
         }
     }

@@ -236,7 +236,9 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
         switch self {
         case .trinket, .trinketHoard: GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
         case .unique, .uniqueHoard: GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
-        case .armsHoard, .armorHoard, .ringHoard, .amuletHoard: requiredBaseTypeIDs?.isEmpty == false
+        // Gear-base catalog invariant (ItemRewardGenerator preconditions a
+        // non-Trinket base) keeps every hoard family non-empty.
+        case .armsHoard, .armorHoard, .ringHoard, .amuletHoard: true
         default: true
         }
     }

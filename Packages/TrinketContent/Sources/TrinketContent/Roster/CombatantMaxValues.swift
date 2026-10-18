@@ -4,7 +4,7 @@ public enum CombatantMaxValues {
     public static func maxHealth(for combatant: Combatant, modifiers: CombatModifierProfile) -> Int {
         CombatRounding.scaled(
             SaturatedArithmetic.saturatingAdd(combatant.maxHealth, modifiers.maximumHealthBonus),
-            multiplier: 1 + modifiers.maximumHealthPercentBonus,
+            multiplier: max(0, 1 + modifiers.maximumHealthPercentBonus),
         )
     }
 

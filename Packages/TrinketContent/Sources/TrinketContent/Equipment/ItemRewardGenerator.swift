@@ -162,7 +162,11 @@ public enum ItemRewardGenerator {
             // Content drift: no base supports the keyword. Fall through to
             // unbiased gear below instead of trapping the live reward.
         }
-        let normalBases = fallbackBaseType.map { [$0] } ?? baseTypes.filter { $0.slot != .trinket }
+        // A trinket fallback cannot satisfy a gear roll: it has no eligible
+        // affixes, so it would generate a 0-affix item. Fall through to the
+        // gear pool instead.
+        let normalBases = fallbackBaseType.flatMap { $0.slot != .trinket ? $0 : nil }.map { [$0] }
+            ?? baseTypes.filter { $0.slot != .trinket }
         let effectiveBases = normalBases.isEmpty
             ? GameContent.itemBaseTypes.filter { $0.slot != .trinket }
             : normalBases

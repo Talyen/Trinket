@@ -85,7 +85,7 @@ public enum VoyageCatalog {
         case "chapter-2": ["skeleton", "mimic", "necromancer", "living_armor"]
         case "chapter-3": ["fire_elemental", "fire_imp", "hellhound", "pyromancer"]
         case "chapter-4": ["frost_elemental", "winter_wolf", "ice_wraith", "yeti"]
-        default: []
+        default: ["slime", "skeleton", "fire_elemental", "frost_elemental"]
         }
     }
 
@@ -95,7 +95,7 @@ public enum VoyageCatalog {
         case "chapter-2": "the_iron_bear"
         case "chapter-3": "the_forge_golem"
         case "chapter-4": "the_frostwarden"
-        default: nil
+        default: "the_blight_treant"
         }
     }
 

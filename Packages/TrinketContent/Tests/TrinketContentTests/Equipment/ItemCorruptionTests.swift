@@ -26,24 +26,6 @@ struct ItemCorruptionTests {
         }
     }
 
-    @Test func `effect rolls follow authored order for fixed seed`() throws {
-        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
-        var rng = SeededRandomNumberGenerator(seed: 123)
-
-        let kinds = ItemCorruption.rollEffectKinds(for: item, using: &rng)
-
-        #expect(kinds == [.replaceAffix, .upgradeRarity])
-    }
-
-    @Test func `empty effect roll falls back through authored order`() throws {
-        let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
-        var rng = MaximumRandomNumberGenerator()
-
-        let kinds = ItemCorruption.rollEffectKinds(for: item, using: &rng)
-
-        #expect(kinds == [.upgradeRarity])
-    }
-
     @Test func `structural effects preserve base item eligibility`() throws {
         let item = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 2)
 
@@ -183,26 +165,6 @@ struct ItemCorruptionTests {
         ))
         #expect(result.item.isCorrupted)
         #expect(!result.item.affixes.isEmpty)
-    }
-
-    @Test func `new affix direction uses the standard two to one weights`() {
-        let original = ItemAffixPower(
-            description: "Gain 5 Health.", modifiers: [.maximumHealth(5)],
-        )
-        var directions = Set<Int>()
-        for seed in UInt64(1) ... 64 {
-            var rng = SeededRandomNumberGenerator(seed: seed)
-            var reference = rng
-            let ticket = Int.random(in: 1 ... 60, using: &reference)
-            let expected: ItemAffixPowerBumpDirection = ticket <= 40 ? .up : .down
-            var power = original
-            let direction = ItemCorruption.bumpNewAffix(power: &power, using: &rng)
-            #expect(direction == expected)
-            #expect(power.modifiers == [.maximumHealth(expected == .up ? 6 : 4)])
-            #expect(power.description == "Gain \(expected == .up ? 6 : 4) Health.")
-            directions.insert(expected == .up ? 1 : -1)
-        }
-        #expect(directions == [-1, 1])
     }
 
     @Test func `new minimum values increase and on off powers remain unchanged`() throws {

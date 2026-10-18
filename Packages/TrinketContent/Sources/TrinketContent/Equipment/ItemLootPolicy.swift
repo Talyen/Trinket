@@ -43,6 +43,7 @@ enum ItemLootPolicy {
             } else {
                 availableTiers
             }
+            precondition(!targets.isEmpty, "Item rewards require an eligible category.")
             return ItemDropTier.allCases.map { tier in
                 targets.contains(tier) ? 1 / Double(targets.count) : 0
             }
@@ -75,7 +76,9 @@ enum ItemLootPolicy {
         else { return probabilities }
         // Scale actual chances after eligibility and bonuses, not raw weights.
         // Return the removed chance to Basic gear (Astral for Astral-only pools).
-        let retained = Double(max(0, collectibleChancePercent)) / 100
+        // Clamp above 100: otherwise the gear share goes negative and the
+        // distribution no longer sums to 1.
+        let retained = Double(min(100, max(0, collectibleChancePercent))) / 100
         for (index, tier) in ItemDropTier.allCases.enumerated() where tier == .trinket || tier == .unique {
             probabilities[gearIndex] += probabilities[index] * (1 - retained)
             probabilities[index] *= retained

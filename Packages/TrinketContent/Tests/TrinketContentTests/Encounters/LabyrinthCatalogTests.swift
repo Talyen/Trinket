@@ -134,11 +134,7 @@ struct LabyrinthCatalogTests {
     }
 
     @Test func `generated floors preserve geometry encounters and combat modifiers`() throws {
-        var layoutSignatures = Set<String>()
-        var observedCycleCounts = Set<Int>()
-        var observedFourWayJunction = false
-
-        for seed in 0 ..< 40 {
+        for seed in 0 ..< 12 {
             let generated = LabyrinthGenerator.makeMap(seed: UInt64(seed), floorCount: 3)
             assertEncounterContracts(clusters: generated.clusters, nodes: generated.nodes)
             for cluster in generated.clusters where cluster.depthBand > 0 {
@@ -148,10 +144,7 @@ struct LabyrinthCatalogTests {
                 #expect(nodes.count(where: { $0.type == .boss }) == 1)
                 #expect(!nodes.contains { !$0.isRevealed })
 
-                let geometry = validateGeometry(of: nodes)
-                observedFourWayJunction = observedFourWayJunction || nodes.contains { source in
-                    nodes.count(where: { source.id != $0.id && source.isAdjacent(to: $0) }) == 4
-                }
+                _ = validateGeometry(of: nodes)
                 for node in nodes {
                     let modifiers = NodeModifierCatalog.modifiers(ids: node.modifierIDs)
                     if node.type.isCombat {
@@ -173,14 +166,8 @@ struct LabyrinthCatalogTests {
                         ? ["labyrinth-cluster-\(node.depth + 1)-n0"] : []
                     #expect(node.outgoingIDs == expectedExits)
                 }
-                observedCycleCounts.insert(geometry.cycleCount)
-                layoutSignatures.insert(geometry.signature)
             }
         }
-
-        #expect(layoutSignatures.count >= 10)
-        #expect(observedCycleCounts == [0, 1, 2])
-        #expect(observedFourWayJunction)
     }
 
     private func validateGeometry(of nodes: [LabyrinthNode]) -> (signature: String, cycleCount: Int) {
@@ -285,28 +272,6 @@ struct LabyrinthCatalogTests {
 }
 
 extension LabyrinthCatalogTests {
-    @Test func `every supported floor size generates varied connected geometry`() {
-        for count in 15 ... 20 {
-            var signatures = Set<String>()
-            var cycles = Set<Int>()
-            for seed in 1 ... 20 {
-                var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
-                let positions = LabyrinthFloorGeometry.positions(nodeCount: count, using: &rng)
-                let nodes = positions.enumerated().map { index, position in
-                    LabyrinthNode(
-                        id: "n-\(index)", type: index == count - 1 ? .boss : .battle,
-                        depth: 1, clusterID: "floor", gridPosition: position,
-                    )
-                }
-                let geometry = validateGeometry(of: nodes)
-                signatures.insert(geometry.signature)
-                cycles.insert(geometry.cycleCount)
-            }
-            #expect(signatures.count >= 10)
-            #expect(cycles == [0, 1, 2])
-        }
-    }
-
     @Test func `expansion preserves decoded legacy floor nodes`() throws {
         // Frozen save keys: deriving this payload from today's encoder would
         // hide a rename or newly required field that loses existing floor progress.

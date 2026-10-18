@@ -228,7 +228,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     public func isAvailable(_ slot: ItemSlot, inventory: [InventoryItem]) -> Bool {
         guard slot == .secondaryWeapon else { return true }
         guard let primary = equippedItem(in: .weapon, inventory: inventory) else { return true }
-        if let secondary = equippedItem(in: .secondaryWeapon, inventory: inventory), secondary.baseType.isQuiver {
+        if let secondary = equippedItem(in: .secondaryWeapon, inventory: inventory) {
             return Self.secondaryWeaponAllows(primary: primary.baseType, secondary: secondary.baseType)
         }
         return primary.baseType.isRanged || primary.baseType.weaponKind != .twoHanded

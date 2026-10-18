@@ -183,13 +183,15 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
             if amount.resource == .gold {
                 gold = GoldBalance.clamped(gold + amount.quantity)
             } else {
-                resources[amount.resource, default: 0] += amount.quantity
+                resources[amount.resource, default: 0] = SaturatedArithmetic.saturatingAdd(
+                    resources[amount.resource, default: 0], amount.quantity,
+                )
             }
             pendingProduction[amount.resource] = Self.remainingProductionCredit(
                 pendingProduction[amount.resource, default: 0], afterCollecting: UInt64(amount.quantity),
             )
         }
-        pendingProduction = pendingProduction.filter { $0.value > 0 }
+        pendingProduction = pendingProduction.filter { $0.value.isFinite && $0.value > 0 }
         return collected
     }
 
