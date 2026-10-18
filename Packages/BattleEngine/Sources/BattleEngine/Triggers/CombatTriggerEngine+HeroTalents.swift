@@ -4,7 +4,7 @@ import TrinketCore
 // MARK: - Card play
 
 package extension CombatTriggerEngine {
-    static func finishHeroCard(actor _: Combatant, in context: inout BattleState) {
+    static func finishHeroCard(in context: inout BattleState) {
         _ = context.resolution.finishCardTalents()
     }
 }

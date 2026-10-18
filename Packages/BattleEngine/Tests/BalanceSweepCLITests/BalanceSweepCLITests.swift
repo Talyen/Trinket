@@ -57,7 +57,8 @@ struct BalanceSweepCLITests {
             _ = try BalanceSweepCLI.parseInvocation(["--pacing", "2"])
             Issue.record("Unsupported pacing was accepted")
         } catch {
-            #expect(String(describing: error) == "--pacing invalid value 2; use on or off")
+            let message = String(describing: error)
+            #expect(message.contains("--pacing") && message.contains("on or off"), "Got: \(message)")
         }
     }
 

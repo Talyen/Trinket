@@ -10,10 +10,10 @@ final class ArtworkDecodeScheduler {
     private final class Request {
         var pendingNames: Set<String> = []
         let priority: Priority
-        let didPrepare: () -> Void
+        let didPrepare: @MainActor () -> Void
         var continuation: CheckedContinuation<Void, Never>?
 
-        init(priority: Priority, didPrepare: @escaping () -> Void) {
+        init(priority: Priority, didPrepare: @escaping @MainActor () -> Void) {
             self.priority = priority
             self.didPrepare = didPrepare
         }
@@ -47,7 +47,11 @@ final class ArtworkDecodeScheduler {
     }
 
     private let decode: @Sendable (String) async -> PreparedArtwork
-    private let publish: (PreparedArtwork) -> Void
+    private let publish: @MainActor (PreparedArtwork) -> Void
+    /// At most two concurrent decodes bound decode latency without
+    /// oversubscribing the cooperative pool; deferred work additionally
+    /// yields while any deferred decode is already running.
+    private static let maxConcurrentDecodes = 2
     // The index includes running jobs so overlapping callers share their decode.
     // Request cancellation detaches consumers without releasing running decode slots.
     private var jobsByName: [String: Job] = [:]
@@ -57,7 +61,7 @@ final class ArtworkDecodeScheduler {
 
     init(
         decode: @escaping @Sendable (String) async -> PreparedArtwork,
-        publish: @escaping (PreparedArtwork) -> Void,
+        publish: @escaping @MainActor (PreparedArtwork) -> Void,
     ) {
         self.decode = decode
         self.publish = publish
@@ -106,7 +110,7 @@ final class ArtworkDecodeScheduler {
     }
 
     private func startAvailableJobs() {
-        while runningPriorities.count < 2 {
+        while runningPriorities.count < Self.maxConcurrentDecodes {
             let hasDeferred = runningPriorities.values.contains(.deferred)
             guard let next = queuedJobs.first else { return }
             let priority = next.priority
@@ -117,13 +121,17 @@ final class ArtworkDecodeScheduler {
             Task(priority: priority == Priority.deferred ? .utility : .userInitiated) {
                 let prepared = await decode(next.name)
                 assert(prepared.name == next.name, "Artwork decode returned mismatched name")
-                publish(prepared)
-                jobsByName.removeValue(forKey: next.name)
-                runningPriorities.removeValue(forKey: next.name)
-                for request in next.requests {
-                    request.finish(name: next.name)
+                // Publish and bookkeeping touch MainActor-owned scheduler, request,
+                // and cache state; an unstructured task does not inherit isolation.
+                await MainActor.run {
+                    publish(prepared)
+                    jobsByName.removeValue(forKey: next.name)
+                    runningPriorities.removeValue(forKey: next.name)
+                    for request in next.requests {
+                        request.finish(name: next.name)
+                    }
+                    startAvailableJobs()
                 }
-                startAvailableJobs()
             }
         }
     }

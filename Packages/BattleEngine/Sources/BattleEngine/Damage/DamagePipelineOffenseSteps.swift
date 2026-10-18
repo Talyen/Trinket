@@ -40,8 +40,7 @@ package extension DamagePipeline {
         guard keyword == .physical || sharedKeyword == .physical else { return }
         if triggers.loadedStrike, state.options.isAttackHit {
             let doubled = context.resolution.loadedStrikeDouble(for: sourceActorID, using: &context.rng)
-            state.remaining = doubled ? SaturatedArithmetic.saturatingMul(state.remaining, 2)
-                : state.remaining / 2 + state.remaining % 2
+            applyDoubledOrCeilHalved(to: &state, doubled: doubled)
         }
         guard triggers.standardDeviation else { return }
         let doubled: Bool
@@ -55,8 +54,13 @@ package extension DamagePipeline {
         } else {
             doubled = Bool.random(using: &context.rng)
         }
+        applyDoubledOrCeilHalved(to: &state, doubled: doubled)
+    }
+
+    /// Shared Loaded Strike / Standard Deviation gamble: double, or halve rounding up.
+    private static func applyDoubledOrCeilHalved(to state: inout DamageResolutionState, doubled: Bool) {
         state.remaining = doubled ? SaturatedArithmetic.saturatingMul(state.remaining, 2)
-            : state.remaining / 2 + state.remaining % 2
+            : CombatRounding.scaled(state.remaining, multiplier: 0.5)
     }
 
     private static func applyBurnDamageMultipliers(

@@ -203,19 +203,15 @@ final class CombatFeedbackRasterPool {
             return nil
         }
 
-        let raster = CombatFeedbackRaster(
-            key: key,
+        return store(
             image: composed.image,
             pointSize: composed.pointSize,
             displayScale: scale,
             shineMask: composed.shineMask,
             textWidth: composed.textWidth,
             maximumDigitWidth: composed.maximumDigitWidth,
+            for: key,
         )
-        buildCount += 1
-        rasterAllocationCount += 1
-        insert(raster, for: key)
-        return raster
     }
 
     func prewarmInfrastructureAndWait(displayScale: CGFloat) async {
@@ -271,15 +267,15 @@ final class CombatFeedbackRasterPool {
             }
             for (request, image) in zip(requests, prepared.rasters) {
                 guard rasters[request.0] == nil, let image else { continue }
-                let raster = CombatFeedbackRaster(
-                    key: request.0, image: image.image,
-                    pointSize: image.pointSize, displayScale: displayScale,
-                    shineMask: image.shineMask, textWidth: image.textWidth,
+                store(
+                    image: image.image,
+                    pointSize: image.pointSize,
+                    displayScale: displayScale,
+                    shineMask: image.shineMask,
+                    textWidth: image.textWidth,
                     maximumDigitWidth: image.maximumDigitWidth,
+                    for: request.0,
                 )
-                buildCount += 1
-                rasterAllocationCount += 1
-                insert(raster, for: request.0)
             }
             preparedCatalogKey = key
             return key
@@ -356,6 +352,31 @@ final class CombatFeedbackRasterPool {
         guard let raster = rasters[key] else { return nil }
         hitCount += 1
         markMostRecent(key)
+        return raster
+    }
+
+    @discardableResult
+    private func store(
+        image: CGImage,
+        pointSize: CGSize,
+        displayScale: CGFloat,
+        shineMask: CGImage?,
+        textWidth: CGFloat,
+        maximumDigitWidth: CGFloat,
+        for key: CombatFeedbackRasterKey,
+    ) -> CombatFeedbackRaster {
+        let raster = CombatFeedbackRaster(
+            key: key,
+            image: image,
+            pointSize: pointSize,
+            displayScale: displayScale,
+            shineMask: shineMask,
+            textWidth: textWidth,
+            maximumDigitWidth: maximumDigitWidth,
+        )
+        buildCount += 1
+        rasterAllocationCount += 1
+        insert(raster, for: key)
         return raster
     }
 

@@ -81,7 +81,7 @@ extension BattleCardCombatEngine {
             await CombatTriggerEngine.afterCardPlayed(outcome, in: &context)
             await CombatTriggerEngine.afterPartyCardPlayed(in: &context)
         }
-        CombatTriggerEngine.finishHeroCard(actor: actor, in: &context)
+        CombatTriggerEngine.finishHeroCard(in: &context)
         UniqueCombatEngine.finishCardDraws(in: &context)
         _ = UniqueCombatEngine.returnPlayedCard(card, in: &context)
         discardDefeatedOwnerCards(context: &context)
