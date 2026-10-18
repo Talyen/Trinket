@@ -30,47 +30,19 @@ public struct ThemedGearGenerator: Sendable {
         idPrefix: String,
         keywordBias: Set<Keyword>? = nil,
         requireBuildAlignment: Bool = false,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ThemedGearBuild {
-        build(
-            for: combatant, rarity: rarity, fixedAffixCount: fixedAffixCount, idPrefix: idPrefix,
-            keywordBias: keywordBias, requireBuildAlignment: requireBuildAlignment,
-            singlePiece: false, using: &randomNumberGenerator,
-        )
-    }
-
-    public func generateSinglePiece(
-        for combatant: Combatant,
-        rarity: Rarity,
-        fixedAffixCount: Int,
-        idPrefix: String,
-        keywordBias: Set<Keyword>? = nil,
-        requireBuildAlignment: Bool = false,
-        using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ThemedGearBuild {
-        build(
-            for: combatant, rarity: rarity, fixedAffixCount: fixedAffixCount, idPrefix: idPrefix,
-            keywordBias: keywordBias, requireBuildAlignment: requireBuildAlignment,
-            singlePiece: true, using: &randomNumberGenerator,
-        )
-    }
-
-    // swiftlint:disable:next function_parameter_count - both gear entry points share the same roll and equipment context
-    private func build(
-        for combatant: Combatant,
-        rarity: Rarity,
-        fixedAffixCount: Int,
-        idPrefix: String,
-        keywordBias: Set<Keyword>?,
-        requireBuildAlignment: Bool,
-        singlePiece: Bool,
+        singlePiece: Bool = false,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ThemedGearBuild {
         let resolvedBias = keywordBias ?? combatant.keywordProfile
+        var trinketsByBase: [ItemBaseType: InventoryItem] = [:]
+        for trinket in GameContent.trinketItems where trinketsByBase[trinket.baseType] == nil {
+            trinketsByBase[trinket.baseType] = trinket
+        }
         var slots = combatant.role.equipmentSlots
         if singlePiece {
             slots.shuffle(using: &randomNumberGenerator)
         }
+        let trinketBases = Set(trinketsByBase.keys)
         var inventory: [InventoryItem] = []
         var loadout = EquipmentLoadout()
         for slot in slots {
@@ -78,9 +50,10 @@ public struct ThemedGearGenerator: Sendable {
             guard let baseType = bestBaseType(
                 for: slot, itemID: id, keywordBias: resolvedBias,
                 requireBuildAlignment: requireBuildAlignment, loadout: loadout, inventory: inventory,
+                trinketBases: trinketBases,
                 using: &randomNumberGenerator,
             ) else { continue }
-            let item = GameContent.trinketItems.first { $0.baseType == baseType } ?? itemGenerator.generate(
+            let item = trinketsByBase[baseType] ?? itemGenerator.generate(
                 id: id, baseType: baseType, rarity: rarity, fixedAffixCount: fixedAffixCount,
                 keywordBias: resolvedBias, requireBuildAlignment: requireBuildAlignment,
                 using: &randomNumberGenerator,
@@ -94,6 +67,23 @@ public struct ThemedGearGenerator: Sendable {
         return ThemedGearBuild(inventory: inventory, loadout: loadout)
     }
 
+    public func generateSinglePiece(
+        for combatant: Combatant,
+        rarity: Rarity,
+        fixedAffixCount: Int,
+        idPrefix: String,
+        keywordBias: Set<Keyword>? = nil,
+        requireBuildAlignment: Bool = false,
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+    ) -> ThemedGearBuild {
+        generate(
+            for: combatant, rarity: rarity, fixedAffixCount: fixedAffixCount, idPrefix: idPrefix,
+            keywordBias: keywordBias, requireBuildAlignment: requireBuildAlignment,
+            singlePiece: true, using: &randomNumberGenerator,
+        )
+    }
+
+    // swiftlint:disable:next function_parameter_count - gear entry points share the same roll and equipment context
     private func bestBaseType(
         for slot: ItemSlot,
         itemID: String,
@@ -101,6 +91,7 @@ public struct ThemedGearGenerator: Sendable {
         requireBuildAlignment: Bool,
         loadout: EquipmentLoadout,
         inventory: [InventoryItem],
+        trinketBases: Set<ItemBaseType>,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemBaseType? {
         var candidates: [ItemBaseType] = []
@@ -110,7 +101,7 @@ public struct ThemedGearGenerator: Sendable {
                 continue
             }
             if baseType.slot == .trinket {
-                guard GameContent.trinketItems.contains(where: { $0.baseType == baseType }) else { continue }
+                guard trinketBases.contains(baseType) else { continue }
                 if requireBuildAlignment {
                     guard GameContent.itemAffixDefinition(matching: baseType.id)?
                         .isAligned(withBuildKeywords: keywordBias) == true else { continue }

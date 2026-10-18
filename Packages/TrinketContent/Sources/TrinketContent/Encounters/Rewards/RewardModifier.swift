@@ -190,21 +190,32 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     }
 
     public var requiredBaseTypeIDs: Set<String>? {
-        let eligible: [ItemBaseType]
         switch self {
         case .armsHoard:
-            eligible = GameContent.itemBaseTypes.filter { $0.slot == .weapon }
+            Self.weaponBaseIDs
         case .armorHoard:
-            eligible = GameContent.itemBaseTypes.filter { $0.slot == .armor }
+            Self.armorBaseIDs
         case .ringHoard:
-            eligible = GameContent.itemBaseTypes.filter { $0.slot == .accessory && $0.id.hasSuffix("_ring") }
+            Self.ringBaseIDs
         case .amuletHoard:
-            eligible = GameContent.itemBaseTypes.filter { $0.slot == .accessory && $0.id.hasSuffix("_amulet") }
+            Self.amuletBaseIDs
         default:
-            return nil
+            nil
         }
-        return Set(eligible.map(\.id))
     }
+
+    private static let weaponBaseIDs: Set<String> = Set(
+        GameContent.itemBaseTypes.lazy.filter { $0.slot == .weapon }.map(\.id),
+    )
+    private static let armorBaseIDs: Set<String> = Set(
+        GameContent.itemBaseTypes.lazy.filter { $0.slot == .armor }.map(\.id),
+    )
+    private static let ringBaseIDs: Set<String> = Set(
+        GameContent.itemBaseTypes.lazy.filter { $0.slot == .accessory && $0.id.hasSuffix("_ring") }.map(\.id),
+    )
+    private static let amuletBaseIDs: Set<String> = Set(
+        GameContent.itemBaseTypes.lazy.filter { $0.slot == .accessory && $0.id.hasSuffix("_amulet") }.map(\.id),
+    )
 
     public var experienceBonusPercent: Int {
         self == .experience ? Self.bonusPercent : 0

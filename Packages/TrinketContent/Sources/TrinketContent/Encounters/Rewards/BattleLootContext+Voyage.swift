@@ -32,10 +32,7 @@ public extension BattleLootContext {
         }
         let secondModifier = secondOwnership.resolved(destination)
         guard secondModifier.isItemFocused else {
-            let gold = SaturatedArithmetic.saturatingAdd(
-                primary.gold,
-                max(0, CombatRounding.scaled(primary.gold, byPercent: RewardModifier.bonusPercent) - primary.gold),
-            )
+            let gold = CombatRounding.scaled(primary.gold, byPercent: RewardModifier.bonusPercent)
             primary = BattleLootResult(item: primary.item, gold: gold, materials: primary.materials)
             return VoyageResolvedLoot(primary: primary, additionalItem: nil)
         }

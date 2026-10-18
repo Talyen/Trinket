@@ -29,11 +29,12 @@ public enum VoyageBoard {
         using rng: inout some RandomNumberGenerator,
     ) -> [VoyageOffer] {
         var chapters = chapterIDs(access: access).shuffled(using: &rng)
-        var modifiers = eligibleModifiers.isEmpty ? [.gold] : eligibleModifiers.shuffled(using: &rng)
+        let modifierCycle = eligibleModifiers.isEmpty ? [RewardModifier.gold] : eligibleModifiers.shuffled(using: &rng)
+        var modifiers = modifierCycle
         return VoyageDifficulty.allCases.compactMap { difficulty in
             guard let chapterID = chapters.popLast() else { return nil }
             if modifiers.isEmpty {
-                modifiers = eligibleModifiers.shuffled(using: &rng)
+                modifiers = modifierCycle
             }
             return offer(chapterID: chapterID, difficulty: difficulty, modifier: modifiers.popLast() ?? .gold, using: &rng)
         }

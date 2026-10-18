@@ -7,12 +7,17 @@ public enum ContractBoard {
         var ids: Set<String> = []
         var enemyIDs: Set<String> = []
         var valid: [ContractOffer] = []
+        let byDifficulty = Dictionary(grouping: offers, by: \.difficulty)
+        var bossByEnemyID: [String: Bool] = [:]
+        for offer in offers where bossByEnemyID[offer.enemyID] == nil {
+            bossByEnemyID[offer.enemyID] = GameContent.enemy(matching: offer.enemyID)?.isBoss
+        }
         for difficulty in ContractDifficulty.allCases {
-            guard let offer = offers.first(where: {
-                $0.difficulty == difficulty && !$0.id.isEmpty
+            guard let offer = byDifficulty[difficulty]?.first(where: {
+                !$0.id.isEmpty
                     && !retiredIDs.contains($0.id)
                     && !ids.contains($0.id) && !enemyIDs.contains($0.enemyID)
-                    && GameContent.enemy(matching: $0.enemyID)?.isBoss == difficulty.isBoss
+                    && bossByEnemyID[$0.enemyID] == difficulty.isBoss
             }) else { continue }
             ids.insert(offer.id)
             enemyIDs.insert(offer.enemyID)

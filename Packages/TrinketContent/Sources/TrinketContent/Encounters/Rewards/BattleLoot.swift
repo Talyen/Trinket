@@ -51,10 +51,10 @@ public enum BattleLoot {
         let itemModifier = modifier?.isItemFocused == true ? modifier
             : additionalModifier?.isItemFocused == true ? additionalModifier : nil
         var focuses: [HomesteadResource] = []
-        if let f = modifier?.materialFocus {
+        if let f = modifier?.materialFocus, !focuses.contains(f) {
             focuses.append(f)
         }
-        if let f = additionalModifier?.materialFocus {
+        if let f = additionalModifier?.materialFocus, !focuses.contains(f) {
             focuses.append(f)
         }
         let range = quantityRange(forLevel: encounterLevel)
@@ -78,12 +78,8 @@ public enum BattleLoot {
         )
         materials = materials.map { material in
             var bonus = request.materialsFoundPercent
-            if let m = modifier, m == .materials || m.materialFocus == material.resource {
-                bonus += RewardModifier.bonusPercent
-            }
-            if let a = additionalModifier, a == .materials || a.materialFocus == material.resource {
-                bonus += RewardModifier.bonusPercent
-            }
+            bonus += Self.materialBonus(modifier, for: material.resource)
+            bonus += Self.materialBonus(additionalModifier, for: material.resource)
             return ResourceAmount(material.resource, CombatRounding.scaled(material.quantity, byPercent: bonus))
         }
 
@@ -143,6 +139,11 @@ public enum BattleLoot {
             baseTypes: resolvedBaseTypes,
             using: &rng,
         )
+    }
+
+    private static func materialBonus(_ modifier: RewardModifier?, for resource: HomesteadResource) -> Int {
+        guard let modifier, modifier == .materials || modifier.materialFocus == resource else { return 0 }
+        return RewardModifier.bonusPercent
     }
 
     private static func rollDistinctMaterials(

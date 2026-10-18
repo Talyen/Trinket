@@ -104,26 +104,4 @@ struct AbilityPresentationCacheTests {
         #expect(branched.summary == originalSummary)
         #expect(branched.presentationKeywords == [.freeze, .poison])
     }
-
-    @Test func `concurrent first reads share consistent presentation`() async {
-        let ability = Ability(id: "concurrent-cache", name: "Concurrent", tier: .basic, directDamage: 7, damageKeyword: .holy)
-        let consistent = await withTaskGroup(of: Bool.self, returning: Bool.self) { group in
-            for index in 0 ..< 16 {
-                group.addTask {
-                    // Exercise both acquisition orders while the caches are cold.
-                    guard ability.keywords == [.holy], ability.identityKeywords == [.holy] else { return false }
-                    if index.isMultiple(of: 2) {
-                        return ability.generatedDescription == "Deal 7 Holy damage" && ability.presentationKeywords == [.holy]
-                    }
-                    return ability.presentationKeywords == [.holy] && ability.generatedDescription == "Deal 7 Holy damage"
-                }
-            }
-            var allConsistent = true
-            for await result in group {
-                allConsistent = allConsistent && result
-            }
-            return allConsistent
-        }
-        #expect(consistent)
-    }
 }

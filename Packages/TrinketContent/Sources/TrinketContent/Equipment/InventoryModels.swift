@@ -64,17 +64,12 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
             }
             power = definition.power(for: rarity)
         }
+        let scaled = power.scaled(by: baseType.affixPowerMultiplier)
         if affixes.indices.contains(affixIndex) {
-            let affixID = affixes[affixIndex].id
-            if affixID == "symbiosis" {
-                // Describe the effective share after equipment scales the saved magnitude.
-                return Self.normalizedPower(power.scaled(by: baseType.affixPowerMultiplier), affixID: affixID)
-            }
-            power = Self.normalizedPower(power, affixID: affixID)
-            let scaled = power.scaled(by: baseType.affixPowerMultiplier)
-            return Self.normalizedCombatProcPower(scaled, affixID: affixID) ?? scaled
+            // Scale raw magnitudes first so migrated descriptions reflect equipped values once.
+            return Self.normalizedPower(scaled, affixID: affixes[affixIndex].id)
         }
-        return power.scaled(by: baseType.affixPowerMultiplier)
+        return scaled
     }
 
     public var displayedAffixes: [ItemAffix] {
@@ -110,7 +105,7 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         else {
             return false
         }
-        let power = Self.normalizedCombatProcPower(storedPowers[index], affixID: affixes[index].id) ?? storedPowers[index]
+        let power = Self.normalizedPower(storedPowers[index], affixID: affixes[index].id)
         return power.isAtOrAboveRollMax(of: definition.power(for: rarity))
     }
 

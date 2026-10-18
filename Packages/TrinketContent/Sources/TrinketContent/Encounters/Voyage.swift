@@ -145,6 +145,7 @@ public enum VoyageGenerator {
         }
         let types: [LabyrinthNodeType] = [.battle] + middle + [.boss]
         let affinities = VoyageCatalog.affinityKeywords(chapterID: offer.chapterID)
+        let sortedRecruits = eligibleRecruitEventIDs.sorted()
         var bag: [String] = []
         var previousEnemy: String?
         var previousModifier: NodeModifierID?
@@ -170,7 +171,7 @@ public enum VoyageGenerator {
             return VoyageNode(
                 id: "\(offer.id)-node-\(index + 1)", type: type, enemyID: enemyID,
                 modifierIDs: modifier.map { [$0] } ?? [],
-                recruitEventID: type == .recruit ? eligibleRecruitEventIDs.sorted().randomElement(using: &rng) : nil,
+                recruitEventID: type == .recruit ? sortedRecruits.randomElement(using: &rng) : nil,
             )
         }
     }
