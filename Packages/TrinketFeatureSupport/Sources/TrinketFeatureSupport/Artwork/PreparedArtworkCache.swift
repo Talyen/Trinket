@@ -121,7 +121,7 @@ public final class PreparedArtworkCache {
     }
 
     public func prepare(names: [String]) async {
-        let unique = Array(Set(names)).sorted()
+        let unique = Self.deduped(names)
         guard !Task.isCancelled, !unique.isEmpty else { return }
         await decode(unique, priority: .viewport, countsTowardLaunch: false)
     }
@@ -142,7 +142,7 @@ public final class PreparedArtworkCache {
     }
 
     func acquirePinnedArtwork(names: [String]) async -> [String] {
-        let unique = Array(Set(names)).sorted()
+        let unique = Self.deduped(names)
         guard !Task.isCancelled, !unique.isEmpty else { return [] }
         for name in unique {
             pinCountsByName[name, default: 0] += 1
@@ -171,15 +171,21 @@ public final class PreparedArtworkCache {
             return
         }
         pinCountsByName.removeValue(forKey: name)
-        if dropResident, let image = pinnedImages.removeValue(forKey: name) {
-            images.setObject(
-                image,
-                forKey: name as NSString,
-                cost: decodedCostsByName[name] ?? 0,
-            )
-        } else {
+        guard dropResident, let image = pinnedImages.removeValue(forKey: name) else {
             pinnedImages.removeValue(forKey: name)
+            return
         }
+        images.setObject(
+            image,
+            forKey: name as NSString,
+            cost: decodedCostsByName[name] ?? 0,
+        )
+    }
+
+    private static func deduped(_ names: [String]) -> [String] {
+        var seen = Set<String>()
+        seen.reserveCapacity(names.count)
+        return names.filter { seen.insert($0).inserted }
     }
 
     private func finalizePin(named name: String) {

@@ -194,8 +194,8 @@ public struct CombatantDetailPane: View {
         }
     }
 
-    private var detailArtworkPinKey: [String] {
-        Set(detailArtworkNames()).sorted()
+    private var detailArtworkPinKey: Set<String> {
+        Set(detailArtworkNames())
     }
 
     private func detailArtworkNames() -> [String] {
@@ -298,9 +298,7 @@ public struct CombatantDetailPane: View {
 
         if combatant.role != .enemy {
             talentsSection
-        }
 
-        if combatant.role != .enemy {
             DetailSection(String(localized: L10n.ui_combatantdetailpane_items_fb8e7)) {
                 EquipmentSlotSummaryGrid(
                     role: combatant.role,

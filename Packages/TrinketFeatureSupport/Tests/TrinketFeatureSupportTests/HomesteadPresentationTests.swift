@@ -149,6 +149,7 @@ struct HomesteadPresentationTests {
         for tier in node.tiers {
             let effects = HomesteadEffectLine.lines(for: tier, nodeID: node.id)
             #expect(!effects.isEmpty, "\(node.title) tier \(tier.tier)")
+            #expect(Set(effects.map(\.id)).count == effects.count, "\(node.title) tier \(tier.tier) has duplicate effect IDs")
             for effect in effects {
                 #expect(!effect.label.isEmpty)
                 #expect(effect.displayValue.hasPrefix("+") || effect.displayValue.hasPrefix("−"))

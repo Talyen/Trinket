@@ -36,7 +36,6 @@ final class ArtworkDecodeScheduler {
     private final class Job {
         let name: String
         let sequence: UInt64
-        var heapIndex: Int?
         var requests: [Request] = []
         var priority: Priority = .deferred
 
@@ -92,14 +91,8 @@ final class ArtworkDecodeScheduler {
                         job.priority = request.priority
                     }
                     request.pendingNames.insert(name)
-                    if runningPriorities[name] == nil {
-                        if let index = job.heapIndex {
-                            repairHeap(at: index)
-                        } else {
-                            job.heapIndex = queuedJobs.count
-                            queuedJobs.append(job)
-                            repairHeap(at: queuedJobs.count - 1)
-                        }
+                    if runningPriorities[name] == nil, !queuedJobs.contains(where: { $0 === job }) {
+                        queuedJobs.append(job)
                     }
                 }
                 startAvailableJobs()
@@ -112,12 +105,13 @@ final class ArtworkDecodeScheduler {
     private func startAvailableJobs() {
         while runningPriorities.count < Self.maxConcurrentDecodes {
             let hasDeferred = runningPriorities.values.contains(.deferred)
-            guard let next = queuedJobs.first else { return }
+            guard let index = bestQueuedIndex() else { return }
+            let next = queuedJobs[index]
+            // A deferred candidate means no higher-priority work remains queued.
+            guard !hasDeferred || next.priority != .deferred else { return }
+            queuedJobs.remove(at: index)
+            runningPriorities[next.name] = next.priority
             let priority = next.priority
-            // A deferred root means no higher-priority work remains in the heap.
-            guard !hasDeferred || priority != .deferred else { return }
-            removeQueuedJob(at: 0)
-            runningPriorities[next.name] = priority
             Task(priority: priority == Priority.deferred ? .utility : .userInitiated) {
                 let prepared = await decode(next.name)
                 assert(prepared.name == next.name, "Artwork decode returned mismatched name")
@@ -143,39 +137,18 @@ final class ArtworkDecodeScheduler {
         return lhs.sequence < rhs.sequence
     }
 
-    private func swapJobs(_ first: Int, _ second: Int) {
-        queuedJobs.swapAt(first, second)
-        queuedJobs[first].heapIndex = first
-        queuedJobs[second].heapIndex = second
-    }
-
-    private func repairHeap(at originalIndex: Int) {
-        var index = originalIndex
-        while index > 0 {
-            let parent = (index - 1) / 2
-            guard precedes(queuedJobs[index], queuedJobs[parent]) else { break }
-            swapJobs(index, parent)
-            index = parent
-        }
-        while index * 2 + 1 < queuedJobs.count {
-            var child = index * 2 + 1
-            if child + 1 < queuedJobs.count, precedes(queuedJobs[child + 1], queuedJobs[child]) {
-                child += 1
+    private func bestQueuedIndex() -> Int? {
+        var best: Int?
+        for index in queuedJobs.indices {
+            guard let current = best else {
+                best = index
+                continue
             }
-            guard precedes(queuedJobs[child], queuedJobs[index]) else { break }
-            swapJobs(index, child)
-            index = child
+            if precedes(queuedJobs[index], queuedJobs[current]) {
+                best = index
+            }
         }
-    }
-
-    private func removeQueuedJob(at index: Int) {
-        let removed = queuedJobs[index]
-        let last = queuedJobs.removeLast()
-        removed.heapIndex = nil
-        guard index < queuedJobs.count else { return }
-        queuedJobs[index] = last
-        last.heapIndex = index
-        repairHeap(at: index)
+        return best
     }
 
     private func cancel(_ request: Request) {
@@ -185,14 +158,14 @@ final class ArtworkDecodeScheduler {
             guard let job = jobsByName[name] else { continue }
             job.requests.removeAll { $0 === request }
             // Shared started jobs still publish and occupy their slots until decoding ends.
-            guard let index = job.heapIndex else { continue }
-            if job.requests.isEmpty {
-                removeQueuedJob(at: index)
+            guard !job.requests.isEmpty else {
+                if let index = queuedJobs.firstIndex(where: { $0 === job }) {
+                    queuedJobs.remove(at: index)
+                }
                 jobsByName.removeValue(forKey: name)
-            } else {
-                job.priority = job.requests.lazy.map(\.priority).min { $0.rawValue < $1.rawValue } ?? .deferred
-                repairHeap(at: index)
+                continue
             }
+            job.priority = job.requests.lazy.map(\.priority).min { $0.rawValue < $1.rawValue } ?? .deferred
         }
         request.resume()
         startAvailableJobs()

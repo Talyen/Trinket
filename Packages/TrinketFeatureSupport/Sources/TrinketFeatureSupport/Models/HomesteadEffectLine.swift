@@ -68,47 +68,57 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
     }
 
     private static func rewardLines(for bonus: HomesteadTierCombatBonus) -> [Self] {
-        let rewards: [(Key, String, String, Bool)] = [
-            (
-                .goldFind(percent: true),
-                String(localized: L10n.ui_homesteadeffectline_gold_found_5fc8b),
-                "\(bonus.goldFindPercent)%",
-                bonus.goldFindPercent != 0,
-            ),
-            (
-                .goldFind(percent: false),
-                String(localized: L10n.ui_homesteadeffectline_gold_found_5fc8b),
-                "\(bonus.goldFindFlat)",
-                bonus.goldFindFlat > 0,
-            ),
-            (
-                .experience(percent: true),
-                String(localized: L10n.ui_homesteadeffectline_experience_8eab0),
-                "\(bonus.experienceBonusPercent)%",
-                bonus.experienceBonusPercent > 0,
-            ),
-            (
-                .experience(percent: false),
-                String(localized: L10n.ui_homesteadeffectline_experience_8eab0),
-                "\(bonus.experienceBonus)",
-                bonus.experienceBonus > 0,
-            ),
-            (
-                .gemsFind(percent: true),
-                String(localized: L10n.ui_homesteadeffectline_gems_found_00a7f),
-                "\(bonus.gemsFindPercent)%",
-                bonus.gemsFindPercent > 0,
-            ),
-            (
-                .gemsFind(percent: false),
-                String(localized: L10n.ui_homesteadeffectline_gems_in_encounter_rewards_containing_gems_fe880),
-                "\(bonus.gemsFindBonus)",
-                bonus.gemsFindBonus > 0,
-            ),
-        ]
-        return rewards.compactMap { key, label, value, enabled in
-            enabled ? Self(id: key, label: label, value: value, resource: nil) : nil
+        var lines: [Self] = []
+        lines.reserveCapacity(6)
+        if bonus.goldFindPercent != 0 {
+            lines.append(Self(
+                id: .goldFind(percent: true),
+                label: String(localized: L10n.ui_homesteadeffectline_gold_found_5fc8b),
+                value: "\(bonus.goldFindPercent)%",
+                resource: nil,
+            ))
         }
+        if bonus.goldFindFlat > 0 {
+            lines.append(Self(
+                id: .goldFind(percent: false),
+                label: String(localized: L10n.ui_homesteadeffectline_gold_found_5fc8b),
+                value: "\(bonus.goldFindFlat)",
+                resource: nil,
+            ))
+        }
+        if bonus.experienceBonusPercent > 0 {
+            lines.append(Self(
+                id: .experience(percent: true),
+                label: String(localized: L10n.ui_homesteadeffectline_experience_8eab0),
+                value: "\(bonus.experienceBonusPercent)%",
+                resource: nil,
+            ))
+        }
+        if bonus.experienceBonus > 0 {
+            lines.append(Self(
+                id: .experience(percent: false),
+                label: String(localized: L10n.ui_homesteadeffectline_experience_8eab0),
+                value: "\(bonus.experienceBonus)",
+                resource: nil,
+            ))
+        }
+        if bonus.gemsFindPercent > 0 {
+            lines.append(Self(
+                id: .gemsFind(percent: true),
+                label: String(localized: L10n.ui_homesteadeffectline_gems_found_00a7f),
+                value: "\(bonus.gemsFindPercent)%",
+                resource: nil,
+            ))
+        }
+        if bonus.gemsFindBonus > 0 {
+            lines.append(Self(
+                id: .gemsFind(percent: false),
+                label: String(localized: L10n.ui_homesteadeffectline_gems_in_encounter_rewards_containing_gems_fe880),
+                value: "\(bonus.gemsFindBonus)",
+                resource: nil,
+            ))
+        }
+        return lines
     }
 
     private static func line(for modifier: AffixModifier, companion: Bool) -> Self {
@@ -123,7 +133,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
             label
         }
         return Self(
-            id: .modifier(modifier.mapInt { _ in 0 }.mapPercent { _ in 0 }, companion: companion),
+            id: .modifier(modifier, companion: companion),
             label: scopedLabel,
             value: formatted + (modifier.isPercent ? "%" : ""),
             resource: nil,
@@ -189,7 +199,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case .criticalDamage, .criticalDamagePercent: String(localized: L10n.ui_homesteadeffectline_critical_damage_ed30e)
         case .manaRestored, .manaRestoredPercent: String(localized: L10n.ui_homesteadeffectline_mana_restored_775b4)
         case .maximumHealth, .maximumHealthPercent: String(localized: L10n.ui_homesteadeffectline_health_55898)
-        case .maximumMana: String(localized: L10n.ui_homesteadeffectline_mana_066ff)
+        case .maximumMana, .maximumManaPercent: String(localized: L10n.ui_homesteadeffectline_mana_066ff)
         case let .damageDealt(keyword, _),
              let .damageDealtPercent(
                  keyword,
@@ -211,7 +221,6 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case .incomingDamageReductionPercent: String(localized: L10n.ui_homesteadeffectline_party_damage_taken_ee076)
         case .dodgeChanceBonus: String(localized: L10n.ui_homesteadeffectline_dodge_9444f)
         case .rangedDamageDealt, .rangedDamageDealtPercent: String(localized: L10n.ui_homesteadeffectline_bow_and_crossbow_damage_999aa)
-        case .maximumManaPercent: String(localized: L10n.ui_homesteadeffectline_mana_066ff)
         case .startBattleBlock: String(localized: L10n.ui_homesteadeffectline_starting_block_6a8d9)
         case .attackLeechPercent: String(localized: L10n.ui_homesteadeffectline_attack_leech_81d5c)
         case .attackBlockRemoval: String(localized: L10n.ui_homesteadeffectline_block_removed_on_attack_e8492)

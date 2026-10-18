@@ -128,8 +128,8 @@ public struct ExperienceBar: View {
     }
 
     private func circularPortrait(artworkName: String) -> some View {
-        let size: CGFloat = Metrics.portraitDiameter
-        let sourceAspectRatio: CGFloat = Metrics.portraitSourceAspectRatio
+        let size: CGFloat = 58
+        let sourceAspectRatio: CGFloat = 3.0 / 4.0
 
         return GeometryReader { geometry in
             let container = geometry.size
@@ -153,7 +153,7 @@ public struct ExperienceBar: View {
         .clipShape(Circle())
         .overlay {
             Circle()
-                .stroke(fillColor.opacity(Metrics.portraitRingOpacity), lineWidth: Metrics.portraitRingWidth)
+                .stroke(fillColor.opacity(0.82), lineWidth: 1.5)
         }
     }
 
@@ -312,7 +312,7 @@ public struct ExperienceBar: View {
 
     nonisolated static func levelUpDuration(forLevelCount count: Int) -> TimeInterval {
         guard count > 0 else { return 0 }
-        return min(Metrics.levelUpDurationCap, Metrics.levelUpDurationUnit / Double(count))
+        return min(0.16, 0.28 / Double(count))
     }
 
     nonisolated static func segmentDuration(forSegmentCount count: Int) -> TimeInterval {
@@ -321,28 +321,9 @@ public struct ExperienceBar: View {
     }
 }
 
-/// Single-use presentation constants for `ExperienceBar`. Private on purpose:
-/// these values are tuned to this view alone, not shared design tokens.
-private enum Metrics {
-    static let portraitDiameter: CGFloat = 58
-    static let portraitSourceAspectRatio: CGFloat = 3.0 / 4.0
-    static let portraitRingOpacity: Double = 0.82
-    static let portraitRingWidth: CGFloat = 1.5
-    static let flowBrightness: Double = 0.25
-    static let flowDotRestingDiameter: CGFloat = 6
-    static let flowDotFlowingDiameter: CGFloat = 8
-    static let flowShadowRestingOpacity: Double = 0.4
-    static let flowShadowFlowingOpacity: Double = 0.8
-    static let flowShadowRestingRadius: CGFloat = 2
-    static let flowShadowFlowingRadius: CGFloat = 5
-    static let levelUpBrightness: Double = 0.20
-    static let levelUpVerticalScale: CGFloat = 1.35
-    static let levelUpShadowOpacity: Double = 0.65
-    static let levelUpShadowRadius: CGFloat = 6
-    static let levelLabelScale: CGFloat = 1.08
-    static let levelUpDurationCap: TimeInterval = 0.16
-    static let levelUpDurationUnit: TimeInterval = 0.28
-}
+/// Single-use presentation constants for `ExperienceBar` are inlined above:
+/// portrait 58pt, 3:4 source, ring 0.82/1.5pt; flow dot 6/8pt with 0.25 brightness;
+/// level-up 0.20 brightness, 1.35 vertical scale, 1.08 label scale.
 
 private struct ExperienceProgress: View, Animatable {
     nonisolated var fraction: Double
@@ -374,15 +355,15 @@ private struct ExperienceProgress: View, Animatable {
                             if fraction > 0.02 {
                                 Circle()
                                     .fill(fillColor.gradient)
-                                    .brightness(isFlowing ? Metrics.flowBrightness : 0)
+                                    .brightness(isFlowing ? 0.25 : 0)
                                     .frame(
-                                        width: isFlowing ? Metrics.flowDotFlowingDiameter : Metrics.flowDotRestingDiameter,
-                                        height: isFlowing ? Metrics.flowDotFlowingDiameter : Metrics.flowDotRestingDiameter,
+                                        width: isFlowing ? 8 : 6,
+                                        height: isFlowing ? 8 : 6,
                                     )
                                     .shadow(
                                         color: fillColor
-                                            .opacity(isFlowing ? Metrics.flowShadowFlowingOpacity : Metrics.flowShadowRestingOpacity),
-                                        radius: isFlowing ? Metrics.flowShadowFlowingRadius : Metrics.flowShadowRestingRadius,
+                                            .opacity(isFlowing ? 0.8 : 0.4),
+                                        radius: isFlowing ? 5 : 2,
                                     )
                                     .alignmentGuide(.trailing) { dimensions in
                                         dimensions[HorizontalAlignment.center]
@@ -390,11 +371,11 @@ private struct ExperienceProgress: View, Animatable {
                             }
                         }
                 }
-                .brightness(isLevelUpHighlighted ? Metrics.levelUpBrightness : 0)
-                .scaleEffect(x: 1, y: isLevelUpHighlighted ? Metrics.levelUpVerticalScale : 1)
+                .brightness(isLevelUpHighlighted ? 0.20 : 0)
+                .scaleEffect(x: 1, y: isLevelUpHighlighted ? 1.35 : 1)
                 .shadow(
-                    color: fillColor.opacity(isLevelUpHighlighted ? Metrics.levelUpShadowOpacity : 0),
-                    radius: Metrics.levelUpShadowRadius,
+                    color: fillColor.opacity(isLevelUpHighlighted ? 0.65 : 0),
+                    radius: 6,
                 )
             }
             .frame(height: TrinketDesign.Bars.statHeight)
@@ -402,7 +383,7 @@ private struct ExperienceProgress: View, Animatable {
             HStack {
                 Text(L10n.ui_experiencebar_level_1_87093("\(level)"))
                     .contentTransition(.numericText())
-                    .scaleEffect(isLevelUpHighlighted ? Metrics.levelLabelScale : 1, anchor: .leading)
+                    .scaleEffect(isLevelUpHighlighted ? 1.08 : 1, anchor: .leading)
                     .foregroundStyle(isLevelUpHighlighted ? fillColor : .secondary)
                     .trinketFittedText()
                 Spacer(minLength: TrinketDesign.Spacing.small)

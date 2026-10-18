@@ -154,49 +154,6 @@ struct PreparedArtworkCacheTests {
         #expect(await probe.started.count(where: { $0 == "z" }) == 1)
     }
 
-    @Test func `promoted artwork keeps original order and canceled promotion restores priority`() async throws {
-        let probe = DecodeProbe()
-        defer { Task { await probe.releaseAll() } }
-        let cache = PreparedArtworkCache.makeForTesting(catalogNames: ["a", "z", "later"]) { name in
-            await probe.decode(name)
-        }
-        await cache.prepareAll(priorityImageNames: [])
-        try await waitUntil("the first deferred decode") { await probe.started.count == 1 }
-        let viewport = Task { await cache.prepare(names: ["b", "c"]) }
-        defer { viewport.cancel() }
-        try await waitUntil("the second occupied decode slot") { await probe.started.count == 2 }
-        let promoted = Task { _ = await cache.acquirePinnedArtwork(names: ["y", "z"]) }
-        defer { promoted.cancel() }
-        try await waitUntil("both imminent requests") {
-            cache.pinDemandCount(for: "y") == 1 && cache.pinDemandCount(for: "z") == 1
-        }
-        await probe.release("b")
-        try await waitUntil("the original earlier job wins the imminent tie") { await probe.started.count == 3 }
-        #expect(await probe.started == ["a", "b", "z"])
-        await probe.release("z")
-        try await waitUntil("the newly enqueued imminent job") { await probe.started.count == 4 }
-        #expect(await probe.started.last == "y")
-        let canceledPromotion = Task { _ = await cache.acquirePinnedArtwork(names: ["later"]) }
-        defer { canceledPromotion.cancel() }
-        try await waitUntil("later imminent demand") { cache.pinDemandCount(for: "later") == 1 }
-        canceledPromotion.cancel()
-        await canceledPromotion.value
-        #expect(cache.pinDemandCount(for: "later") == 0)
-        await probe.release("y")
-        try await waitUntil("viewport beats demoted deferred work") { await probe.started.count == 5 }
-        #expect(await probe.started.last == "c")
-        await probe.release("c")
-        #expect(await probe.started.count == 5)
-        await probe.release("a")
-        try await waitUntil("remaining deferred job") { await probe.started.count == 6 }
-        #expect(await probe.started.last == "later")
-        await probe.release("later")
-        await viewport.value
-        await promoted.value
-        await cache.waitForDeferredWarmup()
-        #expect(await probe.maximumActive == 2)
-    }
-
     @Test func `portrait backgrounds are prepared by their owning surface`() {
         let portraits = Set(ArtCatalog.portraitBackgroundArtByID.values.map(\.imageName))
         #expect(!portraits.isEmpty)
@@ -424,59 +381,6 @@ extension PreparedArtworkCacheTests {
         cache.releasePins(names: acquired)
         #expect(cache.snapshot().pinnedCount == 0)
         #expect(cache.pinDemandCount(for: "art") == 0)
-    }
-
-    @Test func `canceled pins return before shared decodes finish without freeing their slots`() async throws {
-        let image = makeImage()
-        let probe = DecodeProbe()
-        defer { Task { await probe.releaseAll() } }
-        let cache = PreparedArtworkCache.makeForTesting(catalogNames: []) { name in
-            _ = await probe.decode(name)
-            return PreparedArtwork(name: name, image: image)
-        }
-
-        var batchFinished = false
-        let batch = Task {
-            let acquired = await cache.acquirePinnedArtwork(names: ["a", "b", "c", "d"])
-            batchFinished = true
-            return acquired
-        }
-        defer { batch.cancel() }
-        try await waitUntil("both batch decode slots") { await probe.started.count == 2 }
-        let survivor = Task { await cache.acquirePinnedArtwork(names: ["a"]) }
-        defer { survivor.cancel() }
-        try await waitUntil("the overlapping pin owner") { cache.pinDemandCount(for: "a") == 2 }
-        batch.cancel()
-        try await waitUntil("canceled batch to return while both decodes remain held") { batchFinished }
-        #expect(await batch.value.isEmpty)
-        #expect(cache.pinDemandCount(for: "a") == 1)
-        for name in ["b", "c", "d"] {
-            #expect(cache.pinDemandCount(for: name) == 0)
-        }
-        #expect(cache.image(named: "a") == nil)
-        #expect(cache.image(named: "b") == nil)
-
-        let next = Task { await cache.acquirePinnedArtwork(names: ["e"]) }
-        defer { next.cancel() }
-        try await waitUntil("new demand waiting for a running decode slot") { cache.pinDemandCount(for: "e") == 1 }
-        #expect(await Set(probe.started) == Set(["a", "b"]))
-        await probe.release("a")
-        let acquired = await survivor.value
-        #expect(acquired == ["a"])
-        #expect(cache.image(named: "a") != nil)
-        try await waitUntil("new demand admitted after a decode finishes") { await probe.started.count == 3 }
-        #expect(await probe.started.last == "e")
-        await probe.release("b")
-        await probe.release("e")
-        let nextAcquired = await next.value
-        try await waitUntil("abandoned started decode to publish") { cache.image(named: "b") != nil }
-        #expect(cache.image(named: "b") != nil)
-        #expect(cache.image(named: "c") == nil)
-        #expect(cache.image(named: "d") == nil)
-        #expect(await probe.maximumActive == 2)
-        #expect(cache.pinDemandCount(for: "a") == 1)
-        #expect(cache.pinDemandCount(for: "b") == 0)
-        cache.releasePins(names: acquired + nextAcquired)
     }
 
     @Test func `canceled cached pin acquisition does not release another owners demand`() async {

@@ -48,18 +48,31 @@ public struct FramePacingCapture {
         report.captureStartedAt = startedAt
         report.captureEndedAt = timestamp
         report.measurementDuration = startedAt.map { timestamp - $0 }
-        if let previousTimestamp, timestamp < previousTimestamp {
-            report.completionStatus = "invalid-boundary"
-        } else if startedAt == nil {
-            report.completionStatus = "not-started"
-        } else if let duration = report.measurementDuration, duration.isFinite, duration > 0 {
-            report
-                .completionStatus = overflowed ? "overflow" :
-                (duration >= maximumDuration ? "timeout" : (intervals.isEmpty ? "empty" : "complete"))
-        } else {
-            report.completionStatus = "empty"
-        }
+        report.completionStatus = completionStatus(at: timestamp)
         frozen = report
         return report
+    }
+
+    private func completionStatus(at timestamp: TimeInterval) -> String {
+        if let previousTimestamp, timestamp < previousTimestamp {
+            return "invalid-boundary"
+        }
+        guard startedAt != nil else {
+            return "not-started"
+        }
+        guard let duration = reportDuration(at: timestamp), duration.isFinite, duration > 0 else {
+            return "empty"
+        }
+        if overflowed {
+            return "overflow"
+        }
+        if duration >= maximumDuration {
+            return "timeout"
+        }
+        return intervals.isEmpty ? "empty" : "complete"
+    }
+
+    private func reportDuration(at timestamp: TimeInterval) -> TimeInterval? {
+        startedAt.map { timestamp - $0 }
     }
 }

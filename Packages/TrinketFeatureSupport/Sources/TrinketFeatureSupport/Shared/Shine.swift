@@ -18,12 +18,8 @@ public enum Shine: Equatable, Sendable {
     ]
 
     public static func stops(for base: Color, motionEnabled: Bool) -> [Gradient.Stop] {
-        if !motionEnabled {
-            return [
-                .init(color: base, location: 0),
-                .init(color: base, location: 0.5),
-                .init(color: base, location: 1),
-            ]
+        guard motionEnabled else {
+            return [.init(color: base, location: 0.5)]
         }
         let highlight = TrinketDesign.Colors.Overlay.paper
         return [
@@ -40,14 +36,10 @@ public enum Shine: Equatable, Sendable {
         switch self {
         case .none:
             nil
-        case let .keywords(keywords) where keywords.isEmpty:
-            nil
         case let .keywords(keywords):
-            keywords.map(\.visualStyle.color)
-        case let .colors(colors) where colors.isEmpty:
-            nil
+            keywords.isEmpty ? nil : keywords.map(\.visualStyle.color)
         case let .colors(colors):
-            colors
+            colors.isEmpty ? nil : colors
         case .unique:
             Self.uniqueBorderColors
         case .corruption:

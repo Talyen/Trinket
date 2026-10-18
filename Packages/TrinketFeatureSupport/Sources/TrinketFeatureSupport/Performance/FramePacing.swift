@@ -30,25 +30,10 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
     public var accessibilityValue: String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
-        if let data = try? encoder.encode(self),
-           let json = String(data: data, encoding: .utf8) {
-            return "schema=\(Self.schemaVersion);json=\(json)"
-        }
-        return String(
-            format: "schema=%d;samples=%d;expectedFPS=%.2f;avgFPS=%.2f;p95Ms=%.2f;p99Ms=%.2f;oneLowFPS=%.2f;maxMs=%.2f;missed=%d;estimatedMissed=%d;severe=%d;missedRatio=%.5f",
-            Self.schemaVersion,
-            sampleCount,
-            expectedFPS,
-            averageFPS,
-            p95FrameMs,
-            p99FrameMs,
-            onePercentLowFPS,
-            maxFrameMs,
-            missedDeadlineCount,
-            estimatedMissedFrameCount,
-            severeStallCount,
-            missedDeadlineRatio,
-        )
+        // FramePacingReport is Codable with only finite-friendly values; encoding cannot fail.
+        let data = (try? encoder.encode(self)) ?? Data("{\"sampleCount\":0}".utf8)
+        let json = String(data: data, encoding: .utf8) ?? "{\"sampleCount\":0}"
+        return "schema=\(Self.schemaVersion);json=\(json)"
     }
 
     public static func parseAccessibilityValue(_ value: String) -> Self? {
