@@ -233,7 +233,10 @@ final class PlaythroughCareer {
                 }
                 try await enterNextEncounter()
                 guard let launched = battle.activeBattle else { continue }
-                try require(launched.hero.unlockedTalents == store.roster.unlockedTalents(for: launched.hero.combatant), "launch talents")
+                try require(
+                    launched.hero.unlockedTalents == store.roster.unlockedTalents(for: launched.hero.combatant.id),
+                    "launch talents",
+                )
                 try require(
                     launched.hero.equipmentLoadout == store.roster.equipmentLoadout(for: launched.hero.combatant),
                     "launch equipment",

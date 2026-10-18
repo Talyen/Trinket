@@ -18,7 +18,7 @@ struct RosterEditPersistenceTests {
             save.roster.progressions[hero.id] = .at(level: 2)
             save.roster.setEquipmentLoadout(.init(), for: hero)
             save.roster.setLoadout(save.roster.loadout(for: hero).selecting(.bash), for: hero)
-            save.roster.setUnlockedTalents([node.id], for: hero)
+            save.roster.setUnlockedTalents([node.id], for: hero.id)
             save.inventory.items = [item]
         }
         let commands: [CombatantLoadoutEdit] = [
@@ -41,7 +41,7 @@ struct RosterEditPersistenceTests {
             case .unequipItem:
                 #expect(reloaded.roster.equipmentLoadout(for: hero).itemID(for: .weapon) == nil)
             case .resetTalents:
-                #expect(reloaded.roster.unlockedTalents(for: hero).isEmpty)
+                #expect(reloaded.roster.unlockedTalents(for: hero.id).isEmpty)
             }
         }
     }
