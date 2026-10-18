@@ -60,13 +60,16 @@ extension BattleFeedbackLane {
     }
 
     func limitCornerItems() {
-        let targets = Set(activeItems.filter { $0.region == .announcement }.map(\.targetID))
-        for target in targets {
-            let announcements = activeItems
-                .filter { $0.targetID == target && $0.region == .announcement && !evictedItemIDs.contains($0.id) }
-            let groups = Array(Set(announcements.map(\.actionGroupID))).sorted(by: >)
-            let retained = Set(groups.prefix(3))
-            evictedItemIDs.formUnion(announcements.filter { !retained.contains($0.actionGroupID) }.map(\.id))
+        var groupsByTarget: [String: Set<Int>] = [:]
+        for item in activeItems where item.region == .announcement && !evictedItemIDs.contains(item.id) {
+            groupsByTarget[item.targetID, default: []].insert(item.actionGroupID)
+        }
+        for (target, groups) in groupsByTarget {
+            let retained = Set(groups.sorted(by: >).prefix(3))
+            guard retained.count < groups.count else { continue }
+            evictedItemIDs.formUnion(activeItems.lazy.filter {
+                $0.targetID == target && $0.region == .announcement && !retained.contains($0.actionGroupID)
+            }.map(\.id))
         }
         for region in [CombatFeedbackRegion.benefit, .setback] {
             var winners: [String: (first: CornerCandidate, second: CornerCandidate?)] = [:]

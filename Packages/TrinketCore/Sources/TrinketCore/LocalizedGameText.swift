@@ -17,6 +17,9 @@ public struct LocalizedGameText: Sendable {
     public let spans: [Span]
 
     private static let expression = try? NSRegularExpression(pattern: #"<(keyword|value) id="([a-z0-9_]+)">([^<]*)</\1>"#)
+    private static let keywordByID: [String: Keyword] = Dictionary(
+        uniqueKeysWithValues: Keyword.allCases.map { (String(describing: $0).lowercased(), $0) },
+    )
 
     public init(_ resource: LocalizedStringResource, locale: Locale, values: [String: Int] = [:]) {
         var resource = resource
@@ -48,7 +51,7 @@ public struct LocalizedGameText: Sendable {
             output += source.substring(with: match.range(at: 3))
             let range = start ..< output.utf16.count
             if source.substring(with: match.range(at: 1)) == "keyword",
-               let keyword = Keyword.allCases.first(where: { String(describing: $0).lowercased() == identifier }) {
+               let keyword = Self.keywordByID[identifier] {
                 spans.append(Span(utf16Range: range, meaning: .keyword(keyword)))
             } else if let value = values[identifier] {
                 spans.append(Span(utf16Range: range, meaning: .value(identifier, value)))

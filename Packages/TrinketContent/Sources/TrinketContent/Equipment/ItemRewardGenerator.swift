@@ -23,9 +23,77 @@ public enum ItemRewardGenerator {
         itemGenerator: ItemGenerator = ItemGenerator(),
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
+        let availability = rewardAvailability(
+            allowedTiers: allowedTiers, requiredKeyword: requiredKeyword,
+            ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs,
+            reservedTrinketIDs: reservedTrinketIDs, keywordBias: keywordBias,
+            eligibleTrinketIDs: eligibleTrinketIDs, eligibleUniqueIDs: eligibleUniqueIDs,
+            fallbackBaseType: fallbackBaseType, baseTypes: baseTypes,
+        )
+        let probabilities = ItemLootPolicy.probabilities(
+            level: rewardLevel,
+            bossContent: bossContent,
+            astralChanceBonusPercent: astralChanceBonusPercent,
+            availableTiers: availability.tiers,
+            favoredTier: favoredTier,
+            tierWeightBonusPercent: tierWeightBonusPercent, collectibleChancePercent: collectibleChancePercent,
+        )
+        let rarity: Rarity
+        switch ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator) {
+        case .unique:
+            return availability.uniques[Int.random(in: availability.uniques.indices, using: &randomNumberGenerator)]
+        case .trinket:
+            return availability.trinkets[Int.random(in: availability.trinkets.indices, using: &randomNumberGenerator)]
+        case .astral: rarity = .astral
+        case .basic: rarity = .basic
+        }
+        let baseType = rewardBaseType(
+            baseTypes: availability.hasGearPool ? baseTypes : GameContent.itemBaseTypes, fallbackBaseType: fallbackBaseType,
+            requiredKeyword: requiredKeyword, keywordBias: keywordBias,
+            itemGenerator: itemGenerator, using: &randomNumberGenerator,
+        )
+        // A keyword with no eligible base or affix was already degraded to
+        // unbiased gear; don't hand the unsatisfiable requirement downstream.
+        let effectiveKeyword = requiredKeyword.flatMap {
+            Self.supportsKeyword($0, base: baseType, itemGenerator: itemGenerator) ? $0 : nil
+        }
+        return itemGenerator.generate(
+            id: id,
+            templateID: "\(baseType.id)-\(rarity.rawValue)",
+            baseType: baseType,
+            rarity: rarity,
+            keywordBias: keywordBias,
+            guaranteedAffixIDs: guaranteedAffixIDs,
+            requiredKeyword: effectiveKeyword,
+            using: &randomNumberGenerator,
+        )
+    }
+
+    private struct RewardAvailability {
+        let tiers: Set<ItemDropTier>
+        let trinkets: [InventoryItem]
+        let uniques: [InventoryItem]
+        let hasGearPool: Bool
+    }
+
+    // swiftlint:disable:next function_parameter_count - the tier, ownership, eligibility, and gear inputs must stay together so pool degradation reads as one policy
+    private static func rewardAvailability(
+        allowedTiers: Set<ItemDropTier>,
+        requiredKeyword: Keyword?,
+        ownedTrinketIDs: Set<String>,
+        ownedUniqueIDs: Set<String>,
+        reservedTrinketIDs: Set<String>,
+        keywordBias: Set<Keyword>,
+        eligibleTrinketIDs: Set<String>?,
+        eligibleUniqueIDs: Set<String>?,
+        fallbackBaseType: ItemBaseType?,
+        baseTypes: [ItemBaseType],
+    ) -> RewardAvailability {
         var available = requiredKeyword == nil ? allowedTiers : allowedTiers.intersection([.basic, .astral])
-        if requiredKeyword != nil {
-            precondition(!available.isEmpty, "Keyword rewards require Basic or Astral equipment")
+        if requiredKeyword != nil, available.isEmpty {
+            // A keyword request against a collectible-only pool degrades to
+            // gear instead of trapping; the keyword is dropped below.
+            available = [.basic, .astral]
         }
         let trinkets = available.contains(.trinket) ? GameContent.trinketItems.filter {
             !ownedTrinketIDs.contains($0.templateID)
@@ -56,38 +124,18 @@ public enum ItemRewardGenerator {
             // ItemLootPolicy.probabilities.
             available = [.basic]
         }
-        let probabilities = ItemLootPolicy.probabilities(
-            level: rewardLevel,
-            bossContent: bossContent,
-            astralChanceBonusPercent: astralChanceBonusPercent,
-            availableTiers: available,
-            favoredTier: favoredTier,
-            tierWeightBonusPercent: tierWeightBonusPercent, collectibleChancePercent: collectibleChancePercent,
-        )
-        let rarity: Rarity
-        switch ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator) {
-        case .unique:
-            return uniques[Int.random(in: uniques.indices, using: &randomNumberGenerator)]
-        case .trinket:
-            return trinkets[Int.random(in: trinkets.indices, using: &randomNumberGenerator)]
-        case .astral: rarity = .astral
-        case .basic: rarity = .basic
-        }
-        let baseType = rewardBaseType(
-            baseTypes: hasGearPool ? baseTypes : GameContent.itemBaseTypes, fallbackBaseType: fallbackBaseType,
-            requiredKeyword: requiredKeyword, keywordBias: keywordBias,
-            itemGenerator: itemGenerator, using: &randomNumberGenerator,
-        )
-        return itemGenerator.generate(
-            id: id,
-            templateID: "\(baseType.id)-\(rarity.rawValue)",
-            baseType: baseType,
-            rarity: rarity,
-            keywordBias: keywordBias,
-            guaranteedAffixIDs: guaranteedAffixIDs,
-            requiredKeyword: requiredKeyword,
-            using: &randomNumberGenerator,
-        )
+        return RewardAvailability(tiers: available, trinkets: trinkets, uniques: uniques, hasGearPool: hasGearPool)
+    }
+
+    private static func supportsKeyword(
+        _ keyword: Keyword,
+        base: ItemBaseType,
+        itemGenerator: ItemGenerator,
+    ) -> Bool {
+        base.slot != .trinket && base.keywordAffinities.contains(keyword)
+            && itemGenerator.affixDefinitions.contains {
+                $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: base)
+            }
     }
 
     private static func rewardBaseType(
@@ -99,29 +147,31 @@ public enum ItemRewardGenerator {
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> ItemBaseType {
         if let keyword = requiredKeyword {
-            func supportsKeyword(_ base: ItemBaseType) -> Bool {
-                base.slot != .trinket && base.keywordAffinities.contains(keyword)
-                    && itemGenerator.affixDefinitions.contains {
-                        $0.weight > 0 && $0.keywords.contains(keyword) && $0.isEligible(for: base)
-                    }
+            func supports(_ base: ItemBaseType) -> Bool {
+                Self.supportsKeyword(keyword, base: base, itemGenerator: itemGenerator)
             }
-            if let selected = baseTypes.filter(supportsKeyword).randomElement(using: &randomNumberGenerator) {
+            if let selected = baseTypes.filter(supports).randomElement(using: &randomNumberGenerator) {
                 return selected
             }
-            if let fallback = fallbackBaseType, supportsKeyword(fallback) {
+            if let fallback = fallbackBaseType, supports(fallback) {
                 return fallback
             }
-            if let selected = GameContent.itemBaseTypes.filter(supportsKeyword).randomElement(using: &randomNumberGenerator) {
+            if let selected = GameContent.itemBaseTypes.filter(supports).randomElement(using: &randomNumberGenerator) {
                 return selected
             }
-            preconditionFailure("Required keyword must have an eligible base and affix")
+            // Content drift: no base supports the keyword. Fall through to
+            // unbiased gear below instead of trapping the live reward.
         }
         let normalBases = fallbackBaseType.map { [$0] } ?? baseTypes.filter { $0.slot != .trinket }
-        precondition(!normalBases.isEmpty, "Item rewards require at least one non-Trinket base type.")
+        let effectiveBases = normalBases.isEmpty
+            ? GameContent.itemBaseTypes.filter { $0.slot != .trinket }
+            : normalBases
+        // Catalog invariant: at least one gear base ships with the game.
+        precondition(!effectiveBases.isEmpty, "Item rewards require at least one non-Trinket base type.")
         let biasedBases = keywordBias.isEmpty
-            ? normalBases
-            : normalBases.filter { !$0.keywordAffinities.isDisjoint(with: keywordBias) }
-        let pool = biasedBases.isEmpty ? normalBases : biasedBases
-        return pool.randomElement(using: &randomNumberGenerator) ?? pool[0]
+            ? effectiveBases
+            : effectiveBases.filter { !$0.keywordAffinities.isDisjoint(with: keywordBias) }
+        let pool = biasedBases.isEmpty ? effectiveBases : biasedBases
+        return pool.randomElement(using: &randomNumberGenerator) ?? effectiveBases[0]
     }
 }

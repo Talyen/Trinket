@@ -91,7 +91,9 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
             encoder.outputFormatting = .sortedKeys
             return try encoder.encode(self)
         } catch {
-            preconditionFailure("Contract offers must be JSON encodable")
+            // An unencodable board must never crash saving; empty data
+            // decodes as a fresh board with unknown claim history.
+            return Data()
         }
     }
 

@@ -111,7 +111,9 @@ public enum BattleLoot {
         let eligibleBaseTypes = requiredBaseTypeIDs.map { ids in
             GameContent.itemBaseTypes.filter { ids.contains($0.id) }
         } ?? GameContent.itemBaseTypes
-        precondition(!eligibleBaseTypes.isEmpty, "Guaranteed item family needs a matching base")
+        // An unknown base family degrades to the full gear pool instead of
+        // trapping the live loot roll.
+        let resolvedBaseTypes = eligibleBaseTypes.isEmpty ? GameContent.itemBaseTypes : eligibleBaseTypes
         let guaranteesTrinket = enemyIsBoss && request.guaranteesTrinket
             && GameContent.trinketItems.contains { !ownership.ownedTrinketIDs.contains($0.templateID) }
         var allowedTiers: Set<ItemDropTier> = if guaranteesTrinket {
@@ -138,7 +140,7 @@ public enum BattleLoot {
             ownedTrinketIDs: ownership.ownedTrinketIDs,
             ownedUniqueIDs: ownership.ownedUniqueIDs,
             keywordBias: enemyIsBoss ? [] : request.keywordBias,
-            baseTypes: eligibleBaseTypes,
+            baseTypes: resolvedBaseTypes,
             using: &rng,
         )
     }

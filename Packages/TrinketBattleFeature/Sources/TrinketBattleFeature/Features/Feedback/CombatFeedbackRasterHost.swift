@@ -411,12 +411,18 @@ private extension CombatFeedbackRasterUIView {
                 height: chip.reservationSize.height * sizeScale,
             ), region: chip.item.region, bottomInset: bottomInset)
         }
-        let announcementLayers = orderedLayers.filter { $0.item.region == .announcement }
-        let groupIDs = Array(Set(announcementLayers.map(\.item.actionGroupID))).sorted(by: >)
-        for (index, groupID) in groupIDs.enumerated() {
-            stationaryLayout.placeAnnouncementGroup(announcementLayers.filter { $0.item.actionGroupID == groupID }.map {
-                (id: $0.item.id, size: $0.reservationSize)
-            }, groupIndex: index)
+        var announcementsByGroup: [Int: [(id: Int, size: CGSize)]] = [:]
+        var groupOrder: [Int] = []
+        for chip in orderedLayers where chip.item.region == .announcement {
+            if announcementsByGroup[chip.item.actionGroupID] == nil {
+                groupOrder.append(chip.item.actionGroupID)
+            }
+            announcementsByGroup[chip.item.actionGroupID, default: []].append(
+                (id: chip.item.id, size: chip.reservationSize),
+            )
+        }
+        for (index, groupID) in groupOrder.sorted(by: >).enumerated() {
+            stationaryLayout.placeAnnouncementGroup(announcementsByGroup[groupID] ?? [], groupIndex: index)
         }
         let date = Date.now
         // Resolve after all placements, since new arrivals can push earlier slots.

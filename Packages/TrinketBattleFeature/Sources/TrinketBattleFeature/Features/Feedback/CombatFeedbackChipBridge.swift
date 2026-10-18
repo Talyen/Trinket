@@ -317,9 +317,9 @@ final class CombatFeedbackChipBridge {
     private func suppress(_ ids: Set<Int>) {
         releaseRasters(ids: ids)
         evictedIDs.formUnion(ids)
-        suppressedTargets.formUnion(itemsByTarget.compactMap { targetID, items in
-            ids.contains(where: { items[$0] != nil }) ? targetID : nil
-        })
+        // The reverse index answers target membership directly instead of
+        // scanning every target's item dictionary.
+        suppressedTargets.formUnion(ids.compactMap { targetsByItemID[$0] })
         onEvict?(ids)
     }
 

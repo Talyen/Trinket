@@ -41,13 +41,12 @@ public struct ItemGenerator: Sendable {
             assertionFailure("Guaranteed affixes dropped for \(id): unknown or slot-ineligible IDs \(droppedGuaranteedIDs).")
         }
 
-        if let requiredKeyword {
-            precondition(baseType.keywordAffinities.contains(requiredKeyword), "Required keyword must match the item base")
-            if !guaranteedDefinitions.contains(where: { $0.keywords.contains(requiredKeyword) }) {
-                let matching = eligibleAffixes.filter { $0.keywords.contains(requiredKeyword) && $0.weight > 0 }
-                guard let guaranteed = Self.weightedSample(matching, count: 1, using: &randomNumberGenerator).first else {
-                    preconditionFailure("Required keyword must have an eligible base and affix")
-                }
+        if let requiredKeyword, baseType.keywordAffinities.contains(requiredKeyword),
+           !guaranteedDefinitions.contains(where: { $0.keywords.contains(requiredKeyword) }) {
+            // Content drift can leave a keyword with no eligible affix; the
+            // item still generates without the guarantee instead of trapping.
+            let matching = eligibleAffixes.filter { $0.keywords.contains(requiredKeyword) && $0.weight > 0 }
+            if let guaranteed = Self.weightedSample(matching, count: 1, using: &randomNumberGenerator).first {
                 guaranteedDefinitions.append(guaranteed)
                 guaranteedIDs.insert(guaranteed.id)
             }
@@ -93,7 +92,9 @@ public struct ItemGenerator: Sendable {
         case .astral:
             return roll <= 75 ? 3 : 4
         case .unique:
-            preconditionFailure("Unique affix counts are authored in the catalog.")
+            // Unique counts are authored in the catalog; a direct roll keeps
+            // only guaranteed affixes instead of trapping.
+            return 0
         }
     }
 
@@ -114,7 +115,9 @@ public struct ItemGenerator: Sendable {
                 roll -= candidate.weight
                 return roll <= 0
             }) else {
-                preconditionFailure("Affix roll must select a positive-weight candidate")
+                // All remaining weights are zero; return the partial selection
+                // instead of trapping the live reward.
+                break
             }
             let candidate = pool.remove(at: selectedIndex)
             totalWeight -= candidate.weight

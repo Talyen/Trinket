@@ -64,9 +64,12 @@ public struct MysteryRewardResolver: Sendable {
         rewardLevel: Int, id: String,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
-        guard let base = GameContent.itemBaseType(matching: pool.baseTypeID), base.slot != .trinket else {
-            preconditionFailure("Mystery item pools require a known gear base")
-        }
+        // Content drift (an unknown or Trinket-slot base) falls back to the
+        // first gear base; a nil fallback degrades to the catalog gear pool.
+        // Only a catalog with no gear at all still traps downstream.
+        let base = GameContent.itemBaseType(matching: pool.baseTypeID)
+            .flatMap { $0.slot != .trinket ? $0 : nil }
+            ?? GameContent.itemBaseTypes.first(where: { $0.slot != .trinket })
         return ItemRewardGenerator.generate(
             id: id,
             rewardLevel: rewardLevel,

@@ -124,7 +124,9 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         }
         let encoder = JSONEncoder()
         encoder.outputFormatting = .sortedKeys
-        do { return try encoder.encode(self) } catch { preconditionFailure("Voyage state must be encodable") }
+        // An unencodable state must never crash saving; callers treat empty
+        // data as unreadable and preserve it rather than wiping progress.
+        do { return try encoder.encode(self) } catch { return Data() }
     }
 
     public static func decodePayload(_ data: Data?) -> Self {

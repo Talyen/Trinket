@@ -73,12 +73,10 @@ extension BattleSession {
             // A backgrounded opening can wait indefinitely. The wait must not
             // retain the session whose teardown owns its cancellation.
             while !Task.isCancelled, self?.isSuspendedForScenePhase == true {
-                let delay = self?.autoBattleRetryDelay ?? .zero
-                if delay > .zero {
-                    try? await Task.sleep(for: delay)
-                } else {
-                    await Task.yield()
-                }
+                // Sleep even for `.zero` delays: a bare `yield` loop hot-spins
+                // while suspended. The 5ms floor keeps wake latency negligible.
+                let delay = max(self?.autoBattleRetryDelay ?? .zero, .milliseconds(5))
+                try? await Task.sleep(for: delay)
             }
             guard let self, !Task.isCancelled, transitionTask.isCurrent(generation) else { return }
             presentOpeningTransition(for: configurationID)
