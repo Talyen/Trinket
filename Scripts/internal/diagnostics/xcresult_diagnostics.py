@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -40,6 +41,59 @@ class ExportedAttachment:
 # watchdog kill); every call is bounded so diagnostics degrade instead of stalling.
 QUERY_TIMEOUT_SECONDS = 120
 ATTACHMENT_EXPORT_TIMEOUT_SECONDS = 300
+
+
+def capture_simulator_context(output_dir: Path, udid: str, expected_name: str) -> list[str]:
+    """Best-effort post-failure evidence through simctl, independent of XCTest AX."""
+    if not expected_name or not re.fullmatch(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", udid):
+        return []
+    output_dir.mkdir(parents=True, exist_ok=True)
+    context = {"udid": udid, "expected_name": expected_name, "phase": "after-test-invocation", "errors": []}
+    files = []
+
+    def query(*arguments: str) -> str | None:
+        try:
+            result = subprocess.run(["xcrun", "simctl", *arguments], capture_output=True,
+                                    text=True, check=False, timeout=10)
+            if result.returncode == 0:
+                return result.stdout
+            context["errors"].append(f"{arguments[0]} exited {result.returncode}: {result.stderr[:1000]}")
+        except (OSError, subprocess.TimeoutExpired) as error:
+            context["errors"].append(str(error)[:1000])
+        return None
+
+    inventory = query("list", "devices", udid, "-j")
+    try:
+        devices = json.loads(inventory or "{}").get("devices", {})
+        device = next((item for group in devices.values() for item in group if item.get("udid") == udid), {})
+    except (ValueError, AttributeError, TypeError):
+        device = {}
+    context["device"] = device
+    if device.get("name") == expected_name and device.get("state") == "Booted":
+        screenshot = output_dir / "simulator-after-failure.png"
+        screenshot.unlink(missing_ok=True)
+        query("io", udid, "screenshot", str(screenshot))
+        signature = b""
+        if screenshot.is_file():
+            with screenshot.open("rb") as image:
+                signature = image.read(8)
+        if signature == b"\x89PNG\r\n\x1a\n":
+            files.append(str(screenshot))
+        else:
+            screenshot.unlink(missing_ok=True)
+            context["errors"].append("simctl did not produce a PNG screenshot")
+        log_path = output_dir / "simulator-recent.log"
+        log_path.unlink(missing_ok=True)
+        logs = query("spawn", udid, "log", "show", "--last", "2m", "--style", "compact", "--predicate",
+                     'process == "Trinket" OR process == "TrinketUITests-Runner" OR process == "testmanagerd"')
+        if logs is not None:
+            log_path.write_text(logs[-65536:])
+            files.append(str(log_path))
+    else:
+        context["errors"].append("Simulator ownership/name or booted state could not be confirmed; capture skipped")
+    context_path = output_dir / "simulator-context.json"
+    context_path.write_text(json.dumps(context, indent=2) + "\n")
+    return [str(context_path), *files]
 
 
 def bundle_identity(bundle: Path) -> dict | None:

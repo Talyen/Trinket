@@ -130,6 +130,15 @@ def build_report(args: argparse.Namespace) -> DiagnosticReport:
                 xcresult.read_exported_attachments(attachment_dir),
             )
 
+    if args.exit_code != 0:
+        try:
+            unmatched_attachments.extend(_display_path(path) for path in xcresult.capture_simulator_context(
+                attachment_dir, os.environ.get("TRINKET_FAILURE_SIMULATOR_UDID", ""),
+                os.environ.get("TRINKET_SIMULATOR_NAME", ""),
+            ))
+        except OSError as error:
+            sources.errors.append(f"simulator context: {error}")
+
     raw_log_path = ""
     if classification == "unknown" and log_path and args.exit_code != 0:
         raw_log_path = _display_path(str(log_path))

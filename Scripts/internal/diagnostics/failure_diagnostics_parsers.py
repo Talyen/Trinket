@@ -26,13 +26,13 @@ MAX_TEST_DETAIL_FETCHES = 5
 ACCESSIBILITY_SNAPSHOT_MARKER = "Accessibility snapshot:"
 
 
-def _load_infrastructure_pattern() -> str:
+def _load_failure_pattern(name: str, fallback: str) -> str:
     """Read the canonical infrastructure vocabulary shared with the bash matchers."""
     config = Path(__file__).resolve().parents[2] / "config" / "infrastructure-patterns.env"
     try:
         for line in config.read_text(encoding="utf-8").splitlines():
             stripped = line.strip()
-            if stripped.startswith("TRINKET_INFRASTRUCTURE_FAILURE_PATTERN="):
+            if stripped.startswith(name + "="):
                 value = stripped.split("=", 1)[1].strip().strip("'\"")
                 if value:
                     return value
@@ -40,10 +40,14 @@ def _load_infrastructure_pattern() -> str:
         pass
     # Minimal fallback keeps simulator classification working if the config file
     # is missing; the bash retry matcher fails closed on its own source error.
-    return r"unable to boot|coresimulatorservice|coresimulator (?:service|error|failure|failed|unavailable)"
+    return fallback
 
 
-INFRASTRUCTURE_FAILURE_PATTERN = _load_infrastructure_pattern()
+LAUNCH_SNAPSHOT_FAILURE_PATTERN = _load_failure_pattern("TRINKET_LAUNCH_SNAPSHOT_FAILURE_PATTERN", r"(?!)")
+INFRASTRUCTURE_FAILURE_PATTERN = _load_failure_pattern(
+    "TRINKET_INFRASTRUCTURE_FAILURE_PATTERN",
+    r"unable to boot|coresimulatorservice|coresimulator (?:service|error|failure|failed|unavailable)",
+) + "|" + LAUNCH_SNAPSHOT_FAILURE_PATTERN
 
 
 def _value(value: Any, default: Any = "") -> Any:
@@ -160,6 +164,14 @@ def _classify_text(text: str, default: str, *, source_diagnostic: bool = False) 
     return default if default in CLASSIFICATIONS else "unknown"
 
 
+def _classify_recorded_test_failure(text: str) -> str:
+    # Runtime source failures remain assertions unless the fixture explicitly
+    # marked a system snapshot timeout during launch preparation.
+    if re.search(LAUNCH_SNAPSHOT_FAILURE_PATTERN, text, re.I):
+        return _classify_text(text, "test-failure")
+    return "test-failure"
+
+
 def _split_accessibility_snapshot(message: str) -> tuple[str, str]:
     if ACCESSIBILITY_SNAPSHOT_MARKER not in message:
         return message.strip(), ""
@@ -263,7 +275,7 @@ def parse_test_nodes(tests: dict[str, Any]) -> tuple[list[IssueObservation], lis
             if match:
                 observations.append(
                     IssueObservation(
-                        kind="test-failure",
+                        kind=_classify_recorded_test_failure(match.group("message")),
                         title=test or "Test failure",
                         message=match.group("message"),
                         test=test,
@@ -406,7 +418,7 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
                         pending_line = next_line
                     test = test_match.group("test").strip()
                     observation = IssueObservation(
-                        "test-failure",
+                        _classify_recorded_test_failure(failure_message),
                         test or "XCTest failure",
                         failure_message,
                         test=test,

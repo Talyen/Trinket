@@ -177,6 +177,19 @@ class CIEffortTests(unittest.TestCase):
             self.assertTrue(RETRY.recovery_valid(final, report))
             (results / 'unrelated-invocation.json').unlink()
             maintenance = load_script('ci_recovery_cleanup_test', 'diagnostic_maintenance.py')
+            write_json(results / 'ci-diagnostics.json', dict(category='passed', invocations=[
+                dict(infrastructure_recovered=True)]))
+            (results / 'raw').mkdir()
+            (results / 'raw' / 'original.log').write_text('Original launch failure')
+            (results / 'raw' / 'retry.log').write_text('Targeted retry passed')
+            staged = root / 'artifact'
+            output = root / 'github-output'
+            with patch.dict(os.environ, GITHUB_OUTPUT=str(output)):
+                maintenance.stage(results, staged)
+            self.assertTrue((staged / 'original.xcresult' / 'Info.plist').is_file())
+            self.assertTrue((staged / 'retry.xcresult' / 'Info.plist').is_file())
+            self.assertEqual(len(list((staged / 'raw').glob('*.log'))), 2)
+            self.assertIn('retain-forensics=true', output.read_text())
             maintenance.cleanup(results.resolve(), False)
             self.assertFalse(list(results.glob('*-invocation.json')))
             self.assertFalse(list(results.glob('*.xcresult')))

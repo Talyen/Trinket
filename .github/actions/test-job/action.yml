@@ -91,6 +91,7 @@ runs:
       run: ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
 
     - name: Stage bounded test diagnostics artifact
+      id: diagnostic-artifacts
       if: always()
       shell: bash
       run: ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/TestResults-artifact
@@ -115,9 +116,8 @@ runs:
         if-no-files-found: ignore
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
-      # Passing runs are intentionally ephemeral. Keep forensic artifacts for a
-      # failed job or when a caller explicitly opts in.
-      if: always() && failure()
+      # Keep both attempts after recovery, even when the final gate passes.
+      if: always() && (failure() || steps.diagnostic-artifacts.outputs.retain-forensics == 'true')
       with:
         name: ${{ inputs.artifact-prefix }}${{ inputs.artifact-name }}-${{ github.run_id }}-${{ github.run_attempt }}
         path: .DerivedData/TestResults-artifact/

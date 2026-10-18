@@ -121,22 +121,35 @@ def stage(root: Path, artifact_dir: Path) -> None:
             raise ValueError("symlinked diagnostic category")
         payload = json.loads(category_path.read_text(encoding="utf-8"))
         category = payload.get("category", "unknown") if isinstance(payload, dict) else "unknown"
+        invocations = payload.get("invocations", []) if isinstance(payload, dict) else []
+        if not isinstance(invocations, list):
+            raise ValueError("invalid invocation list")
+        recovered = isinstance(payload, dict) and any(
+            isinstance(item, dict) and item.get("infrastructure_recovered") is True
+            for item in invocations
+        )
     except (OSError, ValueError):
         category = "unknown"
+        recovered = False
     names = {"ci-diagnostics.json", "timing-log.jsonl", "simulator.log", "phase-timing.jsonl"}
     for path in root.iterdir():
         if not path.is_symlink() and path.is_file() and (path.name in names or path.name.endswith(("-invocation.json", "-diagnostics.json", "-diagnostics.md", "-diagnostics.annotations"))):
             shutil.copy2(path, artifact_dir / path.name)
-    if category != "passed":
+    retain_forensics = category != "passed" or recovered
+    if retain_forensics:
         for source in [root / "raw", *root.glob("*.xcresult"), *root.glob("*-diagnostics.attachments")]:
             if source.is_dir() and not source.is_symlink():
                 shutil.copytree(source, artifact_dir / source.name, ignore=lambda directory, names: [
                     name for name in names if (Path(directory) / name).is_symlink()
                 ])
-        (artifact_dir / "artifact-policy.txt").write_text(f"forensic artifacts retained because category={category}; symlink entries omitted\n")
+        (artifact_dir / "artifact-policy.txt").write_text(
+            f"forensic artifacts retained because category={category}, infrastructure_recovered={recovered}; symlink entries omitted\n")
     else:
         (artifact_dir / "artifact-policy.txt").write_text("structured artifacts only; raw logs and xcresults omitted for passing invocations\n")
     print(f"Staged CI artifacts in {artifact_dir} (category={category})")
+    if os.environ.get("GITHUB_OUTPUT"):
+        with Path(os.environ["GITHUB_OUTPUT"]).open("a") as output:
+            output.write(f"retain-forensics={str(retain_forensics).lower()}\n")
 
 
 def artifact_path(value: object, root: Path) -> Path | None:

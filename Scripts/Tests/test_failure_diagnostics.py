@@ -46,6 +46,51 @@ def namespace(bundle: Path, log: Path | None, exit_code: int, prefix: Path) -> S
 
 
 class ReporterTests(unittest.TestCase):
+    def test_launch_snapshot_marker_is_narrow_and_preserves_assertion_failures(self):
+        message = "Failed to get matching snapshots: Timed out while evaluating UI query."
+        marked = "[Trinket launch snapshot timeout] " + message
+        for text, expected in ((message, "test-failure"), (marked, "simulator-infrastructure"),
+                               ("XCTAssertTrue failed: " + marked, "test-failure")):
+            issue = REPORTER.parse_summary({"testFailures": [{"failureText": text}]})[0]
+            self.assertEqual(issue.kind, expected)
+            with tempfile.TemporaryDirectory() as temporary:
+                log = Path(temporary) / "test.log"
+                log.write_text(f"Test.swift:289: error: -[TrinketUITests.ShopTests testPurchase] : failed - {text}\n")
+                self.assertEqual(REPORTER.parse_log(log, 65)[0].kind, expected)
+        with tempfile.TemporaryDirectory() as temporary:
+            log = Path(temporary) / "test.log"
+            log.write_text("Test.swift:42: error: -[TrinketUITests.ShopTests testPurchase] : failed - Failed to launch Campaign\n")
+            self.assertEqual(REPORTER.parse_log(log, 65)[0].kind, "test-failure")
+
+    def test_simulator_capture_verifies_ownership_and_bounds_unavailable_evidence(self):
+        udid = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+        for name in ("Trinket Agent 1", "Foreign Simulator"):
+            with tempfile.TemporaryDirectory() as temporary:
+                output = Path(temporary) / "attachments"
+                def execute(command, **options):
+                    self.assertEqual(options["timeout"], 10)
+                    if command[2] == "list":
+                        inventory = {"devices": {"runtime": [dict(udid=udid, name=name, state="Booted")]}}
+                        return subprocess.CompletedProcess(command, 0, json.dumps(inventory), "")
+                    if command[2] == "io":
+                        # Reproduce the empty XCTest screenshot without trusting it as PNG evidence.
+                        Path(command[-1]).touch()
+                        return subprocess.CompletedProcess(command, 0, "", "")
+                    return subprocess.CompletedProcess(command, 0, "x" * 100000, "")
+                with patch.object(REPORTER.xcresult.subprocess, "run", side_effect=execute) as run:
+                    files = REPORTER.xcresult.capture_simulator_context(output, udid, "Trinket Agent 1")
+                context = json.loads(Path(files[0]).read_text())
+                self.assertTrue(context["errors"])
+                self.assertFalse(list(output.glob("*.png")))
+                self.assertEqual(run.call_count, 3 if name == "Trinket Agent 1" else 1)
+                if name == "Trinket Agent 1":
+                    self.assertEqual((output / "simulator-recent.log").stat().st_size, 65536)
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary)
+            with patch.object(REPORTER.xcresult.subprocess, "run", side_effect=subprocess.TimeoutExpired("simctl", 10)):
+                files = REPORTER.xcresult.capture_simulator_context(output, udid, "Trinket Agent 1")
+            self.assertIn("timed out", Path(files[0]).read_text())
+
     def test_structured_sources_are_authoritative_and_deduplicated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -56,6 +56,12 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift` and parsed by
 screen-readiness assertions measure their destination rather than cold artwork
 preparation. Its bounded timeout lives in `TrinketUITestCase`; a warmup timeout
 fails explicitly instead of being reported as a missing destination.
+The cover query targets `otherElements` rather than every accessibility element.
+Only the exact XCTest system snapshot timeout during this preparation phase is
+marked for one CI infrastructure retry. Gameplay query timeouts and readiness
+assertions remain failures. Failure attachments record the phase and runtime;
+snapshot failures omit another hierarchy query. Both original and retry evidence
+remain available in the hosted diagnostics artifact after successful recovery.
 
 Common screen-entry arguments are `-launch-screen` and `-selectedTab`; state
 seeding uses `-completed-stages`, `-starting-gold`, and the reset/cloud-sync

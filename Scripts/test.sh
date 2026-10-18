@@ -350,6 +350,7 @@ if [[ "$NO_BUILD" == "false" ]]; then
   begin_build_stamps "$RESULTS_DIR" "$RUN_FINGERPRINT"
 fi
 phase_started="$(python3 Scripts/phase-timing.py begin)"
+export TRINKET_FAILURE_SIMULATOR_UDID="${SIMULATOR_UDID:-}"
 xcode_runner_run "${runner_args[@]}" -- xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
 
 TEST_WALL_SECONDS=$SECONDS

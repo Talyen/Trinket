@@ -152,11 +152,24 @@ identified infrastructure-failed cases once on the same runner. This requires a
 complete original result, execution evidence for every requested class, no skipped
 or unexecuted cases, and specific infrastructure issues for every failed case.
 Mixed assertions, incomplete results, and unknown failures remain failures. The
-original failure manifest/report stay intact until normal successful-artifact cleanup;
+UI fixture marks the exact XCTest system snapshot timeout only while waiting for
+launch preparation. That phase-qualified signature is eligible for the same single
+targeted retry; unmarked query timeouts during gameplay remain test failures.
+Failure context records the phase, elapsed time, runtime, and application state.
+A snapshot timeout skips another hierarchy query, and an empty XCTest screenshot
+is reported as unavailable rather than exported as an empty PNG.
+The reporter also attempts a post-invocation simulator screenshot and recent app/test
+logs through bounded `simctl` calls while the test lease is held. It verifies the
+exact simulator UUID, name, and booted state first; failed capture never changes the
+test result. These attachments describe the state after the invocation, not the
+exact instant of the test failure.
+The original failure manifest/report stay intact until normal successful-artifact cleanup;
 `infrastructure_recovery` links the
 successful retry and both execution sets. The aggregate validates that proof before
 reporting recovery, and preserves the recovered failure in its structured evidence.
-After staging, verified recovered pairs are cleaned together as passing coverage;
+Recovered invocations retain both attempts' raw logs, result bundles, and attachments
+in the 14-day hosted diagnostic artifact even when the final gate passes. After
+staging, verified recovered pairs are cleaned together locally as passing coverage;
 unrecovered failures retain their forensic artifacts.
 The managed simulator is re-prepared for the targeted retry. Whole-suite retries
 are disabled only inside this CI wrapper; other callers retain their existing policy.
@@ -235,7 +248,8 @@ verification or the pre-push gates.
 
 CI uploads a structured-first artifact. The test job stages manifests,
 bounded reports, the aggregate, and timing data; raw logs, `.xcresult` bundles, and
-attachments are staged only when the aggregate category is failed or unknown. Use
+attachments are staged when the aggregate category is failed or unknown, or a
+targeted infrastructure retry recovered the run. Use
 `python3 ./Scripts/ci-diagnostics.py --full <RESULTS_DIR> <OUTPUT_PATH>` when an investigation
 needs the uncompressed aggregate invocation payload.
 

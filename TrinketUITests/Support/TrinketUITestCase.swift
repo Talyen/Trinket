@@ -145,6 +145,8 @@ class TrinketUITestCase: XCTestCase {
     private(set) var app: XCUIApplication!
     private let storeName = UUID().uuidString
     private var hasCapturedFailureScreenshot = false
+    private var failurePhase = "setup"
+    private var phaseStartedAt = Date.now
 
     var play: PlayScreen {
         PlayScreen(app: app)
@@ -169,6 +171,8 @@ class TrinketUITestCase: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
         hasCapturedFailureScreenshot = false
+        failurePhase = "setup"
+        phaseStartedAt = .now
         continueAfterFailure = false
     }
 
@@ -176,15 +180,33 @@ class TrinketUITestCase: XCTestCase {
         var recordedIssue = issue
         if issue.isFailure, !hasCapturedFailureScreenshot, let app {
             hasCapturedFailureScreenshot = true
+            let snapshotTimeout = issue.type == .system && issue.compactDescription.contains(
+                "Failed to get matching snapshots: Timed out while evaluating UI query.",
+            )
+            if snapshotTimeout, failurePhase == "launch-preparation" {
+                recordedIssue.compactDescription = "[Trinket launch snapshot timeout] \(issue.compactDescription)"
+            }
+            let context = XCTAttachment(
+                string:
+                "Phase: \(failurePhase)\nElapsed: \(Date.now.timeIntervalSince(phaseStartedAt))s\n"
+                    + "Application state: \(app.state.rawValue)\n"
+                    + "Runtime: \(ProcessInfo.processInfo.operatingSystemVersionString)\n"
+                    + "Launch arguments: \(app.launchArguments.joined(separator: " "))",
+            )
+            context.name = "Failure Context"
+            context.lifetime = .keepAlways
+            recordedIssue.attachments.append(context)
             let imageData = trinketOnMainActor { XCUIScreen.main.screenshot().pngRepresentation }
-            let attachment = XCTAttachment(data: imageData, uniformTypeIdentifier: "public.png")
+            let attachment = imageData.isEmpty
+                ? XCTAttachment(string: "XCTest returned an empty screenshot; see host simulator diagnostics.")
+                : XCTAttachment(data: imageData, uniformTypeIdentifier: "public.png")
             attachment.name = "Failure Screenshot"
             attachment.lifetime = .keepAlways
             recordedIssue.attachments.append(attachment)
             let description = trinketOnMainActor {
-                app.state == .runningForeground
+                app.state == .runningForeground && !snapshotTimeout
                     ? app.debugDescription
-                    : "Application state: \(app.state.rawValue); no foreground application hierarchy."
+                    : "Application state: \(app.state.rawValue); hierarchy omitted after a snapshot timeout or background exit."
             }
             let bounded = description.count > 24000
                 ? String(description.prefix(12000)) + "\n… hierarchy middle omitted …\n" + String(description.suffix(12000))
@@ -204,6 +226,8 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func launchApp(arguments: [String] = [], waitForPreparation: Bool = true) {
+        failurePhase = "app-launch"
+        phaseStartedAt = .now
         app = XCUIApplication()
         var launchArgs = arguments
         launchArgs.append(contentsOf: ["-store-name", storeName])
@@ -216,6 +240,9 @@ class TrinketUITestCase: XCTestCase {
         app.launch()
         if waitForPreparation {
             waitForLaunchPreparation()
+        } else {
+            failurePhase = "interaction"
+            phaseStartedAt = .now
         }
     }
 
@@ -283,7 +310,13 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func waitForLaunchPreparation() {
-        let warmup = app.descendants(matching: .any)
+        failurePhase = "launch-preparation"
+        phaseStartedAt = .now
+        defer {
+            failurePhase = "interaction"
+            phaseStartedAt = .now
+        }
+        let warmup = app.otherElements
             .matching(identifier: AccessibilityID.Screen.launchWarmup)
             .firstMatch
         XCTAssertTrue(
