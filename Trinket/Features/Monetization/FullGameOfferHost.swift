@@ -1,3 +1,4 @@
+import Observation
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
@@ -12,14 +13,13 @@ extension View {
 }
 
 private struct FullGameOfferHost: ViewModifier {
-    @State private var offer: PreparedFullGameOffer?
-    @State private var preparation: Task<Void, Never>?
-    @State private var artworkLease: PreparedArtworkLease?
+    @State private var presentation = FullGameOfferPresentation()
 
     func body(content: Content) -> some View {
-        content
-            .environment(\.requestFullGameOffer, present)
-            .sheet(item: $offer, onDismiss: releaseArtwork) { offer in
+        @Bindable var presentation = presentation
+        return content
+            .environment(\.requestFullGameOffer, presentation.requestAction)
+            .sheet(item: $presentation.offer, onDismiss: presentation.releaseArtwork) { offer in
                 NavigationStack {
                     FullGameOfferView(artwork: offer.artwork)
                 }
@@ -28,14 +28,29 @@ private struct FullGameOfferHost: ViewModifier {
                 .presentationDragIndicator(.visible)
             }
             .onDisappear {
-                preparation?.cancel()
-                if offer == nil {
-                    releaseArtwork()
-                }
+                presentation.disappeared()
             }
     }
+}
 
-    private func present(_ requested: FullGameOfferOrigin) {
+@MainActor
+@Observable
+private final class FullGameOfferPresentation {
+    var offer: PreparedFullGameOffer?
+    @ObservationIgnored private var preparation: Task<Void, Never>?
+    @ObservationIgnored private var artworkLease: PreparedArtworkLease?
+    @ObservationIgnored lazy var requestAction = FullGameOfferRequestAction { [weak self] origin in
+        self?.present(origin)
+    }
+
+    func disappeared() {
+        preparation?.cancel()
+        if offer == nil {
+            releaseArtwork()
+        }
+    }
+
+    func present(_ requested: FullGameOfferOrigin) {
         guard offer == nil, preparation == nil else { return }
         preparation = Task { @MainActor in
             let artwork = artwork(for: requested)
@@ -76,7 +91,7 @@ private struct FullGameOfferHost: ViewModifier {
         }
     }
 
-    private func releaseArtwork() {
+    func releaseArtwork() {
         artworkLease?.release()
         artworkLease = nil
     }

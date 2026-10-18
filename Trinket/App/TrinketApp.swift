@@ -185,6 +185,7 @@ private struct PreparedAppRoot: View {
     @Environment(\.displayScale) private var displayScale
     private let artworkCache = PreparedArtworkCache.shared
     @State private var preparation: LaunchPreparation
+    @State private var playSFXAction: SFXAction
 
     let appState: AppState
     let priorityImageNames: [String]
@@ -192,6 +193,9 @@ private struct PreparedAppRoot: View {
     init(appState: AppState, priorityImageNames: [String]) {
         self.appState = appState
         self.priorityImageNames = priorityImageNames
+        _playSFXAction = State(initialValue: SFXAction { id, volume in
+            appState.sfxPlayer.play(id, volume: volume)
+        })
         _preparation = State(initialValue: LaunchPreparation(
             isPreparationDelayComplete: AppEnvironment.shared.launchPreparationDelay == 0,
         ))
@@ -251,38 +255,36 @@ private struct PreparedAppRoot: View {
         .environment(appState.options)
         .environment(appState.playerSave)
         .environment(battleSession)
-        .environment(\.playSFX) { id, volume in
-            appState.sfxPlayer.play(id, volume: volume)
-        }
+        .environment(\.playSFX, playSFXAction)
         #if DEBUG
-        .coverageTestEnvironment(playerSave: appState.playerSave)
+            .coverageTestEnvironment(playerSave: appState.playerSave)
         #endif
-        .task {
-            await runPurchaseSync()
-        }
-        .onChange(of: appState.fullGame.ownership) { _, _ in
-            appState.synchronizePurchaseAccess()
-        }
-        .task {
-            await runPreparationDelay()
-        }
-        .task {
-            await runResourcePreparation()
-        }
-        .onChange(of: isPreparationComplete, initial: false) { _, isComplete in
-            guard isComplete, !preparation.didCompleteLaunchPreparation else { return }
-            // Capture the encounter identity once so later encounters cannot
-            // reopen the cover; the retained underlay is decorative only.
-            preparation.acknowledge(.launchEncounterTokenChanged(
-                appState.shellSession.selectedTab == .play ? activeEncounterID : nil,
-            ))
-            preparation.acknowledge(.launchPreparationComplete)
-        }
-        .onChange(of: activeEncounterID) { _, encounterID in
-            if preparation.launchEncounterToken != encounterID {
-                preparation.acknowledge(.launchEncounterTokenChanged(nil))
+            .task {
+                await runPurchaseSync()
             }
-        }
+            .onChange(of: appState.fullGame.ownership) { _, _ in
+                appState.synchronizePurchaseAccess()
+            }
+            .task {
+                await runPreparationDelay()
+            }
+            .task {
+                await runResourcePreparation()
+            }
+            .onChange(of: isPreparationComplete, initial: false) { _, isComplete in
+                guard isComplete, !preparation.didCompleteLaunchPreparation else { return }
+                // Capture the encounter identity once so later encounters cannot
+                // reopen the cover; the retained underlay is decorative only.
+                preparation.acknowledge(.launchEncounterTokenChanged(
+                    appState.shellSession.selectedTab == .play ? activeEncounterID : nil,
+                ))
+                preparation.acknowledge(.launchPreparationComplete)
+            }
+            .onChange(of: activeEncounterID) { _, encounterID in
+                if preparation.launchEncounterToken != encounterID {
+                    preparation.acknowledge(.launchEncounterTokenChanged(nil))
+                }
+            }
     }
 
     /// Launch cover with stable view identity: before readiness it carries
