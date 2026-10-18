@@ -10,6 +10,7 @@ trinket_prepend_pinned_tools
 DEVICE=""
 LAUNCH=true
 VERBOSE=false
+DEVICE_BUILD_CONFIGURATION=Debug
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --device|-d)
@@ -22,9 +23,12 @@ while [[ $# -gt 0 ]]; do
     --verbose|-v)
       VERBOSE=true; shift
       ;;
+    --release)
+      DEVICE_BUILD_CONFIGURATION=Release; shift
+      ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/install-device.sh [--device <name|id>] [--no-launch] [--verbose]
+Usage: ./Scripts/install-device.sh [--device <name|id>] [--release] [--no-launch] [--verbose]
 
 Builds Trinket for a connected physical iOS device, installs it, and launches
 it in the foreground. Requires a paired device with Developer Mode enabled.
@@ -33,6 +37,7 @@ Options:
   --device, -d   Device name, UDID, or CoreDevice identifier (default: first
                  available physical device)
   --no-launch    Install without launching
+  --release      Build optimized Release configuration for device performance checks
   --verbose, -v  Show xcodebuild output instead of quiet mode
 USAGE
       exit 0
@@ -77,15 +82,16 @@ trinket_run_env_print
 source ./Scripts/build-freshness.sh
 prepare_generated_inputs "$DERIVED_DATA/TestResults"
 
-echo "=== Building Trinket for device ==="
+echo "=== Building Trinket for device ($DEVICE_BUILD_CONFIGURATION) ==="
 # Generic destination keeps the build portable across physical devices so
 # --device accepts a name, UDID, or CoreDevice identifier at install time.
 source ./Scripts/lib/app-build.sh
-trinket_set_app_xcodebuild_args "$DERIVED_DATA" iphoneos 'generic/platform=iOS'
+trinket_set_app_xcodebuild_args "$DERIVED_DATA" iphoneos 'generic/platform=iOS' "$DEVICE_BUILD_CONFIGURATION"
 BUILD_ARGS=(
   "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
   -allowProvisioningUpdates
   COMPILER_INDEX_STORE_ENABLE=NO
+  ENABLE_CODE_COVERAGE=NO
 )
 
 BUILD_LOG="$DERIVED_DATA/install-device-build.log"
@@ -108,7 +114,7 @@ if [[ "${build_exit:-0}" -ne 0 ]]; then
 fi
 echo "Build succeeded."
 
-APP_PATH="$(find "$DERIVED_DATA/Build/Products" -maxdepth 2 -name 'Trinket.app' -type d -print -quit 2>/dev/null || true)"
+APP_PATH="$DERIVED_DATA/Build/Products/$DEVICE_BUILD_CONFIGURATION-iphoneos/Trinket.app"
 if [[ -z "$APP_PATH" || ! -d "$APP_PATH" ]]; then
   echo "error: could not find built Trinket.app under $DERIVED_DATA/Build/Products" >&2
   exit 1

@@ -100,9 +100,10 @@ fully within the usable area. Preserve native bar hit testing over underlapping
 content. Do not blur, duplicate or extend the interactive shelf itself as a background.
 
 `DetailHeroHeader` extends only its decorative artwork with
-`backgroundExtensionEffect()` after cropping, blending and overscroll transforms;
-no outer horizontal clip may cut off that extension. Its title and footer remain
-safe-area foreground. Full-screen scenes extend only their background layer with
+`backgroundExtensionEffect()` after cropping and blending, then applies overscroll
+transforms to the extended artwork together. No outer horizontal clip may cut off
+that extension. Its title and footer remain safe-area foreground. Full-screen
+scenes extend only their background layer with
 `ignoresSafeArea`. Primary actions and their costs stay together inside the content
 area; `safeAreaInset` reserves scrolling space for pinned docks. Back, Close,
 navigation, filters and global actions retain native placement. Meaningful numeric

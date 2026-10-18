@@ -47,6 +47,8 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
             .frame(height: baseHeight)
             .overlay {
                 extendedArtwork
+                    .scaleEffect(baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1, anchor: .top)
+                    .offset(y: -overscroll)
                     .allowsHitTesting(false)
             }
             .overlay(alignment: .bottomLeading) {
@@ -68,8 +70,6 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                 .clipped()
         }
         .trinketBottomArtworkBlend()
-        .scaleEffect(baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1, anchor: .top)
-        .offset(y: -overscroll)
     }
 
     @ViewBuilder

@@ -26,7 +26,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `./Scripts/update-tools.sh [--apply]` | Report newer SwiftFormat/SwiftLint releases; with `--apply`, bump the pins in `tool-versions.env` (checksummed) and re-install |
 | `./Scripts/run-simulator.sh [--isolate] [--agent N] [--inspect]` | Build, resolve the app from the Trinket target’s Xcode build settings (60-second query limit), and launch on a managed simulator (default Trinket Run; `--isolate` acquires an available agent lease or reuses an inherited lease; `--agent N` requires an existing parent lease for that slot and does not acquire one); `--inspect` holds the lease in a terminal until `stop` or input closes (see [inspection workflow](../Docs/Platform/SimulatorOperations.md#inspection-lease-and-capture)) — also available as `trinket-run` alias via `node Scripts/setup-git-safety.mjs` |
 | `./Scripts/promote.sh [--quiet]` | Build once under an isolated lease and install that app only on Trinket Run; build/install failures fail the command (also via `handoff.sh --mirror`) |
-| `./Scripts/install-device.sh [--device …]` | Build, install, and launch Trinket on a connected physical iOS device; auto-selects the first paired device |
+| `./Scripts/install-device.sh [--device …] [--release]` | Build, install, and launch Trinket on a connected physical iOS device; `--release` selects optimized device testing; auto-selects the first paired device |
 
 ### Localization
 

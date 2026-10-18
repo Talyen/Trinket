@@ -164,17 +164,22 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             self.assertIn(f"OBJROOT={root}/dd/Build/Intermediates.noindex", args)
             for name, body in (
                 ("xcodebuild", 'printf "%s\\n" "$@" > arguments\n'
-                 'for arg in "$@"; do if [[ "$arg" == SYMROOT=* ]]; then mkdir -p "${arg#SYMROOT=}/Debug-iphoneos/Trinket.app"; fi; done\n'),
+                 'configuration=Debug\n'
+                 'for ((i=1; i<=$#; i++)); do if [[ "${!i}" == -configuration ]]; then next=$((i+1)); configuration="${!next}"; fi; done\n'
+                 'for arg in "$@"; do if [[ "$arg" == SYMROOT=* ]]; then mkdir -p "${arg#SYMROOT=}/$configuration-iphoneos/Trinket.app"; fi; done\n'),
                 ("xcrun", 'printf "%s\\n" "$@" > installed\n'),
             ):
                 write_executable(root / name, '#!/bin/bash\n' + body)
-            run_captured([str(scripts / "install-device.sh"), "--device", "fixture", "--no-launch"], env=env, expected=0)
-            args = (root / "arguments").read_text().splitlines()
             products = f"{root}/.DerivedData/Device/Build/Products"
-            self.assertIn(f"SYMROOT={products}", args)
-            self.assertIn("-allowProvisioningUpdates", args)
-            self.assertNotIn("CODE_SIGNING_ALLOWED=NO", args)
-            self.assertIn(f"{products}/Debug-iphoneos/Trinket.app", (root / "installed").read_text())
+            for flags, configuration in (([], "Debug"), (["--release"], "Release")):
+                with self.subTest(configuration=configuration):
+                    run_captured([str(scripts / "install-device.sh"), "--device", "fixture", "--no-launch", *flags], env=env, expected=0)
+                    args = (root / "arguments").read_text().splitlines()
+                    self.assertIn(f"SYMROOT={products}", args)
+                    self.assertIn("-allowProvisioningUpdates", args)
+                    self.assertNotIn("CODE_SIGNING_ALLOWED=NO", args)
+                    self.assertEqual(args[args.index("-configuration") + 1], configuration)
+                    self.assertIn(f"{products}/{configuration}-iphoneos/Trinket.app", (root / "installed").read_text())
 
     def test_analyzer_requires_coverage_and_propagates_build_failure(self):
         with tempfile.TemporaryDirectory() as directory:
