@@ -41,11 +41,11 @@ extension HealingEngine {
         prepareFreeManaEmpowermentAfterOverheal(request: request, triggers: sourceTriggers, in: &context)
         if sourceTriggers?.wishspring == true,
            let sourceID = request.sourceActorID,
-           context.roster.combatant(for: sourceID)?.isAlive == true {
+           let source = context.roster.combatant(for: sourceID), source.isAlive {
             await context.restoreManaEmitting(
                 CombatRounding.scaled(overflow, multiplier: 0.5), to: request.target,
                 abilityName: "Wishspring",
-                source: context.roster.combatant(for: request.sourceActorID ?? "")?.combatant,
+                source: source.combatant,
             )
         }
         applyBlockOverhealConversion(

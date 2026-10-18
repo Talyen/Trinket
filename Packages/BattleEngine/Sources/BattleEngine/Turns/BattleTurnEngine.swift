@@ -32,8 +32,8 @@ package enum BattleTurnEngine {
 
         context.nextEvent(
             kind: .effect(.controlActionSkipped),
-            source: .init(actorID: nil, name: keyword.statusAlias ?? keyword.rawValue),
-            abilityName: keyword.statusAlias ?? keyword.rawValue,
+            source: .init(actorID: nil, name: keyword.statusName),
+            abilityName: keyword.statusName,
             target: actor,
             amount: 0,
             keyword: keyword,

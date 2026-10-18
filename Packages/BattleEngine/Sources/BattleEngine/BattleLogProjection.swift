@@ -133,7 +133,7 @@ public struct LogEntry: Identifiable, Equatable {
             case .deathsDoorExpired: resources = [L10n.log_door_fades(target)]
             case .controlTriggered: resources = [L10n.log_control(
                     target,
-                    ContentCopy.resource(event.keyword.statusAlias ?? event.keyword.rawValue),
+                    ContentCopy.resource(event.keyword.statusName),
                 )]
             case .shieldApplied: resources = [L10n.log_block(target, event.amount, ability)]
             case .instantHeal, .leechHeal: resources = [L10n.log_heal(target, event.amount, ability)]

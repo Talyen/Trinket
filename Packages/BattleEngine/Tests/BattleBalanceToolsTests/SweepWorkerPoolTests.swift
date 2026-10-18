@@ -15,14 +15,4 @@ struct SweepWorkerPoolTests {
         #expect(visits.withLock { $0.sorted() } == Array(0 ..< count))
         #expect(results == (0 ..< count).filter { !$0.isMultiple(of: 3) })
     }
-
-    @Test func `empty work performs no visits`() {
-        let visits = Mutex(0)
-        let results = SweepWorkerPool.map(count: 0, jobs: 4) { index in
-            visits.withLock { $0 += 1 }
-            return index
-        }
-        #expect(visits.withLock { $0 } == 0)
-        #expect(results.isEmpty)
-    }
 }

@@ -177,7 +177,10 @@ def content_sources(root: Path, *, bootstrap_keys: dict | None = None) -> dict:
                     if literal[end] == ')': depth -= 1
                     end += 1
                 expression = literal[start:end - 1]
-                if depth or not (expression in {'actual', 'percent'} or expression.startswith('CombatRounding.rounded(')):
+                if depth or not (
+                    expression in {'actual', 'percent'}
+                    or expression.startswith(('CombatRounding.rounded(', 'Self.wholePercent('))
+                ):
                     raise ValueError(f'{compatibility.relative_to(root)}: unsupported description interpolation {expression!r}; add a typed adapter')
                 result += '1'
                 cursor = end

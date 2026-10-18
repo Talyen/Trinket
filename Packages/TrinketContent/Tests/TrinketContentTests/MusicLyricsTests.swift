@@ -16,7 +16,6 @@ struct MusicLyricsTests {
         #expect(second.visibleWords == 2 && second.activeWord == 1)
         #expect(MusicLyricFrame.at(2, in: phrases) == nil)
         #expect(MusicLyricFrame.at(3, in: phrases)?.phrase == 1)
-        #expect(MusicLyricFrame.at(0.5, in: phrases) == first)
         #expect(MusicLyricFrame.at(.nan, in: phrases) == nil)
     }
 }

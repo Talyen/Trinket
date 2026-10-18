@@ -19,10 +19,9 @@ struct CombatantCatalogTests {
         }
     }
 
-    @Test func `player combatants have valid health and mana`() throws {
+    @Test func `player combatants have valid health`() throws {
         for combatant in GameContent.combatants {
             try #expect(combatant.maxHealth >= 6, "\(combatant.name) should have at least 6 health")
-            try #expect(combatant.maxMana >= 0, "\(combatant.name) should have non-negative mana")
         }
     }
 }

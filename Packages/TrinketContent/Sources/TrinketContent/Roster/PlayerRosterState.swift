@@ -234,11 +234,8 @@ public struct PlayerRosterState: Equatable, Sendable {
         let progression = CombatantProgression.at(level: level)
         unlockedHeroIDs = Set(GameContent.heroes.map(\.id))
         unlockedCompanionIDs = Set(GameContent.companions.map(\.id))
-        for heroID in unlockedHeroIDs {
-            progressions[heroID] = progression
-        }
-        for companionID in unlockedCompanionIDs {
-            progressions[companionID] = progression
+        for combatantID in unlockedHeroIDs.union(unlockedCompanionIDs) {
+            progressions[combatantID] = progression
         }
     }
 

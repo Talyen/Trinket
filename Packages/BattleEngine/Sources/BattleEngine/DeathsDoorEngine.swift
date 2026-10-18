@@ -293,6 +293,8 @@ package enum DeathsDoorEngine {
         else { return }
         let maxHealth = context.roster.maxHealth(for: combatant)
         let currentHealth = context.roster.health(for: combatant)
+        // `deathsDoorExpiredHealFlat` is a health floor, not a flat heal: it only
+        // tops up a survivor below that value (see DeathsDoorEngineTests).
         let delta = min(max(currentHealth, amount), maxHealth) - currentHealth
         guard delta > 0 else { return }
         _ = await HealingEngine.resolveHeal(

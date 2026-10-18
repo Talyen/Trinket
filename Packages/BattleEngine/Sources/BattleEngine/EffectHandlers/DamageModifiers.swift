@@ -10,14 +10,14 @@ extension EffectHandlers {
         }) else { return nil }
 
         if meter.effect.isActionSkipPending {
-            let alias = ContentCopy.resource(keyword.statusAlias ?? keyword.rawValue)
+            let alias = ContentCopy.resource(keyword.statusName)
             if meter.isAwaitingActionSkip {
                 return EffectSummary(keyword: keyword, resource: L10n.summary_damagemodifiers_a54b991fe1d3(alias))
             }
             return EffectSummary(keyword: keyword, resource: L10n.summary_damagemodifiers_86246b48dd06(alias, keyword.nameResource))
         }
         guard let values = meter.effect.controlMeterValues else { return nil }
-        let alias = ContentCopy.resource(keyword.statusAlias ?? keyword.rawValue)
+        let alias = ContentCopy.resource(keyword.statusName)
         let progress = Double(max(0, values.amount)) * 100 / Double(max(1, values.threshold))
         let percent = min(99, CombatRounding.rounded(progress.rounded(.down)))
         return EffectSummary(

@@ -1,6 +1,12 @@
 import TrinketCore
 
 extension InventoryItem {
+    /// Rounds a stored fraction to a whole percent without trapping on a
+    /// fractional value beyond `Int.max / 100`.
+    private static func wholePercent(_ fraction: Double) -> Int {
+        CombatRounding.rounded(min(fraction, Double(Int.max) / 100) * 100)
+    }
+
     static func normalizedPower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {
         let power = normalizedCombatProcPower(original, affixID: affixID) ?? normalizedRulePower(original, affixID: affixID)
         var description = power.description
@@ -41,7 +47,7 @@ extension InventoryItem {
         case "shredding":
             let actual = max(triggers.ignoreEnemyMitigationPercent, triggers.physicalIgnoreMitigationPercent)
             guard actual > 0 else { return original }
-            description = "Your Physical damage ignores \(CombatRounding.rounded(min(actual, Double(Int.max) / 100) * 100))% of enemy damage reduction"
+            description = "Your Physical damage ignores \(Self.wholePercent(actual))% of enemy damage reduction"
             if triggers.physicalIgnoreMitigationPercent >= triggers.ignoreEnemyMitigationPercent, original.description == description {
                 return original
             }
@@ -85,7 +91,7 @@ extension InventoryItem {
             return false
         }), case let .leechGainedPercent(amount) = modifier else { return power }
         return ItemAffixPower(
-            description: "Leech restores an additional \(CombatRounding.rounded(min(amount, Double(Int.max) / 100) * 100))% of damage dealt",
+            description: "Leech restores an additional \(Self.wholePercent(amount))% of damage dealt",
             modifiers: power.modifiers, triggers: power.triggers,
         )
     }
@@ -158,7 +164,7 @@ extension InventoryItem {
             if triggers.healthRestoredNextPoisonDamagePercent == 0.5 {
                 description = "Your next Poison attack gains bonus damage equal to half your latest healing received"
             } else {
-                let percent = CombatRounding.rounded(min(triggers.healthRestoredNextPoisonDamagePercent, Double(Int.max) / 100) * 100)
+                let percent = Self.wholePercent(triggers.healthRestoredNextPoisonDamagePercent)
                 description = "Your next Poison attack gains bonus damage equal to \(percent)% of your latest healing received"
             }
         case "beacon":

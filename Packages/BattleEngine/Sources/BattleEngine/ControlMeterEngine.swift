@@ -118,7 +118,7 @@ package enum ControlMeterEngine {
             }
         }
 
-        let abilityName = keyword.statusAlias ?? keyword.rawValue
+        let abilityName = keyword.statusName
         context.nextEvent(
             kind: .effect(.controlTriggered),
             source: context.eventSource(actorID: sourceActorID, fallback: combatant),

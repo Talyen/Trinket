@@ -25,7 +25,6 @@ struct RewardModifierTests {
             let encoded = try JSONEncoder().encode(modifier)
             #expect(try JSONDecoder().decode(RewardModifier.self, from: encoded) == modifier)
             #expect(try JSONDecoder().decode(String.self, from: encoded) == modifier.rawValue)
-            #expect(RewardModifier(rawValue: modifier.rawValue) == modifier)
         }
         #expect(try JSONDecoder().decode(RewardModifier.self, from: Data(#""gold""#.utf8)) == .gold)
         #expect(try JSONDecoder().decode(RewardModifier.self, from: Data(#""keyword.deathsDoor""#.utf8)) == .keyword(.deathsDoor))

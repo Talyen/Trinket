@@ -43,7 +43,6 @@ struct KeywordHighlightTests {
         #expect(burning.displayTextShine == .itemText(colors: [Keyword.burn.visualStyle.color]))
         #expect(poisoned.displayTextShine == .itemText(colors: [Keyword.poison.visualStyle.color]))
         #expect(item(description: "An ordinary trait.").displayTextShine == .none)
-        #expect(burning.displayTextShine == .itemText(colors: [Keyword.burn.visualStyle.color]))
     }
 
     @Test func `keyword terms carry their matching color`() {

@@ -36,8 +36,8 @@ struct PlayerRosterStateTests {
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configured = roster.configuredCombatant(enemy)
 
-        try #expect(configured.abilityLoadout.skill?.tier == .skill)
-        try #expect(configured.abilityLoadout.ultimate?.tier == .ultimate)
+        try #expect(!enemy.abilities.isEmpty)
+        try #expect(configured.abilities.map(\.id) == enemy.abilities.map(\.id))
     }
 
     @Test func `active selection rejects locked and wrong role combatants`() throws {

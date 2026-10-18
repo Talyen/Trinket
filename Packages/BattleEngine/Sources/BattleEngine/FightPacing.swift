@@ -22,35 +22,25 @@ package enum FightPacing {
         var burnFractionAtTarget: Double
         var backstopSpan: Double
 
-        static let trash = Self(
-            evenThreshold: 0.10,
-            maxDelta: 0.50,
-            comebackMin: 0.10,
-            comebackMax: 0.20,
-            scheduleThreshold: 0.03,
-            gapFullScale: 0.10,
-            clockMin: 0.10,
-            clockMax: 0.20,
-            targetRounds: 7.5,
-            maxRounds: 10,
-            burnFractionAtTarget: 0.50,
-            backstopSpan: 4,
-        )
+        static let trash = config(targetRounds: 7.5, maxRounds: 10)
+        static let boss = config(targetRounds: 15.0, maxRounds: 20)
 
-        static let boss = Self(
-            evenThreshold: 0.10,
-            maxDelta: 0.50,
-            comebackMin: 0.10,
-            comebackMax: 0.20,
-            scheduleThreshold: 0.03,
-            gapFullScale: 0.10,
-            clockMin: 0.10,
-            clockMax: 0.20,
-            targetRounds: 15.0,
-            maxRounds: 20,
-            burnFractionAtTarget: 0.50,
-            backstopSpan: 4,
-        )
+        private static func config(targetRounds: Double, maxRounds: Int) -> Self {
+            Self(
+                evenThreshold: 0.10,
+                maxDelta: 0.50,
+                comebackMin: 0.10,
+                comebackMax: 0.20,
+                scheduleThreshold: 0.03,
+                gapFullScale: 0.10,
+                clockMin: 0.10,
+                clockMax: 0.20,
+                targetRounds: targetRounds,
+                maxRounds: maxRounds,
+                burnFractionAtTarget: 0.50,
+                backstopSpan: 4,
+            )
+        }
     }
 
     package struct PoolMetrics: Equatable {
