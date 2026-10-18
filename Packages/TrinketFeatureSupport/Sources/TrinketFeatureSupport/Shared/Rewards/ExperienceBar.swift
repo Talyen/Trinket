@@ -321,9 +321,9 @@ public struct ExperienceBar: View {
     }
 }
 
-/// Single-use presentation constants for `ExperienceBar` are inlined above:
-/// portrait 58pt, 3:4 source, ring 0.82/1.5pt; flow dot 6/8pt with 0.25 brightness;
-/// level-up 0.20 brightness, 1.35 vertical scale, 1.08 label scale.
+// Single-use presentation constants for `ExperienceBar` are inlined above:
+// portrait 58pt, 3:4 source, ring 0.82/1.5pt; flow dot 6/8pt with 0.25 brightness;
+// level-up 0.20 brightness, 1.35 vertical scale, 1.08 label scale.
 
 private struct ExperienceProgress: View, Animatable {
     nonisolated var fraction: Double
