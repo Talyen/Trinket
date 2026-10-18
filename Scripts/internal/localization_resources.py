@@ -122,6 +122,7 @@ def generated_resources(root: Path, catalogs: dict) -> dict[Path, bytes]:
                           f'            (L10n.{key.replace(".", "_")}{args}, {quantities})'])
         lines.extend(['        default: numericMatch(english)', '        }', '    }', '',
                       '    private struct NumericTemplate: Sendable {',
+                      '        let prefix: String',
                       '        let regex: NSRegularExpression?',
                       '        let count: Int',
                       '        let make: @Sendable ([Int]) -> LocalizedStringResource', '    }', '',
@@ -132,19 +133,22 @@ def generated_resources(root: Path, catalogs: dict) -> dict[Path, bytes]:
             if not numbers:
                 continue
             pieces = re.split(r'\d+', numeric_source(entry['text']))
+            # Optional plurals are regex syntax, so only retain the literal
+            # prefix preceding them for the cheap rejection path.
+            prefix = re.split(r'\b(?:buff|debuff|card|turn|round)s?\b', pieces[0], maxsplit=1)[0]
             pattern = '^' + '([0-9]+)'.join(map(re.escape, pieces)) + '$'
             pattern = re.sub(r'\b(buff|debuff|card|turn|round)s?\b', r'\1s?', pattern)
             if pattern in seen_patterns:
                 continue
             seen_patterns.add(pattern)
             args = ', '.join(f'values[{index}]' for index in range(len(numbers)))
-            lines.append(f'        NumericTemplate(regex: try? NSRegularExpression(pattern: {swift_string(pattern)}), count: {len(numbers) }, make: {{ values in L10n.{key.replace(".", "_")}({args}) }}),')
+            lines.append(f'        NumericTemplate(prefix: {swift_string(prefix)}, regex: try? NSRegularExpression(pattern: {swift_string(pattern)}), count: {len(numbers) }, make: {{ values in L10n.{key.replace(".", "_")}({args}) }}),')
         lines.extend(['    ]', '',
                       '    private static func numericMatch(_ english: String) -> Match? {',
                       '        guard english.contains(where: { $0.isNumber }), english.contains(" "), english.contains(where: { $0.isASCII && $0.isLetter }) else { return nil }',
                       '        let source = english as NSString',
                       '        let fullRange = NSRange(location: 0, length: source.length)',
-                      '        for template in numericTemplates {',
+                      '        for template in numericTemplates where english.hasPrefix(template.prefix) {',
                       '            guard let match = template.regex?.firstMatch(in: english, range: fullRange) else { continue }',
                       '            let numbers = (1 ... template.count).compactMap { Int(source.substring(with: match.range(at: $0))) }',
                       '            guard numbers.count == template.count else { continue }',
