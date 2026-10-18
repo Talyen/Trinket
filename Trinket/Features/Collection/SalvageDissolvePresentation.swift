@@ -16,7 +16,6 @@ struct SalvageTransmutationEvent: Identifiable {
 
 struct SalvageItemButton: View {
     @Environment(\.locale) private var locale
-    @Environment(\.salvageZoomNamespace) private var zoomNamespace
     let item: InventoryItem
     var isLocked = false
     let showsName: Bool
@@ -50,8 +49,6 @@ struct SalvageItemButton: View {
     private var itemArtwork: some View {
         ItemArtwork(item: item, variant: .thumbnail)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .optionalMatchedTransitionSource(id: item.id, in: zoomNamespace)
-            // Keep the native zoom source mounted when salvage starts beneath its sheet.
             .anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { anchor in
                 isRetiring || isTransmuting ? [item.id: anchor] : [:]
             }
@@ -79,10 +76,6 @@ struct SalvageArtworkAnchors: PreferenceKey {
     static func reduce(value: inout [String: Anchor<CGRect>], nextValue: () -> [String: Anchor<CGRect>]) {
         value.merge(nextValue(), uniquingKeysWith: { _, next in next })
     }
-}
-
-extension EnvironmentValues {
-    @Entry var salvageZoomNamespace: Namespace.ID?
 }
 
 private struct SalvageTransmutationEffect: View {

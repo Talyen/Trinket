@@ -12,7 +12,6 @@ struct CollectionCombatantGridView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @State private var selectedCombatant: CombatantDetailContext?
-    @Namespace private var zoomNamespace
 
     let kind: CombatantDetailContext.Kind
 
@@ -46,15 +45,12 @@ struct CollectionCombatantGridView: View {
                     combatantID: combatant.id,
                 )
             }
-            .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
         .modifier(
             CombatantDetailSheet(
                 selection: $selectedCombatant,
-                zoomSourceID: { $0.combatantID },
-                zoomNamespace: zoomNamespace,
                 artworkNames: {
                     CombatantDetailArtwork.rosterArtworkNames(for: $0.combatantID, playerSave: playerSave)
                 },

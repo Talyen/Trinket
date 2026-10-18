@@ -6,8 +6,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 /// Shared combatant-detail sheet: artwork acquisition before presentation,
-/// zoom transition when the tap site participates in one, frame-pacing
-/// signposts when the flow measures them.
+/// native sheet motion, and optional frame-pacing signposts.
 ///
 /// Two families share this chrome with different resolvers and content:
 /// roster-backed sheets (Collection, Mystery) resolve through the save, while
@@ -18,9 +17,6 @@ import TrinketPersistence
 @MainActor
 struct CombatantDetailSheet<Selection: Hashable & Identifiable, DetailContent: View>: ViewModifier {
     @Binding var selection: Selection?
-    /// Zoom source ID for the sheet transition; nil skips the zoom.
-    var zoomSourceID: ((Selection) -> String)?
-    var zoomNamespace: Namespace.ID?
     /// Frame-pacing signpost detail; nil disables signposts for this sheet.
     var signpostDetail: ((Selection) -> String)?
     let artworkNames: (Selection) -> [String]
@@ -31,10 +27,6 @@ struct CombatantDetailSheet<Selection: Hashable & Identifiable, DetailContent: V
             NavigationStack {
                 detailContent(selection)
             }
-            .modifier(CombatantDetailZoom(
-                sourceID: zoomSourceID?(selection),
-                namespace: zoomNamespace,
-            ))
             .trinketDetailSheet()
             .modifier(CombatantDetailSignposts(detail: signpostDetail?(selection)))
         }
@@ -53,19 +45,6 @@ enum CombatantDetailArtwork {
             equipmentLoadout: playerSave.roster.equipmentLoadout(for: combatant),
             inventoryItems: playerSave.inventory.items,
         )
-    }
-}
-
-private struct CombatantDetailZoom: ViewModifier {
-    let sourceID: String?
-    let namespace: Namespace.ID?
-
-    func body(content: Content) -> some View {
-        if let sourceID, let namespace {
-            content.navigationTransition(.zoom(sourceID: sourceID, in: namespace))
-        } else {
-            content
-        }
     }
 }
 

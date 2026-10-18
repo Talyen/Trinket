@@ -15,7 +15,6 @@ struct CollectionView: View {
     @State private var salvageDetail = SalvageDetailState()
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var artworkPins = PreparedArtworkPinSet()
-    @Namespace private var zoomNamespace
 
     let consumePendingPresentation: () -> LaunchPresentation?
 
@@ -47,8 +46,6 @@ struct CollectionView: View {
             .modifier(
                 CombatantDetailSheet(
                     selection: $selectedCombatant,
-                    zoomSourceID: { $0.combatantID },
-                    zoomNamespace: zoomNamespace,
                     signpostDetail: { "collectionCombatant=\($0.combatantID)" },
                     artworkNames: {
                         CombatantDetailArtwork.rosterArtworkNames(for: $0.combatantID, playerSave: playerSave)
@@ -238,7 +235,6 @@ struct CollectionView: View {
                 ) {
                     presentCombatant(CombatantDetailContext(kind: kind, combatantID: combatant.id))
                 }
-                .matchedTransitionSource(id: combatant.id, in: zoomNamespace)
                 .trinketCollectionShelfCardWidth()
             }
         }

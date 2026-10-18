@@ -32,6 +32,12 @@ Item-label shine derivation uses a bounded cache keyed by the full immutable ite
 value, so changed affixes or powers cannot reuse stale appearance. Cached colors
 remain semantic values; resolve them in the rendering environment.
 
+Sheets use standard native SwiftUI motion throughout the app. Do not
+attach source-linked zoom transitions to sheets; interactive zoom dismissal can
+visibly jump on physical devices. Preserve the existing detents, native drag to
+dismiss, artwork preparation, and dismissal cleanup. Navigation-stack pushes keep
+their existing transitions.
+
 Use current SwiftUI per [Current vs banned SwiftUI](../Platform/ApplePlatformReference.md#current-vs-banned-swiftui).
 Apply the shared [content beside native bars](../Platform/ApplePlatformReference.md#content-beside-native-bars)
 policy to all screens, including grids, shelves, action docks and custom gameplay input.

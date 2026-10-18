@@ -204,7 +204,7 @@
     ],
     "tests": [
       "Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/PreparedArtworkCacheTests.swift",
-      "Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/PreparedArtworkMemoryBudgetTests.swift"
+      "Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/PreparedArtworkPinSetTests.swift"
     ],
     "contracts": [
       "Docs/AgentContext/ui-performance.md"

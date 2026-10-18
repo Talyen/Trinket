@@ -8,14 +8,12 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(OptionsStore.self) private var options
     @Environment(\.playSFX) private var playSFX
-    @Namespace private var zoomNamespace
     @State private var artworkPins = PreparedArtworkPinSet()
     @Binding var salvageDetail: SalvageDetailState
     let hapticsEnabled: Bool
 
     func body(content: Content) -> some View {
         content
-            .environment(\.salvageZoomNamespace, zoomNamespace)
             .sheet(item: $salvageDetail.selectedItem, onDismiss: {
                 salvageDetail.detailDismissed()
                 releaseUnusedArtwork()
@@ -26,7 +24,6 @@ private struct SalvageInventoryPresentationModifier: ViewModifier {
                         item: item,
                     )
                 }
-                .navigationTransition(.zoom(sourceID: item.id, in: zoomNamespace))
             })
             .overlayPreferenceValue(SalvageArtworkAnchors.self) { anchors in
                 transmutationOverlay(anchors: anchors)

@@ -89,7 +89,7 @@ navigation during encounter presentation; only battle and the post-battle talent
 flow hide it. Failed opens and empty shops without a cover do not retain the map.
 
 Collection item inspection prepares and pins detail artwork before presenting its
-source-linked sheet. Successful salvage retains only the outgoing item's position
+native sheet. Successful salvage retains only the outgoing item's position
 and artwork through the native return and source-anchored dissolve; the saved item
 is already removed. The retiring card is noninteractive, and losing the source or
 leaving the flow ends its decorative presentation and releases the pins.
