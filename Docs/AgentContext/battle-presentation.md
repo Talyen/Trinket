@@ -272,7 +272,10 @@ space. Auto Battle reads that frame for each play without restarting its driving
 task on resize. A frame change cancels an uncommitted press or drag and its cue;
 an inspection remains held until dismissal. Layout changes never reissue committed
 commands. Battlefield metrics receive the available battlefield area; the parent
-composition owns any space reserved for the hand.
+composition owns any space reserved for the hand. Phone canvases through 500 points
+wide retain the original 224-point hand reservation and lowered fan; fitting the
+entire fan above the bottom edge must not shrink their combatants. Expanded
+canvases fit the rotated hand within their available height.
 
 Holding a hand card to inspect it preserves its held appearance and foreground
 ordering through detail-sheet presentation until dismissal. Gesture release or

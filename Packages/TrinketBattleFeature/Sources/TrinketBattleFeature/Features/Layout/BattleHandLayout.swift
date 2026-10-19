@@ -17,6 +17,8 @@ enum BattleHandLayout {
     static let fanAngleStep: CGFloat = 9
     static let fanLiftStep: CGFloat = 10
     static let bottomRise: CGFloat = 30
+    static let reservedPhoneHeight: CGFloat = 224
+    static let restingPhoneYFraction: CGFloat = 0.20
     static let fanClearance: CGFloat = 28
     static let overlapAllowance: CGFloat = 56
     struct Metrics: Equatable {
@@ -28,6 +30,10 @@ enum BattleHandLayout {
 
     static func battlefieldSize(in containerSize: CGSize) -> CGSize {
         let handFrame = frame(in: containerSize)
+        // Preserve the original phone composition; expanded canvases fit the whole fan.
+        if containerSize.width <= 500 {
+            return CGSize(width: containerSize.width, height: max(0, containerSize.height - reservedPhoneHeight + overlapAllowance))
+        }
         let existingHeight = containerSize.height - handFrame.height + overlapAllowance
 
         // The battlefield must leave the party's resource bars above
@@ -50,6 +56,14 @@ enum BattleHandLayout {
     }
 
     static func frame(in containerSize: CGSize) -> CGRect {
+        if containerSize.width <= 500 {
+            return CGRect(
+                x: 0,
+                y: containerSize.height - reservedPhoneHeight - bottomRise,
+                width: containerSize.width,
+                height: reservedPhoneHeight,
+            )
+        }
         let desiredWidth = min(maxCardWidth, max(minCardWidth, containerSize.width * widthRatio))
         let heightRatio: CGFloat = containerSize.width > containerSize.height ? 0.36 : 0.42
         let height = min(desiredWidth * aspectRatio + fanClearance, max(0, containerSize.height * heightRatio))
@@ -66,6 +80,19 @@ enum BattleHandLayout {
         cardCount: Int,
         handHeight: CGFloat,
     ) -> Metrics {
+        if containerWidth <= 500 {
+            let cardWidth = min(maxCardWidth, max(minCardWidth, containerWidth * widthRatio))
+            let overlap = cardCount > 1
+                ? min(cardWidth * 0.45, (containerWidth - cardWidth - horizontalInset * 2) / CGFloat(cardCount - 1))
+                : 0
+            let totalWidth = cardWidth + overlap * CGFloat(max(cardCount - 1, 0))
+            return Metrics(
+                cardWidth: cardWidth,
+                cardHeight: cardWidth * aspectRatio,
+                overlap: overlap,
+                startX: (containerWidth - totalWidth) / 2,
+            )
+        }
         let cardWidth = max(0, min(
             maxCardWidth,
             max(0, containerWidth - horizontalInset * 2),
@@ -104,6 +131,7 @@ enum BattleHandLayout {
         handFrame: CGRect,
     ) -> CGPoint {
         let baseOffsetY = restingOffsetY(index: index, cardCount: cardCount)
+            + (handFrame.width <= 500 ? metrics.cardHeight * restingPhoneYFraction : 0)
         return CGPoint(
             x: handFrame.midX + cardOffsetX(
                 index: index,

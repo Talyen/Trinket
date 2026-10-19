@@ -152,7 +152,10 @@ struct BattleAbilityCardView: View {
     }
 
     private var restingTranslation: CGSize {
-        CGSize(width: 0, height: restingOffsetY)
+        CGSize(
+            width: 0,
+            height: restingOffsetY + (interactionFrame.width <= 500 ? height * BattleHandLayout.restingPhoneYFraction : 0),
+        )
     }
 
     private var activeRotation: Double {

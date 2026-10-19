@@ -35,9 +35,22 @@ struct BattleHandLayoutTests {
         }
     }
 
-    @Test func `resting hand leaves party resource bars visible through compact and expanded resizing`() {
+    @Test func `phone retains the archived full width battlefield and lowered fan`() {
+        // October 11 phone composition, before the expanded-canvas hand fit changed it.
+        let size = CGSize(width: 393, height: 740)
+        let field = BattleCardGridLayout.metrics(in: BattleHandLayout.battlefieldSize(in: size))
+        #expect(abs(field.enemySize.width - 353.7) < 0.001)
+        #expect(abs(field.partySize.width - 170.85) < 0.001)
+        let frame = BattleHandLayout.frame(in: size)
+        #expect(frame == CGRect(x: 0, y: 486, width: 393, height: 224))
+        let hand = BattleHandLayout.metrics(containerWidth: size.width, cardCount: 3, handHeight: frame.height)
+        let center = BattleHandLayout.restingCenter(index: 1, metrics: hand, cardCount: 3, handFrame: frame)
+        #expect(abs(hand.cardWidth - 176.85) < 0.001)
+        #expect(abs(center.y - 639.26) < 0.001)
+    }
+
+    @Test func `resting hand leaves party resource bars visible through expanded resizing`() {
         for size in [
-            CGSize(width: 402, height: 874),
             CGSize(width: 669, height: 951),
             CGSize(width: 951, height: 669),
             CGSize(width: 874, height: 402),
