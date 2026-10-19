@@ -36,7 +36,7 @@ extension BattleFeedbackLane {
             let isBurst = actorID.map { actorID in
                 attackOwners[actorID] != nil || actionQueue.hasPendingImpact(for: actorID)
             } == true
-            let timing = CombatFeedbackAttackRecipes.timing
+            let timing = CombatFeedbackAttackRecipes.timing(isPartyMember: actorID != playback.snapshot.enemy.combatant.id)
             let windUp = actorID == nil || isPrepared ? 0 : (isBurst ? timing.preparationCap : timing.preparation)
             let revealAt = max(date, previousImpact ?? date)
             let startAt = card == nil ? revealAt : revealAt.addingTimeInterval(BattleMotion.cardDealDuration)

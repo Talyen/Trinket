@@ -210,7 +210,7 @@ public struct GameFeelPreviewView: View {
         let heroID = fixture.session.heroID ?? "hero"
         // The simulation stays suspended; only its presentation clock is exercised.
         feedback.setSuspended(false)
-        let timing = CombatFeedbackAttackRecipes.timing
+        let timing = CombatFeedbackAttackRecipes.timing(isPartyMember: true)
         let preparation = prepared ? 0 : timing.preparation
         let swing = timing.swing
         let recovery = timing.recovery

@@ -10,10 +10,13 @@ enum CombatFeedbackAttackRecipes {
         let preparationCap: TimeInterval
     }
 
-    static let timing = Timing(
-        preparation: lungeCardAttack.windUpDuration, swing: lungeCardAttack.swingDuration,
-        recovery: lungeCardAttack.recoverDuration, preparationCap: 0.08,
-    )
+    static func timing(isPartyMember: Bool) -> Timing {
+        Timing(
+            preparation: isPartyMember ? 0.10 : lungeCardAttack.windUpDuration,
+            swing: lungeCardAttack.swingDuration,
+            recovery: lungeCardAttack.recoverDuration, preparationCap: 0.08,
+        )
+    }
 
     static let lungeCardAttack = CombatantAttackReactionRecipe(
         scaleX: [

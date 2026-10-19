@@ -4,15 +4,15 @@ struct CombatantAttackMotion {
     var reaction: CombatantAttackReaction?
     var initialPose = CombatantAttackPose.rest
 
-    func duration(for reaction: CombatantAttackReaction) -> TimeInterval {
+    func duration(for reaction: CombatantAttackReaction, aim: CombatantAttackAim) -> TimeInterval {
         if let duration = reaction.duration {
             return duration
         }
-        let recipe = CombatFeedbackAttackRecipes.lungeCardAttack
+        let timing = CombatFeedbackAttackRecipes.timing(isPartyMember: aim == .towardEnemy)
         switch reaction.phase {
-        case .windUp: return recipe.windUpDuration
-        case .swing: return recipe.swingDuration
-        case .cancel, .recover: return recipe.recoverDuration
+        case .windUp: return timing.preparation
+        case .swing: return timing.swing
+        case .cancel, .recover: return timing.recovery
         case .rest: return 0
         }
     }
@@ -25,7 +25,7 @@ struct CombatantAttackMotion {
         case .swing: recipe.swingPose(aim: aim)
         case .cancel, .recover, .rest: .rest
         }
-        let duration = duration(for: reaction)
+        let duration = duration(for: reaction, aim: aim)
         let elapsed = max(0, (reaction.pausedAt ?? date).timeIntervalSince(reaction.startedAt))
         guard duration > 0, elapsed < duration else { return target }
         let spring: Spring = switch reaction.phase {
@@ -82,7 +82,7 @@ struct CombatantAttackLane<Content: View>: View {
                 isAnimating = false
                 return
             }
-            let remaining = max(0, motion.duration(for: reaction) - Date.now.timeIntervalSince(reaction.startedAt))
+            let remaining = max(0, motion.duration(for: reaction, aim: aim) - Date.now.timeIntervalSince(reaction.startedAt))
             isAnimating = remaining > 0
             try? await Task.sleep(for: .seconds(remaining))
             guard !Task.isCancelled else { return }
