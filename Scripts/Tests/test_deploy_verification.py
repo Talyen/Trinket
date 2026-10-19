@@ -14,6 +14,147 @@ DEPLOY = load_script('deploy_verification_test', 'deploy-verification.py')
 
 
 class DeployVerificationTests(unittest.TestCase):
+    def content_fixture(self, root):
+        for path, text in {
+            'Scripts/config/ui-tests.tsv': 'Smoke|SHOP|ShopTests\nFullUI||AudioTests\n',
+            'TrinketUITests/Smoke/ShopTests.swift': 'final class ShopTests: Base {\n    func testBuy() {}\n}\n',
+            'TrinketUITests/Battle/AudioTests.swift': 'final class AudioTests: Base {\n    func testMusic() {}\n}\n',
+            'TrinketUITests/Support/Base.swift': 'class Base: XCTestCase {}\n',
+            'Trinket/App.swift': 'let app = 1\n',
+            'Packages/Engine/Tests/EngineTests.swift': 'let test = 1\n',
+        }.items():
+            target = root / path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(text)
+        subprocess.run(['git', 'init', '-q', str(root)], check=True)
+
+    def commit_inputs(self, root, **changes):
+        for path, text in changes.items():
+            (root / path).write_text(text)
+        subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
+        subprocess.run(['git', '-C', str(root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                        '-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false',
+                        'commit', '-qm', 'fixture', '--allow-empty'], check=True)
+        commit = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
+        identity = dict(build=dict(commit=commit, xcode='27', sdk='27', host='arm64'),
+                        profile=dict(runtime='26.2'), root=str(root))
+        return identity, DEPLOY.Inputs(root, identity)
+
+    def test_local_ui_cache_survives_unrelated_test_commits_but_not_dependencies_or_environment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'checkout'
+            root.mkdir()
+            self.content_fixture(root)
+            identity, inputs = self.commit_inputs(root)
+            cache = DEPLOY.PhaseCache(Path(directory) / 'cache', inputs)
+            for phase in ('ui:AudioTests/testMusic', 'ui:ShopTests'):
+                cache.passed(phase, dict(commit=identity['build']['commit'], evidence='local', seconds=1), {})
+            identity2, changed = self.commit_inputs(root, **{
+                'TrinketUITests/Smoke/ShopTests.swift': 'final class ShopTests: Base {\n    func testBuy() { fixed() }\n}\n'})
+            self.assertNotEqual(identity['build']['commit'], identity2['build']['commit'])
+            reused = DEPLOY.PhaseCache(cache.root, changed)
+            self.assertIsNotNone(reused.proof('ui:AudioTests/testMusic'))
+            self.assertIsNone(reused.proof('ui:ShopTests'))
+            self.assertIsNone(reused.proof('ci'))
+            self.assertIsNone(reused.proof('ui:UnregisteredTests'))
+            self.assertEqual(changed.changed_cases(['TrinketUITests/Smoke/ShopTests.swift']), ['ShopTests'])
+            _, package_test = self.commit_inputs(root, **{'Packages/Engine/Tests/EngineTests.swift': 'let test = 2'})
+            self.assertEqual(changed.key('ui:AudioTests/testMusic'), package_test.key('ui:AudioTests/testMusic'))
+            for field in ('build', 'profile'):
+                altered = copy.deepcopy(identity2)
+                altered[field]['changed'] = 'new'
+                self.assertNotEqual(changed.key('ui:AudioTests/testMusic'), DEPLOY.Inputs(root, altered).key('ui:AudioTests/testMusic'))
+            for path in ('TrinketUITests/Support/Base.swift', 'Trinket/App.swift'):
+                _, altered = self.commit_inputs(root, **{path: (root / path).read_text() + '// changed\n'})
+                self.assertIsNone(DEPLOY.PhaseCache(cache.root, altered).proof('ui:AudioTests/testMusic'))
+
+    def test_shared_extensions_and_referenced_test_classes_invalidate_dependents(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.content_fixture(root)
+            _, initial = self.commit_inputs(root, **{'TrinketUITests/Battle/AudioTests.swift':
+                'final class AudioTests: Base {\n    func testMusic() {}\n}\nextension Base { func shared() {} }\n'})
+            _, changed = self.commit_inputs(root, **{'TrinketUITests/Battle/AudioTests.swift':
+                'final class AudioTests: Base {\n    func testMusic() {}\n}\nextension Base { func shared() { fixed() } }\n'})
+            self.assertNotEqual(initial.key('ui:ShopTests'), changed.key('ui:ShopTests'))
+            self.assertEqual(changed.changed_cases(['TrinketUITests/Battle/AudioTests.swift']), ['AudioTests', 'ShopTests'])
+            _, referenced = self.commit_inputs(root, **{
+                'TrinketUITests/Smoke/ShopTests.swift': 'final class ShopTests: Base {\n    func testBuy() { AudioTests.helper() }\n}\n',
+                'TrinketUITests/Battle/AudioTests.swift': 'final class AudioTests: Base {\n    func testMusic() {}\n    static func helper() {}\n}\n'})
+            _, edited = self.commit_inputs(root, **{'TrinketUITests/Battle/AudioTests.swift':
+                'final class AudioTests: Base {\n    func testMusic() {}\n    static func helper() { fixed() }\n}\n'})
+            self.assertNotEqual(referenced.key('ui:ShopTests'), edited.key('ui:ShopTests'))
+
+    def test_failed_ui_is_prioritized_and_cannot_reuse_previous_success_or_malformed_proof(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'checkout'
+            root.mkdir()
+            self.content_fixture(root)
+            identity, inputs = self.commit_inputs(root)
+            cache = DEPLOY.PhaseCache(Path(directory) / 'cache', inputs)
+            phase = 'ui:ShopTests'
+            cache.passed(phase, dict(commit=identity['build']['commit'], evidence='local', seconds=1), {})
+            cache.passed('ui:ShopTests/testBuy', dict(commit=identity['build']['commit'], evidence='local', seconds=1), {})
+            cache.failed('ui:ShopTests/testBuy')
+            self.assertIsNone(cache.proof('ui:ShopTests/testBuy'))
+            self.assertIsNone(cache.proof(phase))
+
+            self.assertEqual(cache.failed_cases(), ['ShopTests'])
+            commands = []
+            state = Path(directory) / 'run.json'
+            verification = DEPLOY.Verification(state, identity, True, execute=lambda command, **_: commands.append(command), cache=cache)
+            args = type('Args', (), dict(ci_only=False, focused_only=True, no_build=True))()
+            with patch.object(DEPLOY, 'capture', side_effect=lambda *args: identity['build']['commit'] if args[:2] == ('git', 'rev-parse') else ''), \
+                    patch.object(DEPLOY, 'changed_since_release', return_value=['Trinket/App.swift']), \
+                    patch.dict(DEPLOY.CRITICAL_CASES, {'audio': 'AudioTests/testMusic', 'purchase': 'ShopTests/testBuy'}, clear=True):
+                DEPLOY.verify_beta(args, verification, identity)
+            self.assertEqual(commands[0], ['./Scripts/test.sh', 'ui', '--no-build', 'ShopTests'])
+            self.assertFalse(cache.failed_cases())
+            self.assertIsNotNone(cache.proof(phase))
+            self.assertIsNone(DEPLOY.PhaseCache(cache.root, inputs).proof('ci'))
+            proof = cache.path(phase, f'-{inputs.key(phase)}')
+            value = json.loads(proof.read_text())
+            value['result'] = True
+            proof.write_text(json.dumps(value))
+            self.assertIsNone(cache.proof(phase))
+            proof.write_text('broken JSON')
+            self.assertIsNone(cache.proof(phase))
+
+    def test_only_changed_class_reruns_while_unchanged_critical_ui_uses_content_proof(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'checkout'
+            root.mkdir()
+            self.content_fixture(root)
+            identity, inputs = self.commit_inputs(root)
+            cache = DEPLOY.PhaseCache(Path(directory) / 'cache', inputs)
+            cache.passed('ui:AudioTests/testMusic', dict(commit=identity['build']['commit'], evidence='local', seconds=100), {})
+            identity, changed = self.commit_inputs(root, **{'TrinketUITests/Smoke/ShopTests.swift':
+                'final class ShopTests: Base {\n    func testBuy() { fixed() }\n}\n'})
+            cache.inputs = changed
+            calls = []
+            verification = DEPLOY.Verification(Path(directory) / 'new-run.json', identity, True,
+                execute=lambda command, **_: calls.append(command), cache=cache)
+            args = type('Args', (), dict(ci_only=False, focused_only=True, no_build=False))()
+            with patch.dict(DEPLOY.os.environ, {'TRINKET_DEPLOY_FEEDBACK_BASE_COMMIT': 'previous'}), \
+                    patch.object(DEPLOY, 'capture', side_effect=lambda *args: identity['build']['commit'] if args[:2] == ('git', 'rev-parse') else ''), \
+                    patch.object(DEPLOY, 'changed_since_release', return_value=['TrinketUITests/Smoke/ShopTests.swift']), \
+                    patch.object(DEPLOY.subprocess, 'run', side_effect=lambda command, **_: calls.append(command)), \
+                    patch.dict(DEPLOY.CRITICAL_CASES, {'audio': 'AudioTests/testMusic', 'purchase': 'ShopTests/testBuy'}, clear=True):
+                DEPLOY.verify_beta(args, verification, identity)
+            self.assertEqual(calls, [['./Scripts/build-for-testing.sh', '--reuse', '--app-only'],
+                                     ['./Scripts/test.sh', 'ui', '--no-build', 'ShopTests']])
+            self.assertIn('local_cache', verification.completed['ui:AudioTests/testMusic']['evidence'])
+
+    def test_hosted_failure_selectors_are_read_only_from_failed_ui_jobs(self):
+        jobs = [dict(id=1, name='tests / Build and smoke UI', conclusion='failure'),
+                dict(id=2, name='tests / Unit tests (State)', conclusion='failure')]
+        log = '''ordinary selected PassingTests/testSomething
+1. test-failure: TrinketUITests (ShopTests/testBuy())
+error: -[TrinketUITests.AudioTests testMusic] : Failed
+'''
+        with patch.object(DEPLOY, 'capture', return_value=log) as capture:
+            self.assertEqual(DEPLOY.failed_ui_cases('owner/repo', jobs), ['AudioTests/testMusic', 'ShopTests/testBuy'])
+            capture.assert_called_once_with('gh', 'api', 'repos/owner/repo/actions/jobs/1/logs')
     def test_beta_reuses_proven_smoke_but_executes_missing_smoke_and_never_runs_fullui_or_packages(self):
         for hosted_smoke in (False, True):
             with self.subTest(hosted_smoke=hosted_smoke), tempfile.TemporaryDirectory() as directory:

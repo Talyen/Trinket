@@ -171,8 +171,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - Homestead accounting verifies displayed debit and tier after same-store reload;
   accessibility audits stop after the tier change. Haptics toggle/reload is the
   approved narrow medium-value exception proving the native control binding.
-- Full Game smoke enters the locked Campaign chapter through its owned Debug
-  fixture and taps the real offer entry. It purchases access to independently
+- Full Game smoke seeds completed free chapters, opens Campaign from the Play
+  hub, and taps the locked chapter's real offer entry. It purchases access to independently
   recruited Warlock and opens his detail. Populated purchase recovery checks cold-launch
   access, hidden purchase/restore actions, and retained progress. Restore-failure recovery stays separate.
   Cancellation retries in the same offer; declined Ask to Buy retries from the

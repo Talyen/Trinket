@@ -179,6 +179,7 @@ module TrinketTestFlight
         @receipt['verification_mode'] = @options[:full_ui] ? 'ui' : 'beta'
         @receipt['verification_base_commit'] = previous.select { |item| item['stage'] == 'ready' }
           .max_by { |item| item.fetch('build').to_s.split('.').first.to_i }&.fetch('commit')
+        @receipt['feedback_base_commit'] = previous.max_by { |item| item.fetch('build').to_s.split('.').first.to_i }&.fetch('commit')
         @receipt['notes'] = @options[:notes] ? File.read(@options[:notes]) : "Trinket #{@receipt['version']} (#{number}). Source: #{commit[0, 12]}."
         raise Failure, 'TestFlight notes must contain 1–4000 characters.' unless (1..4000).cover?(@receipt['notes'].length)
         save
@@ -219,7 +220,9 @@ module TrinketTestFlight
       end
       verification_env = { 'TRINKET_ISOLATE' => '1', 'SKIP_GENERATE' => nil,
         'TRINKET_DEPLOY_VERIFICATION_STATE' => File.join(@run_dir, 'verification.json'),
-        'TRINKET_DEPLOY_BASE_COMMIT' => @receipt['verification_base_commit'] }
+        'TRINKET_DEPLOY_BASE_COMMIT' => @receipt['verification_base_commit'],
+        'TRINKET_DEPLOY_FEEDBACK_BASE_COMMIT' => @receipt['feedback_base_commit'],
+        'TRINKET_DEPLOY_CACHE_ROOT' => File.join(@state_root, 'verification-cache') }
       mode = @receipt.fetch('verification_mode', 'ui') # Legacy receipts keep their original gate.
       raise Failure, 'Unsupported verification mode in receipt.' unless %w[beta ui].include?(mode)
       unless @receipt['verified']
@@ -277,9 +280,13 @@ module TrinketTestFlight
       export_dir = File.join(artifacts, 'export')
       auth = ['-allowProvisioningUpdates', '-authenticationKeyPath', @config.fetch('key_filepath'),
               '-authenticationKeyID', @config.fetch('key_id'), '-authenticationKeyIssuerID', @config.fetch('issuer_id')]
+      cache = File.join(@state_root, 'build-cache', Digest::SHA256.hexdigest(@root + @receipt.fetch('xcode'))[0, 16])
       command('archive', {}, 'xcodebuild', '-project', 'Trinket.xcodeproj', '-scheme', 'Trinket',
         '-configuration', 'Release', '-destination', 'generic/platform=iOS', '-archivePath', archive,
-        '-derivedDataPath', File.join(@state_root, 'build-cache', Digest::SHA256.hexdigest(@root + @receipt.fetch('xcode'))[0, 16]), '-disableAutomaticPackageResolution',
+        '-derivedDataPath', cache, '-disableAutomaticPackageResolution',
+        "SYMROOT=#{File.join(cache, 'Build/Products')}",
+        "OBJROOT=#{File.join(cache, 'Build/Intermediates.noindex')}",
+        "SHARED_PRECOMPS_DIR=#{File.join(cache, 'Build/Intermediates.noindex/PrecompiledHeaders')}",
         '-resultBundlePath', File.join(artifacts, 'archive.xcresult'), *auth,
         "CURRENT_PROJECT_VERSION=#{@receipt.fetch('build')}", "MARKETING_VERSION=#{@receipt.fetch('version')}",
         "DEVELOPMENT_TEAM=#{@receipt.fetch('team')}", 'CODE_SIGN_STYLE=Automatic',

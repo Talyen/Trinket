@@ -54,6 +54,7 @@ trinket_assert_targeted_tests_executed() {
   fi
   python3 - "$tests_json" "$tests_log" "${TARGETS[@]}" <<'PY_TESTS'
 import json
+import os
 import re
 import sys
 
@@ -92,6 +93,17 @@ if missing:
     sys.exit("Requested test filters absent from results: " + ", ".join(missing))
 if unexecuted:
     sys.exit("Requested test filters executed zero tests (empty or all skipped): " + ", ".join(unexecuted))
+if "TRINKET_DEPLOY_EXPECTED_CASES" in os.environ:
+    try:
+        expected = json.loads(os.environ["TRINKET_DEPLOY_EXPECTED_CASES"])
+        if (not isinstance(expected, list) or not expected or len(set(expected)) != len(expected)
+                or any(not isinstance(name, str) or not re.fullmatch(r"\w+/test\w+", name) for name in expected)):
+            raise ValueError("invalid expected UI cases")
+        for name in expected:
+            if [result for identifier, result in tests if identifier == name] != ["Passed"]:
+                sys.exit("Deployment UI case must execute exactly once and pass: " + name)
+    except (ValueError, TypeError):
+        sys.exit("Deployment expected UI cases could not be decoded.")
 for identifier, result in tests:
     if result == "Skipped":
         print("Skipped: " + identifier + " (see test diagnostics for the reason)")

@@ -61,6 +61,22 @@ trinket_assert_targeted_tests_executed
                             env={**os.environ, 'RESULT_EVIDENCE': evidence, 'TEST_RESULTS': payload},
                         )
                         self.assertEqual(result.returncode, 0 if succeeds else 1, result.stdout + result.stderr)
+            for results, expected, succeeds in (
+                ([case('ExampleTests/testOne'), case('ExampleTests/testTwo')], ['ExampleTests/testOne', 'ExampleTests/testTwo'], True),
+                ([case('ExampleTests/testOne'), case('ExampleTests/testTwo', 'Skipped')], ['ExampleTests/testOne', 'ExampleTests/testTwo'], False),
+                ([case('ExampleTests/testOne')], ['ExampleTests/testOne', 'ExampleTests/testTwo'], False),
+                ([case('ExampleTests/testOne'), case('ExampleTests/testOne')], ['ExampleTests/testOne'], False),
+                ([case('ExampleTests/testOne')], [], False),
+                ([case('ExampleTests/testOne')], {'unexpected': True}, False),
+            ):
+                with self.subTest(deployment_expected=expected, results=results):
+                    result = run_captured(
+                        ['bash', '-eu', '-c', command, '_', str(log), 'ExampleTests'], cwd=ROOT,
+                        env={**os.environ, 'RESULT_EVIDENCE': 'bundle',
+                             'TEST_RESULTS': json.dumps({'testNodes': results}),
+                             'TRINKET_DEPLOY_EXPECTED_CASES': json.dumps(expected)},
+                    )
+                    self.assertEqual(result.returncode, 0 if succeeds else 1, result.stdout + result.stderr)
 
     def test_successful_test_process_requires_execution_evidence(self) -> None:
         cases = (

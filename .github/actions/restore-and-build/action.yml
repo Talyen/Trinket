@@ -61,6 +61,10 @@ runs:
       shell: bash
       run: ./Scripts/ci-diagnostics.sh --reset .DerivedData/TestResults
 
+    - name: Preserve timestamps of byte-identical compiler inputs
+      shell: bash
+      run: python3 Scripts/build-source-times.py restore
+
     - name: Build for testing
       id: build
       shell: bash
@@ -89,6 +93,10 @@ runs:
       if: inputs.prune == 'true'
       shell: bash
       run: ./Scripts/prune-derived-data-cache.sh
+
+    - name: Record compiler input timestamps for the next candidate
+      shell: bash
+      run: python3 Scripts/build-source-times.py record
 
     - name: Save warm build cache
       if: inputs.save-cache == 'true' && steps.restore.outputs.cache-hit != 'true'

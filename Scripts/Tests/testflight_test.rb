@@ -134,6 +134,11 @@ begin
     assert(deploy.receipt['focused_verified'])
     assert(!deploy.receipt['verified'])
     assert(portal.calls.empty?, 'an archive cannot authorize upload before CI passes')
+    candidate = factory.call
+    candidate.changed_commit = 'fixed-test-sha'
+    candidate.start
+    assert(candidate.receipt['feedback_base_commit'] == 'commit-sha')
+    assert(candidate.receipt['verification_base_commit'].nil?, 'an unfinished candidate is not a shipping baseline')
     resumed = factory.call(resume: deploy.run_dir)
     resumed.execute
     assert(resumed.commands.map(&:first) == ['verification-ci'], 'resume must retain focused checks and signed artifacts')
@@ -324,6 +329,15 @@ begin
     TrinketTestFlight::Deployment.instance_method(:build).bind(deploy).call
     archive = deploy.commands.find { |item| item.first == 'archive' }.last
     assert(archive.include?('CURRENT_PROJECT_VERSION=7'))
+    cache = archive[archive.index('-derivedDataPath') + 1]
+    assert(archive.include?("SYMROOT=#{File.join(cache, 'Build/Products')}"))
+    assert(archive.include?("OBJROOT=#{File.join(cache, 'Build/Intermediates.noindex')}"))
+    assert(archive.include?("SHARED_PRECOMPS_DIR=#{File.join(cache, 'Build/Intermediates.noindex/PrecompiledHeaders')}"))
+    TrinketTestFlight::Deployment.instance_method(:build).bind(deploy).call
+    next_archive = deploy.commands.reverse.find { |item| item.first == 'archive' }.last
+    assert(next_archive[next_archive.index('-derivedDataPath') + 1] == cache, 'candidate artifacts must share the compiler cache')
+    assert(next_archive[next_archive.index('-archivePath') + 1] != archive[archive.index('-archivePath') + 1],
+      'signed candidate archives must remain separate')
     assert(archive.include?('CLOUDKIT_SYNC_ENABLED=NO'))
     assert(archive.include?('-authenticationKeyPath'))
     export = deploy.commands.find { |item| item.first == 'export' }.last

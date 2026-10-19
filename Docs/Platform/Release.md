@@ -180,6 +180,31 @@ critical journeys. An absent baseline also selects all five; an unreadable recor
 baseline fails closed. Deployment-only tooling changes add no player journey.
 These checks protect a critical subset, not every FullUI scenario.
 
+Before those journeys, deployment runs functional UI classes changed since the
+previous candidate and previously failed local or hosted UI classes. This gives
+test fixes feedback before the Release archive or a long CI wait. The authored
+Smoke/FullUI registry bounds selection; Profiles and Soak are not selected by this
+feedback pass. A full class covers its required critical methods once.
+
+Successful local UI evidence is also stored under the shared
+`.DerivedData/testflight/verification-cache`. Reuse compares committed app,
+resource, configuration, tooling, shared-helper, and selected-test content plus
+Xcode/SDK, architecture, simulator profile, and verification settings. Unrelated
+package-test or UI-test changes can preserve unaffected UI evidence. Shared or
+unknown UI helpers invalidate conservatively. Every expected UI case must execute
+once and pass before evidence is saved; skipped, missing, failed, or malformed
+results cannot authorize reuse. A failure revokes prior evidence for its class and
+prioritizes that class on the next candidate. Receipts record the original passed
+commit and input key. Hosted CI still must pass on the exact release commit;
+local content reuse never substitutes for that gate.
+
+Hosted warm builds also retain a source-timestamp manifest. Before Xcode runs,
+CI restores an input's prior timestamp only when its current bytes, size, mode,
+and checkout/toolchain context match the cached record. Changed, new, missing,
+or symlinked inputs stay fresh. This avoids treating every file in a fresh Git
+checkout as changed while retaining Xcode's normal build/dependency checks.
+The manifest is refreshed only after a successful build and saved with DerivedData.
+
 FullUI runs nightly and on demand. Use `--full-ui` before an App Store/release
 candidate or for a deliberate complete local UI pass. A known relevant FullUI
 failure still needs triage and resolution before a beta; moving the suite nightly
@@ -304,9 +329,11 @@ New beta receipts record their verification mode and source baseline. Legacy
 receipts retain their original FullUI requirement. After focused UI passes, signed
 archive/export runs while hosted CI finishes; upload waits for CI and Smoke.
 An interrupted CI wait retains the signed IPA and focused results for resume.
-Release compiler intermediates use a shared cache keyed by checkout and Xcode,
-so repeated archives in the same checkout can compile incrementally. Signed
-archives and IPA checksums remain separate per deployment.
+Release compiler products, intermediates, and precompiled headers are explicitly
+pinned inside a retained cache keyed by checkout and Xcode. Pinning all roots keeps
+SPM outputs out of the checkout-global build fallback, so repeated candidates can
+reuse compiler work. Signed archives, exported IPAs, and checksums remain separate
+per deployment; a build number or binary is never relabeled for reuse.
 Keep these artifacts through the beta's debugging window; do not delete them
 while a run needs recovery. This directory is outside routine simulator-run
 cleanup. Retention is manual because archives and symbols may be needed later.

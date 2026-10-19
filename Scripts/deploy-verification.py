@@ -10,11 +10,13 @@ from pathlib import Path
 import subprocess
 import time
 
-from internal.cli import ROOT, load_sibling, write_json_atomic
+from internal.cli import ROOT, load_sibling, primary_worktree_root, write_json_atomic
+from internal.deploy_cache import Inputs, PhaseCache
 
 BUILD = load_sibling('deploy_build_metadata', 'build-metadata.py')
 REUSE = load_sibling('deploy_ci_reuse', 'ci-reuse.py')
 PROFILES = load_sibling('deploy_profiles', 'coverage_profiles.py')
+UI_RESULTS = load_sibling('deploy_ui_results', 'ci_ui_retry.py')
 
 CRITICAL_CASES = {
     'audio': 'AudioLifecycleUITests/testRealBackendsPlayAfterBattleAndForegroundRouting',
@@ -70,11 +72,14 @@ def beta_ci_status(repository, commit, branch):
         return dict(status='missing', smoke=False)
     run = max(runs, key=lambda item: int(item['id']))
     result = dict(status=run['status'], conclusion=run.get('conclusion'), run_id=run['id'], smoke=False)
-    if run['status'] != 'completed' or run.get('conclusion') != 'success':
+    if run['status'] != 'completed':
         return result
     pages = REUSE.api(f'repos/{repository}/actions/runs/{run["id"]}/jobs?filter=all&per_page=100')
     latest = {job['name']: job for job in sorted(
         (job for page in pages for job in page.get('jobs', [])), key=lambda job: int(job['id']))}
+    if run.get('conclusion') != 'success':
+        result['failed_cases'] = failed_ui_cases(repository, latest.values())
+        return result
     if latest.get('tests / CI OK', {}).get('conclusion') != 'success':
         raise ValueError('Green workflow has no successful CI OK gate; refusing release proof.')
     build = latest.get('tests / Build and smoke UI', {})
@@ -84,7 +89,24 @@ def beta_ci_status(repository, commit, branch):
     return result
 
 
-def wait_for_beta_ci(commit):
+def failed_ui_cases(repository, jobs):
+    cases = set()
+    for job in jobs:
+        if job.get('conclusion') != 'failure' or job.get('name') not in ('tests / Build and smoke UI', 'tests / Smoke UI'):
+            continue
+        try:
+            log = capture('gh', 'api', f'repos/{repository}/actions/jobs/{int(job["id"])}/logs')
+            for line in log.splitlines():
+                if 'test-failure:' in line:
+                    cases.update('/'.join(match) for match in re.findall(r'(\w+)/(test\w+)', line))
+                elif 'error:' in line:
+                    cases.update('/'.join(match) for match in re.findall(r'-\[TrinketUITests\.(\w+) (test\w+)\]', line))
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            print(f'Failed UI selector log unavailable: {error}', flush=True)
+    return sorted(cases)
+
+
+def wait_for_beta_ci(commit, cache=None):
     remote = capture('git', 'remote', 'get-url', 'origin')
     match = re.fullmatch(r'(?:https://github.com/|git@github.com:)([^/]+/[^/]+?)(?:\.git)?', remote)
     if not match:
@@ -95,6 +117,9 @@ def wait_for_beta_ci(commit):
         status = beta_ci_status(match[1], commit, branch)
         if status['status'] == 'completed':
             if status.get('conclusion') != 'success':
+                if cache:
+                    for selector in status.get('failed_cases', []):
+                        cache.failed(f'ui:{selector}')
                 raise ValueError(f'Exact-commit CI {status.get("run_id")} failed: {status.get("conclusion")}')
             print(f'Green CI: https://github.com/{match[1]}/actions/runs/{status["run_id"]}', flush=True)
             return status
@@ -107,8 +132,21 @@ def wait_for_beta_ci(commit):
 def verify_beta(args, verification, identity):
     if not args.ci_only:
         targets = focused_cases(changed_since_release(os.environ.get('TRINKET_DEPLOY_BASE_COMMIT')))
-        pending = [name for name in targets if f'ui:{name}' not in verification.completed]
         print(f'Beta focused journeys since last available build: {len(targets)}', flush=True)
+        early = []
+        if verification.cache:
+            early = verification.cache.failed_cases()
+            base = os.environ.get('TRINKET_DEPLOY_FEEDBACK_BASE_COMMIT')
+            changed = changed_since_release(base) if base else None
+            early += verification.cache.inputs.changed_cases(changed)
+        # A selected full class already executes its required critical methods.
+        classes = {name for name in early if '/' not in name}
+        targets = list(dict.fromkeys(early + [name for name in targets if name.split('/')[0] not in classes]))
+        targets = [name for name in targets if '/' not in name or name.split('/')[0] not in classes]
+        print(f'Early changed/failed functional UI selectors: {len(early)}', flush=True)
+        for name in targets:
+            verification.reuse(f'ui:{name}')
+        pending = [name for name in targets if f'ui:{name}' not in verification.completed]
         if pending and not args.no_build:
             os.environ.pop('SKIP_GENERATE', None)
             subprocess.run(['./Scripts/build-for-testing.sh', '--reuse', '--app-only'], check=True)
@@ -116,7 +154,7 @@ def verify_beta(args, verification, identity):
         for name in targets:
             verification.phase(f'ui:{name}', ['./Scripts/test.sh', 'ui', '--no-build', name])
     if not args.focused_only:
-        status = wait_for_beta_ci(identity['build']['commit'])
+        status = wait_for_beta_ci(identity['build']['commit'], verification.cache)
         verification.phase('ci', [], {'github': status})
         if status['smoke']:
             verification.phase('smoke', [], {'github': status})
@@ -153,8 +191,9 @@ def profile():
 
 
 class Verification:
-    def __init__(self, state, identity, reusable, execute=None):
+    def __init__(self, state, identity, reusable, execute=None, cache=None):
         self.state, self.identity, self.reusable = state, identity, reusable
+        self.cache = cache if reusable else None
         self.execute = execute or subprocess.run
         self.completed = {}
         if reusable and state.is_file():
@@ -162,23 +201,50 @@ class Verification:
             if saved.get('identity') == identity and saved.get('schema') == 1:
                 self.completed = saved.get('completed', {})
 
+    def save(self):
+        if self.reusable:
+            self.state.parent.mkdir(parents=True, exist_ok=True)
+            write_json_atomic(self.state, dict(schema=1, identity=self.identity, completed=self.completed))
+
+    def reuse(self, name):
+        if name not in self.completed and self.cache:
+            proof = self.cache.proof(name)
+            if proof:
+                self.completed[name] = dict(seconds=0, evidence=dict(local_cache=proof['commit'],
+                                                                  input_key=self.cache.inputs.key(name)))
+                self.save()
+                print(f'Reusing passed UI inputs: {name} (source {proof["commit"]})', flush=True)
+
     def phase(self, name, command, evidence=None):
+        self.reuse(name)
         if name in self.completed:
             print(f'Reusing verified phase: {name}', flush=True)
             return
         print(f'=== {name} ===', flush=True)
         started = time.monotonic()
+        failure = self.cache.read(self.cache.path(name, '-failed')) if self.cache else None
         if evidence is None:
-            self.execute(command, check=True)
+            try:
+                options = dict(check=True)
+                if self.cache and name.startswith('ui:'):
+                    expected = UI_RESULTS.expected_cases([name.removeprefix('ui:')], self.cache.inputs.root / 'TrinketUITests')
+                    if not expected:
+                        raise ValueError(f'Cannot establish complete UI case coverage for {name}')
+                    options['env'] = {**os.environ, 'TRINKET_DEPLOY_EXPECTED_CASES': json.dumps(expected)}
+                self.execute(command, **options)
+            except (OSError, subprocess.SubprocessError):
+                if self.cache:
+                    self.cache.failed(name)
+                raise
         # Changed source cannot certify any phase, including a successful process.
         if self.reusable and capture('git', 'status', '--porcelain', '--untracked-files=all'):
             raise ValueError('Source changed during verification; completed phase was not retained.')
         if self.reusable and capture('git', 'rev-parse', 'HEAD') != self.identity['build']['commit']:
             raise ValueError('Source commit changed during verification.')
         self.completed[name] = dict(seconds=round(time.monotonic() - started, 2), evidence=evidence or 'local')
-        if self.reusable:
-            self.state.parent.mkdir(parents=True, exist_ok=True)
-            write_json_atomic(self.state, dict(schema=1, identity=self.identity, completed=self.completed))
+        if self.cache and evidence is None:
+            self.cache.passed(name, dict(**self.completed[name], commit=self.identity['build']['commit']), failure)
+        self.save()
         print(f'{name}: passed ({self.completed[name]["seconds"]}s)', flush=True)
 
 
@@ -222,6 +288,9 @@ def main():
     if args.mode == 'beta' and not args.compile_only:
         if not clean:
             raise ValueError('Beta verification requires a clean committed checkout.')
+        cache = Path(os.environ.get('TRINKET_DEPLOY_CACHE_ROOT',
+                     primary_worktree_root(ROOT) / '.DerivedData/testflight/verification-cache'))
+        verification.cache = PhaseCache(cache, Inputs(ROOT, identity))
         verify_beta(args, verification, identity)
         return
     if args.compile_only:
