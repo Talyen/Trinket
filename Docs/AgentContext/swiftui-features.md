@@ -34,6 +34,9 @@ performance, read [UI performance](ui-performance.md) before editing.
 
 Item-label shine derives from the current immutable item's displayed affixes.
 Colors remain semantic values; resolve them in the rendering environment.
+Item-detail hero sizing uses the container before the action footer reserves space.
+Apply that footer's safe-area inset directly to the scroll view so final traits
+remain reachable above the fixed action.
 
 Sheets use standard native SwiftUI motion throughout the app. Do not
 attach source-linked zoom transitions to sheets; interactive zoom dismissal can

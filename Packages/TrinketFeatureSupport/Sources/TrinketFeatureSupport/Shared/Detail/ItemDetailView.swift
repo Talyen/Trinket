@@ -126,12 +126,7 @@ public struct ItemDetailView: View {
                     traitsSection
                 },
             )
-            .sizingHero(in: geometry.size)
-            .safeAreaInset(edge: .bottom) {
-                if let primaryAction {
-                    DetailPrimaryActionFooter(primaryAction: primaryAction)
-                }
-            }
+            .sizingHero(in: geometry.size, primaryAction: primaryAction)
         }
     }
 
@@ -230,10 +225,11 @@ public struct ItemDetailView: View {
 }
 
 private extension DetailHeroScrollShell {
-    func sizingHero(in size: CGSize) -> Self {
+    func sizingHero(in size: CGSize, primaryAction: DetailPrimaryAction?) -> Self {
         var shell = self
         // Measure before the fixed action footer reserves space in the scroll view.
         shell.heroContainerSize = size
+        shell.primaryAction = primaryAction
         return shell
     }
 }

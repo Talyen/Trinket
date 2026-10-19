@@ -16,6 +16,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     let title: String
     let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
     var heroContainerSize: CGSize?
+    var primaryAction: DetailPrimaryAction?
     var hidesNavigationBar = false
     @ViewBuilder let header: (_ baseHeight: CGFloat) -> Header
     @ViewBuilder let bodyContent: () -> BodyContent
@@ -49,6 +50,11 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                         bodyContent()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                if let primaryAction {
+                    DetailPrimaryActionFooter(primaryAction: primaryAction)
                 }
             }
             .trinketScreenBackground()
