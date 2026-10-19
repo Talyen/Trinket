@@ -28,6 +28,7 @@ private struct SungBossLyrics: View {
     @Environment(BattleSession.self) private var session
     let trackID: String
     let phrases: [MusicLyricPhrase]
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var frame: MusicLyricFrame?
 
     var body: some View {
@@ -39,6 +40,10 @@ private struct SungBossLyrics: View {
                         isActive: index == frame.activeWord,
                     )
                     .id("\(frame.phrase):\(index)")
+                    .transition(reduceMotion ? .opacity : .asymmetric(
+                        insertion: .opacity.combined(with: .offset(y: 6)),
+                        removal: .opacity,
+                    ))
                 }
             }
         }
@@ -52,7 +57,10 @@ private struct SungBossLyrics: View {
                     ? playback.flatMap { MusicLyricFrame.at($0.currentTime, in: phrases) }
                     : nil
                 if next != frame {
-                    frame = next
+                    // Animate row recentering and wrapping in the same transaction as word entrances.
+                    withAnimation(reduceMotion ? nil : TrinketMotion.Content.entrance) {
+                        frame = next
+                    }
                 }
                 do {
                     try await Task.sleep(for: .seconds(1.0 / 60))
@@ -65,10 +73,8 @@ private struct SungBossLyrics: View {
 }
 
 private struct BossLyricWord: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let text: String
     let isActive: Bool
-    @State private var didAppear = false
 
     private var lyricText: Text {
         switch text {
@@ -80,36 +86,12 @@ private struct BossLyricWord: View {
     }
 
     var body: some View {
-        KeyframeAnimator(initialValue: LyricWordEntrance(), trigger: didAppear) { value in
-            lyricText
-                .trinketTypography(.cardTitle)
-                .fixedSize()
-                .foregroundStyle(isActive ? TrinketDesign.Colors.accent : TrinketDesign.Colors.Overlay.paper.opacity(0.65))
-                .trinketOnArtText()
-                .opacity(value.opacity)
-                .scaleEffect(reduceMotion ? 1 : value.scale)
-                .offset(y: reduceMotion ? 0 : value.offset)
-        } keyframes: { _ in
-            KeyframeTrack(\.opacity) {
-                CubicKeyframe(1, duration: 0.117)
-                CubicKeyframe(1, duration: 0.063)
-            }
-            KeyframeTrack(\.scale) {
-                CubicKeyframe(1.04, duration: 0.117)
-                CubicKeyframe(1, duration: 0.063)
-            }
-            KeyframeTrack(\.offset) {
-                CubicKeyframe(0, duration: 0.18)
-            }
-        }
-        .onAppear { didAppear = true }
+        lyricText
+            .trinketTypography(.sectionTitle)
+            .fixedSize()
+            .foregroundStyle(isActive ? TrinketDesign.Colors.accent : TrinketDesign.Colors.Overlay.paper.opacity(0.65))
+            .trinketOnArtText()
     }
-}
-
-private struct LyricWordEntrance {
-    var opacity = 0.0
-    var scale = 0.9
-    var offset = 2.0
 }
 
 private struct BossLyricWordLayout: Layout {
