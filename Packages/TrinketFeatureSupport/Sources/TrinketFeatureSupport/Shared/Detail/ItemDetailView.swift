@@ -128,6 +128,8 @@ public struct ItemDetailView: View {
             )
             .sizingHero(in: geometry.size, primaryAction: primaryAction)
         }
+        // Pushed details reserve a navigation bar; inspection roots may not.
+        .ignoresSafeArea(edges: .top)
     }
 
     private func eyebrow(for item: InventoryItem) -> String {

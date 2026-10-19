@@ -34,7 +34,9 @@ performance, read [UI performance](ui-performance.md) before editing.
 
 Item-label shine derives from the current immutable item's displayed affixes.
 Colors remain semantic values; resolve them in the rendering environment.
-Item-detail hero sizing uses the container before the action footer reserves space.
+Item-detail hero sizing uses the presentation container before navigation chrome
+and the action footer reserve space. Keep its outer measurement extended through
+the top safe area so inspection roots and pushed details share the artwork height.
 Apply that footer's safe-area inset directly to the scroll view so final traits
 remain reachable above the fixed action.
 
