@@ -87,6 +87,25 @@ struct OptionsView: View {
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.options)
         .disabled(appState.playerSave.isRetryingSaveAction)
+        .alert(
+            Text(L10n.ui_optionsview_reset_game_progress_2edb2),
+            isPresented: $isResetConfirmationPresented,
+        ) {
+            Button(String(localized: L10n.ui_optionsview_cancel_19766), role: .cancel) {}
+                .accessibilityIdentifier(AccessibilityID.Options.resetProgressCancel)
+            Button(String(localized: L10n.ui_optionsview_reset_progress), role: .destructive) {
+                guard !appState.playerSave.isRetryingSaveAction else { return }
+                appState.playerSave.performSaveAction(key: "reset-progress") { _ in
+                    _ = appState.resetGameplayProgress()
+                }
+            }
+            .accessibilityIdentifier(AccessibilityID.Options.resetProgressConfirmation)
+        } message: {
+            Text(
+                appState.playerSave.resetAffectsCloudProgress
+                    ? L10n.ui_optionsview_reset_cloud_explanation : L10n.ui_optionsview_reset_local_explanation,
+            )
+        }
     }
 
     private var purchaseSection: some View {
@@ -133,28 +152,10 @@ struct OptionsView: View {
     @ViewBuilder
     private var gameDataSection: some View {
         Section(String(localized: L10n.ui_optionsview_game_data_15041)) {
-            if isResetConfirmationPresented {
-                Text(
-                    appState.playerSave.resetAffectsCloudProgress
-                        ? L10n.ui_optionsview_reset_cloud_explanation : L10n.ui_optionsview_reset_local_explanation,
-                )
-                .trinketTypography(.secondaryBody)
-                Button(String(localized: L10n.ui_optionsview_cancel_19766)) { isResetConfirmationPresented = false }
-                    .accessibilityIdentifier(AccessibilityID.Options.resetProgressCancel)
-                Button(String(localized: L10n.ui_optionsview_reset_game_progress_2edb2), role: .destructive) {
-                    guard isResetConfirmationPresented, !appState.playerSave.isRetryingSaveAction else { return }
-                    isResetConfirmationPresented = false
-                    appState.playerSave.performSaveAction(key: "reset-progress") { _ in
-                        _ = appState.resetGameplayProgress()
-                    }
-                }
-                .accessibilityIdentifier(AccessibilityID.Options.resetProgressConfirmation)
-            } else {
-                Button(String(localized: L10n.ui_optionsview_reset_game_progress_2edb2), role: .destructive) {
-                    isResetConfirmationPresented = true
-                }
-                .accessibilityIdentifier(AccessibilityID.Options.resetProgressButton)
+            Button(String(localized: L10n.ui_optionsview_reset_game_progress_2edb2), role: .destructive) {
+                isResetConfirmationPresented = true
             }
+            .accessibilityIdentifier(AccessibilityID.Options.resetProgressButton)
         }
 
         #if DEBUG

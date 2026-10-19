@@ -948,7 +948,7 @@ enum L10n {
     }
 
     static var ui_optionsview_reset_cloud_explanation: LocalizedStringResource {
-        LocalizedStringResource("ui.optionsview.reset_cloud_explanation", defaultValue: "This permanently clears your game progress on this device and your synced devices when iCloud is available. You'll choose a new starter Hero again. Options settings and Full Game ownership are kept.", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.optionsview.reset_cloud_explanation", defaultValue: "Permanently delete your progress and start over. Settings and purchases are kept. Also resets progress on synced devices.", table: "Localizable", bundle: .main)
     }
 
     static var ui_optionsview_reset_game_progress_2edb2: LocalizedStringResource {
@@ -956,7 +956,11 @@ enum L10n {
     }
 
     static var ui_optionsview_reset_local_explanation: LocalizedStringResource {
-        LocalizedStringResource("ui.optionsview.reset_local_explanation", defaultValue: "This permanently clears your Campaign stages, Explore runs, Heroes and Companions, Items, and Homestead upgrades on this device. You'll choose a new starter Hero again. Options settings are kept.", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.optionsview.reset_local_explanation", defaultValue: "Permanently delete your progress and start over. Settings and purchases are kept.", table: "Localizable", bundle: .main)
+    }
+
+    static var ui_optionsview_reset_progress: LocalizedStringResource {
+        LocalizedStringResource("ui.optionsview.reset_progress", defaultValue: "Reset Progress", table: "Localizable", bundle: .main)
     }
 
     static var ui_optionsview_restore_purchases_16351: LocalizedStringResource {

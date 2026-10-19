@@ -9914,43 +9914,43 @@
       }
     },
     "ui.optionsview.reset_cloud_explanation": {
-      "comment": "Inline destructive reset confirmation in Options. Clears local and synced progress, preserves Options and Full Game ownership. Keep the consequence precise.",
+      "comment": "Reset progress alert message when iCloud sync applies. Permanently deletes game progress including synced devices; settings and purchases are preserved.",
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dadurch wird dein Spielfortschritt auf diesem Gerät dauerhaft gelöscht. Wenn iCloud verfügbar ist, wird auch der Fortschritt auf deinen synchronisierten Geräten dauerhaft gelöscht. Du wählst danach erneut einen neuen Helden für den Spielstart. Deine Einstellungen unter „Optionen“ und dein Besitz der Vollversion bleiben erhalten."
+            "value": "Dein Fortschritt wird dauerhaft gelöscht und du beginnst von vorn. Einstellungen und Käufe bleiben erhalten. Auch der Fortschritt auf synchronisierten Geräten wird zurückgesetzt."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This permanently clears your game progress on this device and your synced devices when iCloud is available. You'll choose a new starter Hero again. Options settings and Full Game ownership are kept."
+            "value": "Permanently delete your progress and start over. Settings and purchases are kept. Also resets progress on synced devices."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cette action efface définitivement votre progression sur cet appareil. Si iCloud est disponible, elle efface aussi définitivement la progression sur vos appareils synchronisés. Vous devrez à nouveau choisir un nouveau Héros de départ. Les réglages des Options sont conservés et le jeu complet reste acquis."
+            "value": "Votre progression sera définitivement effacée et vous recommencerez à zéro. Vos réglages et achats seront conservés. La progression sera aussi réinitialisée sur les appareils synchronisés."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このデバイスのゲーム進行状況を削除します。iCloudが利用可能な場合は、同期先のデバイスの進行状況も削除します。削除した進行状況は元に戻せません。もう一度、新しい初期ヒーローを選ぶことになります。オプションの設定と完全版の所有権は保持されます。"
+            "value": "進行状況を永久に削除して最初からやり直します。設定と購入内容は保持されます。同期先のデバイスの進行状況もリセットされます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 기기의 게임 진행 상황을 영구적으로 삭제하며, iCloud를 사용할 수 있으면 동기화된 기기의 진행 상황도 영구적으로 삭제합니다. 새로운 시작 영웅을 다시 선택하게 됩니다. 설정과 정식 게임 소유권은 유지됩니다."
+            "value": "진행 상황을 영구적으로 삭제하고 처음부터 시작합니다. 설정과 구매 항목은 유지됩니다. 동기화된 기기의 진행 상황도 초기화됩니다."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "這會永久清除此裝置上的遊戲進度；若可使用iCloud，也會永久清除已同步裝置上的進度。你將再次選擇新的初始英雄。選項設定與完整版擁有權會保留。"
+            "value": "永久刪除你的進度並重新開始。設定與購買內容會保留。也會重設已同步裝置上的進度。"
           }
         }
       }
@@ -9998,43 +9998,85 @@
       }
     },
     "ui.optionsview.reset_local_explanation": {
-      "comment": "Inline destructive reset confirmation in Options. Device-only reset; do not imply purchases or Options settings are deleted.",
+      "comment": "Reset progress alert message. Permanently deletes game progress; settings and purchases are preserved.",
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dadurch werden deine Kampagnenabschnitte, deine Durchläufe im Modus „Erkunden“, deine Helden und Gefährten, deine Gegenstände sowie die Verbesserungen deiner Heimstatt auf diesem Gerät dauerhaft gelöscht. Du wählst danach erneut einen neuen Helden für den Spielstart. Deine Einstellungen unter „Optionen“ bleiben erhalten."
+            "value": "Dein Fortschritt wird dauerhaft gelöscht und du beginnst von vorn. Einstellungen und Käufe bleiben erhalten."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This permanently clears your Campaign stages, Explore runs, Heroes and Companions, Items, and Homestead upgrades on this device. You'll choose a new starter Hero again. Options settings are kept."
+            "value": "Permanently delete your progress and start over. Settings and purchases are kept."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cette action efface définitivement vos étapes de Campagne, vos parties du mode Explorer, vos Héros et Compagnons, vos Objets et les améliorations de votre Domaine sur cet appareil. Vous devrez à nouveau choisir un nouveau Héros de départ. Les réglages des Options sont conservés."
+            "value": "Votre progression sera définitivement effacée et vous recommencerez à zéro. Vos réglages et achats seront conservés."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このデバイスのキャンペーンのステージ、探索のプレイデータ、ヒーローと仲間、アイテム、拠点のアップグレードを削除し、元に戻すことはできません。もう一度、新しい初期ヒーローを選ぶことになります。オプションの設定は保持されます。"
+            "value": "進行状況を永久に削除して最初からやり直します。設定と購入内容は保持されます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 기기의 캠페인 스테이지, 탐험 플레이 데이터, 영웅과 동료, 아이템, 안식처 업그레이드를 영구적으로 삭제합니다. 새로운 시작 영웅을 다시 선택하게 됩니다. 설정은 유지됩니다."
+            "value": "진행 상황을 영구적으로 삭제하고 처음부터 시작합니다. 설정과 구매 항목은 유지됩니다."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "這會永久清除此裝置上的戰役關卡、探索遊玩進度、英雄與夥伴、物品，以及家園升級。你將再次選擇新的初始英雄。選項設定會保留。"
+            "value": "永久刪除你的進度並重新開始。設定與購買內容會保留。"
+          }
+        }
+      }
+    },
+    "ui.optionsview.reset_progress": {
+      "comment": "Destructive confirmation button in the Reset Game Progress alert.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortschritt zurücksetzen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset Progress"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réinitialiser la progression"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "進行状況をリセット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "진행 상황 초기화"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重設進度"
           }
         }
       }

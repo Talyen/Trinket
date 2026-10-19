@@ -6,6 +6,7 @@ final class OptionsUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("options") + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
         openReset()
         tapButton(AccessibilityID.Options.resetProgressCancel)
+        waitUntil("Reset confirmation must close") { !app.alerts.firstMatch.exists }
         relaunchApp()
         play.openCampaign()
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
@@ -38,6 +39,8 @@ final class OptionsUITests: TrinketUITestCase {
     private func openReset() {
         assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
         tapButton(AccessibilityID.Options.resetProgressButton)
-        assertExistsAfterScroll(AccessibilityID.Options.resetProgressCancel, requireHittable: true)
+        assertExists(app.alerts.firstMatch)
+        assertExists(app.alerts.buttons[AccessibilityID.Options.resetProgressCancel])
+        assertExists(app.alerts.buttons[AccessibilityID.Options.resetProgressConfirmation])
     }
 }
