@@ -13,6 +13,7 @@ import tempfile
 
 from internal.cli import ROOT, load_sibling, primary_worktree_root, write_json_atomic
 from internal.deploy_cache import Inputs, PhaseCache
+from internal.ui_registration import registrations
 
 BUILD = load_sibling('deploy_build_metadata', 'build-metadata.py')
 REUSE = load_sibling('deploy_ci_reuse', 'ci-reuse.py')
@@ -140,11 +141,12 @@ def verify_hosted_beta(args, verification, identity):
             base = os.environ.get('TRINKET_DEPLOY_FEEDBACK_BASE_COMMIT')
             changed = changed_since_release(base) if base else None
             early += verification.cache.inputs.changed_cases(changed)
+        early += sorted(verification.cache.inputs.smoke) if verification.cache else required_smoke_classes()
         # A selected full class already executes its required critical methods.
         classes = {name for name in early if '/' not in name}
         targets = list(dict.fromkeys(early + [name for name in targets if name.split('/')[0] not in classes]))
         targets = [name for name in targets if '/' not in name or name.split('/')[0] not in classes]
-        print(f'Early changed/failed functional UI selectors: {len(early)}', flush=True)
+        print(f'Early changed/failed/Smoke UI selectors: {len(early)}', flush=True)
         for name in targets:
             verification.reuse(f'ui:{name}')
         pending = [name for name in targets if f'ui:{name}' not in verification.completed]
@@ -215,6 +217,10 @@ def wait_for_release_ci(commit):
         time.sleep(30)
 
 
+def required_smoke_classes():
+    return sorted(row['name'] for row in registrations(ROOT) if row['suite'] == 'Smoke')
+
+
 def validate_release_receipt(saved, identity):
     if not isinstance(saved, dict) or not isinstance(saved.get('identity'), dict):
         raise ValueError('Hosted release proof is malformed.')
@@ -227,7 +233,9 @@ def validate_release_receipt(saved, identity):
     if actual.get('profile') != identity['profile']:
         raise ValueError('Hosted release proof has a different simulator profile.')
     completed = saved.get('completed', {})
-    if not isinstance(completed, dict) or any(
+    if not isinstance(completed, dict) or any(f'ui:{name}' not in completed for name in required_smoke_classes()):
+        raise ValueError('Hosted release proof is missing qualified Smoke coverage.')
+    if any(
             f'ui:{case}' not in completed and f'ui:{case.split("/")[0]}' not in completed
             for case in CRITICAL_CASES.values()):
         raise ValueError('Hosted release proof is missing critical journeys.')
@@ -249,13 +257,14 @@ def verify_beta(args, verification, identity):
     if not args.ci_only:
         status = wait_for_release_ci(identity['build']['commit'])
         proof = release_receipt(status, identity)
-        verification.phase('hosted-focused', [], {'github': status, 'identity': proof['identity']})
+        verification.phase('hosted-focused', [], {'github': status, 'identity': proof['identity'], 'qualified_smoke': True})
     if not args.focused_only:
         status = wait_for_beta_ci(identity['build']['commit'])
-        if not status['smoke']:
-            raise ValueError('Exact-commit CI has no successful Smoke execution; local fallback is disabled.')
+        qualified = verification.completed.get('hosted-focused', {}).get('evidence', {}).get('qualified_smoke') is True
+        if not status['smoke'] and not qualified:
+            raise ValueError('Exact-commit CI and qualified proof lack Smoke coverage; local fallback is disabled.')
         verification.phase('ci', [], {'github': status})
-        verification.phase('smoke', [], {'github': status})
+        verification.phase('smoke', [], {'github': status, 'qualified_hosted_smoke': qualified})
 
 
 def capture(*command):

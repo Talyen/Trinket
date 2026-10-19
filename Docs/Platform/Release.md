@@ -162,7 +162,7 @@ boot, or heavy-local override. Doctor checks Apple access and signing prerequisi
 The deployment command dispatches `release-verification.yml` on the pushed default
 branch commit when no run exists. That workflow installs the qualified iPhone 17
 Pro / iOS 26.2 runtime if needed, reuses compatible products or the shared warm
-build cache, and runs purchase denial/retry, durable rewards, battle/background
+build cache, and runs qualified Smoke plus purchase denial/retry, durable rewards, battle/background
 lifecycle, navigation, and real audio recovery. Changed functional UI classes
 since the preceding commit and previously failed classes run first. The authored
 Smoke/FullUI registry bounds selection; Profiles and Soak are excluded. A selected
@@ -179,8 +179,9 @@ on the next candidate. Unknown shared helpers invalidate conservatively.
 Deployment consumes the exact-commit workflow's successful qualified job and
 proof artifact. Its receipt must match the release commit, Xcode, SDK, host
 architecture, and qualified simulator profile, and cover every critical journey.
-The standard CI `CI OK` gate and actual Smoke execution must also succeed for
-that commit. Missing, failed, cancelled, unreadable, expired, or mismatched proof
+The standard CI `CI OK` gate must also succeed for that commit. Smoke is
+proven by the complete qualified hosted classes, or an actual standard CI Smoke
+execution; a skipped standard Smoke job does not force unrelated package reruns. Missing, failed, cancelled, unreadable, expired, or mismatched proof
 blocks upload; there is no automatic local test fallback. Resume retains signed
 artifacts while awaiting CI. Signing keys and App Store Connect credentials stay
 on the Mac; simulator CI needs no Apple distribution credentials.

@@ -173,10 +173,11 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
                         patch.object(DEPLOY, 'wait_for_release_ci', return_value=dict(run_id=43)), \
                         patch.object(DEPLOY, 'release_receipt', return_value=dict(identity=identity)), \
                         patch.object(DEPLOY, 'capture', side_effect=lambda *c: 'abc' if c[:2] == ('git', 'rev-parse') else ''):
-                    if hosted_smoke:
-                        DEPLOY.verify_beta(args, verification, identity)
-                        self.assertEqual(set(verification.completed), {'hosted-focused', 'ci', 'smoke'})
-                    else:
+                    DEPLOY.verify_beta(args, verification, identity)
+                    self.assertEqual(set(verification.completed), {'hosted-focused', 'ci', 'smoke'})
+                    if not hosted_smoke:
+                        verification.completed.clear()
+                        args.ci_only = True
                         with self.assertRaisesRegex(ValueError, 'local fallback is disabled'):
                             DEPLOY.verify_beta(args, verification, identity)
                 self.assertEqual(calls, [])
@@ -192,6 +193,7 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
                                    sdk_build='abc', host_architecture='arm64'), profile=dict(version='26.2'))
         saved = dict(schema=1, identity=copy.deepcopy(identity),
                      completed={f'ui:{case}': dict(evidence='local') for case in DEPLOY.CRITICAL_CASES.values()})
+        saved['completed'].update({f'ui:{name}': dict(evidence='local') for name in DEPLOY.required_smoke_classes()})
         DEPLOY.validate_release_receipt(saved, identity)
         for field in ('commit', 'xcode', 'sdk_version', 'sdk_build', 'host_architecture'):
             changed = copy.deepcopy(saved)
@@ -202,6 +204,10 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
         changed['identity']['profile']['version'] = '27.1'
         with self.assertRaisesRegex(ValueError, 'profile'):
             DEPLOY.validate_release_receipt(changed, identity)
+        incomplete = copy.deepcopy(saved)
+        incomplete['completed'].pop(f'ui:{DEPLOY.required_smoke_classes()[0]}')
+        with self.assertRaisesRegex(ValueError, 'missing qualified Smoke'):
+            DEPLOY.validate_release_receipt(incomplete, identity)
         saved['completed'].pop(next(iter(saved['completed'])))
         with self.assertRaisesRegex(ValueError, 'missing critical'):
             DEPLOY.validate_release_receipt(saved, identity)

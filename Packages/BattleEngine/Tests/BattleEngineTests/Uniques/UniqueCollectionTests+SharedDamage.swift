@@ -346,7 +346,7 @@ extension UniqueCollectionTests {
     }
 }
 
-extension SharedUniqueDamageRegressionTests {
+extension UniqueCollectionTests {
     @Test(arguments: ["wolf_physical_t4_1", "bear_physical_t4_1", "wolf_physical_t3_1"])
     func `oathkeeper shares first attack and burst damage while retaining their allowances`(talentID: String) throws {
         var profile = CombatantTalentCatalog.profile(for: [talentID])
