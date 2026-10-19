@@ -330,6 +330,14 @@ with CPU and Hitches instruments. Cached symbols are reused; updates prepare the
 matching OS/model/architecture symbols. Keep the phone unlocked during preparation.
 See Apple's [symbol preparation guidance](https://developer.apple.com/documentation/xcode/acquiring-operating-system-symbol-information).
 
+Resolve system-symbol mismatches by preparing support for the actual connected
+device, rather than copying arbitrary newer symbol folders. If the selected Xcode
+does not support that device's OS, update/select a compatible Xcode first. App
+symbols are separate: retain the archive or build output and its matching Trinket
+`dSYM`. The `dSYM` and recorded binary must have identical UUIDs; matching source
+alone is insufficient.
+See Apple's [app symbol guidance](https://developer.apple.com/documentation/xcode/building-your-app-to-include-debugging-information).
+
 Each run creates a new evidence directory with logs, device/app/toolchain metadata,
 the trace, exported measurement rows, and `result.json`. Existing output is never
 overwritten. Success requires the intended iPhone and Trinket process, normal app

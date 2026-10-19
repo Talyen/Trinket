@@ -310,6 +310,15 @@
     ]
   },
   {
+    "id": "device-profiling",
+    "label": "Physical-device profiling",
+    "aliases": ["device performance", "performance profiling", "performance monitoring", "Instruments", "Wi-Fi profiling", "iPhone profiling", "mismatched symbols"],
+    "symbols": ["select_device", "validate_trace"],
+    "sources": ["Scripts/profile-device.py"],
+    "tests": ["Scripts/Tests/test_profile_device.py"],
+    "contracts": [".agents/skills/ios-device/SKILL.md", "Docs/Platform/PerformanceInvestigationPlaybook.md#physical-device-profiling-over-wi-fi"]
+  },
+  {
     "id": "simulator",
     "label": "Simulator diagnostics",
     "aliases": [
