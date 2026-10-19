@@ -1,4 +1,3 @@
-import BattleEngine
 import Foundation
 import SwiftUI
 import Testing
@@ -7,6 +6,7 @@ import TrinketContentTestSupport
 import TrinketCore
 import TrinketFeatureContracts
 import TrinketFeatureSupport
+@testable import BattleEngine
 @testable import TrinketBattleFeature
 
 @MainActor
