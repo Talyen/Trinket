@@ -2,6 +2,10 @@
 
 Use for tabs, screens, navigation, shared views, design-system polish, and accessibility identifiers.
 
+The app root keeps `appearsActive` true so switching apps does not grey out game
+controls. Keep actual action eligibility in `isEnabled`/`.disabled` and continue
+using the real `scenePhase` for lifecycle work and decorative motion.
+
 The app root uses `trinketSoftTopScrollEdge` for the native soft top effect on
 iOS 26+; iOS 18 retains its native scroll/navigation appearance. Detail headers
 hide the newer effect until their title is pinned. Keep availability checks in

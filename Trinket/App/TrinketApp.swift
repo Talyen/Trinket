@@ -153,6 +153,8 @@ struct TrinketApp: App {
         }
         .trinketSoftTopScrollEdge()
         .preferredColorScheme(.dark)
+        // App switching must not make available game controls look disabled.
+        .environment(\.appearsActive, true)
     }
 }
 
