@@ -143,7 +143,7 @@ public struct ExperienceBar: View {
 
             Image.preparedAsset(named: artworkName)
                 .resizable()
-                .interpolation(.low)
+                .interpolation(.high)
                 .scaledToFill()
                 .accessibilityHidden(true)
                 .frame(width: container.width, height: container.height)

@@ -6,8 +6,7 @@ public struct ExperienceArtwork: View {
 
     public var body: some View {
         if let art = ArtCatalog.resourceArtByID["experience"] {
-            Image.preparedAsset(art, displaySize: .full)
-                .resizable()
+            PreparedArtworkImage(art, displaySize: .full)
                 .scaledToFit()
                 .decorativePreparedArtwork()
         }

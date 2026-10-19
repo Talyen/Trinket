@@ -20,8 +20,7 @@ struct AbilityChoiceCard: View {
             shineLineWidth: shineLineWidth,
             art: {
                 if let artRef = ability.artReference {
-                    Image.preparedAsset(artRef, displaySize: .compact)
-                        .resizable()
+                    PreparedArtworkImage(artRef, displaySize: .compact)
                         .aspectRatio(contentMode: .fill)
                         .decorativePreparedArtwork()
                 } else {

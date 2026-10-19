@@ -60,9 +60,7 @@ public struct AbilityDetailView: View {
     @ViewBuilder
     private var abilityArtwork: some View {
         if let artReference = ability.artReference {
-            Image.preparedAsset(artReference, displaySize: .full)
-                .resizable()
-                .interpolation(.medium)
+            PreparedArtworkImage(artReference, displaySize: .full)
                 .aspectRatio(contentMode: .fill)
                 .clipped()
                 .decorativePreparedArtwork()

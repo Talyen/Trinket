@@ -20,12 +20,10 @@ public struct CombatantArtwork: View {
     public var body: some View {
         Group {
             if let artReference = combatant.artReference {
-                Image.preparedAsset(
+                PreparedArtworkImage(
                     artReference,
                     displaySize: variant == .card ? .compact : .full,
                 )
-                .resizable()
-                .interpolation(interpolation)
                 .modifier(ArtFillModifier(alignment: variant == .hero ? .top : .center))
                 .decorativePreparedArtwork()
 
@@ -34,10 +32,6 @@ public struct CombatantArtwork: View {
             }
         }
         .modifier(BattleFrameModifier(expandsToFrame: variant == .battle))
-    }
-
-    private var interpolation: Image.Interpolation {
-        variant == .card ? .low : .medium
     }
 
     private var placeholderArt: some View {

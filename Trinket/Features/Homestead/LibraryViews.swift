@@ -363,7 +363,7 @@ struct LibraryRecipeArtwork: View {
     var body: some View {
         Group {
             if let art = recipe.forgeArtwork {
-                Image.preparedAsset(art, displaySize: .compact).resizable().aspectRatio(contentMode: .fill)
+                PreparedArtworkImage(art, displaySize: .compact).aspectRatio(contentMode: .fill)
             }
         }
         .aspectRatio(3.0 / 4, contentMode: .fit)

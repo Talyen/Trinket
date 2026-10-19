@@ -56,6 +56,11 @@ and moves below it when the pair cannot fit horizontally. Reward reveals use the
 larger `sectionDisplay` name role; on-art details use `screenDisplay`. Both retain
 the same `displayTextShine` title palette as inventory cards.
 
+`PreparedArtworkImage` is the catalog artwork renderer; its measured Retina
+resolution upgrades, first-paint behavior, and checker enforcement follow
+[UI performance](../../Docs/AgentContext/ui-performance.md). It keeps image sizing
+and interpolation out of individual cards and feature screens.
+
 `PreparedArtworkCache` decodes off the main actor; publication and pin ownership
 stay on the main actor. A cache-owned scheduler admits at most two decodes across
 all callers and at most one deferred decode, prioritizing imminent pins over

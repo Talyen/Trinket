@@ -53,6 +53,14 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
             r"[A-Za-z_][A-Za-z0-9_]*\.(?:imageName|thumbnailImageName)"
         ),
     ),
+    (
+        "catalog artwork must use PreparedArtworkImage",
+        re.compile(r"Image\.preparedAsset\("),
+    ),
+    (
+        "low quality image interpolation",
+        re.compile(r"\.interpolation\(\.low\)"),
+    ),
     ("direct accentColor modifier", re.compile(r"\.accentColor\(")),
     ("raw glass button style", re.compile(r"\.buttonStyle\(\.glass(Prominent)?")),
     ("raw glass effect", re.compile(r"\.glassEffect\(")),
@@ -134,6 +142,9 @@ def is_allowed(
     if pattern in {"raw RGB color", "system color literal", "app-bundle named color"}:
         return False
 
+    if pattern == "catalog artwork must use PreparedArtworkImage":
+        return "Image.preparedAsset(named:" in line
+
     if pattern == "design asset colors outside the design system":
         return file_rel.startswith(DESIGN_SYSTEM_SOURCES)
 
@@ -195,7 +206,7 @@ def scan_file(path: Path) -> tuple[list[str], str | None]:
         ):
             if pattern == "catalog artwork without explicit display size":
                 guidance = (
-                    "should use Image.preparedAsset(reference, displaySize: .compact/.full)"
+                    "should use PreparedArtworkImage(reference, displaySize: .compact/.full)"
                 )
             else:
                 guidance = (

@@ -31,8 +31,7 @@ public struct TalentTreeCard: View {
             accessibilityID: accessibilityID,
             art: {
                 if let artReference = tree.keyword.artReference {
-                    Image.preparedAsset(artReference, displaySize: .compact)
-                        .resizable()
+                    PreparedArtworkImage(artReference, displaySize: .compact)
                         .aspectRatio(contentMode: .fill)
                         .decorativePreparedArtwork()
                 } else {

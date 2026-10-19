@@ -95,8 +95,7 @@ struct BlacksmithForgePreview: View {
             ProductCardShell {
                 ZStack {
                     if let artwork = recipe.forgeArtwork {
-                        Image.preparedAsset(artwork, displaySize: previewArtworkLease == nil ? .compact : .full)
-                            .resizable()
+                        PreparedArtworkImage(artwork, displaySize: previewArtworkLease == nil ? .compact : .full)
                             .aspectRatio(contentMode: .fill)
                             .decorativePreparedArtwork()
                     }

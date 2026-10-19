@@ -166,8 +166,7 @@ struct BlacksmithBaseCard: View {
     var body: some View {
         ProductCardShell {
             if let artwork = recipe.forgeArtwork {
-                Image.preparedAsset(artwork, displaySize: thumbnail ? .compact : .full)
-                    .resizable()
+                PreparedArtworkImage(artwork, displaySize: thumbnail ? .compact : .full)
                     .aspectRatio(contentMode: .fill)
                     .decorativePreparedArtwork()
             } else {

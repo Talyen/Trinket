@@ -7,11 +7,10 @@ struct MapTileArtwork: View {
     var prefersThumbnail = false
 
     var body: some View {
-        Image.preparedAsset(
+        PreparedArtworkImage(
             art,
             displaySize: prefersThumbnail ? .compact : .full,
         )
-        .resizable()
         .scaledToFill()
         .decorativePreparedArtwork()
     }

@@ -112,6 +112,27 @@ Retain outgoing artwork pins through the fade; superseded preparation transfers
 cleanup to the latest generation. Outgoing content has no interaction or
 accessibility exposure. Resume and ordinary progress reconciliation stay immediate.
 
+Catalog artwork views use `PreparedArtworkImage(reference, displaySize:)` for
+shared high-quality interpolation. `.compact` specifies the prepared first-paint
+thumbnail, not a permanent resolution cap. Once laid out in its nearest scroll
+viewport, the renderer requests enough physical pixels for the measured image
+size and environment display scale, including explicit focal magnification.
+It reuses a sufficient thumbnail or an already prepared full image when possible;
+otherwise it prepares a bounded size bucket from the full bundled source through
+the existing decode scheduler at viewport priority. It never enlarges source
+pixels. Sized variants share the existing cache budget and pin ownership; leaving
+the viewport, a parked presentation, or teardown releases their pins. Existing
+launch/imminent pins and `.full` preparation remain intact. The initial thumbnail
+can be visible briefly while an upgrade prepares.
+
+Use the raw `Image.preparedAsset(named:)` only for explicitly prepared named
+artwork, such as battle raster composition and fixed small reward portraits.
+Do not select a catalog thumbnail by hand or set low/nearest-neighbor interpolation
+for game artwork. `check-ui-style.py` enforces the shared renderer and interpolation
+policy. This follows Apple's [image preparation guidance](https://developer.apple.com/documentation/uikit/uiimage/preparingthumbnail(of:));
+size buckets and lifecycle retention are Trinket's implementation choices, and
+performance claims still require representative device measurements.
+
 Memory targets and enforcement: [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets.
 
 Locked-card artwork and outlined on-art labels flatten their completed SwiftUI

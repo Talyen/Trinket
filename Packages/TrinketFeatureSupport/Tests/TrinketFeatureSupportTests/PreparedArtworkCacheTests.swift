@@ -6,6 +6,27 @@ import UIKit
 @Suite(.timeLimit(.minutes(1)))
 @MainActor
 struct PreparedArtworkCacheTests {
+    @Test func `Retina raster preparation bounds decoded pixels independently of UIImage scale`() async throws {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 3
+        let source = UIGraphicsImageRenderer(size: CGSize(width: 100, height: 200), format: format).image { context in
+            UIColor.black.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 100, height: 200))
+        }
+        let request = try #require(ArtworkRasterRequest(
+            sourceName: "hero", pointSize: CGSize(width: 50, height: 100), displayScale: 3,
+        ))
+        #expect(request.pixelDimension >= 300)
+        let image = try #require(await PreparedArtworkCache.prepareRasterImage(source, pixelDimension: request.pixelDimension))
+        let pixels = try #require(image.cgImage)
+        #expect(pixels.height <= request.pixelDimension)
+        #expect(pixels.height >= 300)
+        #expect(abs(Double(pixels.width) / Double(pixels.height) - 0.5) < 0.01)
+
+        let oversized = try #require(await PreparedArtworkCache.prepareRasterImage(source, pixelDimension: 4096))
+        #expect(oversized.cgImage?.height == source.cgImage?.height)
+    }
+
     @Test func `warmup plan puts priority names first and preserves catalog order`() {
         let plan = LaunchArtworkWarmupPlan.make(
             priorityImageNames: ["hero", "enemy", "missing"],

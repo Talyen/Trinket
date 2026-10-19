@@ -141,13 +141,16 @@ public final class PreparedArtworkCache {
         }
     }
 
-    func acquirePinnedArtwork(names: [String]) async -> [String] {
+    func acquirePinnedArtwork(
+        names: [String],
+        priority: ArtworkDecodeScheduler.Priority = .imminent,
+    ) async -> [String] {
         let unique = Self.deduped(names)
         guard !Task.isCancelled, !unique.isEmpty else { return [] }
         for name in unique {
             pinCountsByName[name, default: 0] += 1
         }
-        await decode(unique, priority: .imminent, countsTowardLaunch: false)
+        await decode(unique, priority: priority, countsTowardLaunch: false)
         guard !Task.isCancelled else {
             releasePins(names: unique)
             return []
@@ -357,7 +360,8 @@ public final class PreparedArtworkCache {
         guard !Task.isCancelled else {
             return PreparedArtwork(name: name, image: nil)
         }
-        guard let source = UIImage(named: name),
+        let request = ArtworkRasterRequest(cacheName: name)
+        guard let source = UIImage(named: request?.sourceName ?? name),
               source.cgImage != nil
         else {
             return PreparedArtwork(name: name, image: nil)
@@ -365,8 +369,20 @@ public final class PreparedArtworkCache {
         guard !Task.isCancelled else {
             return PreparedArtwork(name: name, image: nil)
         }
-        let prepared = await source.byPreparingForDisplay()
+        let prepared: UIImage? = if let request {
+            await prepareRasterImage(source, pixelDimension: request.pixelDimension)
+        } else {
+            await source.byPreparingForDisplay()
+        }
         return PreparedArtwork(name: name, image: prepared)
+    }
+
+    nonisolated static func prepareRasterImage(_ source: UIImage, pixelDimension: Int) async -> UIImage? {
+        guard !Task.isCancelled, pixelDimension > 0, let sourcePixels = source.cgImage else { return nil }
+        let dimension = min(pixelDimension, max(sourcePixels.width, sourcePixels.height))
+        // Requests are physical pixels, independent of the asset's UIImage point scale.
+        let rasterSource = UIImage(cgImage: sourcePixels, scale: 1, orientation: source.imageOrientation)
+        return await rasterSource.byPreparingThumbnail(ofSize: CGSize(width: dimension, height: dimension))
     }
 
     nonisolated static func decodedCost(of image: UIImage) -> Int {

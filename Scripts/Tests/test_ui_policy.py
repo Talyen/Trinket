@@ -19,10 +19,25 @@ class UiPolicyTests(ScriptRegressionTestCase):
             self.assertIn("catalog artwork without explicit display size", rejected.stdout)
 
             fixture.write_text(
-                "Image.preparedAsset(art, displaySize: .compact)\n",
+                "PreparedArtworkImage(art, displaySize: .compact)\n",
                 encoding="utf-8",
             )
             run_python('check-ui-style.py', str(fixture), cwd=ROOT, expected=0)
+
+
+    def test_ui_style_rejects_thumbnail_renderer_bypasses(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / "ArtworkFixture.swift"
+            for source, diagnostic in (
+                ("Image.preparedAsset(art, displaySize: .compact)", "must use PreparedArtworkImage"),
+                ("Image.preparedAsset(\n art, displaySize: .compact)", "must use PreparedArtworkImage"),
+                ("image.interpolation(.low)", "low quality image interpolation"),
+            ):
+                with self.subTest(source=source):
+                    fixture.write_text(source + "\n", encoding="utf-8")
+                    rejected = run_python('check-ui-style.py', str(fixture), cwd=ROOT)
+                    self.assertNotEqual(rejected.returncode, 0)
+                    self.assertIn(diagnostic, rejected.stdout)
 
 
     def test_ui_style_owns_product_color_policy(self) -> None:

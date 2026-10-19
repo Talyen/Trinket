@@ -37,22 +37,9 @@ struct PreparedArtwork: @unchecked Sendable {
 
 public extension Image {
     enum PreparedArtworkDisplaySize: Sendable {
+        /// Prepared first paint; the shared renderer upgrades to the measured pixel size.
         case compact
         case full
-    }
-
-    @MainActor
-    static func preparedAsset(
-        _ reference: some PreparedArtworkReference,
-        displaySize: PreparedArtworkDisplaySize,
-    ) -> Image {
-        let name = switch displaySize {
-        case .compact:
-            reference.preparedThumbnailImageName ?? reference.imageName
-        case .full:
-            reference.imageName
-        }
-        return preparedAsset(named: name)
     }
 
     @MainActor

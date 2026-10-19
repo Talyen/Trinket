@@ -150,9 +150,7 @@ public struct CombatantTalentsView: View {
                 let offsetX = (0.5 - artReference.focalPoint.x) * overflowX
                 let offsetY = (0.5 - artReference.focalPoint.y) * overflowY
 
-                Image.preparedAsset(artReference, displaySize: .full)
-                    .resizable()
-                    .interpolation(.medium)
+                PreparedArtworkImage(artReference, displaySize: .full)
                     .scaledToFill()
                     .frame(width: container.width, height: container.height)
                     .offset(x: offsetX, y: offsetY)

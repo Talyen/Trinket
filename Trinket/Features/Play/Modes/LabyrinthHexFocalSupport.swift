@@ -72,21 +72,21 @@ struct LabyrinthFocalImage: View {
     var body: some View {
         GeometryReader { geometry in
             let container = geometry.size
-            let resolvedName = displaySize == .compact ? (thumbnailName ?? imageName) : imageName
-            Image.preparedAsset(named: resolvedName)
-                .resizable()
-                .interpolation(displaySize == .compact ? .low : .medium)
-                .scaledToFill()
-                .visualEffect { content, imageGeometry in
-                    content
-                        .scaleEffect(zoom)
-                        .offset(
-                            x: (0.5 - focalPoint.x) * max(imageGeometry.size.width * zoom - container.width, 0),
-                            y: (0.5 - focalPoint.y) * max(imageGeometry.size.height * zoom - container.height, 0),
-                        )
-                }
-                .frame(width: container.width, height: container.height)
-                .decorativePreparedArtwork()
+            PreparedArtworkImage(
+                imageName: imageName, thumbnailName: thumbnailName,
+                displaySize: displaySize, magnification: zoom,
+            )
+            .scaledToFill()
+            .visualEffect { content, imageGeometry in
+                content
+                    .scaleEffect(zoom)
+                    .offset(
+                        x: (0.5 - focalPoint.x) * max(imageGeometry.size.width * zoom - container.width, 0),
+                        y: (0.5 - focalPoint.y) * max(imageGeometry.size.height * zoom - container.height, 0),
+                    )
+            }
+            .frame(width: container.width, height: container.height)
+            .decorativePreparedArtwork()
         }
         .clipped()
     }

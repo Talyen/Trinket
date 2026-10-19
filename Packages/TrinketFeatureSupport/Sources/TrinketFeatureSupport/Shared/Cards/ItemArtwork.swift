@@ -25,12 +25,10 @@ public struct ItemArtwork: View {
     public var body: some View {
         Group {
             if let artReference = item.artReference {
-                Image.preparedAsset(
+                PreparedArtworkImage(
                     artReference,
                     displaySize: variant == .thumbnail ? .compact : .full,
                 )
-                .resizable()
-                .interpolation(variant == .thumbnail ? .low : .medium)
                 .aspectRatio(contentMode: contentMode)
                 .decorativePreparedArtwork()
             } else {
