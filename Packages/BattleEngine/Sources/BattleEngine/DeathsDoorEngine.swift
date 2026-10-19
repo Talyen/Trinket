@@ -15,13 +15,12 @@ package enum DeathsDoorEngine {
         for combatant: Combatant,
         in context: BattleState,
     ) -> Bool {
-        if isActive(for: combatant, in: context) {
+        if context.roster.isDeathsDoorActive(for: combatant) {
             return true
         }
-        guard context.roster.hasConsumedDeathsDoor(for: combatant),
-              let runtime = context.roster.runtime(for: combatant),
-              let expiredAt = runtime.deathsDoorExpiredAtTurn,
-              expiredAt == context.turnCount
+        guard let runtime = context.roster.runtime(for: combatant),
+              runtime.hasConsumedDeathsDoor,
+              runtime.deathsDoorExpiredAtTurn == context.turnCount
         else { return false }
         return true
     }

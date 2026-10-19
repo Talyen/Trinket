@@ -67,7 +67,7 @@ package enum BattleCardCombatEngine {
         await CombatTriggerEngine.atPlayerTurnStart(in: &context)
         for owner in BattleParticipant.party {
             UniqueCombatEngine.recoverStunBeforeClearing(on: context.roster[owner].combatant, in: &context)
-            context.roster.clearControlStatusLinger(for: context.roster[owner].combatant)
+            context.roster.clearControlStatusLinger(for: owner)
         }
         await finishPlayerTurnStart(context: &context)
     }
@@ -96,7 +96,7 @@ package enum BattleCardCombatEngine {
         let runtime = context.roster[card.owner]
         guard runtime.isAlive else { return .ownerDefeated }
         guard !context.ownersSkippingThisPlayerTurn.contains(card.owner),
-              !context.roster.hasPendingActionSkip(for: runtime.combatant) else { return .ownerSkipping }
+              !context.roster.hasPendingActionSkip(for: card.owner) else { return .ownerSkipping }
         guard BattleAbilityRules.canPayHealthCost(card.ability, actor: runtime.combatant, in: context) else {
             return .insufficientHealth
         }
@@ -129,14 +129,14 @@ package enum BattleCardCombatEngine {
 
         DefensePoolEngine.decayBlock(on: enemy, in: &context)
 
-        if context.roster.hasPendingActionSkip(for: enemy) {
+        if context.roster.hasPendingActionSkip(for: .enemy) {
             await BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
             return
         }
 
         UniqueCombatEngine.recoverStunBeforeClearing(on: enemy, in: &context)
-        let wasFrozen = context.roster.hasControlStatus(for: enemy, keyword: .freeze)
-        context.roster.clearControlStatusLinger(for: enemy)
+        let wasFrozen = context.roster.hasControlStatus(for: .enemy, keyword: .freeze)
+        context.roster.clearControlStatusLinger(for: .enemy)
         if wasFrozen {
             CombatTriggerEngine.afterEnemyFreezeRecover(in: &context)
         }
@@ -165,8 +165,7 @@ package enum BattleCardCombatEngine {
     static func skippingOwners(in context: BattleState) -> Set<BattleParticipant> {
         var skipping: Set<BattleParticipant> = []
         for owner in BattleParticipant.party {
-            let combatant = context.roster[owner].combatant
-            if context.roster[owner].isAlive, context.roster.hasPendingActionSkip(for: combatant) {
+            if context.roster[owner].isAlive, context.roster.hasPendingActionSkip(for: owner) {
                 skipping.insert(owner)
             }
         }
@@ -175,8 +174,8 @@ package enum BattleCardCombatEngine {
 
     static func advanceRoundCommon(context: inout BattleState) async {
         for owner in BattleParticipant.party where context.ownersSkippingThisPlayerTurn.contains(owner) {
-            let combatant = context.roster[owner].combatant
-            if context.roster.hasPendingActionSkip(for: combatant) {
+            if context.roster.hasPendingActionSkip(for: owner) {
+                let combatant = context.roster[owner].combatant
                 await BattleTurnEngine.consumeActionSkip(for: combatant, context: &context)
             }
         }

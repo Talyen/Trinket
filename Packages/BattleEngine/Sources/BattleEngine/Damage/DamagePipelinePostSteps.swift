@@ -331,10 +331,7 @@ package extension DamagePipeline {
 
         for (keyword, amount) in wards.onHitDamage.sorted(by: { $0.key.rawValue < $1.key.rawValue }) where amount > 0 {
             ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-                if case let .onHitDamage(existingKeyword, _) = $0 {
-                    return existingKeyword == keyword
-                }
-                return false
+                $0.kind == .onHitDamage && $0.keyword == keyword
             }
             await resolveWardDamage(
                 amount: amount,
@@ -348,10 +345,7 @@ package extension DamagePipeline {
 
         guard wards.shouldFreezeAttacker else { return }
         ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-            if case .freezeNextAttacker = $0 {
-                return true
-            }
-            return false
+            $0.kind == .freezeNextAttacker
         }
         let threshold = ControlMeterEngine.threshold(for: attacker.combatant, in: context)
         await ControlMeterEngine.applyMeterCharge(
@@ -377,10 +371,7 @@ package extension DamagePipeline {
             return
         }
         ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-            if case .thorns = $0 {
-                return true
-            }
-            return false
+            $0.kind == .thorns
         }
         let defenderTriggers = context.modifiers(for: state.combatant.id).triggers
         let blocked = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant)) > 0

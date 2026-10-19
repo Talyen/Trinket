@@ -93,10 +93,7 @@ package extension CombatTriggerEngine {
               target.role == .enemy,
               context.roster.health(for: target) > 0,
               context.roster.activeEffects(for: target).contains(where: {
-                  if case let .poison(potency) = $0.effect {
-                      return potency >= sourceTriggers.poisonThresholdStunAmount
-                  }
-                  return false
+                  $0.effect.kind == .poison && ($0.effect.potency ?? 0) >= sourceTriggers.poisonThresholdStunAmount
               })
         else { return }
         let chance = chanceOrGuaranteed(sourceTriggers.poisonStunChancePercent, guaranteed: true)

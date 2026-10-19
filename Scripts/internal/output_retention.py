@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -89,6 +90,7 @@ def process_snapshot() -> dict[int, tuple[str, str]]:
                                     text=True, check=True, timeout=timeout)
             break
         except subprocess.TimeoutExpired:
+            print(f"Output process inventory attempt {1 if timeout == 10 else 2}/2 timed out after {timeout}s", file=sys.stderr)
             if timeout == 30:
                 raise
     processes = {}

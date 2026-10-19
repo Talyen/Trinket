@@ -155,6 +155,12 @@ trinket_run_full_gate
             self.assertTrue(failed)
             self.assertIn(f'| native-parity | {result} |', summary)
         self.assertTrue(module.report({'unit': jobs['unit']}, 'Required CI checks', ['native-parity'])[1])
+        for upstream, verdict in [('cancelled', 'cancelled'), ('failure', 'failed')]:
+            summary, failed = module.report({'unit': {'result': upstream}, 'native-parity': {'result': 'skipped'}},
+                                            'Required CI checks', ['native-parity'])
+            self.assertTrue(failed)
+            self.assertIn(f'Required CI checks: {verdict}', summary)
+            self.assertIn('Requested execution missing: native-parity', summary)
 
     def test_requested_ui_aggregate_fails_on_skipped_failed_or_unavailable_execution(self):
         with tempfile.TemporaryDirectory() as directory:

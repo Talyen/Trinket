@@ -12,9 +12,10 @@ extension EffectHandlers {
         case .damageReductionPercent:
             let multiplier = stacks.reduce(1.0) { result, active in
                 guard case let .damageReductionPercent(percent, _) = active.effect else { return result }
-                return result * (1 - min(1, percent))
+                let reduction = percent.isNaN ? 0 : min(1, max(0, percent))
+                return result * (1 - reduction)
             }
-            let percentInt = Int(((1 - multiplier) * 100).rounded())
+            let percentInt = CombatRounding.rounded((1 - multiplier) * 100)
             return EffectSummary(
                 keyword: keyword,
                 resource: L10n.summary_timeddebuffhandlers_86592dcd6c44(percentInt, durationSuffix),
@@ -31,9 +32,10 @@ extension EffectHandlers {
         case .healingReductionPercent:
             let percent = stacks.reduce(0.0) { result, active in
                 guard case let .healingReductionPercent(percent, _) = active.effect else { return result }
-                return max(result, min(1, percent))
+                let reduction = percent.isNaN ? 0 : min(1, max(0, percent))
+                return max(result, reduction)
             }
-            let percentInt = Int((percent * 100).rounded())
+            let percentInt = CombatRounding.rounded(percent * 100)
             return EffectSummary(
                 keyword: keyword,
                 resource: L10n.summary_timeddebuffhandlers_09c8078d2b51(percentInt, durationSuffix),

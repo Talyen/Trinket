@@ -71,4 +71,29 @@ struct LeechAttackQualificationTests {
         #expect(battle.resolveTestDamage(1, from: .companion, keyword: .poison, options: attack).healthLost == (bloodfire ? 4 : 1))
         #expect(battle.roster.companion.talents.pending.nextLeechCriticalPoisonAttackBonus == nil)
     }
+
+    @Test func `Carnivore qualifies for Taste for Blood before Critical chance and refreshes each turn`() {
+        var profile = CombatantTalentCatalog.profile(for: ["rogue_bleed_t2_1"])
+        profile.triggers.firstBleedAttackLeechPerTurn = true
+        var battle = BattleTestFixtures.makePipelineContext(heroModifiers: profile, seed: 9, appliesFightPacing: false)
+        battle.roster.hero.currentHealth = 10
+        battle.insertEffect(.bleed(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 2)
+        let ordinary = DamageOperation.attack(scaling: .flat, accuracy: .unavoidable)
+        let noncritical = DamageOperation.attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
+
+        _ = battle.resolveTestDamage(0, keyword: .bleed, options: ordinary)
+        let first = battle.resolveTestDamage(8, keyword: .bleed, options: ordinary)
+        let afterFirst = battle.health(of: battle.hero)
+        let second = battle.resolveTestDamage(8, keyword: .bleed, options: noncritical)
+
+        #expect(first.isCritical)
+        #expect(first.healthLost == 16)
+        #expect(afterFirst > 10)
+        #expect(!second.isCritical)
+        #expect(battle.health(of: battle.hero) == afterFirst)
+
+        battle.turnCount += 1
+        _ = battle.resolveTestDamage(8, keyword: .bleed, options: noncritical)
+        #expect(battle.health(of: battle.hero) > afterFirst)
+    }
 }

@@ -36,10 +36,6 @@ package extension DamagePipeline {
         }
         guard state.combatant.role == .enemy else { return }
         let triggers = context.modifiers(for: sourceID).triggers
-        if state.options.isAttackHit, keyword == .bleed, triggers.firstBleedAttackLeechPerTurn,
-           context.claimHeroTalent(.carnivore, actorID: sourceID) {
-            state.talentAttackHasLeech = true
-        }
         if state.options.isAttackHit, HealingEngine.grantsLeech(
             to: source, keyword: keyword, criticalAttack: state.isCritical,
             attackHit: true, in: context,

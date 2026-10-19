@@ -81,6 +81,9 @@ struct EffectHandlersApplyBuffDebuffTests {
             "by \(Int.max.formatted(.number.locale(Locale(identifier: "en")))),",
         ),
         ([Effect.healingReductionPercent(0.20, 3), .healingReductionPercent(0.50, 3)], "50%"),
+        ([Effect.damageReductionPercent(-Double.greatestFiniteMagnitude, 3)], "0%"),
+        ([Effect.damageReductionPercent(.nan, 3), .damageReductionPercent(0.25, 3)], "25%"),
+        ([Effect.healingReductionPercent(.infinity, 3), .healingReductionPercent(0.25, 3)], "100%"),
     ])
     func `debuff summaries reflect combined combat penalties`(effects: [Effect], expected: String) throws {
         let stacks = effects.enumerated().map {

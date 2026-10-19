@@ -13,9 +13,49 @@ from unittest.mock import patch
 from script_test_support import ROOT, load_script, run_captured, write_executable, write_json
 
 MODULE = load_script('coverage_profiles', 'coverage_profiles.py')
+CLEANUP = load_script('ci_runtime_cleanup', 'ci-runtime-cleanup.py')
 
 
 class PlayerCoverageTests(unittest.TestCase):
+    def test_runtime_cleanup_preserves_busy_foreign_and_non_deletable_images(self):
+        identifiers = [f'00000000-0000-0000-0000-{index:012d}' for index in range(1, 5)]
+        images = {identifier: dict(identifier=identifier, state='Ready', deletable=True,
+                                   platformIdentifier='com.apple.platform.iphonesimulator') for identifier in identifiers}
+        images[identifiers[1]]['state'] = 'Deleting'
+        del images[identifiers[1]]['deletable']
+        images[identifiers[2]]['platformIdentifier'] = 'com.apple.platform.watchsimulator'
+        images[identifiers[3]]['deletable'] = False
+        timeout = subprocess.TimeoutExpired(['xcrun', 'simctl', 'runtime', 'list'], 10)
+        with tempfile.TemporaryDirectory() as directory, \
+                patch.object(CLEANUP.subprocess, 'check_output', side_effect=[timeout, json.dumps(images)]) as inventory, \
+                patch.object(CLEANUP.subprocess, 'run') as delete:
+            CLEANUP.cleanup(Path(directory), dict(GITHUB_ACTIONS='true', RUNNER_ENVIRONMENT='github-hosted'))
+            delete.assert_called_once_with(['xcrun', 'simctl', 'runtime', 'delete', identifiers[0]], check=True, timeout=180)
+            self.assertEqual([call.kwargs['timeout'] for call in inventory.call_args_list], [10, 30])
+            receipt = json.loads((Path(directory) / 'runtime-cleanup.json').read_text())
+            self.assertEqual([attempt['status'] for attempt in receipt['inventory_attempts']], ['timeout', 'passed'])
+
+    def test_runtime_cleanup_never_deletes_from_incomplete_or_exhausted_inventory(self):
+        identifier = '00000000-0000-0000-0000-000000000001'
+        valid = dict(identifier=identifier, state='Ready', deletable=True, platformIdentifier='com.apple.platform.iphonesimulator')
+        bad = json.dumps({identifier: valid, '00000000-0000-0000-0000-000000000002': {}})
+        timeout = subprocess.TimeoutExpired(['xcrun', 'simctl', 'runtime', 'list'], 10)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            for replies, expected in [([bad], ValueError), ([timeout, timeout], subprocess.TimeoutExpired)]:
+                with patch.object(CLEANUP.subprocess, 'check_output', side_effect=replies), \
+                        patch.object(CLEANUP.subprocess, 'run') as delete, self.assertRaises(expected):
+                    try:
+                        CLEANUP.cleanup(output, dict(GITHUB_ACTIONS='true', RUNNER_ENVIRONMENT='github-hosted'))
+                    finally:
+                        delete.assert_not_called()
+                receipt = json.loads((output / 'runtime-cleanup.json').read_text())
+                self.assertEqual(receipt['status'], 'failed')
+            self.assertEqual([attempt['status'] for attempt in receipt['inventory_attempts']], ['timeout', 'timeout'])
+            with patch.object(CLEANUP.subprocess, 'check_output') as inventory, self.assertRaises(ValueError):
+                CLEANUP.cleanup(output, dict(GITHUB_ACTIONS='true', RUNNER_ENVIRONMENT='self-hosted'))
+            inventory.assert_not_called()
+
     def test_explicit_runtime_and_device_requests_never_fall_back(self):
         runtimes = [dict(identifier=f'ios-{version}', version=version, platform='iOS', isAvailable=True)
                     for version in ('26.9', '26.10', '27.1', '18.0', '18.7')]

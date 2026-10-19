@@ -137,43 +137,59 @@ public struct BattleRoster {
         enemy.currentHealth == 0
     }
 
-    private func withEffects<T>(for combatant: Combatant, _ body: ([ActiveEffect]) -> T) -> T? {
-        guard let participant = participant(for: combatant) else { return nil }
-        return body(self[participant].activeEffects)
+    func hasPendingActionSkip(for participant: BattleParticipant) -> Bool {
+        self[participant].activeEffects.contains(where: \.isAwaitingActionSkip)
+    }
+
+    func hasPendingActionSkip(for participant: BattleParticipant, keyword: Keyword) -> Bool {
+        self[participant].activeEffects.contains { $0.keyword == keyword && $0.isAwaitingActionSkip }
+    }
+
+    func hasControlStatus(for participant: BattleParticipant, keyword: Keyword) -> Bool {
+        self[participant].activeEffects.contains { $0.keyword == keyword && $0.effect.isActionSkipPending }
+    }
+
+    func hasControlStatus(for participant: BattleParticipant) -> Bool {
+        self[participant].activeEffects.contains(where: \.effect.isActionSkipPending)
+    }
+
+    func hasAffliction(_ keyword: Keyword, on participant: BattleParticipant) -> Bool {
+        self[participant].activeEffects.contains { $0.effect.keyword == keyword && $0.isActiveAffliction }
+    }
+
+    package mutating func clearControlStatusLinger(for participant: BattleParticipant) {
+        self[participant].activeEffects.removeAll { activeEffect in
+            activeEffect.effect.isActionSkipPending && !activeEffect.isAwaitingActionSkip
+        }
+    }
+
+    func isDeathsDoorActive(for participant: BattleParticipant) -> Bool {
+        self[participant].activeEffects.contains { $0.effect.kind == .deathsDoor }
     }
 
     public func hasPendingActionSkip(for combatant: Combatant) -> Bool {
-        withEffects(for: combatant) { $0.contains(where: \.isAwaitingActionSkip) } ?? false
+        participant(for: combatant).map { hasPendingActionSkip(for: $0) } ?? false
     }
 
     public func hasPendingActionSkip(for combatant: Combatant, keyword: Keyword) -> Bool {
-        withEffects(for: combatant) { effects in
-            effects.contains { $0.keyword == keyword && $0.isAwaitingActionSkip }
-        } ?? false
+        participant(for: combatant).map { hasPendingActionSkip(for: $0, keyword: keyword) } ?? false
     }
 
     public func hasControlStatus(for combatant: Combatant, keyword: Keyword) -> Bool {
-        withEffects(for: combatant) { effects in
-            effects.contains { $0.keyword == keyword && $0.effect.isActionSkipPending }
-        } ?? false
+        participant(for: combatant).map { hasControlStatus(for: $0, keyword: keyword) } ?? false
     }
 
     func hasAffliction(_ keyword: Keyword, on combatant: Combatant) -> Bool {
-        withEffects(for: combatant) { effects in
-            effects.contains { $0.effect.keyword == keyword && $0.isActiveAffliction }
-        } ?? false
+        participant(for: combatant).map { hasAffliction(keyword, on: $0) } ?? false
     }
 
     public func hasControlStatus(for combatant: Combatant) -> Bool {
-        withEffects(for: combatant) { $0.contains(where: \.effect.isActionSkipPending) } ?? false
+        participant(for: combatant).map { hasControlStatus(for: $0) } ?? false
     }
 
     package mutating func clearControlStatusLinger(for combatant: Combatant) {
-        mutateRuntime(for: combatant) { runtime in
-            runtime.activeEffects.removeAll { activeEffect in
-                activeEffect.effect.isActionSkipPending && !activeEffect.isAwaitingActionSkip
-            }
-        }
+        guard let participant = participant(for: combatant) else { return }
+        clearControlStatusLinger(for: participant)
     }
 
     package mutating func mutateRuntime(for combatant: Combatant, _ body: (inout CombatantRuntime) -> Void) {
@@ -195,9 +211,7 @@ public struct BattleRoster {
     }
 
     public func isDeathsDoorActive(for combatant: Combatant) -> Bool {
-        withEffects(for: combatant) { effects in
-            effects.contains { $0.effect.kind == .deathsDoor }
-        } ?? false
+        participant(for: combatant).map { isDeathsDoorActive(for: $0) } ?? false
     }
 }
 

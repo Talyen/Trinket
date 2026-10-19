@@ -32,6 +32,7 @@ def worktree_roots(root: Path) -> tuple[Path, ...]:
             )
             break
         except subprocess.TimeoutExpired:
+            print(f"Git worktree inventory attempt {1 if timeout == 10 else 2}/2 timed out after {timeout}s", file=sys.stderr)
             if timeout == 30:
                 raise
     roots = tuple(Path(os.fsdecode(field[len(b"worktree "):])).resolve()

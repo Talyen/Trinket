@@ -324,11 +324,14 @@ class CIImprovementsTests(unittest.TestCase):
         self.assertIn('TRINKET_DIAGNOSTICS_SESSION_ID: unit-', unit)
         self.assertNotIn('test-package-host.sh --compare-ios', unit)
         self.assertIn('export-ios', unit)
+        self.assertIn("if: always() && steps.ios-proof.outcome == 'success'", unit)
         self.assertIn('TRINKET_DIAGNOSTICS_SESSION_ID: parity-', parity)
         self.assertIn('timeout-minutes: 25', parity)
         self.assertIn('+ 25 * 60 - 180', parity)
+        self.assertIn("if: always() && !cancelled() && github.event_name != 'push' && needs.unit.result != 'skipped'", parity)
         self.assertIn('ios-parity-${{ matrix.source-shard }}-${{ github.run_id }}-${{ github.run_attempt }}', parity)
         self.assertIn('unit, native-parity]', workflow.split('  ci-ok:\n', 1)[1])
+        self.assertIn("github.event_name != 'push' && needs.unit.result != 'skipped'", workflow.split('  ci-ok:\n', 1)[1])
 
     def test_deadline_exhaustion_preserves_failure_and_never_starts_work(self):
         with tempfile.TemporaryDirectory() as directory:

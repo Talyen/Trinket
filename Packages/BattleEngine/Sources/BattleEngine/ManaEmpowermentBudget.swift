@@ -20,7 +20,7 @@ struct ManaEmpowermentBudget {
     private var hasEmpowered: Bool
     private var preparedDiscount: Int
 
-    init(ability: Ability, actor: Combatant, in context: BattleState) {
+    init(ability: Ability, actor: Combatant, in context: BattleState, blockOverride: Int? = nil) {
         let keywords = ability.keywords
         let hasBurnDamage = ability.hasManaEmpowerableBurnDamage
         let runtime = context.roster.runtime(for: actor)
@@ -32,7 +32,7 @@ struct ManaEmpowermentBudget {
         partner = patron?.combatant
         ownMana = runtime?.currentMana ?? 0
         partnerMana = patron?.currentMana ?? 0
-        block = runtime.map { DefensePoolEngine.blockPoints(in: $0.activeEffects) } ?? 0
+        block = blockOverride ?? (runtime.map { DefensePoolEngine.blockPoints(in: $0.activeEffects) } ?? 0)
         blockRate = keywords.contains(.freeze) ? triggers.freezeEmpowermentBlockPerMana : 0
         hasEmpowered = runtime?.talents.battle.hasEmpoweredWithMana ?? false
         firstDiscount = triggers.firstEmpowermentCostReduction

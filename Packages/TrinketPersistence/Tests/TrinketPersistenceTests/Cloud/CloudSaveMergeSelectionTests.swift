@@ -6,6 +6,27 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct CloudSaveMergeSelectionTests {
+    @Test @MainActor func `independent ability tier edits survive cloud merge and reload`() throws {
+        var base = PlayerSave.testSeed
+        base.modifiedAt = Date(timeIntervalSince1970: 1)
+        let hero = try #require(GameContent.hero(matching: "knight"))
+        let basic = try #require(hero.abilityChoices.basics.dropFirst().first)
+        let skill = try #require(hero.abilityChoices.skills.dropFirst().first)
+        var earlier = base
+        earlier.roster.setLoadout(earlier.roster.loadout(for: hero).selecting(basic), for: hero)
+        earlier.modifiedAt = Date(timeIntervalSince1970: 100)
+        var later = base
+        later.roster.setLoadout(later.roster.loadout(for: hero).selecting(skill), for: hero)
+        later.modifiedAt = Date(timeIntervalSince1970: 200)
+
+        let merged = CloudSaveMerge.merge(incoming: earlier, existing: later, base: base, preferIncoming: false)
+        let context = try PersistenceTestContext()
+        let restored = try context.seedAndReload(merged)
+        #expect(restored.roster.loadout(for: hero).basic?.id == basic.id)
+        #expect(restored.roster.loadout(for: hero).skill?.id == skill.id)
+        #expect(restored.roster.loadout(for: hero).ultimate?.id == hero.abilityLoadout.ultimate?.id)
+    }
+
     @Test func `newly equipped gear survives a later unrelated device action`() {
         var base = PlayerSave.testSeed
         base.modifiedAt = Date(timeIntervalSince1970: 1)

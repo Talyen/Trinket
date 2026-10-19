@@ -469,6 +469,10 @@ the intercept is marked as spent before that resolution starts.
 
 ### Elemental Leech
 
+Carnivore reserves its first Bleed attack's Leech before rolling Critical chance,
+so that attack can receive Taste for Blood. Dodges and zero-damage requests do
+not spend the allowance; it refreshes each turn.
+
 Typed damage Leech uses the standard Leech rate and never adds a second base
 contribution to an already-Leeching hit. Symbiotic Venom grants Leech only to
 Poison attacks, excluding ticks and reaction damage. Overhealing keeps its emitted

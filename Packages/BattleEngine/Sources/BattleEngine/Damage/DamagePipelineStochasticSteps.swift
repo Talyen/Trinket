@@ -156,13 +156,19 @@ package extension DamagePipeline {
         if actor.role == .enemy {
             return
         }
+        if state.options.isAttackHit, state.combatant.role == .enemy, damageKeyword == .bleed,
+           context.modifiers(for: sourceActorID).triggers.firstBleedAttackLeechPerTurn,
+           context.claimHeroTalent(.carnivore, actorID: sourceActorID) {
+            // The granted Leech must qualify this attack's Critical chance riders.
+            state.talentAttackHasLeech = true
+        }
         var abilityBonus = state.options.abilityCriticalChanceBonus
         if state.options.isAttackHit {
             abilityBonus += context.consumeTalentPreparation(\.nextAttackCriticalBonus, for: actor.combatant) ?? 0
         }
         abilityBonus += consumeSanctifiedCriticalBonus(for: state, actor: actor.combatant, in: &context)
         if state.options.isAttackHit,
-           state.options.abilityHasLeech || context.modifiers(for: sourceActorID).triggers.attackLeechPercent > 0
+           state.hasGuaranteedAttackLeech(in: context)
            || HealingEngine.grantsLeech(
                to: actor, keyword: state.damageKeyword, criticalAttack: false,
                attackHit: true, in: context,

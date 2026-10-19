@@ -5,7 +5,7 @@ import TrinketCore
 import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
-struct StageRewardEncounterLevelTests {
+extension StageRewardTests {
     enum ClaimFallbackMode: String {
         case journey
         case spire

@@ -184,10 +184,7 @@ package extension HealingEngine {
         }
         if survivedRestoration, actualRestored > 0, profile.triggers.leechThornsWithoutThorns > 0,
            !context.roster.activeEffects(for: actorCombatant).contains(where: {
-               if case let .thorns(stacks) = $0.effect {
-                   return stacks > 0
-               }
-               return false
+               $0.effect.kind == .thorns && ($0.effect.potency ?? 0) > 0
            }),
            context.insertEffect(
                .thorns(profile.triggers.leechThornsWithoutThorns),

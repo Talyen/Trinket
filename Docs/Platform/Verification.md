@@ -181,6 +181,9 @@ on the same revision. Native comparators run in separate 25-minute hosted jobs,
 with three minutes reserved for diagnostics. The iOS lane transfers compact
 successful execution proof bound to repository, commit, run, attempt, package and
 selected Xcode identity; missing, incomplete or mismatched proof fails comparison.
+Retain a complete comparator proof even if another package in its shard fails.
+Unrelated unit failures do not skip requested parity; those unit failures still fail
+`CI OK` independently.
 Partial reruns must include the producing iOS lanes as well as native comparators;
 an earlier attempt's proof cannot qualify a new attempt.
 Requested parity remains part of `CI OK`. Standard checks reused by an ordinary

@@ -20,12 +20,12 @@ extension BattleState {
             repeatsManaEmpowerment: original.repeatsManaEmpowerment,
             operations: branch.operations,
         )
-        var paymentState = self
-        if original.blockCost > 0 {
-            let available = DefensePoolEngine.blockPoints(in: roster.activeEffects(for: actor))
-            DefensePoolEngine.set(max(0, available - original.blockCost), on: actor, in: &paymentState)
-        }
-        for use in paymentState.empowermentResourceUses(ability, actor: actor, randomKeywords: branch.randomizeDamageKeywords) {
+        let blockOverride = original.blockCost > 0
+            ? max(0, DefensePoolEngine.blockPoints(in: roster.activeEffects(for: actor)) - original.blockCost)
+            : nil
+        for use in empowermentResourceUses(
+            ability, actor: actor, randomKeywords: branch.randomizeDamageKeywords, blockOverride: blockOverride,
+        ) {
             mergeResource(use, into: &resources)
         }
         for (effectIndex, targeted) in branch.targetedEffects.enumerated() where targeted.effect == .convertManaToBlock {
@@ -46,13 +46,15 @@ extension BattleState {
 }
 
 private extension BattleState {
-    func empowermentResourceUses(_ ability: Ability, actor: Combatant, randomKeywords: Bool) -> [BattleCardAssessment.ResourceUse] {
+    func empowermentResourceUses(
+        _ ability: Ability, actor: Combatant, randomKeywords: Bool, blockOverride: Int? = nil,
+    ) -> [BattleCardAssessment.ResourceUse] {
         guard ability.hasManaEmpowerableBurnOrFreezeDamage || randomKeywords else { return [] }
         let quoted = randomKeywords ? Ability(
             id: ability.id, name: ability.name, tier: ability.tier,
             directDamage: 1, damageKeyword: .freeze,
         ) : ability
-        var budget = ManaEmpowermentBudget(ability: quoted, actor: actor, in: self)
+        var budget = ManaEmpowermentBudget(ability: quoted, actor: actor, in: self, blockOverride: blockOverride)
         let isCertain = !randomKeywords && (budget.purchaseLimit == 1 || hasPredictableRepeatedPayments)
         guard let payment = budget.totalPayment() else { return [] }
         var uses: [BattleCardAssessment.ResourceUse] = []

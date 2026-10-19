@@ -15,6 +15,7 @@ private final class HeroScrollState {
 public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     let title: String
     let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
+    var heroContainerSize: CGSize?
     var hidesNavigationBar = false
     @ViewBuilder let header: (_ baseHeight: CGFloat) -> Header
     @ViewBuilder let bodyContent: () -> BodyContent
@@ -56,7 +57,7 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             .modifier(DetailHeroSoftEdgeModifier(scrollState: scrollState))
             .onScrollGeometryChange(for: HeroHeaderScrollMetrics.self) { geometry in
                 let topInset = geometry.contentInsets.top
-                let baseHeight = heroHeightPolicy.height(in: CGSize(
+                let baseHeight = heroHeightPolicy.height(in: heroContainerSize ?? CGSize(
                     width: geometry.containerSize.width,
                     height: max(0, geometry.containerSize.height - topInset - geometry.contentInsets.bottom),
                 ))

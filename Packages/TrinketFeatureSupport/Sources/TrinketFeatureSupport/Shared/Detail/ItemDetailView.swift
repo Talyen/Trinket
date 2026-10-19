@@ -100,34 +100,37 @@ public struct ItemDetailView: View {
     }
 
     public var body: some View {
-        DetailHeroScrollShell(
-            title: item.localizedDisplayName(locale: locale),
-            header: { baseHeight in
-                DetailHeroHeader(
-                    eyebrow: eyebrow(for: item),
-                    title: item.localizedDisplayName(locale: locale),
-                    titleShine: item.displayTextShine,
-                    baseHeight: baseHeight,
-                ) {
-                    ItemArtwork(item: item)
-                } footer: {
-                    if let heroNote {
-                        Label(heroNote, systemImage: "checkmark.circle.fill")
-                            .trinketTypography(.rowTitle)
-                            .trinketOnArtText(.eyebrow)
-                            .accessibilityIdentifier(heroNoteAccessibilityID ?? heroNote)
+        GeometryReader { geometry in
+            DetailHeroScrollShell(
+                title: item.localizedDisplayName(locale: locale),
+                header: { baseHeight in
+                    DetailHeroHeader(
+                        eyebrow: eyebrow(for: item),
+                        title: item.localizedDisplayName(locale: locale),
+                        titleShine: item.displayTextShine,
+                        baseHeight: baseHeight,
+                    ) {
+                        ItemArtwork(item: item)
+                    } footer: {
+                        if let heroNote {
+                            Label(heroNote, systemImage: "checkmark.circle.fill")
+                                .trinketTypography(.rowTitle)
+                                .trinketOnArtText(.eyebrow)
+                                .accessibilityIdentifier(heroNoteAccessibilityID ?? heroNote)
+                        }
                     }
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemDetail(item.id))
+                },
+                bodyContent: {
+                    traitsSection
+                },
+            )
+            .sizingHero(in: geometry.size)
+            .safeAreaInset(edge: .bottom) {
+                if let primaryAction {
+                    DetailPrimaryActionFooter(primaryAction: primaryAction)
                 }
-                .accessibilityElement(children: .contain)
-                .accessibilityIdentifier(AccessibilityID.LoadoutPicker.itemDetail(item.id))
-            },
-            bodyContent: {
-                traitsSection
-            },
-        )
-        .safeAreaInset(edge: .bottom) {
-            if let primaryAction {
-                DetailPrimaryActionFooter(primaryAction: primaryAction)
             }
         }
     }
@@ -223,5 +226,14 @@ public struct ItemDetailView: View {
         case .persistenceFailure:
             salvage.onSalvageFinished?(.persistenceFailure)
         }
+    }
+}
+
+private extension DetailHeroScrollShell {
+    func sizingHero(in size: CGSize) -> Self {
+        var shell = self
+        // Measure before the fixed action footer reserves space in the scroll view.
+        shell.heroContainerSize = size
+        return shell
     }
 }

@@ -82,8 +82,8 @@ public extension BattleState {
         let base = roster.enemyAttackTarget
         if base.id == roster.companion.id, roster.hero.isAlive,
            companionModifiers.triggers.untargetableAboveHealthPercent > 0,
-           roster.maxHealth(for: roster.companion.combatant) > 0,
-           Double(roster.health(for: roster.companion.combatant)) / Double(roster.maxHealth(for: roster.companion.combatant))
+           roster.companion.maxHealth > 0,
+           Double(roster.companion.currentHealth) / Double(roster.companion.maxHealth)
            >= companionModifiers.triggers.untargetableAboveHealthPercent {
             return roster.hero.combatant
         }

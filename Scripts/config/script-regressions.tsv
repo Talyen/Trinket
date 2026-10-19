@@ -231,3 +231,4 @@ Scripts/export-localization-screenshots.py	test_localization.py
 .github/actions/test-job/action.yml	test_ci_effort.py,test_ci_build_scripts.py,test_localization.py
 Scripts/internal/diagnostics/execution_identity.py	test_ci_improvements.py,test_test_timing.py
 Scripts/report-ci-status.py	test_ci_build_scripts.py,test_ci_gate_scripts.py,test_player_coverage.py
+Scripts/ci-runtime-cleanup.py	test_player_coverage.py

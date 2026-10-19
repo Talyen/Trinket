@@ -189,10 +189,7 @@ package extension DamagePipeline {
         guard let bonus = markedBonus else { return }
 
         ActiveEffectMutation.removeMatching(from: state.combatant, in: &context) {
-            if case .marked = $0 {
-                return true
-            }
-            return false
+            $0.kind == .marked
         }
         context.nextEvent(
             kind: .effect(.markedConsumed),
