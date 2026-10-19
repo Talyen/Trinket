@@ -261,6 +261,40 @@ Each new run retains its receipt, archive, IPA, symbols, and logs under the prim
 checkout's `.DerivedData/testflight/`. Legacy receipts in the invoking checkout
 remain resumable. The receipt links command logs and records the source
 commit, Xcode, build number, cloud setting, IPA checksum, and Apple build ID.
+
+Release builds explicitly generate `dwarf-with-dsym` without disabling optimization.
+Before upload, `Scripts/build-symbols.py` validates every bundled app/framework
+executable against the archive's dSYMs, checks that the exported IPA contains the
+same binary UUIDs and nonempty Apple symbol payloads, and makes a hash-verified
+copy of the complete archive, IPA, and receipt outside disposable build storage.
+The default is `~/Library/Developer/Trinket/BuildArtifacts/releases/`; set
+`TRINKET_SYMBOL_BACKUP_ROOT` to use another durable location, such as a backed-up
+volume. The default is a local safety copy, not an off-machine backup. Existing
+copies are verified and never overwritten with different artifact contents.
+The receipt's `symbol_artifacts` records this copy and its manifest; later receipt
+updates are mirrored there. Keep release copies for as long as those builds need
+diagnosis. If restoring a deleted deployment, restore its original run directory
+and paths from these artifacts before resuming.
+Already-uploaded legacy receipts without surviving local archives remain
+reconcilable using Apple's symbol status; the receipt records that local retention
+could not be verified. This cannot recreate a lost archive or dSYM.
+
+After Apple processes the exact uploaded build, deployment requires its app build
+bundle's `includesSymbols` to be true before requesting tester distribution or
+reporting ready. Missing symbols fail; an unknown state remains pending, with no
+automatic re-upload. Check an existing build of the current marketing version
+without uploading or distributing anything:
+
+```sh
+./Scripts/testflight.sh --verify-symbols 39
+```
+
+Backfill a retained archive using its original receipt and exported IPA:
+
+```sh
+python3 Scripts/build-symbols.py --archive /absolute/path/Trinket.xcarchive --ipa /absolute/path/Trinket.ipa --receipt /absolute/path/receipt.json
+```
+
 `verification.json` checkpoints successful package suites and UI classes, with
 phase timings and local or hosted evidence. Resume runs only missing phases for
 the same clean commit, checkout, toolchain/SDK, architecture, and simulator

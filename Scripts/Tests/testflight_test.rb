@@ -16,7 +16,7 @@ module TrinketTestFlight
 end
 
 class FakePortal
-  attr_accessor :remote, :fail_upload
+  attr_accessor :remote, :fail_upload, :symbols
   attr_reader :calls, :app, :group
 
   def initialize
@@ -25,6 +25,7 @@ class FakePortal
     @calls = []
     @remote = []
     @assigned = false
+    @symbols = true
   end
 
   def builds(_version)
@@ -54,6 +55,10 @@ class FakePortal
 
   def assigned?(_build)
     @assigned
+  end
+
+  def symbol_status(_build, _bundle_id)
+    symbols
   end
 end
 
@@ -85,6 +90,10 @@ class FixtureDeployment < TrinketTestFlight::Deployment
     receipt['ipa_sha256'] = Digest::SHA256.file(path).hexdigest
     receipt['stage'] = 'exported'
     save
+  end
+
+  def ensure_symbol_artifacts
+    # Archive/IPA fixtures have no native binaries; real validation has Python coverage.
   end
 end
 
@@ -175,8 +184,10 @@ begin
     resume_path = alternate_case_path if File.exist?(alternate_case_path)
     resumed = factory.call(resume: resume_path)
     resumed.dirty = true # Completed artifacts are independent of current source.
+    resumed.define_singleton_method(:ensure_symbol_artifacts) { raise 'Legacy archive must not be rebuilt' }
     resumed.execute
     assert(resumed.commands.empty?)
+    assert(resumed.receipt['legacy_symbol_retention'].include?('unavailable'))
     assert(portal.calls == [:upload, :distribute])
     portal.remote.clear # Local reservations still prevent reusing 10.
     next_run = factory.call
@@ -193,6 +204,21 @@ begin
     portal.remote << FakePortal.build(deploy.receipt['build'])
     factory.call(resume: deploy.run_dir).execute
     assert(portal.calls == [:upload, :distribute])
+  end
+
+  fixture do |deploy, portal, factory|
+    portal.symbols = false
+    rejects('missing symbols') { deploy.execute }
+    assert(portal.calls == [:upload], 'Apple symbol failure must prevent distribution')
+    assert(deploy.receipt['apple_symbols']['includes_symbols'] == false)
+    portal.symbols = nil
+    rejects('not confirmed symbols') { factory.call(resume: deploy.run_dir).execute }
+    assert(portal.calls == [:upload], 'unknown symbol state must not trigger another upload')
+    portal.symbols = true
+    resumed = factory.call(resume: deploy.run_dir)
+    resumed.execute
+    assert(portal.calls == [:upload, :distribute])
+    assert(resumed.receipt['apple_symbols']['includes_symbols'] == true)
   end
 
   fixture do |_deploy, portal, _factory, settings, root|
@@ -358,6 +384,9 @@ if ARGV.include?('--fastlane')
                'key_filepath' => key_path, 'internal_group_id' => 'group' }
     portal = TrinketTestFlight::Portal.new(config, 'com.example.Trinket')
     assert(Spaceship::ConnectAPI.token.text.split('.').length == 3)
+    bundle = Spaceship::ConnectAPI::BuildBundle.new('bundle', { 'bundleId' => 'com.example.Trinket', 'includesSymbols' => true })
+    assert(portal.symbol_status(OpenStruct.new(build_bundles: [bundle]), 'com.example.Trinket') == true)
+    assert(portal.symbol_status(OpenStruct.new(build_bundles: [bundle]), 'other.app').nil?)
     ipa = File.join(directory, 'Trinket.ipa')
     File.write(ipa, 'fixture IPA')
     portal.upload(ipa, { 'bundle_id' => 'com.example.Trinket', 'version' => '0.1.0', 'build' => 7 })

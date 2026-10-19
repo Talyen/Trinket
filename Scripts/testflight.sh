@@ -10,7 +10,7 @@ for argument in "$@"; do
         -u BUNDLE_GEMFILE -u BUNDLE_PATH -u BUNDLE_FROZEN -u BUNDLE_IGNORE_CONFIG \
         /usr/bin/ruby Scripts/internal/testflight.rb "$@"
       ;;
-    --doctor) doctor=true ;;
+    --doctor|--verify-symbols) doctor=true ;;
   esac
 done
 source Scripts/lib/output-retention.sh

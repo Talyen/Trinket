@@ -44,6 +44,7 @@ settings:
       APS_ENVIRONMENT: development
       CLOUDKIT_ENVIRONMENT: Development
     Release:
+      DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
       ASSETCATALOG_COMPILER_OPTIMIZATION: space
       APS_ENVIRONMENT: production
       CLOUDKIT_ENVIRONMENT: Production

@@ -17,10 +17,14 @@ import pty
 import re
 import selectors
 import signal
+import shutil
 import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
+
+from internal.build_symbols import artifact_root, app_manifest, digest, preserve_profile_symbols, symbolicated_app_frames
+from internal.cli import primary_worktree_root
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = "com.ryanmcintire.Trinket"
@@ -211,13 +215,14 @@ def main() -> int:
     parser.add_argument("--duration", type=int, default=30, help="Recording seconds (5–600; default 30)")
     parser.add_argument("--startup-timeout", type=int, default=120, help="Seconds allowed for recording to start")
     parser.add_argument("--output", type=Path, help="New evidence directory; existing paths are never overwritten")
+    parser.add_argument("--symbols", type=Path, help="Original matching dSYM or directory (required when unavailable locally)")
     install = parser.add_mutually_exclusive_group()
     install.add_argument("--build", action="store_true", help="Build/install an optimized development app first")
     install.add_argument("--app", type=Path, help="Install an existing development-signed Release .app first")
     args = parser.parse_args()
     if not 5 <= args.duration <= 600 or args.startup_timeout < 1:
         parser.error("--duration must be 5–600 and --startup-timeout must be positive")
-    output = (args.output or ROOT / ".DerivedData/PerformanceResults" / dt.datetime.now(dt.timezone.utc).strftime("device-%Y%m%dT%H%M%S.%fZ")).resolve()
+    output = (args.output or artifact_root() / "profiles" / dt.datetime.now(dt.timezone.utc).strftime("device-%Y%m%dT%H%M%S.%fZ")).resolve()
     try:
         output.mkdir(parents=True, exist_ok=False)
     except OSError as error:
@@ -253,6 +258,14 @@ def main() -> int:
                 app = ROOT / ".DerivedData/Device/Build/Products/Release-iphoneos/Trinket.app"
             if app:
                 report["app"] = check_app(app, udid)
+                symbol_root = args.symbols or (app.parents[2] / "dSYMs" if app.parents[2].suffix == ".xcarchive" else app.parent)
+                report["buildSymbols"] = app_manifest(app, symbol_root)
+                for binary in report["buildSymbols"]["binaries"]:
+                    target = output / "Binaries" / binary["path"]
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(app / binary["path"], target)
+                    if digest(target) != binary["sha256"]:
+                        raise ValueError("App binary changed while preserving profiling evidence")
                 if not args.build:
                     run(["xcrun", "devicectl", "device", "install", "app", "--device", udid,
                          "--timeout", "300", str(app)], output / "install.log", timeout=310)
@@ -261,6 +274,9 @@ def main() -> int:
                 raise ValueError("Install an optimized development app with --build or --app first.")
             report["installedApp"] = apps[0]
             report["buildConfiguration"] = "Release" if args.build else "Not verified; supplied or installed app"
+            if args.build:
+                report["source"] = {"commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+                                    "dirty": bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip())}
             # Apple owns cache completeness and OS/model/architecture matching.
             run(["xcodebuild", "-prepareDeviceSupport", "-destination", f"id={udid}"],
                 output / "symbols.log", timeout=1800)
@@ -279,6 +295,31 @@ def main() -> int:
             xpath = '/trace-toc/run[@number="1"]/data/table[@schema="time-profile" or @schema="hitches-frame-lifetimes"]'
             run(["xcrun", "xctrace", "export", "--input", str(trace), "--xpath", xpath, "--output", str(samples)], output / "export-samples.log", timeout=None)
             report.update(validate_trace(toc, samples, udid, args.duration))
+            if app:
+                roots = [symbol_root]
+            elif args.symbols:
+                roots = [args.symbols]
+            else:
+                primary = primary_worktree_root(ROOT)
+                roots = [primary / ".DerivedData/Device/Build/Products/Release-iphoneos",
+                         ROOT / ".DerivedData/Device/Build/Products/Release-iphoneos",
+                         *primary.glob(".DerivedData/testflight/*/artifacts-*/*.xcarchive/dSYMs"),
+                         *artifact_root().glob("releases/*/Trinket.xcarchive/dSYMs"),
+                         *artifact_root().glob("profiles/*/symbols")]
+            report["symbols"] = preserve_profile_symbols(samples, roots, output / "symbols", {
+                key: report[key] for key in ("installedApp", "developerDirectory", "source", "buildSymbols") if key in report})
+            if app:
+                observed = {tuple(value) for value in report["symbols"]["binaryUUIDs"]}
+                expected = {tuple(value) for value in report["buildSymbols"]["binaries"][0]["uuids"]}
+                if not observed <= expected:
+                    raise ValueError("Recorded Trinket binary differs from the supplied build")
+            run(["xcrun", "xctrace", "symbolicate", "--input", str(trace), "--dsym", str(output / "symbols")],
+                output / "symbolicate.log", timeout=None)
+            symbolicated = output / "symbolicated-samples.xml"
+            run(["xcrun", "xctrace", "export", "--input", str(trace), "--xpath", xpath, "--output", str(symbolicated)],
+                output / "export-symbolicated.log", timeout=None)
+            report.update(validate_trace(toc, symbolicated, udid, args.duration))
+            report["namedAppFrames"] = symbolicated_app_frames(symbolicated)
             report["status"] = "passed"
             print(f"Verified CPU and frame measurements: {report['rowCounts']}\nEvidence: {output}")
     except (ValueError, RuntimeError, OSError, KeyError, ET.ParseError, subprocess.SubprocessError) as error:

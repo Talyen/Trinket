@@ -339,13 +339,27 @@ alone is insufficient.
 See Apple's [app symbol guidance](https://developer.apple.com/documentation/xcode/building-your-app-to-include-debugging-information).
 
 Each run creates a new evidence directory with logs, device/app/toolchain metadata,
-the trace, exported measurement rows, and `result.json`. Existing output is never
+the trace, exported measurement rows, and `result.json`. The default location is
+`~/Library/Developer/Trinket/BuildArtifacts/profiles/`, outside disposable worktrees;
+`TRINKET_SYMBOL_BACKUP_ROOT` changes the shared artifact root. An explicit `--output`
+uses the supplied location, whose lifetime the caller owns. Existing output is never
 overwritten. Success requires the intended iPhone and Trinket process, normal app
 exit, the full requested interval, `Time limit reached`, and nonempty CPU and frame
 data. A zero exit code or saved partial trace after disconnect is insufficient.
 Failures retain diagnostics and return nonzero. Startup and ignored recording
 limits have watchdogs; acknowledged stopping/saving has no guessed wall-clock
 budget. Ctrl-C cancels only owned commands and preserves partial evidence.
+
+Each successful recording includes a verified copy of the dSYM matching the
+Trinket binary UUID observed in the trace, plus a symbol manifest. For `--build`
+and `--app`, the wrapper also validates all app/framework dSYMs and preserves the
+executables and available build metadata. Installed-app reuse searches retained
+Release products, archives, and symbol backups; use `--symbols /absolute/path/to/dSYMs`
+when the original symbols live elsewhere. Missing or mismatched symbols fail the
+run while retaining its raw evidence. The wrapper symbolicates its owned trace
+with the preserved dSYMs and requires named Trinket frames in a fresh export.
+Retain these together; a later rebuild from the same
+source is not a replacement for the original symbols.
 
 The direct-launch path avoids the attachment and device-wide failures below;
 it does not repair Apple's attachment service. Do not fall back silently to host

@@ -103,6 +103,11 @@ module TrinketTestFlight
     def assigned?(build)
       group.fetch_builds.any? { |candidate| candidate.id == build.id }
     end
+
+    def symbol_status(build, bundle_id)
+      bundles = Array(build.build_bundles).select { |bundle| bundle.bundle_id == bundle_id }
+      bundles.length == 1 ? bundles.first.includes_symbols : nil
+    end
   end
 
   class Deployment
@@ -123,6 +128,11 @@ module TrinketTestFlight
       path = File.join(@run_dir, 'receipt.json')
       File.write(path + '.tmp', JSON.pretty_generate(@receipt) + "\n", perm: 0o600)
       File.rename(path + '.tmp', path)
+      if @receipt.dig('symbol_artifacts', 'path') && File.directory?(@receipt['symbol_artifacts']['path'])
+        backup = File.join(@receipt.fetch('symbol_artifacts').fetch('path'), 'receipt.json')
+        File.write(backup + '.tmp', JSON.pretty_generate(@receipt) + "\n", perm: 0o600)
+        File.rename(backup + '.tmp', backup)
+      end
     end
 
     def start
@@ -193,6 +203,12 @@ module TrinketTestFlight
     def execute
       start
       if %w[uploading uploaded ready].include?(@receipt['stage'])
+        if @receipt['symbol_artifacts'] || File.directory?(@receipt.fetch('archive', ''))
+          ensure_symbol_artifacts
+        else
+          @receipt['legacy_symbol_retention'] = 'Original archive unavailable; only Apple symbol status can be verified.'
+          save
+        end
         reconcile
         return
       end
@@ -226,6 +242,7 @@ module TrinketTestFlight
       end
       build unless @receipt['stage'] == 'exported'
       validate_ipa_hash
+      ensure_symbol_artifacts
       raise Failure, 'Build number already exists on Apple. Start a new deployment to allocate another number.' if @portal.find_build(@receipt['version'], @receipt['build'])
       raise Failure, 'Source changed before upload.' unless clean_commit == @receipt['commit']
       @receipt['stage'] = 'uploading'
@@ -281,6 +298,19 @@ module TrinketTestFlight
       inspect_ipa(artifacts)
       @receipt['ipa_sha256'] = Digest::SHA256.file(ipas.first).hexdigest
       @receipt['stage'] = 'exported'
+      save
+      ensure_symbol_artifacts
+    end
+
+    def ensure_symbol_artifacts
+      backup = @receipt.dig('symbol_artifacts', 'path')
+      archive = @receipt.fetch('archive')
+      ipa = @receipt.fetch('ipa')
+      archive = File.join(backup, 'Trinket.xcarchive') if backup && !File.directory?(archive)
+      ipa = File.join(backup, 'Trinket.ipa') if backup && !File.file?(ipa)
+      @receipt['symbol_artifacts'] = JSON.parse(TrinketTestFlight.capture('python3',
+        File.join(@root, 'Scripts/build-symbols.py'), '--archive', archive,
+        '--ipa', ipa, '--receipt', File.join(@run_dir, 'receipt.json')))
       save
     end
 
@@ -357,6 +387,16 @@ module TrinketTestFlight
             raise Failure, "Apple requires action: #{state}. Resolve in App Store Connect, then resume this run."
           end
           if build.processing_state == 'VALID' && %w[READY_FOR_BETA_TESTING IN_BETA_TESTING].include?(state)
+            symbols = @portal.symbol_status(build, @receipt.fetch('bundle_id'))
+            @receipt['apple_symbols'] = { 'build_id' => build.id, 'includes_symbols' => symbols,
+                                         'checked_at' => Time.now.utc.iso8601 }
+            save
+            if symbols == false
+              raise Failure, 'Apple reports missing symbols for this processed build. Retain the archive and inspect the upload; do not blindly re-upload.'
+            end
+            unless symbols == true
+              raise Pending, "Apple has not confirmed symbols; no distribution requested. Resume with ./Scripts/testflight.sh --resume #{@run_dir}"
+            end
             unless @receipt['distribution_requested']
               @portal.distribute(build, @receipt.fetch('notes'))
               @receipt['distribution_requested'] = true
@@ -387,9 +427,10 @@ module TrinketTestFlight
     options = { timeout: 1800 }
     modes = []
     parser = OptionParser.new do |opts|
-      opts.banner = 'Usage: ./Scripts/testflight.sh [--doctor | --dry-run | --resume RUN] [options]'
+      opts.banner = 'Usage: ./Scripts/testflight.sh [--doctor | --dry-run | --resume RUN | --verify-symbols BUILD] [options]'
       opts.on('--doctor', 'Read-only local and Apple access checks; no signing/build/upload') { modes << :doctor }
       opts.on('--dry-run', 'Offline preview; no installs, writes, Apple calls, or build') { modes << :dry_run }
+      opts.on('--verify-symbols BUILD', 'Read-only Apple symbol check for an existing build') { |value| options[:symbol_build] = value; modes << :symbols }
       opts.on('--resume RUN', 'Continue retained deployment; never blindly re-upload') { |value| options[:resume] = File.expand_path(value); modes << :resume }
       opts.on('--config FILE', 'Local JSON (default ~/.config/trinket/testflight.json)') { |value| options[:config] = value }
       opts.on('--notes FILE', 'UTF-8 What to Test notes, at most 4000 characters') { |value| options[:notes] = File.expand_path(value) }
@@ -418,6 +459,14 @@ module TrinketTestFlight
     puts "iOS SDK: #{capture('xcrun', '--sdk', 'iphoneos', '--show-sdk-version')}"
     configuration = config(options[:config] || File.join(Dir.home, '.config/trinket/testflight.json'), root)
     portal = Portal.new(configuration, settings.fetch('bundle_id'))
+    if modes.include?(:symbols)
+      build = portal.find_build(settings.fetch('version'), options.fetch(:symbol_build))
+      raise Failure, 'Apple has no matching build for the current marketing version.' unless build
+      symbols = portal.symbol_status(build, settings.fetch('bundle_id'))
+      puts JSON.generate(build: build.version, apple_build_id: build.id, includes_symbols: symbols)
+      raise Failure, 'Apple has not confirmed symbols for this build.' unless symbols == true
+      return 0
+    end
     if modes.include?(:doctor)
       puts capture('python3', File.join(root, 'Scripts/deploy-verification.py'), '--preflight')
       puts "Apple access OK: #{portal.app.name}; internal group: #{portal.group.name}."
