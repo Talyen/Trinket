@@ -317,10 +317,12 @@ New beta receipts record their verification mode and source baseline. Legacy
 receipts retain their original FullUI requirement. After qualified hosted UI passes, signed
 archive/export runs while standard hosted CI finishes; upload waits for CI and Smoke.
 An interrupted CI wait retains the signed IPA and focused results for resume.
-Release compiler products, intermediates, and precompiled headers are explicitly
-pinned inside a retained cache keyed by checkout and Xcode. Pinning all roots keeps
-SPM outputs out of the checkout-global build fallback, so repeated candidates can
-reuse compiler work. Signed archives, exported IPAs, and checksums remain separate
+Release archives use a retained DerivedData cache keyed by checkout and Xcode.
+The process-local `IDEBuildLocationStyle=Unique` override keeps the complete Xcode
+archive arena there without changing the Mac's preferences. Leave `SYMROOT`,
+`OBJROOT`, and precompiled-header paths under Xcode's control: overriding them
+individually can separate compiled products and dSYMs from archive assembly.
+Signed archives, exported IPAs, and checksums remain separate
 per deployment; a build number or binary is never relabeled for reuse.
 Keep these artifacts through the beta's debugging window; do not delete them
 while a run needs recovery. This directory is outside routine simulator-run

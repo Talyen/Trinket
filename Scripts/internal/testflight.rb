@@ -286,10 +286,7 @@ module TrinketTestFlight
       cache = File.join(@state_root, 'build-cache', Digest::SHA256.hexdigest(@root + @receipt.fetch('xcode'))[0, 16])
       command('archive', {}, 'xcodebuild', '-project', 'Trinket.xcodeproj', '-scheme', 'Trinket',
         '-configuration', 'Release', '-destination', 'generic/platform=iOS', '-archivePath', archive,
-        '-derivedDataPath', cache, '-disableAutomaticPackageResolution',
-        "SYMROOT=#{File.join(cache, 'Build/Products')}",
-        "OBJROOT=#{File.join(cache, 'Build/Intermediates.noindex')}",
-        "SHARED_PRECOMPS_DIR=#{File.join(cache, 'Build/Intermediates.noindex/PrecompiledHeaders')}",
+        '-derivedDataPath', cache, '-IDEBuildLocationStyle=Unique', '-disableAutomaticPackageResolution',
         '-resultBundlePath', File.join(artifacts, 'archive.xcresult'), *auth,
         "CURRENT_PROJECT_VERSION=#{@receipt.fetch('build')}", "MARKETING_VERSION=#{@receipt.fetch('version')}",
         "DEVELOPMENT_TEAM=#{@receipt.fetch('team')}", 'CODE_SIGN_STYLE=Automatic',

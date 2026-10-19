@@ -330,9 +330,9 @@ begin
     archive = deploy.commands.find { |item| item.first == 'archive' }.last
     assert(archive.include?('CURRENT_PROJECT_VERSION=7'))
     cache = archive[archive.index('-derivedDataPath') + 1]
-    assert(archive.include?("SYMROOT=#{File.join(cache, 'Build/Products')}"))
-    assert(archive.include?("OBJROOT=#{File.join(cache, 'Build/Intermediates.noindex')}"))
-    assert(archive.include?("SHARED_PRECOMPS_DIR=#{File.join(cache, 'Build/Intermediates.noindex/PrecompiledHeaders')}"))
+    assert(archive.include?('-IDEBuildLocationStyle=Unique'), 'archive must ignore global custom build locations per process')
+    assert(archive.none? { |arg| arg.match?(/\A(?:SYMROOT|OBJROOT|SHARED_PRECOMPS_DIR)=/) },
+      'Xcode must own its complete archive arena, including products and dSYMs')
     TrinketTestFlight::Deployment.instance_method(:build).bind(deploy).call
     next_archive = deploy.commands.reverse.find { |item| item.first == 'archive' }.last
     assert(next_archive[next_archive.index('-derivedDataPath') + 1] == cache, 'candidate artifacts must share the compiler cache')
