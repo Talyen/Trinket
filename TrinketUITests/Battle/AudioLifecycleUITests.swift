@@ -45,15 +45,10 @@ extension TrinketUITestCase {
     @discardableResult
     func completeAudioContract() -> Bool {
         let fight = button(AccessibilityID.Play.contractFight("easy"))
-        assertExistsAfterScroll(AccessibilityID.Play.contractFight("easy"), requireHittable: true)
         let board = app.scrollViews[AccessibilityID.Play.contractsBoard]
-        let navigationBar = app.navigationBars.firstMatch
-        if fight.frame.minY < navigationBar.frame.maxY {
-            board.swipeDown()
-        }
-        waitUntil("Contract fight button must clear the pinned navigation bar") {
-            fight.isHittable && fight.frame.minY >= navigationBar.frame.maxY
-        }
+        // Returning from battle can leave the first action clipped under the pinned bar.
+        board.swipeDown()
+        assertExistsAfterScroll(AccessibilityID.Play.contractFight("easy"), requireHittable: true)
         tapWhenReady(fight)
         battle.assertActive()
         tapWhenReady(battle.autoBattleToggle)
