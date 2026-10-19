@@ -7,11 +7,19 @@ final class AudioLifecycleUITests: TrinketUITestCase {
             + ["-performance-strong-party", "-coverage-diagnostics"])
         let musicVolume = app.sliders["Music"]
         XCTAssertTrue(musicVolume.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        musicVolume.adjust(toNormalizedSliderPosition: 0.75)
-        // Simulator AX adjustment can move the thumb without committing the SwiftUI binding.
-        let musicStart = musicVolume.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.5))
-        let musicEnd = musicVolume.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        musicStart.press(forDuration: 0.1, thenDragTo: musicEnd)
+        trinketOnMainActor {
+            XCTAssertEqual(musicVolume.value as? String, "0%")
+            // Grab the muted thumb; AX adjustment can leave it at zero, so a subsequent
+            // drag from the requested AX position can miss the thumb entirely.
+            let start = musicVolume.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.5))
+            let end = musicVolume.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.5))
+            start.press(forDuration: 0.1, thenDragTo: end)
+        }
+        waitUntil("Dragging Music must update its displayed volume") {
+            trinketOnMainActor { (musicVolume.value as? String).map { $0 != "0%" } ?? false }
+        }
+        let enabledVolume = try trinketOnMainActor { try XCTUnwrap(musicVolume.value as? String) }
+        retainScreenshot(named: "music-volume-after-native-drag")
         waitUntil("Music must start after enabling simulator music") {
             do { return try (self.coverageReport()["musicStarts"] as? Int ?? 0) > 0 }
             catch { return false }
@@ -38,6 +46,17 @@ final class AudioLifecycleUITests: TrinketUITestCase {
         attachment.name = "real-backend-observations-not-audibility-proof"
         attachment.lifetime = .keepAlways
         add(attachment)
+
+        app.terminate()
+        launchApp(arguments: [TestLaunchArg.disableCloudSync, "-selectedTab", "options", "-coverage-diagnostics"])
+        let restoredVolume = app.sliders["Music"]
+        XCTAssertTrue(restoredVolume.trinketWaitForExistence(timeout: Self.defaultTimeout))
+        trinketOnMainActor {
+            XCTAssertEqual(restoredVolume.value as? String, enabledVolume, "Music volume must survive relaunch")
+        }
+        waitUntil("Persisted Music volume must start playback after relaunch") {
+            ((try? self.coverageReport())?["musicStarts"] as? Int ?? 0) > 0
+        }
     }
 }
 
