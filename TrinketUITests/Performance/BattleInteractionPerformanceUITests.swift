@@ -14,7 +14,7 @@ final class BattleInteractionPerformanceUITests: PerformanceJourneyUITestCase {
             battle.openActions()
             tapButton(AccessibilityID.Battle.combatLog)
             assertExists(AccessibilityID.Battle.combatLogSheet)
-            let log = app.collectionViews.firstMatch.exists ? app.collectionViews.firstMatch : app.tables.firstMatch
+            let log = app.scrollViews[AccessibilityID.Battle.combatLogSheet]
             measured("battle-log-scroll", iteration: iteration, scrolling: log)
             dismissSheet(AccessibilityID.Battle.combatLogSheet)
         }

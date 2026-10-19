@@ -93,6 +93,8 @@ native sheet. Successful salvage retains only the outgoing item's position
 and artwork through the native return and source-anchored dissolve; the saved item
 is already removed. The retiring card is noninteractive, and losing the source or
 leaving the flow ends its decorative presentation and releases the pins.
+Only retiring or transmuting item artwork installs source-anchor preferences;
+ordinary shelves must not track empty salvage anchors while scrolling.
 After the native return, the source card hides immediately as its dissolve starts.
 Material rewards enter after 0.30 seconds while the fragments fade, begin their
 0.20-second fade at 0.90 seconds, and release the decorative item at 1.10 seconds
@@ -112,9 +114,18 @@ accessibility exposure. Resume and ordinary progress reconciliation stay immedia
 
 Memory targets and enforcement: [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) Artwork Budgets.
 
+Locked-card artwork and outlined on-art labels flatten their completed SwiftUI
+paint into a drawing group. Preserve the blur, badge shadows, and accumulated ink
+edge; the group avoids repeating those compositor passes during scrolling and
+navigation. Keep native hosting views and controls outside these rasterized groups.
+
 For players who completed starter selection, the selected tab and every hidden
 Collection, Homestead, and Options prewarm surface acknowledge nonzero layout
-under the launch cover after resource preparation. New players acknowledge the
+under the launch cover after resource preparation. Mount hidden roots successively
+across render opportunities so their cold native navigation/layout work does not
+join the selected root in one update. This scheduling delay is not readiness;
+all three hidden roots still report actual layout before the gate opens.
+New players acknowledge the
 starter selection root instead. Task yields and elapsed time are not layout
 acknowledgements. When exactly one run is prepared,
 Play first-layouts a paused `BattleView` in the overlay at opacity 0. Keep

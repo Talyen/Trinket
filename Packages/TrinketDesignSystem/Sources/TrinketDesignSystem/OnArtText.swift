@@ -25,6 +25,8 @@ private struct OnArtTextModifier: ViewModifier {
             .shadow(color: ink, radius: 0, x: -width)
             .shadow(color: ink, radius: 0, y: width)
             .shadow(color: ink, radius: 0, y: -width)
+            // Preserve the accumulated ink edge in one scrolling/navigation layer.
+            .drawingGroup()
 
         if #available(iOS 26.0, *) {
             outlined

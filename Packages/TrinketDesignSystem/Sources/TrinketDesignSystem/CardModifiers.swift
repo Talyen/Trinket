@@ -29,6 +29,8 @@ struct LockedCardEffectModifier: ViewModifier {
                 .disabled(true)
                 .accessibilityLabel(Text(L10n.ui_cardmodifiers_locked_a424e))
                 .overlay { lockBadgeOverlay }
+                // Flatten the static blur and badge shadows before the card scrolls.
+                .drawingGroup()
         } else {
             content
         }

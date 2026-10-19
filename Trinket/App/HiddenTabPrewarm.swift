@@ -17,6 +17,7 @@ struct HiddenTabPrewarm: View {
     }
 
     @State private var laidOutSurfaces: Set<Surface> = []
+    @State private var mountedSurfaceCount = 0
     var onFirstLayout: () -> Void = {}
 
     var body: some View {
@@ -27,23 +28,29 @@ struct HiddenTabPrewarm: View {
         // First-run players skip prewarm entirely; only mounted after starter
         // selection completes (see PreparedAppRoot.shouldWarmHiddenTabs).
         ZStack {
-            NavigationStack {
-                CollectionView()
-                    .onFirstNonzeroLayout {
-                        acknowledgeLayout(.collection)
-                    }
+            if mountedSurfaceCount >= 1 {
+                NavigationStack {
+                    CollectionView()
+                        .onFirstNonzeroLayout {
+                            acknowledgeLayout(.collection)
+                        }
+                }
             }
-            NavigationStack {
-                HomesteadView()
-                    .onFirstNonzeroLayout {
-                        acknowledgeLayout(.homestead)
-                    }
+            if mountedSurfaceCount >= 2 {
+                NavigationStack {
+                    HomesteadView()
+                        .onFirstNonzeroLayout {
+                            acknowledgeLayout(.homestead)
+                        }
+                }
             }
-            NavigationStack {
-                OptionsView()
-                    .onFirstNonzeroLayout {
-                        acknowledgeLayout(.options)
-                    }
+            if mountedSurfaceCount >= 3 {
+                NavigationStack {
+                    OptionsView()
+                        .onFirstNonzeroLayout {
+                            acknowledgeLayout(.options)
+                        }
+                }
             }
         }
         .trinketDecorativeMotion(false)
@@ -51,6 +58,15 @@ struct HiddenTabPrewarm: View {
         .scaleEffect(0.01)
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+        .task {
+            // Spread cold navigation/layout construction across render opportunities.
+            // Every surface still acknowledges real layout before the launch gate opens.
+            for count in 1 ... Surface.allCases.count {
+                try? await Task.sleep(for: .milliseconds(50))
+                guard !Task.isCancelled else { return }
+                mountedSurfaceCount = count
+            }
+        }
         .task {
             // Cancelled automatically when early success unmounts this view.
             try? await Task.sleep(for: Self.layoutTimeout)

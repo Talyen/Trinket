@@ -49,8 +49,12 @@ struct SalvageItemButton: View {
     private var itemArtwork: some View {
         ItemArtwork(item: item, variant: .thumbnail)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { anchor in
-                isRetiring || isTransmuting ? [item.id: anchor] : [:]
+            .background {
+                if isRetiring || isTransmuting {
+                    Color.clear.anchorPreference(key: SalvageArtworkAnchors.self, value: .bounds) { anchor in
+                        [item.id: anchor]
+                    }
+                }
             }
     }
 }

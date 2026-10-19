@@ -291,7 +291,8 @@ budgets there.
    needed; unrelated scenarios are not a mandatory iteration step.
 
 Choose scroll containers for the actual working set. Collection and Homestead
-already use lazy grids; the Combat Log uses `List`; Collection's landing shelves
+already use lazy grids; the read-only Combat Log uses `ScrollView` with lazy rows;
+Collection's landing shelves
 are bounded. An eager stage stack alone is not evidence of a defect. Likewise,
 viewport state invalidating an inventory view is a lead until a profile shows
 material derivation cost. Retain these owners unless measured app work supports
@@ -432,6 +433,30 @@ differed. Evidence, matching app symbols, rejected experiments, and analysis are
 `~/Library/Developer/Trinket/BuildArtifacts/profiles/iphone-investigation-20261019/`
 and its referenced `device-*` captures. Verify availability before reuse. Thermal,
 Low Power Mode, memory growth, and background/foreground coverage remain open.
+
+The October 19 followup attributed launch's largest stall to concurrent cold root
+and hidden-tab layout. Successive hidden mounts retained all real layout gates;
+largest launch hitches repeated at 33–50 ms versus the earlier 133–150 ms captures.
+This spreads work with three 50 ms scheduling pauses; it does not establish
+lower total launch CPU or faster readiness. Flattening the unchanged locked-card
+paint reduced first-fling mean offscreen passes from 36.7 to 8.6; observed fling
+hitches remained 12.5–20.9 ms versus the earlier 29.2 ms. Empty salvage anchor
+writers were also removed from ordinary scrolling. Flattened on-art ink reduced
+Campaign transition mean offscreen passes from 64.4 to 19.8; revisit captures still
+occasionally hitched, so this is less compositor work rather than hitch elimination.
+
+Combat Log localization cost was about 1 ms; cold SwiftUI/native presentation work
+dominated. With one identical entry and no active effects, its first update was
+132.5 ms with `List` and 120.3 ms with lazy text rows. Removing navigation chrome
+only reached 115.5 ms and was rejected; retain native navigation and sheet motion.
+Card plays still recorded short hitches without a confirmed application hotspot.
+Full-card warmup did not establish an improvement and was rejected. SwiftUI
+attribution instrumentation itself added symbol-lookup overhead; do not interpret
+its gesture timings as production measurements. Reports, source diffs, action
+timestamps and matching symbols are retained under
+`~/Library/Developer/Trinket/BuildArtifacts/profiles/iphone-hitches-followup-20261019/`
+and the referenced captures. Random draws, thermal state and remote-input timing
+limit whole-run comparisons; direct-touch dismissal verification remains open.
 
 The weekly [real-player soak](PlayerCoverage.md) retains diagnostic simulator
 footprint/audio observations. It supplies functional ownership and repeated-play
