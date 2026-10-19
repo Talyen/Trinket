@@ -56,6 +56,11 @@ and moves below it when the pair cannot fit horizontally. Reward reveals use the
 larger `sectionDisplay` name role; on-art details use `screenDisplay`. Both retain
 the same `displayTextShine` title palette as inventory cards.
 
+Item details size the artwork from the presentation container before a fixed
+Equip or Buy footer reserves scrolling space. The action changes the visible
+reading area without shrinking the artwork; artwork and complete trait text
+remain in one scroll view.
+
 `PreparedArtworkCache` decodes off the main actor; publication and pin ownership
 stay on the main actor. A cache-owned scheduler admits at most two decodes across
 all callers and at most one deferred decode, prioritizing imminent pins over
