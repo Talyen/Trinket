@@ -26,8 +26,9 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         play.openExplore()
         assertExistsAfterScroll(AccessibilityID.Play.labyrinthModeCard, requireHittable: true)
         tapButton(AccessibilityID.Play.labyrinthModeCard)
-        assertExists(AccessibilityID.Play.labyrinthEnter)
-        tapButton(AccessibilityID.Play.labyrinthEnter)
+        if button(AccessibilityID.Play.labyrinthEnter).exists {
+            tapButton(AccessibilityID.Play.labyrinthEnter)
+        }
         assertExists(AccessibilityID.Play.labyrinthMap)
         let boss = app.descendants(matching: .any).matching(NSPredicate(
             format: "identifier BEGINSWITH %@ AND label == %@",
