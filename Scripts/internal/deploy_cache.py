@@ -25,7 +25,8 @@ class Inputs:
         self.environment['profile'] = identity['profile']
         self.environment['settings'] = {key: value for key, value in os.environ.items()
             if key.startswith('TRINKET_') and not key.startswith(('TRINKET_DEPLOY_', 'TRINKET_TESTFLIGHT_', 'TRINKET_CI_WAIT_'))
-            and key not in ('TRINKET_DIAGNOSTICS_SESSION_ID', 'TRINKET_RUN_ID')}
+            and key not in ('TRINKET_DIAGNOSTICS_SESSION_ID', 'TRINKET_RUN_ID', 'TRINKET_ISOLATE',
+                            'TRINKET_MAX_AGENT_SIMS', 'TRINKET_MAX_CONCURRENT_UI', 'TRINKET_AGENT_SLOT')}
         rows = subprocess.check_output(['git', '-C', str(root), 'ls-tree', '-r', '-z', 'HEAD']).split(b'\0')
         self.files = {}
         for row in filter(None, rows):
@@ -79,7 +80,7 @@ class Inputs:
     def changed_cases(self, paths):
         if paths is None:
             return []
-        changed = set(paths)
+        changed = {path for path in paths if not path.endswith(".md")}
         direct = sorted(name for name, path in self.classes.items() if name in self.allowed and path in changed)
         if changed.intersection(self.shared) or any(
                 path.startswith('TrinketUITests/') and path not in self.classes.values() for path in changed):

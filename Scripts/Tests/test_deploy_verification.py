@@ -57,7 +57,13 @@ class DeployVerificationTests(unittest.TestCase):
             self.assertIsNone(reused.proof('ui:ShopTests'))
             self.assertIsNone(reused.proof('ci'))
             self.assertIsNone(reused.proof('ui:UnregisteredTests'))
+            with patch.dict(DEPLOY.os.environ, {'TRINKET_MAX_AGENT_SIMS': '2', 'TRINKET_AGENT_SLOT': '2'}):
+                self.assertEqual(changed.key('ui:AudioTests/testMusic'), DEPLOY.Inputs(root, identity2).key('ui:AudioTests/testMusic'))
+            with patch.dict(DEPLOY.os.environ, {'TRINKET_UI_LOCALE': 'fr'}):
+                self.assertNotEqual(changed.key('ui:AudioTests/testMusic'), DEPLOY.Inputs(root, identity2).key('ui:AudioTests/testMusic'))
             self.assertEqual(changed.changed_cases(['TrinketUITests/Smoke/ShopTests.swift']), ['ShopTests'])
+            self.assertEqual(changed.changed_cases(['TrinketUITests/README.md']), [])
+            self.assertEqual(changed.changed_cases(['TrinketUITests/README.md', 'TrinketUITests/Smoke/ShopTests.swift']), ['ShopTests'])
             _, package_test = self.commit_inputs(root, **{'Packages/Engine/Tests/EngineTests.swift': 'let test = 2'})
             self.assertEqual(changed.key('ui:AudioTests/testMusic'), package_test.key('ui:AudioTests/testMusic'))
             for field in ('build', 'profile'):
