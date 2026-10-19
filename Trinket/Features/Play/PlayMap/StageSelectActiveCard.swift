@@ -120,17 +120,10 @@ struct StageSelectActiveCard<
     }
 
     private var footerDock: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
-                titleBlock.fixedSize(horizontal: true, vertical: false)
-                Spacer(minLength: 0)
-                actionControls.fixedSize(horizontal: true, vertical: false)
-            }
-
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                titleBlock
-                actionControls
-            }
+        HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
+            titleBlock
+                .frame(maxWidth: .infinity, alignment: .leading)
+            actionControls.fixedSize(horizontal: true, vertical: false)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
