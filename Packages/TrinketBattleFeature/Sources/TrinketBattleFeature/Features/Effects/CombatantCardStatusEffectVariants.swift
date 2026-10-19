@@ -34,7 +34,7 @@ struct CombatantStatusEffectConfig: Equatable {
     var tintStrength: CGFloat = 0.35
     var speed: CGFloat = 1
 
-    var orbitRadius: CGFloat = 0.42
+    var orbitRadius: CGFloat = 0.54
     var starCount: Int = 8
     var wobbleDegrees: CGFloat = 2.4
     var frostOpacity: CGFloat = 0.45
@@ -46,7 +46,7 @@ struct CombatantStatusEffectConfig: Equatable {
         case .swirlingStars:
             config.particleCount = 8
             config.starCount = 8
-            config.orbitRadius = 0.42
+            config.orbitRadius = 0.54
             config.wobbleDegrees = 2.2
             config.tintStrength = 0
         case .iceCrystals:
@@ -116,7 +116,7 @@ struct CombatantStatusEffectOverlay: View {
         let radius = min(size.width, size.height) * config.orbitRadius * 0.5
         let appear = min(max(phase / 0.12, 0), 1)
 
-        let center = CGPoint(x: size.width * 0.5, y: size.height * 0.28)
+        let center = CGPoint(x: size.width * 0.5, y: size.height * 0.23)
         let angleBase = phase * .pi * 2
         var stars: [(point: CGPoint, size: CGFloat, rotation: CGFloat, opacity: Double, sinAngle: CGFloat)] = []
         stars.reserveCapacity(count)
