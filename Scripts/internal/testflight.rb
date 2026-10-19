@@ -272,7 +272,10 @@ module TrinketTestFlight
     end
 
     def build
-      command('preparation', { 'TRINKET_ISOLATE' => '1', 'SKIP_GENERATE' => nil }, 'bash', '-ec',
+      preparation = File.join(@root, '.DerivedData/release-preparation')
+      command('preparation', { 'TRINKET_ISOLATE' => '1', 'SKIP_GENERATE' => nil,
+        'DERIVED_DATA_PATH' => preparation, 'RESULTS_DIR' => File.join(preparation, 'TestResults'),
+        'TRINKET_SIMULATOR_NAME' => 'Trinket Release Preparation' }, 'bash', '-ec',
         'source Scripts/run-env.sh; source Scripts/build-freshness.sh; trinket_run_env_init; prepare_generated_inputs "$RESULTS_DIR"')
       artifacts = File.join(@run_dir, "artifacts-#{SecureRandom.hex(3)}")
       FileUtils.mkdir_p(artifacts)
