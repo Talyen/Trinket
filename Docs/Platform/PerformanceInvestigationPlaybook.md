@@ -308,47 +308,49 @@ MetricKit `MXAnimationMetric.hitchTimeRatio` supplies production trend evidence 
 
 ### Physical-device profiling over Wi-Fi
 
-Wireless profiling requires a paired, reachable iPhone with Developer Mode enabled
-and a development-signed app. Use an optimized development build for measurements:
-`./Scripts/install-device.sh --device '<physical UDID>' --release`. Release
-optimization and distribution signing are separate choices: the TestFlight export
-removes `get-task-allow`, so it cannot be launched or attached to for debugging by
-Instruments. Do not add that entitlement to the distribution export.
-
-Check `xcrun devicectl device info details --device '<physical UDID>'` for the
-connection transport and `device info ddiServices` for compatible, usable developer
-services. A successful app launch or process listing proves device communication,
-but does not prove Instruments attachment or sustained recording.
-
-Prepare system symbols after an iOS update with
-`xcodebuild -prepareDeviceSupport -destination 'id=<physical UDID>'`. Keep the
-phone unlocked while it copies and extracts. Symbols must match its OS, model,
-and architecture; compatible developer services alone do not establish that the
-Mac has them. See Apple's [symbol preparation guidance](https://developer.apple.com/documentation/xcode/acquiring-operating-system-symbol-information).
-Finish this preparation before recording; app launch stalled during an overlapping
-symbol copy in the investigation below.
-
-Unlike Simulator captures, select the physical target with `xctrace --device`.
-The host-only `record-time-profiler.sh` wrapper does not target an iPhone. Launch
-the development-signed app directly through Instruments:
+Use the physical-device workflow with a paired, unlocked iPhone and Developer
+Mode enabled. For a fresh optimized development build and a 30-second recording:
 
 ```sh
-xcrun xctrace record --device '<physical UDID>' \
-  --instrument 'Time Profiler' --instrument Hitches \
-  --time-limit 8s --output /tmp/trinket-device.trace \
-  --launch -- com.ryanmcintire.Trinket
-xcrun xctrace export --input /tmp/trinket-device.trace --toc \
-  --output /tmp/trinket-device-toc.xml
+python3 Scripts/profile-device.py --device '<physical UDID>' --build --duration 30
 ```
 
-Inspect the exported run's target, duration, end reason, and recorded data before
-accepting it. `xctrace` can exit zero and save a partial trace after reporting
-`Device got disconnected`; neither is evidence that the requested interval was
-captured. If attachment cannot find a confirmed running process, a launch through
-Instruments can expose the underlying signing/permission error. Do not infer a
-Wi-Fi failure from that process-lookup message alone.
-Once the recording acknowledges its time limit, allow stopping and saving to
-finish; a fixed wall-clock timeout can interrupt a valid capture during that work.
+Omit `--build` to reuse the installed app, or use `--app /absolute/path/Trinket.app`
+to install an existing development-signed Release app. Reuse does not establish
+the installed app's optimization settings; the report states that limit. Release
+optimization and distribution signing are separate choices. TestFlight exports
+remove `get-task-allow`; use a development-signed Release build for profiling and
+retain distribution signing for TestFlight.
+
+The wrapper selects one paired physical device, refuses ambiguous selection, and
+serializes its own profiling runs per device across repository worktrees. It
+checks Developer Mode and compatible developer services, completes Apple's
+`xcodebuild -prepareDeviceSupport` before recording, then launches Trinket directly
+with CPU and Hitches instruments. Cached symbols are reused; updates prepare the
+matching OS/model/architecture symbols. Keep the phone unlocked during preparation.
+See Apple's [symbol preparation guidance](https://developer.apple.com/documentation/xcode/acquiring-operating-system-symbol-information).
+
+Each run creates a new evidence directory with logs, device/app/toolchain metadata,
+the trace, exported measurement rows, and `result.json`. Existing output is never
+overwritten. Success requires the intended iPhone and Trinket process, normal app
+exit, the full requested interval, `Time limit reached`, and nonempty CPU and frame
+data. A zero exit code or saved partial trace after disconnect is insufficient.
+Failures retain diagnostics and return nonzero. Startup and ignored recording
+limits have watchdogs; acknowledged stopping/saving has no guessed wall-clock
+budget. Ctrl-C cancels only owned commands and preserves partial evidence.
+
+The direct-launch path avoids the attachment and device-wide failures below;
+it does not repair Apple's attachment service. Do not fall back silently to host
+or device-wide data. The host-only `record-time-profiler.sh` remains for Simulator
+investigation. For sustained failures, compare an explicitly confirmed USB
+transport, then investigate network filtering using Apple's
+[device connection guidance](https://developer.apple.com/documentation/technotes/tn3158-resolving-xcode-15-device-connection-issues).
+Do not reset pairing, delete symbol caches, or weaken security settings as routine
+preflight actions.
+
+During capture, reproduce the exact player interaction. For before/after claims,
+keep source/build, device/OS, seed, thermal state, Low Power Mode, and interaction
+comparable. Collection success alone does not establish gameplay smoothness.
 
 On October 18, 2026, iPhone 14 Pro / iOS 27.0.1 (24A446) with Xcode 27A9275
 completed an eight-second Time Profiler launch capture over `localNetwork` using
