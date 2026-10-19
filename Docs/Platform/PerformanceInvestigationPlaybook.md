@@ -325,13 +325,16 @@ Prepare system symbols after an iOS update with
 phone unlocked while it copies and extracts. Symbols must match its OS, model,
 and architecture; compatible developer services alone do not establish that the
 Mac has them. See Apple's [symbol preparation guidance](https://developer.apple.com/documentation/xcode/acquiring-operating-system-symbol-information).
+Finish this preparation before recording; app launch stalled during an overlapping
+symbol copy in the investigation below.
 
 Unlike Simulator captures, select the physical target with `xctrace --device`.
 The host-only `record-time-profiler.sh` wrapper does not target an iPhone. Launch
 the development-signed app directly through Instruments:
 
 ```sh
-xcrun xctrace record --device '<physical UDID>' --instrument 'Time Profiler' \
+xcrun xctrace record --device '<physical UDID>' \
+  --instrument 'Time Profiler' --instrument Hitches \
   --time-limit 8s --output /tmp/trinket-device.trace \
   --launch -- com.ryanmcintire.Trinket
 xcrun xctrace export --input /tmp/trinket-device.trace --toc \
@@ -350,9 +353,11 @@ finish; a fixed wall-clock timeout can interrupt a valid capture during that wor
 On October 18, 2026, iPhone 14 Pro / iOS 27.0.1 (24A446) with Xcode 27A9275
 completed an eight-second Time Profiler launch capture over `localNetwork` using
 the development-signed build 39 archive. Exported evidence identified Trinket,
-2,351 CPU samples, and `Time limit reached` as the end reason. Attachment by name
-or confirmed PID failed; device-wide captures disconnected after about 1.4 seconds
-despite saving successfully. This establishes the direct-launch CPU workflow,
+2,351 CPU samples, and `Time limit reached` as the end reason. After system symbol
+preparation finished, a five-second direct-launch `--instrument Hitches` recording
+also completed with `Time limit reached` and render/frame-lifetime tables.
+Attachment by name or confirmed PID failed; device-wide captures disconnected after about 1.4 seconds
+despite saving successfully. This establishes direct-launch CPU and hitch capture,
 not reliable attachment, device-wide recording, or player-interaction hitch
 performance. Artifacts are under
 `.DerivedData/PerformanceResults/wifi-profiling-20261018/`; check availability
