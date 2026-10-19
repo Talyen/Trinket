@@ -264,7 +264,8 @@ extension BattleTurnEngineTests {
                 await EnemyTraitEngine.turnFreeze(for: enemy, context: &state)
                 await EnemyTraitEngine.turnRandomDamageAllEnemies(for: enemy, context: &state)
             }
-            let expectedDamage = turn.isMultiple(of: 2) ? 1 : 0
+            let pulseDamage = enemyID == "the_blight_treant" ? 2 : 1
+            let expectedDamage = turn.isMultiple(of: 2) ? pulseDamage : 0
             #expect(heroHealth - context.health(of: context.hero) == expectedDamage)
             #expect(companionHealth - context.health(of: context.companion) == expectedDamage)
             let hits = events.filter { $0.kind == .abilityDamage }
