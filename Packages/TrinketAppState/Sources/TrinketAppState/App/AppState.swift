@@ -209,7 +209,6 @@ public final class AppState {
 
     public func trimMemoryFootprint() {
         play.battle.trimMemoryFootprint(releaseBattleLog: true)
-        musicPlayer.clearEncounterResumePositions()
         if play.battle.lifecyclePhase == .idle {
             sfxPlayer.releaseResources()
         }

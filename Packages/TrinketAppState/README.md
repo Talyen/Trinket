@@ -69,9 +69,10 @@ the catalog once per calendar day (stable within the day).
 
 `MusicPlayer` preserves track position across route changes, so returning to the
 same battle resumes it. Inactive scenes and muted volume route to silence with
-position preservation; ending battle and memory cleanup clear stored encounter
-positions. Music uses ambient `AVAudioPlayer`, respecting the Ring/Silent switch
-and mixing with other audio.
+position preservation. Background and memory cleanup retain the bounded playback
+bookmarks so foregrounding resumes the song and lyrics at the paused position.
+Ending battle clears stored encounter positions. Music uses ambient `AVAudioPlayer`,
+respecting the Ring/Silent switch and mixing with other audio.
 
 Options prepares the muted track off the main thread so the Music slider can
 unmute immediately without a crossfade. Options requests this preparation after
