@@ -21,8 +21,13 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
     }
 
     func testLabyrinthBossContinueOpensAUsableNextFloor() {
-        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.01", in: TestLaunchArg.allForScreen("labyrinth-map"))
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.01", in: TestLaunchArg.allForTab("play"))
             + ["-performance-labyrinth-node", "boss", "-performance-strong-party"])
+        play.openExplore()
+        assertExistsAfterScroll(AccessibilityID.Play.labyrinthModeCard, requireHittable: true)
+        tapButton(AccessibilityID.Play.labyrinthModeCard)
+        assertExists(AccessibilityID.Play.labyrinthEnter)
+        tapButton(AccessibilityID.Play.labyrinthEnter)
         assertExists(AccessibilityID.Play.labyrinthMap)
         let boss = app.descendants(matching: .any).matching(NSPredicate(
             format: "identifier BEGINSWITH %@ AND label == %@",
