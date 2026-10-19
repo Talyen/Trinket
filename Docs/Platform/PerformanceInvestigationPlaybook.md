@@ -413,6 +413,26 @@ loop above to establish attribution before choosing a fix. Closing the plans doe
 not establish a performance gain, justify visual reductions, or change artwork
 budgets; a CPU capture alone does not establish rendered-frame smoothness.
 
+On October 19 (UTC), Wi-Fi app-scoped Time Profiler and Animation Hitches captures
+completed on iPhone 14 Pro / iOS 27.0.1 (24A446), using Xcode 27.1 (27A9275) and an
+optimized development-signed Release build. Launch, Collection scrolling, campaign
+entry, card dragging/playing, Stun, and Combat Log interactions were exercised.
+The original launch-only capture recorded 66.68 ms and 266.72 ms hitches; the
+interaction capture also recorded scrolling and combat hitches. These remain
+observations, not resolved launch/scroll regressions.
+
+A settled Ranger Stun window attributed repeated work to Canvas display-list
+construction. Replacing its star paint commands with one SwiftUI shader fill
+retained the motion and geometry. In six-second windows at the original cadence,
+main-thread samples decreased from 1,655 ms to 1,502 ms and average update duration
+from 6.84 ms to 4.22 ms per frame. Neither window contained a hitch; this demonstrates
+less recurring work, not a measured reduction in hitch count or a global FPS floor.
+Full-run hitch totals are not comparable because card draws and interaction timing
+differed. Evidence, matching app symbols, rejected experiments, and analysis are in
+`~/Library/Developer/Trinket/BuildArtifacts/profiles/iphone-investigation-20261019/`
+and its referenced `device-*` captures. Verify availability before reuse. Thermal,
+Low Power Mode, memory growth, and background/foreground coverage remain open.
+
 The weekly [real-player soak](PlayerCoverage.md) retains diagnostic simulator
 footprint/audio observations. It supplies functional ownership and repeated-play
 coverage, not hardware budgets or authoritative audible/thermal evidence.

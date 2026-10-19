@@ -100,8 +100,11 @@ Combatant artwork, feedback, Health and Mana bars, clipping, and borders compose
 before status motion, so the whole card moves together during Stun wobble.
 Attack and hit-reaction transforms wrap that composed card. Defeated enemy artwork
 retains its slice-owned clipping and border without an outer frame.
-Stun stars and Freeze snowflakes reuse fixed unit paths, transforming geometry for
-each sample while retaining point-sized strokes and the original draw order.
+Stun stars use one SwiftUI shader fill with sorted particle records instead of
+rebuilding Canvas paths and paint commands each frame. The shader retains the
+four-point geometry, point-sized miter strokes, shadow, core, and paint order;
+launch effect prewarming exercises it before battle. Freeze snowflakes continue
+to transform a cached unit path. Both retain their existing motion and cadence.
 
 Impact delivery groups results by the presentation beat, independent of the
 engine's broader feedback group. Recoil chooses the strongest result per recipient,

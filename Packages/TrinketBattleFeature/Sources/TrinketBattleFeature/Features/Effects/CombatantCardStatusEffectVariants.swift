@@ -116,58 +116,54 @@ struct CombatantStatusEffectOverlay: View {
         let radius = min(size.width, size.height) * config.orbitRadius * 0.5
         let appear = min(max(phase / 0.12, 0), 1)
 
-        return Canvas { context, canvasSize in
-            guard appear > 0.01 else { return }
-            let center = CGPoint(x: canvasSize.width * 0.5, y: canvasSize.height * 0.28)
-            let angleBase = phase * .pi * 2
+        let center = CGPoint(x: size.width * 0.5, y: size.height * 0.28)
+        let angleBase = phase * .pi * 2
+        var stars: [(point: CGPoint, size: CGFloat, rotation: CGFloat, opacity: Double, sinAngle: CGFloat)] = []
+        stars.reserveCapacity(count)
 
-            var stars: [(point: CGPoint, size: CGFloat, rotation: CGFloat, opacity: Double, sinAngle: CGFloat)] = []
-            stars.reserveCapacity(count)
-
-            for index in 0 ..< count {
-                let noise = noiseValues[index]
-                let angle = angleBase + CGFloat(index) / CGFloat(count) * .pi * 2
-                    + noise * 0.35
-                let radial = radius * (0.85 + noise * 0.3)
-                let sinAngle = sin(angle)
-                let point = CGPoint(
+        for index in 0 ..< count {
+            let noise = noiseValues[index]
+            let angle = angleBase + CGFloat(index) / CGFloat(count) * .pi * 2
+                + noise * 0.35
+            let radial = radius * (0.85 + noise * 0.3)
+            let sinAngle = sin(angle)
+            let depth = (sinAngle + 1) * 0.5
+            let depthScale = 0.75 + 0.35 * depth
+            let depthOpacity = 0.75 + 0.25 * depth
+            let baseSize = (6 + noise * 5) * config.intensity
+            let twinkle = 0.45 + 0.55 * abs(sin(phase * .pi * 4 + noise * .pi * 2))
+            stars.append((
+                point: CGPoint(
                     x: center.x + cos(angle) * radial,
                     y: center.y + sinAngle * (radial * 0.38),
-                )
-                let depth = (sinAngle + 1) * 0.5
-                let depthScale = 0.75 + 0.35 * depth
-                let depthOpacity = 0.75 + 0.25 * depth
-                let baseSize = (6 + noise * 5) * config.intensity
-                let starSize = baseSize * depthScale
-                let twinkle = 0.45 + 0.55 * abs(sin(phase * .pi * 4 + noise * .pi * 2))
-                let opacity = Double(twinkle * depthOpacity * appear)
-                let rotation = phase * .pi * 1.5 + noise * .pi * 2
-
-                stars.append((
-                    point: point,
-                    size: starSize,
-                    rotation: rotation,
-                    opacity: opacity,
-                    sinAngle: sinAngle,
-                ))
-            }
-
-            stars.sort { $0.sinAngle < $1.sinAngle }
-
-            for star in stars {
-                drawStar(
-                    in: &context,
-                    at: star.point,
-                    size: star.size,
-                    rotation: star.rotation,
-                    color: style.color.opacity(star.opacity),
-                    secondary: style.secondaryColor.opacity(star.opacity * 0.8),
-                    opacity: star.opacity,
-                )
-            }
+                ),
+                size: baseSize * depthScale,
+                rotation: phase * .pi * 1.5 + noise * .pi * 2,
+                opacity: appear > 0.01 ? Double(twinkle * depthOpacity * appear) : 0,
+                sinAngle: sinAngle,
+            ))
         }
-        .frame(width: size.width, height: size.height)
-        .allowsHitTesting(false)
+        stars.sort { $0.sinAngle < $1.sinAngle }
+
+        var particles: [Float] = []
+        particles.reserveCapacity(count * 5)
+        for star in stars {
+            particles.append(contentsOf: [
+                Float(star.point.x), Float(star.point.y), Float(star.size),
+                Float(star.rotation.truncatingRemainder(dividingBy: .pi * 2)), Float(star.opacity),
+            ])
+        }
+
+        return Rectangle()
+            .fill(ShaderLibrary.bundle(.module).combatStunStars(
+                .floatArray(particles),
+                .color(style.color),
+                .color(style.secondaryColor),
+                .color(TrinketDesign.Colors.Overlay.ink),
+                .color(TrinketDesign.Colors.Overlay.paper),
+            ))
+            .frame(width: size.width, height: size.height)
+            .allowsHitTesting(false)
     }
 
     private func iceCrystals(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
@@ -276,32 +272,6 @@ struct CombatantStatusEffectOverlay: View {
     }
 }
 
-private func drawStar(
-    in context: inout GraphicsContext,
-    at point: CGPoint,
-    size: CGFloat,
-    rotation: CGFloat,
-    color: Color,
-    secondary: Color,
-    opacity: Double,
-) {
-    let transform = StatusParticleGeometry.transform(at: point, radius: size, rotation: rotation)
-    let star = StatusParticleGeometry.star.applying(transform)
-    let shadow = star.applying(CGAffineTransform(translationX: 0, y: 1.2))
-    let core = StatusParticleGeometry.star.applying(CGAffineTransform(scaleX: 0.44, y: 0.44).concatenating(transform))
-
-    // Dark under-shadow and outline for guaranteed contrast against bright card art
-    context.fill(shadow, with: .color(TrinketDesign.Colors.Overlay.ink.opacity(0.45 * opacity)))
-    context.stroke(star, with: .color(TrinketDesign.Colors.Overlay.ink.opacity(0.65 * opacity)), lineWidth: 1.2)
-
-    // Primary keyword body fill and secondary rim stroke
-    context.fill(star, with: .color(color))
-    context.stroke(star, with: .color(secondary), lineWidth: 0.6)
-
-    // Bright paper-white core for contrast against dark card art
-    context.fill(core, with: .color(TrinketDesign.Colors.Overlay.paper.opacity(0.92 * opacity)))
-}
-
 private func drawSnowflake(
     in context: inout GraphicsContext,
     at center: CGPoint,
@@ -318,22 +288,6 @@ private func drawSnowflake(
 }
 
 private enum StatusParticleGeometry {
-    static let star: Path = {
-        var path = Path()
-        for index in 0 ..< 8 {
-            let angle = CGFloat(index) * .pi / 4 - .pi / 2
-            let radius: CGFloat = index.isMultiple(of: 2) ? 1 : 0.35
-            let point = CGPoint(x: cos(angle) * radius, y: sin(angle) * radius)
-            if index == 0 {
-                path.move(to: point)
-            } else {
-                path.addLine(to: point)
-            }
-        }
-        path.closeSubpath()
-        return path
-    }()
-
     static let snowflake: Path = {
         var path = Path()
         for petal in 0 ..< 6 {

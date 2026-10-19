@@ -315,6 +315,13 @@ public struct CardCastEffectsPrewarmView: View {
                     ) {
                         BattleAbilityCardFace(artworkName: artworkName)
                     }
+                    .overlay {
+                        CombatantStatusEffectOverlay(
+                            kind: .swirlingStars,
+                            config: .defaults(for: .swirlingStars),
+                            progress: 0.5,
+                        )
+                    }
                 }
             } else {
                 Color.clear
