@@ -130,7 +130,7 @@ struct CombatantStatusEffectOverlay: View {
             let depth = (sinAngle + 1) * 0.5
             let depthScale = 0.75 + 0.35 * depth
             let depthOpacity = 0.75 + 0.25 * depth
-            let baseSize = (6 + noise * 5) * config.intensity
+            let baseSize = (7.2 + noise * 6) * config.intensity
             let twinkle = 0.45 + 0.55 * abs(sin(phase * .pi * 4 + noise * .pi * 2))
             stars.append((
                 point: CGPoint(
