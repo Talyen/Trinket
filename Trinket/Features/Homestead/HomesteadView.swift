@@ -17,7 +17,7 @@ struct HomesteadView: View {
     @State private var isCollecting = false
     @State private var depositEvent: HomesteadDepositEvent?
     @Environment(\.scenePhase) private var scenePhase
-    @State private var depositGeometry = HomesteadDepositGeometry()
+    @State private var depositGeometry = HomesteadDepositGeometryStore()
     @State private var collectionSuccessTrigger = 0
 
     private static let immediateWalletDelays: [HomesteadResource: TimeInterval] =
@@ -190,12 +190,12 @@ struct HomesteadView: View {
         guard shellSession.selectedTab == .homestead,
               shellSession.homesteadPath.isEmpty,
               scenePhase == .active else { return }
-        guard depositGeometry.supports(granted) else {
+        guard depositGeometry.value.supports(granted) else {
             playSFX(SFXID.lootCollect, options.effectsVolume)
             collectionSuccessTrigger &+= 1
             return
         }
-        depositEvent = HomesteadDepositEvent(amounts: granted, geometry: depositGeometry)
+        depositEvent = HomesteadDepositEvent(amounts: granted, geometry: depositGeometry.value)
     }
 
     private func launchDeposit() async {
@@ -256,12 +256,12 @@ struct HomesteadView: View {
         viewport: CGRect,
     ) {
         if sources {
-            depositGeometry.sources = frames
+            depositGeometry.value.sources = frames
         } else {
-            depositGeometry.destinations = frames
+            depositGeometry.value.destinations = frames
         }
-        depositGeometry.viewport = viewport
-        if let event = depositEvent, !event.geometry.hasSameDestinations(as: depositGeometry) {
+        depositGeometry.value.viewport = viewport
+        if let event = depositEvent, !event.geometry.hasSameDestinations(as: depositGeometry.value) {
             cancelDeposit()
         }
     }

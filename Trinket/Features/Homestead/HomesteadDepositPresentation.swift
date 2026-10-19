@@ -11,6 +11,12 @@ struct HomesteadDepositEvent: Identifiable {
     var landed: Set<HomesteadResource> = []
 }
 
+@MainActor
+final class HomesteadDepositGeometryStore {
+    /// Live anchors drive collection commands; only the captured event drives rendering.
+    var value = HomesteadDepositGeometry()
+}
+
 struct HomesteadDepositGeometry: Equatable {
     var sources: [HomesteadResource: CGRect] = [:]
     var destinations: [HomesteadResource: CGRect] = [:]
