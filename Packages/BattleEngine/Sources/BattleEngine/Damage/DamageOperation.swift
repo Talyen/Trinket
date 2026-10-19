@@ -37,6 +37,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     var suppressLeech = false
     var defersElementalPayoff = false
     var isNaturalStatusTick = false
+    var isCopiedDamage = false
 
     static let elementalReaction = Self(kind: .elementalReaction, scaling: .resolved, accuracy: .unavoidable)
 
@@ -100,6 +101,12 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     ) -> Self {
         Self(kind: .reaction(cause), scaling: scaling, accuracy: accuracy)
     }
+
+    static let copiedReaction: Self = {
+        var operation = Self.reaction(scaling: .resolved)
+        operation.isCopiedDamage = true
+        return operation
+    }()
 
     static let redirected: Self = {
         var operation = Self(kind: .reaction(.talent), scaling: .resolved, accuracy: .unavoidable)

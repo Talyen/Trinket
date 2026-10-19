@@ -214,7 +214,7 @@ package enum DamagePipeline {
         if state.options.usesResolvedOutgoingDamage {
             state.remaining = state.amount
             state.isCritical = state.options.guaranteedCritical
-            if !state.options.isResolvedCardRepeat {
+            if !state.options.isResolvedCardRepeat, !state.options.isCopiedDamage {
                 applyConditionalDamageBonuses(to: &state, in: context)
                 applyPreparedPoisonDamage(to: &state, in: &context)
             }

@@ -8,12 +8,14 @@ extension TalentCatalogRoundTripTests {
     func `Prismatic Edge copies committed damage and shares one elemental roll per attack`(seed: UInt64, keyword: Keyword?) {
         var profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t1_1"])
         profile.triggers.criticalChanceBonus = -1
+        profile.triggers.burnDamageVsPoisonedFlat = 100
         profile.damageDealtBonus = [.physical: 2, .burn: 100, .freeze: 100]
         profile.outgoingDamagePercent = 0.5
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
         DefensePoolEngine.set(2, on: battle.enemy, in: &battle)
+        battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
         battle.rng = SeededRandomNumberGenerator(seed: seed)
         var expectedRNG = battle.rng
         if BattleChance.succeeds(probability: 0.10, using: &expectedRNG) {

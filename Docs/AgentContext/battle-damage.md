@@ -68,6 +68,8 @@ Ashen Wake adds flat damage to existing Burn against Poisoned enemies; Cauterize
 adds flat damage to existing Bleed against Burning enemies. Both check the target
 at each damage event, including resolved ticks and damage from fallen sources,
 and create neither secondary hits nor new afflictions.
+Prismatic Edge's copied initial damage skips these conditional source bonuses;
+its later ordinary Burn ticks retain their per-event bonuses.
 Later damage components skip a target already defeated by the same action, so
 post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
 `DecayingDoTProgression` captures the original stack owner’s legacy decay and tick

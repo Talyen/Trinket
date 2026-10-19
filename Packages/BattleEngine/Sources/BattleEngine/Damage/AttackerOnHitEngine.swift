@@ -81,7 +81,7 @@ enum AttackerOnHitEngine {
             target: state.combatant,
             keyword: keyword,
             sourceActorID: hit.sourceActorID,
-            options: .reaction(scaling: .resolved),
+            options: .copiedReaction,
         ))
         if outcome.healthLost > 0 {
             context.nextEvent(
