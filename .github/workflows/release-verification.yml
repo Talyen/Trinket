@@ -1,0 +1,96 @@
+name: Qualified release verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Exact default-branch commit requested by deployment
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: release-verification-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  qualified:
+    name: Qualified release journeys
+    runs-on: xcode-27
+    timeout-minutes: 75
+    env:
+      CI: true
+      DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
+      TRINKET_SIM_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
+      TRINKET_SIM_OS_VERSION: '26.2'
+      TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 2
+      - name: Require the requested source revision
+        env:
+          REQUESTED_COMMIT: ${{ inputs.commit }}
+        run: test "$(git rev-parse HEAD)" = "$REQUESTED_COMMIT"
+      - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
+          xcode-channel: verified
+      - name: Install the qualified runtime if absent
+        timeout-minutes: 35
+        run: |
+          python3 - <<'PY'
+          import json
+          import platform
+          import subprocess
+          runtimes = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'runtimes', 'available', '-j']))['runtimes']
+          if not any(item.get('isAvailable') and item.get('platform') == 'iOS'
+                     and item.get('version') in ('26.2', '26.2.0') for item in runtimes):
+              subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '26.2',
+                              '-architectureVariant', 'arm64' if platform.machine() == 'arm64' else 'universal'],
+                             check=True, timeout=1800)
+          PY
+          python3 Scripts/deploy-verification.py --mode hosted-beta --preflight
+      - uses: ./.github/actions/coverage-products
+      - name: Restore content-verified journey evidence
+        uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
+        with:
+          path: .DerivedData/testflight/verification-cache
+          key: release-journeys-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            release-journeys-v1-${{ runner.os }}-${{ runner.arch }}-
+      - name: Verify all critical journeys on iOS 26.2
+        run: |
+          export TRINKET_DEPLOY_FEEDBACK_BASE_COMMIT="$(git rev-parse HEAD^)"
+          python3 Scripts/deploy-verification.py --mode hosted-beta --focused-only --no-build
+      - name: Retain the exact qualified proof
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: release-proof-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/deploy-verification.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Retain passed inputs and failed-class markers
+        if: always()
+        uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
+        with:
+          path: .DerivedData/testflight/verification-cache
+          key: release-journeys-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Stage release evidence
+        if: always()
+        run: |
+          ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+          ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/ReleaseResults-artifact
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        if: always()
+        with:
+          name: release-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .DerivedData/deploy-verification.json
+            .DerivedData/ReleaseResults-artifact
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: error

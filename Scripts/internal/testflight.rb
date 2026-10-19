@@ -475,7 +475,7 @@ module TrinketTestFlight
       return 0
     end
     if modes.include?(:doctor)
-      puts capture('python3', File.join(root, 'Scripts/deploy-verification.py'), '--preflight')
+      puts capture('python3', File.join(root, 'Scripts/deploy-verification.py'), '--mode', 'beta', '--preflight')
       puts "Apple access OK: #{portal.app.name}; internal group: #{portal.group.name}."
       puts capture('security', 'find-identity', '-v', '-p', 'codesigning')
       puts 'Signing identities above are informational; a signed export proves distribution permissions. Doctor does not provision certificates or profiles.'

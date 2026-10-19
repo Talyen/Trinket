@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 import subprocess
 import time
+import tempfile
 
 from internal.cli import ROOT, load_sibling, primary_worktree_root, write_json_atomic
 from internal.deploy_cache import Inputs, PhaseCache
@@ -129,7 +130,7 @@ def wait_for_beta_ci(commit, cache=None):
         time.sleep(30)
 
 
-def verify_beta(args, verification, identity):
+def verify_hosted_beta(args, verification, identity):
     if not args.ci_only:
         targets = focused_cases(changed_since_release(os.environ.get('TRINKET_DEPLOY_BASE_COMMIT')))
         print(f'Beta focused journeys since last available build: {len(targets)}', flush=True)
@@ -164,6 +165,97 @@ def verify_beta(args, verification, identity):
                 subprocess.run(['./Scripts/build-for-testing.sh', '--reuse', '--app-only'], check=True)
             os.environ['SKIP_GENERATE'] = '1'
             verification.phase('smoke', ['./Scripts/test.sh', 'smoke', '--no-build'])
+
+
+def hosted_release_status(repository, commit, branch):
+    pages = REUSE.api(f'repos/{repository}/actions/workflows/release-verification.yml/runs?head_sha={commit}&per_page=20')
+    runs = [run for page in pages for run in page.get('workflow_runs', [])
+            if run.get('head_sha') == commit and run.get('head_branch') == branch
+            and run.get('event') == 'workflow_dispatch']
+    if not runs:
+        return dict(status='missing')
+    run = max(runs, key=lambda item: int(item['id']))
+    result = dict(status=run['status'], conclusion=run.get('conclusion'), run_id=run['id'], attempt=run.get('run_attempt', 1))
+    if run['status'] == 'completed' and run.get('conclusion') == 'success':
+        pages = REUSE.api(f'repos/{repository}/actions/runs/{run["id"]}/jobs?filter=latest&per_page=100')
+        jobs = [job for page in pages for job in page.get('jobs', [])]
+        qualified = [job for job in jobs if job.get('name') == 'Qualified release journeys']
+        if len(qualified) != 1 or qualified[0].get('conclusion') != 'success' or not any(
+                step.get('name') == 'Verify all critical journeys on iOS 26.2'
+                and step.get('conclusion') == 'success' for step in qualified[0].get('steps', [])):
+            raise ValueError('Hosted release run lacks successful qualified journey evidence.')
+    return result
+
+
+def wait_for_release_ci(commit):
+    remote = capture('git', 'remote', 'get-url', 'origin')
+    match = re.fullmatch(r'(?:https://github.com/|git@github.com:)([^/]+/[^/]+?)(?:\.git)?', remote)
+    if not match:
+        raise ValueError('Release verification requires a GitHub origin.')
+    repository = match[1]
+    branch = capture('git', 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD').removeprefix('origin/')
+    deadline = time.monotonic() + int(os.environ.get('TRINKET_CI_WAIT_SECONDS', '3600'))
+    dispatched = False
+    while True:
+        status = hosted_release_status(repository, commit, branch)
+        if status['status'] == 'missing' and not dispatched:
+            tip = REUSE.api(f'repos/{repository}/git/ref/heads/{branch}')[0]['object']['sha']
+            if tip != commit:
+                raise ValueError('Push the release commit to the default branch before hosted verification; branch tip differs.')
+            capture('gh', 'workflow', 'run', 'release-verification.yml', '--repo', repository, '--ref', branch, '-f', f'commit={commit}')
+            dispatched = True
+        elif status['status'] == 'completed':
+            if status.get('conclusion') != 'success':
+                raise ValueError(f'Hosted release verification {status["run_id"]} failed: {status.get("conclusion")}')
+            print(f'Qualified hosted journeys: https://github.com/{repository}/actions/runs/{status["run_id"]}', flush=True)
+            return status
+        if time.monotonic() >= deadline:
+            raise ValueError('Hosted release verification is pending; resume this retained deployment after it completes.')
+        print(f'Waiting for hosted release journeys ({status["status"]}); no local simulator is required.', flush=True)
+        time.sleep(30)
+
+
+def validate_release_receipt(saved, identity):
+    if not isinstance(saved, dict) or not isinstance(saved.get('identity'), dict):
+        raise ValueError('Hosted release proof is malformed.')
+    actual = saved['identity']
+    if not isinstance(actual.get('build'), dict):
+        raise ValueError('Hosted release proof lacks build identity.')
+    required = ('commit', 'xcode', 'sdk', 'sdk_version', 'sdk_build', 'host_architecture')
+    if saved.get('schema') != 1 or any(actual.get('build', {}).get(key) != identity['build'].get(key) for key in required):
+        raise ValueError('Hosted release proof has a different commit, toolchain, SDK, or architecture.')
+    if actual.get('profile') != identity['profile']:
+        raise ValueError('Hosted release proof has a different simulator profile.')
+    completed = saved.get('completed', {})
+    if not isinstance(completed, dict) or any(
+            f'ui:{case}' not in completed and f'ui:{case.split("/")[0]}' not in completed
+            for case in CRITICAL_CASES.values()):
+        raise ValueError('Hosted release proof is missing critical journeys.')
+
+
+def release_receipt(status, identity):
+    remote = capture('git', 'remote', 'get-url', 'origin')
+    repository = re.fullmatch(r'(?:https://github.com/|git@github.com:)([^/]+/[^/]+?)(?:\.git)?', remote)[1]
+    with tempfile.TemporaryDirectory(prefix='trinket-release-proof-') as directory:
+        capture('gh', 'run', 'download', str(status['run_id']), '--repo', repository,
+                '--name', f'release-proof-{status["run_id"]}-{status["attempt"]}', '--dir', directory)
+        saved = json.loads((Path(directory) / 'deploy-verification.json').read_text())
+    validate_release_receipt(saved, identity)
+    return saved
+
+
+def verify_beta(args, verification, identity):
+    # Release clients only consume hosted proof. No automatic local fallback.
+    if not args.ci_only:
+        status = wait_for_release_ci(identity['build']['commit'])
+        proof = release_receipt(status, identity)
+        verification.phase('hosted-focused', [], {'github': status, 'identity': proof['identity']})
+    if not args.focused_only:
+        status = wait_for_beta_ci(identity['build']['commit'])
+        if not status['smoke']:
+            raise ValueError('Exact-commit CI has no successful Smoke execution; local fallback is disabled.')
+        verification.phase('ci', [], {'github': status})
+        verification.phase('smoke', [], {'github': status})
 
 
 def capture(*command):
@@ -266,7 +358,7 @@ def hosted_proof(commit):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--mode', choices=('beta', 'ui', 'smoke'), default='ui')
+    parser.add_argument('--mode', choices=('beta', 'hosted-beta', 'ui', 'smoke'), default='ui')
     parser.add_argument('--no-build', action='store_true')
     parser.add_argument('--compile-only', action='store_true')
     parser.add_argument('--preflight', action='store_true')
@@ -276,22 +368,30 @@ def main():
     args = parser.parse_args()
     if args.no_build and args.compile_only:
         parser.error('--compile-only cannot be combined with --no-build')
-    if (args.focused_only or args.ci_only) and args.mode != 'beta':
+    if (args.focused_only or args.ci_only) and args.mode not in ('beta', 'hosted-beta'):
         parser.error('Phase selection requires --mode beta')
-    selected = profile()  # Before generation, compilation, or a simulator lease.
+    if args.mode == 'hosted-beta' and os.environ.get('GITHUB_ACTIONS') != 'true':
+        raise ValueError('hosted-beta is restricted to GitHub Actions; beta consumes hosted evidence locally.')
+    selected = (dict(device='com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro',
+                     runtime='com.apple.CoreSimulator.SimRuntime.iOS-26-2', version='26.2')
+                if args.mode == 'beta' else profile())
+    # The beta client does not query or install local simulator runtimes.
     if args.preflight:
         return
     identity = dict(build=BUILD.identity(), profile=selected, root=str(ROOT))
     clean = not capture('git', 'status', '--porcelain', '--untracked-files=all')
     state = Path(os.environ.get('TRINKET_DEPLOY_VERIFICATION_STATE', ROOT / '.DerivedData/deploy-verification.json'))
     verification = Verification(state, identity, clean)
-    if args.mode == 'beta' and not args.compile_only:
+    if args.mode in ('beta', 'hosted-beta') and not args.compile_only:
         if not clean:
             raise ValueError('Beta verification requires a clean committed checkout.')
         cache = Path(os.environ.get('TRINKET_DEPLOY_CACHE_ROOT',
                      primary_worktree_root(ROOT) / '.DerivedData/testflight/verification-cache'))
         verification.cache = PhaseCache(cache, Inputs(ROOT, identity))
-        verify_beta(args, verification, identity)
+        if args.mode == 'hosted-beta':
+            verify_hosted_beta(args, verification, identity)
+        else:
+            verify_beta(args, verification, identity)
         return
     if args.compile_only:
         verification.phase('gate', ['./Scripts/ci-gate.sh'])

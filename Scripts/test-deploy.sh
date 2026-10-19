@@ -64,7 +64,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 source Scripts/lib/verification-policy.sh
-trinket_require_heavy_verification "Deploy test suites" || exit $?
+if [[ "$MODE" != beta || "$COMPILE_ONLY" == true ]]; then
+  trinket_require_heavy_verification "Deploy test suites" || exit $?
+fi
 
 verification_args=(--mode "$MODE")
 [[ "$NO_BUILD" != true ]] || verification_args+=(--no-build)

@@ -155,7 +155,8 @@ passing compilation or interaction tests alone do not establish visual polish.
   wrappers limit package and UI concurrency; this is not routine verification.
 - Bare FullUI additionally requires `TRINKET_ALLOW_FULL_UI=1`; preserve the
   deliberate full-suite distinction even during a diagnostic.
-- Full deployment test suites are CI-owned. Deliberate local pre-release tests
+- TestFlight beta journeys and their builds are CI-owned; deployment consumes
+  exact-commit qualified proof without starting local simulators. Deliberate local pre-release tests
   use the same deliberate heavy-local flag and execution limits; do not bypass them
   silently or claim release readiness without their required evidence.
 

@@ -113,7 +113,7 @@ class DeployVerificationTests(unittest.TestCase):
             with patch.object(DEPLOY, 'capture', side_effect=lambda *args: identity['build']['commit'] if args[:2] == ('git', 'rev-parse') else ''), \
                     patch.object(DEPLOY, 'changed_since_release', return_value=['Trinket/App.swift']), \
                     patch.dict(DEPLOY.CRITICAL_CASES, {'audio': 'AudioTests/testMusic', 'purchase': 'ShopTests/testBuy'}, clear=True):
-                DEPLOY.verify_beta(args, verification, identity)
+                DEPLOY.verify_hosted_beta(args, verification, identity)
             self.assertEqual(commands[0], ['./Scripts/test.sh', 'ui', '--no-build', 'ShopTests'])
             self.assertFalse(cache.failed_cases())
             self.assertIsNotNone(cache.proof(phase))
@@ -146,7 +146,7 @@ class DeployVerificationTests(unittest.TestCase):
                     patch.object(DEPLOY, 'changed_since_release', return_value=['TrinketUITests/Smoke/ShopTests.swift']), \
                     patch.object(DEPLOY.subprocess, 'run', side_effect=lambda command, **_: calls.append(command)), \
                     patch.dict(DEPLOY.CRITICAL_CASES, {'audio': 'AudioTests/testMusic', 'purchase': 'ShopTests/testBuy'}, clear=True):
-                DEPLOY.verify_beta(args, verification, identity)
+                DEPLOY.verify_hosted_beta(args, verification, identity)
             self.assertEqual(calls, [['./Scripts/build-for-testing.sh', '--reuse', '--app-only'],
                                      ['./Scripts/test.sh', 'ui', '--no-build', 'ShopTests']])
             self.assertIn('local_cache', verification.completed['ui:AudioTests/testMusic']['evidence'])
@@ -161,22 +161,66 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
         with patch.object(DEPLOY, 'capture', return_value=log) as capture:
             self.assertEqual(DEPLOY.failed_ui_cases('owner/repo', jobs), ['AudioTests/testMusic', 'ShopTests/testBuy'])
             capture.assert_called_once_with('gh', 'api', 'repos/owner/repo/actions/jobs/1/logs')
-    def test_beta_reuses_proven_smoke_but_executes_missing_smoke_and_never_runs_fullui_or_packages(self):
+    def test_beta_consumes_hosted_evidence_without_local_fallback(self):
         for hosted_smoke in (False, True):
             with self.subTest(hosted_smoke=hosted_smoke), tempfile.TemporaryDirectory() as directory:
-                identity = dict(build=dict(commit='abc'))
+                identity = dict(build=dict(commit='abc'), profile=dict(version='26.2'))
                 calls = []
-                state = Path(directory) / 'verification.json'
-                verification = DEPLOY.Verification(state, identity, True,
+                verification = DEPLOY.Verification(Path(directory) / 'verification.json', identity, True,
                     execute=lambda command, **_: calls.append(command))
-                args = type('Args', (), dict(ci_only=True, focused_only=False, no_build=True))()
-                def capture(*command):
-                    return 'abc' if command[:2] == ('git', 'rev-parse') else ''
+                args = type('Args', (), dict(ci_only=False, focused_only=False, no_build=False))()
                 with patch.object(DEPLOY, 'wait_for_beta_ci', return_value=dict(smoke=hosted_smoke, run_id=42)), \
-                        patch.object(DEPLOY, 'capture', side_effect=capture):
-                    DEPLOY.verify_beta(args, verification, identity)
-                self.assertEqual(calls, [] if hosted_smoke else [['./Scripts/test.sh', 'smoke', '--no-build']])
-                self.assertEqual(set(json.loads(state.read_text())['completed']), {'ci', 'smoke'})
+                        patch.object(DEPLOY, 'wait_for_release_ci', return_value=dict(run_id=43)), \
+                        patch.object(DEPLOY, 'release_receipt', return_value=dict(identity=identity)), \
+                        patch.object(DEPLOY, 'capture', side_effect=lambda *c: 'abc' if c[:2] == ('git', 'rev-parse') else ''):
+                    if hosted_smoke:
+                        DEPLOY.verify_beta(args, verification, identity)
+                        self.assertEqual(set(verification.completed), {'hosted-focused', 'ci', 'smoke'})
+                    else:
+                        with self.assertRaisesRegex(ValueError, 'local fallback is disabled'):
+                            DEPLOY.verify_beta(args, verification, identity)
+                self.assertEqual(calls, [])
+
+    def test_beta_preflight_does_not_inspect_or_boot_local_simulators(self):
+        with patch.object(sys, 'argv', ['deploy-verification.py', '--mode', 'beta', '--preflight']), \
+                patch.object(DEPLOY, 'profile', side_effect=AssertionError('local simulator queried')), \
+                patch.object(DEPLOY.BUILD, 'identity', side_effect=AssertionError('native build queried')):
+            DEPLOY.main()
+
+    def test_hosted_receipt_requires_actual_profile_toolchain_and_complete_journeys(self):
+        identity = dict(build=dict(commit='abc', xcode='27', sdk='iphonesimulator', sdk_version='27.1',
+                                   sdk_build='abc', host_architecture='arm64'), profile=dict(version='26.2'))
+        saved = dict(schema=1, identity=copy.deepcopy(identity),
+                     completed={f'ui:{case}': dict(evidence='local') for case in DEPLOY.CRITICAL_CASES.values()})
+        DEPLOY.validate_release_receipt(saved, identity)
+        for field in ('commit', 'xcode', 'sdk_version', 'sdk_build', 'host_architecture'):
+            changed = copy.deepcopy(saved)
+            changed['identity']['build'][field] = 'different'
+            with self.assertRaises(ValueError):
+                DEPLOY.validate_release_receipt(changed, identity)
+        changed = copy.deepcopy(saved)
+        changed['identity']['profile']['version'] = '27.1'
+        with self.assertRaisesRegex(ValueError, 'profile'):
+            DEPLOY.validate_release_receipt(changed, identity)
+        saved['completed'].pop(next(iter(saved['completed'])))
+        with self.assertRaisesRegex(ValueError, 'missing critical'):
+            DEPLOY.validate_release_receipt(saved, identity)
+
+    def test_release_proof_requires_exact_commit_branch_and_successful_qualified_step(self):
+        run = dict(id=10, head_sha='abc', head_branch='main', event='workflow_dispatch',
+                   status='completed', conclusion='success')
+        job = dict(name='Qualified release journeys', conclusion='success',
+                   steps=[dict(name='Verify all critical journeys on iOS 26.2', conclusion='success')])
+        def status(runs, jobs):
+            with patch.object(DEPLOY.REUSE, 'api', side_effect=[[dict(workflow_runs=runs)], [dict(jobs=jobs)]]):
+                return DEPLOY.hosted_release_status('owner/repo', 'abc', 'main')
+        self.assertEqual(status([run], [job])['conclusion'], 'success')
+        for changes in ({'head_sha': 'old'}, {'head_branch': 'other'}, {'event': 'push'}):
+            self.assertEqual(status([{**run, **changes}], [job])['status'], 'missing')
+        for jobs in ([], [{**job, 'conclusion': 'skipped'}], [{**job, 'steps': []}]):
+            with self.assertRaisesRegex(ValueError, 'qualified journey evidence'):
+                status([run], jobs)
+        self.assertEqual(status([{**run, 'conclusion': 'failure'}], [])['conclusion'], 'failure')
 
     def test_beta_selection_compares_shipping_changes_and_unknown_product_ownership_fails_broad(self):
         self.assertEqual(DEPLOY.focused_cases([]), [])
