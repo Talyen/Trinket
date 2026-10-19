@@ -7,8 +7,10 @@ final class AudioLifecycleUITests: TrinketUITestCase {
             + ["-performance-strong-party", "-coverage-diagnostics"])
         let musicVolume = app.sliders["Music"]
         XCTAssertTrue(musicVolume.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let musicStart = musicVolume.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.5))
-        let musicEnd = musicVolume.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.5))
+        musicVolume.adjust(toNormalizedSliderPosition: 0.75)
+        // Simulator AX adjustment can move the thumb without committing the SwiftUI binding.
+        let musicStart = musicVolume.coordinate(withNormalizedOffset: CGVector(dx: 0.75, dy: 0.5))
+        let musicEnd = musicVolume.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         musicStart.press(forDuration: 0.1, thenDragTo: musicEnd)
         waitUntil("Music must start after enabling simulator music") {
             do { return try (self.coverageReport()["musicStarts"] as? Int ?? 0) > 0 }

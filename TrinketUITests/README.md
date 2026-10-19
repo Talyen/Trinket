@@ -100,8 +100,10 @@ Assert a journey’s return destination before using helpers that navigate elsew
   hittability. A successful snapshot proves existence without a preceding query.
   Keep the final geometry/hittability recheck for animation races. Avoid an
   existence assertion immediately before tapping the same control.
-  AudioLifecycle enables Music with a direct slider drag and still requires
-  backend starts; a moved AX thumb alone does not establish a value change.
+  AudioLifecycle enables Music with a native slider adjustment followed by a
+  direct drag from the adjusted thumb, and still requires backend starts. On the
+  iOS 26.2 simulator, adjustment alone can move the thumb without committing the
+  SwiftUI binding; a drag from the muted thumb can leave Music at zero.
 - `PlayScreen.startBattle` taps the stage action. Each caller waits for its actual
   next interaction: battle hand, card, Actions, or Auto-Battle. Do not add a generic
   battle-entry wait before that destination wait. Mid-battle tests still enter
