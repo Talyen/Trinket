@@ -71,6 +71,7 @@ jobs:
         with:
           name: release-proof-${{ github.run_id }}-${{ github.run_attempt }}
           path: .DerivedData/deploy-verification.json
+          include-hidden-files: true
           retention-days: 30
           if-no-files-found: error
       - name: Retain passed inputs and failed-class markers
