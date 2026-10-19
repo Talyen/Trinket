@@ -114,7 +114,7 @@ class DeployVerificationTests(unittest.TestCase):
                     patch.object(DEPLOY, 'changed_since_release', return_value=['Trinket/App.swift']), \
                     patch.dict(DEPLOY.CRITICAL_CASES, {'audio': 'AudioTests/testMusic', 'purchase': 'ShopTests/testBuy'}, clear=True):
                 DEPLOY.verify_hosted_beta(args, verification, identity)
-            self.assertEqual(commands[0], ['./Scripts/test.sh', 'ui', '--no-build', 'ShopTests'])
+            self.assertEqual(commands[0], ['./Scripts/test.sh', 'smoke', '--no-build', 'ShopTests'])
             self.assertFalse(cache.failed_cases())
             self.assertIsNotNone(cache.proof(phase))
             self.assertIsNone(DEPLOY.PhaseCache(cache.root, inputs).proof('ci'))
@@ -148,7 +148,7 @@ class DeployVerificationTests(unittest.TestCase):
                     patch.dict(DEPLOY.CRITICAL_CASES, {'audio': 'AudioTests/testMusic', 'purchase': 'ShopTests/testBuy'}, clear=True):
                 DEPLOY.verify_hosted_beta(args, verification, identity)
             self.assertEqual(calls, [['./Scripts/build-for-testing.sh', '--reuse', '--app-only'],
-                                     ['./Scripts/test.sh', 'ui', '--no-build', 'ShopTests']])
+                                     ['./Scripts/test.sh', 'smoke', '--no-build', 'ShopTests']])
             self.assertIn('local_cache', verification.completed['ui:AudioTests/testMusic']['evidence'])
 
     def test_hosted_failure_selectors_are_read_only_from_failed_ui_jobs(self):

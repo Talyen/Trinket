@@ -155,7 +155,9 @@ def verify_hosted_beta(args, verification, identity):
             subprocess.run(['./Scripts/build-for-testing.sh', '--reuse', '--app-only'], check=True)
         os.environ['SKIP_GENERATE'] = '1'
         for name in targets:
-            verification.phase(f'ui:{name}', ['./Scripts/test.sh', 'ui', '--no-build', name])
+            smoke = verification.cache.inputs.smoke if verification.cache else required_smoke_classes()
+            mode = 'smoke' if name.split('/')[0] in smoke else 'ui'
+            verification.phase(f'ui:{name}', ['./Scripts/test.sh', mode, '--no-build', name])
     if not args.focused_only:
         status = wait_for_beta_ci(identity['build']['commit'], verification.cache)
         verification.phase('ci', [], {'github': status})
