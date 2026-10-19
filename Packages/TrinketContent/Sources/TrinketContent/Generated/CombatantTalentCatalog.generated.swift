@@ -925,10 +925,10 @@ public extension CombatantTalentCatalog {
             "wildcard_gold_t1_2": CombatantTalentEffect(
                 name: "Health is Wealth",
                 iconID: "sf:heart.fill",
-                description: "Gaining Gold has a 10% chance to restore 3 Health",
+                description: "Gaining Gold has a 25% chance to restore 5 Health",
                 triggers: CombatTraitTriggers {
-                    $0.goldGainHealChancePercent = 0.10
-                    $0.goldGainHealAmount = 3
+                    $0.goldGainHealChancePercent = 0.25
+                    $0.goldGainHealAmount = 5
                 }
             ),
             "wildcard_gold_t2_1": CombatantTalentEffect(
@@ -1012,13 +1012,13 @@ public extension CombatantTalentCatalog {
             "wildcard_physical_t1_1": CombatantTalentEffect(
                 name: "Prismatic Edge",
                 iconID: "sf:burst.fill",
-                description: "Your Physical attacks deal 1 additional damage to Burning or Frozen enemies",
-                triggers: CombatTraitTriggers { $0.physicalAttackDamageVsBurningOrFrozenFlat = 1 }
+                description: "Your Physical attacks have a 10% chance to also Freeze or Burn",
+                triggers: CombatTraitTriggers { $0.prismaticEdge = true }
             ),
             "wildcard_physical_t1_2": CombatantTalentEffect(
                 name: "Loaded Strike",
                 iconID: "sf:burst.fill",
-                description: "Physical attacks randomly deal double or half damage",
+                description: "Physical attacks have a 20% chance to deal double damage",
                 triggers: CombatTraitTriggers { $0.loadedStrike = true }
             ),
             "wildcard_physical_t2_1": CombatantTalentEffect(

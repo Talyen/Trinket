@@ -68,7 +68,7 @@ struct BattleStateTests {
             initialGold: 10,
         )
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
-        try #expect(battle.gold == 12)
+        try #expect(battle.gold == 11)
 
         var initialGoldBattle = BattleStateTestFactory.makeBattle(
             hero: goldHero,

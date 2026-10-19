@@ -17,7 +17,7 @@ struct FoxRecoveryVictoryTests {
         let events = try battle.playCard(cardID: card.id).events
 
         #expect(battle.isEnemyDefeated == (enemyHealth == 1))
-        #expect(battle.gold == 2)
+        #expect(battle.gold == 1)
         #expect(battle.health(of: battle.companion) == 7)
         #expect(battle.health(of: battle.hero) == 20)
         #expect(events.count {

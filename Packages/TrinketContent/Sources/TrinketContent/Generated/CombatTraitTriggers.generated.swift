@@ -218,6 +218,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case dazingSwipeStunBuildup
     case burnAttackDamageVsBleedingMultiplier
     case physicalAttackDamageVsBurningOrFrozenFlat
+    case prismaticEdge
     case sealedSarcophagus
     case retainAllBlockBetweenTurns
     case blockedAttackBasicOncePerTurn
@@ -1115,6 +1116,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var dazingSwipeStunBuildup: Int = 0
         public var burnAttackDamageVsBleedingMultiplier: Double = 1
         public var physicalAttackDamageVsBurningOrFrozenFlat: Int = 0
+        public var prismaticEdge: Bool = false
         public var sealedSarcophagus: Bool = false
         public var retainAllBlockBetweenTurns: Bool = false
         public var blockedAttackBasicOncePerTurn: Bool = false
@@ -2015,6 +2017,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.dazingSwipeStunBuildup, .dazingSwipeStunBuildup, default: 0, merging: .add),
         .init(\.burnAttackDamageVsBleedingMultiplier, .burnAttackDamageVsBleedingMultiplier, default: 1, merging: .max),
         .init(\.physicalAttackDamageVsBurningOrFrozenFlat, .physicalAttackDamageVsBurningOrFrozenFlat, default: 0, merging: .add),
+        .init(\.prismaticEdge, .prismaticEdge, default: false, merging: .or),
         .init(\.sealedSarcophagus, .sealedSarcophagus, default: false, merging: .or),
         .init(\.retainAllBlockBetweenTurns, .retainAllBlockBetweenTurns, default: false, merging: .or),
         .init(\.blockedAttackBasicOncePerTurn, .blockedAttackBasicOncePerTurn, default: false, merging: .or),

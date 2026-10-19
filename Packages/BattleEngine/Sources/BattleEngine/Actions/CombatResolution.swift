@@ -29,6 +29,8 @@ struct CombatResolution {
         var talents: TalentActionFacts?
         var didCriticalHit = false
         var loadedStrikeDouble: Bool?
+        var prismaticEdgeDidRoll = false
+        var prismaticEdgeKeyword: Keyword?
     }
 
     private struct Card {
@@ -254,14 +256,31 @@ struct CombatResolution {
 
     mutating func loadedStrikeDouble(for actorID: String, using rng: inout some RandomNumberGenerator) -> Bool {
         guard let index = actions.indices.last, actions[index].context.actor.id == actorID else {
-            return Bool.random(using: &rng)
+            return BattleChance.succeeds(probability: 0.20, using: &rng)
         }
         if let stored = actions[index].loadedStrikeDouble {
             return stored
         }
-        let doubled = Bool.random(using: &rng)
+        let doubled = BattleChance.succeeds(probability: 0.20, using: &rng)
         actions[index].loadedStrikeDouble = doubled
         return doubled
+    }
+
+    mutating func prismaticEdgeKeyword(for actorID: String, using rng: inout some RandomNumberGenerator) -> Keyword? {
+        let index = actions.indices.last.flatMap { actions[$0].context.actor.id == actorID ? $0 : nil }
+        if let index, actions[index].prismaticEdgeDidRoll {
+            return actions[index].prismaticEdgeKeyword
+        }
+        let keyword: Keyword? = if BattleChance.succeeds(probability: 0.10, using: &rng) {
+            Bool.random(using: &rng) ? .freeze : .burn
+        } else {
+            nil
+        }
+        if let index {
+            actions[index].prismaticEdgeDidRoll = true
+            actions[index].prismaticEdgeKeyword = keyword
+        }
+        return keyword
     }
 
     mutating func consumeGoldDamage(for actorID: String?) -> Int {

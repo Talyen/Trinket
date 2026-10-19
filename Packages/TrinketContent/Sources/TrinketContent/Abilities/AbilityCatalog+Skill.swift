@@ -150,8 +150,8 @@ public extension AbilityCatalog {
 
     static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
-        description: "Deal 2 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns",
-        damageComponents: [DamageComponent(2, keyword: .bleed)],
+        description: "Deal 3 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns",
+        damageComponents: [DamageComponent(3, keyword: .bleed)],
         targetedEffects: [
             TargetedEffect(.healingReductionPercent(0.25, 3), target: .enemy),
         ],
@@ -181,8 +181,8 @@ public extension AbilityCatalog {
 
     static let steal = Ability(
         id: "steal", name: "Steal", tier: .skill,
-        damageComponents: [DamageComponent(2, keyword: .physical)],
-        targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
+        damageComponents: [DamageComponent(3, keyword: .physical)],
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 1))],
         stealsGold: true,
     )
 

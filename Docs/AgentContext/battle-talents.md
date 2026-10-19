@@ -49,10 +49,10 @@ Hero-Talent reactions do not grant another hit. Legacy debuff-reflection profile
 retain their existing rules.
 Perfect Purity requires an actual debuff removal and protects the cleansed
 recipient until the next player turn; it does not prevent associated damage.
-Loaded Strike rolls equal double/half odds once per Physical attack action,
-sharing the outcome across that action's Physical hits. Counterattacks own their
-roll; ongoing and raw reaction damage do not qualify. Halving keeps ordinary
-round-up behavior. Legacy `standardDeviation` remains a separate supported rule.
+Loaded Strike rolls a 20% chance to double damage once per Physical attack action,
+sharing the outcome across that action's Physical hits; otherwise damage is unchanged.
+Counterattacks own their roll; ongoing and raw reaction damage do not qualify.
+Legacy `standardDeviation` retains its separate double/half rule and upward rounding.
 
 ### Golden Opportunity and Lucky Charm
 
@@ -170,9 +170,14 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 ### Poison riders and damage conversions
 
 Venomous Skin resolves its immediate 1 Poison damage before attaching stacks.
-Prismatic Edge adds flat damage to each existing Physical attack hit against
-Burning or Frozen enemies. Having both statuses grants the bonus once. It creates
-no elemental hit, Burn stack, or Freeze charge, and does not amplify ongoing damage.
+Prismatic Edge rolls a 10% chance once per Physical attack action to add either
+Freeze or Burn damage, chosen equally and shared across that action's Physical hits.
+Each bonus hit copies the actual Physical Health damage dealt, then uses current
+elemental defenses without repeating source bonuses, Critical damage or pacing.
+Burn stores its own Health damage as ordinary decaying Burn; Freeze adds its normal
+control buildup. Fully blocked hits, ongoing damage and reactions cannot proc it.
+Counterattacks roll independently; the source and target must survive to resolve
+the bonus. The legacy conditional Physical flat-bonus field remains supported.
 Sunwall rolls once per Holy ability and, on success, grants the Companion Block
 equal to actual Holy Health damage without applying Block bonuses or pacing
 again. Holy follow-up damage shares that ability's roll allowance. Committed Holy
@@ -295,8 +300,9 @@ Basic counterattacks. Their ability allowances belong to that counterattack,
 independently of an interrupted card's allowance.
 
 Supernova recognizes full Basic counterattacks using their own ability allowance.
-Bloodfire and Prismatic Edge also strengthen counterattacks and repeated attacks;
-resolved card repeats retain captured bonuses without applying them twice.
+Bloodfire also strengthens counterattacks and repeated attacks; resolved card
+repeats retain captured bonuses without applying them twice. Prismatic Edge rolls
+for counterattacks and repeated Physical attacks as independent actions.
 Holy Basic counterattacks retain Hallowguard and ordinary Holy damage rewards; Critical Basic counterattacks retain
 Light Fingers and ordinary Critical Hit rewards. Raw retaliation and damage repeats
 keep their existing reaction guards.

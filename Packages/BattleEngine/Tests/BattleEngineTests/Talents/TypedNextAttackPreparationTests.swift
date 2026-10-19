@@ -14,8 +14,8 @@ struct TypedNextAttackPreparationTests {
 
         let events = try fixtures.play(.steal, in: &battle)
         let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.steal.id }
-        #expect(hits.map(\.amount) == [2, 2])
-        #expect(battle.gold == 4)
+        #expect(hits.map(\.amount) == [3, 3])
+        #expect(battle.gold == 2)
         #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus?.value == 3)
 
         let next = try fixtures.play(.slash, in: &battle)

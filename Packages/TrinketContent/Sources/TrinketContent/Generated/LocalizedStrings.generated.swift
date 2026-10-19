@@ -9107,15 +9107,15 @@ enum L10n {
     }
 
     static func talents_wildcard_physical_t1_1_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("talents.wildcard_physical_t1_1.description", defaultValue: "Your <keyword id=\"physical\">Physical</keyword> attacks deal <value id=\"quantity_1\">\(value1)</value> additional damage to <keyword id=\"burn\">Burning</keyword> or <keyword id=\"freeze\">Frozen</keyword> enemies", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("talents.wildcard_physical_t1_1.description", defaultValue: "Your <keyword id=\"physical\">Physical</keyword> attacks have a <value id=\"quantity_1\">\(value1)</value>% chance to also <keyword id=\"freeze\">Freeze</keyword> or <keyword id=\"burn\">Burn</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_wildcard_physical_t1_1_name: LocalizedStringResource {
         LocalizedStringResource("talents.wildcard_physical_t1_1.name", defaultValue: "Prismatic Edge", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static var talents_wildcard_physical_t1_2_description: LocalizedStringResource {
-        LocalizedStringResource("talents.wildcard_physical_t1_2.description", defaultValue: "<keyword id=\"physical\">Physical</keyword> attacks randomly deal double or half damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func talents_wildcard_physical_t1_2_description(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("talents.wildcard_physical_t1_2.description", defaultValue: "<keyword id=\"physical\">Physical</keyword> attacks have a <value id=\"quantity_1\">\(value1)</value>% chance to deal double damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_wildcard_physical_t1_2_name: LocalizedStringResource {

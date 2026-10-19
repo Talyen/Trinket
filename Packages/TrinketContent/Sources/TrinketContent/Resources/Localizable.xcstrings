@@ -96620,37 +96620,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deine <keyword id=\"physical\">physischen</keyword> Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden bei <keyword id=\"burn\">brennenden</keyword> oder <keyword id=\"freeze\">gefrorenen</keyword> Gegnern"
+            "value": "Deine <keyword id=\"physical\">physischen</keyword> Angriffe verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance zusätzlichen <keyword id=\"freeze\">Frost</keyword>- oder <keyword id=\"burn\">Brandschaden</keyword>"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your <keyword id=\"physical\">Physical</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage to <keyword id=\"burn\">Burning</keyword> or <keyword id=\"freeze\">Frozen</keyword> enemies"
+            "value": "Your <keyword id=\"physical\">Physical</keyword> attacks have a <value id=\"quantity_1\">%1$lld</value>%% chance to also <keyword id=\"freeze\">Freeze</keyword> or <keyword id=\"burn\">Burn</keyword>"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vos attaques <keyword id=\"physical\">physiques</keyword> infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis affectés par une <keyword id=\"burn\">Brûlure</keyword> ou un <keyword id=\"freeze\">Gel</keyword>"
+            "value": "Vos attaques <keyword id=\"physical\">physiques</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger des dégâts supplémentaires de <keyword id=\"freeze\">Gel</keyword> ou de <keyword id=\"burn\">Brûlure</keyword>"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "あなたの<keyword id=\"physical\">物理</keyword>攻撃は、<keyword id=\"burn\">炎上</keyword>または<keyword id=\"freeze\">凍結</keyword>状態の敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"
+            "value": "あなたの<keyword id=\"physical\">物理</keyword>攻撃は、<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"freeze\">凍結</keyword>または<keyword id=\"burn\">炎上</keyword>の追加ダメージを与える"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "자신의 <keyword id=\"physical\">물리</keyword> 공격이 <keyword id=\"burn\">화상</keyword> 또는 <keyword id=\"freeze\">빙결</keyword>에 걸린 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"
+            "value": "자신의 <keyword id=\"physical\">물리</keyword> 공격이 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"freeze\">빙결</keyword> 또는 <keyword id=\"burn\">화상</keyword> 피해를 추가로 줍니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的<keyword id=\"physical\">物理</keyword>攻擊對<keyword id=\"burn\">燃燒</keyword>或<keyword id=\"freeze\">冰凍</keyword>中的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"
+            "value": "你的<keyword id=\"physical\">物理</keyword>攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率額外造成<keyword id=\"freeze\">冰凍</keyword>或<keyword id=\"burn\">燃燒</keyword>傷害"
           }
         }
       }
@@ -96704,37 +96704,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">Physische</keyword> Angriffe verursachen zufällig doppelten oder halben Schaden"
+            "value": "<keyword id=\"physical\">Physische</keyword> Angriffe verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance doppelten Schaden"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">Physical</keyword> attacks randomly deal double or half damage"
+            "value": "<keyword id=\"physical\">Physical</keyword> attacks have a <value id=\"quantity_1\">%1$lld</value>%% chance to deal double damage"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les attaques de type <keyword id=\"physical\">Physique</keyword> infligent aléatoirement le double ou la moitié des dégâts"
+            "value": "Les attaques <keyword id=\"physical\">physiques</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger le double de dégâts"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">物理</keyword>攻撃のダメージがランダムに2倍か半分になる"
+            "value": "<keyword id=\"physical\">物理</keyword>攻撃は<value id=\"quantity_1\">%1$lld</value>%%の確率で2倍のダメージを与える"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">물리</keyword> 공격이 무작위로 두 배 또는 절반의 피해"
+            "value": "<keyword id=\"physical\">물리</keyword> 공격이 <value id=\"quantity_1\">%1$lld</value>%% 확률로 두 배의 피해를 줍니다"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "<keyword id=\"physical\">物理</keyword>攻擊隨機造成雙倍或半量傷害"
+            "value": "<keyword id=\"physical\">物理</keyword>攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率造成雙倍傷害"
           }
         }
       }

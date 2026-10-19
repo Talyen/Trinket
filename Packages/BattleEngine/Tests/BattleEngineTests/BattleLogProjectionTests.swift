@@ -164,7 +164,9 @@ struct BattleLogProjectionTests {
         let ability = theft ? Ability.steal : Ability.goldenPlate
         let events = battle.performTestAction(ability)
         let lines = BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) }
-        #expect(lines.contains { $0.contains(theft ? "steal 2 Gold" : "gain 5 Gold") })
+        let gold = events.filter { $0.effectKind == .resourceGain && $0.keyword == .gold }.reduce(0) { $0 + $1.amount }
+        #expect(gold > 0)
+        #expect(lines.contains { $0.contains("\(theft ? "steal" : "gain") \(gold) Gold") })
     }
 
     private func makeSupportBattle() -> BattleState {

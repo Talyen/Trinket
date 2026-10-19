@@ -37,10 +37,10 @@ mana-shield	Mana Shield	skill	Gain 1 Block\nConvert all Mana into Block
 poison-dagger	Poison Dagger	skill	Deal 1 Poison damage, twice
 pounce	Pounce	skill	Deal 3 Stun damage, doubled on the first combat turn
 predators-focus	Predator's Focus	skill	Deal 1 Bleed damage\nYour next attack has Leech
-serrated-edge	Serrated Edge	skill	Deal 2 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns
+serrated-edge	Serrated Edge	skill	Deal 3 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns
 smite	Smite	skill	Deal 4 Holy damage\nPurge a buff from the enemy
 spiked-shield	Spiked Shield	skill	Deal 2 Physical damage\nGain 3 Block or Thorns at random
-steal	Steal	skill	Deal 2 Physical damage\nSteal 2 Gold
+steal	Steal	skill	Deal 3 Physical damage\nSteal 1 Gold
 stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block
 sunder	Sunder	skill	Halve enemy Block\nDeal 4 Physical damage
 tithe	Tithe	skill	Deal 2 Holy damage\nSteal 2 Gold

@@ -81,12 +81,13 @@ struct HealingReductionTests {
         let target = battle.roster[recipient].combatant
         battle.roster.mutateRuntime(for: target) { $0.currentHealth = 10 }
         _ = battle.performTestAction(.serratedEdge)
+        let afterAttack = battle.health(of: target)
         let outcome = battle.resolveHeal(HealRequest(
             amount: 8, target: target, sourceActorID: target.id, logAs: .silent, skipFightPacing: true,
         ))
         #expect(outcome.healthRestored == (recipient == .enemy ? 6 : 8))
         if recipient == .enemy {
-            #expect(battle.health(of: target) == 14)
+            #expect(battle.health(of: target) == afterAttack + outcome.healthRestored)
         }
     }
 

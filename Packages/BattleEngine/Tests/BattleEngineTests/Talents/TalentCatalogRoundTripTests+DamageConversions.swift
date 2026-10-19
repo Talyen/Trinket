@@ -4,9 +4,66 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
-    @Test(arguments: [false, true], [false, true])
-    func `Prismatic Edge strengthens existing Physical attacks once even against both statuses`(burning: Bool, frozen: Bool) {
+    @Test(arguments: [(UInt64(1), Keyword?.none), (7, .freeze), (23, .burn)])
+    func `Prismatic Edge copies committed damage and shares one elemental roll per attack`(seed: UInt64, keyword: Keyword?) {
         var profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t1_1"])
+        profile.triggers.criticalChanceBonus = -1
+        profile.damageDealtBonus = [.physical: 2, .burn: 100, .freeze: 100]
+        profile.outgoingDamagePercent = 0.5
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+        )
+        DefensePoolEngine.set(2, on: battle.enemy, in: &battle)
+        battle.rng = SeededRandomNumberGenerator(seed: seed)
+        var expectedRNG = battle.rng
+        if BattleChance.succeeds(probability: 0.10, using: &expectedRNG) {
+            #expect((Bool.random(using: &expectedRNG) ? Keyword.freeze : .burn) == keyword)
+        } else {
+            #expect(keyword == nil)
+        }
+        let events = battle.performTestAction(Ability(
+            id: "prismatic-pair", name: "Physical Pair", tier: .basic,
+            damageComponents: [DamageComponent(2), DamageComponent(2)], criticalChanceBonus: -1,
+        ))
+        #expect(events.filter { $0.kind == .abilityDamage && $0.keyword == .physical }.map(\.amount) == [3, 5])
+        let procs = events.filter { $0.kind == .abilityDamage && $0.abilityName == "Prismatic Edge" }
+        #expect(procs.map(\.amount) == (keyword == nil ? [] : [3, 5]))
+        #expect(procs.allSatisfy { $0.keyword == keyword && $0.actorID == battle.hero.id })
+        #expect(battle.health(of: battle.enemy) == (keyword == nil ? 92 : 84))
+        #expect(CombatTriggerEngine.totalPotency(of: .burn, on: battle.enemy, in: battle) == (keyword == .burn ? 8 : 0))
+        let freeze = battle.activeEffects(of: battle.enemy).compactMap { active -> Int? in
+            if case let .controlMeter(.freeze, amount, _) = active.effect {
+                return amount
+            }
+            return nil
+        }.reduce(0, +)
+        #expect(freeze == (keyword == .freeze ? 8 : 0))
+        #expect(battle.rng.next() == expectedRNG.next())
+    }
+
+    @Test func `Prismatic Edge cannot turn blocked attacks or ongoing damage into elemental hits`() {
+        var profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t1_1"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+        )
+        DefensePoolEngine.set(2, on: battle.enemy, in: &battle)
+        battle.rng = SeededRandomNumberGenerator(seed: 23)
+        var expectedRNG = battle.rng
+        _ = battle.performTestAction(Ability(
+            id: "blocked-prismatic", name: "Blocked Attack", tier: .basic,
+            damageComponents: [DamageComponent(2)], criticalChanceBonus: -1,
+        ))
+        #expect(battle.health(of: battle.enemy) == 100)
+        let tick = battle.resolveTestDamage(2, keyword: .physical, options: .resolvedPeriodic)
+        #expect(tick.healthLost == 2)
+        #expect(battle.activeEffects(of: battle.enemy).isEmpty)
+        #expect(battle.rng.next() == expectedRNG.next())
+    }
+
+    @Test(arguments: [false, true], [false, true])
+    func `legacy conditional Physical bonus applies once even against both statuses`(burning: Bool, frozen: Bool) {
+        var profile = CombatModifierProfile.withTriggers { $0.physicalAttackDamageVsBurningOrFrozenFlat = 1 }
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,

@@ -60,7 +60,50 @@ enum AttackerOnHitEngine {
 
         await applyPhysicalDamageReactions(to: &state, hit: hit, in: &context)
         guard state.options.isAttackHit else { return }
+        if hit.keyword == .physical, hit.triggers.prismaticEdge {
+            await applyPrismaticEdge(to: &state, hit: hit, in: &context)
+        }
         await applyTalentAttackApplications(to: &state, hit: hit, in: &context)
+    }
+
+    private static func applyPrismaticEdge(
+        to state: inout DamageResolutionState,
+        hit: Hit,
+        in context: inout BattleState,
+    ) async {
+        guard state.healthLost > 0,
+              context.health(of: hit.source) > 0, context.health(of: state.combatant) > 0,
+              let keyword = context.resolution.prismaticEdgeKeyword(for: hit.sourceActorID, using: &context.rng)
+        else { return }
+        // Copy committed Physical damage without applying source bonuses or pacing twice.
+        let outcome = await context.resolveDamage(DamageRequest(
+            amount: state.healthLost,
+            target: state.combatant,
+            keyword: keyword,
+            sourceActorID: hit.sourceActorID,
+            options: .reaction(scaling: .resolved),
+        ))
+        if outcome.healthLost > 0 {
+            context.nextEvent(
+                kind: .abilityDamage, source: .init(hit.source),
+                abilityName: CombatTriggerEngine.triggerAbilityName(
+                    .prismaticEdge,
+                    for: hit.source,
+                    fallback: "Prismatic Edge",
+                    in: context,
+                ),
+                target: state.combatant, amount: outcome.healthLost, keyword: keyword,
+            )
+        }
+        if keyword == .burn, outcome.healthLost > 0 {
+            await context.applyDecayingDoT(
+                keyword: .burn,
+                potency: outcome.healthLost,
+                to: state.combatant,
+                sourceActorID: hit.sourceActorID,
+                application: .attached,
+            )
+        }
     }
 
     private static func applyStoredAdditionalDamage(

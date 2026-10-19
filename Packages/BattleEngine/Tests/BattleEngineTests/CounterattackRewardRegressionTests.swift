@@ -58,16 +58,33 @@ struct CounterattackRewardRegressionTests {
     }
 
     @Test(arguments: [false, true], [false, true])
-    func `conditional attack talents strengthen Basic counterattacks and repeated attacks without extra hits`(
+    func `Bloodfire and legacy conditional Physical bonuses strengthen counters and repeats without extra hits`(
         bloodfire: Bool,
         damageRepeat: Bool,
     ) {
-        var battle = makeBattle(talents: [bloodfire ? "warlock_burn_t1_1" : "wildcard_physical_t1_1"])
+        var battle = makeBattle(talents: bloodfire ? ["warlock_burn_t1_1"] : []) {
+            if !bloodfire {
+                $0.triggers.physicalAttackDamageVsBurningOrFrozenFlat = 1
+            }
+        }
         battle.insertEffect(bloodfire ? .bleed(1) : .burn(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 1)
         let events = counter(bloodfire ? .fireArrow : .slash, origin: damageRepeat ? .criticalRepeat : .counterattack, in: &battle)
         #expect(battle.health(of: battle.enemy) == 96)
         #expect(events.filter { $0.kind == .abilityDamage }.map(\.keyword) == [bloodfire ? .burn : .physical])
         #expect(CombatTriggerEngine.totalPotency(of: .bleed, on: battle.enemy, in: battle) == (bloodfire ? 1 : 0))
+    }
+
+    @Test(arguments: [UInt64(7), 23])
+    func `Prismatic Edge adds elemental damage to a Basic counterattack`(seed: UInt64) {
+        var battle = makeBattle(talents: ["wildcard_physical_t1_1"])
+        battle.rng = SeededRandomNumberGenerator(seed: seed)
+
+        let events = counter(.slash, in: &battle)
+
+        #expect(battle.health(of: battle.enemy) == 94)
+        let proc = events.filter { $0.kind == .abilityDamage && $0.abilityName == "Prismatic Edge" }
+        #expect(proc.map(\.amount) == [3])
+        #expect(proc.first?.keyword == (seed == 7 ? .freeze : .burn))
     }
 
     @Test func `Hallowguard grants Block after a Holy Basic counterattack but not raw retaliation`() {

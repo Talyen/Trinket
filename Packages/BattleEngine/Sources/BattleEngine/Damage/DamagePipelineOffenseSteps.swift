@@ -40,7 +40,9 @@ package extension DamagePipeline {
         guard keyword == .physical || sharedKeyword == .physical else { return }
         if triggers.loadedStrike, state.options.isAttackHit {
             let doubled = context.resolution.loadedStrikeDouble(for: sourceActorID, using: &context.rng)
-            applyDoubledOrCeilHalved(to: &state, doubled: doubled)
+            if doubled {
+                applyDoubledOrCeilHalved(to: &state, doubled: true)
+            }
         }
         guard triggers.standardDeviation else { return }
         let doubled: Bool
@@ -57,7 +59,7 @@ package extension DamagePipeline {
         applyDoubledOrCeilHalved(to: &state, doubled: doubled)
     }
 
-    /// Shared Loaded Strike / Standard Deviation gamble: double, or halve rounding up.
+    /// Legacy Standard Deviation halves with upward rounding.
     private static func applyDoubledOrCeilHalved(to state: inout DamageResolutionState, doubled: Bool) {
         state.remaining = doubled ? SaturatedArithmetic.saturatingMul(state.remaining, 2)
             : state.remaining / 2 + state.remaining % 2

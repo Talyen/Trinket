@@ -107,8 +107,8 @@ Oathkeeper and Bloodember share keyword percentage bonuses as well as flat bonus
 counting universal bonuses once, including companion status multipliers, Critical
 damage bonuses, and chance-based damage multipliers such as Supernova and Standard
 Deviation. Loaded Strike shares Physical eligibility too, but rolls only for attack
-hits: all Physical hits in one action share an equal-odds double/half result,
-including upward rounding when halving. Counterattacks have independent actions;
+hits: all Physical hits in one action share a 20% chance to double damage,
+with normal damage on the other rolls. Counterattacks have independent actions;
 ongoing and raw reaction damage cannot roll. Legacy Standard Deviation retains its
 existing damage eligibility and card-scoped roll. Shared numeric bonuses include
 damage to Block: Shatterguard applies to Oathkeeper Holy damage, while Flaming Arrows

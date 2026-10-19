@@ -144,11 +144,11 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "blighted_pulse",
             name: "Blighted Pulse",
-            description: "Deals 1 Poison or Bleed damage every other turn to all enemies",
+            description: "Deals 2 Poison or Bleed damage every other turn to all enemies",
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .poison
                 $0.turnRandomDamageAllEnemiesKeywordB = .bleed
-                $0.turnRandomDamageAllEnemiesAmount = 1
+                $0.turnRandomDamageAllEnemiesAmount = 2
                 $0.turnRandomDamageAllEnemiesInterval = 2
             }
         ))

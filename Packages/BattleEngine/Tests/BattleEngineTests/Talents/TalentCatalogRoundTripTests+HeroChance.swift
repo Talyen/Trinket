@@ -15,7 +15,7 @@ extension TalentCatalogRoundTripTests {
         let hits = events.filter { $0.kind == .abilityDamage }
         #expect(hits.count == 2)
         #expect(hits[0].amount == hits[1].amount)
-        #expect([3, 10].contains(hits[0].amount))
+        #expect([5, 10].contains(hits[0].amount))
 
         let raw = battle.resolveTestDamage(5, options: .reaction())
         #expect(raw.healthLost == 5)
@@ -28,8 +28,8 @@ extension TalentCatalogRoundTripTests {
     @Test func `loaded strike counterattack rolls independently of its parent action`() {
         var battle = heroTalentBattle("wildcard_physical_t1_2", seed: 7)
         var expectedRNG = battle.rng
-        let parent = Bool.random(using: &expectedRNG)
-        let counter = Bool.random(using: &expectedRNG)
+        let parent = BattleChance.succeeds(probability: 0.20, using: &expectedRNG)
+        let counter = BattleChance.succeeds(probability: 0.20, using: &expectedRNG)
         let action = BattleActionContext(actor: battle.hero, in: battle)
         battle.resolution.beginAction(action, origin: .ability)
         #expect(battle.resolution.loadedStrikeDouble(for: battle.hero.id, using: &battle.rng) == parent)

@@ -15,7 +15,7 @@ struct SharedUniqueDamageRegressionTests {
         try fixtures.play(fixtures.attack(.holy, amount: 20), in: &shared)
         try fixtures.play(fixtures.attack(.physical, amount: 20), in: &physical)
         #expect(shared.health(of: shared.enemy) == physical.health(of: physical.enemy))
-        #expect([1960, 1990].contains(shared.health(of: shared.enemy)))
+        #expect([1960, 1980].contains(shared.health(of: shared.enemy)))
     }
 
     @Test func `oathkeeper shares Shatterguards block damage with holy damage`() throws {

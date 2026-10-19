@@ -31,11 +31,11 @@ struct RogueRevisionTests {
         try #expect(profile.triggers.goldGainBlockPercent == 0.5)
         var battle = battleWithHandCard(.steal, heroModifiers: profile)
         _ = try BattleTestFixtures.playCardNamed("Steal", owner: .hero, on: &battle)
-        try #expect(battle.gold == 2)
+        try #expect(battle.gold == 1)
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1)
 
         battle.grantGoldEvent(2, to: battle.companion, abilityName: "Steal", isTheft: true)
-        #expect(battle.gold == 4)
+        #expect(battle.gold == 3)
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1)
     }
 
