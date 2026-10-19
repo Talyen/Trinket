@@ -281,6 +281,12 @@ damage estimates with a self-damage penalty for each branch. Conditional effects
 contribute only when their condition holds in that opening state. Integer scores saturate
 instead of trapping. Forecasts skip log rebuilding and presentation recording.
 
+`AutoBattleProgress` observes the enemy's committed peak Health depletion, including
+damage healed within one command. Thirty rounds without further depletion pauses
+automated play; it never changes combat state, outcomes, or rewards. Each explicit
+Auto Battle run starts a fresh window. Slow fights can continue beyond thirty rounds
+while making progress. Manual commands remain available after a pause.
+
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).
 
 Use `withAutomaticPlay` for automatic chains; counterattack ancestry follows its

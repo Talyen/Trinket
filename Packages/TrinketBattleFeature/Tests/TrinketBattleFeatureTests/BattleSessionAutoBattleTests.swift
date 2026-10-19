@@ -11,6 +11,51 @@ import TrinketFeatureSupport
 
 @MainActor
 extension BattleSessionAutoBattleTests {
+    @Test func `stalled auto battle pauses without ending combat or changing remembered preference`() async throws {
+        let probe = AutoBattleProbe(remember: true, stored: true)
+        let session = BattleSessionTestSupport.makeConfiguredSession(
+            presentationEnvironment: autoBattleEnvironment(probe: probe),
+        )
+        defer { session.endBattle() }
+        let configuration = try #require(session.activeBattle)
+        let context = try #require(session.presentationContext)
+        var plays = 0
+        await session.driveAutoBattle(
+            input: BattleViewInput(session: session, presentation: session.presentation),
+            isCardCastPacingBlocked: { false },
+            isManualInteractionActive: { false },
+            playCard: { _ in
+                plays += 1
+                guard var state = session.engineState else { return false }
+                state.turnCount += 1
+                session.engineState = state
+                // Bound the old missing-guard failure instead of hanging the suite.
+                if plays >= 40 {
+                    session.isAutoBattleEnabled = false
+                }
+                return true
+            },
+        )
+        #expect(plays == 30)
+        #expect(!session.isAutoBattleEnabled)
+        #expect(session.isShowingAutoBattlePauseNotice)
+        #expect(session.outcome == nil)
+        #expect(session.canAcceptBattleCommands)
+        #expect(!session.hasPendingAutoEnd)
+        #expect(probe.persistedValues.isEmpty)
+        #expect(probe.stored)
+
+        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
+        #expect(session.playCard(cardID: card.id).didCommit)
+        #expect(!session.isShowingAutoBattlePauseNotice)
+        #expect(probe.persistedValues.isEmpty)
+
+        session.endBattle()
+        #expect(session.activate(configuration, presentation: context))
+        #expect(!session.isShowingAutoBattlePauseNotice)
+        #expect(session.isAutoBattleEnabled)
+    }
+
     @Test func `retiring auto driver stops after replacement without waiting for view cancellation`() async throws {
         let session = BattleSessionTestSupport.makeConfiguredSession()
         defer { session.endBattle() }

@@ -118,6 +118,25 @@ public struct BattleView: View {
                     }
                 }
             }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if input.isCurrent, battleSession.isShowingAutoBattlePauseNotice {
+                    BattleAutoPauseNotice(
+                        playManually: {
+                            input.perform {
+                                $0.isShowingAutoBattlePauseNotice = false
+                                $0.scheduleAutoEndIfNeeded()
+                            }
+                        },
+                        retreat: {
+                            input.perform {
+                                if $0.retreatFromBattle() {
+                                    $0.isShowingAutoBattlePauseNotice = false
+                                }
+                            }
+                        },
+                    )
+                }
+            }
             .onChange(of: configuration.id) { _, _ in
                 castPresentation.reset()
                 interactionState.suppressCombatantTaps = false

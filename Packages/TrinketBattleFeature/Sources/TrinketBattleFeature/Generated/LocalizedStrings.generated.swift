@@ -83,6 +83,14 @@ enum L10n {
         LocalizedStringResource("ui.battletransitionlabview.transition_2fe70", defaultValue: "Transition", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var ui_battleview_auto_battle_paused: LocalizedStringResource {
+        LocalizedStringResource("ui.battleview.auto_battle_paused", defaultValue: "Auto Battle paused", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_battleview_auto_battle_paused_message: LocalizedStringResource {
+        LocalizedStringResource("ui.battleview.auto_battle_paused_message", defaultValue: "No progress against the enemy. Play manually or retreat.", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var ui_battleview_battle_actions_310a4: LocalizedStringResource {
         LocalizedStringResource("ui.battleview.battle_actions_310a4", defaultValue: "Battle actions", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -97,6 +105,10 @@ enum L10n {
 
     static var ui_battleview_loot_all_5f814: LocalizedStringResource {
         LocalizedStringResource("ui.battleview.loot_all_5f814", defaultValue: "Loot All", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var ui_battleview_play_manually: LocalizedStringResource {
+        LocalizedStringResource("ui.battleview.play_manually", defaultValue: "Play Manually", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var ui_battleview_retreat_e6e5c: LocalizedStringResource {

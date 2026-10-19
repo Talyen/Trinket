@@ -841,6 +841,90 @@
         }
       }
     },
+    "ui.battleview.auto_battle_paused": {
+      "comment": "Title when automated combat stops after 30 rounds without new enemy Health depletion. The battle is still open; this does not declare defeat.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatischer Kampf pausiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto Battle paused"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combat automatique en pause"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動戦闘を一時停止しました"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자동 전투 일시 정지"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動戰鬥已暫停"
+          }
+        }
+      }
+    },
+    "ui.battleview.auto_battle_paused_message": {
+      "comment": "Explains why Auto Battle paused and offers the existing manual play and Retreat actions. No automatic defeat or reward is granted.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Fortschritt gegen den Gegner. Spiele manuell weiter oder ziehe dich zurück."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No progress against the enemy. Play manually or retreat."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le combat ne progresse plus. Jouez manuellement ou battez en retraite."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "敵との戦闘が進展していません。手動で戦うか、撤退してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "적과의 전투에 진전이 없습니다. 직접 플레이하거나 후퇴하세요."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "與敵人的戰鬥沒有進展。請手動戰鬥或撤退。"
+          }
+        }
+      }
+    },
     "ui.battleview.battle_actions_310a4": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleView.swift: accessibilityLabel. Arguments are displayed values in source order.",
       "extractionState": "manual",
@@ -1005,6 +1089,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "全部拾取"
+          }
+        }
+      }
+    },
+    "ui.battleview.play_manually": {
+      "comment": "Dismiss the Auto Battle pause notice and return control to the player, with Auto Battle off.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manuell spielen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play Manually"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jouer manuellement"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動で戦う"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "직접 플레이"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動戰鬥"
           }
         }
       }

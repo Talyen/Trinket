@@ -81,10 +81,16 @@ public final class BattleSession: BattleRuntime {
     public var isAutoBattleEnabled: Bool {
         didSet {
             guard oldValue != isAutoBattleEnabled else { return }
+            if isAutoBattleEnabled {
+                isShowingAutoBattlePauseNotice = false
+            }
+            guard !isShowingAutoBattlePauseNotice else { return }
             guard dependencies.rememberAutoBattlePreference() else { return }
             dependencies.setAutoBattleEnabled(isAutoBattleEnabled)
         }
     }
+
+    var isShowingAutoBattlePauseNotice = false
 
     public var overlayCombatantDetail: CombatantCardDetail? {
         didSet {

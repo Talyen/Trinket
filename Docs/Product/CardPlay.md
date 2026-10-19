@@ -50,6 +50,11 @@ Autoplay starts the next card after 0.85 seconds, allowing departure visuals to
 overlap. It pauses for manual interaction, while manual plays remain immediate
 and available during those casts. Autoplay keeps its sequenced combat feedback.
 
+After thirty rounds without new enemy Health depletion, Auto Battle pauses with
+an inline Play Manually / Retreat choice. It preserves the remembered Auto
+preference, keeps manual cards available, and never declares defeat. Re-enabling
+Auto starts a fresh progress window; slow fights continue while making progress.
+
 ## Automatic cards stay full-size
 
 Effects that automatically draw and play cards still show full-sized artwork above

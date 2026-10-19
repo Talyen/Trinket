@@ -99,6 +99,10 @@ Worker merges weight HP and round deltas by decided-pair counts and recompute fl
 using the parent configuration.
 Progression findings also identify capped battles and incomplete runs, even when
 there are no decided samples from which to flag a difficulty hotspot.
+The headless simulator also applies Auto Battle's thirty-round no-progress budget.
+This stop remains an unfinished (`timedOut`) result, not a decided defeat; it earns
+no defeat XP. Combat still permits manual play or a newly enabled Auto run from
+the same state. Total-round and action caps remain additional diagnostic limits.
 
 Affix contrasts remove or replace only the focused affix, preserving other
 affixes and their rolled powers on the compared item and all shared gear.

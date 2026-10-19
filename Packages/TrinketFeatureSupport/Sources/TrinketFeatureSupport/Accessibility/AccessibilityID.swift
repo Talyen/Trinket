@@ -351,6 +351,8 @@ public enum AccessibilityID {
         public static let bossLyrics = "Boss Lyrics"
         public static let actionsMenu = "Battle Actions"
         public static let autoBattleToggle = "Auto Battle Toggle"
+        public static let autoBattlePlayManually = "Auto Battle Play Manually Button"
+        public static let autoBattlePauseMessage = "Auto Battle Paused Message"
         public static let hand = "Battle Hand"
         public static let combatLog = "Combat Log"
         public static let combatLogSheet = "Combat Log Sheet"

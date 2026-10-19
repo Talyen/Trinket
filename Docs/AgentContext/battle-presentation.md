@@ -24,6 +24,14 @@ The Auto Battle task key includes command admission: a mounted inactive preview
 must start a fresh driver when its prepared run activates, even when its display
 and configuration identities stay the same.
 
+After thirty rounds without new enemy Health depletion, Auto Battle switches off
+for the current run and shows an inline pause notice. This automatic stop preserves
+the remembered Auto preference and cancels automatic end-turn work until the player
+resumes manually or re-enables Auto. Manual card input remains available; a committed
+manual play clears the notice. Play Manually dismisses it, and Retreat uses the
+existing defeat flow. New runs and teardown clear the notice. No defeat or reward
+is inferred from lack of progress.
+
 Victory chrome reads a settled award derived from launch-baked quantities; do not re-derive `StageCompletion` policy inside BattleFeature outcome math. Keep shared presentation DTOs in `TrinketFeatureContracts` and lifecycle ownership in `BattleRuntime`.
 
 Retreat immediately resolves the session as defeat and opens its reward screen,

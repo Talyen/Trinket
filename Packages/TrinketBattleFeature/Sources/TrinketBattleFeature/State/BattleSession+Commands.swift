@@ -55,6 +55,7 @@ extension BattleSession {
             }
             cardCues.commit(cardID: cardID)
 
+            isShowingAutoBattlePauseNotice = false
             cancelPendingAutoEnd()
             presentCompletedCommand(
                 resolution.playback, at: date, playedCardID: cardID, preparedCardID: preparedCardID,
@@ -84,6 +85,7 @@ extension BattleSession {
             feedback.noteItemsChanged()
             return
         }
+        isShowingAutoBattlePauseNotice = false
         clearCardCues()
 
         let transitionInterval = BattleFramePacingSignposts.signposter.beginInterval(
@@ -106,6 +108,7 @@ extension BattleSession {
     func scheduleAutoEndIfNeeded() {
         cancelPendingAutoEnd()
         guard !isSuspendedForScenePhase,
+              !isShowingAutoBattlePauseNotice,
               canEndTurn,
               !hasPlayableCard
         else { return }
@@ -120,6 +123,7 @@ extension BattleSession {
             guard let self, !Task.isCancelled,
                   autoEnd.isCurrent(generation),
                   !isSuspendedForScenePhase,
+                  !isShowingAutoBattlePauseNotice,
                   canEndTurn,
                   !hasPlayableCard
             else { return }
@@ -134,6 +138,8 @@ extension BattleSession {
         isManualInteractionActive: @escaping @MainActor () -> Bool,
         playCard: @MainActor (BattleCard) async -> Bool,
     ) async {
+        guard let initialState = engineState else { return }
+        var progress = AutoBattleProgress(in: initialState)
         let autoBattlePolicy = PlayPolicy.greedy
         while input.isCurrent(in: self), !Task.isCancelled, isAutoBattleEnabled {
             guard hasRunnableAutoBattle else { return }
@@ -152,8 +158,14 @@ extension BattleSession {
                 continue
             }
 
-            guard let engineState,
-                  let card = autoBattlePolicy.preferredPlayableCard(in: engineState)
+            guard let engineState else { return }
+            if progress.shouldPause(in: engineState) {
+                isShowingAutoBattlePauseNotice = true
+                cancelPendingAutoEnd()
+                isAutoBattleEnabled = false
+                return
+            }
+            guard let card = autoBattlePolicy.preferredPlayableCard(in: engineState)
             else {
                 if !hasPendingAutoEnd {
                     scheduleAutoEndIfNeeded()

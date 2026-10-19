@@ -64,9 +64,10 @@ public enum BattleSimulator {
     ) -> BattleSimResult {
         var actions = 0
         var timedOut = false
+        var progress = AutoBattleProgress(in: battle)
 
         while !battle.isBattleOver {
-            if battle.turnCount >= maxRounds || actions >= maxActions {
+            if battle.turnCount >= maxRounds || actions >= maxActions || progress.shouldPause(in: battle) {
                 timedOut = true
                 break
             }

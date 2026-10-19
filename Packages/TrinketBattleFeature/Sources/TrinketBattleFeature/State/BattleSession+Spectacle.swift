@@ -220,6 +220,7 @@ extension BattleSession {
 
     func resetRun(from configuration: BattleRunConfiguration) {
         cancelPendingBattleTasks()
+        isShowingAutoBattlePauseNotice = false
         retreatProgress = nil
         deliveredClaimedVictoryConfigurationID = nil
         installSimulationPresentation()
@@ -234,6 +235,7 @@ extension BattleSession {
     func clearRunState() {
         clearCardCues()
         cancelPendingBattleTasks()
+        isShowingAutoBattlePauseNotice = false
         retreatProgress = nil
         deliveredClaimedVictoryConfigurationID = nil
         presentation = BattlePresentationState()
