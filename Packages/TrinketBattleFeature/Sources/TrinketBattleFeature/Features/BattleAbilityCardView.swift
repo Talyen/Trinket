@@ -145,9 +145,10 @@ struct BattleAbilityCardView: View {
 
     private var activeOffset: CGSize {
         let resting = restingTranslation
+        guard interactionResolution == .dragging else { return resting }
         return CGSize(
-            width: resting.width + (isHeld ? heldReleaseCenter.x - restingCenter.x : 0),
-            height: resting.height + (isHeld ? dragTranslation.height : 0),
+            width: resting.width + heldReleaseCenter.x - restingCenter.x,
+            height: resting.height + dragTranslation.height,
         )
     }
 
@@ -197,6 +198,8 @@ struct BattleAbilityCardView: View {
             interactionResolution = .dragging
             announceWindUpIfNeeded(mode: .preview)
         }
+        // A hold keeps its fan position; finger jitter must not start drag presentation.
+        guard didExceedTapSlop else { return }
         dragTranslation = BattleCardGesturePolicy.presentationTranslation(
             value.translation,
             isPlayable: isPlayable,

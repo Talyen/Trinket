@@ -278,7 +278,10 @@ entire fan above the bottom edge must not shrink their combatants. Expanded
 canvases fit the rotated hand within their available height.
 
 Holding a hand card to inspect it preserves its held appearance and foreground
-ordering through detail-sheet presentation until dismissal. Gesture release or
+ordering through detail-sheet presentation until dismissal. It keeps its resting
+fan position with press feedback; finger movement within tap slop does not translate
+or tilt it. Drag tracking and horizontal bounds correction begin only after crossing
+that slop. Gesture release or
 cancellation during inspection must not return or play the card; dismissal
 returns it with the existing hand motion.
 
