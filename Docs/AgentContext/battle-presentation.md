@@ -100,9 +100,8 @@ share the action's recorded cast identity and clock: their rise/dissolve spans
 preparation and finishes at swing, followed by the ordinary particle tail. Retiming
 and suspension update that same cast; hand departures never render as fly-in cards.
 Their cleanup follows the scheduled end rather than a fixed delay from commitment.
-Manual results and recoil publish at commitment
-while attacker motion continues. Skipped and support actions
-do not invent attacks.
+Manual and automatic results publish at the action’s impact cue.
+Skipped and support actions do not invent attacks.
 
 Combatant artwork, feedback, Health and Mana bars, clipping, and borders compose
 before status motion, so the whole card moves together during Stun wobble.
@@ -117,10 +116,16 @@ to transform a cached unit path. Both retain their existing motion and cadence.
 Impact delivery groups results by the presentation beat, independent of the
 engine's broader feedback group. Recoil chooses the strongest result per recipient,
 including directional Block recoil and immediate DoT damage resolved by an action.
-Between-turn periodic results cannot suppress an action hit or produce recoil. Manual floating results, sounds, result haptics, and recoil
-share immediate delivery, including support results while earlier attacks are pending. Scheduled
-attack phases never replay those results. Automatic plays, counterattacks,
-enemy actions, and auto-battle retain combined impact delivery.
+Between-turn periodic results cannot suppress an action hit or produce recoil.
+Floating results, sounds, result haptics, recoil, combatant resource bars, status
+artwork, and defeat artwork share impact delivery for manual plays, automatic
+plays, counterattacks, and enemy actions. Hand updates and command admission remain
+immediate. Optional engine playback records event-attributed combatant changes;
+apply only the changed presentation fields at their owning impact. Per-field event
+ordering prevents a nested action from restoring older facts after its parent.
+Final command cleanup belongs to the last event’s cue. Suspension, acceleration,
+and retirement use the existing action queue rather than separate status timers.
+Party victory celebration waits until the enemy’s defeat is displayed.
 `BattleActionPresentationTests` owns sequencing, timing, interruption, and lifecycle;
 recording parity remains in BattleEngine's card tests.
 
@@ -187,7 +192,7 @@ Door, then the most recently received results (event ID breaks simultaneous ties
 Permanently evict overflow through the lane's existing eviction mechanism; never
 queue stale notifications or resurrect evicted chips on publication/remount.
 Apply sound and hit reactions from committed results before visual culling can
-hide them. Card inputs and damage presentation remain immediate.
+hide them. Card inputs remain immediate; damage presentation follows its impact cue.
 Corner selection retains the best two candidates per recipient in one pass,
 preserving arrival order when all priority keys tie.
 

@@ -34,6 +34,9 @@ Keep existing chain limits and post-damage counterattack/Block-answer timing.
 Public card, turn, and opening commands return `BattleCommandResult` only after
 resolution completes. `BattleState.nextEvent` writes command output in emission
 order, independently of retained battle history and optional action recording.
+Optional playback also captures immutable resource/effect changes at each event
+and reconciles eventless command cleanup onto the last event. It retains no live
+runtime storage and invokes no presentation consumer during resolution.
 Card/turn orchestration does not reconstruct command events from child return
 values. Damage, healing, and Leech outcomes carry rule facts only; their nested
 reactions emit directly into the enclosing command output without copying local

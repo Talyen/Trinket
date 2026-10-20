@@ -17,7 +17,6 @@ struct BattleScheduledAction {
     let swingDuration: TimeInterval
     let recoveryDuration: TimeInterval
     let preparationCap: TimeInterval
-    let deliversResultsImmediately: Bool
     var startAt: Date
     var swingAt: Date
     var impactAt: Date

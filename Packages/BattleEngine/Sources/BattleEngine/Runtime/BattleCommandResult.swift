@@ -7,6 +7,7 @@ public struct BattleCommandResult: Equatable, Sendable {
     public let playedCards: [BattleCard]
     /// Nested actions finish before their parent, preserving resolution order.
     public let actions: [BattleResolvedAction]
+    public internal(set) var combatantChanges: [BattleCombatantChange] = []
 
     static let empty = Self(events: [], playedCards: [], actions: [])
 }
@@ -16,6 +17,8 @@ final class BattleCommandOutput {
     private(set) var events: [ActionEvent] = []
     private(set) var playedCards: [BattleCard] = []
     private(set) var resolvedActions: [BattleResolvedAction] = []
+    private var combatantChanges: [BattleCombatantChange] = []
+    private var lastCombatants: [BattleCombatantSnapshot] = []
     private let recordsActions: Bool
     private var cards: [(card: BattleCard, hasAction: Bool)] = []
     private var actions: [BattleResolvedAction] = []
@@ -25,7 +28,20 @@ final class BattleCommandOutput {
     }
 
     var result: BattleCommandResult {
-        BattleCommandResult(events: events, playedCards: playedCards, actions: resolvedActions)
+        var result = BattleCommandResult(events: events, playedCards: playedCards, actions: resolvedActions)
+        result.combatantChanges = combatantChanges
+        return result
+    }
+
+    func recordCombatants(in state: borrowing BattleState, afterEventID: Int? = nil) {
+        guard recordsActions else { return }
+        let current = [state.roster.hero, state.roster.companion, state.roster.enemy].map(BattleCombatantSnapshot.init)
+        if let afterEventID {
+            for (before, after) in zip(lastCombatants, current) where before != after {
+                combatantChanges.append(BattleCombatantChange(eventID: afterEventID, before: before, after: after))
+            }
+        }
+        lastCombatants = current
     }
 
     func append(_ event: ActionEvent) {

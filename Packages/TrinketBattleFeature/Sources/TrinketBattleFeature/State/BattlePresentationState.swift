@@ -7,11 +7,11 @@ import TrinketFeatureSupport
 
 struct BattleCombatantPresentation: Equatable {
     let combatant: Combatant
-    let health: Int
-    let maxHealth: Int
-    let mana: Int
-    let maxMana: Int
-    let borderAccentKeyword: Keyword?
+    var health: Int
+    var maxHealth: Int
+    var mana: Int
+    var maxMana: Int
+    var borderAccentKeyword: Keyword?
 }
 
 struct BattlePresentationSnapshot: Equatable {
@@ -91,17 +91,22 @@ final class BattlePresentationState {
         return true
     }
 
-    func install(_ snapshot: BattlePresentationSnapshot) {
+    @ObservationIgnored private var fieldEventIDs: [String: [AnyKeyPath: Int]] = [:]
+
+    func install(_ snapshot: BattlePresentationSnapshot, includeCombatants: Bool = true) {
         if configurationID != snapshot.configurationID {
             configurationID = snapshot.configurationID
         }
-        if hero != snapshot.hero {
+        if includeCombatants {
+            fieldEventIDs.removeAll()
+        }
+        if includeCombatants, hero != snapshot.hero {
             hero = snapshot.hero
         }
-        if companion != snapshot.companion {
+        if includeCombatants, companion != snapshot.companion {
             companion = snapshot.companion
         }
-        if enemy != snapshot.enemy {
+        if includeCombatants, enemy != snapshot.enemy {
             enemy = snapshot.enemy
         }
         if hand != snapshot.hand {
@@ -113,6 +118,54 @@ final class BattlePresentationState {
         if isBattleOver != snapshot.isBattleOver {
             isBattleOver = snapshot.isBattleOver
         }
+    }
+}
+
+extension BattlePresentationState {
+    func apply(_ changes: [BattleCombatantChange]) {
+        for change in changes {
+            if let current = hero, current.combatant.id == change.after.id {
+                hero = applying(change, to: current)
+            } else if let current = companion, current.combatant.id == change.after.id {
+                companion = applying(change, to: current)
+            } else if let current = enemy, current.combatant.id == change.after.id {
+                enemy = applying(change, to: current)
+            }
+        }
+    }
+
+    private func applying(_ change: BattleCombatantChange, to current: BattleCombatantPresentation) -> BattleCombatantPresentation {
+        var result = current
+        let before = project(change.before, combatant: current.combatant)
+        let after = project(change.after, combatant: current.combatant)
+        update(\.health, before: before, after: after, eventID: change.eventID, result: &result)
+        update(\.maxHealth, before: before, after: after, eventID: change.eventID, result: &result)
+        update(\.mana, before: before, after: after, eventID: change.eventID, result: &result)
+        update(\.maxMana, before: before, after: after, eventID: change.eventID, result: &result)
+        update(\.borderAccentKeyword, before: before, after: after, eventID: change.eventID, result: &result)
+        return result
+    }
+
+    private func update(
+        _ keyPath: WritableKeyPath<BattleCombatantPresentation, some Equatable>,
+        before: BattleCombatantPresentation, after: BattleCombatantPresentation,
+        eventID: Int, result: inout BattleCombatantPresentation,
+    ) {
+        // Nested actions can present after their parent. Older facts must not undo a later change.
+        guard before[keyPath: keyPath] != after[keyPath: keyPath],
+              eventID >= (fieldEventIDs[result.combatant.id]?[keyPath] ?? 0) else { return }
+        result[keyPath: keyPath] = after[keyPath: keyPath]
+        fieldEventIDs[result.combatant.id, default: [:]][keyPath] = eventID
+    }
+
+    private func project(_ snapshot: BattleCombatantSnapshot, combatant: Combatant) -> BattleCombatantPresentation {
+        BattleCombatantPresentation(
+            combatant: combatant, health: snapshot.health, maxHealth: snapshot.maxHealth,
+            mana: snapshot.mana, maxMana: snapshot.maxMana,
+            borderAccentKeyword: CombatantBorderAccent.keyword(
+                from: snapshot.activeEffects, controlAccentRequiresPendingSkip: combatant.role != .enemy,
+            ),
+        )
     }
 }
 

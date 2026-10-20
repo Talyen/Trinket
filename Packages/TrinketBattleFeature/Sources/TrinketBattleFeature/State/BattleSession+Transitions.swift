@@ -9,7 +9,6 @@ extension BattleSession {
         at date: Date,
         playedCardID: Int? = nil,
         preparedCardID: Int? = nil,
-        isAutomatic: Bool = false,
         handDeparture: (id: UUID, card: BattleCard)? = nil,
     ) {
         guard activeBattle?.id == playback.configurationID else { return }
@@ -32,15 +31,18 @@ extension BattleSession {
             feedback.record(standaloneDraws, at: date, environment: dependencies, didDrawCards: hasImplicitDeal)
         }
         withAnimation(BattleMotion.handReflow) {
-            presentation.install(snapshot)
+            presentation.install(snapshot, includeCombatants: false)
         }
         let configurationID = playback.configurationID
+        let changesByEventID = Dictionary(grouping: playback.combatantChanges, by: \.eventID)
         feedback.scheduleActions(
-            playback, preparedCardID: preparedCardID, playedCardID: isAutomatic ? nil : playedCardID,
+            playback, preparedCardID: preparedCardID,
             at: date, cardPlayback: cardPlayback,
             handDeparture: handDeparture,
         ) { [weak self] events, damage, impactAt, groupID in
             guard let self, activeBattle?.id == configurationID else { return }
+            let enemyWasAlive = (presentation.enemy?.health ?? 0) > 0
+            presentation.apply(events.sorted { $0.id < $1.id }.flatMap { changesByEventID[$0.id] ?? [] })
             feedback.record(
                 events.filter { $0.milestone == nil },
                 at: impactAt,
@@ -48,6 +50,9 @@ extension BattleSession {
                 actionGroupID: groupID,
                 damage: damage,
             )
+            if enemyWasAlive, presentation.enemy?.health == 0, commandState.phase == .outcome, outcome == .victory {
+                publishPartyCelebrateReactions(at: impactAt)
+            }
         }
         commandState.transition(to: .ready)
         handleOutcomeIfNeeded(at: date)

@@ -129,7 +129,6 @@ struct BattleSessionCardCueTests {
         #expect(automaticCast.completionDate(scheduledCast: accelerated)
             >= automaticCast.startedAt.addingTimeInterval(BattleMotion.autoBattleCardInterval))
         #expect(session.cardPlayback.handDeparture(id: manualCast.id) == nil)
-        #expect(session.feedback.scheduledActions.last?.deliversResultsImmediately == true)
         if let preceding {
             _ = try state.playCard(cardID: preceding.id)
         }
@@ -275,7 +274,6 @@ struct BattleSessionCardCueTests {
     ) throws -> BattleRecordedCardCast {
         let action = try #require(session.feedback.scheduledActions.first { $0.castID == id })
         let cast = try #require(session.cardPlayback.handDeparture(id: id))
-        #expect(!action.deliversResultsImmediately)
         #expect(cast.startedAt == action.startAt)
         #expect(cast.activationAt == action.swingAt)
         #expect(cast.departureProgress(at: cast.startedAt) == 0)

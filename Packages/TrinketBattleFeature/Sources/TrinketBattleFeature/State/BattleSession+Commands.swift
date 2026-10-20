@@ -59,7 +59,7 @@ extension BattleSession {
             cancelPendingAutoEnd()
             presentCompletedCommand(
                 resolution.playback, at: date, playedCardID: cardID, preparedCardID: preparedCardID,
-                isAutomatic: isAutomatic, handDeparture: handDeparture,
+                handDeparture: handDeparture,
             )
             return .committed
         } catch {
