@@ -5,7 +5,7 @@ final class OptionsUITests: TrinketUITestCase {
     func testResetCancellationPreservesProgressAndConfirmationClearsIt() {
         launchApp(arguments: TestLaunchArg.allForTab("options") + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
         openReset()
-        tapButton(AccessibilityID.Options.resetProgressCancel)
+        tapWhenReady(resetAlertAction(AccessibilityID.Options.resetProgressCancel))
         waitUntil("Reset confirmation must close") { !self.app.alerts.firstMatch.exists }
         relaunchApp()
         play.openCampaign()
@@ -13,7 +13,7 @@ final class OptionsUITests: TrinketUITestCase {
         XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
         tabBar.selectOptions()
         openReset()
-        tapButton(AccessibilityID.Options.resetProgressConfirmation)
+        tapWhenReady(resetAlertAction(AccessibilityID.Options.resetProgressConfirmation))
         assertExists(AccessibilityID.Onboarding.heroScreen)
         relaunchApp()
         assertExists(AccessibilityID.Onboarding.heroScreen)
@@ -36,11 +36,16 @@ final class OptionsUITests: TrinketUITestCase {
         XCTAssertEqual(app.switches[AccessibilityID.Options.hapticsToggle].value as? String, changed)
     }
 
+    private func resetAlertAction(_ identifier: String) -> XCUIElement {
+        // iOS 26.2 exposes nested native alert nodes with the same action ID and frame.
+        app.alerts.firstMatch.buttons.matching(identifier: identifier).firstMatch
+    }
+
     private func openReset() {
         assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
         tapButton(AccessibilityID.Options.resetProgressButton)
         assertExists(app.alerts.firstMatch)
-        assertExists(app.alerts.buttons[AccessibilityID.Options.resetProgressCancel])
-        assertExists(app.alerts.buttons[AccessibilityID.Options.resetProgressConfirmation])
+        assertExists(resetAlertAction(AccessibilityID.Options.resetProgressCancel))
+        assertExists(resetAlertAction(AccessibilityID.Options.resetProgressConfirmation))
     }
 }
