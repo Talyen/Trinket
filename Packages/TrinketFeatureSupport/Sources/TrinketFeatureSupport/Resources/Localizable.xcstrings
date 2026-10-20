@@ -1,6 +1,48 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "homestead.crafting.odds": {
+      "comment": "Homestead inscription marker and Outfitter-only crafting odds; value includes a percent sign.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Astrale Herstellungschance"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Astral crafting odds"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Probabilidad de fabricación astral"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chances de fabrication astrale"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "星界級製作率"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "성운 제작 확률"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Chance de fabricação Astral"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "星界製作機率"}}
+      }
+    },
+    "homestead.crafting.odds.description": {
+      "comment": "Homestead inscription marker and Outfitter-only crafting odds; value includes a percent sign.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Astrale Herstellungschance steigt um %1$@"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Astral crafting odds rise by %1$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La probabilidad de fabricación astral aumenta un %1$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les chances de fabrication astrale augmentent de %1$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "星界級製作率が%1$@上昇"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "성운 제작 확률 %1$@ 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A chance de fabricação Astral aumenta em %1$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "星界製作機率提高 %1$@"}}
+      }
+    },
+    "homestead.inscribed": {
+      "comment": "Homestead inscription marker and Outfitter-only crafting odds; value includes a percent sign.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Graviert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Inscribed"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inscrito"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gravé"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "刻印済み"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "각인됨"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Inscrito"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "已銘刻"}}
+      }
+    },
     "library.range_odds": {
       "comment": "Archery Range only. Bonus to Astral tier weight when crafting here, not world drops. Argument includes percent sign.",
       "extractionState": "manual",

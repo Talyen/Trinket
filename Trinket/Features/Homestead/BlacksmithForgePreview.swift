@@ -57,7 +57,7 @@ struct BlacksmithForgePreview: View {
             .accessibilityIdentifier(AccessibilityID.Homestead.forgePreview)
         }
         .trinketScreenBackground()
-        .navigationTitle(recipe.buildingID == .archeryRange ? String(localized: L10n.library_craft) :
+        .navigationTitle(recipe.buildingID != .blacksmithForge ? String(localized: L10n.library_craft) :
             displayedItem == nil ? String(localized: L10n.ui_blacksmithforgepreview_forge_8899e) :
             String(localized: L10n.ui_blacksmithforgepreview_forged_ac158))
         .navigationBarTitleDisplayMode(.inline)
@@ -152,8 +152,9 @@ struct BlacksmithForgePreview: View {
                     Text(LibraryCopy.title(projectID, locale: locale)).foregroundStyle(.secondary)
                 }
                 if readOnly {
-                    Button { onOpenWorkshop?() } label: { Text(L10n.library_open_range).frame(maxWidth: .infinity) }
-                        .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.openWorkshop)
+                    Button { onOpenWorkshop?() } label: { Text(LibraryCopy.openWorkshop(recipe, locale: locale)).frame(maxWidth: .infinity)
+                    }
+                    .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.Homestead.openWorkshop)
                 } else if !learned, let projectID = recipe.researchID {
                     Button { onViewResearch?(projectID) } label: {
                         Text(L10n.library_view_research).frame(maxWidth: .infinity)

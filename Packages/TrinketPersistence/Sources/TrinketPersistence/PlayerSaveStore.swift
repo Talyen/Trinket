@@ -160,7 +160,7 @@ public final class PlayerSaveStore {
             isCloudSyncEnabled = false
         }
         let rawSave = root.toPlayerSave()
-        guard [18, PlayerSave.currentSchemaVersion].contains(rawSave.schemaVersion) else {
+        guard PlayerSave.supportedSchemaVersions.contains(rawSave.schemaVersion) else {
             throw PlayerSavePersistenceError.invalidSave("Unsupported save schema version.")
         }
         // Doctrine: heal-locally — open sanitizes without validating so a

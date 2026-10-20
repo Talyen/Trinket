@@ -29,11 +29,13 @@ extension HomesteadModel {
             lastProductionAt: lastProductionAt,
             rewardRemainders: goldRewardRemainder == 0 && gemsRewardRemainder == 0 ? nil
                 : .init(gold: goldRewardRemainder, gems: gemsRewardRemainder),
+            wishedTemplateID: wishedTemplateID,
         )
     }
 
     func update(from homestead: PlayerHomesteadState, context: ModelContext?) {
         lastProductionAt = homestead.lastProductionAt
+        wishedTemplateID = homestead.wishedTemplateID
         goldRewardRemainder = homestead.rewardRemainders?.gold ?? 0
         gemsRewardRemainder = homestead.rewardRemainders?.gems ?? 0
 

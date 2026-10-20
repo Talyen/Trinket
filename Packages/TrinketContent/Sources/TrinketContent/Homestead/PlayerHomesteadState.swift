@@ -6,6 +6,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     public var nodeTiers: [HomesteadNodeID: Int]
     public var pendingProduction: [HomesteadResource: Double]
     public var rewardRemainders: HomesteadRewardRemainders?
+    public var wishedTemplateID: String?
     public var lastProductionAt: Date
 
     /// Valid pending entries: finite, positive amounts. Single filter truth
@@ -72,12 +73,14 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         pendingProduction: [HomesteadResource: Double] = [:],
         lastProductionAt: Date,
         rewardRemainders: HomesteadRewardRemainders? = nil,
+        wishedTemplateID: String? = nil,
     ) {
         self.resources = resources
         self.nodeTiers = nodeTiers
         self.pendingProduction = pendingProduction
         self.lastProductionAt = lastProductionAt
         self.rewardRemainders = rewardRemainders
+        self.wishedTemplateID = wishedTemplateID
     }
 
     public func balance(for resource: HomesteadResource, gold: Int) -> Int {

@@ -8,6 +8,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case astralFind
         case forgeAstralOdds
         case archeryAstralOdds
+        case outfitterAstralOdds
         case goldFind(percent: Bool)
         case experience(percent: Bool)
         case gemsFind(percent: Bool)
@@ -54,6 +55,14 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
                     resource: nil,
                 ))
             }
+        }
+        if nodeID == .woolTailoring, tier.tier > 1 {
+            lines.append(Self(
+                id: .outfitterAstralOdds,
+                label: String(localized: L10n.homestead_crafting_odds),
+                value: "\(EquipmentRecipe.astralWeightBonusPercent(blacksmithTier: tier.tier))%",
+                resource: nil,
+            ))
         }
         lines += rewardLines(for: bonus)
         for production in tier.production {
@@ -147,6 +156,7 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         case .astralFind: String(localized: L10n.ui_homesteadeffectline_astral_drop_rates_rise_by_1_a8f6b("\(value)"))
         case .forgeAstralOdds: String(localized: L10n.ui_homesteadeffectline_astral_forge_odds_rise_by_1_2efdc("\(value)"))
         case .archeryAstralOdds: String(localized: L10n.library_range_odds_description(value))
+        case .outfitterAstralOdds: String(localized: L10n.homestead_crafting_odds_description(value))
         case .goldFind: String(localized: L10n.ui_homesteadeffectline_find_1_more_gold_2d6b4("\(value)"))
         case .experience: String(localized: L10n.ui_homesteadeffectline_gain_1_more_experience_36dd5("\(value)"))
         case .gemsFind: String(localized: L10n.ui_homesteadeffectline_find_1_more_gems_ddc3e("\(value)"))

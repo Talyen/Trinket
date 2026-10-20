@@ -36,8 +36,8 @@ struct BattleLaunchInput: Equatable {
     let stageReward: StageReward?
     let experienceBonusPercent: Int
     let victoryOnlyExperienceBonusPercent: Int
-    let pendingRewardItem: InventoryItem?
-    let additionalRewardItems: [InventoryItem]
+    var pendingRewardItem: InventoryItem?
+    var additionalRewardItems: [InventoryItem]
     let stageRewardsAlreadyClaimed: Bool
     let universalModifiers: [AffixModifier]
     let nodeModifiers: [NodeModifierDefinition]

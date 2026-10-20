@@ -56,6 +56,10 @@ enum PlayerSaveSanitizer {
         }
         if targets.contains(.homestead) {
             sanitized.homestead = sanitizeHomestead(save.homestead)
+            sanitized.homestead.wishedTemplateID = ItemWish.validTarget(
+                sanitized.homestead.tier(for: .wishingWell) > 0 ? sanitized.homestead.wishedTemplateID : nil,
+                inventory: sanitized.inventory.items,
+            )
         }
         if targets.contains(.journey) {
             sanitized.journey = sanitizeJourney(save.journey)
@@ -76,7 +80,7 @@ enum PlayerSaveSanitizer {
                 eligibleRewards: RewardOwnership(sanitized).eligibleModifiers,
             )
         }
-        if [18, PlayerSave.currentSchemaVersion].contains(sanitized.schemaVersion) {
+        if PlayerSave.supportedSchemaVersions.contains(sanitized.schemaVersion) {
             sanitized.schemaVersion = PlayerSave.currentSchemaVersion
         }
         if targets.contains(.library) {

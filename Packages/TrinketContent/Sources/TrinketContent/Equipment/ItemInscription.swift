@@ -1,0 +1,51 @@
+import TrinketCore
+
+public struct ItemInscriptionPlan: Sendable {
+    public let original: InventoryItem
+    public let item: InventoryItem
+    public let cost: [ResourceAmount]
+
+    public static func isEligible(_ item: InventoryItem) -> Bool {
+        !item.isTrinket && item.rarity != .unique && !item.affixes.isEmpty
+            && item.affixes.allSatisfy { GameContent.itemAffixDefinition(matching: $0.id) != nil }
+    }
+
+    public static func cost(for item: InventoryItem) -> [ResourceAmount] {
+        let multiplier = item.rarity == .astral ? 2 : 1
+        return [ResourceAmount(.iron, 8 * multiplier), ResourceAmount(.gems, 4 * multiplier)]
+    }
+
+    public static func choices(for item: InventoryItem, index: Int) -> [ItemAffixDefinition] {
+        guard isEligible(item), item.affixes.indices.contains(index),
+              item.inscribedAffixIndex == nil || item.inscribedAffixIndex == index else { return [] }
+        let occupied = Set(item.affixes.enumerated().filter { $0.offset != index }.map(\.element.id))
+        return GameContent.itemAffixDefinitions.filter { $0.isEligible(for: item.baseType) && !occupied.contains($0.id) }
+    }
+
+    public static func prepare(
+        item: InventoryItem, index: Int, affixID: String,
+        using random: inout some RandomNumberGenerator,
+    ) -> Self? {
+        guard let definition = choices(for: item, index: index).first(where: { $0.id == affixID }) else { return nil }
+        var affixes = item.affixes
+        var powers = item.affixes.enumerated().compactMap { offset, affix in
+            item.affixPowers.flatMap { $0.indices.contains(offset) ? $0[offset] : nil }
+                ?? GameContent.itemAffixDefinition(matching: affix.id)?.power(for: item.rarity)
+        }
+        guard powers.count == item.affixes.count else { return nil }
+        let catalogPower = definition.power(for: item.rarity)
+        let power = definition.basic == definition.astral ? catalogPower : catalogPower.rolled(using: &random)
+        affixes[index] = ItemAffix(
+            id: definition.id,
+            title: definition.title,
+            description: power.description,
+            keywords: definition.keywords,
+        )
+        powers[index] = power
+        return Self(original: item, item: InventoryItem(
+            id: item.id, templateID: item.templateID, baseType: item.baseType, rarity: item.rarity,
+            displayName: item.displayName, affixes: affixes, isCorrupted: item.isCorrupted,
+            affixPowers: powers, inscribedAffixIndex: index,
+        ), cost: cost(for: item))
+    }
+}

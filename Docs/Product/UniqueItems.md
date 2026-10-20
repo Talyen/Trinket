@@ -160,3 +160,11 @@ card when your Block breaks while below half Health.** Enemy attack damage must
 break positive Block; assess the living wearer's Health after damage and lethal
 protection. Decay, voluntary Block spending, and self-damage never qualify. There
 is no chance roll or turn allowance.
+
+## Targeted inscription and wishes
+
+Runesmith changes one permanently selected position on Basic/Astral gear only,
+including corrupted gear. Uniques and Trinkets remain ineligible. Wishing Well
+can favor one missing collectible within its normally selected battle-drop
+category, without raising category drop rates. [Homestead](Homestead.md) owns
+costs, eligibility, interaction, and Corruption behavior.

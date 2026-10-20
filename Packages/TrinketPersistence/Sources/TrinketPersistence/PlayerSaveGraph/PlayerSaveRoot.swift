@@ -41,7 +41,7 @@ enum PlayerSaveSchemaV2: VersionedSchema {
 }
 
 enum PlayerSaveSchema: VersionedSchema {
-    static let versionIdentifier = Schema.Version(4, 0, 0)
+    static let versionIdentifier = Schema.Version(5, 0, 0)
     static let models: [any PersistentModel.Type] = [
         PlayerSaveRoot.self,
         HomesteadModel.self,
@@ -69,10 +69,16 @@ enum PlayerSaveSchema: VersionedSchema {
 }
 
 enum PlayerSaveMigrationPlan: SchemaMigrationPlan {
-    static let schemas: [any VersionedSchema.Type] = [PlayerSaveSchemaV2.self, PlayerSaveSchemaV3.self, PlayerSaveSchema.self]
+    static let schemas: [any VersionedSchema.Type] = [
+        PlayerSaveSchemaV2.self,
+        PlayerSaveSchemaV3.self,
+        PlayerSaveSchemaV4.self,
+        PlayerSaveSchema.self,
+    ]
     static let stages = [
         MigrationStage.lightweight(fromVersion: PlayerSaveSchemaV2.self, toVersion: PlayerSaveSchemaV3.self),
-        MigrationStage.lightweight(fromVersion: PlayerSaveSchemaV3.self, toVersion: PlayerSaveSchema.self),
+        MigrationStage.lightweight(fromVersion: PlayerSaveSchemaV3.self, toVersion: PlayerSaveSchemaV4.self),
+        MigrationStage.lightweight(fromVersion: PlayerSaveSchemaV4.self, toVersion: PlayerSaveSchema.self),
     ]
 }
 

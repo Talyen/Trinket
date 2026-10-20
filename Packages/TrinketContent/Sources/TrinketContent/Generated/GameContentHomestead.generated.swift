@@ -326,8 +326,8 @@ enum GameContentHomesteadGenerated {
         ))
         list.append(HomesteadNodeDefinition(
             id: .woolTailoring,
-            title: "Wool Tailoring",
-            summary: "A loom shop that weaves padded wraps against winter chill",
+            title: "Outfitter",
+            summary: "A working shop for leather armor and protective gear",
             iconID: "sf:scissors",
             category: .crafting,
             tiers: [

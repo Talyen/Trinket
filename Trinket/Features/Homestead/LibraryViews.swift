@@ -195,16 +195,9 @@ struct LibraryResearchView: View {
     private func projectProgress(_ project: ResearchProject) -> some View {
         let progress = project.progress(
             in: history,
-            companionIDs: playerSave.roster.unlockedCompanionIDs,
-            highestSpireFloor: playerSave.spires.highestClearedFloorOverall,
         )
         if progress.allSatisfy(\.self), playerSave.homestead.tier(for: .library) < project.minimumLibraryTier {
             Text(LibraryCopy.tier(project.minimumLibraryTier, locale: locale)).foregroundStyle(.secondary)
-        } else if case let .companions(count) = project.objectives.first {
-            Text("\(min(count, playerSave.roster.companions.count))/\(count)").monospacedDigit()
-        } else if case let .spireFloor(floor) = project.objectives.first {
-            let highest = playerSave.spires.highestClearedFloorOverall
-            Text("\(min(floor, highest))/\(floor)").monospacedDigit()
         } else {
             HStack(spacing: TrinketDesign.Spacing.small) {
                 ForEach(Array(project.objectives.enumerated()), id: \.element) { index, _ in
@@ -231,8 +224,6 @@ struct LibraryResearchProjectView: View {
     private var progress: [Bool] {
         project.progress(
             in: playerSave.library.progress,
-            companionIDs: playerSave.roster.unlockedCompanionIDs,
-            highestSpireFloor: playerSave.spires.highestClearedFloorOverall,
         )
     }
 
@@ -280,32 +271,6 @@ struct LibraryResearchProjectView: View {
                                 objectiveCard(enemy, complete: progress[index])
                             }
                         }
-                    }
-                } else if let goal = project.objectives.first {
-                    // Goal copy and progress derive from the objective so catalog
-                    // changes cannot desync this screen from the actual target.
-                    HStack(spacing: TrinketDesign.Spacing.small) {
-                        ResearchCheck(complete: progress.allSatisfy(\.self))
-                        switch goal {
-                        case .companions:
-                            Text(LibraryCopy.localized(L10n.library_goal_companions, locale: locale))
-                        case .spireFloor, .defeat:
-                            Text(LibraryCopy.localized(L10n.library_goal_spire, locale: locale))
-                        }
-                    }
-                    switch goal {
-                    case let .companions(count):
-                        Text("\(min(count, playerSave.roster.companions.count))/\(count)")
-                            .monospacedDigit().foregroundStyle(.secondary)
-                    case let .spireFloor(floor):
-                        let highest = playerSave.spires.highestClearedFloorOverall
-                        Text("\(min(floor, highest))/\(floor)")
-                            .monospacedDigit().foregroundStyle(.secondary)
-                    case .defeat:
-                        EmptyView()
-                    }
-                    if playerSave.library.progress.completedResearchIDs.contains(project.id) {
-                        Text(LibraryCopy.archive(project.id, locale: locale)).foregroundStyle(.secondary)
                     }
                 }
                 if playerSave.homestead.tier(for: .library) < project.minimumLibraryTier {

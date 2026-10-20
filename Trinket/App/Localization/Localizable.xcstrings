@@ -1,32 +1,676 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "library.archive.companions": {
-      "comment": "Library, Bestiary and Archery Range crafting. Discovery means encountered; recipe affix guarantees do not guarantee rarity.",
+    "homestead.affix.lock.help": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Jeder Gefährte kämpft auf seine eigene Weise. Diese Aufzeichnungen bewahren die Geschichte der wachsenden Gemeinschaft, die deine Abenteuer teilt."}},
-        "en": {"stringUnit": {"state": "translated", "value": "No two companions approach a battle alike. These records preserve the growing company that shares your adventures."}},
-        "es": {"stringUnit": {"state": "translated", "value": "Cada compañero afronta las batallas a su manera. Estos registros preservan la creciente compañía que comparte tus aventuras."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Chaque compagnon aborde le combat à sa manière. Ces chroniques gardent la trace du groupe grandissant qui partage vos aventures."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "仲間はそれぞれ異なる戦い方を持つ。この記録には、冒険を共にする仲間が増えていく歩みが刻まれている。"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "동료마다 전투에 임하는 방식이 다릅니다. 이 기록에는 함께 모험하는 동료들이 늘어 가는 여정이 담겨 있습니다."}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada companheiro encara a batalha de um jeito. Estes registros preservam o grupo cada vez maior que compartilha suas aventuras."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每位夥伴都有不同的戰鬥方式。這些紀錄保存了與你共同冒險、日益壯大的隊伍足跡。"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Nach dem Gravieren kann nur dieses Affix geändert werden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "After inscription, only this affix can be changed"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tras la inscripción, solo podrás cambiar este afijo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Après la gravure, seul cet affixe pourra être modifié"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "刻印後は、この付与効果のみ変更可能"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "각인 후에는 이 접사만 변경할 수 있습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Após a inscrição, apenas este afixo poderá ser alterado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "銘刻後只能變更此詞綴"}}
       }
     },
-    "library.archive.spires": {
-      "comment": "Library, Bestiary and Archery Range crafting. Discovery means encountered; recipe affix guarantees do not guarantee rarity.",
+    "homestead.affix.replaced": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Jeder Turm macht eine andere Kraft zur Prüfung. Wer die zehnte Etage erreicht, erhält einen Platz in den Aufstiegsaufzeichnungen der Bibliothek."}},
-        "en": {"stringUnit": {"state": "translated", "value": "Each Spire turns one form of power into a different trial. Reaching its tenth floor earns a place in the Library’s climbing records."}},
-        "es": {"stringUnit": {"state": "translated", "value": "Cada Aguja convierte una forma de poder en una prueba distinta. Alcanzar su décimo piso te otorga un lugar en los registros de ascenso de la Biblioteca."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Chaque tour transforme une forme de puissance en une épreuve différente. Atteindre son dixième étage vous vaut une place dans les registres d’ascension de la Bibliothèque."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "それぞれの尖塔では、異なる力が新たな試練となる。第10階に到達した者の名は、図書館の踏破記録に刻まれる。"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "각 첨탑은 서로 다른 힘을 시련으로 바꿉니다. 10층에 도달하면 도서관의 등반 기록에 이름을 남길 수 있습니다."}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada Torre transforma uma forma de poder em um desafio diferente. Chegar ao décimo andar garante um lugar nos registros de escalada da Biblioteca."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每座高塔都將一種力量化為不同的試煉。抵達第十層，便能在圖書館的攀登紀錄中留名。"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Affix ersetzt"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Affix replaced"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Afijo reemplazado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Affixe remplacé"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "付与効果を置き換えました"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "접사 교체 완료"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Afixo substituído"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "詞綴已替換"}}
+      }
+    },
+    "homestead.all.collected": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Alle Unikate und Schmuckstücke gesammelt"}},
+        "en": {"stringUnit": {"state": "translated", "value": "All Uniques and Trinkets collected"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Has conseguido todos los objetos únicos y abalorios"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tous les objets uniques et bibelots ont été obtenus"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "すべての固有装備とトリンケットを収集済み"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "모든 고유 장비와 트링킷 수집 완료"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todos os itens Únicos e Berloques foram coletados"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "已收集所有獨特裝備與飾物"}}
+      }
+    },
+    "homestead.amount": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Menge"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Amount"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cantidad"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Quantité"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "数量"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "수량"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quantidade"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "數量"}}
+      }
+    },
+    "homestead.change.wish": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wunsch ändern"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Change Wish"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cambiar deseo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Changer de vœu"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "願いを変更"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "소원 변경"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Mudar desejo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "變更願望"}}
+      }
+    },
+    "homestead.choose.affix": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Ein Affix zum Ersetzen wählen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Choose an affix to replace"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Elige un afijo para reemplazar"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Choisissez un affixe à remplacer"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "置き換える付与効果を選択"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "교체할 접사 선택"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Escolha um afixo para substituir"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "選擇要替換的詞綴"}}
+      }
+    },
+    "homestead.clear.wish": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wunsch aufheben"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Clear Wish"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Quitar deseo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Annuler le vœu"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "願いを取り消す"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "소원 취소"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Remover desejo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "清除願望"}}
+      }
+    },
+    "homestead.current.affix": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Aktuelles Affix"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Current Affix"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Afijo actual"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Affixe actuel"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "現在の付与効果"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "현재 접사"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Afixo atual"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "目前詞綴"}}
+      }
+    },
+    "homestead.from": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Von"}},
+        "en": {"stringUnit": {"state": "translated", "value": "From"}},
+        "es": {"stringUnit": {"state": "translated", "value": "De"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "De"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "変換元"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "원본"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "De"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "來源"}}
+      }
+    },
+    "homestead.guarantee.block": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Blockaffix garantiert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Guarantees a Block affix"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Garantiza un afijo de Bloqueo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Affixe Blocage garanti"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "ブロックの付与効果を保証"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방어도 접사 확정"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Garante um afixo de Bloqueio"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "保證帶有格擋詞綴"}}
+      }
+    },
+    "homestead.guarantee.holy": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Heiliges Affix garantiert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Guarantees a Holy affix"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Garantiza un afijo Sagrado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Affixe Sacré garanti"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "聖の付与効果を保証"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "신성 접사 확정"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Garante um afixo Sagrado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "保證帶有神聖詞綴"}}
+      }
+    },
+    "homestead.guarantee.leech": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Lebensraubaffix garantiert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Guarantees a Leech affix"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Garantiza un afijo de Robo de vida"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Affixe Vol de vie garanti"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "吸収の付与効果を保証"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "흡혈 접사 확정"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Garante um afixo de Roubo de vida"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "保證帶有吸血詞綴"}}
+      }
+    },
+    "homestead.inscribe": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Gravieren"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Inscribe"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inscribir"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Graver"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "刻印"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "각인"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Inscrever"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "銘刻"}}
+      }
+    },
+    "homestead.make.wish": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wunsch äußern"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Make a Wish"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Pedir un deseo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Faire un vœu"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "願いをかける"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "소원 빌기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Fazer um desejo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "許願"}}
+      }
+    },
+    "homestead.material.cost": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Materialkosten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Material Cost"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Coste de materiales"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Coût en matériaux"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "必要素材"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "재료 비용"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Custo de materiais"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "材料費用"}}
+      }
+    },
+    "homestead.maximum": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Maximum"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Maximum"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Máximo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Maximum"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "最大値"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "최댓값"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Máximo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "最大值"}}
+      }
+    },
+    "homestead.minimum": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Minimum"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Minimum"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mínimo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Minimum"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "最小値"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "최솟값"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Mínimo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "最小值"}}
+      }
+    },
+    "homestead.new.affix": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Neues Affix"}},
+        "en": {"stringUnit": {"state": "translated", "value": "New Affix"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Nuevo afijo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Nouvel affixe"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "新しい付与効果"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "새 접사"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Novo afixo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "新詞綴"}}
+      }
+    },
+    "homestead.no.inscription.items": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Keine Grund- oder Astral-Ausrüstung verfügbar"}},
+        "en": {"stringUnit": {"state": "translated", "value": "No Basic or Astral equipment available"}},
+        "es": {"stringUnit": {"state": "translated", "value": "No hay equipo básico ni astral disponible"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Aucun équipement de base ou astral disponible"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "刻印できる基本または星界級の装備がありません"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "각인 가능한 기본 또는 성운 장비가 없습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Nenhum equipamento Básico ou Astral disponível"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "沒有可用的基本或星界裝備"}}
+      }
+    },
+    "homestead.open.blacksmith": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Schmiede öffnen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Open Blacksmith"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Abrir Herrería"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Ouvrir la forge"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "鍛冶屋を開く"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "대장간 열기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Abrir Ferraria"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "開啟鐵匠鋪"}}
+      }
+    },
+    "homestead.open.outfitter": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Ausrüster öffnen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Open Outfitter"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Abrir Taller de equipo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Ouvrir l’atelier d’équipement"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "装具工房を開く"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "장비 공방 열기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Abrir Oficina de equipamentos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "開啟裝備工坊"}}
+      }
+    },
+    "homestead.project.consecrated.arms": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Geweihte Waffen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Consecrated Arms"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Armas consagradas"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Armes consacrées"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "聖別の武具"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "축성 무기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Armas consagradas"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "祝聖武裝"}}
+      }
+    },
+    "homestead.project.reinforced.leather": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verstärktes Leder"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Reinforced Leather"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuero reforzado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Cuir renforcé"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "強化革"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "강화 가죽"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Couro reforçado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "強化皮革"}}
+      }
+    },
+    "homestead.project.sanguine.leather": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Blutleder"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Sanguine Leather"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuero sanguíneo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Cuir sanguin"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "血の革"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "선혈 가죽"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Couro sanguíneo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "鮮血皮革"}}
+      }
+    },
+    "homestead.project.serrated.steel": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Gezackter Stahl"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Serrated Steel"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Acero serrado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Acier dentelé"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "鋸刃の鋼"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "톱날 강철"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Aço serrilhado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "鋸齒鋼刃"}}
+      }
+    },
+    "homestead.project.shieldcraft": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Schildhandwerk"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Shieldcraft"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Fabricación de escudos"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Fabrication de boucliers"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "盾の技法"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방패 제작술"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Fabricação de escudos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "製盾工藝"}}
+      }
+    },
+    "homestead.project.venomproof.leather": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Giftfestes Leder"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Venomproof Leather"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuero antiveneno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Cuir antivenin"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "耐毒革"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방독 가죽"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Couro antiveneno"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "抗毒皮革"}}
+      }
+    },
+    "homestead.receive": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Ertrag"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Receive"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recibes"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gain"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "獲得"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recebe"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "獲得"}}
+      }
+    },
+    "homestead.received": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "%1$lld %2$@ erhalten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "%1$lld %2$@ received"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Has recibido %1$lld de %2$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Reçu : %1$lld %2$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "%2$@を%1$lld獲得"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "%2$@ %1$lld개 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Você recebeu %1$lld de %2$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "獲得 %1$lld %2$@"}}
+      }
+    },
+    "homestead.recipe.bleed.greatsword": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Blutungszweihänder"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Bleed Greatsword"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mandoble de Sangrado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Espadon de Saignement"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "出血の大剣"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "출혈 대검"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Espadão de Sangramento"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "流血巨劍"}}
+      }
+    },
+    "homestead.recipe.block.leather": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Block-Lederrüstung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Block Leather Armor"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Armadura de cuero de Bloqueo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Armure de cuir de Blocage"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "ブロックの革の鎧"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방어도 가죽 갑옷"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Armadura de couro de Bloqueio"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "格擋皮甲"}}
+      }
+    },
+    "homestead.recipe.block.shield": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Block-Drachenschild"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Block Kite Shield"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Escudo cometa de Bloqueo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Bouclier en écu de Blocage"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "ブロックのカイトシールド"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방어도 연형 방패"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Escudo Ogival de Bloqueio"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "格擋鳶盾"}}
+      }
+    },
+    "homestead.recipe.holy.mace": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Heiliger Streitkolben"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Holy Mace"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Maza Sagrada"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Masse Sacrée"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "聖のメイス"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "신성 철퇴"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Maça Sagrada"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "神聖釘頭錘"}}
+      }
+    },
+    "homestead.recipe.leech.leather": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Lebensraub-Lederrüstung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Leech Leather Armor"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Armadura de cuero de Robo de vida"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Armure de cuir de Vol de vie"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "吸収の革の鎧"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "흡혈 가죽 갑옷"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Armadura de couro de Roubo de vida"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "吸血皮甲"}}
+      }
+    },
+    "homestead.recipe.poison.leather": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Gift-Lederrüstung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Poison Leather Armor"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Armadura de cuero de Veneno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Armure de cuir de Poison"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "毒の革の鎧"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "독 가죽 갑옷"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Armadura de couro de Veneno"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "中毒皮甲"}}
+      }
+    },
+    "homestead.roll.help": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Werte werden beim Gravieren ausgewürfelt"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Values are rolled when you inscribe"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los valores se determinan al azar al inscribir"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les valeurs sont tirées au sort lors de la gravure"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "数値は刻印時にランダムで決定"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "수치는 각인 시 무작위로 결정됩니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os valores são sorteados ao inscrever"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "數值會在銘刻時隨機決定"}}
+      }
+    },
+    "homestead.spend": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Kosten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Spend"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Gasto"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Coût"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "消費"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "소모"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Custo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "消耗"}}
+      }
+    },
+    "homestead.to": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "In"}},
+        "en": {"stringUnit": {"state": "translated", "value": "To"}},
+        "es": {"stringUnit": {"state": "translated", "value": "A"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Vers"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "変換先"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "대상"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Para"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "目標"}}
+      }
+    },
+    "homestead.transmute": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Umwandeln"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Transmute"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Transmutar"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Transmuter"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "変換"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "변환"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Transmutar"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "轉化"}}
+      }
+    },
+    "homestead.transmute.help": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Ressourcen im Verhältnis 1:1 tauschen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Exchange resources at a 1:1 rate"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Intercambia recursos en proporción 1:1"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Échangez des ressources au taux de 1 pour 1"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "資源を1対1で交換"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자원을 1:1 비율로 교환"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Troque recursos na proporção de 1:1"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "以 1:1 比例交換資源"}}
+      }
+    },
+    "homestead.trinkets": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Schmuckstücke"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Trinkets"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Abalorios"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Bibelots"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "トリンケット"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "트링킷"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Berloques"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "飾物"}}
+      }
+    },
+    "homestead.uniques": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Unikate"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Uniques"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Únicos"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Objets uniques"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "固有装備"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "고유 장비"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Únicos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "獨特裝備"}}
+      }
+    },
+    "homestead.wish.choose": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Ein nicht besessenes Unikat oder Schmuckstück wählen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Choose an unowned Unique or Trinket"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Elige un objeto único o abalorio que no tengas"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Choisissez un objet unique ou un bibelot non possédé"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "未所持の固有装備またはトリンケットを選択"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "보유하지 않은 고유 장비 또는 트링킷 선택"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Escolha um item Único ou Berloque que ainda não possui"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "選擇尚未擁有的獨特裝備或飾物"}}
+      }
+    },
+    "homestead.wish.for": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "%1$@ wünschen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Wish for %1$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Desear %1$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Souhaiter %1$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "%1$@を願う"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "%1$@ 소원 빌기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desejar %1$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "許願獲得 %1$@"}}
+      }
+    },
+    "homestead.wish.help": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn im Kampf ein zulässiger Gegenstand derselben Kategorie fällt, wird dein Wunsch mit %1$lld%% Wahrscheinlichkeit gewählt"}},
+        "en": {"stringUnit": {"state": "translated", "value": "When a battle drops an eligible item of the same category, your wish has a %1$lld%% chance to be chosen"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuando una batalla otorga un objeto válido de la misma categoría, tu deseo tiene un %1$lld%% de probabilidad de ser elegido"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lorsqu’un combat rapporte un objet éligible de la même catégorie, votre vœu a %1$lld%% de chances d’être choisi"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘で同じ種類の対象アイテムがドロップする際、%1$lld%%の確率で願ったアイテムが選ばれます"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투에서 같은 분류의 획득 가능한 아이템이 나올 때, %1$lld%% 확률로 소원 아이템이 선택됩니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quando uma batalha concede um item elegível da mesma categoria, seu desejo tem %1$lld%% de chance de ser escolhido"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥掉落同類別的合資格物品時，有 %1$lld%% 機率選中許願物品"}}
+      }
+    },
+    "homestead.wish.last": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn keine anderen zulässigen Gegenstände übrig sind, ist dein Wunsch garantiert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "If no other eligible items remain, your wish is guaranteed"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Si no quedan otros objetos válidos, tu deseo está garantizado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "S’il ne reste aucun autre objet éligible, votre vœu est garanti"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "他に対象アイテムがなければ、願ったアイテムを必ず獲得"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "다른 획득 가능 아이템이 없으면 소원 아이템이 확정됩니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Se não houver outros itens elegíveis, seu desejo é garantido"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "若沒有其他合資格物品，必定獲得許願物品"}}
+      }
+    },
+    "homestead.wish.rates": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wünsche erhöhen nicht die Fundchancen für Unikate oder Schmuckstücke"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Wishes do not increase Unique or Trinket drop rates"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los deseos no aumentan la probabilidad de obtener objetos únicos o abalorios"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les vœux n’augmentent pas les chances d’obtenir des objets uniques ou des bibelots"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "願いは固有装備やトリンケットのドロップ率を上げません"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "소원은 고유 장비나 트링킷의 획득 확률을 높이지 않습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desejos não aumentam as chances de obter itens Únicos ou Berloques"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "許願不會提高獨特裝備或飾物的掉落率"}}
+      }
+    },
+    "homestead.wishing.for": {
+      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wunsch: %1$@"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Wishing for %1$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Deseo: %1$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Vœu : %1$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "%1$@を願っています"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "소원: %1$@"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desejo: %1$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "正在許願：%1$@"}}
       }
     },
     "library.basic_or_astral": {
@@ -183,40 +827,12 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "專精配方"}}
       }
     },
-    "library.goal.companions": {
-      "comment": "Library, Bestiary and Archery Range crafting. Discovery means encountered; recipe affix guarantees do not guarantee rarity.",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Drei verschiedene Gefährten rekrutieren"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Recruit three different Companions"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Recluta a tres compañeros diferentes"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Recruter trois compagnons différents"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "異なる仲間を3人迎える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "서로 다른 동료 3명 영입"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recrute três Companheiros diferentes"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "招募三位不同的夥伴"}}
-      }
-    },
-    "library.goal.spire": {
-      "comment": "Library, Bestiary and Archery Range crafting. Discovery means encountered; recipe affix guarantees do not guarantee rarity.",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Etage 10 eines beliebigen Turms abschließen"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Clear floor 10 of any Spire"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Supera el piso 10 de cualquier Aguja"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Terminer le dixième étage d’une tour"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "いずれかの尖塔の第10階をクリア"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "아무 첨탑에서 10층 클리어"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Conclua o andar 10 de qualquer Torre"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "通過任一高塔的第 10 層"}}
-      }
-    },
     "library.guarantee.bleed": {
       "comment": "Library, Bestiary and Archery Range crafting. Discovery means encountered; recipe affix guarantees do not guarantee rarity.",
       "extractionState": "manual",
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Blutungsaffix garantiert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Bleed affix guaranteed"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Guarantees a Bleed affix"}},
         "es": {"stringUnit": {"state": "translated", "value": "Afijo de Sangrado garantizado"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Affixe Saignement garanti"}},
         "ja": {"stringUnit": {"state": "translated", "value": "出血の付与効果を保証"}},
@@ -230,7 +846,7 @@
       "extractionState": "manual",
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Physisches Affix garantiert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Physical affix guaranteed"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Guarantees a Physical affix"}},
         "es": {"stringUnit": {"state": "translated", "value": "Afijo físico garantizado"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Affixe Physique garanti"}},
         "ja": {"stringUnit": {"state": "translated", "value": "物理の付与効果を保証"}},
@@ -244,7 +860,7 @@
       "extractionState": "manual",
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Giftaffix garantiert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Poison affix guaranteed"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Guarantees a Poison affix"}},
         "es": {"stringUnit": {"state": "translated", "value": "Afijo de Veneno garantizado"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Affixe Poison garanti"}},
         "ja": {"stringUnit": {"state": "translated", "value": "毒の付与効果を保証"}},
@@ -309,20 +925,6 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "武器與防具"}}
       }
     },
-    "library.project.companions": {
-      "comment": "Library, Bestiary and Archery Range crafting. Discovery means encountered; recipe affix guarantees do not guarantee rarity.",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Chroniken der Gefährten"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Companion Chronicles"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Crónicas de compañeros"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Chroniques des compagnons"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "仲間の記録"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "동료 연대기"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Crônicas dos Companheiros"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "夥伴編年史"}}
-      }
-    },
     "library.project.forest": {
       "comment": "Library, Bestiary and Archery Range crafting. Discovery means encountered; recipe affix guarantees do not guarantee rarity.",
       "extractionState": "manual",
@@ -349,20 +951,6 @@
         "ko": {"stringUnit": {"state": "translated", "value": "포식자 해부학"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Anatomia dos Predadores"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "掠食者解剖學"}}
-      }
-    },
-    "library.project.spires": {
-      "comment": "Library, Bestiary and Archery Range crafting. Discovery means encountered; recipe affix guarantees do not guarantee rarity.",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Turmaufzeichnungen"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Spire Records"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Registros de las Agujas"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Registres des tours"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "尖塔の記録"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "첨탑 기록"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Registros das Torres"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "高塔紀錄"}}
       }
     },
     "library.recipe.bleed": {

@@ -74,8 +74,6 @@ public struct PlayerLibraryState: Codable, Equatable, Sendable {
         }
         progress.evaluate(
             libraryTier: save.homestead.tier(for: .library),
-            companionIDs: save.roster.unlockedCompanionIDs,
-            highestSpireFloor: save.spires.highestClearedFloorOverall,
         )
     }
 }
@@ -84,9 +82,7 @@ enum LibraryResearchMutation {
     static func reconcile(_ save: inout PlayerSave, previous: PlayerSave? = nil) {
         if let previous,
            previous.library == save.library,
-           previous.roster.unlockedCompanionIDs == save.roster.unlockedCompanionIDs,
-           previous.homestead.tier(for: .library) == save.homestead.tier(for: .library),
-           previous.spires == save.spires {
+           previous.homestead.tier(for: .library) == save.homestead.tier(for: .library) {
             return
         }
         var library = save.library

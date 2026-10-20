@@ -226,3 +226,52 @@ share the immutable craft roll, spending/retry ownership and actual-item reveal
 above. Range tiers 2–4 add a Range-only Astral crafting weight bonus of 10/20/30%.
 No workshop consumes an item or adds a new artwork asset. Trinkets and Uniques
 remain in Collection; the Library has no duplicate item archive.
+
+## Crucible, Runesmith, and Wishing Well
+
+Built Crucible exposes **Transmute** above Upgrade. Its native sheet exchanges any
+of the eight resources at 1:1, with exactly 1 or 10 per transaction. Gold uses the
+roster wallet. Source/destination cannot match. Choices persist during the building
+visit; defaults are Wood → Stone and 1. Show Spend/Receive together, insufficient
+cost styling before action, and the committed quantity received afterward.
+No earned-resource multiplier, tier restriction, cooldown or fee applies.
+Reject destination capacity overflow without spending; debit and credit commit together.
+Settle production against the pre-conversion wallet so spending Gold cannot reopen
+past production that was blocked by the Gold cap.
+
+Built Runesmith exposes **Inscribe**. Choose an owned Basic/Astral item, including
+corrupted/equipped gear, then an affix position and an eligible replacement type.
+Exclude affix IDs already in other positions; choosing the same type rerolls it.
+Show the current effect, minimum/maximum possible effective effects, cost, and
+**Values are rolled when you inscribe**. Basic costs 8 Iron + 4 Gems; Astral costs
+16 Iron + 8 Gems. Inscribe immediately replaces the effect even if worse or equal.
+There is no keep-old step. Use normal rarity magnitude rolls, intrinsically fixed
+effects and base multipliers once. Other powers, item identity and equipment stay
+unchanged. First commitment permanently pins the only inscribable position, marked
+**Inscribed** in item details. Corruption retains that position through additions,
+replacements, bumps and rarity upgrades. Reinscribing removes only the replaced
+affix's corruption marker; the item remains corrupted. Uniques/Trinkets are ineligible.
+Retries retain the rolled candidate and reject changed source items without spending.
+
+Built Wishing Well exposes **Make a Wish**, or **Change Wish** with a selection.
+Choose an unowned Unique/Trinket from native category browsing with read-only item
+inspection. Selection, replacement and clearing are free. **Wishing for {item}**
+shows the current target. There is no progress, timer, expiry or claim action.
+Battle loot rolls its category normally. An eligible wish receives exactly half
+of its category's choices; the other half excludes it. A Unique wish cannot change
+a Trinket roll. If no other eligible candidate remains, the wished item is guaranteed
+within that category. Keep all source eligibility restrictions. Shop, Mystery,
+crafting and fixed rewards are excluded. Capture item loot with the prepared battle;
+changing the wish never rerolls registered or active rewards. Successful ownership
+from any source clears the wish; unknown/already-owned wish IDs sanitize to none.
+
+## Outfitter crafting
+
+Outfitter retains the `woolTailoring` saved identity and existing artwork, passive
+bonuses, production and prices. Built Outfitter exposes **Craft** using the same
+recipe sheet, cost dock, immutable roll and actual-item reveal as other workshops.
+Leather Armor costs 40 Hide + 20 Wood. Standard crafting includes Basic/Astral and
+the selected base's unowned Unique, excludes Trinkets, and uses the highest won
+encounter level. Tiers II–IV add 10/20/30% Outfitter-only Astral tier weight.
+Focused recipes are taught by Library Research and guarantee a keyword affix
+within an ordinary slot, with Basic/Astral outcomes only. See [Library](Library.md).

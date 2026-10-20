@@ -86,6 +86,15 @@ public extension ItemAffixPower {
         }
     }
 
+    func rolledMin() -> Self {
+        transformingMagnitudes { _, value in
+            switch value {
+            case let .int(amount): amount == 0 ? value : .int(ItemAffixMagnitudeRoll.integerRange(around: amount).lowerBound)
+            case let .percent(amount): amount == 0 ? value : .percent(ItemAffixMagnitudeRoll.percentValues(around: amount).min() ?? amount)
+            }
+        }
+    }
+
     func rolledMax() -> Self {
         guard hasRollableMagnitudes else { return self }
         return transformingMagnitudes { _, value in value.isZero ? value : value.rollMax }

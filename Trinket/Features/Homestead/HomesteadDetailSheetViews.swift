@@ -15,6 +15,7 @@ struct HomesteadDetailSheetView: View {
     let definition: HomesteadNodeDefinition
     let kind: HomesteadDetailSheet
     @Binding var build: HomesteadBuildControl
+    @Binding var transmutation: TransmutationSelection
     let purchaseCommitted: Bool
     var onPurchase: (Int) -> Void
     var initialRecipeID: String?
@@ -45,6 +46,8 @@ struct HomesteadDetailSheetView: View {
             }
         case .wallet:
             HomesteadWalletSheet()
+        case .activity:
+            HomesteadActivitySheet(buildingID: definition.id, transmutation: $transmutation)
         case .crafting:
             BlacksmithForgeView(buildingID: definition.id, initialRecipeID: initialRecipeID)
         }

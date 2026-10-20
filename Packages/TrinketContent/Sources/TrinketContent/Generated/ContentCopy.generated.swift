@@ -2243,9 +2243,9 @@ public enum ContentCopy {
             (L10n.homestead_nodes_wooltailoring_1_bonus_title(5), [5])
         case "Loom Frame":
             (L10n.homestead_nodes_wooltailoring_1_stage_name, [])
-        case "A loom shop that weaves padded wraps against winter chill":
+        case "A working shop for leather armor and protective gear":
             (L10n.homestead_nodes_wooltailoring_1_summary, [])
-        case "Wool Tailoring":
+        case "Outfitter":
             (L10n.homestead_nodes_wooltailoring_1_title, [])
         case "Take 10% less Freeze damage\nTake 10% less Burn damage\nProduce 2 Gold per Day":
             (L10n.homestead_nodes_wooltailoring_2_bonus_description(10, 10, 2), [10, 10, 2])

@@ -15,6 +15,7 @@ enum HomesteadDetailSheet: Hashable, Identifiable {
     case improvement(Int)
     case wallet
     case crafting
+    case activity
 
     var id: Self {
         self
@@ -34,6 +35,7 @@ struct HomesteadNodeDetailView: View {
     @State private var build = HomesteadBuildControl()
     @State private var artworkPins = PreparedArtworkPinSet()
     @State private var sheet: HomesteadDetailSheet?
+    @State private var transmutation = TransmutationSelection()
     @State private var requestedLibrary: HomesteadRoute?
     @State private var preparedLibrary: HomesteadRoute?
     @State private var requestedCraft: Bool?
@@ -67,8 +69,11 @@ struct HomesteadNodeDetailView: View {
                             if definition.id == .library {
                                 libraryActivities
                             }
-                            if definition.id == .blacksmithForge || definition.id == .archeryRange {
-                                craftSection
+                            if [.blacksmithForge, .archeryRange, .woolTailoring].contains(definition.id) {
+                                HomesteadCraftEntry(buildingID: definition.id, isBuilt: status.currentTier > 0) { requestedCraft = true }
+                            }
+                            if [.transmutationCrucible, .runesmithWorkshop, .wishingWell].contains(definition.id) {
+                                HomesteadActivityEntry(nodeID: definition.id, isBuilt: status.currentTier > 0) { sheet = .activity }
                             }
                             upgradeSection
                             panelContent
@@ -118,6 +123,7 @@ struct HomesteadNodeDetailView: View {
                 definition: definition,
                 kind: kind,
                 build: $build,
+                transmutation: $transmutation,
                 purchaseCommitted: purchaseCommitted,
                 onPurchase: buildOrUpgrade,
                 initialRecipeID: initialRecipeID,
@@ -184,33 +190,6 @@ struct HomesteadNodeDetailView: View {
             .trinketTypography(.screenDisplay)
             .multilineTextAlignment(.center)
             .trinketOnArtText()
-    }
-
-    private var craftSection: some View {
-        Button { requestedCraft = true } label: {
-            HStack(spacing: TrinketDesign.Spacing.small) {
-                if definition.id == .blacksmithForge {
-                    BlacksmithAnvilIcon()
-                        .fill(TrinketDesign.Colors.Overlay.paper)
-                        .frame(width: 28, height: 24)
-                        .frame(width: 36, height: 36)
-                        .accessibilityHidden(true)
-                } else {
-                    Image(systemName: "figure.archery").frame(width: 36, height: 36).accessibilityHidden(true)
-                }
-                Text(L10n.ui_homesteaddetailviews_craft_57f64)
-                Spacer()
-                Image(systemName: "chevron.right").accessibilityHidden(true)
-            }
-            .trinketTypography(.rowTitle)
-            .padding(TrinketDesign.Spacing.large)
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .homesteadNodePanel()
-        .disabled(status.currentTier == 0)
-        .accessibilityIdentifier(AccessibilityID.Homestead.craftButton)
     }
 
     private var libraryActivities: some View {

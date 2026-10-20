@@ -3,8 +3,6 @@ import Foundation
 public struct ResearchProject: Identifiable, Hashable, Sendable {
     public enum Objective: Hashable, Sendable {
         case defeat(String)
-        case companions(Int)
-        case spireFloor(Int)
     }
 
     public let id: String
@@ -33,27 +31,48 @@ public struct ResearchProject: Identifiable, Hashable, Sendable {
             objectives: [.defeat("giant_spider"), .defeat("giant_snake"), .defeat("dire_wolf")],
             recipe: "archery-longbow-bleed",
         ),
-        .init("companion-chronicles", tier: 1, objectives: [.companions(3)]),
         .init(
             "arms-and-armor",
             tier: 3,
             objectives: [.defeat("goblin"), .defeat("bandit"), .defeat("living_armor")],
             recipe: "archery-crossbow-physical",
         ),
-        .init("spire-records", tier: 1, objectives: [.spireFloor(10)]),
+        .init("serrated-steel", tier: 1, objectives: [.defeat("bandit"), .defeat("dire_wolf")], recipe: "blacksmith-greatsword-bleed"),
+        .init("consecrated-arms", tier: 2, objectives: [.defeat("cleric"), .defeat("paladin")], recipe: "blacksmith-mace-holy"),
+        .init(
+            "shieldcraft",
+            tier: 3,
+            objectives: [.defeat("living_armor"), .defeat("stone_golem")],
+            recipe: "blacksmith-kite-shield-block",
+        ),
+        .init(
+            "reinforced-leather",
+            tier: 1,
+            objectives: [.defeat("goblin"), .defeat("living_armor")],
+            recipe: "outfitter-leather-armor-block",
+        ),
+        .init(
+            "venomproof-leather",
+            tier: 2,
+            objectives: [.defeat("giant_spider"), .defeat("giant_snake")],
+            recipe: "outfitter-leather-armor-poison",
+        ),
+        .init(
+            "sanguine-leather",
+            tier: 3,
+            objectives: [.defeat("vampire"), .defeat("blood_cultist")],
+            recipe: "outfitter-leather-armor-leech",
+        ),
     ]
 
     public static func matching(_ id: String) -> Self? {
         all.first { $0.id == id }
     }
 
-    public func progress(in history: LibraryProgress, companionIDs: Set<String>, highestSpireFloor: Int) -> [Bool] {
+    public func progress(in history: LibraryProgress) -> [Bool] {
         objectives.map {
             switch $0 {
             case let .defeat(id): history.defeatedEnemyIDs.contains(id)
-            case let .companions(count):
-                companionIDs.count(where: { GameContent.companion(matching: $0) != nil }) >= count
-            case let .spireFloor(floor): highestSpireFloor >= floor
             }
         }
     }
@@ -98,11 +117,11 @@ public struct LibraryProgress: Codable, Equatable, Sendable {
     }
 
     @discardableResult
-    public mutating func evaluate(libraryTier: Int, companionIDs: Set<String>, highestSpireFloor: Int) -> [String] {
+    public mutating func evaluate(libraryTier: Int) -> [String] {
         var completed: [String] = []
         for project in ResearchProject.all where !completedResearchIDs.contains(project.id) {
             guard libraryTier >= project.minimumLibraryTier,
-                  project.progress(in: self, companionIDs: companionIDs, highestSpireFloor: highestSpireFloor).allSatisfy(\.self)
+                  project.progress(in: self).allSatisfy(\.self)
             else { continue }
             completedResearchIDs.insert(project.id)
             if let recipeID = project.recipeID {

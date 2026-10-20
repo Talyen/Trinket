@@ -95,7 +95,7 @@ struct LibraryProgressTests {
             try modelContext.save()
         }
         let migrated = try context.makeReloadedStore()
-        #expect(migrated.currentSave.schemaVersion == 19)
+        #expect(migrated.currentSave.schemaVersion == PlayerSave.currentSchemaVersion)
         #expect(migrated.roster.gold == 42)
         #expect(migrated.library.progress.defeatedEnemyIDs.contains("slime"))
         #expect(try context.makeReloadedStore().library == migrated.library)
@@ -104,10 +104,10 @@ struct LibraryProgressTests {
         snapshot.schemaVersion = 18
         snapshot.library = nil
         let decoded = try snapshot.decodedSave()
-        #expect(decoded.schemaVersion == 19)
+        #expect(decoded.schemaVersion == PlayerSave.currentSchemaVersion)
         let repaired = PlayerSaveSanitizer.sanitize(decoded)
         #expect(repaired.library.progress.defeatedEnemyIDs.contains("slime"))
-        snapshot.schemaVersion = 20
+        snapshot.schemaVersion = PlayerSave.currentSchemaVersion + 1
         #expect(throws: PlayerSavePersistenceError.self) { try snapshot.decodedSave() }
     }
 

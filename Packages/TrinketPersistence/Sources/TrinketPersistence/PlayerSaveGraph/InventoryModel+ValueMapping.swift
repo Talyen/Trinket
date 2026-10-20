@@ -44,6 +44,7 @@ extension InventoryModel {
             affixes: affixes,
             isCorrupted: item.isCorrupted,
             affixPowers: affixPowers,
+            inscribedAffixIndex: item.inscribedAffixIndex,
         )
         return ItemResolution.trinketAuthoritativeItem(
             persisted: persistedItem,
@@ -62,6 +63,7 @@ extension InventoryItemModel {
         displayName = item.displayName
         isCorrupted = item.isCorrupted
         affixPowersJSON = powerPayload
+        inscribedAffixIndex = item.inscribedAffixIndex
         affixes = reconcileModels(
             existing: affixes ?? [],
             values: Array(item.affixes.enumerated()),

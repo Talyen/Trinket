@@ -3,12 +3,196 @@ import Foundation
 import TrinketContent
 
 enum L10n {
-    static var library_archive_companions: LocalizedStringResource {
-        LocalizedStringResource("library.archive.companions", defaultValue: "No two companions approach a battle alike. These records preserve the growing company that shares your adventures.", table: "Localizable", bundle: .main)
+    static var homestead_affix_lock_help: LocalizedStringResource {
+        LocalizedStringResource("homestead.affix.lock.help", defaultValue: "After inscription, only this affix can be changed", table: "Localizable", bundle: .main)
     }
 
-    static var library_archive_spires: LocalizedStringResource {
-        LocalizedStringResource("library.archive.spires", defaultValue: "Each Spire turns one form of power into a different trial. Reaching its tenth floor earns a place in the Library’s climbing records.", table: "Localizable", bundle: .main)
+    static var homestead_affix_replaced: LocalizedStringResource {
+        LocalizedStringResource("homestead.affix.replaced", defaultValue: "Affix replaced", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_all_collected: LocalizedStringResource {
+        LocalizedStringResource("homestead.all.collected", defaultValue: "All Uniques and Trinkets collected", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_amount: LocalizedStringResource {
+        LocalizedStringResource("homestead.amount", defaultValue: "Amount", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_change_wish: LocalizedStringResource {
+        LocalizedStringResource("homestead.change.wish", defaultValue: "Change Wish", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_choose_affix: LocalizedStringResource {
+        LocalizedStringResource("homestead.choose.affix", defaultValue: "Choose an affix to replace", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_clear_wish: LocalizedStringResource {
+        LocalizedStringResource("homestead.clear.wish", defaultValue: "Clear Wish", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_current_affix: LocalizedStringResource {
+        LocalizedStringResource("homestead.current.affix", defaultValue: "Current Affix", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_from: LocalizedStringResource {
+        LocalizedStringResource("homestead.from", defaultValue: "From", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_guarantee_block: LocalizedStringResource {
+        LocalizedStringResource("homestead.guarantee.block", defaultValue: "Guarantees a Block affix", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_guarantee_holy: LocalizedStringResource {
+        LocalizedStringResource("homestead.guarantee.holy", defaultValue: "Guarantees a Holy affix", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_guarantee_leech: LocalizedStringResource {
+        LocalizedStringResource("homestead.guarantee.leech", defaultValue: "Guarantees a Leech affix", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_inscribe: LocalizedStringResource {
+        LocalizedStringResource("homestead.inscribe", defaultValue: "Inscribe", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_make_wish: LocalizedStringResource {
+        LocalizedStringResource("homestead.make.wish", defaultValue: "Make a Wish", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_material_cost: LocalizedStringResource {
+        LocalizedStringResource("homestead.material.cost", defaultValue: "Material Cost", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_maximum: LocalizedStringResource {
+        LocalizedStringResource("homestead.maximum", defaultValue: "Maximum", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_minimum: LocalizedStringResource {
+        LocalizedStringResource("homestead.minimum", defaultValue: "Minimum", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_new_affix: LocalizedStringResource {
+        LocalizedStringResource("homestead.new.affix", defaultValue: "New Affix", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_no_inscription_items: LocalizedStringResource {
+        LocalizedStringResource("homestead.no.inscription.items", defaultValue: "No Basic or Astral equipment available", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_open_blacksmith: LocalizedStringResource {
+        LocalizedStringResource("homestead.open.blacksmith", defaultValue: "Open Blacksmith", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_open_outfitter: LocalizedStringResource {
+        LocalizedStringResource("homestead.open.outfitter", defaultValue: "Open Outfitter", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_project_consecrated_arms: LocalizedStringResource {
+        LocalizedStringResource("homestead.project.consecrated.arms", defaultValue: "Consecrated Arms", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_project_reinforced_leather: LocalizedStringResource {
+        LocalizedStringResource("homestead.project.reinforced.leather", defaultValue: "Reinforced Leather", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_project_sanguine_leather: LocalizedStringResource {
+        LocalizedStringResource("homestead.project.sanguine.leather", defaultValue: "Sanguine Leather", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_project_serrated_steel: LocalizedStringResource {
+        LocalizedStringResource("homestead.project.serrated.steel", defaultValue: "Serrated Steel", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_project_shieldcraft: LocalizedStringResource {
+        LocalizedStringResource("homestead.project.shieldcraft", defaultValue: "Shieldcraft", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_project_venomproof_leather: LocalizedStringResource {
+        LocalizedStringResource("homestead.project.venomproof.leather", defaultValue: "Venomproof Leather", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_receive: LocalizedStringResource {
+        LocalizedStringResource("homestead.receive", defaultValue: "Receive", table: "Localizable", bundle: .main)
+    }
+
+    static func homestead_received(_ value1: Int, _ value2: String) -> LocalizedStringResource {
+        LocalizedStringResource("homestead.received", defaultValue: "\(value1) \(ContentCopy.localized(value2)) received", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_recipe_bleed_greatsword: LocalizedStringResource {
+        LocalizedStringResource("homestead.recipe.bleed.greatsword", defaultValue: "Bleed Greatsword", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_recipe_block_leather: LocalizedStringResource {
+        LocalizedStringResource("homestead.recipe.block.leather", defaultValue: "Block Leather Armor", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_recipe_block_shield: LocalizedStringResource {
+        LocalizedStringResource("homestead.recipe.block.shield", defaultValue: "Block Kite Shield", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_recipe_holy_mace: LocalizedStringResource {
+        LocalizedStringResource("homestead.recipe.holy.mace", defaultValue: "Holy Mace", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_recipe_leech_leather: LocalizedStringResource {
+        LocalizedStringResource("homestead.recipe.leech.leather", defaultValue: "Leech Leather Armor", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_recipe_poison_leather: LocalizedStringResource {
+        LocalizedStringResource("homestead.recipe.poison.leather", defaultValue: "Poison Leather Armor", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_roll_help: LocalizedStringResource {
+        LocalizedStringResource("homestead.roll.help", defaultValue: "Values are rolled when you inscribe", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_spend: LocalizedStringResource {
+        LocalizedStringResource("homestead.spend", defaultValue: "Spend", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_to: LocalizedStringResource {
+        LocalizedStringResource("homestead.to", defaultValue: "To", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_transmute: LocalizedStringResource {
+        LocalizedStringResource("homestead.transmute", defaultValue: "Transmute", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_transmute_help: LocalizedStringResource {
+        LocalizedStringResource("homestead.transmute.help", defaultValue: "Exchange resources at a 1:1 rate", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_trinkets: LocalizedStringResource {
+        LocalizedStringResource("homestead.trinkets", defaultValue: "Trinkets", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_uniques: LocalizedStringResource {
+        LocalizedStringResource("homestead.uniques", defaultValue: "Uniques", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_wish_choose: LocalizedStringResource {
+        LocalizedStringResource("homestead.wish.choose", defaultValue: "Choose an unowned Unique or Trinket", table: "Localizable", bundle: .main)
+    }
+
+    static func homestead_wish_for(_ value1: String) -> LocalizedStringResource {
+        LocalizedStringResource("homestead.wish.for", defaultValue: "Wish for \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
+    }
+
+    static func homestead_wish_help(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("homestead.wish.help", defaultValue: "When a battle drops an eligible item of the same category, your wish has a \(value1)% chance to be chosen", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_wish_last: LocalizedStringResource {
+        LocalizedStringResource("homestead.wish.last", defaultValue: "If no other eligible items remain, your wish is guaranteed", table: "Localizable", bundle: .main)
+    }
+
+    static var homestead_wish_rates: LocalizedStringResource {
+        LocalizedStringResource("homestead.wish.rates", defaultValue: "Wishes do not increase Unique or Trinket drop rates", table: "Localizable", bundle: .main)
+    }
+
+    static func homestead_wishing_for(_ value1: String) -> LocalizedStringResource {
+        LocalizedStringResource("homestead.wishing.for", defaultValue: "Wishing for \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
     }
 
     static var library_basic_or_astral: LocalizedStringResource {
@@ -55,24 +239,16 @@ enum L10n {
         LocalizedStringResource("library.focused_recipes", defaultValue: "Focused Recipes", table: "Localizable", bundle: .main)
     }
 
-    static var library_goal_companions: LocalizedStringResource {
-        LocalizedStringResource("library.goal.companions", defaultValue: "Recruit three different Companions", table: "Localizable", bundle: .main)
-    }
-
-    static var library_goal_spire: LocalizedStringResource {
-        LocalizedStringResource("library.goal.spire", defaultValue: "Clear floor 10 of any Spire", table: "Localizable", bundle: .main)
-    }
-
     static var library_guarantee_bleed: LocalizedStringResource {
-        LocalizedStringResource("library.guarantee.bleed", defaultValue: "Bleed affix guaranteed", table: "Localizable", bundle: .main)
+        LocalizedStringResource("library.guarantee.bleed", defaultValue: "Guarantees a Bleed affix", table: "Localizable", bundle: .main)
     }
 
     static var library_guarantee_physical: LocalizedStringResource {
-        LocalizedStringResource("library.guarantee.physical", defaultValue: "Physical affix guaranteed", table: "Localizable", bundle: .main)
+        LocalizedStringResource("library.guarantee.physical", defaultValue: "Guarantees a Physical affix", table: "Localizable", bundle: .main)
     }
 
     static var library_guarantee_poison: LocalizedStringResource {
-        LocalizedStringResource("library.guarantee.poison", defaultValue: "Poison affix guaranteed", table: "Localizable", bundle: .main)
+        LocalizedStringResource("library.guarantee.poison", defaultValue: "Guarantees a Poison affix", table: "Localizable", bundle: .main)
     }
 
     static var library_in_progress: LocalizedStringResource {
@@ -91,20 +267,12 @@ enum L10n {
         LocalizedStringResource("library.project.arms", defaultValue: "Arms and Armor", table: "Localizable", bundle: .main)
     }
 
-    static var library_project_companions: LocalizedStringResource {
-        LocalizedStringResource("library.project.companions", defaultValue: "Companion Chronicles", table: "Localizable", bundle: .main)
-    }
-
     static var library_project_forest: LocalizedStringResource {
         LocalizedStringResource("library.project.forest", defaultValue: "Forest Field Notes", table: "Localizable", bundle: .main)
     }
 
     static var library_project_predator: LocalizedStringResource {
         LocalizedStringResource("library.project.predator", defaultValue: "Predator Anatomy", table: "Localizable", bundle: .main)
-    }
-
-    static var library_project_spires: LocalizedStringResource {
-        LocalizedStringResource("library.project.spires", defaultValue: "Spire Records", table: "Localizable", bundle: .main)
     }
 
     static var library_recipe_bleed: LocalizedStringResource {

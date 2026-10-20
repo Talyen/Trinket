@@ -40,6 +40,7 @@ public enum BattleLoot {
         worldSeed: UInt64,
         ownership: RewardOwnership,
         astralChanceBonusPercent: Int = 0,
+        wishedTemplateID: String? = nil,
     ) -> BattleLootResult {
         var rng = SeededRandomNumberGenerator(
             seed: GameContent.encounterSeed(worldSeed, salt: request.seedSalt),
@@ -86,7 +87,7 @@ public enum BattleLoot {
         let item = rollItem(
             request, modifier: itemModifier, encounterLevel: encounterLevel,
             enemyIsBoss: enemyIsBoss, ownership: ownership,
-            astralChanceBonusPercent: astralChanceBonusPercent, using: &rng,
+            astralChanceBonusPercent: astralChanceBonusPercent, wishedTemplateID: wishedTemplateID, using: &rng,
         )
 
         return BattleLootResult(item: item, gold: gold, materials: materials)
@@ -100,6 +101,7 @@ public enum BattleLoot {
         ownership: RewardOwnership,
         astralChanceBonusPercent: Int,
         excludesBasic: Bool = false,
+        wishedTemplateID: String? = nil,
         using rng: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         let modifier = enemyIsBoss ? nil : modifier
@@ -132,6 +134,7 @@ public enum BattleLoot {
             allowedTiers: allowedTiers,
             favoredTier: modifier?.favoredItemTier,
             tierWeightBonusPercent: modifier?.favoredItemTier != nil ? RewardModifier.rareTierWeightBonusPercent : 0,
+            wishedTemplateID: wishedTemplateID,
             requiredKeyword: modifier?.requiredKeyword,
             ownedTrinketIDs: ownership.ownedTrinketIDs,
             ownedUniqueIDs: ownership.ownedUniqueIDs,

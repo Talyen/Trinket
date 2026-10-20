@@ -18,9 +18,10 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
     public let isCorrupted: Bool
     public let affixes: [StoredAffix]
     public let affixPowers: [ItemAffixPower]?
+    public let inscribedAffixIndex: Int?
 
     private enum CodingKeys: String, CodingKey {
-        case id, templateID, baseTypeID, rarity, displayName, isCorrupted, affixes, powers, affixPowers
+        case id, templateID, baseTypeID, rarity, displayName, isCorrupted, affixes, powers, affixPowers, inscribedAffixIndex
     }
 
     public init(_ item: InventoryItem) {
@@ -32,6 +33,7 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
         isCorrupted = item.isCorrupted
         affixes = item.affixes.map(StoredAffix.init)
         affixPowers = item.affixPowers
+        inscribedAffixIndex = item.inscribedAffixIndex
     }
 
     /// Lossy rarity and dual-key powers decode matching `ItemResolution`:
@@ -47,6 +49,7 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
         displayName = try container.decode(String.self, forKey: .displayName)
         isCorrupted = try container.decode(Bool.self, forKey: .isCorrupted)
         affixes = try container.decode([StoredAffix].self, forKey: .affixes)
+        inscribedAffixIndex = try container.decodeIfPresent(Int.self, forKey: .inscribedAffixIndex)
         affixPowers = try container.decodeIfPresent([ItemAffixPower].self, forKey: .powers)
             ?? container.decodeIfPresent([ItemAffixPower].self, forKey: .affixPowers)
     }
@@ -60,6 +63,7 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
         try container.encode(displayName, forKey: .displayName)
         try container.encode(isCorrupted, forKey: .isCorrupted)
         try container.encode(affixes, forKey: .affixes)
+        try container.encodeIfPresent(inscribedAffixIndex, forKey: .inscribedAffixIndex)
         try container.encodeIfPresent(affixPowers, forKey: .powers)
         try container.encodeIfPresent(affixPowers, forKey: .affixPowers)
     }
@@ -71,7 +75,7 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
         guard let base = ItemResolution.baseType(matching: baseTypeID, itemID: id) else { return nil }
         return InventoryItem(
             id: id, templateID: templateID, baseType: base, rarity: rarity, displayName: displayName,
-            affixes: affixes.map(\.resolved), isCorrupted: isCorrupted, affixPowers: affixPowers,
+            affixes: affixes.map(\.resolved), isCorrupted: isCorrupted, affixPowers: affixPowers, inscribedAffixIndex: inscribedAffixIndex,
         )
     }
 

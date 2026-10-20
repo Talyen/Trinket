@@ -150,3 +150,11 @@ It does not hold card input for saving. Accepted victory records that same enemy
 defeat with settlement and research unlocks atomically. Defeat/retreat only retains
 the encounter. The claim returns newly completed research IDs after commit for a
 single transient notice; restored history never reconstructs a notification queue.
+
+## Captured item wishes
+
+Wishing Well selection enters battle-only loot context. Category odds and pool
+eligibility are unchanged. Prepared registration captures item rewards; refreshing
+party or reward metadata retains registered primary/additional items while the
+save claim remains current. Wish changes cannot reroll those items. Reset/new
+claims capture fresh loot. Crafting, Shop and Mystery never supply a wish.

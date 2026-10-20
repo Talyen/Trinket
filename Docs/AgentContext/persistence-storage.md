@@ -55,11 +55,17 @@ migrated when schemas or serialized identifiers change. Production CloudKit rema
 gated by the [release checklist](../Platform/CloudKitPreShipChecklist.md).
 Historical development-save migrations and retired identifier aliases were removed
 before that distribution; their retirement is not permission to remove support for
-current saves. The current value schema is 19. Distributed wire-18 graphs, recovery snapshots,
+current saves. The current value schema is 20. Distributed wire-18/19 graphs, recovery snapshots,
 cloud ancestors and outbox snapshots/deltas migrate through the shared codec.
 Older development schemas and future schemas are rejected without rewriting their
 progress. SwiftData graph v3 is frozen, including all relationship inverses; graph
-v4 adds optional Library history through a lightweight migration. Unsupported Labyrinth map payloads use
+v4 adds optional Library history through a lightweight migration. Graph v4 is
+also frozen; v5 adds optional inventory inscription positions and Homestead wish
+template IDs through lightweight migration. Both additions decode absent in old
+value snapshots. The value-version bump prevents older clients from dropping the
+new metadata when re-saving a new snapshot. Item powers and inscription position travel together as one item
+through cloud conflict selection; wish selection follows existing scalar branch
+selection and clears against merged ownership. Unsupported Labyrinth map payloads use
 the existing unreadable-map recovery path, without translating historical floor
 progress. Current-data validation, relationship repair, and corruption recovery
 remain required.

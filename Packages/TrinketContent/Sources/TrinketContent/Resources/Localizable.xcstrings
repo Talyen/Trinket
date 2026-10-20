@@ -19255,28 +19255,28 @@
       "comment": "ContentManifest/homestead_nodes.tsv: woolTailoring.1, summary",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Eine Webstube, die wattierte Tücher gegen die Winterkälte webt"}},
-        "en": {"stringUnit": {"state": "translated", "value": "A loom shop that weaves padded wraps against winter chill"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Un taller de telares que teje prendas acolchadas contra el frío invernal"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Un atelier de tissage qui confectionne des étoffes rembourrées contre le froid hivernal"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "冬の寒さを防ぐ厚手の布を織る工房"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "겨울 추위를 막아 주는 누빔 옷을 짓는 베틀 작업장"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma tecelagem que produz mantas acolchoadas contra o frio do inverno"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "編織厚實裹布以抵禦冬寒的織布工坊"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Eine Werkstatt für Lederrüstungen und Schutzausrüstung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "A working shop for leather armor and protective gear"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Un taller de armaduras de cuero y equipo de protección"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Un atelier de fabrication d’armures de cuir et d’équipements de protection"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "革鎧と防具を作る工房"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "가죽 갑옷과 보호 장비를 만드는 공방"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma oficina de armaduras de couro e equipamentos de proteção"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "製作皮甲與防護裝備的工坊"}}
       }
     },
     "homestead_nodes.wooltailoring.1.title": {
       "comment": "ContentManifest/homestead_nodes.tsv: woolTailoring.1, title",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Wollschneiderei"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Wool Tailoring"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sastrería de lana"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Confection de laine"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "羊毛仕立て"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "양모 재단"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Alfaiataria de Lã"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "羊毛裁縫"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Ausrüster"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Outfitter"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Taller de equipo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Atelier d’équipement"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "装具工房"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "장비 공방"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Oficina de equipamentos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "裝備工坊"}}
       }
     },
     "homestead_nodes.wooltailoring.2.bonus_description": {
@@ -19325,28 +19325,28 @@
       "comment": "ContentManifest/homestead_nodes.tsv: woolTailoring.2, summary",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Eine Webstube, die wattierte Tücher gegen die Winterkälte webt"}},
-        "en": {"stringUnit": {"state": "translated", "value": "A loom shop that weaves padded wraps against winter chill"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Un taller de telares que teje prendas acolchadas contra el frío invernal"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Un atelier de tissage qui confectionne des étoffes rembourrées contre le froid hivernal"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "冬の寒さを防ぐ厚手の布を織る工房"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "겨울 추위를 막아 주는 누빔 옷을 짓는 베틀 작업장"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma tecelagem que produz mantas acolchoadas contra o frio do inverno"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "編織厚實裹布以抵禦冬寒的織布工坊"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Eine Werkstatt für Lederrüstungen und Schutzausrüstung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "A working shop for leather armor and protective gear"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Un taller de armaduras de cuero y equipo de protección"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Un atelier de fabrication d’armures de cuir et d’équipements de protection"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "革鎧と防具を作る工房"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "가죽 갑옷과 보호 장비를 만드는 공방"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma oficina de armaduras de couro e equipamentos de proteção"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "製作皮甲與防護裝備的工坊"}}
       }
     },
     "homestead_nodes.wooltailoring.2.title": {
       "comment": "ContentManifest/homestead_nodes.tsv: woolTailoring.2, title",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Wollschneiderei"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Wool Tailoring"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sastrería de lana"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Confection de laine"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "羊毛仕立て"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "양모 재단"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Alfaiataria de Lã"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "羊毛裁縫"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Ausrüster"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Outfitter"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Taller de equipo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Atelier d’équipement"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "装具工房"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "장비 공방"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Oficina de equipamentos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "裝備工坊"}}
       }
     },
     "homestead_nodes.wooltailoring.3.bonus_description": {
@@ -19395,28 +19395,28 @@
       "comment": "ContentManifest/homestead_nodes.tsv: woolTailoring.3, summary",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Eine Webstube, die wattierte Tücher gegen die Winterkälte webt"}},
-        "en": {"stringUnit": {"state": "translated", "value": "A loom shop that weaves padded wraps against winter chill"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Un taller de telares que teje prendas acolchadas contra el frío invernal"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Un atelier de tissage qui confectionne des étoffes rembourrées contre le froid hivernal"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "冬の寒さを防ぐ厚手の布を織る工房"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "겨울 추위를 막아 주는 누빔 옷을 짓는 베틀 작업장"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma tecelagem que produz mantas acolchoadas contra o frio do inverno"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "編織厚實裹布以抵禦冬寒的織布工坊"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Eine Werkstatt für Lederrüstungen und Schutzausrüstung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "A working shop for leather armor and protective gear"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Un taller de armaduras de cuero y equipo de protección"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Un atelier de fabrication d’armures de cuir et d’équipements de protection"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "革鎧と防具を作る工房"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "가죽 갑옷과 보호 장비를 만드는 공방"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma oficina de armaduras de couro e equipamentos de proteção"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "製作皮甲與防護裝備的工坊"}}
       }
     },
     "homestead_nodes.wooltailoring.3.title": {
       "comment": "ContentManifest/homestead_nodes.tsv: woolTailoring.3, title",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Wollschneiderei"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Wool Tailoring"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sastrería de lana"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Confection de laine"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "羊毛仕立て"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "양모 재단"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Alfaiataria de Lã"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "羊毛裁縫"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Ausrüster"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Outfitter"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Taller de equipo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Atelier d’équipement"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "装具工房"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "장비 공방"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Oficina de equipamentos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "裝備工坊"}}
       }
     },
     "homestead_nodes.wooltailoring.4.bonus_description": {
@@ -19465,28 +19465,28 @@
       "comment": "ContentManifest/homestead_nodes.tsv: woolTailoring.4, summary",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Eine Webstube, die wattierte Tücher gegen die Winterkälte webt"}},
-        "en": {"stringUnit": {"state": "translated", "value": "A loom shop that weaves padded wraps against winter chill"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Un taller de telares que teje prendas acolchadas contra el frío invernal"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Un atelier de tissage qui confectionne des étoffes rembourrées contre le froid hivernal"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "冬の寒さを防ぐ厚手の布を織る工房"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "겨울 추위를 막아 주는 누빔 옷을 짓는 베틀 작업장"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma tecelagem que produz mantas acolchoadas contra o frio do inverno"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "編織厚實裹布以抵禦冬寒的織布工坊"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Eine Werkstatt für Lederrüstungen und Schutzausrüstung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "A working shop for leather armor and protective gear"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Un taller de armaduras de cuero y equipo de protección"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Un atelier de fabrication d’armures de cuir et d’équipements de protection"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "革鎧と防具を作る工房"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "가죽 갑옷과 보호 장비를 만드는 공방"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma oficina de armaduras de couro e equipamentos de proteção"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "製作皮甲與防護裝備的工坊"}}
       }
     },
     "homestead_nodes.wooltailoring.4.title": {
       "comment": "ContentManifest/homestead_nodes.tsv: woolTailoring.4, title",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Wollschneiderei"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Wool Tailoring"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sastrería de lana"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Confection de laine"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "羊毛仕立て"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "양모 재단"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Alfaiataria de Lã"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "羊毛裁縫"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Ausrüster"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Outfitter"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Taller de equipo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Atelier d’équipement"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "装具工房"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "장비 공방"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Oficina de equipamentos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "裝備工坊"}}
       }
     },
     "item_bases.bone_charm.name": {

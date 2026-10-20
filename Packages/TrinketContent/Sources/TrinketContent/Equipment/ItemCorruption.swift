@@ -165,6 +165,7 @@ public enum ItemCorruption {
             },
             isCorrupted: true,
             affixPowers: affixes.map(\.power),
+            inscribedAffixIndex: item.inscribedAffixIndex,
         )
         return ItemCorruptionDetail(originalItem: item, item: mutated, effects: summaries)
     }

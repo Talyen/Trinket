@@ -5503,11 +5503,11 @@ enum L10n {
     }
 
     static var homestead_nodes_wooltailoring_1_summary: LocalizedStringResource {
-        LocalizedStringResource("homestead_nodes.wooltailoring.1.summary", defaultValue: "A loom shop that weaves padded wraps against winter chill", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("homestead_nodes.wooltailoring.1.summary", defaultValue: "A working shop for leather armor and protective gear", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var homestead_nodes_wooltailoring_1_title: LocalizedStringResource {
-        LocalizedStringResource("homestead_nodes.wooltailoring.1.title", defaultValue: "Wool Tailoring", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("homestead_nodes.wooltailoring.1.title", defaultValue: "Outfitter", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func homestead_nodes_wooltailoring_2_bonus_description(_ value1: Int, _ value2: Int, _ value3: Int) -> LocalizedStringResource {
@@ -5523,11 +5523,11 @@ enum L10n {
     }
 
     static var homestead_nodes_wooltailoring_2_summary: LocalizedStringResource {
-        LocalizedStringResource("homestead_nodes.wooltailoring.2.summary", defaultValue: "A loom shop that weaves padded wraps against winter chill", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("homestead_nodes.wooltailoring.2.summary", defaultValue: "A working shop for leather armor and protective gear", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var homestead_nodes_wooltailoring_2_title: LocalizedStringResource {
-        LocalizedStringResource("homestead_nodes.wooltailoring.2.title", defaultValue: "Wool Tailoring", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("homestead_nodes.wooltailoring.2.title", defaultValue: "Outfitter", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func homestead_nodes_wooltailoring_3_bonus_description(_ value1: Int, _ value2: Int, _ value3: Int) -> LocalizedStringResource {
@@ -5543,11 +5543,11 @@ enum L10n {
     }
 
     static var homestead_nodes_wooltailoring_3_summary: LocalizedStringResource {
-        LocalizedStringResource("homestead_nodes.wooltailoring.3.summary", defaultValue: "A loom shop that weaves padded wraps against winter chill", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("homestead_nodes.wooltailoring.3.summary", defaultValue: "A working shop for leather armor and protective gear", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var homestead_nodes_wooltailoring_3_title: LocalizedStringResource {
-        LocalizedStringResource("homestead_nodes.wooltailoring.3.title", defaultValue: "Wool Tailoring", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("homestead_nodes.wooltailoring.3.title", defaultValue: "Outfitter", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func homestead_nodes_wooltailoring_4_bonus_description(_ value1: Int, _ value2: Int, _ value3: Int) -> LocalizedStringResource {
@@ -5563,11 +5563,11 @@ enum L10n {
     }
 
     static var homestead_nodes_wooltailoring_4_summary: LocalizedStringResource {
-        LocalizedStringResource("homestead_nodes.wooltailoring.4.summary", defaultValue: "A loom shop that weaves padded wraps against winter chill", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("homestead_nodes.wooltailoring.4.summary", defaultValue: "A working shop for leather armor and protective gear", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var homestead_nodes_wooltailoring_4_title: LocalizedStringResource {
-        LocalizedStringResource("homestead_nodes.wooltailoring.4.title", defaultValue: "Wool Tailoring", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("homestead_nodes.wooltailoring.4.title", defaultValue: "Outfitter", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var item_bases_bone_charm_name: LocalizedStringResource {

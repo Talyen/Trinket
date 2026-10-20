@@ -10,6 +10,7 @@ public enum ItemRewardGenerator {
         favoredTier: ItemDropTier? = nil,
         tierWeightBonusPercent: Int = 0,
         collectibleChancePercent: Int = 100,
+        wishedTemplateID: String? = nil,
         requiredKeyword: Keyword? = nil,
         ownedTrinketIDs: Set<String>,
         ownedUniqueIDs: Set<String>,
@@ -41,9 +42,9 @@ public enum ItemRewardGenerator {
         let rarity: Rarity
         switch ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator) {
         case .unique:
-            return availability.uniques[Int.random(in: availability.uniques.indices, using: &randomNumberGenerator)]
+            return ItemWish.select(from: availability.uniques, wishedTemplateID: wishedTemplateID, using: &randomNumberGenerator)
         case .trinket:
-            return availability.trinkets[Int.random(in: availability.trinkets.indices, using: &randomNumberGenerator)]
+            return ItemWish.select(from: availability.trinkets, wishedTemplateID: wishedTemplateID, using: &randomNumberGenerator)
         case .astral: rarity = .astral
         case .basic: rarity = .basic
         }

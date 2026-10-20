@@ -3,6 +3,7 @@ import TrinketCore
 /// Captured loot inputs shared by launch and unsettled completion. Mode policy
 /// consumes content values; reading rewards never requires a save store.
 public struct BattleLootContext: Equatable, Sendable {
+    public let wishedTemplateID: String?
     public let worldSeed: UInt64
     public let ownership: RewardOwnership
     public let astralChanceBonusPercent: Int
@@ -13,8 +14,10 @@ public struct BattleLootContext: Equatable, Sendable {
         ownership: RewardOwnership = RewardOwnership(),
         astralChanceBonusPercent: Int = 0,
         claimedJourneyRewardStageIDs: Set<String> = [],
+        wishedTemplateID: String? = nil,
     ) {
         self.worldSeed = worldSeed
+        self.wishedTemplateID = wishedTemplateID
         self.ownership = ownership
         self.astralChanceBonusPercent = astralChanceBonusPercent
         self.claimedJourneyRewardStageIDs = claimedJourneyRewardStageIDs
@@ -88,6 +91,7 @@ public struct BattleLootContext: Equatable, Sendable {
             request, encounterLevel: encounterLevel, enemyIsBoss: enemyIsBoss,
             worldSeed: worldSeed, ownership: ownership,
             astralChanceBonusPercent: astralChanceBonusPercent,
+            wishedTemplateID: wishedTemplateID,
         )
     }
 

@@ -43,7 +43,7 @@ public struct EquipmentRecipe: Identifiable, Hashable, Sendable {
     ]
 
     public static func matching(_ id: String) -> Self? {
-        (all + archery).first { $0.id == id }
+        (all + archery + outfitter + focusedBlacksmith).first { $0.id == id }
     }
 }
 
@@ -59,14 +59,24 @@ public extension EquipmentRecipe {
         herbs: Int = 0,
         keyword: Keyword? = nil,
         research: String? = nil,
+        building: HomesteadNodeID = .archeryRange,
+        gems: Int = 0,
+        stone: Int = 0,
     ) {
         self.id = id
         baseID = base
-        buildingID = .archeryRange
+        buildingID = building
         requiredKeyword = keyword
         researchID = research
-        cost = [ResourceAmount(.wood, wood), ResourceAmount(.iron, iron), ResourceAmount(.hide, hide), ResourceAmount(.herbs, herbs)]
-            .filter { $0.quantity > 0 }
+        cost = [
+            ResourceAmount(.wood, wood),
+            ResourceAmount(.iron, iron),
+            ResourceAmount(.hide, hide),
+            ResourceAmount(.herbs, herbs),
+            ResourceAmount(.gems, gems),
+            ResourceAmount(.stone, stone),
+        ]
+        .filter { $0.quantity > 0 }
     }
 
     static let archery: [Self] = [
@@ -104,6 +114,79 @@ public extension EquipmentRecipe {
     ]
 
     static func recipes(for building: HomesteadNodeID) -> [Self] {
-        building == .blacksmithForge ? all : building == .archeryRange ? archery : []
+        switch building {
+        case .blacksmithForge: all + focusedBlacksmith
+        case .archeryRange: archery
+        case .woolTailoring: outfitter
+        default: []
+        }
     }
+}
+
+public extension EquipmentRecipe {
+    static let outfitter: [Self] = [
+        .init("outfitter-leather-armor", base: "leather_armor", wood: 20, hide: 40, building: .woolTailoring),
+        .init(
+            "outfitter-leather-armor-block",
+            base: "leather_armor",
+            wood: 30,
+            iron: 12,
+            hide: 60,
+            keyword: .block,
+            research: "reinforced-leather",
+            building: .woolTailoring,
+        ),
+        .init(
+            "outfitter-leather-armor-poison",
+            base: "leather_armor",
+            wood: 30,
+            hide: 60,
+            herbs: 12,
+            keyword: .poison,
+            research: "venomproof-leather",
+            building: .woolTailoring,
+        ),
+        .init(
+            "outfitter-leather-armor-leech",
+            base: "leather_armor",
+            wood: 30,
+            hide: 60,
+            keyword: .leech,
+            research: "sanguine-leather",
+            building: .woolTailoring,
+            gems: 12,
+        ),
+    ]
+    static let focusedBlacksmith: [Self] = [
+        .init(
+            "blacksmith-greatsword-bleed",
+            base: "greatsword",
+            wood: 30,
+            iron: 60,
+            hide: 12,
+            keyword: .bleed,
+            research: "serrated-steel",
+            building: .blacksmithForge,
+        ),
+        .init(
+            "blacksmith-mace-holy",
+            base: "mace",
+            wood: 24,
+            iron: 48,
+            keyword: .holy,
+            research: "consecrated-arms",
+            building: .blacksmithForge,
+            gems: 8,
+        ),
+        .init(
+            "blacksmith-kite-shield-block",
+            base: "kite_shield",
+            wood: 24,
+            iron: 48,
+            keyword: .block,
+            research: "shieldcraft",
+            building: .blacksmithForge,
+            stone: 8,
+        ),
+    ]
 }

@@ -10,6 +10,7 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
     public let affixes: [ItemAffix]
     public let isCorrupted: Bool
     public let affixPowers: [ItemAffixPower]?
+    public let inscribedAffixIndex: Int?
 
     public init(
         id: String,
@@ -20,6 +21,7 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         affixes: [ItemAffix],
         isCorrupted: Bool = false,
         affixPowers: [ItemAffixPower]? = nil,
+        inscribedAffixIndex: Int? = nil,
     ) {
         self.id = id
         self.templateID = templateID ?? id
@@ -29,6 +31,9 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         self.affixes = affixes
         self.isCorrupted = isCorrupted
         self.affixPowers = affixPowers
+        self.inscribedAffixIndex = inscribedAffixIndex.flatMap { index in
+            baseType.slot != .trinket && rarity != .unique && affixes.indices.contains(index) ? index : nil
+        }
     }
 
     /// Turns a catalog template into a stage-tagged instance. Uniqueness
@@ -49,6 +54,7 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
             affixes: affixes,
             isCorrupted: isCorrupted,
             affixPowers: affixPowers,
+            inscribedAffixIndex: inscribedAffixIndex,
         )
     }
 

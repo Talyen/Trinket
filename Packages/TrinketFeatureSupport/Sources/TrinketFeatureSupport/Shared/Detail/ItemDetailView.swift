@@ -144,6 +144,9 @@ public struct ItemDetailView: View {
         DetailSection(String(localized: L10n.ui_itemdetailview_traits_e0ab4)) {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
                 ForEach(Array(item.displayedAffixes.enumerated()), id: \.element.id) { index, affix in
+                    if item.inscribedAffixIndex == index {
+                        Text(L10n.homestead_inscribed).trinketTypography(.eyebrow).foregroundStyle(.secondary)
+                    }
                     DetailTraitRow(
                         title: affix.title,
                         description: affix.description,

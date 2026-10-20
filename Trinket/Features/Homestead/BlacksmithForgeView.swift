@@ -96,7 +96,7 @@ struct BlacksmithForgeView: View {
     private var recipeGrid: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                if buildingID == .archeryRange {
+                if recipes.contains(where: { $0.researchID != nil }) {
                     Text(L10n.library_standard_recipes).trinketTypography(.sectionTitle)
                 }
                 LazyVGrid(columns: TrinketDesign.Layout.collectionGridItems, spacing: TrinketDesign.Spacing.large) {
@@ -111,7 +111,7 @@ struct BlacksmithForgeView: View {
                         .onDisappear { visibleIDs.remove(recipe.id) }
                     }
                 }
-                if buildingID == .archeryRange {
+                if recipes.contains(where: { $0.researchID != nil }) {
                     Text(L10n.library_focused_recipes).trinketTypography(.sectionTitle)
                     ForEach(focusedRecipes) { recipe in
                         Button { navigate(.recipe(recipe)) } label: {
@@ -211,4 +211,38 @@ private enum BlacksmithForgeRoute: Hashable {
     case project(String)
     case enemy(CombatantCardDetail)
     case result(recipeID: String, item: InventoryItem, celebrates: Bool)
+}
+
+struct HomesteadCraftEntry: View {
+    let buildingID: HomesteadNodeID
+    let isBuilt: Bool
+    let onOpen: () -> Void
+
+    var body: some View {
+        Button(action: onOpen) {
+            HStack(spacing: TrinketDesign.Spacing.small) {
+                if buildingID == .blacksmithForge {
+                    BlacksmithAnvilIcon()
+                        .fill(TrinketDesign.Colors.Overlay.paper)
+                        .frame(width: 28, height: 24)
+                        .frame(width: 36, height: 36)
+                        .accessibilityHidden(true)
+                } else {
+                    Image(systemName: buildingID == .woolTailoring ? "scissors" : "figure.archery").frame(width: 36, height: 36)
+                        .accessibilityHidden(true)
+                }
+                Text(L10n.ui_homesteaddetailviews_craft_57f64)
+                Spacer()
+                Image(systemName: "chevron.right").accessibilityHidden(true)
+            }
+            .trinketTypography(.rowTitle)
+            .padding(TrinketDesign.Spacing.large)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .trinketMaterial(.frostedPanel, cornerRadius: TrinketDesign.Corners.card)
+        .disabled(!isBuilt)
+        .accessibilityIdentifier(AccessibilityID.Homestead.craftButton)
+    }
 }

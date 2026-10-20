@@ -106,6 +106,7 @@ struct PlayerSaveSlice: OptionSet {
         var targets = mutationSlices
         if targets.contains(.inventory) {
             targets.insert(.roster)
+            targets.insert(.homestead)
         }
         if targets.contains(.labyrinth) {
             targets.insert(.roster)

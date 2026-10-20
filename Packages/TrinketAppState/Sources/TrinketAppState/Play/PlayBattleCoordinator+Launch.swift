@@ -59,8 +59,14 @@ extension PlayBattleCoordinator {
            let registration = registration(for: runKey) {
             // The registered snapshot owns freshness and RNG for this run.
             // Refreshing inputs must not reroll combat or rebuild sibling runs.
-            let inputs = preparationInputs(input, rngSeed: registration.launch.inputs.rngSeed)
             let canReuse = registration.rewardClaim.isCurrent(in: playerSave)
+            var capturedInput = input
+            if canReuse {
+                // Item rolls belong to the registered reward, including its captured wish.
+                capturedInput.pendingRewardItem = registration.launch.inputs.launch.pendingRewardItem
+                capturedInput.additionalRewardItems = registration.launch.inputs.launch.additionalRewardItems
+            }
+            let inputs = preparationInputs(capturedInput, rngSeed: registration.launch.inputs.rngSeed)
             if canReuse, inputs == registration.launch.inputs {
                 return prepare(registration.launch, route: route)
             }

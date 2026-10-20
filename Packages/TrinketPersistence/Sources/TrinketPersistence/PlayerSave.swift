@@ -3,7 +3,8 @@ import TrinketContent
 import TrinketCore
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 19
+    public static let currentSchemaVersion = 20
+    static let supportedSchemaVersions = [18, 19, currentSchemaVersion]
 
     public static let corruptionAltarCooldownAfterEncounter = 6
     public static let testWorldSeed: UInt64 = 0x5445_5354

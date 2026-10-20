@@ -38,7 +38,7 @@ struct PlayerSaveSnapshot: Codable, Equatable, Sendable {
     /// Decode storage values without applying cloud admission policy. Local
     /// startup owns repair, including regeneration of an unreadable Labyrinth.
     func decodedSave() throws -> PlayerSave {
-        guard [18, PlayerSave.currentSchemaVersion].contains(schemaVersion), modifiedAt.timeIntervalSince1970.isFinite else {
+        guard PlayerSave.supportedSchemaVersions.contains(schemaVersion), modifiedAt.timeIntervalSince1970.isFinite else {
             throw PlayerSavePersistenceError.invalidSave("Unsupported save snapshot.")
         }
         return PlayerSave(

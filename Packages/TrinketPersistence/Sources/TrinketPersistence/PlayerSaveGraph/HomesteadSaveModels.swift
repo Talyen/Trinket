@@ -13,6 +13,7 @@ final class HomesteadModel {
     var pendingProduction: [HomesteadPendingProductionModel]?
     @Relationship(deleteRule: .cascade, inverse: \HomesteadNodeTierModel.homestead)
     var nodeTiers: [HomesteadNodeTierModel]?
+    var wishedTemplateID: String?
     var lastProductionAt: Date = Date()
     var goldRewardRemainder: Int = 0
     var gemsRewardRemainder: Int = 0

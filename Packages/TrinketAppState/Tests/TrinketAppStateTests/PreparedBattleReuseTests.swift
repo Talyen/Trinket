@@ -55,3 +55,33 @@ struct PreparedBattleReuseTests {
         #expect(state.playerSave.roster.progression(for: active.hero.combatant) == settlement.heroProgressionAfter)
     }
 }
+
+extension PreparedBattleReuseTests {
+    @Test func `changing a wish preserves registered loot through repeated preparation and activation`() async throws {
+        let context = try AppTestContext()
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        try state.playerSave.performFixtureMutation { save in
+            save.homestead.nodeTiers[.wishingWell] = 1
+        }
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        state.journey.prepareBattle(for: stage)
+        let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
+        let prepared = try #require(state.battleCoordinator.preparedRuns[runKey])
+        let items = prepared.registration.launch.rewardPlan.items
+        let target = try #require(GameContent.uniqueItems.first { !items.contains($0) })
+        let route = try #require(prepared.registration.route)
+        _ = try await state.playerSave.setItemWish(target.templateID).get()
+        var recomputed = prepared.registration.launch.inputs.launch
+        recomputed.pendingRewardItem = target
+        #expect(!items.contains(target))
+        #expect(state.battleCoordinator.prepareCombat(recomputed, route: route))
+        #expect(state.battleCoordinator.preparedRuns[runKey]?.registration.launch.rewardPlan.items == items)
+        _ = try await state.playerSave.setItemWish(nil).get()
+        state.journey.prepareBattle(for: stage)
+        let refreshed = try #require(state.battleCoordinator.preparedRuns[runKey])
+        #expect(refreshed.registration.launch.rewardPlan.items == items)
+        #expect(state.battleCoordinator.activateBattle(refreshed.registration.launch.inputs.launch, route: route))
+        let active = try #require(state.battle.activeBattle)
+        #expect(state.battlePresentation(for: active)?.rewardPlan.items == items)
+    }
+}

@@ -8,17 +8,17 @@ struct LibraryResearchTests {
         for id in ["slime", "goblin", "the_blight_treant"] {
             history.encounter(id)
         }
-        #expect(history.evaluate(libraryTier: 4, companionIDs: [], highestSpireFloor: 0).isEmpty)
+        #expect(history.evaluate(libraryTier: 4).isEmpty)
         for _ in 0 ..< 3 {
             history.defeat("slime")
         }
-        #expect(history.evaluate(libraryTier: 4, companionIDs: [], highestSpireFloor: 0).isEmpty)
+        #expect(history.evaluate(libraryTier: 4).isEmpty)
         history.defeat("goblin")
         history.defeat("the_blight_treant")
-        #expect(history.evaluate(libraryTier: 0, companionIDs: [], highestSpireFloor: 0).isEmpty)
-        #expect(history.evaluate(libraryTier: 1, companionIDs: [], highestSpireFloor: 0) == ["forest-field-notes"])
+        #expect(history.evaluate(libraryTier: 0).isEmpty)
+        #expect(history.evaluate(libraryTier: 1) == ["forest-field-notes"])
         #expect(history.unlockedRecipeIDs == ["archery-shortbow-poison"])
-        #expect(history.evaluate(libraryTier: 1, companionIDs: [], highestSpireFloor: 0).isEmpty)
+        #expect(history.evaluate(libraryTier: 1).isEmpty)
         history.merge(LibraryProgress())
         #expect(history.unlockedRecipeIDs.contains("archery-shortbow-poison"))
     }

@@ -19,6 +19,7 @@ public extension BattleLootContext {
             encounterLevel: encounterLevel, enemyIsBoss: true,
             worldSeed: worldSeed, ownership: ownership,
             astralChanceBonusPercent: astralChanceBonusPercent,
+            wishedTemplateID: wishedTemplateID,
         )
         guard destination.isItemFocused else {
             return VoyageResolvedLoot(primary: primary, additionalItem: nil)
@@ -41,7 +42,8 @@ public extension BattleLootContext {
         let item = BattleLoot.rollItem(
             request, modifier: secondModifier, encounterLevel: encounterLevel,
             enemyIsBoss: false, ownership: secondOwnership,
-            astralChanceBonusPercent: astralChanceBonusPercent, excludesBasic: true, using: &rng,
+            astralChanceBonusPercent: astralChanceBonusPercent,
+            excludesBasic: true, wishedTemplateID: wishedTemplateID, using: &rng,
         )
         return VoyageResolvedLoot(primary: primary, additionalItem: item)
     }

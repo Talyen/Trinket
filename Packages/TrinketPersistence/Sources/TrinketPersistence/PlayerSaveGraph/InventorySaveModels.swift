@@ -23,6 +23,7 @@ final class InventoryItemModel {
     var sortIndex: Int = 0
     var isCorrupted: Bool = false
     var affixPowersJSON: Data?
+    var inscribedAffixIndex: Int?
     var inventory: InventoryModel?
 
     @Relationship(deleteRule: .cascade, inverse: \ItemAffixModel.item)
