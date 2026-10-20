@@ -8,10 +8,10 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-      run: python3 Scripts/ci-reuse.py
+      run: python3 Scripts/ci-reuse.py --products-only
     - name: Download verified products
       id: download
-      if: steps.reuse.outputs.standard == 'true'
+      if: steps.reuse.outputs.products == 'true'
       continue-on-error: true
       uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317
       with:

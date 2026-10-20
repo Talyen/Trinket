@@ -164,7 +164,7 @@ branch commit when no run exists. That workflow installs the qualified iPhone 17
 Pro / iOS 26.2 runtime if needed, reuses compatible products or the shared warm
 build cache, and runs qualified Smoke plus purchase denial/retry, durable rewards, battle/background
 lifecycle, navigation, and real audio recovery. Changed functional UI classes
-since the preceding commit and previously failed classes run first. The authored
+since the preceding commit and previously failed classes are selected alongside Smoke. The authored
 Smoke/FullUI registry bounds selection; Profiles and Soak are excluded. A selected
 full class covers its critical methods once. These checks protect a critical
 subset, not every FullUI scenario.
@@ -173,8 +173,10 @@ Successful journey inputs and failed-class markers are retained in a hosted cach
 Reuse compares committed app, resources, configuration, tooling, shared helpers,
 selected tests, Xcode/SDK, architecture, simulator profile, and verification
 settings. Every expected UI case must execute once and pass before evidence is
-saved. A failure revokes prior evidence for its class and prioritizes that class
-on the next candidate. Unknown shared helpers invalidate conservatively.
+saved. A failure revokes prior evidence for its class and selects that class again
+on the next candidate. Pending selectors share one invocation per test plan;
+complete passed selectors remain checkpointed if another selector fails.
+Unknown shared helpers invalidate conservatively.
 
 Deployment consumes the exact-commit workflow's successful qualified job and
 proof artifact. Its receipt must match the release commit, Xcode, SDK, host
@@ -308,7 +310,7 @@ Backfill a retained archive using its original receipt and exported IPA:
 python3 Scripts/build-symbols.py --archive /absolute/path/Trinket.xcarchive --ipa /absolute/path/Trinket.ipa --receipt /absolute/path/receipt.json
 ```
 
-`verification.json` checkpoints successful package suites and UI classes, with
+`verification.json` checkpoints successful package suites and UI selectors, with
 phase timings and local or hosted evidence. Resume runs only missing phases for
 the same clean commit, checkout, toolchain/SDK, architecture, and simulator
 profile. A changed identity invalidates the checkpoints; a failed phase never

@@ -206,7 +206,9 @@ def needs_smoke(paths: list[str]) -> bool:
 
 SHARDS = {
     "Engine": ["BattleEngine"],
-    "State": ["TrinketCore", "TrinketPersistence", "TrinketAppState"],
+    "Core": ["TrinketCore"],
+    "Persistence": ["TrinketPersistence"],
+    "State": ["TrinketAppState"],
     "Content": ["TrinketContent", "TrinketDesignSystem"],
     "Battle": ["TrinketFeatureSupport", "TrinketBattleFeature"],
 }

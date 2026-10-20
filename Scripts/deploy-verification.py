@@ -10,6 +10,7 @@ from pathlib import Path
 import subprocess
 import time
 import tempfile
+import uuid
 
 from internal.cli import ROOT, load_sibling, primary_worktree_root, write_json_atomic
 from internal.deploy_cache import Inputs, PhaseCache
@@ -154,10 +155,12 @@ def verify_hosted_beta(args, verification, identity):
             os.environ.pop('SKIP_GENERATE', None)
             subprocess.run(['./Scripts/build-for-testing.sh', '--reuse', '--app-only'], check=True)
         os.environ['SKIP_GENERATE'] = '1'
-        for name in targets:
-            smoke = verification.cache.inputs.smoke if verification.cache else required_smoke_classes()
-            mode = 'smoke' if name.split('/')[0] in smoke else 'ui'
-            verification.phase(f'ui:{name}', ['./Scripts/test.sh', mode, '--no-build', name])
+        smoke = verification.cache.inputs.smoke if verification.cache else required_smoke_classes()
+        # Keep plan selection (and StoreKit configuration) intact while paying
+        # simulator/XCTest startup once per plan, rather than once per selector.
+        for mode in ('smoke', 'ui'):
+            selected = [name for name in targets if (name.split('/')[0] in smoke) == (mode == 'smoke')]
+            verification.ui_batch(mode, selected)
     if not args.focused_only:
         status = wait_for_beta_ci(identity['build']['commit'], verification.cache)
         verification.phase('ci', [], {'github': status})
@@ -317,6 +320,63 @@ class Verification:
                                                                   input_key=self.cache.inputs.key(name)))
                 self.save()
                 print(f'Reusing passed UI inputs: {name} (source {proof["commit"]})', flush=True)
+
+    def ui_batch(self, mode, selectors):
+        for selector in selectors:
+            self.reuse(f'ui:{selector}')
+        pending = [selector for selector in selectors if f'ui:{selector}' not in self.completed]
+        if not pending:
+            return
+        root = self.cache.inputs.root if self.cache else ROOT
+        expected = {selector: UI_RESULTS.expected_cases([selector], root / 'TrinketUITests') for selector in pending}
+        if any(not cases for cases in expected.values()):
+            raise ValueError('Cannot establish complete UI coverage for the requested batch.')
+        cases = sorted({case for selected in expected.values() for case in selected})
+        session = 'release-ui-' + uuid.uuid4().hex
+        results = Path(os.environ.get('RESULTS_DIR', '.DerivedData/TestResults')).resolve()
+        before = set(results.glob('*-invocation.json'))
+        failures = {selector: self.cache.read(self.cache.path(f'ui:{selector}', '-failed'))
+                    for selector in pending} if self.cache else {}
+        command = ['./Scripts/test.sh', mode, '--no-build', *pending]
+        started = time.monotonic()
+        error = None
+        passed = set()
+        try:
+            # test.sh verifies every expected method executed exactly once and
+            # passed, including rejecting absent and skipped purchase cases.
+            self.execute(command, check=True, env={**os.environ,
+                'TRINKET_DIAGNOSTICS_SESSION_ID': session, 'TRINKET_CLEANUP_TEST_ARTIFACTS': '0',
+                'TRINKET_DEPLOY_EXPECTED_CASES': json.dumps(cases)})
+            passed = set(pending)
+        except (OSError, subprocess.SubprocessError) as failure:
+            error = failure
+            # A failed batch may still prove complete, passed selectors. Only
+            # its fresh, complete result bundle can checkpoint those successes.
+            manifest_path = UI_RESULTS.new_manifest(results, before, session, mode)
+            try:
+                manifest = UI_RESULTS.read(manifest_path) if manifest_path else {}
+                if manifest.get('result_bundle_complete') is True and manifest.get('action') == 'test-without-building':
+                    evidence = UI_RESULTS.parse_xcresult(Path(manifest['result_bundle']), manifest)
+                    actual = UI_RESULTS.test_results(evidence)
+                    if actual is not None and set(actual) == set(cases):
+                        passed = {selector for selector, selected in expected.items()
+                                  if all(actual[case] == 'Passed' for case in selected)}
+            except (OSError, ValueError, KeyError, TypeError, SystemExit):
+                pass
+        elapsed = round(time.monotonic() - started, 2)
+        for selector in pending:
+            name = f'ui:{selector}'
+            if selector in passed:
+                self.phase(name, [], {'batch': session, 'mode': mode, 'batch_seconds': elapsed})
+                if self.cache:
+                    self.cache.passed(name, {**self.completed[name], 'evidence': 'local',
+                                            'commit': self.identity['build']['commit']},
+                                      failures[selector])
+            elif self.cache:
+                self.cache.failed(name)
+        print(f'{mode} batch: {len(passed)}/{len(pending)} selectors passed ({elapsed}s)', flush=True)
+        if error is not None:
+            raise error
 
     def phase(self, name, command, evidence=None):
         self.reuse(name)

@@ -7,6 +7,10 @@ on:
         description: Exact default-branch commit requested by deployment
         required: true
         type: string
+      fresh-evidence:
+        description: Reexecute journeys for a controlled timing comparison
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -30,6 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
+          ref: ${{ inputs.commit }}
           fetch-depth: 2
       - name: Require the requested source revision
         env:
@@ -56,6 +61,7 @@ jobs:
           python3 Scripts/deploy-verification.py --mode hosted-beta --preflight
       - uses: ./.github/actions/coverage-products
       - name: Restore content-verified journey evidence
+        if: ${{ !inputs.fresh-evidence }}
         uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
         with:
           path: .DerivedData/testflight/verification-cache
@@ -63,8 +69,14 @@ jobs:
           restore-keys: |
             release-journeys-v1-${{ runner.os }}-${{ runner.arch }}-
       - name: Verify all critical journeys on iOS 26.2
+        env:
+          FRESH_EVIDENCE: ${{ inputs.fresh-evidence }}
         run: |
           export TRINKET_DEPLOY_FEEDBACK_BASE_COMMIT="$(git rev-parse HEAD^)"
+          if [[ "$FRESH_EVIDENCE" == true ]]; then
+            export TRINKET_DEPLOY_CACHE_ROOT="$RUNNER_TEMP/fresh-journey-evidence"
+            rm -f .DerivedData/deploy-verification.json
+          fi
           python3 Scripts/deploy-verification.py --mode hosted-beta --focused-only --no-build
       - name: Retain the exact qualified proof
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
@@ -75,7 +87,7 @@ jobs:
           retention-days: 30
           if-no-files-found: error
       - name: Retain passed inputs and failed-class markers
-        if: always()
+        if: always() && !inputs.fresh-evidence
         uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
         with:
           path: .DerivedData/testflight/verification-cache

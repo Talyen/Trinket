@@ -151,6 +151,41 @@ class DeployVerificationTests(unittest.TestCase):
                                      ['./Scripts/test.sh', 'smoke', '--no-build', 'ShopTests']])
             self.assertIn('local_cache', verification.completed['ui:AudioTests/testMusic']['evidence'])
 
+    def test_batch_checkpoints_only_complete_passed_selectors_and_resumes_the_failure(self):
+        for complete in (True, False):
+            with self.subTest(complete=complete), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory) / 'checkout'
+                root.mkdir()
+                self.content_fixture(root)
+                identity, inputs = self.commit_inputs(root)
+                cache = DEPLOY.PhaseCache(Path(directory) / 'cache', inputs)
+                results = Path(directory) / 'results'
+                results.mkdir()
+                calls = []
+                def execute(command, **options):
+                    calls.append(command)
+                    expected = json.loads(options['env']['TRINKET_DEPLOY_EXPECTED_CASES'])
+                    self.assertEqual(expected, ['AudioTests/testMusic', 'ShopTests/testBuy'])
+                    (results / 'batch-invocation.json').write_text(json.dumps(dict(
+                        session_id=options['env']['TRINKET_DIAGNOSTICS_SESSION_ID'], label='ui',
+                        action='test-without-building', result_bundle_complete=complete, result_bundle='batch.xcresult')))
+                    raise subprocess.CalledProcessError(65, command)
+                verification = DEPLOY.Verification(Path(directory) / 'state.json', identity, True, execute, cache)
+                evidence = dict(summary=dict(passed=1, failed=1, skipped=0), tests=[
+                    dict(id='AudioTests/testMusic()', result='Passed'), dict(id='ShopTests/testBuy()', result='Failed')])
+                with patch.dict(DEPLOY.os.environ, RESULTS_DIR=str(results)), \
+                        patch.object(DEPLOY.UI_RESULTS, 'parse_xcresult', return_value=evidence), \
+                        patch.object(DEPLOY, 'capture', side_effect=lambda *args: identity['build']['commit']
+                                     if args[:2] == ('git', 'rev-parse') else ''):
+                    with self.assertRaises(subprocess.CalledProcessError):
+                        verification.ui_batch('ui', ['AudioTests', 'ShopTests'])
+                    self.assertEqual('ui:AudioTests' in verification.completed, complete)
+                    self.assertNotIn('ui:ShopTests', verification.completed)
+                    self.assertEqual(cache.proof('ui:AudioTests') is not None, complete)
+                    verification.execute = lambda command, **_: calls.append(command)
+                    verification.ui_batch('ui', ['AudioTests', 'ShopTests'])
+                self.assertEqual(calls[-1][3:], ['ShopTests'] if complete else ['AudioTests', 'ShopTests'])
+
     def test_hosted_failure_selectors_are_read_only_from_failed_ui_jobs(self):
         jobs = [dict(id=1, name='tests / Build and smoke UI', conclusion='failure'),
                 dict(id=2, name='tests / Unit tests (State)', conclusion='failure')]

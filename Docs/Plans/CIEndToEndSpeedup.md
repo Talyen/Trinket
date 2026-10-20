@@ -18,10 +18,10 @@ hosted end-to-end duration before claiming completion.
 
 - [x] Inspect existing optimizations and distinguish first attempts from reruns.
 - [x] Obtain authorization to push only the task branch and dispatch comparisons.
-- [ ] Run unchanged baseline CI and qualified release verification on the task branch.
-- [ ] Batch release UI without losing case execution proof or passed checkpoints.
-- [ ] Separate product transfer proof from full standard verification proof.
-- [ ] Remove serial package retry duplication and repair package incremental inputs.
+- [x] Start unchanged baseline CI and qualified release verification on the task branch.
+- [x] Batch release UI without losing case execution proof or passed checkpoints.
+- [x] Separate product transfer proof from full standard verification proof.
+- [x] Remove serial package retry duplication and repair package incremental inputs.
 - [ ] Review overlapping UI coverage and retain one effective owner per assertion.
 - [ ] Verify locally, then compare hosted runs with matching scope/toolchain/profile.
 - [ ] Review and integrate under the shared lock; preserve hosted limitations.
@@ -35,3 +35,16 @@ invocation timeout; the other was a Merchant UI snapshot timeout. Do not report
 rerun time as queue time or cache hits as a speedup. Actual assertions, skipped
 cases, first attempts, reruns, preparation and artifacts must remain distinguishable.
 The unrelated CIHostedVerification and CIFailurePrevention plans remain untouched.
+
+Baseline branch commit 497c890269057427e0a1769ff1a40790f4c602d4 changes only this plan.
+CI: https://github.com/Talyen/Trinket/actions/runs/39352744217
+Qualified release: https://github.com/Talyen/Trinket/actions/runs/39352747019
+Both were dispatched together. A fresh-evidence release comparison is also needed
+if this baseline restores already-passed selectors. Push only codex/ci-end-to-end-speedup;
+main pushes and deployment remain outside this authorization.
+
+Initial repair also gives unsigned device Release compilation its own warm cache.
+All existing game tests remain; duplicate save execution on app-state reruns and
+repeated XCTest setup are removed instead of deleting consequential assertions.
+The first full lightweight handoff passed all script regressions, docs and cheap
+gates. Neither that result nor implemented changes establish a speedup.

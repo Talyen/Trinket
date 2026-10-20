@@ -171,8 +171,8 @@ available; the CI policy applies to automatic verification, not to playing the g
 ## Native pure-logic qualification
 
 Hosted iOS/native qualification gates native push activation. Push CI runs
-`BattleEngine` and `TrinketCore` natively after that qualification agrees. State keeps iOS verification
-for Persistence and AppState, and smoke keeps the real simulator/app path. Native
+`BattleEngine` and `TrinketCore` natively after that qualification agrees. Persistence
+and State independently verify saves and AppState on iOS, and smoke keeps the real simulator/app path. Native
 execution must complete every independently discovered function and parameterized
 case without skips or issues; a positive aggregate count is insufficient.
 
@@ -239,8 +239,10 @@ journeys selected against the last available beta. FullUI is nightly/on-demand;
 `testflight.sh --full-ui` and the formal `release.sh` retain the complete portfolio.
 The [beta policy](Release.md#local-testflight-deployment) owns selection, baseline,
 and known-failure handling. Use `--mode smoke` for the optional local smoke canary.
-Release verification runs UI classes separately and stops after a failed class;
-successful classes and packages remain checkpointed for the same clean inputs.
+Qualified beta verification batches pending selectors by Smoke/FullUI plan, retaining
+StoreKit configuration and exact-method execution checks. Complete passed selectors
+remain checkpointed even when another selector in the batch fails; incomplete results
+certify nothing. Formal FullUI release verification retains per-class phases.
 Before pushing a release candidate, `test-deploy.sh --compile-only` can expose
 test-target compiler failures together without running the full test portfolio.
 Targeted UI runs require at least one non-skipped execution for every requested
@@ -277,8 +279,10 @@ Upfront full runs execute FullUI on the build/smoke runner and report its outcom
 through a separate advisory status job, eliminating product transfer. Follow-up
 full dispatches with prior standard proof retain the transfer/reuse path.
 
-Package unit jobs restore separately keyed incremental state in their per-package
-DerivedData tenants, then always invoke compilation/testing so changed inputs rebuild.
+Package unit jobs restore separately keyed incremental state and byte-verified source
+timestamps in their per-package DerivedData tenants, then always invoke compilation/testing
+so changed inputs rebuild. Core, Persistence, and AppState have separate jobs: a failed
+app-state invocation does not repeat passed save tests when rerunning failed jobs.
 They do not download the app product archive. Native-only Engine pushes restore
 only native compiler state in a separate namespace, retaining simulator state for
 the iOS comparator lanes. Cache identity uses setup-trinket’s selected Xcode
@@ -295,6 +299,17 @@ See [ci-reuse.py](../../Scripts/ci-reuse.py) for the proof contract. Exact shard
 job behavior belong to the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
 related workflow files); update this guide only when the verification policy
 changes.
+
+Product-only consumers use a separate exact-commit archive contract. A successful
+archive-producing build step and its same-attempt artifact can transfer products
+before other checks finish, including after a UI failure. Receiving runners still
+validate commit and build environment and execute every requested journey; transfer
+never certifies gate, unit, smoke, parity, or release results. Device Release builds
+use their own incremental cache namespace and still invoke optimized compilation.
+For controlled qualified-journey timing, dispatch `release-verification.yml` with
+`fresh-evidence=true` and the exact source `commit`; prior passed journey records are
+neither consumed nor saved by that comparison. Compare the same runtime and executed
+selectors, and separate first attempts, reruns, setup, transfers and queue time.
 
 Ordinary `build.sh` compiles only the app; it does not produce reusable test
 bundles. CI keeps app incremental build state in its warm cache and transfers only

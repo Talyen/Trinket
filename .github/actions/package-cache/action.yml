@@ -39,6 +39,7 @@ runs:
           echo 'cache-path<<CACHE_PATHS'
           if [[ "$NATIVE_ONLY" != true ]]; then echo '.DerivedData/packages'; fi
           echo '.DerivedData/host'
+          echo '.DerivedData/build-source-times.json'
           echo CACHE_PATHS
         } >> "$GITHUB_OUTPUT"
     - uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
@@ -47,3 +48,6 @@ runs:
         path: ${{ steps.key.outputs.cache-path }}
         key: ${{ steps.key.outputs.cache-key }}
         restore-keys: ${{ steps.key.outputs.restore-prefix }}
+    - name: Preserve timestamps of byte-identical package inputs
+      shell: bash
+      run: python3 Scripts/build-source-times.py restore

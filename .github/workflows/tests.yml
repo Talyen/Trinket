@@ -243,6 +243,18 @@ jobs:
           metal: 'true'
           xcode-channel: ${{ inputs.xcode-channel }}
           xcode-build: ${{ inputs.xcode-build }}
+      - name: Read device Release cache identity
+        id: release-key
+        uses: ./.github/actions/build-cache-key
+      - name: Restore incremental device Release state
+        id: release-cache
+        uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
+        with:
+          path: .DerivedData
+          key: device-release-v1-${{ steps.release-key.outputs.cache-key }}
+          restore-keys: device-release-v1-${{ steps.release-key.outputs.cache-restore-prefix }}
+      - name: Preserve byte-identical Release compiler inputs
+        run: python3 Scripts/build-source-times.py restore
       - name: Compile unsigned device Release
         env:
           SKIP_GENERATE: 1
@@ -250,6 +262,18 @@ jobs:
           # runners; cap execution before the job timeout so diagnostics can finish.
           TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
         run: python3 Scripts/ci-run-budget.py -- ./Scripts/build.sh --release-device --quiet
+      - name: Record Release compiler input timestamps
+        if: success() && steps.release-cache.outputs.cache-hit != 'true'
+        run: python3 Scripts/build-source-times.py record
+      - name: Prune incremental device Release state
+        if: success() && steps.release-cache.outputs.cache-hit != 'true'
+        run: ./Scripts/prune-derived-data-cache.sh --ci
+      - name: Save incremental device Release state
+        if: success() && steps.release-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
+        with:
+          path: .DerivedData
+          key: device-release-v1-${{ steps.release-key.outputs.cache-key }}
       - name: Stage bounded Release build failure diagnostics
         if: failure()
         run: |
@@ -275,7 +299,7 @@ jobs:
     runs-on: xcode-27
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
-    # Sharded 4-way (Engine/State/Content/Battle) for faster push feedback.
+    # Save and app-state packages have independent simulators and retry boundaries.
     timeout-minutes: ${{ matrix.name == 'Battle' && 30 || 25 }}
     env:
       TRINKET_DIAGNOSTICS_SESSION_ID: unit-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -320,7 +344,7 @@ jobs:
         id: package-cache
         with:
           shard: ${{ matrix.name }}
-          native-only: ${{ matrix.name == 'Engine' && github.event_name == 'push' }}
+          native-only: ${{ (matrix.name == 'Engine' || matrix.name == 'Core') && github.event_name == 'push' }}
       - name: Test packages (${{ matrix.packages }})
         uses: ./.github/actions/test-job
         with:
@@ -329,7 +353,7 @@ jobs:
           command: ./Scripts/test-ci-packages.sh ${{ matrix.packages }}
       - name: Export exact-run iOS comparator evidence
         id: ios-proof
-        if: always() && !cancelled() && (matrix.name == 'Engine' || matrix.name == 'State' || matrix.name == 'Core') && github.event_name != 'push'
+        if: always() && !cancelled() && (matrix.name == 'Engine' || matrix.name == 'Core') && github.event_name != 'push'
         env:
           PACKAGE: ${{ matrix.name == 'Engine' && 'BattleEngine' || 'TrinketCore' }}
         run: python3 Scripts/native-test-results.py export-ios "$PACKAGE" .DerivedData/TestResults/timing-log.jsonl .DerivedData/ParityProof/ios.json
@@ -342,6 +366,9 @@ jobs:
           retention-days: 14
           if-no-files-found: error
 
+      - name: Record package compiler input timestamps
+        if: success() && steps.package-cache.outputs.cache-hit != 'true'
+        run: python3 Scripts/build-source-times.py record
       - name: Prune package build state
         if: success() && steps.package-cache.outputs.cache-hit != 'true'
         run: ./Scripts/prune-derived-data-cache.sh --ci
@@ -365,7 +392,7 @@ jobs:
             source-shard: Engine
           - name: Core
             package: TrinketCore
-            source-shard: ${{ inputs.qualify-native && 'Core' || 'State' }}
+            source-shard: Core
     runs-on: xcode-27
     timeout-minutes: 25
     env:

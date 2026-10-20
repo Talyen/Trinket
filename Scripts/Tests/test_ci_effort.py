@@ -75,6 +75,26 @@ class CIEffortTests(unittest.TestCase):
         with patch.object(REUSE, 'api', side_effect=[[{'workflow_runs': [run]}], [{'jobs': jobs}], [{'artifacts': artifacts}]]):
             self.assertEqual(REUSE.find_proof('owner/repo', 'abc', 'main', '20')['standard'], 'false')
 
+    def test_product_transfer_does_not_require_or_certify_unrelated_checks(self):
+        run, jobs, artifacts = self.proof_fixture()
+        build = dict(name='tests / Build and smoke UI', conclusion='success', run_attempt=1,
+                     steps=[dict(name='Restore warm cache and build', conclusion='success')])
+        running = {**run, 'status': 'in_progress', 'conclusion': None}
+        proof = REUSE.product_proof(running, [build], artifacts, 'abc', 'main')
+        self.assertEqual(proof['products'], 'true')
+        self.assertEqual(proof['standard'], 'false')
+        self.assertIsNotNone(REUSE.product_proof(running, [{**build, 'conclusion': 'failure'}], artifacts, 'abc', 'main'))
+        self.assertIsNone(REUSE.proof(run, [build], artifacts, 'abc', 'main'))
+        manual = {**running, 'event': 'workflow_dispatch', 'display_title': 'Trinket CI (verified)'}
+        self.assertIsNotNone(REUSE.product_proof(manual, [build], artifacts, 'abc', 'main'))
+        for changed in ({'head_sha': 'old'}, {'head_branch': 'other'}, {'event': 'schedule'},
+                        {'event': 'workflow_dispatch', 'display_title': 'Trinket CI (latest)'}):
+            self.assertIsNone(REUSE.product_proof({**running, **changed}, [build], artifacts, 'abc', 'main'))
+        for changed in ({'steps': []}, {'steps': [dict(name='Restore warm cache and build', conclusion='failure')]},
+                        {'run_attempt': 2}, {'run_attempt': None}):
+            self.assertIsNone(REUSE.product_proof(running, [{**build, **changed}], artifacts, 'abc', 'main'))
+        self.assertIsNone(REUSE.product_proof(running, [build], [{**artifacts[0], 'expired': True}], 'abc', 'main'))
+
     def retry_fixture(self, root):
         bundle = root / 'original.xcresult'
         bundle.mkdir()
