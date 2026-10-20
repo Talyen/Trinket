@@ -33,7 +33,9 @@ extension UniqueCombatEngine {
               damage.options.capturesCardRepeat, !damage.options.isResolvedCardRepeat,
               let sourceID = damage.sourceActorID,
               isOrdinaryAction(actorID: sourceID, in: context) else { return }
-        var options = damage.options.repeated(scaling: .resolved, guaranteedCritical: damage.isCritical)
+        var options = damage.options.repeated(
+            origin: .cardRepeat, scaling: .resolved, guaranteedCritical: damage.isCritical,
+        )
         options.capturesCardRepeat = true
         let request = DamageRequest(
             amount: outgoingAmount,

@@ -148,7 +148,8 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
 
     var isRetaliation: Bool {
         switch kind {
-        case .elementalReaction, .reaction, .periodic, .attack(_, .counterattack), .attack(_, .cardRepeat),
+        case .elementalReaction, .reaction, .periodic, .attack(_, .counterattack), .attack(_, .repeatedAttack),
+             .attack(_, .cardRepeat),
              .attack(_, .criticalRepeat): true
         default: false
         }

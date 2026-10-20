@@ -13,6 +13,7 @@ enum BattleDamageRules {
         let base: Int
         switch component.scaling {
         case let .actorBlockFraction(divisor, minimum):
+            guard divisor > 0 else { return nil }
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: action.actor))
             base = max(minimum, block / divisor)
         case nil:
