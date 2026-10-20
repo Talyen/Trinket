@@ -380,6 +380,10 @@ class CIImprovementsTests(unittest.TestCase):
                 self.assertLess(block.index('TRINKET_CI_DEADLINE_EPOCH='), block.index('actions/checkout@'))
 
     def test_push_native_routing_keeps_manual_ios_comparators(self):
+        # Exercise dispatcher defaults independently of the runner's selected backend.
+        routing_env = {key: value for key, value in os.environ.items()
+                       if key not in {'TRINKET_CI_NATIVE_PACKAGES', 'TRINKET_CI_NATIVE_LOGIC',
+                                      'NATIVE_STATUS', 'IOS_STATUS'}}
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / 'Scripts').mkdir()
@@ -396,20 +400,20 @@ class CIImprovementsTests(unittest.TestCase):
             mixed = ['native:BattleEngine TrinketCore', contracts, 'ios:TrinketPersistence', state]
             for event, expected in [('push', mixed),
                                     ('workflow_dispatch', all_ios)]:
-                result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root, env={**os.environ, 'GITHUB_EVENT_NAME': event}, expected=0)
+                result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root, env={**routing_env, 'GITHUB_EVENT_NAME': event}, expected=0)
                 self.assertEqual(result.stdout.splitlines(), expected)
             result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
-                                  env={**os.environ, 'GITHUB_EVENT_NAME': 'push',
+                                  env={**routing_env, 'GITHUB_EVENT_NAME': 'push',
                                        'TRINKET_CI_NATIVE_PACKAGES': ''}, expected=0)
             self.assertEqual(result.stdout.splitlines(), all_ios)
             result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
-                                  env={**os.environ, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
+                                  env={**routing_env, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
                                        'TRINKET_CI_NATIVE_LOGIC': 'true'}, expected=0)
             self.assertEqual(result.stdout.splitlines(), mixed)
             for qualified, expected in [('BattleEngine TrinketCore TrinketContent', ['native:TrinketContent', 'ios:TrinketDesignSystem']),
                                         ('BattleEngine TrinketCore', ['ios:TrinketContent TrinketDesignSystem'])]:
                 result = run_captured(['bash', 'Scripts/test-ci-packages.sh', 'TrinketContent', 'TrinketDesignSystem'],
-                                      cwd=root, env={**os.environ, 'GITHUB_EVENT_NAME': 'push',
+                                      cwd=root, env={**routing_env, 'GITHUB_EVENT_NAME': 'push',
                                                      'TRINKET_CI_NATIVE_PACKAGES': qualified}, expected=0)
                 self.assertEqual(result.stdout.splitlines(), expected)
             # A failed Core run must still exercise saves and app transitions,
@@ -417,7 +421,7 @@ class CIImprovementsTests(unittest.TestCase):
             for native, ios, expected in ((17, 0, 17), (0, 23, 23), (17, 23, 17)):
                 with self.subTest(native=native, ios=ios):
                     result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
-                                          env={**os.environ, 'GITHUB_EVENT_NAME': 'push',
+                                          env={**routing_env, 'GITHUB_EVENT_NAME': 'push',
                                                'NATIVE_STATUS': str(native), 'IOS_STATUS': str(ios)}, expected=expected)
                     self.assertEqual(result.stdout.splitlines(),
                                      mixed)
