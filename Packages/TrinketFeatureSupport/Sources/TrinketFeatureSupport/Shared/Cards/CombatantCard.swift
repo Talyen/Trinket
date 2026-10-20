@@ -40,6 +40,7 @@ public struct CombatantCard: View {
 }
 
 public struct CollectionCombatantButton: View {
+    @Environment(\.locale) private var locale
     let combatant: Combatant
     let isLocked: Bool
     var cardWidth: CGFloat? = 130
@@ -61,7 +62,9 @@ public struct CollectionCombatantButton: View {
     }
 
     public var body: some View {
-        Button(action: onSelect) {
+        var name = ContentCopy.resource(combatant.name)
+        name.locale = locale
+        return Button(action: onSelect) {
             CombatantCard(
                 combatant: combatant,
                 isLocked: isLocked,
@@ -70,8 +73,9 @@ public struct CollectionCombatantButton: View {
             .frame(width: cardWidth)
         }
         .trinketArtworkCardButtonStyle()
-        .accessibilityLabel(isLocked ? String(localized: L10n.ui_combatantcard_1_locked_1871c("\(combatant.name)")) : ContentCopy
-            .localized(combatant.name))
+        .accessibilityLabel(isLocked
+            ? Text(L10n.ui_combatantcard_1_locked_1871c(name))
+            : Text(verbatim: ContentCopy.localized(combatant.name, locale: locale)))
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.collectionCard(name: combatant.name))
     }
 }

@@ -17,6 +17,12 @@
             "value": "Locked"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -33,6 +39,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "잠김"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueado"
           }
         },
         "zh-Hant": {
@@ -59,6 +71,12 @@
             "value": "999,999 Gold"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "999 999 de oro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -75,6 +93,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "999,999 골드"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "999.999 de Ouro"
           }
         },
         "zh-Hant": {
@@ -101,6 +125,12 @@
             "value": "Actions Available"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acciones disponibles"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -117,6 +147,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "행동 사용 가능"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ações disponíveis"
           }
         },
         "zh-Hant": {
@@ -143,6 +179,12 @@
             "value": "Build"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -159,6 +201,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "건설"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir"
           }
         },
         "zh-Hant": {
@@ -185,6 +233,12 @@
             "value": "Controls"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controles"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -201,6 +255,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "조작"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controles"
           }
         },
         "zh-Hant": {
@@ -227,6 +287,12 @@
             "value": "Inspect"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspeccionar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -243,6 +309,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "살펴보기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspecionar"
           }
         },
         "zh-Hant": {
@@ -269,6 +341,12 @@
             "value": "Inspect Selected Companion"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspeccionar compañero seleccionado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -285,6 +363,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "선택한 동료 살펴보기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspecionar Companheiro selecionado"
           }
         },
         "zh-Hant": {
@@ -311,6 +395,12 @@
             "value": "Materials"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Materiales"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -327,6 +417,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "재료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Materiais"
           }
         },
         "zh-Hant": {
@@ -353,6 +449,12 @@
             "value": "Selected"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -369,6 +471,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "선택됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecionado"
           }
         },
         "zh-Hant": {
@@ -395,6 +503,12 @@
             "value": "Semantic Colors"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colores semánticos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -411,6 +525,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "의미별 색상"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cores semânticas"
           }
         },
         "zh-Hant": {
@@ -437,6 +557,12 @@
             "value": "Surfaces"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Superficies"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -453,6 +579,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "표면"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Superfícies"
           }
         },
         "zh-Hant": {
@@ -479,6 +611,12 @@
             "value": "System semantic text remains adaptive over the cool charcoal canvas."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El texto semántico del sistema mantiene su adaptación sobre el fondo de carbón frío."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -495,6 +633,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "차가운 차콜색 배경에서도 시스템 의미별 텍스트 색상이 자동으로 조정됩니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O texto semântico do sistema continua adaptável sobre o fundo cinza-carvão frio."
           }
         },
         "zh-Hant": {
@@ -521,6 +665,12 @@
             "value": "Trinket Theme"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tema de Trinket"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -537,6 +687,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "트링킷 테마"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tema Trinket"
           }
         },
         "zh-Hant": {
@@ -563,6 +719,12 @@
             "value": "Unavailable"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No disponible"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -579,6 +741,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "사용 불가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indisponível"
           }
         },
         "zh-Hant": {

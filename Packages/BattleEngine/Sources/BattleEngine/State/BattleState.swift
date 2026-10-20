@@ -247,9 +247,11 @@ public struct BattleState {
         precondition(commandOutput == nil, "Internal rules must use the active command's executor")
         let output = BattleCommandOutput(recordActions: recordActions)
         commandOutput = output
+        output.recordCombatants(in: self)
         defer { commandOutput = nil }
         try await operation(&self)
         finishMutation(rebuildLog: rebuildLog)
+        output.recordCombatants(in: self, afterEventID: nextEventID)
         return output.result
     }
 

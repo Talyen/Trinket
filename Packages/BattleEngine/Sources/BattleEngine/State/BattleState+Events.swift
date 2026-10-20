@@ -93,6 +93,7 @@ package extension BattleState {
         if tracksEvents {
             events.append(event)
         }
+        commandOutput?.recordCombatants(in: self, afterEventID: event.id)
         commandOutput?.append(event)
         return event
     }

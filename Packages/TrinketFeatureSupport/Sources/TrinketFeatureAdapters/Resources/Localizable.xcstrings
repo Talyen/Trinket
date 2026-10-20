@@ -17,6 +17,12 @@
             "value": "%1$@/%2$@ XP"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@/%2$@ EXP"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -33,6 +39,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@/%2$@ 경험치"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@/%2$@ XP"
           }
         },
         "zh-Hant": {
@@ -59,6 +71,12 @@
             "value": "Abilities"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habilidades"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -75,6 +93,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "능력"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habilidades"
           }
         },
         "zh-Hant": {
@@ -101,6 +125,12 @@
             "value": "Items"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Objetos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -117,6 +147,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "아이템"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itens"
           }
         },
         "zh-Hant": {
@@ -143,6 +179,12 @@
             "value": "LEVEL %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NIVEL %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -159,6 +201,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "레벨 %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NÍVEL %1$@"
           }
         },
         "zh-Hant": {
@@ -185,6 +233,12 @@
             "value": "Preparing talents"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando talentos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -201,6 +255,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "특성 준비 중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando talentos"
           }
         },
         "zh-Hant": {
@@ -227,6 +287,12 @@
             "value": "Active Effects"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Efectos activos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -243,6 +309,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "활성 효과"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Efeitos ativos"
           }
         },
         "zh-Hant": {
@@ -269,6 +341,12 @@
             "value": "Complete"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -285,6 +363,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concluído"
           }
         },
         "zh-Hant": {
@@ -311,6 +395,12 @@
             "value": "Modifiers"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modificadores"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -327,6 +417,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "보정 효과"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modificadores"
           }
         },
         "zh-Hant": {
@@ -353,6 +449,12 @@
             "value": "Talents"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Talentos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -369,6 +471,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "특성"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Talentos"
           }
         },
         "zh-Hant": {
@@ -395,6 +503,12 @@
             "value": "Traits"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rasgos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -411,6 +525,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "속성"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traços"
           }
         },
         "zh-Hant": {
@@ -437,6 +557,12 @@
             "value": "%1$@, locked"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, bloqueado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -453,6 +579,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, 잠김"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, bloqueado"
           }
         },
         "zh-Hant": {
@@ -479,6 +611,12 @@
             "value": "Complete Row %1$@ to Unlock"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completa la fila %1$@ para desbloquear"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -495,6 +633,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@행을 완료하면 잠금 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conclua a linha %1$@ para desbloquear"
           }
         },
         "zh-Hant": {
@@ -521,6 +665,12 @@
             "value": "Locked"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -537,6 +687,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "잠김"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueado"
           }
         },
         "zh-Hant": {
@@ -563,6 +719,12 @@
             "value": "No Points Available"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay puntos disponibles"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -579,6 +741,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "사용 가능한 포인트 없음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum ponto disponível"
           }
         },
         "zh-Hant": {
@@ -605,6 +773,12 @@
             "value": "Reset All Talents"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer todos los talentos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -621,6 +795,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 특성 초기화"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redefinir todos os Talentos"
           }
         },
         "zh-Hant": {
@@ -647,6 +827,12 @@
             "value": "TALENTS"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TALENTOS"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -663,6 +849,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "특성"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TALENTOS"
           }
         },
         "zh-Hant": {
@@ -689,6 +881,12 @@
             "value": "Unlock Talent"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear talento"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -705,6 +903,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "특성 잠금 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear Talento"
           }
         },
         "zh-Hant": {
@@ -731,6 +935,12 @@
             "value": "Unlocked"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloqueado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -747,6 +957,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "잠금 해제됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloqueado"
           }
         },
         "zh-Hant": {
@@ -773,6 +989,12 @@
             "value": "%1$@, %2$@ of %3$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ de %3$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -789,6 +1011,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, %3$@개 중 %2$@개"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@ de %3$@"
           }
         },
         "zh-Hant": {
@@ -815,6 +1043,12 @@
             "value": "Health"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salud"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -831,6 +1065,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "체력"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vida"
           }
         },
         "zh-Hant": {
@@ -857,6 +1097,12 @@
             "value": "Mana"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maná"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -873,6 +1119,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "마나"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mana"
           }
         },
         "zh-Hant": {
@@ -899,6 +1151,12 @@
             "value": "Preparing equipment"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando equipo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -915,6 +1173,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "장비 준비 중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando equipamento"
           }
         },
         "zh-Hant": {
@@ -941,6 +1205,12 @@
             "value": "%1$@ of %2$@ items"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de %2$@ objetos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -957,6 +1227,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "아이템 %2$@개 중 %1$@개"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de %2$@ itens"
           }
         },
         "zh-Hant": {
@@ -983,6 +1259,12 @@
             "value": "All equipment"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo el equipo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -999,6 +1281,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 장비"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos os equipamentos"
           }
         },
         "zh-Hant": {
@@ -1025,6 +1313,12 @@
             "value": "All Keywords"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las palabras clave"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1041,6 +1335,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 키워드"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as palavras-chave"
           }
         },
         "zh-Hant": {
@@ -1067,6 +1367,12 @@
             "value": "All Rarities"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las rarezas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1083,6 +1389,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 희귀도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as raridades"
           }
         },
         "zh-Hant": {
@@ -1109,6 +1421,12 @@
             "value": "Clear Filters"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar filtros"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1125,6 +1443,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "필터 지우기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar filtros"
           }
         },
         "zh-Hant": {
@@ -1151,6 +1475,12 @@
             "value": "Equip Accessory"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipar accesorio"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1167,6 +1497,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "장신구 장착"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipar Acessório"
           }
         },
         "zh-Hant": {
@@ -1193,6 +1529,12 @@
             "value": "Equip Armor"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipar armadura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1209,6 +1551,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "방어구 장착"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipar Armadura"
           }
         },
         "zh-Hant": {
@@ -1235,6 +1583,12 @@
             "value": "Equip Trinket"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipar abalorio"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1251,6 +1605,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "트링킷 장착"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipar Berloque"
           }
         },
         "zh-Hant": {
@@ -1277,6 +1637,12 @@
             "value": "Equip Weapon"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipar arma"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1293,6 +1659,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "무기 장착"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipar Arma"
           }
         },
         "zh-Hant": {
@@ -1319,6 +1691,12 @@
             "value": "Equipped by %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipado por %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1335,6 +1713,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "장착자: %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipado por %1$@"
           }
         },
         "zh-Hant": {
@@ -1361,6 +1745,12 @@
             "value": "Equipped by this combatant"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipado por este combatiente"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1377,6 +1767,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "이 전투원이 장착 중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipado por este combatente"
           }
         },
         "zh-Hant": {
@@ -1403,6 +1799,12 @@
             "value": "Filter Equipment"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrar equipo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1419,6 +1821,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "장비 필터"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrar equipamentos"
           }
         },
         "zh-Hant": {
@@ -1445,6 +1853,12 @@
             "value": "Filters active"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtros activos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1461,6 +1875,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "필터 적용됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtros ativos"
           }
         },
         "zh-Hant": {
@@ -1487,6 +1907,12 @@
             "value": "Keyword"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Palabra clave"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1503,6 +1929,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "키워드"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Palavra-chave"
           }
         },
         "zh-Hant": {
@@ -1529,6 +1961,12 @@
             "value": "Move from %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transferir de %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1545,6 +1983,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@에게서 이동"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transferir de %1$@"
           }
         },
         "zh-Hant": {
@@ -1571,6 +2015,12 @@
             "value": "No Items to Equip"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay objetos para equipar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1587,6 +2037,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "장착할 아이템 없음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum item para equipar"
           }
         },
         "zh-Hant": {
@@ -1613,6 +2069,12 @@
             "value": "No Matching Items"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay objetos coincidentes"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1629,6 +2091,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "일치하는 아이템 없음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum item correspondente"
           }
         },
         "zh-Hant": {
@@ -1655,6 +2123,12 @@
             "value": "Rarity"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rareza"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1671,6 +2145,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "희귀도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raridade"
           }
         },
         "zh-Hant": {
@@ -1697,6 +2177,12 @@
             "value": "Search equipment"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar equipo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1713,6 +2199,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "장비 검색"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar equipamentos"
           }
         },
         "zh-Hant": {
@@ -1739,6 +2231,12 @@
             "value": "Try a different search or filter"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prueba otra búsqueda o filtro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1755,6 +2253,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다른 검색어나 필터를 사용해 보세요"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tente outra busca ou outro filtro"
           }
         },
         "zh-Hant": {
@@ -1781,6 +2285,12 @@
             "value": "Unequip Accessory"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desequipar accesorio"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1797,6 +2307,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "장신구 장착 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desequipar Acessório"
           }
         },
         "zh-Hant": {
@@ -1823,6 +2339,12 @@
             "value": "Unequip Armor"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desequipar armadura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1839,6 +2361,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "방어구 장착 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desequipar Armadura"
           }
         },
         "zh-Hant": {
@@ -1865,6 +2393,12 @@
             "value": "Unequip Trinket"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desequipar abalorio"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1881,6 +2415,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "트링킷 장착 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desequipar Berloque"
           }
         },
         "zh-Hant": {
@@ -1907,6 +2447,12 @@
             "value": "Unequip Weapon"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desequipar arma"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1923,6 +2469,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "무기 장착 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desequipar Arma"
           }
         },
         "zh-Hant": {
@@ -1949,6 +2501,12 @@
             "value": "Battle"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batalla"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1965,6 +2523,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "전투"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batalha"
           }
         },
         "zh-Hant": {
@@ -1991,6 +2555,12 @@
             "value": "Boss"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jefe"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2007,6 +2577,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "우두머리"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chefe"
           }
         },
         "zh-Hant": {
@@ -2033,6 +2609,12 @@
             "value": "Floor %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Piso %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2049,6 +2631,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@층"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andar %1$@"
           }
         },
         "zh-Hant": {
@@ -2075,6 +2663,12 @@
             "value": "Battle"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batalla"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2091,6 +2685,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "전투"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batalha"
           }
         },
         "zh-Hant": {
@@ -2117,6 +2717,12 @@
             "value": "Embark"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embarcar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2133,6 +2739,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "출항"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embarcar"
           }
         },
         "zh-Hant": {
@@ -2159,6 +2771,12 @@
             "value": "Voyage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Travesía"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2175,6 +2793,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "항해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viagem"
           }
         },
         "zh-Hant": {

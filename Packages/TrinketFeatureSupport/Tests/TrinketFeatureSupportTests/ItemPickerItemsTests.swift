@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
@@ -19,6 +20,29 @@ struct ItemPickerItemsTests {
         #expect(model.matching(ItemPickerFilter(search: "etoile", keyword: .poison)).isEmpty)
         #expect(model.keywords == [.burn, .health, .physical])
         #expect(!model.keywords.contains(.poison))
+    }
+
+    @Test func `search finds displayed translations and rebuilds for the rendering locale`() throws {
+        let base = try #require(GameContent.itemBaseType(matching: "maul"))
+        let item = InventoryItem(
+            id: "localized-maul", baseType: base, rarity: .basic, displayName: base.name,
+            affixes: [ItemAffix(
+                id: "search-fixture",
+                title: "Smoldering",
+                description: "Increase Burn damage by 1",
+                keywords: [.burn, .dodge],
+            )],
+        )
+        var model = ItemPickerItems()
+        model.update(inventory: [item], loadout: .init(), slot: .weapon, locale: Locale(identifier: "en"))
+        #expect(model.matching(ItemPickerFilter(search: "Maul Smoldering")).map(\.id) == [item.id])
+        // The unchanged inventory must rebuild: the card's item noun differs from the Maul attack.
+        model.update(inventory: [item], loadout: .init(), slot: .weapon, locale: Locale(identifier: "ko"))
+        #expect(model.matching(ItemPickerFilter(search: "대형 망치 그을린 화상 피해 1 증가 회피")).map(\.id) == [item.id])
+        #expect(model.matching(ItemPickerFilter(search: "후려치기")).isEmpty)
+        model.update(inventory: [item], loadout: .init(), slot: .weapon, locale: Locale(identifier: "en"))
+        #expect(model.matching(ItemPickerFilter(search: "대형 망치")).isEmpty)
+        #expect(model.matching(ItemPickerFilter(search: "Maul Smoldering")).map(\.id) == [item.id])
     }
 
     @Test func `order is deterministic and stable during visit`() {

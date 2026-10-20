@@ -6,6 +6,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 public struct CombatantDetailPane: View {
+    @Environment(\.locale) private var locale
     @Environment(\.playSFX) private var playSFX
     @Environment(\.scenePhase) private var scenePhase
 
@@ -106,7 +107,7 @@ public struct CombatantDetailPane: View {
         .task(id: requestedItemSlot) {
             guard let slot = requestedItemSlot else { return }
             var items = ItemPickerItems()
-            items.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
+            items.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot, locale: locale)
             let lease = await ItemPickerArtworkLease(items: items.eligible)
             guard !Task.isCancelled, requestedItemSlot == slot else { return }
             pickerItems = items

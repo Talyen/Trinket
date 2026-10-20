@@ -5,6 +5,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct HomesteadDetailSheetView: View {
+    @Environment(\.locale) private var locale
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.dismiss) private var dismiss
 
@@ -50,11 +51,13 @@ struct HomesteadDetailSheetView: View {
     }
 
     private func improvement(_ tier: HomesteadNodeTier) -> some View {
-        ScrollView {
+        var title = ContentCopy.resource(definition.title)
+        title.locale = locale
+        return ScrollView {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                GameLabel(tier
-                    .tier == 1 ? String(localized: L10n.ui_homesteaddetailsheetviews_build_1_08716("\(definition.title)")) : definition
-                    .title)
+                Text(tier.tier == 1
+                    ? L10n.ui_homesteaddetailsheetviews_build_1_08716(title)
+                    : title)
                     .trinketTypography(.sectionDisplay)
                 if tier.tier == 1 {
                     HomesteadBenefitsView(

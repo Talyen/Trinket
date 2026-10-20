@@ -40,8 +40,16 @@ def submission_files(root: Path, config: dict, catalog: dict) -> dict[Path, byte
             if set(value) != {'value'} or not value['value'].strip() or len(value['value']) > limit:
                 raise ValueError(f'App Store {locale}/{key}: expected nonempty text of at most {limit} characters')
             fields[key] = value['value']
-        store_locale = config.get('storeLocales', {}).get(locale, STORE_LOCALES.get(locale))
-        if not store_locale or '/' in store_locale or not all(part.isalnum() for part in store_locale.split('-')):
-            raise ValueError(f'{locale}: configure a valid App Store locale in storeLocales')
-        output[root / f'Localization/Generated/AppStore/{store_locale}.json'] = encoded(fields)
+        store_locales = config.get('storeLocales', {}).get(locale, STORE_LOCALES.get(locale))
+        if isinstance(store_locales, str):
+            store_locales = [store_locales]
+        if not isinstance(store_locales, list) or not store_locales:
+            raise ValueError(f'{locale}: configure App Store locales in storeLocales')
+        for store_locale in store_locales:
+            if not isinstance(store_locale, str) or not store_locale or '/' in store_locale or not all(part.isalnum() for part in store_locale.split('-')):
+                raise ValueError(f'{locale}: configure a valid App Store locale in storeLocales')
+            path = root / f'Localization/Generated/AppStore/{store_locale}.json'
+            if path in output:
+                raise ValueError(f'{locale}: duplicate App Store locale {store_locale}')
+            output[path] = encoded(fields)
     return output

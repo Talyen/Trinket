@@ -5,7 +5,6 @@ extension BattleFeedbackLane {
     func scheduleActions(
         _ playback: BattleTransitionPlayback,
         preparedCardID: Int?,
-        playedCardID: Int? = nil,
         at date: Date,
         cardPlayback: BattleCardPlaybackState,
         handDeparture: (id: UUID, card: BattleCard)? = nil,
@@ -24,7 +23,6 @@ extension BattleFeedbackLane {
             let departure = handDeparture.flatMap { action?.cardID == $0.card.id ? $0 : nil }
             guard !group.events.isEmpty || card != nil || departure != nil else { continue }
             let actorID = action.flatMap { $0.isAttack ? $0.actorID : nil }
-            let isManual = playedCardID != nil && action?.cardID == playedCardID
             let isPrepared = action?.cardID != nil && action?.cardID == preparedCardID
             if isPrepared, let action, !action.isAttack {
                 previewAttack(.cancel, for: action.actorID, at: date)
@@ -54,19 +52,15 @@ extension BattleFeedbackLane {
                     id: departure?.id ?? UUID(), isHandDeparture: departure != nil,
                 )
             }
-            let beatID = actionQueue.append { id in
+            _ = actionQueue.append { id in
                 BattleScheduledAction(
                     id: id, actorID: actorID, events: group.events, damage: action?.damage ?? [], castID: castID,
                     swingDuration: timing.swing, recoveryDuration: timing.recovery, preparationCap: timing.preparationCap,
-                    deliversResultsImmediately: isManual,
                     startAt: startAt, swingAt: swingAt,
                     impactAt: actorID == nil && card != nil
                         ? max(impactAt, revealAt.addingTimeInterval(BattleMotion.automaticCardRevealDuration)) : impactAt,
                     nextCue: actorID == nil ? .impact : (isPrepared ? .swing : .windUp), present: present,
                 )
-            }
-            if isManual {
-                present(group.events, action?.damage ?? [], date, beatID)
             }
         }
         appendRemainingAutomaticCards(automaticCards, at: date, cardPlayback: cardPlayback)
@@ -107,9 +101,7 @@ extension BattleFeedbackLane {
                     )
                 }
             case .impact:
-                if !action.deliversResultsImmediately {
-                    action.present(action.events, action.damage, action.impactAt, action.id)
-                }
+                action.present(action.events, action.damage, action.impactAt, action.id)
                 if let actorID = action.actorID, attackOwners[actorID] == action.id {
                     publishAttack(.recover, for: actorID, at: action.impactAt, duration: action.recoveryDuration)
                     if previewActors.contains(actorID) {
@@ -208,7 +200,10 @@ extension BattleFeedbackLane {
         var groups = playback.actions.map { action in
             (action: Optional(action), events: action.eventIDs.compactMap { eventsByID[$0] })
         }
-        let remaining = playback.events.filter { !assignedIDs.contains($0.id) && $0.milestone == nil }
+        let changedEventIDs = Set(playback.combatantChanges.map(\.eventID))
+        let remaining = playback.events.filter {
+            !assignedIDs.contains($0.id) && ($0.milestone == nil || changedEventIDs.contains($0.id))
+        }
         for group in Dictionary(grouping: remaining, by: \.feedbackGroupID).values {
             groups.append((nil, group))
         }

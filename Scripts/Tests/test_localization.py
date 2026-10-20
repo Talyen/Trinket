@@ -156,6 +156,29 @@ class LocalizationTests(unittest.TestCase):
         self.assertEqual(sum('unlocalized literal' in error for error in errors), 3)
         self.assertTrue(any('unknown typed localization resource' in error for error in errors))
 
+    def test_canonical_content_arguments_cannot_hide_inside_translated_sentences(self):
+        from internal.localization_sources import source_errors
+        source = self.root / 'Packages/Example/Sources/Example/Screen.swift'
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text('''Text(L10n.deal_burn("\\(combatant.name)"))
+Text(L10n.deal_burn(
+    count,
+    node.title
+))
+.accessibilityLabel(Text(L10n.deal_burn("\\(type.title)")))
+Text(L10n.deal_burn(ContentCopy.localized(node.name, locale: locale)))
+Text(L10n.deal_burn(item.localizedDisplayName(locale: locale)))
+Text(L10n.deal_burn(category.displayName))
+Text(verbatim: "L10n.deal_burn(node.title)")
+Text(L10n.deal_burn("literal (punctuation), title", count))
+// Text(L10n.deal_burn(combatant.name))
+/* Text(L10n.deal_burn(node.description)) */
+.accessibilityIdentifier("\\(combatant.name) card")
+''')
+        errors = [error for error in source_errors(self.root) if 'canonical content argument' in error]
+        self.assertEqual(len(errors), 3)
+        self.assertTrue(all('Screen.swift:' in error for error in errors))
+
     def test_swift_authored_keys_survive_english_edits(self):
         from internal.localization_sources import content_sources
         source = self.root / 'Packages/TrinketContent/Sources/TrinketContent/Fixture.swift'
@@ -194,6 +217,22 @@ class LocalizationTests(unittest.TestCase):
         catalog['strings']['store.promotionaltext']['localizations']['fr'] = {'stringUnit': {'value': 'x' * 171}}
         with self.assertRaisesRegex(ValueError, 'fr/promotionalText'):
             submission_files(self.root, {'locales': ['fr']}, catalog)
+
+    def test_shared_spanish_store_copy_covers_both_regions_without_overwriting_another_language(self):
+        from internal.localization_store import LIMITS, submission_files
+        catalog = {'strings': {'store.' + key.lower(): {'localizations': {
+            locale: {'stringUnit': {'value': text}} for locale, text in [('en', 'English'), ('es', 'Español')]
+        }} for key in LIMITS}}
+        config = {'locales': ['es'], 'storeLocales': {'es': ['es-ES', 'es-MX']}}
+        files = submission_files(self.root, config, catalog)
+        directory = self.root / 'Localization/Generated/AppStore'
+        self.assertEqual(set(files), {directory / f'{locale}.json' for locale in ['en-US', 'es-ES', 'es-MX']})
+        for locale in ['es-ES', 'es-MX']:
+            self.assertEqual(json.loads(files[directory / f'{locale}.json']), {key: 'Español' for key in LIMITS})
+        self.assertEqual(json.loads(files[directory / 'en-US.json']), {key: 'English' for key in LIMITS})
+        config['storeLocales']['es'].append('en-US')
+        with self.assertRaisesRegex(ValueError, 'duplicate App Store locale en-US'):
+            submission_files(self.root, config, catalog)
 
     def test_compiler_extraction_cross_check_rejects_uninventoried_keys_and_missing_languages(self):
         import importlib.util

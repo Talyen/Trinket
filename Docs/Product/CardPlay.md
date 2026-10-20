@@ -74,20 +74,23 @@ joining the hand, with the ordinary three-card fan and FIFO overflow promotion.
 
 Opening and new-turn cards become playable immediately. Enemy attacks, dealing,
 damage, healing, and status effects may still be animating.
-Health, Mana, status, and availability always show the current resolved state.
+Card availability follows the current resolved state. Health, Mana, status artwork,
+and defeat artwork update with the action’s impact feedback.
 
 Combatant attacks retain a visible wind-up, swing, and recovery for taps,
-drags, automatic cards, and enemy actions. All attacks share 0.40-second
-preparation, a 0.15-second swing, and 0.45-second recovery. Prepared drags
+drags, automatic cards, and enemy actions. Party attacks prepare for 0.10 seconds;
+enemy attacks prepare for 0.40 seconds. All attacks share a 0.15-second swing and
+0.45-second recovery. Prepared drags
 skip preparation and share that swing and recovery.
 Rapid attacks shorten preparation to a 0.08-second cap and overlap recovery to
 keep pace. Dragging holds preparation until release and settles back on cancellation.
 
-Manual card results appear immediately on successful finger release: floating
-text, sounds, result haptics, and target recoil never wait for an earlier
-animation. Healing and support reactions are immediate too. The attacker
-continues its motion without replaying feedback at impact. Triggered cards,
-counterattacks, enemy actions, and auto-battle retain sequenced feedback.
+Manual cards commit on successful finger release and remain playable through
+ongoing motion. Their floating results, sounds, result haptics, target recoil,
+status artwork, and resource bars appear together at the action’s apex. Triggered
+cards, counterattacks, enemy actions, and auto-battle use that same impact timing.
+Support results use their scheduled action cue. Victory celebration follows the
+visible lethal hit.
 Separate attacks retain distinct impacts; simultaneous components of one
 attack share the strongest recoil. Fully blocked direct hits recoil visibly
 with Block styling. Damage-over-time ticks remain quiet. These are presentation

@@ -17,6 +17,12 @@
             "value": "you have at least 2 <keyword id=\"block\">Block</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tienes al menos 2 de <keyword id=\"block\">Bloqueo</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -33,6 +39,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "내 <keyword id=\"block\">방어도</keyword>가 2 이상"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "você tem pelo menos 2 de <keyword id=\"block\">Bloqueio</keyword>"
           }
         },
         "zh-Hant": {
@@ -59,6 +71,12 @@
             "value": "your Hero or Companion is below half <keyword id=\"health\">Health</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tu héroe o compañero está por debajo de la mitad de <keyword id=\"health\">Salud</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -75,6 +93,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "영웅 또는 동료의 <keyword id=\"health\">체력</keyword>이 절반 미만"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "seu Herói ou Companheiro está abaixo de metade da <keyword id=\"health\">Vida</keyword>"
           }
         },
         "zh-Hant": {
@@ -101,6 +125,12 @@
             "value": "a living ally is missing <keyword id=\"health\">Health</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a un aliado vivo le falta <keyword id=\"health\">Salud</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -117,6 +147,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "살아 있는 아군의 <keyword id=\"health\">체력</keyword>이 부족함"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "um aliado vivo está com <keyword id=\"health\">Vida</keyword> incompleta"
           }
         },
         "zh-Hant": {
@@ -143,6 +179,12 @@
             "value": "the enemy is <keyword id=\"bleed\">Bleeding</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo tiene <keyword id=\"bleed\">Sangrado</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -159,6 +201,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적이 <keyword id=\"bleed\">출혈</keyword> 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo está com <keyword id=\"bleed\">Sangramento</keyword>"
           }
         },
         "zh-Hant": {
@@ -185,6 +233,12 @@
             "value": "the enemy is <keyword id=\"burn\">Burning</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo tiene <keyword id=\"burn\">Quemadura</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -201,6 +255,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적이 <keyword id=\"burn\">화상</keyword> 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo está <keyword id=\"burn\">Em Chamas</keyword>"
           }
         },
         "zh-Hant": {
@@ -227,6 +287,12 @@
             "value": "the enemy is <keyword id=\"freeze\">Frozen</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo está <keyword id=\"freeze\">congelado</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -243,6 +309,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적이 <keyword id=\"freeze\">빙결</keyword> 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo está <keyword id=\"freeze\">Congelado</keyword>"
           }
         },
         "zh-Hant": {
@@ -269,6 +341,12 @@
             "value": "the enemy is at full <keyword id=\"health\">Health</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo tiene toda la <keyword id=\"health\">Salud</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -285,6 +363,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적의 <keyword id=\"health\">체력</keyword>이 가득 참"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo está com <keyword id=\"health\">Vida</keyword> cheia"
           }
         },
         "zh-Hant": {
@@ -311,6 +395,12 @@
             "value": "the enemy has <keyword id=\"block\">Block</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo tiene <keyword id=\"block\">Bloqueo</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -327,6 +417,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적에게 <keyword id=\"block\">방어도</keyword>가 있음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo tem <keyword id=\"block\">Bloqueio</keyword>"
           }
         },
         "zh-Hant": {
@@ -353,6 +449,12 @@
             "value": "the enemy has a buff"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo tiene una mejora"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -369,6 +471,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적에게 강화 효과가 있음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo tem um efeito positivo"
           }
         },
         "zh-Hant": {
@@ -395,6 +503,12 @@
             "value": "the enemy has less <keyword id=\"health\">Health</keyword> than you"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo tiene menos <keyword id=\"health\">Salud</keyword> que tú"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -411,6 +525,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적의 <keyword id=\"health\">체력</keyword>이 나보다 낮음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo tem menos <keyword id=\"health\">Vida</keyword> que você"
           }
         },
         "zh-Hant": {
@@ -437,6 +557,12 @@
             "value": "the enemy is Marked"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo está marcado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -453,6 +579,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적에게 표식이 있음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo está Marcado"
           }
         },
         "zh-Hant": {
@@ -479,6 +611,12 @@
             "value": "the enemy is not <keyword id=\"burn\">Burning</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo no tiene <keyword id=\"burn\">Quemadura</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -495,6 +633,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적이 <keyword id=\"burn\">화상</keyword> 상태가 아님"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo não está <keyword id=\"burn\">Em Chamas</keyword>"
           }
         },
         "zh-Hant": {
@@ -521,6 +665,12 @@
             "value": "the enemy is <keyword id=\"poison\">Poisoned</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo está <keyword id=\"poison\">envenenado</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -537,6 +687,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적이 <keyword id=\"poison\">독</keyword> 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo está <keyword id=\"poison\">Envenenado</keyword>"
           }
         },
         "zh-Hant": {
@@ -563,6 +719,12 @@
             "value": "the enemy is <keyword id=\"stun\">Stunned</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo está <keyword id=\"stun\">aturdido</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -579,6 +741,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적이 <keyword id=\"stun\">기절</keyword> 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo está <keyword id=\"stun\">Atordoado</keyword>"
           }
         },
         "zh-Hant": {
@@ -605,6 +773,12 @@
             "value": "the enemy is <keyword id=\"stun\">Stunned</keyword> or <keyword id=\"freeze\">Frozen</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "el enemigo está <keyword id=\"stun\">aturdido</keyword> o <keyword id=\"freeze\">congelado</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -621,6 +795,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적이 <keyword id=\"stun\">기절</keyword> 또는 <keyword id=\"freeze\">빙결</keyword> 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "o inimigo está <keyword id=\"stun\">Atordoado</keyword> ou <keyword id=\"freeze\">Congelado</keyword>"
           }
         },
         "zh-Hant": {
@@ -647,6 +827,12 @@
             "value": "played on the first turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "se juega en el primer turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -663,6 +849,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "첫 턴에 사용"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "jogada no primeiro turno"
           }
         },
         "zh-Hant": {
@@ -689,6 +881,12 @@
             "value": "Deal <value id=\"damage\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage now and for <value id=\"turns\">%2$lld</value> more turns"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inflige <value id=\"damage\">%1$lld</value> de daño <keyword id=\"holy\">sagrado</keyword> ahora y durante <value id=\"turns\">%2$lld</value> turnos más"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -705,6 +903,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지금 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"damage\">%1$lld</value>, 이후 <value id=\"turns\">%2$lld</value>턴 동안 반복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cause <value id=\"damage\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> agora e por mais <value id=\"turns\">%2$lld</value> turnos"
           }
         },
         "zh-Hant": {
@@ -731,6 +935,12 @@
             "value": "Deal <value id=\"damage\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage now and for <value id=\"turn\">%2$lld</value> more turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inflige <value id=\"damage\">%1$lld</value> de daño <keyword id=\"holy\">sagrado</keyword> ahora y durante <value id=\"turn\">%2$lld</value> turno más"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -747,6 +957,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지금 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"damage\">%1$lld</value>, 이후 <value id=\"turn\">%2$lld</value>턴 동안 반복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cause <value id=\"damage\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> agora e por mais <value id=\"turn\">%2$lld</value> turno"
           }
         },
         "zh-Hant": {
@@ -773,6 +989,12 @@
             "value": "Deal <value id=\"damage\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage and gain <value id=\"block\">%2$lld</value> <keyword id=\"block\">Block</keyword> now and for <value id=\"turns\">%3$lld</value> more turns"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inflige <value id=\"damage\">%1$lld</value> de daño <keyword id=\"holy\">sagrado</keyword> y obtén <value id=\"block\">%2$lld</value> de <keyword id=\"block\">Bloqueo</keyword> ahora y durante <value id=\"turns\">%3$lld</value> turnos más"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -789,6 +1011,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지금 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"damage\">%1$lld</value> 및 <keyword id=\"block\">방어도</keyword> <value id=\"block\">%2$lld</value> 획득, 이후 <value id=\"turns\">%3$lld</value>턴 동안 반복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cause <value id=\"damage\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> e ganhe <value id=\"block\">%2$lld</value> de <keyword id=\"block\">Bloqueio</keyword> agora e por mais <value id=\"turns\">%3$lld</value> turnos"
           }
         },
         "zh-Hant": {
@@ -815,6 +1043,12 @@
             "value": "Deal <value id=\"damage\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage and gain <value id=\"block\">%2$lld</value> <keyword id=\"block\">Block</keyword> now and for <value id=\"turn\">%3$lld</value> more turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inflige <value id=\"damage\">%1$lld</value> de daño <keyword id=\"holy\">sagrado</keyword> y obtén <value id=\"block\">%2$lld</value> de <keyword id=\"block\">Bloqueo</keyword> ahora y durante <value id=\"turn\">%3$lld</value> turno más"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -831,6 +1065,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지금 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"damage\">%1$lld</value> 및 <keyword id=\"block\">방어도</keyword> <value id=\"block\">%2$lld</value> 획득, 이후 <value id=\"turn\">%3$lld</value>턴 동안 반복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cause <value id=\"damage\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> e ganhe <value id=\"block\">%2$lld</value> de <keyword id=\"block\">Bloqueio</keyword> agora e por mais <value id=\"turn\">%3$lld</value> turno"
           }
         },
         "zh-Hant": {
@@ -857,6 +1097,12 @@
             "value": "Applies <keyword id=\"bleed\">Bleeding</keyword>: <value id=\"damage\">%1$lld</value> damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplica <keyword id=\"bleed\">Sangrado</keyword>: <value id=\"damage\">%1$lld</value> de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -873,6 +1119,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"bleed\">출혈</keyword> 부여: 피해 <value id=\"damage\">%1$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplica <keyword id=\"bleed\">Sangramento</keyword>: <value id=\"damage\">%1$lld</value> de dano"
           }
         },
         "zh-Hant": {
@@ -899,6 +1151,12 @@
             "value": "Each ally gains <value id=\"block\">%1$lld</value> <keyword id=\"block\">Block</keyword> and deals <value id=\"damage\">%2$lld</value> <keyword id=\"holy\">Holy</keyword> damage the next time they are hit"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada aliado obtiene <value id=\"block\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> e inflige <value id=\"damage\">%2$lld</value> de daño <keyword id=\"holy\">sagrado</keyword> la siguiente vez que recibe un impacto"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -915,6 +1173,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "각 아군이 <keyword id=\"block\">방어도</keyword> <value id=\"block\">%1$lld</value> 획득 후 다음에 공격받으면 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"damage\">%2$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada aliado ganha <value id=\"block\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> e causa <value id=\"damage\">%2$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> na próxima vez em que for atingido"
           }
         },
         "zh-Hant": {
@@ -941,6 +1205,12 @@
             "value": "Gain 1 <keyword id=\"block\">Block</keyword> for every <value id=\"gold\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtén 1 de <keyword id=\"block\">Bloqueo</keyword> por cada <value id=\"gold\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -957,6 +1227,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"gold\">골드</keyword> <value id=\"gold\">%1$lld</value>마다 <keyword id=\"block\">방어도</keyword> 1 획득"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganhe 1 de <keyword id=\"block\">Bloqueio</keyword> a cada <value id=\"gold\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword>"
           }
         },
         "zh-Hant": {
@@ -983,6 +1259,12 @@
             "value": "Gain <keyword id=\"block\">Block</keyword> equal to half your <keyword id=\"mana\">Mana</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtén <keyword id=\"block\">Bloqueo</keyword> equivalente a la mitad de tu <keyword id=\"mana\">Maná</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -999,6 +1281,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "내 <keyword id=\"mana\">마나</keyword>의 절반만큼 <keyword id=\"block\">방어도</keyword> 획득"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganhe <keyword id=\"block\">Bloqueio</keyword> equivalente à metade da sua <keyword id=\"mana\">Mana</keyword>"
           }
         },
         "zh-Hant": {
@@ -1025,6 +1313,12 @@
             "value": "Gain <keyword id=\"block\">Block</keyword> equal to your <keyword id=\"mana\">Mana</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtén <keyword id=\"block\">Bloqueo</keyword> equivalente a tu <keyword id=\"mana\">Maná</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1041,6 +1335,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "내 <keyword id=\"mana\">마나</keyword>만큼 <keyword id=\"block\">방어도</keyword> 획득"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganhe <keyword id=\"block\">Bloqueio</keyword> equivalente à sua <keyword id=\"mana\">Mana</keyword>"
           }
         },
         "zh-Hant": {
@@ -1067,6 +1367,12 @@
             "value": "Gain <keyword id=\"thorns\">Thorns</keyword> equal to 1/<value id=\"divisor\">%1$lld</value> of your <keyword id=\"block\">Block</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtén <keyword id=\"thorns\">Espinas</keyword> equivalentes a 1/<value id=\"divisor\">%1$lld</value> de tu <keyword id=\"block\">Bloqueo</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1083,6 +1389,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "내 <keyword id=\"block\">방어도</keyword>의 1/<value id=\"divisor\">%1$lld</value>만큼 <keyword id=\"thorns\">가시</keyword> 획득"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganhe <keyword id=\"thorns\">Espinhos</keyword> equivalentes a 1/<value id=\"divisor\">%1$lld</value> do seu <keyword id=\"block\">Bloqueio</keyword>"
           }
         },
         "zh-Hant": {
@@ -1109,6 +1421,12 @@
             "value": "Gain <keyword id=\"thorns\">Thorns</keyword> equal to half your <keyword id=\"block\">Block</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtén <keyword id=\"thorns\">Espinas</keyword> equivalentes a la mitad de tu <keyword id=\"block\">Bloqueo</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1125,6 +1443,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "내 <keyword id=\"block\">방어도</keyword>의 절반만큼 <keyword id=\"thorns\">가시</keyword> 획득"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganhe <keyword id=\"thorns\">Espinhos</keyword> equivalentes à metade do seu <keyword id=\"block\">Bloqueio</keyword>"
           }
         },
         "zh-Hant": {
@@ -1151,6 +1475,12 @@
             "value": "Applies <keyword id=\"burn\">Burning</keyword>: <value id=\"damage\">%1$lld</value> damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplica <keyword id=\"burn\">Quemadura</keyword>: <value id=\"damage\">%1$lld</value> de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1167,6 +1497,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"burn\">화상</keyword> 부여: 피해 <value id=\"damage\">%1$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplica <keyword id=\"burn\">Queimadura</keyword>: <value id=\"damage\">%1$lld</value> de dano"
           }
         },
         "zh-Hant": {
@@ -1193,6 +1529,12 @@
             "value": "<keyword id=\"cleanse\">Cleanse</keyword> all debuffs"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifica</keyword> todos los perjuicios"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1209,6 +1551,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 약화 효과 <keyword id=\"cleanse\">정화</keyword>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifique</keyword> todos os efeitos negativos"
           }
         },
         "zh-Hant": {
@@ -1235,6 +1583,12 @@
             "value": "<keyword id=\"cleanse\">Cleanse</keyword> all debuffs and restore <value id=\"health\">%1$lld</value> <keyword id=\"health\">Health</keyword> for each debuff cleansed"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifica</keyword> todos los perjuicios y restaura <value id=\"health\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> por cada perjuicio purificado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1251,6 +1605,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 약화 효과를 <keyword id=\"cleanse\">정화</keyword>하고 정화한 약화 효과마다 <keyword id=\"health\">체력</keyword> <value id=\"health\">%1$lld</value> 회복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifique</keyword> todos os efeitos negativos e restaure <value id=\"health\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> por efeito negativo purificado"
           }
         },
         "zh-Hant": {
@@ -1277,6 +1637,12 @@
             "value": "<keyword id=\"cleanse\">Cleanse</keyword> %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifica</keyword> %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1293,6 +1659,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"cleanse\">정화</keyword>: %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifique</keyword> %1$@"
           }
         },
         "zh-Hant": {
@@ -1319,6 +1691,12 @@
             "value": "<keyword id=\"cleanse\">Cleanse</keyword> a debuff"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifica</keyword> un perjuicio"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1335,6 +1713,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "약화 효과 하나 <keyword id=\"cleanse\">정화</keyword>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifique</keyword> um efeito negativo"
           }
         },
         "zh-Hant": {
@@ -1361,6 +1745,12 @@
             "value": "Builds toward %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acumula hacia %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1377,6 +1767,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 유발 게이지 축적"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acumula para %1$@"
           }
         },
         "zh-Hant": {
@@ -1403,6 +1799,12 @@
             "value": "Gain +<value id=\"chance\">%1$lld</value>%% Critical chance"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtén +<value id=\"chance\">%1$lld</value>%% de probabilidad de crítico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1419,6 +1821,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "치명타 확률 +<value id=\"chance\">%1$lld</value>%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganhe +<value id=\"chance\">%1$lld</value>%% de chance de crítico"
           }
         },
         "zh-Hant": {
@@ -1445,6 +1853,12 @@
             "value": "Reduces damage dealt by <value id=\"amount\">%1$lld</value> for <value id=\"turns\">%2$lld</value> turns"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduce el daño infligido en <value id=\"amount\">%1$lld</value> durante <value id=\"turns\">%2$lld</value> turnos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1461,6 +1875,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<value id=\"turns\">%2$lld</value>턴 동안 주는 피해 <value id=\"amount\">%1$lld</value> 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduz o dano causado em <value id=\"amount\">%1$lld</value> por <value id=\"turns\">%2$lld</value> turnos"
           }
         },
         "zh-Hant": {
@@ -1487,6 +1907,12 @@
             "value": "Reduces damage dealt by <value id=\"amount\">%1$lld</value> for <value id=\"turn\">%2$lld</value> turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduce el daño infligido en <value id=\"amount\">%1$lld</value> durante <value id=\"turn\">%2$lld</value> turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1503,6 +1929,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<value id=\"turn\">%2$lld</value>턴 동안 주는 피해 <value id=\"amount\">%1$lld</value> 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduz o dano causado em <value id=\"amount\">%1$lld</value> por <value id=\"turn\">%2$lld</value> turno"
           }
         },
         "zh-Hant": {
@@ -1529,6 +1961,12 @@
             "value": "Reduces damage dealt by <value id=\"percent\">%1$lld</value>%% for <value id=\"turns\">%2$lld</value> turns"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduce el daño infligido en un <value id=\"percent\">%1$lld</value>%% durante <value id=\"turns\">%2$lld</value> turnos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1545,6 +1983,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<value id=\"turns\">%2$lld</value>턴 동안 주는 피해 <value id=\"percent\">%1$lld</value>%% 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduz o dano causado em <value id=\"percent\">%1$lld</value>%% por <value id=\"turns\">%2$lld</value> turnos"
           }
         },
         "zh-Hant": {
@@ -1571,6 +2015,12 @@
             "value": "Reduces damage dealt by <value id=\"percent\">%1$lld</value>%% for <value id=\"turn\">%2$lld</value> turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduce el daño infligido en un <value id=\"percent\">%1$lld</value>%% durante <value id=\"turn\">%2$lld</value> turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1587,6 +2037,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<value id=\"turn\">%2$lld</value>턴 동안 주는 피해 <value id=\"percent\">%1$lld</value>%% 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduz o dano causado em <value id=\"percent\">%1$lld</value>%% por <value id=\"turn\">%2$lld</value> turno"
           }
         },
         "zh-Hant": {
@@ -1613,6 +2069,12 @@
             "value": "Survive fatal blows at 1 <keyword id=\"health\">Health</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobrevive a golpes mortales con 1 de <keyword id=\"health\">Salud</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1629,6 +2091,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "죽음에 이르는 공격을 받아도 <keyword id=\"health\">체력</keyword> 1로 생존"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobreviva a golpes fatais com 1 de <keyword id=\"health\">Vida</keyword>"
           }
         },
         "zh-Hant": {
@@ -1655,6 +2123,12 @@
             "value": "Detonate all remaining %1$@ at once with ×<value id=\"factor\">%2$lld</value> damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detona lo que quede de %1$@ a la vez con daño ×<value id=\"factor\">%2$lld</value>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1671,6 +2145,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "남은 %1$@ 전부를 한 번에 폭발시켜 피해 ×<value id=\"factor\">%2$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detone o restante de %1$@ de uma vez com ×<value id=\"factor\">%2$lld</value> de dano"
           }
         },
         "zh-Hant": {
@@ -1721,6 +2201,30 @@
             }
           }
         },
+        "es": {
+          "variations": {
+            "plural": {
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Roba <value id=\"cards\">%1$lld</value> cartas"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Roba <value id=\"card\">%1$lld</value> carta"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Roba <value id=\"cards\">%1$lld</value> cartas"
+                }
+              }
+            }
+          }
+        },
         "fr": {
           "variations": {
             "plural": {
@@ -1764,6 +2268,30 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "카드 <value id=\"cards\">%1$lld</value>장 뽑기"
+                }
+              }
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Compre <value id=\"cards\">%1$lld</value> cartas"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Compre <value id=\"card\">%1$lld</value> carta"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Compre <value id=\"cards\">%1$lld</value> cartas"
                 }
               }
             }
@@ -1823,6 +2351,30 @@
             }
           }
         },
+        "es": {
+          "variations": {
+            "plural": {
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Roba y juega <value id=\"cards\">%1$lld</value> cartas"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Roba y juega <value id=\"card\">%1$lld</value> carta"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Roba y juega <value id=\"cards\">%1$lld</value> cartas"
+                }
+              }
+            }
+          }
+        },
         "fr": {
           "variations": {
             "plural": {
@@ -1871,6 +2423,30 @@
             }
           }
         },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Compre e jogue <value id=\"cards\">%1$lld</value> cartas"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Compre e jogue <value id=\"card\">%1$lld</value> carta"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Compre e jogue <value id=\"cards\">%1$lld</value> cartas"
+                }
+              }
+            }
+          }
+        },
         "zh-Hant": {
           "variations": {
             "plural": {
@@ -1901,6 +2477,12 @@
             "value": "<keyword id=\"dodge\">Dodge</keyword> the next attack"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"dodge\">Esquiva</keyword> el siguiente ataque"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1917,6 +2499,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 공격 <keyword id=\"dodge\">회피</keyword>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"dodge\">Esquive</keyword> do próximo ataque"
           }
         },
         "zh-Hant": {
@@ -1943,6 +2531,12 @@
             "value": "<keyword id=\"freeze\">Freeze</keyword> the next attacker"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"freeze\">Congela</keyword> al siguiente atacante"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1959,6 +2553,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 공격자를 <keyword id=\"freeze\">빙결</keyword>시킴"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"freeze\">Congele</keyword> o próximo atacante"
           }
         },
         "zh-Hant": {
@@ -1985,6 +2585,12 @@
             "value": "Halve the enemy’s %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduce a la mitad la cantidad de %1$@ del enemigo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2001,6 +2607,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적의 %1$@ 절반으로 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduza %1$@ do inimigo à metade"
           }
         },
         "zh-Hant": {
@@ -2027,6 +2639,12 @@
             "value": "Restore <value id=\"amount\">%1$lld</value> %2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaura <value id=\"amount\">%1$lld</value> de %2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2043,6 +2661,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%2$@ <value id=\"amount\">%1$lld</value> 회복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaure <value id=\"amount\">%1$lld</value> de %2$@"
           }
         },
         "zh-Hant": {
@@ -2069,6 +2693,12 @@
             "value": "Reduces the <keyword id=\"health\">Health</keyword> restored to enemies by <value id=\"percent\">%1$lld</value>%% for <value id=\"turns\">%2$lld</value> turns"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduce la <keyword id=\"health\">Salud</keyword> restaurada a los enemigos en un <value id=\"percent\">%1$lld</value>%% durante <value id=\"turns\">%2$lld</value> turnos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2085,6 +2715,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<value id=\"turns\">%2$lld</value>턴 동안 적의 <keyword id=\"health\">체력</keyword> 회복량 <value id=\"percent\">%1$lld</value>%% 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduz a <keyword id=\"health\">Vida</keyword> restaurada dos inimigos em <value id=\"percent\">%1$lld</value>%% por <value id=\"turns\">%2$lld</value> turnos"
           }
         },
         "zh-Hant": {
@@ -2111,6 +2747,12 @@
             "value": "Reduces the <keyword id=\"health\">Health</keyword> restored to enemies by <value id=\"percent\">%1$lld</value>%% for <value id=\"turn\">%2$lld</value> turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduce la <keyword id=\"health\">Salud</keyword> restaurada a los enemigos en un <value id=\"percent\">%1$lld</value>%% durante <value id=\"turn\">%2$lld</value> turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2127,6 +2769,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<value id=\"turn\">%2$lld</value>턴 동안 적의 <keyword id=\"health\">체력</keyword> 회복량 <value id=\"percent\">%1$lld</value>%% 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduz a <keyword id=\"health\">Vida</keyword> restaurada dos inimigos em <value id=\"percent\">%1$lld</value>%% por <value id=\"turn\">%2$lld</value> turno"
           }
         },
         "zh-Hant": {
@@ -2153,6 +2801,12 @@
             "value": "The next time they attack, they take <value id=\"damage\">%1$lld</value> <keyword id=\"bleed\">Bleed</keyword> damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La siguiente vez que ataque, recibe <value id=\"damage\">%1$lld</value> de daño de <keyword id=\"bleed\">Sangrado</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2169,6 +2823,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "대상이 다음 공격 시 <keyword id=\"bleed\">출혈</keyword> 피해 <value id=\"damage\">%1$lld</value> 받음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na próxima vez que atacar, recebe <value id=\"damage\">%1$lld</value> de dano de <keyword id=\"bleed\">Sangramento</keyword>"
           }
         },
         "zh-Hant": {
@@ -2195,6 +2855,12 @@
             "value": "Your attacks become %1$@ damage and deal +<value id=\"damage\">%2$lld</value> damage for <value id=\"turns\">%3$lld</value> turns"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus ataques pasan a infligir daño de %1$@ e infligen +<value id=\"damage\">%2$lld</value> de daño durante <value id=\"turns\">%3$lld</value> turnos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2211,6 +2877,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<value id=\"turns\">%3$lld</value>턴 동안 내 공격을 %1$@ 피해로 바꾸고 피해 +<value id=\"damage\">%2$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus ataques passam a causar dano do tipo %1$@ e causam +<value id=\"damage\">%2$lld</value> de dano por <value id=\"turns\">%3$lld</value> turnos"
           }
         },
         "zh-Hant": {
@@ -2237,6 +2909,12 @@
             "value": "Your attacks become %1$@ damage and deal +<value id=\"damage\">%2$lld</value> damage for <value id=\"turn\">%3$lld</value> turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus ataques pasan a infligir daño de %1$@ e infligen +<value id=\"damage\">%2$lld</value> de daño durante <value id=\"turn\">%3$lld</value> turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2253,6 +2931,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<value id=\"turn\">%3$lld</value>턴 동안 내 공격을 %1$@ 피해로 바꾸고 피해 +<value id=\"damage\">%2$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus ataques passam a causar dano do tipo %1$@ e causam +<value id=\"damage\">%2$lld</value> de dano por <value id=\"turn\">%3$lld</value> turno"
           }
         },
         "zh-Hant": {
@@ -2279,6 +2963,12 @@
             "value": "Convert all <keyword id=\"mana\">Mana</keyword> into <keyword id=\"block\">Block</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Convierte todo el <keyword id=\"mana\">Maná</keyword> en <keyword id=\"block\">Bloqueo</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2295,6 +2985,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 <keyword id=\"mana\">마나</keyword>를 <keyword id=\"block\">방어도</keyword>로 전환"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Converta toda a <keyword id=\"mana\">Mana</keyword> em <keyword id=\"block\">Bloqueio</keyword>"
           }
         },
         "zh-Hant": {
@@ -2321,6 +3017,12 @@
             "value": "Mark the enemy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marca al enemigo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2337,6 +3039,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적에게 표식 부여"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marque o inimigo"
           }
         },
         "zh-Hant": {
@@ -2363,6 +3071,12 @@
             "value": "Increase Maximum <keyword id=\"mana\">Mana</keyword> by <value id=\"mana\">%1$lld</value>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aumenta el <keyword id=\"mana\">Maná</keyword> máximo en <value id=\"mana\">%1$lld</value>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2379,6 +3093,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "최대 <keyword id=\"mana\">마나</keyword> <value id=\"mana\">%1$lld</value> 증가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aumente a <keyword id=\"mana\">Mana</keyword> máxima em <value id=\"mana\">%1$lld</value>"
           }
         },
         "zh-Hant": {
@@ -2405,6 +3125,12 @@
             "value": "Multiply the enemy’s %1$@ build-up by <value id=\"factor\">%2$lld</value>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiplica la acumulación de %1$@ del enemigo por <value id=\"factor\">%2$lld</value>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2421,6 +3147,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적의 %1$@ 축적량 <value id=\"factor\">%2$lld</value>배"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiplique o acúmulo de %1$@ do inimigo por <value id=\"factor\">%2$lld</value>"
           }
         },
         "zh-Hant": {
@@ -2447,6 +3179,12 @@
             "value": "Multiply the enemy’s %1$@ by <value id=\"factor\">%2$lld</value>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiplica la cantidad de %1$@ del enemigo por <value id=\"factor\">%2$lld</value>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2463,6 +3201,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적의 %1$@ <value id=\"factor\">%2$lld</value>배"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiplique %1$@ do inimigo por <value id=\"factor\">%2$lld</value>"
           }
         },
         "zh-Hant": {
@@ -2489,6 +3233,12 @@
             "value": "Your next <keyword id=\"burn\">Burn</keyword> attack deals +<value id=\"damage\">%1$lld</value> damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque de <keyword id=\"burn\">Quemadura</keyword> inflige +<value id=\"damage\">%1$lld</value> de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2505,6 +3255,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 <keyword id=\"burn\">화상</keyword> 공격 피해 +<value id=\"damage\">%1$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque de <keyword id=\"burn\">Queimadura</keyword> causa +<value id=\"damage\">%1$lld</value> de dano"
           }
         },
         "zh-Hant": {
@@ -2531,6 +3287,12 @@
             "value": "Your next attack is a guaranteed Critical Hit"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque es un golpe crítico garantizado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2547,6 +3309,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 공격이 반드시 치명타"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque é um golpe crítico garantido"
           }
         },
         "zh-Hant": {
@@ -2573,6 +3341,12 @@
             "value": "Your next attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2589,6 +3363,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -2615,6 +3395,12 @@
             "value": "Your next <keyword id=\"holy\">Holy</keyword> attack deals double damage and applies <keyword id=\"burn\">Burning</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque <keyword id=\"holy\">sagrado</keyword> inflige el doble de daño y aplica <keyword id=\"burn\">Quemadura</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2631,6 +3417,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 <keyword id=\"holy\">신성</keyword> 공격이 두 배의 피해를 주고 <keyword id=\"burn\">화상</keyword> 부여"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque <keyword id=\"holy\">Sagrado</keyword> causa o dobro de dano e aplica <keyword id=\"burn\">Queimadura</keyword>"
           }
         },
         "zh-Hant": {
@@ -2657,6 +3449,12 @@
             "value": "Your next attack deals %1$@ damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque inflige daño de %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2673,6 +3471,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 공격이 %1$@ 피해를 줌"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque causa dano do tipo %1$@"
           }
         },
         "zh-Hant": {
@@ -2699,6 +3503,12 @@
             "value": "Your next attack <keyword id=\"leech\">Leeches</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque activa <keyword id=\"leech\">Absorción</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2715,6 +3525,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 공격에 <keyword id=\"leech\">흡혈</keyword> 적용"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque aplica <keyword id=\"leech\">Drenagem</keyword>"
           }
         },
         "zh-Hant": {
@@ -2741,6 +3557,12 @@
             "value": "Your next card is played twice"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente carta se juega dos veces"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2757,6 +3579,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 카드 효과가 두 번 발동"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua próxima carta é jogada duas vezes"
           }
         },
         "zh-Hant": {
@@ -2783,6 +3611,12 @@
             "value": "Deal <value id=\"damage\">%1$lld</value> %2$@ damage next time you are hit"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inflige <value id=\"damage\">%1$lld</value> de daño de %2$@ la siguiente vez que recibes un impacto"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2799,6 +3633,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음에 공격받으면 %2$@ 피해 <value id=\"damage\">%1$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cause <value id=\"damage\">%1$lld</value> de dano do tipo %2$@ na próxima vez em que for atingido"
           }
         },
         "zh-Hant": {
@@ -2825,6 +3665,12 @@
             "value": "<keyword id=\"cleanse\">Cleanse</keyword> all debuffs and restore <value id=\"base_health\">%1$lld</value> <keyword id=\"health\">Health</keyword> plus <value id=\"health_per_debuff\">%2$lld</value> <keyword id=\"health\">Health</keyword> for each debuff cleansed"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifica</keyword> todos los perjuicios y restaura <value id=\"base_health\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> más <value id=\"health_per_debuff\">%2$lld</value> de <keyword id=\"health\">Salud</keyword> por cada perjuicio purificado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2841,6 +3687,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 약화 효과를 <keyword id=\"cleanse\">정화</keyword>하고 <keyword id=\"health\">체력</keyword> <value id=\"base_health\">%1$lld</value> 회복 및 정화한 약화 효과마다 <keyword id=\"health\">체력</keyword> <value id=\"health_per_debuff\">%2$lld</value> 추가 회복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purifique</keyword> todos os efeitos negativos e restaure <value id=\"base_health\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> mais <value id=\"health_per_debuff\">%2$lld</value> de <keyword id=\"health\">Vida</keyword> por efeito negativo purificado"
           }
         },
         "zh-Hant": {
@@ -2867,6 +3719,12 @@
             "value": "Your partner’s next damaging card deals <value id=\"damage\">%1$lld</value> additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La siguiente carta de daño de tu compañero inflige <value id=\"damage\">%1$lld</value> de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2883,6 +3741,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "파트너의 다음 피해 카드가 추가 피해 <value id=\"damage\">%1$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A próxima carta de dano do seu parceiro causa <value id=\"damage\">%1$lld</value> de dano adicional"
           }
         },
         "zh-Hant": {
@@ -2909,6 +3773,12 @@
             "value": "Applies <keyword id=\"poison\">Poisoned</keyword>: <value id=\"damage\">%1$lld</value> damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplica <keyword id=\"poison\">Veneno</keyword>: <value id=\"damage\">%1$lld</value> de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2925,6 +3795,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"poison\">독</keyword> 부여: 피해 <value id=\"damage\">%1$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplica <keyword id=\"poison\">Veneno</keyword>: <value id=\"damage\">%1$lld</value> de dano"
           }
         },
         "zh-Hant": {
@@ -2951,6 +3827,12 @@
             "value": "<keyword id=\"purge\">Purge</keyword> all buffs"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Purga</keyword> todas las mejoras"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2967,6 +3849,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"purge\">강화 해제</keyword>로 모든 강화 효과 제거"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Expurgue</keyword> todos os efeitos positivos"
           }
         },
         "zh-Hant": {
@@ -2993,6 +3881,12 @@
             "value": "<keyword id=\"purge\">Purge</keyword> %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Purga</keyword> %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3009,6 +3903,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"purge\">강화 해제</keyword>: %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Expurgue</keyword> %1$@"
           }
         },
         "zh-Hant": {
@@ -3035,6 +3935,12 @@
             "value": "<keyword id=\"purge\">Purge</keyword> a random buff"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Purga</keyword> una mejora aleatoria"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3051,6 +3957,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"purge\">강화 해제</keyword>로 무작위 강화 효과 하나 제거"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Expurgue</keyword> um efeito positivo aleatório"
           }
         },
         "zh-Hant": {
@@ -3077,6 +3989,12 @@
             "value": "Deal <value id=\"damage\">%1$lld</value> %2$@ damage now and for <value id=\"turns\">%3$lld</value> more turns"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inflige <value id=\"damage\">%1$lld</value> de daño de %2$@ ahora y durante <value id=\"turns\">%3$lld</value> turnos más"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3093,6 +4011,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지금 %2$@ 피해 <value id=\"damage\">%1$lld</value>, 이후 <value id=\"turns\">%3$lld</value>턴 동안 반복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cause <value id=\"damage\">%1$lld</value> de dano do tipo %2$@ agora e por mais <value id=\"turns\">%3$lld</value> turnos"
           }
         },
         "zh-Hant": {
@@ -3119,6 +4043,12 @@
             "value": "Deal <value id=\"damage\">%1$lld</value> %2$@ damage now and for <value id=\"turn\">%3$lld</value> more turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inflige <value id=\"damage\">%1$lld</value> de daño de %2$@ ahora y durante <value id=\"turn\">%3$lld</value> turno más"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3135,6 +4065,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지금 %2$@ 피해 <value id=\"damage\">%1$lld</value>, 이후 <value id=\"turn\">%3$lld</value>턴 동안 반복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cause <value id=\"damage\">%1$lld</value> de dano do tipo %2$@ agora e por mais <value id=\"turn\">%3$lld</value> turno"
           }
         },
         "zh-Hant": {
@@ -3161,6 +4097,12 @@
             "value": "Deal <value id=\"damage\">%1$lld</value> %2$@ damage this turn and next"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inflige <value id=\"damage\">%1$lld</value> de daño de %2$@ este turno y el siguiente"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3177,6 +4119,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "이번 턴과 다음 턴에 %2$@ 피해 <value id=\"damage\">%1$lld</value>"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cause <value id=\"damage\">%1$lld</value> de dano do tipo %2$@ neste turno e no próximo"
           }
         },
         "zh-Hant": {
@@ -3203,6 +4151,12 @@
             "value": "Restore <value id=\"mana\">%1$lld</value> <keyword id=\"mana\">Mana</keyword> when you take damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaura <value id=\"mana\">%1$lld</value> de <keyword id=\"mana\">Maná</keyword> cuando recibes daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3219,6 +4173,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "피해를 받으면 <keyword id=\"mana\">마나</keyword> <value id=\"mana\">%1$lld</value> 회복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaure <value id=\"mana\">%1$lld</value> de <keyword id=\"mana\">Mana</keyword> ao receber dano"
           }
         },
         "zh-Hant": {
@@ -3245,6 +4205,12 @@
             "value": "Revive an ally to <value id=\"health\">%1$lld</value> <keyword id=\"health\">Health</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revive a un aliado con <value id=\"health\">%1$lld</value> de <keyword id=\"health\">Salud</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3261,6 +4227,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "아군을 <keyword id=\"health\">체력</keyword> <value id=\"health\">%1$lld</value> 상태로 부활"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviva um aliado com <value id=\"health\">%1$lld</value> de <keyword id=\"health\">Vida</keyword>"
           }
         },
         "zh-Hant": {
@@ -3287,6 +4259,12 @@
             "value": "Gain <value id=\"amount\">%1$lld</value> %2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtén <value id=\"amount\">%1$lld</value> de %2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3303,6 +4281,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%2$@ <value id=\"amount\">%1$lld</value> 획득"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganhe <value id=\"amount\">%1$lld</value> de %2$@"
           }
         },
         "zh-Hant": {
@@ -3329,6 +4313,12 @@
             "value": "Steal <value id=\"gold\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roba <value id=\"gold\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword>"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3345,6 +4335,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"gold\">골드</keyword> <value id=\"gold\">%1$lld</value> 훔치기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roube <value id=\"gold\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword>"
           }
         },
         "zh-Hant": {
@@ -3371,6 +4367,12 @@
             "value": "Bleed"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sangrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3387,6 +4389,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "출혈"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sangramento"
           }
         },
         "zh-Hant": {
@@ -3413,6 +4421,12 @@
             "value": "Block"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3429,6 +4443,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "방어도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueio"
           }
         },
         "zh-Hant": {
@@ -3455,6 +4475,12 @@
             "value": "Burn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quemadura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3471,6 +4497,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "화상"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queimadura"
           }
         },
         "zh-Hant": {
@@ -3497,6 +4529,12 @@
             "value": "Cleanse"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purificación"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3513,6 +4551,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정화"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purificação"
           }
         },
         "zh-Hant": {
@@ -3539,6 +4583,12 @@
             "value": "Death's Door"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puertas de la Muerte"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3555,6 +4605,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "죽음의 문턱"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À Beira da Morte"
           }
         },
         "zh-Hant": {
@@ -3581,6 +4637,12 @@
             "value": "Dodge"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evasión"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3597,6 +4659,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "회피"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esquiva"
           }
         },
         "zh-Hant": {
@@ -3623,6 +4691,12 @@
             "value": "Freeze"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Congelación"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3639,6 +4713,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "빙결"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Congelamento"
           }
         },
         "zh-Hant": {
@@ -3665,6 +4745,12 @@
             "value": "Gold"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3681,6 +4767,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "골드"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouro"
           }
         },
         "zh-Hant": {
@@ -3707,6 +4799,12 @@
             "value": "Health"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salud"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3723,6 +4821,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "체력"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vida"
           }
         },
         "zh-Hant": {
@@ -3749,6 +4853,12 @@
             "value": "Holy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sagrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3765,6 +4875,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "신성"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sagrado"
           }
         },
         "zh-Hant": {
@@ -3791,6 +4907,12 @@
             "value": "Leech"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absorción"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3807,6 +4929,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "흡혈"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drenagem"
           }
         },
         "zh-Hant": {
@@ -3833,6 +4961,12 @@
             "value": "Mana"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maná"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3849,6 +4983,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "마나"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mana"
           }
         },
         "zh-Hant": {
@@ -3875,6 +5015,12 @@
             "value": "Physical"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Físico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3891,6 +5037,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "물리"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Físico"
           }
         },
         "zh-Hant": {
@@ -3917,6 +5069,12 @@
             "value": "Poison"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veneno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3933,6 +5091,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "독"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veneno"
           }
         },
         "zh-Hant": {
@@ -3959,6 +5123,12 @@
             "value": "Purge"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purga"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3975,6 +5145,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "강화 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expurgo"
           }
         },
         "zh-Hant": {
@@ -4001,6 +5177,12 @@
             "value": "Stun"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aturdimiento"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4017,6 +5199,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "기절"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atordoamento"
           }
         },
         "zh-Hant": {
@@ -4043,6 +5231,12 @@
             "value": "Thorns"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espinas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4059,6 +5253,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "가시"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espinhos"
           }
         },
         "zh-Hant": {
@@ -4085,6 +5285,12 @@
             "value": "<keyword id=\"bleed\">Bleed</keyword> deals damage each round for 1 round"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"bleed\">Sangrado</keyword> inflige daño cada ronda durante 1 ronda"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4101,6 +5307,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"bleed\">출혈</keyword>은 1라운드 동안 매 라운드 피해를 줍니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"bleed\">Sangramento</keyword> causa dano a cada rodada por 1 rodada"
           }
         },
         "zh-Hant": {
@@ -4127,6 +5339,12 @@
             "value": "<keyword id=\"block\">Block</keyword> prevents <keyword id=\"health\">Health</keyword> damage\nRemaining <keyword id=\"block\">Block</keyword> halves after the enemy's turn for your party, and before the enemy's turn for enemies"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"block\">Bloqueo</keyword> impide daño a la <keyword id=\"health\">Salud</keyword>\nEl <keyword id=\"block\">Bloqueo</keyword> restante se reduce a la mitad después del turno enemigo para tu grupo y antes del turno enemigo para los enemigos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4143,6 +5361,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"block\">방어도</keyword>는 <keyword id=\"health\">체력</keyword> 피해를 막습니다\n남은 <keyword id=\"block\">방어도</keyword>는 파티의 경우 적의 턴이 끝난 뒤, 적의 경우 적의 턴이 시작되기 전에 절반으로 줄어듭니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"block\">Bloqueio</keyword> impede dano à <keyword id=\"health\">Vida</keyword>\nO <keyword id=\"block\">Bloqueio</keyword> restante cai à metade após o turno inimigo para seu grupo e antes do turno inimigo para os inimigos"
           }
         },
         "zh-Hant": {
@@ -4169,6 +5393,12 @@
             "value": "<keyword id=\"burn\">Burn</keyword> deals damage each round and fades quickly"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"burn\">Quemadura</keyword> inflige daño cada ronda y disminuye rápidamente"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4185,6 +5415,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"burn\">화상</keyword>은 매 라운드 피해를 주며 빠르게 감소합니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"burn\">Queimadura</keyword> causa dano a cada rodada e diminui rapidamente"
           }
         },
         "zh-Hant": {
@@ -4211,6 +5447,12 @@
             "value": "<keyword id=\"cleanse\">Cleanse</keyword> removes a debuff from a party member"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purificación</keyword> elimina un perjuicio de un miembro del grupo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4227,6 +5469,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"cleanse\">정화</keyword>는 파티원에게 걸린 약화 효과 하나를 제거합니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"cleanse\">Purificação</keyword> remove um efeito negativo de um membro do grupo"
           }
         },
         "zh-Hant": {
@@ -4253,6 +5501,12 @@
             "value": "<keyword id=\"deathsdoor\">Death's Door</keyword> survives a fatal blow at 1 <keyword id=\"health\">Health</keyword> and is immune to fatal blows while it lasts"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"deathsdoor\">Puertas de la Muerte</keyword> permite sobrevivir a un golpe mortal con 1 de <keyword id=\"health\">Salud</keyword> y otorga inmunidad a golpes mortales mientras dura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4269,6 +5523,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"deathsdoor\">죽음의 문턱</keyword>은 죽음에 이르는 공격을 받아도 <keyword id=\"health\">체력</keyword> 1로 생존하게 하며, 지속되는 동안 죽음에 이르는 공격에 면역이 됩니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A condição <keyword id=\"deathsdoor\">À Beira da Morte</keyword> permite sobreviver a um golpe fatal com 1 de <keyword id=\"health\">Vida</keyword> e concede imunidade a golpes fatais enquanto durar"
           }
         },
         "zh-Hant": {
@@ -4295,6 +5555,12 @@
             "value": "<keyword id=\"dodge\">Dodge</keyword> avoids an attack completely"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"dodge\">Evasión</keyword> evita un ataque por completo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4311,6 +5577,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"dodge\">회피</keyword>는 공격을 완전히 피합니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"dodge\">Esquiva</keyword> evita completamente um ataque"
           }
         },
         "zh-Hant": {
@@ -4337,6 +5609,12 @@
             "value": "<keyword id=\"freeze\">Freeze</keyword> builds a meter\nFilling it makes the enemy lose an action"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"freeze\">Congelación</keyword> llena una barra\nAl llenarse, hace que el enemigo pierda una acción"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4353,6 +5631,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"freeze\">빙결</keyword>은 게이지를 쌓습니다\n게이지가 가득 차면 적이 행동 한 번을 잃습니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"freeze\">Congelamento</keyword> preenche uma barra\nEnchê-la faz o inimigo perder uma ação"
           }
         },
         "zh-Hant": {
@@ -4379,6 +5663,12 @@
             "value": "<keyword id=\"gold\">Gold</keyword> is currency for shops and upgrades"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"gold\">Oro</keyword> es la moneda para tiendas y mejoras"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4395,6 +5685,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"gold\">골드</keyword>는 상점과 업그레이드에 쓰는 재화입니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"gold\">Ouro</keyword> é a moeda para lojas e melhorias"
           }
         },
         "zh-Hant": {
@@ -4421,6 +5717,12 @@
             "value": "<keyword id=\"health\">Health</keyword> keeps you alive"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"health\">Salud</keyword> te mantiene con vida"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4437,6 +5739,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"health\">체력</keyword>은 생존을 유지해 줍니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"health\">Vida</keyword> mantém você vivo"
           }
         },
         "zh-Hant": {
@@ -4463,6 +5771,12 @@
             "value": "<keyword id=\"holy\">Holy</keyword> is a direct damage type"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"holy\">Sagrado</keyword> es un tipo de daño directo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4479,6 +5793,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"holy\">신성</keyword>은 직접 피해 유형입니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"holy\">Sagrado</keyword> é um tipo de dano direto"
           }
         },
         "zh-Hant": {
@@ -4505,6 +5825,12 @@
             "value": "<keyword id=\"leech\">Leech</keyword> damage heals the attacker"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El daño de <keyword id=\"leech\">Absorción</keyword> cura al atacante"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4521,6 +5847,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"leech\">흡혈</keyword> 피해는 공격자를 치유합니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dano de <keyword id=\"leech\">Drenagem</keyword> cura o atacante"
           }
         },
         "zh-Hant": {
@@ -4547,6 +5879,12 @@
             "value": "<keyword id=\"mana\">Mana</keyword> regenerates +1 each round\nSpend 3 <keyword id=\"mana\">Mana</keyword> to add +1 <keyword id=\"burn\">Burn</keyword> or <keyword id=\"freeze\">Freeze</keyword> on a card"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"mana\">Maná</keyword> regenera +1 cada ronda\nGasta 3 de <keyword id=\"mana\">Maná</keyword> para añadir +1 de <keyword id=\"burn\">Quemadura</keyword> o <keyword id=\"freeze\">Congelación</keyword> a una carta"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4563,6 +5901,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"mana\">마나</keyword>는 매 라운드 +1 재생됩니다\n<keyword id=\"mana\">마나</keyword> 3을 소모해 카드의 <keyword id=\"burn\">화상</keyword> 또는 <keyword id=\"freeze\">빙결</keyword>을 +1 강화할 수 있습니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"mana\">Mana</keyword> regenera +1 a cada rodada\nGaste 3 de <keyword id=\"mana\">Mana</keyword> para adicionar +1 de <keyword id=\"burn\">Queimadura</keyword> ou de <keyword id=\"freeze\">Congelamento</keyword> a uma carta"
           }
         },
         "zh-Hant": {
@@ -4589,6 +5933,12 @@
             "value": "<keyword id=\"physical\">Physical</keyword> is a direct damage type"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"physical\">Físico</keyword> es un tipo de daño directo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4605,6 +5955,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"physical\">물리</keyword>는 직접 피해 유형입니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"physical\">Físico</keyword> é um tipo de dano direto"
           }
         },
         "zh-Hant": {
@@ -4631,6 +5987,12 @@
             "value": "<keyword id=\"poison\">Poison</keyword> deals damage each round and fades slowly"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"poison\">Veneno</keyword> inflige daño cada ronda y disminuye lentamente"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4647,6 +6009,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"poison\">독</keyword>은 매 라운드 피해를 주며 서서히 감소합니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"poison\">Veneno</keyword> causa dano a cada rodada e diminui lentamente"
           }
         },
         "zh-Hant": {
@@ -4673,6 +6041,12 @@
             "value": "<keyword id=\"purge\">Purge</keyword> removes a buff from an enemy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Purga</keyword> elimina una mejora de un enemigo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4689,6 +6063,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"purge\">강화 해제</keyword>는 적의 강화 효과 하나를 제거합니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"purge\">Expurgo</keyword> remove um efeito positivo de um inimigo"
           }
         },
         "zh-Hant": {
@@ -4715,6 +6095,12 @@
             "value": "<keyword id=\"stun\">Stun</keyword> builds a meter\nFilling it makes the enemy lose an action"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"stun\">Aturdimiento</keyword> llena una barra\nAl llenarse, hace que el enemigo pierda una acción"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4731,6 +6117,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"stun\">기절</keyword>은 게이지를 쌓습니다\n게이지가 가득 차면 적이 행동 한 번을 잃습니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"stun\">Atordoamento</keyword> preenche uma barra\nEnchê-la faz o inimigo perder uma ação"
           }
         },
         "zh-Hant": {
@@ -4757,6 +6149,12 @@
             "value": "<keyword id=\"thorns\">Thorns</keyword> deals damage back to attackers when hit"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"thorns\">Espinas</keyword> infligen daño de vuelta a los atacantes al recibir un impacto"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4773,6 +6171,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "<keyword id=\"thorns\">가시</keyword>는 공격에 맞으면 공격자에게 피해를 되돌려 줍니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<keyword id=\"thorns\">Espinhos</keyword> devolvem dano aos atacantes ao ser atingido"
           }
         },
         "zh-Hant": {
@@ -4799,6 +6203,12 @@
             "value": "Bleeding"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con Sangrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4815,6 +6225,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "출혈 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com Sangramento"
           }
         },
         "zh-Hant": {
@@ -4841,6 +6257,12 @@
             "value": "Burning"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con Quemadura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4857,6 +6279,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "화상 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em Chamas"
           }
         },
         "zh-Hant": {
@@ -4883,6 +6311,12 @@
             "value": "Frozen"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Congelado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4899,6 +6333,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "빙결 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Congelado"
           }
         },
         "zh-Hant": {
@@ -4925,6 +6365,12 @@
             "value": "Poisoned"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envenenado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4941,6 +6387,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "중독 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envenenado"
           }
         },
         "zh-Hant": {
@@ -4967,6 +6419,12 @@
             "value": "Stunned"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aturdido"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4983,6 +6441,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "기절 상태"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atordoado"
           }
         },
         "zh-Hant": {
@@ -5009,6 +6473,12 @@
             "value": "Accessory"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesorio"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5025,6 +6495,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "장신구"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acessório"
           }
         },
         "zh-Hant": {
@@ -5051,6 +6527,12 @@
             "value": "Alchemy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alquimia"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5067,6 +6549,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "연금술"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alquimia"
           }
         },
         "zh-Hant": {
@@ -5093,6 +6581,12 @@
             "value": "Arcana"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arcanos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5109,6 +6603,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "아르카나"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arcanismo"
           }
         },
         "zh-Hant": {
@@ -5135,6 +6635,12 @@
             "value": "Armor"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armadura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5151,6 +6657,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "방어구"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armadura"
           }
         },
         "zh-Hant": {
@@ -5177,6 +6689,12 @@
             "value": "Astral"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Astral"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5193,6 +6711,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "성운"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Astral"
           }
         },
         "zh-Hant": {
@@ -5219,6 +6743,12 @@
             "value": "Basic"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Básica"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5235,6 +6765,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "기본"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Básico"
           }
         },
         "zh-Hant": {
@@ -5261,6 +6797,12 @@
             "value": "Collection"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colección"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5277,6 +6819,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "수집 목록"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coleção"
           }
         },
         "zh-Hant": {
@@ -5303,6 +6851,12 @@
             "value": "Companion"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compañero"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5319,6 +6873,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "동료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companheiro"
           }
         },
         "zh-Hant": {
@@ -5345,6 +6905,12 @@
             "value": "Crafting"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fabricación"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5361,6 +6927,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "제작"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Criação"
           }
         },
         "zh-Hant": {
@@ -5387,6 +6959,12 @@
             "value": "Damage Type"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipo de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5403,6 +6981,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "피해 유형"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipo de dano"
           }
         },
         "zh-Hant": {
@@ -5429,6 +7013,12 @@
             "value": "Farming"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agricultura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5445,6 +7035,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "농사"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agricultura"
           }
         },
         "zh-Hant": {
@@ -5471,6 +7067,12 @@
             "value": "Hero"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Héroe"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5487,6 +7089,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "영웅"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herói"
           }
         },
         "zh-Hant": {
@@ -5513,6 +7121,12 @@
             "value": "Homestead"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hogar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5529,6 +7143,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "안식처"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propriedade"
           }
         },
         "zh-Hant": {
@@ -5555,6 +7175,12 @@
             "value": "Mitigation"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitigación"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5571,6 +7197,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "피해 경감"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mitigação"
           }
         },
         "zh-Hant": {
@@ -5597,6 +7229,12 @@
             "value": "Options"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opciones"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5613,6 +7251,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "설정"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opções"
           }
         },
         "zh-Hant": {
@@ -5639,6 +7283,12 @@
             "value": "Play"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jugar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5655,6 +7305,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "플레이"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jogar"
           }
         },
         "zh-Hant": {
@@ -5681,6 +7337,12 @@
             "value": "Resource"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recurso"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5697,6 +7359,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "자원"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recurso"
           }
         },
         "zh-Hant": {
@@ -5723,6 +7391,12 @@
             "value": "Restoration"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restauración"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5739,6 +7413,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "회복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restauração"
           }
         },
         "zh-Hant": {
@@ -5765,6 +7445,12 @@
             "value": "Skill"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Destreza"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5781,6 +7467,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "기술"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Técnica"
           }
         },
         "zh-Hant": {
@@ -5807,6 +7499,12 @@
             "value": "Training"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrenamiento"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5823,6 +7521,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "훈련"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Treino"
           }
         },
         "zh-Hant": {
@@ -5849,6 +7553,12 @@
             "value": "treasure"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tesoro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5865,6 +7575,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "보물"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tesouro"
           }
         },
         "zh-Hant": {
@@ -5891,6 +7607,12 @@
             "value": "Trinket"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abalorio"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5907,6 +7629,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "트링킷"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berloque"
           }
         },
         "zh-Hant": {
@@ -5933,6 +7661,12 @@
             "value": "Ultimate"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definitiva"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5949,6 +7683,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "궁극기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suprema"
           }
         },
         "zh-Hant": {
@@ -5975,6 +7715,12 @@
             "value": "Unique"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Único"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5991,6 +7737,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "고유"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Único"
           }
         },
         "zh-Hant": {
@@ -6017,6 +7769,12 @@
             "value": "Weapon"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arma"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6033,6 +7791,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "무기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arma"
           }
         },
         "zh-Hant": {

@@ -23,6 +23,14 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         try captureJourney(language: "fr", region: "fr_FR")
     }
 
+    func testSpanishScreenshots() throws {
+        try captureJourney(language: "es", region: "es_ES")
+    }
+
+    func testBrazilianPortugueseScreenshots() throws {
+        try captureJourney(language: "pt-BR", region: "pt_BR")
+    }
+
     func testDoubleLengthScreenshots() throws {
         try captureJourney(language: "en", region: "en_US", doubleLength: true)
     }

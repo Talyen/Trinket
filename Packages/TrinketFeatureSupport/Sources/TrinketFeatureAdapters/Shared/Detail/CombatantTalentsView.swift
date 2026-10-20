@@ -6,6 +6,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 public struct CombatantTalentsView: View {
+    @Environment(\.locale) private var locale
     let tree: TalentTree
     let progression: CombatantProgression
     let unlockedTalents: Set<String>
@@ -210,6 +211,8 @@ public struct CombatantTalentsView: View {
         let isSelected = selectedNodeID == node.id
         let outlineOpacity = canUnlock(node) ? 0.6 : (isUnlocked ? 0.4 : 0)
         let style = node.keyword.visualStyle
+        var name = ContentCopy.resource(node.name)
+        name.locale = locale
         return Button {
             guard selectedNodeID != node.id else { return }
             selectedNodeID = node.id
@@ -250,8 +253,9 @@ public struct CombatantTalentsView: View {
         }
         .trinketArtworkCardButtonStyle(pressedScale: TrinketMotion.Interaction.choiceCardPressedScale)
         .accessibilityIdentifier(nodeAccessibilityIdentifier(node.id))
-        .accessibilityLabel(isRowLocked ? String(localized: L10n.ui_combatanttalentsview_1_locked_1871c("\(node.name)")) : ContentCopy
-            .localized(node.name))
+        .accessibilityLabel(isRowLocked
+            ? Text(L10n.ui_combatanttalentsview_1_locked_1871c(name))
+            : Text(verbatim: ContentCopy.localized(node.name, locale: locale)))
     }
 
     private func unlockAccent(for node: TalentNode) -> some View {

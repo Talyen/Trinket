@@ -123,6 +123,7 @@ extension BattleSession {
             events: result.events,
             automaticCards: result.playedCards.filter { $0.id != excludingCardID },
             actions: result.actions,
+            combatantChanges: result.combatantChanges,
         )
     }
 

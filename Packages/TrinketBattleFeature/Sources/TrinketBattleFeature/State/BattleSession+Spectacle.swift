@@ -86,6 +86,9 @@ extension BattleSession {
     }
 
     func publishPartyCelebrateReactions(at date: Date) {
+        if let enemy = presentation.enemy, enemy.health > 0 {
+            return
+        }
         spectacle.celebrateTask.invalidate()
         let delay = partyCelebrateDelayOverride ?? .seconds(0.032)
         if delay <= .zero {

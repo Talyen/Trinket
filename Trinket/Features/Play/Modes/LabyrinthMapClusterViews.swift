@@ -67,6 +67,7 @@ struct LabyrinthFloorMap: View {
 }
 
 private struct LabyrinthMapNodeSeal: View {
+    @Environment(\.locale) private var locale
     let node: LabyrinthNode
     let visualState: LabyrinthMapNodeState
     let type: LabyrinthNodeType
@@ -175,7 +176,7 @@ private struct LabyrinthMapNodeSeal: View {
             clearedSettleTask?.cancel()
         }
         .accessibilityElement(children: .ignore)
-        .gameAccessibilityLabel(nodeAccessibilityLabel)
+        .accessibilityLabel(Text(nodeAccessibilityLabel))
         .accessibilityHint(visualState == .reachable ? String(localized: L10n.ui_labyrinthmapclusterviews_shows_node_details_feb56) :
             String(localized: L10n.ui_labyrinthmapclusterviews_not_reachable_5ad99))
         .accessibilityIdentifier(labyrinthAccessibilityIdentifier)
@@ -203,11 +204,13 @@ private struct LabyrinthMapNodeSeal: View {
         }
     }
 
-    private var nodeAccessibilityLabel: String {
-        switch visualState {
-        case .cleared: String(localized: L10n.ui_labyrinthmapclusterviews_1_cleared_b0008("\(type.title)"))
-        case .locked: String(localized: L10n.ui_labyrinthmapclusterviews_unexplored_chamber_locked_54512)
-        case .reachable: type.title
+    private var nodeAccessibilityLabel: LocalizedStringResource {
+        var title = ContentCopy.resource(type.title)
+        title.locale = locale
+        return switch visualState {
+        case .cleared: L10n.ui_labyrinthmapclusterviews_1_cleared_b0008(title)
+        case .locked: L10n.ui_labyrinthmapclusterviews_unexplored_chamber_locked_54512
+        case .reachable: title
         }
     }
 

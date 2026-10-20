@@ -32,4 +32,5 @@ struct BattleTransitionPlayback {
     let events: [ActionEvent]
     let automaticCards: [BattleCard]
     var actions: [BattleResolvedAction] = []
+    var combatantChanges: [BattleCombatantChange] = []
 }

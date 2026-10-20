@@ -16,7 +16,9 @@
     "ko",
     "de",
     "zh-Hant",
-    "fr"
+    "fr",
+    "es",
+    "pt-BR"
   ],
   "metadataCatalog": "Localization/Store/Localizable.xcstrings",
   "sourceLanguage": "en",
@@ -173,6 +175,18 @@
     ],
     "Packages/BattleEngine/Sources/BattleEngine/Resources/Localizable.xcstrings::log.party_defeated": [
       1
+    ],
+    "Trinket/App/Localization/Localizable.xcstrings::ui.homesteaddetailsheetviews.build_1_08716": [
+      1
+    ],
+    "Trinket/App/Localization/Localizable.xcstrings::ui.labyrinthmapclusterviews.1_cleared_b0008": [
+      1
+    ],
+    "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Resources/Localizable.xcstrings::ui.combatantcard.1_locked_1871c": [
+      1
+    ],
+    "Packages/TrinketFeatureSupport/Sources/TrinketFeatureAdapters/Resources/Localizable.xcstrings::ui.combatanttalentsview.1_locked_1871c": [
+      1
     ]
   },
   "pluralForms": {
@@ -193,6 +207,16 @@
       "one",
       "many",
       "other"
+    ],
+    "es": [
+      "one",
+      "many",
+      "other"
+    ],
+    "pt-BR": [
+      "one",
+      "many",
+      "other"
     ]
   },
   "storeLocales": {
@@ -201,6 +225,11 @@
     "ko": "ko",
     "de": "de-DE",
     "zh-Hant": "zh-Hant",
-    "fr": "fr-FR"
+    "fr": "fr-FR",
+    "es": [
+      "es-ES",
+      "es-MX"
+    ],
+    "pt-BR": "pt-BR"
   }
 }

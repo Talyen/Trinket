@@ -70,6 +70,9 @@ struct BattleSessionSimulationTests {
         #expect(!session.spectacle.outcomePresentation.isOutcomePresented)
         #expect(!session.spectacle.outcomePresentation.isVictoryPresented)
         #expect(!session.canRetreat)
+        for action in session.feedback.scheduledActions {
+            session.feedback.advance(to: action.impactAt)
+        }
         let heroID = try #require(session.heroID)
         let companionID = try #require(session.companionID)
         #expect(session.feedback.hitReactionsByTargetID[heroID]?.kind == .celebrate)
@@ -103,6 +106,9 @@ struct BattleSessionSimulationTests {
         #expect(earnedGold == session.goldFlow?.net ?? 0)
         #expect(!session.spectacle.outcomePresentation.isVictoryPresented)
         #expect(session.spectacle.outcomePresentation.victorySummaryIfAvailable == nil)
+        for action in session.feedback.scheduledActions {
+            session.feedback.advance(to: action.impactAt)
+        }
         let heroID = try #require(session.heroID)
         let companionID = try #require(session.companionID)
         #expect(session.feedback.hitReactionsByTargetID[heroID]?.kind == .celebrate)
@@ -160,6 +166,9 @@ struct BattleSessionSimulationTests {
         let engineState = try #require(session.engineState)
         #expect(session.presentation.configurationID == configurationID)
         #expect(session.presentation.hand == engineState.hand.cards)
+        for action in session.feedback.scheduledActions {
+            session.feedback.advance(to: action.impactAt)
+        }
         #expect(session.presentation.enemy?.health == engineState.health(of: engineState.enemy))
         #expect((session.presentation.enemy?.health ?? initialEnemyHealth) <= initialEnemyHealth)
 
