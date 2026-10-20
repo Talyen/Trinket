@@ -328,10 +328,10 @@ class CIImprovementsTests(unittest.TestCase):
         self.assertIn('TRINKET_DIAGNOSTICS_SESSION_ID: parity-', parity)
         self.assertIn('timeout-minutes: 25', parity)
         self.assertIn('+ 25 * 60 - 180', parity)
-        self.assertIn("if: always() && !cancelled() && github.event_name != 'push' && needs.unit.result != 'skipped'", parity)
+        self.assertIn("if: always() && !cancelled() && github.event_name != 'push' && !inputs.native-logic && needs.unit.result != 'skipped'", parity)
         self.assertIn('ios-parity-${{ matrix.source-shard }}-${{ github.run_id }}-${{ github.run_attempt }}', parity)
         self.assertIn('unit, native-parity]', workflow.split('  ci-ok:\n', 1)[1])
-        self.assertIn("github.event_name != 'push' && needs.unit.result != 'skipped'", workflow.split('  ci-ok:\n', 1)[1])
+        self.assertIn("github.event_name != 'push' && !inputs.native-logic && needs.unit.result != 'skipped'", workflow.split('  ci-ok:\n', 1)[1])
 
     def test_deadline_exhaustion_preserves_failure_and_never_starts_work(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -383,6 +383,11 @@ class CIImprovementsTests(unittest.TestCase):
                                     ('workflow_dispatch', ['ios:' + ' '.join(packages)])]:
                 result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root, env={**os.environ, 'GITHUB_EVENT_NAME': event}, expected=0)
                 self.assertEqual(result.stdout.splitlines(), expected)
+            result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
+                                  env={**os.environ, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
+                                       'TRINKET_CI_NATIVE_LOGIC': 'true'}, expected=0)
+            self.assertEqual(result.stdout.splitlines(), ['native:BattleEngine TrinketCore',
+                                                         'ios:TrinketPersistence TrinketAppState'])
             # A failed Core run must still exercise saves and app transitions,
             # and a later success or failure must not erase the original exit.
             for native, ios, expected in ((17, 0, 17), (0, 23, 23), (17, 23, 17)):

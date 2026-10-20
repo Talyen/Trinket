@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Routine pushes use qualified native pure logic; qualification/nightly retain iOS.
+# Routine verified runs use qualified native logic; qualification/nightly retain iOS.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 if [[ "${1:-}" == --help ]]; then
-  echo "Usage: $0 <Package...> (CI native/iOS dispatcher; manual/nightly retain iOS comparators)"
+  echo "Usage: $0 <Package...> (CI native/iOS dispatcher; qualification/nightly retain iOS comparators)"
   exit 0
 fi
 source Scripts/build-inputs.env
@@ -18,9 +18,11 @@ for package in "$@"; do
 done
 native=()
 ios=()
+native_logic="${TRINKET_CI_NATIVE_LOGIC:-false}"
+if [[ "${GITHUB_EVENT_NAME:-}" == push ]]; then native_logic=true; fi
 for package in "$@"; do
-  case "$package:${GITHUB_EVENT_NAME:-}" in
-    BattleEngine:push|TrinketCore:push) native+=("$package") ;;
+  case "$package:$native_logic" in
+    BattleEngine:true|TrinketCore:true) native+=("$package") ;;
     *) ios+=("$package") ;;
   esac
 done

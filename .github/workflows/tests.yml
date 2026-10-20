@@ -22,6 +22,10 @@ on:
         description: Run only same-revision iOS/native Engine and Core comparators
         type: boolean
         default: false
+      native-logic:
+        description: Use qualified native Engine/Core execution without repeating iOS parity
+        type: boolean
+        default: false
       force-full:
         description: Bypass prior standard proof for the host parity and inline UI pilot
         type: boolean
@@ -303,6 +307,7 @@ jobs:
     timeout-minutes: ${{ matrix.name == 'Battle' && 30 || 25 }}
     env:
       TRINKET_DIAGNOSTICS_SESSION_ID: unit-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+      TRINKET_CI_NATIVE_LOGIC: ${{ inputs.native-logic }}
     steps:
       - name: Reserve diagnostic time
         shell: bash
@@ -344,7 +349,7 @@ jobs:
         id: package-cache
         with:
           shard: ${{ matrix.name }}
-          native-only: ${{ (matrix.name == 'Engine' || matrix.name == 'Core') && github.event_name == 'push' }}
+          native-only: ${{ (matrix.name == 'Engine' || matrix.name == 'Core') && (github.event_name == 'push' || inputs.native-logic) }}
       - name: Test packages (${{ matrix.packages }})
         uses: ./.github/actions/test-job
         with:
@@ -353,7 +358,7 @@ jobs:
           command: ./Scripts/test-ci-packages.sh ${{ matrix.packages }}
       - name: Export exact-run iOS comparator evidence
         id: ios-proof
-        if: always() && !cancelled() && (matrix.name == 'Engine' || matrix.name == 'Core') && github.event_name != 'push'
+        if: always() && !cancelled() && (matrix.name == 'Engine' || matrix.name == 'Core') && github.event_name != 'push' && !inputs.native-logic
         env:
           PACKAGE: ${{ matrix.name == 'Engine' && 'BattleEngine' || 'TrinketCore' }}
         run: python3 Scripts/native-test-results.py export-ios "$PACKAGE" .DerivedData/TestResults/timing-log.jsonl .DerivedData/ParityProof/ios.json
@@ -382,7 +387,7 @@ jobs:
   native-parity:
     name: Native parity (${{ matrix.name }})
     needs: [unit]
-    if: always() && !cancelled() && github.event_name != 'push' && needs.unit.result != 'skipped'
+    if: always() && !cancelled() && github.event_name != 'push' && !inputs.native-logic && needs.unit.result != 'skipped'
     strategy:
       fail-fast: false
       matrix:
@@ -608,7 +613,7 @@ jobs:
       - name: Report required checks separately from advisory coverage
         env:
           JOB_RESULTS: ${{ toJSON(needs) }}
-          REQUIRE_PARITY: ${{ github.event_name != 'push' && needs.unit.result != 'skipped' }}
+          REQUIRE_PARITY: ${{ github.event_name != 'push' && !inputs.native-logic && needs.unit.result != 'skipped' }}
         run: |
           required=()
           if [[ "$REQUIRE_PARITY" == true ]]; then required+=(native-parity); fi

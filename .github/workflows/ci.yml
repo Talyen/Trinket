@@ -51,4 +51,5 @@ jobs:
       xcode-build: ${{ inputs.xcode-build || '' }}
       force-full: ${{ inputs.scope == 'exhaustive-pilot' }}
       qualify-native: ${{ inputs.scope == 'qualification' }}
+      native-logic: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.toolchain == 'verified' && inputs.scope == 'standard') }}
       include-exhaustive: ${{ github.event_name == 'schedule' || inputs.scope == 'exhaustive' || inputs.scope == 'exhaustive-pilot' }}

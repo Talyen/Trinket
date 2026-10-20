@@ -48,3 +48,17 @@ All existing game tests remain; duplicate save execution on app-state reruns and
 repeated XCTest setup are removed instead of deleting consequential assertions.
 The first full lightweight handoff passed all script regressions, docs and cheap
 gates. Neither that result nor implemented changes establish a speedup.
+
+## Published comparison
+
+Repair candidate: 214c44571abb7ab527120f2fba7d8719cc996945.
+Candidate standard CI: https://github.com/Talyen/Trinket/actions/runs/39353415213
+Fresh baseline release (new workflow, unchanged source 497c89026):
+https://github.com/Talyen/Trinket/actions/runs/39353417412
+Fresh candidate release:
+https://github.com/Talyen/Trinket/actions/runs/39353451320
+The initial cache-eligible baseline release 39352747019 was intentionally cancelled
+in favor of forced fresh evidence; exclude it from pass/failure and speedup statistics.
+Both fresh runs share the same workflow definition but checkout their explicit source
+commit. They bypass saved journey evidence and preserve the same qualified runtime,
+Smoke methods and critical selectors. Inspect actual method IDs, not just totals.

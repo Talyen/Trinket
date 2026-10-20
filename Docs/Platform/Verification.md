@@ -170,13 +170,13 @@ available; the CI policy applies to automatic verification, not to playing the g
 
 ## Native pure-logic qualification
 
-Hosted iOS/native qualification gates native push activation. Push CI runs
+Hosted iOS/native qualification gates native activation. Push and standard verified CI run
 `BattleEngine` and `TrinketCore` natively after that qualification agrees. Persistence
 and State independently verify saves and AppState on iOS, and smoke keeps the real simulator/app path. Native
 execution must complete every independently discovered function and parameterized
 case without skips or issues; a positive aggregate count is insufficient.
 
-Manual/nightly standard runs keep the full iOS package scopes and compare native
+Qualification, exhaustive, latest-toolchain and nightly runs keep the full iOS package scopes and compare native
 Engine/Core executed identities, expanded parameterized case counts, and results
 on the same revision. Native comparators run in separate 25-minute hosted jobs,
 with three minutes reserved for diagnostics. The iOS lane transfers compact
@@ -283,7 +283,7 @@ Package unit jobs restore separately keyed incremental state and byte-verified s
 timestamps in their per-package DerivedData tenants, then always invoke compilation/testing
 so changed inputs rebuild. Core, Persistence, and AppState have separate jobs: a failed
 app-state invocation does not repeat passed save tests when rerunning failed jobs.
-They do not download the app product archive. Native-only Engine pushes restore
+They do not download the app product archive. Native-only Engine/Core jobs restore
 only native compiler state in a separate namespace, retaining simulator state for
 the iOS comparator lanes. Cache identity uses setup-trinket’s selected Xcode
 version/build without launching another version-query process.
