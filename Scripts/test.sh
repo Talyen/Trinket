@@ -182,6 +182,11 @@ prepare_serial_test_sim() {
     ensure_test_simulator_logged
   fi
   python3 Scripts/phase-timing.py end simulator-boot "$phase_started" "$MODE"
+  if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
+    echo "=== Hosted memory after simulator boot ==="
+    sysctl hw.memsize hw.ncpu vm.swapusage || true
+    vm_stat || true
+  fi
   phase_started="$(python3 Scripts/phase-timing.py begin)"
   local guest_status=0
   trinket_track_test_guests || guest_status=$?

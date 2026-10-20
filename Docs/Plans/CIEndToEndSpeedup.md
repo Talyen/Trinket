@@ -179,3 +179,11 @@ Existing thirty-minute invocation watchdogs alone permit one hung method to lose
 the whole batch and its case diagnostics. Leave other FullUI/Soak/performance
 allowances unchanged and treat timeouts as failures, never automatic product passes.
 Xcode's installed -help confirms all three execution-timeout options.
+
+Bootstrap Smoke passed all six methods, but guest inventory alone took 275s,
+followed by 567s test wrapper time; these are actual recorded phases, not inferred
+queue/compile time. Age-pruning is not the whole cause: first Content cache-save
+age cleanup took only three seconds while its 148MB cache upload stalled. Record
+host memory/swap counters after UI simulator boot in future runs before drawing
+a resource-pressure conclusion. Fresh be1628b4d UI 39362370376 failed boot within
+the bounded preparation window, as intended; it provides no passing coverage.
