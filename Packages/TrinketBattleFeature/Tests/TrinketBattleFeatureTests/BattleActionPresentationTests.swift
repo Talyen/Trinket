@@ -480,6 +480,7 @@ extension BattleActionPresentationTests {
         defer { session.endBattle() }
         var state = try #require(session.engineState)
         state.hand = BattleHand()
+        state.heroDeck.putOnBottom(.slash)
         let card = BattleCardCombatEngine.deal(.bloodOffering, owner: .hero, context: &state)
         session.engineState = state
         session.installSimulationPresentation()
