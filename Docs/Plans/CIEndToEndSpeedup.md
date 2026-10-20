@@ -151,3 +151,21 @@ required CI OK inputs. This lets Release seed its compiler cache even if an
 unrelated simulator package encounters infrastructure failure; it does not reuse
 a failed test or weaken either check. The Linux asset move and removal of routine
 native comparators offset this fan-out. Measure actual queue contention.
+
+## Remaining serial and housekeeping costs
+
+Source be1628b4d standard run 39361783708 now seeds cold Support/Battle and device
+Release state. Battle 206 and Persistence 400 passed. The first fresh UI candidate
+39358719618 passed exactly the baseline eleven methods, zero skips, in two
+invocations; actual end-to-end 37.47m versus baseline 35.75m, not an improvement.
+Its eight-minute cold-boot/recovery consumed the batching savings. Fresh be1628b4d
+release run 39362370376 is active. Dispatch 39362361602 used a short SHA and was
+cancelled before verification; exclude it from performance results.
+
+Release has no input dependency on simulator compilation/results. Remove the
+remaining build/smoke dependency too, preserving all independent CI OK requirements.
+Also disable the existing local output age-prune knob only on disposable standard
+and release runners. Battle's cache-save log demonstrated another timed-out full
+process inventory; these local tenant scans have no retention value on fresh VMs.
+Keep explicit cache pruning and fresh simulator/guest ownership checks. Measure
+the next candidate rather than attributing all setup delays to that scan.

@@ -41,6 +41,11 @@ on:
         type: string
         default: ''
 
+# These runners are disposable. Keep compiler caches pruned explicitly, without
+# scanning old local output tenants and process tables at every test boundary.
+env:
+  TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE: '0'
+
 jobs:
   reuse:
     name: Reuse verified commit
@@ -196,13 +201,12 @@ jobs:
 
   release-device:
     name: Device Release compilation
-    # Start after the app build releases its runner; package tests remain an
-    # independent required gate. Do not append Release to the slowest test shard.
-    needs: [changes, reuse, build]
+    # Release consumes source, not simulator products or test results. All three
+    # remain required CI OK inputs; do not serialize independent compilation.
+    needs: [changes, reuse]
     if: >-
       always() && !inputs.qualify-native && needs.reuse.result == 'success' &&
-      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
-      (needs.build.result == 'success' || needs.reuse.outputs.standard == 'true')
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     runs-on: xcode-27
     timeout-minutes: 30
     steps:

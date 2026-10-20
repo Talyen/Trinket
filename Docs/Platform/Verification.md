@@ -230,7 +230,7 @@ exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic rese
 | `test-deploy.sh` | Full CI/release evidence with exact-commit hosted proof reuse and local phase checkpoints; local execution uses the deliberate heavy-local flag and diagnostic limits. [Release recovery](Release.md#options-and-recovery) owns checkpoint identity and invalidation |
 | Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, app build with smoke on the same runner, and package unit for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |
-| Device Release compilation | Nightly and standard manual CI run unsigned device Release compilation after build/smoke, concurrently with remaining package tests with a 30-minute job budget and reserved diagnostic time; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
+| Device Release compilation | Nightly and standard manual CI run unsigned device Release compilation concurrently with independent build/smoke and package checks, with a 30-minute job budget and reserved diagnostic time; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
 | Nightly exhaustive | Scheduled or manually dispatched exhaustive UI with all registered classes on one runner; advisory, never blocks `CI OK` |
 | Performance diagnostics | Manual `performance.yml` dispatch with a validated group/repetition selection; never part of routine local or push verification |
 
@@ -288,7 +288,9 @@ full dispatches with prior standard proof retain the transfer/reuse path.
 
 Package unit jobs restore separately keyed incremental state and byte-verified source
 timestamps in their per-package DerivedData tenants, then always invoke compilation/testing
-so changed inputs rebuild. Core, Persistence, and AppState have separate jobs: a failed
+so changed inputs rebuild. Disposable standard/release runners disable local output
+age-pruning scans; explicit cache pruning, result retention and simulator/guest
+ownership checks remain in force. Core, Persistence, and AppState have separate jobs: a failed
 app-state invocation does not repeat passed save tests when rerunning failed jobs.
 FeatureSupport and BattleFeature also run separately, preserving passed support
 coverage when battle verification needs a retry.
