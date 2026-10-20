@@ -169,3 +169,13 @@ and release runners. Battle's cache-save log demonstrated another timed-out full
 process inventory; these local tenant scans have no retention value on fresh VMs.
 Keep explicit cache pruning and fresh simulator/guest ownership checks. Measure
 the next candidate rather than attributing all setup delays to that scan.
+
+The pending f6401f3dd comparison 39363336507 was cancelled before starting: its
+intentional wait behind the bootstrap run would contaminate end-to-end timing.
+Dispatch the next full comparison only after bootstrap completes. No product
+assertions changed. Add a five-minute per-method XCTest limit only to CI Smoke
+and explicit qualified release methods; largest observed baseline method is 135s.
+Existing thirty-minute invocation watchdogs alone permit one hung method to lose
+the whole batch and its case diagnostics. Leave other FullUI/Soak/performance
+allowances unchanged and treat timeouts as failures, never automatic product passes.
+Xcode's installed -help confirms all three execution-timeout options.

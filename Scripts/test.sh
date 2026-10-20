@@ -320,6 +320,11 @@ XCODEBUILD_ARGS=(
   "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
   -resultBundlePath "$RESULT_BUNDLE_PATH"
 )
+# Known Smoke and qualified release methods finish below 136s in the hosted
+# baseline. Bound a stuck method before it consumes the whole batch watchdog.
+if [[ "${GITHUB_ACTIONS:-}" == true ]] && { [[ "$MODE" == smoke ]] || [[ "$MODE" == ui && -n "${TRINKET_DEPLOY_EXPECTED_CASES:-}" ]]; }; then
+  XCODEBUILD_ARGS+=(-test-timeouts-enabled YES -default-test-execution-time-allowance 300 -maximum-test-execution-time-allowance 300)
+fi
 if [[ "$MODE" == "performance" ]]; then
   # Keep DEBUG-only deterministic instrumentation while compiling the measured
   # app and test bundles with release-style Swift optimization.

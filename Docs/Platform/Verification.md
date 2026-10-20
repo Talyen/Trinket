@@ -219,6 +219,12 @@ watchdog can run after compilation and smoke; ordinary build/smoke jobs allow 40
 The Battle package shard allows 30 minutes (other package shards allow 25), and
 exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic reserve.
 
+CI Smoke and the explicitly selected qualified release journeys enable XCTest's
+five-minute per-method execution limit. Their observed baseline methods finish
+below 136 seconds. A stuck method must fail and retain evidence before consuming
+the entire batch watchdog; this does not classify a product timeout as infrastructure.
+Other FullUI, Soak and performance runs retain their existing execution allowances.
+
 ## Gate composition
 
 | Gate | Composition |
