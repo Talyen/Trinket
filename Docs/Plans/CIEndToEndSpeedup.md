@@ -109,3 +109,24 @@ Fresh qualified baseline 39353417412 passed: 35.75 minutes overall, 11.52 queue,
 Reports: /tmp/trinket-ci-speedup-baseline.json and
 /tmp/trinket-ci-speedup-release-baseline.json. Native proof location is recorded in
 /tmp/trinket-native-qualification-location.txt. Candidate final measurements pending.
+
+## Active final benchmark
+
+Activated candidate 95e44fad83e38e218cde22f8acb8bdf8f6b13b95.
+First standard run: https://github.com/Talyen/Trinket/actions/runs/39358321807
+This first run seeds the new package source-time receipts and device Release cache;
+a second unchanged-source run must verify genuinely warm behavior.
+Dispatch fresh candidate release only once this run publishes its app archive, so
+product-only reuse is exercised while other required jobs remain in progress.
+Preserve every required case and inspect actual backend logs and cache behavior.
+
+Fresh candidate UI run: https://github.com/Talyen/Trinket/actions/runs/39358719618
+(source 95e44fad8; app archive was already published and standard CI still running).
+The next revision moves only the portable prepared-asset validators off macOS and
+makes proof lookup use actual checkout HEAD for explicit older-source comparisons.
+Keep those checks intact. Source asset validation uses Python stdlib only (hashes,
+manifest IDs, generated outputs and lyric validation), with no Xcode/media encoder.
+Verify its Linux job before final acceptance. The existing DesignSystem UIKit tests
+remain on macOS/iOS. Re-run final standard after this revision to measure warmed
+compiler state; use fresh UI source 95e44fad8 as batching evidence only unless a
+final-revision fresh run also confirms all eleven cases and product reuse.

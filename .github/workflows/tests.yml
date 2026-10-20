@@ -78,17 +78,13 @@ jobs:
     name: Prepared asset integrity
     needs: [changes, reuse]
     if: ${{ !inputs.qualify-native && needs.reuse.outputs.assets != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true') }}
-    runs-on: xcode-27
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Reserve diagnostic time
         shell: bash
         run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 20 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: ./.github/actions/setup-trinket
-        with:
-          xcode-channel: ${{ inputs.xcode-channel }}
-          xcode-build: ${{ inputs.xcode-build }}
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
       - name: Prepared asset integrity gate
         run: python3 Scripts/ci-run-budget.py -- ./Scripts/ci-assets-gate.sh

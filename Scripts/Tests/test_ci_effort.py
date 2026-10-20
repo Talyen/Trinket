@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import subprocess
+import sys
 
 from script_test_support import load_script, write_json
 
@@ -94,6 +95,16 @@ class CIEffortTests(unittest.TestCase):
                         {'run_attempt': 2}, {'run_attempt': None}):
             self.assertIsNone(REUSE.product_proof(running, [{**build, **changed}], artifacts, 'abc', 'main'))
         self.assertIsNone(REUSE.product_proof(running, [build], [{**artifacts[0], 'expired': True}], 'abc', 'main'))
+
+    def test_explicit_checkout_uses_source_revision_instead_of_workflow_revision(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.dict(os.environ, GITHUB_REPOSITORY='owner/repo', GITHUB_SHA='workflow-sha',
+                            GITHUB_REF_NAME='main', GITHUB_RUN_ID='20', GITHUB_OUTPUT=str(Path(directory) / 'output')), \
+                    patch.object(sys, 'argv', ['ci-reuse.py', '--products-only']), \
+                    patch.object(REUSE.subprocess, 'check_output', return_value='source-sha\n'), \
+                    patch.object(REUSE, 'find_proof', return_value=dict(standard='false', products='false')) as find:
+                REUSE.main()
+            find.assert_called_once_with('owner/repo', 'source-sha', 'main', '20', True)
 
     def retry_fixture(self, root):
         bundle = root / 'original.xcresult'

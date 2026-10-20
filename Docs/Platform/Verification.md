@@ -314,6 +314,8 @@ For controlled qualified-journey timing, dispatch `release-verification.yml` wit
 `fresh-evidence=true` and the exact source `commit`; prior passed journey records are
 neither consumed nor saved by that comparison. Compare the same runtime and executed
 selectors, and separate first attempts, reruns, setup, transfers and queue time.
+Prepared asset integrity runs the same source-free byte and manifest checks on
+Linux; that gate does not reserve a Mac or install Xcode and Swift lint tools.
 
 Ordinary `build.sh` compiles only the app; it does not produce reusable test
 bundles. CI keeps app incremental build state in its warm cache and transfers only

@@ -119,7 +119,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--products-only', action='store_true', help='Transfer products without certifying standard checks')
     args = parser.parse_args()
-    result = find_proof(os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_SHA"],
+    # A comparison workflow may explicitly check out an older requested commit.
+    source_sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+    result = find_proof(os.environ["GITHUB_REPOSITORY"], source_sha,
                         os.environ["GITHUB_REF_NAME"], os.environ["GITHUB_RUN_ID"], args.products_only)
     with Path(os.environ["GITHUB_OUTPUT"]).open("a") as output:
         output.write("".join(f"{key}={value}\n" for key, value in result.items()))
@@ -127,7 +129,7 @@ def main() -> None:
         url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{result['run-id']}"
         print(f"Reusing successful standard checks and test products: {url}")
         with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a") as summary:
-            summary.write(f"### Exact-commit verification reuse\n\nStandard checks already passed [this run]({url}) for `{os.environ['GITHUB_SHA']}`.\n")
+            summary.write(f"### Exact-commit verification reuse\n\nStandard checks already passed [this run]({url}) for `{source_sha}`.\n")
     elif result.get('products') == 'true':
         print(f'Using exact-commit test products from run {result["run-id"]}; all requested checks still run.')
     else:
