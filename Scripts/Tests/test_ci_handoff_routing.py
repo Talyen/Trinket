@@ -74,7 +74,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             scripts = root / 'Scripts'
-            shutil.copytree(ROOT / 'Scripts', scripts)
+            shutil.copytree(ROOT / 'Scripts', scripts, ignore=shutil.ignore_patterns('__pycache__'))
             (scripts / 'test-scripts.sh').unlink()
             write_executable(scripts / 'cheap-fixture.sh', '#!/bin/bash\nprintf ran > later-check\n')
             (scripts / 'config/cheap-slices.txt').write_text('./Scripts/cheap-fixture.sh\n')
@@ -93,7 +93,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             scripts = root / 'Scripts'
-            shutil.copytree(ROOT / 'Scripts', scripts)
+            shutil.copytree(ROOT / 'Scripts', scripts, ignore=shutil.ignore_patterns('__pycache__'))
             path = 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Probe $cash; literal.swift'
             source = root / path
             source.parent.mkdir(parents=True)
@@ -146,7 +146,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             scripts = root / 'Scripts'
-            shutil.copytree(ROOT / 'Scripts', scripts)
+            shutil.copytree(ROOT / 'Scripts', scripts, ignore=shutil.ignore_patterns('__pycache__'))
             source = root / 'Trinket/App/ContentView.swift'
             source.parent.mkdir(parents=True)
             source.write_text('struct ContentView {}')
@@ -168,7 +168,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         for selected, cheap, expected in ((0, 0, 0), (7, 0, 7), (0, 8, 8)):
             with self.subTest(selected=selected, cheap=cheap), tempfile.TemporaryDirectory() as directory:
                 scripts = Path(directory) / "Scripts"
-                shutil.copytree(ROOT / "Scripts", scripts)
+                shutil.copytree(ROOT / "Scripts", scripts, ignore=shutil.ignore_patterns("__pycache__"))
                 payload = "selected-check\n" * 200 + "FAIL: fixture diagnostic\n" if selected else "selected-check\n"
                 (scripts / "test-scripts.sh").write_text(f"#!/bin/bash\ncat <<'PAYLOAD'\n{payload}PAYLOAD\nexit {selected}\n")
                 registry = scripts / "config/cheap-slices.txt"
