@@ -82,6 +82,17 @@ jobs:
           SOURCE_SHA: ${{ needs.source.outputs.sha }}
           TRINKET_CLEANUP_TEST_ARTIFACTS: 0
         run: python3 "$RUNNER_TEMP/ui-diagnostic-driver/ci-run-budget.py" -- python3 "$RUNNER_TEMP/ui-diagnostic-driver/ci-diagnostic-ui.py" run "${{ inputs.mode }}"
+      - name: Export localization screenshots and accessibility hierarchies
+        if: always() && contains(inputs.tests, 'LocalizationUITests')
+        run: python3 Scripts/export-localization-screenshots.py .DerivedData/TestResults .DerivedData/LocalizationScreenshots
+      - name: Retain localization screenshots for agent visual review
+        if: always() && contains(inputs.tests, 'LocalizationUITests')
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: ui-diagnostic-localization-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/LocalizationScreenshots/
+          retention-days: 14
+          if-no-files-found: error
       - name: Retain bounded diagnostic evidence
         if: always()
         run: |
