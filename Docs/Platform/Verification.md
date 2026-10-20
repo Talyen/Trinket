@@ -171,10 +171,14 @@ available; the CI policy applies to automatic verification, not to playing the g
 ## Native pure-logic qualification
 
 Hosted iOS/native qualification gates native activation. Push and standard verified CI run
-`BattleEngine` and `TrinketCore` natively after that qualification agrees. Persistence
+`BattleEngine`, `TrinketCore`, and qualified `TrinketContent` natively after that qualification agrees. Persistence
 and State independently verify saves and AppState on iOS, and smoke keeps the real simulator/app path. Native
 execution must complete every independently discovered function and parameterized
 case without skips or issues; a positive aggregate count is insufficient.
+Activation follows the selected build's `native_packages` in
+[ci-xcode.json](../../Scripts/config/ci-xcode.json). Add a package only after exact-build
+qualification succeeds; unqualified fallback builds retain that package's iOS tests.
+DesignSystem's packaged color and contrast checks stay on iOS.
 
 Qualification, exhaustive, latest-toolchain and nightly runs keep the full iOS package scopes and compare native
 Engine/Core/Content executed identities, expanded parameterized case counts, and results

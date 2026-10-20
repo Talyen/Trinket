@@ -1,7 +1,10 @@
 """Prevent runner image changes or a failed Metal install from passing setup."""
 from pathlib import Path
+import json
+import os
 import plistlib
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -67,9 +70,24 @@ class CIXcodeTests(unittest.TestCase):
         pin = dict(version='27.1', build='27A9275', qualified_builds=[
             dict(version='27.1', build='27A9275', native_packages=['BattleEngine', 'TrinketCore', 'TrinketContent']),
             dict(version='27.1', build='27A9269')])
-        self.assertIn('TrinketContent', SETUP.native_packages(pin, '27.1', '27A9275'))
-        self.assertNotIn('TrinketContent', SETUP.native_packages(pin, '27.1', '27A9269'))
-        self.assertEqual(SETUP.native_packages(pin, '27.2', '27B5028f'), [])
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'Scripts/config').mkdir(parents=True)
+            (root / 'Scripts/config/ci-xcode.json').write_text(json.dumps(pin))
+            for version, build, expected in [('27.1', '27A9275', 'BattleEngine TrinketCore TrinketContent'),
+                                              ('27.1', '27A9269', 'BattleEngine TrinketCore'),
+                                              ('27.2', '27B5028f', '')]:
+                output = root / 'environment'
+                output.write_text('')
+                with self.subTest(build=build), patch.object(SETUP, 'ROOT', root), \
+                        patch.object(SETUP, 'installed_xcodes', return_value=[(root / 'Xcode.app', version, build)]), \
+                        patch.object(SETUP.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)), \
+                        patch.dict(os.environ, GITHUB_ENV=str(output), GITHUB_STEP_SUMMARY=''), \
+                        patch.object(sys, 'argv', ['setup-ci-xcode.py', '--channel', 'latest']):
+                    SETUP.main()
+                exported = dict(line.split('=', 1) for line in output.read_text().splitlines())
+                self.assertEqual(exported['XCODE_BUILD'], build)
+                self.assertEqual(exported['TRINKET_CI_NATIVE_PACKAGES'], expected)
         for packages in (['TrinketPersistence'], ['TrinketCore', 'TrinketCore'], 'TrinketContent'):
             with self.subTest(packages=packages), self.assertRaises(ValueError):
                 SETUP.native_packages(dict(version='27.1', build='27A9275', native_packages=packages),

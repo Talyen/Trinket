@@ -384,6 +384,10 @@ class CIImprovementsTests(unittest.TestCase):
                 result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root, env={**os.environ, 'GITHUB_EVENT_NAME': event}, expected=0)
                 self.assertEqual(result.stdout.splitlines(), expected)
             result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
+                                  env={**os.environ, 'GITHUB_EVENT_NAME': 'push',
+                                       'TRINKET_CI_NATIVE_PACKAGES': ''}, expected=0)
+            self.assertEqual(result.stdout.splitlines(), ['ios:' + ' '.join(packages)])
+            result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
                                   env={**os.environ, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
                                        'TRINKET_CI_NATIVE_LOGIC': 'true'}, expected=0)
             self.assertEqual(result.stdout.splitlines(), ['native:BattleEngine TrinketCore',

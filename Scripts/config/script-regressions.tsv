@@ -76,7 +76,7 @@ Scripts/collect-performance-results.py	test_aggregate_performance.py,test_compar
 Scripts/compare-performance.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
 Scripts/config/agent-tasks.json	test_agent_context.py,test_agent_investigate.py,test_agent_search.py
 Scripts/config/cheap-slices.txt	test-lib-args.sh,test_ci_gate_scripts.py,test_ci_handoff_routing.py,test_documentation.py
-Scripts/config/ci-xcode.json	test_ci_xcode.py
+Scripts/config/ci-xcode.json	test_ci_xcode.py,test_ci_improvements.py
 Scripts/config/destructive-git-commands.txt	test_git_safety.py
 Scripts/config/diagnostic-limits.env	test_codegen_abilities.py,test_failure_diagnostics.py,test_internal_cli.py,test_package_diagnostics.py,test_test_timing.py,test_ci_gate_scripts.py,test_ci_improvements.py
 Scripts/config/full-only-art-kinds.txt	test_check_unused_assets.py
@@ -200,7 +200,7 @@ Scripts/run-simulator.sh	test_build_metadata.py,test_build_process.py,test_ci_bu
 Scripts/script_diagnostics.py	test_codegen_abilities.py,test_failure_diagnostics.py,test_package_diagnostics.py,test_test_timing.py
 Scripts/script_test_execution.py	test_failure_diagnostics.py,test_script_selection.py
 Scripts/script_test_selection.py	test_script_selection.py
-Scripts/setup-ci-xcode.py	test_ci_xcode.py
+Scripts/setup-ci-xcode.py	test_ci_xcode.py,test_ci_improvements.py
 Scripts/setup-git-safety.mjs	test_git_safety.py
 Scripts/setup-testflight.sh	test_testflight.py
 Scripts/simctl_json.py	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py

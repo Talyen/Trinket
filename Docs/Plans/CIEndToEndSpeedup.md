@@ -93,3 +93,19 @@ Baseline State: Core 66 passed (111s wrapper), Persistence 400 passed (213s),
 AppState 212 passed/1 existing skip (174s). Baseline Smoke: six passed, no skips;
 327s test wrapper, 128s boot and 47s guest bookkeeping. Use actual artifact method
 IDs for comparisons, not total duration or test counts alone.
+
+## Qualification passed
+
+Run 39354661539 passed at source 080ad3858 on Xcode 27.1 build 27A9275.
+Exact native/iOS matches: Engine 1008 functions / 1106 parameterized cases;
+Core 66 / 58; Content 283 / 288. No native or iOS comparator skips/failures.
+Proof artifacts were downloaded and identities checked. Native Content may now be
+activated only for 27A9275; 27A9269 retains iOS Content via build-specific metadata.
+The standard baseline 39352744217 passed first attempt in 41.83 minutes. It included
+13.32 minutes queueing before the 16.98-minute Battle job, then a 9.45-minute device
+Release job (8.6 minutes compiler step). Do not call all that time compilation.
+Fresh qualified baseline 39353417412 passed: 35.75 minutes overall, 11.52 queue,
+24.17 executing, 18.15 UI; ten invocations, eleven methods, zero failures/skips.
+Reports: /tmp/trinket-ci-speedup-baseline.json and
+/tmp/trinket-ci-speedup-release-baseline.json. Native proof location is recorded in
+/tmp/trinket-native-qualification-location.txt. Candidate final measurements pending.
