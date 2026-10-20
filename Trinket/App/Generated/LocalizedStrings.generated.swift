@@ -343,8 +343,8 @@ enum L10n {
         LocalizedStringResource("ui.homesteadcategoryview.resources_e89b3", defaultValue: "Resources", table: "Localizable", bundle: .main)
     }
 
-    static func ui_homesteaddetailsheetviews_build_1_08716(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.homesteaddetailsheetviews.build_1_08716", defaultValue: "Build \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
+    static func ui_homesteaddetailsheetviews_build_1_08716(_ value1: LocalizedStringResource) -> LocalizedStringResource {
+        LocalizedStringResource("ui.homesteaddetailsheetviews.build_1_08716", defaultValue: "Build \(value1)", table: "Localizable", bundle: .main)
     }
 
     static var ui_homesteaddetailsheetviews_build_bdd25: LocalizedStringResource {
@@ -631,8 +631,8 @@ enum L10n {
         LocalizedStringResource("ui.inventorygridview.your_1_will_appear_here_when_you_collect_them_37243", defaultValue: "Your \(ContentCopy.localized(value1)) will appear here when you collect them", table: "Localizable", bundle: .main)
     }
 
-    static func ui_labyrinthmapclusterviews_1_cleared_b0008(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.labyrinthmapclusterviews.1_cleared_b0008", defaultValue: "\(ContentCopy.localized(value1)), cleared", table: "Localizable", bundle: .main)
+    static func ui_labyrinthmapclusterviews_1_cleared_b0008(_ value1: LocalizedStringResource) -> LocalizedStringResource {
+        LocalizedStringResource("ui.labyrinthmapclusterviews.1_cleared_b0008", defaultValue: "\(value1), cleared", table: "Localizable", bundle: .main)
     }
 
     static var ui_labyrinthmapclusterviews_dismiss_selection_c0791: LocalizedStringResource {

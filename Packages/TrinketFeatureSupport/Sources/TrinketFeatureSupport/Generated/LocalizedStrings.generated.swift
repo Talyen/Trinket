@@ -27,8 +27,8 @@ enum L10n {
         LocalizedStringResource("ui.categorybrowseshelf.view_all_1_261d4", defaultValue: "View all \(ContentCopy.localized(value1))", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func ui_combatantcard_1_locked_1871c(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.combatantcard.1_locked_1871c", defaultValue: "\(ContentCopy.localized(value1)), locked", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func ui_combatantcard_1_locked_1871c(_ value1: LocalizedStringResource) -> LocalizedStringResource {
+        LocalizedStringResource("ui.combatantcard.1_locked_1871c", defaultValue: "\(value1), locked", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var ui_emptyslots_empty_accessory: LocalizedStringResource {

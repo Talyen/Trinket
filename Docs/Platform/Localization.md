@@ -84,6 +84,18 @@ and translator comments. Never assemble a translated sentence by joining English
 fragments, force translated casing, or change raw enum/save/artwork identifiers.
 Literal percent signs in catalog format strings use `%%`.
 
+Resolve content arguments before passing them into a translated sentence; translating
+“Build %1$@” or “%1$@, locked” does not translate the inserted building or character
+name. Use the rendering environment's locale for both the content and its sentence.
+For nested content names, declare the sentence's `resourceArguments` in
+`Localization/config.json`, set the nested resource's locale, and use `Text(resource)`
+for deferred SwiftUI sentence rendering. Generated String arguments otherwise
+resolve content through the process locale before rendering. Do not pass an already
+formatted sentence through `GameLabel` expecting its English fragments to translate.
+Equipment search indexes the localized item noun, base type, displayed affixes, and
+keyword names, using the same rendering locale for indexing and query normalization;
+rebuild the index when that locale changes.
+
 `LocalizedGameText` carries keyword IDs and named integer values through translated
 word order. Preserve semantic tags and keep each placeholder inside its matching
 value tag. Keyword highlighting and upgrade comparisons consume these identities,
@@ -97,7 +109,12 @@ rendering locale; retained English descriptions remain canonical data.
 Handoff and locked local integration run the read-only localization check through
 the shared cheap-slice registry. Pre-push and CI run the same check. They perform
 no AI calls, regeneration, compilation, or network requests. Translation and
-generation run before taking the shared integration lock.
+generation run before taking the shared integration lock. The source check also
+rejects direct `.name`, `.title`, `.description`, and `.rawValue` arguments (including
+single-field string interpolation and multiline calls) to typed `L10n` templates.
+This bounded check does not infer types or trace local variables/custom adapters;
+`displayName` can already be localized by its presentation owner. Behavior tests
+protect localized equipment search and index invalidation; those Swift tests run in CI.
 
 Local handoff establishes lightweight validation only. CI owns compiler extraction
 coverage, package/app compilation, locale UI checks, and localized screenshots.

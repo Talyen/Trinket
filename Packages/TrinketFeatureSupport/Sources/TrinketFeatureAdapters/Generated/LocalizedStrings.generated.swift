@@ -43,8 +43,8 @@ enum L10n {
         LocalizedStringResource("ui.combatantdetailsections.traits_e0ab4", defaultValue: "Traits", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func ui_combatanttalentsview_1_locked_1871c(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.combatanttalentsview.1_locked_1871c", defaultValue: "\(ContentCopy.localized(value1)), locked", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func ui_combatanttalentsview_1_locked_1871c(_ value1: LocalizedStringResource) -> LocalizedStringResource {
+        LocalizedStringResource("ui.combatanttalentsview.1_locked_1871c", defaultValue: "\(value1), locked", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func ui_combatanttalentsview_complete_row_1_to_unlock_ab66a(_ value1: String) -> LocalizedStringResource {

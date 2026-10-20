@@ -22,8 +22,7 @@ struct ItemPickerItems {
     private(set) var eligible: [InventoryItem] = []
     private(set) var keywords: [Keyword] = []
 
-    mutating func update(inventory: [InventoryItem], loadout: EquipmentLoadout, slot: ItemSlot) {
-        let locale = Locale.current
+    mutating func update(inventory: [InventoryItem], loadout: EquipmentLoadout, slot: ItemSlot, locale: Locale = .current) {
         let inventoryChanged = self.inventory != inventory
         let localeChanged = searchLocale != locale
         if !inventoryChanged, !localeChanged, lastLoadout == loadout, lastSlot == slot {
@@ -36,9 +35,11 @@ struct ItemPickerItems {
                 if !localeChanged, previousItems[item.id] == item, let text = searchText[item.id] {
                     return (item.id, text)
                 }
-                let fields = [item.displayName, item.baseType.name]
-                    + item.displayedAffixes.flatMap { [$0.title, $0.description] }
-                    + item.keywords.map(\.rawValue)
+                let fields = [item.localizedDisplayName(locale: locale), item.baseType.localizedName(locale: locale)]
+                    + item.displayedAffixes.flatMap {
+                        [ContentCopy.localized($0.title, locale: locale), ContentCopy.localized($0.description, locale: locale)]
+                    }
+                    + item.keywords.map { $0.localizedName(locale: locale) }
                 return (item.id, Self.normalized(fields.joined(separator: " "), locale: locale))
             })
             self.inventory = inventory
@@ -76,7 +77,7 @@ struct ItemPickerItems {
     }
 
     func matching(_ filter: ItemPickerFilter) -> [InventoryItem] {
-        let words = Self.normalized(filter.search).split(whereSeparator: \.isWhitespace)
+        let words = Self.normalized(filter.search, locale: searchLocale).split(whereSeparator: \.isWhitespace)
         return eligible.filter { item in
             (filter.rarity == nil || item.rarity == filter.rarity)
                 && (filter.keyword.map { keyword in item.affixes.contains { $0.keywords.contains(keyword) } } ?? true)

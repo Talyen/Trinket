@@ -156,6 +156,29 @@ class LocalizationTests(unittest.TestCase):
         self.assertEqual(sum('unlocalized literal' in error for error in errors), 3)
         self.assertTrue(any('unknown typed localization resource' in error for error in errors))
 
+    def test_canonical_content_arguments_cannot_hide_inside_translated_sentences(self):
+        from internal.localization_sources import source_errors
+        source = self.root / 'Packages/Example/Sources/Example/Screen.swift'
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text('''Text(L10n.deal_burn("\\(combatant.name)"))
+Text(L10n.deal_burn(
+    count,
+    node.title
+))
+.accessibilityLabel(Text(L10n.deal_burn("\\(type.title)")))
+Text(L10n.deal_burn(ContentCopy.localized(node.name, locale: locale)))
+Text(L10n.deal_burn(item.localizedDisplayName(locale: locale)))
+Text(L10n.deal_burn(category.displayName))
+Text(verbatim: "L10n.deal_burn(node.title)")
+Text(L10n.deal_burn("literal (punctuation), title", count))
+// Text(L10n.deal_burn(combatant.name))
+/* Text(L10n.deal_burn(node.description)) */
+.accessibilityIdentifier("\\(combatant.name) card")
+''')
+        errors = [error for error in source_errors(self.root) if 'canonical content argument' in error]
+        self.assertEqual(len(errors), 3)
+        self.assertTrue(all('Screen.swift:' in error for error in errors))
+
     def test_swift_authored_keys_survive_english_edits(self):
         from internal.localization_sources import content_sources
         source = self.root / 'Packages/TrinketContent/Sources/TrinketContent/Fixture.swift'

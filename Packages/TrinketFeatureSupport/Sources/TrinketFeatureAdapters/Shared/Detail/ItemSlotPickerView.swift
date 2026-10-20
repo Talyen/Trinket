@@ -144,12 +144,13 @@ struct ItemSlotPickerView: View {
                 detailArtworkLease = nil
             }
         }
+        .onChange(of: locale, initial: true) { _, _ in updateItems() }
         .onChange(of: inventoryItems) { _, _ in updateItems() }
         .onChange(of: equipmentLoadout) { _, _ in updateItems() }
     }
 
     private func updateItems() {
-        model.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot)
+        model.update(inventory: inventoryItems, loadout: equipmentLoadout, slot: slot, locale: locale)
         displayItems = model.matching(filter)
     }
 

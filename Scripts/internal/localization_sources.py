@@ -280,6 +280,42 @@ def content_catalog(root: Path, previous: dict) -> dict:
     return catalog
 
 
+def canonical_argument_errors(source: str) -> list[tuple[int, str]]:
+    """Reject direct canonical display fields in typed translation arguments.
+
+    This is a bounded source guard, not type inference: local variables and custom
+    adapters still need behavior tests. Keep strings opaque when splitting calls
+    so punctuation in prose does not change argument boundaries. `displayName`
+    is intentionally excluded: presentation models already localize that property.
+    """
+    token = re.compile(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|[(),]|[^()",/]+|.', re.S)
+    canonical = r'(?:[A-Za-z_$]\w*\s*\.\s*)+(?:name|title|description|rawValue)'
+    argument = re.compile(r'\s*(?:' + canonical + r'|"\\\(\s*' + canonical + r'\s*\)")\s*')
+    errors = []
+    # Mask comments without changing offsets or line numbers.
+    source = re.sub(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"',
+                    lambda match: re.sub(r'[^\n]', ' ', match[0]) if match[0].startswith(('//', '/*')) else match[0],
+                    source, flags=re.S)
+    code = re.sub(r'"(?:\\.|[^"\\])*"', lambda match: re.sub(r'[^\n]', ' ', match[0]), source)
+    for call in re.finditer(r'\bL10n\.\w+\s*\(', code):
+        depth, start = 1, call.end()
+        for match in token.finditer(source, start):
+            value = match[0]
+            if value == '(':
+                depth += 1
+            elif value == ')':
+                depth -= 1
+            if (value == ',' and depth == 1) or depth == 0:
+                if argument.fullmatch(source[start:match.start()]):
+                    value_start = start + len(source[start:match.start()]) - len(source[start:match.start()].lstrip())
+                    line = source.count('\n', 0, value_start) + 1
+                    errors.append((line, 'canonical content argument must be localized before interpolation; use ContentCopy or an identity-based localized name in the rendering locale'))
+                start = match.end()
+            if depth == 0:
+                break
+    return errors
+
+
 def source_errors(root: Path) -> list[str]:
     errors = []
     config = json.loads((root / 'Localization/config.json').read_text())
@@ -302,7 +338,10 @@ def source_errors(root: Path) -> list[str]:
         for path in sorted((root / directory).rglob('*.swift')):
             if 'Tests' in path.parts or 'Generated' in path.parts or path.name.endswith('.generated.swift'):
                 continue
-            for number, line in enumerate(path.read_text().splitlines(), 1):
+            source = path.read_text()
+            errors.extend(f'{path.relative_to(root)}:{number}: {message}'
+                          for number, message in canonical_argument_errors(source))
+            for number, line in enumerate(source.splitlines(), 1):
                 if line.lstrip().startswith('//'):
                     continue
                 relative = str(path.relative_to(root))
