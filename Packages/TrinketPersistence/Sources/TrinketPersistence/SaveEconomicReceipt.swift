@@ -87,7 +87,9 @@ struct SaveEconomicReceipt: Codable, Equatable, Sendable {
         return positioned
     }
 
-    func isDuplicate(in save: PlayerSave, since before: PlayerSave) -> Bool {
+    func isDuplicate(
+        in save: PlayerSave, since before: PlayerSave, retiredItemIDs: Set<String> = [],
+    ) -> Bool {
         switch kind {
         case .reward:
             if case let .salvage(id) = effects.claim {
@@ -96,6 +98,13 @@ struct SaveEconomicReceipt: Codable, Equatable, Sendable {
             return effects.claim?.isClaimed(in: save, since: before) == true
         case let .upgrade(id, tier): return save.homestead.tier(for: id) >= tier
         case let .shop(encounter, offer):
+            // Completed shops prune their stock payload, so the pinned item (or
+            // its recorded salvage) is the durable ownership marker. Offer item
+            // IDs are the offer IDs and cannot collide with another purchase.
+            if save.inventory.item(matching: offer.item.id) != nil
+                || retiredItemIDs.contains(offer.item.id) {
+                return true
+            }
             // Generations are device-local. Read the saved stock with the current
             // generation, while retaining the pinned location, seed, item and price.
             let current = EncounterIdentity(

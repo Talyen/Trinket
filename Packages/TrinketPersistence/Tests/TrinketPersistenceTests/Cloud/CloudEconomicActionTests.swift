@@ -70,6 +70,42 @@ struct CloudEconomicActionTests {
         #expect(result.revision.snapshot.roster.gold == 143)
     }
 
+    @Test func `completed Shop does not recharge a shared purchase after its stock is pruned`() throws {
+        var base = PlayerSave.testSeed
+        base.roster.gold = 100
+        base.inventory.items = []
+        let encounter = EncounterIdentity(
+            location: .journey(stageID: ShopOfferGenerator.starterShopStageID), save: base,
+        )
+        let stock = try ShopStockPersistence.prepare(encounter: encounter, save: &base).get()
+        let offer = try #require(stock.offers.first)
+
+        var completed = base
+        var receipts: [SaveEconomicReceipt] = []
+        _ = try ShopPurchaseApplier.purchase(
+            offerID: offer.id, encounter: encounter, save: &completed,
+            recordReceipt: { receipts.append($0) },
+        ).get()
+        let completion = NonCombatEncounterCompletion.complete(
+            encounter: encounter, grantingEncounterRewards: false, save: &completed,
+            recordReceipt: { receipts.append($0) },
+        )
+        #expect(completion == .completed)
+
+        var peer = base
+        _ = try ShopPurchaseApplier.purchase(
+            offerID: offer.id, encounter: encounter, save: &peer, recordReceipt: { _ in },
+        ).get()
+        let mutation = CloudSaveMutation(
+            id: "completed-shop", changedSliceMask: PlayerSaveSlice.all.rawValue,
+            before: CloudSaveSnapshot(base), after: CloudSaveSnapshot(completed), receipts: receipts,
+        )
+        let head = try resolve([mutation], incoming: peer, base: base, existing: completed)
+        let merged = try head.revision.snapshot.restored()
+        #expect(merged.roster.gold == 100 - offer.price)
+        #expect(merged.inventory.items.count(where: { $0.id == offer.item.id }) == 1)
+    }
+
     @Test(arguments: [false, true])
     func `a future economic version rejects the entire upload instead of acknowledging lost effects`(explicitReceipt: Bool) throws {
         let base = PlayerSave.fresh

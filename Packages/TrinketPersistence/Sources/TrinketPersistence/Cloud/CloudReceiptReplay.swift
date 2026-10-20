@@ -67,7 +67,7 @@ struct CloudReceiptReplay {
             let duplicateRetirement = retiredID.map { retiredItems.contains($0) } ?? false
             if case .collection = receipt.kind {
                 try productionClaims.replay(receipt, onto: &merged)
-            } else if !receipt.isDuplicate(in: existing, since: before),
+            } else if !receipt.isDuplicate(in: existing, since: before, retiredItemIDs: retiredItems),
                       !duplicateRetirement,
                       !applied.contains(where: { $0.sharesClaim(with: receipt) }) {
                 receipt.effects.applyEffects(to: &merged)
