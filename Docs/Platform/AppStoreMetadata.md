@@ -52,9 +52,10 @@ To review Full Game, open Options → Unlock Full Game. This one-time, non-consu
 ## Full Game purchase draft
 
 App Store Connect product `6811501717` uses the existing identifier from
-[Purchases.md](Purchases.md), with English description **Unlock all chapters and
-game modes permanently.** Submit the first non-consumable with the app version;
-product configuration alone does not submit it for review.
+[Purchases.md](Purchases.md), with English description owned by
+`Localization/Store/English.json` (**Unlock every chapter and game mode forever.**).
+Submit the first non-consumable with the app version; product configuration alone
+does not submit it for review.
 
 ### Read-only readiness check — October 12, 2026
 

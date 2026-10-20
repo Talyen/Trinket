@@ -22,6 +22,9 @@ Defer the sensitive portion while continuing independent authorized work.
 | Owning audit | Proposal | Evidence pointer | Implementation boundary | Proposed |
 |--------------|----------|------------------|-------------------------|----------|
 | Performance playbook | Full `PlayerSave` snapshot on every `performBatchMutation` | `PlayerSaveStore.performBatchMutation` and its shared `commit` path in [PlayerSaveStore+Persistence.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore+Persistence.swift) | High-risk rewrite; measure Instruments first | 2026-08-19 |
+| 01 | Grow shared hero, wallet, and stage-row layouts for larger text | `DetailHeroHeader.swift:45-63`, `WalletPill.swift:52-70`, `StageSelectList.swift:87-92`, `StageSelectActiveCard.swift:122-151` | Shared scroll geometry and player-visible wallet/stage-row layout; needs runtime visual verification at accessibility sizes | 2026-10-20 |
+| 02 | Replace authored numeric values in the talent interaction card with manifest references | `Docs/AgentContext/battle-talents.md` vs `ContentManifest/talents.tsv` | Broad de-numbering of the primary talent-interaction guide; needs a readability decision on which counts remain explanatory | 2026-10-20 |
+| 09 | Extract the delayed pending-indicator timing/cancellation primitive | `CategoryBrowseShelf.swift:64-70`, `AbilityTierPickerSheet.swift:95-104`, `CombatantDetailPane.swift:118-127`, `HomesteadView.swift:81-100`, `ContractsBoardView.swift:105-113` | A shared helper must stay timing/cancellation-only; per-surface triggers, labels, and spinner placement would add ceremony | 2026-10-20 |
 
 The snapshot proposal is a measurement-led investigation under the
 [performance playbook](../Platform/PerformanceInvestigationPlaybook.md), not evidence

@@ -189,7 +189,7 @@ struct FullGameOutcomeMessage: View {
     var body: some View {
         if let outcome {
             Text(message(for: outcome))
-                .accessibilityIdentifier(AccessibilityID.FullGame.status)
+                .accessibilityIdentifier(AccessibilityID.FullGame.outcome)
                 .trinketTypography(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -4,7 +4,6 @@ import Foundation
 
 public enum SFXID {
     public static let uiConfirm = "ui_confirm"
-    public static let uiCancel = "ui_cancel"
     public static let uiDeny = "ui_deny"
     public static let uiToggleOn = "ui_toggle_on"
     public static let uiToggleOff = "ui_toggle_off"
@@ -83,12 +82,6 @@ public enum SFXCatalog {
         SFXClip(
             id: "ui_confirm",
             resourceName: "sfx_ui_confirm",
-            fileExtension: "m4a",
-            volumeGain: 1.0
-        ),
-        SFXClip(
-            id: "ui_cancel",
-            resourceName: "sfx_ui_cancel",
             fileExtension: "m4a",
             volumeGain: 1.0
         ),

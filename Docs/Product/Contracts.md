@@ -52,33 +52,12 @@ Wood, Stone, Iron, Food, Herbs, Hide, and Gems bonuses guarantee that resource i
 one of the two material slots and increase its quantity by 25%; the other slot
 remains random and distinct. Existing quantity rounding and reward caps apply.
 
-Hard Contracts use the [shared boss guarantee](../../Packages/TrinketContent/README.md#random-item-rewards):
-early levels favor an uncollected Trinket over a Unique, reaching equal category odds
-at level 40. The remaining category receives the reward when one is complete, and
-Astral when both are complete. Item-focused modifiers are excluded from new Hard offers; existing saved
-Hard item modifiers display and pay Bonus Gold without changing their saved IDs.
-
-Astral, Trinket, and Unique bonuses double the selected eligible item-tier weight
-after progression and Homestead weighting, then normalize
-the probabilities. They do not add percentage points or extra items. Unowned-item
-eligibility remains authoritative: exhausted Trinket/Unique pools are excluded
-from generation, and an existing offer targeting an exhausted pool displays and
-applies Bonus Gold instead. The board and launch resolve the same effective bonus.
-
-Keyword modifiers display “Drops [Keyword] items” and guarantee one Basic or
-Astral item with both a matching base affinity and at least one matching affix.
-The guarantee uses a normal affix slot, carries no additional percentage bonus,
-and leaves Gold, XP, and materials unchanged. Basic/Astral relative tier weights
-retain progression and Homestead adjustments; collectible tiers are excluded.
-
-Arms, Armor, Ring, and Amulet Hoards guarantee the normal victory item belongs
-to that family, using only Basic/Astral tiers with their ordinary relative
-weights and affixes. Arms includes off-hand Weapon-slot bases; Rings and Amulets
-are distinct Accessory bases. Astral, Trinket, and Unique Hoards instead
-guarantee the named tier. They grant the normal single item, not an extra item.
-The existing Astral Omen, Relic Seeker, and Lost Legacy remain weight bonuses,
-not guarantees. Exhausted Trinket/Unique Hoards follow the same Bonus Gold
-fallback as their weight-bonus counterparts.
+Hard Contracts use the [shared boss guarantee](../../Packages/TrinketContent/README.md#random-item-rewards)
+and exclude item-focused modifiers from new offers; existing saved Hard item
+modifiers display and pay Bonus Gold without changing their saved IDs. Shared
+item-tier, keyword, family/tier, and exhausted-pool rules stay owned by the
+[shared reward modifiers](../../Packages/TrinketContent/README.md#shared-reward-modifiers).
+The board and launch resolve the same effective modifier.
 
 Legacy offers without a modifier retain their IDs and targets and gain Bonus Gold.
 Party changes and retries retain the saved modifier; refresh and victory replacement

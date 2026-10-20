@@ -63,11 +63,11 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         let first = battle.frontmostHandCard
         assertExists(first)
         let firstID = first.identifier
-        first.tap()
+        tapWhenReady(first)
         let second = battle.frontmostHandCard
         assertExists(second)
         let secondID = second.identifier
-        second.tap()
+        tapWhenReady(second)
         waitUntil("Distinct rapid plays must depart from the hand") {
             !self.any(firstID).exists && !self.any(secondID).exists
         }

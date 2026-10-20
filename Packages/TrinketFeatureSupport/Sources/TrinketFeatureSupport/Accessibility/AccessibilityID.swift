@@ -437,6 +437,7 @@ public extension AccessibilityID {
         public static let restore = "Full Game Restore"
         public static let retry = "Full Game Retry"
         public static let status = "Full Game Status"
+        public static let outcome = "Full Game Outcome"
         public static let options = "Full Game Options"
         public static let hero = "Full Game Hero"
         public static let privacy = "Full Game Privacy"

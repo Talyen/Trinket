@@ -49,12 +49,12 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
         let isCancel = scenario == "hand-drag-cancel"
         let cards = battle.handCards
         var origin: XCUICoordinate?
-        var initialCardCount = 0
+        var cardID: String?
         if isPlay || isCancel {
             let card = cards.firstMatch
             assertExists(card)
             origin = screenCoordinate(for: card)
-            initialCardCount = cards.count
+            cardID = card.identifier
         }
 
         let start = button(AccessibilityID.Debug.battlePerformanceStart)
@@ -65,14 +65,14 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
             waitUntil(timeout: 4) { (status.value as? String)?.hasPrefix("measuring:\(scenario)") == true },
             "Scenario did not enter its measurement window: \(status.value ?? "missing")",
         )
-        if let origin {
+        if let origin, let cardID {
             origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(
                 isPlay ? CGVector(dx: 0, dy: -120) : CGVector(dx: 48, dy: -20),
             ))
             if isPlay {
-                XCTAssertTrue(waitUntil { cards.count == initialCardCount - 1 }, "A successful release did not remove exactly one card")
+                XCTAssertTrue(waitUntil { !self.any(cardID).exists }, "A successful release did not remove the selected card")
             } else {
-                XCTAssertEqual(cards.count, initialCardCount, "Cancel gestures changed hand membership")
+                XCTAssertTrue(any(cardID).exists, "Cancel gestures changed hand membership")
             }
         }
         finishMeasurement(scenario, iteration: iteration, settle: 3, suite: "battle", control: stop)

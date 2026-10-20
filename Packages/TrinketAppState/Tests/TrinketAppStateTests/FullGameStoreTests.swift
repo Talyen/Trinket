@@ -154,6 +154,19 @@ struct FullGameStoreTests {
     }
 
     @Test @MainActor
+    func `restore failure publishes its outcome and keeps free access`() async {
+        let backend = ControlledFullGameStorefront()
+        backend.syncError = StoreKitError.networkError(URLError(.notConnectedToInternet))
+        let store = FullGameStore(storefront: backend.storefront)
+
+        await store.restore()
+
+        #expect(store.outcome == .restoreFailed)
+        #expect(!store.ownership.access.hasFullGame)
+        #expect(!store.isRestoring)
+    }
+
+    @Test @MainActor
     func `cancelling and pending never grant access`() async {
         let backend = ControlledFullGameStorefront()
         let store = FullGameStore(storefront: backend.storefront)
@@ -181,6 +194,7 @@ private final class ControlledFullGameStorefront {
     var unfinished: [FullGameTransaction] = []
     var receiveUpdate: FullGameStorefront.Receive?
     var ownershipAtFinish: [FullGameStore.Ownership] = []
+    var syncError: (any Error)?
 
     var storefront: FullGameStorefront {
         FullGameStorefront(
@@ -194,7 +208,11 @@ private final class ControlledFullGameStorefront {
                 }
             },
             loadProduct: { nil },
-            sync: {},
+            sync: {
+                if let syncError = self.syncError {
+                    throw syncError
+                }
+            },
         )
     }
 

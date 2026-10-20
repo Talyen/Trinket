@@ -73,7 +73,7 @@
     "symbols": [
       "VoyagePlayMode",
       "VoyageCompletion",
-      "VoyageProgress"
+      "VoyageRun"
     ],
     "sources": [
       "Packages/TrinketAppState/Sources/TrinketAppState/Play/Modes/VoyagePlayMode.swift",

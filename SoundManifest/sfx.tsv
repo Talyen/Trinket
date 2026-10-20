@@ -1,6 +1,5 @@
 # id	swift_symbol	asset_name	source_path	volume_gain
 ui_confirm	uiConfirm	sfx_ui_confirm	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/feedback/confirm.wav	1.0
-ui_cancel	uiCancel	sfx_ui_cancel	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/feedback/cancel.wav	1.0
 ui_deny	uiDeny	sfx_ui_deny	Sounds/Game Sources/Projects/Alchemy/Sound Effects/interface/feedback/denied.wav	1.0
 ui_toggle_on	uiToggleOn	sfx_ui_toggle_on	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/toggles/toggle_on.wav	1.0
 ui_toggle_off	uiToggleOff	sfx_ui_toggle_off	Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/toggles/toggle_off.wav	1.0

@@ -142,9 +142,17 @@ struct ShopPurchaseApplierTests {
         let store = try context.makeSaveStore()
         let offer = try makeOffer(price: 20)
         var encounter: EncounterIdentity?
+        var pinError: (any Error)?
         try store.performFixtureMutation { save in
             save.roster.gold = 100
-            encounter = try? pin([offer], in: &save)
+            do {
+                encounter = try pin([offer], in: &save)
+            } catch {
+                pinError = error
+            }
+        }
+        if let pinError {
+            Issue.record(pinError)
         }
         let identity = try #require(encounter)
         let before = store.currentSave

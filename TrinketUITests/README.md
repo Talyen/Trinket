@@ -143,8 +143,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
 
 ## Coverage ownership
 
-- `SmokeBattleTests` owns Campaign entry, manual play, earned victory, duplicate
-  claim protection, background return, and Continue navigation. The termination
+- `SmokeBattleTests` owns Campaign entry, manual play, earned victory, committed
+  claim evidence, background return, and Continue navigation. Duplicate settlement
+  protection is package-owned by `PlaythroughLifecycleTests`. The termination
   journey uses the Chapter 1 victory fixture, taps the real claim, terminates at
   its committed checkpoint, then verifies persisted progression and next-stage entry.
 - `BattleFlowUITests` shares one launch for inspection, dismissal, cancelled drag,
@@ -175,8 +176,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
   hub, and taps the locked chapter's real offer entry. It purchases access to independently
   recruited Warlock and opens his detail. Populated purchase recovery checks cold-launch
   access, hidden purchase/restore actions, and retained progress. Restore-failure recovery stays separate.
-  Cancellation retries in the same offer; declined Ask to Buy retries from the
-  locked character. Debug entitlement observations avoid repeated Collection trips
+  Cancellation never granting access is package-owned by `FullGameStoreTests`;
+  declined Ask to Buy retries from the locked character. Debug entitlement
+  observations avoid repeated Collection trips
   where purchase/unlock wiring already has a UI owner. Live App Store restoration
   evidence remains separate from local entitlement recovery.
   The refund journey allows its initial StoreKit purchase up to 60 seconds; the

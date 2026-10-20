@@ -8,6 +8,7 @@ struct MysterySpecialChoiceCard: View {
     let choice: MysteryChoice
     let isSelected: Bool
     let isDisabled: Bool
+    var isUnavailable = false
     let onSelect: () -> Void
 
     var body: some View {
@@ -46,8 +47,9 @@ struct MysterySpecialChoiceCard: View {
         }
         .trinketArtworkCardButtonStyle()
         .animation(TrinketMotion.Interaction.selection, value: isSelected)
+        .opacity(isUnavailable ? 0.5 : 1)
         .accessibilityIdentifier(AccessibilityID.Mystery.choiceButton(choiceID: choice.id))
-        .disabled(isDisabled)
+        .disabled(isDisabled || isUnavailable)
     }
 
     private var rewards: some View {

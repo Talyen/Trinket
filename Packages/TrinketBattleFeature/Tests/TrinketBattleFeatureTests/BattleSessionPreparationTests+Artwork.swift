@@ -66,7 +66,15 @@ extension BattleSessionPreparationTests {
         let pool = Set(AbilityCatalog.all.flatMap { ability in
             [ability.artReference?.imageName, ability.artReference?.thumbnailImageName].compactMap(\.self)
         })
-        #expect(pool.isSubset(of: names) == enabled)
+        if enabled {
+            #expect(pool.isSubset(of: names))
+        } else {
+            let control = BattleRunConfigurationTestSupport.make(
+                hero: party.hero, companion: party.companion, enemy: party.enemy,
+                heroModifiers: .zero,
+            ).configuration
+            #expect(names == BattleArtworkPreparation.artworkNames(for: control))
+        }
     }
 
     @Test func `pruning prepared artwork releases only discarded runs`() async throws {

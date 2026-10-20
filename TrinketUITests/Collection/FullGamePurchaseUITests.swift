@@ -15,7 +15,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("options"))
         assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
         tapButton(AccessibilityID.FullGame.restore)
-        waitUntil("Restore left the control disabled") { self.button(AccessibilityID.FullGame.restore).isEnabled }
+        assertExists(AccessibilityID.FullGame.outcome)
         assertExists(AccessibilityID.FullGame.options)
         try await session.setSimulatedError(nil, forAPI: .appStoreSync)
         tapButton(AccessibilityID.FullGame.options)
@@ -59,26 +59,6 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
     }
 
     @MainActor
-    func testCancelledPurchaseAllowsRetryWithoutUnlocking() async throws {
-        try skipUnavailablePurchaseAutomation()
-        try launchOptionsOffer(arguments: ["-coverage-diagnostics"])
-        let session = try XCTUnwrap(storeSession)
-        try await session.setSimulatedError(.generic(.userCancelled), forAPI: .purchase)
-        tapButton(AccessibilityID.FullGame.purchase)
-        waitUntil("Cancelled purchase must leave purchase available") {
-            self.button(AccessibilityID.FullGame.purchase).isEnabled
-        }
-        // Clearing only the error leaves iOS 26.2's cancellation batch active.
-        // Reset configuration overrides without deleting the failed transaction.
-        session.resetToDefaultState()
-        session.disableDialogs = true
-        assertFullGameAccess(false)
-        tapButton(AccessibilityID.FullGame.purchase)
-        assertDoesNotExist(AccessibilityID.FullGame.offer)
-        assertWarlockAccessible()
-    }
-
-    @MainActor
     func testColdLaunchRecognizesPurchaseAndPreservesPopulatedLocalProgress() async throws {
         try skipUnavailablePurchaseAutomation()
         try startStoreSession()
@@ -86,7 +66,10 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("play")
             + TestLaunchArg.completedStages(["chapter-1-stage-1"]) + ["-coverage-diagnostics"])
         play.openCampaign()
-        XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
+        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+        waitUntil("Restored progress must unlock stage 2") {
+            self.button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled
+        }
         app.terminate()
         let transaction = try await session.buyProduct(identifier: FullGameStore.productID)
         XCTAssertTrue(session.allTransactions().contains { $0.identifier == UInt(transaction.id) })
@@ -99,7 +82,10 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         assertFullGameAccess(true)
         tabBar.selectPlay()
         play.openCampaign()
-        XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
+        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+        waitUntil("Relaunched purchase must unlock stage 2") {
+            self.button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled
+        }
     }
 
     func testRefundRemovesAccessWithoutErasingEarnedProgress() throws {

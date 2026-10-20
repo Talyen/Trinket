@@ -77,8 +77,6 @@ public enum TrinketDesign {
     }
 
     public enum Opacity {
-        public static let subtle: Double = 0.14
-        public static let border: Double = 0.48
         public static let glow: Double = 0.62
         public static let secondary: Double = 0.72
         public static let dragShadow: Double = 0.3

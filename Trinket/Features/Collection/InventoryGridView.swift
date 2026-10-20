@@ -1,4 +1,3 @@
-import Observation
 import SwiftUI
 import TrinketAppState
 import TrinketContent
@@ -110,7 +109,7 @@ struct InventoryGridView: View {
     @Environment(OptionsStore.self) private var options
     @State private var selectedFilter: InventoryFilter = .all
     @State private var salvageDetail = SalvageDetailState()
-    @State private var viewport = InventoryViewportTracker()
+    @State private var viewport = ArtworkViewportTracker<String>()
 
     let category: CollectionItemCategory
 
@@ -141,11 +140,16 @@ struct InventoryGridView: View {
             inventoryEmptyState(categoryItems: categoryItems)
         }
         .background {
-            InventoryArtworkPrewarmObserver(
+            ArtworkViewportPrewarmObserver(
                 entries: items.map {
-                    .init(id: $0.id, name: $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName)
+                    ArtworkViewportEntry(
+                        id: $0.id,
+                        name: $0.artReference?.thumbnailImageName ?? $0.artReference?.imageName,
+                    )
                 },
                 viewport: viewport,
+                prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
+                estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
             )
         }
         .trinketSoftTopScrollEdge()
@@ -206,48 +210,5 @@ struct InventoryGridView: View {
             )
             .accessibilityIdentifier(AccessibilityID.Collection.itemsEmptyState)
         }
-    }
-}
-
-@MainActor
-@Observable
-private final class InventoryViewportTracker {
-    var visibleIDs: Set<String> = []
-}
-
-private struct InventoryArtworkPrewarmObserver: View {
-    struct Entry: Identifiable, Equatable {
-        let id: String
-        let name: String?
-    }
-
-    private struct Key: Equatable {
-        let visibleIDs: Set<String>
-        let generation: Int
-    }
-
-    let entries: [Entry]
-    @State private var window = ArtworkViewportPrewarm.Window<Entry>(orderedItems: [])
-    @State private var generation = 0
-    let viewport: InventoryViewportTracker
-
-    var body: some View {
-        Color.clear
-            .frame(width: 0, height: 0)
-            .onChange(of: entries, initial: true) { _, entries in
-                window = ArtworkViewportPrewarm.Window(orderedItems: entries)
-                viewport.visibleIDs.formIntersection(entries.map(\.id))
-                generation &+= 1
-            }
-            .task(id: Key(visibleIDs: viewport.visibleIDs, generation: generation)) {
-                await ArtworkViewportPrewarm.prewarm(
-                    window: window,
-                    visibleIDs: viewport.visibleIDs,
-                    currentVisibleIDs: { viewport.visibleIDs },
-                    thumbnailName: { $0.name },
-                    prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
-                    estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
-                )
-            }
     }
 }

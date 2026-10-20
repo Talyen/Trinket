@@ -84,17 +84,19 @@ the completion bonus itself. Apply capacity/overflow rules to the final award;
 do not multiply the completion bonus again. The final victory displays and commits
 the combined payout atomically with Voyage completion.
 
-Each offer saves one shared reward modifier. It pays only on final boss victory;
-retreat, defeat, and abandonment do not pay it. Compatible
-Gold, XP, and material bonuses add to the boss node's modifier. Two different
-material focuses occupy the two material slots. The boss always grants its shared
-guaranteed collectible/Astral item. An item-focused destination adds a separate item
-using its advertised rule, with Basic excluded; family and keyword rewards are Astral.
-Use distinct saved IDs and exclude the primary collectible from the bonus roll.
-Boss node item modifiers resolve to Bonus Gold and are excluded from new generation;
-destination item modifiers remain eligible. The route's 20% completion bonus remains
-separate. Exhausted collectible modifiers resolve to Bonus Gold, including on
-legacy offers whose saved modifier is missing.
+Each destination offer saves one shared reward modifier. It pays only on final boss
+victory; retreat, defeat, and abandonment do not pay it. Compatible Gold, XP, and
+material bonuses add to the boss node's modifier under the
+[shared reward modifier rules](../../Packages/TrinketContent/README.md#shared-reward-modifiers).
+Voyage-specific deltas: two different material focuses occupy the two material
+slots; the boss always grants its shared guaranteed collectible/Astral item; an
+item-focused destination adds a separate item using its advertised rule, with
+Basic excluded, and family and keyword rewards are Astral. Use distinct saved IDs
+and exclude the primary collectible from the bonus roll. Boss node item modifiers
+resolve to Bonus Gold and are excluded from new generation; destination item
+modifiers remain eligible. The route's 20% completion bonus remains separate.
+Exhausted collectible modifiers resolve to Bonus Gold, including on legacy offers
+whose saved modifier is missing.
 
 No entry costs, timers, separate currencies, or health carryover are introduced.
 

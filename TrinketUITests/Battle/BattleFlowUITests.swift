@@ -44,13 +44,12 @@ final class BattleFlowUITests: TrinketUITestCase {
         play.startBattle(chapter: 1, stage: 1)
         battle.assertActive()
 
-        let cards = battle.handCards
         let inspectedCard = battle.frontmostHandCard
         XCTAssertTrue(inspectedCard.trinketWaitForExistence(timeout: Self.defaultTimeout))
-        let inspectCountBefore = cards.count
+        let inspectedCardID = inspectedCard.identifier
         inspectedCard.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
-        XCTAssertEqual(cards.count, inspectCountBefore, "Inspecting a card must not play it")
+        XCTAssertTrue(any(inspectedCardID).exists, "Inspecting a card must not play it")
         attachSuccessScreenshot(named: "hand-ability-inspection")
         dismissSheet(AccessibilityID.Battle.abilityDetail)
 
@@ -70,21 +69,20 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         let tapCard = battle.frontmostHandCard
         let tapCardID = tapCard.identifier
-        tapCard.tap()
+        tapWhenReady(tapCard)
         // Draw effects can replace a played card without reducing the hand size.
         waitUntil("The first tap after dismissing details must play the card") { !self.any(tapCardID).exists }
         let dragCard = battle.frontmostHandCard
         assertExists(dragCard)
         let dragCardID = dragCard.identifier
         let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        assertCancelledDrag(from: origin, cards: cards)
+        assertCancelledDrag(from: origin, cardID: dragCardID)
         origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
         waitUntil("A successful drag must play the selected card") { !self.any(dragCardID).exists }
         attachSuccessScreenshot(named: "hand-after-drag")
     }
 
-    private func assertCancelledDrag(from origin: XCUICoordinate, cards: XCUIElementQuery) {
-        let countBefore = cards.count
+    private func assertCancelledDrag(from origin: XCUICoordinate, cardID: String) {
         // Cross the shared movement boundary, then hold beyond native long-press recognition.
         origin.press(
             forDuration: 0.05,
@@ -92,7 +90,7 @@ final class BattleFlowUITests: TrinketUITestCase {
             withVelocity: XCUIGestureVelocity(rawValue: 40),
             thenHoldForDuration: 0.7,
         )
-        XCTAssertEqual(cards.count, countBefore, "A drag below the play threshold must leave the hand unchanged")
+        XCTAssertTrue(any(cardID).exists, "A drag below the play threshold must leave the selected card in hand")
         assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
 
         origin.press(
@@ -101,7 +99,7 @@ final class BattleFlowUITests: TrinketUITestCase {
             withVelocity: .fast,
             thenHoldForDuration: 0,
         )
-        XCTAssertEqual(cards.count, countBefore, "A flick released inside the play boundary must cancel")
+        XCTAssertTrue(any(cardID).exists, "A flick released inside the play boundary must cancel")
         assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
     }
 }

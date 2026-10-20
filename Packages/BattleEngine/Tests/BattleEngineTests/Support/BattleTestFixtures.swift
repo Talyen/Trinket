@@ -159,12 +159,6 @@ extension BattleTestFixtures {
     }
 }
 
-extension BattleState {
-    func hasHeroEffect(matching predicate: (Effect) -> Bool) -> Bool {
-        activeEffects(of: hero).contains { predicate($0.effect) }
-    }
-}
-
 extension [ActionEvent] {
     func contains(effectKind: ActionEvent.EffectOutcome, keyword: Keyword? = nil) -> Bool {
         contains { event in

@@ -20,6 +20,7 @@ struct MysteryEncounterView: View {
     @State private var selectedDetail: CombatantDetailContext?
     @State private var selectedItem: InventoryItem?
     @State private var selectedChoiceID: String?
+    @State private var unavailableChoiceID: String?
     @State private var choiceFeedbackTrigger = 0
     @State private var rewardFeedbackTrigger = 0
     @State private var corruptionWarningTrigger = 0
@@ -98,7 +99,7 @@ struct MysteryEncounterView: View {
         .disabled(playerSave.isRetryingSaveAction)
         .onChange(of: session.persistFailureMessage) { _, newMessage in
             if newMessage != nil {
-                selectedChoiceID = nil
+                unavailableChoiceID = selectedChoiceID
                 mysteryPersistErrorTrigger &+= 1
                 if let id = session.event.unlockCombatantID, !playerSave.contentAccess.allowsCombatant(id) {
                     requestOffer(.combatant(id))
@@ -254,9 +255,11 @@ struct MysteryEncounterView: View {
                     choice: choice,
                     isSelected: selectedChoiceID == choice.id,
                     isDisabled: session.isResolvingChoice,
+                    isUnavailable: unavailableChoiceID == choice.id,
                 ) {
                     guard selectedChoiceID != choice.id else { return }
                     selectedChoiceID = choice.id
+                    unavailableChoiceID = nil
                     choiceFeedbackTrigger += 1
                 }
             }
@@ -272,7 +275,9 @@ struct MysteryEncounterView: View {
         MysteryPrimaryFooter(
             title: String(localized: L10n.ui_mysteryencounterview_confirm_eebdd),
             accessibilityIdentifier: AccessibilityID.Mystery.confirmChoiceButton,
-            isDisabled: selectedChoiceID == nil || session.isResolvingChoice,
+            isDisabled: selectedChoiceID == nil
+                || selectedChoiceID == unavailableChoiceID
+                || session.isResolvingChoice,
         ) {
             guard let selectedChoiceID else { return }
             _ = encounters.resolveMysteryChoice(session: session, choiceID: selectedChoiceID)

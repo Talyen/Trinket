@@ -122,8 +122,8 @@ struct BattleVictorySummaryTests {
         )
         let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
         #expect(summary.stageGold == 12)
-        #expect(summary.battleGold >= 0)
-        #expect(summary.totalGold == summary.stageGold + summary.battleGold)
+        #expect(summary.battleGold == summary.goldFlow.net)
+        #expect(summary.totalGold == 12 + summary.goldFlow.net)
         #expect(summary.experience == 2)
         #expect(summary.companionExperience == 1)
         #expect(summary.heroName == hero.name)
@@ -240,7 +240,7 @@ struct BattleVictorySummaryTests {
         #expect(context.rewardPlan.goldFindPercent > 0)
         #expect(summary.goldFlow.net == earnedGold)
         #expect(summary.totalGold == expectedTotal)
-        #expect(summary.battleGold >= summary.goldFlow.net)
+        #expect(summary.battleGold == expectedTotal - 100)
         #expect(
             HomesteadEffects(
                 heroModifiers: [],

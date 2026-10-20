@@ -1673,10 +1673,10 @@
     }
   },
   "sfx": {
-    "input_hash": "4642b9d0dedb469b979b52615f0131ba0d5c3a97defba38054e53cf3cc46a26d",
+    "input_hash": "2ec0a52f98977cffd675edd81caf362713d12c980505251262abc4b338d6b15c",
     "outputs": {
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift": "0fc57a8ef29a82bd5fce21f562dd47fb8868070dae0ce7d416cd836b942a7f9f",
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv": "d8000f9e38a4136d52a0d434740f800d92fb15dc693470c81b7928c43f47fc52",
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift": "a699272df2f7031488ee907f1095ab4243a62c64b25045ceae688caa82c85789",
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv": "e90174eeeb37f88edc695c173ef3b1232d45e44b1e153e119073e7955eabc1fd",
       "Trinket/Media/SFX/sfx_ability_draw.m4a": "e081dc93840cd1830ad3d93a3f86a02ebb1511965aa0ecd2a74235ec5cb88a36",
       "Trinket/Media/SFX/sfx_astral_bow_burn.m4a": "e6a07fe08a00b37f865dc90cbd211b08b9bb36deb31b744d4b5bd1c9ee551624",
       "Trinket/Media/SFX/sfx_astral_bow_burn_critical.m4a": "6affb141eaf7b2e3065cabf750779c6e7572d4e3c2ac7f909f182a55c9ed4887",
@@ -1736,7 +1736,6 @@
       "Trinket/Media/SFX/sfx_talent_unlock.m4a": "b99a92b964231de8759542f380f4ba9c2ca0baefcecca47d6bdac92a1458c2d9",
       "Trinket/Media/SFX/sfx_thorns_gain.m4a": "5b943248105f637aa1ca736f9f9c8edb0c43b9c38a9e6933fd2953ca16fdfdb9",
       "Trinket/Media/SFX/sfx_ui_buy_sell.m4a": "8b7ae24580a511a432562ac30842f06392ddfa412d201668eb10a8f44db2886f",
-      "Trinket/Media/SFX/sfx_ui_cancel.m4a": "4fd6be84d24ada5ea2350362c72bf65d02fa05fe9c592e7d549402f9aeb9f984",
       "Trinket/Media/SFX/sfx_ui_confirm.m4a": "b1e93137ad97c2e34252ad598c48e873676366ea9411cb479592f1e5464dd8f6",
       "Trinket/Media/SFX/sfx_ui_deny.m4a": "687dc3aa30a0f6d12705457d5980327a973615dbdbab98c797d04cc16d8c700f",
       "Trinket/Media/SFX/sfx_ui_equip.m4a": "0d90655cdf1afb57aea0fdb9f7fd649a17b37873805508463ebd1a4e7aa9bf87",
@@ -1775,7 +1774,6 @@
       "Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/defense/dodge_01.wav": "61aa3116d5fe8cedf9103fe7ca7921141032ea868145f0bc67c5618b8077be49",
       "Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/defense/parry_01.wav": "d3ea5f853f0dd39828e31d1f9df009394b44657d448df5f59d4facb780cbd675",
       "Sounds/Game Sources/Projects/Trinket/Sound Effects/combat/status/stun_01.wav": "9f6439ddaa9e248a5e0a4ca96b7e96dce2d6caeb43bb019b8f4e40e0e164f12b",
-      "Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/feedback/cancel.wav": "b2decd7370a5e31b16d618bbd5336e1f34522cdb1b84a3e086f8d1a054569dc3",
       "Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/feedback/confirm.wav": "09761e890ddae3ae92e6d157394770e9d64bc08ac6949072551959731975e81f",
       "Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/inventory/equip_01.wav": "786d2b95b31cfbc670abb5ae268e526c6330badcbc2bd3c1b4d1f5535a6cd086",
       "Sounds/Game Sources/Projects/Trinket/Sound Effects/interface/toggles/toggle_off.wav": "297909c316af46801383ac4248b37223d649347fc713d3e9a4c916f87160ac85",

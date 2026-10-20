@@ -111,9 +111,11 @@ reserve `report.json` plus worker evidence for targeted diagnostics.
 
 ### Release
 
-Requested local release and TestFlight execution use `TRINKET_ALLOW_HEAVY_LOCAL=1`
-for their required deploy suites; doctor and dry-run need no opt-in. See
-[Release](../Docs/Platform/Release.md) for complete examples and prerequisites.
+Requested local release execution and `testflight.sh --full-ui` use
+`TRINKET_ALLOW_HEAVY_LOCAL=1` for their local deploy suites. The default TestFlight
+beta path consumes exact-commit hosted proof and, like doctor and dry-run, needs no
+opt-in. See [Release](../Docs/Platform/Release.md) for complete examples and
+prerequisites.
 
 | Command | Purpose |
 |---|---|

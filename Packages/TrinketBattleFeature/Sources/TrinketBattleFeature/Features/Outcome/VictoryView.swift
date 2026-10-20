@@ -47,7 +47,7 @@ struct VictoryView: View {
 
     private var experienceAwards: [RewardRevealExperienceAward] {
         guard summary.hasExperienceAwards else { return [] }
-        return battleExperienceAwards(
+        return rewardRevealExperienceAwards(
             hero: .init(
                 id: "hero",
                 combatantName: summary.heroName,
@@ -55,6 +55,7 @@ struct VictoryView: View {
                 progressionBefore: summary.heroProgressionBefore,
                 progressionAfter: summary.heroProgressionAfter,
                 experienceAward: summary.experience,
+                accessibilityIdentifier: "\(summary.heroName) experience bar",
             ),
             companion: .init(
                 id: "companion",
@@ -63,6 +64,7 @@ struct VictoryView: View {
                 progressionBefore: summary.companionProgressionBefore,
                 progressionAfter: summary.companionProgressionAfter,
                 experienceAward: summary.companionExperience,
+                accessibilityIdentifier: "\(summary.companionName) experience bar",
             ),
         )
     }

@@ -6,6 +6,7 @@ public struct InspectableTapButton<Label: View>: View {
     let isActionEnabled: Bool
     let isInspectionEnabled: Bool
     @ViewBuilder var label: () -> Label
+    @State private var suppressAction = false
 
     public init(
         action: @escaping () -> Void,
@@ -23,6 +24,11 @@ public struct InspectableTapButton<Label: View>: View {
 
     public var body: some View {
         Button {
+            // A successful long press must not also perform the slot's tap action.
+            guard !suppressAction else {
+                suppressAction = false
+                return
+            }
             if isActionEnabled {
                 action()
             } else if isInspectionEnabled {
@@ -32,20 +38,27 @@ public struct InspectableTapButton<Label: View>: View {
             label()
         }
         .disabled(!isActionEnabled && (!isInspectionEnabled || longPress == nil))
-        .modifier(InspectLongPressModifier(longPress: isInspectionEnabled ? longPress : nil))
+        .modifier(InspectLongPressModifier(
+            longPress: isInspectionEnabled ? longPress : nil,
+            suppressAction: $suppressAction,
+        ))
     }
 }
 
 private struct InspectLongPressModifier: ViewModifier {
     let longPress: (() -> Void)?
+    @Binding var suppressAction: Bool
 
     func body(content: Content) -> some View {
         if let longPress {
-            content
-                .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 0.5)
-                        .onEnded { _ in longPress() },
-                )
+            content.onLongPressGesture(minimumDuration: 0.5) {
+                suppressAction = true
+                longPress()
+            } onPressingChanged: { pressing in
+                if pressing {
+                    suppressAction = false
+                }
+            }
         } else {
             content
         }

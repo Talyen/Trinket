@@ -12,13 +12,8 @@ enum BattleMotion {
     static let combatantFreezeEncroachProgress = 0.35
     static let combatantFreezeOnsetProgress = 0.12
 
-    static var combatantFreezeEncroachDuration: TimeInterval {
-        combatantStatusEffectPhaseDuration * combatantFreezeEncroachProgress
-    }
-
     static let outcomePresentationMinimum: TimeInterval = 1.25
     static let outcomePresentationPadding: TimeInterval = 0.1
-    static let cardDrawStagger: TimeInterval = 0.045
     static let cardDealDuration: TimeInterval = 0.3
     static let automaticCardRevealDuration: TimeInterval = 0.48
 

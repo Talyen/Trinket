@@ -1,4 +1,3 @@
-import Observation
 import SwiftUI
 import TrinketDesignSystem
 
@@ -15,7 +14,7 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     let viewportPrefetchRows: Int
     let viewportEstimatedColumns: Int
     @ViewBuilder let card: (Item, Bool) -> CardView
-    @State private var viewport = PickerViewportTracker<Item.ID>()
+    @State private var viewport = ArtworkViewportTracker<Item.ID>()
 
     public init(
         items: [Item],
@@ -87,8 +86,8 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         .trinketScreenBackground()
         .background {
             if let provider = artworkNameProvider {
-                PickerArtworkPrewarmObserver(
-                    entries: items.map { .init(id: $0.id, name: provider($0)) },
+                ArtworkViewportPrewarmObserver(
+                    entries: items.map { ArtworkViewportEntry(id: $0.id, name: provider($0)) },
                     viewport: viewport,
                     prefetchRows: viewportPrefetchRows,
                     estimatedColumns: viewportEstimatedColumns,
@@ -100,55 +99,5 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     private func inspectAction(for item: Item, eligible: Bool) -> (() -> Void)? {
         guard eligible, let onLongPress else { return nil }
         return { onLongPress(item) }
-    }
-}
-
-@MainActor
-@Observable
-private final class PickerViewportTracker<ID: Hashable> {
-    var visibleIDs: Set<ID> = []
-}
-
-private struct PickerArtworkPrewarmObserver<ID: Hashable>: View {
-    struct Entry: Identifiable, Equatable {
-        let id: ID
-        let name: String?
-    }
-
-    private struct Key: Equatable {
-        let visibleIDs: Set<ID>
-        let generation: Int
-        let prefetchRows: Int
-        let estimatedColumns: Int
-    }
-
-    let entries: [Entry]
-    @State private var window = ArtworkViewportPrewarm.Window<Entry>(orderedItems: [])
-    @State private var generation = 0
-    let viewport: PickerViewportTracker<ID>
-    let prefetchRows: Int
-    let estimatedColumns: Int
-
-    var body: some View {
-        Color.clear
-            .frame(width: 0, height: 0)
-            .onChange(of: entries, initial: true) { _, entries in
-                window = ArtworkViewportPrewarm.Window(orderedItems: entries)
-                viewport.visibleIDs.formIntersection(entries.map(\.id))
-                generation &+= 1
-            }
-            .task(id: Key(
-                visibleIDs: viewport.visibleIDs, generation: generation,
-                prefetchRows: prefetchRows, estimatedColumns: estimatedColumns,
-            )) {
-                await ArtworkViewportPrewarm.prewarm(
-                    window: window,
-                    visibleIDs: viewport.visibleIDs,
-                    currentVisibleIDs: { viewport.visibleIDs },
-                    thumbnailName: { $0.name },
-                    prefetchRows: prefetchRows,
-                    estimatedColumns: estimatedColumns,
-                )
-            }
     }
 }

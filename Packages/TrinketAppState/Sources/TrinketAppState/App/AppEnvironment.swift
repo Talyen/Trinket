@@ -10,7 +10,6 @@ public struct AppEnvironment: Sendable {
     public let seedTestProgress: Bool
     let equipmentPickerFixture: Bool
     public let skipStarterSelection: Bool
-    public let skipOnboardingCeremony: Bool
     public let disableCloudSync: Bool
     public let disableAudio: Bool
     public let completedStageIDs: [String]
@@ -89,7 +88,6 @@ public struct AppEnvironment: Sendable {
             seedTestProgress: arguments.contains("-seed-test-progress"),
             equipmentPickerFixture: equipmentPickerFixture,
             skipStarterSelection: arguments.contains("-skip-starter-selection"),
-            skipOnboardingCeremony: arguments.contains("-skip-onboarding-ceremony"),
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
             completedStageIDs: (value(after: "-completed-stages") ?? "").split(separator: ",")
