@@ -22,7 +22,7 @@ hosted end-to-end duration before claiming completion.
 - [x] Batch release UI without losing case execution proof or passed checkpoints.
 - [x] Separate product transfer proof from full standard verification proof.
 - [x] Remove serial package retry duplication and repair package incremental inputs.
-- [ ] Review overlapping UI coverage and retain one effective owner per assertion.
+- [x] Review overlapping UI coverage and retain one effective owner per assertion.
 - [ ] Verify locally, then compare hosted runs with matching scope/toolchain/profile.
 - [ ] Review and integrate under the shared lock; preserve hosted limitations.
 - [ ] Update canonical policy, remove this plan only after measured verification.
@@ -199,3 +199,23 @@ the 60s limit. Dispatch that suite separately, then all other AppState suites wi
 an explicit exclusion on the same runner. No product Swift or assertion changes.
 Verify the two fresh executed method sets are disjoint and their union equals
 the original 213 functions (212 passing plus the conditional worker skip).
+
+## Unbounded matrix scheduling
+
+Controlled candidate 7e47425e4 run 39364870817 has verified warm Release compilation
+(about 90s versus baseline 516s) and passed Support/Content/Core. Build/smoke waited
+over eight minutes while the unit matrix filled all observed macOS capacity.
+The extra package splits need a fan-out limit: cap the unit matrix at three,
+retaining capacity for build/smoke and other required jobs. Complete the current
+run, then measure the capped run without intentional workflow-concurrency waiting.
+This comparison still uses the unchanged baseline game source. Current local main
+also has two separate battle changes (b419dc188, 937b290b9); incorporate/review
+those later, then verify the combined result without presenting new game tests
+as part of the controlled timing comparison. No main push is authorized.
+
+The 7e47425e4 State job passed both scopes: seven purchase functions, zero skips,
+then 205 passing functions plus the same conditional worker skip. The downloaded
+method/result/argument multisets have exactly the original 213-function union
+and zero duplicate executions. No one-minute purchase deadline was increased.
+Evidence location: /tmp/trinket-state-partition-location.txt. The extra invocation
+has startup cost; count its complete job time in the overall comparison.

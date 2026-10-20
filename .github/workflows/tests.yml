@@ -301,6 +301,9 @@ jobs:
     if: inputs.qualify-native || (needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.units == 'true' || github.event_name == 'schedule'))
     strategy:
       fail-fast: false
+      # Keep the unit matrix from filling the observed macOS pool before
+      # build/smoke and the other required jobs can acquire a runner.
+      max-parallel: 3
       matrix: ${{ inputs.qualify-native && fromJSON('{"include":[{"name":"Engine","packages":"BattleEngine"},{"name":"Core","packages":"TrinketCore"},{"name":"Content","packages":"TrinketContent"}]}') || fromJSON(needs.changes.outputs.unit-matrix) }}
     runs-on: xcode-27
     # Package schemes are compiled in this job; the shared build is app-only

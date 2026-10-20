@@ -293,7 +293,10 @@ Upfront full runs execute FullUI on the build/smoke runner and report its outcom
 through a separate advisory status job, eliminating product transfer. Follow-up
 full dispatches with prior standard proof retain the transfer/reuse path.
 
-Package unit jobs restore separately keyed incremental state and byte-verified source
+Package fan-out is capped at three concurrent jobs so the unit matrix cannot
+consume the observed macOS pool while build/smoke and other required jobs wait.
+Retune that cap with whole-run timing if runner capacity changes. Package unit
+jobs restore separately keyed incremental state and byte-verified source
 timestamps in their per-package DerivedData tenants, then always invoke compilation/testing
 so changed inputs rebuild. Disposable standard/release runners disable local output
 age-pruning scans; explicit cache pruning, result retention and simulator/guest
