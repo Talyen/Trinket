@@ -17,7 +17,7 @@ from internal.diagnostics.diagnostic_rendering import render_annotation
 from internal.diagnostics.failure_diagnostics_parsers import parse_log
 from internal.diagnostics.execution_identity import execution_identity, require_hosted_identity
 
-PACKAGES = ('BattleEngine', 'TrinketCore')
+PACKAGES = ('BattleEngine', 'TrinketCore', 'TrinketContent')
 
 
 def canonical(identifier: str, package: str) -> str:

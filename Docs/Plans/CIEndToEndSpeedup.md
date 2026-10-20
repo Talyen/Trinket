@@ -62,3 +62,16 @@ in favor of forced fresh evidence; exclude it from pass/failure and speedup stat
 Both fresh runs share the same workflow definition but checkout their explicit source
 commit. They bypass saved journey evidence and preserve the same qualified runtime,
 Smoke methods and critical selectors. Inspect actual method IDs, not just totals.
+
+## Follow-up from baseline timing
+
+The baseline Content job passed 283 content cases with only 7.6 seconds of measured
+assertion time but 13 minutes job duration. Add Content to the existing native/iOS
+qualification harness; do not route its routine checks natively before same-revision
+qualification passes. Keep all DesignSystem asset/color checks on iOS. Existing
+Engine/Core native dispatch now applies to standard verified manual runs as well
+as pushes; latest/nightly/exhaustive/qualification retain iOS comparisons.
+Intermediate pending runs 39353415213 and 39353451320 were superseded/cancelled,
+not failed measurements. Standard candidate 39353809022 uses 7a66f1e6d but is still
+pending behind baseline; supersede it with qualification before activating Content.
+The original baseline standard 39352744217 must finish; do not cancel it.

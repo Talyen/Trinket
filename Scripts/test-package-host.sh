@@ -4,13 +4,13 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 compare=false
 if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
-  echo "Usage: $0 [--compare-ios] [BattleEngine | TrinketCore ...]"
+  echo "Usage: $0 [--compare-ios] [BattleEngine | TrinketCore | TrinketContent ...]"
   exit 0
 fi
 if [[ "${1:-}" == --compare-ios ]]; then compare=true; shift; fi
 if (( $# == 0 )); then set -- BattleEngine; fi
 for package in "$@"; do
-  case "$package" in BattleEngine|TrinketCore) ;; *) echo "Unsupported native package: $package" >&2; exit 2 ;; esac
+  case "$package" in BattleEngine|TrinketCore|TrinketContent) ;; *) echo "Unsupported native package: $package" >&2; exit 2 ;; esac
 done
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification "Native package verification"
@@ -23,6 +23,7 @@ for package in "$@"; do
   data="$RESULTS_DIR/raw/native-$package"
   sources=(Packages/TrinketCore)
   if [[ "$package" == BattleEngine ]]; then sources+=(Packages/BattleEngine Packages/TrinketContent); fi
+  if [[ "$package" == TrinketContent ]]; then sources+=(Packages/TrinketContent); fi
   source_commit="$(git rev-parse HEAD)"
   snapshot="$(generation_input_snapshot --build-inputs "${sources[@]}")"
   started="$(python3 Scripts/phase-timing.py begin)"

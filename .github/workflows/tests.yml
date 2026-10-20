@@ -19,7 +19,7 @@ on:
         type: string
         default: verified
       qualify-native:
-        description: Run only same-revision iOS/native Engine and Core comparators
+        description: Run only same-revision iOS/native Engine, Core and Content comparators
         type: boolean
         default: false
       native-logic:
@@ -254,7 +254,9 @@ jobs:
         id: release-cache
         uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
         with:
-          path: .DerivedData
+          path: |
+            .DerivedData/release-device
+            .DerivedData/build-source-times.json
           key: device-release-v1-${{ steps.release-key.outputs.cache-key }}
           restore-keys: device-release-v1-${{ steps.release-key.outputs.cache-restore-prefix }}
       - name: Preserve byte-identical Release compiler inputs
@@ -271,12 +273,14 @@ jobs:
         run: python3 Scripts/build-source-times.py record
       - name: Prune incremental device Release state
         if: success() && steps.release-cache.outputs.cache-hit != 'true'
-        run: ./Scripts/prune-derived-data-cache.sh --ci
+        run: ./Scripts/prune-derived-data-cache.sh --ci .DerivedData/release-device
       - name: Save incremental device Release state
         if: success() && steps.release-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@3edfce9056124e459a23f683a21433670d47daca # v4
         with:
-          path: .DerivedData
+          path: |
+            .DerivedData/release-device
+            .DerivedData/build-source-times.json
           key: device-release-v1-${{ steps.release-key.outputs.cache-key }}
       - name: Stage bounded Release build failure diagnostics
         if: failure()
@@ -299,7 +303,7 @@ jobs:
     if: inputs.qualify-native || (needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.units == 'true' || github.event_name == 'schedule'))
     strategy:
       fail-fast: false
-      matrix: ${{ inputs.qualify-native && fromJSON('{"include":[{"name":"Engine","packages":"BattleEngine"},{"name":"Core","packages":"TrinketCore"}]}') || fromJSON(needs.changes.outputs.unit-matrix) }}
+      matrix: ${{ inputs.qualify-native && fromJSON('{"include":[{"name":"Engine","packages":"BattleEngine"},{"name":"Core","packages":"TrinketCore"},{"name":"Content","packages":"TrinketContent"}]}') || fromJSON(needs.changes.outputs.unit-matrix) }}
     runs-on: xcode-27
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
@@ -358,9 +362,9 @@ jobs:
           command: ./Scripts/test-ci-packages.sh ${{ matrix.packages }}
       - name: Export exact-run iOS comparator evidence
         id: ios-proof
-        if: always() && !cancelled() && (matrix.name == 'Engine' || matrix.name == 'Core') && github.event_name != 'push' && !inputs.native-logic
+        if: always() && !cancelled() && (matrix.name == 'Engine' || matrix.name == 'Core' || matrix.name == 'Content') && github.event_name != 'push' && !inputs.native-logic
         env:
-          PACKAGE: ${{ matrix.name == 'Engine' && 'BattleEngine' || 'TrinketCore' }}
+          PACKAGE: ${{ matrix.name == 'Engine' && 'BattleEngine' || matrix.name == 'Core' && 'TrinketCore' || 'TrinketContent' }}
         run: python3 Scripts/native-test-results.py export-ios "$PACKAGE" .DerivedData/TestResults/timing-log.jsonl .DerivedData/ParityProof/ios.json
       - name: Retain required iOS comparator evidence
         if: always() && steps.ios-proof.outcome == 'success'
@@ -398,6 +402,9 @@ jobs:
           - name: Core
             package: TrinketCore
             source-shard: Core
+          - name: Content
+            package: TrinketContent
+            source-shard: Content
     runs-on: xcode-27
     timeout-minutes: 25
     env:
