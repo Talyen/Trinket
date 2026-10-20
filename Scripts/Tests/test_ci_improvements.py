@@ -388,6 +388,12 @@ class CIImprovementsTests(unittest.TestCase):
                                        'TRINKET_CI_NATIVE_LOGIC': 'true'}, expected=0)
             self.assertEqual(result.stdout.splitlines(), ['native:BattleEngine TrinketCore',
                                                          'ios:TrinketPersistence TrinketAppState'])
+            for qualified, expected in [('BattleEngine TrinketCore TrinketContent', ['native:TrinketContent', 'ios:TrinketDesignSystem']),
+                                        ('BattleEngine TrinketCore', ['ios:TrinketContent TrinketDesignSystem'])]:
+                result = run_captured(['bash', 'Scripts/test-ci-packages.sh', 'TrinketContent', 'TrinketDesignSystem'],
+                                      cwd=root, env={**os.environ, 'GITHUB_EVENT_NAME': 'push',
+                                                     'TRINKET_CI_NATIVE_PACKAGES': qualified}, expected=0)
+                self.assertEqual(result.stdout.splitlines(), expected)
             # A failed Core run must still exercise saves and app transitions,
             # and a later success or failure must not erase the original exit.
             for native, ios, expected in ((17, 0, 17), (0, 23, 23), (17, 23, 17)):

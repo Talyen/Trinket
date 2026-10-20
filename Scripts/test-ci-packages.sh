@@ -20,11 +20,13 @@ native=()
 ios=()
 native_logic="${TRINKET_CI_NATIVE_LOGIC:-false}"
 if [[ "${GITHUB_EVENT_NAME:-}" == push ]]; then native_logic=true; fi
+qualified_native="${TRINKET_CI_NATIVE_PACKAGES-BattleEngine TrinketCore}"
 for package in "$@"; do
-  case "$package:$native_logic" in
-    BattleEngine:true|TrinketCore:true) native+=("$package") ;;
-    *) ios+=("$package") ;;
-  esac
+  if [[ "$native_logic" == true && " $qualified_native " == *" $package "* ]]; then
+    native+=("$package")
+  else
+    ios+=("$package")
+  fi
 done
 if (( $# == 0 )); then echo "Expected package scope." >&2; exit 2; fi
 # A pure-logic failure must not suppress the shard's save and app-state evidence.

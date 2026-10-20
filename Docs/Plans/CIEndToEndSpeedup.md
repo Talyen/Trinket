@@ -75,3 +75,21 @@ Intermediate pending runs 39353415213 and 39353451320 were superseded/cancelled,
 not failed measurements. Standard candidate 39353809022 uses 7a66f1e6d but is still
 pending behind baseline; supersede it with qualification before activating Content.
 The original baseline standard 39352744217 must finish; do not cancel it.
+
+Qualification candidate 080ad3858 supports Content but does not activate it.
+Qualification run: https://github.com/Talyen/Trinket/actions/runs/39354661539
+It waits behind the unchanged baseline standard run. Native Content activation
+must be bound to the exact qualified Xcode build(s), or retain iOS Content on an
+unqualified fallback build. Config currently admits 27A9275 and 27A9269.
+After qualification, activate Content, run final standard and fresh qualified UI,
+then repeat standard to measure a genuinely warm device Release cache. Do not
+claim completion from the first cold run or the existing lightweight passes.
+
+The DesignSystem inventory guard was reviewed and retained: it ensures newly
+added colorsets enter the dark/light runtime-resolution test's discovery list.
+Its surviving four other functions alone would miss an unregistered colorset;
+removing that guard would reduce real coverage for negligible time saved.
+Baseline State: Core 66 passed (111s wrapper), Persistence 400 passed (213s),
+AppState 212 passed/1 existing skip (174s). Baseline Smoke: six passed, no skips;
+327s test wrapper, 128s boot and 47s guest bookkeeping. Use actual artifact method
+IDs for comparisons, not total duration or test counts alone.

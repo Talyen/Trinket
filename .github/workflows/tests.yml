@@ -23,7 +23,7 @@ on:
         type: boolean
         default: false
       native-logic:
-        description: Use qualified native Engine/Core execution without repeating iOS parity
+        description: Use qualified native package execution without repeating iOS parity
         type: boolean
         default: false
       force-full:

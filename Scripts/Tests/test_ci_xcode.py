@@ -63,6 +63,18 @@ class CIXcodeTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'Invalid'):
             SETUP.select_xcode(installations, 'latest', pin, '../RC.app')
 
+    def test_native_activation_is_bound_to_the_qualified_build_and_package(self):
+        pin = dict(version='27.1', build='27A9275', qualified_builds=[
+            dict(version='27.1', build='27A9275', native_packages=['BattleEngine', 'TrinketCore', 'TrinketContent']),
+            dict(version='27.1', build='27A9269')])
+        self.assertIn('TrinketContent', SETUP.native_packages(pin, '27.1', '27A9275'))
+        self.assertNotIn('TrinketContent', SETUP.native_packages(pin, '27.1', '27A9269'))
+        self.assertEqual(SETUP.native_packages(pin, '27.2', '27B5028f'), [])
+        for packages in (['TrinketPersistence'], ['TrinketCore', 'TrinketCore'], 'TrinketContent'):
+            with self.subTest(packages=packages), self.assertRaises(ValueError):
+                SETUP.native_packages(dict(version='27.1', build='27A9275', native_packages=packages),
+                                      '27.1', '27A9275')
+
     def test_metal_retry_requires_real_readiness_and_never_accepts_download_exit_alone(self):
         environment = dict(DEVELOPER_DIR='/Applications/Selected.app/Contents/Developer')
         for download_failure in (subprocess.CompletedProcess([], 70), subprocess.TimeoutExpired('download', 120)):

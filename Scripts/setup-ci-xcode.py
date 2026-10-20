@@ -81,6 +81,18 @@ def select_xcode(installations: list[tuple[Path, str, str]], channel: str,
     return max(installations, key=order)
 
 
+def native_packages(approved: dict, version: str, build: str) -> list[str]:
+    for entry in approved.get('qualified_builds', [approved]):
+        if (entry['version'], entry['build']) == (version, build):
+            packages = entry.get('native_packages', ['BattleEngine', 'TrinketCore'])
+            if (not isinstance(packages, list) or any(package not in
+                    ('BattleEngine', 'TrinketCore', 'TrinketContent') for package in packages)
+                    or len(set(packages)) != len(packages)):
+                raise ValueError('Invalid qualified native package list')
+            return packages
+    return []
+
+
 def metal_probe(environment: dict[str, str], directory: Path) -> bool:
     source = directory / "probe.metal"
     source.write_text("#include <metal_stdlib>\nusing namespace metal;\n"
@@ -153,9 +165,12 @@ def main() -> None:
                    env=environment, timeout=30, check=True)
     if args.metal:
         ensure_metal(environment)
+    native = native_packages(approved, version, build)
+    print(f'Qualified native packages for {build}: {native}', flush=True)
     with Path(os.environ["GITHUB_ENV"]).open("a") as output:
         for key, value in {"DEVELOPER_DIR": environment["DEVELOPER_DIR"], "XCODE_PATH": str(app),
-                           "XCODE_VERSION": version, "XCODE_BUILD": build}.items():
+                           "XCODE_VERSION": version, "XCODE_BUILD": build,
+                           "TRINKET_CI_NATIVE_PACKAGES": ' '.join(native)}.items():
             output.write(f"{key}={value}\n")
 
 
