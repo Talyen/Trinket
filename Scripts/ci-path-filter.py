@@ -272,6 +272,15 @@ def package_matrix(selected: set[str]) -> dict:
     return {"include": entries or [{"name": "Engine", "packages": "BattleEngine"}]}
 
 
+def package_stages(selected: set[str]) -> dict:
+    # Short verified logic jobs admit the heavier simulator fan-out after the
+    # initial app/build jobs have had room to acquire runners.
+    logic = selected & {package for name in ("Engine", "Core") for package in SHARDS[name]}
+    remaining = selected - logic
+    return {name: {"enabled": bool(packages), "matrix": package_matrix(packages)}
+            for name, packages in (("logic", logic), ("remaining", remaining))}
+
+
 def dependency_graph(repo: str, sha: str, token: str) -> dict[str, set[str]]:
     graph = {}
     for package in all_packages():
@@ -302,6 +311,7 @@ def write_output(code: bool, assets: bool, infra: bool, smoke: bool = False, pac
     selected = all_packages() if packages is None else packages
     payload += f"units={'true' if selected else 'false'}\n"
     payload += "unit-matrix=" + json.dumps(package_matrix(selected), separators=(",", ":")) + "\n"
+    payload += "unit-stages=" + json.dumps(package_stages(selected), separators=(",", ":")) + "\n"
     output_path = os.environ.get("GITHUB_OUTPUT")
     if output_path:
         with Path(output_path).open("a", encoding="utf-8") as handle:

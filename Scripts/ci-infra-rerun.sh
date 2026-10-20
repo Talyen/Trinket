@@ -58,7 +58,10 @@ failure_looks_like_simulator_infrastructure() {
   # --failed reruns every failed job. One launch flake must not cause a
   # concurrent product or gate failure to be classified as infrastructure.
   failed_jobs="$(gh run view "$run_id" --json jobs --jq '
-    [.jobs[]? | select(.conclusion == "failure")] as $failed
+    # CI OK reports its failed dependencies; it is rerun with --failed, but
+    # cannot supply independent simulator or product failure evidence.
+    [.jobs[]? | select(.conclusion == "failure" and
+       .name != "tests / CI OK" and .name != "CI OK")] as $failed
     | if ($failed | length) > 0 and all($failed[];
         .name | test("UI|Smoke|ui|smoke|Unit|unit|Exhaustive"))
       then $failed[].databaseId else empty end

@@ -36,14 +36,16 @@ ensure_test_simulator
 '''
         environment = {key: value for key, value in os.environ.items()
                        if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
-        for ci, elapsed, window, expected in [
-            ('true', '241', '', 1), ('true', '1', '', 0), ('false', '241', '', 0),
-            ('true', '241', '720', 0), ('true', '501', '720', 1),
+        for ci, elapsed, window, override, expected in [
+            ('true', '241', '', '', 1), ('true', '1', '', '', 0), ('false', '241', '', '', 0),
+            ('true', '241', '720', '', 0), ('true', '501', '720', '', 1),
+            ('true', '241', '', '60', 0),
         ]:
             with self.subTest(ci=ci, elapsed=elapsed):
                 result = run_captured(['bash', '-c', script, '_', str(ROOT), elapsed],
                                       env={**environment, 'GITHUB_ACTIONS': ci,
-                                           'TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS': window})
+                                           'TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS': window,
+                                           'TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS': override})
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                 self.assertEqual('recovered' in result.stdout, expected == 0)
                 self.assertNotIn('unexpected-recreate', result.stdout)

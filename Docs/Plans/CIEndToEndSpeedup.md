@@ -227,3 +227,40 @@ whereas the six-minute guard made be1628b4d fail before testing. Preserve that
 bounded recovery instead of counting early failure as speed. Add override/exhaustion
 cases to the existing ownership-safe shell regression. Full fresh UI cost still
 needs measurement on the final candidate.
+
+## Staged admission comparison
+
+The uncapped 7e47425e4 run 39364870817 failed Smoke readiness (five passed, one
+failed, zero skips). Screenshot and AX tree show Battle Hand and three card buttons
+after the readiness check timed out. Keep all UI assertions and the ten-second
+check unchanged. It is excluded from speedup results. Hosted telemetry confirms
+three CPUs and 7 GiB RAM; that alone does not prove the cause of the AX delay.
+The capped 07957c81d run 39367662655 started app/smoke in sixteen seconds instead
+of nine minutes. Its remaining matrix tail is still pending.
+
+Prepare a staged alternative: Engine/Core run first, leaving initial room for
+app/smoke, gate and Release; after their short stage succeeds, admit up to five
+remaining package jobs. Reuse identical steps/env through GitHub-supported YAML
+anchors, preserving job names, cache namespaces, proofs and comparator owners.
+Selected package sets must remain disjoint and complete for every path scope.
+A failed logic stage must not suppress remaining simulator evidence or pass CI OK.
+Measure this alternative against the capped complete result before choosing it.
+
+The capped 07957c81d run 39367662655 passed all six Smoke methods, including the
+unchanged ten-second retreat readiness assertion. It failed the final Battle
+preparation instead: boot began 04:19:40, reported complete at 04:24:27 (287s),
+and the 240s watchdog reported failure after its child-process cleanup at 04:24:40.
+No Battle case executed. Preserve the six-minute standard setup admission window
+and existing job deadlines, but allow 300 seconds for the cold-boot command;
+ordinary boots do not wait longer. Preserve explicit timeout overrides and local
+150s behavior. This is startup calibration, not measured speedup; run the staged
+candidate to completion and compare only complete passing scopes.
+
+The existing infrastructure rerun helper also misclassified 39367662655: it
+required CI OK itself to have a UI/unit name before reading the failed Battle
+preparation evidence. Ignore only the recognized derived aggregate for evidence
+classification; --failed still reruns it. Require infrastructure evidence for
+every concrete failed job and retain the product/compiler veto. Verify the real
+boot-only failure is eligible and the 7e47425e4 readiness assertion is not. Any
+manual recovery after this investigation is correctness/recovery evidence, not
+a clean timing sample (its wall clock includes the human investigation pause).

@@ -208,7 +208,9 @@ job timeout for diagnostic classification and upload. The shorter generation/sty
 gate reserves two minutes. The command supervisor includes simulator
 preparation and serial package work; per-command Xcode watchdogs also cap themselves
 against the remaining deadline, preserving a short manifest-finalization allowance.
-On CI, simulator recovery admits another boot only when its full watchdog fits
+CI allows five minutes per cold boot (local default: 150 seconds), based on
+observed boots finishing after the old four-minute limit. Simulator recovery
+admits another boot only when its full watchdog fits
 within the setup recovery window: six minutes for standard lanes, twelve for the
 downloaded qualified release runtime, which has demonstrated a successful erase/boot
 recovery. An exhausted window fails before consuming the test budget.
@@ -227,6 +229,11 @@ swap counters after boot to distinguish resource pressure from test execution. T
 below 136 seconds. A stuck method must fail and retain evidence before consuming
 the entire batch watchdog; this does not classify a product timeout as infrastructure.
 Other FullUI, Soak and performance runs retain their existing execution allowances.
+
+The infrastructure rerun helper checks every failed concrete job and vetoes
+product assertions, compiler errors and other gate failures. The derived CI OK
+failure does not block that classification; rerunning failed jobs still rechecks
+CI OK. The watch command attempts one such recovery, not a blanket test retry.
 
 ## Gate composition
 
@@ -295,10 +302,13 @@ Upfront full runs execute FullUI on the build/smoke runner and report its outcom
 through a separate advisory status job, eliminating product transfer. Follow-up
 full dispatches with prior standard proof retain the transfer/reuse path.
 
-Package fan-out is capped at three concurrent jobs so the unit matrix cannot
-consume the observed macOS pool while build/smoke and other required jobs wait.
-Retune that cap with whole-run timing if runner capacity changes. Package unit
-jobs restore separately keyed incremental state and byte-verified source
+Verified runs admit the short Engine/Core jobs alongside build/smoke, gate and
+Release, then allow up to five remaining package jobs after that logic stage
+succeeds. A skipped or failed logic stage retains the three-job cap; remaining
+coverage still runs after a logic failure, which independently fails CI OK.
+This avoids both initial runner starvation and a permanently restricted tail.
+Qualification/latest retain their complete iOS matrices. Retune admission with
+whole-run timing if runner capacity changes. Package jobs restore separately keyed incremental state and byte-verified source
 timestamps in their per-package DerivedData tenants, then always invoke compilation/testing
 so changed inputs rebuild. Disposable standard/release runners disable local output
 age-pruning scans; explicit cache pruning, result retention and simulator/guest

@@ -23,6 +23,22 @@ class CIPathFilterTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.filter = load_script("ci_path_filter", "ci-path-filter.py")
 
+    def test_staged_matrices_conserve_every_selected_package_without_overlap(self) -> None:
+        packages = sorted(self.filter.all_packages())
+        for mask in range(1 << len(packages)):
+            selected = {package for index, package in enumerate(packages) if mask & (1 << index)}
+            with patch.dict(os.environ, {'GITHUB_OUTPUT': ''}), patch('sys.stdout', new=io.StringIO()) as output:
+                self.filter.write_output(True, False, False, packages=selected)
+            fields = dict(line.split('=', 1) for line in output.getvalue().splitlines())
+            stages = json.loads(fields['unit-stages'])
+            admitted = []
+            for stage in stages.values():
+                # Disabled stages retain only an inert GitHub matrix placeholder.
+                if stage['enabled']:
+                    admitted += [package for row in stage['matrix']['include'] for package in row['packages'].split()]
+            self.assertEqual(set(admitted), selected)
+            self.assertEqual(len(admitted), len(selected))
+
     def test_compare_includes_rename_source_and_fails_closed_at_file_limit(self) -> None:
         cases = [
             ({"status": "ahead", "files": [{"filename": "Docs/archived.swift", "previous_filename": "Trinket/App.swift"}]},

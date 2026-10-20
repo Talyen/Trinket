@@ -270,9 +270,9 @@ ensure_test_simulator() {
       return 1
     fi
     simulator_setup_deadline=$((SECONDS + setup_window))
-    # TRINKET_-prefixed knob controls SIMULATOR_BOOT_TIMEOUT_SECONDS (150 default -> 240 on CI).
+    # TRINKET_-prefixed knob controls SIMULATOR_BOOT_TIMEOUT_SECONDS (150 default -> 300 on CI).
     if [[ "${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-}" == "" ]]; then
-      SIMULATOR_BOOT_TIMEOUT_SECONDS=240
+      SIMULATOR_BOOT_TIMEOUT_SECONDS=300
     fi
   fi
   local owned_name="${TRINKET_SIMULATOR_NAME:-Trinket Run}"

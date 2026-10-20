@@ -355,6 +355,15 @@ class CIImprovementsTests(unittest.TestCase):
                 foreign.terminate()
                 foreign.wait()
 
+    def test_aggregate_cannot_hide_a_failed_logic_stage_behind_passing_simulator_jobs(self):
+        block = (ROOT / '.github/workflows/tests.yml').read_text().split('  ci-ok:\n', 1)[1].split('  exhaustive-ok:\n', 1)[0]
+        names = [name.strip() for name in re.search(r'needs: \[(.*?)\]', block)[1].split(',')]
+        jobs = {name: {'result': 'failure' if name == 'logic' else 'success'} for name in names}
+        command = block.split('        run: |\n', 1)[1].split('\n  #', 1)[0]
+        result = run_captured(['bash', '-ec', command], cwd=ROOT,
+                              env={**os.environ, 'REQUIRE_PARITY': 'false', 'JOB_RESULTS': json.dumps(jobs)})
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
     def test_declared_job_timeouts_leave_a_diagnostic_reserve_before_checkout(self):
         for filename in ('tests.yml', 'diagnostic-ui.yml', 'gate.yml'):
             workflow = (ROOT / '.github/workflows' / filename).read_text()

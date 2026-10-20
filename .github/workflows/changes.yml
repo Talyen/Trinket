@@ -9,6 +9,9 @@ on:
       unit-matrix:
         description: Affected packages grouped by their existing shard owners
         value: ${{ jobs.changes.outputs.unit-matrix }}
+      unit-stages:
+        description: Disjoint logic and remaining package matrices with admission flags
+        value: ${{ jobs.changes.outputs.unit-stages }}
       code:
         description: Whether app, package, test, or manifest sources changed
         value: ${{ jobs.changes.outputs.code }}
@@ -30,6 +33,7 @@ jobs:
     outputs:
       units: ${{ steps.filter.outputs.units }}
       unit-matrix: ${{ steps.filter.outputs.unit-matrix }}
+      unit-stages: ${{ steps.filter.outputs.unit-stages }}
       code: ${{ steps.filter.outputs.code }}
       assets: ${{ steps.filter.outputs.assets }}
       infra: ${{ steps.filter.outputs.infra }}

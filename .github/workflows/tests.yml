@@ -297,23 +297,27 @@ jobs:
 
   unit:
     name: Unit tests (${{ matrix.name }})
-    needs: [changes, reuse]
-    if: inputs.qualify-native || (needs.reuse.outputs.standard != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.units == 'true' || github.event_name == 'schedule'))
+    needs: [changes, reuse, logic]
+    if: >-
+      always() && !cancelled() && needs.changes.result == 'success' && needs.reuse.result == 'success' &&
+      (inputs.qualify-native || (needs.reuse.outputs.standard != 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.units == 'true' || github.event_name == 'schedule') &&
+      (!(github.event_name == 'push' || inputs.native-logic) || fromJSON(needs.changes.outputs.unit-stages).remaining.enabled)))
     strategy:
       fail-fast: false
-      # Keep the unit matrix from filling the observed macOS pool before
-      # build/smoke and the other required jobs can acquire a runner.
-      max-parallel: 3
-      matrix: ${{ inputs.qualify-native && fromJSON('{"include":[{"name":"Engine","packages":"BattleEngine"},{"name":"Core","packages":"TrinketCore"},{"name":"Content","packages":"TrinketContent"}]}') || fromJSON(needs.changes.outputs.unit-matrix) }}
+      # Once the short logic stage releases its runners, admit the full
+      # simulator wave. Without that stage, retain the conservative cap.
+      max-parallel: ${{ needs.logic.result == 'success' && 5 || 3 }}
+      matrix: ${{ inputs.qualify-native && fromJSON('{"include":[{"name":"Engine","packages":"BattleEngine"},{"name":"Core","packages":"TrinketCore"},{"name":"Content","packages":"TrinketContent"}]}') || ((github.event_name == 'push' || inputs.native-logic) && fromJSON(needs.changes.outputs.unit-stages).remaining.matrix || fromJSON(needs.changes.outputs.unit-matrix)) }}
     runs-on: xcode-27
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
     # Save and app-state packages have independent simulators and retry boundaries.
     timeout-minutes: ${{ matrix.name == 'Battle' && 30 || 25 }}
-    env:
+    env: &package-env
       TRINKET_DIAGNOSTICS_SESSION_ID: unit-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
       TRINKET_CI_NATIVE_LOGIC: ${{ inputs.native-logic }}
-    steps:
+    steps: &package-steps
       - name: Reserve diagnostic time
         shell: bash
         run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + ${{ matrix.name == 'Battle' && 30 || 25 }} * 60 - 180 ))" >> "$GITHUB_ENV"
@@ -389,9 +393,26 @@ jobs:
           path: ${{ steps.package-cache.outputs.cache-path }}
           key: ${{ steps.package-cache.outputs.cache-key }}
 
+  logic:
+    name: Unit tests (${{ matrix.name }})
+    needs: [changes, reuse]
+    if: >-
+      needs.reuse.outputs.standard != 'true' && !inputs.qualify-native &&
+      (github.event_name == 'push' || inputs.native-logic) &&
+      fromJSON(needs.changes.outputs.unit-stages).logic.enabled &&
+      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.units == 'true' || github.event_name == 'schedule')
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.changes.outputs.unit-stages).logic.matrix }}
+    runs-on: xcode-27
+    timeout-minutes: 25
+    env: *package-env
+    steps: *package-steps
+
   native-parity:
     name: Native parity (${{ matrix.name }})
-    needs: [unit]
+    needs: [logic, unit]
     if: always() && !cancelled() && github.event_name != 'push' && !inputs.native-logic && needs.unit.result != 'skipped'
     strategy:
       fail-fast: false
@@ -610,7 +631,7 @@ jobs:
   # Exhaustive UI is advisory (nightly/dispatch) so it never blocks pushes.
   ci-ok:
     name: CI OK
-    needs: [changes, reuse, gate, assets-gate, build, release-device, unit, native-parity]
+    needs: [changes, reuse, gate, assets-gate, build, release-device, logic, unit, native-parity]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
