@@ -31,6 +31,37 @@ class TestTimingTests(unittest.TestCase):
         environment.update(extra_environment or {})
         return run_captured([sys.executable, str(SCRIPT), *args], env=environment)
 
+    def test_filtered_package_records_require_disjoint_executed_scope(self) -> None:
+        timing = load_script("filtered_package_timing", "test-timing.py")
+        def case(suite, result='Passed'):
+            return dict(id=suite + '/example()', name='example', seconds=0, result=result)
+        for flag, cases, valid in (
+            ('--only-suite', [case('Store')], True),
+            ('--only-suite', [case('Store'), case('Other')], False),
+            ('--only-suite', [case('Other')], False),
+            ('--only-suite', [case('Store', 'Skipped')], False),
+            ('--only-suite', [], False),
+            ('--skip-suite', [case('Other')], True),
+            ('--skip-suite', [case('Store'), case('Other')], False),
+            ('--skip-suite', [], False),
+        ):
+            with self.subTest(flag=flag, cases=cases), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                bundle = root / 'cases.xcresult'
+                bundle.mkdir()
+                (bundle / 'Info.plist').touch()
+                log = root / 'timing-log.jsonl'
+                payload = dict(summary=dict(passed=len(cases), failed=0, skipped=0), tests=cases)
+                with patch.object(timing, 'parse_xcresult', return_value=payload):
+                    args = ['--mode', 'package:State', '--run', 'filtered', '--xcresult', str(bundle), flag, 'Store']
+                    if valid:
+                        timing.record(root, log, args)
+                    else:
+                        with self.assertRaises(SystemExit):
+                            timing.record(root, log, args)
+                # A rejected filter still retains its actual cases for diagnosis.
+                self.assertEqual(json.loads(log.read_text())['tests'], cases)
+
     def test_timing_history_survives_successful_artifact_cleanup(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "TestResults"

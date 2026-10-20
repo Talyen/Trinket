@@ -168,6 +168,9 @@ def parse_options(args: list[str]) -> dict:
         parser.add_argument(option)
     for option in ("--no-xcresult", "--no-build", "--skip-if-missing", "--by-class"):
         parser.add_argument(option, action="store_true")
+    suite = parser.add_mutually_exclusive_group()
+    suite.add_argument("--only-suite")
+    suite.add_argument("--skip-suite")
     parser.add_argument("--last", type=int)
     parser.add_argument("--top", type=int)
     parser.add_argument("targets", nargs="*", default=[])
@@ -225,6 +228,16 @@ def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
                                        "run": run, "mode": mode, "targets": values["targets"],
                                        "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds,
                                        "xcresult": recorded_xcresult, **parsed})
+    suite = values.get("only_suite") or values.get("skip_suite")
+    if suite:
+        tests = parsed["tests"]
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", suite) or not tests:
+            raise SystemExit("Package suite filter lacks executed case evidence")
+        selected = [test for test in tests if test["id"].startswith(suite + "/")]
+        if values.get("only_suite") and (len(selected) != len(tests) or any(test.get("result") != "Passed" for test in selected)):
+            raise SystemExit(f"Package only-suite filter was not fully executed: {suite}")
+        if values.get("skip_suite") and selected:
+            raise SystemExit(f"Package skip-suite filter was not applied: {suite}")
     # Quiet test runs print nothing on success; this single line is the
     # terminal-visible proof that tests executed and their outcome.
     summary = parsed["summary"]

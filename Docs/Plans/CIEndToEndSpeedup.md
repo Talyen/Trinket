@@ -187,3 +187,15 @@ age cleanup took only three seconds while its 148MB cache upload stalled. Record
 host memory/swap counters after UI simulator boot in future runs before drawing
 a resource-pressure conclusion. Fresh be1628b4d UI 39362370376 failed boot within
 the bounded preparation window, as intended; it provides no passing coverage.
+
+## AppState scheduler starvation
+
+Bootstrap State 39361783708 failed, not passed: compact timing was absent because
+the bundle did not finalize. Raw artifact proves six FullGameStoreTests exceeded
+the suite's 60s limit, cancelling them and causing fourteen subsequent ownership
+assertions to fail. Total package execution was 81.6s while unrelated MainActor
+work ran. Preserve the seven purchase functions, all ownership assertions and
+the 60s limit. Dispatch that suite separately, then all other AppState suites with
+an explicit exclusion on the same runner. No product Swift or assertion changes.
+Verify the two fresh executed method sets are disjoint and their union equals
+the original 213 functions (212 passing plus the conditional worker skip).

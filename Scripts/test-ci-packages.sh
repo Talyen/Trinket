@@ -35,9 +35,28 @@ status=0
 if (( ${#native[@]} )); then
   ./Scripts/test-package-host.sh "${native[@]}" || status=$?
 fi
+# Purchase cancellation contracts have a deliberate one-minute limit. Run them
+# separately from heavy MainActor save/career tests, retaining both disjoint sets.
+regular_ios=()
+state=false
 if (( ${#ios[@]} )); then
+  for package in "${ios[@]}"; do
+    if [[ "$package" == TrinketAppState ]]; then state=true; else regular_ios+=("$package"); fi
+  done
+fi
+if [[ "$state" == true ]]; then
   ios_status=0
-  ./Scripts/test-package.sh "${ios[@]}" || ios_status=$?
+  ./Scripts/test-package.sh --only-suite FullGameStoreTests TrinketAppState || ios_status=$?
+  if (( status == 0 )); then status=$ios_status; fi
+fi
+if (( ${#regular_ios[@]} )); then
+  ios_status=0
+  ./Scripts/test-package.sh "${regular_ios[@]}" || ios_status=$?
+  if (( status == 0 )); then status=$ios_status; fi
+fi
+if [[ "$state" == true ]]; then
+  ios_status=0
+  ./Scripts/test-package.sh --skip-suite FullGameStoreTests TrinketAppState || ios_status=$?
   if (( status == 0 )); then status=$ios_status; fi
 fi
 exit "$status"

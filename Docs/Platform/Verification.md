@@ -300,7 +300,12 @@ age-pruning scans; explicit cache pruning, result retention and simulator/guest
 ownership checks remain in force. Core, Persistence, and AppState have separate jobs: a failed
 app-state invocation does not repeat passed save tests when rerunning failed jobs.
 FeatureSupport and BattleFeature also run separately, preserving passed support
-coverage when battle verification needs a retry.
+coverage when battle verification needs a retry. AppState runs its seven purchase
+contracts and the remaining suites in disjoint invocations on the same runner.
+The purchase suite retains its one-minute limit; heavy MainActor save/career work
+cannot consume that deadline while purchase tasks wait to resume. Filtered package
+runs require complete result-bundle evidence: an ignored inclusion/exclusion, a
+skipped purchase method or missing case evidence fails the job.
 They do not download the app product archive. Native-only Engine/Core jobs restore
 only native compiler state in a separate namespace, retaining simulator state for
 the iOS comparator lanes. Cache identity uses setup-trinket’s selected Xcode

@@ -379,19 +379,22 @@ class CIImprovementsTests(unittest.TestCase):
                 write_executable(root / 'Scripts' / name, '#!/bin/bash\nprintf "' + mode
                                  + ':%s\\n" "$*"\nexit "${' + variable + ':-0}"\n')
             packages = ['BattleEngine', 'TrinketCore', 'TrinketPersistence', 'TrinketAppState']
-            for event, expected in [('push', ['native:BattleEngine TrinketCore', 'ios:TrinketPersistence TrinketAppState']),
-                                    ('workflow_dispatch', ['ios:' + ' '.join(packages)])]:
+            contracts = 'ios:--only-suite FullGameStoreTests TrinketAppState'
+            state = 'ios:--skip-suite FullGameStoreTests TrinketAppState'
+            all_ios = [contracts, 'ios:BattleEngine TrinketCore TrinketPersistence', state]
+            mixed = ['native:BattleEngine TrinketCore', contracts, 'ios:TrinketPersistence', state]
+            for event, expected in [('push', mixed),
+                                    ('workflow_dispatch', all_ios)]:
                 result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root, env={**os.environ, 'GITHUB_EVENT_NAME': event}, expected=0)
                 self.assertEqual(result.stdout.splitlines(), expected)
             result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
                                   env={**os.environ, 'GITHUB_EVENT_NAME': 'push',
                                        'TRINKET_CI_NATIVE_PACKAGES': ''}, expected=0)
-            self.assertEqual(result.stdout.splitlines(), ['ios:' + ' '.join(packages)])
+            self.assertEqual(result.stdout.splitlines(), all_ios)
             result = run_captured(['bash', 'Scripts/test-ci-packages.sh', *packages], cwd=root,
                                   env={**os.environ, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
                                        'TRINKET_CI_NATIVE_LOGIC': 'true'}, expected=0)
-            self.assertEqual(result.stdout.splitlines(), ['native:BattleEngine TrinketCore',
-                                                         'ios:TrinketPersistence TrinketAppState'])
+            self.assertEqual(result.stdout.splitlines(), mixed)
             for qualified, expected in [('BattleEngine TrinketCore TrinketContent', ['native:TrinketContent', 'ios:TrinketDesignSystem']),
                                         ('BattleEngine TrinketCore', ['ios:TrinketContent TrinketDesignSystem'])]:
                 result = run_captured(['bash', 'Scripts/test-ci-packages.sh', 'TrinketContent', 'TrinketDesignSystem'],
@@ -406,7 +409,7 @@ class CIImprovementsTests(unittest.TestCase):
                                           env={**os.environ, 'GITHUB_EVENT_NAME': 'push',
                                                'NATIVE_STATUS': str(native), 'IOS_STATUS': str(ios)}, expected=expected)
                     self.assertEqual(result.stdout.splitlines(),
-                                     ['native:BattleEngine TrinketCore', 'ios:TrinketPersistence TrinketAppState'])
+                                     mixed)
 
     def test_native_cache_omits_simulator_products_and_selected_identity_keeps_compatible_keys(self):
         action = (ROOT / '.github/actions/package-cache/action.yml').read_text()

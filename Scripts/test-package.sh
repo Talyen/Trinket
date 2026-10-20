@@ -25,10 +25,16 @@ INCLUDE_BALANCE_SWEEP_TESTS=false
 DID_ENSURE_SIMULATOR=false
 ITERATIONS=""
 RUN_UNTIL_FAILURE=false
+SUITE_FILTER_MODE=""
+TEST_SUITE=""
 
 usage() {
   cat <<'USAGE'
 Usage: ./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] [--iterations COUNT] [--run-tests-until-failure] <Package> [Package...]
+
+--only-suite NAME or --skip-suite NAME selects disjoint Swift Testing suites
+within one package. Both use the same compiled test target; generic compilation
+and multiple-package calls reject these filters.
 
 Runs Swift package test schemes from inside their package directories, allocating
 a unique result bundle for each invocation so repeated runs do not collide.
@@ -85,6 +91,15 @@ while [[ $# -gt 0 ]]; do
       REPORT_PREFIX="$2"
       shift 2
       ;;
+    --only-suite|--skip-suite)
+      if [[ -n "$SUITE_FILTER_MODE" || ! "${2:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+        echo "Choose one --only-suite or --skip-suite with a Swift suite identifier." >&2
+        exit 2
+      fi
+      SUITE_FILTER_MODE="${1#--}"
+      TEST_SUITE="$2"
+      shift 2
+      ;;
     --include-balance-sweep-tests)
       INCLUDE_BALANCE_SWEEP_TESTS=true
       shift
@@ -122,6 +137,11 @@ done
 if [[ ${#PACKAGES[@]} -eq 0 ]]; then
   usage >&2
   exit 1
+fi
+
+if [[ -n "$SUITE_FILTER_MODE" ]] && { (( ${#PACKAGES[@]} != 1 )) || [[ "$ACTION" == build-for-testing ]]; }; then
+  echo "Suite filters require one package and a test action." >&2
+  exit 2
 fi
 
 validated_packages=()
@@ -239,6 +259,12 @@ run_one_package() {
   package_dd="$(package_derived_data_path "$package")"
   mkdir -p "$package_dd"
 
+  if [[ "$SUITE_FILTER_MODE" == only-suite ]]; then
+    package_test_filters+=("-only-testing:${package}Tests/$TEST_SUITE")
+  elif [[ "$SUITE_FILTER_MODE" == skip-suite ]]; then
+    package_test_filters+=("-skip-testing:${package}Tests/$TEST_SUITE")
+  fi
+
   if [[ "$package" == "BattleEngine" && "$INCLUDE_BALANCE_SWEEP_TESTS" == "false" ]]; then
     package_test_filters+=("-skip-testing:BattleBalanceToolsTests" "-skip-testing:BalanceSweepCLITests")
   fi
@@ -332,18 +358,28 @@ run_one_package() {
   python3 Scripts/phase-timing.py end compile-and-test "$phase_started" "$package"
 
   # Record per-package timings for on-demand hotspot mining (test-timing.py).
-  # Build-for-testing runs have no test cases; skip those xcresults. Soft-fail
-  # record so a corrupt/partial bundle after a hung kill cannot mask the
-  # xcodebuild status.
+  # Preserve Xcode failures when timing export fails. Successful suite-filtered
+  # runs additionally require complete case evidence, even with timing disabled.
+  # Build-for-testing has no executed cases to record.
+  local scope_validated=false
   if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]] \
     && [[ -f "$result_bundle/Info.plist" ]] \
-    && [[ "${TRINKET_RECORD_TIMING:-1}" != "0" ]]; then
+    && [[ "${TRINKET_RECORD_TIMING:-1}" != "0" || -n "$TEST_SUITE" ]]; then
     local timing_args=(--mode "package:$package" --run "$invocation_id" \
       --wall "$package_wall" --xcresult "$result_bundle")
     if [[ -n "${XCODE_RUNNER_MANIFEST_PATH:-}" ]]; then timing_args+=(--manifest "$XCODE_RUNNER_MANIFEST_PATH"); fi
     if [[ "$ACTION" == "test-without-building" ]]; then timing_args+=(--no-build); fi
-    python3 ./Scripts/test-timing.py record "${timing_args[@]}" \
-      || echo "Warning: failed to record timing for package:$package" >&2
+    if [[ -n "$TEST_SUITE" ]]; then timing_args+=("--$SUITE_FILTER_MODE" "$TEST_SUITE"); fi
+    if python3 ./Scripts/test-timing.py record "${timing_args[@]}"; then
+      scope_validated=true
+    else
+      echo "Warning: failed to record or validate timing for package:$package" >&2
+    fi
+  fi
+  if [[ -n "$TEST_SUITE" && "$scope_validated" != true && "$package_status" -eq 0 ]]; then
+    echo "Cannot prove the requested package suite filter; refusing a false-green result." >&2
+    package_status=1
+    xcode_runner_write_manifest "$result_bundle" "$package_report_prefix" "$package_status" "$package"
   fi
 
   if [[ "$package_status" -ne 0 ]]; then
