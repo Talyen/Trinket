@@ -178,7 +178,8 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
     def test_release_compile_is_required_only_for_nightly_and_manual_runs(self):
         workflow = (ROOT / ".github/workflows/tests.yml").read_text()
         release = workflow.split("  release-device:\n", 1)[1].split("  unit:\n", 1)[0]
-        self.assertIn("needs: [changes, reuse, build, unit]", release)
+        self.assertIn("needs: [changes, reuse, build]", release)
+        self.assertNotIn("needs.unit", release)
         self.assertIn("github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'", release)
         self.assertIn("needs.build.result == 'success' || needs.reuse.outputs.standard == 'true'", release)
         self.assertIn("timeout-minutes: 30", release)

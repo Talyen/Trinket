@@ -210,7 +210,8 @@ SHARDS = {
     "Persistence": ["TrinketPersistence"],
     "State": ["TrinketAppState"],
     "Content": ["TrinketContent", "TrinketDesignSystem"],
-    "Battle": ["TrinketFeatureSupport", "TrinketBattleFeature"],
+    "Support": ["TrinketFeatureSupport"],
+    "Battle": ["TrinketBattleFeature"],
 }
 
 # Reviewed static layouts keep Tests private and shared support under Sources.

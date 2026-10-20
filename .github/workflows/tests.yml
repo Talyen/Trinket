@@ -196,15 +196,13 @@ jobs:
 
   release-device:
     name: Device Release compilation
-    # Cold optimized compilation needs headroom after the concurrent product builds.
-    # Serializing behind build+unit cuts peak macOS fan-out; the wall
-    # execution deadline reserves the final three minutes for diagnostics.
-    needs: [changes, reuse, build, unit]
+    # Start after the app build releases its runner; package tests remain an
+    # independent required gate. Do not append Release to the slowest test shard.
+    needs: [changes, reuse, build]
     if: >-
       always() && !inputs.qualify-native && needs.reuse.result == 'success' &&
       (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
-      (needs.build.result == 'success' || needs.reuse.outputs.standard == 'true') &&
-      (needs.unit.result == 'success' || needs.reuse.outputs.standard == 'true')
+      (needs.build.result == 'success' || needs.reuse.outputs.standard == 'true')
     runs-on: xcode-27
     timeout-minutes: 30
     steps:
@@ -340,9 +338,9 @@ jobs:
           test -f BattlePerformance.xctestplan
       - uses: ./.github/actions/setup-trinket
         with:
-          # Content builds DesignSystem shaders; State and Battle build
+          # Content builds DesignSystem shaders; State, Support, and Battle build
           # TrinketFeatureSupport, which compiles DesignSystem shaders.
-          metal: ${{ matrix.name == 'Content' || matrix.name == 'State' || matrix.name == 'Battle' }}
+          metal: ${{ matrix.name == 'Content' || matrix.name == 'State' || matrix.name == 'Support' || matrix.name == 'Battle' }}
           xcode-channel: ${{ inputs.xcode-channel }}
           xcode-build: ${{ inputs.xcode-build }}
       - uses: ./.github/actions/package-cache

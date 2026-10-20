@@ -23,6 +23,29 @@ import signal
 import select
 
 class CISessionScriptTests(ScriptRegressionTestCase):
+    def test_ci_simulator_recovery_cannot_spend_a_second_boot_window(self) -> None:
+        script = r'''set -eu
+source "$1/Scripts/ensure-simulator.sh"
+SIMULATOR_UDID=owned
+simulator_matches_name() { return 0; }
+boot_simulator() { SECONDS=$((SECONDS + elapsed)); return 1; }
+erase_and_boot_simulator() { echo recovered; return 0; }
+resolve_or_create_simulator() { echo unexpected-recreate; return 1; }
+elapsed="$2"
+ensure_test_simulator
+'''
+        environment = {key: value for key, value in os.environ.items()
+                       if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
+        for ci, elapsed, expected in [('true', '241', 1), ('true', '1', 0), ('false', '241', 0)]:
+            with self.subTest(ci=ci, elapsed=elapsed):
+                result = run_captured(['bash', '-c', script, '_', str(ROOT), elapsed],
+                                      env={**environment, 'GITHUB_ACTIONS': ci})
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                self.assertEqual('recovered' in result.stdout, expected == 0)
+                self.assertNotIn('unexpected-recreate', result.stdout)
+                if expected:
+                    self.assertIn('exhausted its CI recovery window', result.stderr)
+
     def test_linked_worktrees_share_simulator_reservations_and_protect_active_caches(self) -> None:
         from internal import output_retention as retention
 

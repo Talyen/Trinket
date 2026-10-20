@@ -208,7 +208,10 @@ job timeout for diagnostic classification and upload. The shorter generation/sty
 gate reserves two minutes. The command supervisor includes simulator
 preparation and serial package work; per-command Xcode watchdogs also cap themselves
 against the remaining deadline, preserving a short manifest-finalization allowance.
-Timeouts remain failures and emit structured receipts. Supervisors terminate only
+On CI, simulator recovery admits another boot only when its full watchdog fits
+within the six-minute preparation recovery window; an exhausted window fails early
+for a healthy-runner retry instead of consuming the test budget. Local recovery
+retains its existing attempts. Timeouts remain failures and emit structured receipts. Supervisors terminate only
 their own process groups; existing simulator guest/lease cleanup remains in force.
 
 Combined build/smoke/exhaustive jobs allow 55 minutes so the existing 30-minute UI
@@ -227,7 +230,7 @@ exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic rese
 | `test-deploy.sh` | Full CI/release evidence with exact-commit hosted proof reuse and local phase checkpoints; local execution uses the deliberate heavy-local flag and diagnostic limits. [Release recovery](Release.md#options-and-recovery) owns checkpoint identity and invalidation |
 | Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, app build with smoke on the same runner, and package unit for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |
-| Device Release compilation | Nightly and standard manual CI run unsigned device Release compilation serialized behind build+unit with a 30-minute job budget and reserved diagnostic time; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
+| Device Release compilation | Nightly and standard manual CI run unsigned device Release compilation after build/smoke, concurrently with remaining package tests with a 30-minute job budget and reserved diagnostic time; failures block that run’s `CI OK`, ordinary pushes skip it. Signing/export/upload remain TestFlight responsibilities. |
 | Nightly exhaustive | Scheduled or manually dispatched exhaustive UI with all registered classes on one runner; advisory, never blocks `CI OK` |
 | Performance diagnostics | Manual `performance.yml` dispatch with a validated group/repetition selection; never part of routine local or push verification |
 
@@ -287,6 +290,8 @@ Package unit jobs restore separately keyed incremental state and byte-verified s
 timestamps in their per-package DerivedData tenants, then always invoke compilation/testing
 so changed inputs rebuild. Core, Persistence, and AppState have separate jobs: a failed
 app-state invocation does not repeat passed save tests when rerunning failed jobs.
+FeatureSupport and BattleFeature also run separately, preserving passed support
+coverage when battle verification needs a retry.
 They do not download the app product archive. Native-only Engine/Core jobs restore
 only native compiler state in a separate namespace, retaining simulator state for
 the iOS comparator lanes. Cache identity uses setup-trinket’s selected Xcode

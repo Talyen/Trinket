@@ -248,12 +248,23 @@ erase_and_boot_simulator() {
   boot_simulator
 }
 
+# A timed-out CI boot must not consume another full boot window before tests.
+# This bounds retry admission; each admitted operation retains its own watchdog.
+simulator_recovery_has_time() {
+  if [[ -n "${simulator_setup_deadline:-}" ]] && (( SECONDS + SIMULATOR_BOOT_TIMEOUT_SECONDS > simulator_setup_deadline )); then
+    echo "Error: Simulator preparation exhausted its CI recovery window; retry on a healthy runner." >&2
+    return 1
+  fi
+}
+
 ensure_test_simulator() {
   local force="${1:-}"
   local attempt=1
   local max_attempts=2
+  local simulator_setup_deadline=""
   if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
     max_attempts=3
+    simulator_setup_deadline=$((SECONDS + 360))
     # TRINKET_-prefixed knob controls SIMULATOR_BOOT_TIMEOUT_SECONDS (150 default -> 240 on CI).
     if [[ "${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-}" == "" ]]; then
       SIMULATOR_BOOT_TIMEOUT_SECONDS=240
@@ -280,6 +291,7 @@ ensure_test_simulator() {
   fi
 
   while (( attempt <= max_attempts )); do
+    simulator_recovery_has_time || return 1
     if [[ -n "${SIMULATOR_UDID:-}" ]] && erase_and_boot_simulator; then
       SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
       echo "Simulator ready after erase: $SIMULATOR_DESTINATION"
@@ -288,6 +300,7 @@ ensure_test_simulator() {
     if [[ "${GITHUB_ACTIONS:-}" == "true" && "$attempt" -gt 1 ]]; then
       echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying after erase/recreate (attempt $attempt/$max_attempts)."
     fi
+    simulator_recovery_has_time || return 1
     [[ -n "${SIMULATOR_UDID:-}" ]] && discard_simulator
     if resolve_or_create_simulator && boot_simulator; then
       SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"

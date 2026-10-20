@@ -130,3 +130,24 @@ Verify its Linux job before final acceptance. The existing DesignSystem UIKit te
 remain on macOS/iOS. Re-run final standard after this revision to measure warmed
 compiler state; use fresh UI source 95e44fad8 as batching evidence only unless a
 final-revision fresh run also confirms all eleven cases and product reuse.
+
+## First candidate infrastructure failure
+
+Standard 39358321807 failed: Battle preparation spent 691 seconds booting/recovering
+before its two serial packages. FeatureSupport 99 cases passed; BattleFeature
+exhausted the remaining time with incomplete results. No passing claim for this run.
+The same iOS 27 runtime/device booted normally in the baseline, so retain that
+coverage. Limit admission of further CI recovery boots to a six-minute preparation
+window and separate Support/Battle jobs so a failure cannot repeat passed support
+tests. This is a retry budget, not a guarantee that every simctl call completes in
+six minutes. Existing per-command/watchdog and guest ownership protections remain.
+Fresh candidate UI 39358719618 remains in progress; inspect exact results before
+claiming batching benefit. New Release/compiler caches still require a successful
+final-source run and warm repeat.
+
+Device Release also no longer waits for the slowest package job: it starts after
+build/smoke releases its runner. Package results and Release remain independent
+required CI OK inputs. This lets Release seed its compiler cache even if an
+unrelated simulator package encounters infrastructure failure; it does not reuse
+a failed test or weaken either check. The Linux asset move and removal of routine
+native comparators offset this fan-out. Measure actual queue contention.
