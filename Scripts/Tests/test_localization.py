@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from internal.localization import apply, check, digest, encoded, plan, validate_translation
+from internal.localization import apply, check, digest, encoded, encoded_catalog, plan, validate_translation
 
 
 class LocalizationTests(unittest.TestCase):
@@ -122,6 +122,32 @@ class LocalizationTests(unittest.TestCase):
         self.assertEqual(records, [{locale: record} for locales in receipts.values() for locale, record in sorted(locales.items())])
         self.assertEqual(before, {str(item): item.read_bytes() for item in self.root.rglob('*')
                                   if item.is_file() and item != path and '.DerivedData' not in item.parts})
+        self.assertEqual(check(self.root), [])
+
+    def test_compact_catalogs_preserve_plural_metadata_and_review_evidence(self):
+        apply(self.root, self.response())
+        path = self.root / self.name
+        catalog = json.loads(path.read_text())
+        catalog['metadata'] = {'notes': ['数量', 'Quoted "text"\nnext line', '\\'], 'enabled': True, 'optional': None}
+        catalog['strings']['untranslated.plural'] = {
+            'shouldTranslate': False,
+            'localizations': {'en': {'variations': {'plural': {
+                'one': {'stringUnit': {'state': 'translated', 'value': '%1$lld card'}},
+                'other': {'stringUnit': {'state': 'translated', 'value': '%1$lld cards'}},
+            }}}},
+        }
+        self.write(self.name, catalog)
+        self.assertTrue(any('compact locale records' in error for error in check(self.root)))
+        receipts = (self.root / 'Localization/reviews.json').read_bytes()
+        queue = plan(self.root)
+        self.assertEqual(queue['requests'], [])
+        apply(self.root, {'version': 1, 'source_revision': queue['source_revision'], 'translations': []})
+        self.assertEqual(json.loads(path.read_text()), catalog)
+        self.assertEqual((self.root / 'Localization/reviews.json').read_bytes(), receipts)
+        lines = {line.rstrip(',') for line in path.read_text().splitlines()}
+        for locale, record in catalog['strings']['deal.burn']['localizations'].items():
+            self.assertIn(f'        "{locale}": ' + json.dumps(record, ensure_ascii=False, sort_keys=True), lines)
+        self.assertEqual(encoded_catalog(json.loads(path.read_bytes())), path.read_bytes())
         self.assertEqual(check(self.root), [])
 
     def test_semantic_token_identity_is_preserved_when_prose_reorders(self):

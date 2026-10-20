@@ -38,6 +38,19 @@ def encoded(value) -> bytes:
     return (json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + '\n').encode()
 
 
+def encoded_catalog(catalog: dict) -> bytes:
+    """Keep keys and context expanded, with each complete locale record on one line."""
+    def render(value, depth=0, locales=False):
+        if not isinstance(value, dict) or not value:
+            return json.dumps(value, ensure_ascii=False, sort_keys=True)
+        records = []
+        for key, item in sorted(value.items()):
+            text = json.dumps(item, ensure_ascii=False, sort_keys=True) if locales else render(item, depth + 2, key == 'localizations')
+            records.append(' ' * (depth + 2) + json.dumps(key, ensure_ascii=False) + ': ' + text)
+        return '{\n' + ',\n'.join(records) + '\n' + ' ' * depth + '}'
+    return (render(catalog) + '\n').encode()
+
+
 def encoded_reviews(receipts: dict) -> bytes:
     """Keep each locale's complete evidence on one line without changing the JSON schema."""
     def compact(value):
@@ -294,7 +307,7 @@ def apply(root: Path, response: dict) -> None:
                 'source_hash': entry['source_hash'], 'translation_hash': digest(value),
                 'checks': sorted(REVIEW_CHECKS), 'review': review['rationale'],
             }
-        updates = {contained(root, name): encoded(catalog) for name, catalog in catalogs.items()}
+        updates = {contained(root, name): encoded_catalog(catalog) for name, catalog in catalogs.items()}
         from internal.localization_resources import generated_resources
         updates.update(generated_resources(root, catalogs))
         updates[receipt_path] = encoded_reviews({key: value for key, value in receipts.items() if key in entries})
@@ -311,6 +324,10 @@ def check(root: Path) -> list[str]:
     receipt_path = root / 'Localization/reviews.json'
     if receipt_path.exists() and receipt_path.read_bytes() != encoded_reviews(load(receipt_path)):
         errors.append('Localization/reviews.json: use canonical compact review records; localization.py apply normalizes the format')
+    for name in load(root / 'Localization/config.json')['catalogs']:
+        path = contained(root, name)
+        if path.read_bytes() != encoded_catalog(load(path)):
+            errors.append(f'{name}: use canonical compact locale records; localization.py apply normalizes the format')
     from internal.localization_resources import resource_errors
     errors.extend(resource_errors(root))
     return errors

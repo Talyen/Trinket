@@ -5,2808 +5,728 @@
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleAbilityCardView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Doppeltippen, um diese Karte zu spielen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Double tap to play this card"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toca dos veces para jugar esta carta"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Touchez deux fois pour jouer cette carte"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ダブルタップでこのカードを使用"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "두 번 탭하여 이 카드 사용"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toque duas vezes para jogar esta carta"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "點兩下以打出此牌"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Doppeltippen, um diese Karte zu spielen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Double tap to play this card"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Toca dos veces para jugar esta carta"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Touchez deux fois pour jouer cette carte"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "ダブルタップでこのカードを使用"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "두 번 탭하여 이 카드 사용"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Toque duas vezes para jogar esta carta"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "點兩下以打出此牌"}}
       }
     },
     "ui.battleabilitycardview.inspect_card": {
       "comment": "Accessibility action on a battle ability card; opens its detail sheet without playing it.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Karte ansehen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inspect card"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inspeccionar carta"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Examiner la carte"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "カードの詳細を確認"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "카드 살펴보기"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inspecionar carta"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看卡牌詳情"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Karte ansehen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Inspect card"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inspeccionar carta"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Examiner la carte"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "カードの詳細を確認"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "카드 살펴보기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Inspecionar carta"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "查看卡牌詳情"}}
       }
     },
     "ui.battleabilitycardview.not_playable_1d955": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleAbilityCardView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nicht spielbar"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not playable"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se puede jugar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Injouable"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用不可"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "사용 불가"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não pode ser jogada"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "無法打出"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Nicht spielbar"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Not playable"}},
+        "es": {"stringUnit": {"state": "translated", "value": "No se puede jugar"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Injouable"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "使用不可"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "사용 불가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Não pode ser jogada"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "無法打出"}}
       }
     },
     "ui.battleautotoggle.auto_02862": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleAutoToggle.swift: Label. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auto"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auto"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auto"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auto"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自動"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "자동"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auto"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自動"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Auto"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Auto"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Auto"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Auto"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自動"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자동"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Auto"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自動"}}
       }
     },
     "ui.battlelogsheet.battle_log_eb70a": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleLogSheet.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kampfprotokoll"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battle Log"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registro de batalla"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Journal de combat"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦闘ログ"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전투 기록"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registro de batalha"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戰鬥紀錄"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kampfprotokoll"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Battle Log"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Registro de batalla"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Journal de combat"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘ログ"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 기록"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Registro de batalha"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥紀錄"}}
       }
     },
     "ui.battlelogsheet.combat_log_84d6c": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleLogSheet.swift: navigationTitle. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kampfprotokoll"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Combat Log"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registro de combate"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Journal de combat"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦闘ログ"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전투 기록"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registro de combate"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戰鬥日誌"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kampfprotokoll"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Combat Log"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Registro de combate"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Journal de combat"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘ログ"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 기록"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Registro de combate"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥日誌"}}
       }
     },
     "ui.battlesession_progression.battle_progression_may_be_connected_only_once_c186a": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/BattleSession+Progression.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Kampffortschritt darf nur einmal verbunden werden"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battle progression may be connected only once"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La progresión de batalla solo se puede conectar una vez"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La progression du combat ne peut être connectée qu’une seule fois"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦闘進行は一度だけ接続できます"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전투 진행은 한 번만 연결할 수 있습니다"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A progressão de batalha só pode ser conectada uma vez"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戰鬥進程只能連接一次"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Der Kampffortschritt darf nur einmal verbunden werden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Battle progression may be connected only once"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La progresión de batalla solo se puede conectar una vez"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "La progression du combat ne peut être connectée qu’une seule fois"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘進行は一度だけ接続できます"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 진행은 한 번만 연결할 수 있습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A progressão de batalha só pode ser conectada uma vez"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥進程只能連接一次"}}
       }
     },
     "ui.battlesession_progression.connect_battle_progression_before_activation_670e5": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/BattleSession+Progression.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kampffortschritt vor der Aktivierung verbinden"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect battle progression before activation"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conecta la progresión de batalla antes de la activación"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connectez la progression du combat avant l’activation"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有効化前に戦闘進行を接続してください"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "활성화 전에 전투 진행을 연결하세요"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conecte a progressão de batalha antes da ativação"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟用前請先連接戰鬥進程"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kampffortschritt vor der Aktivierung verbinden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Connect battle progression before activation"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Conecta la progresión de batalla antes de la activación"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Connectez la progression du combat avant l’activation"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "有効化前に戦闘進行を接続してください"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "활성화 전에 전투 진행을 연결하세요"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Conecte a progressão de batalha antes da ativação"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "啟用前請先連接戰鬥進程"}}
       }
     },
     "ui.battletransitionlabview.battle_preview": {
       "comment": "Debug battle transition preview menu.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kampfvorschau"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battle Preview"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vista previa de batalla"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aperçu du combat"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦闘プレビュー"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전투 미리보기"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prévia de batalha"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戰鬥預覽"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kampfvorschau"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Battle Preview"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Vista previa de batalla"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Aperçu du combat"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘プレビュー"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 미리보기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Prévia de batalha"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥預覽"}}
       }
     },
     "ui.battletransitionlabview.battle_transitions_fd4bd": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: navigationTitle. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kampfübergänge"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battle Transitions"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Transiciones de batalla"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Transitions de combat"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦闘の画面遷移"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전투 전환"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Transições de batalha"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戰鬥轉場"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kampfübergänge"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Battle Transitions"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Transiciones de batalla"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Transitions de combat"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘の画面遷移"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 전환"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Transições de batalha"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥轉場"}}
       }
     },
     "ui.battletransitionlabview.controls_799c2": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Steuerung"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Controls"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Controles"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Commandes"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "操作"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "조작"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Controles"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "操作"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Steuerung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Controls"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Controles"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Commandes"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "操作"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "조작"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Controles"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "操作"}}
       }
     },
     "ui.battletransitionlabview.done_11a67": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fertig"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Listo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Terminé"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "完了"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "완료"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Concluir"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "完成"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Fertig"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Done"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Listo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Terminé"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "完了"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "완료"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Concluir"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "完成"}}
       }
     },
     "ui.battletransitionlabview.fixed_sample_stages_and_rewards_battle_return_f796b": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: Text. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Feste Beispielabschnitte und Belohnungen. Kämpfen, Zurück zur Abschnittsauswahl und Alles einsammeln verändern nur diese Vorschau; Fortschritt wird nicht gespeichert."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fixed sample stages and rewards. Battle, Return to Stages, and Loot All only change this preview; no progress is saved."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Etapas y recompensas de muestra fijas. Batalla, Volver a etapas y Recoger todo solo cambian esta vista previa; no se guarda ningún progreso."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Étapes et récompenses d’exemple fixes. Combat, Retour aux étapes et Tout récupérer modifient uniquement cet aperçu ; aucune progression n’est enregistrée."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "固定のサンプルステージと報酬です。「戦闘」「ステージに戻る」「すべて回収」はこのプレビューだけに反映され、進行状況は保存されません。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "고정된 예시 스테이지와 보상입니다. 전투, 스테이지로 돌아가기, 모두 획득은 이 미리보기에만 적용되며 진행도는 저장되지 않습니다."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fases e recompensas fixas de exemplo. Batalha, Voltar às Fases e Coletar Tudo alteram apenas esta prévia; nenhum progresso é salvo."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "固定的範例關卡與獎勵。「戰鬥」、「返回關卡」及「全部拾取」只會改變此預覽，不會儲存進度。"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Feste Beispielabschnitte und Belohnungen. Kämpfen, Zurück zur Abschnittsauswahl und Alles einsammeln verändern nur diese Vorschau; Fortschritt wird nicht gespeichert."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Fixed sample stages and rewards. Battle, Return to Stages, and Loot All only change this preview; no progress is saved."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Etapas y recompensas de muestra fijas. Batalla, Volver a etapas y Recoger todo solo cambian esta vista previa; no se guarda ningún progreso."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Étapes et récompenses d’exemple fixes. Combat, Retour aux étapes et Tout récupérer modifient uniquement cet aperçu ; aucune progression n’est enregistrée."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "固定のサンプルステージと報酬です。「戦闘」「ステージに戻る」「すべて回収」はこのプレビューだけに反映され、進行状況は保存されません。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "고정된 예시 스테이지와 보상입니다. 전투, 스테이지로 돌아가기, 모두 획득은 이 미리보기에만 적용되며 진행도는 저장되지 않습니다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Fases e recompensas fixas de exemplo. Batalha, Voltar às Fases e Coletar Tudo alteram apenas esta prévia; nenhum progresso é salvo."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "固定的範例關卡與獎勵。「戰鬥」、「返回關卡」及「全部拾取」只會改變此預覽，不會儲存進度。"}}
       }
     },
     "ui.battletransitionlabview.loot_all_5f814": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: primaryActionTitle. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alles einsammeln"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loot All"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recoger todo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tout récupérer"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "すべて回収"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "모두 획득"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coletar tudo"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全部拾取"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Alles einsammeln"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Loot All"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recoger todo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tout récupérer"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "すべて回収"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "모두 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Coletar tudo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "全部拾取"}}
       }
     },
     "ui.battletransitionlabview.preset_7252e": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Voreinstellung"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preset"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preajuste"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Préréglage"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プリセット"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "프리셋"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Predefinição"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "預設"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Voreinstellung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Preset"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Preajuste"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Préréglage"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "プリセット"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "프리셋"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Predefinição"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "預設"}}
       }
     },
     "ui.battletransitionlabview.replay_c8dae": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erneut abspielen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Replay"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Repetir"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rejouer"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再生"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "다시 재생"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Repetir"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重播"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Erneut abspielen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Replay"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Repetir"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Rejouer"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "再生"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "다시 재생"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Repetir"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "重播"}}
       }
     },
     "ui.battletransitionlabview.reset_daee7": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zurücksetzen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reset"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restablecer"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réinitialiser"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "リセット"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "초기화"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Redefinir"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重設"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Zurücksetzen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Reset"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Restablecer"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Réinitialiser"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "リセット"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "초기화"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Redefinir"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "重設"}}
       }
     },
     "ui.battletransitionlabview.return_to_stages_abc9c": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zurück zur Abschnittsauswahl"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Return to Stages"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Volver a etapas"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Retour aux étapes"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ステージに戻る"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "스테이지로 돌아가기"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Voltar às Fases"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "返回關卡"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Zurück zur Abschnittsauswahl"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Return to Stages"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Volver a etapas"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Retour aux étapes"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "ステージに戻る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "스테이지로 돌아가기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Voltar às Fases"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "返回關卡"}}
       }
     },
     "ui.battletransitionlabview.show_victory_2521f": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sieg anzeigen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show Victory"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar victoria"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afficher la victoire"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "勝利画面を表示"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "승리 표시"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar vitória"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "顯示勝利"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Sieg anzeigen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Show Victory"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mostrar victoria"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Afficher la victoire"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "勝利画面を表示"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "승리 표시"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Mostrar vitória"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "顯示勝利"}}
       }
     },
     "ui.battletransitionlabview.transition_2fe70": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/TransitionLab/BattleTransitionLabView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Übergang"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Transition"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Transición"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Transition"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "画面切り替え"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전환"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Transição"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "轉場"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Übergang"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Transition"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Transición"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Transition"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "画面切り替え"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전환"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Transição"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "轉場"}}
       }
     },
     "ui.battleview.auto_battle_paused": {
       "comment": "Title when automated combat stops after 30 rounds without new enemy Health depletion. The battle is still open; this does not declare defeat.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Automatischer Kampf pausiert"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auto Battle paused"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Batalla automática en pausa"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Combat automatique en pause"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自動戦闘を一時停止しました"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "자동 전투 일시 정지"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Batalha automática pausada"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自動戰鬥已暫停"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Automatischer Kampf pausiert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Auto Battle paused"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Batalla automática en pausa"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Combat automatique en pause"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自動戦闘を一時停止しました"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자동 전투 일시 정지"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Batalha automática pausada"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自動戰鬥已暫停"}}
       }
     },
     "ui.battleview.auto_battle_paused_message": {
       "comment": "Explains why Auto Battle paused and offers the existing manual play and Retreat actions. No automatic defeat or reward is granted.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kein Fortschritt gegen den Gegner. Spiele manuell weiter oder ziehe dich zurück."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No progress against the enemy. Play manually or retreat."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No hay avances contra el enemigo. Juega manualmente o retírate."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le combat ne progresse plus. Jouez manuellement ou battez en retraite."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "敵との戦闘が進展していません。手動で戦うか、撤退してください。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "적과의 전투에 진전이 없습니다. 직접 플레이하거나 후퇴하세요."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nenhum avanço contra o inimigo. Jogue manualmente ou recue."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "與敵人的戰鬥沒有進展。請手動戰鬥或撤退。"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kein Fortschritt gegen den Gegner. Spiele manuell weiter oder ziehe dich zurück."}},
+        "en": {"stringUnit": {"state": "translated", "value": "No progress against the enemy. Play manually or retreat."}},
+        "es": {"stringUnit": {"state": "translated", "value": "No hay avances contra el enemigo. Juega manualmente o retírate."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Le combat ne progresse plus. Jouez manuellement ou battez en retraite."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵との戦闘が進展していません。手動で戦うか、撤退してください。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적과의 전투에 진전이 없습니다. 직접 플레이하거나 후퇴하세요."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Nenhum avanço contra o inimigo. Jogue manualmente ou recue."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "與敵人的戰鬥沒有進展。請手動戰鬥或撤退。"}}
       }
     },
     "ui.battleview.battle_actions_310a4": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleView.swift: accessibilityLabel. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kampfaktionen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battle actions"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Acciones de batalla"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Actions de combat"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦闘アクション"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전투 행동"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ações de batalha"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戰鬥動作"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kampfaktionen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Battle actions"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Acciones de batalla"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Actions de combat"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘アクション"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 행동"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ações de batalha"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥動作"}}
       }
     },
     "ui.battleview.battle_again_8381e": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erneut kämpfen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battle Again"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Volver a combatir"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Combattre à nouveau"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "もう一度戦う"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "다시 전투"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Batalhar novamente"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再次戰鬥"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Erneut kämpfen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Battle Again"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Volver a combatir"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Combattre à nouveau"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "もう一度戦う"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "다시 전투"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Batalhar novamente"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "再次戰鬥"}}
       }
     },
     "ui.battleview.combat_log_84d6c": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleView.swift: Label. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kampfprotokoll"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Combat Log"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registro de combate"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Journal de combat"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦闘ログ"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전투 기록"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registro de combate"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戰鬥日誌"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kampfprotokoll"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Combat Log"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Registro de combate"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Journal de combat"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘ログ"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 기록"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Registro de combate"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥日誌"}}
       }
     },
     "ui.battleview.loot_all_5f814": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alles einsammeln"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loot All"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recoger todo"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tout récupérer"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "すべて回収"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "모두 획득"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coletar tudo"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全部拾取"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Alles einsammeln"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Loot All"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recoger todo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tout récupérer"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "すべて回収"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "모두 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Coletar tudo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "全部拾取"}}
       }
     },
     "ui.battleview.play_manually": {
       "comment": "Dismiss the Auto Battle pause notice and return control to the player, with Auto Battle off.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manuell spielen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Play Manually"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jugar manualmente"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jouer manuellement"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "手動で戦う"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "직접 플레이"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jogar manualmente"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "手動戰鬥"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Manuell spielen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Play Manually"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Jugar manualmente"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Jouer manuellement"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "手動で戦う"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "직접 플레이"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Jogar manualmente"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "手動戰鬥"}}
       }
     },
     "ui.battleview.retreat_e6e5c": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleView.swift: Label. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rückzug"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Retreat"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Retirarse"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battre en retraite"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撤退"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "후퇴"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recuar"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撤退"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Rückzug"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Retreat"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Retirarse"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Battre en retraite"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "撤退"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "후퇴"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recuar"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "撤退"}}
       }
     },
     "ui.battleview.skip_combat_9b75b": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/BattleView.swift: Label. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kampf überspringen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skip Combat"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Omitir combate"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Passer le combat"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦闘をスキップ"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전투 건너뛰기"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pular combate"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "略過戰鬥"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kampf überspringen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Skip Combat"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Omitir combate"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Passer le combat"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘をスキップ"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 건너뛰기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Pular combate"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "略過戰鬥"}}
       }
     },
     "ui.bosslyrics.chants": {
       "comment": "Boss song caption for rhythmic nonverbal chanting; retain brackets to distinguish the cue from sung lyrics.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[rhythmischer Gesang]"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[chants]"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[cánticos]"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[chants scandés]"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[詠唱]"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[영창]"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[cânticos]"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[吟唱]"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "[rhythmischer Gesang]"}},
+        "en": {"stringUnit": {"state": "translated", "value": "[chants]"}},
+        "es": {"stringUnit": {"state": "translated", "value": "[cánticos]"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "[chants scandés]"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "[詠唱]"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "[영창]"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "[cânticos]"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "[吟唱]"}}
       }
     },
     "ui.bosslyrics.growls": {
       "comment": "Boss song caption for nonverbal growling; retain brackets to distinguish the cue from sung lyrics.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[Knurren]"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[growls]"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[gruñidos]"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[grognements]"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[唸り声]"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[으르렁거림]"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[rosnados]"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[低吼]"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "[Knurren]"}},
+        "en": {"stringUnit": {"state": "translated", "value": "[growls]"}},
+        "es": {"stringUnit": {"state": "translated", "value": "[gruñidos]"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "[grognements]"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "[唸り声]"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "[으르렁거림]"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "[rosnados]"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "[低吼]"}}
       }
     },
     "ui.bosslyrics.vocalizing": {
       "comment": "Boss song caption for wordless singing; retain brackets to distinguish the cue from sung lyrics.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[wortloser Gesang]"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[vocalizing]"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[vocalización]"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[vocalises]"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[言葉のない歌声]"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[가사 없는 노래]"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[vocalização]"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "[無詞吟唱]"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "[wortloser Gesang]"}},
+        "en": {"stringUnit": {"state": "translated", "value": "[vocalizing]"}},
+        "es": {"stringUnit": {"state": "translated", "value": "[vocalización]"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "[vocalises]"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "[言葉のない歌声]"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "[가사 없는 노래]"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "[vocalização]"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "[無詞吟唱]"}}
       }
     },
     "ui.defeatview.continue_31fbe": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Outcome/DefeatView.swift: primaryActionTitle. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Weiter"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continue"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continuar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continuer"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "続ける"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "계속"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Continuar"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "繼續"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Weiter"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Continue"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Continuar"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Continuer"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "続ける"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "계속"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Continuar"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "繼續"}}
       }
     },
     "ui.defeatview.defeat_2be4c": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Outcome/DefeatView.swift: title. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Niederlage"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Defeat"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Derrota"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Défaite"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "敗北"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "패배"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Derrota"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戰敗"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Niederlage"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Defeat"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Derrota"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Défaite"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敗北"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "패배"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Derrota"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰敗"}}
       }
     },
     "ui.defeatview.your_party_fell_to_1_e9b8d": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Outcome/DefeatView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deine Gruppe unterlag %1$@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your party fell to %1$@"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu grupo cayó ante %1$@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Votre groupe a succombé face à %1$@"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "パーティは%1$@に敗れた"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "파티가 %1$@에게 패배했습니다"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seu grupo foi derrotado por %1$@"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你的隊伍敗給了%1$@"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Deine Gruppe unterlag %1$@"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your party fell to %1$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tu grupo cayó ante %1$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Votre groupe a succombé face à %1$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "パーティは%1$@に敗れた"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "파티가 %1$@에게 패배했습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seu grupo foi derrotado por %1$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的隊伍敗給了%1$@"}}
       }
     },
     "ui.defeatview.your_party_retreated_from_1_86965": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Outcome/DefeatView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deine Gruppe zog sich von %1$@ zurück"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your party retreated from %1$@"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu grupo se retiró de %1$@"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Votre groupe a battu en retraite face à %1$@"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "パーティは%1$@から撤退した"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "파티가 %1$@에게서 후퇴했습니다"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seu grupo recuou diante de %1$@"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你的隊伍從%1$@撤退"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Deine Gruppe zog sich von %1$@ zurück"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your party retreated from %1$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tu grupo se retiró de %1$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Votre groupe a battu en retraite face à %1$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "パーティは%1$@から撤退した"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "파티가 %1$@에게서 후퇴했습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seu grupo recuou diante de %1$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的隊伍從%1$@撤退"}}
       }
     },
     "ui.gamefeelpreviewview.busy_combat": {
       "comment": "Debug preview menu for playing busy combat presentation scenarios.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kampf mit vielen Effekten"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Busy Combat"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Combate intenso"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Combat riche en effets"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "演出の多い戦闘"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "연출이 많은 전투"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Combate intenso"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "密集戰鬥演出"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kampf mit vielen Effekten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Busy Combat"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Combate intenso"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Combat riche en effets"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "演出の多い戦闘"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "연출이 많은 전투"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Combate intenso"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "密集戰鬥演出"}}
       }
     },
     "ui.gamefeelpreviewview.critical_427dd": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kritisch"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Critical"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crítico"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Critique"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "クリティカル"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "치명타"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Crítico"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暴擊"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kritisch"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Critical"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Crítico"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Critique"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "クリティカル"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "치명타"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Crítico"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "暴擊"}}
       }
     },
     "ui.gamefeelpreviewview.damage_type_baa24": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Schadensart"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Damage Type"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tipo de daño"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type de dégâts"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ダメージ種別"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "피해 유형"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tipo de dano"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "傷害類型"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Schadensart"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Damage Type"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tipo de daño"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Type de dégâts"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "ダメージ種別"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "피해 유형"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Tipo de dano"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "傷害類型"}}
       }
     },
     "ui.gamefeelpreviewview.drag_release_a271c": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loslassen nach Ziehen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Drag Release"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Soltar arrastre"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Relâchement du glissement"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ドラッグ解除"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "드래그 놓기"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Soltar após arrastar"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "拖曳放開"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Loslassen nach Ziehen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Drag Release"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Soltar arrastre"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Relâchement du glissement"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "ドラッグ解除"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "드래그 놓기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Soltar após arrastar"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "拖曳放開"}}
       }
     },
     "ui.gamefeelpreviewview.game_feel_65589": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: navigationTitle. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spielgefühl"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Game Feel"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sensaciones de juego"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sensations de jeu"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "操作感"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "게임 손맛"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sensações do jogo"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "操作手感"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Spielgefühl"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Game Feel"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Sensaciones de juego"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Sensations de jeu"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "操作感"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "게임 손맛"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sensações do jogo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "操作手感"}}
       }
     },
     "ui.gamefeelpreviewview.mute_preview_a45b5": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vorschau stummschalten"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mute Preview"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Silenciar vista previa"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couper le son de l’aperçu"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プレビューをミュート"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "미리보기 음소거"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Silenciar prévia"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "將預覽靜音"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Vorschau stummschalten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Mute Preview"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Silenciar vista previa"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Couper le son de l’aperçu"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "プレビューをミュート"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "미리보기 음소거"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Silenciar prévia"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "將預覽靜音"}}
       }
     },
     "ui.gamefeelpreviewview.ordinary_f46f3": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Normal"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ordinary"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Normal"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ordinaire"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "通常"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "일반"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Comum"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "普通"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Normal"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Ordinary"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Normal"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Ordinaire"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "通常"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "일반"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Comum"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "普通"}}
       }
     },
     "ui.gamefeelpreviewview.preview_324b1": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vorschau"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preview"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vista previa"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aperçu"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プレビュー"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "미리보기"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prévia"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "預覽"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Vorschau"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Preview"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Vista previa"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Aperçu"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "プレビュー"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "미리보기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Prévia"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "預覽"}}
       }
     },
     "ui.gamefeelpreviewview.preview_loot_7f91e": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: title. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beutevorschau"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Preview Loot"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vista previa del botín"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aperçu du butin"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦利品をプレビュー"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전리품 미리보기"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prévia de saque"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "預覽戰利品"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Beutevorschau"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Preview Loot"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Vista previa del botín"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Aperçu du butin"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦利品をプレビュー"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전리품 미리보기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Prévia de saque"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "預覽戰利品"}}
       }
     },
     "ui.gamefeelpreviewview.replay_loot_abcf0": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: primaryActionTitle. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beute erneut abspielen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Replay Loot"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Repetir botín"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rejouer le butin"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "戦利品演出を再生"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전리품 연출 재생"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Repetir saque"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重播戰利品"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Beute erneut abspielen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Replay Loot"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Repetir botín"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Rejouer le butin"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦利品演出を再生"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전리품 연출 재생"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Repetir saque"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "重播戰利品"}}
       }
     },
     "ui.gamefeelpreviewview.replay_purchase_b76a1": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kauf erneut abspielen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Replay Purchase"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Repetir compra"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rejouer l’achat"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "購入演出を再生"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "구매 연출 재생"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Repetir compra"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重播購買"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Kauf erneut abspielen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Replay Purchase"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Repetir compra"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Rejouer l’achat"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "購入演出を再生"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "구매 연출 재생"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Repetir compra"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "重播購買"}}
       }
     },
     "ui.gamefeelpreviewview.reset_sample_cf30a": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beispiel zurücksetzen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reset Sample"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restablecer muestra"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réinitialiser l’exemple"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "サンプルをリセット"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "예시 초기화"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Redefinir exemplo"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重設範例"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Beispiel zurücksetzen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Reset Sample"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Restablecer muestra"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Réinitialiser l’exemple"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "サンプルをリセット"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "예시 초기화"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Redefinir exemplo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "重設範例"}}
       }
     },
     "ui.gamefeelpreviewview.tap_attack_5626c": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/GameFeel/GameFeelPreviewView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Angriff durch Tippen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tap Attack"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tocar ataque"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Attaque tactile"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "タップ攻撃"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "탭 공격"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ataque por toque"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "點按攻擊"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Angriff durch Tippen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Tap Attack"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tocar ataque"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Attaque tactile"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "タップ攻撃"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "탭 공격"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataque por toque"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "點按攻擊"}}
       }
     },
     "ui.victoryview.no_additional_rewards_2d56e": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Outcome/VictoryView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keine zusätzlichen Belohnungen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No additional rewards"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sin recompensas adicionales"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aucune récompense supplémentaire"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "追加報酬なし"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "추가 보상 없음"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nenhuma recompensa adicional"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有額外獎勵"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Keine zusätzlichen Belohnungen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "No additional rewards"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Sin recompensas adicionales"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Aucune récompense supplémentaire"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "追加報酬なし"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "추가 보상 없음"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Nenhuma recompensa adicional"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "沒有額外獎勵"}}
       }
     },
     "ui.victoryview.no_experience_awarded_de2bb": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Outcome/VictoryView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keine Erfahrung erhalten"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No experience awarded"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se otorgó experiencia"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aucune expérience attribuée"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "経験値の獲得なし"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "지급된 경험치 없음"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nenhuma experiência concedida"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未獲得經驗值"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Keine Erfahrung erhalten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "No experience awarded"}},
+        "es": {"stringUnit": {"state": "translated", "value": "No se otorgó experiencia"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Aucune expérience attribuée"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "経験値の獲得なし"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "지급된 경험치 없음"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Nenhuma experiência concedida"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "未獲得經驗值"}}
       }
     },
     "ui.victoryview.victory_2e9b5": {
       "comment": "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Features/Outcome/VictoryView.swift: title. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sieg"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Victory"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Victoria"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Victoire"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "勝利"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "승리"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vitória"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "勝利"
-          }
-        }
+        "de": {"stringUnit": {"state": "translated", "value": "Sieg"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Victory"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Victoria"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Victoire"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "勝利"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "승리"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Vitória"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "勝利"}}
       }
     }
   },

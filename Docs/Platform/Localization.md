@@ -47,7 +47,9 @@ review record per line. `apply` writes this deterministic compact format; `check
 rejects formatting drift. Hashes, completed checks, and full review rationales stay
 intact. A current response with an empty `translations` array can normalize existing
 records without translating again or creating new review evidence. String Catalogs
-retain their normal readable formatting.
+keep string keys and translator context expanded, with each complete locale record
+on one line, including native plural forms. `apply` normalizes this JSON formatting;
+`check` rejects formatting drift without changing translation or review data.
 
 An unavailable AI allowance leaves a pending queue and an incomplete task. Do not
 disable locales, bypass the gate, or mark English fallback as translated. Review
