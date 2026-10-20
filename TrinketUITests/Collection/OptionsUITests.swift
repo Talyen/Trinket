@@ -6,7 +6,7 @@ final class OptionsUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("options") + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
         openReset()
         tapButton(AccessibilityID.Options.resetProgressCancel)
-        waitUntil("Reset confirmation must close") { !app.alerts.firstMatch.exists }
+        waitUntil("Reset confirmation must close") { !self.app.alerts.firstMatch.exists }
         relaunchApp()
         play.openCampaign()
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
