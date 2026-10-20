@@ -26,6 +26,7 @@ struct BattleSessionSettlementFallbackTests {
         var state = try #require(session.engineState)
         state.roster.enemy.currentHealth = 0
         session.engineState = state
+        session.isShowingAutoBattlePauseNotice = true
         session.handleOutcomeIfNeeded(at: .now)
 
         let summary = try #require(session.spectacle.outcomePresentation.victorySummaryIfAvailable)
@@ -34,6 +35,7 @@ struct BattleSessionSettlementFallbackTests {
             battleGold: state.goldFlow, inputs: inputs,
         )
         #expect(session.outcome == .victory)
+        #expect(!session.isShowingAutoBattlePauseNotice)
         #expect(session.spectacle.outcomePresentation.isVictoryPresented)
         #expect(summary.settlement == expected)
         #expect(summary.experience > 0)
@@ -62,11 +64,13 @@ struct BattleSessionSettlementFallbackTests {
             state.roster.companion.currentHealth = 0
         }
         session.engineState = state
+        session.isShowingAutoBattlePauseNotice = true
         if retreat {
             #expect(session.retreatFromBattle())
         } else {
             session.handleOutcomeIfNeeded(at: .now)
         }
+        #expect(!session.isShowingAutoBattlePauseNotice)
 
         guard case let .defeat(settlement) = session.spectacle.outcomePresentation else {
             Issue.record("Expected defeat reveal")

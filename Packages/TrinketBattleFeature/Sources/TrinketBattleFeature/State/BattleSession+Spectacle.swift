@@ -54,6 +54,7 @@ extension BattleSession {
         }
         switch outcome {
         case .victory:
+            isShowingAutoBattlePauseNotice = false
             commandState.transition(to: .outcome)
             clearCardCues()
             if context.stageRewardsAlreadyClaimed {
@@ -65,6 +66,7 @@ extension BattleSession {
             spectacle.outcomePresentation = .pendingVictory(summary)
             scheduleVictoryPresentation(after: date)
         case .defeat:
+            isShowingAutoBattlePauseNotice = false
             commandState.transition(to: .outcome)
             clearCardCues()
             scheduleDefeatPresentation(after: date)

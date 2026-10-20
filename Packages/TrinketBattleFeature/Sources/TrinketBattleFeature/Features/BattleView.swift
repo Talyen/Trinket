@@ -119,7 +119,8 @@ public struct BattleView: View {
                 }
             }
             .safeAreaInset(edge: .top, spacing: 0) {
-                if input.isCurrent, battleSession.isShowingAutoBattlePauseNotice {
+                if input.isCurrent, battleSession.isShowingAutoBattlePauseNotice,
+                   !spectacle.outcomePresentation.isOutcomePresented {
                     BattleAutoPauseNotice(
                         playManually: {
                             input.perform {

@@ -18,6 +18,7 @@ extension BattleSession {
             retreatProgress = nil
             return false
         }
+        isShowingAutoBattlePauseNotice = false
         cancelPendingAutoEnd()
         cancelTransitionPresentation()
         spectacle.outcomeTask.invalidate()
@@ -61,6 +62,7 @@ extension BattleSession {
             _ = state.endTurn(rebuildLog: false)
         }
         guard state.isPartyDefeated, !state.isEnemyDefeated else { return }
+        isShowingAutoBattlePauseNotice = false
         cancelPendingAutoEnd()
         cancelTransitionPresentation()
         engineState = state
