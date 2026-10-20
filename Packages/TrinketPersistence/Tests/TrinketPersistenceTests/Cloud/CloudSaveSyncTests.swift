@@ -63,6 +63,33 @@ struct CloudSaveSyncTests {
         #expect(a.roster.gold == 40)
     }
 
+    @Test @MainActor func `fresh device imports an established save before starter selection`() async throws {
+        let transport = CloudSaveTestTransport()
+        let first = try PersistenceTestContext()
+        let second = try PersistenceTestContext()
+        let a = try cloudStore(first, transport: transport)
+        try a.performFixtureMutation { save in
+            save.starterSelection = .complete
+            save.roster = .testSeed
+            save.journey = .testSeed
+            save.inventory = .testSeed
+            save.homestead = .testSeed
+        }
+        #expect(await a.cloudSync?.synchronize() == true)
+
+        let b = try cloudStore(second, transport: transport)
+        #expect(await b.cloudSync?.synchronize() == true)
+
+        // A clock-concurrent fresh install must import the account save wholesale;
+        // merging it would leave starter selection unfinished and let the starter
+        // flow replace the established roster.
+        #expect(b.starterSelection == .complete)
+        #expect(b.roster == a.roster)
+        #expect(b.journey == a.journey)
+        #expect(b.inventory == a.inventory)
+        #expect(b.homestead == a.homestead)
+    }
+
     @Test @MainActor func `corrupted gear survives another device's later Gold and reload`() async throws {
         let transport = CloudSaveTestTransport()
         let firstContext = try PersistenceTestContext()

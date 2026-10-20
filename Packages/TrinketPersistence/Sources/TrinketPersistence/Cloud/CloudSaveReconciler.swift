@@ -81,7 +81,12 @@ enum CloudSaveReconciler {
         var head = head
         let incoming = request.revision
         let current = existing.revision
-        let useIncoming: Bool = if !incoming.snapshot.hasProgress, request.baseEpoch == nil {
+        // A fresh install has no base identity but must import the account's
+        // existing progress. Treat it like the explicit no-progress bracket
+        // above so a clock-concurrent first upload cannot merge into (and later
+        // let starter selection overwrite) the established save.
+        let noProgressFirstUpload = request.baseEpoch == nil && !incoming.snapshot.hasProgress
+        let useIncoming: Bool = if noProgressFirstUpload {
             false
         } else if current.includes(incoming.clock) {
             false
@@ -100,7 +105,8 @@ enum CloudSaveReconciler {
                 suffix: useIncoming ? "previous" : "incoming",
             ))
         }
-        let shouldMerge = concurrent || (request.baseEpoch == nil && incoming.snapshot.hasProgress && current.snapshot.hasProgress)
+        let shouldMerge = !noProgressFirstUpload
+            && (concurrent || (request.baseEpoch == nil && incoming.snapshot.hasProgress && current.snapshot.hasProgress))
         let mutations = request.mutations ?? CloudSaveJournal()
         var selected = try selectUpload(
             request, incomingSave: incomingSave, settledSave: settledSave,
