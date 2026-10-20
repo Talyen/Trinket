@@ -16,7 +16,9 @@
     "ko",
     "de",
     "zh-Hant",
-    "fr"
+    "fr",
+    "es",
+    "pt-BR"
   ],
   "metadataCatalog": "Localization/Store/Localizable.xcstrings",
   "sourceLanguage": "en",
@@ -205,6 +207,16 @@
       "one",
       "many",
       "other"
+    ],
+    "es": [
+      "one",
+      "many",
+      "other"
+    ],
+    "pt-BR": [
+      "one",
+      "many",
+      "other"
     ]
   },
   "storeLocales": {
@@ -213,6 +225,11 @@
     "ko": "ko",
     "de": "de-DE",
     "zh-Hant": "zh-Hant",
-    "fr": "fr-FR"
+    "fr": "fr-FR",
+    "es": [
+      "es-ES",
+      "es-MX"
+    ],
+    "pt-BR": "pt-BR"
   }
 }

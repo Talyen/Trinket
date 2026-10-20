@@ -30,6 +30,12 @@
             "value": "\n%1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\n%1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -43,6 +49,12 @@
           }
         },
         "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\n%1$@"
+          }
+        },
+        "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "\n%1$@"
@@ -96,6 +108,30 @@
             }
           }
         },
+        "es": {
+          "variations": {
+            "plural": {
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Quedan %1$lld turnos"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Queda %1$lld turno"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Quedan %1$lld turnos"
+                }
+              }
+            }
+          }
+        },
         "fr": {
           "variations": {
             "plural": {
@@ -144,6 +180,30 @@
             }
           }
         },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld turnos restantes"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld turno restante"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld turnos restantes"
+                }
+              }
+            }
+          }
+        },
         "zh-Hant": {
           "variations": {
             "plural": {
@@ -174,6 +234,12 @@
             "value": ", %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -187,6 +253,12 @@
           }
         },
         "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", %1$@"
+          }
+        },
+        "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": ", %1$@"
@@ -216,6 +288,12 @@
             "value": "Avatar: Next attack deals Holy damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avatar: el siguiente ataque inflige daño sagrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -232,6 +310,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "화신: 다음 공격이 신성 피해를 줌"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avatar: O próximo ataque causa dano Sagrado"
           }
         },
         "zh-Hant": {
@@ -258,6 +342,12 @@
             "value": "Critical Focus: Next attack is a guaranteed Critical Hit"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración crítica: el siguiente ataque es un golpe crítico garantizado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -274,6 +364,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "치명타 집중: 다음 공격이 반드시 치명타"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foco Crítico: O próximo ataque é um golpe crítico garantido"
           }
         },
         "zh-Hant": {
@@ -300,6 +396,12 @@
             "value": "Double Strike: Next attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe doble: el siguiente ataque inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -316,6 +418,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "이중 일격: 다음 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe Duplo: O próximo ataque causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -342,6 +450,12 @@
             "value": "Evasion: Dodges the next attack"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evasión: esquiva el siguiente ataque"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -358,6 +472,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "회피 태세: 다음 공격 회피"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evasão: Esquiva do próximo ataque"
           }
         },
         "zh-Hant": {
@@ -384,6 +504,12 @@
             "value": "Glacial Ward: Freezes the next attacker"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protección glacial: congela al siguiente atacante"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -400,6 +526,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "빙하 수호: 다음 공격자를 빙결시킴"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proteção Glacial: Congela o próximo atacante"
           }
         },
         "zh-Hant": {
@@ -426,6 +558,12 @@
             "value": "Holy Strike: Next attack deals double Holy damage and applies Burning"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe sagrado: el siguiente ataque inflige el doble de daño sagrado y aplica Quemadura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -442,6 +580,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "신성 일격: 다음 공격이 두 배의 신성 피해를 주고 화상 부여"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe Sagrado: O próximo ataque causa o dobro de dano Sagrado e aplica Queimadura"
           }
         },
         "zh-Hant": {
@@ -468,6 +612,12 @@
             "value": "Next attack deals %1$@ damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El siguiente ataque inflige daño de %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -484,6 +634,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 공격이 %1$@ 피해를 줌"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O próximo ataque causa dano do tipo %1$@"
           }
         },
         "zh-Hant": {
@@ -510,6 +666,12 @@
             "value": "Leech Focus: Next attack Leeches"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración de Absorción: el siguiente ataque activa Absorción"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -526,6 +688,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "흡혈 집중: 다음 공격에 흡혈 적용"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foco de Drenagem: O próximo ataque aplica Drenagem"
           }
         },
         "zh-Hant": {
@@ -552,6 +720,12 @@
             "value": "Sniff Out: Partner's next damaging card deals additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Olfatear: la siguiente carta de daño del compañero inflige daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -568,6 +742,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "냄새 추적: 파트너의 다음 피해 카드가 추가 피해를 줌"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farejar: A próxima carta de dano do parceiro causa dano adicional"
           }
         },
         "zh-Hant": {
@@ -594,6 +774,12 @@
             "value": "Shadowstep: Next card or enemy ability resolves twice"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paso sombrío: la siguiente carta o habilidad enemiga se resuelve dos veces"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -610,6 +796,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "그림자 걸음: 다음 카드 또는 적의 능력이 두 번 발동"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passo Sombrio: A próxima carta ou habilidade inimiga é resolvida duas vezes"
           }
         },
         "zh-Hant": {
@@ -636,6 +828,12 @@
             "value": "%1$@, %2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -649,6 +847,12 @@
           }
         },
         "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@"
+          }
+        },
+        "pt-BR": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, %2$@"
@@ -678,6 +882,12 @@
             "value": "%1$@ applies: %2$@."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ aplica: %2$@."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -694,6 +904,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 효과 적용: %2$@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ aplica: %2$@."
           }
         },
         "zh-Hant": {
@@ -720,6 +936,12 @@
             "value": "%1$@ gains %2$lld Block (%3$@)."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ obtiene %2$lld de Bloqueo (%3$@)."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -736,6 +958,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 방어도 %2$lld 획득(%3$@)."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ganha %2$lld de Bloqueio (%3$@)."
           }
         },
         "zh-Hant": {
@@ -762,6 +990,12 @@
             "value": "%1$@ Cleanses %2$@ (%3$@)."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ purifica %2$@ (%3$@)."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -778,6 +1012,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: %2$@ 정화(%3$@)."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ Purifica %2$@ (%3$@)."
           }
         },
         "zh-Hant": {
@@ -804,6 +1044,12 @@
             "value": "%1$@ is %2$@."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -820,6 +1066,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: %2$@ 상태."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@."
           }
         },
         "zh-Hant": {
@@ -846,6 +1098,12 @@
             "value": "%1$@ loses %2$lld Health."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ pierde %2$lld de Salud."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -862,6 +1120,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 체력 %2$lld 감소."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ perde %2$lld de Vida."
           }
         },
         "zh-Hant": {
@@ -888,6 +1152,12 @@
             "value": "%1$@ deals %2$lld %3$@ damage to %4$@ (%5$@)."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ inflige %2$lld de daño de %3$@ a %4$@ (%5$@)."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -904,6 +1174,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ → %4$@: %3$@ 피해 %2$lld(%5$@)."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ causa %2$lld de dano do tipo %3$@ a %4$@ (%5$@)."
           }
         },
         "zh-Hant": {
@@ -930,6 +1206,12 @@
             "value": "%1$@ is defeated."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ sufre una derrota."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -946,6 +1228,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 쓰러짐."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Derrota de %1$@."
           }
         },
         "zh-Hant": {
@@ -972,6 +1260,12 @@
             "value": "%1$@ is on Death's Door."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ está a las Puertas de la Muerte."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -988,6 +1282,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 죽음의 문턱 상태."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ está À Beira da Morte."
           }
         },
         "zh-Hant": {
@@ -1014,6 +1314,12 @@
             "value": "%1$@'s Death's Door fades."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El efecto Puertas de la Muerte de %1$@ termina."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1030,6 +1336,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 죽음의 문턱 종료."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A condição À Beira da Morte de %1$@ se dissipa."
           }
         },
         "zh-Hant": {
@@ -1056,6 +1368,12 @@
             "value": "gain %1$lld Gold"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "obtener %1$lld de Oro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1072,6 +1390,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "골드 %1$lld 획득"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ganhar %1$lld de Ouro"
           }
         },
         "zh-Hant": {
@@ -1098,6 +1422,12 @@
             "value": "%1$@ restores %2$lld Health (%3$@)."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ restaura %2$lld de Salud (%3$@)."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1114,6 +1444,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 체력 %2$lld 회복(%3$@)."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ restaura %2$lld de Vida (%3$@)."
           }
         },
         "zh-Hant": {
@@ -1140,6 +1476,12 @@
             "value": "%1$@ suffers %2$lld Bleed damage from Hemorrhage."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ sufre %2$lld de daño de Sangrado por Hemorragia."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1156,6 +1498,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 대출혈로 출혈 피해 %2$lld 받음."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ sofre %2$lld de dano de Sangramento por Hemorragia."
           }
         },
         "zh-Hant": {
@@ -1182,6 +1530,12 @@
             "value": "restore %1$lld Mana"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "restaurar %1$lld de Maná"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1198,6 +1552,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "마나 %1$lld 회복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "restaurar %1$lld de Mana"
           }
         },
         "zh-Hant": {
@@ -1224,6 +1584,12 @@
             "value": "Your party has been defeated by %1$@."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu grupo ha sido derrotado por %1$@."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1240,6 +1606,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "파티가 %1$@에게 패배했습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu grupo foi derrotado por %1$@."
           }
         },
         "zh-Hant": {
@@ -1266,6 +1638,12 @@
             "value": "%1$@'s %2$@ is Purged (%3$@)."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ pierde %2$@ por Purga (%3$@)."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1282,6 +1660,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@의 %2$@ 강화 해제(%3$@)."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ perde %2$@ por Expurgo (%3$@)."
           }
         },
         "zh-Hant": {
@@ -1308,6 +1692,12 @@
             "value": "%1$@'s damage is reduced by %2$lld (%3$@)."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El daño de %1$@ se reduce en %2$lld (%3$@)."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1324,6 +1714,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 주는 피해 %2$lld 감소(%3$@)."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O dano do tipo %1$@ é reduzido em %2$lld (%3$@)."
           }
         },
         "zh-Hant": {
@@ -1350,6 +1746,12 @@
             "value": "%1$@ reflects %2$lld %3$@ damage to %4$@."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ refleja %2$lld de daño de %3$@ a %4$@."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1366,6 +1768,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ → %4$@: %3$@ 피해 %2$lld 반사."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ reflete %2$lld de dano do tipo %3$@ em %4$@."
           }
         },
         "zh-Hant": {
@@ -1392,6 +1800,12 @@
             "value": "%1$@ and %2$@ face %3$@."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ y %2$@ se enfrentan a %3$@."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1408,6 +1822,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 및 %2$@ 대 %3$@."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ e %2$@ enfrentam %3$@."
           }
         },
         "zh-Hant": {
@@ -1434,6 +1854,12 @@
             "value": "%1$@ takes %2$lld %3$@ damage."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ recibe %2$lld de daño de %3$@."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1450,6 +1876,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: %3$@ 피해 %2$lld 받음."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ recebe %2$lld de dano do tipo %3$@."
           }
         },
         "zh-Hant": {
@@ -1476,6 +1908,12 @@
             "value": "steal %1$lld Gold"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "robar %1$lld de Oro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1492,6 +1930,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "골드 %1$lld 훔치기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "roubar %1$lld de Ouro"
           }
         },
         "zh-Hant": {
@@ -1518,6 +1962,12 @@
             "value": "%1$@ removes %2$lld Block from %3$@ (%4$@)."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ elimina %2$lld de Bloqueo de %3$@ (%4$@)."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1534,6 +1984,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ → %3$@: 방어도 %2$lld 제거(%4$@)."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ remove %2$lld de Bloqueio de %3$@ (%4$@)."
           }
         },
         "zh-Hant": {
@@ -1560,6 +2016,12 @@
             "value": "%1$@ uses %2$@."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ usa %2$@."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1576,6 +2038,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: %2$@ 사용."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ usa %2$@."
           }
         },
         "zh-Hant": {
@@ -1602,6 +2070,12 @@
             "value": " each turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " cada turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1618,6 +2092,12 @@
           "stringUnit": {
             "state": "translated",
             "value": " (매 턴)"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " a cada turno"
           }
         },
         "zh-Hant": {
@@ -1644,6 +2124,12 @@
             "value": "Avatar: Deals %1$lld Holy damage%2$@, %3$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avatar: inflige %1$lld de daño sagrado%2$@, %3$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1660,6 +2146,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "화신: 신성 피해 %1$lld%2$@, %3$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avatar: Causa %1$lld de dano Sagrado%2$@, %3$@"
           }
         },
         "zh-Hant": {
@@ -1686,6 +2178,12 @@
             "value": " and gains %1$lld Block each turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " y obtiene %1$lld de Bloqueo cada turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1702,6 +2200,12 @@
           "stringUnit": {
             "state": "translated",
             "value": ", 매 턴 방어도 %1$lld 획득"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " e ganha %1$lld de Bloqueio a cada turno"
           }
         },
         "zh-Hant": {
@@ -1728,6 +2232,12 @@
             "value": "Redline: Your next Physical card deals 2 additional Bleed damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Línea roja: tu siguiente carta física inflige 2 de daño adicional de Sangrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1744,6 +2254,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "한계선: 다음 물리 카드가 출혈 추가 피해 2"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite Vermelho: Sua próxima carta Física causa 2 de dano de Sangramento adicional"
           }
         },
         "zh-Hant": {
@@ -1770,6 +2286,12 @@
             "value": "Holy Infusion: Your next attack deals %1$lld additional Holy damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Infusión sagrada: tu siguiente ataque inflige %1$lld de daño sagrado adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1786,6 +2308,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "신성 주입: 다음 공격이 신성 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Infusão Sagrada: Seu próximo ataque causa %1$lld de dano Sagrado adicional"
           }
         },
         "zh-Hant": {
@@ -1812,6 +2340,12 @@
             "value": "Prepared Damage: Your next attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daño preparado: tu siguiente ataque inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1828,6 +2362,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비된 피해: 다음 공격의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dano Preparado: Seu próximo ataque causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -1854,6 +2394,12 @@
             "value": "Prepared Hit: Your next attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impacto preparado: tu siguiente ataque inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1870,6 +2416,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비된 적중: 다음 공격의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acerto Preparado: Seu próximo ataque causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -1896,6 +2448,12 @@
             "value": "Viper’s Courtesy: Your next manually played card hit that removes Health deals additional Poison and Bleed damage, each equal to half the Health lost"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cortesía de la víbora: el siguiente impacto de una carta que juegues manualmente que reduzca Salud inflige daño adicional de Veneno y Sangrado, cada uno equivalente a la mitad de la Salud perdida"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1912,6 +2470,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "독사의 예의: 다음에 직접 사용하는 카드의 적중이 체력을 깎으면, 잃은 체력의 절반만큼 독 및 출혈 추가 피해를 각각 줌"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cortesia da Víbora: O próximo acerto de uma carta jogada manualmente que remover Vida causa dano adicional de Veneno e de Sangramento, cada um equivalente à metade da Vida perdida"
           }
         },
         "zh-Hant": {
@@ -1938,6 +2502,12 @@
             "value": "Paid in Full: Your next attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pago completo: tu siguiente ataque inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1954,6 +2524,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "완납: 다음 공격의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pago por Inteiro: Seu próximo ataque causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -1980,6 +2556,12 @@
             "value": "Stolen Thunder: Your next attack Critically Hits"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trueno robado: tu siguiente ataque asesta un golpe crítico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1996,6 +2578,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "훔친 천둥: 다음 공격이 반드시 치명타"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trovão Roubado: Seu próximo ataque acerta um golpe crítico"
           }
         },
         "zh-Hant": {
@@ -2022,6 +2610,12 @@
             "value": "Gilded Claws: Your next damaging card deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garras doradas: tu siguiente carta de daño inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2038,6 +2632,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "금빛 발톱: 다음 피해 카드의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garras Douradas: Sua próxima carta de dano causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -2064,6 +2664,12 @@
             "value": "Your next Block gain is increased by %1$lld%%"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente obtención de Bloqueo aumenta en un %1$lld%%"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2080,6 +2686,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 방어도 획득량 %1$lld%% 증가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ganho de Bloqueio aumenta em %1$lld%%"
           }
         },
         "zh-Hant": {
@@ -2106,6 +2718,12 @@
             "value": "Prepared Basic: Your next Basic attack has +%1$lld%% Critical Hit chance"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Básica preparada: tu siguiente ataque básico tiene +%1$lld%% de probabilidad de golpe crítico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2122,6 +2740,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비된 기본 공격: 다음 기본 공격의 치명타 확률 +%1$lld%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Básico Preparado: Seu próximo ataque Básico tem +%1$lld%% de chance de golpe crítico"
           }
         },
         "zh-Hant": {
@@ -2148,6 +2772,12 @@
             "value": "Dodge Up: +%1$lld%% Dodge chance"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evasión aumentada: +%1$lld%% de probabilidad de Evasión"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2164,6 +2794,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "회피 증가: 회피 확률 +%1$lld%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esquiva Aumentada: +%1$lld%% de chance de Esquiva"
           }
         },
         "zh-Hant": {
@@ -2190,6 +2826,12 @@
             "value": "Escape Fund: Your next Gold steal is doubled"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fondo de escape: tu siguiente robo de Oro se duplica"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2206,6 +2848,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "도주 자금: 다음 골드 훔치기 획득량이 두 배"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fundo de Fuga: Seu próximo roubo de Ouro é dobrado"
           }
         },
         "zh-Hant": {
@@ -2232,6 +2880,12 @@
             "value": "Your next Poison attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque de Veneno inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2248,6 +2902,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 독 공격의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque de Veneno causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -2274,6 +2934,12 @@
             "value": "Block"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2290,6 +2956,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "방어도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloqueio"
           }
         },
         "zh-Hant": {
@@ -2316,6 +2988,12 @@
             "value": "Improving Odds: +%1$lld%% Dodge chance until you Dodge"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probabilidades crecientes: +%1$lld%% de probabilidad de Evasión hasta que esquives"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2332,6 +3010,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "높아지는 승산: 회피할 때까지 회피 확률 +%1$lld%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chances Crescentes: +%1$lld%% de chance de Esquiva até você Esquivar"
           }
         },
         "zh-Hant": {
@@ -2358,6 +3042,12 @@
             "value": "%1$@: Your next attack has a %2$lld%% chance to miss"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: tu siguiente ataque tiene un %2$lld%% de probabilidad de fallar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2374,6 +3064,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 다음 공격이 빗나갈 확률 %2$lld%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: Seu próximo ataque tem %2$lld%% de chance de errar"
           }
         },
         "zh-Hant": {
@@ -2400,6 +3096,12 @@
             "value": "Attack damage conversion"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversión de daño de ataque"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2416,6 +3118,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "공격 피해 유형 전환"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversão de dano de ataque"
           }
         },
         "zh-Hant": {
@@ -2442,6 +3150,12 @@
             "value": "Interdict: Cannot gain Block until next turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interdicto: no puedes obtener Bloqueo hasta el siguiente turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2458,6 +3172,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "금령: 다음 턴까지 방어도 획득 불가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interdito: Não pode ganhar Bloqueio até o próximo turno"
           }
         },
         "zh-Hant": {
@@ -2484,6 +3204,12 @@
             "value": "Prepared Strike: Your next attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe preparado: tu siguiente ataque inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2500,6 +3226,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비된 일격: 다음 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe Preparado: Seu próximo ataque causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -2526,6 +3258,12 @@
             "value": "Your next Physical attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque físico inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2542,6 +3280,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 물리 공격의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque Físico causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -2568,6 +3312,12 @@
             "value": "Wildheart’s Favor: Your next Poison card’s damage Critically Hits"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favor del corazón salvaje: el daño de tu siguiente carta de Veneno asesta un golpe crítico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2584,6 +3334,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "야생심장의 호의: 다음 독 카드의 피해가 반드시 치명타"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favor do Coração Selvagem: O dano da sua próxima carta de Veneno é crítico"
           }
         },
         "zh-Hant": {
@@ -2610,6 +3366,12 @@
             "value": "Sniff Out: Your next damaging card deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Olfatear: tu siguiente carta de daño inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2626,6 +3388,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "냄새 추적: 다음 피해 카드의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farejar: Sua próxima carta de dano causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -2652,6 +3420,12 @@
             "value": "Shadowstep"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paso sombrío"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2668,6 +3442,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "그림자 걸음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passo Sombrio"
           }
         },
         "zh-Hant": {
@@ -2694,6 +3474,12 @@
             "value": "Feigned Miss: Your next Physical attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fallo fingido: tu siguiente ataque físico inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2710,6 +3496,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "빗나간 척하기: 다음 물리 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erro Fingido: Seu próximo ataque Físico causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -2736,6 +3528,12 @@
             "value": "Prepared Basic: Your next Basic attack is a guaranteed Critical Hit"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Básica preparada: tu siguiente ataque básico es un golpe crítico garantizado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2752,6 +3550,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비된 기본 공격: 다음 기본 공격이 반드시 치명타"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Básico Preparado: Seu próximo ataque Básico é um golpe crítico garantido"
           }
         },
         "zh-Hant": {
@@ -2778,6 +3582,12 @@
             "value": "Evasion"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evasión"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2794,6 +3604,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "회피 태세"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evasão"
           }
         },
         "zh-Hant": {
@@ -2820,6 +3636,12 @@
             "value": "Your next Bleed attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque de Sangrado inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2836,6 +3658,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 출혈 공격의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque de Sangramento causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -2862,6 +3690,12 @@
             "value": "Prepared Critical: Your next %1$@ is a guaranteed Critical Hit"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crítico preparado: tu siguiente %1$@ es un golpe crítico garantizado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2878,6 +3712,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비된 치명타: 다음 %1$@에 반드시 치명타"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crítico Preparado: Seu próximo %1$@ é um golpe crítico garantido"
           }
         },
         "zh-Hant": {
@@ -2904,6 +3744,12 @@
             "value": "Damage wards"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protecciones contra daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2920,6 +3766,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "피해 방호"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proteções contra dano"
           }
         },
         "zh-Hant": {
@@ -2946,6 +3798,12 @@
             "value": "Sniff Out"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Olfatear"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2962,6 +3820,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "냄새 추적"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farejar"
           }
         },
         "zh-Hant": {
@@ -2988,6 +3852,12 @@
             "value": "Aetherial Flow: Your next attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flujo etéreo: tu siguiente ataque inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3004,6 +3874,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "에테르의 흐름: 다음 공격의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fluxo Etéreo: Seu próximo ataque causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -3030,6 +3906,12 @@
             "value": "Shatterpoint: The next Bleed damage is doubled"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Punto de fractura: el siguiente daño de Sangrado se duplica"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3046,6 +3928,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "파열점: 다음 출혈 피해가 두 배"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponto de Ruptura: O próximo dano de Sangramento é dobrado"
           }
         },
         "zh-Hant": {
@@ -3072,6 +3960,12 @@
             "value": "Lingering Blessing: Restore %1$lld Health each round for %2$lld rounds"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bendición persistente: restaura %1$lld de Salud cada ronda durante %2$lld rondas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3088,6 +3982,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지속되는 축복: %2$lld라운드 동안 매 라운드 체력 %1$lld 회복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bênção Persistente: Restaure %1$lld de Vida a cada rodada por %2$lld rodadas"
           }
         },
         "zh-Hant": {
@@ -3114,6 +4014,12 @@
             "value": "Focused"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3130,6 +4036,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "집중됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focado"
           }
         },
         "zh-Hant": {
@@ -3156,6 +4068,12 @@
             "value": "Nimble Fang: Your next Bleed attack deals %1$lld%% more damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colmillo ágil: tu siguiente ataque de Sangrado inflige un %1$lld%% más de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3172,6 +4090,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "날렵한 송곳니: 다음 출혈 공격의 피해 %1$lld%% 증가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Presa Ágil: Seu próximo ataque de Sangramento causa %1$lld%% mais dano"
           }
         },
         "zh-Hant": {
@@ -3198,6 +4122,12 @@
             "value": "Maximum Mana Up"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maná máximo aumentado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3214,6 +4144,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "최대 마나 증가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mana Máxima Aumentada"
           }
         },
         "zh-Hant": {
@@ -3240,6 +4176,12 @@
             "value": "Leech Focus"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración de Absorción"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3256,6 +4198,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "흡혈 집중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foco de Drenagem"
           }
         },
         "zh-Hant": {
@@ -3282,6 +4230,12 @@
             "value": "Toxic Backlash: Your next Poison damage is doubled"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reacción tóxica: tu siguiente daño de Veneno se duplica"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3298,6 +4252,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "맹독의 반격: 다음 독 피해가 두 배"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retaliação Tóxica: Seu próximo dano de Veneno é dobrado"
           }
         },
         "zh-Hant": {
@@ -3324,6 +4284,12 @@
             "value": "Phantom Counter: Your next Physical attack deals %1$lld%% more damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraataque fantasma: tu siguiente ataque físico inflige un %1$lld%% más de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3340,6 +4306,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "환영 반격: 다음 물리 공격의 피해 %1$lld%% 증가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contra-Ataque Fantasma: Seu próximo ataque Físico causa %1$lld%% mais dano"
           }
         },
         "zh-Hant": {
@@ -3366,6 +4338,12 @@
             "value": "Interdict: %1$@ cannot return until next turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interdicto: %1$@ no puede regresar hasta el siguiente turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3382,6 +4360,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "금령: 다음 턴까지 %1$@ 재적용 불가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interdito: %1$@ não pode voltar até o próximo turno"
           }
         },
         "zh-Hant": {
@@ -3408,6 +4392,12 @@
             "value": "Smite the Wicked: Your next Holy attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Castigar al malvado: tu siguiente ataque sagrado inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3424,6 +4414,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "악인 응징: 다음 신성 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Castigar os Ímpios: Seu próximo ataque Sagrado causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -3450,6 +4446,12 @@
             "value": "Your next attack has +%1$lld%% Critical Hit chance"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque tiene +%1$lld%% de probabilidad de golpe crítico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3466,6 +4468,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 공격의 치명타 확률 +%1$lld%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque tem +%1$lld%% de chance de golpe crítico"
           }
         },
         "zh-Hant": {
@@ -3492,6 +4500,12 @@
             "value": "Wrenflight: +%1$lld%% Dodge chance until your next turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelo de chochín: +%1$lld%% de probabilidad de Evasión hasta tu siguiente turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3508,6 +4522,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "굴뚝새의 비상: 다음 내 턴까지 회피 확률 +%1$lld%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voo da Corruíra: +%1$lld%% de chance de Esquiva até seu próximo turno"
           }
         },
         "zh-Hant": {
@@ -3534,6 +4554,12 @@
             "value": "Blind Spot: Your next Physical attack ignores enemy Block"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Punto ciego: tu siguiente ataque físico ignora el Bloqueo del enemigo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3550,6 +4576,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "사각지대: 다음 물리 공격이 적의 방어도 무시"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponto Cego: Seu próximo ataque Físico ignora o Bloqueio inimigo"
           }
         },
         "zh-Hant": {
@@ -3576,6 +4608,12 @@
             "value": "Consecrated"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consagrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3592,6 +4630,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "축성된"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consagrado"
           }
         },
         "zh-Hant": {
@@ -3618,6 +4662,12 @@
             "value": "Winter’s Wake: Your next Freeze attack ignores enemy Block"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estela del invierno: tu siguiente ataque de Congelación ignora el Bloqueo del enemigo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3634,6 +4684,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "겨울의 흔적: 다음 빙결 공격이 적의 방어도 무시"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rastro do Inverno: Seu próximo ataque de Congelamento ignora o Bloqueio inimigo"
           }
         },
         "zh-Hant": {
@@ -3660,6 +4716,12 @@
             "value": "Cracked Guard: Your next attack Critically Hits"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardia agrietada: tu siguiente ataque asesta un golpe crítico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3676,6 +4738,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "무너진 방어: 다음 공격이 반드시 치명타"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarda Rachada: Seu próximo ataque acerta um golpe crítico"
           }
         },
         "zh-Hant": {
@@ -3702,6 +4770,12 @@
             "value": "Redline: Your next Bleed attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Línea roja: tu siguiente ataque de Sangrado inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3718,6 +4792,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "한계선: 다음 출혈 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite Vermelho: Seu próximo ataque de Sangramento causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -3744,6 +4824,12 @@
             "value": "party hit"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "impacto del grupo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3760,6 +4846,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "파티 적중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "acerto do grupo"
           }
         },
         "zh-Hant": {
@@ -3786,6 +4878,12 @@
             "value": "Damage Up: +%1$lld%% damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daño aumentado: +%1$lld%% de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3802,6 +4900,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "피해 증가: 피해 +%1$lld%%"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dano Aumentado: +%1$lld%% de dano"
           }
         },
         "zh-Hant": {
@@ -3828,6 +4932,12 @@
             "value": "Perfect Purity: Immune to debuffs until next turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pureza perfecta: inmune a perjuicios hasta el siguiente turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3844,6 +4954,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "완벽한 순수: 다음 턴까지 약화 효과에 면역"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pureza Perfeita: Imune a efeitos negativos até o próximo turno"
           }
         },
         "zh-Hant": {
@@ -3870,6 +4986,12 @@
             "value": "Kindled"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avivado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3886,6 +5008,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "점화됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aceso"
           }
         },
         "zh-Hant": {
@@ -3912,6 +5040,12 @@
             "value": "Feint Strike: The party’s next card deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe de finta: la siguiente carta del grupo inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3928,6 +5062,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "위장 일격: 파티의 다음 카드의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe de Finta: A próxima carta do grupo causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -3954,6 +5094,12 @@
             "value": "Mana Shield"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escudo de Maná"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3970,6 +5116,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "마나 방패"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escudo de Mana"
           }
         },
         "zh-Hant": {
@@ -3996,6 +5148,12 @@
             "value": "Blinding Light: Your next attack deals %1$lld less damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luz cegadora: tu siguiente ataque inflige %1$lld menos de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4012,6 +5170,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "눈부신 빛: 다음 공격의 피해 %1$lld 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luz Cegante: Seu próximo ataque causa %1$lld de dano a menos"
           }
         },
         "zh-Hant": {
@@ -4038,6 +5202,12 @@
             "value": "Toxic Transfusion: Your next Poison attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfusión tóxica: tu siguiente ataque de Veneno inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4054,6 +5224,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "맹독 수혈: 다음 독 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfusão Tóxica: Seu próximo ataque de Veneno causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -4080,6 +5256,12 @@
             "value": "Your next attack ignores enemy Block"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque ignora el Bloqueo del enemigo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4096,6 +5278,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 공격이 적의 방어도 무시"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque ignora o Bloqueio inimigo"
           }
         },
         "zh-Hant": {
@@ -4122,6 +5310,12 @@
             "value": "Glacial Ward"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protección glacial"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4138,6 +5332,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "빙하 수호"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proteção Glacial"
           }
         },
         "zh-Hant": {
@@ -4164,6 +5364,12 @@
             "value": "Your next Burn attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque de Quemadura inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4180,6 +5386,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 화상 공격의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque de Queimadura causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -4206,6 +5418,12 @@
             "value": "Perfect Tempo: Your next Critical Hit deals %1$lld%% more damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ritmo perfecto: tu siguiente golpe crítico inflige un %1$lld%% más de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4222,6 +5440,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "완벽한 박자: 다음 치명타의 피해 %1$lld%% 증가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ritmo Perfeito: Seu próximo golpe crítico causa %1$lld%% mais dano"
           }
         },
         "zh-Hant": {
@@ -4248,6 +5472,12 @@
             "value": "Weaken Soul: Your next attack deals %1$lld%% less damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debilitar alma: tu siguiente ataque inflige un %1$lld%% menos de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4264,6 +5494,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "영혼 약화: 다음 공격의 피해 %1$lld%% 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enfraquecer Alma: Seu próximo ataque causa %1$lld%% menos dano"
           }
         },
         "zh-Hant": {
@@ -4290,6 +5526,12 @@
             "value": "Your next Burn attack deals %1$lld%% more damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque de Quemadura inflige un %1$lld%% más de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4306,6 +5548,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 화상 공격의 피해 %1$lld%% 증가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque de Queimadura causa %1$lld%% mais dano"
           }
         },
         "zh-Hant": {
@@ -4332,6 +5580,12 @@
             "value": "Phoenix Vigor: Your next attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vigor de fénix: tu siguiente ataque inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4348,6 +5602,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "불사조의 활력: 다음 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vigor da Fênix: Seu próximo ataque causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -4374,6 +5634,12 @@
             "value": "Living Archive: Restore %1$lld Health next round"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivo viviente: restaura %1$lld de Salud la siguiente ronda"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4390,6 +5656,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "살아 있는 서고: 다음 라운드에 체력 %1$lld 회복"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivo Vivo: Restaure %1$lld de Vida na próxima rodada"
           }
         },
         "zh-Hant": {
@@ -4416,6 +5688,12 @@
             "value": "Your next Mana empowerment costs %1$lld less Mana"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente potenciación con Maná cuesta %1$lld menos de Maná"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4432,6 +5710,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 마나 강화의 마나 소모량 %1$lld 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo fortalecimento com Mana custa %1$lld de Mana a menos"
           }
         },
         "zh-Hant": {
@@ -4458,6 +5742,12 @@
             "value": "The Patient Edge: Your next manually played attack hit Critically Hits"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El filo paciente: el siguiente impacto de un ataque que juegues manualmente asesta un golpe crítico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4474,6 +5764,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "인내의 칼날: 다음에 직접 사용하는 공격의 적중이 반드시 치명타"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Fio Paciente: Seu próximo acerto de ataque jogado manualmente é crítico"
           }
         },
         "zh-Hant": {
@@ -4500,6 +5796,12 @@
             "value": "Unstable Culture: Your next Poison attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cultivo inestable: tu siguiente ataque de Veneno inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4516,6 +5818,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "불안정한 배양: 다음 독 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cultura Instável: Seu próximo ataque de Veneno causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -4542,6 +5850,12 @@
             "value": "Holy Strike"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe sagrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4558,6 +5872,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "신성 일격"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe Sagrado"
           }
         },
         "zh-Hant": {
@@ -4584,6 +5904,12 @@
             "value": "Avatar"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avatar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4600,6 +5926,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "화신"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avatar"
           }
         },
         "zh-Hant": {
@@ -4626,6 +5958,12 @@
             "value": "Noxious Reaction: Your next Bleed attack Critically Hits"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reacción nociva: tu siguiente ataque de Sangrado asesta un golpe crítico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4642,6 +5980,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "유독 반응: 다음 출혈 공격이 반드시 치명타"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reação Nociva: Seu próximo ataque de Sangramento acerta um golpe crítico"
           }
         },
         "zh-Hant": {
@@ -4668,6 +6012,12 @@
             "value": "Thorns"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espinas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4684,6 +6034,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "가시"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espinhos"
           }
         },
         "zh-Hant": {
@@ -4710,6 +6066,12 @@
             "value": "Prepared Damage: Your next attack deals %1$lld%% more damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daño preparado: tu siguiente ataque inflige un %1$lld%% más de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4726,6 +6088,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비된 피해: 다음 공격의 피해 %1$lld%% 증가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dano Preparado: Seu próximo ataque causa %1$lld%% mais dano"
           }
         },
         "zh-Hant": {
@@ -4752,6 +6120,12 @@
             "value": "Quaking Carapace: Your next Stun attack deals double damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caparazón sísmico: tu siguiente ataque de Aturdimiento inflige el doble de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4768,6 +6142,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "진동하는 갑각: 다음 기절 공격이 두 배의 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carapaça Sísmica: Seu próximo ataque de Atordoamento causa o dobro de dano"
           }
         },
         "zh-Hant": {
@@ -4794,6 +6174,12 @@
             "value": "Prepared Bleed: Your next attack deals %1$lld additional Bleed damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sangrado preparado: tu siguiente ataque inflige %1$lld de daño adicional de Sangrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4810,6 +6196,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비된 출혈: 다음 공격이 출혈 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sangramento Preparado: Seu próximo ataque causa %1$lld de dano de Sangramento adicional"
           }
         },
         "zh-Hant": {
@@ -4836,6 +6228,12 @@
             "value": "The Golden Crucible: Your next Holy hit from a manually played card deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El crisol dorado: tu siguiente impacto sagrado de una carta jugada manualmente inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4852,6 +6250,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "황금 도가니: 직접 사용한 카드의 다음 신성 적중에 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Cadinho Dourado: Seu próximo acerto Sagrado com uma carta jogada manualmente causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -4878,6 +6282,12 @@
             "value": "Warded Roost: Your next incoming damage is reduced by %1$lld%%"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nido protegido: el siguiente daño que recibas se reduce en un %1$lld%%"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4894,6 +6304,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "수호의 둥지: 다음에 받는 피해 %1$lld%% 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Poleiro Protegido: O próximo dano que você receber será reduzido em %1$lld%%"
           }
         },
         "zh-Hant": {
@@ -4920,6 +6336,12 @@
             "value": "Prepared Strike: Your next attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe preparado: tu siguiente ataque inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4936,6 +6358,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비된 일격: 다음 공격의 추가 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe Preparado: Seu próximo ataque causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -4962,6 +6390,12 @@
             "value": "Immune to %1$@ debuffs until next turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inmune a perjuicios de %1$@ hasta el siguiente turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4978,6 +6412,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 턴까지 %1$@ 약화 효과에 면역"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imune a efeitos negativos de %1$@ até o próximo turno"
           }
         },
         "zh-Hant": {
@@ -5004,6 +6444,12 @@
             "value": "Overcharge: Your next attack deals %1$lld%% more damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobrecarga: tu siguiente ataque inflige un %1$lld%% más de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5020,6 +6466,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "과충전: 다음 공격의 피해 %1$lld%% 증가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobrecarga: Seu próximo ataque causa %1$lld%% mais dano"
           }
         },
         "zh-Hant": {
@@ -5046,6 +6498,12 @@
             "value": "Double Strike"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe doble"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5062,6 +6520,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "이중 일격"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Golpe Duplo"
           }
         },
         "zh-Hant": {
@@ -5088,6 +6552,12 @@
             "value": "Sun-Struck Shell: Your next Holy damage is doubled"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caparazón tocado por el sol: tu siguiente daño sagrado se duplica"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5104,6 +6574,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "태양을 머금은 껍질: 다음 신성 피해가 두 배"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Casco Banhado de Sol: Seu próximo dano Sagrado é dobrado"
           }
         },
         "zh-Hant": {
@@ -5130,6 +6606,12 @@
             "value": "attack"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ataque"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5146,6 +6628,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "공격"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ataque"
           }
         },
         "zh-Hant": {
@@ -5172,6 +6660,12 @@
             "value": "Critical Focus"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentración crítica"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5188,6 +6682,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "치명타 집중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foco Crítico"
           }
         },
         "zh-Hant": {
@@ -5214,6 +6714,12 @@
             "value": "Consecrated: Attacks deal %1$@ damage (+%2$lld)%3$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consagrado: los ataques infligen daño de %1$@ (+%2$lld)%3$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5230,6 +6736,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "축성된: 공격이 %1$@ 피해를 줌(+%2$lld)%3$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consagrado: Ataques causam dano do tipo %1$@ (+%2$lld)%3$@"
           }
         },
         "zh-Hant": {
@@ -5256,6 +6768,12 @@
             "value": "Hemorrhage: Takes %1$lld Bleed damage on next attack"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hemorragia: recibe %1$lld de daño de Sangrado en el siguiente ataque"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5272,6 +6790,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "대출혈: 다음 공격 시 출혈 피해 %1$lld 받음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hemorragia: Recebe %1$lld de dano de Sangramento no próximo ataque"
           }
         },
         "zh-Hant": {
@@ -5298,6 +6822,12 @@
             "value": "Thorns: Deals %1$lld Thorns damage to the next attacker"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espinas: inflige %1$lld de daño de Espinas al siguiente atacante"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5314,6 +6844,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "가시: 다음 공격자에게 가시 피해 %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espinhos: Causa %1$lld de dano de Espinhos ao próximo atacante"
           }
         },
         "zh-Hant": {
@@ -5340,6 +6876,12 @@
             "value": "Glacial Ward"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protección glacial"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5356,6 +6898,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "빙하 수호"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proteção Glacial"
           }
         },
         "zh-Hant": {
@@ -5382,6 +6930,12 @@
             "value": "%1$@ Ward"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protección de %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5398,6 +6952,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 수호"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proteção de %1$@"
           }
         },
         "zh-Hant": {
@@ -5424,6 +6984,12 @@
             "value": "Mana Shield: Restores %1$lld Mana when hit%2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escudo de Maná: restaura %1$lld de Maná al recibir un impacto%2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5440,6 +7006,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "마나 방패: 공격에 맞으면 마나 %1$lld 회복%2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escudo de Mana: Restaura %1$lld de Mana ao ser atingido%2$@"
           }
         },
         "zh-Hant": {
@@ -5466,6 +7038,12 @@
             "value": "%1$@: Deals %2$lld %3$@ damage to the next attacker"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: inflige %2$lld de daño de %3$@ al siguiente atacante"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5482,6 +7060,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 다음 공격자에게 %3$@ 피해 %2$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: Causa %2$lld de dano do tipo %3$@ ao próximo atacante"
           }
         },
         "zh-Hant": {
@@ -5508,6 +7092,12 @@
             "value": "Kindled: Next Burn attack deals +%1$lld damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avivado: el siguiente ataque de Quemadura inflige +%1$lld de daño"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5524,6 +7114,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "점화됨: 다음 화상 공격의 피해 +%1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aceso: O próximo ataque de Queimadura causa +%1$lld de dano"
           }
         },
         "zh-Hant": {
@@ -5550,6 +7146,12 @@
             "value": "Focused: Increases Critical chance by +%1$lld%%%2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concentrado: aumenta la probabilidad de crítico en +%1$lld%%%2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5566,6 +7168,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "집중됨: 치명타 확률 +%1$lld%%%2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focado: Aumenta a chance de crítico em +%1$lld%%%2$@"
           }
         },
         "zh-Hant": {
@@ -5592,6 +7200,12 @@
             "value": "Marked: The next attack deals extra damage and removes Marked"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcado: el siguiente ataque inflige daño adicional y elimina Marcado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5608,6 +7222,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "표식: 다음 공격이 추가 피해를 주고 표식 제거"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcado: O próximo ataque causa dano extra e remove Marcado"
           }
         },
         "zh-Hant": {
@@ -5634,6 +7254,12 @@
             "value": "Marked: The next attack deals +%1$lld damage and removes Marked%2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcado: el siguiente ataque inflige +%1$lld de daño y elimina Marcado%2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5650,6 +7276,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "표식: 다음 공격이 피해 +%1$lld 및 표식 제거%2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcado: O próximo ataque causa +%1$lld de dano e remove Marcado%2$@"
           }
         },
         "zh-Hant": {
@@ -5676,6 +7308,12 @@
             "value": "%1$lld%% %2$@\nAt 100%%, the next action is prevented"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld%% de %2$@\nAl llegar al 100%%, se impide la siguiente acción"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5692,6 +7330,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%2$@ %1$lld%%\n100%%가 되면 다음 행동 불가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld%% de %2$@\nCom 100%%, a próxima ação é impedida"
           }
         },
         "zh-Hant": {
@@ -5718,6 +7362,12 @@
             "value": "%1$@: Recovering from %2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: recuperándose de %2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5734,6 +7384,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: %2$@에서 회복 중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: Recuperando-se de %2$@"
           }
         },
         "zh-Hant": {
@@ -5760,6 +7416,12 @@
             "value": "%1$@: Next action is prevented"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: se impide la siguiente acción"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5776,6 +7438,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 다음 행동 불가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: A próxima ação é impedida"
           }
         },
         "zh-Hant": {
@@ -5802,6 +7470,12 @@
             "value": "Death's Door: Immune to fatal damage while active"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puertas de la Muerte: inmune al daño mortal mientras está activo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5818,6 +7492,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "죽음의 문턱: 지속되는 동안 죽음에 이르는 피해에 면역"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À Beira da Morte: Imune a dano fatal enquanto durar"
           }
         },
         "zh-Hant": {
@@ -5844,6 +7524,12 @@
             "value": "%1$@: %2$lld points ready to absorb incoming damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$lld puntos listos para absorber daño entrante"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5860,6 +7546,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 다음에 받는 피해를 흡수할 수 있는 수치 %2$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$lld pontos prontos para absorver dano recebido"
           }
         },
         "zh-Hant": {
@@ -5886,6 +7578,12 @@
             "value": "%1$@: Deals %2$lld %3$@ damage each turn, %4$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: inflige %2$lld de daño de %3$@ cada turno, %4$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5902,6 +7600,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@: 매 턴 %3$@ 피해 %2$lld, %4$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: Causa %2$lld de dano do tipo %3$@ a cada turno, %4$@"
           }
         },
         "zh-Hant": {
@@ -5928,6 +7632,12 @@
             "value": "%1$lld Poison\nDeals Poison damage and decreases by 25%% each turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de Veneno\nInflige daño de Veneno y disminuye un 25%% cada turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5944,6 +7654,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "독 %1$lld\n독 피해를 주며 매 턴 25%% 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de Veneno\nCausa dano de Veneno e diminui 25%% a cada turno"
           }
         },
         "zh-Hant": {
@@ -5970,6 +7686,12 @@
             "value": "%1$lld Bleed\nDeals Bleed damage each turn until it expires"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de Sangrado\nInflige daño de Sangrado cada turno hasta que expira"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5986,6 +7708,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "출혈 %1$lld\n끝날 때까지 매 턴 출혈 피해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de Sangramento\nCausa dano de Sangramento a cada turno até expirar"
           }
         },
         "zh-Hant": {
@@ -6012,6 +7740,12 @@
             "value": "%1$lld Burn\nDeals Burn damage and halves each turn"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de Quemadura\nInflige daño de Quemadura y se reduce a la mitad cada turno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6028,6 +7762,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "화상 %1$lld\n화상 피해를 주며 매 턴 절반으로 감소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de Queimadura\nCausa dano de Queimadura e cai à metade a cada turno"
           }
         },
         "zh-Hant": {
@@ -6054,6 +7794,12 @@
             "value": "Your next Freeze attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque de Congelación inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6070,6 +7816,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 빙결 공격의 피해가 %1$lld 증가합니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque de Congelamento causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -6096,6 +7848,12 @@
             "value": "Your next Holy attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque sagrado inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6112,6 +7870,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 신성 공격의 피해가 %1$lld 증가합니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque Sagrado causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -6138,6 +7902,12 @@
             "value": "Your next Stun attack deals %1$lld additional damage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu siguiente ataque de Aturdimiento inflige %1$lld de daño adicional"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6154,6 +7924,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다음 기절 공격의 피해가 %1$lld 증가합니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu próximo ataque de Atordoamento causa %1$lld de dano adicional"
           }
         },
         "zh-Hant": {
@@ -6180,6 +7956,12 @@
             "value": "Sapped: Health restoration reduced by %1$lld%%%2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agotado: restauración de Salud reducida en un %1$lld%%%2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6196,6 +7978,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "기력 고갈: 체력 회복량 %1$lld%% 감소%2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exaurido: Restauração de Vida reduzida em %1$lld%%%2$@"
           }
         },
         "zh-Hant": {
@@ -6222,6 +8010,12 @@
             "value": "Dazzled: Outgoing damage reduced by %1$lld%2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deslumbrado: daño infligido reducido en %1$lld%2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6238,6 +8032,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "눈부심: 주는 피해 %1$lld 감소%2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ofuscado: Dano causado reduzido em %1$lld%2$@"
           }
         },
         "zh-Hant": {
@@ -6264,6 +8064,12 @@
             "value": "Weakened: Outgoing damage reduced by %1$lld%%%2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debilitado: daño infligido reducido en un %1$lld%%%2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6280,6 +8086,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "약화: 주는 피해 %1$lld%% 감소%2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enfraquecido: Dano causado reduzido em %1$lld%%%2$@"
           }
         },
         "zh-Hant": {

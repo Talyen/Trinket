@@ -218,6 +218,22 @@ Text(L10n.deal_burn("literal (punctuation), title", count))
         with self.assertRaisesRegex(ValueError, 'fr/promotionalText'):
             submission_files(self.root, {'locales': ['fr']}, catalog)
 
+    def test_shared_spanish_store_copy_covers_both_regions_without_overwriting_another_language(self):
+        from internal.localization_store import LIMITS, submission_files
+        catalog = {'strings': {'store.' + key.lower(): {'localizations': {
+            locale: {'stringUnit': {'value': text}} for locale, text in [('en', 'English'), ('es', 'Español')]
+        }} for key in LIMITS}}
+        config = {'locales': ['es'], 'storeLocales': {'es': ['es-ES', 'es-MX']}}
+        files = submission_files(self.root, config, catalog)
+        directory = self.root / 'Localization/Generated/AppStore'
+        self.assertEqual(set(files), {directory / f'{locale}.json' for locale in ['en-US', 'es-ES', 'es-MX']})
+        for locale in ['es-ES', 'es-MX']:
+            self.assertEqual(json.loads(files[directory / f'{locale}.json']), {key: 'Español' for key in LIMITS})
+        self.assertEqual(json.loads(files[directory / 'en-US.json']), {key: 'English' for key in LIMITS})
+        config['storeLocales']['es'].append('en-US')
+        with self.assertRaisesRegex(ValueError, 'duplicate App Store locale en-US'):
+            submission_files(self.root, config, catalog)
+
     def test_compiler_extraction_cross_check_rejects_uninventoried_keys_and_missing_languages(self):
         import importlib.util
         script = Path(__file__).resolve().parents[1] / 'check-localization-build.py'

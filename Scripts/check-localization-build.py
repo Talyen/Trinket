@@ -79,7 +79,7 @@ def main() -> int:
         if errors:
             print('\n'.join(errors), file=sys.stderr)
             return 1
-        print('Localization build PASS: compiler coverage and all six bundle languages verified.')
+        print('Localization build PASS: compiler coverage and all configured bundle languages verified.')
         return 0
     except (OSError, ValueError, KeyError, TypeError) as error:
         print(f'Localization build check failed: {error}', file=sys.stderr)

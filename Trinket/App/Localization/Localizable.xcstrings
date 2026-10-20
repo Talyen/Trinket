@@ -17,6 +17,12 @@
             "value": "No two companions approach a battle alike. These records preserve the growing company that shares your adventures."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada compañero afronta las batallas a su manera. Estos registros preservan la creciente compañía que comparte tus aventuras."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -33,6 +39,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "동료마다 전투에 임하는 방식이 다릅니다. 이 기록에는 함께 모험하는 동료들이 늘어 가는 여정이 담겨 있습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada companheiro encara a batalha de um jeito. Estes registros preservam o grupo cada vez maior que compartilha suas aventuras."
           }
         },
         "zh-Hant": {
@@ -59,6 +71,12 @@
             "value": "Each Spire turns one form of power into a different trial. Reaching its tenth floor earns a place in the Library’s climbing records."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada Aguja convierte una forma de poder en una prueba distinta. Alcanzar su décimo piso te otorga un lugar en los registros de ascenso de la Biblioteca."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -75,6 +93,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "각 첨탑은 서로 다른 힘을 시련으로 바꿉니다. 10층에 도달하면 도서관의 등반 기록에 이름을 남길 수 있습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada Torre transforma uma forma de poder em um desafio diferente. Chegar ao décimo andar garante um lugar nos registros de escalada da Biblioteca."
           }
         },
         "zh-Hant": {
@@ -101,6 +125,12 @@
             "value": "Basic or Astral"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Básico o astral"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -117,6 +147,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "기본 또는 성운"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Básico ou Astral"
           }
         },
         "zh-Hant": {
@@ -143,6 +179,12 @@
             "value": "Bestiary"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestiario"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -159,6 +201,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "몬스터 도감"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestiário"
           }
         },
         "zh-Hant": {
@@ -185,6 +233,12 @@
             "value": "Build Library"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir Biblioteca"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -201,6 +255,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "도서관 건설"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir Biblioteca"
           }
         },
         "zh-Hant": {
@@ -227,6 +287,12 @@
             "value": "Completed"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -243,6 +309,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concluído"
           }
         },
         "zh-Hant": {
@@ -269,6 +341,12 @@
             "value": "Research complete"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Investigación completada"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -285,6 +363,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "연구 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pesquisa concluída"
           }
         },
         "zh-Hant": {
@@ -311,6 +395,12 @@
             "value": "Research projects completed: %1$lld"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proyectos de investigación completados: %1$lld"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -327,6 +417,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "완료한 연구: %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projetos de pesquisa concluídos: %1$lld"
           }
         },
         "zh-Hant": {
@@ -353,6 +449,12 @@
             "value": "Craft"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fabricar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -369,6 +471,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "제작"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Criar"
           }
         },
         "zh-Hant": {
@@ -395,6 +503,12 @@
             "value": "Defeat"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Derrota"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -411,6 +525,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "처치 대상"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Derrota"
           }
         },
         "zh-Hant": {
@@ -437,6 +557,12 @@
             "value": "Standard Contract reference"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Referencia de Contrato estándar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -453,6 +579,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "보통 의뢰 기준"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Referência de Contrato padrão"
           }
         },
         "zh-Hant": {
@@ -479,6 +611,12 @@
             "value": "Undiscovered enemy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enemigo sin descubrir"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -495,6 +633,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "미발견 적"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inimigo não descoberto"
           }
         },
         "zh-Hant": {
@@ -521,6 +665,12 @@
             "value": "Focused Recipes"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recetas especializadas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -537,6 +687,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "특화 제작법"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receitas especializadas"
           }
         },
         "zh-Hant": {
@@ -563,6 +719,12 @@
             "value": "Recruit three different Companions"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recluta a tres compañeros diferentes"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -579,6 +741,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "서로 다른 동료 3명 영입"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recrute três Companheiros diferentes"
           }
         },
         "zh-Hant": {
@@ -605,6 +773,12 @@
             "value": "Clear floor 10 of any Spire"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supera el piso 10 de cualquier Aguja"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -621,6 +795,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "아무 첨탑에서 10층 클리어"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conclua o andar 10 de qualquer Torre"
           }
         },
         "zh-Hant": {
@@ -647,6 +827,12 @@
             "value": "Bleed affix guaranteed"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afijo de Sangrado garantizado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -663,6 +849,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "출혈 접사 확정"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afixo de Sangramento garantido"
           }
         },
         "zh-Hant": {
@@ -689,6 +881,12 @@
             "value": "Physical affix guaranteed"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afijo físico garantizado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -705,6 +903,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "물리 접사 확정"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afixo Físico garantido"
           }
         },
         "zh-Hant": {
@@ -731,6 +935,12 @@
             "value": "Poison affix guaranteed"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afijo de Veneno garantizado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -747,6 +957,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "독 접사 확정"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afixo de Veneno garantido"
           }
         },
         "zh-Hant": {
@@ -773,6 +989,12 @@
             "value": "In Progress"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En curso"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -789,6 +1011,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "진행 중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em andamento"
           }
         },
         "zh-Hant": {
@@ -815,6 +1043,12 @@
             "value": "Open Archery Range"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Campo de tiro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -831,6 +1065,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "궁술장 열기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Campo de Tiro"
           }
         },
         "zh-Hant": {
@@ -857,6 +1097,12 @@
             "value": "%1$lld of %2$lld objectives complete"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de %2$lld objetivos completados"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -873,6 +1119,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "목표 %2$lld개 중 %1$lld개 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de %2$lld objetivos concluídos"
           }
         },
         "zh-Hant": {
@@ -899,6 +1151,12 @@
             "value": "Arms and Armor"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armas y armaduras"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -915,6 +1173,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "무기와 방어구"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armas e Armaduras"
           }
         },
         "zh-Hant": {
@@ -941,6 +1205,12 @@
             "value": "Companion Chronicles"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crónicas de compañeros"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -957,6 +1227,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "동료 연대기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crônicas dos Companheiros"
           }
         },
         "zh-Hant": {
@@ -983,6 +1259,12 @@
             "value": "Forest Field Notes"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notas de campo del bosque"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -999,6 +1281,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "숲 현장 기록"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anotações de Campo da Floresta"
           }
         },
         "zh-Hant": {
@@ -1025,6 +1313,12 @@
             "value": "Predator Anatomy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anatomía de depredadores"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1041,6 +1335,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "포식자 해부학"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anatomia dos Predadores"
           }
         },
         "zh-Hant": {
@@ -1067,6 +1367,12 @@
             "value": "Spire Records"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registros de las Agujas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1083,6 +1389,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "첨탑 기록"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registros das Torres"
           }
         },
         "zh-Hant": {
@@ -1109,6 +1421,12 @@
             "value": "Bleed Longbow"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arco largo de Sangrado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1125,6 +1443,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "출혈 장궁"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arco Longo de Sangramento"
           }
         },
         "zh-Hant": {
@@ -1151,6 +1475,12 @@
             "value": "Physical Crossbow"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ballesta física"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1167,6 +1497,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "물리 석궁"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Besta Física"
           }
         },
         "zh-Hant": {
@@ -1193,6 +1529,12 @@
             "value": "Poison Shortbow"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arco corto de Veneno"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1209,6 +1551,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "독 단궁"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arco Curto de Veneno"
           }
         },
         "zh-Hant": {
@@ -1235,6 +1583,12 @@
             "value": "Research"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Investigar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1251,6 +1605,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "연구"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pesquisar"
           }
         },
         "zh-Hant": {
@@ -1277,6 +1637,12 @@
             "value": "Standard Recipes"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recetas estándar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1293,6 +1659,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "기본 제작법"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receitas padrão"
           }
         },
         "zh-Hant": {
@@ -1319,6 +1691,12 @@
             "value": "Library %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biblioteca %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1335,6 +1713,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "도서관 %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biblioteca %1$@"
           }
         },
         "zh-Hant": {
@@ -1361,6 +1745,12 @@
             "value": "View Research"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver investigación"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1377,6 +1767,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "연구 보기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver pesquisa"
           }
         },
         "zh-Hant": {
@@ -1403,6 +1799,12 @@
             "value": "Battle"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batalla"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1419,6 +1821,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "전투"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batalha"
           }
         },
         "zh-Hant": {
@@ -1445,6 +1853,12 @@
             "value": "Chapter %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capítulo %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1461,6 +1875,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@장"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capítulo %1$@"
           }
         },
         "zh-Hant": {
@@ -1487,6 +1907,12 @@
             "value": "Added to Inventory"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadido al inventario"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1503,6 +1929,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "소지품에 추가됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionado ao inventário"
           }
         },
         "zh-Hant": {
@@ -1529,6 +1961,12 @@
             "value": "Done"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1545,6 +1983,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concluir"
           }
         },
         "zh-Hant": {
@@ -1571,6 +2015,12 @@
             "value": "Forge"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forja"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1587,6 +2037,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "제작"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forja"
           }
         },
         "zh-Hant": {
@@ -1613,6 +2069,12 @@
             "value": "Forged"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forjado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1629,6 +2091,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "제작 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forjado"
           }
         },
         "zh-Hant": {
@@ -1655,6 +2123,12 @@
             "value": "Forge"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forja"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1671,6 +2145,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "대장간"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forja"
           }
         },
         "zh-Hant": {
@@ -1697,6 +2177,12 @@
             "value": "Back to Play"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a Jugar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1713,6 +2199,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "플레이로 돌아가기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar a Jogar"
           }
         },
         "zh-Hant": {
@@ -1739,6 +2231,12 @@
             "value": "Campaign Complete"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Campaña completada"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1755,6 +2253,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "캠페인 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Campanha concluída"
           }
         },
         "zh-Hant": {
@@ -1781,6 +2285,12 @@
             "value": "Chapter %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capítulo %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1797,6 +2307,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@장"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capítulo %1$@"
           }
         },
         "zh-Hant": {
@@ -1823,6 +2339,12 @@
             "value": "Every chapter stage is complete"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las etapas de los capítulos están completadas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1839,6 +2361,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 챕터의 스테이지를 완료했습니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas as fases dos capítulos foram concluídas"
           }
         },
         "zh-Hant": {
@@ -1865,6 +2393,12 @@
             "value": "Companions"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compañeros"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1881,6 +2415,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "동료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companheiros"
           }
         },
         "zh-Hant": {
@@ -1907,6 +2447,12 @@
             "value": "Heroes"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Héroes"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1923,6 +2469,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "영웅"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heróis"
           }
         },
         "zh-Hant": {
@@ -1949,6 +2501,12 @@
             "value": "Collection"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colección"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -1965,6 +2523,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "수집 목록"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coleção"
           }
         },
         "zh-Hant": {
@@ -1991,6 +2555,12 @@
             "value": "Companions"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compañeros"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2007,6 +2577,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "동료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companheiros"
           }
         },
         "zh-Hant": {
@@ -2033,6 +2609,12 @@
             "value": "Heroes"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Héroes"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2049,6 +2631,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "영웅"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heróis"
           }
         },
         "zh-Hant": {
@@ -2075,6 +2663,12 @@
             "value": "Contracts"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contratos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2091,6 +2685,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "의뢰"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contratos"
           }
         },
         "zh-Hant": {
@@ -2117,6 +2717,12 @@
             "value": "Load Contracts"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargar Contratos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2133,6 +2739,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "의뢰 불러오기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carregar Contratos"
           }
         },
         "zh-Hant": {
@@ -2159,6 +2771,12 @@
             "value": "Preparing contracts"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando contratos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2175,6 +2793,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "의뢰 준비 중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando contratos"
           }
         },
         "zh-Hant": {
@@ -2201,6 +2825,12 @@
             "value": "Ready"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2217,6 +2847,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "준비 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pronto"
           }
         },
         "zh-Hant": {
@@ -2243,6 +2879,12 @@
             "value": "Refresh Contracts"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renovar Contratos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2259,6 +2901,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "의뢰 새로고침"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizar Contratos"
           }
         },
         "zh-Hant": {
@@ -2285,6 +2933,12 @@
             "value": "Win a Contract to refresh"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gana un Contrato para renovar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2301,6 +2955,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "의뢰에서 승리하면 새로고침 가능"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vença um Contrato para atualizar"
           }
         },
         "zh-Hant": {
@@ -2327,6 +2987,12 @@
             "value": "Coverage diagnostics"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnósticos de cobertura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2343,6 +3009,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "적용 범위 진단"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnóstico de cobertura"
           }
         },
         "zh-Hant": {
@@ -2369,6 +3041,12 @@
             "value": "diagnostics serialization failed"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falló la serialización de diagnósticos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2385,6 +3063,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "진단 정보 직렬화 실패"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "falha na serialização do diagnóstico"
           }
         },
         "zh-Hant": {
@@ -2411,6 +3095,12 @@
             "value": "Frame Metrics"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Métricas de fotogramas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2427,6 +3117,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "프레임 지표"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Métricas de quadros"
           }
         },
         "zh-Hant": {
@@ -2453,6 +3149,12 @@
             "value": "Frame Metrics Reset"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Métricas de fotogramas restablecidas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2469,6 +3171,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "프레임 지표 초기화됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Métricas de quadros redefinidas"
           }
         },
         "zh-Hant": {
@@ -2495,6 +3203,12 @@
             "value": "Contracts"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contratos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2511,6 +3225,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "의뢰"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contratos"
           }
         },
         "zh-Hant": {
@@ -2537,6 +3257,12 @@
             "value": "Explore"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explorar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2553,6 +3279,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "탐험"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explorar"
           }
         },
         "zh-Hant": {
@@ -2579,6 +3311,12 @@
             "value": "Floor %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Piso %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2595,6 +3333,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@층"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andar %1$@"
           }
         },
         "zh-Hant": {
@@ -2621,6 +3365,12 @@
             "value": "Labyrinth"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laberinto"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2637,6 +3387,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "미궁"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labirinto"
           }
         },
         "zh-Hant": {
@@ -2663,6 +3419,12 @@
             "value": "Spires"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agujas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2679,6 +3441,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "첨탑"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torres"
           }
         },
         "zh-Hant": {
@@ -2705,6 +3473,12 @@
             "value": "Voyage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Travesía"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2721,6 +3495,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "항해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viagem"
           }
         },
         "zh-Hant": {
@@ -2747,6 +3527,12 @@
             "value": "All **chapters & modes**"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los **capítulos y modos**"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2763,6 +3549,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 **챕터와 모드**"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos os **capítulos e modos**"
           }
         },
         "zh-Hant": {
@@ -2789,6 +3581,12 @@
             "value": "Close"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2805,6 +3603,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "닫기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechar"
           }
         },
         "zh-Hant": {
@@ -2831,6 +3635,12 @@
             "value": "Couldn’t restore purchases. Please try again."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron restaurar las compras. Vuelve a intentarlo."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2847,6 +3657,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "구매를 복원하지 못했습니다. 다시 시도해 주세요."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível restaurar as compras. Tente novamente."
           }
         },
         "zh-Hant": {
@@ -2873,6 +3689,12 @@
             "value": "Couldn’t verify Full Game ownership. Please try Restore Purchases."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo verificar la propiedad del juego completo. Prueba Restaurar compras."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2889,6 +3711,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정식 게임 구매 여부를 확인하지 못했습니다. 구매 복원을 시도해 주세요."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível verificar a compra do Jogo Completo. Tente Restaurar Compras."
           }
         },
         "zh-Hant": {
@@ -2915,6 +3743,12 @@
             "value": "Every **hero & companion**"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los **héroes y compañeros**"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2931,6 +3765,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모든 **영웅과 동료**"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos os **heróis e companheiros**"
           }
         },
         "zh-Hant": {
@@ -2957,6 +3797,12 @@
             "value": "Family Sharing"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En familia"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -2973,6 +3819,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "가족 공유"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhamento Familiar"
           }
         },
         "zh-Hant": {
@@ -2999,6 +3851,12 @@
             "value": "FULL GAME"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JUEGO COMPLETO"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3015,6 +3873,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정식 게임"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JOGO COMPLETO"
           }
         },
         "zh-Hant": {
@@ -3041,6 +3905,12 @@
             "value": "Full Game"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Juego completo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3057,6 +3927,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정식 게임"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jogo Completo"
           }
         },
         "zh-Hant": {
@@ -3083,6 +3959,12 @@
             "value": "Full Game Purchased"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Juego completo comprado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3099,6 +3981,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정식 게임 구매 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jogo Completo comprado"
           }
         },
         "zh-Hant": {
@@ -3125,6 +4013,12 @@
             "value": "Includes **all future content**"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluye **todo el contenido futuro**"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3141,6 +4035,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "**향후 모든 콘텐츠** 포함"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inclui **todo o conteúdo futuro**"
           }
         },
         "zh-Hant": {
@@ -3167,6 +4067,12 @@
             "value": "Keep Exploring"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguir explorando"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3183,6 +4089,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "계속 탐험하기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue explorando"
           }
         },
         "zh-Hant": {
@@ -3209,6 +4121,12 @@
             "value": "No Full Game purchase was found for your Apple Account."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontró ninguna compra del juego completo en tu cuenta de Apple."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3225,6 +4143,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "이 Apple 계정에서 정식 게임 구매 내역을 찾지 못했습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma compra do Jogo Completo foi encontrada na sua Conta Apple."
           }
         },
         "zh-Hant": {
@@ -3251,6 +4175,12 @@
             "value": "Pricing is unavailable. Try again."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El precio no está disponible. Vuelve a intentarlo."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3267,6 +4197,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "가격 정보를 불러올 수 없습니다. 다시 시도해 주세요."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preço indisponível. Tente novamente."
           }
         },
         "zh-Hant": {
@@ -3293,6 +4229,12 @@
             "value": "Privacy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacidad"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3309,6 +4251,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "개인정보 보호"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacidade"
           }
         },
         "zh-Hant": {
@@ -3335,6 +4283,12 @@
             "value": "Restore Purchases"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar compras"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3351,6 +4305,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "구매 복원"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar Compras"
           }
         },
         "zh-Hant": {
@@ -3377,6 +4337,12 @@
             "value": "Retry"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3393,6 +4359,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다시 시도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar novamente"
           }
         },
         "zh-Hant": {
@@ -3419,6 +4391,12 @@
             "value": "Unlock Full Game · %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear juego completo · %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3435,6 +4413,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정식 게임 잠금 해제 · %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear Jogo Completo · %1$@"
           }
         },
         "zh-Hant": {
@@ -3461,6 +4445,12 @@
             "value": "Waiting for approval. Full Game will unlock when approved."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esperando aprobación. El juego completo se desbloqueará cuando se apruebe."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3477,6 +4467,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "승인 대기 중입니다. 승인되면 정식 게임이 잠금 해제됩니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aguardando aprovação. O Jogo Completo será desbloqueado após a aprovação."
           }
         },
         "zh-Hant": {
@@ -3503,6 +4499,12 @@
             "value": "%1$@ of %2$@ upgrades"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de %2$@ mejoras"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3519,6 +4521,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "업그레이드 %2$@개 중 %1$@개"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de %2$@ melhorias"
           }
         },
         "zh-Hant": {
@@ -3545,6 +4553,12 @@
             "value": "Resources"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recursos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3561,6 +4575,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "자원"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recursos"
           }
         },
         "zh-Hant": {
@@ -3587,6 +4607,12 @@
             "value": "Build %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3603,6 +4629,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 건설"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir %1$@"
           }
         },
         "zh-Hant": {
@@ -3629,6 +4661,12 @@
             "value": "Build"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3645,6 +4683,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "건설"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir"
           }
         },
         "zh-Hant": {
@@ -3671,6 +4715,12 @@
             "value": "Build cost"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coste de construcción"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3687,6 +4737,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "건설 비용"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custo de construção"
           }
         },
         "zh-Hant": {
@@ -3713,6 +4769,12 @@
             "value": "Close"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3729,6 +4791,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "닫기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechar"
           }
         },
         "zh-Hant": {
@@ -3755,6 +4823,12 @@
             "value": "Resources"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recursos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3771,6 +4845,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "자원"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recursos"
           }
         },
         "zh-Hant": {
@@ -3797,6 +4877,12 @@
             "value": "Upgrade"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mejorar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3813,6 +4899,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "업그레이드"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melhorar"
           }
         },
         "zh-Hant": {
@@ -3839,6 +4931,12 @@
             "value": "Upgrade cost"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coste de mejora"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3855,6 +4953,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "업그레이드 비용"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custo da melhoria"
           }
         },
         "zh-Hant": {
@@ -3881,6 +4985,12 @@
             "value": "Back"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atrás"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3897,6 +5007,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "뒤로"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar"
           }
         },
         "zh-Hant": {
@@ -3923,6 +5039,12 @@
             "value": "Build"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3939,6 +5061,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "건설"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construir"
           }
         },
         "zh-Hant": {
@@ -3965,6 +5093,12 @@
             "value": "Craft"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fabricar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -3981,6 +5115,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "제작"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Criar"
           }
         },
         "zh-Hant": {
@@ -4007,6 +5147,12 @@
             "value": "Resources"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recursos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4023,6 +5169,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "자원"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recursos"
           }
         },
         "zh-Hant": {
@@ -4049,6 +5201,12 @@
             "value": "Upgrade"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mejorar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4065,6 +5223,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "업그레이드"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melhorar"
           }
         },
         "zh-Hant": {
@@ -4091,6 +5255,12 @@
             "value": "%1$@, insufficient"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, insuficiente"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4107,6 +5277,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, 부족함"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, insuficiente"
           }
         },
         "zh-Hant": {
@@ -4133,6 +5309,12 @@
             "value": "%1$@ of %2$@ upgrades"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de %2$@ mejoras"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4149,6 +5331,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "업그레이드 %2$@개 중 %1$@개"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de %2$@ melhorias"
           }
         },
         "zh-Hant": {
@@ -4175,6 +5363,12 @@
             "value": "Alchemical Flame"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Llama alquímica"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4191,6 +5385,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "연금술의 불꽃"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chama Alquímica"
           }
         },
         "zh-Hant": {
@@ -4217,6 +5417,12 @@
             "value": "Arcane Renewal"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renovación arcana"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4233,6 +5439,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "비전의 재생"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renovação Arcana"
           }
         },
         "zh-Hant": {
@@ -4259,6 +5471,12 @@
             "value": "Astral Attunement"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sintonía astral"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4275,6 +5493,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "성운 조율"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sintonia Astral"
           }
         },
         "zh-Hant": {
@@ -4301,6 +5525,12 @@
             "value": "Astral Forging"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forja astral"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4317,6 +5547,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "성운 단조"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forja Astral"
           }
         },
         "zh-Hant": {
@@ -4343,6 +5579,12 @@
             "value": "Bitter Remedy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remedio amargo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4359,6 +5601,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "쓴 치료제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remédio Amargo"
           }
         },
         "zh-Hant": {
@@ -4385,6 +5633,12 @@
             "value": "Building progress"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progreso de construcción"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4401,6 +5655,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "건설 진행도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progresso da construção"
           }
         },
         "zh-Hant": {
@@ -4427,6 +5687,12 @@
             "value": "Coop’s Comfort"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confort del gallinero"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4443,6 +5709,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "닭장의 위안"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conforto do Galinheiro"
           }
         },
         "zh-Hant": {
@@ -4469,6 +5741,12 @@
             "value": "Crystal Bloom"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Floración cristalina"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4485,6 +5763,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "수정 개화"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Floração de Cristais"
           }
         },
         "zh-Hant": {
@@ -4511,6 +5795,12 @@
             "value": "Cultured Reagents"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reactivos cultivados"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4527,6 +5817,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "배양 시약"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reagentes Cultivados"
           }
         },
         "zh-Hant": {
@@ -4553,6 +5849,12 @@
             "value": "Daily Bread"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pan de cada día"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4569,6 +5871,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "일용할 양식"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pão de Cada Dia"
           }
         },
         "zh-Hant": {
@@ -4595,6 +5903,12 @@
             "value": "Emberguard Stitch"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puntada guardascuas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4611,6 +5925,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "잿불 수호 바느질"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Costura Antibrasa"
           }
         },
         "zh-Hant": {
@@ -4637,6 +5957,12 @@
             "value": "Forged Edge"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filo forjado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4653,6 +5979,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "벼린 칼날"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fio Forjado"
           }
         },
         "zh-Hant": {
@@ -4679,6 +6011,12 @@
             "value": "Fresh Ingots"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingotes recientes"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4695,6 +6033,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "새 주괴"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lingotes Novos"
           }
         },
         "zh-Hant": {
@@ -4721,6 +6065,12 @@
             "value": "Fresh Pickings"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recolección fresca"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4737,6 +6087,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "싱싱한 수확"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colheita Fresca"
           }
         },
         "zh-Hant": {
@@ -4763,6 +6119,12 @@
             "value": "Frost Inscription"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inscripción de escarcha"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4779,6 +6141,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "서리 각인"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inscrição Gélida"
           }
         },
         "zh-Hant": {
@@ -4805,6 +6173,12 @@
             "value": "Fungal Harvest"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cosecha de hongos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4821,6 +6195,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "버섯 수확"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colheita de Fungos"
           }
         },
         "zh-Hant": {
@@ -4847,6 +6227,12 @@
             "value": "Gathered Hides"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pieles recolectadas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4863,6 +6249,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모은 가죽"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couros Coletados"
           }
         },
         "zh-Hant": {
@@ -4889,6 +6281,12 @@
             "value": "Golden Harvest"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cosecha dorada"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4905,6 +6303,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "황금 수확"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colheita Dourada"
           }
         },
         "zh-Hant": {
@@ -4931,6 +6335,12 @@
             "value": "Hallowed Script"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escritura sagrada"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4947,6 +6357,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "신성한 문자"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escrita Sagrada"
           }
         },
         "zh-Hant": {
@@ -4973,6 +6389,12 @@
             "value": "Harvest’s Strength"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuerza de la cosecha"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -4989,6 +6411,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "수확의 힘"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Força da Colheita"
           }
         },
         "zh-Hant": {
@@ -5015,6 +6443,12 @@
             "value": "Hearty Fare"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comida sustanciosa"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5031,6 +6465,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "든든한 음식"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refeição Farta"
           }
         },
         "zh-Hant": {
@@ -5057,6 +6497,12 @@
             "value": "Hunter’s Haul"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Botín del cazador"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5073,6 +6519,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "사냥꾼의 수확"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Butim do Caçador"
           }
         },
         "zh-Hant": {
@@ -5099,6 +6551,12 @@
             "value": "Lessons of the Past"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecciones del pasado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5115,6 +6573,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "과거의 교훈"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lições do Passado"
           }
         },
         "zh-Hant": {
@@ -5141,6 +6605,12 @@
             "value": "Leyline Crystallization"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cristalización de líneas ley"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5157,6 +6627,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지맥의 결정화"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cristalização das Linhas de Ley"
           }
         },
         "zh-Hant": {
@@ -5183,6 +6659,12 @@
             "value": "Metal Transmutation"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transmutación de metal"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5199,6 +6681,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "금속 변성"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transmutação de Metais"
           }
         },
         "zh-Hant": {
@@ -5225,6 +6713,12 @@
             "value": "Mineral Growth"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crecimiento mineral"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5241,6 +6735,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "광물 성장"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crescimento Mineral"
           }
         },
         "zh-Hant": {
@@ -5267,6 +6767,12 @@
             "value": "Moonlit Fortune"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortuna a la luz de la luna"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5283,6 +6789,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "달빛 행운"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortuna ao Luar"
           }
         },
         "zh-Hant": {
@@ -5309,6 +6821,12 @@
             "value": "Morning Eggs"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huevos matutinos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5325,6 +6843,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "아침 달걀"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ovos da Manhã"
           }
         },
         "zh-Hant": {
@@ -5351,6 +6875,12 @@
             "value": "Nimble Paws"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patas ágiles"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5367,6 +6897,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "날렵한 발"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patas Ágeis"
           }
         },
         "zh-Hant": {
@@ -5393,6 +6929,12 @@
             "value": "Pack Instinct"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instinto de manada"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5409,6 +6951,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "무리의 본능"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instinto de Matilha"
           }
         },
         "zh-Hant": {
@@ -5435,6 +6983,12 @@
             "value": "Perfect Facet"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faceta perfecta"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5451,6 +7005,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "완벽한 보석면"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faceta Perfeita"
           }
         },
         "zh-Hant": {
@@ -5477,6 +7037,12 @@
             "value": "Potent Venom"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Veneno potente"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5493,6 +7059,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "강력한 맹독"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peçonha Potente"
           }
         },
         "zh-Hant": {
@@ -5519,6 +7091,12 @@
             "value": "Runic Crystals"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cristales rúnicos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5535,6 +7113,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "룬 수정"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cristais Rúnicos"
           }
         },
         "zh-Hant": {
@@ -5561,6 +7145,12 @@
             "value": "Salvaged Steel"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acero recuperado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5577,6 +7167,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "회수한 강철"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aço Recuperado"
           }
         },
         "zh-Hant": {
@@ -5603,6 +7199,12 @@
             "value": "Seasoned Timber"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Madera curada"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5619,6 +7221,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "건조 목재"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Madeira Curada"
           }
         },
         "zh-Hant": {
@@ -5645,6 +7253,12 @@
             "value": "Siphoning Spores"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esporas absorbentes"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5661,6 +7275,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "착취 포자"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esporos Drenantes"
           }
         },
         "zh-Hant": {
@@ -5687,6 +7307,12 @@
             "value": "Steady Guard"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardia firme"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5703,6 +7329,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "굳건한 방어"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guarda Firme"
           }
         },
         "zh-Hant": {
@@ -5729,6 +7361,12 @@
             "value": "Tailor’s Trade"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oficio de sastre"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5745,6 +7383,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "재단사의 솜씨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ofício do Alfaiate"
           }
         },
         "zh-Hant": {
@@ -5771,6 +7415,12 @@
             "value": "Thick Hide"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Piel gruesa"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5787,6 +7437,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "두꺼운 가죽"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couro Grosso"
           }
         },
         "zh-Hant": {
@@ -5813,6 +7469,12 @@
             "value": "True Aim"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puntería certera"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5829,6 +7491,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정확한 조준"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mira Certeira"
           }
         },
         "zh-Hant": {
@@ -5855,6 +7523,12 @@
             "value": "Winter Weave"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tejido invernal"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5871,6 +7545,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "겨울 직조"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trama Invernal"
           }
         },
         "zh-Hant": {
@@ -5897,6 +7577,12 @@
             "value": "Wishful Fortune"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deseo de fortuna"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5913,6 +7599,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "소원의 행운"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortuna dos Desejos"
           }
         },
         "zh-Hant": {
@@ -5939,6 +7631,12 @@
             "value": "Wishing Coins"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monedas de los deseos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5955,6 +7653,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "소원 동전"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moedas dos Desejos"
           }
         },
         "zh-Hant": {
@@ -5981,6 +7685,12 @@
             "value": "Collect"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recoger"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -5997,6 +7707,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "받기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coletar"
           }
         },
         "zh-Hant": {
@@ -6023,6 +7739,12 @@
             "value": "Homestead"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hogar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6039,6 +7761,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "안식처"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propriedade"
           }
         },
         "zh-Hant": {
@@ -6065,6 +7793,12 @@
             "value": "Accessories"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesorios"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6081,6 +7815,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "장신구"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acessórios"
           }
         },
         "zh-Hant": {
@@ -6107,6 +7847,12 @@
             "value": "All"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6123,6 +7869,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "전체"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos"
           }
         },
         "zh-Hant": {
@@ -6149,6 +7901,12 @@
             "value": "Armor"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armadura"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6165,6 +7923,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "방어구"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armadura"
           }
         },
         "zh-Hant": {
@@ -6191,6 +7955,12 @@
             "value": "Astral Gear"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipo astral"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6207,6 +7977,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "성운 장비"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipamento Astral"
           }
         },
         "zh-Hant": {
@@ -6233,6 +8009,12 @@
             "value": "Basic Gear"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipo básico"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6249,6 +8031,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "기본 장비"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipamento Básico"
           }
         },
         "zh-Hant": {
@@ -6275,6 +8063,12 @@
             "value": "Filter %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrar %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6291,6 +8085,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 필터"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrar %1$@"
           }
         },
         "zh-Hant": {
@@ -6317,6 +8117,12 @@
             "value": "No %1$@ Yet"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6333,6 +8139,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "아직 %1$@ 없음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ainda sem %1$@"
           }
         },
         "zh-Hant": {
@@ -6359,6 +8171,12 @@
             "value": "No Matching Items"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay objetos coincidentes"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6375,6 +8193,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "일치하는 아이템 없음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum item correspondente"
           }
         },
         "zh-Hant": {
@@ -6401,6 +8225,12 @@
             "value": "Trinkets"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abalorios"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6417,6 +8247,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "트링킷"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berloques"
           }
         },
         "zh-Hant": {
@@ -6443,6 +8279,12 @@
             "value": "Try a different filter"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prueba otro filtro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6459,6 +8301,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다른 필터를 사용해 보세요"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tente outro filtro"
           }
         },
         "zh-Hant": {
@@ -6485,6 +8333,12 @@
             "value": "Unique Gear"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipo único"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6501,6 +8355,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "고유 장비"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipamento Único"
           }
         },
         "zh-Hant": {
@@ -6527,6 +8387,12 @@
             "value": "Weapons"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6543,6 +8409,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "무기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armas"
           }
         },
         "zh-Hant": {
@@ -6569,6 +8441,12 @@
             "value": "Your %1$@ will appear here when you collect them"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los objetos de la categoría %1$@ aparecerán aquí cuando los consigas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6585,6 +8463,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 수집 시 여기에 표시됩니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus itens de %1$@ aparecerão aqui quando você os coletar"
           }
         },
         "zh-Hant": {
@@ -6611,6 +8495,12 @@
             "value": "%1$@, cleared"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, superado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6627,6 +8517,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, concluído"
           }
         },
         "zh-Hant": {
@@ -6653,6 +8549,12 @@
             "value": "Dismiss selection"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descartar selección"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6669,6 +8571,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "선택 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispensar seleção"
           }
         },
         "zh-Hant": {
@@ -6695,6 +8603,12 @@
             "value": "Not reachable"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaccesible"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6711,6 +8625,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "도달 불가"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inacessível"
           }
         },
         "zh-Hant": {
@@ -6737,6 +8657,12 @@
             "value": "Shows node details"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muestra los detalles del nodo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6753,6 +8679,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지점 상세 정보 표시"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra detalhes do ponto"
           }
         },
         "zh-Hant": {
@@ -6779,6 +8711,12 @@
             "value": "Unexplored chamber, locked"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cámara sin explorar, bloqueada"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6795,6 +8733,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "탐험하지 않은 방, 잠김"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Câmara inexplorada, bloqueada"
           }
         },
         "zh-Hant": {
@@ -6821,6 +8765,12 @@
             "value": "Back"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atrás"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6837,6 +8787,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "뒤로"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar"
           }
         },
         "zh-Hant": {
@@ -6863,6 +8819,12 @@
             "value": "Enter"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6879,6 +8841,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "입장"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrar"
           }
         },
         "zh-Hant": {
@@ -6905,6 +8873,12 @@
             "value": "Floor %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Piso %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6921,6 +8895,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@층"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andar %1$@"
           }
         },
         "zh-Hant": {
@@ -6947,6 +8927,12 @@
             "value": "Labyrinth"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laberinto"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -6963,6 +8949,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "미궁"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labirinto"
           }
         },
         "zh-Hant": {
@@ -6989,6 +8981,12 @@
             "value": "Retry"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7005,6 +9003,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다시 시도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar novamente"
           }
         },
         "zh-Hant": {
@@ -7031,6 +9035,12 @@
             "value": "The path remembers\nDescend when you are ready"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El camino recuerda\nDesciende cuando estés listo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7047,6 +9057,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "길은 기억합니다\n준비가 되면 내려가세요"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O caminho se lembra\nDesça quando estiver pronto"
           }
         },
         "zh-Hant": {
@@ -7073,6 +9089,12 @@
             "value": "Attuning magic relics…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sintonizando reliquias mágicas…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7089,6 +9111,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "마법 유물 조율 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sintonizando relíquias mágicas…"
           }
         },
         "zh-Hant": {
@@ -7115,6 +9143,12 @@
             "value": "Awakening dungeon monsters…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Despertando monstruos de mazmorra…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7131,6 +9165,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "던전 몬스터 깨우는 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Despertando monstros da masmorra…"
           }
         },
         "zh-Hant": {
@@ -7157,6 +9197,12 @@
             "value": "Brewing health potions…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando pociones de salud…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7173,6 +9219,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "체력 물약 제조 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando poções de vida…"
           }
         },
         "zh-Hant": {
@@ -7199,6 +9251,12 @@
             "value": "Building a homestead…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construyendo un hogar…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7215,6 +9273,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "안식처 건설 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Construindo uma propriedade…"
           }
         },
         "zh-Hant": {
@@ -7241,6 +9305,12 @@
             "value": "Consulting the oracle…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consultando al oráculo…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7257,6 +9327,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "신탁을 구하는 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consultando o oráculo…"
           }
         },
         "zh-Hant": {
@@ -7283,6 +9359,12 @@
             "value": "Counting monster loot…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contando el botín de los monstruos…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7299,6 +9381,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "몬스터 전리품 집계 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contando o saque dos monstros…"
           }
         },
         "zh-Hant": {
@@ -7325,6 +9413,12 @@
             "value": "Enchanting arcane baubles…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encantando baratijas arcanas…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7341,6 +9435,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "비전 장신구에 마법 부여 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encantando bugigangas arcanas…"
           }
         },
         "zh-Hant": {
@@ -7367,6 +9467,12 @@
             "value": "Gathering mana crystals…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recolectando cristales de maná…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7383,6 +9489,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "마나 수정 채집 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coletando cristais de mana…"
           }
         },
         "zh-Hant": {
@@ -7409,6 +9521,12 @@
             "value": "Loading Trinket"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando Trinket"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7425,6 +9543,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "트링킷 불러오는 중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carregando Trinket"
           }
         },
         "zh-Hant": {
@@ -7451,6 +9575,12 @@
             "value": "Mapping labyrinth corridors…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trazando los pasillos del laberinto…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7467,6 +9597,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "미궁 통로 지도 작성 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapeando corredores do labirinto…"
           }
         },
         "zh-Hant": {
@@ -7493,6 +9629,12 @@
             "value": "Polishing ancient trinkets…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puliendo abalorios antiguos…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7509,6 +9651,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "고대 트링킷 연마 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polindo berloques antigos…"
           }
         },
         "zh-Hant": {
@@ -7535,6 +9683,12 @@
             "value": "Preparing your adventure…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando tu aventura…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7551,6 +9705,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모험 준비 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando sua aventura…"
           }
         },
         "zh-Hant": {
@@ -7577,6 +9737,12 @@
             "value": "Restocking mystery shops…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reponiendo tiendas misteriosas…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7593,6 +9759,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "신비한 상점 재입고 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reabastecendo lojas misteriosas…"
           }
         },
         "zh-Hant": {
@@ -7619,6 +9791,12 @@
             "value": "Sharpening rusty blades…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afilando espadas oxidadas…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7635,6 +9813,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "녹슨 칼날 벼리는 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afiando lâminas enferrujadas…"
           }
         },
         "zh-Hant": {
@@ -7661,6 +9845,12 @@
             "value": "Shuffling the battle deck…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barajando el mazo de batalla…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7677,6 +9867,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "전투 덱 섞는 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embaralhando o baralho de batalha…"
           }
         },
         "zh-Hant": {
@@ -7703,6 +9899,12 @@
             "value": "Training animal companions…"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrenando compañeros animales…"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7719,6 +9921,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "동물 동료 훈련 중…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Treinando companheiros animais…"
           }
         },
         "zh-Hant": {
@@ -7745,6 +9953,12 @@
             "value": "TRINKET"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRINKET"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7761,6 +9975,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "트링킷"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRINKET"
           }
         },
         "zh-Hant": {
@@ -7787,6 +10007,12 @@
             "value": "%1$@ · CORRUPTED"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · CORRUPTO"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7803,6 +10029,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ · 타락함"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · CORROMPIDO"
           }
         },
         "zh-Hant": {
@@ -7829,6 +10061,12 @@
             "value": "Added %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se añadió %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7845,6 +10083,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 추가됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionado: %1$@"
           }
         },
         "zh-Hant": {
@@ -7871,6 +10115,12 @@
             "value": "Continue"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7887,6 +10137,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "계속"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
           }
         },
         "zh-Hant": {
@@ -7913,6 +10169,12 @@
             "value": "Corrupted "
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrupto "
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7929,6 +10191,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "타락한 "
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrompido "
           }
         },
         "zh-Hant": {
@@ -7955,6 +10223,12 @@
             "value": "Empowered %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se potenció %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -7971,6 +10245,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 강화됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortalecido: %1$@"
           }
         },
         "zh-Hant": {
@@ -7997,6 +10277,12 @@
             "value": "Replaced %1$@ with %2$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se reemplazó %1$@ por %2$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8013,6 +10299,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ → %2$@ 교체됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ substituído por %2$@"
           }
         },
         "zh-Hant": {
@@ -8039,6 +10331,12 @@
             "value": "Traits"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rasgos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8055,6 +10353,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "속성"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traços"
           }
         },
         "zh-Hant": {
@@ -8081,6 +10385,12 @@
             "value": "TRINKET"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ABALORIO"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8097,6 +10407,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "트링킷"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BERLOQUE"
           }
         },
         "zh-Hant": {
@@ -8123,6 +10439,12 @@
             "value": "Upgraded to Astral"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mejorado a astral"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8139,6 +10461,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "성운 등급으로 업그레이드됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melhorado para Astral"
           }
         },
         "zh-Hant": {
@@ -8165,6 +10493,12 @@
             "value": "Weakened %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se debilitó %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8181,6 +10515,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 약화됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enfraquecido: %1$@"
           }
         },
         "zh-Hant": {
@@ -8207,6 +10547,12 @@
             "value": "Confirm"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8223,6 +10569,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "확인"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar"
           }
         },
         "zh-Hant": {
@@ -8249,6 +10601,12 @@
             "value": "MYSTERY"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MISTERIO"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8265,6 +10623,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "미지"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MISTÉRIO"
           }
         },
         "zh-Hant": {
@@ -8291,6 +10655,12 @@
             "value": "PICK A REWARD"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ELIGE UNA RECOMPENSA"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8307,6 +10677,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "보상 선택"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ESCOLHA UMA RECOMPENSA"
           }
         },
         "zh-Hant": {
@@ -8333,6 +10709,12 @@
             "value": "Back"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atrás"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8349,6 +10731,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "뒤로"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar"
           }
         },
         "zh-Hant": {
@@ -8375,6 +10763,12 @@
             "value": "Choose gear to corrupt\nThe altar remakes it once, forever"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige equipo que corromper\nEl altar lo transforma una sola vez, para siempre"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8391,6 +10785,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "타락시킬 장비를 선택하세요\n제단은 장비를 단 한 번, 영원히 바꿉니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha um equipamento para corromper\nO altar o transforma uma única vez, para sempre"
           }
         },
         "zh-Hant": {
@@ -8417,6 +10817,12 @@
             "value": "Corrupt"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corromper"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8433,6 +10839,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "타락시키기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corromper"
           }
         },
         "zh-Hant": {
@@ -8459,6 +10871,12 @@
             "value": "Offer an Item"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ofrecer un objeto"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8475,6 +10893,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "아이템 바치기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oferecer um item"
           }
         },
         "zh-Hant": {
@@ -8501,6 +10925,12 @@
             "value": "Choose"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8517,6 +10947,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "선택"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher"
           }
         },
         "zh-Hant": {
@@ -8543,6 +10979,12 @@
             "value": "Exp"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EXP"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8559,6 +11001,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "경험치"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exp"
           }
         },
         "zh-Hant": {
@@ -8585,6 +11033,12 @@
             "value": "Gold"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8601,6 +11055,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "골드"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouro"
           }
         },
         "zh-Hant": {
@@ -8627,6 +11087,12 @@
             "value": "Inspect %1$@"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspeccionar %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8643,6 +11109,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 살펴보기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspecionar %1$@"
           }
         },
         "zh-Hant": {
@@ -8669,6 +11141,12 @@
             "value": "Loot All"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recoger todo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8685,6 +11163,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모두 획득"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coletar tudo"
           }
         },
         "zh-Hant": {
@@ -8711,6 +11195,12 @@
             "value": "MYSTERY"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MISTERIO"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8727,6 +11217,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "미지"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MISTÉRIO"
           }
         },
         "zh-Hant": {
@@ -8753,6 +11249,12 @@
             "value": "Reward"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recompensa"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8769,6 +11271,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "보상"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recompensa"
           }
         },
         "zh-Hant": {
@@ -8795,6 +11303,12 @@
             "value": "Combatant"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combatiente"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8811,6 +11325,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "전투원"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combatente"
           }
         },
         "zh-Hant": {
@@ -8837,6 +11357,12 @@
             "value": "Corrupt Item"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corromper objeto"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8853,6 +11379,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "아이템 타락시키기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corromper item"
           }
         },
         "zh-Hant": {
@@ -8879,6 +11411,12 @@
             "value": "Risk"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arriesgado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8895,6 +11433,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "위험"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risco"
           }
         },
         "zh-Hant": {
@@ -8921,6 +11465,12 @@
             "value": "Safe"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguro"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8937,6 +11487,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "안전"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguro"
           }
         },
         "zh-Hant": {
@@ -8963,6 +11519,12 @@
             "value": "Unlock"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -8979,6 +11541,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "잠금 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear"
           }
         },
         "zh-Hant": {
@@ -9005,6 +11573,12 @@
             "value": "Walk Away"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcharse"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9021,6 +11595,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "떠나기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ir embora"
           }
         },
         "zh-Hant": {
@@ -9047,6 +11627,12 @@
             "value": "New Companion"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo compañero"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9063,6 +11649,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "새 동료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Novo Companheiro"
           }
         },
         "zh-Hant": {
@@ -9089,6 +11681,12 @@
             "value": "New Hero"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo héroe"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9105,6 +11703,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "새 영웅"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Novo Herói"
           }
         },
         "zh-Hant": {
@@ -9131,6 +11735,12 @@
             "value": "Recruit"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reclutar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9147,6 +11757,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "영입"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recrutar"
           }
         },
         "zh-Hant": {
@@ -9173,6 +11789,12 @@
             "value": "RECRUITED"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RECLUTADO"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9189,6 +11811,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "영입 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RECRUTADO"
           }
         },
         "zh-Hant": {
@@ -9215,6 +11843,12 @@
             "value": "UNLOCKED"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DESBLOQUEADO"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9231,6 +11865,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "잠금 해제됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DESBLOQUEADO"
           }
         },
         "zh-Hant": {
@@ -9257,6 +11897,12 @@
             "value": "About"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acerca de"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9273,6 +11919,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정보"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobre"
           }
         },
         "zh-Hant": {
@@ -9299,6 +11951,12 @@
             "value": "Audio"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9315,6 +11973,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "오디오"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Áudio"
           }
         },
         "zh-Hant": {
@@ -9341,6 +12005,12 @@
             "value": "Battle"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batalla"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9357,6 +12027,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "전투"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batalha"
           }
         },
         "zh-Hant": {
@@ -9383,6 +12059,12 @@
             "value": "Battle Transitions"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transiciones de batalla"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9399,6 +12081,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "전투 전환"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transições de batalha"
           }
         },
         "zh-Hant": {
@@ -9425,6 +12113,12 @@
             "value": "Boss Lyrics"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letras de jefes"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9441,6 +12135,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "보스 곡 가사"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letras dos chefes"
           }
         },
         "zh-Hant": {
@@ -9467,6 +12167,12 @@
             "value": "Cancel"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9483,6 +12189,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "취소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
           }
         },
         "zh-Hant": {
@@ -9509,6 +12221,12 @@
             "value": "Developer"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desarrollador"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9525,6 +12243,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "개발자"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desenvolvedor"
           }
         },
         "zh-Hant": {
@@ -9551,6 +12275,12 @@
             "value": "Full Game"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Juego completo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9567,6 +12297,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정식 게임"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jogo Completo"
           }
         },
         "zh-Hant": {
@@ -9593,6 +12329,12 @@
             "value": "Full Game — Unlocked"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Juego completo — Desbloqueado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9609,6 +12351,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정식 게임 — 잠금 해제됨"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jogo Completo — Desbloqueado"
           }
         },
         "zh-Hant": {
@@ -9635,6 +12383,12 @@
             "value": "Game Data"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos del juego"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9651,6 +12405,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "게임 데이터"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dados do jogo"
           }
         },
         "zh-Hant": {
@@ -9677,6 +12437,12 @@
             "value": "Game Feel"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensaciones de juego"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9693,6 +12459,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "게임 손맛"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sensações do jogo"
           }
         },
         "zh-Hant": {
@@ -9719,6 +12491,12 @@
             "value": "Haptics"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respuesta háptica"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9735,6 +12513,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "햅틱"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resposta tátil"
           }
         },
         "zh-Hant": {
@@ -9761,6 +12545,12 @@
             "value": "Music"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Música"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9777,6 +12567,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "음악"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Música"
           }
         },
         "zh-Hant": {
@@ -9803,6 +12599,12 @@
             "value": "Options"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opciones"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9819,6 +12621,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "설정"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opções"
           }
         },
         "zh-Hant": {
@@ -9845,6 +12653,12 @@
             "value": "Privacy Policy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Política de privacidad"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9861,6 +12675,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "개인정보 처리방침"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Política de Privacidade"
           }
         },
         "zh-Hant": {
@@ -9887,6 +12707,12 @@
             "value": "Remember Auto-Battle Preference"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recordar preferencia de batalla automática"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9903,6 +12729,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "자동 전투 설정 기억"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lembrar preferência de batalha automática"
           }
         },
         "zh-Hant": {
@@ -9929,6 +12761,12 @@
             "value": "Permanently delete your progress and start over. Settings and purchases are kept. Also resets progress on synced devices."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina permanentemente tu progreso y empieza de nuevo. Se conservan los ajustes y las compras. También restablece el progreso en los dispositivos sincronizados."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9945,6 +12783,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "진행 상황을 영구적으로 삭제하고 처음부터 시작합니다. 설정과 구매 항목은 유지됩니다. 동기화된 기기의 진행 상황도 초기화됩니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exclua permanentemente seu progresso e recomece. Configurações e compras são mantidas. Também redefine o progresso nos dispositivos sincronizados."
           }
         },
         "zh-Hant": {
@@ -9971,6 +12815,12 @@
             "value": "Reset Game Progress"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer progreso del juego"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -9987,6 +12837,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "게임 진행 초기화"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redefinir progresso do jogo"
           }
         },
         "zh-Hant": {
@@ -10013,6 +12869,12 @@
             "value": "Permanently delete your progress and start over. Settings and purchases are kept."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina permanentemente tu progreso y empieza de nuevo. Se conservan los ajustes y las compras."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10029,6 +12891,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "진행 상황을 영구적으로 삭제하고 처음부터 시작합니다. 설정과 구매 항목은 유지됩니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exclua permanentemente seu progresso e recomece. Configurações e compras são mantidas."
           }
         },
         "zh-Hant": {
@@ -10055,6 +12923,12 @@
             "value": "Reset Progress"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer progreso"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10071,6 +12945,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "진행 상황 초기화"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redefinir progresso"
           }
         },
         "zh-Hant": {
@@ -10097,6 +12977,12 @@
             "value": "Restore Purchases"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar compras"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10113,6 +12999,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "구매 복원"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar Compras"
           }
         },
         "zh-Hant": {
@@ -10139,6 +13031,12 @@
             "value": "Sound Effects"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Efectos de sonido"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10155,6 +13053,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "효과음"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Efeitos sonoros"
           }
         },
         "zh-Hant": {
@@ -10181,6 +13085,12 @@
             "value": "Support"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soporte"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10197,6 +13107,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지원"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suporte"
           }
         },
         "zh-Hant": {
@@ -10223,6 +13139,12 @@
             "value": "Unlock All"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear todo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10239,6 +13161,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "모두 잠금 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear tudo"
           }
         },
         "zh-Hant": {
@@ -10265,6 +13193,12 @@
             "value": "Unlock Full Game"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear juego completo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10281,6 +13215,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정식 게임 잠금 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear Jogo Completo"
           }
         },
         "zh-Hant": {
@@ -10307,6 +13247,12 @@
             "value": "Campaign"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Campaña"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10323,6 +13269,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "캠페인"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Campanha"
           }
         },
         "zh-Hant": {
@@ -10349,6 +13301,12 @@
             "value": "Chapter %1$@ · Complete"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capítulo %1$@ · Completado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10365,6 +13323,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@장 · 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capítulo %1$@ · Concluído"
           }
         },
         "zh-Hant": {
@@ -10391,6 +13355,12 @@
             "value": "Explore"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explorar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10407,6 +13377,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "탐험"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explorar"
           }
         },
         "zh-Hant": {
@@ -10433,6 +13409,12 @@
             "value": "Play"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jugar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10449,6 +13431,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "플레이"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jogar"
           }
         },
         "zh-Hant": {
@@ -10475,6 +13463,12 @@
             "value": "Choose a Talent"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige un talento"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10491,6 +13485,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "특성 선택"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha um Talento"
           }
         },
         "zh-Hant": {
@@ -10517,6 +13517,12 @@
             "value": "Committed talent checkpoint"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Punto de control de talento guardado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10533,6 +13539,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "확정된 특성 체크포인트"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponto de salvamento de talento confirmado"
           }
         },
         "zh-Hant": {
@@ -10559,6 +13571,12 @@
             "value": "Preparing talents"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando talentos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10575,6 +13593,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "특성 준비 중"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando talentos"
           }
         },
         "zh-Hant": {
@@ -10601,6 +13625,12 @@
             "value": "%1$lld / %2$lld Floors"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld pisos"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10617,6 +13647,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld / %2$lld층 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld andares"
           }
         },
         "zh-Hant": {
@@ -10643,6 +13679,12 @@
             "value": "%1$@, locked"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, bloqueado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10659,6 +13701,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@, 잠김"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, bloqueado"
           }
         },
         "zh-Hant": {
@@ -10685,6 +13733,12 @@
             "value": "Buy"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10701,6 +13755,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "구매"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar"
           }
         },
         "zh-Hant": {
@@ -10727,6 +13787,12 @@
             "value": "Leave Shop"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir de la tienda"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10743,6 +13809,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "상점 나가기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sair da loja"
           }
         },
         "zh-Hant": {
@@ -10769,6 +13841,12 @@
             "value": "Sold"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vendido"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10785,6 +13863,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "판매 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vendido"
           }
         },
         "zh-Hant": {
@@ -10811,6 +13895,12 @@
             "value": "Sold Out"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agotado"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10827,6 +13917,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "품절"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esgotado"
           }
         },
         "zh-Hant": {
@@ -10853,6 +13949,12 @@
             "value": "All %1$@ floors are complete"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los %1$@ pisos están completados"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10869,6 +13971,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@개 층을 모두 완료했습니다"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos os %1$@ andares foram concluídos"
           }
         },
         "zh-Hant": {
@@ -10895,6 +14003,12 @@
             "value": "Back to Spires"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a Agujas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10911,6 +14025,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "첨탑으로 돌아가기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar às Torres"
           }
         },
         "zh-Hant": {
@@ -10937,6 +14057,12 @@
             "value": "SPIRE"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AGUJA"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10953,6 +14079,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "첨탑"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TORRE"
           }
         },
         "zh-Hant": {
@@ -10979,6 +14111,12 @@
             "value": "Spire Cleared"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aguja superada"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -10995,6 +14133,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "첨탑 완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torre concluída"
           }
         },
         "zh-Hant": {
@@ -11021,6 +14165,12 @@
             "value": "Spires"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agujas"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11037,6 +14187,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "첨탑"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torres"
           }
         },
         "zh-Hant": {
@@ -11063,6 +14219,12 @@
             "value": "Companions"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compañeros"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11079,6 +14241,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "동료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companheiros"
           }
         },
         "zh-Hant": {
@@ -11105,6 +14273,12 @@
             "value": "Done"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11121,6 +14295,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "완료"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concluir"
           }
         },
         "zh-Hant": {
@@ -11147,6 +14327,12 @@
             "value": "Heroes"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Héroes"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11163,6 +14349,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "영웅"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heróis"
           }
         },
         "zh-Hant": {
@@ -11189,6 +14381,12 @@
             "value": "Party"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grupo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11205,6 +14403,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "파티"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grupo"
           }
         },
         "zh-Hant": {
@@ -11231,6 +14435,12 @@
             "value": "Party"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grupo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11247,6 +14457,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "파티"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grupo"
           }
         },
         "zh-Hant": {
@@ -11273,6 +14489,12 @@
             "value": "Unlock"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11289,6 +14511,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "잠금 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear"
           }
         },
         "zh-Hant": {
@@ -11315,6 +14543,12 @@
             "value": "CHOOSE A COMPANION"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ELIGE UN COMPAÑERO"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11331,6 +14565,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "동료 선택"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ESCOLHA UM COMPANHEIRO"
           }
         },
         "zh-Hant": {
@@ -11357,6 +14597,12 @@
             "value": "CHOOSE A HERO"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ELIGE UN HÉROE"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11373,6 +14619,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "영웅 선택"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ESCOLHA UM HERÓI"
           }
         },
         "zh-Hant": {
@@ -11399,6 +14651,12 @@
             "value": "Continue"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11415,6 +14673,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "계속"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
           }
         },
         "zh-Hant": {
@@ -11441,6 +14705,12 @@
             "value": "Retry"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11457,6 +14727,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다시 시도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar novamente"
           }
         },
         "zh-Hant": {
@@ -11483,6 +14759,12 @@
             "value": "Unlock Full Game"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear juego completo"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11499,6 +14781,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "정식 게임 잠금 해제"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear Jogo Completo"
           }
         },
         "zh-Hant": {
@@ -11525,6 +14813,12 @@
             "value": "Retry"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11541,6 +14835,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다시 시도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar novamente"
           }
         },
         "zh-Hant": {
@@ -11567,6 +14867,12 @@
             "value": "Support"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soporte"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11583,6 +14889,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "지원"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suporte"
           }
         },
         "zh-Hant": {
@@ -11609,6 +14921,12 @@
             "value": "TRINKET"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRINKET"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11625,6 +14943,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "트링킷"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRINKET"
           }
         },
         "zh-Hant": {
@@ -11651,6 +14975,12 @@
             "value": "%1$@ VOYAGE"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRAVESÍA %1$@"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11667,6 +14997,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ 항해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VIAGEM %1$@"
           }
         },
         "zh-Hant": {
@@ -11693,6 +15029,12 @@
             "value": "Abandon Voyage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abandonar Travesía"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11709,6 +15051,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "항해 포기"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abandonar Viagem"
           }
         },
         "zh-Hant": {
@@ -11735,6 +15083,12 @@
             "value": "Back"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atrás"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11751,6 +15105,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "뒤로"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltar"
           }
         },
         "zh-Hant": {
@@ -11777,6 +15137,12 @@
             "value": "Cancel"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11793,6 +15159,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "취소"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
           }
         },
         "zh-Hant": {
@@ -11819,6 +15191,12 @@
             "value": "Keep rewards already earned. Remaining progress and the completion bonus will be lost."
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conservas las recompensas obtenidas. Se perderán el progreso restante y la bonificación por completarla."
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11835,6 +15213,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "이미 획득한 보상은 유지됩니다. 남은 진행도와 완료 보너스는 사라집니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantenha as recompensas já obtidas. O progresso restante e o bônus de conclusão serão perdidos."
           }
         },
         "zh-Hant": {
@@ -11861,6 +15245,12 @@
             "value": "Refresh Voyages"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renovar Travesías"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11877,6 +15267,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "항해 새로고침"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizar Viagens"
           }
         },
         "zh-Hant": {
@@ -11903,6 +15299,12 @@
             "value": "Retry"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11919,6 +15321,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "다시 시도"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar novamente"
           }
         },
         "zh-Hant": {
@@ -11945,6 +15353,12 @@
             "value": "Voyage"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Travesía"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -11961,6 +15375,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "항해"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viagem"
           }
         },
         "zh-Hant": {
@@ -11987,6 +15407,12 @@
             "value": "Voyage options"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opciones de Travesía"
+          }
+        },
         "fr": {
           "stringUnit": {
             "state": "translated",
@@ -12003,6 +15429,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "항해 설정"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opções de Viagem"
           }
         },
         "zh-Hant": {

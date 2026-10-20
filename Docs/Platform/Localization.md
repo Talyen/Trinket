@@ -1,9 +1,9 @@
 # Localization
 
 English is the source and fallback language. Japanese, Korean, German,
-Traditional Chinese, and French ship as bundled native String Catalogs for
-offline play. iOS owns per-app language selection. There is no paid translation
-API, runtime translation service, or human translation requirement.
+Traditional Chinese, French, Spanish, and Brazilian Portuguese ship as bundled
+native String Catalogs for offline play. iOS owns per-app language selection.
+There is no paid translation API, runtime translation service, or human translation requirement.
 
 ## Agent workflow
 
@@ -167,6 +167,10 @@ length checks. Storefront copy and Full Game product copy are separate from the
 binary's languages. Submission files and screenshots are preparation artifacts;
 uploads, storefront changes, and publication follow the authorized release process.
 Mainland China is deferred; Traditional Chinese initially targets Taiwan/Hong Kong.
+Spanish uses broadly understandable game copy shared by the `es-ES` and `es-MX`
+store metadata. `storeLocales` accepts a locale string or a list of storefront
+locales sharing reviewed copy. Brazilian Portuguese uses `pt-BR` for both the game
+and store metadata.
 
 
 ## References
