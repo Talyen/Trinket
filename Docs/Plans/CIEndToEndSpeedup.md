@@ -264,3 +264,20 @@ every concrete failed job and retain the product/compiler veto. Verify the real
 boot-only failure is eligible and the 7e47425e4 readiness assertion is not. Any
 manual recovery after this investigation is correctness/recovery evidence, not
 a clean timing sample (its wall clock includes the human investigation pause).
+
+
+## Staged result and crash evidence
+
+Run 39371306539 at 60e1e8e7f passed every package, generation/style, prepared asset
+and device Release checks. AppState exactly matched baseline 212 passed plus the
+same one worker-only skip; Persistence exactly matched all 400 cases. Smoke
+failed: five passed, one failed, zero skips. FullGamePurchaseSmokeTests first
+StoreKit registration launch pid 31860 exited with signal 11 at 04:57:50, before
+the helper attempted termination. The next launch completed the purchase and
+Warlock assertions, but XCTest correctly retained the setup crash failure.
+The exported xcresult diagnostics contain no crash report/stack, only the signal
+in the session log. No product or test assertion change is justified from this.
+Exclude this run from passing speedup claims. Enable explicit failure-only Xcode
+diagnostics for the already bounded hosted smoke/release methods, then repeat
+full standard scope; a recurrence must retain its cause. Do not automatically
+classify or rerun the app crash as simulator infrastructure.

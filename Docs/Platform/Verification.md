@@ -229,6 +229,9 @@ swap counters after boot to distinguish resource pressure from test execution. T
 below 136 seconds. A stuck method must fail and retain evidence before consuming
 the entire batch watchdog; this does not classify a product timeout as infrastructure.
 Other FullUI, Soak and performance runs retain their existing execution allowances.
+Hosted Smoke and qualified release UI retain failure-only Xcode diagnostics so
+app crashes during setup have a crash stack, rather than only an XCTest summary.
+Successful runs do not request a diagnostic collection.
 
 The infrastructure rerun helper checks every failed concrete job and vetoes
 product assertions, compiler errors and other gate failures. The derived CI OK
