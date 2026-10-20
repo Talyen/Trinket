@@ -281,3 +281,14 @@ Exclude this run from passing speedup claims. Enable explicit failure-only Xcode
 diagnostics for the already bounded hosted smoke/release methods, then repeat
 full standard scope; a recurrence must retain its cause. Do not automatically
 classify or rerun the app crash as simulator infrastructure.
+
+
+Run 39373353322 at 02f802ebf passed all six Smoke methods in the raw log (285.8s),
+then stalled finalization for more than the silence watchdog and exited 124. The
+partial bundle includes simctl_diagnostics; no completed result proof exists. The
+automatic on-failure Xcode collection was an unsuccessful diagnostic change and
+is removed. Retain instead bounded recent bundle-ID-validated app IPS reports on
+disposable CI, only after confirming the simulator's ownership. Preserve original
+exit status and completeness rules; never convert passing raw console lines into
+a green incomplete bundle. Subsequent UI diagnosis uses the existing exact-build
+selected-case workflow rather than another full matrix for a recurrent app crash.

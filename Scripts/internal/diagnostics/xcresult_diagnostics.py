@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import os
+import time
 import re
 import shutil
 import subprocess
@@ -43,6 +45,41 @@ QUERY_TIMEOUT_SECONDS = 120
 ATTACHMENT_EXPORT_TIMEOUT_SECONDS = 300
 
 
+def capture_ci_app_crashes(output_dir: Path) -> list[str]:
+    """Copy recent app-only reports on disposable CI, without running sysdiagnose."""
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        return []
+    reports = Path.home() / "Library/Logs/DiagnosticReports"
+    if reports.is_symlink() or not reports.is_dir():
+        return []
+    files = []
+    now = time.time()
+    # IPS metadata is its first JSON object; preserve the complete second object.
+    # https://developer.apple.com/documentation/xcode/interpreting-the-json-format-of-a-crash-report
+    for source in sorted(reports.glob("Trinket*.ips"), reverse=True)[:64]:
+        try:
+            info = source.lstat()
+            if source.is_symlink() or not source.is_file() or not (0 <= now - info.st_mtime <= 3600):
+                continue
+            if not (0 < info.st_size <= 2 * 1024 * 1024):
+                continue
+            with source.open("rb") as stream:
+                content = stream.read(2 * 1024 * 1024 + 1)
+            if len(content) > 2 * 1024 * 1024:
+                continue
+            metadata = json.loads(content.splitlines()[0])
+            if not isinstance(metadata, dict) or metadata.get("bundleID") != "com.ryanmcintire.Trinket":
+                continue
+            target = output_dir / ("app-crash-" + source.name)
+            target.write_bytes(content)
+            files.append(str(target))
+            if len(files) == 4:
+                break
+        except (OSError, ValueError, IndexError):
+            continue
+    return files
+
+
 def capture_simulator_context(output_dir: Path, udid: str, expected_name: str) -> list[str]:
     """Best-effort post-failure evidence through simctl, independent of XCTest AX."""
     if not expected_name or not re.fullmatch(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", udid):
@@ -70,6 +107,7 @@ def capture_simulator_context(output_dir: Path, udid: str, expected_name: str) -
         device = {}
     context["device"] = device
     if device.get("name") == expected_name and device.get("state") == "Booted":
+        files.extend(capture_ci_app_crashes(output_dir))
         screenshot = output_dir / "simulator-after-failure.png"
         screenshot.unlink(missing_ok=True)
         query("io", udid, "screenshot", str(screenshot))

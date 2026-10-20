@@ -229,9 +229,10 @@ swap counters after boot to distinguish resource pressure from test execution. T
 below 136 seconds. A stuck method must fail and retain evidence before consuming
 the entire batch watchdog; this does not classify a product timeout as infrastructure.
 Other FullUI, Soak and performance runs retain their existing execution allowances.
-Hosted Smoke and qualified release UI retain failure-only Xcode diagnostics so
-app crashes during setup have a crash stack, rather than only an XCTest summary.
-Successful runs do not request a diagnostic collection.
+After a failure on an ownership-verified simulator, disposable CI retains up to
+four recent Trinket app IPS crash reports (2 MiB each), validating their bundle ID.
+It does not run Xcode sysdiagnose: that collection has stalled result finalization
+after all six Smoke methods passed. Local and foreign app reports are excluded.
 
 The infrastructure rerun helper checks every failed concrete job and vetoes
 product assertions, compiler errors and other gate failures. The derived CI OK

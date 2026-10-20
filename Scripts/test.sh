@@ -329,8 +329,6 @@ XCODEBUILD_ARGS=(
 # baseline. Bound a stuck method before it consumes the whole batch watchdog.
 if [[ "${GITHUB_ACTIONS:-}" == true ]] && { [[ "$MODE" == smoke ]] || [[ "$MODE" == ui && -n "${TRINKET_DEPLOY_EXPECTED_CASES:-}" ]]; }; then
   XCODEBUILD_ARGS+=(-test-timeouts-enabled YES -default-test-execution-time-allowance 300 -maximum-test-execution-time-allowance 300)
-  # Keep crash reports when a registration launch fails before any assertion.
-  XCODEBUILD_ARGS+=(-collect-test-diagnostics on-failure)
 fi
 if [[ "$MODE" == "performance" ]]; then
   # Keep DEBUG-only deterministic instrumentation while compiling the measured

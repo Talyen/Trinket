@@ -91,6 +91,28 @@ class ReporterTests(unittest.TestCase):
                 files = REPORTER.xcresult.capture_simulator_context(output, udid, "Trinket Agent 1")
             self.assertIn("timed out", Path(files[0]).read_text())
 
+    def test_ci_crash_capture_excludes_foreign_old_oversized_and_symlinked_reports(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary)
+            reports = home / "Library/Logs/DiagnosticReports"
+            reports.mkdir(parents=True)
+            output = home / "attachments"
+            output.mkdir()
+            content = json.dumps({"bundleID": "com.ryanmcintire.Trinket"}).encode() + b'\n{"threads": []}\n'
+            (reports / "Trinket-valid.ips").write_bytes(content)
+            (reports / "Trinket-foreign.ips").write_text('{"bundleID":"other.app"}\n{}')
+            (reports / "Trinket-old.ips").write_bytes(content)
+            os.utime(reports / "Trinket-old.ips", (1, 1))
+            (reports / "Trinket-huge.ips").write_bytes(content + b' ' * (2 * 1024 * 1024))
+            (reports / "Trinket-link.ips").symlink_to(reports / "Trinket-valid.ips")
+            with patch.object(REPORTER.xcresult.Path, "home", return_value=home):
+                with patch.dict(os.environ, {"GITHUB_ACTIONS": "false"}):
+                    self.assertEqual(REPORTER.xcresult.capture_ci_app_crashes(output), [])
+                with patch.dict(os.environ, {"GITHUB_ACTIONS": "true"}):
+                    files = REPORTER.xcresult.capture_ci_app_crashes(output)
+            self.assertEqual([Path(path).name for path in files], ["app-crash-Trinket-valid.ips"])
+            self.assertEqual(Path(files[0]).read_bytes(), content)
+
     def test_structured_sources_are_authoritative_and_deduplicated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
