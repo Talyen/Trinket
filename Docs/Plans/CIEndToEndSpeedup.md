@@ -219,3 +219,11 @@ method/result/argument multisets have exactly the original 213-function union
 and zero duplicate executions. No one-minute purchase deadline was increased.
 Evidence location: /tmp/trinket-state-partition-location.txt. The extra invocation
 has startup cost; count its complete job time in the overall comparison.
+
+The six-minute recovery admission default remains for standard lanes. For the
+downloaded qualified 26.2 runtime, use an explicit twelve-minute window: the old
+95e44fad8 fresh run recovered after a cold-boot timeout and passed all eleven,
+whereas the six-minute guard made be1628b4d fail before testing. Preserve that
+bounded recovery instead of counting early failure as speed. Add override/exhaustion
+cases to the existing ownership-safe shell regression. Full fresh UI cost still
+needs measurement on the final candidate.

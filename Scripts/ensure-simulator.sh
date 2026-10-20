@@ -248,8 +248,8 @@ erase_and_boot_simulator() {
   boot_simulator
 }
 
-# A timed-out CI boot must not consume another full boot window before tests.
-# This bounds retry admission; each admitted operation retains its own watchdog.
+# Preserve the test budget before admitting another CI recovery boot.
+# Each admitted operation retains its own watchdog.
 simulator_recovery_has_time() {
   if [[ -n "${simulator_setup_deadline:-}" ]] && (( SECONDS + SIMULATOR_BOOT_TIMEOUT_SECONDS > simulator_setup_deadline )); then
     echo "Error: Simulator preparation exhausted its CI recovery window; retry on a healthy runner." >&2
@@ -264,7 +264,12 @@ ensure_test_simulator() {
   local simulator_setup_deadline=""
   if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
     max_attempts=3
-    simulator_setup_deadline=$((SECONDS + 360))
+    local setup_window="${TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS:-360}"
+    if [[ ! "$setup_window" =~ ^[1-9][0-9]*$ ]]; then
+      echo "Error: CI simulator setup window must be a positive number of seconds." >&2
+      return 1
+    fi
+    simulator_setup_deadline=$((SECONDS + setup_window))
     # TRINKET_-prefixed knob controls SIMULATOR_BOOT_TIMEOUT_SECONDS (150 default -> 240 on CI).
     if [[ "${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-}" == "" ]]; then
       SIMULATOR_BOOT_TIMEOUT_SECONDS=240

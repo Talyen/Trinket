@@ -209,8 +209,10 @@ gate reserves two minutes. The command supervisor includes simulator
 preparation and serial package work; per-command Xcode watchdogs also cap themselves
 against the remaining deadline, preserving a short manifest-finalization allowance.
 On CI, simulator recovery admits another boot only when its full watchdog fits
-within the six-minute preparation recovery window; an exhausted window fails early
-for a healthy-runner retry instead of consuming the test budget. Local recovery
+within the setup recovery window: six minutes for standard lanes, twelve for the
+downloaded qualified release runtime, which has demonstrated a successful erase/boot
+recovery. An exhausted window fails before consuming the test budget.
+`TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS` selects that admission window. Local recovery
 retains its existing attempts. Timeouts remain failures and emit structured receipts. Supervisors terminate only
 their own process groups; existing simulator guest/lease cleanup remains in force.
 
