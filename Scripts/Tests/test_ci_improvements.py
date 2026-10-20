@@ -296,7 +296,9 @@ class CIImprovementsTests(unittest.TestCase):
             results = Path(directory)
             environment = {'TRINKET_DIAGNOSTICS_SESSION_ID': 'unit-State-10-2'}
             messages = [
-                ('Simulator guest process inspection failed: ps timed out after 30 seconds', 'simulator-process-inventory'),
+                ('Simulator guest inventory attempt 1/2 timed out after 10s\n'
+                 'Simulator guest inventory attempt 2/2 timed out after 30s\n'
+                 'Simulator guest process inspection failed: ps timed out after 30 seconds', 'simulator-process-inventory'),
                 ("Output cleanup refused: Command ['git', 'worktree', 'list'] timed out after 30 seconds", 'output-inventory'),
             ]
             for message, phase in messages:

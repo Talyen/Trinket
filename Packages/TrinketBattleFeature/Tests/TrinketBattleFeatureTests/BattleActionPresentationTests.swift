@@ -219,9 +219,11 @@ struct BattleActionPresentationTests {
         #expect(beat.impactAt > beat.swingAt)
         #expect(beat.actorID == session.companionID)
         #expect(abs(beat.swingAt.timeIntervalSince(beat.startAt) - 0.10) < 0.001)
-        #expect(!session.feedback.activeItems.contains { $0.actionGroupID == beat.id })
+        let expectedIDs = Set(CombatFeedbackPresenter.makeItems(from: beat.events, at: beat.impactAt).flatMap(\.sourceEventIDs))
+        #expect(!expectedIDs.isEmpty)
+        #expect(expectedIDs.isDisjoint(with: Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))))
         session.feedback.advance(to: beat.impactAt)
-        #expect(session.feedback.activeItems.contains { $0.actionGroupID == beat.id })
+        #expect(expectedIDs.isSubset(of: Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))))
         #expect(session.canEndTurn)
     }
 
@@ -445,7 +447,7 @@ extension BattleActionPresentationTests {
             id: "impact-door", name: "Hit", tier: .basic,
             damageComponents: [DamageComponent(10, keyword: .physical, target: .hero)], criticalChanceBonus: -1,
         )
-        let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &state)
+        let card = BattleCardCombatEngine.deal(ability, owner: .companion, context: &state)
         session.engineState = state
         session.installSimulationPresentation()
         session.feedback.clear()
@@ -466,7 +468,7 @@ extension BattleActionPresentationTests {
         #expect(session.feedback.hitReactionsByTargetID[state.hero.id] != nil)
     }
 
-    @Test func `a damaging draw card has one immediate cue without a health cost sound`() throws {
+    @Test func `a damaging draw card has one impact cue without a health cost sound`() throws {
         var sounds: [[String]] = []
         let environment = BattlePresentationDependencies(
             playSFX: { sounds.append($0) }, warmSFX: { _, _ in }, hapticsEnabled: { false },
@@ -486,8 +488,13 @@ extension BattleActionPresentationTests {
         let date = Date.now
 
         #expect(session.playCard(cardID: card.id, at: date) == .committed)
+        let impact = try #require(session.feedback.scheduledActions.first {
+            $0.events.contains { $0.effectKind == .cardsDrawn }
+        }?.impactAt)
+        #expect(sounds.isEmpty)
+        session.feedback.advance(to: impact)
         #expect(sounds == [[SFXID.itemCorrupt]])
-        session.feedback.advance(to: date.addingTimeInterval(1))
+        session.feedback.advance(to: impact.addingTimeInterval(1))
         #expect(sounds == [[SFXID.itemCorrupt]])
     }
 
@@ -509,7 +516,7 @@ extension BattleActionPresentationTests {
         id: "recurring-recoil", name: "Recurring", tier: .skill,
         targetedEffects: [TargetedEffect(.recurringDamage(.burn, 6, 2))],
     )])
-    func `immediate periodic card damage reacts but later ticks stay quiet`(ability: Ability) throws {
+    func `periodic card damage reacts at impact but later ticks stay quiet`(ability: Ability) throws {
         let session = BattleSessionTestSupport.makePassiveSession()
         defer { session.endBattle() }
         var state = try #require(session.engineState)
@@ -524,9 +531,15 @@ extension BattleActionPresentationTests {
 
         let afterPlay = try #require(session.engineState?.roster.enemy.currentHealth)
         #expect(afterPlay < health)
+        let impact = try #require(session.feedback.scheduledActions.first {
+            $0.damage.contains { $0.targetID == state.enemy.id }
+        }?.impactAt)
+        session.feedback.advance(to: impact)
         #expect(session.feedback.hitReactionsByTargetID[state.enemy.id]?.kind == .damage)
         session.feedback.clear()
-        session.endTurn()
+        let turnDate = impact.addingTimeInterval(1)
+        session.endTurn(at: turnDate)
+        session.feedback.advance(to: session.feedback.scheduledActions.map(\.impactAt).max() ?? turnDate)
         #expect((session.engineState?.roster.enemy.currentHealth ?? afterPlay) < afterPlay)
         #expect(session.feedback.hitReactionsByTargetID[state.enemy.id] == nil)
     }

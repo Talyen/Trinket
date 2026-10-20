@@ -31,9 +31,10 @@ def preparation_observations(log: Path, status: int, output: str, phase: str) ->
     # safety checks run before tests; preserve real assertions/compiler errors if mixed in.
     if inventory:
         phase = inventory
+        inventory_messages = (*[marker for marker, _ in inventory_phases], 'Simulator guest inventory attempt ')
         observations = [item for item in observations
                         if item.kind != 'test-failure'
-                        or not any(marker in item.message for marker, _ in inventory_phases)
+                        or not any(marker in item.message for marker in inventory_messages)
                         or re.search(r'XCTAssert|XCTFail|[Aa]ssertion failed|[Ee]xpectation failed|Issue recorded:', item.message)]
         observations.append(IssueObservation('tooling', 'Preparation inventory', output.strip()[-2000:]))
     if phase == 'toolchain':
