@@ -170,6 +170,24 @@ extension BattleTurnEngineTests {
         }
     }
 
+    @Test func `ambush doubling and hidden fangs bleed each fire on the opening attack`() throws {
+        var context = try enemyTraitContext("bandit", enemyModifiers: .withTriggers {
+            $0.firstHitDoubleDamage = true
+            $0.firstAttackBleedBonus = 2
+        })
+        let options = DamageOperation.attack(tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1)
+        let healthBefore = context.health(of: context.hero)
+        _ = context.resolveTestDamage(2, from: .enemy, to: .hero, options: options)
+        // Ambush doubles the 2 damage to 4 and Hidden Fangs adds 2 Bleed damage.
+        #expect(healthBefore - context.health(of: context.hero) == 6)
+        #expect(context.roster.enemy.hasTriggeredFirstHitBonus)
+        #expect(context.roster.enemy.hasTriggeredFirstAttackBleedBonus)
+        #expect(context.roster.hasAffliction(.bleed, on: context.hero))
+        let healthMid = context.health(of: context.hero)
+        _ = context.resolveTestDamage(2, from: .enemy, to: .hero, options: options)
+        #expect(healthMid - context.health(of: context.hero) == 2)
+    }
+
     @Test func `searing body retaliates while cold shocked remains a separate weakness`() throws {
         var context = try enemyTraitContext("fire_elemental")
         let hero = context.hero

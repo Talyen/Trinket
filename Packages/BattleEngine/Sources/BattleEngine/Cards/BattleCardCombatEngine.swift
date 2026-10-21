@@ -100,6 +100,9 @@ package enum BattleCardCombatEngine {
         guard BattleAbilityRules.canPayHealthCost(card.ability, actor: runtime.combatant, in: context) else {
             return .insufficientHealth
         }
+        guard BattleAbilityRules.canPayBlockCost(card.ability, actor: runtime.combatant, in: context) else {
+            return .insufficientBlock
+        }
         return nil
     }
 

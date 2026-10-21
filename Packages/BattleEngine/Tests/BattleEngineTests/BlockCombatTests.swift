@@ -5,7 +5,7 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BlockCombatTests {
-    @Test(arguments: [(0, 0, 0), (1, 0, 1), (3, 2, 5), (1, Int.max, Int.max)])
+    @Test(arguments: [(3, 0, 3), (5, 0, 5), (3, 2, 5), (5, Int.max, Int.max)])
     func `intercepted attacks refund only paid Block while preserving nested gains`(
         startingBlock: Int,
         nestedBlock: Int,
@@ -41,6 +41,43 @@ struct BlockCombatTests {
         if nestedBlock > 0 {
             #expect(events.contains { $0.abilityID == "interception-block" })
         }
+    }
+
+    @Test func `enemy Block-cost attack requires full payment before acting`() {
+        let attack = Ability(
+            id: "block-cost-attack", name: "Block Cost Attack", tier: .basic,
+            damageComponents: [DamageComponent(1)], blockCost: 3,
+        )
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyAbilities: [attack],
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        DefensePoolEngine.set(1, on: battle.enemy, in: &battle)
+
+        let events = battle.recordingEvents { battle in
+            _ = await BattleTurnEngine.performEnemyAction(ability: attack, abilityTarget: battle.hero, context: &battle)
+        }
+
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 1)
+        #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
+        #expect(!events.contains { $0.effectKind == .blockSpent })
+        #expect(!events.contains { $0.kind == .ability && $0.abilityID == attack.id })
+    }
+
+    @Test func `player Block-cost card is denied without spending partial Block`() throws {
+        let ability = Ability(
+            id: "block-cost-slash", name: "Block Cost Slash", tier: .basic,
+            damageComponents: [DamageComponent(1)], blockCost: 3,
+        )
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
+        DefensePoolEngine.set(1, on: battle.hero, in: &battle)
+        battle.hand = BattleHand()
+        let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
+
+        #expect(battle.assessCard(card).denial == .insufficientBlock)
+        #expect(throws: BattlePlayError.insufficientBlock) { try battle.playCard(cardID: card.id) }
+        #expect(battle.hand.card(id: card.id) != nil)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 1)
     }
 
     @Test(arguments: [0, -1])

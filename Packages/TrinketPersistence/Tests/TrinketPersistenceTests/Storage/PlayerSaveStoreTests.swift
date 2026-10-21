@@ -278,6 +278,22 @@ struct PlayerSaveStoreTests {
         try #expect(store.currentSave.modifiedAt == before)
     }
 
+    @Test @MainActor func `timestamp-only cloud replacement preserves session generation`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore(inMemoryOnly: true)
+        let generation = store.currentSave.sessionGeneration
+        var externalFired = false
+        store.onExternalProgressChange = { externalFired = true }
+
+        var incoming = store.currentSave
+        incoming.modifiedAt = incoming.modifiedAt.addingTimeInterval(60)
+        #expect(!incoming.hasDomainDifference(from: store.currentSave))
+        try store.commitCloudState(store.cloudDeviceState, replacing: incoming)
+
+        #expect(store.currentSave.sessionGeneration == generation)
+        #expect(!externalFired)
+    }
+
     @Test(arguments: [
         ("schema-version", false),
     ])
