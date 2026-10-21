@@ -24,13 +24,13 @@ public enum CombatBuildResolver {
         }
         profile.merge(additionalModifiers)
         let hasRanged = equippedItems.contains(where: \.baseType.isRanged)
-        if profile.rangedDamageDealtBonus > 0, hasRanged {
+        if profile.rangedDamageDealtBonus != 0, hasRanged {
             profile.damageDealtBonus[.physical] = SaturatedArithmetic.saturatingAdd(
                 profile.damageDealtBonus[.physical, default: 0], profile.rangedDamageDealtBonus,
             )
         }
 
-        if profile.rangedDamageDealtPercent > 0, hasRanged {
+        if profile.rangedDamageDealtPercent != 0, hasRanged {
             profile.damageDealtPercents[.physical, default: 0] += profile.rangedDamageDealtPercent
         }
 

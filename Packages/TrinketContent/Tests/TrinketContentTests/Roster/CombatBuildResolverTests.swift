@@ -90,4 +90,28 @@ struct CombatBuildResolverTests {
         )
         #expect(meleeBuild.modifiers.damageDealtBonus[.physical] == nil)
     }
+
+    @Test func `ranged damage penalty applies only with equipped ranged weapon`() throws {
+        let rangedWeapon = try ItemFixtures.makeBareItem("shortbow")
+        let meleeWeapon = try ItemFixtures.makeBareItem("longsword")
+        let hero = CombatantFixtures.passiveHero()
+
+        let rangedPenalty = [AffixModifier.rangedDamageDealt(-3)]
+
+        let rangedBuild = CombatBuildResolver.build(
+            combatant: hero,
+            equipmentLoadout: EquipmentLoadout(itemIDsBySlot: [.weapon: rangedWeapon.id]),
+            inventory: [rangedWeapon],
+            additionalModifiers: rangedPenalty,
+        )
+        #expect(rangedBuild.modifiers.damageDealtBonus[.physical] == -3)
+
+        let meleeBuild = CombatBuildResolver.build(
+            combatant: hero,
+            equipmentLoadout: EquipmentLoadout(itemIDsBySlot: [.weapon: meleeWeapon.id]),
+            inventory: [meleeWeapon],
+            additionalModifiers: rangedPenalty,
+        )
+        #expect(meleeBuild.modifiers.damageDealtBonus[.physical] == nil)
+    }
 }

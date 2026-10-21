@@ -45,6 +45,7 @@ struct HomesteadNodeDetailView: View {
     @State private var purchasePresentation: HomesteadPurchasePresentation?
     @State private var celebrationCount = 0
     @State private var celebrationGeneration = 0
+    @State private var buildErrorTrigger = 0
 
     let definition: HomesteadNodeDefinition
     var initialRecipeID: String?
@@ -130,6 +131,7 @@ struct HomesteadNodeDetailView: View {
             )
         }
         .trinketSensoryFeedback(.success, trigger: build.upgradeEventCount, enabled: options.hapticsEnabled)
+        .trinketSensoryFeedback(.error, trigger: buildErrorTrigger, enabled: options.hapticsEnabled)
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {
                 cancelCelebration()
@@ -316,7 +318,12 @@ struct HomesteadNodeDetailView: View {
         Task {
             let result = await playerSave.buildOrUpgradeNode(definition.id, targetTier: expectedTier)
             build.isPending = false
-            guard result == .success, generation == playerSave.sessionGeneration else { return }
+            guard generation == playerSave.sessionGeneration else { return }
+            guard result == .success else {
+                buildErrorTrigger += 1
+                playSFX(SFXID.uiDeny, options.effectsVolume)
+                return
+            }
             guard isVisible, scenePhase == .active else {
                 purchaseCommitted = true
                 sheet = nil
