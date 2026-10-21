@@ -46,8 +46,8 @@ extension PlayerSaveStore {
         var candidate = snapshot
         var changed = false
         if let save {
-            changed = invalidatesSession && snapshot.hasDomainDifference(from: save)
             candidate = try PlayerSaveSanitizer.sanitizeAndValidate(save)
+            changed = invalidatesSession && snapshot.hasDomainDifference(from: candidate)
             candidate.sessionGeneration = changed ? snapshot.sessionGeneration &+ 1 : snapshot.sessionGeneration
         }
         try commitGraph(candidate, replacing: snapshot, slices: save == nil ? [] : .all, cloudState: state)

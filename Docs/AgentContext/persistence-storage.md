@@ -365,6 +365,8 @@ cloud play resumes, preventing an offline claim from reopening a server interval
 Late asynchronous results compare their captured snapshot with current local
 values. New local mutations are reconciled in a later request; receipt recovery
 cannot acknowledge unseen remote changes as ancestors of those mutations.
+Compare sanitized incoming progress with the current domain value; timestamp-only
+updates and repairs that leave the accepted domain unchanged preserve the session.
 Adopting external progress increments the device-local session generation and
 invokes AppState's transient-session invalidation. Starter navigation also follows
 that generation so an imported hero choice refreshes the companion step.
