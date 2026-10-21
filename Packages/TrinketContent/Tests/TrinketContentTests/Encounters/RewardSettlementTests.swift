@@ -111,6 +111,20 @@ struct RewardSettlementTests {
         #expect(replay.goldDelta == 11)
     }
 
+    @Test func `encounter plans incorporate flat experience bonuses into awards`() {
+        let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [:])
+        let plan = BattleRewardPlan.forEncounter(
+            party: (.at(level: 1), .at(level: 1)), highestLevels: (1, 1),
+            encounterLevel: 1, homestead: homestead,
+            stageGold: 0, materials: [], items: [],
+            flatExperienceBonus: 5,
+        )
+        #expect(plan.heroExperience == 8)
+        #expect(plan.companionExperience == 8)
+        #expect(plan.defeatHeroExperience == 8)
+        #expect(plan.defeatCompanionExperience == 8)
+    }
+
     @Test func `victory Gold Talent adds to Homestead bonus before spending and retains fractions`() {
         let plan = BattleRewardPlan.forEncounter(
             party: (.at(level: 1), .at(level: 1)), highestLevels: (1, 1),

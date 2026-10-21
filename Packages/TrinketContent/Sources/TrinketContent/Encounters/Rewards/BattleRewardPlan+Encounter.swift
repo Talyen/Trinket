@@ -21,6 +21,7 @@ public extension BattleRewardPlan {
     ) -> Self {
         let effects = homestead.effects
         let victoryPercent = SaturatedArithmetic.saturatingAdd(experienceEarnedPercent, victoryOnlyExperienceBonusPercent)
+        let totalFlatExperienceBonus = SaturatedArithmetic.saturatingAdd(flatExperienceBonus, effects.experienceBonus)
         func experience(for progression: CombatantProgression, highestLevel: Int, percent: Int) -> Int {
             guard grantsCombatExperience, !rewardsAlreadyClaimed else { return 0 }
             return SaturatedArithmetic.saturatingAdd(
@@ -28,7 +29,7 @@ public extension BattleRewardPlan {
                     playerLevel: progression.level, enemyLevel: encounterLevel, highestLevel: highestLevel,
                     experienceEarnedPercent: SaturatedArithmetic.saturatingAdd(percent, effects.experienceBonusPercent),
                 ),
-                flatExperienceBonus,
+                totalFlatExperienceBonus,
             )
         }
         return Self(

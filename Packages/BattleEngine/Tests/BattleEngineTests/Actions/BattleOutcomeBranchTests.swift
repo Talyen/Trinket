@@ -77,4 +77,25 @@ struct BattleOutcomeBranchTests {
         #expect(!firstEvents.isEmpty)
         #expect(firstEvents == secondEvents)
     }
+
+    @Test func `defeated ally target resolves partner when both are alive and picks dead combatant when one is defeated`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(rngSeed: 1, appliesFightPacing: false)
+        let heroAction = BattleActionContext(actor: battle.hero, in: battle)
+        let companionAction = BattleActionContext(actor: battle.companion, in: battle)
+
+        // When both are alive, defeated ally falls back to the partner ally, not self
+        #expect(heroAction.target(.defeatedAlly, in: battle).id == battle.companion.id)
+        #expect(companionAction.target(.defeatedAlly, in: battle).id == battle.hero.id)
+
+        // When companion is defeated
+        battle.roster.companion.currentHealth = 0
+        #expect(heroAction.target(.defeatedAlly, in: battle).id == battle.companion.id)
+        #expect(companionAction.target(.defeatedAlly, in: battle).id == battle.companion.id)
+
+        // When hero is defeated
+        battle.roster.companion.currentHealth = battle.roster.companion.maxHealth
+        battle.roster.hero.currentHealth = 0
+        #expect(heroAction.target(.defeatedAlly, in: battle).id == battle.hero.id)
+        #expect(companionAction.target(.defeatedAlly, in: battle).id == battle.hero.id)
+    }
 }

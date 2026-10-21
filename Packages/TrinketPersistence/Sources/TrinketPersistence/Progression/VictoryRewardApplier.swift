@@ -61,7 +61,6 @@ public enum VictoryRewardApplier {
             materials: loot.materials, items: payableItem.map { [$0] } ?? [],
             experienceEarnedPercent: experienceEarnedPercent,
             grantsCombatExperience: grantsCombatExperience,
-            flatExperienceBonus: save.homestead.effects.experienceBonus,
         )
     }
 

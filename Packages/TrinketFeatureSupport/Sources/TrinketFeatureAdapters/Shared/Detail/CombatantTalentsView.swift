@@ -201,7 +201,14 @@ public struct CombatantTalentsView: View {
         let updatedUnlocks = unlockedTalents.union([nodeID])
         let remainingPoints = progression.availableTalentPoints(unlockedCount: updatedUnlocks.count)
         guard remainingPoints > 0 else { return nil }
-        return displayedNodes.dropFirst(currentIndex + 1).first(where: {
+        let downstream = displayedNodes.dropFirst(currentIndex + 1)
+        if let next = downstream.first(where: {
+            tree.canUnlock(node: $0, unlockedNodeIDs: updatedUnlocks, availablePoints: remainingPoints)
+        }) {
+            return next.id
+        }
+        let upstream = displayedNodes.prefix(currentIndex)
+        return upstream.first(where: {
             tree.canUnlock(node: $0, unlockedNodeIDs: updatedUnlocks, availablePoints: remainingPoints)
         })?.id
     }

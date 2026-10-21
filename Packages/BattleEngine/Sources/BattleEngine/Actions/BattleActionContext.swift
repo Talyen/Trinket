@@ -41,7 +41,13 @@ public struct BattleActionContext: Equatable, Sendable {
             if actor.role == .enemy {
                 return state.enemy
             }
-            return state.roster.companion.isAlive ? state.hero : state.companion
+            if !state.roster.companion.isAlive {
+                return state.companion
+            }
+            if !state.roster.hero.isAlive {
+                return state.hero
+            }
+            return actor.id == state.hero.id ? state.companion : state.hero
         case .eachAlly:
             return actor.role == .enemy ? state.enemy : state.hero
         }
