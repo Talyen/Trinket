@@ -35,9 +35,9 @@ package enum EnemyTraitEngine {
         let modifiers = context.enemyModifiers
         let triggers = modifiers.triggers
         guard triggers.firstAttackBleedBonus > 0,
-              !source.hasTriggeredFirstHitBonus
+              !source.hasTriggeredFirstAttackBleedBonus
         else { return }
-        context.roster.enemy.hasTriggeredFirstHitBonus = true
+        context.roster.enemy.hasTriggeredFirstAttackBleedBonus = true
 
         let amount = triggers.firstAttackBleedBonus
         let outcome = await context.dealReactionDamage(amount, to: state.combatant, keyword: .bleed, sourceActorID: source.id)

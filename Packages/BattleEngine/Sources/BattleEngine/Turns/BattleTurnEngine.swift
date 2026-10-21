@@ -133,29 +133,23 @@ package enum BattleTurnEngine {
         defer { context.resolution.endAction() }
 
         guard BattleAbilityRules.canPayHealthCost(ability, action: action, in: context) else {
-            if actor.role == .enemy {
-                recordAction(for: actor, context: &context)
-            }
-            return actor.role == .enemy
+            return denyUnaffordableAction(for: actor, context: &context)
         }
         let outcomes = BattleAbilityRules.possibleOutcomes(ability, action: action, in: context)
-        let resolvedAbility = outcomes.resolve(using: &context.rng)
-        let facts = ResolvedActionFacts(original: ability, resolved: resolvedAbility, action: action, origin: origin, in: context)
-        let blockCost = resolvedAbility.blockCost
-        let deductedBlock: Int
+        let blockCost = outcomes.ability.blockCost
         if blockCost > 0 {
             let balance = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
-            deductedBlock = min(balance, blockCost)
-            DefensePoolEngine.set(balance - deductedBlock, on: actor, in: &context)
-        } else {
-            deductedBlock = 0
+            guard balance >= blockCost else {
+                return denyUnaffordableAction(for: actor, context: &context)
+            }
         }
+        let resolvedAbility = outcomes.resolve(using: &context.rng)
+        let facts = ResolvedActionFacts(original: ability, resolved: resolvedAbility, action: action, origin: origin, in: context)
+        let deductedBlock = reserveBlockCost(blockCost, for: actor, context: &context)
         var committed = false
         defer {
-            if !committed, deductedBlock > 0 {
-                let remaining = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
-                // Restore only the payment, preserving gains from interception reactions.
-                DefensePoolEngine.set(SaturatedArithmetic.saturatingAdd(remaining, deductedBlock), on: actor, in: &context)
+            if !committed {
+                refundReservedBlock(deductedBlock, for: actor, context: &context)
             }
         }
         if entry == .enemyTurn {
@@ -178,7 +172,7 @@ package enum BattleTurnEngine {
         if blockCost > 0 {
             context.nextEvent(
                 kind: .effect(.blockSpent), source: .init(actor),
-                abilityID: ability.id, abilityName: ability.name, target: actor, amount: blockCost, keyword: .block, origin: .direct,
+                abilityID: ability.id, abilityName: ability.name, target: actor, amount: deductedBlock, keyword: .block, origin: .direct,
             )
         }
         _ = context.resolution.prepareAction(facts)
@@ -188,6 +182,27 @@ package enum BattleTurnEngine {
         }
         await executePreparedAction(facts, repeats: repeats, context: &context)
         return true
+    }
+
+    private static func denyUnaffordableAction(for actor: Combatant, context: inout BattleState) -> Bool {
+        if actor.role == .enemy {
+            recordAction(for: actor, context: &context)
+        }
+        return actor.role == .enemy
+    }
+
+    private static func reserveBlockCost(_ cost: Int, for actor: Combatant, context: inout BattleState) -> Int {
+        guard cost > 0 else { return 0 }
+        let balance = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
+        DefensePoolEngine.set(balance - cost, on: actor, in: &context)
+        return cost
+    }
+
+    private static func refundReservedBlock(_ reserved: Int, for actor: Combatant, context: inout BattleState) {
+        guard reserved > 0 else { return }
+        let remaining = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor))
+        // Restore only the payment, preserving gains from interception reactions.
+        DefensePoolEngine.set(SaturatedArithmetic.saturatingAdd(remaining, reserved), on: actor, in: &context)
     }
 
     private static func executePreparedAction(

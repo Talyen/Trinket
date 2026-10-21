@@ -46,7 +46,7 @@ extension PlayerSaveStore {
         var candidate = snapshot
         var changed = false
         if let save {
-            changed = invalidatesSession && CloudSaveSnapshot(snapshot) != CloudSaveSnapshot(save)
+            changed = invalidatesSession && snapshot.hasDomainDifference(from: save)
             candidate = try PlayerSaveSanitizer.sanitizeAndValidate(save)
             candidate.sessionGeneration = changed ? snapshot.sessionGeneration &+ 1 : snapshot.sessionGeneration
         }

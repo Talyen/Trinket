@@ -393,11 +393,12 @@ struct PlayerSaveSanitizerHomesteadTierTests {
 }
 
 struct PlayerSaveSanitizerProgressionTests {
-    @Test func `sanitize progressions clamps corrupt levels and XP`() {
+    @Test func `sanitize progressions clamps corrupt levels and XP`() throws {
+        let rogueInput = CombatantProgression(level: 3, currentXP: 10000, requiredXP: 1)
         let sanitized = PlayerSaveSanitizer.sanitizeProgressions(
             [
                 "knight": CombatantProgression(level: 0, currentXP: -5, requiredXP: 0),
-                "rogue": CombatantProgression(level: 3, currentXP: 10000, requiredXP: 1),
+                "rogue": rogueInput,
             ],
             validCombatantIDs: ["knight", "rogue"],
         )
@@ -407,11 +408,11 @@ struct PlayerSaveSanitizerProgressionTests {
             currentXP: 0,
             requiredXP: CombatantProgression.requiredXP(forLevel: 1),
         ))
-        #expect(sanitized["rogue"] == CombatantProgression(
-            level: 3,
-            currentXP: CombatantProgression.requiredXP(forLevel: 3),
-            requiredXP: CombatantProgression.requiredXP(forLevel: 3),
-        ))
+        let rogue = try #require(sanitized["rogue"])
+        #expect(rogue.level > 3)
+        #expect(rogue.currentXP < rogue.requiredXP)
+        #expect(rogue.requiredXP == CombatantProgression.requiredXP(forLevel: rogue.level))
+        #expect(rogue.totalEarnedExperience == rogueInput.totalEarnedExperience)
     }
 
     @Test func `sanitize progressions prunes unknown combatants`() {

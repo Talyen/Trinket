@@ -257,7 +257,13 @@ struct MysteryEncounterView: View {
                     isDisabled: session.isResolvingChoice,
                     isUnavailable: unavailableChoiceID == choice.id,
                 ) {
-                    guard selectedChoiceID != choice.id else { return }
+                    guard selectedChoiceID != choice.id else {
+                        // Re-tapping the unavailable choice clears the block so
+                        // a single-choice encounter can retry instead of
+                        // staying permanently disabled.
+                        unavailableChoiceID = nil
+                        return
+                    }
                     selectedChoiceID = choice.id
                     unavailableChoiceID = nil
                     choiceFeedbackTrigger += 1
