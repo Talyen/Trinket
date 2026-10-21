@@ -50,18 +50,25 @@ struct BlockCombatTests {
         )
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [attack],
+            companionModifiers: .withTriggers { $0.onEnemyAbilityGold = 5 },
             dealOpeningHand: false, appliesFightPacing: false,
         )
         DefensePoolEngine.set(1, on: battle.enemy, in: &battle)
-
+        var performed = true
         let events = battle.recordingEvents { battle in
-            _ = await BattleTurnEngine.performEnemyAction(ability: attack, abilityTarget: battle.hero, context: &battle)
+            performed = await BattleTurnEngine.performEnemyAction(ability: attack, abilityTarget: battle.hero, context: &battle)
         }
 
+        #expect(!performed)
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == 1)
         #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
         #expect(!events.contains { $0.effectKind == .blockSpent })
         #expect(!events.contains { $0.kind == .ability && $0.abilityID == attack.id })
+
+        let turnEvents = battle.recordingEvents { battle in
+            await BattleCardCombatEngine.resolveEnemyTurn(context: &battle)
+        }
+        #expect(!turnEvents.contains { $0.abilityName == "Fetch!" })
     }
 
     @Test func `player Block-cost card is denied without spending partial Block`() throws {

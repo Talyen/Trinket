@@ -74,7 +74,7 @@ public struct ItemGenerator: Sendable {
             affixes: selectedDefinitions.map { $0.resolved(for: rarity) },
             affixPowers: selectedDefinitions.map { definition in
                 let catalog = definition.power(for: rarity)
-                guard definition.basic != definition.astral else { return catalog }
+                guard definition.slot != .trinket else { return catalog }
                 return catalog.rolled(using: &randomNumberGenerator)
             },
         )

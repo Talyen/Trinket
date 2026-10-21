@@ -34,7 +34,7 @@ public struct ItemInscriptionPlan: Sendable {
         }
         guard powers.count == item.affixes.count else { return nil }
         let catalogPower = definition.power(for: item.rarity)
-        let power = definition.basic == definition.astral ? catalogPower : catalogPower.rolled(using: &random)
+        let power = catalogPower.rolled(using: &random)
         affixes[index] = ItemAffix(
             id: definition.id,
             title: definition.title,

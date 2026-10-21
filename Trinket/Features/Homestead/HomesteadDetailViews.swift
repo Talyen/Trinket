@@ -47,7 +47,14 @@ struct HomesteadNodeDetailView: View {
     @State private var celebrationGeneration = 0
 
     let definition: HomesteadNodeDefinition
-    var initialRecipeID: String?
+    let initialRecipeID: String?
+    @State private var pendingRecipeID: String?
+
+    init(definition: HomesteadNodeDefinition, initialRecipeID: String? = nil) {
+        self.definition = definition
+        self.initialRecipeID = initialRecipeID
+        _pendingRecipeID = State(initialValue: initialRecipeID)
+    }
 
     private var displaysBuiltArtwork: Bool {
         (purchasePresentation?.displayedTierNumber ?? status.currentTier) > 0
@@ -126,7 +133,7 @@ struct HomesteadNodeDetailView: View {
                 transmutation: $transmutation,
                 purchaseCommitted: purchaseCommitted,
                 onPurchase: buildOrUpgrade,
-                initialRecipeID: initialRecipeID,
+                initialRecipeID: pendingRecipeID,
             )
         }
         .trinketSensoryFeedback(.success, trigger: build.upgradeEventCount, enabled: options.hapticsEnabled)
@@ -136,11 +143,17 @@ struct HomesteadNodeDetailView: View {
                 researchCompletionIDs = []
             }
         }
+        .onChange(of: initialRecipeID) { _, newID in
+            pendingRecipeID = newID
+            if newID != nil, status.currentTier > 0 {
+                requestedCraft = true
+            }
+        }
         .onAppear {
             isVisible = true
             preparedCraft = nil
             preparedLibrary = nil
-            if initialRecipeID != nil, status.currentTier > 0 {
+            if pendingRecipeID != nil, status.currentTier > 0 {
                 requestedCraft = true
             }
             AppFramePacingSignposts.event(AppFramePacingSignposts.Name.navigationPush, detail: "homestead=\(definition.id)")
@@ -333,6 +346,7 @@ struct HomesteadNodeDetailView: View {
 
     private func finishSheetDismissal() {
         preparedCraft = nil
+        pendingRecipeID = nil
         if pendingCelebration, scenePhase == .active {
             playSFX(SFXID.homesteadBuild, options.effectsVolume)
             purchasePresentation?.displayedTierNumber = status.currentTier

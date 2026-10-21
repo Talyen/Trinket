@@ -188,7 +188,7 @@ package enum BattleTurnEngine {
         if actor.role == .enemy {
             recordAction(for: actor, context: &context)
         }
-        return actor.role == .enemy
+        return false
     }
 
     private static func reserveBlockCost(_ cost: Int, for actor: Combatant, context: inout BattleState) -> Int {

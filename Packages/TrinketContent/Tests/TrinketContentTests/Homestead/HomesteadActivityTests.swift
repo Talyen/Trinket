@@ -191,4 +191,42 @@ extension HomesteadActivityTests {
             #expect(item == other)
         }
     }
+
+    @Test func `inscription and generator roll affixes when basic matches astral`() throws {
+        let base = try #require(GameContent.itemBaseType(matching: "greatsword"))
+        let nullifying = try #require(GameContent.itemAffixDefinition(matching: "nullifying"))
+        #expect(nullifying.basic == nullifying.astral)
+        #expect(nullifying.basic.hasRollableMagnitudes)
+
+        var inscriptionRolledToTwo = false
+        var generatorRolledToTwo = false
+        for seed: UInt64 in 0 ..< 50 {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            let item = ItemGenerator().generate(
+                id: "test-\(seed)",
+                baseType: base,
+                rarity: .basic,
+                fixedAffixCount: 1,
+                guaranteedAffixIDs: ["nullifying"],
+                using: &rng,
+            )
+            if let power = item.affixPowers?[0], power.triggers.holyDamagePurgeCount == 2 {
+                generatorRolledToTwo = true
+            }
+
+            var inscribeRng = SeededRandomNumberGenerator(seed: seed)
+            if let plan = ItemInscriptionPlan.prepare(item: item, index: 0, affixID: "nullifying", using: &inscribeRng),
+               let power = plan.item.affixPowers?[0],
+               power.triggers.holyDamagePurgeCount == 2 {
+                inscriptionRolledToTwo = true
+                #expect(plan.item.affixes[0].description.contains("Purge 2 buffs"))
+            }
+
+            if generatorRolledToTwo, inscriptionRolledToTwo {
+                break
+            }
+        }
+        #expect(generatorRolledToTwo)
+        #expect(inscriptionRolledToTwo)
+    }
 }

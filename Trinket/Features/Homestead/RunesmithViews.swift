@@ -168,7 +168,7 @@ private struct RunesmithEditorView: View {
 
     private func bounds(_ definition: ItemAffixDefinition, item: InventoryItem) -> some View {
         let power = definition.power(for: item.rarity)
-        let randomizes = definition.basic != definition.astral
+        let randomizes = power.hasRollableMagnitudes
         let low = (randomizes ? power.rolledMin() : power).scaled(by: item.baseType.affixPowerMultiplier)
         let high = (randomizes ? power.rolledMax() : power).scaled(by: item.baseType.affixPowerMultiplier)
         return Section {
