@@ -213,4 +213,5 @@ public enum BattlePlayError: Error, Equatable, Sendable {
     case ownerDefeated
     case ownerSkipping
     case insufficientHealth
+    case insufficientBlock
 }

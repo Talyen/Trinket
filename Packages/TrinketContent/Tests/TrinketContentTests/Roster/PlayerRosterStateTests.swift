@@ -3,6 +3,19 @@ import TrinketContent
 import TrinketCore
 
 struct PlayerRosterStateTests {
+    @Test func `reserved gold rounds fractional pending up and ignores invalid credit`() {
+        #expect(PlayerRosterState.reservedGold(from: [.gold: 12.37]) == 13)
+        #expect(PlayerRosterState.reservedGold(from: [.gold: 12.0]) == 12)
+        #expect(PlayerRosterState.reservedGold(from: [:]) == 0)
+        #expect(PlayerRosterState.reservedGold(from: [.gold: 0]) == 0)
+        #expect(PlayerRosterState.reservedGold(from: [.gold: -3]) == 0)
+        #expect(PlayerRosterState.reservedGold(from: [.gold: .infinity]) == 0)
+        #expect(PlayerRosterState.reservedGold(from: [.gold: .nan]) == 0)
+        #expect(
+            PlayerRosterState.reservedGold(from: [.gold: Double(Int.max)]) == PlayerRosterState.maxGoldBalance,
+        )
+    }
+
     @Test func `party average preserves the encounter level of extreme saved progressions`() {
         var roster = PlayerRosterState.freshStart
         roster.progressions[roster.activeHeroID] = .at(level: Int.max)

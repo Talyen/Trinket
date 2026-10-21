@@ -89,9 +89,17 @@ extension PlayerSaveSanitizer {
         var sanitized: [String: CombatantProgression] = [:]
         for (combatantID, progression) in progressions {
             guard validCombatantIDs.contains(combatantID) else { continue }
-            let level = max(1, progression.level)
-            let requiredXP = CombatantProgression.requiredXP(forLevel: level)
-            let currentXP = min(max(0, progression.currentXP), requiredXP)
+            var level = max(1, progression.level)
+            var currentXP = max(0, progression.currentXP)
+            var requiredXP = CombatantProgression.requiredXP(forLevel: level)
+            // Overflow implies pending levels (addingExperience never leaves
+            // currentXP >= requiredXP). Level up to preserve earned XP instead
+            // of truncating it.
+            while requiredXP > 0, currentXP >= requiredXP, level < Int.max {
+                currentXP -= requiredXP
+                level += 1
+                requiredXP = CombatantProgression.requiredXP(forLevel: level)
+            }
             sanitized[combatantID] = CombatantProgression(
                 level: level,
                 currentXP: currentXP,

@@ -49,7 +49,10 @@ struct MysterySpecialChoiceCard: View {
         .animation(TrinketMotion.Interaction.selection, value: isSelected)
         .opacity(isUnavailable ? 0.5 : 1)
         .accessibilityIdentifier(AccessibilityID.Mystery.choiceButton(choiceID: choice.id))
-        .disabled(isDisabled || isUnavailable)
+        // An unavailable choice stays tappable when selected so a
+        // single-choice encounter can re-tap to clear the persist-failure
+        // block and retry. Non-selected unavailable choices stay disabled.
+        .disabled(isDisabled || (isUnavailable && !isSelected))
     }
 
     private var rewards: some View {

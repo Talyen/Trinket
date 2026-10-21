@@ -124,6 +124,8 @@ public struct CombatantRuntime: Hashable {
 
     public package(set) var hasTriggeredFirstHitBonus = false
 
+    public package(set) var hasTriggeredFirstAttackBleedBonus = false
+
     public package(set) var hasTriggeredSecondWind = false
 
     public package(set) var hasTriggeredDeathRevive = false

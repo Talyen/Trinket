@@ -46,6 +46,18 @@ enum BattleAbilityRules {
         canPayHealthCost(ability, action: BattleActionContext(actor: actor, in: context), in: context)
     }
 
+    static func canPayBlockCost(_ ability: Ability, actor: Combatant, in context: BattleState) -> Bool {
+        canPayBlockCost(ability, action: BattleActionContext(actor: actor, in: context), in: context)
+    }
+
+    static func canPayBlockCost(_ ability: Ability, action: BattleActionContext, in context: BattleState) -> Bool {
+        let outcomes = possibleOutcomes(ability, action: action, in: context)
+        let cost = outcomes.ability.blockCost
+        guard cost > 0 else { return true }
+        let balance = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: action.actor))
+        return balance >= cost
+    }
+
     static func canPayHealthCost(_ ability: Ability, action: BattleActionContext, in context: BattleState) -> Bool {
         let health = context.roster.health(for: action.actor)
         guard health > 0 else { return false }
