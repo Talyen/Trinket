@@ -12,8 +12,12 @@ enum ContractsCompletion {
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
-        guard !(save.contracts.completedOfferIDs ?? []).contains(offerID),
-              let offer = save.contracts.offers.first(where: { $0.id == offerID }) else { return .alreadyCompleted }
+        if (save.contracts.completedOfferIDs ?? []).contains(offerID) {
+            return .alreadyCompleted
+        }
+        guard let offer = save.contracts.offers.first(where: { $0.id == offerID }) else {
+            return .unavailable
+        }
         let encounterLevel = rewards.encounterLevel(or: EncounterScaling.contract(offer.difficulty)
             .resolve(partyAverageLevel: save.roster.activePartyAverageLevel).level)
         let settlement = rewards.resolve { overrides in

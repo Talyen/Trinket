@@ -17,6 +17,10 @@ enum VoyageCompletion {
         recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         let (hero, companion) = party
+        if save.voyage.completedRunIDs?.contains(runID) == true
+            || save.voyage.node(runID: runID, nodeID: nodeID)?.isCleared == true {
+            return .alreadyCompleted
+        }
         guard save.voyage.isPlayable(runID: runID, nodeID: nodeID),
               let node = save.voyage.node(runID: runID, nodeID: nodeID), node.type.isCombat else { return .unavailable }
         let earned = rewards.earned

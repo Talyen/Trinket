@@ -114,6 +114,13 @@ struct ContractBoardTests {
             )), save: &save,
             recordReceipt: { _ in },
         ) == .alreadyCompleted)
+        #expect(ContractsCompletion.complete(
+            offerID: "unrecognized-contract-offer", hero: hero, companion: companion,
+            rewards: .unsettled(.init(
+                battleGold: .init(gained: 5), loot: loot, enemyEncounterLevel: level,
+            )), save: &save,
+            recordReceipt: { _ in },
+        ) == .unavailable)
         #expect(save == claimed)
     }
 

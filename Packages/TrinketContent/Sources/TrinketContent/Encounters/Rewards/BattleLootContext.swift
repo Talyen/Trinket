@@ -65,7 +65,7 @@ public struct BattleLootContext: Equatable, Sendable {
         return resolve(
             .labyrinth(node: node, effects: effects),
             encounterLevel: encounterLevel ?? EncounterLevelResolver.labyrinthEnemyLevel(for: node),
-            enemyIsBoss: isBoss(enemyID: node.enemyID),
+            enemyIsBoss: node.type == .boss || isBoss(enemyID: node.enemyID),
         )
     }
 
