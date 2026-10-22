@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 
 from internal.content.common import (
     AFFIX_REQUIRED_COLUMNS,
@@ -41,6 +42,8 @@ class AffixRow:
     astral_modifiers: str
     basic_triggers: str
     astral_triggers: str
+    basic_roll_ranges: str = ""
+    astral_roll_ranges: str = ""
 
 
 @dataclass
@@ -72,8 +75,8 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
             f"            slot: .{row.slot},\n"
             f"            keywords: {parse_keywords(row.keywords)},\n"
             f"            weight: {row.weight},\n"
-            f'            basic: ItemAffixPower(description: "{swift_escape(row.basic_description)}", modifiers: {modifiers_swift(row.basic_modifiers)}, triggers: {basic_triggers}),\n'
-            f'            astral: ItemAffixPower(description: "{swift_escape(row.astral_description)}", modifiers: {modifiers_swift(row.astral_modifiers)}, triggers: {astral_triggers})\n'
+            f'            basic: ItemAffixPower(description: "{swift_escape(row.basic_description)}", modifiers: {modifiers_swift(row.basic_modifiers)}, triggers: {basic_triggers}{roll_ranges_swift(row.basic_roll_ranges)}),\n'
+            f'            astral: ItemAffixPower(description: "{swift_escape(row.astral_description)}", modifiers: {modifiers_swift(row.astral_modifiers)}, triggers: {astral_triggers}{roll_ranges_swift(row.astral_roll_ranges)})\n'
             "        )"
         )
 
@@ -103,6 +106,45 @@ def keyword_tokens(raw: str, row_id: str = "item keywords") -> list[str]:
     return keywords
 
 
+def parse_roll_ranges(raw: str) -> dict[str, tuple[Decimal, Decimal]]:
+    ranges = {}
+    for token in raw.split("|") if raw else []:
+        parts = token.split(":")
+        if len(parts) != 3 or parts[0] in ranges:
+            raise ValueError(f"Invalid or duplicate affix roll range: {token}")
+        try:
+            lower, upper = Decimal(parts[1]), Decimal(parts[2])
+        except InvalidOperation as error:
+            raise ValueError(f"Invalid affix roll bounds: {token}") from error
+        if not lower.is_finite() or not upper.is_finite() or not 0 < lower <= upper <= 1000000:
+            raise ValueError(f"Invalid affix roll bounds: {token}")
+        ranges[parts[0]] = (lower, upper)
+    return ranges
+
+
+def validate_roll_ranges(raw: str, triggers: str, row_id: str) -> None:
+    from internal.content.content_codegen_triggers import _trigger_families, parse_trigger_values
+    fields = {field['name']: field for family in _trigger_families() for field in family['fields']}
+    populated = parse_trigger_values(triggers, row_id)
+    for name, (lower, upper) in parse_roll_ranges(raw).items():
+        policy = fields.get(name, {}).get('affix_roll', {})
+        if name not in populated or 'kind' not in policy:
+            raise ValueError(f"{row_id}: roll range needs a populated rollable field: {name}")
+        scale = 100 if policy['kind'] == 'percent' else 1
+        if any(value * scale != (value * scale).to_integral_value() for value in (lower, upper)):
+            raise ValueError(f"{row_id}: roll bounds must use whole magnitude points: {name}")
+        if not lower <= Decimal(str(populated[name])) <= upper:
+            raise ValueError(f"{row_id}: catalog magnitude falls outside roll range: {name}")
+
+
+def roll_ranges_swift(raw: str) -> str:
+    ranges = parse_roll_ranges(raw)
+    if not ranges:
+        return ""
+    entries = ", ".join(f".{name}: {lower} ... {upper}" for name, (lower, upper) in ranges.items())
+    return f", triggerRollRanges: [{entries}]"
+
+
 def parse_keywords(raw: str) -> str:
     return "[" + ", ".join(f".{keyword}" for keyword in keyword_tokens(raw)) + "]"
 
@@ -118,14 +160,15 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
             raise ValueError(f"Invalid affix slot '{row.slot}' for {row.id}")
         keyword_tokens(row.keywords, row.id)
         _validate_positive_int("Affix weight", row.weight, row.id, minimum=1)
-        for tier, description, modifiers, triggers in (
-            ("basic", row.basic_description, row.basic_modifiers, row.basic_triggers),
-            ("astral", row.astral_description, row.astral_modifiers, row.astral_triggers),
+        for tier, description, modifiers, triggers, ranges in (
+            ("basic", row.basic_description, row.basic_modifiers, row.basic_triggers, row.basic_roll_ranges),
+            ("astral", row.astral_description, row.astral_modifiers, row.astral_triggers, row.astral_roll_ranges),
         ):
             _require_non_empty(f"{tier}_description", description, row.id)
             modifiers_swift(modifiers, row.id)
             # Rolling validation also parses and type-checks every trigger.
             validate_affix_rolling(triggers, row.id)
+            validate_roll_ranges(ranges, triggers, row.id)
 
 
 def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:

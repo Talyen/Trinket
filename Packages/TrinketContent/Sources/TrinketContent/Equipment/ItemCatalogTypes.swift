@@ -97,21 +97,25 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public let description: String
     public let modifiers: [AffixModifier]
     public var triggers: CombatTraitTriggers
+    let triggerRollRanges: [CombatTriggerField: ClosedRange<Double>]
 
     public init(
         description: String,
         modifiers: [AffixModifier] = [],
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
+        triggerRollRanges: [CombatTriggerField: ClosedRange<Double>] = [:],
     ) {
         self.description = description
         self.modifiers = modifiers
         self.triggers = triggers
+        self.triggerRollRanges = triggerRollRanges
     }
 
     private enum CodingKeys: String, CodingKey {
         case description
         case modifiers
         case triggers
+        case triggerRollRanges
     }
 
     public init(from decoder: Decoder) throws {
@@ -126,6 +130,21 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         // Unknown cases are discarded individually; non-array payloads have no modifiers.
         modifiers = (try? container.decode([Failable].self, forKey: .modifiers))?.compactMap(\.value) ?? []
         triggers = try container.decode(CombatTraitTriggers.self, forKey: .triggers)
+        let ranges = try container.decodeIfPresent([String: ClosedRange<Double>].self, forKey: .triggerRollRanges) ?? [:]
+        triggerRollRanges = Dictionary(uniqueKeysWithValues: ranges.compactMap { key, range in
+            CombatTriggerField(rawValue: key).map { ($0, range) }
+        })
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(description, forKey: .description)
+        try container.encode(modifiers, forKey: .modifiers)
+        try container.encode(triggers, forKey: .triggers)
+        if !triggerRollRanges.isEmpty {
+            let ranges = Dictionary(uniqueKeysWithValues: triggerRollRanges.map { ($0.key.rawValue, $0.value) })
+            try container.encode(ranges, forKey: .triggerRollRanges)
+        }
     }
 }
 

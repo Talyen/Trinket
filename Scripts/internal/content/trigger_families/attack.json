@@ -512,6 +512,14 @@
     {
       "name": "prismaticEdge",
       "type": "Bool"
+    },
+    {
+      "name": "physicalAttackBleedChancePercent",
+      "type": "Double",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 96
+      }
     }
   ]
 }

@@ -439,6 +439,9 @@ package extension DamagePipeline {
         if state.options.isThornsDamage, state.targetStatus.isPoisoned {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.thornsDamageVsPoisonedFlat)
         }
+        if state.damageKeyword == .burn, state.targetStatus.isBleeding {
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.burnDamageVsBleedingFlat)
+        }
         if state.damageKeyword == .burn, state.targetStatus.isPoisoned {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.burnDamageVsPoisonedFlat)
         }

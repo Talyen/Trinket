@@ -5,7 +5,7 @@ import TrinketCore
 enum ItemAffixCatalogGenerated {
     static let definitions: [ItemAffixDefinition] = {
         var list = [ItemAffixDefinition]()
-        list.reserveCapacity(118)
+        list.reserveCapacity(127)
         list.append(contentsOf: chunk0())
         list.append(contentsOf: chunk1())
         list.append(contentsOf: chunk2())
@@ -1145,6 +1145,87 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Draw a card when your Block breaks\nwhile below half Health", modifiers: [], triggers: CombatTraitTriggers { $0.blockBreakDrawBelowHalf = true }),
             astral: ItemAffixPower(description: "Draw a card when your Block breaks\nwhile below half Health", modifiers: [], triggers: CombatTraitTriggers { $0.blockBreakDrawBelowHalf = true })
+        ),
+        ItemAffixCatalog.affix(
+            id: "bastioned",
+            title: "Bastioned",
+            slot: .armor,
+            keywords: [.block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Start combat with 4 Block", modifiers: [], triggers: CombatTraitTriggers { $0.startBattleBlock = 4 }, triggerRollRanges: [.startBattleBlock: 3 ... 5]),
+            astral: ItemAffixPower(description: "Start combat with 8 Block", modifiers: [], triggers: CombatTraitTriggers { $0.startBattleBlock = 8 }, triggerRollRanges: [.startBattleBlock: 6 ... 8])
+        ),
+        ItemAffixCatalog.affix(
+            id: "cinderbound",
+            title: "Cinderbound",
+            slot: .weapon,
+            keywords: [.burn, .bleed],
+            weight: 8,
+            basic: ItemAffixPower(description: "Burn deals 1 more damage to Bleeding enemies", modifiers: [], triggers: CombatTraitTriggers { $0.burnDamageVsBleedingFlat = 1 }, triggerRollRanges: [.burnDamageVsBleedingFlat: 1 ... 1]),
+            astral: ItemAffixPower(description: "Burn deals 2 more damage to Bleeding enemies", modifiers: [], triggers: CombatTraitTriggers { $0.burnDamageVsBleedingFlat = 2 }, triggerRollRanges: [.burnDamageVsBleedingFlat: 1 ... 2])
+        ),
+        ItemAffixCatalog.affix(
+            id: "steadfast",
+            title: "Steadfast",
+            slot: .armor,
+            keywords: [.stun, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "When you Stun with no Block, gain 3 Block", modifiers: [], triggers: CombatTraitTriggers { $0.stunBlockIfNone = 3 }, triggerRollRanges: [.stunBlockIfNone: 2 ... 3]),
+            astral: ItemAffixPower(description: "When you Stun with no Block, gain 5 Block", modifiers: [], triggers: CombatTraitTriggers { $0.stunBlockIfNone = 5 }, triggerRollRanges: [.stunBlockIfNone: 4 ... 5])
+        ),
+        ItemAffixCatalog.affix(
+            id: "arcane",
+            title: "Arcane",
+            slot: .accessory,
+            keywords: [.stun, .mana],
+            weight: 8,
+            basic: ItemAffixPower(description: "When you Stun with no Mana, restore 1 Mana", modifiers: [], triggers: CombatTraitTriggers { $0.stunManaIfNone = 1 }, triggerRollRanges: [.stunManaIfNone: 1 ... 1]),
+            astral: ItemAffixPower(description: "When you Stun with no Mana, restore 2 Mana", modifiers: [], triggers: CombatTraitTriggers { $0.stunManaIfNone = 2 }, triggerRollRanges: [.stunManaIfNone: 1 ... 2])
+        ),
+        ItemAffixCatalog.affix(
+            id: "shattering",
+            title: "Shattering",
+            slot: .weapon,
+            keywords: [.freeze, .physical],
+            weight: 8,
+            basic: ItemAffixPower(description: "Freezing an enemy deals 3 Physical damage", modifiers: [], triggers: CombatTraitTriggers { $0.freezeDealPhysicalFlat = 3 }, triggerRollRanges: [.freezeDealPhysicalFlat: 2 ... 3]),
+            astral: ItemAffixPower(description: "Freezing an enemy deals 5 Physical damage", modifiers: [], triggers: CombatTraitTriggers { $0.freezeDealPhysicalFlat = 5 }, triggerRollRanges: [.freezeDealPhysicalFlat: 4 ... 5])
+        ),
+        ItemAffixCatalog.affix(
+            id: "bloodletting",
+            title: "Bloodletting",
+            slot: .weapon,
+            keywords: [.physical, .bleed],
+            weight: 8,
+            basic: ItemAffixPower(description: "Physical attacks that damage Health have a 15% chance to deal 1 Bleed damage", modifiers: [], triggers: CombatTraitTriggers { $0.physicalAttackBleedChancePercent = 0.15 }, triggerRollRanges: [.physicalAttackBleedChancePercent: 0.1 ... 0.15]),
+            astral: ItemAffixPower(description: "Physical attacks that damage Health have a 30% chance to deal 1 Bleed damage", modifiers: [], triggers: CombatTraitTriggers { $0.physicalAttackBleedChancePercent = 0.3 }, triggerRollRanges: [.physicalAttackBleedChancePercent: 0.2 ... 0.3])
+        ),
+        ItemAffixCatalog.affix(
+            id: "resolute",
+            title: "Resolute",
+            slot: .armor,
+            keywords: [.block, .health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Restore 1 Health when your Block breaks", modifiers: [], triggers: CombatTraitTriggers { $0.blockBrokenHealFlat = 1 }, triggerRollRanges: [.blockBrokenHealFlat: 1 ... 1]),
+            astral: ItemAffixPower(description: "Restore 2 Health when your Block breaks", modifiers: [], triggers: CombatTraitTriggers { $0.blockBrokenHealFlat = 2 }, triggerRollRanges: [.blockBrokenHealFlat: 1 ... 2])
+        ),
+        ItemAffixCatalog.affix(
+            id: "reactive",
+            title: "Reactive",
+            slot: .armor,
+            keywords: [.block, .stun],
+            weight: 8,
+            basic: ItemAffixPower(description: "When your Block breaks, deal 1 Stun damage to the attacker", modifiers: [], triggers: CombatTraitTriggers { $0.blockBrokenStunFlat = 1 }, triggerRollRanges: [.blockBrokenStunFlat: 1 ... 1]),
+            astral: ItemAffixPower(description: "When your Block breaks, deal 2 Stun damage to the attacker", modifiers: [], triggers: CombatTraitTriggers { $0.blockBrokenStunFlat = 2 }, triggerRollRanges: [.blockBrokenStunFlat: 1 ... 2])
+        ),
+        ItemAffixCatalog.affix(
+            id: "kinbound",
+            title: "Kinbound",
+            slot: .accessory,
+            keywords: [.health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Below half Health, restore Health equal to 10% of your ally's attack damage", modifiers: [], triggers: CombatTraitTriggers { $0.allyAttackHealBelowHalfPercent = 0.1 }, triggerRollRanges: [.allyAttackHealBelowHalfPercent: 0.08 ... 0.12]),
+            astral: ItemAffixPower(description: "Below half Health, restore Health equal to 20% of your ally's attack damage", modifiers: [], triggers: CombatTraitTriggers { $0.allyAttackHealBelowHalfPercent = 0.2 }, triggerRollRanges: [.allyAttackHealBelowHalfPercent: 0.15 ... 0.2])
         )
         ]
     }

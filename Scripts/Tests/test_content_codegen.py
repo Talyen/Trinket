@@ -71,6 +71,19 @@ class ContentCodegenTests(ScriptRegressionTestCase):
         with self.assertRaisesRegex(ValueError, "shares no keyword"):
             validate_affix_reachability([reachable], [])
 
+    def test_authored_affix_ranges_reject_missing_fractional_and_out_of_range_fields(self) -> None:
+        from dataclasses import replace
+        from internal.content.items import AffixRow, validate_affix_rows
+
+        row = AffixRow("test", "Test", "armor", "block", "8", "Gain 4 Block", "Gain 8 Block", "", "",
+                       "startBattleBlock:4", "startBattleBlock:8", "startBattleBlock:3:5", "startBattleBlock:6:8")
+        validate_affix_rows([row])
+        for bounds in ("startBattleBlock:0:5", "startBattleBlock:5:3", "startBattleBlock:3.5:5",
+                       "startBattleBlock:1:2", "startBattleBlock:nan:5", "missing:1:2",
+                       "startBattleBlock:3:5|startBattleBlock:3:5"):
+            with self.subTest(bounds=bounds), self.assertRaises(ValueError):
+                validate_affix_rows([replace(row, basic_roll_ranges=bounds)])
+
     def test_item_manifests_reject_unusable_catalog_entries(self) -> None:
         from dataclasses import replace
         from internal.content.items import ItemBaseRow, validate_item_base_rows

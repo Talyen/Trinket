@@ -23,7 +23,7 @@ entries and duplicates; use one token per keyword or resource.
 Tab-separated columns:
 
 ```text
-id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers	basic_triggers	astral_triggers
+id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers	basic_triggers	astral_triggers\tbasic_roll_ranges\tastral_roll_ranges
 ```
 
 - `slot`: `weapon`, `armor`, `accessory`, or `trinket`.
@@ -32,6 +32,8 @@ id	title	slot	keywords	weight	basic_description	astral_description	basic_modifie
 - `*_modifiers`: pipe-separated DSL tokens (e.g. `maximum_health:6|damage_dealt:physical:1`). Empty when the affix is trigger-only.
 - `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `block_per_turn:2`). Empty for flat modifier affixes. Trailing trigger columns may be omitted (no trailing tabs required); extra columns are rejected.
 - One value per field in a cell: repeating a modifier or trigger field is rejected, as are non-numeric amounts and unknown keywords. Trigger value types follow the schema field types.
+- `basic_roll_ranges` / `astral_roll_ranges`: optional trailing pipe-separated `canonicalField:min:max` bounds for populated rollable trigger fields. Integers use whole values; percentages use fractions (for example, `physicalAttackBleedChancePercent:0.10:0.15`). Equal bounds make a fixed roll. Omitted bounds retain the existing magnitude-based roll formula. Authored bounds also own minimum, perfect-roll and two-handed scaling behavior; corruption can exceed the ordinary maximum.
+
 
 Trigger tokens resolve against `Scripts/internal/content/trigger_families/index.json` (families → `Generated/*Triggers.generated.swift`): explicit aliases and multi-part parsers live in `Scripts/internal/content/content_codegen_triggers.py`, otherwise `snake_case` maps to the schema field (`dodge_chance_bonus` → `dodgeChanceBonus`). `camelCase` schema field names are accepted everywhere, not only in talents. Separate fields with `|` — gluing two fields with `,` inside one token is rejected. When the same token exists as both a modifier and a trigger (e.g. `dodge_chance_bonus`), the column decides which one it becomes.
 

@@ -161,6 +161,23 @@ belong to the attacker with the affix or talent; they do not amplify partner dam
 Hallowguard snapshots the attacker's Block before a Holy attack and grants Block
 only if that attack removes enemy Health.
 
+Cinderbound adds flat Burn damage against Bleeding enemies at each damage event,
+including resolved ticks, without creating a secondary hit or new stack.
+Steadfast and Arcane reward their wearer's completed Stun only when that wearer
+has no Block or Mana respectively; Mana restoration still requires capacity.
+Shattering deals Physical reaction damage after its wearer completes a Freeze.
+Resolute heals its wearer at the existing Block-break checkpoint; Reactive deals
+Stun reaction damage to the surviving attacker. Both can repeat on subsequent
+Block breaks in the same turn and keep Saintfall's separate allowance intact.
+Kinbound heals a living wearer below half Health from their living ally's actual
+attack Health damage, using ordinary combat rounding and healing. Periodic,
+retaliation and repeated damage do not qualify; either party member may wear it.
+Bloodletting rolls once per card after its first qualifying Physical Health hit,
+including automatic card plays. Blocked hits do not spend its roll. Multi-hit cards
+share the roll, a later card can roll again in the same turn, and repeated or
+reaction damage cannot roll. Copies add chance (capped at 100%); a successful
+roll deals one Bleed damage through the ordinary reaction/DoT applicator.
+
 Keep ordered
 damage checkpoints in `DamagePipeline`; commit mutations before their dependent
 reactions. Reserve next-hit resources before nested reactions and never write a

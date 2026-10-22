@@ -42,7 +42,7 @@ final class PlayBattleCoordinator {
         self.battlePerformanceScenario = battlePerformanceScenario
     }
 
-    deinit {
+    isolated deinit {
         let battle = battle
         let activeBattle = activeBattle
         MainActorCleanup.perform {

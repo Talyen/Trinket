@@ -12,7 +12,8 @@ App options and audio use `BattlePresentationDependencies` from FeatureContracts
 AppState, Play and those callbacks share one fixed OptionsStore; its values remain
 editable. Callbacks capture only options/audio owners, not the bootstrap aggregate
 or save store. Releasing the Play coordinator retires its active runtime even when
-an outgoing display retains it; delayed cleanup checks the original run identity.
+an outgoing display retains it; its isolated deinitializer performs cleanup on the
+main actor, and delayed cleanup checks the original run identity.
 Configuration, reward context and engine state belong to one active simulation;
 publication replaces that run as a unit. The runtime reserves installation and
 teardown before synchronous observation or presentation callbacks can reenter.

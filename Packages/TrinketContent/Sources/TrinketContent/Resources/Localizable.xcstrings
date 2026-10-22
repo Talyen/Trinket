@@ -1037,6 +1037,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "解毒"}}
       }
     },
+    "affixes.arcane.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: arcane, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn du ohne <keyword id=\"mana\">Mana</keyword> einen Gegner <keyword id=\"stun\">betäubst</keyword>, stelle <value id=\"quantity_1\">%1$lld</value> <keyword id=\"mana\">Mana</keyword> wieder her"}},
+        "en": {"stringUnit": {"state": "translated", "value": "When you <keyword id=\"stun\">Stun</keyword> with no <keyword id=\"mana\">Mana</keyword>, restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"mana\">Mana</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Sin <keyword id=\"mana\">Maná</keyword>, <keyword id=\"stun\">aturdir</keyword> a un enemigo restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"mana\">Maná</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Sans <keyword id=\"mana\">Mana</keyword>, <keyword id=\"stun\">étourdir</keyword> un ennemi restaure <value id=\"quantity_1\">%1$lld</value> <keyword id=\"mana\">Mana</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">マナ</keyword>がないときに敵を<keyword id=\"stun\">スタン</keyword>させると、<keyword id=\"mana\">マナ</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">마나</keyword>가 없을 때 적을 <keyword id=\"stun\">기절</keyword>시키면 <keyword id=\"mana\">마나</keyword> <value id=\"quantity_1\">%1$lld</value> 회복"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem <keyword id=\"mana\">Mana</keyword>, <keyword id=\"stun\">atordoar</keyword> um inimigo restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"mana\">Mana</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "沒有<keyword id=\"mana\">魔力</keyword>時使敵人<keyword id=\"stun\">暈眩</keyword>，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"mana\">魔力</keyword>"}}
+      }
+    },
+    "affixes.arcane.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: arcane, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn du ohne <keyword id=\"mana\">Mana</keyword> einen Gegner <keyword id=\"stun\">betäubst</keyword>, stelle <value id=\"quantity_1\">%1$lld</value> <keyword id=\"mana\">Mana</keyword> wieder her"}},
+        "en": {"stringUnit": {"state": "translated", "value": "When you <keyword id=\"stun\">Stun</keyword> with no <keyword id=\"mana\">Mana</keyword>, restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"mana\">Mana</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Sin <keyword id=\"mana\">Maná</keyword>, <keyword id=\"stun\">aturdir</keyword> a un enemigo restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"mana\">Maná</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Sans <keyword id=\"mana\">Mana</keyword>, <keyword id=\"stun\">étourdir</keyword> un ennemi restaure <value id=\"quantity_1\">%1$lld</value> <keyword id=\"mana\">Mana</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">マナ</keyword>がないときに敵を<keyword id=\"stun\">スタン</keyword>させると、<keyword id=\"mana\">マナ</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">마나</keyword>가 없을 때 적을 <keyword id=\"stun\">기절</keyword>시키면 <keyword id=\"mana\">마나</keyword> <value id=\"quantity_1\">%1$lld</value> 회복"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem <keyword id=\"mana\">Mana</keyword>, <keyword id=\"stun\">atordoar</keyword> um inimigo restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"mana\">Mana</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "沒有<keyword id=\"mana\">魔力</keyword>時使敵人<keyword id=\"stun\">暈眩</keyword>，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"mana\">魔力</keyword>"}}
+      }
+    },
+    "affixes.arcane.title": {
+      "comment": "ContentManifest/affixes.tsv: arcane, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Arkan"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Arcane"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Arcano"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Arcanique"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "秘術の"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "비전의"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Arcano"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "奧術"}}
+      }
+    },
     "affixes.arcane_ward.astral_description": {
       "comment": "ContentManifest/affixes.tsv: arcane_ward, astral_description",
       "extractionState": "manual",
@@ -1161,6 +1203,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "가시 돋친"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Farpado"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "倒刺"}}
+      }
+    },
+    "affixes.bastioned.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: bastioned, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Beginne den Kampf mit <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Start combat with <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Empieza el combate con <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Commencez le combat avec <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘開始時に<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>得る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 시작 시 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Comece o combate com <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥開始時獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.bastioned.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: bastioned, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Beginne den Kampf mit <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Start combat with <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Empieza el combate con <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Commencez le combat avec <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘開始時に<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>得る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투 시작 시 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Comece o combate com <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥開始時獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.bastioned.title": {
+      "comment": "ContentManifest/affixes.tsv: bastioned, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verbarrikadiert"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Bastioned"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Atrincherado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Retranché"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "要塞の"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "요새의"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Entrincheirado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "壁壘"}}
       }
     },
     "affixes.beacon.astral_description": {
@@ -1371,6 +1455,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "피의 유대"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Laço de Sangue"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "血之羈絆"}}
+      }
+    },
+    "affixes.bloodletting.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: bloodletting, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physische</keyword> Angriffe, die <keyword id=\"health\">Gesundheit</keyword> schädigen, verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Blutungsschaden</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physical</keyword> attacks that damage <keyword id=\"health\">Health</keyword> have a <value id=\"quantity_1\">%1$lld</value>%% chance to deal <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Bleed</keyword> damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques <keyword id=\"physical\">físicos</keyword> que dañan la <keyword id=\"health\">Salud</keyword> tienen un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de infligir <value id=\"quantity_2\">%2$lld</value> de daño de <keyword id=\"bleed\">Sangrado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques <keyword id=\"physical\">physiques</keyword> qui infligent des dégâts à la <keyword id=\"health\">Santé</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger <value id=\"quantity_2\">%2$lld</value> dégâts de <keyword id=\"bleed\">Saignement</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>にダメージを与えた<keyword id=\"physical\">物理</keyword>攻撃は<value id=\"quantity_1\">%1$lld</value>%%の確率で<value id=\"quantity_2\">%2$lld</value>の<keyword id=\"bleed\">出血</keyword>ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword>에 피해를 준 <keyword id=\"physical\">물리</keyword> 공격은 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"bleed\">출혈</keyword> 피해 <value id=\"quantity_2\">%2$lld</value> 추가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques <keyword id=\"physical\">físicos</keyword> que causam dano à <keyword id=\"health\">Vida</keyword> têm <value id=\"quantity_1\">%1$lld</value>%% de chance de causar <value id=\"quantity_2\">%2$lld</value> de dano de <keyword id=\"bleed\">Sangramento</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "對<keyword id=\"health\">生命值</keyword>造成傷害的<keyword id=\"physical\">物理</keyword>攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率造成<value id=\"quantity_2\">%2$lld</value>點<keyword id=\"bleed\">流血</keyword>傷害"}}
+      }
+    },
+    "affixes.bloodletting.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: bloodletting, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physische</keyword> Angriffe, die <keyword id=\"health\">Gesundheit</keyword> schädigen, verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Blutungsschaden</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physical</keyword> attacks that damage <keyword id=\"health\">Health</keyword> have a <value id=\"quantity_1\">%1$lld</value>%% chance to deal <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Bleed</keyword> damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques <keyword id=\"physical\">físicos</keyword> que dañan la <keyword id=\"health\">Salud</keyword> tienen un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de infligir <value id=\"quantity_2\">%2$lld</value> de daño de <keyword id=\"bleed\">Sangrado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques <keyword id=\"physical\">physiques</keyword> qui infligent des dégâts à la <keyword id=\"health\">Santé</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger <value id=\"quantity_2\">%2$lld</value> dégâts de <keyword id=\"bleed\">Saignement</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>にダメージを与えた<keyword id=\"physical\">物理</keyword>攻撃は<value id=\"quantity_1\">%1$lld</value>%%の確率で<value id=\"quantity_2\">%2$lld</value>の<keyword id=\"bleed\">出血</keyword>ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword>에 피해를 준 <keyword id=\"physical\">물리</keyword> 공격은 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"bleed\">출혈</keyword> 피해 <value id=\"quantity_2\">%2$lld</value> 추가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques <keyword id=\"physical\">físicos</keyword> que causam dano à <keyword id=\"health\">Vida</keyword> têm <value id=\"quantity_1\">%1$lld</value>%% de chance de causar <value id=\"quantity_2\">%2$lld</value> de dano de <keyword id=\"bleed\">Sangramento</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "對<keyword id=\"health\">生命值</keyword>造成傷害的<keyword id=\"physical\">物理</keyword>攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率造成<value id=\"quantity_2\">%2$lld</value>點<keyword id=\"bleed\">流血</keyword>傷害"}}
+      }
+    },
+    "affixes.bloodletting.title": {
+      "comment": "ContentManifest/affixes.tsv: bloodletting, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Aderlass"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Bloodletting"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Sangría"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Saignée"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "放血の"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방혈의"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sangria"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "放血"}}
       }
     },
     "affixes.bloodroot.astral_description": {
@@ -1959,6 +2085,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "집중된"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Canalizado"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "引導"}}
+      }
+    },
+    "affixes.cinderbound.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: cinderbound, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Brand</keyword> verursacht <keyword id=\"bleed\">blutenden</keyword> Gegnern <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> deals <value id=\"quantity_1\">%1$lld</value> more damage to <keyword id=\"bleed\">Bleeding</keyword> enemies"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La <keyword id=\"burn\">Quemadura</keyword> inflige <value id=\"quantity_1\">%1$lld</value> de daño adicional a enemigos con <keyword id=\"bleed\">Sangrado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "La <keyword id=\"burn\">Brûlure</keyword> inflige <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis qui <keyword id=\"bleed\">saignent</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">出血</keyword>中の敵への<keyword id=\"burn\">炎上</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">출혈</keyword> 중인 적에게 <keyword id=\"burn\">화상</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 추가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A <keyword id=\"burn\">Queimadura</keyword> causa <value id=\"quantity_1\">%1$lld</value> de dano adicional a inimigos com <keyword id=\"bleed\">Sangramento</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">燃燒</keyword>對<keyword id=\"bleed\">流血</keyword>中的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"}}
+      }
+    },
+    "affixes.cinderbound.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: cinderbound, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Brand</keyword> verursacht <keyword id=\"bleed\">blutenden</keyword> Gegnern <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> deals <value id=\"quantity_1\">%1$lld</value> more damage to <keyword id=\"bleed\">Bleeding</keyword> enemies"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La <keyword id=\"burn\">Quemadura</keyword> inflige <value id=\"quantity_1\">%1$lld</value> de daño adicional a enemigos con <keyword id=\"bleed\">Sangrado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "La <keyword id=\"burn\">Brûlure</keyword> inflige <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis qui <keyword id=\"bleed\">saignent</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">出血</keyword>中の敵への<keyword id=\"burn\">炎上</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">출혈</keyword> 중인 적에게 <keyword id=\"burn\">화상</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 추가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A <keyword id=\"burn\">Queimadura</keyword> causa <value id=\"quantity_1\">%1$lld</value> de dano adicional a inimigos com <keyword id=\"bleed\">Sangramento</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">燃燒</keyword>對<keyword id=\"bleed\">流血</keyword>中的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"}}
+      }
+    },
+    "affixes.cinderbound.title": {
+      "comment": "ContentManifest/affixes.tsv: cinderbound, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Glutgebunden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Cinderbound"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Ligado a las brasas"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lié aux braises"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "熾火の"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "잿불의"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ligado às brasas"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "餘燼"}}
       }
     },
     "affixes.clearheaded.astral_description": {
@@ -3347,6 +3515,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "鋒利"}}
       }
     },
+    "affixes.kinbound.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: kinbound, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Unter halber <keyword id=\"health\">Gesundheit</keyword> heilst du <keyword id=\"health\">Gesundheit</keyword> in Höhe von <value id=\"quantity_1\">%1$lld</value>%% des Angriffsschadens deines Verbündeten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Below half <keyword id=\"health\">Health</keyword>, restore <keyword id=\"health\">Health</keyword> equal to <value id=\"quantity_1\">%1$lld</value>%% of your ally's attack damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Con menos de la mitad de tu <keyword id=\"health\">Salud</keyword>, recupera <keyword id=\"health\">Salud</keyword> equivalente al <value id=\"quantity_1\">%1$lld</value>%% del daño de ataque de tu aliado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Sous la moitié de votre <keyword id=\"health\">Santé</keyword>, restaurez de la <keyword id=\"health\">Santé</keyword> à hauteur de <value id=\"quantity_1\">%1$lld</value>%% des dégâts d’attaque de votre allié"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>が半分未満の間、味方の攻撃ダメージの<value id=\"quantity_1\">%1$lld</value>%%に相当する<keyword id=\"health\">体力</keyword>を回復"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword>이 절반 미만일 때 아군 공격 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 <keyword id=\"health\">체력</keyword> 회복"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Com menos da metade da sua <keyword id=\"health\">Vida</keyword>, restaure <keyword id=\"health\">Vida</keyword> igual a <value id=\"quantity_1\">%1$lld</value>%% do dano de ataque do seu aliado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">生命值</keyword>低於一半時，恢復相當於盟友攻擊傷害<value id=\"quantity_1\">%1$lld</value>%%的<keyword id=\"health\">生命值</keyword>"}}
+      }
+    },
+    "affixes.kinbound.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: kinbound, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Unter halber <keyword id=\"health\">Gesundheit</keyword> heilst du <keyword id=\"health\">Gesundheit</keyword> in Höhe von <value id=\"quantity_1\">%1$lld</value>%% des Angriffsschadens deines Verbündeten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Below half <keyword id=\"health\">Health</keyword>, restore <keyword id=\"health\">Health</keyword> equal to <value id=\"quantity_1\">%1$lld</value>%% of your ally's attack damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Con menos de la mitad de tu <keyword id=\"health\">Salud</keyword>, recupera <keyword id=\"health\">Salud</keyword> equivalente al <value id=\"quantity_1\">%1$lld</value>%% del daño de ataque de tu aliado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Sous la moitié de votre <keyword id=\"health\">Santé</keyword>, restaurez de la <keyword id=\"health\">Santé</keyword> à hauteur de <value id=\"quantity_1\">%1$lld</value>%% des dégâts d’attaque de votre allié"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>が半分未満の間、味方の攻撃ダメージの<value id=\"quantity_1\">%1$lld</value>%%に相当する<keyword id=\"health\">体力</keyword>を回復"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword>이 절반 미만일 때 아군 공격 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 <keyword id=\"health\">체력</keyword> 회복"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Com menos da metade da sua <keyword id=\"health\">Vida</keyword>, restaure <keyword id=\"health\">Vida</keyword> igual a <value id=\"quantity_1\">%1$lld</value>%% do dano de ataque do seu aliado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">生命值</keyword>低於一半時，恢復相當於盟友攻擊傷害<value id=\"quantity_1\">%1$lld</value>%%的<keyword id=\"health\">生命值</keyword>"}}
+      }
+    },
+    "affixes.kinbound.title": {
+      "comment": "ContentManifest/affixes.tsv: kinbound, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verbunden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Kinbound"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Vinculado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lié aux siens"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "絆の"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "결속의"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Vinculado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "羈絆"}}
+      }
+    },
     "affixes.knockout.astral_description": {
       "comment": "ContentManifest/affixes.tsv: knockout, astral_description",
       "extractionState": "manual",
@@ -4061,6 +4271,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "疫病守護"}}
       }
     },
+    "affixes.reactive.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: reactive, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn dein <keyword id=\"block\">Block</keyword> bricht, füge dem Angreifer <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Betäubungsschaden</keyword> zu"}},
+        "en": {"stringUnit": {"state": "translated", "value": "When your <keyword id=\"block\">Block</keyword> breaks, deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Stun</keyword> damage to the attacker"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuando se rompe tu <keyword id=\"block\">Bloqueo</keyword>, inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"stun\">Aturdimiento</keyword> al atacante"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Quand votre <keyword id=\"block\">Blocage</keyword> est brisé, infligez <value id=\"quantity_1\">%1$lld</value> dégâts d’<keyword id=\"stun\">Étourdissement</keyword> à l’attaquant"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"block\">ブロック</keyword>が破られると、攻撃者に<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"stun\">スタン</keyword>ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 <keyword id=\"block\">방어도</keyword>가 깨지면 공격자에게 <keyword id=\"stun\">기절</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quando seu <keyword id=\"block\">Bloqueio</keyword> se rompe, cause <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"stun\">Atordoamento</keyword> ao atacante"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"block\">格擋</keyword>被擊破時，對攻擊者造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"stun\">暈眩</keyword>傷害"}}
+      }
+    },
+    "affixes.reactive.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: reactive, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn dein <keyword id=\"block\">Block</keyword> bricht, füge dem Angreifer <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Betäubungsschaden</keyword> zu"}},
+        "en": {"stringUnit": {"state": "translated", "value": "When your <keyword id=\"block\">Block</keyword> breaks, deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Stun</keyword> damage to the attacker"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuando se rompe tu <keyword id=\"block\">Bloqueo</keyword>, inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"stun\">Aturdimiento</keyword> al atacante"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Quand votre <keyword id=\"block\">Blocage</keyword> est brisé, infligez <value id=\"quantity_1\">%1$lld</value> dégâts d’<keyword id=\"stun\">Étourdissement</keyword> à l’attaquant"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"block\">ブロック</keyword>が破られると、攻撃者に<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"stun\">スタン</keyword>ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 <keyword id=\"block\">방어도</keyword>가 깨지면 공격자에게 <keyword id=\"stun\">기절</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quando seu <keyword id=\"block\">Bloqueio</keyword> se rompe, cause <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"stun\">Atordoamento</keyword> ao atacante"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"block\">格擋</keyword>被擊破時，對攻擊者造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"stun\">暈眩</keyword>傷害"}}
+      }
+    },
+    "affixes.reactive.title": {
+      "comment": "ContentManifest/affixes.tsv: reactive, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Reaktiv"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Reactive"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Reactivo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Réactif"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "反応の"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "반응의"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Reativo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "反應"}}
+      }
+    },
     "affixes.rekindled.astral_description": {
       "comment": "ContentManifest/affixes.tsv: rekindled, astral_description",
       "extractionState": "manual",
@@ -4101,6 +4353,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "다시 타오르는"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Reaceso"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "重燃"}}
+      }
+    },
+    "affixes.resolute.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: resolute, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stelle <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her, wenn dein <keyword id=\"block\">Block</keyword> bricht"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> when your <keyword id=\"block\">Block</keyword> breaks"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> cuando se rompe tu <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> quand votre <keyword id=\"block\">Blocage</keyword> est brisé"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"block\">ブロック</keyword>が破られると、<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 <keyword id=\"block\">방어도</keyword>가 깨지면 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 회복"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> quando seu <keyword id=\"block\">Bloqueio</keyword> se rompe"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"block\">格擋</keyword>被擊破時，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+      }
+    },
+    "affixes.resolute.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: resolute, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stelle <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her, wenn dein <keyword id=\"block\">Block</keyword> bricht"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> when your <keyword id=\"block\">Block</keyword> breaks"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> cuando se rompe tu <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> quand votre <keyword id=\"block\">Blocage</keyword> est brisé"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"block\">ブロック</keyword>が破られると、<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 <keyword id=\"block\">방어도</keyword>가 깨지면 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 회복"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> quando seu <keyword id=\"block\">Bloqueio</keyword> se rompe"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"block\">格擋</keyword>被擊破時，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+      }
+    },
+    "affixes.resolute.title": {
+      "comment": "ContentManifest/affixes.tsv: resolute, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Entschlossen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Resolute"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Resuelto"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Résolu"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "不屈の"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "불굴의"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Resoluto"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "堅毅"}}
       }
     },
     "affixes.resonant_chimes.astral_description": {
@@ -4691,6 +4985,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "易碎"}}
       }
     },
+    "affixes.shattering.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: shattering, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn du einen Gegner einfrierst, verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">physischen</keyword> Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Freezing an enemy deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">Physical</keyword> damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Congelar a un enemigo inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">físico</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Geler un ennemi inflige <value id=\"quantity_1\">%1$lld</value> dégâts <keyword id=\"physical\">physiques</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵を凍結させると、<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"physical\">物理</keyword>ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적을 빙결시키면 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Congelar um inimigo causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">físico</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "凍結敵人時造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>傷害"}}
+      }
+    },
+    "affixes.shattering.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: shattering, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn du einen Gegner einfrierst, verursache <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">physischen</keyword> Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Freezing an enemy deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">Physical</keyword> damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Congelar a un enemigo inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">físico</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Geler un ennemi inflige <value id=\"quantity_1\">%1$lld</value> dégâts <keyword id=\"physical\">physiques</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵を凍結させると、<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"physical\">物理</keyword>ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적을 빙결시키면 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Congelar um inimigo causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">físico</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "凍結敵人時造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>傷害"}}
+      }
+    },
+    "affixes.shattering.title": {
+      "comment": "ContentManifest/affixes.tsv: shattering, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Zerschmetternd"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Shattering"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Devastador"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Fracassant"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "粉砕の"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "분쇄의"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Estilhaçante"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "碎裂"}}
+      }
+    },
     "affixes.shredding.astral_description": {
       "comment": "ContentManifest/affixes.tsv: shredding, astral_description",
       "extractionState": "manual",
@@ -5109,6 +5445,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "앙심 품은"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Rancoroso"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "惡意"}}
+      }
+    },
+    "affixes.steadfast.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: steadfast, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn du ohne <keyword id=\"block\">Block</keyword> einen Gegner <keyword id=\"stun\">betäubst</keyword>, erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "When you <keyword id=\"stun\">Stun</keyword> with no <keyword id=\"block\">Block</keyword>, gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Sin <keyword id=\"block\">Bloqueo</keyword>, <keyword id=\"stun\">aturdir</keyword> a un enemigo otorga <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Sans <keyword id=\"block\">Blocage</keyword>, <keyword id=\"stun\">étourdir</keyword> un ennemi confère <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>がないときに敵を<keyword id=\"stun\">スタン</keyword>させると、<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>得る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword>가 없을 때 적을 <keyword id=\"stun\">기절</keyword>시키면 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem <keyword id=\"block\">Bloqueio</keyword>, <keyword id=\"stun\">atordoar</keyword> um inimigo concede <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "沒有<keyword id=\"block\">格擋</keyword>時使敵人<keyword id=\"stun\">暈眩</keyword>，獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.steadfast.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: steadfast, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn du ohne <keyword id=\"block\">Block</keyword> einen Gegner <keyword id=\"stun\">betäubst</keyword>, erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "When you <keyword id=\"stun\">Stun</keyword> with no <keyword id=\"block\">Block</keyword>, gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Sin <keyword id=\"block\">Bloqueo</keyword>, <keyword id=\"stun\">aturdir</keyword> a un enemigo otorga <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Sans <keyword id=\"block\">Blocage</keyword>, <keyword id=\"stun\">étourdir</keyword> un ennemi confère <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>がないときに敵を<keyword id=\"stun\">スタン</keyword>させると、<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>得る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword>가 없을 때 적을 <keyword id=\"stun\">기절</keyword>시키면 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem <keyword id=\"block\">Bloqueio</keyword>, <keyword id=\"stun\">atordoar</keyword> um inimigo concede <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "沒有<keyword id=\"block\">格擋</keyword>時使敵人<keyword id=\"stun\">暈眩</keyword>，獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.steadfast.title": {
+      "comment": "ContentManifest/affixes.tsv: steadfast, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Standhaft"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Steadfast"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Firme"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inébranlable"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "堅固な"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "굳건한"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Inabalável"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "堅守"}}
       }
     },
     "affixes.stunned_pocketwatch.astral_description": {

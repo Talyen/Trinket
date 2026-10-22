@@ -13,6 +13,7 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case beacon
     case belowHalfGoldGainHeal
     case blazingFeathers
+    case bloodletting
     case bleedCriticalDraw
     case boneShield
     case burnAttackDoubleChance

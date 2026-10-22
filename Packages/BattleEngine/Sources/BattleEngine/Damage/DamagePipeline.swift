@@ -104,6 +104,7 @@ package enum DamagePipeline {
         await applyDoTDamageReactions(to: &state, in: &context)
         await applyCompanionDamageRetaliation(to: &state, in: &context)
         await applyLeech(to: &state, in: &context)
+        await CombatTriggerEngine.afterAffixAttack(state, in: &context)
         await applyEnemyAttackPurge(to: &state, in: &context)
         await AttackerOnHitEngine.apply(to: &state, in: &context)
         await applyAttackerMirroredReactions(to: &state, in: &context)

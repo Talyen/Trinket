@@ -102,7 +102,10 @@ struct ItemAffixRollCoverageTests {
         for definition in GameContent.itemAffixDefinitions where definition.slot != .trinket {
             for power in [definition.basic, definition.astral] {
                 guard power.hasRollableMagnitudes else { continue }
-                if power.rolledMax().description == power.description {
+                let minimum = power.rolledMin()
+                let maximum = power.rolledMax()
+                guard minimum.modifiers != maximum.modifiers || minimum.triggers != maximum.triggers else { continue }
+                if maximum.description == minimum.description {
                     silent.append(definition.id)
                 }
             }

@@ -1,4 +1,4 @@
-id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers	basic_triggers	astral_triggers
+id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers	basic_triggers	astral_triggers	basic_roll_ranges	astral_roll_ranges
 keen	Keen	weapon	physical	12	Increase Physical damage by 1	Increase Physical damage by 3	damage_dealt:physical:1	damage_dealt:physical:3
 serrated	Serrated	weapon	bleed	10	Increase Bleed damage by 1	Increase Bleed damage by 2	damage_dealt:bleed:1	damage_dealt:bleed:2
 envenomed	Envenomed	weapon	poison	10	Increase Poison damage by 1	Increase Poison damage by 2	damage_dealt:poison:1	damage_dealt:poison:2
@@ -117,3 +117,12 @@ venomtrail	Venomtrail	weapon	poison,bleed	8	Poison deals 1 additional damage aga
 hallowguard	Hallowguard	armor	holy,block	8	When a Holy attack damages an enemy while you have no Block, gain 3 Block	When a Holy attack damages an enemy while you have no Block, gain 5 Block			holyAttackBlockIfNone:3	holyAttackBlockIfNone:5
 hallowbreak	Hallowbreak	weapon	holy,stun	8	Stunned enemies take 25% more Holy damage	Stunned enemies take 35% more Holy damage			holyDamageVsStunnedPercent:0.25	holyDamageVsStunnedPercent:0.35
 resourceful	Resourceful	armor	block,health	8	Draw a card when your Block breaks\nwhile below half Health	Draw a card when your Block breaks\nwhile below half Health			blockBreakDrawBelowHalf:true	blockBreakDrawBelowHalf:true
+bastioned	Bastioned	armor	block	8	Start combat with 4 Block	Start combat with 8 Block			startBattleBlock:4	startBattleBlock:8	startBattleBlock:3:5	startBattleBlock:6:8
+cinderbound	Cinderbound	weapon	burn,bleed	8	Burn deals 1 more damage to Bleeding enemies	Burn deals 2 more damage to Bleeding enemies			burnDamageVsBleedingFlat:1	burnDamageVsBleedingFlat:2	burnDamageVsBleedingFlat:1:1	burnDamageVsBleedingFlat:1:2
+steadfast	Steadfast	armor	stun,block	8	When you Stun with no Block, gain 3 Block	When you Stun with no Block, gain 5 Block			stunBlockIfNone:3	stunBlockIfNone:5	stunBlockIfNone:2:3	stunBlockIfNone:4:5
+arcane	Arcane	accessory	stun,mana	8	When you Stun with no Mana, restore 1 Mana	When you Stun with no Mana, restore 2 Mana			stunManaIfNone:1	stunManaIfNone:2	stunManaIfNone:1:1	stunManaIfNone:1:2
+shattering	Shattering	weapon	freeze,physical	8	Freezing an enemy deals 3 Physical damage	Freezing an enemy deals 5 Physical damage			freezeDealPhysicalFlat:3	freezeDealPhysicalFlat:5	freezeDealPhysicalFlat:2:3	freezeDealPhysicalFlat:4:5
+bloodletting	Bloodletting	weapon	physical,bleed	8	Physical attacks that damage Health have a 15% chance to deal 1 Bleed damage	Physical attacks that damage Health have a 30% chance to deal 1 Bleed damage			physicalAttackBleedChancePercent:0.15	physicalAttackBleedChancePercent:0.3	physicalAttackBleedChancePercent:0.1:0.15	physicalAttackBleedChancePercent:0.2:0.3
+resolute	Resolute	armor	block,health	8	Restore 1 Health when your Block breaks	Restore 2 Health when your Block breaks			blockBrokenHealFlat:1	blockBrokenHealFlat:2	blockBrokenHealFlat:1:1	blockBrokenHealFlat:1:2
+reactive	Reactive	armor	block,stun	8	When your Block breaks, deal 1 Stun damage to the attacker	When your Block breaks, deal 2 Stun damage to the attacker			blockBrokenStunFlat:1	blockBrokenStunFlat:2	blockBrokenStunFlat:1:1	blockBrokenStunFlat:1:2
+kinbound	Kinbound	accessory	health	8	Below half Health, restore Health equal to 10% of your ally's attack damage	Below half Health, restore Health equal to 20% of your ally's attack damage			allyAttackHealBelowHalfPercent:0.1	allyAttackHealBelowHalfPercent:0.2	allyAttackHealBelowHalfPercent:0.08:0.12	allyAttackHealBelowHalfPercent:0.15:0.2

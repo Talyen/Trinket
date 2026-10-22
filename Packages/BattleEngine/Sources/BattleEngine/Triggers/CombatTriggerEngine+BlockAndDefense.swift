@@ -147,6 +147,7 @@ package extension CombatTriggerEngine {
             )
         }
 
+        await afterAffixBlockBreak(on: target, attackerID: attackerID, in: &context)
         await saintfallAfterBlockBroken(on: target, attackerID: attackerID, power: profile.triggers.blockBrokenSaintfallPower, in: &context)
     }
 
@@ -164,6 +165,7 @@ package extension CombatTriggerEngine {
     }
 
     static func afterEnemyStunned(sourceActorID: String?, in context: inout BattleState) async {
+        await afterAffixStun(sourceActorID: sourceActorID, in: &context)
         // Pure read: hoisted so the three source-gated blocks below share one fetch.
         let triggers = sourceActorID.map { context.modifiers(for: $0).triggers }
         if let sourceActorID, let triggers, context.roster.enemy.isAlive {

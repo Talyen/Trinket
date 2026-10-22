@@ -400,6 +400,14 @@
       "type": "Int",
       "default": "1",
       "merge": "max"
+    },
+    {
+      "name": "stunManaIfNone",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 94
+      }
     }
   ]
 }

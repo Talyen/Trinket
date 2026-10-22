@@ -276,6 +276,14 @@
     {
       "name": "dodgeNextFreezeAttackBonus",
       "type": "Int"
+    },
+    {
+      "name": "freezeDealPhysicalFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 95
+      }
     }
   ]
 }

@@ -512,6 +512,14 @@
         "kind": "int",
         "order": 86
       }
+    },
+    {
+      "name": "burnDamageVsBleedingFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 92
+      }
     }
   ]
 }

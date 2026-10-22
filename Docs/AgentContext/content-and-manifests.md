@@ -103,7 +103,10 @@ Trigger fields used by affixes require `affix_roll` metadata in their family JSO
 `{"kind": "int" | "percent", "order": N}` for rollable values, or
 `{"reason": "..."}` for deliberate exclusions. Orders are unique and nonnegative;
 preserve existing orders and append new rollable fields so seeded roll/bump
-selection stays stable. Generation owns the typed field list and exclusion reasons;
+selection stays stable. Affix rows may provide `basic_roll_ranges` and
+`astral_roll_ranges` for exact per-field bounds; omitted bounds preserve existing
+rolling. `ItemAffixPower` stores optional bounds alongside its saved magnitude,
+defaulting to none for earlier saves. Generation owns the typed field list and exclusion reasons;
 rolling behavior, numeric text replacement, and gameplay remain authored.
 `InventoryItem` normalizes saved Spitebloom, Ashen Wake, Cauterize, Toxic Remedy,
 Beacon, Infected, Toxic Incense, Heartshock, Whiplash, and Denouncing powers before

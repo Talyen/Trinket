@@ -39,6 +39,7 @@ public extension ItemAffixPower {
     }
 
     private func transformingMagnitudes(
+        rangeMultiplier: Int = 1,
         _ transform: (BumpTarget, AffixMagnitude) -> AffixMagnitude,
     ) -> Self {
         var modifiers = modifiers
@@ -61,12 +62,17 @@ public extension ItemAffixPower {
                 text.bind(old, to: new)
             }
         }
-        return Self(description: text.rendered, modifiers: modifiers, triggers: triggers)
+        return Self(
+            description: text.rendered, modifiers: modifiers, triggers: triggers,
+            triggerRollRanges: triggerRollRanges.mapValues {
+                ($0.lowerBound * Double(rangeMultiplier)) ... ($0.upperBound * Double(rangeMultiplier))
+            },
+        )
     }
 
     func scaled(by multiplier: Int) -> Self {
         guard multiplier != 1 else { return self }
-        return transformingMagnitudes { _, value in
+        return transformingMagnitudes(rangeMultiplier: multiplier) { _, value in
             value.map(percent: { $0 * Double(multiplier) }, int: { SaturatedArithmetic.saturatingMul($0, multiplier) })
         }
     }
@@ -77,8 +83,17 @@ public extension ItemAffixPower {
 
     func rolled(using randomNumberGenerator: inout some RandomNumberGenerator) -> Self {
         guard hasRollableMagnitudes else { return self }
-        return transformingMagnitudes { _, value in
+        return transformingMagnitudes { target, value in
             guard !value.isZero else { return value }
+            if let range = explicitRange(for: target) {
+                return value.map(
+                    percent: { _ in Double(Int.random(
+                        in: Int((range.lowerBound * 100).rounded()) ... Int((range.upperBound * 100).rounded()),
+                        using: &randomNumberGenerator,
+                    )) / 100 },
+                    int: { _ in Int.random(in: Int(range.lowerBound) ... Int(range.upperBound), using: &randomNumberGenerator) },
+                )
+            }
             return value.map(
                 percent: { ItemAffixMagnitudeRoll.percentValues(around: $0).randomElement(using: &randomNumberGenerator) ?? $0 },
                 int: { Int.random(in: ItemAffixMagnitudeRoll.integerRange(around: $0), using: &randomNumberGenerator) },
@@ -87,8 +102,11 @@ public extension ItemAffixPower {
     }
 
     func rolledMin() -> Self {
-        transformingMagnitudes { _, value in
-            switch value {
+        transformingMagnitudes { target, value in
+            if let range = explicitRange(for: target) {
+                return value.map(percent: { _ in range.lowerBound }, int: { _ in Int(range.lowerBound) })
+            }
+            return switch value {
             case let .int(amount): amount == 0 ? value : .int(ItemAffixMagnitudeRoll.integerRange(around: amount).lowerBound)
             case let .percent(amount): amount == 0 ? value : .percent(ItemAffixMagnitudeRoll.percentValues(around: amount).min() ?? amount)
             }
@@ -97,16 +115,31 @@ public extension ItemAffixPower {
 
     func rolledMax() -> Self {
         guard hasRollableMagnitudes else { return self }
-        return transformingMagnitudes { _, value in value.isZero ? value : value.rollMax }
+        return transformingMagnitudes { target, value in rollMaximum(value, for: target) }
     }
 
     func isAtOrAboveRollMax(of catalog: Self) -> Bool {
         var hasRollableMagnitude = false
         for (target, value) in catalog.magnitudes where !value.isZero {
             hasRollableMagnitude = true
-            guard let current = magnitude(for: target), current.isAtOrAbove(value.rollMax) else { return false }
+            guard let current = magnitude(for: target), current.isAtOrAbove(catalog.rollMaximum(value, for: target)) else { return false }
         }
         return hasRollableMagnitude
+    }
+
+    private func explicitRange(for target: BumpTarget) -> ClosedRange<Double>? {
+        guard case let .trigger(index) = target else { return nil }
+        guard let range = triggerRollRanges[CombatTraitTriggers.affixMagnitudeFields[index].field],
+              range.lowerBound.isFinite, range.upperBound.isFinite,
+              range.lowerBound > 0, range.upperBound < Double(Int.max) / 100 else { return nil }
+        return range
+    }
+
+    private func rollMaximum(_ value: AffixMagnitude, for target: BumpTarget) -> AffixMagnitude {
+        if let range = explicitRange(for: target) {
+            return value.map(percent: { _ in range.upperBound }, int: { _ in Int(range.upperBound) })
+        }
+        return value.isZero ? value : value.rollMax
     }
 
     func hasBumpableField(direction: ItemAffixPowerBumpDirection) -> Bool {

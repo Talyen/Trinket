@@ -546,6 +546,22 @@
     {
       "name": "leechCriticalNextPoisonAttackBonus",
       "type": "Int"
+    },
+    {
+      "name": "blockBrokenHealFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 97
+      }
+    },
+    {
+      "name": "allyAttackHealBelowHalfPercent",
+      "type": "Double",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 99
+      }
     }
   ]
 }

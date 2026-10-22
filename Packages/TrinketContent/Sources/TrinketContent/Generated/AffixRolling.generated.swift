@@ -96,6 +96,15 @@ extension CombatTraitTriggers {
         .int(\.bleedDamageVsPoisonedFlat, field: .bleedDamageVsPoisonedFlat),
         .int(\.dodgeNextStunAttackBonus, field: .dodgeNextStunAttackBonus),
         .int(\.purgeNextHolyAttackBonus, field: .purgeNextHolyAttackBonus),
+        .int(\.startBattleBlock, field: .startBattleBlock),
+        .int(\.burnDamageVsBleedingFlat, field: .burnDamageVsBleedingFlat),
+        .int(\.stunBlockIfNone, field: .stunBlockIfNone),
+        .int(\.stunManaIfNone, field: .stunManaIfNone),
+        .int(\.freezeDealPhysicalFlat, field: .freezeDealPhysicalFlat),
+        .percent(\.physicalAttackBleedChancePercent, field: .physicalAttackBleedChancePercent),
+        .int(\.blockBrokenHealFlat, field: .blockBrokenHealFlat),
+        .int(\.blockBrokenStunFlat, field: .blockBrokenStunFlat),
+        .percent(\.allyAttackHealBelowHalfPercent, field: .allyAttackHealBelowHalfPercent),
     ]
 
     static let nonRollableAffixFields: [CombatTriggerField: String] = [

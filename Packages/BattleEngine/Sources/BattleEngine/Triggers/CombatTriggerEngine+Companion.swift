@@ -267,6 +267,7 @@ package extension CombatTriggerEngine {
                 source: actor, name: "Steam Explosion", in: &context,
             )
         }
+        await afterAffixFreeze(sourceActorID: sourceActorID, in: &context)
         if triggers.onFreezeEnemyDrawCard,
            let owner = context.roster.participant(for: actor) {
             drawCards(1, for: owner, actor: actor, abilityName: "Winter’s Dominion", in: &context)

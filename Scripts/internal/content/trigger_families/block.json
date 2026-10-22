@@ -182,7 +182,11 @@
     },
     {
       "name": "startBattleBlock",
-      "type": "Int"
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 91
+      }
     },
     {
       "name": "blockPerGoldEarnedEvery",
@@ -448,6 +452,22 @@
       "type": "Bool",
       "affix_roll": {
         "reason": "Boolean card-draw signature with no magnitude roll."
+      }
+    },
+    {
+      "name": "stunBlockIfNone",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 93
+      }
+    },
+    {
+      "name": "blockBrokenStunFlat",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 98
       }
     }
   ]
