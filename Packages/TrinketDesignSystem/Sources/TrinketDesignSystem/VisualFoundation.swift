@@ -240,7 +240,9 @@ struct TypographyModifier: ViewModifier {
     }
 
     private var font: Font {
-        if scale == 1 { return role.font }
+        if scale == 1 {
+            return role.font
+        }
         if #available(iOS 26.0, macOS 26.0, *) {
             return role.font.scaled(by: scale)
         }
