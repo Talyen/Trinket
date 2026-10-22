@@ -13,26 +13,24 @@ struct FullGameOfferView: View {
     let artwork: FullGameOfferArtwork?
 
     var body: some View {
-        DetailHeroScrollShell(title: String(localized: L10n.ui_fullgameofferview_full_game_59929), heroHeightPolicy: .square) { height in
-            DetailHeroHeader(
-                eyebrow: String(localized: L10n.ui_fullgameofferview_full_game_497de),
-                title: String(localized: L10n.ui_fullgameofferview_keep_exploring_2c443),
-                titleAccessibilityIdentifier: AccessibilityID.FullGame.hero,
-                baseHeight: height,
-            ) {
-                artwork
-            } footer: {
-                EmptyView()
+        GeometryReader { geometry in
+            ScrollView {
+                offerHeading
+                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                    .padding(.vertical, TrinketDesign.Spacing.extraLarge)
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .bottom)
+                    .background(alignment: .top) {
+                        artwork
+                            .frame(height: geometry.size.height)
+                            .trinketBottomArtworkBlend()
+                    }
             }
-        } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"))
-                benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"))
-                benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"))
-                purchaseSupport
-            }
-            .padding(TrinketDesign.Layout.contentMargin)
+            .scrollBounceBehavior(.basedOnSize)
         }
+        .trinketScreenBackground()
+        .ignoresSafeArea(edges: .top)
+        .trinketSoftTopScrollEdge(isHidden: true)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button(String(localized: L10n.ui_fullgameofferview_close_7d9eb), systemImage: "xmark") { dismiss() }
@@ -50,19 +48,23 @@ struct FullGameOfferView: View {
         }
     }
 
-    private func benefit(_ title: Text, icon: GameIcon) -> some View {
-        Label {
-            title
-                .trinketTypography(.rowTitle)
-                .fontWeight(.regular)
-                .foregroundStyle(.primary)
-                .fixedSize(horizontal: false, vertical: true)
-        } icon: {
-            GameIconImage(icon)
-                .trinketTypography(.screenTitle)
-                .foregroundStyle(TrinketDesign.Colors.accent)
-                .frame(width: TrinketDesign.Spacing.extraLarge + TrinketDesign.Spacing.medium)
-                .accessibilityHidden(true)
+    private var offerHeading: some View {
+        VStack(spacing: TrinketDesign.Spacing.medium) {
+            VStack(spacing: TrinketDesign.Spacing.tight) {
+                Text(L10n.ui_fullgameofferview_full_game_497de)
+                    .trinketTypography(.eyebrow)
+                    .trinketOnArtText(.eyebrow)
+                    .trinketSingleLineFittedText()
+                Text(L10n.ui_fullgameofferview_keep_exploring_2c443)
+                    .trinketTypography(.screenDisplay)
+                    .trinketOnArtText(.title)
+                    .trinketSingleLineFittedText()
+                    .accessibilityIdentifier(AccessibilityID.FullGame.hero)
+            }
+            Text(L10n.ui_fullgameofferview_all_content_yours_forever)
+                .trinketTypography(.body)
+                .foregroundStyle(.secondary)
+                .trinketSingleLineFittedText()
         }
     }
 
@@ -89,6 +91,7 @@ struct FullGameOfferView: View {
             }
 
             FullGameOutcomeMessage(outcome: store.outcome)
+            purchaseSupport
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
@@ -96,7 +99,7 @@ struct FullGameOfferView: View {
     }
 
     private var purchaseSupport: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+        VStack(spacing: TrinketDesign.Spacing.small) {
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: TrinketDesign.Spacing.small) {
                     restoreButton
@@ -104,13 +107,13 @@ struct FullGameOfferView: View {
                     privacyLink
                 }
                 .fixedSize(horizontal: true, vertical: false)
-                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                VStack(spacing: TrinketDesign.Spacing.small) {
                     restoreButton
                     privacyLink
                 }
             }
             Label(String(localized: L10n.ui_fullgameofferview_family_sharing_ba974), systemImage: "person.2")
-                .fixedSize(horizontal: false, vertical: true)
+                .trinketSingleLineFittedText()
         }
         .trinketTypography(.caption)
         .foregroundStyle(.secondary)
@@ -125,6 +128,7 @@ struct FullGameOfferView: View {
                     ProgressView()
                 }
                 Text(L10n.ui_fullgameofferview_restore_purchases_16351)
+                    .trinketSingleLineFittedText()
             }
             .frame(minHeight: footerControlMinHeight)
             .contentShape(.rect)
@@ -136,6 +140,7 @@ struct FullGameOfferView: View {
     private var privacyLink: some View {
         Link(destination: TrinketPublicPages.privacy) {
             Text(L10n.ui_fullgameofferview_privacy_54a57)
+                .trinketSingleLineFittedText()
                 .frame(minWidth: footerControlMinHeight, minHeight: footerControlMinHeight)
                 .contentShape(.rect)
         }
@@ -168,7 +173,7 @@ private struct FullGameProductStyle: ProductViewStyle {
                         locale: locale,
                     ).text)
                         .trinketTypography(.button)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .trinketSingleLineFittedText()
                 }
                 .frame(maxWidth: .infinity)
             }

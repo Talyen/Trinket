@@ -1513,6 +1513,20 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有**章節與模式**"}}
       }
     },
+    "ui.fullgameofferview.all_content_yours_forever": {
+      "comment": "Full Game offer subtitle. All current and future in-game content is included in the permanent purchase; normal recruitment and progression remain earned. Keep concise for a single-line subtitle.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Alle Inhalte. Für immer dein."}},
+        "en": {"stringUnit": {"state": "translated", "value": "All content. Yours forever."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Todo el contenido. Tuyo para siempre."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tout le contenu. À vous pour toujours."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "すべてのコンテンツを、ずっと手元に"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "모든 콘텐츠를 영원히 소장하세요"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todo o conteúdo. Seu para sempre."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有內容，永久擁有"}}
+      }
+    },
     "ui.fullgameofferview.close_7d9eb": {
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
@@ -1643,14 +1657,14 @@
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: title. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Weiter erkunden"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Keep Exploring"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Seguir explorando"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Poursuivre l’exploration"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "探索を続ける"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "계속 탐험하기"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Continue explorando"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "繼續探索"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Entdecke mehr"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Go Beyond"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Ve más allá"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Allez plus loin"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "その先へ"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "더 넓은 세계로"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Vá além"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "探索更遠"}}
       }
     },
     "ui.fullgameofferview.no_full_game_purchase_was_found_for_your_appl_bdc23": {
@@ -1727,14 +1741,14 @@
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: Text. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Vollversion freischalten · %1$@"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Unlock Full Game · %1$@"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Desbloquear juego completo · %1$@"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Débloquer le jeu complet · %1$@"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "完全版を解放 · %1$@"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "정식 게임 잠금 해제 · %1$@"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desbloquear Jogo Completo · %1$@"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "解鎖完整版 · %1$@"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Freischalten · %1$@"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Unlock · %1$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Desbloquear · %1$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Débloquer · %1$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "解放 · %1$@"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "잠금 해제 · %1$@"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desbloquear · %1$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "解鎖 · %1$@"}}
       }
     },
     "ui.fullgameofferview.waiting_for_approval_full_game_will_unlock_wh_6334b": {

@@ -435,6 +435,10 @@ enum L10n {
         LocalizedStringResource("ui.fullgameofferview.all_chapters_modes_bbd59", defaultValue: "All **chapters & modes**", table: "Localizable", bundle: .main)
     }
 
+    static var ui_fullgameofferview_all_content_yours_forever: LocalizedStringResource {
+        LocalizedStringResource("ui.fullgameofferview.all_content_yours_forever", defaultValue: "All content. Yours forever.", table: "Localizable", bundle: .main)
+    }
+
     static var ui_fullgameofferview_close_7d9eb: LocalizedStringResource {
         LocalizedStringResource("ui.fullgameofferview.close_7d9eb", defaultValue: "Close", table: "Localizable", bundle: .main)
     }
@@ -472,7 +476,7 @@ enum L10n {
     }
 
     static var ui_fullgameofferview_keep_exploring_2c443: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.keep_exploring_2c443", defaultValue: "Keep Exploring", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.keep_exploring_2c443", defaultValue: "Go Beyond", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_no_full_game_purchase_was_found_for_your_appl_bdc23: LocalizedStringResource {
@@ -496,7 +500,7 @@ enum L10n {
     }
 
     static func ui_fullgameofferview_unlock_full_game_1_b6d50(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.unlock_full_game_1_b6d50", defaultValue: "Unlock Full Game · \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.unlock_full_game_1_b6d50", defaultValue: "Unlock · \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_waiting_for_approval_full_game_will_unlock_wh_6334b: LocalizedStringResource {
