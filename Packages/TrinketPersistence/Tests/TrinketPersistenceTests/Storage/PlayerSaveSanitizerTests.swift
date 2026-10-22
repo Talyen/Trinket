@@ -418,7 +418,7 @@ struct PlayerSaveSanitizerProgressionTests {
     @Test func `sanitize progressions clamps overflow XP when level reaches max`() throws {
         let maxProgression = CombatantProgression(
             level: Int.max,
-            currentXP: CombatantProgression.requiredXP(forLevel: Int.max) + 500,
+            currentXP: Int.max,
             requiredXP: CombatantProgression.requiredXP(forLevel: Int.max),
         )
         let sanitized = PlayerSaveSanitizer.sanitizeProgressions(
