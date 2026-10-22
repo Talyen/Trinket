@@ -147,7 +147,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
   claim evidence, background return, and Continue navigation. Duplicate settlement
   protection is package-owned by `PlaythroughLifecycleTests`. The termination
   journey uses the Chapter 1 victory fixture, taps the real claim, terminates at
-  its committed checkpoint, then verifies persisted progression and next-stage entry.
+  its stable committed-checkpoint identifier, then verifies the credited Gold,
+  persisted progression, and next-stage entry after relaunch.
 - `BattleFlowUITests` shares one launch for inspection, dismissal, cancelled drag,
   and committed drag, retaining hand membership and sheet assertions. Production-speed
   rapid plays, drag, background return, and a usable exit share another battle.
@@ -157,21 +158,30 @@ Assert a journey’s return destination before using helpers that navigate elsew
   retained hand membership, reachable native controls, and post-rotation card play.
   Other destinations skip this profile-specific method. Actual folding remains
   an interactive Device Hub check.
+- Localization retains every language and screenshot surface, but captures progression
+  from Battle's shared `CombatantDetailPane` after dismissing ability inspection.
+  This removes eight reset/Collection launches per FullUI run; the ordinary Collection
+  and purchase journeys retain Collection entry wiring. The locale matrix uses three
+  launches per case instead of four, excluding the once-per-runner StoreKit registration.
 - Onboarding and recruitment verify earned characters remain unlocked in Collection.
   Full Game smoke owns character detail entry; equipment owns item detail/picker,
-  equip, and unequip-control wiring. The equipment fixture keeps the target weapon
+  equip, and actual unequip/reselect wiring. The equipment fixture keeps the target weapon
   visible. Reload/failed-write equipment semantics remain package-owned by
   `PresentationModelTests`.
 - Merchant smoke pins one offer and compares board/detail prices, purchase, Gold
   debit, and return to Play. The fixed purchase footer signals detail readiness;
   avoid scrolling while artwork prepares. `ShopPurchaseApplierTests` and
   `AppStateShopEncounterTests` own item ownership and sold-stock rejection.
-- Labyrinth boss/Continue retains battle and floor-selection interactions. FullUI
+- Labyrinth boss/Continue retains battle and floor-selection interactions, checking
+  the displayed floor after switching back to floor 1 and then floor 2. FullUI
   also covers Voyage embark/abandon, Spires locked-floor/detail wiring, and
   Labyrinth inspector selection/dismissal.
 - Homestead accounting verifies displayed debit and tier after same-store reload;
-  accessibility audits stop after the tier change. Haptics toggle/reload is the
-  approved narrow medium-value exception proving the native control binding.
+  accessibility audits stop after the tier change. Options retains destructive-reset
+  cancellation and confirmation across relaunch. The former Haptics thumb/relaunch
+  case is retired: it protected a narrow preference binding at the cost of two
+  launches. Dedicated Haptics UI persistence is no longer proved; real Music slider
+  binding/playback persistence remains in `AudioLifecycleUITests`.
 - Full Game smoke seeds completed free chapters, opens Campaign from the Play
   hub, and taps the locked chapter's real offer entry. It purchases access to independently
   recruited Warlock and opens his detail. Populated purchase recovery checks cold-launch

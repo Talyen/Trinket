@@ -20,22 +20,6 @@ final class OptionsUITests: TrinketUITestCase {
         XCTAssertEqual(app.tabBars.count, 0)
     }
 
-    func testHapticsPreferenceSurvivesSameStoreRelaunch() {
-        launchApp(arguments: TestLaunchArg.allForTab("options"))
-        let toggle = app.switches[AccessibilityID.Options.hapticsToggle]
-        assertExists(toggle)
-        let before = toggle.value as? String
-        XCTAssertNotNil(before)
-        // The switch exposes the whole labeled row; target its native thumb.
-        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).press(forDuration: 0.1)
-        waitUntil("Haptics thumb must change its preference") { toggle.value as? String != before }
-        let changed = toggle.value as? String
-        XCTAssertNotEqual(changed, before)
-        relaunchApp(arguments: ["-selectedTab", "options"])
-        assertExists(app.switches[AccessibilityID.Options.hapticsToggle])
-        XCTAssertEqual(app.switches[AccessibilityID.Options.hapticsToggle].value as? String, changed)
-    }
-
     private func resetAlertAction(_ identifier: String) -> XCUIElement {
         // iOS 26.2 exposes nested native alert nodes with the same action ID and frame.
         app.alerts.firstMatch.buttons.matching(identifier: identifier).firstMatch

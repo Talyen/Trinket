@@ -20,7 +20,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         XCTAssertFalse(button(bear).label.hasSuffix(", locked"), "The recruited companion must be unlocked")
     }
 
-    func testLabyrinthBossContinueOpensAUsableNextFloor() {
+    func testLabyrinthBossContinueOpensAUsableNextFloor() throws {
         launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.01", in: TestLaunchArg.allForTab("play"))
             + ["-performance-labyrinth-node", "boss", "-performance-strong-party"])
         play.openExplore()
@@ -45,8 +45,14 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Battle.continueButton)
         assertExists(AccessibilityID.Play.labyrinthMap)
-        tapButton(AccessibilityID.Play.labyrinthFloorMenu)
+        let floorMenu = button(AccessibilityID.Play.labyrinthFloorMenu)
+        // Switch away first: Continue can already select floor 2 automatically.
+        tapWhenReady(floorMenu)
+        tapButton(AccessibilityID.Play.labyrinthFloor(1))
+        XCTAssertEqual(try integer(in: floorMenu), 1)
+        tapWhenReady(floorMenu)
         tapButton(AccessibilityID.Play.labyrinthFloor(2))
+        XCTAssertEqual(try integer(in: floorMenu), 2, "The floor picker must change the displayed floor")
         assertExists(AccessibilityID.Play.labyrinthMap)
     }
 

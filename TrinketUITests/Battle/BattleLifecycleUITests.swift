@@ -3,15 +3,21 @@ import TrinketFeatureSupport
 import XCTest
 
 final class BattleLifecycleUITests: TrinketUITestCase {
-    func testCommittedRewardSurvivesTerminationWithoutReseeding() {
-        launchApp(arguments: TestLaunchArg.allForScreen("battle-victory") + [TestLaunchArg.rewardCheckpoint])
+    func testCommittedRewardSurvivesTerminationWithoutReseeding() throws {
+        launchApp(arguments: TestLaunchArg.allForScreen("battle-victory")
+            + [TestLaunchArg.rewardCheckpoint, "-coverage-diagnostics"])
+        let goldBefore = try XCTUnwrap(coverageReport()["gold"] as? Int)
         assertExists(AccessibilityID.Battle.victory)
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Battle.continueButton)
-        waitUntil("Rewards must commit before termination") {
-            self.button(AccessibilityID.Battle.continueButton).label == "Collected"
+        assertExists(AccessibilityID.Debug.rewardCollectionCheckpoint)
+        waitUntil("The committed claim must credit its Gold before termination") {
+            ((try? self.coverageReport())?["gold"] as? Int ?? goldBefore) > goldBefore
         }
-        relaunchApp()
+        let claimedGold = try XCTUnwrap(coverageReport()["gold"] as? Int)
+        relaunchApp(arguments: ["-coverage-diagnostics"])
+        play.assertLoaded()
+        XCTAssertEqual(try coverageReport()["gold"] as? Int, claimedGold, "Claimed Gold must survive process termination")
         play.openCampaign()
         let next = button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
         assertExists(next)

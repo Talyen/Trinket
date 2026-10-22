@@ -49,12 +49,10 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         card.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
         capture(label, screen: "ability-details")
-        app.terminate()
+        dismissSheet(AccessibilityID.Battle.abilityDetail)
 
-        launchApp(arguments: TestLaunchArg.allForTab("collection") + localeArgs)
-        let ranger = button(AccessibilityID.CombatantDetail.collectionCard(name: "Ranger"))
-        assertExists(ranger)
-        tapWhenReady(ranger)
+        // Battle and Collection render progression through the same CombatantDetailPane.
+        battle.openCombatantCard(named: "Ranger")
         combatantDetail.assertLoaded(for: "Ranger")
         capture(label, screen: "progression")
         app.terminate()

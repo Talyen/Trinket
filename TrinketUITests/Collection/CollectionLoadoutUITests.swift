@@ -3,7 +3,7 @@ import TrinketFeatureSupport
 import XCTest
 
 final class CollectionLoadoutUITests: TrinketUITestCase {
-    func testWeaponPickerEquipsAnOwnedWeapon() {
+    func testWeaponPickerEquipsAndUnequipsAnOwnedWeapon() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight") + ["-equipment-picker-fixture"])
         openWeaponPicker()
         let candidate = AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral")
@@ -14,8 +14,13 @@ final class CollectionLoadoutUITests: TrinketUITestCase {
         openWeaponPicker()
         assertExistsAfterScroll(candidate, requireHittable: true)
         tapButton(candidate)
-        assertExists(AccessibilityID.LoadoutPicker.unequipItem)
-        assertDoesNotExist(AccessibilityID.LoadoutPicker.equipItem("longsword-astral"))
+        tapButton(AccessibilityID.LoadoutPicker.unequipItem)
+        assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
+        openWeaponPicker()
+        assertExistsAfterScroll(candidate, requireHittable: true)
+        tapButton(candidate)
+        assertExists(AccessibilityID.LoadoutPicker.equipItem("longsword-astral"))
+        assertDoesNotExist(AccessibilityID.LoadoutPicker.unequipItem)
     }
 
     private func openWeaponPicker() {
