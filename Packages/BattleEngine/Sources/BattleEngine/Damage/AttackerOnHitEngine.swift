@@ -29,12 +29,16 @@ enum AttackerOnHitEngine {
             triggers: context.modifiers(for: sourceRuntime.id).triggers,
         )
 
-        if hit.keyword == .bleed, state.healthLost > 0, hit.triggers.bleedDamageGoldFlat > 0,
-           context.roster.health(for: hit.source) > 0 {
+        let bleedGoldChance = hit.triggers.bleedDamageGoldStealChancePercent > 0
+            ? hit.triggers.bleedDamageGoldStealChancePercent : (hit.triggers.bleedDamageGoldFlat > 0 ? 0.10 : 0)
+        let bleedGold = SaturatedArithmetic.saturatingAdd(state.remaining, state.blockedAmount)
+        if hit.keyword == .bleed, state.combatant.role == .enemy, bleedGold > 0,
+           context.roster.health(for: hit.source) > 0,
+           BattleChance.succeeds(probability: bleedGoldChance, using: &context.rng) {
             _ = await context.grantGold(
-                hit.triggers.bleedDamageGoldFlat,
+                bleedGold,
                 to: hit.source,
-                abilityName: "Cutpurse Knife",
+                abilityName: "Cutpurse Knife", isTheft: true,
             )
         }
 

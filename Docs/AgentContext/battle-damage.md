@@ -149,6 +149,10 @@ Holy-triggered Purge and target weakening also stop if retaliation defeats their
 source; the Holy damage already committed remains.
 Red Harvest detonates Bleed and Huntsmaster’s Call draws a Companion card only
 after Physical Critical Hits remove Health.
+Cutpurse Knife rolls a fixed 10% chance per positive Bleed damage packet to steal
+Gold equal to damage remaining plus damage absorbed by Block, including fully
+Blocked hits and periodic Bleed. Theft modifiers apply afterward; a defeated
+wearer receives nothing. Older flat-payout powers normalize to this rule.
 Fully Blocked Critical Hits still qualify for ordinary Critical Hit Gold and Purge
 reactions; effects that explicitly require Health damage keep that requirement.
 Spitebloom adds flat damage to existing Thorns against Poisoned enemies before

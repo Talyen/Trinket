@@ -8,7 +8,8 @@ extension InventoryItem {
     }
 
     static func normalizedPower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {
-        let power = normalizedCombatProcPower(original, affixID: affixID) ?? normalizedRulePower(original, affixID: affixID)
+        let power = normalizedGoldPower(original, affixID: affixID)
+            ?? normalizedCombatProcPower(original, affixID: affixID) ?? normalizedRulePower(original, affixID: affixID)
         var description = power.description
             .replacingOccurrences(of: ". ", with: "\n")
             .replacingOccurrences(of: "; ", with: "\n")
@@ -224,6 +225,23 @@ extension InventoryItem {
             description = "Purging an enemy adds \(actual) damage to your next Holy attack"
         default:
             return nil
+        }
+        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
+    }
+
+    private static func normalizedGoldPower(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower? {
+        var triggers = power.triggers
+        let description: String
+        switch affixID {
+        case "blood_price":
+            triggers.leechGoldChancePercent = 0.10
+            let actual = triggers.leechGoldFlat
+            description = "Leech has a 10% chance to grant \(actual) Gold"
+        case "cutpurse_knife":
+            triggers.bleedDamageGoldFlat = 0
+            triggers.bleedDamageGoldStealChancePercent = 0.10
+            description = "Bleed damage has a 10% chance to also steal Gold"
+        default: return nil
         }
         return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
     }

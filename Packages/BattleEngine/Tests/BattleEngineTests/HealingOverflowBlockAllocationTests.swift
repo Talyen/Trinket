@@ -52,7 +52,7 @@ struct HealingOverflowBlockAllocationTests {
     private func makeBattle(conversion: String) -> BattleState {
         var profile = CombatModifierProfile.zero
         profile.triggers.criticalChanceBonus = -1
-        profile.triggers.excessLeechHealthToGold = true
+        profile.triggers.excessLeechHealthToGoldChancePercent = 1
         switch conversion {
         case "full": profile.triggers.overhealConvertsToBlock = true
         case "fractional": profile.triggers.overhealToBlockPercent = 0.5

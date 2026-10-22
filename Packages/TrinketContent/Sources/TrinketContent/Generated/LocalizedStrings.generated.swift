@@ -394,12 +394,12 @@ enum L10n {
         LocalizedStringResource("affixes.biting.title", defaultValue: "Biting", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func affixes_blood_price_astral_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.blood_price.astral_description", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"gold\">Gold</keyword> when you <keyword id=\"leech\">Leech</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func affixes_blood_price_astral_description(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("affixes.blood_price.astral_description", defaultValue: "<keyword id=\"leech\">Leech</keyword> has a <value id=\"quantity_1\">\(value1)</value>% chance to grant <value id=\"quantity_2\">\(value2)</value> <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func affixes_blood_price_basic_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.blood_price.basic_description", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"gold\">Gold</keyword> when you <keyword id=\"leech\">Leech</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func affixes_blood_price_basic_description(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("affixes.blood_price.basic_description", defaultValue: "<keyword id=\"leech\">Leech</keyword> has a <value id=\"quantity_1\">\(value1)</value>% chance to grant <value id=\"quantity_2\">\(value2)</value> <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var affixes_blood_price_title: LocalizedStringResource {
@@ -695,11 +695,11 @@ enum L10n {
     }
 
     static func affixes_cutpurse_knife_astral_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.cutpurse_knife.astral_description", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"gold\">Gold</keyword> when you deal <keyword id=\"bleed\">Bleed</keyword> damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("affixes.cutpurse_knife.astral_description", defaultValue: "<keyword id=\"bleed\">Bleed</keyword> damage has a <value id=\"quantity_1\">\(value1)</value>% chance to also steal <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func affixes_cutpurse_knife_basic_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.cutpurse_knife.basic_description", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"gold\">Gold</keyword> when you deal <keyword id=\"bleed\">Bleed</keyword> damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("affixes.cutpurse_knife.basic_description", defaultValue: "<keyword id=\"bleed\">Bleed</keyword> damage has a <value id=\"quantity_1\">\(value1)</value>% chance to also steal <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var affixes_cutpurse_knife_title: LocalizedStringResource {
@@ -2570,6 +2570,10 @@ enum L10n {
         LocalizedStringResource("authored.4acb6ff87e722721", defaultValue: "Rimeheart Locket", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static func authored_4afd173b91d4ab0d(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("authored.4afd173b91d4ab0d", defaultValue: "<keyword id=\"leech\">Leech</keyword> has a <value id=\"quantity_1\">\(value1)</value>% chance to grant <value id=\"quantity_2\">\(value2)</value> <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var authored_4c3fbea9fa729627: LocalizedStringResource {
         LocalizedStringResource("authored.4c3fbea9fa729627", defaultValue: "Fangs", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -3708,6 +3712,10 @@ enum L10n {
 
     static var authored_dec5d5ff6b5e012c: LocalizedStringResource {
         LocalizedStringResource("authored.dec5d5ff6b5e012c", defaultValue: "Tithe", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func authored_df13c103f38b46a4(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("authored.df13c103f38b46a4", defaultValue: "<keyword id=\"bleed\">Bleed</keyword> damage has a <value id=\"quantity_1\">\(value1)</value>% chance to also steal <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func authored_df85700321f0bc10(_ value1: Int) -> LocalizedStringResource {
@@ -6030,6 +6038,14 @@ enum L10n {
         LocalizedStringResource("rule.ability.alternative", defaultValue: "\(value1) or \(value2)", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static func rule_ability_chance(_ value1: Int, _ value2: String) -> LocalizedStringResource {
+        LocalizedStringResource("rule.ability.chance", defaultValue: "<value id=\"chance\">\(value1)</value>% chance: \(value2)", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func rule_ability_chance_steal_gold(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("rule.ability.chance_steal_gold", defaultValue: "<value id=\"chance\">\(value1)</value>% chance to steal <value id=\"gold\">\(value2)</value> <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static func rule_ability_conditional(_ value1: String, _ value2: String) -> LocalizedStringResource {
         LocalizedStringResource("rule.ability.conditional", defaultValue: "\(value1) if \(value2)", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -7598,8 +7614,8 @@ enum L10n {
         LocalizedStringResource("talents.lizard_scout_gold_t2_2.name", defaultValue: "Scavenger’s Cache", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static var talents_lizard_scout_gold_t3_1_description: LocalizedStringResource {
-        LocalizedStringResource("talents.lizard_scout_gold_t3_1.description", defaultValue: "Excess <keyword id=\"leech\">Leech</keyword> restoration on you is converted to <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func talents_lizard_scout_gold_t3_1_description(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("talents.lizard_scout_gold_t3_1.description", defaultValue: "<keyword id=\"leech\">Leech</keyword> has a <value id=\"quantity_1\">\(value1)</value>% chance to convert excess healing into <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_lizard_scout_gold_t3_1_name: LocalizedStringResource {

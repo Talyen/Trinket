@@ -53,7 +53,19 @@ public extension Ability {
     private func localizedOperation(_ operation: AbilityOperation, locale: Locale) -> [LocalizedGameText] {
         switch operation {
         case let .effect(targeted):
-            let text = EffectPresentation.localizedDescription(for: targeted.effect, locale: locale)
+            var text = EffectPresentation.localizedDescription(for: targeted.effect, locale: locale)
+            if targeted.chance < 1 {
+                let chance = CombatRounding.wholePercent(targeted.chance)
+                let resource: LocalizedStringResource = if case let .resourceGain(.gold, amount) = targeted.effect, stealsGold {
+                    L10n.rule_ability_chance_steal_gold(chance, amount)
+                } else {
+                    L10n.rule_ability_chance(chance, text.markedText)
+                }
+                text = LocalizedGameText(
+                    resource, locale: locale,
+                    values: text.values.merging(["chance": chance]) { _, chance in chance },
+                )
+            }
             return [conditioned(text, on: targeted.condition, locale: locale)]
         case let .damage(component):
             if component.target == .actor {

@@ -308,7 +308,9 @@ package extension CombatTriggerEngine {
             )
         }
 
-        if triggers.leechGoldFlat > 0 {
+        let goldChance = triggers.leechGoldChancePercent > 0 ? triggers.leechGoldChancePercent : 0.10
+        if triggers.leechGoldFlat > 0,
+           BattleChance.succeeds(probability: goldChance, using: &context.rng) {
             await emitGold(.leechGoldFlat, "Blood Price", amount: triggers.leechGoldFlat, to: actor, in: &context)
         }
 

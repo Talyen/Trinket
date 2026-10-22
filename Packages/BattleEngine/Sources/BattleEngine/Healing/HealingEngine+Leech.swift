@@ -160,7 +160,10 @@ package extension HealingEngine {
             ),
             in: &context,
         )
-        if profile.triggers.excessLeechHealthToGold, healing.allocation.remaining > 0 {
+        let goldChance = profile.triggers.excessLeechHealthToGoldChancePercent > 0
+            ? profile.triggers.excessLeechHealthToGoldChancePercent : (profile.triggers.excessLeechHealthToGold ? 0.10 : 0)
+        if healing.allocation.remaining > 0,
+           BattleChance.succeeds(probability: goldChance, using: &context.rng) {
             _ = await context.grantGold(
                 healing.allocation.remaining, to: actorCombatant, abilityName: "Flawless Bounty",
                 isLeechOverflow: true,

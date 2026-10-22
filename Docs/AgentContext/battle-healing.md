@@ -16,6 +16,8 @@ observers such as Wishspring read original overflow without consuming it.
 Healing emits original overflow as an `overheal` event, including at full Health.
 Floating feedback combines it with restored Health in the existing healing number;
 restoration events, battle-log totals, and healing triggers still use actual restoration.
+Blood Price rolls a fixed 10% chance per qualifying Leech to grant its rolled
+Gold amount; saved powers retain their amount and adopt the same chance.
 Gold grants require a positive request and a living recipient before flat bonuses;
 Gold-gain reactions and feedback require a positive actual grant, including when the Gold ledger is saturated.
 A saturated Gold ledger preserves theft preparations. Gilded Claws damage storage

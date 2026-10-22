@@ -289,6 +289,27 @@
     {
       "name": "firstGoldTheftStealHalfBlockPerTurn",
       "type": "Bool"
+    },
+    {
+      "name": "leechGoldChancePercent",
+      "type": "Double",
+      "merge": "max",
+      "affix_roll": {
+        "reason": "Fixed Blood Price activation chance; only its Gold amount rolls."
+      }
+    },
+    {
+      "name": "bleedDamageGoldStealChancePercent",
+      "type": "Double",
+      "merge": "max",
+      "affix_roll": {
+        "reason": "Fixed Cutpurse Knife activation chance; theft scales with Bleed damage."
+      }
+    },
+    {
+      "name": "excessLeechHealthToGoldChancePercent",
+      "type": "Double",
+      "merge": "max"
     }
   ]
 }

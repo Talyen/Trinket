@@ -75,10 +75,10 @@ public extension AbilityCatalog {
 
     static let goldenPlate = Ability(
         id: "golden-plate", name: "Golden Plate", tier: .ultimate,
-        description: "Gain 8 Block\nGain 5 Gold",
+        description: "Gain 8 Block\nGain 1 Gold",
         targetedEffects: [
             TargetedEffect(.shield(.block, 8)),
-            TargetedEffect(.resourceGain(.gold, 5)),
+            TargetedEffect(.resourceGain(.gold, 1)),
         ],
     )
 

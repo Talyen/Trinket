@@ -715,6 +715,9 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case dodgeGoldIsTheft
     case firstGoldGainDrawCardPerTurn
     case firstGoldTheftStealHalfBlockPerTurn
+    case leechGoldChancePercent
+    case bleedDamageGoldStealChancePercent
+    case excessLeechHealthToGoldChancePercent
     case contagiousJoy
     case livingArchive
     case marrowmend
@@ -1631,6 +1634,9 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var dodgeGoldIsTheft: Bool = false
         public var firstGoldGainDrawCardPerTurn: Bool = false
         public var firstGoldTheftStealHalfBlockPerTurn: Bool = false
+        public var leechGoldChancePercent: Double = 0
+        public var bleedDamageGoldStealChancePercent: Double = 0
+        public var excessLeechHealthToGoldChancePercent: Double = 0
         public var contagiousJoy: Bool = false
         public var livingArchive: Bool = false
         public var marrowmend: Bool = false
@@ -2550,6 +2556,9 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.dodgeGoldIsTheft, .dodgeGoldIsTheft, default: false, merging: .or),
         .init(\.firstGoldGainDrawCardPerTurn, .firstGoldGainDrawCardPerTurn, default: false, merging: .or),
         .init(\.firstGoldTheftStealHalfBlockPerTurn, .firstGoldTheftStealHalfBlockPerTurn, default: false, merging: .or),
+        .init(\.leechGoldChancePercent, .leechGoldChancePercent, default: 0, merging: .max),
+        .init(\.bleedDamageGoldStealChancePercent, .bleedDamageGoldStealChancePercent, default: 0, merging: .max),
+        .init(\.excessLeechHealthToGoldChancePercent, .excessLeechHealthToGoldChancePercent, default: 0, merging: .max),
         .init(\.contagiousJoy, .contagiousJoy, default: false, merging: .or),
         .init(\.livingArchive, .livingArchive, default: false, merging: .or),
         .init(\.marrowmend, .marrowmend, default: false, merging: .or),

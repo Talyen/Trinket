@@ -71,11 +71,13 @@ public struct TargetedEffect: Hashable, Sendable {
     public let effect: Effect
     public let target: EffectTarget
     public let condition: DamageCondition?
+    public let chance: Double
 
-    public init(_ effect: Effect, target: EffectTarget? = nil, condition: DamageCondition? = nil) {
+    public init(_ effect: Effect, target: EffectTarget? = nil, condition: DamageCondition? = nil, chance: Double = 1) {
         self.effect = effect
         self.target = target ?? Effect.defaultTarget(for: effect)
         self.condition = condition
+        self.chance = chance
     }
 }
 

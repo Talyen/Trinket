@@ -21,7 +21,7 @@ stargaze	Stargaze	basic	Deal 1 Freeze damage\nRestore 1 Mana
 venom-arrow	Venom Arrow	basic	Deal 2 Poison damage
 acid-potion	Acid Potion	skill	Deal 3 Poison damage\nHalve the enemy’s Block
 blood-offering	Blood Offering	skill	Lose 2 Health\nDeal 1 Bleed damage\nDraw a card
-bounty-shot	Bounty Shot	skill	Deal 3 Stun damage\nSteal 2 Gold
+bounty-shot	Bounty Shot	skill	Deal 3 Stun damage\n10% chance to steal 3 Gold
 briar-shield	Briar Shield	skill	Gain 1 Block\nGain 3 Thorns
 cinderbloom	Cinderbloom	skill	Deal 3 Burn or Poison damage at random
 cleanse	Cleanse	skill	Cleanse a debuff\nRestore 3 Health
@@ -43,7 +43,7 @@ spiked-shield	Spiked Shield	skill	Deal 2 Physical damage\nGain 3 Block or Thorns
 steal	Steal	skill	Deal 3 Physical damage\nSteal 1 Gold
 stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block
 sunder	Sunder	skill	Halve enemy Block\nDeal 4 Physical damage
-tithe	Tithe	skill	Deal 2 Holy damage\nSteal 2 Gold
+tithe	Tithe	skill	Deal 2 Holy damage\n10% chance to steal 4 Gold
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage\nLeech
 astral-arrow	Astral Arrow	ultimate	Deal 7 Burn, Freeze, or Bleed damage
 avatar-of-justice	Avatar	ultimate	Deal 6 Holy damage\nYour next attack deals Holy damage\nGain 6 Block
@@ -53,7 +53,7 @@ bloodthorn	Bloodthorn	ultimate	Deal 3 Bleed or Poison damage\nLeech
 combustion	Combustion	ultimate	Deal 6 Burn damage\nDetonate all enemy Burn
 earthquake	Earthquake	ultimate	Deal 6 Stun damage this turn and next
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health\nDeal 4 Burn damage\nDraw 1 card
-golden-plate	Golden Plate	ultimate	Gain 8 Block\nGain 5 Gold
+golden-plate	Golden Plate	ultimate	Gain 8 Block\nGain 1 Gold
 hemorrhage	Hemorrhage	ultimate	Deal 6 Bleed damage\nDetonate all Bleed
 luck-potion	Luck Potion	ultimate	Roll a 12-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card
 meteor	Meteor	ultimate	Deal 6 Burn damage\nSpend additional Mana to increase Burn damage

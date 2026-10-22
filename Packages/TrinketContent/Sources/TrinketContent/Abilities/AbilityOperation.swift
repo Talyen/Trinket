@@ -64,6 +64,7 @@ public enum AbilityOperation: Hashable, Sendable {
         case let .effect(targeted):
             .effect(TargetedEffect(
                 targeted.effect.withManaEmpowerment(amount), target: targeted.target, condition: targeted.condition,
+                chance: targeted.chance,
             ))
         }
     }

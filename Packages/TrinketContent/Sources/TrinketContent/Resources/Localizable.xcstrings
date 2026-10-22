@@ -1377,28 +1377,28 @@
       "comment": "ContentManifest/affixes.tsv: blood_price, astral_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>, wenn du <keyword id=\"leech\">Lebensraub</keyword> einsetzt"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> when you <keyword id=\"leech\">Leech</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cuando usas <keyword id=\"leech\">Absorción</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> lors d’un <keyword id=\"leech\">Vol de vie</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>すると<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword> 시 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> ao usar <keyword id=\"leech\">Drenagem</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>時獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Lebensraub</keyword> gewährt mit <value id=\"quantity_1\">%1$lld</value>%% Wahrscheinlichkeit <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Leech</keyword> has a <value id=\"quantity_1\">%1$lld</value>%% chance to grant <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La <keyword id=\"leech\">Absorción</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de otorgar <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"gold\">Oro</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Le <keyword id=\"leech\">Vol de vie</keyword> a <value id=\"quantity_1\">%1$lld</value>%% de chances de rapporter <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Or</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>時、<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_2\">%2$lld</value>獲得"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword> 시 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_2\">%2$lld</value> 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A <keyword id=\"leech\">Drenagem</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de conceder <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"gold\">Ouro</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>時有<value id=\"quantity_1\">%1$lld</value>%%機率獲得<value id=\"quantity_2\">%2$lld</value><keyword id=\"gold\">金幣</keyword>"}}
       }
     },
     "affixes.blood_price.basic_description": {
       "comment": "ContentManifest/affixes.tsv: blood_price, basic_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>, wenn du <keyword id=\"leech\">Lebensraub</keyword> einsetzt"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> when you <keyword id=\"leech\">Leech</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cuando usas <keyword id=\"leech\">Absorción</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> lors d’un <keyword id=\"leech\">Vol de vie</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>すると<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword> 시 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> ao usar <keyword id=\"leech\">Drenagem</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>時獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Lebensraub</keyword> gewährt mit <value id=\"quantity_1\">%1$lld</value>%% Wahrscheinlichkeit <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Leech</keyword> has a <value id=\"quantity_1\">%1$lld</value>%% chance to grant <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La <keyword id=\"leech\">Absorción</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de otorgar <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"gold\">Oro</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Le <keyword id=\"leech\">Vol de vie</keyword> a <value id=\"quantity_1\">%1$lld</value>%% de chances de rapporter <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Or</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>時、<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_2\">%2$lld</value>獲得"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword> 시 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_2\">%2$lld</value> 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A <keyword id=\"leech\">Drenagem</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de conceder <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"gold\">Ouro</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>時有<value id=\"quantity_1\">%1$lld</value>%%機率獲得<value id=\"quantity_2\">%2$lld</value><keyword id=\"gold\">金幣</keyword>"}}
       }
     },
     "affixes.blood_price.title": {
@@ -2427,28 +2427,28 @@
       "comment": "ContentManifest/affixes.tsv: cutpurse_knife, astral_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>, wenn du <keyword id=\"bleed\">Blutungs</keyword>schaden verursachst"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> when you deal <keyword id=\"bleed\">Bleed</keyword> damage"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cuando infliges daño de <keyword id=\"bleed\">Sangrado</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> lorsque vous infligez des dégâts de <keyword id=\"bleed\">Saignement</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">出血</keyword>ダメージを与えると<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">출혈</keyword> 피해를 주면 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> ao causar dano de <keyword id=\"bleed\">Sangramento</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<keyword id=\"bleed\">流血</keyword>傷害時，獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">Blutung</keyword>sschaden hat eine Chance von <value id=\"quantity_1\">%1$lld</value>%%, zusätzlich <keyword id=\"gold\">Gold</keyword> zu stehlen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">Bleed</keyword> damage has a <value id=\"quantity_1\">%1$lld</value>%% chance to also steal <keyword id=\"gold\">Gold</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"bleed\">Sangrado</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de robar también <keyword id=\"gold\">Oro</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de <keyword id=\"bleed\">Saignement</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances de voler aussi de l’<keyword id=\"gold\">Or</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">出血</keyword>ダメージ時、<value id=\"quantity_1\">%1$lld</value>%%の確率でさらに<keyword id=\"gold\">ゴールド</keyword>を盗む"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">출혈</keyword> 피해가 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"gold\">골드</keyword>도 훔침"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de <keyword id=\"bleed\">Sangramento</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de também roubar <keyword id=\"gold\">Ouro</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">流血</keyword>傷害有<value id=\"quantity_1\">%1$lld</value>%%機率同時偷取<keyword id=\"gold\">金幣</keyword>"}}
       }
     },
     "affixes.cutpurse_knife.basic_description": {
       "comment": "ContentManifest/affixes.tsv: cutpurse_knife, basic_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>, wenn du <keyword id=\"bleed\">Blutungs</keyword>schaden verursachst"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> when you deal <keyword id=\"bleed\">Bleed</keyword> damage"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cuando infliges daño de <keyword id=\"bleed\">Sangrado</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> lorsque vous infligez des dégâts de <keyword id=\"bleed\">Saignement</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">出血</keyword>ダメージを与えると<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">출혈</keyword> 피해를 주면 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> ao causar dano de <keyword id=\"bleed\">Sangramento</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<keyword id=\"bleed\">流血</keyword>傷害時，獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">Blutung</keyword>sschaden hat eine Chance von <value id=\"quantity_1\">%1$lld</value>%%, zusätzlich <keyword id=\"gold\">Gold</keyword> zu stehlen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">Bleed</keyword> damage has a <value id=\"quantity_1\">%1$lld</value>%% chance to also steal <keyword id=\"gold\">Gold</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"bleed\">Sangrado</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de robar también <keyword id=\"gold\">Oro</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de <keyword id=\"bleed\">Saignement</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances de voler aussi de l’<keyword id=\"gold\">Or</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">出血</keyword>ダメージ時、<value id=\"quantity_1\">%1$lld</value>%%の確率でさらに<keyword id=\"gold\">ゴールド</keyword>を盗む"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">출혈</keyword> 피해가 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"gold\">골드</keyword>도 훔침"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de <keyword id=\"bleed\">Sangramento</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de também roubar <keyword id=\"gold\">Ouro</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">流血</keyword>傷害有<value id=\"quantity_1\">%1$lld</value>%%機率同時偷取<keyword id=\"gold\">金幣</keyword>"}}
       }
     },
     "affixes.cutpurse_knife.title": {
@@ -8989,6 +8989,20 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "霜心墜盒"}}
       }
     },
+    "authored.4afd173b91d4ab0d": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Lebensraub</keyword> gewährt mit <value id=\"quantity_1\">%1$lld</value>%% Wahrscheinlichkeit <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Leech</keyword> has a <value id=\"quantity_1\">%1$lld</value>%% chance to grant <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La <keyword id=\"leech\">Absorción</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de otorgar <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"gold\">Oro</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Le <keyword id=\"leech\">Vol de vie</keyword> a <value id=\"quantity_1\">%1$lld</value>%% de chances de rapporter <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Or</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>時、<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_2\">%2$lld</value>獲得"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword> 시 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_2\">%2$lld</value> 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A <keyword id=\"leech\">Drenagem</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de conceder <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"gold\">Ouro</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>時有<value id=\"quantity_1\">%1$lld</value>%%機率獲得<value id=\"quantity_2\">%2$lld</value><keyword id=\"gold\">金幣</keyword>"}}
+      }
+    },
     "authored.4c3fbea9fa729627": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Basic.swift: name",
       "extractionState": "manual",
@@ -12977,6 +12991,20 @@
         "ko": {"stringUnit": {"state": "translated", "value": "십일조"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Dízimo"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "什一奉獻"}}
+      }
+    },
+    "authored.df13c103f38b46a4": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">Blutung</keyword>sschaden hat eine Chance von <value id=\"quantity_1\">%1$lld</value>%%, zusätzlich <keyword id=\"gold\">Gold</keyword> zu stehlen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">Bleed</keyword> damage has a <value id=\"quantity_1\">%1$lld</value>%% chance to also steal <keyword id=\"gold\">Gold</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"bleed\">Sangrado</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de robar también <keyword id=\"gold\">Oro</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de <keyword id=\"bleed\">Saignement</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances de voler aussi de l’<keyword id=\"gold\">Or</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">出血</keyword>ダメージ時、<value id=\"quantity_1\">%1$lld</value>%%の確率でさらに<keyword id=\"gold\">ゴールド</keyword>を盗む"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">출혈</keyword> 피해가 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"gold\">골드</keyword>도 훔침"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de <keyword id=\"bleed\">Sangramento</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de também roubar <keyword id=\"gold\">Ouro</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">流血</keyword>傷害有<value id=\"quantity_1\">%1$lld</value>%%機率同時偷取<keyword id=\"gold\">金幣</keyword>"}}
       }
     },
     "authored.df85700321f0bc10": {
@@ -21099,6 +21127,34 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "%1$@或%2$@"}}
       }
     },
+    "rule.ability.chance": {
+      "comment": "Chance to apply a complete localized effect clause. First argument is percent, second is the effect. Preserve embedded semantic tags.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% Chance: %2$@"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% chance: %2$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% de probabilidad: %2$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% de chances : %2$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%%の確率：%2$@"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% 확률: %2$@"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% de chance: %2$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%%機率：%2$@"}}
+      }
+    },
+    "rule.ability.chance_steal_gold": {
+      "comment": "Chance to steal Gold. First integer is chance percentage, second integer is Gold amount. Preserve keyword and value tags.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% Chance, <value id=\"gold\">%2$lld</value> <keyword id=\"gold\">Gold</keyword> zu stehlen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% chance to steal <value id=\"gold\">%2$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% de probabilidad de robar <value id=\"gold\">%2$lld</value> de <keyword id=\"gold\">Oro</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% de chances de voler <value id=\"gold\">%2$lld</value> <keyword id=\"gold\">Or</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%%の確率で<keyword id=\"gold\">ゴールド</keyword>を<value id=\"gold\">%2$lld</value>盗む"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% 확률로 <keyword id=\"gold\">골드</keyword> <value id=\"gold\">%2$lld</value> 훔침"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%% de chance de roubar <value id=\"gold\">%2$lld</value> de <keyword id=\"gold\">Ouro</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<value id=\"chance\">%1$lld</value>%%機率偷取<value id=\"gold\">%2$lld</value><keyword id=\"gold\">金幣</keyword>"}}
+      }
+    },
     "rule.ability.conditional": {
       "comment": "Ability rule template. Integer arguments have semantic value labels. String arguments are complete localized rule/condition clauses or keyword names, in source order. Preserve actor, enemy/ally target, condition, chance and quantity.",
       "extractionState": "manual",
@@ -26591,14 +26647,14 @@
       "comment": "ContentManifest/talents.tsv: lizard_scout_gold_t3_1, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Überschüssige Heilung durch <keyword id=\"leech\">Lebensraub</keyword> an dir wird in <keyword id=\"gold\">Gold</keyword> umgewandelt"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Excess <keyword id=\"leech\">Leech</keyword> restoration on you is converted to <keyword id=\"gold\">Gold</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "La restauración sobrante de <keyword id=\"leech\">Absorción</keyword> que recibes se convierte en <keyword id=\"gold\">Oro</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les soins de <keyword id=\"leech\">Vol de vie</keyword> excédentaires reçus sont convertis en <keyword id=\"gold\">Or</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "自分への<keyword id=\"leech\">吸収</keyword>による過剰回復を<keyword id=\"gold\">ゴールド</keyword>に変換"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "자신에게 적용되는 <keyword id=\"leech\">흡혈</keyword>의 초과 회복량을 <keyword id=\"gold\">골드</keyword>로 전환"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "A restauração excedente de <keyword id=\"leech\">Drenagem</keyword> em você é convertida em <keyword id=\"gold\">Ouro</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"leech\">吸血</keyword>過量恢復量轉為<keyword id=\"gold\">金幣</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Lebensraub</keyword> wandelt mit <value id=\"quantity_1\">%1$lld</value>%% Wahrscheinlichkeit überschüssige Heilung in <keyword id=\"gold\">Gold</keyword> um"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Leech</keyword> has a <value id=\"quantity_1\">%1$lld</value>%% chance to convert excess healing into <keyword id=\"gold\">Gold</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La <keyword id=\"leech\">Absorción</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de convertir la curación excedente en <keyword id=\"gold\">Oro</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Le <keyword id=\"leech\">Vol de vie</keyword> a <value id=\"quantity_1\">%1$lld</value>%% de chances de convertir les soins excédentaires en <keyword id=\"gold\">Or</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>時、<value id=\"quantity_1\">%1$lld</value>%%の確率で過剰回復を<keyword id=\"gold\">ゴールド</keyword>に変換"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword> 시 <value id=\"quantity_1\">%1$lld</value>%% 확률로 초과 치유량을 <keyword id=\"gold\">골드</keyword>로 전환"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A <keyword id=\"leech\">Drenagem</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de converter a cura excedente em <keyword id=\"gold\">Ouro</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>有<value id=\"quantity_1\">%1$lld</value>%%機率將溢出治療轉換為<keyword id=\"gold\">金幣</keyword>"}}
       }
     },
     "talents.lizard_scout_gold_t3_1.name": {

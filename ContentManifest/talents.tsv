@@ -141,7 +141,7 @@ lizard_scout_gold_t1_1	Trophy Scales	sf:rosette	Steal 3 Gold when your Block is 
 lizard_scout_gold_t1_2	Hoard Armor	sf:shield.fill	Stealing Gold has a 10% chance to grant 4 Block		goldTheftBlockChancePercent:0.10|goldTheftBlockAmount:4
 lizard_scout_gold_t2_1	Pickpocket	sf:hand.pinch.fill	Critical Hits steal 3 Gold		criticalGoldStealFlat:3
 lizard_scout_gold_t2_2	Scavenger’s Cache	sf:shippingbox.fill	Stealing Gold has a 10% chance to draw a card		goldTheftDrawChancePercent:0.10
-lizard_scout_gold_t3_1	Flawless Bounty	sf:trophy.fill	Excess Leech restoration on you is converted to Gold		excessLeechHealthToGold:true
+lizard_scout_gold_t3_1	Flawless Bounty	sf:trophy.fill	Leech has a 10% chance to convert excess healing into Gold		excessLeechHealthToGoldChancePercent:0.10
 lizard_scout_gold_t3_2	Gilded Claws	sf:pawprint.fill	Gold stolen adds equal damage to your next attack		gildedClaws:true
 panther_bleed_t1_1	Razor Claws	sf:pawprint.fill	Bleed attacks deal 1 additional damage		bleedAttackDamageBonus:1
 panther_bleed_t1_2	Raking Swipes	sf:burst.fill	Bleed attacks gain +10% Critical Hit chance		bleedAttackCriticalBonus:0.10

@@ -23,7 +23,7 @@ public extension AbilityCatalog {
     static let bountyShot = Ability(
         id: "bounty-shot", name: "Bounty Shot", tier: .skill,
         damageComponents: [DamageComponent(3, keyword: .stun)],
-        targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 3), chance: 0.10)],
         stealsGold: true,
     )
 
@@ -205,7 +205,7 @@ public extension AbilityCatalog {
     static let tithe = Ability(
         id: "tithe", name: "Tithe", tier: .skill,
         damageComponents: [DamageComponent(2, keyword: .holy)],
-        targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))],
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 4), chance: 0.10)],
         stealsGold: true,
     )
 

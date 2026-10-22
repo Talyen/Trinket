@@ -1571,8 +1571,8 @@ public extension CombatantTalentCatalog {
             "lizard_scout_gold_t3_1": CombatantTalentEffect(
                 name: "Flawless Bounty",
                 iconID: "sf:trophy.fill",
-                description: "Excess Leech restoration on you is converted to Gold",
-                triggers: CombatTraitTriggers { $0.excessLeechHealthToGold = true }
+                description: "Leech has a 10% chance to convert excess healing into Gold",
+                triggers: CombatTraitTriggers { $0.excessLeechHealthToGoldChancePercent = 0.10 }
             ),
             "lizard_scout_gold_t3_2": CombatantTalentEffect(
                 name: "Gilded Claws",

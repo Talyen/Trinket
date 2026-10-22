@@ -137,6 +137,8 @@ extension CombatTraitTriggers {
         .forbiddenKnowledge: "On/off rule with no rollable magnitude.",
         .victoryGoldCoin: "On/off rule with no rollable magnitude.",
         .goldTheftDrawChancePercent: "Fixed Trinket draw chance, not a rolled magnitude.",
+        .leechGoldChancePercent: "Fixed Blood Price activation chance; only its Gold amount rolls.",
+        .bleedDamageGoldStealChancePercent: "Fixed Cutpurse Knife activation chance; theft scales with Bleed damage.",
         .physicalAttackLeechBelowHalfHealth: "On/off Leech rule with no rollable magnitude.",
         .attackLeechPercent: "Encounter-only attack rule, not an equipment roll.",
     ]

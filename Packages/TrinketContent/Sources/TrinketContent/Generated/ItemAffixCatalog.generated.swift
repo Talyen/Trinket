@@ -643,8 +643,14 @@ enum ItemAffixCatalogGenerated {
             slot: .accessory,
             keywords: [.gold, .leech],
             weight: 8,
-            basic: ItemAffixPower(description: "Gain 1 Gold when you Leech", modifiers: [], triggers: CombatTraitTriggers { $0.leechGoldFlat = 1 }),
-            astral: ItemAffixPower(description: "Gain 2 Gold when you Leech", modifiers: [], triggers: CombatTraitTriggers { $0.leechGoldFlat = 2 })
+            basic: ItemAffixPower(description: "Leech has a 10% chance to grant 1 Gold", modifiers: [], triggers: CombatTraitTriggers {
+                $0.leechGoldFlat = 1
+                $0.leechGoldChancePercent = 0.10
+            }),
+            astral: ItemAffixPower(description: "Leech has a 10% chance to grant 2 Gold", modifiers: [], triggers: CombatTraitTriggers {
+                $0.leechGoldFlat = 2
+                $0.leechGoldChancePercent = 0.10
+            })
         ),
         ItemAffixCatalog.affix(
             id: "sidestep",
@@ -703,8 +709,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.bleed, .gold],
             weight: 1,
-            basic: ItemAffixPower(description: "Gain 1 Gold when you deal Bleed damage", modifiers: [], triggers: CombatTraitTriggers { $0.bleedDamageGoldFlat = 1 }),
-            astral: ItemAffixPower(description: "Gain 1 Gold when you deal Bleed damage", modifiers: [], triggers: CombatTraitTriggers { $0.bleedDamageGoldFlat = 1 })
+            basic: ItemAffixPower(description: "Bleed damage has a 10% chance to also steal Gold", modifiers: [], triggers: CombatTraitTriggers { $0.bleedDamageGoldStealChancePercent = 0.10 }),
+            astral: ItemAffixPower(description: "Bleed damage has a 10% chance to also steal Gold", modifiers: [], triggers: CombatTraitTriggers { $0.bleedDamageGoldStealChancePercent = 0.10 })
         ),
         ItemAffixCatalog.affix(
             id: "frozen_pocketwatch",

@@ -275,10 +275,10 @@ public enum ContentCopy {
             (L10n.affixes_biting_basic_description(1), [1])
         case "Biting":
             (L10n.affixes_biting_title, [])
-        case "Gain 2 Gold when you Leech":
-            (L10n.affixes_blood_price_astral_description(2), [2])
-        case "Gain 1 Gold when you Leech":
-            (L10n.affixes_blood_price_basic_description(1), [1])
+        case "Leech has a 10% chance to grant 2 Gold":
+            (L10n.affixes_blood_price_astral_description(10, 2), [10, 2])
+        case "Leech has a 10% chance to grant 1 Gold":
+            (L10n.affixes_blood_price_basic_description(10, 1), [10, 1])
         case "Blood Price":
             (L10n.affixes_blood_price_title, [])
         case "Restore 2 additional Health when you Leech":
@@ -417,8 +417,8 @@ public enum ContentCopy {
             (L10n.affixes_contagion_basic_description(10), [10])
         case "Contagion":
             (L10n.affixes_contagion_title, [])
-        case "Gain 1 Gold when you deal Bleed damage":
-            (L10n.affixes_cutpurse_knife_astral_description(1), [1])
+        case "Bleed damage has a 10% chance to also steal Gold":
+            (L10n.affixes_cutpurse_knife_astral_description(10), [10])
         case "Blood Money":
             (L10n.affixes_cutpurse_knife_title, [])
         case "Deal 4 additional damage while the enemy is Stunned":
@@ -987,8 +987,8 @@ public enum ContentCopy {
             (L10n.authored_0b56b6f180a9efc4, [])
         case "Thunder Writ":
             (L10n.authored_0c0a3c941491af03, [])
-        case "Gain 8 Block\nGain 5 Gold":
-            (L10n.authored_0c6b172c72634036(8, 5), [8, 5])
+        case "Gain 8 Block\nGain 1 Gold":
+            (L10n.authored_0c6b172c72634036(8, 1), [8, 1])
         case "That choice isn't available anymore", "That choice isn't available anymore.":
             (L10n.authored_0ca0cc5d15f73c74, [])
         case "Blackfletch":
@@ -3235,8 +3235,8 @@ public enum ContentCopy {
             (L10n.talents_lizard_scout_gold_t2_2_description(10), [10])
         case "Scavenger’s Cache":
             (L10n.talents_lizard_scout_gold_t2_2_name, [])
-        case "Excess Leech restoration on you is converted to Gold":
-            (L10n.talents_lizard_scout_gold_t3_1_description, [])
+        case "Leech has a 10% chance to convert excess healing into Gold":
+            (L10n.talents_lizard_scout_gold_t3_1_description(10), [10])
         case "Flawless Bounty":
             (L10n.talents_lizard_scout_gold_t3_1_name, [])
         case "Gold stolen adds equal damage to your next attack":
@@ -4472,7 +4472,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Your first Holy attack that deals Health damage each ", regex: try? NSRegularExpression(pattern: "^Your\\ first\\ Holy\\ attack\\ that\\ deals\\ Health\\ damage\\ each\\ turns?\\ restores\\ ([0-9]+)\\ Health\\ to\\ the\\ lowest\\-Health\\ ally$"), count: 1, make: { values in L10n.affixes_beacon_astral_description(values[0]) }),
         NumericTemplate(prefix: "Increase your Companion's Physical damage by ", regex: try? NSRegularExpression(pattern: "^Increase\\ your\\ Companion's\\ Physical\\ damage\\ by\\ ([0-9]+)$"), count: 1, make: { values in L10n.affixes_beastbond_astral_description(values[0]) }),
         NumericTemplate(prefix: "Bleed lasts ", regex: try? NSRegularExpression(pattern: "^Bleed\\ lasts\\ ([0-9]+)\\ additional\\ turns?$"), count: 1, make: { values in L10n.affixes_biting_astral_description(values[0]) }),
-        NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Gold\\ when\\ you\\ Leech$"), count: 1, make: { values in L10n.affixes_blood_price_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Leech has a ", regex: try? NSRegularExpression(pattern: "^Leech\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ grant\\ ([0-9]+)\\ Gold$"), count: 2, make: { values in L10n.affixes_blood_price_astral_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ additional\\ Health\\ when\\ you\\ Leech$"), count: 1, make: { values in L10n.affixes_bloodbound_astral_description(values[0]) }),
         NumericTemplate(prefix: "Physical attacks that damage Health have a ", regex: try? NSRegularExpression(pattern: "^Physical\\ attacks\\ that\\ damage\\ Health\\ have\\ a\\ ([0-9]+)%\\ chance\\ to\\ deal\\ ([0-9]+)\\ Bleed\\ damage$"), count: 2, make: { values in L10n.affixes_bloodletting_astral_description(values[0], values[1]) }),
         NumericTemplate(prefix: "When Leech restores Health while you have no Thorns, gain ", regex: try? NSRegularExpression(pattern: "^When\\ Leech\\ restores\\ Health\\ while\\ you\\ have\\ no\\ Thorns,\\ gain\\ ([0-9]+)\\ Thorns$"), count: 1, make: { values in L10n.affixes_bloodroot_astral_description(values[0]) }),
@@ -4494,7 +4494,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Increase Stun damage by ", regex: try? NSRegularExpression(pattern: "^Increase\\ Stun\\ damage\\ by\\ ([0-9]+)$"), count: 1, make: { values in L10n.affixes_concussive_astral_description(values[0]) }),
         NumericTemplate(prefix: "Increase Holy damage by ", regex: try? NSRegularExpression(pattern: "^Increase\\ Holy\\ damage\\ by\\ ([0-9]+)$"), count: 1, make: { values in L10n.affixes_consecrated_astral_description(values[0]) }),
         NumericTemplate(prefix: "Poison has a ", regex: try? NSRegularExpression(pattern: "^Poison\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ increase\\ instead\\ of\\ decreasing$"), count: 1, make: { values in L10n.affixes_contagion_astral_description(values[0]) }),
-        NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Gold\\ when\\ you\\ deal\\ Bleed\\ damage$"), count: 1, make: { values in L10n.affixes_cutpurse_knife_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Bleed damage has a ", regex: try? NSRegularExpression(pattern: "^Bleed\\ damage\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ also\\ steal\\ Gold$"), count: 1, make: { values in L10n.affixes_cutpurse_knife_astral_description(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ additional\\ damage\\ while\\ the\\ enemy\\ is\\ Stunned$"), count: 1, make: { values in L10n.affixes_dazed_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ on\\ Death's\\ Door$"), count: 1, make: { values in L10n.affixes_deathgrip_astral_description(values[0]) }),
         NumericTemplate(prefix: "Purging an enemy adds ", regex: try? NSRegularExpression(pattern: "^Purging\\ an\\ enemy\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Holy\\ attack$"), count: 1, make: { values in L10n.affixes_denouncing_astral_description(values[0]) }),
@@ -4765,6 +4765,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Stealing Gold has a ", regex: try? NSRegularExpression(pattern: "^Stealing\\ Gold\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ grant\\ ([0-9]+)\\ Block$"), count: 2, make: { values in L10n.talents_lizard_scout_gold_t1_2_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Critical Hits steal ", regex: try? NSRegularExpression(pattern: "^Critical\\ Hits\\ steal\\ ([0-9]+)\\ Gold$"), count: 1, make: { values in L10n.talents_lizard_scout_gold_t2_1_description(values[0]) }),
         NumericTemplate(prefix: "Stealing Gold has a ", regex: try? NSRegularExpression(pattern: "^Stealing\\ Gold\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ draw\\ a\\ cards?$"), count: 1, make: { values in L10n.talents_lizard_scout_gold_t2_2_description(values[0]) }),
+        NumericTemplate(prefix: "Leech has a ", regex: try? NSRegularExpression(pattern: "^Leech\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ convert\\ excess\\ healing\\ into\\ Gold$"), count: 1, make: { values in L10n.talents_lizard_scout_gold_t3_1_description(values[0]) }),
         NumericTemplate(prefix: "Stealing Gold restores ", regex: try? NSRegularExpression(pattern: "^Stealing\\ Gold\\ restores\\ ([0-9]+)\\ Health\\ to\\ your\\ ally$"), count: 1, make: { values in L10n.talents_lizard_scout_gold_t4_1_description(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Poison\\ damage\\ when\\ you\\ Dodge$"), count: 1, make: { values in L10n.talents_lizard_scout_poison_t1_1_description(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Poison\\ damage\\ to\\ attackers\\ when\\ you\\ take\\ damage$"), count: 1, make: { values in L10n.talents_lizard_scout_poison_t1_2_description(values[0]) }),

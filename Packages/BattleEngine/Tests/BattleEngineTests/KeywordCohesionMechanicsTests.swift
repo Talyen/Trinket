@@ -90,17 +90,11 @@ struct KeywordCohesionMechanicsTests {
         #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
     }
 
-    @Test func `tithe steals fixed gold`() throws {
-        var battle = cohesionBattleWithHand(.tithe)
-        _ = try BattleTestFixtures.playCardNamed("Tithe", owner: .hero, on: &battle)
-        #expect(battle.gold == 2)
-    }
-
     @Test func `golden plate grants block and gold only`() throws {
         var battle = cohesionBattleWithHand(.goldenPlate)
         _ = try BattleTestFixtures.playCardNamed("Golden Plate", owner: .hero, on: &battle)
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 8)
-        #expect(battle.gold == 5)
+        #expect(battle.gold == 1)
     }
 
     @Test(arguments: [BattleParticipant.hero, .enemy])

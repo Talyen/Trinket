@@ -130,7 +130,7 @@ private extension BattleTurnEngine {
                 return .effect(TargetedEffect(
                     .recurringDamage(keyword, SaturatedArithmetic.saturatingMul(amount, 2), turns),
                     target: targeted.target,
-                    condition: targeted.condition,
+                    condition: targeted.condition, chance: targeted.chance,
                 ))
             }
         }

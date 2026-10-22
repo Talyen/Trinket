@@ -104,6 +104,7 @@ struct HealingGainBoundaryTests {
 
     @Test func `Flawless Bounty grants Gold and Block without Windfall or nested restoration`() {
         var profile = CombatantTalentCatalog.profile(for: ["lizard_scout_gold_t3_1"])
+        profile.triggers.excessLeechHealthToGoldChancePercent = 1
         profile.triggers.criticalChanceBonus = -1
         profile.triggers.gainGoldBonusHealSelf = 2
         profile.triggers.goldGainHealChancePercent = 1

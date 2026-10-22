@@ -126,6 +126,9 @@ Action summaries retain typed applied effects only. Log entries store committed 
 and damage totals grouped once by recipient and keyword; their single localized
 formatter derives wording when displayed,
 without building or retaining a separate English transcript during combat.
+Targeted effects can carry a fixed chance, rolled once after their condition passes.
+A failed roll grants no resource or gain feedback; preceding card damage still resolves.
+Empowerment and talent transformations preserve the chance.
 Gold effect summaries use the ability's theft marker: Golden Plate gains Gold,
 while Steal and the other theft cards steal it. Gold summaries report the actual
 grant after equipment and talent bonuses.

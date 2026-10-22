@@ -49,6 +49,11 @@ extension TalentCatalogRoundTripTests {
 
     @Test(arguments: [Ability.steal, .bountyShot, .blackjack, .tithe])
     func `authored theft cards preserve gilded claws through outcome resolution`(ability: Ability) throws {
+        let ability = ability.replacingOperations(ability.operations.map { operation in
+            guard case let .effect(targeted) = operation,
+                  case .resourceGain(.gold, _) = targeted.effect else { return operation }
+            return .effect(TargetedEffect(targeted.effect, target: targeted.target, condition: targeted.condition))
+        })
         var battle = capstoneBattle(companion: ["lizard_scout_gold_t3_2"])
         var stolen = 0
         for _ in 0 ..< 8 {

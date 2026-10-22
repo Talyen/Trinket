@@ -123,9 +123,9 @@ damage. Existing Poison is not required, and ongoing ticks do not activate it.
 ### Companion Gold and Leech
 
 Haggler adds Gold only to a positive steal by a living Retriever; an empty
-steal grants no Gold. Flawless Bounty converts only unallocated excess Leech
-restoration on Lizard Scout into Gold, one for one. The gain cannot restore
-Health or start another Leech. War Chest grants the living Hero resolved Block
+steal grants no Gold. Flawless Bounty has a 10% chance per Leech restoration
+to convert unallocated excess healing on Lizard Scout into Gold, one for one.
+The gain cannot restore Health or start another Leech. War Chest grants the living Hero resolved Block
 equal to the living Retriever's actual Gold stolen, after theft modifiers;
 Block bonuses and pacing do not scale that conversion again. Treasure Hoard cannot
 draw after the enemy dies.

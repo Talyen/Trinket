@@ -120,6 +120,7 @@ struct CombatSurvivalTests {
         let affix = try #require(GameContent.itemAffixDefinition(matching: "cutpurse_knife"))
         var profile = CombatModifierProfile.zero
         affix.basic.triggers.apply(to: &profile, abilityName: affix.title)
+        profile.triggers.bleedDamageGoldStealChancePercent = 1
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroHealth: wearerDefeated ? 0 : 20,
@@ -130,7 +131,7 @@ struct CombatSurvivalTests {
         CombatExecutor.run { await EffectTurnEngine.advanceEffects(on: battle.enemy, context: &battle) }
 
         #expect(battle.roster.enemy.currentHealth == 96)
-        #expect(battle.gold == (wearerDefeated ? 0 : 1))
+        #expect(battle.gold == (wearerDefeated ? 0 : 4))
     }
 
     @Test(arguments: [false, true])

@@ -85,9 +85,9 @@ struct CombatRuleAuditRegressionTests {
             heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
         let events = try play(.goldenPlate, in: &battle)
-        #expect(battle.gold == 7)
+        #expect(battle.gold == 3)
         let summary = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.goldenPlate.id })
-        #expect(summary.appliedEffects.contains(.resourceGain(.gold, 7)))
+        #expect(summary.appliedEffects.contains(.resourceGain(.gold, 3)))
     }
 
     private func play(_ ability: Ability, in battle: inout BattleState) throws -> [ActionEvent] {

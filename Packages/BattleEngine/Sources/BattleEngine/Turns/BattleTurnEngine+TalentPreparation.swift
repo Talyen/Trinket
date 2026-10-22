@@ -120,7 +120,12 @@ extension BattleTurnEngine {
                     effect = .recurringDamage(.poison, SaturatedArithmetic.saturatingMul(amount, 2), turns)
                 default: continue
                 }
-                operations[index] = .effect(TargetedEffect(effect, target: targeted.target, condition: targeted.condition))
+                operations[index] = .effect(TargetedEffect(
+                    effect,
+                    target: targeted.target,
+                    condition: targeted.condition,
+                    chance: targeted.chance,
+                ))
             default: continue
             }
         }

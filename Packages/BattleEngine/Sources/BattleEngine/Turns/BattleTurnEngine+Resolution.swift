@@ -320,6 +320,7 @@ extension BattleTurnEngine {
             return nil
         }
 
+        guard BattleChance.succeeds(probability: targeted.chance, using: &context.rng) else { return nil }
         let effect = targeted.effect
         var didApply = false
         var grantedGold = 0

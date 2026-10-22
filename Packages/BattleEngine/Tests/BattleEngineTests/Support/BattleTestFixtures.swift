@@ -172,3 +172,13 @@ extension CombatModifierProfile {
         Self(triggers: .init(configure))
     }
 }
+
+extension BattleTestFixtures {
+    static func rngSelectingChance(_ probability: Double, succeeds: Bool) throws -> SeededRandomNumberGenerator {
+        let seed = try #require((UInt64(1) ... 1000).first { seed in
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return BattleChance.succeeds(probability: probability, using: &rng) == succeeds
+        })
+        return SeededRandomNumberGenerator(seed: seed)
+    }
+}
