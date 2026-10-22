@@ -89,8 +89,10 @@ by usable viewport height so their summaries and following content remain visibl
 The shell’s scroll geometry drives header height,
 pinned-title opacity, and artwork overscroll zoom even after the hero scrolls
 offscreen. Overscroll is supplied only to the header subtree. Artwork extension
-follows cropping and blending, without an outer clip; overscroll transforms the
-extended artwork together. Title and footer remain safe-area foreground.
+follows cropping and blending, without an outer clip; the completed crop and fade
+are rasterized together before extension so fractional sheet and scroll movement
+cannot expose an unfaded edge row. Overscroll transforms the extended artwork
+together. Title and footer remain safe-area foreground.
 Hero combatant artwork uses the upper
 portrait crop when wide headers cannot show its full height; card and battle crops
 are unchanged. Follow [content beside native bars](../../Docs/Platform/ApplePlatformReference.md#content-beside-native-bars)

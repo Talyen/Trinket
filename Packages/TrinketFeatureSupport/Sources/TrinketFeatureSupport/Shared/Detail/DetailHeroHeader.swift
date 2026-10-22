@@ -76,6 +76,8 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                 .clipped()
         }
         .trinketBottomArtworkBlend()
+        // Rasterize the completed fade before native extension and fractional scroll transforms.
+        .drawingGroup()
     }
 
     @ViewBuilder
