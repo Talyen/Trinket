@@ -20,9 +20,6 @@ public enum GlassChipRole: String, CaseIterable, Sendable, Equatable {
 public enum TypographyRole: Sendable {
     case screenDisplay
     case sectionDisplay
-    case offerDisplay
-    case offerBenefit
-    case compactOfferBenefit
     case screenTitle
     case sectionTitle
     case rowTitle
@@ -38,19 +35,39 @@ public enum TypographyRole: Sendable {
     case rowDisplay
     case cardLabel
 
-    var customPointSize: (size: CGFloat, relativeTo: Font.TextStyle)? {
+    var metrics: (size: CGFloat, style: Font.TextStyle) {
         switch self {
-        case .offerDisplay: (40, .largeTitle)
-        case .offerBenefit: (26, .title2)
-        case .compactOfferBenefit: (24, .title2)
-        default: nil
+        case .screenDisplay, .screenTitle: (34, .largeTitle)
+        case .sectionDisplay, .sectionTitle: (22, .title2)
+        case .rowTitle: (20, .title3)
+        case .cardTitle, .rowDisplay: (17, .headline)
+        case .eyebrow, .caption, .badge: (12, .caption)
+        case .body, .button, .statValue: (17, .body)
+        case .secondaryBody, .cardLabel: (15, .subheadline)
+        case .footnote: (13, .footnote)
         }
     }
 
-    func font(customSize: CGFloat) -> Font {
+    func font(at size: CGFloat) -> Font {
+        let weight: Font.Weight = switch self {
+        case .screenTitle, .eyebrow: .bold
+        case .screenDisplay, .sectionDisplay, .sectionTitle, .rowTitle, .cardTitle, .button, .rowDisplay, .badge: .semibold
+        case .cardLabel: .medium
+        default: .regular
+        }
+        let design: Font.Design = switch self {
+        case .screenDisplay, .sectionDisplay, .rowDisplay: .serif
+        default: .default
+        }
+        let font = Font.system(size: size, weight: weight, design: design)
         switch self {
-        case .offerDisplay: .system(size: customSize, weight: .semibold, design: .serif)
-        case .offerBenefit, .compactOfferBenefit: .system(size: customSize, weight: .semibold)
+        case .statValue: return font.monospacedDigit()
+        default: return font
+        }
+    }
+
+    var font: Font {
+        switch self {
         case .screenDisplay: .system(.largeTitle, design: .serif).weight(.semibold)
         case .sectionDisplay: .system(.title2, design: .serif).weight(.semibold)
         case .screenTitle: .largeTitle.weight(.bold)
@@ -209,16 +226,25 @@ private struct GlassSurfaceModifier<S: InsettableShape>: ViewModifier {
 
 struct TypographyModifier: ViewModifier {
     let role: TypographyRole
-    @ScaledMetric private var customSize: CGFloat
+    let scale: CGFloat
+    @ScaledMetric private var pointSize: CGFloat
 
-    init(role: TypographyRole) {
+    init(role: TypographyRole, scale: CGFloat) {
         self.role = role
-        let size = role.customPointSize
-        _customSize = ScaledMetric(wrappedValue: size?.size ?? 0, relativeTo: size?.relativeTo ?? .body)
+        self.scale = scale
+        _pointSize = ScaledMetric(wrappedValue: role.metrics.size * scale, relativeTo: role.metrics.style)
     }
 
     func body(content: Content) -> some View {
-        content.font(role.font(customSize: customSize))
+        content.font(font)
+    }
+
+    private var font: Font {
+        if scale == 1 { return role.font }
+        if #available(iOS 26.0, macOS 26.0, *) {
+            return role.font.scaled(by: scale)
+        }
+        return role.font(at: pointSize)
     }
 }
 
@@ -277,8 +303,8 @@ public extension View {
         modifier(MaterialRoleModifier(role: role, shape: TrinketDesign.shape(cornerRadius: cornerRadius)))
     }
 
-    func trinketTypography(_ role: TypographyRole) -> some View {
-        modifier(TypographyModifier(role: role))
+    func trinketTypography(_ role: TypographyRole, scale: CGFloat = 1) -> some View {
+        modifier(TypographyModifier(role: role, scale: scale))
     }
 
     func trinketGlassChip(_ role: GlassChipRole = .standard) -> some View {

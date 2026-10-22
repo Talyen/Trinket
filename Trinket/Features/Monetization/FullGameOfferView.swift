@@ -30,8 +30,8 @@ struct FullGameOfferView: View {
                             titleAccessibilityIdentifier: AccessibilityID.FullGame.hero,
                             baseHeight: hero.size.height,
                             horizontalPadding: max(0, (hero.size.width - contentWidth) / 2) + TrinketDesign.Layout.contentMargin,
-                            titleTypography: .offerDisplay,
-                            eyebrowTypography: .secondaryBody,
+                            titleScale: 40.0 / 34,
+                            eyebrowScale: 15.0 / 12,
                         ) {
                             artwork
                         }
@@ -71,13 +71,13 @@ struct FullGameOfferView: View {
     private func benefit(_ title: Text, icon: GameIcon, roomy: Bool) -> some View {
         HStack(spacing: TrinketDesign.Spacing.medium) {
             GameIconImage(icon)
-                .trinketTypography(roomy ? .offerBenefit : .compactOfferBenefit)
+                .trinketTypography(.sectionTitle, scale: roomy ? 26.0 / 22 : 24.0 / 22)
                 .imageScale(.small)
                 .foregroundStyle(TrinketDesign.Colors.accent)
                 .frame(width: benefitIconSize * (roomy ? 26.0 / 24 : 1), height: benefitIconSize * (roomy ? 26.0 / 24 : 1))
                 .accessibilityHidden(true)
             title
-                .trinketTypography(roomy ? .offerBenefit : .compactOfferBenefit)
+                .trinketTypography(.sectionTitle, scale: roomy ? 26.0 / 22 : 24.0 / 22)
                 .fontWeight(.regular)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)

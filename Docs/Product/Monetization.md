@@ -46,16 +46,16 @@ curated focal point to position the
 aspect-fill crop using the prepared image's actual proportions. Preserve complete
 heads, faces, and recognizable features, allowing lower-body cropping. Review
 premium character crops with the heading, fade, display cutout, and sheet grabber
-visible. Use a 40-point serif offer heading and a larger eyebrow. Three icon rows
-use gold icons and primary-color offer-benefit text at 26 points in containers at
-least 390 points wide, or 24 points in narrower containers,
-with regular weight and selective semibold emphasis. Match the icons visually to
+visible. Scale the shared screen-display heading to 40 points and the eyebrow to
+15 points. Three icon rows use gold icons and primary-color section-title text
+scaled to 26 points in containers at least 390 points wide, or 24 points in narrower
+containers. Keep the complete benefit labels regular weight without bold emphasis. Match the icons visually to
 the bullet text, give each icon the same scaled square slot, align the text column,
 and use equal gaps between rows:
 
-- All **chapters & modes**
-- All **heroes & companions**
-- All **future content**
+- All chapters & modes
+- All heroes & companions
+- All future content
 
 Keep benefit rows on one line at standard text sizes, allowing natural wrapping
 for enlarged text. Center the benefits and purchase controls in the same column,

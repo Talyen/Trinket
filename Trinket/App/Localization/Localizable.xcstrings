@@ -1503,14 +1503,14 @@
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: Text. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Alle **Kapitel und Modi**"}},
-        "en": {"stringUnit": {"state": "translated", "value": "All **chapters & modes**"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Todos los **capítulos y modos**"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Tous les **chapitres et modes**"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "すべての**章とモード**"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "모든 **챕터와 모드**"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todos os **capítulos e modos**"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有**章節與模式**"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Alle Kapitel und Modi"}},
+        "en": {"stringUnit": {"state": "translated", "value": "All chapters & modes"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Todos los capítulos y modos"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tous les chapitres et modes"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "すべての章とモード"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "모든 챕터와 모드"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todos os capítulos e modos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有章節與模式"}}
       }
     },
     "ui.fullgameofferview.close_7d9eb": {
@@ -1559,14 +1559,14 @@
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: Text. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Alle **Helden und Gefährten**"}},
-        "en": {"stringUnit": {"state": "translated", "value": "All **heroes & companions**"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Todos los **héroes y compañeros**"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Tous les **héros et compagnons**"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "すべての**ヒーローと仲間**"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "모든 **영웅과 동료**"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todos os **heróis e companheiros**"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有**英雄與夥伴**"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Alle Helden und Gefährten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "All heroes & companions"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Todos los héroes y compañeros"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tous les héros et compagnons"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "すべてのヒーローと仲間"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "모든 영웅과 동료"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todos os heróis e companheiros"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有英雄與夥伴"}}
       }
     },
     "ui.fullgameofferview.family_sharing_ba974": {
@@ -1629,14 +1629,14 @@
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: Text. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Alle **zukünftigen Inhalte**"}},
-        "en": {"stringUnit": {"state": "translated", "value": "All **future content**"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Todo el **contenido futuro**"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Tout le **contenu à venir**"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "今後の**すべてのコンテンツ**"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "향후 **모든 콘텐츠**"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todo o **conteúdo futuro**"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有**未來內容**"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Alle zukünftigen Inhalte"}},
+        "en": {"stringUnit": {"state": "translated", "value": "All future content"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Todo el contenido futuro"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tout le contenu à venir"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "今後のすべてのコンテンツ"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "향후 모든 콘텐츠"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todo o conteúdo futuro"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有未來內容"}}
       }
     },
     "ui.fullgameofferview.keep_exploring_2c443": {
