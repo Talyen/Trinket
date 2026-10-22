@@ -1,5 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
+import TrinketFeatureSupport
 
 struct BattleOutcomeRewardRow: View {
     let icon: GameIcon
