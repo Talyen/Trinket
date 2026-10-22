@@ -39,8 +39,10 @@ Use a native art-led full-screen modal: the **Keep Exploring** heading overlays 
 bottom-left of the triggering chapter, Spire, Labyrinth mode, hero, or companion
 artwork, with a **FULL GAME** eyebrow. Use the current mountain artwork for Options
 and when contextual artwork is unavailable. Prepare and pin the selected artwork
-before presenting the offer, then release it on dismissal. Keep the square hero
-header and use the artwork manifest's curated focal point to position the
+before presenting the offer, then release it on dismissal. Size the artwork to
+fill the space remaining above the benefits and anchored footer. Retain a scaled
+minimum artwork height when content needs to scroll. Use the artwork manifest's
+curated focal point to position the
 aspect-fill crop using the prepared image's actual proportions. Preserve complete
 heads, faces, and recognizable features, allowing lower-body cropping. Review
 premium character crops with the heading, fade, display cutout, and sheet grabber
@@ -53,7 +55,11 @@ slot, align the text column, and use equal gaps between rows:
 - All **future content**
 
 Keep benefit rows on one line at standard text sizes, allowing natural wrapping
-for enlarged text. The anchored primary button is **Unlock Full Game · {localized price}**;
+for enlarged text. Center the benefits and purchase controls in the same column,
+capped at 520 points including content margins. Keep the artwork full width.
+The artwork absorbs spare vertical space instead of leaving a gap before the
+footer; on short screens or with enlarged text, scroll the artwork and benefits
+while keeping the purchase footer anchored. The anchored primary button is **Unlock Full Game · {localized price}**;
 keep its complete localized label and price visible, wrapping when needed.
 **Restore Purchases · Privacy** and a small muted **Family Sharing** label sit
 centered beneath the purchase button in the anchored footer. Restore and Privacy

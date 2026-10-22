@@ -11,28 +11,39 @@ struct FullGameOfferView: View {
     @Environment(\.dismiss) private var dismiss
     @ScaledMetric(relativeTo: .title3) private var benefitIconSize: CGFloat = 20
 
+    @ScaledMetric(relativeTo: .largeTitle) private var minimumHeroHeight: CGFloat = 220
+
+    private let contentWidth: CGFloat = 520
     let artwork: FullGameOfferArtwork?
 
     var body: some View {
-        DetailHeroScrollShell(title: String(localized: L10n.ui_fullgameofferview_full_game_59929), heroHeightPolicy: .square) { height in
-            DetailHeroHeader(
-                eyebrow: String(localized: L10n.ui_fullgameofferview_full_game_497de),
-                title: String(localized: L10n.ui_fullgameofferview_keep_exploring_2c443),
-                titleAccessibilityIdentifier: AccessibilityID.FullGame.hero,
-                baseHeight: height,
-            ) {
-                artwork
-            } footer: {
-                EmptyView()
+        GeometryReader { geometry in
+            ScrollView {
+                FullGameOfferContentLayout(
+                    viewportHeight: geometry.size.height,
+                    minimumHeroHeight: minimumHeroHeight,
+                ) {
+                    GeometryReader { hero in
+                        DetailHeroHeader(
+                            eyebrow: String(localized: L10n.ui_fullgameofferview_full_game_497de),
+                            title: String(localized: L10n.ui_fullgameofferview_keep_exploring_2c443),
+                            titleAccessibilityIdentifier: AccessibilityID.FullGame.hero,
+                            baseHeight: hero.size.height,
+                            horizontalPadding: max(0, (hero.size.width - contentWidth) / 2) + TrinketDesign.Layout.contentMargin,
+                        ) {
+                            artwork
+                        }
+                    }
+                    benefits
+                }
+                .frame(maxWidth: .infinity)
             }
-        } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"))
-                benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"))
-                benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"))
-            }
-            .padding(TrinketDesign.Layout.contentMargin)
+            .scrollBounceBehavior(.basedOnSize)
         }
+        .trinketScreenBackground()
+        .ignoresSafeArea(edges: .top)
+        .trinketSoftTopScrollEdge(isHidden: true)
+        .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .bottom, spacing: 0) { purchaseArea }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.FullGame.offer)
@@ -42,6 +53,17 @@ struct FullGameOfferView: View {
                 dismiss()
             }
         }
+    }
+
+    private var benefits: some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
+            benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"))
+            benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"))
+            benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"))
+        }
+        .padding(TrinketDesign.Layout.contentMargin)
+        .frame(maxWidth: contentWidth, alignment: .leading)
+        .frame(maxWidth: .infinity)
     }
 
     private func benefit(_ title: Text, icon: GameIcon) -> some View {
@@ -90,6 +112,8 @@ struct FullGameOfferView: View {
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
+        .frame(maxWidth: contentWidth)
+        .frame(maxWidth: .infinity)
         .trinketScreenBackground()
     }
 
@@ -145,6 +169,27 @@ struct FullGameOfferView: View {
             return nil
         }
         return 44
+    }
+}
+
+private struct FullGameOfferContentLayout: Layout {
+    let viewportHeight: CGFloat
+    let minimumHeroHeight: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {
+        let width = proposal.width ?? 0
+        let benefits = subviews[1].sizeThatFits(ProposedViewSize(width: width, height: nil))
+        return CGSize(width: width, height: max(viewportHeight, minimumHeroHeight + benefits.height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
+        let benefits = subviews[1].sizeThatFits(ProposedViewSize(width: bounds.width, height: nil))
+        let heroHeight = bounds.height - benefits.height
+        subviews[0].place(at: bounds.origin, proposal: ProposedViewSize(width: bounds.width, height: heroHeight))
+        subviews[1].place(
+            at: CGPoint(x: bounds.minX, y: bounds.minY + heroHeight),
+            proposal: ProposedViewSize(width: bounds.width, height: benefits.height),
+        )
     }
 }
 
