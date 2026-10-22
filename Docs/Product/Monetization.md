@@ -35,38 +35,31 @@ progression remain separate from purchase access.
 [Original visual reference](FullGameOffer.png). This is a design mockup, not a
 screenshot of the running app; the presentation and copy below supersede it.
 
-Use a native art-led full-screen modal with centered **FULL GAME**, **Go Beyond**,
-and **The full adventure. Yours forever.** copy on a dark lower section. Use a gold
-spaced eyebrow, a large cream regular-serif `offerDisplay` title without an outline,
-and a larger primary-color subtitle. Keep the headline and subtitle to one line
-using the shared fitted-text treatment. Keep the headline and subtitle closely
-grouped with a compact gap before the purchase button.
-Give the triggering chapter, Spire, Labyrinth mode, hero, or companion artwork
-the remaining space above the copy; fade it to the dark canvas before the headline.
-The artwork and copy occupy separate regions at every native text size. Keep the
-purchase action anchored while the artwork and copy can scroll on short screens.
-Allow single-line text to fit the available width without hiding the price or
-truncating the ownership promise. Use the same short fade (the last 12% of
-the artwork region) for every artwork variant. Use the mountain artwork for
-Options and when contextual artwork is unavailable. Prepare and pin the selected
-artwork before presenting the offer, then release it on dismissal. Use the
-artwork manifest's curated focal point and the prepared image's actual proportions
-for aspect-fill cropping. The mountain offer keeps the source's top edge visible
-so the shorter artwork region preserves its peak and path. Preserve complete
-heads, faces, and recognizable features, allowing lower-body cropping. Review character crops with the heading,
-fade, display cutout, and sheet grabber visible.
+Use a native art-led full-screen modal: the **Keep Exploring** heading overlays the
+bottom-left of the triggering chapter, Spire, Labyrinth mode, hero, or companion
+artwork, with a **FULL GAME** eyebrow. Use the current mountain artwork for Options
+and when contextual artwork is unavailable. Prepare and pin the selected artwork
+before presenting the offer, then release it on dismissal. Keep the square hero
+header and use the artwork manifest's curated focal point to position the
+aspect-fill crop using the prepared image's actual proportions. Preserve complete
+heads, faces, and recognizable features, allowing lower-body cropping. Review
+premium character crops with the heading, fade, display cutout, and close control
+visible; keep the benefits and anchored purchase controls at their existing sizes. Three
+larger icon rows use gold icons, primary-color text, and selective semibold emphasis:
 
-The anchored primary button is **Unlock · {localized price}**, using StoreKit's
-localized display price and the shared single-line fitted-text treatment. Add
-slightly more vertical padding inside the purchase label for a taller action. Tapping it opens Apple's purchase confirmation directly
-through the existing StoreKit product view. Beneath it, keep
-**Restore Purchases · Privacy** and a small muted
-**Family Sharing** label centered in the purchase area. Restore and Privacy stack
-when they cannot fit side by side; their individual labels stay on one line.
-Keep concise inline purchase outcomes readable when needed. Dismiss through the
-native sheet grabber or swipe; omit the close button. Omit benefit rows, content counts,
-additional reassurance copy, and a secondary free-play CTA. Purchase still grants
-access to normal recruitment and progression, rather than instant earned rewards.
+- All **chapters & modes**
+- Every **hero & companion**
+- Includes **all future content**
+
+Keep benefit rows on one line at standard text sizes, allowing natural wrapping
+for enlarged text. The anchored primary button is **Unlock Full Game · {localized price}**;
+keep its complete localized label and price visible, wrapping when needed.
+**Restore Purchases · Privacy** and a small muted **Family Sharing** label follow
+the benefits in the scrollable content above that button. Restore and Privacy
+stack when they cannot fit side by side; keep them reachable above the pinned
+purchase area at enlarged text sizes. Keep a visible
+close button that returns to the originating screen. No fixed content counts or named chapter claims,
+additional one-time/subscription reassurance line, or secondary free-play CTA.
 
 The offer opens from deliberate actions at premium campaign, Spire, Labyrinth,
 character, or starter boundaries, and from Options. Never automatically interrupt
@@ -80,9 +73,9 @@ Options keeps a compact **Full Game** section with **Unlock Full Game** opening
 the offer and **Restore Purchases** available while the game is locked. Verified
 owners, including Family Sharing recipients, see **Full Game — Unlocked** instead
 of both actions. Both purchase surfaces display concise inline outcomes for unavailable
-pricing, pending approval, unsuccessful restoration, no purchase found,
-unverified ownership, and failed purchases. Keep cancellation quiet and use the
-existing successful purchase/dismissal behavior. General **Support** and **Privacy Policy** links
+pricing, pending approval, unsuccessful restoration, no purchase found, and
+unverified ownership, and failed purchases. Keep cancellation quiet and use the existing successful
+purchase/dismissal behavior. General **Support** and **Privacy Policy** links
 belong in a separate
 **About** section after Full Game and before Game Data.
 

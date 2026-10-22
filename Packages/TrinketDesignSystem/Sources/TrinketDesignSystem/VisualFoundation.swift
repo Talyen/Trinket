@@ -18,7 +18,6 @@ public enum GlassChipRole: String, CaseIterable, Sendable, Equatable {
 }
 
 public enum TypographyRole: Sendable {
-    case offerDisplay
     case screenDisplay
     case sectionDisplay
     case screenTitle
@@ -36,9 +35,8 @@ public enum TypographyRole: Sendable {
     case rowDisplay
     case cardLabel
 
-    func font(offerDisplaySize: CGFloat) -> Font {
+    var font: Font {
         switch self {
-        case .offerDisplay: .system(size: offerDisplaySize, weight: .regular, design: .serif)
         case .screenDisplay: .system(.largeTitle, design: .serif).weight(.semibold)
         case .sectionDisplay: .system(.title2, design: .serif).weight(.semibold)
         case .screenTitle: .largeTitle.weight(.bold)
@@ -196,11 +194,10 @@ private struct GlassSurfaceModifier<S: InsettableShape>: ViewModifier {
 }
 
 struct TypographyModifier: ViewModifier {
-    @ScaledMetric(relativeTo: .largeTitle) private var offerDisplaySize: CGFloat = 64
     let role: TypographyRole
 
     func body(content: Content) -> some View {
-        content.font(role.font(offerDisplaySize: offerDisplaySize))
+        content.font(role.font)
     }
 }
 

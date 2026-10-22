@@ -32,7 +32,7 @@ buttons and system toolbar styling.
 | `TrinketWalletGrid` / `TrinketWalletResourcePill` / `TrinketCompactResourceChip` | Wallet grid and resource pills/chips |
 | `.trinketCenteredPrimaryAction()` | Centered lone primary action: starts at half the container width and grows with Dynamic Type, capped inside normal content margins |
 | `.trinketOnArtText(_:)` | Opaque paper foreground + crisp ink outline on artwork; iOS 18 adds opaque ink backing for contrast; preserves explicit colored and shine fills |
-| `.trinketBottomArtworkBlend(color:fadeFraction:)` | Bottom-edge blend into a destination color (inherits the screen/sheet canvas; pass an explicit color for another surface, panel, or section fill below the art) |
+| `.trinketBottomArtworkBlend(color:)` | Bottom-edge blend into a destination color (inherits the screen/sheet canvas; pass an explicit color for another surface, panel, or section fill below the art) |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 | `.trinketDecorativeMotion(_:)` | Park decorative clocks (shine, plasma, aura) for a subtree; AND-composed so descendants cannot re-enable under a suppressed ancestor |
 | `.trinketPresentationVisibility(_:opacity:)` | Retained/reveal visibility owning opacity, hit testing, and accessibility together without unmounting prewarmed surfaces |
@@ -50,7 +50,7 @@ only. Glass buttons intentionally use `.buttonStyle(.glass/.glassProminent)`,
 which is the button-system equivalent, with native material/bordered fallbacks on
 iOS 18; feature views must not call either directly — use the `trinket*` modifiers above.
 
-Artwork blends transition full-bleed art into the surface below. Use `.trinketBottomArtworkBlend()` where art meets a lower surface. The default fade covers the final 22% of the artwork; Full Game passes 12% for a shorter transition. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
+Artwork blends transition full-bleed art into the surface below. Use `.trinketBottomArtworkBlend()` where art meets a lower surface. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
 For text placed directly over artwork, use `.trinketOnArtText(_:)`: titles receive
 a stronger outline than eyebrows and supporting copy. iOS 18 also uses opaque ink

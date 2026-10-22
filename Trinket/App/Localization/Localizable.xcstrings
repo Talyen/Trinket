@@ -1513,20 +1513,6 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有**章節與模式**"}}
       }
     },
-    "ui.fullgameofferview.all_content_yours_forever": {
-      "comment": "Full Game offer subtitle: the complete adventure is permanently included with the purchase, including future in-game content; normal recruitment and progression remain earned. Keep concise for a single-line subtitle.",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Das ganze Abenteuer. Für immer dein."}},
-        "en": {"stringUnit": {"state": "translated", "value": "The full adventure. Yours forever."}},
-        "es": {"stringUnit": {"state": "translated", "value": "Toda la aventura. Tuya para siempre."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Toute l’aventure. À vous pour toujours."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "冒険のすべてを、ずっと手元に"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "모험 전체를 영원히 소장하세요"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "A aventura completa. Sua para sempre."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "完整冒險，永久擁有"}}
-      }
-    },
     "ui.fullgameofferview.close_7d9eb": {
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: Button. Arguments are displayed values in source order.",
       "extractionState": "manual",
@@ -1542,31 +1528,31 @@
       }
     },
     "ui.fullgameofferview.couldn_t_restore_purchases_please_try_again_7c988": {
-      "comment": "Full Game purchase outcome. Keep concise and single-line. Restore refers to the Restore Purchases button. Cancellation stays quiet; this message never grants ownership.",
+      "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Wiederherstellung fehlgeschlagen. Erneut versuchen."}},
-        "en": {"stringUnit": {"state": "translated", "value": "Restore failed. Try again."}},
-        "es": {"stringUnit": {"state": "translated", "value": "Error al restaurar. Reintenta."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Restauration impossible. Réessayez."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "復元できません。再試行してください。"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "복원 실패. 다시 시도하세요."}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Falha ao restaurar. Tente de novo."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "回復失敗，請重試"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Käufe konnten nicht wiederhergestellt werden. Bitte versuche es erneut."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Couldn’t restore purchases. Please try again."}},
+        "es": {"stringUnit": {"state": "translated", "value": "No se pudieron restaurar las compras. Vuelve a intentarlo."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Impossible de restaurer les achats. Veuillez réessayer."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "購入を復元できませんでした。もう一度お試しください。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "구매를 복원하지 못했습니다. 다시 시도해 주세요."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Não foi possível restaurar as compras. Tente novamente."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "無法回復購買項目，請再試一次。"}}
       }
     },
     "ui.fullgameofferview.couldn_t_verify_full_game_ownership_please_tr_87254": {
-      "comment": "Full Game purchase outcome. Keep concise and single-line. Restore refers to the Restore Purchases button. Cancellation stays quiet; this message never grants ownership.",
+      "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Kauf nicht verifiziert. Wiederherstellen."}},
-        "en": {"stringUnit": {"state": "translated", "value": "Unverified purchase. Try Restore."}},
-        "es": {"stringUnit": {"state": "translated", "value": "Compra sin verificar. Prueba restaurarla."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Achat non vérifié. Essayez de restaurer."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "購入未確認。「購入を復元」をお試しください。"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "구매 미확인. 구매 복원을 시도하세요."}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Compra não verificada. Tente restaurar."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "購買未驗證，請嘗試回復購買項目"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Der Besitz der Vollversion konnte nicht bestätigt werden. Versuche „Käufe wiederherstellen“."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Couldn’t verify Full Game ownership. Please try Restore Purchases."}},
+        "es": {"stringUnit": {"state": "translated", "value": "No se pudo verificar la propiedad del juego completo. Prueba Restaurar compras."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Impossible de vérifier l’achat du jeu complet. Essayez de restaurer les achats."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "完全版の所有を確認できませんでした。「購入を復元」をお試しください。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "정식 게임 구매 여부를 확인하지 못했습니다. 구매 복원을 시도해 주세요."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Não foi possível verificar a compra do Jogo Completo. Tente Restaurar Compras."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "無法驗證完整版擁有權，請嘗試回復購買項目。"}}
       }
     },
     "ui.fullgameofferview.every_hero_companion_4d884": {
@@ -1657,42 +1643,42 @@
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: title. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Entdecke mehr"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Go Beyond"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Ve más allá"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Allez plus loin"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "その先へ"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "더 넓은 세계로"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Vá além"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "探索更遠"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Weiter erkunden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Keep Exploring"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Seguir explorando"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Poursuivre l’exploration"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "探索を続ける"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "계속 탐험하기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Continue explorando"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "繼續探索"}}
       }
     },
     "ui.fullgameofferview.no_full_game_purchase_was_found_for_your_appl_bdc23": {
-      "comment": "Full Game purchase outcome. Keep concise and single-line. Restore refers to the Restore Purchases button. Cancellation stays quiet; this message never grants ownership.",
+      "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Kein Kauf gefunden."}},
-        "en": {"stringUnit": {"state": "translated", "value": "No purchase found."}},
-        "es": {"stringUnit": {"state": "translated", "value": "No se encontró ninguna compra."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Aucun achat trouvé."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "購入が見つかりません。"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "구매 내역이 없습니다."}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Nenhuma compra encontrada."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "找不到購買記錄"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Für deinen Apple Account wurde kein Kauf der Vollversion gefunden."}},
+        "en": {"stringUnit": {"state": "translated", "value": "No Full Game purchase was found for your Apple Account."}},
+        "es": {"stringUnit": {"state": "translated", "value": "No se encontró ninguna compra del juego completo en tu cuenta de Apple."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Aucun achat du jeu complet n’a été trouvé pour votre compte Apple."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "このApple Accountでは完全版の購入が見つかりませんでした。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "이 Apple 계정에서 정식 게임 구매 내역을 찾지 못했습니다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Nenhuma compra do Jogo Completo foi encontrada na sua Conta Apple."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的Apple帳號中找不到完整版購買紀錄。"}}
       }
     },
     "ui.fullgameofferview.pricing_is_unavailable_try_again_cf1d2": {
-      "comment": "Full Game purchase outcome. Keep concise and single-line. Restore refers to the Restore Purchases button. Cancellation stays quiet; this message never grants ownership.",
+      "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Preis nicht verfügbar. Erneut versuchen."}},
-        "en": {"stringUnit": {"state": "translated", "value": "Price unavailable. Try again."}},
-        "es": {"stringUnit": {"state": "translated", "value": "Precio no disponible. Reintenta."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Prix indisponible. Réessayez."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "価格を取得できません。再試行してください。"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "가격 확인 불가. 다시 시도하세요."}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Preço indisponível. Tente de novo."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "無法取得價格，請重試"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Preis nicht verfügbar. Versuche es erneut."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Pricing is unavailable. Try again."}},
+        "es": {"stringUnit": {"state": "translated", "value": "El precio no está disponible. Vuelve a intentarlo."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Le prix est indisponible. Réessayez."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "価格を取得できません。もう一度お試しください。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "가격 정보를 불러올 수 없습니다. 다시 시도해 주세요."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Preço indisponível. Tente novamente."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "目前無法取得價格，請再試一次。"}}
       }
     },
     "ui.fullgameofferview.privacy_54a57": {
@@ -1755,28 +1741,28 @@
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: Text. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Freischalten · %1$@"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Unlock · %1$@"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Desbloquear · %1$@"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Débloquer · %1$@"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "解放 · %1$@"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "잠금 해제 · %1$@"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desbloquear · %1$@"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "解鎖 · %1$@"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Vollversion freischalten · %1$@"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Unlock Full Game · %1$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Desbloquear juego completo · %1$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Débloquer le jeu complet · %1$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "完全版を解放 · %1$@"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "정식 게임 잠금 해제 · %1$@"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desbloquear Jogo Completo · %1$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "解鎖完整版 · %1$@"}}
       }
     },
     "ui.fullgameofferview.waiting_for_approval_full_game_will_unlock_wh_6334b": {
-      "comment": "Full Game purchase outcome. Keep concise and single-line. Restore refers to the Restore Purchases button. Cancellation stays quiet; this message never grants ownership.",
+      "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Warte auf Genehmigung."}},
-        "en": {"stringUnit": {"state": "translated", "value": "Awaiting approval."}},
-        "es": {"stringUnit": {"state": "translated", "value": "Esperando aprobación."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "En attente d’approbation."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "承認待ちです。"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "승인 대기 중입니다."}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Aguardando aprovação."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "等待核准"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Genehmigung ausstehend. Nach der Genehmigung wird die Vollversion freigeschaltet."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Waiting for approval. Full Game will unlock when approved."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Esperando aprobación. El juego completo se desbloqueará cuando se apruebe."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "En attente d’approbation. Le jeu complet sera débloqué après approbation."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "承認待ちです。承認後に完全版が解放されます。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "승인 대기 중입니다. 승인되면 정식 게임이 잠금 해제됩니다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Aguardando aprovação. O Jogo Completo será desbloqueado após a aprovação."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "正在等待批准，批准後即可解鎖完整版。"}}
       }
     },
     "ui.homesteadcategoryview.1_of_2_upgrades_67fe8": {

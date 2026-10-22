@@ -12,10 +12,6 @@ public enum TrinketDesign {
         public static let accent = DesignAssetColors.named("ThemeAntiqueGold")
         public static let accentEmphasized = DesignAssetColors.named("ThemeHighlightGold")
         public static let accentPressed = DesignAssetColors.named("ThemePressedGold")
-        public static var offerTitle: Color {
-            Overlay.paper.mix(with: accent, by: 0.18)
-        }
-
         public static let success = DesignAssetColors.named("ThemeSuccess")
         public static let warning = DesignAssetColors.named("ThemeWarning")
         public static let destructive = DesignAssetColors.named("ThemeDestructive")

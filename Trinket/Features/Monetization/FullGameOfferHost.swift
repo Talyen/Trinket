@@ -23,8 +23,7 @@ private struct FullGameOfferHost: ViewModifier {
                 NavigationStack {
                     FullGameOfferView(artwork: offer.artwork)
                 }
-                .trinketScreenBackground()
-                .presentationBackground(TrinketDesign.Colors.canvas)
+                .trinketSheetSurface()
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
             }
@@ -88,9 +87,7 @@ private final class FullGameOfferPresentation {
 
     private func backgroundArtwork(id: String) -> FullGameOfferArtwork? {
         ArtCatalog.backgroundArtByID[id].map {
-            // The shorter offer crop must retain the mountain peak above its winding path.
-            let focalPoint = id == "chapter-4" ? ArtFocalPoint(x: $0.focalPoint.x, y: 0) : $0.focalPoint
-            return FullGameOfferArtwork(imageName: $0.imageName, focalPoint: focalPoint)
+            FullGameOfferArtwork(imageName: $0.imageName, focalPoint: $0.focalPoint)
         }
     }
 
