@@ -18,6 +18,7 @@ Passing syntax or link checks does not establish that a workflow works in practi
 | --- | --- |
 | [Battle effect](eval-01-battle-effect.md) | `architect` skill and battle-engine context card |
 | [Shop affordance](eval-02-shop-flow.md) | `apple-design` skill and SwiftUI feature context card |
+| [Visual quality](eval-03-visual-quality.md) | Composition, copy subtraction, and rendered iteration |
 
 Add a scenario only for a recurring decision worth testing. Include a concrete
 request, relevant setup, and observable pass criteria; avoid scoring whether the

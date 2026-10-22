@@ -53,6 +53,9 @@ write a custom input driver.
 ## Interaction evidence
 
 A screenshot can verify layout; exercise the interaction to verify behavior.
+Visual implementation tasks require saved final evidence and review under the
+[visual completion gate](../../../Docs/Platform/Verification.md#visual-completion-gate);
+routine diagnostic observations alone do not close them.
 Report device/build identity and what was actually checked. Treat simulator
 performance and absent physical haptics as limits of that evidence. Use
 [CI diagnostics](../../../Docs/AgentContext/ci-diagnostics.md) for build/test

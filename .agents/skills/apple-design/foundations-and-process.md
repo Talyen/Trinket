@@ -38,19 +38,46 @@ reason to mute meaningful battle effects or sound.
 - Do loading, empty, unavailable, success, and failure states explain what happens
   next when those states are reachable?
 
-Use a working prototype when interaction is the uncertainty; a screenshot is
-sufficient for an initial spacing or hierarchy comparison. Scale review to the
-change rather than requiring a separate prototype phase for every edit. A local
-spacing, price, or label correction does not need a new design intent or palette.
-After implementation, compare the result with the intent and reachable states;
-use available screenshots when appearance is uncertain and the routed UI
-verification policy when new visual evidence is needed.
+## References and alternatives
 
-Build interaction prototypes from the shipping SwiftUI components so their press,
-disabled, and dismissal behavior is real. For a new or substantially changed flow,
-an uncoached player attempt can expose hesitation or a wrong expectation and guide
-the next refinement. Use it when player feedback is available; it is not a required
-study or handoff gate. [Design with SwiftUI](https://developer.apple.com/videos/play/wwdc2023/10115/).
+Before a substantial redesign, inspect the user's visual references and relevant
+previously approved Trinket screens. Name the useful properties: artwork scale and
+crop, focal point, text density, spacing, contrast, and material treatment. Do not
+assume an existing screen is approved merely because it ships.
+
+When the direction is unresolved, render two compositions with real game content
+at the intended portrait size. Vary hierarchy, density, or artwork placement;
+recoloring the same layout is not an alternative. Show a simple A/B comparison
+for the user's preference, without a persuasive design essay. An already selected
+direction or a localized correction does not require another choice.
+
+Retain explicit approvals and rejections as visual references beside the owning
+feature documentation: link durable images and record the specific accepted or
+rejected property. Obtain an explicit preference before calling a reference
+user-approved. Keep only examples that change future decisions; do not create an
+empty gallery or preserve every intermediate render. Approved references guide
+composition, not permission to copy unrelated features.
+
+## Render, critique, refine
+
+Follow the [visual completion gate](../../../Docs/Platform/Verification.md#visual-completion-gate).
+Review the render before rereading the implementation rationale. State concrete
+visible defects, such as “the wallet competes with the purchase choice,” and fix
+them; numerical self-scores and “looks polished” are not evidence.
+
+Inspect composition and game identity as well as correctness: one clear focal
+priority, deliberate artwork crops, readable costs and consequences, related
+controls grouped together, and no redundant explanations or competing decoration.
+Check long names and relevant unavailable/empty states at normal phone size.
+A new flow also needs inspection of its entry, primary action, and exit; verify
+motion and gesture behavior through interaction or recording. Use shipping
+SwiftUI components so press, disabled, and dismissal behavior is real.
+
+For substantial redesigns, make a separate critique pass against the references
+and brief before reading the implementer's explanation. An independent reviewer
+is useful when available, but does not replace rendered evidence or require
+routine delegation. Uncoached player feedback can expose hesitation when
+available; it is not a required study. [Design with SwiftUI](https://developer.apple.com/videos/play/wwdc2023/10115/).
 
 Background: Apple's [Principles of great design](https://developer.apple.com/videos/play/wwdc2026/250/).
 

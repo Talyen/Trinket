@@ -139,6 +139,37 @@ report; ordinary local execution still defers it. Apply the [keep/drop rubric](T
 when there is no existing owner. A visual change needs appropriate visual evidence;
 passing compilation or interaction tests alone do not establish visual polish.
 
+### Visual completion gate
+
+For changes to player-facing layout, styling, visible copy, artwork, or motion:
+
+1. Render the changed result using the shipping UI and real game content on a
+   managed simulator or selected device. Save evidence tied to the build/revision,
+   screen, device size, and relevant state. Inspect the actual image; a capture
+   command succeeding, a loading screen, source review, or a generated mockup is
+   not proof of the implemented result.
+2. Review it at normal presentation size against the request and visual references.
+   Identify concrete issues in composition, artwork crop, hierarchy, copy necessity,
+   legibility, and interaction. Compare before/after in matching states when
+   claiming improvement. Exercise changed interactions; use a recording or live
+   inspection for motion.
+3. Fix visible issues, render the revised result, and review again. Continue until
+   the requested result meets the brief. If the first render needs no correction,
+   record what was inspected and why it meets the brief; do not invent edits to
+   satisfy an iteration count.
+4. Link final evidence and summarize the review and refinements in the handoff.
+   Keep deliverable evidence outside worktrees that integration deletes. If a
+   rendering prerequisite is unavailable, report **implemented, visually unverified**
+   with the exact blocker; do not call the visual task done or polished.
+
+Bounded local build/launch/capture and iteration for this gate are authorized
+without separate approval. Use the [simulator skill](../../.agents/skills/ios-simulator/SKILL.md)
+or [device skill](../../.agents/skills/ios-device/SKILL.md), preserve lease isolation,
+and state the scope before running. This exception does not authorize broad UI,
+performance, or hosted suites locally. Existing evidence is reusable only if it
+shows the final changed result and relevant states; pre-change captures do not
+satisfy the gate. Guidance-only edits use scenario review, not a synthetic UI build.
+
 ### Execution limits
 
 - Local script regressions use up to two workers; set `TRINKET_SCRIPT_TEST_JOBS=1`
@@ -149,7 +180,8 @@ passing compilation or interaction tests alone do not establish visual polish.
   stubbed commands; they must not start real builds or simulators.
 - Agents may choose bounded, task-relevant local compile, test, or simulator
   diagnostics without separate user approval when needed to reproduce or resolve
-  a concrete failure. Use `TRINKET_ALLOW_HEAVY_LOCAL=1` with a focused selector
+  a concrete failure, or to satisfy the visual completion gate above. Use
+  `TRINKET_ALLOW_HEAVY_LOCAL=1` with a focused selector
   for compiled test wrappers, and state the scope and purpose before running.
   Keep simulator work isolated and release owned leases when finished. The
   wrappers limit package and UI concurrency; this is not routine verification.

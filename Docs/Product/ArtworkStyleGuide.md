@@ -130,11 +130,19 @@ Before adding or replacing a source:
 1. Confirm the image fits its chapter, asset kind, and gameplay meaning.
 2. Inspect anatomy, perspective, repeated details, illegible pseudo-text, and
    accidental signatures at full resolution.
-3. Check silhouette and contrast at the smallest shipping presentation.
+3. Compare candidates at the smallest shipping presentation, in their actual UI
+   crops. Judge focal action, silhouette, value structure, and distinctive subject
+   details; an artifact-free image can still be generic or poorly composed.
 4. Preview all pipeline crops and adjust manifest focal points if necessary.
+   Review related assets together for repetitive poses, lighting, and composition.
+   Reject weak candidates rather than polishing them indefinitely.
 5. Record provenance and license evidence outside generated output.
 6. Run `./Scripts/generate.sh --assets`, review the diff and memory report, then
    use the path-scoped handoff route from `Scripts/README.md`.
+
+Render, review, and refine the installed artwork in its shipping UI under the
+[visual completion gate](../Platform/Verification.md#visual-completion-gate); a
+full-resolution source inspection alone cannot close artistic work.
 
 Intentional variation is desirable. Repetition of the same pose, rim light,
 fog, pedestal, or glow across a set is a defect even when each image is

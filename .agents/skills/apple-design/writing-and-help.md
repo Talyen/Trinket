@@ -5,6 +5,15 @@ Use established names from the owning [product contract](../../../Docs/Product/O
 and actual controls; do not create a second glossary or rename game concepts as
 incidental copy work.
 
+Before adding explanatory copy, identify the player decision that would become
+misleading or impossible without it. First try clearer grouping, placement,
+selection/disabled state, or an action label. Remove subtitles that repeat titles,
+instructions that restate buttons, decorative category labels, and success copy
+for already-visible outcomes. Keep actual game rules, costs, consequences, and
+necessary recovery information. “Upgrade” beside its cost and benefit does not
+need “Upgrade your building to increase production.” Do not shrink text to retain
+redundant copy. Localize retained or changed copy under the repository workflow.
+
 - Name the action or destination concretely. Build and Upgrade describe distinct
   Homestead actions; vague labels such as Continue need an obvious next step.
   Keep the action's terminology consistent in its confirmation and visible
