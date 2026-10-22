@@ -1560,7 +1560,7 @@
       "extractionState": "manual",
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Alle **Helden und Gefährten**"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Every **hero & companion**"}},
+        "en": {"stringUnit": {"state": "translated", "value": "All **heroes & companions**"}},
         "es": {"stringUnit": {"state": "translated", "value": "Todos los **héroes y compañeros**"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Tous les **héros et compagnons**"}},
         "ja": {"stringUnit": {"state": "translated", "value": "すべての**ヒーローと仲間**"}},
@@ -1629,14 +1629,14 @@
       "comment": "Trinket/Features/Monetization/FullGameOfferView.swift: Text. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Enthält **alle zukünftigen Inhalte**"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Includes **all future content**"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Incluye **todo el contenido futuro**"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Inclut **tout le contenu à venir**"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "**今後のすべてのコンテンツ**も含む"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "**향후 모든 콘텐츠** 포함"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Inclui **todo o conteúdo futuro**"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "包含**所有未來內容**"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Alle **zukünftigen Inhalte**"}},
+        "en": {"stringUnit": {"state": "translated", "value": "All **future content**"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Todo el **contenido futuro**"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tout le **contenu à venir**"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "今後の**すべてのコンテンツ**"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "향후 **모든 콘텐츠**"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todo o **conteúdo futuro**"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有**未來內容**"}}
       }
     },
     "ui.fullgameofferview.keep_exploring_2c443": {

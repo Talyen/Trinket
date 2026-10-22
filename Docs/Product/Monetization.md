@@ -48,8 +48,8 @@ visible; keep the benefits and anchored purchase controls at their existing size
 larger icon rows use gold icons, primary-color text, and selective semibold emphasis:
 
 - All **chapters & modes**
-- Every **hero & companion**
-- Includes **all future content**
+- All **heroes & companions**
+- All **future content**
 
 Keep benefit rows on one line at standard text sizes, allowing natural wrapping
 for enlarged text. The anchored primary button is **Unlock Full Game · {localized price}**;
