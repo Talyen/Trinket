@@ -74,12 +74,9 @@ struct FullGameOfferView: View {
                     .trinketPrimaryActionButton()
             } else if let product = store.product {
                 ProductView(product)
-                    .productViewStyle(FullGameProductStyle(
-                        isPurchasing: store.isPurchasing,
-                        locale: locale,
-                        beginPurchase: store.purchaseStarted,
-                    ))
+                    .productViewStyle(FullGameProductStyle(isPurchasing: store.isPurchasing, locale: locale))
                     .disabled(store.isRestoring || store.ownership == .checking)
+                    .onInAppPurchaseStart { _ in store.purchaseStarted() }
                     .onInAppPurchaseCompletion { _, result in await store.purchaseCompleted(result) }
             } else if store.isLoading {
                 ProgressView()
@@ -156,12 +153,10 @@ struct FullGameOfferView: View {
 private struct FullGameProductStyle: ProductViewStyle {
     let isPurchasing: Bool
     let locale: Locale
-    let beginPurchase: () -> Bool
 
     func makeBody(configuration: Configuration) -> some View {
         if let product = configuration.product {
             Button {
-                guard beginPurchase() else { return }
                 configuration.purchase()
             } label: {
                 HStack {
@@ -211,8 +206,6 @@ struct FullGameOutcomeMessage: View {
             String(localized: L10n.ui_fullgameofferview_couldn_t_restore_purchases_please_try_again_7c988)
         case .noPurchaseFound:
             String(localized: L10n.ui_fullgameofferview_no_full_game_purchase_was_found_for_your_appl_bdc23)
-        case .purchaseFailed:
-            String(localized: L10n.ui_fullgameofferview_purchase_failed)
         case .purchaseUnverified:
             String(localized: L10n.ui_fullgameofferview_couldn_t_verify_full_game_ownership_please_tr_87254)
         }

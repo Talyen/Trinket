@@ -448,7 +448,7 @@ enum L10n {
     }
 
     static var ui_fullgameofferview_every_hero_companion_4d884: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.every_hero_companion_4d884", defaultValue: "All **heroes & companions**", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.every_hero_companion_4d884", defaultValue: "Every **hero & companion**", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_family_sharing_ba974: LocalizedStringResource {
@@ -468,7 +468,7 @@ enum L10n {
     }
 
     static var ui_fullgameofferview_includes_all_future_content_7311b: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.includes_all_future_content_7311b", defaultValue: "All **future content**", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.includes_all_future_content_7311b", defaultValue: "Includes **all future content**", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_keep_exploring_2c443: LocalizedStringResource {
@@ -485,10 +485,6 @@ enum L10n {
 
     static var ui_fullgameofferview_privacy_54a57: LocalizedStringResource {
         LocalizedStringResource("ui.fullgameofferview.privacy_54a57", defaultValue: "Privacy", table: "Localizable", bundle: .main)
-    }
-
-    static var ui_fullgameofferview_purchase_failed: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.purchase_failed", defaultValue: "Purchase failed. Try again.", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_restore_purchases_16351: LocalizedStringResource {

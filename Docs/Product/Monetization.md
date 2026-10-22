@@ -48,8 +48,8 @@ visible; keep the benefits and anchored purchase controls at their existing size
 larger icon rows use gold icons, primary-color text, and selective semibold emphasis:
 
 - All **chapters & modes**
-- All **heroes & companions**
-- All **future content**
+- Every **hero & companion**
+- Includes **all future content**
 
 Keep benefit rows on one line at standard text sizes, allowing natural wrapping
 for enlarged text. The anchored primary button is **Unlock Full Game · {localized price}**;
@@ -74,7 +74,7 @@ the offer and **Restore Purchases** available while the game is locked. Verified
 owners, including Family Sharing recipients, see **Full Game — Unlocked** instead
 of both actions. Both purchase surfaces display concise inline outcomes for unavailable
 pricing, pending approval, unsuccessful restoration, no purchase found, and
-unverified ownership, and failed purchases. Keep cancellation quiet and use the existing successful
+unverified ownership. Keep cancellation quiet and use the existing successful
 purchase/dismissal behavior. General **Support** and **Privacy Policy** links
 belong in a separate
 **About** section after Full Game and before Game Data.
