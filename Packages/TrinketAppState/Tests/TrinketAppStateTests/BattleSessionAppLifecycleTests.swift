@@ -8,6 +8,26 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 extension BattleSessionAppIntegrationTests {
+    @Test func `releasing Play retires retained battle commands without claiming rewards`() async throws {
+        var play: PlaySession? = try context.makePlaySession()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        #expect(play?.journey.startBattle(for: stage) == nil)
+        let battle = try #require(context.lastBattle)
+        let input = BattleViewInput(session: battle, presentation: battle.presentation)
+        let save = try #require(play?.playerSave)
+        let before = save.currentSave
+        #expect(input.isCurrent)
+        weak var releasedPlay = play
+        play = nil
+        for _ in 0 ..< 10 where battle.activeBattle != nil {
+            await Task.yield()
+        }
+        #expect(releasedPlay == nil)
+        #expect(battle.lifecyclePhase == .idle)
+        #expect(!input.isCurrent)
+        #expect(save.currentSave == before)
+    }
+
     @Test func `backgrounded collected reward flushes once and stale finish cannot end another battle`() throws {
         let app = try context.makeAppState(arguments: ["-reset-state"])
         let play = app.play

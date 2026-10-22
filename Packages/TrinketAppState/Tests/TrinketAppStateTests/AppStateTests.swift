@@ -1,4 +1,5 @@
 import Testing
+import TrinketBattleFeature
 import TrinketContent
 import TrinketContentTestSupport
 import TrinketFeatureContracts
@@ -13,6 +14,30 @@ struct AppStateTests {
 
     init() throws {
         context = try AppTestContext()
+    }
+
+    @Test func `retained battle callbacks release the save and shell with AppState`() async throws {
+        var battle: BattleSession?
+        var state: AppState? = try AppState(
+            environment: context.makeEnvironment(),
+            playerSave: PlayerSaveStore(disableCloudSync: true, inMemoryOnly: true),
+            userDefaults: context.userDefaults,
+            makeBattleRuntime: { dependencies in
+                let runtime = BattleSession(presentationEnvironment: dependencies)
+                battle = runtime
+                return runtime
+            },
+        )
+        weak var save = state?.playerSave
+        weak var shell = state?.shellSession
+        state = nil
+        for _ in 0 ..< 10 where save != nil || shell != nil {
+            await Task.yield()
+        }
+        #expect(save == nil)
+        #expect(shell == nil)
+        // Keep the runtime and its real callbacks alive through the assertions.
+        #expect(battle != nil)
     }
 
     @Test func `starter selection completes with chosen party and leaves Play at its root`() throws {

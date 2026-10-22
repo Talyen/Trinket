@@ -22,7 +22,7 @@ public final class AppState {
     public let shellSession: ShellSession
     let musicPlayer: MusicPlayer
     public let sfxPlayer: SFXPlayer
-    public var options: OptionsStore
+    public let options: OptionsStore
     public let play: PlaySession
     public let fullGame: FullGameStore
     var preparedContentAccess = ContentAccessPolicy.free
@@ -80,32 +80,35 @@ public final class AppState {
         factory: (BattlePresentationDependencies) -> any BattleRuntime,
         dependencies: BootstrapDependencies,
     ) -> any BattleRuntime {
-        factory(BattlePresentationDependencies(
-            readMusicPlayback: { dependencies.musicPlayer.readPlayback() },
-            bossLyricsEnabled: { dependencies.options.bossLyricsEnabled },
+        let musicPlayer = dependencies.musicPlayer
+        let sfxPlayer = dependencies.sfxPlayer
+        let options = dependencies.options
+        return factory(BattlePresentationDependencies(
+            readMusicPlayback: { musicPlayer.readPlayback() },
+            bossLyricsEnabled: { options.bossLyricsEnabled },
             playSFX: { ids in
-                dependencies.sfxPlayer.playAll(
+                sfxPlayer.playAll(
                     ids,
-                    volume: dependencies.options.effectsVolume,
+                    volume: options.effectsVolume,
                 )
             },
             warmSFX: { ids, concurrentPlayerCount in
-                dependencies.sfxPlayer.warm(
+                sfxPlayer.warm(
                     ids,
                     concurrentPlayerCount: concurrentPlayerCount,
                 )
             },
             hapticsEnabled: {
-                dependencies.options.hapticsEnabled
+                options.hapticsEnabled
             },
             rememberAutoBattlePreference: {
-                dependencies.options.rememberAutoBattlePreference
+                options.rememberAutoBattlePreference
             },
             autoBattleEnabled: {
-                dependencies.options.autoBattleEnabled
+                options.autoBattleEnabled
             },
             setAutoBattleEnabled: { enabled in
-                dependencies.options.autoBattleEnabled = enabled
+                options.autoBattleEnabled = enabled
             },
         ))
     }

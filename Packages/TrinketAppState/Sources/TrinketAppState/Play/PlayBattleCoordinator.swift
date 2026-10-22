@@ -42,6 +42,18 @@ final class PlayBattleCoordinator {
         self.battlePerformanceScenario = battlePerformanceScenario
     }
 
+    deinit {
+        let battle = battle
+        let activeBattle = activeBattle
+        MainActorCleanup.perform {
+            // A retained display cannot keep commanding an ownerless battle.
+            // Delayed cleanup must not retire a replacement run on this runtime.
+            guard let activeBattle,
+                  battle.activeBattle?.id == activeBattle.registration.launch.configuration.id else { return }
+            battle.endBattle()
+        }
+    }
+
     func restoreOrigin(_ origin: PlayBattleOrigin?) {
         if let path = PlayLaunchDestination.returnPath(from: origin) {
             var transaction = Transaction()
