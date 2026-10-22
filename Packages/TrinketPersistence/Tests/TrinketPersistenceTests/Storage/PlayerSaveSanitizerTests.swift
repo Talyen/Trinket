@@ -415,6 +415,22 @@ struct PlayerSaveSanitizerProgressionTests {
         #expect(rogue.totalEarnedExperience == rogueInput.totalEarnedExperience)
     }
 
+    @Test func `sanitize progressions clamps overflow XP when level reaches max`() throws {
+        let maxProgression = CombatantProgression(
+            level: Int.max,
+            currentXP: CombatantProgression.requiredXP(forLevel: Int.max) + 500,
+            requiredXP: CombatantProgression.requiredXP(forLevel: Int.max),
+        )
+        let sanitized = PlayerSaveSanitizer.sanitizeProgressions(
+            ["knight": maxProgression],
+            validCombatantIDs: ["knight"],
+        )
+        let knight = try #require(sanitized["knight"])
+        #expect(knight.level == Int.max)
+        #expect(knight.currentXP == CombatantProgression.requiredXP(forLevel: Int.max) - 1)
+        #expect(knight.currentXP < knight.requiredXP)
+    }
+
     @Test func `sanitize progressions prunes unknown combatants`() {
         let valid = CombatantProgression.at(level: 2)
 

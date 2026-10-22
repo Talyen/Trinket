@@ -77,4 +77,10 @@ struct PlayerSaveSliceSanitizerTests {
         #expect(reloaded.currentSave.labyrinth == labyrinth)
         #expect(reloaded.homestead.resources[.wood] == wood)
     }
+
+    @Test func `homestead mutation includes library in sanitize and persist targets`() {
+        let targets = PlayerSaveSlice.sanitizeTargets(for: .homestead)
+        #expect(targets.contains(.homestead))
+        #expect(targets.contains(.library))
+    }
 }

@@ -108,6 +108,9 @@ struct PlayerSaveSlice: OptionSet {
             targets.insert(.roster)
             targets.insert(.homestead)
         }
+        if targets.contains(.homestead) {
+            targets.insert(.library)
+        }
         if targets.contains(.labyrinth) {
             targets.insert(.roster)
         }

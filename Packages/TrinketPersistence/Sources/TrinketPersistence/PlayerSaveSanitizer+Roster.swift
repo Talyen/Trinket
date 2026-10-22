@@ -100,6 +100,9 @@ extension PlayerSaveSanitizer {
                 level += 1
                 requiredXP = CombatantProgression.requiredXP(forLevel: level)
             }
+            if level == Int.max, requiredXP > 0 {
+                currentXP = min(currentXP, requiredXP - 1)
+            }
             sanitized[combatantID] = CombatantProgression(
                 level: level,
                 currentXP: currentXP,

@@ -180,6 +180,13 @@ struct HomesteadStateTests {
             resources: [.food: Int.max], nodeTiers: [.wheatField: 1], lastProductionAt: date,
         )
         #expect(state.nextCollectibleDate(after: date, gold: 0) == nil)
+
+        var pendingAtCapacity = PlayerHomesteadState(
+            resources: [.food: Int.max - 1], nodeTiers: [.wheatField: 1], lastProductionAt: date,
+        )
+        pendingAtCapacity.pendingProduction[.food] = 1.0
+        #expect(pendingAtCapacity.nextCollectibleDate(after: date, gold: 0) == nil)
+
         var gold = 0
         state.deductCost([ResourceAmount(.food, 1)], gold: &gold)
         #expect(try #require(state.nextCollectibleDate(after: date, gold: gold)) > date)
