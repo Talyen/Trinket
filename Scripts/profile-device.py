@@ -57,6 +57,12 @@ def stop_owned(process: subprocess.Popen) -> None:
             process.wait(timeout=seconds)
         except ProcessLookupError:
             return
+        except PermissionError:
+            # Exit can race group signalling. Preserve the original recording
+            # failure only when the owned process has actually finished.
+            if process.poll() is not None:
+                return
+            raise
         except subprocess.TimeoutExpired:
             continue
 

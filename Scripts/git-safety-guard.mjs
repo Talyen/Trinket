@@ -28,22 +28,29 @@ export const DESTRUCTIVE_GIT_COMMANDS = loadDestructiveCommands();
 
 const DESTRUCTIVE = new Set(DESTRUCTIVE_GIT_COMMANDS);
 
+// Git accepts unambiguous long-option prefixes, including before an =value.
+// Treat potentially destructive prefixes conservatively; Git validates ambiguity.
+function matchesLongOption(arg, ...options) {
+  const name = arg.split("=", 1)[0];
+  return name.startsWith("--") && name.length > 2
+    && options.some((option) => option.startsWith(name));
+}
+
 function isDestructive(parsedArgs) {
   const cmd = parsedArgs[0];
   if (!DESTRUCTIVE.has(cmd)) return false;
 
   if (cmd === "reset") {
-    return parsedArgs.includes("--hard") || parsedArgs.includes("--merge") || parsedArgs.includes("--keep");
+    return parsedArgs.some((arg) => matchesLongOption(arg, "--hard", "--merge", "--keep"));
   }
   if (cmd === "checkout") {
     if (parsedArgs.includes("--")) return true;
-    if (parsedArgs.includes("-f") || parsedArgs.includes("--force")) return true;
+    if (parsedArgs.some((arg) => arg === "-f" || matchesLongOption(arg, "--force"))) return true;
     const operands = [];
     for (let index = 1; index < parsedArgs.length; index += 1) {
       const arg = parsedArgs[index];
       if (/^-[qlftpm]*[fp][qlftpm]*$/.test(arg)) return true;
-      if (["-p", "--patch", "--ours", "--theirs"].includes(arg)
-          || arg.startsWith("--pathspec-from-file")) return true;
+      if (arg === "-p" || matchesLongOption(arg, "--patch", "--ours", "--theirs", "--pathspec-from-file")) return true;
       if (["-b", "-B", "--orphan", "--conflict"].includes(arg)) {
         index += 1;
       } else if (!arg.startsWith("-")) {
@@ -66,7 +73,7 @@ function isDestructive(parsedArgs) {
     return parsedArgs.some((a) => a.startsWith("-") && a.includes("f"));
   }
   if (cmd === "switch") {
-    return parsedArgs.includes("--force") || parsedArgs.includes("--discard-changes")
+    return parsedArgs.some((arg) => matchesLongOption(arg, "--force", "--discard-changes"))
       || parsedArgs.some((a) => /^-[qfm]*f[qfm]*$/.test(a));
   }
   if (cmd === "branch") {
@@ -74,7 +81,7 @@ function isDestructive(parsedArgs) {
   }
   if (cmd === "push") {
     return (
-      parsedArgs.some((a) => a === "--mirror" || a.startsWith("--force") || a.startsWith("+")
+      parsedArgs.some((a) => matchesLongOption(a, "--mirror", "--force", "--force-with-lease", "--force-if-includes") || a.startsWith("+")
         || /^-[vqnfd]*f[vqnfd]*$/.test(a))
     );
   }

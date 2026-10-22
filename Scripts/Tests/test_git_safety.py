@@ -21,7 +21,10 @@ class GitSafetyTests(ScriptRegressionTestCase):
                                              ("2", ["origin", "+HEAD:main"], False),
                                              ("0", ["origin", "+HEAD:main"], True),
                                              ("1", ["-vf", "origin", "HEAD:main"], False),
+                                             ("1", ["--for", "origin", "HEAD:main"], False),
+                                             ("1", ["--force-with-l=main", "origin", "HEAD:main"], False),
                                              ("1", ["--mirror", "origin"], False),
+                                             ("1", ["--mir", "origin"], False),
                                              ("1", ["origin", "HEAD:main"], True)):
                 with self.subTest(dirty=dirty, arguments=arguments):
                     capture.unlink(missing_ok=True)
@@ -98,8 +101,9 @@ class GitSafetyTests(ScriptRegressionTestCase):
             (root / "tracked").write_text("unstaged")
             (root / "untracked").write_text("unfinished")
             index = (root / ".git/index").read_bytes()
-            for prefix in ([], ["-C", str(root)], ["-c", "core.quotepath=false", "-C", str(root)]):
-                run_captured([str(ROOT / "Scripts/bin/git"), *prefix, "reset", "--hard"], cwd=root, env=env, expected=1)
+            for prefix, option in (([], "--hard"), (["-C", str(root)], "--hard"),
+                                   (["-c", "core.quotepath=false", "-C", str(root)], "--har")):
+                run_captured([str(ROOT / "Scripts/bin/git"), *prefix, "reset", option], cwd=root, env=env, expected=1)
                 self.assertEqual((root / "tracked").read_text(), "unstaged")
                 self.assertEqual((root / "untracked").read_text(), "unfinished")
                 self.assertEqual((root / ".git/index").read_bytes(), index)
@@ -119,14 +123,16 @@ class GitSafetyTests(ScriptRegressionTestCase):
             git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
                 "-c", "core.hooksPath=/dev/null", "commit", "-qm", "baseline")
             git("branch", "safe-branch")
-            for args in (("tracked",), ("HEAD", "tracked"), ("--quiet", "HEAD", "tracked"), ("-qf", "HEAD")):
+            for args in (("tracked",), ("HEAD", "tracked"), ("--quiet", "HEAD", "tracked"),
+                         ("-qf", "HEAD"), ("--for", "HEAD")):
                 with self.subTest(args=args):
                     tracked.write_text("unfinished")
                     run_captured([str(ROOT / "Scripts/bin/git"), "checkout", *args], cwd=root, env=env, expected=1)
                     self.assertEqual(tracked.read_text(), "unfinished")
             # Safe branch navigation and creation may carry dirty work forward.
-            run_captured([str(ROOT / "Scripts/bin/git"), "switch", "-qf", "safe-branch"], cwd=root, env=env, expected=1)
-            self.assertEqual(tracked.read_text(), "unfinished")
+            for args in (("-qf", "safe-branch"), ("--discard", "--detach", "HEAD")):
+                run_captured([str(ROOT / "Scripts/bin/git"), "switch", *args], cwd=root, env=env, expected=1)
+                self.assertEqual(tracked.read_text(), "unfinished")
             for args in (("safe-branch",), ("-b", "new-branch", "HEAD")):
                 run_captured([str(ROOT / "Scripts/bin/git"), "checkout", *args], cwd=root, env=env, expected=0)
                 self.assertEqual(tracked.read_text(), "unfinished")

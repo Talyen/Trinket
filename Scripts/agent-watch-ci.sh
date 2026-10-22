@@ -160,33 +160,21 @@ run_is_path_filtered_only() {
   jq -e '(.jobs | type == "array" and length > 0) and all(.jobs[];
     (.name | type == "string") and (.conclusion | type == "string" and length > 0))' \
     <<<"$run_data" >/dev/null 2>&1 || return 2
-  # The path-filter job appears as "changes / Path filter" (or nested under the
-  # reusable tests.yml as "tests / changes / Path filter"); exclude it by suffix.
-  local non_skipped
-  non_skipped="$(
-    jq -r '
-      [.jobs[]?
-        | select((.name | endswith("Path filter") or endswith("changes")) | not)
-        | select(.conclusion != "skipped" and .conclusion != "cancelled")
-      ] | length' <<<"$run_data"
-  )"
-  local total
-  total="$(
-    jq -r '
-      [.jobs[]?
-        | select((.name | endswith("Path filter") or endswith("changes")) | not)
-      ] | length' <<<"$run_data"
-  )"
-  if [[ -z "$non_skipped" || -z "$total" ]]; then
-    return 1
-  fi
-  if (( total == 0 )); then
-    return 0
-  fi
-  if (( non_skipped == 0 )); then
-    return 0
-  fi
-  return 1
+  # Summary and no-op reuse jobs succeed even on filtered pushes. They cannot
+  # prove execution; an executed reuse lookup conservatively prevents redispatch.
+  # Compare final job-name components to support nested reusable workflows.
+  jq -e '
+    def bookkeeping:
+      (.name | split(" / ") | last) as $name
+      | ((["Path filter", "changes", "CI OK", "Exhaustive OK (advisory)",
+           "Advisory diff review"] | index($name)) != null)
+        or ($name == "Reuse verified commit" and
+            (any(.steps[]?; .name == "Find successful exact-commit checks" and
+                           .conclusion == "success") | not));
+    [.jobs[] | select(bookkeeping | not)
+      | select(.conclusion != "skipped" and .conclusion != "cancelled")]
+    | length == 0
+  ' <<<"$run_data" >/dev/null
 }
 
 failure_looks_like_simulator_infrastructure() {

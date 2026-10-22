@@ -34,10 +34,25 @@ elif args[:2] == ['workflow', 'run']:
 else:
     sys.exit(92)
 ''')
+            filtered_jobs = [
+                {'name': 'tests / changes / Path filter', 'conclusion': 'success'},
+                {'name': 'tests / Reuse verified commit', 'conclusion': 'success', 'steps': [
+                    {'name': 'Find successful exact-commit checks', 'conclusion': 'skipped'}]},
+                {'name': 'tests / CI OK', 'conclusion': 'success'},
+                {'name': 'tests / Exhaustive OK (advisory)', 'conclusion': 'success'},
+                {'name': 'tests / Build and smoke UI', 'conclusion': 'skipped'},
+            ]
             cases = (
                 ('unavailable', False, 1), ('{}', False, 1), ('{"jobs":[]}', False, 1),
                 ('{"jobs":[{}]}', False, 1),
                 (json.dumps({'jobs': [{'name': 'changes / Path filter', 'conclusion': 'success'}]}), True, 77),
+                (json.dumps({'jobs': filtered_jobs}), True, 77),
+                (json.dumps({'jobs': filtered_jobs + [
+                    {'name': 'tests / gate', 'conclusion': 'success'}]}), False, 0),
+                (json.dumps({'jobs': [filtered_jobs[0], {
+                    **filtered_jobs[1], 'steps': [
+                        {'name': 'Find successful exact-commit checks', 'conclusion': 'success'}]},
+                    *filtered_jobs[2:]]}), False, 0),
                 (json.dumps({'jobs': [{'name': 'tests / gate', 'conclusion': 'success'}]}), False, 0),
             )
             for jobs, dispatch, status in cases:
