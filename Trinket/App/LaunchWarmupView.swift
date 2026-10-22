@@ -69,7 +69,7 @@ struct LaunchWarmupView: View {
     }
 
     var body: some View {
-        VStack(spacing: TrinketDesign.Layout.sectionSpacing) {
+        VStack(spacing: TrinketDesign.Spacing.medium) {
             loadingTitle
 
             Text(Self.loadingTerms[currentTermIndex])
