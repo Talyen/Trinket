@@ -35,7 +35,11 @@ points in stack order with work bounded by stored effects, including at integer 
 Flat healing bonuses preserve saturation. Maximum-Health conversion allocates
 only the remaining Health capacity, leaving unconvertible overflow unspent.
 Mana restoration requires a living recipient; defeated recipients receive neither
-Mana nor overflow rewards.
+Mana nor overflow rewards. Maximum-Health overflow conversion rechecks its recipient
+after nested transfers and Mana reactions; it cannot revive a defeated combatant.
+Recipient-owned Aether Shield uses that recipient's once-per-turn allowance across
+all healers; healer-provided fallback conversion retains the healer's allowance.
+Cooling Salve rechecks its healer after Masterwork Mixture's Mana reactions.
 Turn start consumes due Lingering Blessing repeats before restoration reactions
 can queue replacements; newly queued repeats wait for the next player turn.
 Block grants declare a base or resolved amount through `BlockAmountBasis`.

@@ -99,7 +99,8 @@ extension HealingEngine {
                   allocation.remaining > 0,
                   context.claimTurnGuard(
                       .overhealFirstBlock,
-                      actorID: request.sourceActorID ?? request.target.id,
+                      actorID: targetTriggers.overhealFirstBlockPerTurn > 0
+                          ? request.target.id : (request.sourceActorID ?? request.target.id),
                   ) {
             context.applyBlockGain(
                 conversion.overhealFirstBlockPerTurn,
@@ -163,7 +164,7 @@ extension HealingEngine {
         allocation: inout HealingAllocation,
         in context: inout BattleState,
     ) {
-        guard conversion.overhealConvertsToMaxHealth else { return }
+        guard conversion.overhealConvertsToMaxHealth, context.health(of: target) > 0 else { return }
         let perEvent = conversion.overhealConvertsToMaxHealthPerEvent
         var gain = perEvent > 0 ? min(allocation.remaining, perEvent) : allocation.remaining
         let cap = conversion.overhealConvertsToMaxHealthCap
