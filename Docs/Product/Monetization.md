@@ -36,16 +36,20 @@ progression remain separate from purchase access.
 screenshot of the running app; the presentation and copy below supersede it.
 
 Use a native art-led full-screen modal with centered **FULL GAME**, **Go Beyond**,
-and **All content. Yours forever.** copy near the bottom of the artwork. Keep the
-headline and subtitle to one line using the shared fitted-text treatment. Let the
-triggering chapter, Spire, Labyrinth mode, hero, or companion artwork fill the
-available space above the anchored purchase area; use the mountain artwork for
+and **All content. Yours forever.** copy on a dark lower section. Use a gold
+spaced eyebrow, a large cream regular-serif `offerDisplay` title without an outline,
+and a primary-color body subtitle. Keep the headline and subtitle to one line
+using the shared fitted-text treatment, with breathing room between the title,
+subtitle, and purchase button. Limit the triggering chapter, Spire, Labyrinth mode,
+hero, or companion artwork to the upper portion of the available space; fade it
+to the dark canvas before the headline. Use the mountain artwork for
 Options and when contextual artwork is unavailable. Prepare and pin the selected
 artwork before presenting the offer, then release it on dismissal. Use the
 artwork manifest's curated focal point and the prepared image's actual proportions
-for aspect-fill cropping. Preserve complete heads, faces, and recognizable
-features, allowing lower-body cropping. Review character crops with the heading,
-fade, display cutout, and close control visible.
+for aspect-fill cropping. The mountain offer keeps the source's top edge visible
+so the shorter artwork region preserves its peak and path. Preserve complete
+heads, faces, and recognizable features, allowing lower-body cropping. Review character crops with the heading,
+fade, display cutout, and sheet grabber visible.
 
 The anchored primary button is **Unlock · {localized price}**, using StoreKit's
 localized display price and the shared single-line fitted-text treatment. Tapping
@@ -53,8 +57,8 @@ it opens Apple's purchase confirmation directly through the existing StoreKit
 product view. Beneath it, keep **Restore Purchases · Privacy** and a small muted
 **Family Sharing** label centered in the purchase area. Restore and Privacy stack
 when they cannot fit side by side; their individual labels stay on one line.
-Keep concise inline purchase outcomes readable when needed. Keep a visible close
-button returning to the originating screen. Omit benefit rows, content counts,
+Keep concise inline purchase outcomes readable when needed. Dismiss through the
+native sheet grabber or swipe; omit the close button. Omit benefit rows, content counts,
 additional reassurance copy, and a secondary free-play CTA. Purchase still grants
 access to normal recruitment and progression, rather than instant earned rewards.
 

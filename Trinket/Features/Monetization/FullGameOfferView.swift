@@ -21,7 +21,7 @@ struct FullGameOfferView: View {
                     .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .bottom)
                     .background(alignment: .top) {
                         artwork
-                            .frame(height: geometry.size.height)
+                            .frame(height: geometry.size.height * 0.72)
                             .trinketBottomArtworkBlend()
                     }
             }
@@ -31,12 +31,6 @@ struct FullGameOfferView: View {
         .ignoresSafeArea(edges: .top)
         .trinketSoftTopScrollEdge(isHidden: true)
         .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button(String(localized: L10n.ui_fullgameofferview_close_7d9eb), systemImage: "xmark") { dismiss() }
-                    .labelStyle(.iconOnly)
-            }
-        }
         .safeAreaInset(edge: .bottom, spacing: 0) { purchaseArea }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.FullGame.offer)
@@ -49,21 +43,22 @@ struct FullGameOfferView: View {
     }
 
     private var offerHeading: some View {
-        VStack(spacing: TrinketDesign.Spacing.medium) {
-            VStack(spacing: TrinketDesign.Spacing.tight) {
+        VStack(spacing: TrinketDesign.Spacing.extraLarge) {
+            VStack(spacing: TrinketDesign.Spacing.small) {
                 Text(L10n.ui_fullgameofferview_full_game_497de)
                     .trinketTypography(.eyebrow)
-                    .trinketOnArtText(.eyebrow)
+                    .tracking(3)
+                    .foregroundStyle(TrinketDesign.Colors.accent)
                     .trinketSingleLineFittedText()
                 Text(L10n.ui_fullgameofferview_keep_exploring_2c443)
-                    .trinketTypography(.screenDisplay)
-                    .trinketOnArtText(.title)
+                    .trinketTypography(.offerDisplay)
+                    .foregroundStyle(TrinketDesign.Colors.offerTitle)
                     .trinketSingleLineFittedText()
                     .accessibilityIdentifier(AccessibilityID.FullGame.hero)
             }
             Text(L10n.ui_fullgameofferview_all_content_yours_forever)
                 .trinketTypography(.body)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.primary)
                 .trinketSingleLineFittedText()
         }
     }
