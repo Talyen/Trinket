@@ -46,9 +46,10 @@ curated focal point to position the
 aspect-fill crop using the prepared image's actual proportions. Preserve complete
 heads, faces, and recognizable features, allowing lower-body cropping. Review
 premium character crops with the heading, fade, display cutout, and sheet grabber
-visible. Three icon rows use gold icons, primary-color text, and selective semibold
-emphasis. Match the icons visually to the bullet text, give each icon the same scaled square
-slot, align the text column, and use equal gaps between rows:
+visible. Three icon rows use gold icons and primary-color section-title text,
+with regular weight and selective semibold emphasis. Match the icons visually to
+the bullet text, give each icon the same scaled square slot, align the text column,
+and use equal gaps between rows:
 
 - All **chapters & modes**
 - All **heroes & companions**

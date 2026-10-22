@@ -9,7 +9,7 @@ struct FullGameOfferView: View {
     @Environment(\.locale) private var locale
     @Environment(FullGameStore.self) private var store
     @Environment(\.dismiss) private var dismiss
-    @ScaledMetric(relativeTo: .title3) private var benefitIconSize: CGFloat = 20
+    @ScaledMetric(relativeTo: .title2) private var benefitIconSize: CGFloat = 22
 
     @ScaledMetric(relativeTo: .largeTitle) private var minimumHeroHeight: CGFloat = 220
 
@@ -69,13 +69,13 @@ struct FullGameOfferView: View {
     private func benefit(_ title: Text, icon: GameIcon) -> some View {
         HStack(spacing: TrinketDesign.Spacing.medium) {
             GameIconImage(icon)
-                .trinketTypography(.rowTitle)
+                .trinketTypography(.sectionTitle)
                 .imageScale(.small)
                 .foregroundStyle(TrinketDesign.Colors.accent)
                 .frame(width: benefitIconSize, height: benefitIconSize)
                 .accessibilityHidden(true)
             title
-                .trinketTypography(.rowTitle)
+                .trinketTypography(.sectionTitle)
                 .fontWeight(.regular)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
