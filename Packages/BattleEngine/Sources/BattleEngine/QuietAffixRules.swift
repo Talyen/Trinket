@@ -70,7 +70,7 @@ enum QuietAffixRules {
     }
 
     static func applyBlockOverflow(to state: inout DamageResolutionState, in context: BattleState) {
-        guard state.options.isAttackHit, state.options.applyItemBonus,
+        guard state.options.isAttackHit,
               state.heroCardBlockBroken, state.remaining > 0, state.combatant.role == .enemy,
               let sourceID = state.sourceActorID else { return }
         let percent = context.modifiers(for: sourceID).triggers.attackBlockBreakOverflowPercent

@@ -43,6 +43,9 @@ struct QuietItemAffixTests {
         DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
         let tick = battle.resolveTestDamage(20, options: .periodic)
         #expect(tick.healthLost == 10)
+        DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
+        let repeatHit = battle.resolveTestDamage(20, options: .attack(origin: .repeatedAttack, scaling: .resolved))
+        #expect(repeatHit.healthLost == 12)
     }
 
     @Test func `Steelsong refreshes and waits through resolved Block while Mutual changes the same gain`() throws {

@@ -309,3 +309,5 @@ and Poison. Discerning counts distinct removable buff kinds, not their stacks.
 Unburdened requires no removable debuffs on the attacker. Breakthrough increases
 only positive Health overflow from the hit that exhausts the enemy's own Block;
 it cannot amplify a fully blocked hit, bypassed Block, or later unblocked hits.
+Resolved attack repeats check their own fresh Block absorption, without repeating
+outgoing damage bonuses.
