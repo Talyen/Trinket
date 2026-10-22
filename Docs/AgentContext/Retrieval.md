@@ -134,22 +134,21 @@ python3 Scripts/agent-search.py 'enum ArtCatalog' --mode generated --scope Packa
 
 ## Routing and guidance reuse
 
-Start indexed concerns with `python3 Scripts/agent-brief.py --task <concern>`.
-Use `--paths <files...>` for an unindexed task or to supply its actual scope.
-The concern index supplies navigation hints; explicit files always determine
-all applicable safeguards, ownership guidance, and verification requirements.
-`--status` prints scoped changes and global owner counts. Briefing flags can appear
-before or after the `--paths` file list; unknown flags fail instead of becoming paths.
-Whole-tree work requires `--working-tree`; use `--allow-broad-scope` only when intentionally reviewing a
-large working tree. The shell `agent-context.sh` entry point uses this same briefing.
+Ordinary scoped `rg`, file reads and `git diff` are supported defaults. Before
+editing intended files, use `python3 Scripts/agent-brief.py --status --read --paths
+<files...>` for safeguards and initial ownership guidance. Specialized retrieval
+commands below are optional; there is no required search/read/investigate sequence.
 
-Briefings list each discovery owner once under `Discovery`; pass it to
-`agent-search.py --scope <owner>` with the search mode needed for the task.
+Use `--base main` to include task commits since the shared ancestor of `main` and
+`HEAD`, plus staged, unstaged and untracked files. The comparison includes deletions
+and both rename endpoints, fails on an unavailable base, and does not fetch.
+A user-specified task base replaces `main`. Explicit `--paths` selects focused files;
+`--working-tree` selects only dirty files and retains its broad-scope guard.
+The shell `agent-context.sh` entry point uses the same briefing.
 
-Read root/local safeguards and relevant ownership and behavior sections. Skills
-remain conditional on their descriptions. Reuse unchanged guidance still present
-in conversation context; reread relevant contracts after context loss. Briefings
-are stateless and never hide safeguards based on prior reads.
+Read root/local safeguards and relevant ownership and behavior sections; skills
+remain conditional. Reuse unchanged guidance in context and reroute across owners.
+Briefings are stateless and never hide safeguards based on prior reads.
 
 ### Concern and test pointers
 
@@ -162,9 +161,9 @@ Suggestions never select a scope. Use file-scoped discovery for unindexed work.
 The index is navigation, not proof that tests cover the behavior.
 An exact concern ID takes precedence over partial name/alias matches in briefings.
 
-For a concern, the briefing prints a runnable `agent-read.py --full ...` batch
-for initial ownership guidance. Add `--read` to read that guidance in the briefing
-itself, saving a separate tool call. It includes nested safeguards, ownership cards
+For a concern, the briefing prints a runnable batch for initial guidance.
+Ownership sections replace whole-card reads where available. Add `--read` to read that guidance in the briefing
+itself, saving a separate tool call. It includes nested safeguards, ownership sections
 and indexed contracts; root `AGENTS.md` is already injected. Other behavior
 references and skills remain conditional. Use this when guidance is absent from
 context; omit it when reusing unchanged guidance. Both `--read` and `--read-command`

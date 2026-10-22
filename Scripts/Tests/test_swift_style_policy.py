@@ -13,14 +13,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured
+from internal.cli import pinned_tool_path
 
 
 class SwiftStylePolicyTests(ScriptRegressionTestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.policy = load_script("swift_policy", "internal/swift_policy.py")
-        pinned = ROOT / ".tools/swiftformat"
-        cls.formatter = str(pinned) if pinned.is_file() else shutil.which("swiftformat")
+        cls.formatter = shutil.which('swiftformat', path=pinned_tool_path(ROOT))
         cls.policy.formatter_tokens("let value = 1\n", ROOT)
 
     def scan(self, source: str, check: str = "api-bans", path: str = "Trinket/Probe.swift"):

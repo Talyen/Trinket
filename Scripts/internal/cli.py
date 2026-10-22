@@ -47,6 +47,15 @@ def primary_worktree_root(root: Path) -> Path:
     return worktree_roots(root)[0]
 
 
+def pinned_tool_path(root: Path, path: str | None = None) -> str:
+    """Prefer this checkout's tools, then the primary checkout; never install implicitly."""
+    directories = [root.resolve() / '.tools', primary_worktree_root(root) / '.tools']
+    return os.pathsep.join(dict.fromkeys([
+        *(str(directory) for directory in directories if directory.is_dir()),
+        *(os.environ.get('PATH', '') if path is None else path).split(os.pathsep),
+    ]))
+
+
 def legacy_runtime_owner(root: Path, directories: tuple[str, ...]) -> Path | None:
     """Respect live or ambiguous owners left by checkout-local script versions."""
     for checkout in worktree_roots(root)[1:]:

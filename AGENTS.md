@@ -21,11 +21,11 @@ and do not reopen a task.
 
 ## Protect the workspace
 
-- Before editing, inspect scoped status with the router below and every overlapping dirty file's full diff. Preserve in-flight work with surgical edits; clarify unclear ownership. Use `git status --short` only for intentional whole-tree inspection.
+- Before editing, inspect scoped status with the briefing below and every overlapping dirty file's full diff. Preserve in-flight work with surgical edits; clarify unclear ownership. Use `git status --short` only for intentional whole-tree inspection.
 - Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree.
 - Use one isolated worktree and `codex/` task branch per implementation chat, based on committed local `main` unless instructed otherwise. Reuse that chat's suitable worktree; do not inspect other chats to decide whether isolation is needed. Keep the primary checkout on `main` for locked integration only. [Isolated chat workflow](Docs/Platform/Release.md#isolated-chat-workflow) owns commands, locking, and recovery.
 - Implementation tasks authorize task-scoped commits and verified local integration into `main`, unless the user restricts the task. Verified integration automatically deletes and unregisters only the invoking task worktree, including ignored files and build outputs, while retaining its branch. Use `agent-worktree.mjs integrate --keep-worktree` for intermediate landings while requested work or a preview still needs it. Pushes, PRs, publication, other destructive cleanup, and unrelated changes require separate authorization. Read [Release](Docs/Platform/Release.md#local-hooks-and-push-discipline) for staging and push rules; hosted CI runs after a push and is not a prerequisite for it. For TestFlight, read [deployment](Docs/Platform/Release.md#local-testflight-deployment) and use `./Scripts/testflight.sh` and its doctor.
-- Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. Build/handoff handles freshness; `./Scripts/generate.sh` explicitly regenerates.
+- Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. CI checks generation freshness; `./Scripts/generate.sh` explicitly regenerates.
 - Never kill foreign Xcode/Simulator processes. [Verification](Docs/Platform/Verification.md) owns isolation and diagnostics.
 
 ## Product constraints
@@ -39,34 +39,22 @@ and do not reopen a task.
 
 ## Route and read
 
-For an indexed concern, start with `python3 Scripts/agent-brief.py --status --task <concern>`
-to route status, safeguards, initial guidance and source/test pointers together.
-Add `--read` when initial guidance is not already in context to read it in the same call.
-For unindexed work, discover with `python3 Scripts/agent-search.py --files <pattern> --scope <owner>`;
-use `'<concern>' --task` to find an index entry or `--overview` for an unknown owner.
-Asset filenames use `--mode assets --files`.
-Documentation filenames use `--mode docs --files`; the default source mode excludes Markdown.
-Scoped `rg --files` and content `rg` remain available after narrowing the surface.
+Use ordinary scoped `rg`, file reads, and `git diff` for discovery and review.
+Before editing intended files, run
+`python3 Scripts/agent-brief.py --status --read --paths <files...>` once for
+applicable safeguards and initial contracts. Reuse unchanged guidance already in
+context; read the linked sections relevant to the behavior being changed.
 
-Once paths are known, route them with `agent-brief.py --task <concern> --paths <file...>` or
-`./Scripts/agent-context.sh --agent --status --paths <file...>`.
-Read root/local safeguards and applicable routed ownership/behavior sections; load
-skills by trigger. Reuse unchanged guidance already in context. Reroute across owners.
-Use `--working-tree --allow-broad-scope` only for intentional whole-tree work.
+As the task grows, `--base main` derives scope from task commits plus dirty files,
+including deletions and both rename endpoints. Use the user-specified base when
+different. Rerun briefing when entering another owner. `--paths` remains useful for
+focused work; `--working-tree` is an intentional whole-tree dirty-file view.
 
-Read sections with `python3 Scripts/agent-read.py 'path.md#heading'`; `--outline`
-lists headings or Swift/Python declarations (`--match <name>` filters either),
-`--symbol` reads a declaration, and
-`--full` intentionally expands a large document. Batch related reads in one call;
-overlapping text prints once. An outline is navigation, not a read.
-For a known Swift/Python symbol and its callers/tests, use
-`python3 Scripts/agent-investigate.py --path <file> --symbol <name> --scope <owner>`;
-repeat scopes across owners and follow omitted bodies. Review all relevant pages of
-`python3 Scripts/agent-diff.py --paths <file...>` before
-editing overlapping work. Follow relevant callers, tests, and configuration;
-use targeted generated-catalog/log lookups. [Context examples](Docs/AgentContext/README.md)
-own retrieval details. Create an [execution plan](Docs/Plans/README.md) only for
-durable coordination/resumption.
+Concern shortcuts (`--task shop`) and the specialized search/read/investigate/diff
+helpers are optional. [Retrieval](Docs/AgentContext/Retrieval.md) documents them;
+they do not impose a required sequence. Read every relevant overlapping dirty diff
+before editing and follow callers, tests, and configuration as needed. Create an
+[execution plan](Docs/Plans/README.md) only for durable coordination/resumption.
 
 ## Choose the change
 
@@ -95,9 +83,9 @@ Continue authorized work through implementation, relevant verification, and fixe
 caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
-- Default to no new test. Add or expand tests only when they provide high-value protection under [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Do not add low-value tests; medium-value additions are rare exceptions requiring a concrete rationale. Verification does not require new test code. Apply the same value standard to scoped retirement; test counts are not a goal.
+- Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
 - Keep routine local verification resource-light: no automatic Swift compilation, simulator/UI/performance tests, or broad generation. CI owns those checks; [Verification](Docs/Platform/Verification.md#local-simulator-budget) owns deliberate exceptions and local play.
-- Run `./Scripts/handoff.sh --isolate --quiet --paths <file...>` for requested and adopted paths, including deletions. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns gates, limits, failure classification, and advisory change budgets.
+- Run `./Scripts/handoff.sh --isolate --quiet --base main` for the full task (or its user-specified base); use `--paths <files...>` for focused checks. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns gates, limits, failure classification, and advisory change budgets.
 - Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. A local handoff proves only its lightweight checks; report CI-owned checks as pending until hosted evidence confirms them.
 
 ## Maintain guidance

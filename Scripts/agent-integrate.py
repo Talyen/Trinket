@@ -113,7 +113,8 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         # Reuse installed executables without sharing writable build/generated
         # directories. Task-local tools take precedence; validators enforce pins.
         environment = dict(os.environ)
-        environment["PATH"] = os.pathsep.join((str(source / ".tools"), str(target / ".tools"), environment["PATH"]))
+        from internal.cli import pinned_tool_path
+        environment["PATH"] = pinned_tool_path(source, environment.get('PATH', ''))
         subprocess.run([str(source / "Scripts/handoff.sh"), "--isolate", "--quiet", "--paths", *paths],
                        cwd=source, env=environment, check=True)
         clean(source)

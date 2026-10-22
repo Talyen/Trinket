@@ -241,6 +241,23 @@ def plan(root: Path) -> dict:
     return {'version': 1, 'source_revision': revision, 'required_review_checks': sorted(REVIEW_CHECKS), 'requests': pending}
 
 
+def response_template(root: Path) -> dict:
+    """Copy queue identity and locale forms without inventing translation or review evidence."""
+    queue = plan(root)
+    config = load(root / 'Localization/config.json')
+    results = []
+    for item in queue['requests']:
+        forms = ['value'] if 'value' in item['source'] else sorted(
+            config.get('pluralForms', {}).get(item['locale']) or PLURALS[item['locale']])
+        results.append({
+            'id': item['id'], 'locale': item['locale'], 'source_hash': item['source_hash'],
+            'translation': dict.fromkeys(forms, ''),
+            'required_review_checks': queue['required_review_checks'],
+            'review': {'verdict': 'pending', 'checks': [], 'rationale': ''},
+        })
+    return {'version': queue['version'], 'source_revision': queue['source_revision'], 'translations': results}
+
+
 @contextmanager
 def transaction_lock(root: Path):
     # This is task-worktree-local. It never takes the repository integration lock.

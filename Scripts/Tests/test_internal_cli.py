@@ -10,10 +10,39 @@ from pathlib import Path
 
 from script_test_support import ROOT
 
-from internal.cli import read_env_arrays, validate_repo_paths, write_json_atomic
+from internal.cli import pinned_tool_path, read_env_arrays, validate_repo_paths, write_json_atomic
 
 
 class InternalCliTests(unittest.TestCase):
+    def test_linked_checkout_tools_precede_system_tools_in_shell_and_python(self) -> None:
+        import os
+        import shutil
+        import subprocess
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve() / 'primary with space'
+            root.mkdir()
+            subprocess.run(['git', 'init', '-q', str(root)], check=True)
+            subprocess.run(['git', '-C', str(root), '-c', 'user.name=Fixture',
+                            '-c', 'user.email=fixture@example.invalid', '-c', 'core.hooksPath=/dev/null',
+                            'commit', '--allow-empty', '-qm', 'base'], check=True)
+            task = Path(directory).resolve() / 'task with space'
+            subprocess.run(['git', '-C', str(root), 'worktree', 'add', '-qb', 'codex/task', str(task)], check=True)
+            for name in ('lib/tools.sh', 'lib/args.sh', 'internal/cli.py'):
+                target = task / 'Scripts' / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ROOT / 'Scripts' / name, target)
+            (root / '.tools').mkdir()
+            inherited = os.environ['PATH']
+            expected = pinned_tool_path(task, inherited)
+            self.assertEqual(expected.split(os.pathsep)[0], str(root / '.tools'))
+            result = subprocess.check_output(['bash', '-eu', '-c',
+                'source "$1/Scripts/lib/tools.sh"; trinket_prepend_pinned_tools "$1"; printf "%s" "$PATH"',
+                '_', str(task)], env={**os.environ, 'PATH': inherited}, text=True)
+            self.assertEqual(result, expected)
+            (task / '.tools').mkdir()
+            self.assertEqual(pinned_tool_path(task, inherited).split(os.pathsep)[:2],
+                             [str(task / '.tools'), str(root / '.tools')])
+
     def test_read_env_arrays_matches_bash_sourcing(self) -> None:
         import subprocess
 

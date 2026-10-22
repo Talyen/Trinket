@@ -101,6 +101,8 @@ class ScriptRegressionTestCase(unittest.TestCase):
                 'Scripts/internal/swift_policy.py', 'Scripts/internal/cli.py')))
         if 'Scripts/check-build-cache-paths.sh' in files:
             files = (*files, 'Scripts/check-build-cache-paths.py', 'Scripts/internal/policy_scan.py', 'Scripts/internal/cli.py')
+        if 'Scripts/lib/tools.sh' in files:
+            files = tuple(dict.fromkeys((*files, 'Scripts/internal/cli.py')))
         for relative in files:
             target = root / relative
             target.parent.mkdir(parents=True, exist_ok=True)

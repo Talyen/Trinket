@@ -36,7 +36,23 @@ def normalize_paths(paths: list[str], root: Path = ROOT) -> list[str]:
     return sorted(set(normalized))
 
 
-def collect_paths(paths: list[str] | None, root: Path = ROOT) -> list[str]:
+def task_ancestor(base: str, root: Path) -> str:
+    revision = subprocess.check_output(
+        ['git', 'rev-parse', '--verify', '--end-of-options', base + '^{commit}'], cwd=root, text=True).strip()
+    return subprocess.check_output(['git', 'merge-base', revision, 'HEAD'], cwd=root, text=True).strip()
+
+
+def collect_paths(paths: list[str] | None, root: Path = ROOT, *, base: str | None = None) -> list[str]:
+    if base is not None:
+        if paths is not None:
+            raise ValueError('--base cannot combine with --paths')
+        # Include committed work and both dirty endpoints, even if a later edit
+        # undoes a committed change. Never silently fall back after a Git error.
+        ancestor = task_ancestor(base, root)
+        committed = subprocess.check_output(
+            ['git', 'diff', '--no-ext-diff', '--no-renames', '--name-only', '-z', ancestor, 'HEAD', '--'], cwd=root)
+        dirty = {path for entry in changes(root) for path in (entry.path, entry.original) if path}
+        return normalize_paths([*(os.fsdecode(path) for path in committed.split(b'\0') if path), *dirty], root)
     if paths is not None:
         return normalize_paths(paths, root)
     return sorted({path for entry in changes(root) for path in (entry.path, entry.original) if path})
@@ -163,8 +179,9 @@ class Route:
                 return
 
 
-def classify(paths: list[str], root: Path = ROOT) -> Route:
+def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) -> Route:
     route = Route(paths)
+    comparison = task_ancestor(base, root) if base is not None else 'HEAD'
     arrays = read_env_arrays(root / 'Scripts/build-inputs.env', ['TRINKET_TEST_PACKAGES', 'TRINKET_CONTENT_GENERATION_INPUTS', 'TRINKET_ASSET_GENERATION_INPUTS', 'TRINKET_PROJECT_GENERATION_INPUTS'])
     packages = arrays['TRINKET_TEST_PACKAGES']
     smoke = {row['key']: row['name'] for row in registrations(root) if row['suite'] == 'Smoke'}
@@ -255,10 +272,10 @@ def classify(paths: list[str], root: Path = ROOT) -> Route:
     for path in paths:
         if path.endswith('.swift'):
             tracked = subprocess.run(['git', 'ls-files', '--error-unmatch', '--', path], cwd=root, capture_output=True).returncode == 0
-            diff = subprocess.check_output(['git', 'diff', '--no-ext-diff', '--unified=0', '--', path], cwd=root, text=True) if tracked else '\n'.join((root / path).read_text().splitlines()[:240]) if (root / path).is_file() else ''
+            diff = subprocess.check_output(['git', 'diff', '--no-ext-diff', '--unified=0', comparison, '--', path], cwd=root, text=True) if tracked else '\n'.join((root / path).read_text().splitlines()[:240]) if (root / path).is_file() else ''
             if re.search(r'//.*(swiftlint:|swiftformat:|[A-Za-z]+Check:\s*allow|Concurrency-Safety:)', diff): route.add('skills', '.agents/skills/doc-budget/SKILL.md')
             public = r'(public\s+(actor|class|enum|struct|protocol|typealias)|(^|\s)protocol\s|@Model|[A-Za-z0-9_]+Schema|@attached)'
-            if re.search(r'^\+[^+].*' + public if tracked else public, diff, re.MULTILINE): route.add('skills', '.agents/skills/architect/SKILL.md'); route.add('knowledge', '.agents/knowledge/patterns/module-dag-containment.md')
+            if re.search(r'^\+(?!\+).*' + public if tracked else public, diff, re.MULTILINE): route.add('skills', '.agents/skills/architect/SKILL.md'); route.add('knowledge', '.agents/knowledge/patterns/module-dag-containment.md')
         runtime_path = matches(path, 'Trinket/App/TrinketApp.swift', 'Packages/BattleEngine/Sources/BattleEngine/Runtime/BattleRuntime*.swift', 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattleRuntime.swift', 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattlePresentationDependencies.swift', 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattleProgressionDelegate.swift', 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattlePreparedPreview.swift', 'Packages/TrinketBattleFeature/*') or (path.startswith('Packages/TrinketAppState/') and '/Audio/' not in path and matches(path, '*Battle*', '*/Encounter*', '*/Play/*', '*/App/AppState.swift'))
         if runtime_path: route.add('cards', RUNTIME); route.rule(path, RUNTIME_RULES)
         elif path.startswith('Packages/BattleEngine/'): route.add('cards', ENGINE); route.rule(path, ENGINE_RULES)

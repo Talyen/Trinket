@@ -56,7 +56,7 @@
   {
     "id": "agent-tooling",
     "label": "Coding agent context",
-    "aliases": ["coding agent token efficiency", "token efficiency", "agent context", "context routing", "agent retrieval"],
+    "aliases": ["coding agent token efficiency", "token efficiency", "agent context", "context routing", "agent retrieval", "agent workflow", "agent instructions"],
     "symbols": ["guidance_command", "read_target"],
     "sources": ["Scripts/agent-brief.py", "Scripts/agent-read.py", "Scripts/agent-search.py", "Scripts/internal/agent_tasks.py"],
     "tests": ["Scripts/Tests/test_agent_context.py", "Scripts/Tests/test_agent_read.py", "Scripts/Tests/test_agent_search.py"],
@@ -356,6 +356,33 @@
       "L10n"
     ],
     "sources": [
+      "Trinket/App/Localization/Localizable.xcstrings",
+      "Localization/Store/English.json",
+      "Localization/config.json",
+      "Localization/glossary.json"
+    ],
+    "tests": [
+      "Scripts/Tests/test_localization.py",
+      "Scripts/Tests/test_localization_content_inventory.py"
+    ],
+    "contracts": [
+      "Docs/Platform/Localization.md#agent-workflow",
+      "Docs/Platform/Localization.md#ownership-and-rendering"
+    ]
+  },
+  {
+    "id": "localization-tooling",
+    "label": "Localization tooling",
+    "aliases": [
+      "translation tooling",
+      "localization implementation"
+    ],
+    "symbols": [
+      "LocalizedGameText",
+      "ContentCopy",
+      "L10n"
+    ],
+    "sources": [
       "Scripts/localization.py",
       "Scripts/internal/localization.py",
       "Scripts/internal/localization_resources.py",
@@ -367,7 +394,8 @@
       "Scripts/Tests/test_localization_content_inventory.py"
     ],
     "contracts": [
-      "Docs/Platform/Localization.md"
+      "Docs/Platform/Localization.md#ownership-and-rendering",
+      "Docs/Platform/Localization.md#enforcement-and-release"
     ]
   }
 ]

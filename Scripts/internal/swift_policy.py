@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 
 from internal.policy_scan import candidates
+from internal.cli import pinned_tool_path
 
 ROOT = Path(__file__).resolve().parents[2]
 API_BANS = {
@@ -46,8 +47,7 @@ def formatter_tokens(source: str, root: Path) -> list[dict]:
     expected = re.search(r"^SWIFTFORMAT_VERSION=(\S+)$", pins, re.MULTILINE)
     if expected is None:
         raise RuntimeError("SWIFTFORMAT_VERSION is missing from Scripts/tool-versions.env")
-    pinned = root / ".tools/swiftformat"
-    binary = str(pinned) if pinned.is_file() else shutil.which("swiftformat")
+    binary = shutil.which('swiftformat', path=pinned_tool_path(root))
     if binary is None:
         raise RuntimeError("SwiftFormat is missing; run ./Scripts/ensure-ci-tools.sh")
     result = subprocess.run(

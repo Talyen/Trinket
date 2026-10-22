@@ -8,7 +8,7 @@ There is no paid translation API, runtime translation service, or human translat
 ## Agent workflow
 
 Every task that changes displayed copy completes its localization before handoff.
-Use `python3 Scripts/agent-brief.py --task localization --read` for routed pointers.
+For optional routed pointers, use `python3 Scripts/agent-brief.py --task localization --read`.
 
 1. Edit the owning English catalog, authored content, or
    [store copy](../../Localization/Store/English.json). Preserve stable keys when
@@ -23,10 +23,13 @@ Use `python3 Scripts/agent-brief.py --task localization --read` for routed point
 4. Perform a separate AI review pass against the English meaning and game rules:
    actors, targets, conditions, timing, quantities, chance versus guarantees,
    glossary terms, grammar, placeholders, and semantic markup. Correct defects.
-5. Write a response with `version: 1`, the queue's `source_revision`, and a
-   `translations` array. Each result contains `id`, `locale`, `source_hash`,
-   `translation` (the same value/plural-form dictionary shape), and `review`
-   with `verdict: "pass"`, the completed `checks`, and a truthful `rationale`.
+5. Generate the response skeleton with `python3 Scripts/localization.py template`
+   (redirect stdout to a response JSON file). It copies IDs, source hashes/revision,
+   target-locale plural forms, and required review checks. Fill translations, then
+   set `review.verdict` to `"pass"`, list completed `review.checks`, and record a
+   truthful rationale after the separate review. Empty fields and `"pending"`
+   verdicts supply no review evidence and cannot be applied. Keep the plan's
+   English meaning, context, glossary and placeholder contracts beside the template.
 6. Run `python3 Scripts/localization.py apply <response.json>`, then
    `python3 Scripts/localization.py check`. Commit catalogs, review fingerprints,
    generated resources, and the English change together.

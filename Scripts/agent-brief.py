@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import shlex
+import subprocess
 
 from internal.agent_arguments import AgentArgumentParser
 from internal.agent_status import briefing
@@ -18,6 +19,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument('--paths', nargs='+')
     scope.add_argument('--working-tree', action='store_true')
+    scope.add_argument('--base', help='include task commits since the shared ancestor of REF and HEAD, plus dirty files')
     parser.add_argument('--task')
     for flag in ('agent', 'full', 'status', 'smoke', 'allow-broad-scope', 'read-command'):
         parser.add_argument('--' + flag, action='store_true')
@@ -27,13 +29,13 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         task = select_task(root, args.task) if args.task else None
         if task and args.working_tree: parser.error('--task cannot combine with --working-tree; use --paths for the actual task scope')
         if args.paths == []: parser.error('--paths requires at least one repository-relative path')
-        if args.paths is None and not args.working_tree and not task: parser.error('agent-brief requires --paths <file...>; use --working-tree to classify the whole tree intentionally')
-        paths = collect_paths(args.paths if args.paths is not None else task['sources'] if task else None, root)
+        if args.paths is None and not args.working_tree and not args.base and not task: parser.error('agent-brief requires --paths <file...>, --base <ref>, or --task <concern>')
+        paths = collect_paths(args.paths if args.paths is not None else task['sources'] if task and not args.base else None, root, base=args.base)
         limit = os.environ.get('TRINKET_MAX_WORKING_TREE_PATHS', '40')
         limit = int(limit) if limit.isdigit() else 40
         if args.working_tree and not args.allow_broad_scope and len(paths) > limit:
             parser.exit(3, f'working-tree scope has {len(paths)} paths; use explicit --paths or --allow-broad-scope\n')
-        route = classify(paths, root)
+        route = classify(paths, root, base=args.base)
         focus = task['contracts'] if task else []
         initial = [*route.guides, *(card for card in route.cards if card.partition('#')[0] not in BEHAVIOR_CARDS)]
         read = guidance_command(root, task, initial) if task or initial else None
@@ -42,7 +44,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             if read: print(read)
             return 0
         if args.status: print(briefing(root, paths))
-        print(f'Agent context ({"working tree" if args.working_tree else "explicit paths"}, {len(paths)}):')
+        print(f'Agent context ({"base " + args.base if args.base else "working tree" if args.working_tree else "explicit paths"}, {len(paths)}):')
         def emit(label: str, values: list[str]) -> None:
             if values:
                 print(label + ':')
@@ -68,7 +70,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         emit(f'Generated/processed paths (do not hand-edit) ({len(route.generated)})', route.generated)
         emit('Boundary warnings', route.warnings)
         emit('Generated-output warnings', route.generated_warnings)
-        handoff = ['./Scripts/handoff.sh', '--isolate', '--quiet', *(['--working-tree'] if args.working_tree else ['--paths', *paths])]
+        handoff = ['./Scripts/handoff.sh', '--isolate', '--quiet', *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
         emit('Verification (agents: always --isolate)', [shlex.join(handoff)])
         if args.full: emit('Plan detail (sequential under that tenant)', [check.command + (' (deferred to CI locally)' if check.deferred else '') for check in verification_plan(route, root=root, smoke=args.smoke)])
         if route.smoke_unresolved: print('UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.')
@@ -76,7 +78,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             print('Initial guidance (complete reads; skills and other relevant behavior references still apply):')
             return load_sibling('brief_reader', 'agent-read.py').main(shlex.split(read)[2:], root=root)
         return 0
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
         parser.error(str(error))
 
 

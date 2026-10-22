@@ -17,6 +17,30 @@ import tempfile
 from pathlib import Path
 
 class CIHandoffRoutingTests(ScriptRegressionTestCase):
+    def test_evidence_summary_never_promotes_preview_deferred_or_unrun_checks(self) -> None:
+        from script_test_support import load_script
+        from internal.change_routing import Check
+        verify = load_script('evidence_verifier', 'verify.py')
+        checks = [Check('docs', 'documentation', ('unused',)),
+                  Check('build', 'app compilation', ('unused',), deferred=True),
+                  Check('package', 'package tests', ('unused',), deferred=True)]
+        for preview, outcomes, status in ((True, {}, 0), (False, {'docs': 'failed'}, 1),
+                                           (False, {'docs': 'passed', 'build': 'deferred to CI', 'package': 'deferred to CI'}, 0)):
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                verify.report_evidence(checks, outcomes, preview=preview, status=status)
+            text = output.getvalue()
+            self.assertIn('App compilation: ' + ('deferred to CI' if preview or not status else 'not run'), text)
+            self.assertNotIn('App compilation: passed', text)
+            self.assertNotIn('Package compilation and behavior: passed', text)
+            if preview:
+                self.assertIn('Static checks: planned', text)
+            elif status:
+                self.assertIn('Static checks: failed', text)
+                self.assertIn('resolve failed/unavailable', text)
+            else:
+                self.assertIn('Static checks: passed', text)
+                self.assertIn('authorized push', text)
+
     def test_gemfile_changes_select_script_regressions(self) -> None:
         for hosted in (False, True):
             for path in ("Gemfile", "Gemfile.lock"):

@@ -7,9 +7,17 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/args.sh"
 
 trinket_prepend_pinned_tools() {
   local root="${1:-$PWD}"
-  if [[ -d "$root/.tools" ]]; then
-    export PATH="$root/.tools:$PATH"
-  fi
+  local resolved_path
+  resolved_path="$(python3 - "$root" <<'PY'
+import sys
+from pathlib import Path
+root = Path(sys.argv[1]).resolve()
+sys.path.insert(0, str(root / 'Scripts'))
+from internal.cli import pinned_tool_path
+print(pinned_tool_path(root))
+PY
+)" || return
+  export PATH="$resolved_path"
 }
 
 # Install pinned tools, put them on PATH, and require them for subsequent calls.

@@ -18,22 +18,22 @@ there to verify and land into local `main` under the shared integration lock.
 failure recovery, authorization, and the quiet communication policy. Push separately
 only when requested. Read-only investigations do not need a new worktree.
 
-Start indexed concerns with `python3 Scripts/agent-brief.py --status --task <concern>`
-for scoped status, safeguards, initial guidance, and source/test pointers. Find a
-concern with `agent-search.py '<concern>' --task`; unindexed work starts with
-filename discovery. The [AgentContext quickstart](../Docs/AgentContext/README.md#quickstart)
-owns discovery and guidance reuse. Once task files are known:
+Use ordinary scoped search, reads and Git diffs. Before editing intended files,
+load their safeguards with `python3 Scripts/agent-brief.py --status --read --paths
+<files...>`. Concern shortcuts and specialized retrieval helpers are optional;
+[quickstart](../Docs/AgentContext/README.md#quickstart) owns their use.
+
+For the complete task, including committed and dirty work:
 
 ```sh
-./Scripts/agent-context.sh --agent --status --paths <changed-paths...>
-./Scripts/handoff.sh --isolate --quiet --paths <changed-paths...>
+python3 Scripts/agent-brief.py --status --read --base main
+./Scripts/handoff.sh --isolate --quiet --base main
 ```
 
-These are the routing and final verification steps. Between them, use the
-focused checks appropriate to the task; the [command reference](Reference.md) lists choices,
-not a checklist. Pass individual files to `--paths`; directories are rejected
-because routing depends on file ownership. Create an execution plan only when durable coordination or
-resumption is useful; see [Plans](../Docs/Plans/README.md).
+Use the user-specified base when different. Explicit `--paths <files...>` remains
+available for focused checks. Handoff reports each kind of verification evidence
+and the next permitted action; a local pass establishes lightweight checks only.
+Create an execution plan only when durable coordination or resumption is useful.
 
 Generation and verification selection follow [Verification](../Docs/Platform/Verification.md).
 Routine handoff runs lightweight scoped static/script checks without compilation
@@ -65,10 +65,8 @@ with `handoff.sh --isolate --quiet --dry-run --paths <files...>` before an unfam
 
 ## Script regression ownership
 
-Apply [Testing.md](../Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior)
-to script-test additions and scoped retirement. Cheap execution or a new script
-branch alone does not justify coverage; protect credible, materially harmful
-failures with high marginal value or a rare, justified medium-value exception.
+Use the three questions in [Testing.md](../Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior)
+for script-test additions and retirement.
 
 [script-regressions.tsv](config/script-regressions.tsv) maps each repository-relative
 input file or glob to comma-separated test suite basenames. Keep one row per input;

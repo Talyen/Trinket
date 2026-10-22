@@ -100,84 +100,43 @@ Known intentional forks (do not "fix" toward a single default):
 
 ## Coverage decision (new and changed behavior)
 
-Maintain the smallest test portfolio that provides strong confidence in consequential
-game behavior and development safeguards. Default to no new test. Add or expand
-coverage for **high marginal value**: substantial protection beyond what existing
-assertions already prove. This standard applies equally to package, script, and
-UI/e2e tests, including extra assertions and parameterized cases in existing tests.
+Default to no new test. Before adding or expanding one, answer three questions:
 
-| Value | Definition | Default |
-|---|---|---|
-| High | Detects a credible, materially harmful failure that existing coverage would miss, with reliable assertions and proportionate cost. | Add or strengthen the smallest suitable owner. |
-| Medium | Protects useful but limited behavior, has modest additional detection value, or costs substantially more than the protection warrants. | Retire or skip; exceptions are limited to specifically justified readability or diagnostic evidence. |
-| Low | Duplicates protection, mirrors implementation, checks trivial plumbing, or asserts incidental details without a meaningful failure outcome. | Do not add. |
+1. **What consequential failure does it catch?** Name a credible harmful outcome
+   or safeguard failure. For a repair, the assertion should fail before the fix.
+2. **Is that gap already covered?** Read existing assertions; test names and
+   routing pointers alone do not establish protection.
+3. **Is this the cheapest reliable protection?** Use the smallest suitable owner
+   and account for runtime, setup, brittleness and maintenance.
 
-Save loss, duplicated rewards, incorrect battle resolution, blocked progression,
-and purchase-access failures are strong candidates, not automatic qualifications.
-A tiny assertion can be high value; a previously reported bug can still yield a
-low-value test. Cheap execution, a distinct branch, public API status, or increased
-coverage percentage does not independently justify coverage.
+Add coverage when those answers establish substantial protection beyond existing
+assertions (high marginal value). Save loss, duplicated rewards, wrong battle
+resolution, blocked progression and purchase-access failures are strong candidates.
+A new API, a reported bug, a distinct branch or cheap execution alone is insufficient.
+Briefly explain the harmful outcome and coverage gap when adding a test; no value
+labels, manifests or separate approval are required. Rare medium-value additions
+need a concrete readability or diagnostic benefit. Skip low-value tests that mirror
+implementation, trivial plumbing, incidental copy/style or framework behavior.
 
-Before authoring, name the credible harmful failure, inspect existing assertions
-rather than relying on test names or search pointers, and choose the cheapest tier
-that actually detects it. Add or expand coverage only when all are true:
-
-1. The change introduces or repairs a distinct, consequential behavior or invariant.
-2. Existing assertions do not already prove the changed behavior or invariant.
-3. The proposed assertion would fail before the fix, except for genuinely new behavior.
-4. The cheapest suitable tier can express it without duplicating a stronger owner.
-5. Its added confidence meets the high-value threshold after accounting for runtime,
-   setup, brittleness, and maintenance, or merits a rare medium-value exception.
-
-When adding coverage, briefly explain the harmful outcome and existing coverage
-gap in the handoff. For a medium-value exception, also give a concrete readability
-or diagnostic reason it merits ongoing automated protection despite its limited value or cost. This is a
-judgment to explain, not a separate approval checkpoint; no value labels or
-manifests are required. Strengthening existing assertions, adding no test, and
-retiring weak coverage are successful outcomes.
-
-Prefer shared invariants, representative behavior families, and meaningful boundaries.
-Representative cases should distinguish materially different failure modes, not
-repeat the same proof with different names or inputs.
-Hundreds of mechanics do not justify per-mechanic UI journeys or exhaustive combination
-matrices. Add mechanic-specific cases or targeted interaction regressions when they
-exercise materially different, consequential failure modes. Cheap catalog-wide
-invariants remain useful when they detect content errors that representative cases
-cannot; case count alone establishes neither value nor waste.
-
-Prefer an existing semantic owner when the behavior fits coherently; a new file or
-suite is appropriate when it improves cohesion and diagnostics. Remove or merge
-coverage made redundant by the change. Avoid assertions that merely mirror plumbing,
-stored properties, incidental copy, style constants, framework behavior, or trivial
-delegation. Judge the contract and failure mode rather than banning an entire
-implementation category.
-
-**Likely owners when the gate passes:** rules/models → owning package; persistence semantics → existing store/sanitizer journey; catalog content → invariant matrix, not exact-count snapshots; novel `EffectKind` behavior → existing registry/handler matrix; consequential app transitions that packages cannot own → `TrinketAppStateTests`.
-
-New user flows still need a stable `AccessibilityID` selector (or an existing appropriate one), but add or extend a UI test only when the keep/drop rubric below applies. Prefer a coherent existing smoke/exhaustive journey over a new class. Use stable identifiers to locate controls; assert meaningful outcomes without pinning incidental accessibility wording.
+Prefer shared invariants, representative behavior families and meaningful boundaries.
+Use the owning package for rules/models, Persistence for durable save semantics,
+and AppState for application transitions packages cannot own. Existing catalog
+matrices can protect many content entries; do not create a UI journey per mechanic.
+A new player flow needs a stable `AccessibilityID`, but needs new UI coverage only
+under the keep/drop rubric below. Assert meaningful outcomes with stable selectors.
 
 ### Consolidation and retirement
 
-Proactively consolidate, streamline, move, or delete tests in the area being changed
-when the evidence justifies it; no separate approval or replacement test is required.
-Assess directly related cases against the value rubric, without expanding a routine
-change into a repository-wide pruning pass. Low- and medium-value coverage is a
-retirement candidate, not an automatic deletion: inspect what it actually protects
-and preserve effective consequential evidence and required release journeys.
-For redundant coverage, identify the surviving owner and the relevant conditions it
-proves. A distinct case may also be retired when its practical confidence is too low
-for its cost. Explain what it proved, why it is being retired, and the surviving
-protection or deliberately relinquished coverage and material remaining risk.
+Keep the smallest effective portfolio in the area being changed. Consolidate or
+retire redundant and low-value cases when their confidence does not justify their
+cost; no separate approval or replacement test is required. Explain what retired
+coverage protected and identify the surviving owner, or the deliberately relinquished
+protection and material risk. Preserve effective save, battle and progression evidence.
+Never remove or weaken an assertion to hide a failure or avoid diagnosing slowness.
 
-Preserve effective protection for consequential contracts such as save integrity,
-meaningful battle invariants, and critical player outcomes. Failure or slowness alone
-is not grounds for removal; diagnose failures and never delete or weaken assertions
-to conceal a defect. Distinctness alone is not a reason to keep a low-value case.
-
-Judge simplification by maintenance, expanded executions, setup, launches, waits,
-and diagnostic clarity. Parameterization can reduce duplication without reducing
-executed work. Do not combine unrelated cases into a long journey merely to lower
-declaration counts. Remove unused fixtures and support code left by retirement.
+Judge cost by executions, setup, launches, waits and diagnostic clarity. Parameterizing
+cases may remove source duplication without reducing executed work. Keep unrelated
+journeys separate and remove fixtures or registrations left unused by retirement.
 
 ### Presentation / accessibility-ID changes (before push)
 

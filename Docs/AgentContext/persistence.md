@@ -2,9 +2,18 @@
 
 Use for player progression, roster, inventory, homestead, SwiftData, or CloudKit work.
 
+## Ownership
+
 `TrinketPersistence` owns the SwiftData model graph and stores. `PlayerSaveRoot` owns the graph; `PlayerSaveStore` opens/configures persistence and provides read-only observed slices and explicit domain commands (`PlayerSaveStore+Homestead.swift`, `PlayerSaveStore+Roster.swift`, `PlayerSaveStore+ContentAccess.swift`, plus `salvageItem` in `ItemSalvage.swift` and `corruptItem` in `ItemCorruption.swift`). Prefer value types for rules/calculations. Views and AppState use domain commands; unrestricted save/roster mutation closures are internal to Persistence. Assigning a save slice is not a persistence API.
 
 Campaign reward and completion **domain write policies** also live here (`StageCompletion`, `LabyrinthCompletion`, `SpireCompletion`, `ShopPurchaseApplier`, `MysteryEffectApplier`): app sessions decide when to apply them; Persistence owns the save mutation. Save-store test harnesses live in this package's `TrinketPersistenceTestSupport` target — see the package `AGENTS.md`.
+
+Commands mutate candidates and publish only after durable acceptance; rejection
+publishes nothing. App sessions apply navigation and outcomes only after commit.
+Read [transaction details](#transactions) when changing mutation, receipts,
+reconciliation, or recovery; serialized changes also need the storage contract.
+
+## Transactions
 
 Domain commands return a committed value, a domain rejection, or a storage failure.
 `SaveTransactionResult.persistFailed` carries that operation's typed error, so callers

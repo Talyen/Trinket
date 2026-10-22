@@ -2,8 +2,9 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-# shellcheck source=lib/args.sh
-source Scripts/lib/args.sh
+# shellcheck source=lib/tools.sh
+source Scripts/lib/tools.sh
+trinket_prepend_pinned_tools
 source Scripts/lib/output-retention.sh
 
 SKIP_DOCS=false

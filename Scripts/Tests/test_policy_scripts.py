@@ -142,11 +142,17 @@ else:
 
     def test_shell_policy_checks_reject_search_errors(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            write_executable(Path(directory) / "rg", '#!/bin/sh\nexit "$SEARCH_STATUS"\n')
-            for name in ("api-bans", "agent-invariants", "exclusivity-footguns", "module-boundaries"):
+            gates = ('api-bans', 'agent-invariants', 'exclusivity-footguns', 'module-boundaries')
+            root = self.make_repo_fixture(directory, ('Scripts/build-inputs.env',
+                *(f'Scripts/check-{name}.sh' for name in gates),
+                *(path.relative_to(ROOT).as_posix() for path in ROOT.glob('Packages/*/Package.swift'))))
+            (root / '.tools').mkdir()
+            write_executable(root / '.tools/rg', '#!/bin/sh\nexit "$SEARCH_STATUS"\n')
+            for name in gates:
                 for status in (1, 2):
                     with self.subTest(check=name, status=status):
-                        result = run_captured([str(ROOT / f"Scripts/check-{name}.sh")], cwd=ROOT, env={**os.environ, "PATH": f"{directory}:{os.environ['PATH']}", "SEARCH_STATUS": str(status)})
+                        result = run_captured([str(root / f'Scripts/check-{name}.sh')], cwd=root,
+                                              env={**os.environ, 'SEARCH_STATUS': str(status)})
                         self.assertEqual(result.returncode, 0 if status == 1 else 2, result.stdout + result.stderr)
 
 

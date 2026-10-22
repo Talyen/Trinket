@@ -2,6 +2,21 @@
 
 Use for tabs, screens, navigation, shared views, design-system polish, and accessibility identifiers.
 
+## Ownership
+
+Screens live in `Trinket/Features/`; shared views and feature support live in
+`TrinketFeatureSupport`; app and Play orchestration live in `TrinketAppState`.
+Packages never import the app. Use the narrowest environment owner a view needs;
+feature views own transient UI state, not session stores. Preserve first-screen
+artwork pins and mounted/prewarmed surfaces. Use shared DesignSystem controls,
+colors and motion, with perceptible feedback for supported actions.
+
+Read the relevant implementation contract below for the behavior being changed;
+Play/Battle state and routing also use [runtime ownership](battle-runtime.md#ownership)
+and [observation boundaries](battle-runtime.md#play-observation-boundaries).
+
+## Implementation contracts
+
 The app root keeps `appearsActive` true so switching apps does not grey out game
 controls. Keep actual action eligibility in `isEnabled`/`.disabled` and continue
 using the real `scenePhase` for lifecycle work and decorative motion.
@@ -10,12 +25,6 @@ The app root uses `trinketSoftTopScrollEdge` for the native soft top effect on
 iOS 26+; iOS 18 retains its native scroll/navigation appearance. Detail headers
 hide the newer effect until their title is pinned. Keep availability checks in
 shared chrome, preserving readable controls on both appearances.
-
-Play, Collection, Homestead, and Options screens live in `Trinket/Features/`.
-Shared game-specific views, presentation models, accessibility IDs, and artwork/frame
-support live in `Packages/TrinketFeatureSupport`. App and Play orchestration lives in
-`Packages/TrinketAppState`; Battle owns its own context card and package. The app
-target composes these modules but packages never import the app.
 
 Use [swiftui-specialist](../../.agents/skills/swiftui-specialist/SKILL.md) for
 SwiftUI implementation correctness and update performance, and

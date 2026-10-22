@@ -29,8 +29,10 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         scripts.mkdir()
         for name in ('agent-worktree.mjs', 'agent-integrate.py'):
             shutil.copy2(ROOT / 'Scripts' / name, scripts / name)
+        (scripts / 'internal').mkdir()
+        shutil.copy2(ROOT / 'Scripts/internal/cli.py', scripts / 'internal/cli.py')
         write_executable(scripts / 'handoff.sh', '#!/bin/sh\nexit 0\n')
-        (self.root / '.gitignore').write_text('.worktrees/\nignored\n')
+        (self.root / '.gitignore').write_text('.worktrees/\nignored\n__pycache__/\n')
         (self.root / 'shared').write_text('baseline\n')
         self.commit(self.root)
 

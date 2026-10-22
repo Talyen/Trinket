@@ -738,7 +738,7 @@ class ReporterTests(unittest.TestCase):
                 scripts = root / "Scripts"
                 for relative in ("lib", "config", "Tests"):
                     (scripts / relative).mkdir(parents=True)
-                for name in ("test-scripts.sh", "script_test_selection.py", "script_test_execution.py", "config/script-regressions.tsv", "lib/args.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env", "cleanup-outputs.py", "internal/output_retention.py", "lib/output-retention.sh", "lib/lock.sh"):
+                for name in ("test-scripts.sh", "script_test_selection.py", "script_test_execution.py", "config/script-regressions.tsv", "lib/args.sh", "lib/tools.sh", "script_diagnostics.py", "internal/cli.py", "internal/diagnostics/diagnostic_limits.py", "config/diagnostic-limits.env", "cleanup-outputs.py", "internal/output_retention.py", "lib/output-retention.sh", "lib/lock.sh"):
                     (scripts / name).parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(ROOT / "Scripts" / name, scripts / name)
                 write_executable(scripts / "check-build-cache-paths.sh", "#!/bin/bash\nexit 0\n")

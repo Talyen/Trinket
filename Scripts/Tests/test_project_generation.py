@@ -23,6 +23,7 @@ class ProjectGenerationTests(unittest.TestCase):
                      'Scripts/assert-generated-output.sh', 'Scripts/config/generated-paths.tsv',
                      'Scripts/lib/generated-paths.sh',
                      'Scripts/lib/project-generation.sh', 'Scripts/lib/tools.sh', 'Scripts/lib/args.sh',
+                     'Scripts/internal/cli.py',
                      'Scripts/lib/tempdir.sh', 'Scripts/lib/lock.sh'):
             target = self.root / path
             target.parent.mkdir(parents=True, exist_ok=True)

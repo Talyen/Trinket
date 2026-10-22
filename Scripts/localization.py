@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import sys
 
-from internal.localization import apply, check, load, plan
+from internal.localization import apply, check, load, plan, response_template
 
 
 def main(argv=None) -> int:
@@ -15,6 +15,7 @@ def main(argv=None) -> int:
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
     commands = parser.add_subparsers(dest='operation', required=True)
     commands.add_parser('plan', help='Write the current translation queue as JSON to stdout')
+    commands.add_parser('template', help='Write a response skeleton with queue metadata and empty translation/review fields')
     update = commands.add_parser('apply', help='Validate an entire response before replacing catalogs and receipts')
     update.add_argument('response', type=Path)
     commands.add_parser('check', help='Read-only freshness, coverage, and resource validation')
@@ -22,6 +23,8 @@ def main(argv=None) -> int:
     try:
         if args.operation == 'plan':
             print(json.dumps(plan(args.root), ensure_ascii=False, indent=2))
+        elif args.operation == 'template':
+            print(json.dumps(response_template(args.root), ensure_ascii=False, indent=2))
         elif args.operation == 'apply':
             apply(args.root, load(args.response))
         else:

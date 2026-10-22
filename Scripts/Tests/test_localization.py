@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from internal.localization import apply, check, digest, encoded, encoded_catalog, plan, validate_translation
+from internal.localization import apply, check, digest, encoded, encoded_catalog, plan, response_template, validate_translation
 
 
 class LocalizationTests(unittest.TestCase):
@@ -46,6 +46,26 @@ class LocalizationTests(unittest.TestCase):
         catalog['strings']['deal.burn']['localizations']['en']['stringUnit']['value'] = 'Take %1$lld Burn damage'
         self.write(self.name, catalog)
         self.assertEqual({item['locale'] for item in plan(self.root)['requests']}, {'ja', 'de', 'fr'})
+
+    def test_response_template_keeps_locale_forms_and_cannot_certify_unperformed_review(self):
+        catalog = json.loads((self.root / self.name).read_text())
+        catalog['strings']['deal.burn']['localizations']['en'] = {'variations': {'plural': {
+            form: {'stringUnit': {'state': 'translated', 'value': text}}
+            for form, text in {'one': '%1$lld Burn', 'other': '%1$lld Burns'}.items()}}}
+        self.write(self.name, catalog)
+        queue = plan(self.root)
+        draft = response_template(self.root)
+        self.assertEqual(draft['source_revision'], queue['source_revision'])
+        expected_forms = {'ja': {'other'}, 'de': {'one', 'other'}, 'fr': {'one', 'many', 'other'}}
+        for item, request in zip(draft['translations'], queue['requests']):
+            self.assertEqual(item['source_hash'], request['source_hash'])
+            self.assertEqual(set(item['translation']), expected_forms[item['locale']])
+            # Even fully populated translations cannot turn the template into review evidence.
+            item['translation'] = {form: '%1$lld Burn' for form in item['translation']}
+        before = (self.root / self.name).read_bytes()
+        with self.assertRaisesRegex(ValueError, 'second-pass'):
+            apply(self.root, draft)
+        self.assertEqual((self.root / self.name).read_bytes(), before)
 
     def test_glossary_and_context_changes_invalidate_dependent_entries(self):
         apply(self.root, self.response())

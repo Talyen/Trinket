@@ -411,11 +411,12 @@ The helper prints the primary checkout's `.worktrees/<slug>` path and creates
 branches/directories are preserved; choose a unique slug for a new task. Run all
 implementation, review, and scoped checks inside the task worktree. Worktree
 isolation does not isolate external resources; retain existing simulator leases,
-asset-library safeguards, and verification limits. A new worktree has no installed
-`.tools` directory. For standalone checks, use `./Scripts/ensure-ci-tools.sh` or put
-primary `.tools` on `PATH`; integration supplies task-local then primary `.tools`
-on `PATH` automatically. Existing pin checks still reject mismatched versions;
-build directories and generated resources are not shared.
+asset-library safeguards, and verification limits. Supported check commands resolve
+installed tools from the task checkout first,
+then the primary checkout, then `PATH`; version and checksum gates still enforce
+pins. No manual `PATH` setup is needed in a fresh worktree. If tools are absent,
+use `./Scripts/ensure-ci-tools.sh`; lookup never installs implicitly. Build directories
+and generated resources remain checkout-local.
 
 For API or combat-semantic migrations, repeat the
 [consumer review](Testing.md#fixtures) after incorporating current main; include

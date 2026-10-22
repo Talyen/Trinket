@@ -25,15 +25,20 @@ Compiled routes run in CI or a bounded local diagnostic under the
 | Release confidence | `release.sh` / `test-deploy.sh` | Requested release verification; local execution uses the diagnostic limits below |
 | Performance investigation | `performance.sh` | Ad hoc measurement under the performance playbook |
 
-Path-scoped commands normalize in-repository absolute paths to repository-relative
-files and reject directories or paths outside the repository.
+Briefing and handoff accept `--base main` to derive the full task scope: committed
+changes since the shared ancestor of the base and `HEAD`, plus staged, unstaged and
+untracked files, including deletions and both rename endpoints. Missing bases fail
+without falling back to a smaller scope. Use the user-specified base when different.
+`--paths` accepts individual files for focused checks; absolute in-repository paths
+are normalized. `--working-tree` selects dirty files only.
 
-Run `./Scripts/agent-context.sh --agent --status --paths <files...>` after touched paths
-are known. Use `--working-tree --allow-broad-scope` only for an intentional whole-tree scope. The
-briefing separates ownership constraints from behavior references and prints the handoff
-route; rerun it when requested work or an encountered fix crosses into another
-owner. The final path list is the union of requested work and every explicitly
-adopted fix, not the task's initial path list.
+Before editing intended files, run `python3 Scripts/agent-brief.py --status --read
+--paths <files...>` for safeguards. Reroute when crossing owners; standard scoped
+search, file reads and Git diffs are supported. Handoff's evidence summary separates
+static checks, app compilation, package compilation/behavior and UI behavior. Preview
+reports planned work; failed or unexecuted phases never count as passed. Visual review
+requires separate shipping-UI evidence. The summary identifies the next permitted
+action without treating local integration as hosted or visual verification.
 
 For shared enum or API reviews, include relevant committed changes in the
 comparison scope and follow downstream consumers beyond the dirty files. Include

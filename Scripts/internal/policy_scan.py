@@ -9,6 +9,8 @@ import re
 import subprocess
 import sys
 
+from internal.cli import pinned_tool_path
+
 
 def candidates(pattern: str, paths: list[str], root: Path, *, globs: tuple[str, ...] = ('*.swift',)) -> list[Path]:
     if not paths:
@@ -16,7 +18,8 @@ def candidates(pattern: str, paths: list[str], root: Path, *, globs: tuple[str, 
     command = ['rg', '--files-with-matches', '--null']
     for glob in globs:
         command.extend(('--glob', glob))
-    result = subprocess.run([*command, pattern, '--', *paths], cwd=root, capture_output=True, text=True)
+    result = subprocess.run([*command, pattern, '--', *paths], cwd=root, capture_output=True, text=True,
+                            env={**os.environ, 'PATH': pinned_tool_path(root)})
     if result.returncode not in (0, 1):
         raise RuntimeError(f'Policy search failed (rg exit {result.returncode}): {result.stderr.strip()}')
     return sorted({root / name for name in result.stdout.split('\0') if name})

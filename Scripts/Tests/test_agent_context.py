@@ -17,6 +17,37 @@ from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run
 BRIEF = load_script("agent_context_brief", "agent-brief.py")
 
 class AgentContextTests(ScriptRegressionTestCase):
+    def test_task_base_scope_keeps_committed_and_dirty_rename_deletion_endpoints(self) -> None:
+        from internal.change_routing import classify, collect_paths
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_repo_fixture(directory, ('Scripts/build-inputs.env', 'Scripts/config/ui-tests.tsv'))
+            def git(*args):
+                return subprocess.check_output(['git', *args], cwd=root)
+            git('init', '-q', '-b', 'main')
+            for name in ('old name.py', 'removed.py', 'dirty.py'):
+                (root / name).write_text('original\n')
+            api = 'Packages/TrinketCore/Sources/TrinketCore/Probe.swift'
+            (root / api).parent.mkdir(parents=True)
+            (root / api).write_text('struct Probe {}\n')
+            git('add', '.')
+            git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'base')
+            git('checkout', '-qb', 'codex/task')
+            git('mv', 'old name.py', 'committed name.py')
+            (root / 'removed.py').unlink()
+            (root / api).write_text('public struct Probe {}\n')
+            git('add', '-u')
+            git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'task')
+            git('mv', 'committed name.py', 'staged name.py')
+            (root / 'dirty.py').write_text('unstaged\n')
+            (root / 'untracked.py').write_text('new\n')
+            expected = [api, 'committed name.py', 'dirty.py', 'old name.py', 'removed.py', 'staged name.py', 'untracked.py']
+            self.assertEqual(collect_paths(None, root, base='main'), expected)
+            self.assertIn('.agents/skills/architect/SKILL.md', classify(expected, root, base='main').skills)
+            with self.assertRaises(subprocess.CalledProcessError):
+                collect_paths(None, root, base='missing-base')
+
     def test_voyage_and_labyrinth_focus_preserves_progression_rules_and_broad_discovery(self) -> None:
         for concern in ('voyage', 'labyrinth'):
             command = subprocess.check_output(['bash', 'Scripts/agent-context.sh', '--task', concern, '--read-command'], cwd=ROOT, text=True)

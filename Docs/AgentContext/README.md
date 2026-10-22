@@ -48,35 +48,24 @@ Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/S
 
 ## Quickstart
 
-1. For an indexed concern, use `python3 Scripts/agent-brief.py --status --task shop`.
-   This combines scoped status, safeguards, initial guidance and source/test pointers.
-   Add `--read` to include initial guidance when it is not already in context.
-   List indexed concerns with `agent-search.py --task --overview`, or find one with
-   `agent-search.py '<concern>' --task`; otherwise discover
-   filenames with `--files <regex> --scope <owner>` or `--overview` for an unknown owner.
-   To locate guidance, use `agent-search.py '<topic>' --mode docs --sections
-   --scope <owner>` for section targets that can be read directly without an outline call.
-2. Preserve actual task scope with `brief --task <concern> --paths <files...>` or
-   `./Scripts/agent-context.sh --agent --status --paths <files...>`.
-   Read additional relevant contracts and load skills by trigger.
-3. Batch relevant sections with `python3 Scripts/agent-read.py 'file.md#anchor' …`.
-   For a known Swift/Python declaration, use `agent-investigate.py --path <file>
-   --symbol <name> --scope <owner>` to read its body, scoped callers and test bodies
-   together; repeat `--scope` across owners. Use source `--outline` when locating a
-   declaration, or reader `--symbol <name>` for its body alone. Overlapping text
-   prints once per batch. `--full` reads whole files and only
-   the selected section for anchors in the same batch. For other mixed modes,
-   repeat `--request 'path [read flags]'`.
-   `--related <identifier> --scope <owner>` finds source/test hints. Inspect
-   assertions and follow callers; hints do not prove coverage.
-4. Review every relevant page of `python3 Scripts/agent-diff.py --paths <files...>`
-   before editing overlapping work; preserve unrelated edits.
-5. Finish with `./Scripts/handoff.sh --isolate --quiet --paths <files...>`.
-   Local handoff proves lightweight checks; compilation and UI checks remain
-   CI-owned under [Verification](../Platform/Verification.md).
+Use ordinary scoped search, reads and Git diffs. Before editing intended files:
 
-Briefings are stateless. Reuse unchanged guidance still in context and reread
-contracts after context loss. [Retrieval](Retrieval.md) explains scoped discovery,
-complete reads, caller navigation, and diff pagination. The small
-[task index](../../Scripts/config/agent-tasks.json) supplies source, test, and
-contract pointers; these are navigation hints rather than coverage proof.
+```sh
+python3 Scripts/agent-brief.py --status --read --paths <files...>
+```
+
+Read the safeguards and relevant contracts it supplies. Reuse unchanged guidance;
+follow additional linked behavior sections only when they apply. After changes,
+`python3 Scripts/agent-brief.py --status --read --base main` derives the complete
+task scope, including committed and dirty work. Use the user-specified base if different.
+Finish with `./Scripts/handoff.sh --isolate --quiet --base main`.
+
+The briefing is the only required retrieval entry point. Concern shortcuts such
+as `--task shop` and the specialized search/read/investigate/diff commands are
+optional conveniences, described in [Retrieval](Retrieval.md). They never replace
+reading relevant source bodies, assertions, or overlapping dirty diffs.
+
+Briefings are stateless. Initial reads use ownership sections where available;
+other behavior references remain discoverable. The [task index](../../Scripts/config/agent-tasks.json)
+contains navigation hints, not coverage proof. `localization` routes copy work;
+`localization-tooling` routes changes to its implementation.

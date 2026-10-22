@@ -144,7 +144,7 @@ class ScriptSelectionTests(unittest.TestCase):
     def runner_fixture(self, root: Path) -> Path:
         scripts = root / 'Scripts'
         (scripts / 'Tests').mkdir(parents=True)
-        for name in ('test-scripts.sh', 'lib/args.sh', 'script_diagnostics.py',
+        for name in ('test-scripts.sh', 'lib/args.sh', 'lib/tools.sh', 'script_diagnostics.py',
                      'internal/diagnostics/diagnostic_limits.py', 'config/diagnostic-limits.env',
                      'cleanup-outputs.py', 'internal/output_retention.py', 'internal/cli.py',
                      'lib/output-retention.sh', 'lib/lock.sh', 'script_test_selection.py',
