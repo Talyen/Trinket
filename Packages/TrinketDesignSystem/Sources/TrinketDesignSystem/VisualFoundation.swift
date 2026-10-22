@@ -20,6 +20,9 @@ public enum GlassChipRole: String, CaseIterable, Sendable, Equatable {
 public enum TypographyRole: Sendable {
     case screenDisplay
     case sectionDisplay
+    case offerDisplay
+    case offerBenefit
+    case compactOfferBenefit
     case screenTitle
     case sectionTitle
     case rowTitle
@@ -35,8 +38,19 @@ public enum TypographyRole: Sendable {
     case rowDisplay
     case cardLabel
 
-    var font: Font {
+    var customPointSize: (size: CGFloat, relativeTo: Font.TextStyle)? {
         switch self {
+        case .offerDisplay: (40, .largeTitle)
+        case .offerBenefit: (26, .title2)
+        case .compactOfferBenefit: (24, .title2)
+        default: nil
+        }
+    }
+
+    func font(customSize: CGFloat) -> Font {
+        switch self {
+        case .offerDisplay: .system(size: customSize, weight: .semibold, design: .serif)
+        case .offerBenefit, .compactOfferBenefit: .system(size: customSize, weight: .semibold)
         case .screenDisplay: .system(.largeTitle, design: .serif).weight(.semibold)
         case .sectionDisplay: .system(.title2, design: .serif).weight(.semibold)
         case .screenTitle: .largeTitle.weight(.bold)
@@ -195,9 +209,16 @@ private struct GlassSurfaceModifier<S: InsettableShape>: ViewModifier {
 
 struct TypographyModifier: ViewModifier {
     let role: TypographyRole
+    @ScaledMetric private var customSize: CGFloat
+
+    init(role: TypographyRole) {
+        self.role = role
+        let size = role.customPointSize
+        _customSize = ScaledMetric(wrappedValue: size?.size ?? 0, relativeTo: size?.relativeTo ?? .body)
+    }
 
     func body(content: Content) -> some View {
-        content.font(role.font)
+        content.font(role.font(customSize: customSize))
     }
 }
 

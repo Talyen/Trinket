@@ -9,7 +9,7 @@ struct FullGameOfferView: View {
     @Environment(\.locale) private var locale
     @Environment(FullGameStore.self) private var store
     @Environment(\.dismiss) private var dismiss
-    @ScaledMetric(relativeTo: .title2) private var benefitIconSize: CGFloat = 22
+    @ScaledMetric(relativeTo: .title2) private var benefitIconSize: CGFloat = 24
 
     @ScaledMetric(relativeTo: .largeTitle) private var minimumHeroHeight: CGFloat = 220
 
@@ -30,11 +30,13 @@ struct FullGameOfferView: View {
                             titleAccessibilityIdentifier: AccessibilityID.FullGame.hero,
                             baseHeight: hero.size.height,
                             horizontalPadding: max(0, (hero.size.width - contentWidth) / 2) + TrinketDesign.Layout.contentMargin,
+                            titleTypography: .offerDisplay,
+                            eyebrowTypography: .secondaryBody,
                         ) {
                             artwork
                         }
                     }
-                    benefits
+                    benefits(roomy: geometry.size.width >= 390)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -55,27 +57,27 @@ struct FullGameOfferView: View {
         }
     }
 
-    private var benefits: some View {
+    private func benefits(roomy: Bool) -> some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"))
-            benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"))
-            benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"))
+            benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"), roomy: roomy)
+            benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"), roomy: roomy)
+            benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"), roomy: roomy)
         }
         .padding(TrinketDesign.Layout.contentMargin)
         .frame(maxWidth: contentWidth, alignment: .leading)
         .frame(maxWidth: .infinity)
     }
 
-    private func benefit(_ title: Text, icon: GameIcon) -> some View {
+    private func benefit(_ title: Text, icon: GameIcon, roomy: Bool) -> some View {
         HStack(spacing: TrinketDesign.Spacing.medium) {
             GameIconImage(icon)
-                .trinketTypography(.sectionTitle)
+                .trinketTypography(roomy ? .offerBenefit : .compactOfferBenefit)
                 .imageScale(.small)
                 .foregroundStyle(TrinketDesign.Colors.accent)
-                .frame(width: benefitIconSize, height: benefitIconSize)
+                .frame(width: benefitIconSize * (roomy ? 26.0 / 24 : 1), height: benefitIconSize * (roomy ? 26.0 / 24 : 1))
                 .accessibilityHidden(true)
             title
-                .trinketTypography(.sectionTitle)
+                .trinketTypography(roomy ? .offerBenefit : .compactOfferBenefit)
                 .fontWeight(.regular)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -134,7 +136,7 @@ struct FullGameOfferView: View {
             Label(String(localized: L10n.ui_fullgameofferview_family_sharing_ba974), systemImage: "person.2")
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .trinketTypography(.caption)
+        .trinketTypography(.secondaryBody)
         .foregroundStyle(.secondary)
     }
 
@@ -212,7 +214,7 @@ private struct FullGameProductStyle: ProductViewStyle {
                         L10n.ui_fullgameofferview_unlock_full_game_1_b6d50(product.displayPrice),
                         locale: locale,
                     ).text)
-                        .trinketTypography(.button)
+                        .trinketTypography(.sectionTitle)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity)

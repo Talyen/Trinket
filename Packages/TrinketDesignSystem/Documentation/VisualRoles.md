@@ -31,6 +31,10 @@ Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)`
 | `eyebrow` | SF caption bold | Label **above** a hero title (chapter, role, rarity) |
 | Body / caption / badge / button / statValue / … | SF Pro | Supporting copy and controls |
 
+Full Game offers use `offerDisplay` (40-point serif), `offerBenefit` (26-point SF),
+and `compactOfferBenefit` (24-point SF). These base sizes scale with Dynamic Type;
+other screens retain their existing typography roles.
+
 Hero stack order is always **eyebrow → title** (never title then rarity/role).
 
 ### Detail sheet ladder

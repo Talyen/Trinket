@@ -46,7 +46,9 @@ curated focal point to position the
 aspect-fill crop using the prepared image's actual proportions. Preserve complete
 heads, faces, and recognizable features, allowing lower-body cropping. Review
 premium character crops with the heading, fade, display cutout, and sheet grabber
-visible. Three icon rows use gold icons and primary-color section-title text,
+visible. Use a 40-point serif offer heading and a larger eyebrow. Three icon rows
+use gold icons and primary-color offer-benefit text at 26 points in containers at
+least 390 points wide, or 24 points in narrower containers,
 with regular weight and selective semibold emphasis. Match the icons visually to
 the bullet text, give each icon the same scaled square slot, align the text column,
 and use equal gaps between rows:
@@ -61,7 +63,9 @@ capped at 520 points including content margins. Keep the artwork full width.
 The artwork absorbs spare vertical space instead of leaving a gap before the
 footer; on short screens or with enlarged text, scroll the artwork and benefits
 while keeping the purchase footer anchored. The anchored primary button is **Unlock Full Game · {localized price}**;
-keep its complete localized label and price visible, wrapping when needed.
+use section-title text and keep its complete localized label and price visible,
+wrapping when needed. Use secondary-body text for the support links and Family Sharing.
+All offer typography preserves Dynamic Type scaling.
 **Restore Purchases · Privacy** and a small muted **Family Sharing** label sit
 centered beneath the purchase button in the anchored footer. Restore and Privacy
 stack when they cannot fit side by side; keep the footer controls reachable at
