@@ -9,6 +9,7 @@ struct FullGameOfferView: View {
     @Environment(\.locale) private var locale
     @Environment(FullGameStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @ScaledMetric(relativeTo: .title3) private var benefitIconSize: CGFloat = 20
 
     let artwork: FullGameOfferArtwork?
 
@@ -25,19 +26,12 @@ struct FullGameOfferView: View {
                 EmptyView()
             }
         } bodyContent: {
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
                 benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"))
                 benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"))
                 benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"))
-                purchaseSupport
             }
             .padding(TrinketDesign.Layout.contentMargin)
-        }
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button(String(localized: L10n.ui_fullgameofferview_close_7d9eb), systemImage: "xmark") { dismiss() }
-                    .labelStyle(.iconOnly)
-            }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { purchaseArea }
         .accessibilityElement(children: .contain)
@@ -51,18 +45,18 @@ struct FullGameOfferView: View {
     }
 
     private func benefit(_ title: Text, icon: GameIcon) -> some View {
-        Label {
+        HStack(spacing: TrinketDesign.Spacing.medium) {
+            GameIconImage(icon)
+                .trinketTypography(.rowTitle)
+                .imageScale(.small)
+                .foregroundStyle(TrinketDesign.Colors.accent)
+                .frame(width: benefitIconSize, height: benefitIconSize)
+                .accessibilityHidden(true)
             title
                 .trinketTypography(.rowTitle)
                 .fontWeight(.regular)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
-        } icon: {
-            GameIconImage(icon)
-                .trinketTypography(.screenTitle)
-                .foregroundStyle(TrinketDesign.Colors.accent)
-                .frame(width: TrinketDesign.Spacing.extraLarge + TrinketDesign.Spacing.medium)
-                .accessibilityHidden(true)
         }
     }
 
@@ -74,9 +68,12 @@ struct FullGameOfferView: View {
                     .trinketPrimaryActionButton()
             } else if let product = store.product {
                 ProductView(product)
-                    .productViewStyle(FullGameProductStyle(isPurchasing: store.isPurchasing, locale: locale))
+                    .productViewStyle(FullGameProductStyle(
+                        isPurchasing: store.isPurchasing,
+                        locale: locale,
+                        beginPurchase: store.purchaseStarted,
+                    ))
                     .disabled(store.isRestoring || store.ownership == .checking)
-                    .onInAppPurchaseStart { _ in store.purchaseStarted() }
                     .onInAppPurchaseCompletion { _, result in await store.purchaseCompleted(result) }
             } else if store.isLoading {
                 ProgressView()
@@ -89,6 +86,7 @@ struct FullGameOfferView: View {
             }
 
             FullGameOutcomeMessage(outcome: store.outcome)
+            purchaseSupport
         }
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
@@ -96,7 +94,7 @@ struct FullGameOfferView: View {
     }
 
     private var purchaseSupport: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+        VStack(spacing: TrinketDesign.Spacing.small) {
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: TrinketDesign.Spacing.small) {
                     restoreButton
@@ -104,7 +102,7 @@ struct FullGameOfferView: View {
                     privacyLink
                 }
                 .fixedSize(horizontal: true, vertical: false)
-                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                VStack(spacing: TrinketDesign.Spacing.small) {
                     restoreButton
                     privacyLink
                 }
@@ -153,10 +151,12 @@ struct FullGameOfferView: View {
 private struct FullGameProductStyle: ProductViewStyle {
     let isPurchasing: Bool
     let locale: Locale
+    let beginPurchase: () -> Bool
 
     func makeBody(configuration: Configuration) -> some View {
         if let product = configuration.product {
             Button {
+                guard beginPurchase() else { return }
                 configuration.purchase()
             } label: {
                 HStack {
@@ -206,6 +206,8 @@ struct FullGameOutcomeMessage: View {
             String(localized: L10n.ui_fullgameofferview_couldn_t_restore_purchases_please_try_again_7c988)
         case .noPurchaseFound:
             String(localized: L10n.ui_fullgameofferview_no_full_game_purchase_was_found_for_your_appl_bdc23)
+        case .purchaseFailed:
+            String(localized: L10n.ui_fullgameofferview_purchase_failed)
         case .purchaseUnverified:
             String(localized: L10n.ui_fullgameofferview_couldn_t_verify_full_game_ownership_please_tr_87254)
         }

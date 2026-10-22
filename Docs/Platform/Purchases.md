@@ -29,11 +29,15 @@ while retaining the single app-lifetime transaction observer.
 
 `FullGameStore` exposes transient, read-only outcome state to the Full Game offer
 and Options. Show concise inline messages for unavailable pricing (alongside
-Retry), pending approval, restore failure, no purchase found, and unverified
-ownership. These outcomes never grant access. Clear stale messages when another
+Retry), pending approval, purchase failure, restore failure, no purchase found,
+and unverified ownership. These outcomes never grant access. Clear stale messages when another
 purchase action starts or verified ownership arrives; asynchronous results from
 an older action cannot replace a newer outcome. Keep raw errors internal,
 cancellation quiet, and Apple-managed payment failures free of duplicate alerts.
+The offer claims the purchase action synchronously before invoking StoreKit,
+shows inline progress, and rejects repeat taps until completion. Failed purchases
+leave the purchase action available for another attempt. Keep loading and outcome
+messages compact so the purchase action remains reachable on smaller screens.
 Successful purchase or restoration retains the existing ownership display and
 offer dismissal; delayed approval must not navigate away from gameplay.
 

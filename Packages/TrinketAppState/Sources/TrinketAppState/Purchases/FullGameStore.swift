@@ -23,6 +23,7 @@ public final class FullGameStore {
         case restoreFailed
         case noPurchaseFound
         case purchaseUnverified
+        case purchaseFailed
     }
 
     public nonisolated static let productID = "com.ryanmcintire.Trinket.fullgame"
@@ -97,9 +98,12 @@ public final class FullGameStore {
         return true
     }
 
-    public func purchaseStarted() {
+    @discardableResult
+    public func purchaseStarted() -> Bool {
+        guard !isPurchasing, !isRestoring, !ownership.access.hasFullGame else { return false }
         _ = beginOutcomeOperation()
         isPurchasing = true
+        return true
     }
 
     public func purchaseCompleted(_ result: Result<Product.PurchaseResult, any Error>) async {
@@ -119,7 +123,13 @@ public final class FullGameStore {
             if !ownership.access.hasFullGame {
                 publishOutcome(.pendingApproval, revision: startedAt)
             }
-        case .success, .failure:
+        case .failure(StoreKitError.userCancelled), .failure(is CancellationError):
+            break
+        case .failure:
+            if !ownership.access.hasFullGame {
+                publishOutcome(.purchaseFailed, revision: startedAt)
+            }
+        case .success:
             break
         }
     }
