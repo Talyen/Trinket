@@ -38,6 +38,7 @@ extension BattleTurnEngine {
         _ = context.resolution.prepareAction(repeated)
         context.resolution.prepareActionTalents(TalentActionFacts(
             actorID: actor.id,
+            prismaticAffixDamageBonus: empowerment?.prismaticAffixDamageBonus ?? 0,
             empoweredByMana: empowerment?.empoweredByMana == true,
             arcaneBurst: empowerment?.arcaneBurst == true,
         ))

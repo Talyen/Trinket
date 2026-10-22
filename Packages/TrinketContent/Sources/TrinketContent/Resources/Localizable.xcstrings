@@ -1835,6 +1835,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "毒香"}}
       }
     },
+    "affixes.breakthrough.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: breakthrough, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe, die gegnerischen <keyword id=\"block\">Block</keyword> brechen, verursachen <value id=\"quantity_1\">%1$lld</value>%% mehr Schaden an <keyword id=\"health\">Gesundheit</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks that break enemy <keyword id=\"block\">Block</keyword> deal <value id=\"quantity_1\">%1$lld</value>%% more damage to <keyword id=\"health\">Health</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques que rompen el <keyword id=\"block\">Bloqueo</keyword> enemigo infligen un <value id=\"quantity_1\">%1$lld</value>%% más de daño a la <keyword id=\"health\">Salud</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques qui brisent le <keyword id=\"block\">Blocage</keyword> ennemi infligent <value id=\"quantity_1\">%1$lld</value>%% de dégâts supplémentaires à la <keyword id=\"health\">Santé</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵の<keyword id=\"block\">ブロック</keyword>を破壊する攻撃は、<keyword id=\"health\">体力</keyword>に与えるダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적의 <keyword id=\"block\">방어도</keyword>를 깨뜨리는 공격이 <keyword id=\"health\">체력</keyword>에 주는 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques que quebram o <keyword id=\"block\">Bloqueio</keyword> inimigo causam <value id=\"quantity_1\">%1$lld</value>%% mais dano à <keyword id=\"health\">Vida</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "擊破敵人<keyword id=\"block\">格擋</keyword>的攻擊，對<keyword id=\"health\">生命值</keyword>造成的傷害提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "affixes.breakthrough.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: breakthrough, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe, die gegnerischen <keyword id=\"block\">Block</keyword> brechen, verursachen <value id=\"quantity_1\">%1$lld</value>%% mehr Schaden an <keyword id=\"health\">Gesundheit</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks that break enemy <keyword id=\"block\">Block</keyword> deal <value id=\"quantity_1\">%1$lld</value>%% more damage to <keyword id=\"health\">Health</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques que rompen el <keyword id=\"block\">Bloqueo</keyword> enemigo infligen un <value id=\"quantity_1\">%1$lld</value>%% más de daño a la <keyword id=\"health\">Salud</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques qui brisent le <keyword id=\"block\">Blocage</keyword> ennemi infligent <value id=\"quantity_1\">%1$lld</value>%% de dégâts supplémentaires à la <keyword id=\"health\">Santé</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵の<keyword id=\"block\">ブロック</keyword>を破壊する攻撃は、<keyword id=\"health\">体力</keyword>に与えるダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적의 <keyword id=\"block\">방어도</keyword>를 깨뜨리는 공격이 <keyword id=\"health\">체력</keyword>에 주는 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques que quebram o <keyword id=\"block\">Bloqueio</keyword> inimigo causam <value id=\"quantity_1\">%1$lld</value>%% mais dano à <keyword id=\"health\">Vida</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "擊破敵人<keyword id=\"block\">格擋</keyword>的攻擊，對<keyword id=\"health\">生命值</keyword>造成的傷害提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "affixes.breakthrough.title": {
+      "comment": "ContentManifest/affixes.tsv: breakthrough, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Durchbruch"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Breakthrough"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Ruptura"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Percée"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "突破"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "돌파"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ruptura"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "突破"}}
+      }
+    },
     "affixes.briarward.astral_description": {
       "comment": "ContentManifest/affixes.tsv: briarward, astral_description",
       "extractionState": "manual",
@@ -2001,6 +2043,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "연쇄"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Cascata"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "連鎖"}}
+      }
+    },
+    "affixes.catalytic.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: catalytic, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden gegen Gegner mit <keyword id=\"burn\">Brand</keyword> und <keyword id=\"poison\">Gift</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks gain <value id=\"quantity_1\">%1$lld</value> damage against enemies with both <keyword id=\"burn\">Burn</keyword> and <keyword id=\"poison\">Poison</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional a enemigos con <keyword id=\"burn\">Quemadura</keyword> y <keyword id=\"poison\">Veneno</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis avec <keyword id=\"burn\">Brûlure</keyword> et <keyword id=\"poison\">Poison</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>と<keyword id=\"poison\">毒</keyword>の両方が付与された敵への攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword>과 <keyword id=\"poison\">독</keyword>에 모두 걸린 적에게 주는 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional a inimigos com <keyword id=\"burn\">Queimadura</keyword> e <keyword id=\"poison\">Veneno</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊同時帶有<keyword id=\"burn\">燃燒</keyword>與<keyword id=\"poison\">中毒</keyword>的敵人時，傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.catalytic.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: catalytic, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden gegen Gegner mit <keyword id=\"burn\">Brand</keyword> und <keyword id=\"poison\">Gift</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks gain <value id=\"quantity_1\">%1$lld</value> damage against enemies with both <keyword id=\"burn\">Burn</keyword> and <keyword id=\"poison\">Poison</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional a enemigos con <keyword id=\"burn\">Quemadura</keyword> y <keyword id=\"poison\">Veneno</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires aux ennemis avec <keyword id=\"burn\">Brûlure</keyword> et <keyword id=\"poison\">Poison</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>と<keyword id=\"poison\">毒</keyword>の両方が付与された敵への攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword>과 <keyword id=\"poison\">독</keyword>에 모두 걸린 적에게 주는 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional a inimigos com <keyword id=\"burn\">Queimadura</keyword> e <keyword id=\"poison\">Veneno</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊同時帶有<keyword id=\"burn\">燃燒</keyword>與<keyword id=\"poison\">中毒</keyword>的敵人時，傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.catalytic.title": {
+      "comment": "ContentManifest/affixes.tsv: catalytic, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Katalytisch"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Catalytic"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Catalítico"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Catalytique"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "触媒"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "촉매"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Catalítico"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "催化"}}
       }
     },
     "affixes.cauterize.astral_description": {
@@ -2547,6 +2631,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "규탄"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Denúncia"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "譴責"}}
+      }
+    },
+    "affixes.discerning.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: discerning, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden pro gegnerischer Stärkung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks gain <value id=\"quantity_1\">%1$lld</value> damage per enemy buff"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional por cada efecto beneficioso del enemigo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires par effet bénéfique ennemi"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵の強化効果1つにつき攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적의 강화 효과 하나당 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional por efeito benéfico no inimigo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "敵人每有一項增益效果，攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.discerning.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: discerning, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden pro gegnerischer Stärkung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks gain <value id=\"quantity_1\">%1$lld</value> damage per enemy buff"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional por cada efecto beneficioso del enemigo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires par effet bénéfique ennemi"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵の強化効果1つにつき攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적의 강화 효과 하나당 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional por efeito benéfico no inimigo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "敵人每有一項增益效果，攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.discerning.title": {
+      "comment": "ContentManifest/affixes.tsv: discerning, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Scharfsinnig"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Discerning"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Perspicaz"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Perspicace"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "慧眼"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "통찰"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Perspicaz"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "明察"}}
       }
     },
     "affixes.disrupting.astral_description": {
@@ -3935,6 +4061,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "殉道者的"}}
       }
     },
+    "affixes.measured.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: measured, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden, solange der Gegner mehr <keyword id=\"block\">Block</keyword> hat als du"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks gain <value id=\"quantity_1\">%1$lld</value> damage while the enemy has more <keyword id=\"block\">Block</keyword> than you"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional mientras el enemigo tenga más <keyword id=\"block\">Bloqueo</keyword> que tú"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires si l’ennemi a plus de <keyword id=\"block\">Blocage</keyword> que vous"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵の<keyword id=\"block\">ブロック</keyword>が自分より多い間、攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적의 <keyword id=\"block\">방어도</keyword>가 자신보다 많으면 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional enquanto o inimigo tiver mais <keyword id=\"block\">Bloqueio</keyword> que você"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "敵人的<keyword id=\"block\">格擋</keyword>比你多時，攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.measured.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: measured, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden, solange der Gegner mehr <keyword id=\"block\">Block</keyword> hat als du"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks gain <value id=\"quantity_1\">%1$lld</value> damage while the enemy has more <keyword id=\"block\">Block</keyword> than you"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional mientras el enemigo tenga más <keyword id=\"block\">Bloqueo</keyword> que tú"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires si l’ennemi a plus de <keyword id=\"block\">Blocage</keyword> que vous"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵の<keyword id=\"block\">ブロック</keyword>が自分より多い間、攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적의 <keyword id=\"block\">방어도</keyword>가 자신보다 많으면 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional enquanto o inimigo tiver mais <keyword id=\"block\">Bloqueio</keyword> que você"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "敵人的<keyword id=\"block\">格擋</keyword>比你多時，攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.measured.title": {
+      "comment": "ContentManifest/affixes.tsv: measured, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Bedacht"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Measured"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mesurado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Mesuré"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "慎重"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "신중"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cauteloso"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "審慎"}}
+      }
+    },
     "affixes.merchants_favor.astral_description": {
       "comment": "ContentManifest/affixes.tsv: merchants_favor, astral_description",
       "extractionState": "manual",
@@ -3975,6 +4143,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "고정 수입"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Renda Passiva"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "被動收入"}}
+      }
+    },
+    "affixes.merciful.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: merciful, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stelle <value id=\"quantity_1\">%1$lld</value> zusätzliche <keyword id=\"health\">Gesundheit</keyword> wieder her, solange der Gegner <keyword id=\"stun\">betäubt</keyword> oder <keyword id=\"freeze\">eingefroren</keyword> ist"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"health\">Health</keyword> while the enemy is <keyword id=\"stun\">Stunned</keyword> or <keyword id=\"freeze\">Frozen</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> adicional mientras el enemigo esté <keyword id=\"stun\">aturdido</keyword> o <keyword id=\"freeze\">congelado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> supplémentaires si l’ennemi est <keyword id=\"stun\">étourdi</keyword> ou <keyword id=\"freeze\">gelé</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵が<keyword id=\"stun\">スタン</keyword>または<keyword id=\"freeze\">凍結</keyword>している間、<keyword id=\"health\">体力</keyword>の回復量が<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적이 <keyword id=\"stun\">기절</keyword> 또는 <keyword id=\"freeze\">빙결</keyword> 상태이면 <keyword id=\"health\">체력</keyword> 회복량이 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> adicional enquanto o inimigo estiver <keyword id=\"stun\">atordoado</keyword> ou <keyword id=\"freeze\">congelado</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "敵人處於<keyword id=\"stun\">暈眩</keyword>或<keyword id=\"freeze\">冰凍</keyword>狀態時，恢復的<keyword id=\"health\">生命值</keyword>提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.merciful.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: merciful, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stelle <value id=\"quantity_1\">%1$lld</value> zusätzliche <keyword id=\"health\">Gesundheit</keyword> wieder her, solange der Gegner <keyword id=\"stun\">betäubt</keyword> oder <keyword id=\"freeze\">eingefroren</keyword> ist"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"health\">Health</keyword> while the enemy is <keyword id=\"stun\">Stunned</keyword> or <keyword id=\"freeze\">Frozen</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> adicional mientras el enemigo esté <keyword id=\"stun\">aturdido</keyword> o <keyword id=\"freeze\">congelado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> supplémentaires si l’ennemi est <keyword id=\"stun\">étourdi</keyword> ou <keyword id=\"freeze\">gelé</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵が<keyword id=\"stun\">スタン</keyword>または<keyword id=\"freeze\">凍結</keyword>している間、<keyword id=\"health\">体力</keyword>の回復量が<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "적이 <keyword id=\"stun\">기절</keyword> 또는 <keyword id=\"freeze\">빙결</keyword> 상태이면 <keyword id=\"health\">체력</keyword> 회복량이 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> adicional enquanto o inimigo estiver <keyword id=\"stun\">atordoado</keyword> ou <keyword id=\"freeze\">congelado</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "敵人處於<keyword id=\"stun\">暈眩</keyword>或<keyword id=\"freeze\">冰凍</keyword>狀態時，恢復的<keyword id=\"health\">生命值</keyword>提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.merciful.title": {
+      "comment": "ContentManifest/affixes.tsv: merciful, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Barmherzig"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Merciful"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Compasivo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Clément"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "慈悲"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자비"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Misericordioso"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "仁慈"}}
       }
     },
     "affixes.meteorite.astral_description": {
@@ -4059,6 +4269,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "독성 치료제"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Remédio Tóxico"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "劇毒療方"}}
+      }
+    },
+    "affixes.mutual.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: mutual, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value>%% mehr <keyword id=\"block\">Block</keyword>, solange dein Verbündeter <keyword id=\"block\">Block</keyword> hat"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value>%% more <keyword id=\"block\">Block</keyword> while your ally has <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Obtén un <value id=\"quantity_1\">%1$lld</value>%% más de <keyword id=\"block\">Bloqueo</keyword> mientras tu aliado tenga <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value>%% de <keyword id=\"block\">Blocage</keyword> supplémentaire si votre allié a du <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "味方に<keyword id=\"block\">ブロック</keyword>がある間、獲得する<keyword id=\"block\">ブロック</keyword>が<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "아군에게 <keyword id=\"block\">방어도</keyword>가 있으면 얻는 <keyword id=\"block\">방어도</keyword>가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value>%% mais <keyword id=\"block\">Bloqueio</keyword> enquanto seu aliado tiver <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "盟友擁有<keyword id=\"block\">格擋</keyword>時，獲得的<keyword id=\"block\">格擋</keyword>提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "affixes.mutual.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: mutual, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value>%% mehr <keyword id=\"block\">Block</keyword>, solange dein Verbündeter <keyword id=\"block\">Block</keyword> hat"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value>%% more <keyword id=\"block\">Block</keyword> while your ally has <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Obtén un <value id=\"quantity_1\">%1$lld</value>%% más de <keyword id=\"block\">Bloqueo</keyword> mientras tu aliado tenga <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value>%% de <keyword id=\"block\">Blocage</keyword> supplémentaire si votre allié a du <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "味方に<keyword id=\"block\">ブロック</keyword>がある間、獲得する<keyword id=\"block\">ブロック</keyword>が<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "아군에게 <keyword id=\"block\">방어도</keyword>가 있으면 얻는 <keyword id=\"block\">방어도</keyword>가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value>%% mais <keyword id=\"block\">Bloqueio</keyword> enquanto seu aliado tiver <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "盟友擁有<keyword id=\"block\">格擋</keyword>時，獲得的<keyword id=\"block\">格擋</keyword>提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "affixes.mutual.title": {
+      "comment": "ContentManifest/affixes.tsv: mutual, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Gegenseitig"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Mutual"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mutuo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Mutuel"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "相互"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "상호"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Mútuo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "互助"}}
       }
     },
     "affixes.nullifying.astral_description": {
@@ -4271,6 +4523,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "疫病守護"}}
       }
     },
+    "affixes.prismatic.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: prismatic, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden, wenn sich ihr Typ vom Typ deines vorherigen Angriffs unterscheidet"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks gain <value id=\"quantity_1\">%1$lld</value> damage when their type differs from your previous attack"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional si su tipo difiere del de tu ataque anterior"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires si leur type diffère de celui de votre attaque précédente"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "前回の自分の攻撃と種類が異なる攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 이전 공격과 유형이 다르면 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional se o tipo for diferente do seu ataque anterior"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊類型與你上一次攻擊不同時，傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.prismatic.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: prismatic, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden, wenn sich ihr Typ vom Typ deines vorherigen Angriffs unterscheidet"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks gain <value id=\"quantity_1\">%1$lld</value> damage when their type differs from your previous attack"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional si su tipo difiere del de tu ataque anterior"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires si leur type diffère de celui de votre attaque précédente"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "前回の自分の攻撃と種類が異なる攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 이전 공격과 유형이 다르면 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional se o tipo for diferente do seu ataque anterior"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊類型與你上一次攻擊不同時，傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.prismatic.title": {
+      "comment": "ContentManifest/affixes.tsv: prismatic, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Prismatisch"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Prismatic"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Prismático"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Prismatique"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "多彩"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "다채"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Prismático"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "虹彩"}}
+      }
+    },
     "affixes.reactive.astral_description": {
       "comment": "ContentManifest/affixes.tsv: reactive, astral_description",
       "extractionState": "manual",
@@ -4353,6 +4647,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "다시 타오르는"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Reaceso"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "重燃"}}
+      }
+    },
+    "affixes.relay.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: relay, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Ein gespielter Angriff erhöht den Schaden des nächsten Angriffs deines Verbündeten um <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Playing an attack adds <value id=\"quantity_1\">%1$lld</value> damage to your ally's next attack"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Jugar un ataque añade <value id=\"quantity_1\">%1$lld</value> de daño al siguiente ataque de tu aliado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Jouer une attaque ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à la prochaine attaque de votre allié"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃カードを使うと、味方の次の攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격 카드를 사용하면 아군의 다음 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Jogar um ataque adiciona <value id=\"quantity_1\">%1$lld</value> de dano ao próximo ataque do seu aliado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "打出攻擊牌後，盟友下一次攻擊的傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.relay.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: relay, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Ein gespielter Angriff erhöht den Schaden des nächsten Angriffs deines Verbündeten um <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Playing an attack adds <value id=\"quantity_1\">%1$lld</value> damage to your ally's next attack"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Jugar un ataque añade <value id=\"quantity_1\">%1$lld</value> de daño al siguiente ataque de tu aliado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Jouer une attaque ajoute <value id=\"quantity_1\">%1$lld</value> dégâts à la prochaine attaque de votre allié"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃カードを使うと、味方の次の攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격 카드를 사용하면 아군의 다음 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Jogar um ataque adiciona <value id=\"quantity_1\">%1$lld</value> de dano ao próximo ataque do seu aliado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "打出攻擊牌後，盟友下一次攻擊的傷害提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.relay.title": {
+      "comment": "ContentManifest/affixes.tsv: relay, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Staffel"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Relay"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Relevo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Relais"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "連携"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "연계"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Revezamento"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "接力"}}
       }
     },
     "affixes.resolute.astral_description": {
@@ -5489,6 +5825,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "堅守"}}
       }
     },
+    "affixes.steelsong.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: steelsong, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Ein gespielter Angriff erhöht deinen nächsten <keyword id=\"block\">Block</keyword>-Gewinn um <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Playing an attack adds <value id=\"quantity_1\">%1$lld</value> to your next <keyword id=\"block\">Block</keyword> gain"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Jugar un ataque añade <value id=\"quantity_1\">%1$lld</value> a tu próxima ganancia de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Jouer une attaque ajoute <value id=\"quantity_1\">%1$lld</value> à votre prochain gain de <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃カードを使うと、次に獲得する<keyword id=\"block\">ブロック</keyword>が<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격 카드를 사용하면 다음에 얻는 <keyword id=\"block\">방어도</keyword>가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Jogar um ataque adiciona <value id=\"quantity_1\">%1$lld</value> ao seu próximo ganho de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "打出攻擊牌後，下一次獲得的<keyword id=\"block\">格擋</keyword>提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.steelsong.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: steelsong, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Ein gespielter Angriff erhöht deinen nächsten <keyword id=\"block\">Block</keyword>-Gewinn um <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Playing an attack adds <value id=\"quantity_1\">%1$lld</value> to your next <keyword id=\"block\">Block</keyword> gain"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Jugar un ataque añade <value id=\"quantity_1\">%1$lld</value> a tu próxima ganancia de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Jouer une attaque ajoute <value id=\"quantity_1\">%1$lld</value> à votre prochain gain de <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃カードを使うと、次に獲得する<keyword id=\"block\">ブロック</keyword>が<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격 카드를 사용하면 다음에 얻는 <keyword id=\"block\">방어도</keyword>가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Jogar um ataque adiciona <value id=\"quantity_1\">%1$lld</value> ao seu próximo ganho de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "打出攻擊牌後，下一次獲得的<keyword id=\"block\">格擋</keyword>提高<value id=\"quantity_1\">%1$lld</value>"}}
+      }
+    },
+    "affixes.steelsong.title": {
+      "comment": "ContentManifest/affixes.tsv: steelsong, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stahlgesang"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Steelsong"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Canto de acero"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chant d’acier"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "鋼の歌"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "강철의 노래"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Canto de aço"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "鋼鐵之歌"}}
+      }
+    },
     "affixes.stunned_pocketwatch.astral_description": {
       "comment": "ContentManifest/affixes.tsv: stunned_pocketwatch, astral_description",
       "extractionState": "manual",
@@ -5823,6 +6201,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "폭풍 돌파"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ruptura da Tempestade"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "風暴破擊"}}
+      }
+    },
+    "affixes.unburdened.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: unburdened, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value>%% mehr Schaden, solange du keine Schwächungen hast"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks deal <value id=\"quantity_1\">%1$lld</value>%% more damage while you have no debuffs"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen un <value id=\"quantity_1\">%1$lld</value>%% más de daño mientras no tengas efectos negativos"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value>%% de dégâts supplémentaires si vous n’avez aucun effet néfaste"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分に弱体効果がない間、攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신에게 약화 효과가 없으면 공격 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value>%% mais dano enquanto você não tiver efeitos negativos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你沒有減益效果時，攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "affixes.unburdened.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: unburdened, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value>%% mehr Schaden, solange du keine Schwächungen hast"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks deal <value id=\"quantity_1\">%1$lld</value>%% more damage while you have no debuffs"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen un <value id=\"quantity_1\">%1$lld</value>%% más de daño mientras no tengas efectos negativos"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent <value id=\"quantity_1\">%1$lld</value>%% de dégâts supplémentaires si vous n’avez aucun effet néfaste"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分に弱体効果がない間、攻撃ダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신에게 약화 효과가 없으면 공격 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques causam <value id=\"quantity_1\">%1$lld</value>%% mais dano enquanto você não tiver efeitos negativos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你沒有減益效果時，攻擊傷害提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "affixes.unburdened.title": {
+      "comment": "ContentManifest/affixes.tsv: unburdened, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Unbelastet"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Unburdened"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Sin cargas"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Sans entrave"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "無垢"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "홀가분"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem fardos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "無負"}}
       }
     },
     "affixes.unmaking.astral_description": {

@@ -45,8 +45,8 @@ package extension BattleState {
                 SaturatedArithmetic.saturatingAdd(amount, profile.blockGainedBonus),
                 multiplier: 1 + profile.blockGainedPercent,
             ) : amount
-        let (adjustedBuffer, spendsPreparation) = amountBasis == .base
-            ? adjustedBlockGain(buffer, to: target) : (buffer, false)
+        let (adjustedBuffer, spendsPreparation, spendsFlatPreparation) = amountBasis == .base
+            ? adjustedBlockGain(buffer, to: target) : (buffer, false, false)
         let applied = DefensePoolEngine.add(
             adjustedBuffer,
             to: target,
@@ -61,6 +61,9 @@ package extension BattleState {
                 $0.talents.pending.nextBlockGainMultiplier = nil
             }
         }
+        if spendsFlatPreparation {
+            roster.mutateRuntime(for: target) { $0.talents.pending.nextAttackBlockBonus = nil }
+        }
         nextEvent(
             kind: .effect(.shieldApplied),
             source: .init(source),
@@ -74,7 +77,7 @@ package extension BattleState {
         return applied
     }
 
-    private mutating func adjustedBlockGain(_ amount: Int, to target: Combatant) -> (Int, Bool) {
+    private mutating func adjustedBlockGain(_ amount: Int, to target: Combatant) -> (Int, Bool, Bool) {
         let triggers = modifiers(for: target.id).triggers
         let belowHalf = roster.isBelowHalfHealth(for: target)
         let healthMultiplier = belowHalf ? triggers.blockGainBelowHalfMultiplier : 1
@@ -83,8 +86,14 @@ package extension BattleState {
             cardSerial: resolution.cardTalents?.playSerial, actionID: resolution.actionID,
         )
         let spendsPreparation = prepared != nil
-        let multiplier = healthMultiplier * (prepared ?? 1)
-        return (CombatRounding.scaled(amount, multiplier: multiplier), spendsPreparation)
+        let flat = pending?.nextAttackBlockBonus?.availableValue(
+            cardSerial: resolution.cardTalents?.playSerial, actionID: resolution.actionID,
+        )
+        let multiplier = healthMultiplier * (prepared ?? 1) * QuietAffixRules.blockGainMultiplier(for: target, in: self)
+        return (
+            CombatRounding.scaled(SaturatedArithmetic.saturatingAdd(amount, flat ?? 0), multiplier: multiplier),
+            spendsPreparation, flat != nil,
+        )
     }
 
     mutating func interceptDebuff(_ effect: Effect, on target: Combatant) -> Bool {

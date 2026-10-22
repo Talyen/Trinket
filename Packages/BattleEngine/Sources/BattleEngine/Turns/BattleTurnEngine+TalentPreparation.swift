@@ -9,6 +9,7 @@ extension BattleTurnEngine {
     ) -> Ability {
         captureTalentPreparations(for: actor, in: &context)
         var action = TalentActionFacts(actorID: actor.id)
+        action.prismaticAffixDamageBonus = QuietAffixRules.prepareAttack(ability: ability, actor: actor, in: &context)
         if context.modifiers(for: actor.id).triggers.firstBurnAttackLeech,
            context.resolution.actionOutcome?.damageKeywords.contains(.burn) == true {
             let isFirstBurnAttack = context.claimTurnGuard(.emberdrinker, actorID: actor.id)

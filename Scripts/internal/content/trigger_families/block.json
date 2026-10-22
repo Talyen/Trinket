@@ -469,6 +469,22 @@
         "kind": "int",
         "order": 98
       }
+    },
+    {
+      "name": "attackPreparesBlockBonus",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 104
+      }
+    },
+    {
+      "name": "blockGainWhileAllyBlockedPercent",
+      "type": "Double",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 109
+      }
     }
   ]
 }

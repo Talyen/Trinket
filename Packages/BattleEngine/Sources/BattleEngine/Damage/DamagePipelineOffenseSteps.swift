@@ -20,6 +20,7 @@ package extension DamagePipeline {
             )
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
         }
+        QuietAffixRules.applyAttackBonuses(to: &state, in: &context)
         applyPercentBonus(to: &state, in: &context)
         applyDodgeEmpoweredBonuses(to: &state, in: &context)
         applyStunnedAndTalentMultipliers(to: &state, in: &context)

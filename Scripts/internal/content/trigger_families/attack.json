@@ -520,6 +520,62 @@
         "kind": "percent",
         "order": 96
       }
+    },
+    {
+      "name": "attackPreparesAllyDamage",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 100
+      }
+    },
+    {
+      "name": "alternatingAttackDamageBonus",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 101
+      }
+    },
+    {
+      "name": "attackDamageVsHigherBlockBonus",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 102
+      }
+    },
+    {
+      "name": "attackBlockBreakOverflowPercent",
+      "type": "Double",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 103
+      }
+    },
+    {
+      "name": "attackDamageVsBurningPoisonedBonus",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 105
+      }
+    },
+    {
+      "name": "attackDamagePerEnemyBuff",
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 106
+      }
+    },
+    {
+      "name": "attackDamageWithoutDebuffsPercent",
+      "type": "Double",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 107
+      }
     }
   ]
 }

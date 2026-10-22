@@ -1,6 +1,7 @@
 import TrinketCore
 
 struct CombatantTalentHistory: Hashable, Sendable {
+    var previousAttackKeyword: Keyword?
     var spentMana = false
     var preparations: Set<TalentPreparation> = []
     var stolenGoldDamage = 0
@@ -78,6 +79,8 @@ struct CombatantTalentState: Hashable, Sendable {
         var nextCriticalHitMultiplier: PreparedTalentBonus<Double>?
         var nextManaEmpowerDiscount = 0
         var nextManaSpendAttackBonus: PreparedTalentBonus<Int>?
+        var nextRelayAttackBonus: PreparedTalentBonus<Int>?
+        var nextAttackBlockBonus: PreparedTalentBonus<Int>?
         var nextBlockGainMultiplier: PreparedTalentBonus<Double>?
         var nextFreezeIgnoresBlock: PreparedTalentBonus<Bool>?
         var nextAttackIgnoresBlock: PreparedTalentBonus<Bool>?

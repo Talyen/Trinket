@@ -293,3 +293,19 @@ damage events; rules never infer identity from localized names or event searches
 Existing content keeps its saved identifiers and effects: the Shatter affix is
 Brittle, Mana Moth's Frostfire is Cold Flame, Knight's Consecration is Hallowed Guard,
 and Ranger's Wildfire tree is Firecraft.
+
+## Quiet item affixes
+
+Relay, Prismatic, Measured, Breakthrough, Catalytic, Discerning, and Unburdened
+modify existing attack damage without an additional event or damage packet.
+They exclude ongoing damage and raw retaliation. Prismatic compares each wearer's
+primary enabled attack type with their own previous attack; support cards do not
+reset it. One action retains that comparison across all hits and prepared card
+repeats. The first attack has no previous type and earns no bonus.
+Relay readies the living partner's next landed attack hit after an attack card
+finishes; another card refreshes its magnitude instead of accumulating it.
+Measured compares current Block before absorption. Catalytic requires both Burn
+and Poison. Discerning counts distinct removable buff kinds, not their stacks.
+Unburdened requires no removable debuffs on the attacker. Breakthrough increases
+only positive Health overflow from the hit that exhausts the enemy's own Block;
+it cannot amplify a fully blocked hit, bypassed Block, or later unblocked hits.

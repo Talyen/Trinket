@@ -221,6 +221,13 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case physicalAttackDamageVsBurningOrFrozenFlat
     case prismaticEdge
     case physicalAttackBleedChancePercent
+    case attackPreparesAllyDamage
+    case alternatingAttackDamageBonus
+    case attackDamageVsHigherBlockBonus
+    case attackBlockBreakOverflowPercent
+    case attackDamageVsBurningPoisonedBonus
+    case attackDamagePerEnemyBuff
+    case attackDamageWithoutDebuffsPercent
     case sealedSarcophagus
     case retainAllBlockBetweenTurns
     case blockedAttackBasicOncePerTurn
@@ -319,6 +326,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case blockBreakDrawBelowHalf
     case stunBlockIfNone
     case blockBrokenStunFlat
+    case attackPreparesBlockBonus
+    case blockGainWhileAllyBlockedPercent
     case passiveMitigationFlat
     case passivePhysicalMitigationFlat
     case thornsPercent
@@ -824,6 +833,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case leechCriticalNextPoisonAttackBonus
     case blockBrokenHealFlat
     case allyAttackHealBelowHalfPercent
+    case healingWhileEnemyControlledBonus
     case undyingEmber
     case borrowedLife
     case onceDeathReviveHealth
@@ -1127,6 +1137,13 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var physicalAttackDamageVsBurningOrFrozenFlat: Int = 0
         public var prismaticEdge: Bool = false
         public var physicalAttackBleedChancePercent: Double = 0
+        public var attackPreparesAllyDamage: Int = 0
+        public var alternatingAttackDamageBonus: Int = 0
+        public var attackDamageVsHigherBlockBonus: Int = 0
+        public var attackBlockBreakOverflowPercent: Double = 0
+        public var attackDamageVsBurningPoisonedBonus: Int = 0
+        public var attackDamagePerEnemyBuff: Int = 0
+        public var attackDamageWithoutDebuffsPercent: Double = 0
         public var sealedSarcophagus: Bool = false
         public var retainAllBlockBetweenTurns: Bool = false
         public var blockedAttackBasicOncePerTurn: Bool = false
@@ -1225,6 +1242,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var blockBreakDrawBelowHalf: Bool = false
         public var stunBlockIfNone: Int = 0
         public var blockBrokenStunFlat: Int = 0
+        public var attackPreparesBlockBonus: Int = 0
+        public var blockGainWhileAllyBlockedPercent: Double = 0
         public var passiveMitigationFlat: Int = 0
         public var passivePhysicalMitigationFlat: Int = 0
         public var thornsPercent: Double = 0
@@ -1730,6 +1749,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var leechCriticalNextPoisonAttackBonus: Int = 0
         public var blockBrokenHealFlat: Int = 0
         public var allyAttackHealBelowHalfPercent: Double = 0
+        public var healingWhileEnemyControlledBonus: Int = 0
         public var undyingEmber: Bool = false
         public var borrowedLife: Bool = false
         public var onceDeathReviveHealth: Int = 0
@@ -2036,6 +2056,13 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.physicalAttackDamageVsBurningOrFrozenFlat, .physicalAttackDamageVsBurningOrFrozenFlat, default: 0, merging: .add),
         .init(\.prismaticEdge, .prismaticEdge, default: false, merging: .or),
         .init(\.physicalAttackBleedChancePercent, .physicalAttackBleedChancePercent, default: 0, merging: .add),
+        .init(\.attackPreparesAllyDamage, .attackPreparesAllyDamage, default: 0, merging: .add),
+        .init(\.alternatingAttackDamageBonus, .alternatingAttackDamageBonus, default: 0, merging: .add),
+        .init(\.attackDamageVsHigherBlockBonus, .attackDamageVsHigherBlockBonus, default: 0, merging: .add),
+        .init(\.attackBlockBreakOverflowPercent, .attackBlockBreakOverflowPercent, default: 0, merging: .add),
+        .init(\.attackDamageVsBurningPoisonedBonus, .attackDamageVsBurningPoisonedBonus, default: 0, merging: .add),
+        .init(\.attackDamagePerEnemyBuff, .attackDamagePerEnemyBuff, default: 0, merging: .add),
+        .init(\.attackDamageWithoutDebuffsPercent, .attackDamageWithoutDebuffsPercent, default: 0, merging: .add),
         .init(\.sealedSarcophagus, .sealedSarcophagus, default: false, merging: .or),
         .init(\.retainAllBlockBetweenTurns, .retainAllBlockBetweenTurns, default: false, merging: .or),
         .init(\.blockedAttackBasicOncePerTurn, .blockedAttackBasicOncePerTurn, default: false, merging: .or),
@@ -2134,6 +2161,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.blockBreakDrawBelowHalf, .blockBreakDrawBelowHalf, default: false, merging: .or),
         .init(\.stunBlockIfNone, .stunBlockIfNone, default: 0, merging: .add),
         .init(\.blockBrokenStunFlat, .blockBrokenStunFlat, default: 0, merging: .add),
+        .init(\.attackPreparesBlockBonus, .attackPreparesBlockBonus, default: 0, merging: .add),
+        .init(\.blockGainWhileAllyBlockedPercent, .blockGainWhileAllyBlockedPercent, default: 0, merging: .add),
         .init(\.passiveMitigationFlat, .passiveMitigationFlat, default: 0, merging: .add),
         .init(\.passivePhysicalMitigationFlat, .passivePhysicalMitigationFlat, default: 0, merging: .add),
         .init(\.thornsPercent, .thornsPercent, default: 0, merging: .add),
@@ -2639,6 +2668,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.leechCriticalNextPoisonAttackBonus, .leechCriticalNextPoisonAttackBonus, default: 0, merging: .add),
         .init(\.blockBrokenHealFlat, .blockBrokenHealFlat, default: 0, merging: .add),
         .init(\.allyAttackHealBelowHalfPercent, .allyAttackHealBelowHalfPercent, default: 0, merging: .add),
+        .init(\.healingWhileEnemyControlledBonus, .healingWhileEnemyControlledBonus, default: 0, merging: .add),
         .init(\.undyingEmber, .undyingEmber, default: false, merging: .or),
         .init(\.borrowedLife, .borrowedLife, default: false, merging: .or),
         .init(\.onceDeathReviveHealth, .onceDeathReviveHealth, default: 0, merging: .max),

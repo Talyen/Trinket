@@ -58,6 +58,7 @@ package enum DamagePipeline {
         applyPreparedAttackReduction(to: &state, in: &context)
         applyTakenFlatAdjustments(to: &state, in: &context)
         await applyShieldAbsorption(to: &state, in: &context)
+        QuietAffixRules.applyBlockOverflow(to: &state, in: context)
         await applyTakeDamage(to: &state, in: &context)
         applyMarkedConsume(to: &state, in: &context)
         await applyDeathsDoor(to: &state, in: &context)

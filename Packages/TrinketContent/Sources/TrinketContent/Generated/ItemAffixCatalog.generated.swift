@@ -5,7 +5,7 @@ import TrinketCore
 enum ItemAffixCatalogGenerated {
     static let definitions: [ItemAffixDefinition] = {
         var list = [ItemAffixDefinition]()
-        list.reserveCapacity(127)
+        list.reserveCapacity(137)
         list.append(contentsOf: chunk0())
         list.append(contentsOf: chunk1())
         list.append(contentsOf: chunk2())
@@ -14,6 +14,7 @@ enum ItemAffixCatalogGenerated {
         list.append(contentsOf: chunk5())
         list.append(contentsOf: chunk6())
         list.append(contentsOf: chunk7())
+        list.append(contentsOf: chunk8())
         return list
     }()
 
@@ -1226,6 +1227,101 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Below half Health, restore Health equal to 10% of your ally's attack damage", modifiers: [], triggers: CombatTraitTriggers { $0.allyAttackHealBelowHalfPercent = 0.1 }, triggerRollRanges: [.allyAttackHealBelowHalfPercent: 0.08 ... 0.12]),
             astral: ItemAffixPower(description: "Below half Health, restore Health equal to 20% of your ally's attack damage", modifiers: [], triggers: CombatTraitTriggers { $0.allyAttackHealBelowHalfPercent = 0.2 }, triggerRollRanges: [.allyAttackHealBelowHalfPercent: 0.15 ... 0.2])
+        ),
+        ItemAffixCatalog.affix(
+            id: "relay",
+            title: "Relay",
+            slot: .weapon,
+            keywords: [.physical, .holy, .poison, .burn, .freeze, .stun, .bleed],
+            weight: 8,
+            basic: ItemAffixPower(description: "Playing an attack adds 2 damage to your ally's next attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesAllyDamage = 2 }, triggerRollRanges: [.attackPreparesAllyDamage: 1 ... 2]),
+            astral: ItemAffixPower(description: "Playing an attack adds 4 damage to your ally's next attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesAllyDamage = 4 }, triggerRollRanges: [.attackPreparesAllyDamage: 3 ... 4])
+        )
+        ]
+    }
+
+    private static func chunk8() -> [ItemAffixDefinition] {
+        [
+        ItemAffixCatalog.affix(
+            id: "prismatic",
+            title: "Prismatic",
+            slot: .weapon,
+            keywords: [.physical, .holy, .poison, .burn, .freeze, .stun, .bleed],
+            weight: 8,
+            basic: ItemAffixPower(description: "Attacks gain 2 damage when their type differs from your previous attack", modifiers: [], triggers: CombatTraitTriggers { $0.alternatingAttackDamageBonus = 2 }, triggerRollRanges: [.alternatingAttackDamageBonus: 1 ... 2]),
+            astral: ItemAffixPower(description: "Attacks gain 4 damage when their type differs from your previous attack", modifiers: [], triggers: CombatTraitTriggers { $0.alternatingAttackDamageBonus = 4 }, triggerRollRanges: [.alternatingAttackDamageBonus: 3 ... 4])
+        ),
+        ItemAffixCatalog.affix(
+            id: "measured",
+            title: "Measured",
+            slot: .weapon,
+            keywords: [.physical, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Attacks gain 2 damage while the enemy has more Block than you", modifiers: [], triggers: CombatTraitTriggers { $0.attackDamageVsHigherBlockBonus = 2 }, triggerRollRanges: [.attackDamageVsHigherBlockBonus: 1 ... 2]),
+            astral: ItemAffixPower(description: "Attacks gain 4 damage while the enemy has more Block than you", modifiers: [], triggers: CombatTraitTriggers { $0.attackDamageVsHigherBlockBonus = 4 }, triggerRollRanges: [.attackDamageVsHigherBlockBonus: 3 ... 4])
+        ),
+        ItemAffixCatalog.affix(
+            id: "breakthrough",
+            title: "Breakthrough",
+            slot: .weapon,
+            keywords: [.physical, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Attacks that break enemy Block deal 15% more damage to Health", modifiers: [], triggers: CombatTraitTriggers { $0.attackBlockBreakOverflowPercent = 0.15 }, triggerRollRanges: [.attackBlockBreakOverflowPercent: 0.1 ... 0.15]),
+            astral: ItemAffixPower(description: "Attacks that break enemy Block deal 30% more damage to Health", modifiers: [], triggers: CombatTraitTriggers { $0.attackBlockBreakOverflowPercent = 0.3 }, triggerRollRanges: [.attackBlockBreakOverflowPercent: 0.2 ... 0.3])
+        ),
+        ItemAffixCatalog.affix(
+            id: "steelsong",
+            title: "Steelsong",
+            slot: .armor,
+            keywords: [.block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Playing an attack adds 2 to your next Block gain", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesBlockBonus = 2 }, triggerRollRanges: [.attackPreparesBlockBonus: 1 ... 2]),
+            astral: ItemAffixPower(description: "Playing an attack adds 4 to your next Block gain", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesBlockBonus = 4 }, triggerRollRanges: [.attackPreparesBlockBonus: 3 ... 4])
+        ),
+        ItemAffixCatalog.affix(
+            id: "catalytic",
+            title: "Catalytic",
+            slot: .weapon,
+            keywords: [.burn, .poison],
+            weight: 8,
+            basic: ItemAffixPower(description: "Attacks gain 3 damage against enemies with both Burn and Poison", modifiers: [], triggers: CombatTraitTriggers { $0.attackDamageVsBurningPoisonedBonus = 3 }, triggerRollRanges: [.attackDamageVsBurningPoisonedBonus: 2 ... 3]),
+            astral: ItemAffixPower(description: "Attacks gain 5 damage against enemies with both Burn and Poison", modifiers: [], triggers: CombatTraitTriggers { $0.attackDamageVsBurningPoisonedBonus = 5 }, triggerRollRanges: [.attackDamageVsBurningPoisonedBonus: 4 ... 5])
+        ),
+        ItemAffixCatalog.affix(
+            id: "discerning",
+            title: "Discerning",
+            slot: .weapon,
+            keywords: [.physical, .holy, .purge],
+            weight: 8,
+            basic: ItemAffixPower(description: "Attacks gain 2 damage per enemy buff", modifiers: [], triggers: CombatTraitTriggers { $0.attackDamagePerEnemyBuff = 2 }, triggerRollRanges: [.attackDamagePerEnemyBuff: 1 ... 2]),
+            astral: ItemAffixPower(description: "Attacks gain 3 damage per enemy buff", modifiers: [], triggers: CombatTraitTriggers { $0.attackDamagePerEnemyBuff = 3 }, triggerRollRanges: [.attackDamagePerEnemyBuff: 2 ... 3])
+        ),
+        ItemAffixCatalog.affix(
+            id: "unburdened",
+            title: "Unburdened",
+            slot: .weapon,
+            keywords: [.physical, .holy, .cleanse],
+            weight: 8,
+            basic: ItemAffixPower(description: "Attacks deal 8% more damage while you have no debuffs", modifiers: [], triggers: CombatTraitTriggers { $0.attackDamageWithoutDebuffsPercent = 0.08 }, triggerRollRanges: [.attackDamageWithoutDebuffsPercent: 0.05 ... 0.08]),
+            astral: ItemAffixPower(description: "Attacks deal 15% more damage while you have no debuffs", modifiers: [], triggers: CombatTraitTriggers { $0.attackDamageWithoutDebuffsPercent = 0.15 }, triggerRollRanges: [.attackDamageWithoutDebuffsPercent: 0.1 ... 0.15])
+        ),
+        ItemAffixCatalog.affix(
+            id: "merciful",
+            title: "Merciful",
+            slot: .accessory,
+            keywords: [.health, .stun, .freeze],
+            weight: 8,
+            basic: ItemAffixPower(description: "Restore 2 additional Health while the enemy is Stunned or Frozen", modifiers: [], triggers: CombatTraitTriggers { $0.healingWhileEnemyControlledBonus = 2 }, triggerRollRanges: [.healingWhileEnemyControlledBonus: 1 ... 2]),
+            astral: ItemAffixPower(description: "Restore 4 additional Health while the enemy is Stunned or Frozen", modifiers: [], triggers: CombatTraitTriggers { $0.healingWhileEnemyControlledBonus = 4 }, triggerRollRanges: [.healingWhileEnemyControlledBonus: 3 ... 4])
+        ),
+        ItemAffixCatalog.affix(
+            id: "mutual",
+            title: "Mutual",
+            slot: .armor,
+            keywords: [.block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Gain 15% more Block while your ally has Block", modifiers: [], triggers: CombatTraitTriggers { $0.blockGainWhileAllyBlockedPercent = 0.15 }, triggerRollRanges: [.blockGainWhileAllyBlockedPercent: 0.1 ... 0.15]),
+            astral: ItemAffixPower(description: "Gain 25% more Block while your ally has Block", modifiers: [], triggers: CombatTraitTriggers { $0.blockGainWhileAllyBlockedPercent = 0.25 }, triggerRollRanges: [.blockGainWhileAllyBlockedPercent: 0.2 ... 0.25])
         )
         ]
     }

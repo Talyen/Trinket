@@ -105,6 +105,16 @@ extension CombatTraitTriggers {
         .int(\.blockBrokenHealFlat, field: .blockBrokenHealFlat),
         .int(\.blockBrokenStunFlat, field: .blockBrokenStunFlat),
         .percent(\.allyAttackHealBelowHalfPercent, field: .allyAttackHealBelowHalfPercent),
+        .int(\.attackPreparesAllyDamage, field: .attackPreparesAllyDamage),
+        .int(\.alternatingAttackDamageBonus, field: .alternatingAttackDamageBonus),
+        .int(\.attackDamageVsHigherBlockBonus, field: .attackDamageVsHigherBlockBonus),
+        .percent(\.attackBlockBreakOverflowPercent, field: .attackBlockBreakOverflowPercent),
+        .int(\.attackPreparesBlockBonus, field: .attackPreparesBlockBonus),
+        .int(\.attackDamageVsBurningPoisonedBonus, field: .attackDamageVsBurningPoisonedBonus),
+        .int(\.attackDamagePerEnemyBuff, field: .attackDamagePerEnemyBuff),
+        .percent(\.attackDamageWithoutDebuffsPercent, field: .attackDamageWithoutDebuffsPercent),
+        .int(\.healingWhileEnemyControlledBonus, field: .healingWhileEnemyControlledBonus),
+        .percent(\.blockGainWhileAllyBlockedPercent, field: .blockGainWhileAllyBlockedPercent),
     ]
 
     static let nonRollableAffixFields: [CombatTriggerField: String] = [

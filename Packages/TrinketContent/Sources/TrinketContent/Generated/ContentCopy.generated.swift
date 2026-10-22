@@ -335,6 +335,12 @@ public enum ContentCopy {
             (L10n.affixes_brass_censer_astral_description(1), [1])
         case "Toxic Incense":
             (L10n.affixes_brass_censer_title, [])
+        case "Attacks that break enemy Block deal 30% more damage to Health":
+            (L10n.affixes_breakthrough_astral_description(30), [30])
+        case "Attacks that break enemy Block deal 15% more damage to Health":
+            (L10n.affixes_breakthrough_basic_description(15), [15])
+        case "Breakthrough":
+            (L10n.affixes_breakthrough_title, [])
         case "When your Block is broken, gain 3 Thorns":
             (L10n.affixes_briarward_astral_description(3), [3])
         case "When your Block is broken, gain 2 Thorns":
@@ -359,6 +365,12 @@ public enum ContentCopy {
             (L10n.affixes_cascading_basic_description(1), [1])
         case "Cascading":
             (L10n.affixes_cascading_title, [])
+        case "Attacks gain 5 damage against enemies with both Burn and Poison":
+            (L10n.affixes_catalytic_astral_description(5), [5])
+        case "Attacks gain 3 damage against enemies with both Burn and Poison":
+            (L10n.affixes_catalytic_basic_description(3), [3])
+        case "Catalytic":
+            (L10n.affixes_catalytic_title, [])
         case "Your Bleed deals 2 additional damage to Burning enemies":
             (L10n.affixes_cauterize_astral_description(2), [2])
         case "Your Bleed deals 1 additional damage to Burning enemies":
@@ -431,6 +443,12 @@ public enum ContentCopy {
             (L10n.affixes_denouncing_basic_description(2), [2])
         case "Denouncing":
             (L10n.affixes_denouncing_title, [])
+        case "Attacks gain 3 damage per enemy buff":
+            (L10n.affixes_discerning_astral_description(3), [3])
+        case "Attacks gain 2 damage per enemy buff":
+            (L10n.affixes_discerning_basic_description(2), [2])
+        case "Discerning":
+            (L10n.affixes_discerning_title, [])
         case "Purge all buffs when you Stun the enemy":
             (L10n.affixes_disrupting_astral_description, [])
         case "Purge a buff when you Stun the enemy":
@@ -609,10 +627,22 @@ public enum ContentCopy {
             (L10n.affixes_martyrs_basic_description(1, 10), [1, 10])
         case "Martyr's":
             (L10n.affixes_martyrs_title, [])
+        case "Attacks gain 4 damage while the enemy has more Block than you":
+            (L10n.affixes_measured_astral_description(4), [4])
+        case "Attacks gain 2 damage while the enemy has more Block than you":
+            (L10n.affixes_measured_basic_description(2), [2])
+        case "Measured":
+            (L10n.affixes_measured_title, [])
         case "Gain 1 Gold each turn":
             (L10n.affixes_merchants_favor_astral_description(1), [1])
         case "Passive Income":
             (L10n.affixes_merchants_favor_title, [])
+        case "Restore 4 additional Health while the enemy is Stunned or Frozen":
+            (L10n.affixes_merciful_astral_description(4), [4])
+        case "Restore 2 additional Health while the enemy is Stunned or Frozen":
+            (L10n.affixes_merciful_basic_description(2), [2])
+        case "Merciful":
+            (L10n.affixes_merciful_title, [])
         case "Burn cards can spend additional Mana to deal more damage":
             (L10n.affixes_meteorite_astral_description, [])
         case "Falling Star":
@@ -621,6 +651,12 @@ public enum ContentCopy {
             (L10n.affixes_mortar_and_pestle_astral_description, [])
         case "Toxic Remedy":
             (L10n.affixes_mortar_and_pestle_title, [])
+        case "Gain 25% more Block while your ally has Block":
+            (L10n.affixes_mutual_astral_description(25), [25])
+        case "Gain 15% more Block while your ally has Block":
+            (L10n.affixes_mutual_basic_description(15), [15])
+        case "Mutual":
+            (L10n.affixes_mutual_title, [])
         case "Purge a buff when you deal Holy damage":
             (L10n.affixes_nullifying_astral_description(1), [1])
         case "Nullifying":
@@ -643,6 +679,12 @@ public enum ContentCopy {
             (L10n.affixes_plague_doctors_mask_astral_description(50), [50])
         case "Plagueward":
             (L10n.affixes_plague_doctors_mask_title, [])
+        case "Attacks gain 4 damage when their type differs from your previous attack":
+            (L10n.affixes_prismatic_astral_description(4), [4])
+        case "Attacks gain 2 damage when their type differs from your previous attack":
+            (L10n.affixes_prismatic_basic_description(2), [2])
+        case "Prismatic":
+            (L10n.affixes_prismatic_title, [])
         case "When your Block breaks, deal 2 Stun damage to the attacker":
             (L10n.affixes_reactive_astral_description(2), [2])
         case "When your Block breaks, deal 1 Stun damage to the attacker":
@@ -655,6 +697,12 @@ public enum ContentCopy {
             (L10n.affixes_rekindled_basic_description(3), [3])
         case "Rekindled":
             (L10n.affixes_rekindled_title, [])
+        case "Playing an attack adds 4 damage to your ally's next attack":
+            (L10n.affixes_relay_astral_description(4), [4])
+        case "Playing an attack adds 2 damage to your ally's next attack":
+            (L10n.affixes_relay_basic_description(2), [2])
+        case "Relay":
+            (L10n.affixes_relay_title, [])
         case "Restore 2 Health when your Block breaks":
             (L10n.affixes_resolute_astral_description(2), [2])
         case "Restore 1 Health when your Block breaks":
@@ -797,6 +845,12 @@ public enum ContentCopy {
             (L10n.affixes_steadfast_basic_description(3), [3])
         case "Steadfast":
             (L10n.affixes_steadfast_title, [])
+        case "Playing an attack adds 4 to your next Block gain":
+            (L10n.affixes_steelsong_astral_description(4), [4])
+        case "Playing an attack adds 2 to your next Block gain":
+            (L10n.affixes_steelsong_basic_description(2), [2])
+        case "Steelsong":
+            (L10n.affixes_steelsong_title, [])
         case "Stun has a 20% chance to last an additional turn":
             (L10n.affixes_stunned_pocketwatch_astral_description(20), [20])
         case "Concussive Pocketwatch":
@@ -833,6 +887,12 @@ public enum ContentCopy {
             (L10n.affixes_thunderstone_astral_description, [])
         case "Stormbreak":
             (L10n.affixes_thunderstone_title, [])
+        case "Attacks deal 15% more damage while you have no debuffs":
+            (L10n.affixes_unburdened_astral_description(15), [15])
+        case "Attacks deal 8% more damage while you have no debuffs":
+            (L10n.affixes_unburdened_basic_description(8), [8])
+        case "Unburdened":
+            (L10n.affixes_unburdened_title, [])
         case "Deal 2 bonus Physical damage\nPurge all buffs from the enemy when you Critically Hit", "Deal 2 bonus Physical damage. Purge all buffs from the enemy when you Critically Hit":
             (L10n.affixes_unmaking_astral_description(2), [2])
         case "Deal 1 bonus Physical damage\nPurge a buff from the enemy when you Critically Hit", "Deal 1 bonus Physical damage. Purge a buff from the enemy when you Critically Hit":
@@ -4421,10 +4481,12 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)%\\ Dodge\\ chance\\ while\\ below\\ ([0-9]+)%\\ Health$"), count: 2, make: { values in L10n.affixes_blur_astral_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Gold\\ when\\ you\\ defeat\\ an\\ enemy$"), count: 1, make: { values in L10n.affixes_bounty_astral_description(values[0]) }),
         NumericTemplate(prefix: "Your Holy attacks deal ", regex: try? NSRegularExpression(pattern: "^Your\\ Holy\\ attacks\\ deal\\ ([0-9]+)\\ additional\\ damage\\ to\\ Poisoned\\ enemies$"), count: 1, make: { values in L10n.affixes_brass_censer_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Attacks that break enemy Block deal ", regex: try? NSRegularExpression(pattern: "^Attacks\\ that\\ break\\ enemy\\ Block\\ deal\\ ([0-9]+)%\\ more\\ damage\\ to\\ Health$"), count: 1, make: { values in L10n.affixes_breakthrough_astral_description(values[0]) }),
         NumericTemplate(prefix: "When your Block is broken, gain ", regex: try? NSRegularExpression(pattern: "^When\\ your\\ Block\\ is\\ broken,\\ gain\\ ([0-9]+)\\ Thorns$"), count: 1, make: { values in L10n.affixes_briarward_astral_description(values[0]) }),
         NumericTemplate(prefix: "Increase Thorns damage by ", regex: try? NSRegularExpression(pattern: "^Increase\\ Thorns\\ damage\\ by\\ ([0-9]+)\\ while\\ you\\ have\\ Block$"), count: 1, make: { values in L10n.affixes_bristling_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ additional\\ Block$"), count: 1, make: { values in L10n.affixes_bulwark_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ your\\ Block\\ is\\ broken$"), count: 1, make: { values in L10n.affixes_cascading_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Attacks gain ", regex: try? NSRegularExpression(pattern: "^Attacks\\ gain\\ ([0-9]+)\\ damage\\ against\\ enemies\\ with\\ both\\ Burn\\ and\\ Poison$"), count: 1, make: { values in L10n.affixes_catalytic_astral_description(values[0]) }),
         NumericTemplate(prefix: "Your Bleed deals ", regex: try? NSRegularExpression(pattern: "^Your\\ Bleed\\ deals\\ ([0-9]+)\\ additional\\ damage\\ to\\ Burning\\ enemies$"), count: 1, make: { values in L10n.affixes_cauterize_astral_description(values[0]) }),
         NumericTemplate(prefix: "Increase Maximum Mana by ", regex: try? NSRegularExpression(pattern: "^Increase\\ Maximum\\ Mana\\ by\\ ([0-9]+)$"), count: 1, make: { values in L10n.affixes_channeled_astral_description(values[0]) }),
         NumericTemplate(prefix: "Burn deals ", regex: try? NSRegularExpression(pattern: "^Burn\\ deals\\ ([0-9]+)\\ more\\ damage\\ to\\ Bleeding\\ enemies$"), count: 1, make: { values in L10n.affixes_cinderbound_astral_description(values[0]) }),
@@ -4436,6 +4498,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ additional\\ damage\\ while\\ the\\ enemy\\ is\\ Stunned$"), count: 1, make: { values in L10n.affixes_dazed_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ on\\ Death's\\ Door$"), count: 1, make: { values in L10n.affixes_deathgrip_astral_description(values[0]) }),
         NumericTemplate(prefix: "Purging an enemy adds ", regex: try? NSRegularExpression(pattern: "^Purging\\ an\\ enemy\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Holy\\ attack$"), count: 1, make: { values in L10n.affixes_denouncing_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Attacks gain ", regex: try? NSRegularExpression(pattern: "^Attacks\\ gain\\ ([0-9]+)\\ damage\\ per\\ enemy\\ buffs?$"), count: 1, make: { values in L10n.affixes_discerning_astral_description(values[0]) }),
         NumericTemplate(prefix: "Purge ", regex: try? NSRegularExpression(pattern: "^Purge\\ ([0-9]+)\\ buffs?\\ when\\ you\\ Stun\\ the\\ enemy$"), count: 1, make: { values in L10n.affixes_disrupting_basic_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)%\\ Dodge\\ chance$"), count: 1, make: { values in L10n.affixes_elusive_astral_description(values[0]) }),
         NumericTemplate(prefix: "Take ", regex: try? NSRegularExpression(pattern: "^Take\\ ([0-9]+)%\\ less\\ Burn\\ damage$"), count: 1, make: { values in L10n.affixes_emberguard_astral_description(values[0]) }),
@@ -4464,11 +4527,16 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ additional\\ Gold$"), count: 1, make: { values in L10n.affixes_lucky_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)%\\ Critical\\ chance\\\nGain\\ ([0-9]+)\\ Gold\\ on\\ Critical\\ Hit$"), count: 2, make: { values in L10n.affixes_lucky_clover_astral_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ bonus\\ Holy\\ damage\\\nTake\\ ([0-9]+)%\\ less\\ Holy\\ damage$"), count: 2, make: { values in L10n.affixes_martyrs_astral_description(values[0], values[1]) }),
+        NumericTemplate(prefix: "Attacks gain ", regex: try? NSRegularExpression(pattern: "^Attacks\\ gain\\ ([0-9]+)\\ damage\\ while\\ the\\ enemy\\ has\\ more\\ Block\\ than\\ you$"), count: 1, make: { values in L10n.affixes_measured_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Gold\\ each\\ turns?$"), count: 1, make: { values in L10n.affixes_merchants_favor_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ additional\\ Health\\ while\\ the\\ enemy\\ is\\ Stunned\\ or\\ Frozen$"), count: 1, make: { values in L10n.affixes_merciful_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)%\\ more\\ Block\\ while\\ your\\ ally\\ has\\ Block$"), count: 1, make: { values in L10n.affixes_mutual_astral_description(values[0]) }),
         NumericTemplate(prefix: "Purge ", regex: try? NSRegularExpression(pattern: "^Purge\\ ([0-9]+)\\ buffs?\\ when\\ you\\ deal\\ Holy\\ damage$"), count: 1, make: { values in L10n.affixes_nullifying_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Gold\\ when\\ you\\ Dodge$"), count: 1, make: { values in L10n.affixes_payday_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Attacks gain ", regex: try? NSRegularExpression(pattern: "^Attacks\\ gain\\ ([0-9]+)\\ damage\\ when\\ their\\ type\\ differs\\ from\\ your\\ previous\\ attack$"), count: 1, make: { values in L10n.affixes_prismatic_astral_description(values[0]) }),
         NumericTemplate(prefix: "When your Block breaks, deal ", regex: try? NSRegularExpression(pattern: "^When\\ your\\ Block\\ breaks,\\ deal\\ ([0-9]+)\\ Stun\\ damage\\ to\\ the\\ attacker$"), count: 1, make: { values in L10n.affixes_reactive_astral_description(values[0]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ when\\ you\\ survive\\ Death's\\ Door$"), count: 1, make: { values in L10n.affixes_rekindled_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Playing an attack adds ", regex: try? NSRegularExpression(pattern: "^Playing\\ an\\ attack\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ ally's\\ next\\ attack$"), count: 1, make: { values in L10n.affixes_relay_astral_description(values[0]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ when\\ your\\ Block\\ breaks$"), count: 1, make: { values in L10n.affixes_resolute_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Mana\\ when\\ you\\ play\\ your\\ second\\ cards?\\ each\\ turns?$"), count: 1, make: { values in L10n.affixes_resonant_chimes_astral_description(values[0]) }),
         NumericTemplate(prefix: "Restoring Health has a ", regex: try? NSRegularExpression(pattern: "^Restoring\\ Health\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ Cleanse\\ ([0-9]+)\\ debuffs?\\ from\\ the\\ target$"), count: 2, make: { values in L10n.affixes_restorative_astral_description(values[0], values[1]) }),
@@ -4491,12 +4559,14 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Your Thorns deal ", regex: try? NSRegularExpression(pattern: "^Your\\ Thorns\\ deal\\ ([0-9]+)\\ additional\\ damage\\ to\\ Poisoned\\ enemies$"), count: 1, make: { values in L10n.affixes_spitebloom_astral_description(values[0]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ the\\ first\\ time\\ Thorns\\ deals\\ damage\\ each\\ turns?$"), count: 1, make: { values in L10n.affixes_spiteful_astral_description(values[0]) }),
         NumericTemplate(prefix: "When you Stun with no Block, gain ", regex: try? NSRegularExpression(pattern: "^When\\ you\\ Stun\\ with\\ no\\ Block,\\ gain\\ ([0-9]+)\\ Block$"), count: 1, make: { values in L10n.affixes_steadfast_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Playing an attack adds ", regex: try? NSRegularExpression(pattern: "^Playing\\ an\\ attack\\ adds\\ ([0-9]+)\\ to\\ your\\ next\\ Block\\ gain$"), count: 1, make: { values in L10n.affixes_steelsong_astral_description(values[0]) }),
         NumericTemplate(prefix: "Stun has a ", regex: try? NSRegularExpression(pattern: "^Stun\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ last\\ an\\ additional\\ turns?$"), count: 1, make: { values in L10n.affixes_stunned_pocketwatch_astral_description(values[0]) }),
         NumericTemplate(prefix: "Increase Physical damage by ", regex: try? NSRegularExpression(pattern: "^Increase\\ Physical\\ damage\\ by\\ ([0-9]+)\\\nPhysical\\ and\\ Stun\\ damage\\ remove\\ twice\\ as\\ much\\ Block$"), count: 1, make: { values in L10n.affixes_sundering_charm_astral_description(values[0]) }),
         NumericTemplate(prefix: "Your ally receives ", regex: try? NSRegularExpression(pattern: "^Your\\ ally\\ receives\\ ([0-9]+)%\\ of\\ the\\ Health\\ you\\ restore\\ with\\ Leech$"), count: 1, make: { values in L10n.affixes_symbiosis_astral_description(values[0]) }),
         NumericTemplate(prefix: "Every other ", regex: try? NSRegularExpression(pattern: "^Every\\ other\\ turns?,\\ lose\\ ([0-9]+)\\ Health\\ and\\ draw\\ a\\ cards?$"), count: 1, make: { values in L10n.affixes_tattered_pages_astral_description(values[0]) }),
         NumericTemplate(prefix: "Take ", regex: try? NSRegularExpression(pattern: "^Take\\ ([0-9]+)%\\ less\\ Bleed\\ damage$"), count: 1, make: { values in L10n.affixes_thick_skinned_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Thorns\\ at\\ the\\ start\\ of\\ combat$"), count: 1, make: { values in L10n.affixes_thornwrought_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Attacks deal ", regex: try? NSRegularExpression(pattern: "^Attacks\\ deal\\ ([0-9]+)%\\ more\\ damage\\ while\\ you\\ have\\ no\\ debuffs?$"), count: 1, make: { values in L10n.affixes_unburdened_astral_description(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ bonus\\ Physical\\ damage\\\nPurge\\ all\\ buffs?\\ from\\ the\\ enemy\\ when\\ you\\ Critically\\ Hit$"), count: 1, make: { values in L10n.affixes_unmaking_astral_description(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ bonus\\ Physical\\ damage\\\nPurge\\ ([0-9]+)\\ buffs?\\ from\\ the\\ enemy\\ when\\ you\\ Critically\\ Hit$"), count: 2, make: { values in L10n.affixes_unmaking_basic_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ you\\ Purge\\ an\\ enemy$"), count: 1, make: { values in L10n.affixes_unraveling_astral_description(values[0]) }),

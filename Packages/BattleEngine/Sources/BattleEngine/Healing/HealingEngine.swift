@@ -259,7 +259,10 @@ package enum HealingEngine {
         if request.amountBasis == .resolved {
             return max(0, request.amount)
         }
-        let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
+        let bonus = SaturatedArithmetic.saturatingAdd(
+            request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0,
+            QuietAffixRules.healingBonus(sourceID: request.sourceActorID, in: context),
+        )
         let percent = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredPercent } ?? 0
         var amount = CombatRounding.scaled(
             SaturatedArithmetic.saturatingAdd(request.amount, bonus), multiplier: 1 + percent,

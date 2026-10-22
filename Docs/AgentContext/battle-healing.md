@@ -127,3 +127,12 @@ Verdant Renewal retains its saved `healthPerTurn` trigger field and restores
 Blessed Aegis grants the caster 5 Block, restores 5 Health to the lowest-Health
 living ally, then deals 5 Holy damage. Each operation uses the ordinary gain or
 damage pipeline. Luck Potion's Health outcome uses the same lowest-Health target.
+
+Steelsong readies a flat bonus after its wearer's attack card finishes. It refreshes
+rather than accumulating and is spent only by a later successful base Block grant,
+not a resolved transfer, decay, or rejected gain. Mutual increases an existing base
+Block grant to its wearer while the living partner has Block. Both use the existing
+Block number and reactions, with no extra event. Merciful increases the healer's
+existing base Health restoration while the enemy is Stunned or Frozen; resolved
+shares and transfers do not apply it again. Its bonus shares the original healing
+number, Critical Hit roll, and recipient reductions.
