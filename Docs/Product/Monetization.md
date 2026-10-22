@@ -26,9 +26,10 @@ ability and talent progression when expanded.
 
 Purchase grants access to normal recruitment and progression, not instant roster
 completion, levels, talents, equipment, or rewards. Owners can choose a premium
-character as their one starter per role. Free characters appear before premium
-characters in Collection and starter selection. Normal recruitment and floor
-progression remain separate from purchase access.
+character as their one starter per role. Collection shelves and grids show recruited
+characters before unrecruited characters, with free characters first within each
+group. Starter selection shows free characters before premium characters. Normal
+recruitment and floor progression remain separate from purchase access.
 
 ## Offer
 

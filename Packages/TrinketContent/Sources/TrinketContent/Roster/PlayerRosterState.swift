@@ -324,16 +324,17 @@ public struct PlayerRosterState: Equatable, Sendable {
         configuredCombatants(combatants)
             .enumerated()
             .sorted { left, right in
-                let leftFree = ContentAccessPolicy.isFreeCombatant(left.element.id)
-                let rightFree = ContentAccessPolicy.isFreeCombatant(right.element.id)
-                if leftFree != rightFree {
-                    return leftFree
-                }
                 let leftUnlocked = isUnlocked(left.element)
                 let rightUnlocked = isUnlocked(right.element)
 
                 if leftUnlocked != rightUnlocked {
                     return leftUnlocked
+                }
+
+                let leftFree = ContentAccessPolicy.isFreeCombatant(left.element.id)
+                let rightFree = ContentAccessPolicy.isFreeCombatant(right.element.id)
+                if leftFree != rightFree {
+                    return leftFree
                 }
 
                 if leftUnlocked {
