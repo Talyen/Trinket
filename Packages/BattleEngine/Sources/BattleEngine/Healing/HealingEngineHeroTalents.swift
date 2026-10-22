@@ -269,6 +269,7 @@ extension HealingEngine {
                BattleChance.succeeds(probability: sourceTriggers.healthRestoreManaChancePercent, using: &context.rng) {
                 await context.restoreManaEmitting(1, to: source, abilityName: "Masterwork Mixture")
             }
+            guard context.roster.health(for: source) > 0 else { return }
             if sourceTriggers.coolingSalve, context.roster.hasAffliction(.burn, on: request.target) {
                 _ = await EffectRemovalOperation.resolveCleanse(
                     .all(.burn), source: source, target: request.target,

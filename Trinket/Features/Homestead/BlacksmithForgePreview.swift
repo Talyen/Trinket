@@ -8,7 +8,9 @@ import TrinketPersistence
 struct BlacksmithForgePreview: View {
     @Environment(\.locale) private var locale
     @Environment(PlayerSaveStore.self) private var playerSave
+    @Environment(OptionsStore.self) private var options
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.playSFX) private var playSFX
     @Environment(\.scenePhase) private var scenePhase
     @State private var result: InventoryItem?
     @State private var displayedItem: InventoryItem?
@@ -17,6 +19,7 @@ struct BlacksmithForgePreview: View {
     @State private var isPending = false
     @State private var isVisible = false
     @State private var hasOpenedResult = false
+    @State private var forgeErrorTrigger = 0
 
     let recipe: BlacksmithRecipe
     let resultNamespace: Namespace.ID
@@ -80,6 +83,7 @@ struct BlacksmithForgePreview: View {
                 suppressAutomaticReveal()
             }
         }
+        .trinketSensoryFeedback(.error, trigger: forgeErrorTrigger, enabled: options.hapticsEnabled)
     }
 
     private func cardWidth(in width: CGFloat) -> CGFloat {
@@ -190,10 +194,9 @@ struct BlacksmithForgePreview: View {
             isPending = false
             switch outcome {
             case let .success(item): result = item
-            case .failure(.insufficientResources): break
-            case .failure(.unavailable): break
-            case .failure(.alreadyOwned): break
-            case .failure(.invalidated): break
+            case .failure:
+                forgeErrorTrigger += 1
+                playSFX(SFXID.uiDeny, options.effectsVolume)
             }
         }
     }
