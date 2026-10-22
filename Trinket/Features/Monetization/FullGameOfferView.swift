@@ -17,12 +17,13 @@ struct FullGameOfferView: View {
             ScrollView {
                 offerHeading
                     .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                    .padding(.vertical, TrinketDesign.Spacing.extraLarge)
+                    .padding(.top, TrinketDesign.Spacing.extraLarge)
+                    .padding(.bottom, TrinketDesign.Spacing.extraLarge * 2)
                     .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .bottom)
                     .background(alignment: .top) {
                         artwork
                             .frame(height: geometry.size.height * 0.72)
-                            .trinketBottomArtworkBlend()
+                            .trinketBottomArtworkBlend(fadeFraction: 0.12)
                     }
             }
             .scrollBounceBehavior(.basedOnSize)
@@ -43,7 +44,7 @@ struct FullGameOfferView: View {
     }
 
     private var offerHeading: some View {
-        VStack(spacing: TrinketDesign.Spacing.extraLarge) {
+        VStack(spacing: TrinketDesign.Spacing.medium) {
             VStack(spacing: TrinketDesign.Spacing.small) {
                 Text(L10n.ui_fullgameofferview_full_game_497de)
                     .trinketTypography(.eyebrow)
@@ -66,9 +67,12 @@ struct FullGameOfferView: View {
     private var purchaseArea: some View {
         VStack(spacing: TrinketDesign.Spacing.small) {
             if store.ownership.access.hasFullGame {
-                Button(String(localized: L10n.ui_fullgameofferview_full_game_purchased_51dc5)) { dismiss() }
-                    .frame(maxWidth: .infinity)
-                    .trinketPrimaryActionButton()
+                Button { dismiss() } label: {
+                    Text(L10n.ui_fullgameofferview_full_game_purchased_51dc5)
+                        .padding(.vertical, TrinketDesign.Spacing.extraSmall)
+                        .frame(maxWidth: .infinity)
+                }
+                .trinketPrimaryActionButton()
             } else if let product = store.product {
                 ProductView(product)
                     .productViewStyle(FullGameProductStyle(isPurchasing: store.isPurchasing, locale: locale))
@@ -80,9 +84,12 @@ struct FullGameOfferView: View {
                     .trinketTypography(.body)
                     .frame(maxWidth: .infinity)
             } else {
-                Button(String(localized: L10n.ui_fullgameofferview_retry_94208)) { Task { await store.loadProduct() } }
-                    .frame(maxWidth: .infinity)
-                    .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.FullGame.retry)
+                Button { Task { await store.loadProduct() } } label: {
+                    Text(L10n.ui_fullgameofferview_retry_94208)
+                        .padding(.vertical, TrinketDesign.Spacing.extraSmall)
+                        .frame(maxWidth: .infinity)
+                }
+                .trinketPrimaryActionButton(accessibilityIdentifier: AccessibilityID.FullGame.retry)
             }
 
             FullGameOutcomeMessage(outcome: store.outcome)
@@ -170,6 +177,7 @@ private struct FullGameProductStyle: ProductViewStyle {
                         .trinketTypography(.button)
                         .trinketSingleLineFittedText()
                 }
+                .padding(.vertical, TrinketDesign.Spacing.extraSmall)
                 .frame(maxWidth: .infinity)
             }
             .disabled(isPurchasing || !AppStore.canMakePayments)

@@ -436,7 +436,7 @@ enum L10n {
     }
 
     static var ui_fullgameofferview_all_content_yours_forever: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.all_content_yours_forever", defaultValue: "All content. Yours forever.", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.all_content_yours_forever", defaultValue: "The full adventure. Yours forever.", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_close_7d9eb: LocalizedStringResource {

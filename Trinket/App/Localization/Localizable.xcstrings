@@ -1514,17 +1514,17 @@
       }
     },
     "ui.fullgameofferview.all_content_yours_forever": {
-      "comment": "Full Game offer subtitle. All current and future in-game content is included in the permanent purchase; normal recruitment and progression remain earned. Keep concise for a single-line subtitle.",
+      "comment": "Full Game offer subtitle: the complete adventure is permanently included with the purchase, including future in-game content; normal recruitment and progression remain earned. Keep concise for a single-line subtitle.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Alle Inhalte. Für immer dein."}},
-        "en": {"stringUnit": {"state": "translated", "value": "All content. Yours forever."}},
-        "es": {"stringUnit": {"state": "translated", "value": "Todo el contenido. Tuyo para siempre."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Tout le contenu. À vous pour toujours."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "すべてのコンテンツを、ずっと手元に"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "모든 콘텐츠를 영원히 소장하세요"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Todo o conteúdo. Seu para sempre."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有內容，永久擁有"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Das ganze Abenteuer. Für immer dein."}},
+        "en": {"stringUnit": {"state": "translated", "value": "The full adventure. Yours forever."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Toda la aventura. Tuya para siempre."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Toute l’aventure. À vous pour toujours."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "冒険のすべてを、ずっと手元に"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "모험 전체를 영원히 소장하세요"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A aventura completa. Sua para sempre."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "完整冒險，永久擁有"}}
       }
     },
     "ui.fullgameofferview.close_7d9eb": {
