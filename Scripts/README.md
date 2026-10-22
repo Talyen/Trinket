@@ -23,21 +23,27 @@ load their safeguards with `python3 Scripts/agent-brief.py --status --read --pat
 <files...>`. Concern shortcuts and specialized retrieval helpers are optional;
 [quickstart](../Docs/AgentContext/README.md#quickstart) owns their use.
 
-For the complete task, including committed and dirty work:
+For the complete task, inspect scope, finish editing, review and commit task files,
+then integrate:
 
 ```sh
 python3 Scripts/agent-brief.py --status --read --base main
-./Scripts/handoff.sh --isolate --quiet --base main
+node Scripts/agent-worktree.mjs integrate
 ```
 
 Use the user-specified base when different. Explicit `--paths <files...>` remains
 available for focused checks. Handoff reports each kind of verification evidence
 and the next permitted action; a local pass establishes lightweight checks only.
+Integration supplies the final handoff under the lock. Use standalone
+`handoff.sh --quiet --base main` when no landing is requested; no duplicate
+pre-commit handoff is required.
 Create an execution plan only when durable coordination or resumption is useful.
 
 Generation and verification selection follow [Verification](../Docs/Platform/Verification.md).
 Routine handoff runs lightweight scoped static/script checks without compilation
-or Simulator. Add `--smoke` to identify the selected CI-owned UI journeys; local
+or Simulator. Explicit `--route diagnostic|visual|release` selects a focused
+diagnostic, managed inspection, or requested release verification; see
+[route selection](../Docs/Platform/Verification.md#confidence-ladder). Add `--smoke` to identify the selected CI-owned UI journeys; local
 execution reports them as deferred. [UI verification requirements](../Docs/Platform/Verification.md#choosing-ui-verification)
 own when to select that option. Isolation mechanics live in
 [Simulator operations](../Docs/Platform/SimulatorOperations.md); commit and push

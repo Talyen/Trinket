@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import fcntl
+import json
 import os
 from pathlib import Path
 import shutil
@@ -32,7 +33,7 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         (scripts / 'internal').mkdir()
         shutil.copy2(ROOT / 'Scripts/internal/cli.py', scripts / 'internal/cli.py')
         write_executable(scripts / 'handoff.sh', '#!/bin/sh\nexit 0\n')
-        (self.root / '.gitignore').write_text('.worktrees/\nignored\n__pycache__/\n')
+        (self.root / '.gitignore').write_text('.worktrees/\nignored\n__pycache__/\n.DerivedData/\n')
         (self.root / 'shared').write_text('baseline\n')
         self.commit(self.root)
 
@@ -172,6 +173,39 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         self.assertNotIn(str(task), self.git(self.root, 'worktree', 'list', '--porcelain'))
         self.assertEqual((peer / 'unfinished').read_text(), 'peer work')
         self.git(self.root, 'show-ref', '--verify', 'refs/heads/codex/task')
+
+    def test_landing_runs_one_handoff_and_preserves_deliverables_before_cleanup(self) -> None:
+        task = self.task('task')
+        captures = task / '.DerivedData/Deliverables'
+        captures.mkdir(parents=True)
+        (captures / 'screen.png').write_bytes(b'fixture capture')
+        (task / 'ignored').write_text('other task evidence')
+        explicit = self.helper(task, 'evidence', 'ignored')
+        self.assertEqual(explicit.returncode, 0, explicit.stderr)
+        write_executable(task / 'Scripts/handoff.sh', '#!/bin/sh\necho checked >> "$(git rev-parse --git-common-dir)/checks"\n')
+        self.commit(task)
+        head = self.git(task, 'rev-parse', 'HEAD')
+        result = self.helper(task, 'integrate')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse(task.exists())
+        self.assertEqual((self.root / '.git/checks').read_text(), 'checked\n')
+        evidence = self.root / '.git/trinket-evidence/codex/task'
+        saved = list(evidence.glob('*/files/.DerivedData/Deliverables/screen.png'))
+        self.assertEqual(len(saved), 1)
+        self.assertEqual(saved[0].read_bytes(), b'fixture capture')
+        manifest = json.loads(next(evidence.glob(head[:12] + '-*/evidence.json')).read_text())
+        self.assertEqual(manifest['preserved_at_commit'], head)
+        self.assertEqual(next(evidence.glob('*/files/ignored')).read_text(), 'other task evidence')
+
+    def test_invalid_evidence_preserves_main_and_never_follows_peer_symlinks(self) -> None:
+        task = self.task('task')
+        main = self.git(self.root, 'rev-parse', 'HEAD')
+        captures = task / '.DerivedData/Deliverables'
+        captures.mkdir(parents=True)
+        (captures / 'foreign').symlink_to(self.root / 'shared')
+        self.assert_stopped(task, main)
+        self.assertTrue(task.exists())
+        self.assertNotEqual(self.helper(task, 'evidence', '../outside').returncode, 0)
 
     def test_locked_worktree_cleanup_is_blocked_after_landing(self) -> None:
         task = self.task('task')

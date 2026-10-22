@@ -75,7 +75,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         end = focused.index('Ownership and integration', start)
         without_focus = focused[:start] + focused[end:]
         read_start = without_focus.index('Suggested initial reads (')
-        read_end = without_focus.index('Discovery:', read_start)
+        read_end = without_focus.index('Source owners', read_start)
         stripped = without_focus[:read_start] + without_focus[read_end:]
         for reference in task['contracts']:
             self.assertEqual(focused.count('  ' + reference + '\n'), 1)
@@ -214,11 +214,19 @@ class AgentContextTests(ScriptRegressionTestCase):
                 output = self.brief('--paths', *paths)
                 self.assertEqual({name for name in details if f"/{name}.md" in output}, expected)
                 self.assertIn("/battle-engine.md" if paths[0].startswith(engine) else "/persistence.md", output)
-                self.assertIn("python3 Scripts/agent-search.py", output)
-                references = output.split("Behavior references", 1)[1].split("Skills", 1)[0].split("Memory", 1)[0].split("Discovery", 1)[0]
+                self.assertIn("Source owners (use scoped rg", output)
+                references = output.split("Behavior references", 1)[1].split("Skills", 1)[0].split("Memory", 1)[0].split("Source owners", 1)[0]
                 self.assertTrue(all(f"/{name}.md" in references for name in expected))
                 self.assertNotIn("/battle-engine.md", references)
                 self.assertNotIn("/persistence.md", references)
+
+    def test_file_brief_inlines_focused_contracts_without_reading_broad_cards(self) -> None:
+        output = self.brief('--read', '--paths',
+            'Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift')
+        guidance = output.split('Initial guidance (complete reads;', 1)[1]
+        for invariant in ('Shop offers are pinned', 'Empty Shops prepare stock', 'Voyage encounters use'):
+            self.assertIn(invariant, guidance)
+        self.assertNotIn('Corruption gives', guidance)
 
     def test_directive_skill_does_not_route_ordinary_rationale_comments(self) -> None:
         from internal.change_routing import classify

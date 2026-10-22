@@ -8,7 +8,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 |---|---|
 | `./Scripts/generate.sh [--assets [--kind art\|music\|sfx\|app-icon\|all]] [--skip-xcodegen]` | Generate the Xcode project without cache reuse and authored derived content (`--assets` also prepares art/music/SFX; `--kind` prepares one asset kind; `--skip-xcodegen` runs content/asset codegen only) |
 | `./Scripts/build.sh` | Compile only the app; `--release-device` verifies unsigned iOS Release compilation |
-| `python3 Scripts/agent-brief.py --base main --status --read` | Stateless full-task briefing (commits plus dirty files); `--paths <files...>` selects intended files before editing and `--task <concern>` is an optional shortcut; `--status` adds scoped changes; `--read` includes initial guidance in the same call when absent from context. [Quickstart](../Docs/AgentContext/README.md#quickstart) |
+| `python3 Scripts/agent-brief.py --base main --status --read` | Stateless full-task briefing (commits plus dirty files); `--paths <files...>` selects intended files before editing and `--task <concern>` is an optional shortcut; `--status` adds scoped changes; `--read` includes safeguards, ownership and focused contracts together when absent from context. [Quickstart](../Docs/AgentContext/README.md#quickstart) |
 | `./Scripts/agent-context.sh --agent --paths …` | Launcher for the same stateless briefing; `--status`, `--smoke`, and `--full` add status, smoke ownership, and plan detail; `--working-tree --allow-broad-scope` is intentional whole-tree work |
 | `python3 Scripts/agent-search.py <pattern> --scope <owner>` | Authored-first discovery: matching filenames/counts by default; plain identifiers rank exact stems, filename words/prefixes, then declarations before references outside docs; `--offset`/`--expect` continuations avoid repeats and reject changed results; `--overview` pages owner counts/entry points; `--files` searches filenames (`--mode assets --files` includes binary media names); `--excerpts` for bounded lines, `--mode tests`, `docs`, or `generated` for other surfaces; omissions are explicit |
 | `python3 Scripts/agent-diff.py --paths <files...>` | Paged authored diffs plus generated statistics; file headers print once per file per page; `--summary` adds generated talent/affix/Homestead record hints with explicit unsupported-format fallback; `--generated` expands generated patches; `--staged` reviews the index; `--full` intentionally reads all units |
@@ -20,6 +20,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `python3 Scripts/content-inspect.py --id <id>` | Inspect authored content by exact ID, player-facing `--name <text>`, or canonical `--trigger <field>`; `--references` follows parsed fields to schemas, rule anchors, authored Swift and tests; record and reference pages disclose omissions; `--full` expands record fields |
 | `node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>]` | Independent implementation checkout under primary `.worktrees/<slug>` on `codex/<slug>`, starting from committed local `main` by default; reuse the chat's existing suitable worktree |
 | `node Scripts/agent-worktree.mjs integrate [--keep-worktree]` | From the task worktree: shared integration lock, rebase onto local `main`, scoped handoff, then fast-forward primary `main` and delete the task checkout including local-only files; `--keep-worktree` retains it for continued work. No push. [Policy and recovery](../Docs/Platform/Release.md#isolated-chat-workflow) |
+| `node Scripts/agent-worktree.mjs evidence [path...]` | Print the durable shared evidence directory, or preserve task-local files there immediately. Integration also preserves `.DerivedData/Deliverables/` before cleanup, with revision metadata |
 | `node Scripts/agent-worktree.mjs remove --task <slug>` | From primary: remove only a clean, registered task worktree already merged into `main`; retain its branch for recovery and preserve ignored files first |
 | `./Scripts/new-plan.sh <PlanName>` | Scaffold an active execution plan with an advisory review date under `Docs/Plans/`; completed plans are deleted after updating canonical owners |
 | `./Scripts/ensure-ci-tools.sh` | Install pinned XcodeGen, SwiftFormat, SwiftLint, ripgrep, and xcbeautify |
@@ -30,14 +31,15 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 
 ### Localization
 
-`python3 Scripts/localization.py plan` emits the missing/stale translation queue.
-`template` emits response metadata and empty translation/review fields to fill;
-it does not perform or certify translation or review.
-`apply <response.json>` validates reviewed agent results and deterministically
-generates native resources and localized store submission files. `check` is
-read-only and requires no AI, network, compiler or paid service. The
-[localization contract](../Docs/Platform/Localization.md) owns response format,
-review requirements, source ownership and CI screenshot inspection.
+`python3 Scripts/localization.py prepare` saves one queue and contextual response
+under a fresh `.DerivedData/Localization/` directory. Fill translations and perform
+a separate review, then use `review <response.json> --rationale '<completed checks>'`
+to record that attestation; it does not perform AI review. `apply <response.json>`
+validates reviewed results and generates native/store resources; `check` validates
+freshness and coverage without AI, network, or compilation. The stdout `plan` and
+`template` commands remain supported. The
+[localization contract](../Docs/Platform/Localization.md#agent-workflow) owns the
+review requirements and compatibility formats.
 
 ### Verification
 
@@ -64,7 +66,10 @@ two local build workers.
 | `./Scripts/test.sh smoke [--no-build]` | CI-owned checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | CI-owned targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | CI-owned exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
-| `./Scripts/handoff.sh --isolate --quiet --base main` | Full task scope (commits plus dirty files), or focused `--paths …`; evidence states and next action are reported. Lightweight local gate; compiled/simulator/generation checks are reported as CI-owned; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` reports targeted UI ownership, `--mirror` requires the deliberate heavy-local flag before installing on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` captures child logs during execution and prints phase outcomes plus bounded failures; successful logs are removed on completion |
+| `./Scripts/handoff.sh --quiet --base main` | Static route, isolated automatically (`--isolate` remains supported). Full task scope (commits plus dirty files), or focused `--paths …`; evidence states and next action are reported. Lightweight local gate; compiled/simulator/generation checks are reported as CI-owned; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` reports targeted UI ownership, `--mirror` requires the deliberate heavy-local flag before installing on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` captures child logs during execution and prints phase outcomes plus bounded failures; successful logs are removed on completion |
+| `./Scripts/handoff.sh --route diagnostic --package <Package> --paths <files...>` | Explicit concrete-failure diagnostic: one package, or use `--app-only` / `--ui <Class[/method]>`. UI selectors choose their registered Smoke/FullUI plan. Sets the focused local-execution flag; no other checks run |
+| `./Scripts/handoff.sh --route visual --paths <files...>` | Persistent-terminal managed build/launch/inspection session. Inspect the actual result, save deliverables, and stop the owned lease. A completed session does not certify visual quality |
+| `./Scripts/handoff.sh --route release --paths <files...>` | Requested full release verification through `test-deploy.sh --mode ui`, including explicit local/full-UI flags. No versioning, tagging, signing, upload, or publication |
 | `./Scripts/ci-gate.sh` | CI-owned full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
 | `./Scripts/ci-gate.sh --fast` | Run only the ordered commands in [the cheap-slice registry](config/cheap-slices.txt); skips generation and style |
 | `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions with leaf-family selection (`script_test_selection.py`); runs docs unless the caller already checked them |

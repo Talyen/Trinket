@@ -337,15 +337,30 @@ def verification_plan(route: Route, *, root: Path = ROOT, environment: dict[str,
     style_checked = any(check.id == 'style' and not check.deferred for check in checks)
     config = Path(environment.get('TRINKET_CHEAP_SLICES_CONFIG', 'Scripts/config/cheap-slices.txt'))
     if not config.is_absolute(): config = root / config
+    # Unknown input owners retain all slices, including in mixed scopes.
+    known = all(path.endswith('.md') or
+                path.startswith(('Packages/', 'Trinket/', 'TrinketUITests/', 'Scripts/',
+                                 'Localization/', 'ContentManifest/', 'ArtManifest/',
+                                 'MusicManifest/', 'SoundManifest/', 'ReleaseNotes/', '.github/')) or
+                path in {'project.yml', 'Gemfile', 'Gemfile.lock', '.swiftlint.yml', '.swiftformat', 'cliff.toml'}
+                for path in route.paths)
     count = 0
     for line in config.read_text().splitlines():
         command, _, flags = line.partition('#')
-        if not command.strip() or style_checked and 'skip-when-style-checked' in flags: continue
+        if not command.strip(): continue
+        count += 1
+        if style_checked and 'skip-when-style-checked' in flags: continue
+        local_paths = re.search(r'(?:^|\s)local-paths=(\S+)', flags)
+        # CI retains the complete registry. Unknown non-document inputs keep all
+        # slices; known routes select by the check's declared input surface.
+        if local and known and local_paths:
+            patterns = local_paths[1].split(',')
+            inputs = [path for path in route.paths if not path.endswith('.md') or path in patterns]
+            if not any(matches(path, *patterns) for path in inputs): continue
         lexer = shlex.shlex(command, posix=True, punctuation_chars=';&|<>')
         lexer.whitespace_split = True
         argv = list(lexer)
         if any(token in {';', '&&', '||', '|', '>', '<'} for token in argv): raise ValueError('Cheap slices must be executable argument lists, not shell expressions')
-        count += 1
         add(f'cheap-{count}', 'cheap CI slice: ' + command.strip(), *argv)
     if not count: raise ValueError('Cheap-slice registry is empty.')
     if mirror and (route.needs & {'build', 'content', 'project'} or route.packages or 'feature' in route.features):

@@ -6,8 +6,9 @@ cross-package exceptions, not restated root policy. Platform docs own architectu
 and testing; nested `AGENTS.md` files own local hard stops.
 
 Read the root and nested `AGENTS.md` safeguards and the applicable ownership and
-integration constraints. The router lists detailed behavior references separately:
-read the sections relevant to the change and follow dependencies across concerns.
+integration constraints. With `--read`, the briefing includes focused behavior
+sections alongside safeguards and ownership. Broad behavior references remain
+available for the relevant concern; follow dependencies across concerns.
 A shared filename does not require reading every listed behavior reference. Skills
 apply by trigger. Route metadata such as `battle.md` appears with `--full` for
 owner discovery. Reuse unchanged guidance already in context.
@@ -58,14 +59,15 @@ Read the safeguards and relevant contracts it supplies. Reuse unchanged guidance
 follow additional linked behavior sections only when they apply. After changes,
 `python3 Scripts/agent-brief.py --status --read --base main` derives the complete
 task scope, including committed and dirty work. Use the user-specified base if different.
-Finish with `./Scripts/handoff.sh --isolate --quiet --base main`.
+Commit reviewed task work and integrate; integration runs the final handoff against
+current main. For standalone handoff use `./Scripts/handoff.sh --quiet --base main`.
 
 The briefing is the only required retrieval entry point. Concern shortcuts such
 as `--task shop` and the specialized search/read/investigate/diff commands are
 optional conveniences, described in [Retrieval](Retrieval.md). They never replace
 reading relevant source bodies, assertions, or overlapping dirty diffs.
 
-Briefings are stateless. Initial reads use ownership sections where available;
-other behavior references remain discoverable. The [task index](../../Scripts/config/agent-tasks.json)
+Briefings are stateless. Inline reads use ownership sections and focused contract
+anchors; broad behavior references remain discoverable. The [task index](../../Scripts/config/agent-tasks.json)
 contains navigation hints, not coverage proof. `localization` routes copy work;
 `localization-tooling` routes changes to its implementation.

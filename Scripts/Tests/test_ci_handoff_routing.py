@@ -17,6 +17,54 @@ import tempfile
 from pathlib import Path
 
 class CIHandoffRoutingTests(ScriptRegressionTestCase):
+    def test_local_slices_follow_inputs_and_hosted_or_unknown_scope_keeps_full_registry(self) -> None:
+        from internal.change_routing import classify, verification_plan
+        commands = lambda paths, hosted=False: [check.command for check in verification_plan(
+            classify(paths), environment=self.verification_environment(hosted=hosted)) if check.id.startswith('cheap-')]
+        self.assertEqual(commands(['Docs/Platform/Verification.md']), [])
+        shop = commands(['Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift'])
+        self.assertIn('./Scripts/check-module-boundaries.sh', shop)
+        self.assertIn('python3 Scripts/localization.py check', shop)
+        self.assertNotIn('./Scripts/check-artwork-budget.sh', shop)
+        self.assertNotIn('./Scripts/release-notes.sh validate', shop)
+        artwork = commands(['Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift'])
+        self.assertIn('./Scripts/check-artwork-budget.sh', artwork)
+        full = commands(['Scripts/internal/change_routing.py'])
+        self.assertEqual(commands(['unknown-input.config']), full)
+        self.assertEqual(commands(['Unknown/Probe.swift', 'Docs/README.md']), full)
+        self.assertEqual(commands(['.githooks/pre-push']), full)
+        self.assertEqual(commands(['Docs/Platform/Verification.md'], hosted=True), full)
+        self.assertIn('./Scripts/release-notes.sh validate', commands(['CHANGELOG.md']))
+
+    def test_explicit_routes_select_only_the_requested_work_and_isolate_by_default(self) -> None:
+        from script_test_support import load_script
+        verify = load_script('explicit_route_verifier', 'verify.py')
+        cases = (
+            (['--route', 'diagnostic', '--package', 'TrinketCore'], ('./Scripts/test-package.sh', 'TrinketCore')),
+            (['--route', 'diagnostic', '--app-only'], ('./Scripts/test.sh', 'unit', '--app-only')),
+            (['--route', 'diagnostic', '--ui', 'SmokeShopTests/testPurchase'], ('./Scripts/test.sh', 'smoke', 'SmokeShopTests/testPurchase')),
+            (['--route', 'diagnostic', '--ui', 'OptionsUITests'], ('./Scripts/test.sh', 'ui', 'OptionsUITests')),
+            (['--route', 'visual'], ('./Scripts/run-simulator.sh', '--isolate', '--inspect')),
+            (['--route', 'release'], ('./Scripts/test-deploy.sh', '--mode', 'ui')),
+        )
+        for arguments, expected in cases:
+            with self.subTest(arguments=arguments), patch.dict(os.environ, self.verification_environment(), clear=True), \
+                 patch.object(verify, 'run_checks', return_value=0) as execute, contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(verify.main([*arguments, '--quiet', '--paths', 'Docs/README.md']), 0)
+                checks = execute.call_args.args[0]
+                self.assertEqual([check.argv for check in checks], [expected])
+                environment = execute.call_args.kwargs['environment']
+                self.assertEqual(environment['TRINKET_ISOLATE'], '1')
+                self.assertEqual(environment['TRINKET_ALLOW_HEAVY_LOCAL'], '1')
+                if arguments[1] == 'visual':
+                    self.assertFalse(execute.call_args.kwargs['quiet'])
+                if arguments[1] == 'release':
+                    self.assertEqual(environment['TRINKET_ALLOW_FULL_UI'], '1')
+        with contextlib.redirect_stderr(io.StringIO()):
+            for arguments in (['--route', 'diagnostic'], ['--package', 'TrinketCore'], ['--route', 'visual', '--smoke']):
+                with self.assertRaises(SystemExit):
+                    verify.main([*arguments, '--paths', 'Docs/README.md'])
+
     def test_evidence_summary_never_promotes_preview_deferred_or_unrun_checks(self) -> None:
         from script_test_support import load_script
         from internal.change_routing import Check

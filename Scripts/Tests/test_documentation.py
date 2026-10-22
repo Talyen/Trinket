@@ -270,14 +270,16 @@ class DocumentationTests(ScriptRegressionTestCase):
                 "./Scripts/check-artwork-budget.sh",
             ],
         )
-        # Dry-run must include cheap slices in order after plan.
-        result = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Docs/Platform/Verification.md"], cwd=ROOT, expected=0)
+        # Script infrastructure keeps the full registry; pure docs have no local slices.
+        result = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Scripts/check-docs.py"], cwd=ROOT, expected=0)
         planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-        # Docs scope should contain docs check plus the cheap slices in registry order.
+        # Infrastructure scope includes docs plus cheap slices in registry order.
         self.assertIn("python3 ./Scripts/check-docs.py", planned)
         cheap_positions = [planned.index(cmd) for cmd in registry]
         self.assertEqual(cheap_positions, sorted(cheap_positions))
         self.assertEqual(planned[-len(registry):], registry)
+        docs = run_captured([str(ROOT / "Scripts/handoff.sh"), '--dry-run', '--paths', 'Docs/Platform/Verification.md'], cwd=ROOT, expected=0)
+        self.assertFalse(any(command in docs.stdout for command in registry))
 
     def test_mixed_script_and_docs_runs_docs_once(self) -> None:
         for hosted in (False, True):

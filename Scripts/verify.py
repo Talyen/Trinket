@@ -13,8 +13,9 @@ import sys
 import tempfile
 import uuid
 
-from internal.change_routing import collect_paths, classify, verification_plan, lightweight
+from internal.change_routing import Check, collect_paths, classify, verification_plan, lightweight
 from internal.cli import ROOT, pinned_tool_path
+from internal.ui_registration import registrations
 from internal import output_retention as retention
 
 
@@ -82,7 +83,7 @@ def run_checks(checks, *, root: Path = ROOT, quiet: bool = False, environment: d
                 print(f'Log retention: {error}', file=sys.stderr)
 
 
-def report_evidence(checks, outcomes: dict[str, str], *, preview: bool, status: int) -> None:
+def report_evidence(checks, outcomes: dict[str, str], *, preview: bool, status: int, route: str = 'static') -> None:
     def state(selected) -> str:
         if not selected:
             return 'not selected'
@@ -90,15 +91,26 @@ def report_evidence(checks, outcomes: dict[str, str], *, preview: bool, status: 
                   else outcomes.get(check.id, 'not run') for check in selected}
         return ', '.join(value for value in ('failed', 'unavailable', 'not run', 'planned', 'passed', 'deferred to CI') if value in states)
     print('Verification evidence' + (' (preview)' if preview else '') + ':')
-    print('Static checks: ' + state([check for check in checks if check.id not in {'package', 'build', 'smoke', 'generate', 'assert', 'mirror'}]))
-    print('App compilation: ' + state([check for check in checks if check.id in {'build', 'smoke'}]))
-    print('Package compilation and behavior: ' + state([check for check in checks if check.id == 'package']))
-    print('UI behavior: ' + state([check for check in checks if check.id == 'smoke']))
+    print('Route: ' + route)
+    if route == 'visual':
+        print('Managed inspection session: ' + state([check for check in checks if check.id == 'visual']))
+        print('App build/launch: inspect the managed runner output.')
+        print('UI behavior: separate interaction evidence required.')
+    elif route == 'release':
+        print('Release verification: ' + state([check for check in checks if check.id == 'release']))
+        print('Static, app/package compilation and UI results: inspect the release runner report.')
+    else:
+        print('Static checks: ' + state([check for check in checks if check.id not in {'package', 'build', 'smoke', 'generate', 'assert', 'mirror'}]))
+        print('App compilation: ' + state([check for check in checks if check.id in {'build', 'smoke'}]))
+        print('Package compilation and behavior: ' + state([check for check in checks if check.id == 'package']))
+        print('UI behavior: ' + state([check for check in checks if check.id == 'smoke']))
     print('Visual review: separate shipping-UI evidence required when visuals change; handoff does not certify it.')
     if status:
         print('Next: resolve failed/unavailable checks and rerun handoff.')
     elif preview:
         print('Next: execute this handoff to establish the planned evidence.')
+    elif route != 'static':
+        print('Next: review the captured results; focused diagnostics and inspection do not replace static handoff or hosted qualification.')
     elif any(check.deferred for check in checks):
         print('Next: local integration is permitted after review; after an authorized push, inspect hosted CI for deferred checks.')
     else:
@@ -111,6 +123,12 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     scope.add_argument('--paths', nargs='+')
     scope.add_argument('--working-tree', action='store_true')
     scope.add_argument('--base', help='include task commits since the shared ancestor of REF and HEAD, plus dirty files')
+    parser.add_argument('--route', choices=('static', 'diagnostic', 'visual', 'release'), default='static',
+                        help='static handoff (default), one focused diagnostic, managed visual inspection, or full release verification')
+    target = parser.add_mutually_exclusive_group()
+    target.add_argument('--package', help='diagnostic: run this package only')
+    target.add_argument('--ui', help='diagnostic: run one existing UI class or method selector')
+    target.add_argument('--app-only', action='store_true', help='diagnostic: compile the app only')
     for flag in ('dry-run', 'quiet', 'isolate', 'smoke', 'mirror', 'final', 'keep-plan'):
         parser.add_argument('--' + flag, action='store_true')
     args = parser.parse_args(argv)
@@ -118,19 +136,46 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         parser.error('handoff requires --paths <file...> or --base <ref>; use --working-tree for intentional whole-tree scope')
     if args.paths == []:
         parser.error('--paths requires at least one repository-relative path')
+    diagnostic = bool(args.package or args.ui or args.app_only)
+    if diagnostic != (args.route == 'diagnostic'):
+        parser.error('--route diagnostic requires exactly one of --package, --ui, --app-only; selectors apply only to diagnostics')
+    if args.route != 'static' and (args.smoke or args.mirror or args.final or args.keep_plan):
+        parser.error('--smoke, --mirror, --final and --keep-plan apply only to the static route')
     environment = dict(os.environ)
     environment['PATH'] = pinned_tool_path(root, environment.get('PATH', ''))
     if not environment.get('TRINKET_DIAGNOSTICS_SESSION_ID'):
         environment['TRINKET_DIAGNOSTICS_SESSION_ID'] = environment.get('TRINKET_RUN_ID') or (
             datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ') + f'-{os.getpid()}-{uuid.uuid4().hex[:8]}'
         )
-    if args.isolate: environment['TRINKET_ISOLATE'] = '1'
+    # Agent verification always isolates; retain --isolate for existing callers.
+    environment['TRINKET_ISOLATE'] = '1'
     try:
         route = classify(collect_paths(args.paths, root, base=args.base), root, base=args.base)
-        if not route.paths:
+        if not route.paths and args.route == 'static':
             print('No changes in the selected scope to verify; no new evidence established.')
             return 0
-        checks = verification_plan(route, root=root, environment=environment, smoke=args.smoke or environment.get('TRINKET_ENABLE_SMOKE') == 'true', final=args.final, keep_plan=args.keep_plan, mirror=args.mirror)
+        if args.route == 'static':
+            checks = verification_plan(route, root=root, environment=environment, smoke=args.smoke or environment.get('TRINKET_ENABLE_SMOKE') == 'true', final=args.final, keep_plan=args.keep_plan, mirror=args.mirror)
+        else:
+            environment['TRINKET_ALLOW_HEAVY_LOCAL'] = '1'
+            if args.route == 'diagnostic':
+                if args.package:
+                    checks = [Check('package', 'focused package diagnostic', ('./Scripts/test-package.sh', args.package))]
+                elif args.ui:
+                    suite = next((row['suite'] for row in registrations(root)
+                                  if row['name'] == args.ui.partition('/')[0]), None)
+                    if suite not in {'Smoke', 'FullUI'}:
+                        raise ValueError('--ui requires one registered Smoke or FullUI Class[/method] selector')
+                    mode = 'smoke' if suite == 'Smoke' else 'ui'
+                    checks = [Check('smoke', 'focused UI diagnostic', ('./Scripts/test.sh', mode, args.ui))]
+                else:
+                    checks = [Check('build', 'app compilation diagnostic', ('./Scripts/test.sh', 'unit', '--app-only'))]
+            elif args.route == 'visual':
+                checks = [Check('visual', 'managed visual inspection', ('./Scripts/run-simulator.sh', '--isolate', '--inspect'))]
+            else:
+                environment['TRINKET_ALLOW_FULL_UI'] = '1'
+                checks = [Check('release', 'full release verification', ('./Scripts/test-deploy.sh', '--mode', 'ui'))]
+            print(f'Explicit {args.route} route: ' + checks[0].command, flush=True)
         outcomes = {}
         if args.dry_run:
             print('Planned checks:')
@@ -142,16 +187,23 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
                         print('  ' + check.command)
             status = 0
         else:
-            status = run_checks(checks, root=root, quiet=args.quiet, environment=environment, outcomes=outcomes)
+            if args.route == 'visual':
+                deliverables = root / '.DerivedData/Deliverables'
+                deliverables.mkdir(parents=True, exist_ok=True)
+                print(f'Task deliverables (preserved during integration): {deliverables}', flush=True)
+            status = run_checks(checks, root=root, quiet=args.quiet and args.route != 'visual', environment=environment, outcomes=outcomes)
         deferred = [check.command for check in checks if check.deferred]
         if deferred:
             print('Deferred to CI:')
             print('\n'.join('  ' + command for command in deferred))
-        report_evidence(checks, outcomes, preview=args.dry_run, status=status)
+        report_evidence(checks, outcomes, preview=args.dry_run, status=status, route=args.route)
         if status:
             print('Rerun: ' + shlex.join(['./Scripts/handoff.sh', *(sys.argv[1:] if argv is None else argv)]), file=sys.stderr)
         elif not args.dry_run:
-            print('Handoff PASS: lightweight local checks completed; deferred checks require CI verification.' if lightweight(environment) else 'Handoff PASS: selected checks and cheap CI slices completed.')
+            if args.route != 'static':
+                print(f'{args.route.capitalize()} route completed; see evidence above for its scope.')
+            else:
+                print('Handoff PASS: lightweight local checks completed; deferred checks require CI verification.' if lightweight(environment) else 'Handoff PASS: selected checks and cheap CI slices completed.')
         return status
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         parser.exit(2, f'Verification failed: {error}\n')

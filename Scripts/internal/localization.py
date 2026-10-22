@@ -241,9 +241,9 @@ def plan(root: Path) -> dict:
     return {'version': 1, 'source_revision': revision, 'required_review_checks': sorted(REVIEW_CHECKS), 'requests': pending}
 
 
-def response_template(root: Path) -> dict:
+def response_template(root: Path, queue: dict | None = None) -> dict:
     """Copy queue identity and locale forms without inventing translation or review evidence."""
-    queue = plan(root)
+    queue = plan(root) if queue is None else queue
     config = load(root / 'Localization/config.json')
     results = []
     for item in queue['requests']:
@@ -252,10 +252,49 @@ def response_template(root: Path) -> dict:
         results.append({
             'id': item['id'], 'locale': item['locale'], 'source_hash': item['source_hash'],
             'translation': dict.fromkeys(forms, ''),
+            'context': {key: item[key] for key in ('source', 'comment', 'glossary', 'placeholder_contract', 'previous') if key in item},
             'required_review_checks': queue['required_review_checks'],
             'review': {'verdict': 'pending', 'checks': [], 'rationale': ''},
         })
     return {'version': queue['version'], 'source_revision': queue['source_revision'], 'translations': results}
+
+
+def prepare(root: Path) -> Path:
+    """Prepare one consistent queue and contextual response, preserving older drafts."""
+    queue = plan(root)
+    parent = root / '.DerivedData/Localization'
+    parent.mkdir(parents=True, exist_ok=True)
+    directory = Path(tempfile.mkdtemp(prefix='queue-', dir=parent))
+    (directory / 'plan.json').write_bytes(encoded(queue))
+    (directory / 'response.json').write_bytes(encoded(response_template(root, queue)))
+    return directory
+
+
+def record_review(root: Path, response_path: Path, rationale: str) -> None:
+    """Record the caller's explicit completed review; never translate or infer approval."""
+    if not rationale.strip():
+        raise ValueError('A rationale describing the completed separate review is required')
+    with transaction_lock(root):
+        response = load(response_path)
+        queue = plan(root)
+        if response.get('version') != 1 or response.get('source_revision') != queue['source_revision']:
+            raise ValueError('Source revision changed; prepare a fresh response and review it again')
+        config, _, entries = inventory(root)
+        seen = set()
+        for result in response['translations']:
+            identifier, locale = result['id'], result['locale']
+            if (identifier, locale) in seen or identifier not in entries or locale not in config['locales']:
+                raise ValueError(f'Unknown or duplicate translation: {identifier}/{locale}')
+            seen.add((identifier, locale))
+            entry = entries[identifier]
+            if result.get('source_hash') != entry['source_hash']:
+                raise ValueError(f'{identifier}/{locale}: stale source fingerprint')
+            value = result['translation']
+            validate_translation(entry['source'], value, locale, identifier, config.get('pluralForms', {}).get(locale))
+            enforce_glossary(entry, value, locale, identifier)
+            result['review'] = {'verdict': 'pass', 'checks': sorted(REVIEW_CHECKS),
+                                'rationale': rationale, 'translation_hash': digest(value)}
+        replace_files({response_path: encoded(response)})
 
 
 @contextmanager
@@ -318,6 +357,8 @@ def apply(root: Path, response: dict) -> None:
             review = result['review']
             if review.get('verdict') != 'pass' or not REVIEW_CHECKS <= set(review.get('checks', [])) or not review.get('rationale', '').strip():
                 raise ValueError(f'{identifier}/{locale}: a completed second-pass AI review is required')
+            if 'translation_hash' in review and review['translation_hash'] != digest(value):
+                raise ValueError(f'{identifier}/{locale}: translation changed after review; review it again')
             enforce_glossary(entry, value, locale, identifier)
             catalogs[entry['catalog']]['strings'][entry['key']].setdefault('localizations', {})[locale] = localized(value)
             receipts.setdefault(identifier, {})[locale] = {

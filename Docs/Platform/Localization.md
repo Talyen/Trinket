@@ -11,28 +11,29 @@ Every task that changes displayed copy completes its localization before handoff
 For optional routed pointers, use `python3 Scripts/agent-brief.py --task localization --read`.
 
 1. Edit the owning English catalog, authored content, or
-   [store copy](../../Localization/Store/English.json). Preserve stable keys when
-   changing catalog-owned English wording. Manifest and ability identities remain data.
-2. Run `python3 Scripts/localization.py plan`. Its JSON queue supplies current
-   source fingerprints, context, glossary, placeholders, previous translations,
-   and the required review checks. Redirect it into `.DerivedData/Localization/`
-   for larger queues. Planning does not change tracked inputs or outputs.
-3. Translate only queued entries using the existing development agent. Reuse
-   matching translations only after checking their contexts. When delegating,
-   use high-reasoning subagents for translation and review.
-4. Perform a separate AI review pass against the English meaning and game rules:
-   actors, targets, conditions, timing, quantities, chance versus guarantees,
-   glossary terms, grammar, placeholders, and semantic markup. Correct defects.
-5. Generate the response skeleton with `python3 Scripts/localization.py template`
-   (redirect stdout to a response JSON file). It copies IDs, source hashes/revision,
-   target-locale plural forms, and required review checks. Fill translations, then
-   set `review.verdict` to `"pass"`, list completed `review.checks`, and record a
-   truthful rationale after the separate review. Empty fields and `"pending"`
-   verdicts supply no review evidence and cannot be applied. Keep the plan's
-   English meaning, context, glossary and placeholder contracts beside the template.
-6. Run `python3 Scripts/localization.py apply <response.json>`, then
+   [store copy](../../Localization/Store/English.json), preserving stable keys.
+2. Run `python3 Scripts/localization.py prepare`. It saves one consistent
+   `plan.json` and contextual `response.json` under a new `.DerivedData/Localization/`
+   directory without overwriting earlier drafts. The response includes English,
+   translator comments, glossary, previous translations, placeholders, source
+   fingerprints, and locale plural forms together. Fill only queued translations.
+3. Perform a separate AI review against English and game rules: meaning, mechanics
+   (actors, targets, conditions, timing, quantities and chance), terminology,
+   placeholders/markup, and grammar. Correct defects. When delegating translation
+   or review, use high-reasoning subagents. After actually completing every check
+   for every supplied entry, run `python3 Scripts/localization.py review
+   <response.json> --rationale '<what the separate review checked>'`. This records
+   your attestation and binds it to the translated values; it does not perform AI
+   review. Trim a batch to the entries you reviewed when necessary.
+4. Run `python3 Scripts/localization.py apply <response.json>`, then
    `python3 Scripts/localization.py check`. Commit catalogs, review fingerprints,
    generated resources, and the English change together.
+
+The existing `plan` and `template` stdout commands and manually authored review
+records remain supported. Preparation never marks translations reviewed. The
+review command rejects stale sources and incomplete or mechanically invalid
+translations; apply rejects edits to translations after a recorded review.
+Actual separate review remains mandatory for every configured language.
 
 Swift-authored content uses stable source anchors. The initial key aliases in
 `Localization/source-keys.json` preserve existing key identities; new anchors get
@@ -112,8 +113,9 @@ rendering locale; retained English descriptions remain canonical data.
 ## Enforcement and release
 
 Handoff and locked local integration run the read-only localization check through
-the shared cheap-slice registry. Pre-push and CI run the same check. They perform
-no AI calls, regeneration, compilation, or network requests. Translation and
+the shared cheap-slice registry when source, catalog, or tooling inputs change.
+Documentation-only tasks skip it locally; CI retains full coverage. Pre-push and
+CI run the same check. They perform no AI calls, regeneration, compilation, or network requests. Translation and
 generation run before taking the shared integration lock. The source check also
 rejects direct `.name`, `.title`, `.description`, and `.rawValue` arguments (including
 single-field string interpolation and multiline calls) to typed `L10n` templates.

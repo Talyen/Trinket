@@ -6,8 +6,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from script_test_support import run_python
 
-from internal.localization import apply, check, digest, encoded, encoded_catalog, plan, response_template, validate_translation
+from internal.localization import apply, check, digest, encoded, encoded_catalog, plan, prepare, record_review, response_template, validate_translation
 
 
 class LocalizationTests(unittest.TestCase):
@@ -39,6 +40,21 @@ class LocalizationTests(unittest.TestCase):
                         'rationale': 'Second pass checked the damage amount, enemy target, and Burn meaning.'}}
             for item in queue['requests']]}
 
+    def test_prepare_review_apply_check_cli_journey(self):
+        prefix = ['--root', str(self.root)]
+        prepared = run_python('localization.py', *prefix, 'prepare', expected=0)
+        response = Path(next(line.split(': ', 1)[1] for line in prepared.stdout.splitlines()
+                             if line.startswith('Translate and separately review: ')))
+        draft = json.loads(response.read_text())
+        for item, translated in zip(draft['translations'], self.response()['translations']):
+            item['translation'] = translated['translation']
+        response.write_bytes(encoded(draft))
+        run_python('localization.py', *prefix, 'review', str(response), '--rationale',
+                   'Fixture separate review checked all required semantic and formatting dimensions.', expected=0)
+        run_python('localization.py', *prefix, 'apply', str(response), expected=0)
+        result = run_python('localization.py', *prefix, 'check', expected=0)
+        self.assertIn('Localization PASS', result.stdout)
+
     def test_same_key_english_edit_invalidates_every_translation(self):
         apply(self.root, self.response())
         self.assertEqual(check(self.root), [])
@@ -46,6 +62,43 @@ class LocalizationTests(unittest.TestCase):
         catalog['strings']['deal.burn']['localizations']['en']['stringUnit']['value'] = 'Take %1$lld Burn damage'
         self.write(self.name, catalog)
         self.assertEqual({item['locale'] for item in plan(self.root)['requests']}, {'ja', 'de', 'fr'})
+
+    def test_preparation_preserves_drafts_and_review_requires_valid_current_translations(self):
+        first = prepare(self.root)
+        draft = json.loads((first / 'response.json').read_text())
+        self.assertEqual(draft['source_revision'], json.loads((first / 'plan.json').read_text())['source_revision'])
+        self.assertIn('comment', draft['translations'][0]['context'])
+        self.assertIn('glossary', draft['translations'][0]['context'])
+        self.assertEqual(draft['translations'][0]['review']['verdict'], 'pending')
+        before = (first / 'response.json').read_bytes()
+        self.assertNotEqual(prepare(self.root), first)
+        self.assertEqual((first / 'response.json').read_bytes(), before)
+        with self.assertRaises(ValueError):
+            record_review(self.root, first / 'response.json', 'Reviewed all five checks separately.')
+        self.assertEqual((first / 'response.json').read_bytes(), before)
+        self.assertEqual(json.loads((self.root / 'Localization/reviews.json').read_text()), {})
+
+        response = self.response()
+        for result in response['translations']:
+            result['review'] = {'verdict': 'pending'}
+        path = first / 'response.json'
+        path.write_bytes(encoded(response))
+        with self.assertRaises(ValueError):
+            record_review(self.root, path, ' ')
+        rationale = 'Separate review checked enemy damage, chance, glossary, grammar and placeholders.'
+        record_review(self.root, path, rationale)
+        reviewed = json.loads(path.read_text())
+        changed = deepcopy(reviewed)
+        changed['translations'][1]['translation']['value'] += '.'
+        with self.assertRaisesRegex(ValueError, 'changed after review'):
+            apply(self.root, changed)
+        apply(self.root, reviewed)
+        self.assertEqual(check(self.root), [])
+        stale = deepcopy(reviewed)
+        stale['source_revision'] = 'old'
+        path.write_bytes(encoded(stale))
+        with self.assertRaisesRegex(ValueError, 'revision changed'):
+            record_review(self.root, path, rationale)
 
     def test_response_template_keeps_locale_forms_and_cannot_certify_unperformed_review(self):
         catalog = json.loads((self.root / self.name).read_text())

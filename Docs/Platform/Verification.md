@@ -8,22 +8,30 @@ setup: [SimulatorOperations.md](SimulatorOperations.md).
 
 ## Confidence ladder
 
-Choose the cheapest route that answers the question at hand. Gate composition
-is listed below; test authoring and tier ownership follow [Testing.md](Testing.md).
-Compiled routes run in CI or a bounded local diagnostic under the
-[local execution limits](#execution-limits). Routine local handoff stays lightweight.
+Choose one route based on the question. Isolation is automatic in handoff;
+existing `--isolate` calls remain supported. Static checks are the routine route.
+The other routes are explicit, bounded diagnostics, interactive visual work, or
+requested release verification; they never run as a side effect of static checks.
 
-| Task | Route | Use |
+| Question | Explicit route | Evidence |
 |---|---|---|
-| Package behavior | `test-package.sh <Package>` | Focused iteration in the owning package |
-| All package behavior | `test.sh unit` | All package schemes; no app-level unit target |
-| App compilation | `test.sh unit --app-only` | Compile coverage for app-level Swift changes |
-| Task handoff | `handoff.sh --isolate --quiet --paths <files...>` | Required agent gate; add `--smoke` for changed interaction wiring |
-| Focused interaction | `test.sh smoke <Class>` / `test.sh ui <Class>` | Existing journey, within the local limits below |
-| Gate-only check | `ci-gate.sh` / `ci-gate.sh --fast` | Full gate or cheap slices; neither runs unit/UI tests |
-| Local canary | `test-deploy.sh --mode smoke` | Optional human confidence run |
-| Release confidence | `release.sh` / `test-deploy.sh` | Requested release verification; local execution uses the diagnostic limits below |
-| Performance investigation | `performance.sh` | Ad hoc measurement under the performance playbook |
+| Ready to land the task? | Commit reviewed work, then `node Scripts/agent-worktree.mjs integrate` | Runs the final static handoff after incorporating main under the lock; no redundant pre-commit handoff required |
+| Standalone or focused static check? | `handoff.sh --quiet --base main` (or `--paths <files...>`) | Scoped style, script/docs and relevant cheap checks; compilation and journeys remain CI-owned |
+| Concrete package/test failure? | `handoff.sh --route diagnostic --package <Package> --paths <files...>` | Executes only the selected package diagnostic |
+| Concrete app or UI failure? | `handoff.sh --route diagnostic --app-only --paths <files...>` or `--ui <Class[/method]>` | App compilation or one existing UI selector; no full suite |
+| Changed visuals need inspection? | `handoff.sh --route visual --paths <files...>` in a persistent terminal | Managed build/launch/inspection lease; inspect and exercise the result before stopping the session |
+| Requested full release verification? | `handoff.sh --route release --paths <files...>` | Runs `test-deploy.sh --mode ui`; does not version, tag, sign, upload, or publish |
+
+Use `--dry-run` with any route to inspect its command without executing it.
+Diagnostic selectors are required and mutually exclusive. Explicit non-static
+routes set the existing local-execution flags for their selected wrapper; callers
+need not discover environment overrides. Use the diagnostic route for a concrete
+failure, the visual route for the visual completion gate, and release only for
+requested release qualification. The execution limits below still apply.
+`--smoke` on the static route reports selected hosted journey obligations; it does
+not run them locally. Direct package, UI, play, performance, and release commands
+remain supported under the same policy. A focused diagnostic does not replace
+static handoff, hosted qualification, or visual review.
 
 Briefing and handoff accept `--base main` to derive the full task scope: committed
 changes since the shared ancestor of the base and `HEAD`, plus staged, unstaged and
@@ -53,8 +61,9 @@ For executable script changes, handoff passes the same path scope to the script
 runner. Registered leaf families run their owning and consumer regressions;
 documentation checks and their direct integration tests share a focused suite;
 shared infrastructure, unknown scripts and unscoped CI run the full suite. Script
-syntax follows the supplied path scope; build-input alignment and the handoff's
-cheap slices remain full-tree. Family
+syntax follows the supplied path scope; build-input alignment remains full-tree.
+Local cheap slices use the registry's declared input scopes; CI retains the
+complete registry. Family
 ownership follows [script regression ownership](../../Scripts/README.md#script-regression-ownership):
 Python and shell consumers share `Scripts/config/script-regressions.tsv`; the
 selector retains explicit full-suite exceptions. Update the input's registry row
@@ -163,7 +172,9 @@ For changes to player-facing layout, styling, visible copy, artwork, or motion:
    record what was inspected and why it meets the brief; do not invent edits to
    satisfy an iteration count.
 4. Link final evidence and summarize the review and refinements in the handoff.
-   Keep deliverable evidence outside worktrees that integration deletes. If a
+   Save deliverables in `.DerivedData/Deliverables/`; integration preserves them
+   outside the task checkout before cleanup. Use `agent-worktree.mjs evidence
+   <paths...>` to preserve other task-local files immediately. If a
    rendering prerequisite is unavailable, report **implemented, visually unverified**
    with the exact blocker; do not call the visual task done or polished.
 
@@ -186,8 +197,9 @@ satisfy the gate. Guidance-only edits use scenario review, not a synthetic UI bu
 - Agents may choose bounded, task-relevant local compile, test, or simulator
   diagnostics without separate user approval when needed to reproduce or resolve
   a concrete failure, or to satisfy the visual completion gate above. Use
-  `TRINKET_ALLOW_HEAVY_LOCAL=1` with a focused selector
-  for compiled test wrappers, and state the scope and purpose before running.
+  the explicit diagnostic or visual route above, or set
+  `TRINKET_ALLOW_HEAVY_LOCAL=1` with a focused selector for direct compiled
+  wrappers. State the scope and purpose before running.
   Keep simulator work isolated and release owned leases when finished. The
   wrappers limit package and UI concurrency; this is not routine verification.
 - Bare FullUI additionally requires `TRINKET_ALLOW_FULL_UI=1`; preserve the
@@ -280,7 +292,7 @@ CI OK. The watch command attempts one such recovery, not a blanket test retry.
 
 | Gate | Composition |
 |---|---|
-| `handoff.sh` | Locally: scoped style, fast selected script regressions, docs, cheap static slices and selected prepared-asset integrity; reports content/project generation, compilation, package and UI work as CI-owned |
+| `handoff.sh` (static route) | Locally: scoped style, fast selected script regressions, docs, cheap static slices and selected prepared-asset integrity; reports content/project generation, compilation, package and UI work as CI-owned; local cheap slices use declared input scopes |
 | `ci-gate.sh` | Pinned-tool ensure, generation and idempotence, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Check committed prepared assets and manifest/resource integrity without Asset Library |

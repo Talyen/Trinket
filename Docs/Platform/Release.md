@@ -421,8 +421,9 @@ and generated resources remain checkout-local.
 For API or combat-semantic migrations, repeat the
 [consumer review](Testing.md#fixtures) after incorporating current main; include
 unchanged downstream tests and shared fixtures. Review the complete task diff and
-relevant integration contracts, run the required
-handoff, and commit only task-related files under the staging discipline below.
+relevant integration contracts, run any focused checks needed while iterating,
+and commit only task-related files under the staging discipline below. Integration
+provides the required final handoff; a separate pre-commit handoff is unnecessary.
 Then, **from the task worktree**, run:
 
 ```sh
@@ -455,7 +456,16 @@ No routine chat coordination is needed; the root guide's
 
 Successful integration automatically deletes and unregisters only the invoking
 task worktree under the same integration lock, including ignored files and build
-outputs. Cleanup rechecks its registration,
+outputs. Before landing or cleanup, it preserves `.DerivedData/Deliverables/` in
+Git's shared `trinket-evidence/<branch>/` directory, outside task worktrees, with
+the preservation commit, branch, and original paths. This metadata records
+when files were preserved; capture/build identity still comes from the evidence.
+Evidence copies never follow symlinks; a failed preservation stops landing/cleanup. Each copy gets a unique
+directory, so retries do not overwrite earlier evidence. To preserve other
+task-local files immediately, run `node Scripts/agent-worktree.mjs evidence <paths...>`;
+without paths it prints the durable directory for direct captures. Evidence is
+retained until deliberately removed, separately from expiring diagnostic logs.
+Cleanup rechecks its registration,
 branch, commit, clean state and Git operation state; locked worktrees and submodules
 are preserved. A failed handoff never cleans up. Cleanup failure reports after the
 completed integration; it does not roll main back.
@@ -497,8 +507,9 @@ Prepare changed media and download offloaded sources before an asset-routed push
 Pre-push does not regenerate assets or run package tests;
 CI owns content generation freshness, idempotence, compilation, and game/UI suites.
 A requested push still requires a green path-scoped
-handoff before commit. Review and include only task-related authored and
-generated files; stage individual hunks when task and unrelated changes share a file.
+handoff for the complete task; successful locked integration supplies it. A
+standalone task must run handoff explicitly. Review and include only task-related
+authored and generated files; stage individual hunks when task and unrelated changes share a file.
 
 Pre-push validates Git's outgoing ref/object pairs against the checked-out HEAD
 and requires a clean checkout, including nonignored untracked files. It fails on

@@ -34,6 +34,56 @@ def preserve_ignored(root: Path, incoming: str) -> None:
             raise RuntimeError(f"Ignored file would be overwritten in {root}: {name}. Preserve it before integrating.")
 
 
+def evidence_directory(source: Path) -> Path:
+    common = Path(git(source, 'rev-parse', '--path-format=absolute', '--git-common-dir')).resolve()
+    branch = git(source, 'branch', '--show-current')
+    if not branch.startswith('codex/'):
+        raise RuntimeError('Task evidence requires a codex/ task branch.')
+    destination = common / 'trinket-evidence' / branch
+    if not destination.resolve().is_relative_to(common):
+        raise RuntimeError('Evidence directory must remain inside the shared Git directory.')
+    if any(parent.is_symlink() for parent in (destination, *destination.parents) if parent.is_relative_to(common)):
+        raise RuntimeError('Evidence directory cannot follow symlinks.')
+    destination.mkdir(parents=True, exist_ok=True)
+    return destination
+
+
+def preserve_evidence(source: Path, names: list[str]) -> Path:
+    """Copy explicit deliverables before cleanup, without following symlinks."""
+    paths = []
+    for name in names:
+        path = Path(os.path.abspath(source / name))
+        if not path.is_relative_to(source) or not path.exists():
+            raise RuntimeError(f'Evidence must exist inside the task checkout: {name}')
+        if any(parent.is_symlink() for parent in (path, *path.parents) if parent.is_relative_to(source)):
+            raise RuntimeError(f'Evidence cannot follow symlinks: {name}')
+        files = [path, *path.rglob('*')] if path.is_dir() else [path]
+        if any(item.is_symlink() or not (item.is_file() or item.is_dir()) for item in files):
+            raise RuntimeError(f'Evidence contains a symlink or special file: {name}')
+        paths.extend(item for item in files if item.is_file())
+    destination = evidence_directory(source)
+    if not paths:
+        return destination
+    head = git(source, 'rev-parse', 'HEAD')
+    saved = Path(tempfile.mkdtemp(prefix=head[:12] + '-', dir=destination))
+    for path in sorted(set(paths)):
+        target = saved / 'files' / path.relative_to(source)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, target, follow_symlinks=False)
+    (saved / 'evidence.json').write_text(json.dumps({
+        'preserved_at_commit': head, 'branch': git(source, 'branch', '--show-current'),
+        'files': [str(path.relative_to(source)) for path in sorted(set(paths))],
+    }, indent=2) + '\n')
+    print(f'Preserved task evidence: {saved}')
+    return saved
+
+
+def preserve_default_evidence(source: Path) -> None:
+    deliverables = source / '.DerivedData/Deliverables'
+    if deliverables.exists() or deliverables.is_symlink():
+        preserve_evidence(source, ['.DerivedData/Deliverables'])
+
+
 
 def remove_integrated_worktree(source: Path, target: Path, branch: str, head: str) -> None:
     records = git(target, "worktree", "list", "--porcelain", "-z").split("\0\0")
@@ -102,6 +152,7 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         head = git(source, "rev-parse", "HEAD")
         if head == base:
             print("Task already integrated; main unchanged.")
+            preserve_default_evidence(source)
             if not keep_worktree:
                 remove_integrated_worktree(source, target, branch, head)
             return
@@ -117,6 +168,7 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         environment["PATH"] = pinned_tool_path(source, environment.get('PATH', ''))
         subprocess.run([str(source / "Scripts/handoff.sh"), "--isolate", "--quiet", "--paths", *paths],
                        cwd=source, env=environment, check=True)
+        preserve_default_evidence(source)
         clean(source)
         clean(target)
         if (git(source, "rev-parse", "HEAD") != head
@@ -132,9 +184,18 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    if sys.argv[1:] not in ([], ["--keep-worktree"]):
-        sys.exit("Usage: python3 Scripts/agent-integrate.py [--keep-worktree] (from the task worktree)")
     try:
-        integrate(Path(__file__).resolve().parents[1], keep_worktree="--keep-worktree" in sys.argv)
+        source = Path(__file__).resolve().parents[1]
+        if sys.argv[1:2] == ['--evidence']:
+            if sys.argv[2:]:
+                preserve_evidence(source, sys.argv[2:])
+            else:
+                print(evidence_directory(source))
+        elif sys.argv[1:] in ([], ['--keep-worktree']):
+            integrate(source, keep_worktree='--keep-worktree' in sys.argv)
+        else:
+            sys.exit('Usage: agent-integrate.py [--keep-worktree | --evidence [path...]]')
     except (RuntimeError, subprocess.CalledProcessError, OSError) as error:
+        if sys.argv[1:2] == ['--evidence']:
+            sys.exit(f'Evidence preservation stopped: {error}\nOriginal task files were retained.')
         sys.exit(f"Integration or cleanup stopped: {error}\nInspect main and the task/recovery checkout; completed integration is not rolled back. Resolve conflicts there, review, and retry; do not reset main.")

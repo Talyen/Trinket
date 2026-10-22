@@ -61,6 +61,7 @@ not a substitute for a usable explanation.
 | Active execution plans | Temporary, with advisory review dates; allowed only directly under `Docs/Plans/` |
 | Completed or cancelled plans | Fold current requirements into their canonical owners, then delete; no outcome archive |
 | Tool logs, reports, and comparison evidence | Successful logs are removed after consumers finish; remaining output expires after 24 hours unless explicitly kept for active investigation |
+| Task deliverables | `.DerivedData/Deliverables/` is preserved outside the task checkout by integration; `agent-worktree.mjs evidence` preserves other task-local files. These deliverables do not expire with diagnostic logs |
 | Evals | Representative validation fixtures, not standing workflow policy |
 
 Do not create execution plans under `.agents/` or another parallel plan folder.

@@ -43,7 +43,8 @@ Use ordinary scoped `rg`, file reads, and `git diff` for discovery and review.
 Before editing intended files, run
 `python3 Scripts/agent-brief.py --status --read --paths <files...>` once for
 applicable safeguards and initial contracts. Reuse unchanged guidance already in
-context; read the linked sections relevant to the behavior being changed.
+context. The briefing includes focused contract sections; broader references and
+skills apply only to the behavior being changed. Follow callers as needed.
 
 As the task grows, `--base main` derives scope from task commits plus dirty files,
 including deletions and both rename endpoints. Use the user-specified base when
@@ -59,7 +60,7 @@ before editing and follow callers, tests, and configuration as needed. Create an
 ## Choose the change
 
 Player-facing text changes include localization in the same task. Follow
-[Localization](Docs/Platform/Localization.md): run `python3 Scripts/localization.py plan`,
+[Localization](Docs/Platform/Localization.md): run `python3 Scripts/localization.py prepare`,
 translate the affected queue in every configured language, perform a separate AI
 review pass, apply the reviewed response, and rerun `check`. Never stamp review
 records without the review or copy English into other locales to clear a gate.
@@ -85,8 +86,9 @@ blocked by a required decision or unavailable prerequisite.
 
 - Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
 - Keep routine local verification resource-light: no automatic Swift compilation, simulator/UI/performance tests, or broad generation. CI owns those checks; [Verification](Docs/Platform/Verification.md#local-simulator-budget) owns deliberate exceptions and local play.
-- Run `./Scripts/handoff.sh --isolate --quiet --base main` for the full task (or its user-specified base); use `--paths <files...>` for focused checks. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns gates, limits, failure classification, and advisory change budgets.
+- Integration runs the final static handoff for the full rebased task under the lock; do not duplicate it before committing solely for landing. Use `./Scripts/handoff.sh --quiet --base main` for standalone handoff or `--paths <files...>` for focused checks. Isolation is automatic; existing `--isolate` calls remain valid. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns explicit static, diagnostic, visual, and release routes and their evidence limits.
 - Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. A local handoff proves only its lightweight checks; report CI-owned checks as pending until hosted evidence confirms them.
+- Save deliverables in `.DerivedData/Deliverables/`; integration preserves them outside the task checkout before cleanup. `node Scripts/agent-worktree.mjs evidence [path...]` prints the durable evidence directory or preserves other task-local files there immediately.
 
 ## Maintain guidance
 

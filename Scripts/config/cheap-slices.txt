@@ -2,10 +2,11 @@
 # Single registry — sourced by Scripts/lib/cheap-slices.sh, previewed by
 # handoff.sh --dry-run, and documented in Docs/Platform/Verification.md.
 # A trailing "# skip-when-style-checked" marker skips that slice once the
-# style gate already enforced it. The marker is the single skip mechanism;
-# do not reintroduce a hardcoded command-name exception in cheap-slices.sh.
-./Scripts/check-module-boundaries.sh
-python3 Scripts/localization.py check
-./Scripts/check-api-bans.sh  # skip-when-style-checked
-./Scripts/release-notes.sh validate
-./Scripts/check-artwork-budget.sh
+# style gate already enforced it; do not hardcode command names in consumers.
+# local-paths scopes lightweight handoff only; CI always runs the full registry.
+# Unknown input owners and entries without this field retain all checks.
+./Scripts/check-module-boundaries.sh  # local-paths=Packages/*,Trinket/*,TrinketUITests/*,Scripts/*,.github/*,project.yml
+python3 Scripts/localization.py check  # local-paths=*.swift,*.xcstrings,Localization/*,ContentManifest/*,Scripts/*,.github/*,project.yml
+./Scripts/check-api-bans.sh  # skip-when-style-checked local-paths=*.swift,Packages/*/Package.swift,Scripts/*,.github/*,.swiftlint.yml,.swiftformat
+./Scripts/release-notes.sh validate  # local-paths=ReleaseNotes/*,CHANGELOG.md,cliff.toml,Scripts/*,.github/*
+./Scripts/check-artwork-budget.sh  # local-paths=Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift,Scripts/*,.github/*

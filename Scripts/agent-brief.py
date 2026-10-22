@@ -23,7 +23,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser.add_argument('--task')
     for flag in ('agent', 'full', 'status', 'smoke', 'allow-broad-scope', 'read-command'):
         parser.add_argument('--' + flag, action='store_true')
-    parser.add_argument('--read', action='store_true', help='include initial guidance in this call; root AGENTS.md is already injected, skills/behavior remain conditional')
+    parser.add_argument('--read', action='store_true', help='include safeguards, ownership and focused contracts; root is already injected, broad behavior and skills remain conditional')
     args = parser.parse_args(argv)
     try:
         task = select_task(root, args.task) if args.task else None
@@ -37,7 +37,9 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             parser.exit(3, f'working-tree scope has {len(paths)} paths; use explicit --paths or --allow-broad-scope\n')
         route = classify(paths, root, base=args.base)
         focus = task['contracts'] if task else []
-        initial = [*route.guides, *(card for card in route.cards if card.partition('#')[0] not in BEHAVIOR_CARDS)]
+        # Expand focused contracts alongside safeguards; broad behavior cards stay
+        # references so a shared owner does not load every combat/save rule.
+        initial = [*route.guides, *(card for card in route.cards if '#' in card or card not in BEHAVIOR_CARDS)]
         read = guidance_command(root, task, initial) if task or initial else None
         if args.read_command:
             if args.status or args.read: parser.error('--read-command cannot combine with --status or --read')
@@ -65,13 +67,13 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         if 'Trinket' in roots:
             roots.append('TrinketUITests')
         if roots:
-            emit('Discovery: python3 Scripts/agent-search.py <pattern> --scope <owner> (repeat across owners; --mode tests includes support targets)', roots)
+            emit('Source owners (use scoped rg, file reads and git diff)', roots)
         if args.full: emit(f'Authored paths ({len(route.authored)})', route.authored)
         emit(f'Generated/processed paths (do not hand-edit) ({len(route.generated)})', route.generated)
         emit('Boundary warnings', route.warnings)
         emit('Generated-output warnings', route.generated_warnings)
         handoff = ['./Scripts/handoff.sh', '--isolate', '--quiet', *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
-        emit('Verification (agents: always --isolate)', [shlex.join(handoff)])
+        emit('Verification (isolated automatically)', [shlex.join(handoff)])
         if args.full: emit('Plan detail (sequential under that tenant)', [check.command + (' (deferred to CI locally)' if check.deferred else '') for check in verification_plan(route, root=root, smoke=args.smoke)])
         if route.smoke_unresolved: print('UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.')
         if args.read and read:

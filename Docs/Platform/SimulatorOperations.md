@@ -115,6 +115,13 @@ screenshot or recording is needed as an artifact, the
 owns the exact simctl capture commands against the leased device. A full pool means
 another run owns the capacity, not permission to take its device.
 
+Save deliverables under `.DerivedData/Deliverables/` rather than an expiring
+diagnostic directory. Locked integration preserves them with revision metadata
+outside the task checkout before deleting it. For an immediate durable copy of
+another task-local capture, use `node Scripts/agent-worktree.mjs evidence <path...>`;
+without paths it prints the durable directory for direct capture. This does not
+establish that the image was inspected or the interaction was exercised.
+
 ### Duo display routing
 
 When a Duo capture is black or input has no effect after folding, compare the
