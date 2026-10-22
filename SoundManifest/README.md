@@ -4,7 +4,10 @@ Trinket keeps source sound effects separate from app-ready audio, matching the m
 
 ## Folders
 
-- `Sounds/Game Sources`: source `.wav` / `.ogg` files.
+- External Asset Library, `Sounds/Game Sources/`: source `.wav` / `.ogg` files.
+  This path is relative to the library root, not the checkout;
+  [media assets](../Docs/AgentContext/content-and-manifests.md#media-assets) owns root
+  selection and overrides.
 - `SoundManifest/sfx.tsv`: editable source of truth for curated SFX.
 - `Trinket/Media/SFX/`: generated app-ready AAC `.m4a` files.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift`: generated Swift lookup table for runtime routing.
@@ -46,7 +49,7 @@ and outcome/Mystery stingers. Direct Bleed and Poison hits share `hit_piercing`;
 battle, and Mystery collection share `loot_collect`. The single-cue selection and
 outcome timing policy lives in [audio.md](../Docs/AgentContext/audio.md#action-sound-selection).
 
-The selected feedback sources come from `Documents/Asset Library/Sounds`. Import
+The selected feedback sources come from the library's `Sounds/` tree. Import
 FLAC inputs as lossless PCM WAV; retain original WAV/OGG inputs. The Homestead
 hammer source `hammer_multiple_exterior_fienup_013` uses 0.82–1.65 seconds with
 10 ms entry and 60 ms exit fades. Selected source clips default to gain `1.0`; `block_absorb` uses `0.97` for

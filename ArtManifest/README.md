@@ -20,7 +20,13 @@ kind	id	asset_name	source_path	focal_x	focal_y
 ```
 
 - `kind`: `combatant`, `ability`, `item`, `slot_background`, `background`, `portrait_background`, `encounter`, `resource`, or `talent`.
-- `id`: game model ID, such as `knight` or `fire_elemental`.
+- `id`: unique within its `kind`. Combatant, ability, item, and encounter entries use
+  the corresponding game model ID, such as `knight` or `fire_elemental`.
+  `slot_background` uses an `ItemSlot` case (`weapon`, `armor`, `accessory`, or
+  `trinket`); `talent` uses a supported `Keyword` case, such as `burn`, rather than
+  a talent node ID. [The pipeline validator](../Scripts/prepare-media.py) owns the
+  accepted keyword set. Background, portrait-background, and resource IDs are
+  selected by their content consumers.
 - `asset_name`: stable asset catalog name used by SwiftUI `Image`.
 - `source_path`: library-relative path to the raw source file.
 - `focal_x` and `focal_y`: normalized focal point from `0.0` to `1.0`.

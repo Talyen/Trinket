@@ -4,7 +4,9 @@ Trinket keeps source music separate from app-ready audio, matching the art pipel
 
 ## Folders
 
-- `Sounds/Game Sources`: source MP3 files.
+- External Asset Library, `Sounds/Game Sources/`: source MP3 files. This path is
+  relative to the library root, not the checkout; [media assets](../Docs/AgentContext/content-and-manifests.md#media-assets)
+  owns root selection and overrides.
 - `MusicManifest/music.tsv`: editable source of truth for curated music.
 - `Trinket/Media/Music/`: generated app-ready AAC `.m4a` files.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift`: generated Swift lookup table for runtime routing.
