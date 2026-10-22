@@ -15,16 +15,15 @@ struct FullGameOfferView: View {
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
-                offerHeading
-                    .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                    .padding(.top, TrinketDesign.Spacing.extraLarge)
-                    .padding(.bottom, TrinketDesign.Spacing.extraLarge * 2)
-                    .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .bottom)
-                    .background(alignment: .top) {
-                        artwork
-                            .frame(height: geometry.size.height * 0.72)
-                            .trinketBottomArtworkBlend(fadeFraction: 0.12)
-                    }
+                FullGameOfferLayout(minimumHeight: geometry.size.height) {
+                    ZStack { artwork }
+                        .trinketBottomArtworkBlend(fadeFraction: 0.12)
+                    offerHeading
+                        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                        .padding(.top, TrinketDesign.Spacing.small)
+                        .padding(.bottom, TrinketDesign.Spacing.medium)
+                }
+                .frame(maxWidth: .infinity)
             }
             .scrollBounceBehavior(.basedOnSize)
         }
@@ -50,17 +49,18 @@ struct FullGameOfferView: View {
                     .trinketTypography(.eyebrow)
                     .tracking(3)
                     .foregroundStyle(TrinketDesign.Colors.accent)
-                    .trinketSingleLineFittedText()
+                    .trinketSingleLineFittedText(minimumScaleFactor: 0.3)
                 Text(L10n.ui_fullgameofferview_keep_exploring_2c443)
                     .trinketTypography(.offerDisplay)
                     .foregroundStyle(TrinketDesign.Colors.offerTitle)
-                    .trinketSingleLineFittedText()
+                    .trinketSingleLineFittedText(minimumScaleFactor: 0.3)
                     .accessibilityIdentifier(AccessibilityID.FullGame.hero)
             }
             Text(L10n.ui_fullgameofferview_all_content_yours_forever)
-                .trinketTypography(.body)
+                .trinketTypography(.rowTitle)
+                .fontWeight(.regular)
                 .foregroundStyle(.primary)
-                .trinketSingleLineFittedText()
+                .trinketSingleLineFittedText(minimumScaleFactor: 0.3)
         }
     }
 
@@ -75,14 +75,18 @@ struct FullGameOfferView: View {
                 .trinketPrimaryActionButton()
             } else if let product = store.product {
                 ProductView(product)
-                    .productViewStyle(FullGameProductStyle(isPurchasing: store.isPurchasing, locale: locale))
+                    .productViewStyle(FullGameProductStyle(
+                        isPurchasing: store.isPurchasing,
+                        locale: locale,
+                        beginPurchase: store.purchaseStarted,
+                    ))
                     .disabled(store.isRestoring || store.ownership == .checking)
-                    .onInAppPurchaseStart { _ in store.purchaseStarted() }
                     .onInAppPurchaseCompletion { _, result in await store.purchaseCompleted(result) }
             } else if store.isLoading {
                 ProgressView()
                     .trinketTypography(.body)
                     .frame(maxWidth: .infinity)
+                    .frame(minHeight: 58)
             } else {
                 Button { Task { await store.loadProduct() } } label: {
                     Text(L10n.ui_fullgameofferview_retry_94208)
@@ -115,7 +119,7 @@ struct FullGameOfferView: View {
                 }
             }
             Label(String(localized: L10n.ui_fullgameofferview_family_sharing_ba974), systemImage: "person.2")
-                .trinketSingleLineFittedText()
+                .trinketSingleLineFittedText(minimumScaleFactor: 0.3)
         }
         .trinketTypography(.caption)
         .foregroundStyle(.secondary)
@@ -130,7 +134,7 @@ struct FullGameOfferView: View {
                     ProgressView()
                 }
                 Text(L10n.ui_fullgameofferview_restore_purchases_16351)
-                    .trinketSingleLineFittedText()
+                    .trinketSingleLineFittedText(minimumScaleFactor: 0.3)
             }
             .frame(minHeight: footerControlMinHeight)
             .contentShape(.rect)
@@ -142,7 +146,7 @@ struct FullGameOfferView: View {
     private var privacyLink: some View {
         Link(destination: TrinketPublicPages.privacy) {
             Text(L10n.ui_fullgameofferview_privacy_54a57)
-                .trinketSingleLineFittedText()
+                .trinketSingleLineFittedText(minimumScaleFactor: 0.3)
                 .frame(minWidth: footerControlMinHeight, minHeight: footerControlMinHeight)
                 .contentShape(.rect)
         }
@@ -157,13 +161,35 @@ struct FullGameOfferView: View {
     }
 }
 
+private struct FullGameOfferLayout: Layout {
+    let minimumHeight: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {
+        let width = proposal.width ?? 0
+        let heading = subviews[1].sizeThatFits(ProposedViewSize(width: width, height: nil))
+        return CGSize(width: width, height: max(minimumHeight, heading.height + 120))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
+        let heading = subviews[1].sizeThatFits(ProposedViewSize(width: bounds.width, height: nil))
+        let artworkHeight = bounds.height - heading.height
+        subviews[0].place(at: bounds.origin, proposal: ProposedViewSize(width: bounds.width, height: artworkHeight))
+        subviews[1].place(
+            at: CGPoint(x: bounds.minX, y: bounds.minY + artworkHeight),
+            proposal: ProposedViewSize(width: bounds.width, height: heading.height),
+        )
+    }
+}
+
 private struct FullGameProductStyle: ProductViewStyle {
     let isPurchasing: Bool
     let locale: Locale
+    let beginPurchase: () -> Bool
 
     func makeBody(configuration: Configuration) -> some View {
         if let product = configuration.product {
             Button {
+                guard beginPurchase() else { return }
                 configuration.purchase()
             } label: {
                 HStack {
@@ -175,7 +201,7 @@ private struct FullGameProductStyle: ProductViewStyle {
                         locale: locale,
                     ).text)
                         .trinketTypography(.button)
-                        .trinketSingleLineFittedText()
+                        .trinketSingleLineFittedText(minimumScaleFactor: 0.3)
                 }
                 .padding(.vertical, TrinketDesign.Spacing.extraSmall)
                 .frame(maxWidth: .infinity)
@@ -200,7 +226,8 @@ struct FullGameOutcomeMessage: View {
                 .accessibilityIdentifier(AccessibilityID.FullGame.outcome)
                 .trinketTypography(.caption)
                 .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .trinketSingleLineFittedText(minimumScaleFactor: 0.3)
+                .frame(maxWidth: .infinity)
         }
     }
 
@@ -216,6 +243,8 @@ struct FullGameOutcomeMessage: View {
             String(localized: L10n.ui_fullgameofferview_no_full_game_purchase_was_found_for_your_appl_bdc23)
         case .purchaseUnverified:
             String(localized: L10n.ui_fullgameofferview_couldn_t_verify_full_game_ownership_please_tr_87254)
+        case .purchaseFailed:
+            String(localized: L10n.ui_fullgameofferview_purchase_failed)
         }
     }
 }

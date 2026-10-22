@@ -196,7 +196,7 @@ private struct GlassSurfaceModifier<S: InsettableShape>: ViewModifier {
 }
 
 struct TypographyModifier: ViewModifier {
-    @ScaledMetric(relativeTo: .largeTitle) private var offerDisplaySize: CGFloat = 56
+    @ScaledMetric(relativeTo: .largeTitle) private var offerDisplaySize: CGFloat = 64
     let role: TypographyRole
 
     func body(content: Content) -> some View {

@@ -38,12 +38,15 @@ screenshot of the running app; the presentation and copy below supersede it.
 Use a native art-led full-screen modal with centered **FULL GAME**, **Go Beyond**,
 and **The full adventure. Yours forever.** copy on a dark lower section. Use a gold
 spaced eyebrow, a large cream regular-serif `offerDisplay` title without an outline,
-and a primary-color body subtitle. Keep the headline and subtitle to one line
+and a larger primary-color subtitle. Keep the headline and subtitle to one line
 using the shared fitted-text treatment. Keep the headline and subtitle closely
-grouped, slightly nearer the artwork, with more space before the purchase button.
-Limit the triggering chapter, Spire, Labyrinth mode, hero, or companion artwork
-to the upper portion of the available space; fade it
-to the dark canvas before the headline. Use the same short fade (the last 12% of
+grouped with a compact gap before the purchase button.
+Give the triggering chapter, Spire, Labyrinth mode, hero, or companion artwork
+the remaining space above the copy; fade it to the dark canvas before the headline.
+The artwork and copy occupy separate regions at every native text size. Keep the
+purchase action anchored while the artwork and copy can scroll on short screens.
+Allow single-line text to fit the available width without hiding the price or
+truncating the ownership promise. Use the same short fade (the last 12% of
 the artwork region) for every artwork variant. Use the mountain artwork for
 Options and when contextual artwork is unavailable. Prepare and pin the selected
 artwork before presenting the offer, then release it on dismissal. Use the
@@ -77,9 +80,9 @@ Options keeps a compact **Full Game** section with **Unlock Full Game** opening
 the offer and **Restore Purchases** available while the game is locked. Verified
 owners, including Family Sharing recipients, see **Full Game — Unlocked** instead
 of both actions. Both purchase surfaces display concise inline outcomes for unavailable
-pricing, pending approval, unsuccessful restoration, no purchase found, and
-unverified ownership. Keep cancellation quiet and use the existing successful
-purchase/dismissal behavior. General **Support** and **Privacy Policy** links
+pricing, pending approval, unsuccessful restoration, no purchase found,
+unverified ownership, and failed purchases. Keep cancellation quiet and use the
+existing successful purchase/dismissal behavior. General **Support** and **Privacy Policy** links
 belong in a separate
 **About** section after Full Game and before Game Data.
 

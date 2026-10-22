@@ -28,7 +28,7 @@ Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)`
 |---|---|---|
 | `*Display` (`screenDisplay`, `sectionDisplay`, `rowDisplay`) | Serif (New York) | Branded heroes and journey names on art |
 | `*Title` (`screenTitle`, `sectionTitle`, `cardTitle`) | SF Pro | Apple-native UI chrome, lists, shelves |
-| `offerDisplay` | Scaled 56-point regular serif | Sparse Full Game offer headline on a dark canvas |
+| `offerDisplay` | Scaled 64-point regular serif | Sparse Full Game offer headline on a dark canvas |
 | `eyebrow` | SF caption bold | Label **above** a hero title (chapter, role, rarity) |
 | Body / caption / badge / button / statValue / … | SF Pro | Supporting copy and controls |
 

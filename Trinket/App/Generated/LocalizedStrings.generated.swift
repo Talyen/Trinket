@@ -444,11 +444,11 @@ enum L10n {
     }
 
     static var ui_fullgameofferview_couldn_t_restore_purchases_please_try_again_7c988: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.couldn_t_restore_purchases_please_try_again_7c988", defaultValue: "Couldn’t restore purchases. Please try again.", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.couldn_t_restore_purchases_please_try_again_7c988", defaultValue: "Restore failed. Try again.", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_couldn_t_verify_full_game_ownership_please_tr_87254: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.couldn_t_verify_full_game_ownership_please_tr_87254", defaultValue: "Couldn’t verify Full Game ownership. Please try Restore Purchases.", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.couldn_t_verify_full_game_ownership_please_tr_87254", defaultValue: "Unverified purchase. Try Restore.", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_every_hero_companion_4d884: LocalizedStringResource {
@@ -480,15 +480,19 @@ enum L10n {
     }
 
     static var ui_fullgameofferview_no_full_game_purchase_was_found_for_your_appl_bdc23: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.no_full_game_purchase_was_found_for_your_appl_bdc23", defaultValue: "No Full Game purchase was found for your Apple Account.", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.no_full_game_purchase_was_found_for_your_appl_bdc23", defaultValue: "No purchase found.", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_pricing_is_unavailable_try_again_cf1d2: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.pricing_is_unavailable_try_again_cf1d2", defaultValue: "Pricing is unavailable. Try again.", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.pricing_is_unavailable_try_again_cf1d2", defaultValue: "Price unavailable. Try again.", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_privacy_54a57: LocalizedStringResource {
         LocalizedStringResource("ui.fullgameofferview.privacy_54a57", defaultValue: "Privacy", table: "Localizable", bundle: .main)
+    }
+
+    static var ui_fullgameofferview_purchase_failed: LocalizedStringResource {
+        LocalizedStringResource("ui.fullgameofferview.purchase_failed", defaultValue: "Purchase failed. Try again.", table: "Localizable", bundle: .main)
     }
 
     static var ui_fullgameofferview_restore_purchases_16351: LocalizedStringResource {
@@ -504,7 +508,7 @@ enum L10n {
     }
 
     static var ui_fullgameofferview_waiting_for_approval_full_game_will_unlock_wh_6334b: LocalizedStringResource {
-        LocalizedStringResource("ui.fullgameofferview.waiting_for_approval_full_game_will_unlock_wh_6334b", defaultValue: "Waiting for approval. Full Game will unlock when approved.", table: "Localizable", bundle: .main)
+        LocalizedStringResource("ui.fullgameofferview.waiting_for_approval_full_game_will_unlock_wh_6334b", defaultValue: "Awaiting approval.", table: "Localizable", bundle: .main)
     }
 
     static func ui_homesteadcategoryview_1_of_2_upgrades_67fe8(_ value1: String, _ value2: String) -> LocalizedStringResource {
