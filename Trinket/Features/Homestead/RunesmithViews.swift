@@ -36,6 +36,7 @@ private struct RunesmithEditorView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @Environment(\.locale) private var locale
+    @Environment(\.playSFX) private var playSFX
     @Environment(\.scenePhase) private var scenePhase
     let itemID: String
     @State private var chosenIndex: Int?
@@ -43,6 +44,7 @@ private struct RunesmithEditorView: View {
     @State private var isPending = false
     @State private var result: InventoryItem?
     @State private var successCount = 0
+    @State private var errorTrigger = 0
     @State private var isVisible = false
 
     private var item: InventoryItem? {
@@ -60,6 +62,7 @@ private struct RunesmithEditorView: View {
         .navigationTitle(String(localized: L10n.homestead_inscribe))
         .navigationBarTitleDisplayMode(.inline)
         .trinketSensoryFeedback(.success, trigger: successCount, enabled: options.hapticsEnabled)
+        .trinketSensoryFeedback(.error, trigger: errorTrigger, enabled: options.hapticsEnabled)
         .onAppear {
             isVisible = true
             if selectedAffixID == nil, let item, let index = item.inscribedAffixIndex {
@@ -193,9 +196,14 @@ private struct RunesmithEditorView: View {
             let outcome = await playerSave.inscribeItem(itemID: itemID, index: index, affixID: affixID)
             isPending = false
             guard generation == playerSave.sessionGeneration, isVisible, scenePhase == .active else { return }
-            if case let .success(item) = outcome {
+            switch outcome {
+            case let .success(item):
                 result = item
                 successCount += 1
+                playSFX(SFXID.itemForge, options.effectsVolume)
+            case .failure:
+                errorTrigger += 1
+                playSFX(SFXID.uiDeny, options.effectsVolume)
             }
         }
     }

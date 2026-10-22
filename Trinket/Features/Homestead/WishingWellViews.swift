@@ -8,11 +8,13 @@ import TrinketPersistence
 struct WishingWellView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
+    @Environment(\.playSFX) private var playSFX
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @State private var showsTrinkets = false
     @State private var isPending = false
     @State private var successCount = 0
+    @State private var errorTrigger = 0
     @State private var isVisible = false
     @State private var visibleIDs: Set<String> = []
 
@@ -80,6 +82,7 @@ struct WishingWellView: View {
         .trinketSoftTopScrollEdge()
         .navigationTitle(String(localized: L10n.homestead_make_wish))
         .trinketSensoryFeedback(.success, trigger: successCount, enabled: options.hapticsEnabled)
+        .trinketSensoryFeedback(.error, trigger: errorTrigger, enabled: options.hapticsEnabled)
         .task(id: visibleIDs) {
             await ArtworkViewportPrewarm.prewarm(
                 orderedItems: missing, visibleIDs: visibleIDs, currentVisibleIDs: { visibleIDs },
@@ -100,8 +103,13 @@ struct WishingWellView: View {
             let outcome = await playerSave.setItemWish(nil)
             isPending = false
             guard generation == playerSave.sessionGeneration, isVisible, scenePhase == .active else { return }
-            if case .success = outcome {
+            switch outcome {
+            case .success:
                 successCount += 1
+                playSFX(SFXID.uiConfirm, options.effectsVolume)
+            case .failure:
+                errorTrigger += 1
+                playSFX(SFXID.uiDeny, options.effectsVolume)
             }
         }
     }
@@ -111,6 +119,7 @@ private struct WishItemDetail: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(OptionsStore.self) private var options
     @Environment(\.locale) private var locale
+    @Environment(\.playSFX) private var playSFX
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     let item: InventoryItem
@@ -118,6 +127,7 @@ private struct WishItemDetail: View {
     @State private var isVisible = false
     @State private var artworkPins = PreparedArtworkPinSet()
     @State private var successCount = 0
+    @State private var errorTrigger = 0
 
     var body: some View {
         ItemDetailView(
@@ -133,6 +143,7 @@ private struct WishItemDetail: View {
             }
         }
         .trinketSensoryFeedback(.success, trigger: successCount, enabled: options.hapticsEnabled)
+        .trinketSensoryFeedback(.error, trigger: errorTrigger, enabled: options.hapticsEnabled)
         .task(id: item.id) { await artworkPins.prepare(names: [item.artReference?.imageName].compactMap(\.self)) }
         .onAppear { isVisible = true }
         .onDisappear { isVisible = false; artworkPins.release() }
@@ -146,9 +157,14 @@ private struct WishItemDetail: View {
             let outcome = await playerSave.setItemWish(item.templateID)
             isPending = false
             guard generation == playerSave.sessionGeneration, isVisible, scenePhase == .active else { return }
-            if case .success = outcome {
+            switch outcome {
+            case .success:
                 successCount += 1
+                playSFX(SFXID.uiConfirm, options.effectsVolume)
                 dismiss()
+            case .failure:
+                errorTrigger += 1
+                playSFX(SFXID.uiDeny, options.effectsVolume)
             }
         }
     }

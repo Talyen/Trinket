@@ -23,6 +23,7 @@ struct OptionsView: View {
             Section(String(localized: L10n.ui_optionsview_audio_bc1b8)) {
                 VolumeOptionRow(
                     title: String(localized: L10n.ui_optionsview_music_6eb00),
+                    kind: .music,
                     value: $options.musicVolume,
                     onLiveChange: { volume in
                         appState.applyMusicVolumeLive(volume, scenePhase: scenePhase)
@@ -31,6 +32,7 @@ struct OptionsView: View {
 
                 VolumeOptionRow(
                     title: String(localized: L10n.ui_optionsview_sound_effects_de7b5),
+                    kind: .soundEffects,
                     value: $options.effectsVolume,
                     onLiveChange: { volume in
                         playToggleSFX(true, volume)

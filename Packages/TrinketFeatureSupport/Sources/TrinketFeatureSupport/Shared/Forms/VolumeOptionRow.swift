@@ -2,7 +2,13 @@ import SwiftUI
 import TrinketDesignSystem
 
 public struct VolumeOptionRow: View {
+    public enum Kind: Sendable {
+        case soundEffects
+        case music
+    }
+
     let title: String
+    let kind: Kind
     @Binding var value: Double
     var onLiveChange: ((Double) -> Void)?
 
@@ -14,9 +20,10 @@ public struct VolumeOptionRow: View {
     }
 
     private var dynamicIconName: String {
-        if title == String(localized: L10n.ui_volumeoptionrow_music_6eb00) {
+        switch kind {
+        case .music:
             draft == 0 ? "music.note.slash" : "music.note"
-        } else {
+        case .soundEffects:
             if draft == 0 {
                 "speaker.slash.fill"
             } else if draft < 0.33 {
@@ -31,10 +38,12 @@ public struct VolumeOptionRow: View {
 
     public init(
         title: String,
+        kind: Kind = .soundEffects,
         value: Binding<Double>,
         onLiveChange: ((Double) -> Void)? = nil,
     ) {
         self.title = title
+        self.kind = kind
         _value = value
         self.onLiveChange = onLiveChange
         _draft = State(initialValue: value.wrappedValue)
