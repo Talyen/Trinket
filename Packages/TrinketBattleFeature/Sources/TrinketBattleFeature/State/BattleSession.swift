@@ -146,11 +146,17 @@ public final class BattleSession: BattleRuntime {
     weak var progression: (any BattleProgressionDelegate)?
     @ObservationIgnored
     var hasConnectedProgression = false
-    enum RuntimeTransition { case installing, ending }
-    @ObservationIgnored var runtimeTransition: RuntimeTransition?
-    @ObservationIgnored var endRequestedDuringInstallation = false
+    enum RuntimeTransition: Equatable {
+        case idle, installing(endRequested: Bool), ending
+    }
+
+    @ObservationIgnored var runtimeTransition: RuntimeTransition = .idle
     var isInstallingBattle: Bool {
-        runtimeTransition == .installing
+        if case .installing = runtimeTransition {
+            true
+        } else {
+            false
+        }
     }
 
     @ObservationIgnored
@@ -238,7 +244,7 @@ public final class BattleSession: BattleRuntime {
     }
 
     var canAcceptBattleCommands: Bool {
-        runtimeTransition == nil && commandState.acceptsCommands && activeBattle != nil
+        runtimeTransition == .idle && commandState.acceptsCommands && activeBattle != nil
             && engineState?.phase == .playerTurn && !(engineState?.isBattleOver ?? true)
             && spectacle.outcomePresentation == .battle
             && !hasBlockingOverlay

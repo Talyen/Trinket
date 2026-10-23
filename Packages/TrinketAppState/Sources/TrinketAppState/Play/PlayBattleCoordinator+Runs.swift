@@ -12,7 +12,7 @@ extension PlayBattleCoordinator {
     }
 
     func prepare(_ launch: BattleLaunchAssembly, route: PlayBattleRoute) -> Bool {
-        guard runtimeTransition == nil, battle.lifecyclePhase != .active,
+        guard runtimeTransition == .idle, battle.lifecyclePhase != .active,
               let runKey = launch.configuration.runKey,
               PlayBattleRoute.matches(route, runKey: runKey, missingLog: "Missing route for prepared battle registration")
         else { return false }
@@ -38,7 +38,7 @@ extension PlayBattleCoordinator {
     }
 
     func activatePrepared(_ configuration: BattleRunConfiguration) -> Bool {
-        guard runtimeTransition == nil, battle.lifecyclePhase != .active,
+        guard runtimeTransition == .idle, battle.lifecyclePhase != .active,
               let runKey = configuration.runKey,
               let run = preparedRuns[runKey], run.registration.launch.configuration.id == configuration.id,
               run.registration.rewardClaim.isCurrent(in: playerSave)
@@ -77,7 +77,7 @@ extension PlayBattleCoordinator {
     }
 
     func selectPreparedRun(_ key: BattleRunKey?) {
-        guard runtimeTransition == nil, preparations.select(key) else { return }
+        guard runtimeTransition == .idle, preparations.select(key) else { return }
         publishPreparedPreview()
     }
 
@@ -109,7 +109,7 @@ extension PlayBattleCoordinator {
         _ keys: Set<BattleRunKey>,
         preservingWhere preserve: (PlayBattleOrigin) -> Bool = { _ in false },
     ) {
-        guard runtimeTransition == nil, battle.lifecyclePhase != .active else { return }
+        guard runtimeTransition == .idle, battle.lifecyclePhase != .active else { return }
         preparations.retain { key, run in
             keys.contains(key) || run.registration.route.map { preserve($0.origin) } == true
         }
@@ -122,12 +122,12 @@ extension PlayBattleCoordinator {
     }
 
     private func installRuntime(_ install: () -> Bool) -> Bool {
-        guard runtimeTransition == nil else { return false }
-        runtimeTransition = .installing
+        guard runtimeTransition == .idle else { return false }
+        runtimeTransition = .installing(endRequested: false)
         let installed = install()
-        runtimeTransition = nil
-        if endRequestedDuringInstallation {
-            endRequestedDuringInstallation = false
+        let endRequested = runtimeTransition == .installing(endRequested: true)
+        runtimeTransition = .idle
+        if endRequested {
             endBattle()
             return false
         }
@@ -138,13 +138,13 @@ extension PlayBattleCoordinator {
     }
 
     func endBattle() {
-        if runtimeTransition == .installing {
-            endRequestedDuringInstallation = true
+        if case .installing = runtimeTransition {
+            runtimeTransition = .installing(endRequested: true)
             return
         }
-        guard runtimeTransition == nil else { return }
+        guard runtimeTransition == .idle else { return }
         runtimeTransition = .ending
-        defer { runtimeTransition = nil }
+        defer { runtimeTransition = .idle }
         retireBattle()
     }
 

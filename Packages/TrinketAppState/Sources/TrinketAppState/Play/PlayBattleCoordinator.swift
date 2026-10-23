@@ -17,9 +17,11 @@ final class PlayBattleCoordinator {
     var nextCombatSeed: () -> UInt64 = { UInt64.random(in: .min ... .max) }
     let preparations = PreparedBattleRegistry()
     var activeBattle: ActivePlayBattle?
-    enum RuntimeTransition { case installing, ending }
-    var runtimeTransition: RuntimeTransition?
-    var endRequestedDuringInstallation = false
+    enum RuntimeTransition: Equatable {
+        case idle, installing(endRequested: Bool), ending
+    }
+
+    var runtimeTransition: RuntimeTransition = .idle
     var preparedRuns: [BattleRunKey: PreparedBattleRegistry.Entry] {
         preparations.entries
     }
@@ -82,13 +84,13 @@ final class PlayBattleCoordinator {
     /// Consume this run's exit before either can reenter the coordinator.
     func finishBattle(_ run: ActivePlayBattle, onFinished: () -> Void) {
         guard isCurrent(run) else { return }
-        if runtimeTransition == .installing {
+        if case .installing = runtimeTransition {
             endBattle()
             return
         }
-        guard runtimeTransition == nil else { return }
+        guard runtimeTransition == .idle else { return }
         runtimeTransition = .ending
-        defer { runtimeTransition = nil }
+        defer { runtimeTransition = .idle }
         run.claimState = .ending
         restoreOrigin(run.registration.route?.origin)
         guard isCurrent(run) else { return }

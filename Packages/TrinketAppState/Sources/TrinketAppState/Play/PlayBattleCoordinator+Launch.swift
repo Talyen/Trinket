@@ -31,7 +31,7 @@ extension PlayBattleCoordinator {
         if let restriction = playerSave.accessRestriction(for: origin) {
             return restriction
         }
-        guard runtimeTransition == nil, battle.lifecyclePhase != .active else { return busyMessage }
+        guard runtimeTransition == .idle, battle.lifecyclePhase != .active else { return busyMessage }
         guard encounters.canBeginTransientEncounter else { return nil }
         let request: (input: BattleLaunchInput, route: PlayBattleRoute)
         switch resolve() {
@@ -48,7 +48,7 @@ extension PlayBattleCoordinator {
 
     @discardableResult
     func prepareCombat(_ input: BattleLaunchInput, route: PlayBattleRoute) -> Bool {
-        guard runtimeTransition == nil, battle.lifecyclePhase != .active,
+        guard runtimeTransition == .idle, battle.lifecyclePhase != .active,
               playerSave.accessRestriction(for: input.origin) == nil,
               PlayBattleRoute.matches(
                   route, runKey: input.origin?.runKey,
@@ -82,7 +82,7 @@ extension PlayBattleCoordinator {
         _ input: BattleLaunchInput,
         route: PlayBattleRoute? = nil,
     ) -> Bool {
-        guard runtimeTransition == nil, battle.lifecyclePhase != .active,
+        guard runtimeTransition == .idle, battle.lifecyclePhase != .active,
               playerSave.accessRestriction(for: input.origin) == nil,
               playerSave.contentAccess.allowsCombatant(input.hero.id),
               playerSave.contentAccess.allowsCombatant(input.companion.id) else { return false }
@@ -140,7 +140,7 @@ extension PlayBattleCoordinator {
     }
 
     func restartActiveBattle(_ configuration: BattleRunConfiguration) -> Bool {
-        guard runtimeTransition == nil, let activeBattle, isCurrent(activeBattle), activeBattle.canRestart,
+        guard runtimeTransition == .idle, let activeBattle, isCurrent(activeBattle), activeBattle.canRestart,
               activeBattle.registration.launch.configuration.id == configuration.id else { return false }
         let run = activeBattle.registration
         let original = run.launch.inputs.launch

@@ -48,7 +48,7 @@ extension PlayBattleCoordinator {
         onFinished: @escaping () -> Void,
         onClaimed: @escaping () -> Void,
     ) -> BattleCompletionResult {
-        guard runtimeTransition == nil, let expectedBattle = activeBattle, isCurrent(expectedBattle),
+        guard runtimeTransition == .idle, let expectedBattle = activeBattle, isCurrent(expectedBattle),
               expectedBattle.registration.launch.configuration.id == configuration.id,
               case .unclaimed = expectedBattle.claimState else { return .unavailable }
         return playerSave.performSaveAction(key: SaveRetryKey.victory(configuration.id)) { [weak self] isRetry -> BattleCompletionResult in
@@ -160,7 +160,7 @@ extension PlayBattleCoordinator {
     }
 
     func activeRegistration(for configuration: BattleRunConfiguration) -> PlayBattleRunRegistration? {
-        guard runtimeTransition == nil, let activeBattle, isCurrent(activeBattle),
+        guard runtimeTransition == .idle, let activeBattle, isCurrent(activeBattle),
               activeBattle.registration.launch.configuration.id == configuration.id,
               activeBattle.registration.rewardClaim.isCurrent(in: playerSave) else { return nil }
         return activeBattle.registration
@@ -172,7 +172,7 @@ extension PlayBattleCoordinator {
         action: BattleDefeatAction,
         onFinished: @escaping () -> Void,
     ) -> BattleCompletionResult {
-        guard runtimeTransition == nil, let expectedBattle = activeBattle, isCurrent(expectedBattle),
+        guard runtimeTransition == .idle, let expectedBattle = activeBattle, isCurrent(expectedBattle),
               expectedBattle.registration.launch.configuration.id == configuration.id,
               expectedBattle.canRestart else { return .unavailable }
         return playerSave.performSaveAction(key: SaveRetryKey.defeat(configuration.id)) { [weak self] isRetry -> BattleCompletionResult in

@@ -136,7 +136,7 @@ extension BattleSession {
     }
 
     public func createPreparedRun(_ configuration: BattleRunConfiguration) -> (any PreparedBattleRunHandle)? {
-        guard runtimeTransition == nil, activeBattle == nil, configuration.runKey != nil else { return nil }
+        guard runtimeTransition == .idle, activeBattle == nil, configuration.runKey != nil else { return nil }
         return PreparedBattleSimulation(
             configuration: configuration, state: makeBattleState(from: configuration),
             owner: self, generation: preparationGeneration,
@@ -144,7 +144,7 @@ extension BattleSession {
     }
 
     public func publishPreparedPreview(_ preview: BattlePreparedPreview) {
-        guard runtimeTransition == nil else { return }
+        guard runtimeTransition == .idle else { return }
         guard preparedPreview.configurations.map(\.id) != preview.configurations.map(\.id)
             || preparedPreview.selected !== preview.selected else { return }
         preparedPreview = preview
@@ -160,7 +160,7 @@ extension BattleSession {
         _ handle: any PreparedBattleRunHandle,
         presentation: BattlePresentationContext,
     ) -> Bool {
-        guard runtimeTransition == nil, activeBattle == nil, let prepared = handle as? PreparedBattleSimulation,
+        guard runtimeTransition == .idle, activeBattle == nil, let prepared = handle as? PreparedBattleSimulation,
               let state = prepared.state(for: self) else { return false }
         return installingRuntime {
             guard installActiveBattle(prepared.configuration, state: state, presentation: presentation) else { return false }
@@ -186,13 +186,13 @@ extension BattleSession {
     }
 
     public func endBattle() {
-        if runtimeTransition == .installing {
-            endRequestedDuringInstallation = true
+        if case .installing = runtimeTransition {
+            runtimeTransition = .installing(endRequested: true)
             return
         }
-        guard runtimeTransition == nil else { return }
+        guard runtimeTransition == .idle else { return }
         runtimeTransition = .ending
-        defer { runtimeTransition = nil }
+        defer { runtimeTransition = .idle }
         retireRuntime()
     }
 
@@ -239,7 +239,7 @@ extension BattleSession {
         presentation: BattlePresentationContext?,
         mode: BattleInstallMode,
     ) -> Bool {
-        guard runtimeTransition == nil else { return false }
+        guard runtimeTransition == .idle else { return false }
         switch mode {
         case .fresh:
             guard activeBattle == nil else { return false }
@@ -260,17 +260,16 @@ extension BattleSession {
     /// Observation and presentation dependencies can call back synchronously.
     /// Reserve the whole transition before publishing or retiring any run state.
     private func installingRuntime(_ install: () -> Bool) -> Bool {
-        guard runtimeTransition == nil else { return false }
-        runtimeTransition = .installing
+        guard runtimeTransition == .idle else { return false }
+        runtimeTransition = .installing(endRequested: false)
         let installed = install()
-        if endRequestedDuringInstallation {
-            endRequestedDuringInstallation = false
+        if runtimeTransition == .installing(endRequested: true) {
             runtimeTransition = .ending
             retireRuntime()
-            runtimeTransition = nil
+            runtimeTransition = .idle
             return false
         }
-        runtimeTransition = nil
+        runtimeTransition = .idle
         if installed {
             scheduleAutoEndIfNeeded()
         }
