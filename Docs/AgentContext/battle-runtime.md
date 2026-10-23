@@ -18,9 +18,9 @@ Configuration, reward context and engine state belong to one active simulation;
 publication replaces that run as a unit. The runtime reserves installation and
 teardown before synchronous observation or presentation callbacks can reenter.
 Nested launches/restarts reject; exit during installation retires the completed
-candidate before reporting failure. Combat commands resume only after installation. Each owner represents its transition
-as idle, installing with an optional end request, or ending; an end request cannot
-exist independently of an installation.
+candidate before reporting failure. Combat commands resume only after installation.
+Each owner represents its transition as idle, installing with an optional end
+request, or ending; an end request cannot exist independently of an installation.
 
 `PlayBattleCoordinator` owns the sole prepared registry, launch metadata, claims,
 Retry, and reward exits. `PreparedBattleRegistry` owns handle replacement,

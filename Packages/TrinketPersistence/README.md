@@ -31,7 +31,7 @@ Store methods are `@MainActor`; completion and reward appliers (`StageCompletion
 `save: inout` inside the package. App sessions decide when to invoke domain commands;
 Persistence owns candidate mutation and resolved action boundaries. Economic
 receipts are derived from the action's stored changes; domain appliers do not
-independently author receipts. New replay decides duplicate ownership for structural
+independently author receipts. Action replay decides duplicate ownership for structural
 and economic effects together. Historical journals retain their existing readers.
 Mutations reconcile changed slices while preserving retained child-row identities.
 
