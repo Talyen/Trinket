@@ -79,7 +79,7 @@ CI OK. The watch command attempts one such recovery, not a blanket test retry.
 
 | Gate | Composition |
 |---|---|
-| `handoff.sh` (static route) | Locally: scoped style, fast selected script regressions, docs, cheap static slices and selected prepared-asset integrity; reports content/project generation, compilation, package and UI work as CI-owned; local cheap slices use declared input scopes |
+| `handoff.sh` (local auto/static routes) | Locally: scoped style, fast selected script regressions, docs, cheap static slices and selected prepared-asset integrity; reports content/project generation, compilation, package and UI work as CI-owned; local cheap slices use declared input scopes |
 | `ci-gate.sh` | Pinned-tool ensure, generation and idempotence, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation; compiled artwork-budget behavior belongs to FeatureSupport package tests |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Check committed prepared assets and manifest/resource integrity without Asset Library |

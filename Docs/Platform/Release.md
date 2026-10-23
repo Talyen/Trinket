@@ -394,10 +394,9 @@ For API/combat migrations, repeat the [consumer review](Testing.md#fixtures) aft
 incorporating main, including unchanged downstream tests and shared fixtures.
 A clean textual rebase is not semantic or compiled evidence.
 
-Integration requires passed compiled evidence matching the complete build/test
-sources and selected Xcode/architecture. Commits and guidance-only edits preserve
-that evidence; source or toolchain changes invalidate it. Refresh missing checks
-with [handoff](Verification.md#confidence-ladder) outside the lock and reassess
+Integration does not require or launch local compilation or package tests; those
+remain hosted obligations. Review the combined result, refresh affected lightweight
+[handoff](Verification.md#confidence-ladder) checks outside the lock and reassess
 visual evidence after relevant changes. Integration then runs a final **static**
 handoff with plan closure under the lock,
 rechecks both checkouts and ignored-file collisions, then fast-forwards main.
@@ -460,8 +459,9 @@ Prepare changed media and download offloaded sources before an asset-routed push
 Pre-push does not regenerate assets or run package tests;
 Select local and hosted checks through the [confidence ladder](Verification.md#confidence-ladder).
 A requested push still requires a green path-scoped
-handoff for the complete task; successful locked integration validates required compiled evidence and supplies the final static gate. A
-standalone task must run handoff explicitly. Review and include only task-related
+handoff for the complete task; successful locked integration supplies the final
+static gate, with compiled qualification deferred to CI. A standalone task must
+run handoff explicitly. Review and include only task-related
 authored and generated files; stage individual hunks when task and unrelated changes share a file.
 
 Pre-push validates Git's outgoing ref/object pairs against the checked-out HEAD

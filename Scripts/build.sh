@@ -7,6 +7,7 @@ source Scripts/build-freshness.sh
 source Scripts/xcode-runner.sh
 source Scripts/lib/app-build.sh
 source Scripts/lib/args.sh
+source Scripts/lib/verification-policy.sh
 
 QUIET=true
 VERBOSE=false
@@ -24,6 +25,7 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+trinket_require_heavy_verification 'App compilation' || exit $?
 trinket_run_env_init
 trinket_run_env_print
 prepare_generated_inputs "$RESULTS_DIR"

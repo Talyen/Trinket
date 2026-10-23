@@ -14,7 +14,7 @@ import sys
 import tempfile
 import uuid
 
-from internal.change_routing import Check, collect_paths, classify, verification_plan, automatic_plan
+from internal.change_routing import Check, collect_paths, classify, verification_plan, automatic_plan, lightweight
 from internal.cli import ROOT, pinned_tool_path, write_json_atomic, read_env_arrays
 from internal.ui_registration import registrations
 from internal import output_retention as retention
@@ -155,7 +155,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     scope.add_argument('--working-tree', action='store_true')
     scope.add_argument('--base', help='include task commits since the shared ancestor of REF and HEAD, plus dirty files')
     parser.add_argument('--route', choices=('auto', 'static', 'focused', 'diagnostic', 'visual', 'release'),
-                        help='auto selects scoped static and compiled checks; static is the cheap landing gate; explicit selectors remain supported')
+                        help='auto/static run lightweight local checks and defer compiled work to CI; focused local execution requires an explicit heavy-local opt-in')
     target = parser.add_mutually_exclusive_group()
     target.add_argument('--package', nargs='+', help='focused: run selected packages serially')
     target.add_argument('--ui', help='focused: run one existing UI class or method selector')
@@ -193,9 +193,16 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         if args.route == 'auto':
             checks = automatic_plan(route, root=root, environment=environment, final=args.final, keep_plan=args.keep_plan)
         elif args.route == 'static':
-            checks = verification_plan(route, root=root, environment=environment, smoke=args.smoke or environment.get('TRINKET_ENABLE_SMOKE') == 'true', final=args.final, keep_plan=args.keep_plan, mirror=args.mirror)
+            planning_environment = environment if environment.get('GITHUB_ACTIONS') == 'true' else {**environment, 'TRINKET_ALLOW_HEAVY_LOCAL': ''}
+            checks = verification_plan(route, root=root, environment=planning_environment, smoke=args.smoke or environment.get('TRINKET_ENABLE_SMOKE') == 'true', final=args.final, keep_plan=args.keep_plan, mirror=args.mirror)
         else:
-            environment['TRINKET_ALLOW_HEAVY_LOCAL'] = '1'
+            if args.route == 'visual':
+                # Shipping-UI inspection remains a bounded local exception.
+                environment['TRINKET_ALLOW_HEAVY_LOCAL'] = '1'
+            elif not args.dry_run and lightweight(environment):
+                raise ValueError('Compilation and tests are CI-owned. Use ./Scripts/handoff.sh --quiet. '
+                                 'Only for an expressly requested local diagnostic or release run, '
+                                 'set TRINKET_ALLOW_HEAVY_LOCAL=1 with the explicit selector.')
             if args.route == 'focused':
                 if args.package:
                     known = set(read_env_arrays(root / 'Scripts/build-inputs.env', ['TRINKET_TEST_PACKAGES'])['TRINKET_TEST_PACKAGES'])
@@ -246,7 +253,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             if compiled and source_identity(root) != identity:
                 status = status or 2
                 identity = None
-                print('Source changed during verification; compiled evidence cannot be reused. Rerun handoff.', file=sys.stderr)
+                print('Source changed during verification; compiled evidence is invalid. Rerun the requested diagnostic.', file=sys.stderr)
             save_report(root, args.route, route.paths, checks, outcomes, status, identity=identity, toolchain=toolchain)
         deferred = [check.command for check in checks if check.deferred]
         if deferred:

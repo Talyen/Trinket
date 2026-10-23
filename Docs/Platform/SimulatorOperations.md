@@ -192,9 +192,9 @@ Custom, Relative to Workspace:
 - Products: `.DerivedData/Build/Products`
 - Intermediates: `.DerivedData/Build/Intermediates.noindex`
 
-Routine verification uses automatic handoff, which selects bounded package tests
-and app compilation; broader qualification stays hosted. Explicit diagnostic
-selectors follow [execution limits](Verification.md#execution-limits).
+Routine verification uses automatic handoff for lightweight static checks;
+compilation and tests stay hosted. Expressly requested local diagnostic selectors
+follow [execution limits](Verification.md#execution-limits).
 Avoid asset generation during Swift-only work,
 and avoid opening both the app project and a nested package in separate Xcode
 windows. `prune-derived-data-cache.sh` safely removes old local artifacts while

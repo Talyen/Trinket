@@ -337,17 +337,11 @@ def verification_plan(route: Route, *, root: Path = ROOT, environment: dict[str,
 
 
 def automatic_plan(route: Route, *, root: Path = ROOT, environment: dict[str, str], final: bool = False, keep_plan: bool = False) -> list[Check]:
-    """Keep static checks cheap; execute directly affected packages serially.
-
-    Shared fixtures can route many consumer suites. Those additional suites and
-    broad generation remain hosted obligations rather than an implicit full run.
-    """
+    """Keep routine local work static, even with an inherited heavy-local flag."""
     planning_environment = environment if environment.get('GITHUB_ACTIONS') == 'true' else {**environment, 'TRINKET_ALLOW_HEAVY_LOCAL': ''}
     checks = verification_plan(route, root=root, environment=planning_environment, smoke=True, final=final, keep_plan=keep_plan)
     if environment.get('GITHUB_ACTIONS') == 'true':
         return checks
-    direct = {path.split('/')[1] for path in route.paths
-              if path.startswith('Packages/') and (path.endswith('.swift') or path.endswith('/Package.swift'))}
     compile_app = ('build' in route.needs or bool(route.features & {'feature', 'public-api', 'api-consumer-check'}) or
                    '.agents/skills/architect/SKILL.md' in route.skills or
                    any(path.endswith('/Package.swift') for path in route.paths))
@@ -357,20 +351,19 @@ def automatic_plan(route: Route, *, root: Path = ROOT, environment: dict[str, st
             for package in route.packages:
                 selected.append(Check('package:' + package, 'package tests: ' + package,
                                       ('./Scripts/test-package.sh', package),
-                                      (('SKIP_GENERATE', '1'), ('TRINKET_ALLOW_HEAVY_LOCAL', '1'), ('TRINKET_PACKAGE_TEST_JOBS', '1')),
-                                      package not in direct))
+                                      (('SKIP_GENERATE', '1'),), deferred=True))
         elif check.id == 'build':
             # App-only compilation includes unchanged consumers of shared APIs.
             if compile_app:
                 selected.append(Check('build', 'app compilation', ('./Scripts/test.sh', 'unit', '--app-only'),
-                                      (('SKIP_GENERATE', '1'), ('TRINKET_ALLOW_HEAVY_LOCAL', '1'))))
+                                      (('SKIP_GENERATE', '1'),), deferred=True))
             else:
                 selected.append(check)
         else:
             selected.append(check)
     if compile_app and not any(check.id == 'build' for check in selected):
         selected.append(Check('build', 'app compilation', ('./Scripts/test.sh', 'unit', '--app-only'),
-                              (('SKIP_GENERATE', '1'), ('TRINKET_ALLOW_HEAVY_LOCAL', '1'))))
+                              (('SKIP_GENERATE', '1'),), deferred=True))
     return selected
 
 

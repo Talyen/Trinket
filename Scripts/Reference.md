@@ -234,10 +234,10 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -version
 DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer xcodebuild -version
 ```
 
-Version queries and `handoff.sh --route static` do not compile Swift or validate a
-runtime. Automatic handoff selects bounded package tests and app compilation;
-use its execution report to identify what actually ran. Broader qualification
-uses CI under [Verification](../Docs/Platform/Verification.md#execution-limits).
+Version queries and local automatic/static handoff do not compile Swift or
+validate a runtime. Compilation and tests remain CI-owned; use the handoff report
+to identify deferred obligations. Expressly requested local diagnostic/release
+selectors require `TRINKET_ALLOW_HEAVY_LOCAL=1` under [Verification](../Docs/Platform/Verification.md#execution-limits).
 Beta compile/runtime results remain prerelease evidence, not release qualification.
 Confirm the simulator runtime separately; an existing managed device can use a different OS
 than the SDK. `--no-build` rejects missing metadata or incompatible build environments; CI also

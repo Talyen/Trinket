@@ -63,7 +63,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             command = subprocess.check_output(['bash', 'Scripts/agent-context.sh', '--task', concern, '--read-command'], cwd=ROOT, text=True)
             arguments = shlex.split(command)
             result = run_captured(arguments, cwd=ROOT, expected=0)
-            for invariant in ('Reward arithmetic saturates', 'Saved IDs stay stable',
+            for invariant in ('Reward arithmetic saturates', 'Persistence retains saved modifier IDs',
                               'requires a current playable', 'Shop offers are pinned',
                               'Mystery opening pins', 'Defeat and retreat XP'):
                 self.assertIn(invariant, result.stdout)
@@ -204,13 +204,13 @@ class AgentContextTests(ScriptRegressionTestCase):
         engine = self.brief('--read', '--paths', 'Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift')
         self.assertIn('copy the generator rather than advance live RNG', engine)
 
-    def test_ui_brief_surfaces_unusual_constraints_and_implementation_skill_directly(self) -> None:
+    def test_ui_brief_links_canonical_constraints_and_surfaces_implementation_skill(self) -> None:
         output = self.brief('--read', '--paths', 'Trinket/Features/Play/PlayBrowsingStack.swift')
         self.assertIn('swiftui-specialist/SKILL.md', output)
         self.assertIn('## Interaction constraints', output)
-        self.assertIn('no error or operation-status text', output)
-        self.assertIn('Reset Game Progress', output)
-        self.assertIn('Full Game purchasing is a narrow exception', output)
+        self.assertIn('../Product/DesignPrinciples.md#failure-presentation', output)
+        self.assertIn('Reset confirmation', output)
+        self.assertIn('narrow purchase-outcome exception', output)
         self.assertIn('Artwork stays pinned/prewarmed', output)
 
     def test_directive_skill_does_not_route_ordinary_rationale_comments(self) -> None:

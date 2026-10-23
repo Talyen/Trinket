@@ -101,7 +101,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                 (["--release-device"], "iphoneos", "generic/platform=iOS"),
             ):
                 with self.subTest(flags=flags):
-                    result = run_captured([str(scripts / "build.sh"), *flags], expected=0)
+                    result = run_captured([str(scripts / "build.sh"), *flags], env={**os.environ, "GITHUB_ACTIONS": "", "TRINKET_ALLOW_HEAVY_LOCAL": "1"}, expected=0)
                     args = (root / "arguments").read_text().splitlines()
                     self.assertEqual(args[:2], ["xcodebuild", "build"])
                     self.assertIn("ENABLE_CODE_COVERAGE=NO", args)
@@ -113,7 +113,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                     if flags:
                         self.assertIn("Release", args)
                         self.assertIn("CODE_SIGNING_ALLOWED=NO", args)
-            result = subprocess.run([str(scripts / "build.sh")], env={**os.environ, "BUILD_STATUS": "65"}, capture_output=True)
+            result = subprocess.run([str(scripts / "build.sh")], env={**os.environ, "GITHUB_ACTIONS": "", "TRINKET_ALLOW_HEAVY_LOCAL": "1", "BUILD_STATUS": "65"}, capture_output=True)
             self.assertEqual(result.returncode, 65)
 
     def test_failed_app_test_rebuild_invalidates_previous_success(self):

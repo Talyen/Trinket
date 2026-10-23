@@ -3,27 +3,27 @@
 ## Confidence ladder
 
 Run `./Scripts/handoff.sh --quiet` from the task checkout. It derives the complete
-task scope from `main` (commits plus dirty files) and selects the bounded checks.
+task scope from `main` (commits plus dirty files) and runs lightweight static checks.
+Compilation, package tests, simulator suites, generation freshness and performance
+qualification belong to hosted CI, including for directly changed packages and public APIs.
 Use `--base <ref>` for another approved base, `--paths <files...>` for an iteration,
 and `--dry-run` to preview without executing anything.
 
 | Need | Command | Evidence |
 |---|---|---|
-| Ordinary task verification | `handoff.sh --quiet` | Scoped static checks, directly changed package tests serially, app compile for app/UI or changed public APIs |
+| Ordinary task verification | `handoff.sh --quiet` | Scoped static checks; compilation and test obligations reported as deferred to CI |
 | Cheap static checks only | `handoff.sh --route static --paths <files...>` | Style, scripts/docs and cheap invariants; no compilation or simulator |
-| Selected package behavior | `handoff.sh --package <Package...> --paths <files...>` | Selected package tests, executed serially |
-| App compilation | `handoff.sh --app-only --paths <files...>` | App and unchanged downstream consumers compile |
-| One existing UI journey | `handoff.sh --ui <Class[/method]> --paths <files...>` | The selected registered Smoke/FullUI journey |
+| Expressly requested local package diagnostic | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --package <Package...> --paths <files...>` | Selected package tests, executed serially |
+| Expressly requested local app compilation | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --app-only --paths <files...>` | App and unchanged downstream consumers compile |
+| Expressly requested local UI diagnostic | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --ui <Class[/method]> --paths <files...>` | The selected registered Smoke/FullUI journey |
 | Inspect changed visuals | `handoff.sh --route visual --paths <files...>` in a persistent terminal | Managed build/launch/capture session; actual image and interaction review still required |
-| Requested release qualification | `handoff.sh --route release --paths <files...>` | Full release verification without publishing |
+| Requested release qualification | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --route release --paths <files...>` | Full release verification without publishing |
 
-The default `auto` route runs static checks plus tests for directly edited packages.
-Shared fixtures retain additional consumer suites as hosted obligations. App/UI,
-package-manifest and public-API changes select an app compile. Generation freshness,
-full UI suites, broad consumer qualification and performance runs remain hosted.
-App compilation previews distinguish confirmed public declaration edits from
-conservative checks of unchanged consumers when an implementation in an API-bearing
-file changes. Those conservative checks also protect nested enum cases and inferred types.
+The default `auto` route and local `static` route never enable compiled work,
+even if a shell inherited `TRINKET_ALLOW_HEAVY_LOCAL=1`. Direct package edits,
+shared-fixture consumers, app/UI changes and public-API consumer checks remain
+visible as hosted obligations. Main CI already runs routed package tests and app
+build/Smoke qualification; nightly and manual lanes own broader UI/performance work.
 The preview and report list selected and deferred work; a skipped or unexecuted
 check never counts as passed. Default selection does not certify visual quality.
 
@@ -31,9 +31,14 @@ Explicit selectors run only that selected work; they do not replace static landi
 checks. `--route focused` is optional and `diagnostic` remains a compatibility alias.
 `--isolate` is also retained for compatibility; isolation is automatic. Ordinary
 verification needs no additional user approval or manual environment flags.
+Focused/release execution requires `TRINKET_ALLOW_HEAVY_LOCAL=1` locally and an
+express user request for that local work; selectors alone never enable the override.
+Dry-run previews need no opt-in. The bounded visual route remains authorized by
+the visual completion gate below.
 
 Before landing, follow [review and integration](Release.md#landing-and-review).
-Its final static gate does not replace the required compiled or visual evidence.
+Local integration requires static checks and applicable visual review, without
+requiring local compiled evidence. Report hosted verification as pending.
 
 ## Completion states
 
@@ -153,14 +158,17 @@ satisfy the gate. Guidance-only edits use scenario review, not a synthetic UI bu
 
 ### Execution limits
 
-Local package checks execute serially; UI workers remain serialized and app builds
-use two workers. Multiple directly affected packages are permitted within one task.
-Explicit selectors may include affected consumers when needed. Broad qualification,
-FullUI, performance measurements and repository-wide freshness stay hosted unless
-expressly requested under the release/diagnostic policy.
+Do not run local compilation, package tests, simulator test journeys, full script
+qualification or performance measurements merely to complete an ordinary task.
+A task request, a failing CI check, or an explicit selector alone is not permission
+to move that workload onto this Mac. Use lightweight handoff and report hosted
+checks as pending until an authorized push runs them. Do not push just to obtain CI.
 
-The wrappers set isolation and focused execution flags. Direct compiled wrappers
-retain `TRINKET_ALLOW_HEAVY_LOCAL=1`; bare FullUI additionally requires
+For an expressly requested local diagnostic/release run, set
+`TRINKET_ALLOW_HEAVY_LOCAL=1` with the selected command. Local package checks then
+execute serially; UI workers remain serialized and app builds use two workers.
+The visual completion gate and interactive play retain their bounded build/launch
+exceptions. Bare FullUI additionally requires
 `TRINKET_ALLOW_FULL_UI=1`. Never forge `CI`/`GITHUB_ACTIONS` or use flags to bypass
 resource policy. Stubbed script fixtures may simulate these environments without
 starting real builds or simulators. Local script regressions use at most two
@@ -186,8 +194,8 @@ Use the existing bounded runner deadlines and diagnostic reserves. See
 
 ## Gate composition
 
-The default handoff adds bounded compilation to the static landing checks. Hosted
-CI retains full qualification. [Gate composition and cache contracts](VerificationInternals.md#gate-composition)
+Default handoff and locked integration run lightweight static checks. Hosted
+CI owns compilation and test qualification. [Gate composition and cache contracts](VerificationInternals.md#gate-composition)
 are implementation references, not an everyday reading requirement.
 
 ## Style and boundary ownership
@@ -226,11 +234,10 @@ to bypass product chrome routing.
 Handoff writes a compact report under `.DerivedData/Deliverables/Verification/`
 with commit/dirty state, scoped input hashes, commands, outcomes and deferred work.
 Integration records the main base, full task scope and local completion state,
-and preserves deliverables outside the checkout. Compiled reports include whole-source and toolchain fingerprints; integration accepts
-only matching passed commands for its required package/app checks. Older reports
-remain readable evidence but need one fresh run for reuse. No manual verification
-transcript is required. Previews establish no execution evidence. Visual artifacts still need
-capture and review.
+and preserves deliverables outside the checkout. Explicit compiled reports retain
+whole-source and toolchain fingerprints as provenance; integration does not demand
+or trigger local compilation. No manual verification transcript is required.
+Previews establish no execution evidence. Visual artifacts still need capture and review.
 
 `--quiet` prints phase outcomes and bounded failures. Successful raw logs are
 removed; failed logs expire after 24 hours unless deliberately kept. Follow the

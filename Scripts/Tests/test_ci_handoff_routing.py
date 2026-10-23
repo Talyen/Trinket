@@ -55,7 +55,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
             (['--route', 'release'], ('./Scripts/test-deploy.sh', '--mode', 'ui')),
         )
         for arguments, expected in cases:
-            with self.subTest(arguments=arguments), patch.dict(os.environ, self.verification_environment(), clear=True), \
+            with self.subTest(arguments=arguments), patch.dict(os.environ, self.verification_environment(TRINKET_ALLOW_HEAVY_LOCAL="1"), clear=True), \
                  patch.object(verify, 'run_checks', return_value=0) as execute, \
                  patch.object(verify, 'save_report'), contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(verify.main([*arguments, '--quiet', '--paths', 'Docs/README.md']), 0)
@@ -73,36 +73,39 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 with self.assertRaises(SystemExit):
                     verify.main([*arguments, '--paths', 'Docs/README.md'])
 
-    def test_automatic_checks_compile_direct_packages_serially_and_retain_hosted_obligations(self) -> None:
+    def test_automatic_checks_defer_all_compilation_even_with_inherited_override(self) -> None:
         from internal.change_routing import automatic_plan, classify
-        paths = ['Packages/TrinketPersistence/Sources/TrinketPersistence/Probe.swift',
-                 'Packages/TrinketAppState/Sources/TrinketAppState/Probe.swift']
-        checks = automatic_plan(classify(paths), environment=self.verification_environment())
-        packages = [check for check in checks if check.id.startswith('package:')]
-        self.assertEqual({check.argv[-1] for check in packages}, {'TrinketPersistence', 'TrinketAppState'})
-        self.assertTrue(all(not check.deferred for check in packages))
-        self.assertTrue(all(dict(check.environment)['TRINKET_PACKAGE_TEST_JOBS'] == '1' for check in packages))
-        fixture = 'Packages/TrinketContent/Sources/TrinketContentTestSupport/CombatantFixtures.swift'
-        checks = automatic_plan(classify([fixture]), environment=self.verification_environment())
-        self.assertEqual([check.argv[-1] for check in checks if check.id.startswith('package:') and not check.deferred], ['TrinketContent'])
-        self.assertTrue(any(check.id.startswith('package:') and check.deferred for check in checks))
-        ui = automatic_plan(classify(['Trinket/Features/Play/PlayBrowsingStack.swift']), environment=self.verification_environment())
-        self.assertTrue(any(check.id == 'build' and not check.deferred for check in ui))
-        self.assertTrue(any(check.id == 'smoke' and check.deferred for check in ui))
-        generated = automatic_plan(classify(['project.yml']), environment=self.verification_environment())
-        self.assertTrue(all(check.deferred for check in generated if check.id in {'generate', 'assert'}))
+        cases = (
+            ['Packages/TrinketPersistence/Sources/TrinketPersistence/Probe.swift',
+             'Packages/TrinketAppState/Sources/TrinketAppState/Probe.swift'],
+            ['Packages/TrinketContent/Sources/TrinketContentTestSupport/CombatantFixtures.swift'],
+            ['Trinket/Features/Play/PlayBrowsingStack.swift'],
+            ['project.yml'],
+            ['Packages/TrinketCore/Package.swift'],
+        )
+        for paths in cases:
+            for flag in ('', '1'):
+                with self.subTest(paths=paths, flag=flag):
+                    checks = automatic_plan(classify(paths), environment=self.verification_environment(TRINKET_ALLOW_HEAVY_LOCAL=flag))
+                    compiled = [check for check in checks if check.id in {'build', 'package', 'smoke', 'generate', 'assert'} or check.id.startswith('package:')]
+                    self.assertTrue(compiled)
+                    self.assertTrue(all(check.deferred for check in compiled))
+                    self.assertFalse(any('TRINKET_ALLOW_HEAVY_LOCAL' in dict(check.environment) for check in checks))
         docs = automatic_plan(classify(['Docs/README.md']), environment=self.verification_environment())
         self.assertFalse(any(check.id in {'build', 'package'} or check.id.startswith('package:') for check in docs))
+        hosted = automatic_plan(classify(cases[0]), environment=self.verification_environment(hosted=True))
+        self.assertTrue(any(check.id == 'package' and not check.deferred for check in hosted))
 
-    def test_public_api_edits_compile_unchanged_app_consumers_and_missing_xcode_is_incomplete(self) -> None:
+    def test_public_api_consumer_checks_remain_visible_as_hosted_obligations(self) -> None:
         from internal.change_routing import automatic_plan, classify, Check
         from script_test_support import load_script
         verify = load_script('automatic_compilation_verifier', 'verify.py')
-        paths = ['Packages/TrinketCore/Sources/TrinketCore/Probe.swift']
-        route = classify(paths)
+        route = classify(['Packages/TrinketCore/Sources/TrinketCore/Probe.swift'])
         route.features.add('public-api')
         checks = automatic_plan(route, environment=self.verification_environment())
-        self.assertEqual([check.argv for check in checks if check.id == 'build'], [('./Scripts/test.sh', 'unit', '--app-only')])
+        build = next(check for check in checks if check.id == 'build')
+        self.assertEqual(build.argv, ('./Scripts/test.sh', 'unit', '--app-only'))
+        self.assertTrue(build.deferred)
         for identifier in ('build', 'package:TrinketCore'):
             outcomes = {}
             with patch.object(verify.shutil, 'which', return_value=None), patch.object(verify.subprocess, 'run') as execute, contextlib.redirect_stderr(io.StringIO()):
@@ -111,10 +114,43 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
             self.assertEqual(outcomes, {identifier: 'unavailable'})
             execute.assert_not_called()
 
+    def test_routine_execution_never_probes_xcode_or_selects_local_compilation(self) -> None:
+        from script_test_support import load_script
+        verify = load_script('static_execution_verifier', 'verify.py')
+        for route in ([], ['--route', 'static', '--smoke']):
+            with self.subTest(route=route), patch.dict(os.environ, self.verification_environment(TRINKET_ALLOW_HEAVY_LOCAL='1'), clear=True), \
+                 patch.object(verify, 'run_checks', return_value=0) as execute, \
+                 patch.object(verify, 'save_report'), patch.object(verify, 'toolchain_identity') as toolchain, \
+                 contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(verify.main([*route, '--quiet', '--paths',
+                    'Trinket/App/TrinketApp.swift', 'Packages/TrinketCore/Package.swift']), 0)
+                checks = execute.call_args.args[0]
+                compiled = [check for check in checks if check.id in {'build', 'package', 'smoke', 'generate', 'assert'} or check.id.startswith('package:')]
+                self.assertTrue(compiled)
+                self.assertTrue(all(check.deferred for check in compiled))
+                toolchain.assert_not_called()
+
+    def test_local_selectors_require_opt_in_before_toolchain_or_workload_preparation(self) -> None:
+        from script_test_support import load_script
+        verify = load_script('opt_in_verifier', 'verify.py')
+        for arguments in (['--package', 'TrinketCore'], ['--app-only'], ['--ui', 'SmokeShopTests'], ['--route', 'release']):
+            with self.subTest(arguments=arguments), patch.dict(os.environ, self.verification_environment(), clear=True), \
+                 patch.object(verify, 'run_checks') as execute, patch.object(verify, 'toolchain_identity') as toolchain, \
+                 contextlib.redirect_stderr(io.StringIO()) as errors:
+                with self.assertRaises(SystemExit) as failure:
+                    verify.main([*arguments, '--paths', 'Docs/README.md'])
+                self.assertEqual(failure.exception.code, 2)
+                self.assertIn('expressly requested local', errors.getvalue())
+                execute.assert_not_called()
+                toolchain.assert_not_called()
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(verify.main([*arguments, '--dry-run', '--paths', 'Docs/README.md']), 0)
+                execute.assert_not_called()
+
     def test_explicit_package_batch_runs_each_registered_package_once(self) -> None:
         from script_test_support import load_script
         verify = load_script('package_batch_verifier', 'verify.py')
-        with patch.object(verify, 'run_checks', return_value=0) as execute, patch.object(verify, 'save_report'), contextlib.redirect_stdout(io.StringIO()):
+        with patch.dict(os.environ, self.verification_environment(TRINKET_ALLOW_HEAVY_LOCAL='1'), clear=True), patch.object(verify, 'run_checks', return_value=0) as execute, patch.object(verify, 'save_report'), contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(verify.main(['--package', 'TrinketCore', 'TrinketPersistence', '--paths', 'Docs/README.md']), 0)
         self.assertEqual([check.argv for check in execute.call_args.args[0]],
                          [('./Scripts/test-package.sh', 'TrinketCore'), ('./Scripts/test-package.sh', 'TrinketPersistence')])

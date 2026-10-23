@@ -1,8 +1,7 @@
-"""Reuse executed compiled checks only for identical source and toolchain inputs."""
+"""Record source and toolchain provenance for explicitly executed compiled checks."""
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 from pathlib import Path
 import stat
@@ -48,31 +47,3 @@ def toolchain_identity(root: Path) -> dict:
     if result.returncode:
         raise ValueError('Cannot identify the selected Xcode toolchain')
     return {'developer_dir': developer, 'xcode': result.stdout.strip(), 'architecture': os.uname().machine}
-
-
-def required_compilation(root: Path, paths: list[str], base: str):
-    from internal.change_routing import automatic_plan, classify
-    checks = automatic_plan(classify(paths, root, base=base), root=root, environment=dict(os.environ))
-    return [check for check in checks if not check.deferred and (check.id == 'build' or check.id.startswith('package:'))]
-
-
-def missing_compilation(root: Path, checks) -> list[str]:
-    if not checks:
-        return []
-    source = source_identity(root)
-    toolchain = toolchain_identity(root)
-    outcomes = {}
-    directory = root / '.DerivedData/Deliverables/Verification'
-    for report in sorted(directory.glob('*.json'), key=lambda path: path.stat().st_mtime_ns):
-        if report.is_symlink():
-            continue
-        try:
-            data = json.loads(report.read_text())
-            if data.get('source_identity') != source or data.get('toolchain') != toolchain:
-                continue
-            for check in data.get('checks', []):
-                if check.get('outcome') in {'passed', 'failed', 'unavailable'}:
-                    outcomes[(check['id'], tuple(check.get('argv', [])))] = check['outcome']
-        except (OSError, ValueError, KeyError, TypeError):
-            continue
-    return [check.id for check in checks if outcomes.get((check.id, check.argv)) != 'passed']

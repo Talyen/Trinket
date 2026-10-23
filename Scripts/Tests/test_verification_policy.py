@@ -28,6 +28,8 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
 
     def test_heavy_entrypoints_refuse_local_work_before_preparation(self):
         for command in (
+            ['Scripts/build.sh'],
+            ['Scripts/build.sh', '--release-device'],
             ['Scripts/test.sh', 'smoke', 'SmokeBattleTests'],
             ['Scripts/test.sh', 'ui', 'BattleFlowUITests'],
             ['Scripts/test.sh', 'unit'],

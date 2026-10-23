@@ -219,7 +219,7 @@ def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool
             raise ReviewRequired(
                 f'Incorporated main {base[:12]}; task is now {head[:12]}. Main was not advanced.\n'
                 f'Review incoming changes: git diff {previous_head} {head}\n'
-                'Refresh focused verification and visual evidence affected by these changes, '
+                'Refresh lightweight verification and visual evidence affected by these changes, '
                 'then retry node Scripts/agent-worktree.mjs integrate. '
                 'The retry runs the final static handoff once.'
             )
@@ -228,11 +228,6 @@ def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool
         ).decode().rstrip("\0").split("\0")
         if paths == [""]:
             raise RuntimeError("No changed paths to verify; review empty task commits manually.")
-        from internal.verification_evidence import missing_compilation, required_compilation
-        missing = missing_compilation(source, required_compilation(source, paths, base))
-        if missing:
-            raise ReviewRequired('Missing or invalidated compiled evidence: ' + ', '.join(missing) +
-                                 '\nRun ./Scripts/handoff.sh --quiet in this checkout, then retry integration. Main unchanged.')
         # Reuse installed executables without sharing writable build/generated
         # directories. Task-local tools take precedence; validators enforce pins.
         environment = dict(os.environ)
