@@ -3,7 +3,7 @@
 **Goal:** Preserve player progress and coherent transactions across mutation,
 persistence, recovery, synchronization, and lifecycle transitions.
 
-Use the [shared audit contract](README.md) for evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 [Persistence context](../AgentContext/persistence.md) and
 [TrinketPersistence](../../Packages/TrinketPersistence/README.md) own the save graph,
 write policy, sanitizer, and recovery contracts.
@@ -39,7 +39,3 @@ that destroys or misrepresents existing progress.
 Establish a reachable violating transition, source-proven silent loss, or reproduction
 of corruption, duplicate application, ordering failure, or misleading recovery.
 Verify reload/retry where it establishes the repaired transaction's invariant.
-
-Route audio handling, isolation hazards, and other overlaps through the shared
-confusable-pairs table. Necessary cross-owner repairs remain part of one
-root-cause finding.

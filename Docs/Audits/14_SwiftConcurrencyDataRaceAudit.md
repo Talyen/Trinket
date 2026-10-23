@@ -3,7 +3,7 @@
 **Goal:** Repair isolation, ordering, reentrancy, and task-lifetime failures that
 strict concurrency checks alone may not establish.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 [Verification](../Platform/Verification.md) owns concurrency gates;
 [Architecture](../Platform/Architecture.md) owns actor and package boundaries.
 
@@ -43,6 +43,3 @@ cancellation machinery simply to modernize syntax. Preserve the live
 `BattleSession`'s main-actor ownership. Pure BattleEngine commands and headless
 tools follow the [engine's calling-thread contract](../AgentContext/battle-engine.md).
 Do not introduce blocking sleeps or semaphore waits in cooperative contexts.
-
-Transaction integrity, non-concurrent effect placement, and other overlaps route
-through the shared confusable-pairs table.

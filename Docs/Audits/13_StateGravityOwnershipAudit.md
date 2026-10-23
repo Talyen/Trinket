@@ -3,7 +3,7 @@
 **Goal:** Restore coherent responsibility and state authority when logic or mutable
 state has accumulated in the wrong owner.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 [Architecture](../Platform/Architecture.md) owns module responsibilities, hub
 containment, and intentional orchestration seams.
 
@@ -38,5 +38,3 @@ replaced behavior remains active.
   architectural decision and evidence.
 - Repair straightforward import-gate failures directly rather than inflating them
   into a hub rewrite.
-- Correct-owner redundant paths and mixed-job/context cost without misplaced
-  responsibility route through the shared confusable-pairs table.

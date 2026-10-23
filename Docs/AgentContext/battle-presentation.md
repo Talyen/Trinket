@@ -152,6 +152,8 @@ Direct effects from automatically played cards remain visible, while unrelated
 passive benefit events retain their suppression. Healing combines restored Health
 and overflow into one number, including at full Health.
 
+### Placement and motion
+
 Central chips use Revised Short Rise: a 0.05-second pop, brief peak/settle/hold,
 52-point cubic ease-out rise (bounded in short portraits), and a 0.34-second fade
 ending at 0.92 seconds. There is no animation picker.
@@ -176,6 +178,8 @@ height. Pushes ease out over 0.18 seconds and retarget continuously. Expiration
 never pulls surviving labels back down. The spatial fade at the artwork's top
 edge evicts labels permanently once they leave view.
 
+### Consolidation and eviction
+
 Matching semantic effects consolidate across actions before fading begins.
 Keep distinct effect outcomes separate even when they share a keyword and style;
 compatible damage and healing retain their existing aggregation families.
@@ -196,6 +200,8 @@ hide them. Card inputs remain immediate; damage presentation follows its impact 
 Corner selection retains the best two candidates per recipient in one pass,
 preserving arrival order when all priority keys tie.
 
+### Host composition
+
 Feedback hosts are composed with the artwork inside its attack and hit-reaction
 transforms, including the masked halves of the enemy split/dissolve death effect.
 The solid halves retire once their opacity reaches zero; the prepared masked halves
@@ -203,48 +209,42 @@ remain mounted through the dissolve.
 They are not positioned by fixed battlefield anchors. Remounted death fragments
 replay the bridge's live items using original timestamps and cached rasters.
 
-Each `BattleFeedbackLane` owns its chip bridge, live items, eviction callback, and
-availability timer. Raster hosts bind to that lane through their session; host
-teardown unregisters from the bridge that registered it. Independent battles and
-debug previews may reuse combatant/event IDs without replacing or clearing each
-other's feedback. Publication follows lane lifetime rather than view mount order.
-The raster host, bridge, shared glyph/mask cache, and shared display clock own rendering.
-Prewarm the single production vocabulary including glint masks; numeric cache churn
-cannot evict the prepared vocabulary within the existing raster capacity. Chip
-replacement refreshes changed recipients only and shares raster resolution between
-matching fragment hosts, while availability deadlines still reveal queued results.
-The bridge retains each live chip's resolved raster across cache eviction and
-fragment remounts, replacing it when its appearance changes. Retirement, eviction,
-and reset release these references; new host metadata drops obsolete rendering
-contexts. Hosts retain the raster object while comparing identity so an evicted
-wrapper's recycled address cannot hide a changed image.
-Matching fragment hosts share each chip's animation samples for a display-clock tick;
-their fitting and lane pushes remain independent. Layer order refreshes only when
-membership or ordering inputs change. Frame updates change only unequal layer
-properties, using fitting positions cached
-until ordered chip membership, reservation geometry, portrait bounds, or bottom inset
-changes. Layout invalidates at membership, order, or region mutation rather than
-allocating comparison inputs on every publication. Glyph preparation reuses its
-typography fonts within each worker batch. Live raster composition reuses a
-pool-owned bounded cache of tinted glyphs, outline silhouettes, and drawing geometry
-across publications; clearing the pool releases it. Color and mask passes share the
-resolved draw plan. Keep the original source-over outline draws instead of flattening
-them into a bitmap that changes alpha blending. Worker
-batches keep separate value contexts and merge prepared glyphs into the live cache
-only after the current generation succeeds, within its existing bounds. Both retain
-source images to preserve identity. Color and mask passes share a renderer within
-each composition; the draw sequence, sampling, masks, and feedback clocks are
-unchanged. Raster
-hits and evictions update an explicit LRU list of unprotected entries; changing
-catalog protection rebuilds that list in recency order.
-Hosts unregister from the display clock on teardown and when eviction leaves no
-unpaused chips; publication resumes the clock for new or resumed feedback.
-Feedback expiration participates in outcome timing;
-suspension freezes every region and resume shifts its original clocks.
-Ordinary batches publish changed chips and permanent removals together. Full
-replacement remains for whole-lane suspension and visibility reconciliation. Merge
-candidates are indexed within a batch, preserving reverse arrival order and the
-existing semantic, width, and lifetime rules.
+### Lane and rendering invariants
+
+- **Lifetime:** Each `BattleFeedbackLane` owns its chip bridge, live items, eviction
+  callback and availability timer. Hosts bind through their session and unregister
+  from their original bridge. Independent battles/previews can reuse IDs without
+  affecting each other; publication follows lane lifetime, not mount order.
+- **Raster retention:** The host, bridge, shared glyph/mask cache and display clock
+  own rendering. Prewarm one production vocabulary, including glint masks; numeric
+  churn cannot evict it within the existing capacity. The bridge retains live chip
+  rasters across cache eviction/remount, replaces changed appearances, and releases
+  them on retirement, eviction or reset. New host metadata drops obsolete contexts.
+  Retain raster objects during identity comparisons so recycled wrapper addresses
+  cannot hide changes.
+- **Updates:** Refresh only changed recipients; matching fragment hosts share raster
+  resolution and per-tick animation samples while fitting and pushes stay independent.
+  Availability deadlines still reveal queued results. Update layer order only when
+  membership/order inputs change and assign only unequal frame properties. Cache
+  fitting positions until membership, order, region, reservation geometry, portrait
+  bounds or bottom inset changes; avoid per-publication comparison allocations.
+- **Caches and workers:** Reuse typography fonts within worker batches and a bounded,
+  pool-owned cache of tinted glyphs, outline silhouettes and drawing geometry across
+  publications; clearing the pool releases it. Workers keep separate value contexts
+  and merge prepared glyphs only after the current generation succeeds, within
+  existing bounds. Both worker and live caches retain source images for identity.
+  Raster hits/evictions maintain the LRU list of unprotected entries; catalog
+  protection changes rebuild it in recency order.
+- **Paint fidelity:** Color and mask passes share the resolved draw plan and a renderer
+  per composition. Preserve source-over outline draws: bitmap flattening changes
+  alpha blending. Keep draw sequence, sampling, masks and feedback clocks unchanged.
+- **Clocks and publication:** Unregister hosts from the display clock on teardown or
+  when eviction leaves no unpaused chips; new/resumed feedback restarts it. Expiration
+  participates in outcome timing. Suspension freezes all regions; resume shifts
+  their original clocks. Publish changed chips and permanent removals together;
+  full replacement is for whole-lane suspension/visibility reconciliation. Index
+  merge candidates within a batch while preserving reverse arrival order and the
+  existing semantic, width and lifetime rules.
 
 ### Verification gap
 

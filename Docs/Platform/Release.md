@@ -337,30 +337,24 @@ to start a new deployment, which allocates a new number.
 | Upload interrupted, processing delayed, or distribution pending | Use `--resume RUN`. Do not equate upload acceptance with tester availability. |
 | Apple rejects processing or build expires | Inspect the exact Apple build, fix the cause, and start a new run with a new number. |
 
-Local StoreKit qualification (2026-10-11): Xcode 27.0 (27A266a) with iOS 27.0
-(24A434) exposed a denied Ask to Buy purchase as a verified current entitlement
-in a standalone app. With the same Xcode, iOS 26.2 (23C54) passed both the
-standalone approval/denial/retry controls and Trinket's denial/retry journey.
-Requalified 2026-10-12 with Xcode 27.1 RC (27A9275): iOS 27.1 (24A94232)
-still returns the declined transaction as a verified, unrevoked current entitlement
-while StoreKitTest marks the same transaction failed. An independent direct
-`Transaction.currentEntitlements` probe reproduced this before Trinket's access
-assertion failed. The same RC-built app on iOS 26.2 (23C54) returned no entitlement
-after denial and passed denial plus a subsequent purchase. This is an iOS 27 local
-StoreKit testing defect, not evidence of a production App Store failure. Do not
-filter valid signed entitlements or skip the denial assertion to accommodate it.
-Until requalified, hosted beta verification requires iOS 26.2 and records its
-actual runtime in the proof. Deliberate local diagnostics may select the same
-managed profile with an explicit runtime/type pair. A newer runtime is not automatically qualified.
-Retain the selected beta or full-release gate and the player-facing denial and retry checks;
-legacy `SKTestTransaction.state` can remain deferred after a correctly resolved
-denial. This finding concerns local StoreKit testing, not production App Store
-behavior. Apple's [Ask to Buy testing contract](https://developer.apple.com/documentation/storekit/testing-ask-to-buy-in-xcode)
-says denial delivers no transaction to the app. On iOS 26.2, clearing a simulated
-purchase cancellation with `setSimulatedError(nil, forAPI: .purchase)` reports nil
-but can leave the following purchase canceled by the test server. Reset the test
-configuration with `resetToDefaultState()` and reapply `disableDialogs` before
-retrying; keep the transaction history and verify locked access and successful retry.
+Local StoreKit qualification currently requires **iOS 26.2 (23C54)**. Probes with
+Xcode 27.0 (`27A266a`) and 27.1 RC (`27A9275`) exposed declined Ask to Buy
+transactions as verified, unrevoked current entitlements on iOS 27 runtimes, while
+iOS 26.2 passed denial/retry. This is local StoreKit-test evidence, not a production
+App Store defect. Preserve valid signed entitlements and the denial/retry assertions;
+Apple's [Ask to Buy contract](https://developer.apple.com/documentation/storekit/testing-ask-to-buy-in-xcode)
+says denial delivers no transaction to the app.
+
+Until requalified, hosted beta proof must record that exact runtime. Bounded local
+diagnostics may select it with an explicit managed runtime/type pair; a newer runtime
+is not automatically qualified. Retain the selected beta/full-release gate.
+Legacy `SKTestTransaction.state` can remain deferred after a correctly resolved denial.
+Detailed qualification runs remain in Git history.
+
+On iOS 26.2, `setSimulatedError(nil, forAPI: .purchase)` can report nil while the
+server still cancels the next purchase. Use `resetToDefaultState()`, reapply
+`disableDialogs`, preserve transaction history, then verify locked access and a
+successful retry.
 
 Tooling updates are deliberate maintenance: update the pinned Fastlane version
 and Bundler lockfile together, run script regressions and handoff, then rerun

@@ -3,7 +3,7 @@
 **Goal:** Improve native layout, typography, and adaptation while preserving
 Trinket's intentional game UI.
 
-Use the [shared audit contract](README.md) for evidence, severity, scope, and sizing.
+Apply the [shared audit contract](README.md).
 [TrinketDesignSystem](../../Packages/TrinketDesignSystem/README.md) and
 [platform reference](../Platform/ApplePlatformReference.md) own native API/token guidance;
 [PD-014](../Product/Decisions.md) owns accessibility scope.
@@ -33,8 +33,6 @@ rather than treating the minimum deployment target as the only supported runtime
   symbols already using scaled metrics can be intentional.
 - Preserve existing accommodation behavior; do not add bespoke accessibility modes
   or setting-specific layout branches under PD-014.
-- Repeated product scaffolding or unusable gestures/actions route through the
-  shared confusable-pairs table.
 
 ## Evidence and success
 

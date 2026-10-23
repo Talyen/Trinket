@@ -13,15 +13,13 @@ reuse it when already loaded and unchanged. This repository's
 owns local inspection and hosted qualification. Shipping-UI review uses the managed
 inspection session described below; no additional approval is needed within that scope.
 
-For a managed simulator, use `native` and `event <command>` in the existing
-inspection terminal. Its controller discovers the Xcode tool metadata, supplies
-the exact device/session/app identity, preserves captures, and ends the session
-before releasing the lease. Do not also start a native session with chat tools.
-Read the Apple reference above for event semantics; use the latest hierarchy.
-Missing bridge tools leave Computer Use available through the simulator skill.
+For managed simulators, follow the [simulator skill](../ios-simulator/SKILL.md)
+for `native`/`event` commands and recovery. Its controller owns the native session;
+do not create a second session with chat tools. Read the Apple reference for event
+semantics and use the latest hierarchy.
 
-The direct tool procedure below is for physical devices or a native session
-explicitly owned outside the controller.
+The direct procedure below applies to physical devices or explicitly externally
+owned native sessions.
 
 ## Session ownership
 

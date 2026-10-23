@@ -3,7 +3,7 @@
 **Goal:** Remove authored surface that has no consumer or adds no distinct behavior,
 meaningful clarity, or enforced boundary.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 
 ## Classification and evidence
 
@@ -37,5 +37,3 @@ keeping a useful single-use boundary is valid.
   elapsed time alone is insufficient. Preserve intentional seams under
   [Architecture](../Platform/Architecture.md) and relevant [proposal memory](Proposals.md).
 - Do not rewrite battle math, save wire formats, or meaningful tests for brevity.
-- Misplaced responsibilities and mixed-job/context cost without a dead,
-  parallel, or ceremonial root route through the shared confusable-pairs table.

@@ -36,6 +36,7 @@ Record the range and exclusions in the handoff, not a shared baseline table.
 
 ### Evidence cone and bounded breadth
 
+Use the [ownership distinctions](#confusable-pairs) when a candidate overlaps audits.
 Follow a candidate through callers, implementations, tests, authored configuration,
 manifest inputs, and documentation far enough to establish intended behavior and
 root cause. Once confirmed, inspect materially similar instances under the same

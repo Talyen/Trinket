@@ -6,14 +6,9 @@ Use for tabs, screens, navigation, shared views, design-system polish, and acces
 
 Screens live in `Trinket/Features/`; shared views and feature support live in
 `TrinketFeatureSupport`; app and Play orchestration live in `TrinketAppState`.
-Packages never import the app. Use the narrowest environment owner a view needs;
-feature views own transient UI state, not session stores. Preserve first-screen
-artwork pins and mounted/prewarmed surfaces. Use shared DesignSystem controls,
-colors and motion, with perceptible feedback for supported actions.
+Packages never import the app. Feature views own transient UI state, not session stores.
 
-Read the relevant implementation contract below for the behavior being changed;
-Play/Battle state and routing also use [runtime ownership](battle-runtime.md#ownership)
-and [observation boundaries](battle-runtime.md#play-observation-boundaries).
+Read the relevant implementation contract below for the behavior being changed.
 
 ## Interaction constraints
 
@@ -30,8 +25,7 @@ concise inline pricing, pending-approval, verification, and restoration outcomes
 under [Purchases](../Platform/Purchases.md). Keep cancellation quiet and avoid
 additional alerts over Apple's purchase authorization.
 
-Artwork stays pinned/prewarmed on first presentation; use shared DesignSystem
-chrome and native SwiftUI sheets. For layout, copy, artwork or motion changes,
+Use native SwiftUI sheets. For layout, copy, artwork or motion changes,
 inspect the shipping UI under the [visual completion gate](../Platform/Verification.md#visual-completion-gate).
 
 ## Implementation contracts
@@ -79,10 +73,11 @@ Apply the shared [content beside native bars](../Platform/ApplePlatformReference
 policy to all screens, including grids, shelves, action docks and custom gameplay input.
 Do not reintroduce the banned column. Keep the root tab bar fully expanded. Hidden toolbar chrome on Battle and detail-hero screens is an intentional art-forward choice.
 
-Prefer the narrowest environment owner for a subtree (`BattleSession`, encounter sessions) over whole `AppState` when the view only needs that slice. Chrome, colors, glass, and typography: [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Feature views must not call raw `.glassEffect` / `.buttonStyle(.glass*)` or invent one-off colors. Use `TrinketMotion` for reusable fluid motion. File-level `@ViewBuilder` helpers that touch DesignSystem modifiers must be `@MainActor` (or methods on a `View`).
+Prefer the narrowest environment owner for a subtree (`BattleSession`, encounter sessions) over whole `AppState` when the view only needs that slice. Use shared controls, chrome, colors, glass and typography from [TrinketDesignSystem](../../Packages/TrinketDesignSystem/README.md). Feature views must not call raw `.glassEffect` / `.buttonStyle(.glass*)` or invent one-off colors. Use `TrinketMotion` for reusable fluid motion. File-level `@ViewBuilder` helpers that touch DesignSystem modifiers must be `@MainActor` (or methods on a `View`).
 
-When changing Play/Battle observation or shell routing, read
-[battle-runtime.md](battle-runtime.md) for ownership and observation boundaries.
+For Play/Battle observation or shell routing, use
+[runtime ownership](battle-runtime.md#ownership) and
+[observation boundaries](battle-runtime.md#play-observation-boundaries).
 
 New player flows need a stable `AccessibilityID` from `TrinketFeatureSupport` (or an
 existing appropriate one). Add or retire UI coverage per the [keep/drop rubric](../Platform/Testing.md#ui-keep-drop-rubric);

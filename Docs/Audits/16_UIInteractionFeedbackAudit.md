@@ -3,7 +3,7 @@
 **Goal:** Repair interaction and feedback defects that prevent players from completing
 or understanding a flow.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 [PD-014](../Product/Decisions.md) owns basic accessibility semantics;
 [SwiftUI guidance](../AgentContext/swiftui-features.md) owns feature integration.
 
@@ -49,6 +49,3 @@ add friction to intentional immediate actions such as Homestead upgrades.
 Verify affected entry, action, completion, and recovery conditions as appropriate.
 Reuse coverage under [Testing](../Platform/Testing.md), including its identifier
 change requirements; do not create UI tests merely to inventory controls.
-
-Layout/typography defects, test-harness quality, durable transaction failures,
-and other overlaps route through the shared confusable-pairs table.

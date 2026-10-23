@@ -3,7 +3,7 @@
 **Goal:** Repair unsafe conversions and representations that allow reachable invalid
 domain state without replacing valid invariants with meaningless fallback values.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 Focus on authored production source; follow affected decoder and test contracts
 when needed to establish or repair the invariant.
 
@@ -35,6 +35,4 @@ and suppression rules. Report enforced violations distinctly and resolve them un
 that policy; banned syntax is not automatically a critical player-facing defect.
 
 Success is an established invariant and appropriate boundary failure behavior,
-verified with source proof and the relevant existing checks. Persistence
-transaction outcomes, concurrent isolation escapes, and other overlaps route
-through the shared confusable-pairs table.
+verified with source proof and the relevant existing checks.

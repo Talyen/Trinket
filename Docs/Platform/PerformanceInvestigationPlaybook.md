@@ -379,88 +379,33 @@ During capture, reproduce the exact player interaction. For before/after claims,
 keep source/build, device/OS, seed, thermal state, Low Power Mode, and interaction
 comparable. Collection success alone does not establish gameplay smoothness.
 
-On October 18, 2026, iPhone 14 Pro / iOS 27.0.1 (24A446) with Xcode 27A9275
-completed an eight-second Time Profiler launch capture over `localNetwork` using
-the development-signed build 39 archive. Exported evidence identified Trinket,
-2,351 CPU samples, and `Time limit reached` as the end reason. After system symbol
-preparation finished, a five-second direct-launch `--instrument Hitches` recording
-also completed with `Time limit reached` and render/frame-lifetime tables.
-Attachment by name or confirmed PID failed; device-wide captures disconnected after about 1.4 seconds
-despite saving successfully. This establishes direct-launch CPU and hitch capture,
-not reliable attachment, device-wide recording, or player-interaction hitch
-performance. Artifacts are under
-`.DerivedData/PerformanceResults/wifi-profiling-20261018/`; check availability
-before reuse.
-
 ### Unresolved device evidence
 
-The September 2026 artwork, remediation, and scroll investigations are closed
-with verification limits. Bounded artwork preparation and equipment search fixes
-are implemented; Simulator samples did not justify further model, container, or
-combat rewrites. Callback threshold findings remain observations, not resolved
-shipping-device regressions.
+Direct-launch, app-scoped CPU and Animation Hitches capture has worked over Wi-Fi;
+attachment and device-wide capture remain unreliable. Launch, scrolling, Campaign
+transitions and card play have recorded hitches. Their remaining causes and
+shipping-device improvements need controlled attribution and matched measurements.
 
-As of September 20 (UTC), launch/first-use artwork, equipment and shared browsing,
-save/reward returns, and rapid combat still lack controlled device hitch evidence.
-Refresh cadence, thermal/Low Power Mode behavior, cold/settled/revisit memory, and
-background/foreground behavior also remain unverified. On iPhone 14 Pro / iOS
-27.0 (24A437), Xcode 27A266a rejected attachment to the confirmed Trinket process.
-A device-wide Animation Hitches recording disconnected after 1.45 seconds;
-a device-wide Time Profiler recording completed, but contained no controlled
-interaction or before/after comparison. Device Hub Computer Use timed out.
-Local diagnostic artifacts are under
-`.DerivedData/PerformanceResults/plan-completion-device/`; their availability
-must be checked before reuse.
+Existing optimizations reduce recurring Stun rendering and compositor work, and
+spread hidden-root layout. Their evidence does not establish hitch elimination, a global
+FPS floor, lower total launch CPU, or faster readiness. Retain native navigation,
+sheet motion, artwork budgets and pinning. Full-card warmup and removal of Combat
+Log navigation chrome did not justify adoption. SwiftUI attribution instrumentation
+added symbol-lookup overhead, so its gesture timings are not production measurements.
 
-Revisit when a player-visible problem is reproducible on device or working
-interaction/profiling tools permit the missing measurements. Use the investigation
-loop above to establish attribution before choosing a fix. Closing the plans does
-not establish a performance gain, justify visual reductions, or change artwork
-budgets; a CPU capture alone does not establish rendered-frame smoothness.
+Thermal/Low Power Mode, cold/settled/revisit memory, background/foreground and
+direct-touch dismissal evidence remain open. Controlled refresh-cadence, first-use
+artwork, equipment/shared browsing, save/reward returns and rapid-combat checks
+also remain incomplete. Resume under the investigation loop when a player-visible
+problem is reproducible or tools permit the missing checks.
+Closed investigations do not waive these gaps or justify visual reductions.
 
-On October 19 (UTC), Wi-Fi app-scoped Time Profiler and Animation Hitches captures
-completed on iPhone 14 Pro / iOS 27.0.1 (24A446), using Xcode 27.1 (27A9275) and an
-optimized development-signed Release build. Launch, Collection scrolling, campaign
-entry, card dragging/playing, Stun, and Combat Log interactions were exercised.
-The original launch-only capture recorded 66.68 ms and 266.72 ms hitches; the
-interaction capture also recorded scrolling and combat hitches. These remain
-observations, not resolved launch/scroll regressions.
-
-A settled Ranger Stun window attributed repeated work to Canvas display-list
-construction. Replacing its star paint commands with one SwiftUI shader fill
-retained the motion and geometry. In six-second windows at the original cadence,
-main-thread samples decreased from 1,655 ms to 1,502 ms and average update duration
-from 6.84 ms to 4.22 ms per frame. Neither window contained a hitch; this demonstrates
-less recurring work, not a measured reduction in hitch count or a global FPS floor.
-Full-run hitch totals are not comparable because card draws and interaction timing
-differed. Evidence, matching app symbols, rejected experiments, and analysis are in
-`~/Library/Developer/Trinket/BuildArtifacts/profiles/iphone-investigation-20261019/`
-and its referenced `device-*` captures. Verify availability before reuse. Thermal,
-Low Power Mode, memory growth, and background/foreground coverage remain open.
-
-The October 19 followup attributed launch's largest stall to concurrent cold root
-and hidden-tab layout. Successive hidden mounts retained all real layout gates;
-largest launch hitches repeated at 33–50 ms versus the earlier 133–150 ms captures.
-This spreads work with three 50 ms scheduling pauses; it does not establish
-lower total launch CPU or faster readiness. Flattening the unchanged locked-card
-paint reduced first-fling mean offscreen passes from 36.7 to 8.6; observed fling
-hitches remained 12.5–20.9 ms versus the earlier 29.2 ms. Empty salvage anchor
-writers were also removed from ordinary scrolling. Flattened on-art ink reduced
-Campaign transition mean offscreen passes from 64.4 to 19.8; revisit captures still
-occasionally hitched, so this is less compositor work rather than hitch elimination.
-
-Combat Log localization cost was about 1 ms; cold SwiftUI/native presentation work
-dominated. With one identical entry and no active effects, its first update was
-132.5 ms with `List` and 120.3 ms with lazy text rows. Removing navigation chrome
-only reached 115.5 ms and was rejected; retain native navigation and sheet motion.
-Card plays still recorded short hitches without a confirmed application hotspot.
-Full-card warmup did not establish an improvement and was rejected. SwiftUI
-attribution instrumentation itself added symbol-lookup overhead; do not interpret
-its gesture timings as production measurements. Reports, source diffs, action
-timestamps and matching symbols are retained under
-`~/Library/Developer/Trinket/BuildArtifacts/profiles/iphone-hitches-followup-20261019/`
-and the referenced captures. Random draws, thermal state and remote-input timing
-limit whole-run comparisons; direct-touch dismissal verification remains open.
+Detailed measurements and rejected experiments remain in Git history and retained
+profiles under `~/Library/Developer/Trinket/BuildArtifacts/profiles/`, especially
+`iphone-investigation-20261019/` and `iphone-hitches-followup-20261019/`.
+Older capture diagnostics used `.DerivedData/PerformanceResults/`. Check artifact
+availability and matching binaries/symbols before reuse; historical observations
+do not establish today's device, installed build, or tool reliability.
 
 The weekly [real-player soak](PlayerCoverage.md) retains diagnostic simulator
 footprint/audio observations. It supplies functional ownership and repeated-play

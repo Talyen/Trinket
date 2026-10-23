@@ -3,7 +3,7 @@
 **Goal:** Keep nondeterminism, I/O, and shared mutation under clear owners with
 appropriate initiation, lifetime, ordering, and failure contracts.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 [Architecture](../Platform/Architecture.md) owns module boundaries; consult
 [persistence context](../AgentContext/persistence.md),
 [audio context](../AgentContext/audio.md), and
@@ -37,6 +37,4 @@ Show a violated ownership boundary or reachable ordering, lifetime, determinism,
 or failure-handling defect. Where an existing legitimate seam is missing from
 guidance, repair its documentation rather than inventing another allowlist here.
 
-Restore the effect's contract and verify relevant observable behavior. Transaction
-outcomes, concurrent isolation hazards, and other overlaps route through the
-shared confusable-pairs table. Keep one finding per root cause.
+Restore the effect's contract and verify relevant observable behavior.

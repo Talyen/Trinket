@@ -40,12 +40,9 @@ Engine/BattleFeature on `34804bb57`. Hosted execution remains outstanding.
 - [ ] Finish exact-commit package, Smoke, exhaustive UI and device Release checks.
   Options and Play navigation lack completed exhaustive evidence. Missing,
   cancelled and timed-out executions remain incomplete.
-- [ ] Reproduce the declined Ask to Buy failure against qualified products before
-  changing purchase behavior. The isolated
-  [diagnostic](https://github.com/Talyen/Trinket/actions/runs/38837629489) reproduced
-  Warlock details instead of the offer in a fresh process. Local probes differ
-  between iOS 27 and 26.2; retain the strict ownership/denial assertions and follow
-  [StoreKit qualification](../Platform/Release.md#testflight-troubleshooting).
+- [ ] Reproduce the [shared declined Ask to Buy blocker](CIFailurePrevention.md#declined-ask-to-buy)
+  against qualified products before changing purchase behavior. Retain this plan's
+  exact-commit acceptance requirements.
 - [ ] Preserve needed evidence, reconcile durable guidance, and delete this plan
   after the outstanding acceptance gates pass.
 

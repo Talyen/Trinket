@@ -3,7 +3,7 @@
 **Goal:** Make UI tests provide trustworthy evidence of shipping outcomes with
 appropriate isolation, tier placement, and execution cost.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 [Testing](../Platform/Testing.md) owns coverage and tier decisions;
 [UI test guidance](../../TrinketUITests/README.md) owns launch/entry and suite details.
 
@@ -43,6 +43,4 @@ alone does not explain a flaky failure or establish its cause is fixed.
 - Bounded native settings and critical-control accessibility checks follow
   [PD-014](../Product/Decisions.md) and [Player coverage](../Platform/PlayerCoverage.md);
   they do not establish complete VoiceOver gameplay. Stable identifiers required
-  by an owned journey are in scope. Broader shipping
-  interaction defects, unit/package test quality, and other overlaps route through
-  the shared confusable-pairs table.
+  by an owned journey are in scope.

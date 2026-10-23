@@ -211,61 +211,51 @@ pending until their own receipt. Replay checks cancellation between actions.
 Exhausted revision counters, reset generations, or production authority sequences
 reject synchronization before publication; clocks never wrap or stop advancing silently.
 
-Approved reconciliation merges concurrent branches within the same reset epoch
-without player conflict prompts. Each durable game mutation records an
-identified domain action with reconstructible before/after snapshots in the local cloud outbox.
-Upload requests
-carry those actions, their acknowledged base snapshot, and a stable request ID;
-the server replays the actions into one complete projected save and an immutable
-receipt. A successful receipt removes only its included local actions, and only
-when the fetched head's vector clock includes the receipted request. Head and
-receipt reads may straddle a commit; an older head leaves the pending request and
-journal intact for the next fetch instead of replacing earned progress. Union earned
-items, unlocks, claims, and completion. Union talent purchases while honoring
-removals from the shared base, so a talent reset survives unrelated progress;
-unrelated saves without a shared base union talents. Use the latest valid party/loadout
-edit, retaining displaced gear in Inventory. Reconcile ability selections per tier
-against the shared base, treating an absent loadout as the catalog defaults, so
-independent Basic and Skill edits survive together; conflicting edits to one tier
-use the latest choice. A one-sided change to an existing item,
-including corruption or salvage, survives unrelated progress on the other branch.
-Restoring a newer valid weapon pair reclaims its primary from an older assignment
-on another combatant before enforcing unique equipped items.
-For a shared physical item, salvage on either branch retires the item even if
-the other branch corrupted it; the merged save cannot retain both gear and its materials.
-New recruits use initial progression as the shared baseline when independent XP
-awards arrive before that baseline has a roster row.
-An abandoned or dismissed Voyage must not be restored from stale route progress.
-Labyrinth floor reconciliation carries clusters and boss exits with nodes so the
-next floor stays reachable. Merge Shop purchase markers and deduplicate charges only for the same pinned
-item and price; use a readable stock copy when its preferred peer is unreadable.
-Preserve a Mystery event pinned on either Labyrinth or Voyage branch, and use a
-readable offer snapshot when the preferred copy is damaged. Reconcile Contract
-offers by difficulty against the shared base so a completed offer cannot return
-after an unrelated action on another device. Contract completion receipts distinguish
-victory from board refresh, so two refreshes do not suppress independent rewards
-once their shared base tracks claims. Older peers retain conservative overlap detection.
-Completed Voyage run receipts survive route removal and deduplicate terminal payouts.
-Completion and separate abandonment history prevent stale routes from reopening
-without an embarked shared base.
-Voyage board preparation replaces retired destinations, retaining unaffected offers.
-Overlap detection checks both active runs when one device has started another Voyage.
-Abandonment records no victory receipt. Both retirement histories use optional
-payload fields that preserve older saves; retired older routes without receipts
-cannot reconstruct their terminal claims.
-Voyage decoding validates a completed route before normalizing it away, retaining
-malformed payload bytes through the unreadable-state path. Independent Mystery
-completions combine their corruption altar cooldown reductions; duplicate completions count once
-even when the devices chose different rewards. A newly completed pinned altar preserves
-its reset when its cooldown equals the shared base, including on a Labyrinth map
-created after that base. Shared Voyage encounters retain the
-larger earned total per resource for the final completion bonus.
-Combine independent balance changes from a shared base and floor concurrent
-overspending at zero. A resource changed on only one branch retains that change
-even when another shared action disables reward combination. On first attachment of unrelated older saves, take the larger
-balance per resource. Archive conflicting snapshots in the same atomic server
-operation before installing the merge. A failed archive leaves
-the local snapshot and outbox intact.
+#### Admission and receipts
+
+Merge concurrent branches within the same reset epoch without player conflict
+prompts. Each durable mutation records an identified domain action with
+reconstructible before/after snapshots in the local outbox. Uploads carry those
+actions, their acknowledged base snapshot and a stable request ID; the server
+replays them into one complete projected save and an immutable receipt.
+
+Remove only receipted local actions, and only when the fetched head's vector clock
+includes that request. Head and receipt reads may straddle a commit: an older head
+leaves the pending request and journal intact for the next fetch. Archive conflicting
+snapshots in the same atomic server operation before installing the merge; archive
+failure preserves the local snapshot and outbox.
+
+#### Snapshot merge rules
+
+| Concern | Required result |
+|---|---|
+| Earned progress | Union earned items, unlocks, claims and completion. |
+| Talents | Union purchases while honoring removals from the shared base, so reset survives unrelated progress. Unrelated saves without a shared base union talents. |
+| Party and loadouts | Use the latest valid edit; keep displaced gear in Inventory. Merge ability selections per tier against the shared base, treating absent loadouts as catalog defaults. Independent Basic/Skill edits survive; conflicts within a tier use the latest choice. |
+| Physical items | Preserve one-sided changes, including corruption or salvage. Restoring a newer valid weapon pair first reclaims its primary from older assignments, then enforces unique equipment. Salvage on either branch retires a shared item even if the other corrupted it; never retain both gear and its materials. |
+| New recruits | Use initial progression as the shared baseline when independent XP arrives before a shared-base roster row exists. |
+| Labyrinth | Carry clusters and boss exits with nodes so the next floor remains reachable. |
+| Shop | Merge purchase markers; deduplicate charges only for the same pinned item and price. Fall back to a readable stock copy when the preferred peer is unreadable. |
+| Mystery | Preserve events pinned on either Labyrinth/Voyage branch, using a readable offer when the preferred copy is damaged. Independent completions combine altar cooldown reductions; duplicates count once even with different rewards. A newly completed pinned altar preserves its reset when cooldown equals the shared base, including on a map created after that base. |
+| Contracts | Merge offers by difficulty against the shared base so unrelated progress cannot resurrect a completed offer. Distinguish victory from refresh receipts: two refreshes cannot suppress independent rewards once the base tracks claims. Older peers retain conservative overlap detection. |
+| Balances | Combine independent shared-base changes and floor concurrent overspending at zero. Preserve a one-sided resource change even if another shared action disables reward combination. First attachment of unrelated older saves takes the larger balance per resource. |
+
+#### Voyage merge rules
+
+- Completion receipts survive route removal and deduplicate terminal payouts.
+  Completion and separate abandonment history prevent stale routes reopening
+  without an embarked shared base. An abandoned or dismissed Voyage cannot return
+  from stale progress; abandonment records no victory receipt.
+- Both retirement histories use optional fields compatible with older saves.
+  Retired older routes without receipts cannot reconstruct terminal claims.
+  Validate completed routes before normalizing them away; preserve malformed
+  payload bytes through unreadable-state handling.
+- Board preparation replaces retired destinations and retains unaffected offers.
+  Overlap detection checks both active runs when one device has started another
+  Voyage. Shared encounters retain the larger earned total per resource for the
+  final completion bonus.
+
+#### Journal and economic replay
 
 Offline journals retain each durable mutation's identity, ordering, and committed
 effects using a checkpoint and lossless snapshot-field deltas. A receipt removes only the actions it actually submitted;
@@ -288,6 +278,8 @@ unrecorded earnings during replay. Shop charges deduplicate
 only for matching pinned offers. Salvage retirement survives purchase-and-salvage
 in one transaction, where the starting Inventory has no item row.
 
+#### Homestead production identity
+
 Homestead collections record pending credit, its production context, and per-resource
 consumption coordinates within the reset epoch. The remote head unions consumed
 ranges, including gaps from out-of-order uploads; overlapping collections pay only
@@ -295,6 +287,8 @@ the uncovered quantities. Local metadata caches the next coordinates so a gamepl
 write never scans accumulated history. Action snapshots record the coordinates
 already consumed locally, preventing stale pending credit from returning through
 an unrelated reward. Spending does not alter these collection identities.
+
+#### Historical formats and outbox storage
 
 Older records retain their version-one economic or conservative snapshot replay,
 including historically compacted records whose separate actions cannot be recovered.
@@ -333,6 +327,8 @@ replacement values; a Gold edit does not repeat Inventory or Labyrinth maps.
 Recovery-file writes serialize the complete compact outbox to remain self-contained.
 Distribution remains disabled; CI owns reload, interrupted-request and long-offline
 scaling checks, with device write-cost measurements required before wider enablement.
+
+#### Homestead cursor and legacy reconciliation
 
 The merged Homestead cursor cannot move backward. Compare pending production at
 that shared cursor so an earlier collection retains production earned afterward.

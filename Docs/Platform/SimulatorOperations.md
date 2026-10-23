@@ -71,104 +71,45 @@ host policy is separate from the short agent lease-release grace period.
 
 ## Inspection lease and capture
 
-For interactive inspection, use one persistent terminal session:
+Follow the [simulator skill](../../.agents/skills/ios-simulator/SKILL.md) for
+launch, runtime selection, terminal commands, input and capture. The launcher
+leases a device through `Inspection ready` until `stop`, EOF or cancellation;
+confirm exit before considering that lease released. Never run another simulator
+job against the inspection slot. A booted device or printed UDID does not prove
+a live lease. Explicit `--agent N` is valid only under an existing parent lease;
+otherwise let `--isolate` acquire a slot. Launch-only runs release their lease on exit.
 
-```bash
-./Scripts/run-simulator.sh --isolate --inspect
-```
+The controller owns one native Xcode session for its leased simulator and its own
+bridge process. It never closes foreign workspaces or sessions. Physical devices
+and externally owned native sessions use the
+[device-interaction skill](../../.agents/skills/device-interaction/SKILL.md) directly.
+A full pool means another run owns the capacity; host memory pressure may also
+require deferring another inspection or build.
 
-For a fully unlocked gameplay inspection, add `--unlocked`. It uses a separate,
-freshly seeded development save with Debug-only Full Game access and cloud sync
-disabled; [Purchases](Purchases.md#local-development) owns that fixture and its
-separate StoreKit testing path. App arguments follow `--`, for example:
+### Native session recovery
 
-```bash
-./Scripts/run-simulator.sh --isolate --inspect --unlocked -- -launch-screen hero:wildcard
-```
+Native discovery is lazy; unavailable tools leave capture and Computer Use usable.
+A discovered capability does not prove an interaction succeeded. Uncertain starts
+or failed closure retain
+`.DerivedData/Deliverables/Inspection/native-session.json` and a shared per-device
+reservation under the primary checkout's `.DerivedData/InspectionSessions/`.
+Confirmed closure removes them. Inspect the recovery record and Xcode before
+retrying; never delete the guard or start a replacement session beside an
+uncertain/controller-owned session.
 
-Run the command in an interactive terminal session (e.g. using `run_command` with RunPersistent or `exec_command` with `tty=true`) and retain its session. The
-launcher acquires an available agent slot, builds, installs, launches, then
-prints `Inspection ready` with the simulator name, UDID, bundle ID, product
-path, and device UI path. Xcode 27 uses Device Hub; older Xcode uses Simulator.
-It keeps its lease until you send `stop\n` through standard input, close
-terminal input, or cancel the process. Confirm process exit after finishing.
-Begin inspection while the command is running. Prefer native Xcode device tools
-when exposed; otherwise use Computer Use. Keep its
-session alive across tool calls; do not run another simulator job against its
-slot during inspection.
+### Evidence preservation
 
-For launch only, omit `--inspect`; the standalone launcher releases its lease
-when it exits. A booted device, printed UDID, or explicit `--agent N` selects a
-device but does not prove a live lease. Use `--agent N` only under an existing
-parent lease for that slot; otherwise let `--isolate` acquire an available slot.
+The skill owns capture commands; [Verification](Verification.md#visual-completion-gate)
+owns review and evidence requirements. If a tool cannot express a gesture's timing,
+use existing focused coverage or report that limitation without claiming its feel
+was verified. Neither native tools nor Computer Use guarantee Duo display routing.
 
-For an exact installed runtime, set `TRINKET_SIM_DEVICE_TYPE` and
-`TRINKET_SIM_OS_VERSION`, for example:
-
-```bash
-TRINKET_SIM_DEVICE_TYPE=com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro \
-TRINKET_SIM_OS_VERSION=27.0 ./Scripts/run-simulator.sh --isolate --inspect
-```
-
-An exact version never falls back to a newer minor release. Missing or incompatible
-profiles fail before replacing the simulator owned by the lease. The existing
-`TRINKET_SIM_OS_MAJOR` selector still chooses the newest installed runtime in that
-major; if both selectors are supplied, they must agree on the major.
-
-### Computer Use
-
-Interaction technique — viewing and operating the device window, coordinate
-clicks and drags, observation discipline, and recovery from unsuccessful
-actions — lives in the [ios-simulator skill](../../.agents/skills/ios-simulator/SKILL.md).
-Inspection scope and stopping rules follow
-[Verification.md](Verification.md#choosing-ui-verification).
-If the tool cannot express a gesture's timing, use the existing gesture test or
-report the limitation rather than claiming its feel was verified.
-
-### Native Xcode inspection
-
-The inspection terminal also owns native Xcode interaction. Type `native` to
-query `xcrun mcpbridge` capabilities and create one session for the exact leased
-UDID. It captures the screenshot and hierarchy into Deliverables. Type
-`event <documented Xcode interaction command>` to act and capture again; the
-controller supplies the session key and app identity. Read the
-[device-interaction skill](../../.agents/skills/device-interaction/SKILL.md) before
-input and use the latest hierarchy. `status` reports the target and routes.
-
-Native discovery is lazy. Missing tools leave screenshot capture and Computer Use
-available; a discovered capability is not proof that an interaction succeeded.
-`stop`, EOF and handled cancellation close the native session before the launcher
-releases the lease. Uncertain starts or failed closure retain
-`.DerivedData/Deliverables/Inspection/native-session.json` for recovery and prevent
-replacement sessions. A shared per-device reservation under the primary checkout's
-`.DerivedData/InspectionSessions/` also blocks replacement from other worktrees;
-confirmed closure removes it. Do not start a second native session with chat tools beside
-the controller's session. Inspect the recovery record and Xcode before retrying;
-never delete it merely to clear the guard.
-
-Physical devices and pre-existing externally owned sessions still use the native
-skill directly. The controller operates only its leased simulator and its own
-bridge process. It never closes foreign Xcode workspaces or device sessions.
-Neither native tools nor Computer Use guarantee Duo display routing. Host memory
-pressure can still require deferring another expensive inspection or build.
-
-### Optional evidence capture
-
-Type `capture` in the live inspection terminal to save the leased display and
-product identity under `.DerivedData/Deliverables/Inspection/`. The metadata records
-the checkout revision observed at launch, not a compiled-source freshness proof;
-retain the build/revision and relevant screen/state in the review. For recording
-or an explicit capture destination, the
-[ios-simulator skill](../../.agents/skills/ios-simulator/SKILL.md#evidence-capture)
-owns the exact simctl capture commands against the leased device. A full pool means
-another run owns the capacity, not permission to take its device.
-
-Save deliverables under `.DerivedData/Deliverables/` rather than an expiring
-diagnostic directory. Locked integration preserves them with revision metadata
-outside the task checkout before deleting it. For an immediate durable copy of
-another task-local capture, use `node Scripts/agent-worktree.mjs evidence <path...>`;
-without paths it prints the durable directory for direct capture. This does not
-establish that the image was inspected or the interaction was exercised.
+Inspection metadata records the checkout revision observed at launch, not compiled
+source freshness. Retain build provenance and the screen/state actually reviewed.
+Save captures under `.DerivedData/Deliverables/`; integration preserves them outside
+the checkout and retains the checkout until explicit cleanup.
+[Release](Release.md#evidence-and-cleanup) owns preservation, immediate evidence
+copies and cleanup. Preservation alone does not establish visual or interaction review.
 
 ### Duo display routing
 

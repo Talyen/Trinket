@@ -3,7 +3,7 @@
 **Goal:** Improve the unit/package portfolio's trustworthy coverage of consequential
 behavior while reducing avoidable runtime, redundancy, and fixture maintenance.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 [Testing](../Platform/Testing.md) owns framework choice, fixtures, coverage decisions,
 and semantic test placement. Package tests use Swift Testing; XCTest belongs to UI
 tests, with violations handled by the existing API gate.
@@ -42,5 +42,3 @@ setup/executed work, clearer ownership, or repaired nondeterminism.
   judge the consequential contract rather than the implementation category.
 - Do not force shared fixtures across package boundaries or introduce production
   testability APIs without a consequential gap and a justified owner.
-- UI portfolio quality and production-only maintenance cost route through the
-  shared confusable-pairs table.

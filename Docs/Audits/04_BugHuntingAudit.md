@@ -2,7 +2,7 @@
 
 **Goal:** Find and fix consequential wrong behavior through risk-led investigation.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 Start from important player flows, rule boundaries, error/retry paths, or recent
 fragile changes and develop hypotheses.
 
@@ -23,7 +23,4 @@ that cannot return to a usable state. Syntax alone does not prove any of them.
 Preserve intended balance, copy, and product composition. Do not bundle unrelated
 renaming, styling, refactoring, or speculative hardening with a correctness fix.
 
-Use this audit for correctness findings without a more specific owner. Route
-confirmed defects through the shared confusable-pairs table (durable
-transaction/recovery failures, dead/parallel/ceremonial surface, and other
-overlaps each have an owner there) without launching sibling inventories.
+Use this audit for correctness findings without a more specific owner.

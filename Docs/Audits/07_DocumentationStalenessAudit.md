@@ -3,7 +3,7 @@
 **Goal:** Repair documentation that misleads execution or maintenance through wrong
 claims, broken references, consequential omissions, or drifting duplicated policy.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 The [documentation map](../README.md) owns sources of truth and policy precedence.
 
 ## Evidence and remedy

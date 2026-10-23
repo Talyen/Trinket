@@ -3,7 +3,7 @@
 **Goal:** Reduce repeated maintenance and divergent behavior in equivalent product
 presentation while preserving meaningful differences between flows.
 
-Use the [shared audit contract](README.md) for scope, evidence, severity, and sizing.
+Apply the [shared audit contract](README.md).
 [Architecture](../Platform/Architecture.md) owns shared UI and feature boundaries.
 
 ## Evidence
@@ -31,5 +31,4 @@ that the old repeated responsibility has actually been removed.
 
 Do not unify unrelated interactions such as the battle hand and collection grid
 merely because both display cards. Preserve mystery/shop rules and each Play mode's
-progression. Single-path ceremony, native layout/adaptation defects, and other
-overlaps route through the shared confusable-pairs table.
+progression.
