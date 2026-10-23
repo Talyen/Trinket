@@ -58,7 +58,7 @@ jobs:
           if not any(item.get('isAvailable') and item.get('platform') == 'iOS'
                      and item.get('version') in ('26.2', '26.2.0')
                      and item.get('buildversion') == '23C54' for item in runtimes):
-              subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '26.2',
+              subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '23C54',
                               '-architectureVariant', 'arm64' if platform.machine() == 'arm64' else 'universal'],
                              check=True, timeout=1800)
           PY
