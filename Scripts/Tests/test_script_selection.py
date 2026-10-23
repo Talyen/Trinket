@@ -155,6 +155,27 @@ class ScriptSelectionTests(unittest.TestCase):
         (scripts / 'check-docs.py').write_text('raise RuntimeError("docs must be skipped")\n')
         return root
 
+    def test_runner_rejects_failed_syntax_inventory_before_running_suites(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.runner_fixture(Path(directory))
+            (root / 'Scripts/script_test_selection.py').write_text('print("Scripts/Tests/test_probe.py")\n')
+            (root / 'Scripts/Tests/test_probe.py').write_text(
+                'import unittest\nfrom pathlib import Path\n'
+                'class Probe(unittest.TestCase):\n'
+                '    def test_worker(self): Path("worker-executed").touch()\n')
+            tools = root / '.tools'
+            tools.mkdir()
+            write_executable(tools / 'rg', '#!/bin/sh\necho "inventory failure sentinel" >&2\nexit 2\n')
+            result = run_captured(['bash', 'Scripts/test-scripts.sh', '--skip-docs'], cwd=root,
+                                  env={**os.environ, 'RESULTS_DIR': str(root / 'logs')})
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+            self.assertIn('inventory failure sentinel', result.stderr)
+            self.assertNotIn('Script syntax passed', result.stdout)
+            self.assertFalse((root / 'worker-executed').exists())
+            logs = list((root / 'logs').glob('*/syntax.log'))
+            self.assertEqual(len(logs), 1)
+            self.assertIn('inventory failure sentinel', logs[0].read_text())
+
     def test_runner_compiles_without_execution_and_preserves_worker_failures(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.runner_fixture(Path(directory))

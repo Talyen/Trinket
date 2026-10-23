@@ -15,9 +15,9 @@ not `README.md`, `Proposals.md`, or the linked playbook row.
 
 Use [the audit policy](../../../Docs/Audits/README.md) for discovery, evidence,
 sizing, approval boundaries, proposal memory, and reporting. Route confirmed paths
-through `agent-context.sh` and state implementation order and verification ownership
-before editing multiple fixes. Use a durable plan only when coordination or
-resumption needs one.
+through `python3 Scripts/agent-brief.py --status --read --paths <files...>` and state
+implementation order and verification ownership before editing multiple fixes.
+Use a durable plan only when coordination or resumption needs one.
 
 ## Parallel work when useful
 

@@ -27,8 +27,8 @@ Options:
   -h, --help         Show this help
 
 Examples:
-  ./Scripts/release.sh                    # patch/minor bump from commits since last tag
-  ./Scripts/release.sh --version 1.0.0    # explicit semver
+  ./Scripts/release.sh --no-tag           # prepare for local integration before tagging
+  ./Scripts/release.sh --no-tag --version 1.0.0  # explicit semver
   ./Scripts/release.sh --dry-run          # preview the release
 EOF
 }
@@ -59,7 +59,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ "$DRY_RUN" == "false" && -n "$(git status --porcelain --untracked-files=all)" ]]; then
-  echo "Release requires a clean working tree; commit or stash existing changes first." >&2
+  echo "Release requires a clean task checkout; preserve existing work and prepare the release in isolation." >&2
   exit 1
 fi
 
@@ -219,7 +219,8 @@ git commit -m "chore(release): ${TAG} (build ${NEXT_BUILD})
 if [[ "$NO_TAG" == "false" ]]; then
   git tag -a "$TAG" -m "Release ${TAG} (build ${NEXT_BUILD})"
   echo ""
-  echo "Tagged ${TAG}. Push with: git push origin main --tags"
+  echo "Tagged ${TAG}. Before publication, follow Docs/Platform/Release.md#produce-release-artifacts."
+  echo "Publish only the verified integrated commit and its exact release tag; do not use --tags."
 else
   echo ""
   echo "Release commit created (--no-tag; no git tag added)."

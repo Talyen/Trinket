@@ -126,9 +126,16 @@ if (( ${#requested_paths[@]} > 0 )); then
     esac
   done
 else
-  while IFS= read -r script; do
-    syntax_list+=("$script")
-  done < <(rg --files Scripts -g '*.sh' -g '*.env' -g '*.py' -g '*.mjs' -g 'Scripts/bin/*' | LC_ALL=C sort)
+  # Process substitution hides inventory failures from errexit/pipefail.
+  if syntax_inventory="$(
+    { rg --files Scripts -g '*.sh' -g '*.env' -g '*.py' -g '*.mjs' -g 'Scripts/bin/*' | LC_ALL=C sort; } 2>"$TEST_LOG_DIR/syntax.log"
+  )"; then
+    while IFS= read -r script; do
+      syntax_list+=("$script")
+    done <<< "$syntax_inventory"
+  else
+    report_failure "Script syntax inventory" "$TEST_LOG_DIR/syntax.log" "$?"
+  fi
 fi
 if (( ${#syntax_skipped[@]} > 0 )); then
   printf 'Syntax scope note: %d selected path(s) live outside Scripts/ and are covered by their own owners, not script syntax.\n' "${#syntax_skipped[@]}" >&2
