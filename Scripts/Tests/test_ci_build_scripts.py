@@ -473,6 +473,7 @@ prepare_generated_inputs results
                     prepared.unlink(missing_ok=True)
                     result = run_captured(['bash', 'Scripts/test.sh', 'ui', *targets], cwd=root,
                         env=self.verification_environment(hosted=hosted, TRINKET_ALLOW_HEAVY_LOCAL='1',
+                                                          RYAN_HEAVY_LANE_ACTIVE='fixture',
                                                           TRINKET_ALLOW_FULL_UI=full_ui))
                     self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                     self.assertEqual(prepared.exists(), expected == 99)

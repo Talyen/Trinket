@@ -36,6 +36,8 @@ express user request for that local work; selectors alone never enable the overr
 Dry-run previews need no opt-in. The bounded visual route remains authorized by
 the visual completion gate below.
 
+Local `build.sh`, compiled `test.sh`, `test-package.sh`, and managed `run-simulator.sh --isolate` automatically enter the shared host admission helper before allocating resources. Hosted CI and nested commands reuse their existing ownership; human simulator play is unchanged. The helper defaults to `~/Developer/.coordination/heavy_lane.py`; `CODEX_HEAVY_LANE_HELPER` can select its existing location. Busy or missing admission exits 75 with no build or simulator setup, rather than reporting a passed check. Its default wait is 30 seconds and command deadline five minutes. Other explicit diagnostic wrappers still follow the machine admission guidance.
+
 Before landing, follow [review and integration](Release.md#landing-and-review).
 Local integration requires static checks and applicable visual review, without
 requiring local compiled evidence. Report hosted verification as pending.

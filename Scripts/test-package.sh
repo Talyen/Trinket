@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/.."
@@ -196,6 +197,7 @@ fi
 
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification "Simulator package tests" || exit $?
+trinket_host_admit "$PWD/Scripts/test-package.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 
 phase_started="$(python3 Scripts/phase-timing.py begin)"
 trinket_run_env_init

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 
 cd "$(dirname "$0")/.."
 source Scripts/run-env.sh
@@ -26,6 +27,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 trinket_require_heavy_verification 'App compilation' || exit $?
+trinket_host_admit "$PWD/Scripts/build.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 trinket_run_env_init
 trinket_run_env_print
 prepare_generated_inputs "$RESULTS_DIR"

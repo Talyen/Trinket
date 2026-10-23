@@ -476,6 +476,9 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                 scripts = root / "Scripts"
                 shutil.copytree(ROOT / "Scripts", scripts)
                 (scripts / "lib/tools.sh").write_text('trinket_prepend_pinned_tools() { :; }\n')
+                # This product-resolution fixture owns fake tools, not a host lease.
+                policy = scripts / "lib/verification-policy.sh"
+                policy.write_text(policy.read_text() + '\ntrinket_host_admit() { :; }\n')
                 if not mode.startswith("inspect-"):
                     (scripts / "run-env.sh").write_text(
                         'trinket_run_env_init() { DERIVED_DATA_PATH="$PWD/agent-dd"; '

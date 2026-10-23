@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/.."
@@ -99,6 +100,7 @@ fi
 
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification "Compiled/UI test suites" || exit $?
+trinket_host_admit "$PWD/Scripts/test.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 
 if [[ "$APP_ONLY" == true && "$MODE" != "unit" ]]; then
   echo "--app-only is only supported with unit mode." >&2

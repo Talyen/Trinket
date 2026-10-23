@@ -72,6 +72,10 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
     def fixture(self, root):
         scripts = root / "Scripts"
         shutil.copytree(ROOT / "Scripts", scripts)
+        # Build orchestration fixtures are already admitted; host admission has
+        # separate busy/re-entry coverage without touching a real host lease.
+        policy = scripts / "lib/verification-policy.sh"
+        policy.write_text(policy.read_text() + '\ntrinket_host_admit() { :; }\n')
         (scripts / "run-env.sh").write_text(
             'source Scripts/lib/args.sh\ntrinket_run_env_init() { DERIVED_DATA_PATH="$PWD/dd"; RESULTS_DIR="$PWD/results"; '
             'mkdir -p "$DERIVED_DATA_PATH" "$RESULTS_DIR"; }\n'

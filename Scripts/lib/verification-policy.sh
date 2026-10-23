@@ -16,3 +16,18 @@ trinket_require_heavy_verification() {
     export TRINKET_PACKAGE_TEST_JOBS=1 TRINKET_SERIAL_TESTS=1 TRINKET_MAX_CONCURRENT_UI=1
   fi
 }
+
+
+# Admit the outer entrypoint before it allocates simulator/build resources.
+# Nested commands inherit the same lease; hosted CI retains its own concurrency.
+trinket_host_admit() {
+  if [[ "${GITHUB_ACTIONS:-}" == true || -n "${RYAN_HEAVY_LANE_ACTIVE:-}" ]]; then
+    return 0
+  fi
+  local helper="${CODEX_HEAVY_LANE_HELPER:-$HOME/Developer/.coordination/heavy_lane.py}"
+  if [[ ! -f "$helper" ]]; then
+    echo "Deferred: shared heavy-work admission helper unavailable; no work started. Use hosted CI or configure CODEX_HEAVY_LANE_HELPER." >&2
+    return 75
+  fi
+  exec python3 "$helper" --owner "${CODEX_THREAD_ID:-trinket:$$}" --wait 30 --timeout 300 -- bash "$@"
+}

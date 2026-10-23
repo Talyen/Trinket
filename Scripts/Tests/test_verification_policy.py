@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import tempfile
+import json
+import sys
 from pathlib import Path
 from script_test_support import ROOT, ScriptRegressionTestCase, run_captured
 
@@ -79,3 +81,51 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
         command = 'source Scripts/lib/app-build.sh; trinket_set_local_simulator_architecture_args iphonesimulator Debug; printf "%s\\n" "${TRINKET_LOCAL_SIMULATOR_ARCHITECTURE_ARGS[@]}"'
         result = run_captured(['bash', '-ec', command], cwd=ROOT, env=self.verification_environment(), expected=0)
         self.assertEqual(result.stdout.splitlines()[-2:], ['-jobs', '2'])
+
+    def test_common_entrypoints_defer_before_resource_setup_and_preserve_arguments(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = root / 'Scripts'
+            (scripts / 'lib').mkdir(parents=True)
+            for name in ('build.sh', 'test.sh', 'test-package.sh', 'run-simulator.sh',
+                         'lib/verification-policy.sh', 'lib/args.sh'):
+                (scripts / name).write_text((ROOT / 'Scripts' / name).read_text())
+            (scripts / 'run-env.sh').write_text(
+                'TRINKET_TEST_PACKAGES=(TrinketCore)\n'
+                'trinket_run_env_init() { echo prepared > preparation; return 99; }\n')
+            for name in ('build-freshness.sh', 'xcode-runner.sh', 'lib/app-build.sh'):
+                (scripts / name).write_text('')
+            (scripts / 'lib/tools.sh').write_text('trinket_prepend_pinned_tools() { :; }\n')
+            helper = root / 'admission.py'
+            helper.write_text('import json,sys\nfrom pathlib import Path\n'
+                              'Path("admission.json").write_text(json.dumps(sys.argv[1:]))\n'
+                              'raise SystemExit(75)\n')
+            env = self.verification_environment(TRINKET_ALLOW_HEAVY_LOCAL='1',
+                CODEX_HEAVY_LANE_HELPER=str(helper), RYAN_HEAVY_LANE_ACTIVE='', CODEX_THREAD_ID='fixture-owner')
+            # Use the real interpreter; developer-dir fixture shims must not run Xcode.
+            tools = root / 'tools'
+            tools.mkdir()
+            (tools / 'python3').symlink_to(sys.executable)
+            env['PATH'] = str(tools) + ':' + env['PATH']
+            for name, args in (('build.sh', ['--release-device']),
+                               ('test.sh', ['smoke', 'ExampleTests/testMethod']),
+                               ('test-package.sh', ['--only-suite', 'ExampleTests', 'TrinketCore']),
+                               ('run-simulator.sh', ['--isolate', '--unlocked', '--', '-launch-screen', 'battle'])):
+                with self.subTest(name=name):
+                    result = run_captured(['bash', str(scripts / name), *args], cwd=root, env=env)
+                    self.assertEqual(result.returncode, 75, result.stdout + result.stderr)
+                    self.assertFalse((root / 'preparation').exists())
+                    admitted = json.loads((root / 'admission.json').read_text())
+                    self.assertEqual(admitted[:2], ['--owner', 'fixture-owner'])
+                    self.assertEqual(admitted[admitted.index('--') + 1:], ['bash', str(scripts / name), *args])
+            for settings in ({'RYAN_HEAVY_LANE_ACTIVE': '1234'}, {'GITHUB_ACTIONS': 'true'}):
+                (root / 'admission.json').unlink(missing_ok=True)
+                run_captured(['bash', str(scripts / 'build.sh')], cwd=root,
+                             env={**env, **settings}, expected=99)
+                self.assertFalse((root / 'admission.json').exists())
+                self.assertTrue((root / 'preparation').exists())
+                (root / 'preparation').unlink()
+            missing = run_captured(['bash', str(scripts / 'build.sh')], cwd=root,
+                env={**env, 'CODEX_HEAVY_LANE_HELPER': str(root / 'missing.py')}, expected=75)
+            self.assertIn('Deferred', missing.stderr)
+            self.assertFalse((root / 'preparation').exists())

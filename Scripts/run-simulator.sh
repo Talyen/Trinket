@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 
 cd "$(dirname "$0")/.."
 # shellcheck source=lib/tools.sh
@@ -60,6 +61,12 @@ LAUNCH_ARGS+=("$@")
 if [[ "$INSPECT" == "1" && ! -t 0 ]]; then
   echo "error: --inspect requires an interactive terminal session." >&2
   exit 1
+fi
+
+# Human play keeps its existing lifecycle; managed agent inspection shares host admission.
+if [[ "${TRINKET_ISOLATE:-}" == 1 ]]; then
+  source Scripts/lib/verification-policy.sh
+  trinket_host_admit "$PWD/Scripts/run-simulator.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 fi
 
 INSPECTION_REVISION="$(git rev-parse HEAD 2>/dev/null || true)"
