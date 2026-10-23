@@ -150,6 +150,9 @@ Gold talent comparisons remain eligible for findings: their Block, damage, draw,
 and healing effects can change combat outcomes. Do not suppress a whole tree
 based on its keyword.
 
+Bounty Shot deals 3 Stun damage and has a 30% chance to steal 1 Gold.
+Its base expected Gold remains 0.3 per play; theft-triggered Talents activate more often.
+
 Wizard's Mana Shield talent grants base Block equal to unspent Mana, capped at
 six per turn, without spending Mana. Ordinary Block gain modifiers still apply;
 the Mana Shield card retains its separate Mana-payment rule.

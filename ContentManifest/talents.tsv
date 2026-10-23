@@ -419,9 +419,9 @@ wildcard_dodge_t2_2	Scattered Caltrops	sf:asterisk	Dodging has a 20% chance to d
 wildcard_dodge_t3_1	Smoke Trick	sf:cloud.fog.fill	Dodging has a 20% chance to deal 3 Burn damage		dodgeBurnChancePercent:0.20|dodgeBurnDamage:3
 wildcard_dodge_t3_2	Improving Odds	sf:chart.bar.xaxis	Each undodged attack increases your Dodge chance by 5%\nDodging resets this bonus		improvingOdds:true
 wildcard_dodge_t4_1	Blind Spot	sf:eye.slash.fill	Dodging makes your next Physical attack ignore enemy Block		blindSpot:true
-wildcard_physical_t1_1	Prismatic Edge	sf:burst.fill	Your Physical attacks have a 10% chance to also Freeze or Burn		prismaticEdge:true
-wildcard_physical_t1_2	Loaded Strike	sf:burst.fill	Physical attacks have a 20% chance to deal double damage		loadedStrike:true
-wildcard_physical_t2_1	Clean Cut	sf:burst.fill	Physical Critical Hits ignore enemy Block		cleanCut:true
+wildcard_physical_t1_1	Prismatic Edge	sf:burst.fill	Your attacks have a 10% chance to also Freeze or Burn		prismaticEdge:true
+wildcard_physical_t1_2	Loaded Strike	sf:burst.fill	Your attacks have a 20% chance to deal double damage		loadedStrike:true
+wildcard_physical_t2_1	Clean Cut	sf:burst.fill	Your Critical Hits ignore enemy Block		cleanCut:true
 wildcard_physical_t2_2	Cracked Guard	sf:shield.slash.fill	Breaking enemy Block with Physical damage makes your next attack Critically Hit		crackedGuard:true
 wildcard_physical_t3_1	Cold Read	sf:eye.fill	Physical attacks against Frozen enemies gain +15% Critical Hit chance		physicalVsFrozenCritBonus:0.15
 wildcard_physical_t3_2	Feigned Miss	sf:theatermasks.fill	An enemy fully Blocking your attack doubles your next Physical attack		blockedAttackNextPhysicalDouble:true

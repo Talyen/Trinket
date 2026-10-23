@@ -32737,14 +32737,14 @@
       "comment": "ContentManifest/talents.tsv: wildcard_physical_t1_1, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Deine <keyword id=\"physical\">physischen</keyword> Angriffe verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance zusätzlichen <keyword id=\"freeze\">Frost</keyword>- oder <keyword id=\"burn\">Brandschaden</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"physical\">Physical</keyword> attacks have a <value id=\"quantity_1\">%1$lld</value>%% chance to also <keyword id=\"freeze\">Freeze</keyword> or <keyword id=\"burn\">Burn</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Tus ataques <keyword id=\"physical\">físicos</keyword> tienen un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de aplicar también <keyword id=\"freeze\">Congelación</keyword> o <keyword id=\"burn\">Quemadura</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Vos attaques <keyword id=\"physical\">physiques</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger des dégâts supplémentaires de <keyword id=\"freeze\">Gel</keyword> ou de <keyword id=\"burn\">Brûlure</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "あなたの<keyword id=\"physical\">物理</keyword>攻撃は、<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"freeze\">凍結</keyword>または<keyword id=\"burn\">炎上</keyword>の追加ダメージを与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "자신의 <keyword id=\"physical\">물리</keyword> 공격이 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"freeze\">빙결</keyword> 또는 <keyword id=\"burn\">화상</keyword> 피해를 추가로 줍니다"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seus ataques <keyword id=\"physical\">Físicos</keyword> têm <value id=\"quantity_1\">%1$lld</value>%% de chance de também <keyword id=\"freeze\">Congelar</keyword> ou aplicar <keyword id=\"burn\">Queimadura</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的<keyword id=\"physical\">物理</keyword>攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率額外造成<keyword id=\"freeze\">冰凍</keyword>或<keyword id=\"burn\">燃燒</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Deine Angriffe verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance zusätzlichen <keyword id=\"freeze\">Frost</keyword>- oder <keyword id=\"burn\">Brandschaden</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your attacks have a <value id=\"quantity_1\">%1$lld</value>%% chance to also <keyword id=\"freeze\">Freeze</keyword> or <keyword id=\"burn\">Burn</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tus ataques tienen un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de infligir daño adicional de <keyword id=\"freeze\">Congelación</keyword> o <keyword id=\"burn\">Quemadura</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Vos attaques ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger des dégâts supplémentaires de <keyword id=\"freeze\">Gel</keyword> ou de <keyword id=\"burn\">Brûlure</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "あなたの攻撃は、<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"freeze\">凍結</keyword>または<keyword id=\"burn\">炎上</keyword>の追加ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 공격이 <value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"freeze\">빙결</keyword> 또는 <keyword id=\"burn\">화상</keyword> 피해를 추가로 줍니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seus ataques têm <value id=\"quantity_1\">%1$lld</value>%% de chance de causar dano adicional de <keyword id=\"freeze\">Congelamento</keyword> ou <keyword id=\"burn\">Queimadura</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率額外造成<keyword id=\"freeze\">冰凍</keyword>或<keyword id=\"burn\">燃燒</keyword>傷害"}}
       }
     },
     "talents.wildcard_physical_t1_1.name": {
@@ -32765,14 +32765,14 @@
       "comment": "ContentManifest/talents.tsv: wildcard_physical_t1_2, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physische</keyword> Angriffe verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance doppelten Schaden"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physical</keyword> attacks have a <value id=\"quantity_1\">%1$lld</value>%% chance to deal double damage"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los ataques <keyword id=\"physical\">físicos</keyword> tienen un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de infligir el doble de daño"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques <keyword id=\"physical\">physiques</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger le double de dégâts"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">物理</keyword>攻撃は<value id=\"quantity_1\">%1$lld</value>%%の確率で2倍のダメージを与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">물리</keyword> 공격이 <value id=\"quantity_1\">%1$lld</value>%% 확률로 두 배의 피해를 줍니다"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques <keyword id=\"physical\">Físicos</keyword> têm <value id=\"quantity_1\">%1$lld</value>%% de chance de causar o dobro de dano"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">物理</keyword>攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率造成雙倍傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Deine Angriffe verursachen mit <value id=\"quantity_1\">%1$lld</value>%% Chance doppelten Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your attacks have a <value id=\"quantity_1\">%1$lld</value>%% chance to deal double damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tus ataques tienen un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de infligir el doble de daño"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Vos attaques ont <value id=\"quantity_1\">%1$lld</value>%% de chances d’infliger le double de dégâts"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "あなたの攻撃は<value id=\"quantity_1\">%1$lld</value>%%の確率で2倍のダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 공격이 <value id=\"quantity_1\">%1$lld</value>%% 확률로 두 배의 피해를 줍니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seus ataques têm <value id=\"quantity_1\">%1$lld</value>%% de chance de causar o dobro de dano"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的攻擊有<value id=\"quantity_1\">%1$lld</value>%%機率造成雙倍傷害"}}
       }
     },
     "talents.wildcard_physical_t1_2.name": {
@@ -32793,14 +32793,14 @@
       "comment": "ContentManifest/talents.tsv: wildcard_physical_t2_1, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Kritische <keyword id=\"physical\">physische</keyword> Treffer ignorieren gegnerischen <keyword id=\"block\">Block</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physical</keyword> Critical Hits ignore enemy <keyword id=\"block\">Block</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los golpes críticos <keyword id=\"physical\">físicos</keyword> ignoran el <keyword id=\"block\">Bloqueo</keyword> del enemigo"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les coups critiques de type <keyword id=\"physical\">Physique</keyword> ignorent le <keyword id=\"block\">Blocage</keyword> ennemi"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">物理</keyword>クリティカルヒットが敵の<keyword id=\"block\">ブロック</keyword>を無視"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">물리</keyword> 치명타가 적의 <keyword id=\"block\">방어도</keyword> 무시"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Golpes críticos <keyword id=\"physical\">Físicos</keyword> ignoram o <keyword id=\"block\">Bloqueio</keyword> inimigo"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">物理</keyword>暴擊無視敵人<keyword id=\"block\">格擋</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Deine kritischen Treffer ignorieren gegnerischen <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your Critical Hits ignore enemy <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tus golpes críticos ignoran el <keyword id=\"block\">Bloqueo</keyword> del enemigo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Vos coups critiques ignorent le <keyword id=\"block\">Blocage</keyword> ennemi"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "あなたのクリティカルヒットは敵の<keyword id=\"block\">ブロック</keyword>を無視する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 치명타가 적의 <keyword id=\"block\">방어도</keyword>를 무시합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seus golpes críticos ignoram o <keyword id=\"block\">Bloqueio</keyword> inimigo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的暴擊無視敵人的<keyword id=\"block\">格擋</keyword>"}}
       }
     },
     "talents.wildcard_physical_t2_1.name": {

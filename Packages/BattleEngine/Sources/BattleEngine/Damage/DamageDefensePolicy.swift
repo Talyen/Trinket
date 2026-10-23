@@ -98,7 +98,7 @@ enum DamageDefensePolicy {
         in context: BattleState,
     ) -> Bool {
         guard state.combatant.role == .enemy else { return false }
-        if state.damageKeyword == .physical, state.isCritical, triggers.cleanCut {
+        if state.isCritical, triggers.cleanCut {
             return true
         }
         if state.damageKeyword == .holy, state.options.isAttackHit, triggers.unbrokenVow,

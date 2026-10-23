@@ -26,7 +26,7 @@ public enum EnemyPowerCurve {
 
     public static func rawDamagePercent(level: Int, isBoss: Bool, profile: Profile = .standard) -> Double {
         let values: (Double, Double, Double) = if profile == .standard {
-            isBoss ? (0.25, 2.20, 6.50) : (0.50, 4.30, 15.00)
+            isBoss ? (0.25, 2.20, 6.50) : (0.50, 4.30, 13.00)
         } else {
             isBoss ? (0.35, 1.10, 3.25) : (0.50, 1.60, 3.25)
         }

@@ -27,25 +27,24 @@ package extension DamagePipeline {
         applyBurnDamageMultipliers(to: &state, in: &context)
         applyOneShotEmpowers(to: &state)
         applyOutgoingReductions(to: &state, in: &context)
-        applyPhysicalDamageRolls(to: &state, in: &context)
+        applyDamageRolls(to: &state, in: &context)
     }
 
-    private static func applyPhysicalDamageRolls(
+    private static func applyDamageRolls(
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) {
         guard state.remaining > 0, let keyword = state.damageKeyword,
               let sourceActorID = state.sourceActorID else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
-        guard keyword == .physical || sharedKeyword == .physical else { return }
         if triggers.loadedStrike, state.options.isAttackHit {
             let doubled = context.resolution.loadedStrikeDouble(for: sourceActorID, using: &context.rng)
             if doubled {
                 applyDoubledOrCeilHalved(to: &state, doubled: true)
             }
         }
-        guard triggers.standardDeviation else { return }
+        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+        guard triggers.standardDeviation, keyword == .physical || sharedKeyword == .physical else { return }
         let doubled: Bool
         if context.hasHeroCard(for: sourceActorID) {
             if let stored = context.resolution.cardTalents?.standardDeviationDouble {

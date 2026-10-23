@@ -108,8 +108,8 @@ event once, including a stored tick; Venomtrail retains its per-event rule below
 Oathkeeper and Bloodember share keyword percentage bonuses as well as flat bonuses,
 counting universal bonuses once, including companion status multipliers, Critical
 damage bonuses, and chance-based damage multipliers such as Supernova and Standard
-Deviation. Loaded Strike shares Physical eligibility too, but rolls only for attack
-hits: all Physical hits in one action share a 20% chance to double damage,
+Deviation. Loaded Strike applies to attack hits of every damage type:
+all hits in one action share a 20% chance to double damage,
 with normal damage on the other rolls. Counterattacks have independent actions;
 ongoing and raw reaction damage cannot roll. Legacy Standard Deviation retains its
 existing damage eligibility and card-scoped roll. Shared numeric bonuses include

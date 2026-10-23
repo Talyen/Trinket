@@ -21,7 +21,7 @@ stargaze	Stargaze	basic	Deal 1 Freeze damage\nRestore 1 Mana
 venom-arrow	Venom Arrow	basic	Deal 2 Poison damage
 acid-potion	Acid Potion	skill	Deal 3 Poison damage\nHalve the enemy’s Block
 blood-offering	Blood Offering	skill	Lose 2 Health\nDeal 1 Bleed damage\nDraw a card
-bounty-shot	Bounty Shot	skill	Deal 3 Stun damage\n10% chance to steal 3 Gold
+bounty-shot	Bounty Shot	skill	Deal 3 Stun damage\n30% chance to steal 1 Gold
 briar-shield	Briar Shield	skill	Gain 1 Block\nGain 3 Thorns
 cinderbloom	Cinderbloom	skill	Deal 3 Burn or Poison damage at random
 cleanse	Cleanse	skill	Cleanse a debuff\nRestore 3 Health

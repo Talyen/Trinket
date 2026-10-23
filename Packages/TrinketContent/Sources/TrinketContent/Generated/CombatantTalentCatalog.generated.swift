@@ -1012,19 +1012,19 @@ public extension CombatantTalentCatalog {
             "wildcard_physical_t1_1": CombatantTalentEffect(
                 name: "Prismatic Edge",
                 iconID: "sf:burst.fill",
-                description: "Your Physical attacks have a 10% chance to also Freeze or Burn",
+                description: "Your attacks have a 10% chance to also Freeze or Burn",
                 triggers: CombatTraitTriggers { $0.prismaticEdge = true }
             ),
             "wildcard_physical_t1_2": CombatantTalentEffect(
                 name: "Loaded Strike",
                 iconID: "sf:burst.fill",
-                description: "Physical attacks have a 20% chance to deal double damage",
+                description: "Your attacks have a 20% chance to deal double damage",
                 triggers: CombatTraitTriggers { $0.loadedStrike = true }
             ),
             "wildcard_physical_t2_1": CombatantTalentEffect(
                 name: "Clean Cut",
                 iconID: "sf:burst.fill",
-                description: "Physical Critical Hits ignore enemy Block",
+                description: "Your Critical Hits ignore enemy Block",
                 triggers: CombatTraitTriggers { $0.cleanCut = true }
             ),
             "wildcard_physical_t2_2": CombatantTalentEffect(

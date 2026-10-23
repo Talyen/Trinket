@@ -43,6 +43,29 @@ extension TalentCatalogRoundTripTests {
         #expect(battle.rng.next() == expectedRNG.next())
     }
 
+    @Test(arguments: [Keyword.burn, .poison, .bleed, .stun, .freeze, .holy])
+    func `Prismatic Edge shares its roll across elemental and Physical attack hits without chaining`(keyword: Keyword) {
+        var profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t1_1"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+        )
+        battle.rng = SeededRandomNumberGenerator(seed: 23)
+        var expectedRNG = battle.rng
+        #expect(BattleChance.succeeds(probability: 0.10, using: &expectedRNG))
+        #expect(!Bool.random(using: &expectedRNG))
+        let events = battle.performTestAction(Ability(
+            id: "mixed-prismatic", name: "Mixed Pair", tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: keyword), DamageComponent(2)], criticalChanceBonus: -1,
+        ))
+        let procs = events.filter { $0.kind == .abilityDamage && $0.abilityName == "Prismatic Edge" }
+        #expect(procs.map(\.amount) == [2, 2])
+        #expect(procs.allSatisfy { $0.keyword == .burn })
+        #expect(battle.health(of: battle.enemy) == 92)
+        #expect(CombatTriggerEngine.totalPotency(of: .burn, on: battle.enemy, in: battle) == (keyword == .burn ? 6 : 4))
+        #expect(battle.rng == expectedRNG)
+    }
+
     @Test func `Prismatic Edge cannot turn blocked attacks or ongoing damage into elemental hits`() {
         var profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t1_1"])
         profile.triggers.criticalChanceBonus = -1

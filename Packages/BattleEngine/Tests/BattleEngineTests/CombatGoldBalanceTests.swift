@@ -14,7 +14,7 @@ struct CombatGoldBalanceTests {
             heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 }, appliesFightPacing: false,
         )
         let targeted = try #require(ability.targetedEffects.first)
-        battle.rng = try BattleTestFixtures.rngSelectingChance(0.10, succeeds: succeeds)
+        battle.rng = try BattleTestFixtures.rngSelectingChance(targeted.chance, succeeds: succeeds)
         var expectedRNG = battle.rng
         _ = BattleChance.succeeds(probability: targeted.chance, using: &expectedRNG)
 
@@ -114,8 +114,8 @@ struct CombatGoldBalanceTests {
         #expect(empowered.targetedEffects.first?.chance == 0.10)
         for language in ["en", "ja", "ko", "de", "zh-Hant", "fr", "es", "pt-BR"] {
             let summary = Ability.bountyShot.localizedSummary(locale: Locale(identifier: language))
-            #expect(summary.values["part_1_chance"] == 10)
-            #expect(summary.values["part_1_gold"] == 3)
+            #expect(summary.values["part_1_chance"] == 30)
+            #expect(summary.values["part_1_gold"] == 1)
             #expect(!summary.text.contains("%1$"))
         }
     }

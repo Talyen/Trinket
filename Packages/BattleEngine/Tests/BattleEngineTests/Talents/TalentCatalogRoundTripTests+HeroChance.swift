@@ -4,25 +4,40 @@ import TrinketCore
 @testable import BattleEngine
 
 extension TalentCatalogRoundTripTests {
-    @Test(arguments: [UInt64(1), 2, 3, 4])
-    func `loaded strike shares an attack roll without amplifying raw damage`(seed: UInt64) throws {
+    @Test(arguments: [Keyword.physical, .burn, .poison, .bleed, .stun, .freeze, .holy], [false, true])
+    func `loaded strike shares one roll across mixed attack hits without amplifying raw damage`(keyword: Keyword, succeeds: Bool) throws {
         let attack = Ability(
-            id: "loaded-pair", name: "Physical Pair", tier: .basic,
-            damageComponents: [DamageComponent(5), DamageComponent(5)], criticalChanceBonus: -1,
+            id: "loaded-pair", name: "Mixed Pair", tier: .basic,
+            damageComponents: [DamageComponent(5, keyword: keyword), DamageComponent(5)], criticalChanceBonus: -1,
         )
-        var battle = heroTalentBattle("wildcard_physical_t1_2", seed: seed)
+        var battle = heroTalentBattle("wildcard_physical_t1_2")
+        battle.roster.hero.currentMana = 0
+        battle.rng = try BattleTestFixtures.rngSelectingChance(0.20, succeeds: succeeds)
+        var expectedRNG = battle.rng
+        _ = BattleChance.succeeds(probability: 0.20, using: &expectedRNG)
         let events = try playHeroTalentCard(attack, in: &battle)
         let hits = events.filter { $0.kind == .abilityDamage }
-        #expect(hits.count == 2)
-        #expect(hits[0].amount == hits[1].amount)
-        #expect([5, 10].contains(hits[0].amount))
+        #expect(hits.map(\.amount) == (succeeds ? [10, 10] : [5, 5]))
+        #expect(battle.rng == expectedRNG)
 
-        let raw = battle.resolveTestDamage(5, options: .reaction())
+        let raw = battle.resolveTestDamage(5, keyword: keyword, options: .reaction())
         #expect(raw.healthLost == 5)
         let periodic = battle.resolveDamage(.doTTick(
-            amount: 5, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id,
+            amount: 5, target: battle.enemy, keyword: keyword, sourceActorID: battle.hero.id,
         ))
         #expect(periodic.healthLost == 5)
+        #expect(battle.rng == expectedRNG)
+    }
+
+    @Test(arguments: [Keyword.physical, .burn, .poison, .bleed, .stun, .freeze, .holy], [false, true])
+    func `clean cut bypasses Block only on Critical Hits of every damage type`(keyword: Keyword, critical: Bool) {
+        var battle = heroTalentBattle("wildcard_physical_t2_1")
+        DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
+        let hit = battle.resolveTestDamage(5, keyword: keyword, options: .attack(
+            scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1, guaranteedCritical: critical,
+        ))
+        #expect(hit.healthLost == (critical ? 10 : 0))
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == (critical ? 20 : 15))
     }
 
     @Test func `loaded strike counterattack rolls independently of its parent action`() {

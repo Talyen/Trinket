@@ -5,7 +5,7 @@ struct EnemyPowerCurveTests {
     @Test(arguments: [
         (EnemyPowerCurve.Profile.standard, 1, 6.4, 15.0, 0.5, 0.25),
         (.standard, 20, 16.0, 28.0, 4.3, 2.2),
-        (.standard, 40, 44.0, 75.0, 15.0, 6.5),
+        (.standard, 40, 44.0, 75.0, 13.0, 6.5),
         (.spire, 1, 6.4, 10.0, 0.5, 0.35),
         (.spire, 20, 16.0, 28.0, 1.6, 1.1),
         (.spire, 40, 35.2, 60.0, 3.25, 3.25),

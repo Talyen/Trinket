@@ -23,7 +23,7 @@ public extension AbilityCatalog {
     static let bountyShot = Ability(
         id: "bounty-shot", name: "Bounty Shot", tier: .skill,
         damageComponents: [DamageComponent(3, keyword: .stun)],
-        targetedEffects: [TargetedEffect(.resourceGain(.gold, 3), chance: 0.10)],
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 1), chance: 0.30)],
         stealsGold: true,
     )
 

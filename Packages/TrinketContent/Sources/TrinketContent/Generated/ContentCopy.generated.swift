@@ -4081,15 +4081,15 @@ public enum ContentCopy {
             (L10n.talents_wildcard_gold_t4_1_description, [])
         case "Lucky Break":
             (L10n.talents_wildcard_gold_t4_1_name, [])
-        case "Your Physical attacks have a 10% chance to also Freeze or Burn":
+        case "Your attacks have a 10% chance to also Freeze or Burn":
             (L10n.talents_wildcard_physical_t1_1_description(10), [10])
         case "Prismatic Edge":
             (L10n.talents_wildcard_physical_t1_1_name, [])
-        case "Physical attacks have a 20% chance to deal double damage":
+        case "Your attacks have a 20% chance to deal double damage":
             (L10n.talents_wildcard_physical_t1_2_description(20), [20])
         case "Loaded Strike":
             (L10n.talents_wildcard_physical_t1_2_name, [])
-        case "Physical Critical Hits ignore enemy Block":
+        case "Your Critical Hits ignore enemy Block":
             (L10n.talents_wildcard_physical_t2_1_description, [])
         case "Clean Cut":
             (L10n.talents_wildcard_physical_t2_1_name, [])
@@ -4910,8 +4910,8 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Critical Hits that steal Gold grant ", regex: try? NSRegularExpression(pattern: "^Critical\\ Hits\\ that\\ steal\\ Gold\\ grant\\ ([0-9]+)\\ additional\\ Gold$"), count: 1, make: { values in L10n.talents_wildcard_gold_t2_1_description(values[0]) }),
         NumericTemplate(prefix: "Gaining Gold has a ", regex: try? NSRegularExpression(pattern: "^Gaining\\ Gold\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ Cleanse\\ ([0-9]+)\\ debuffs?$"), count: 2, make: { values in L10n.talents_wildcard_gold_t2_2_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Stealing Gold grants +", regex: try? NSRegularExpression(pattern: "^Stealing\\ Gold\\ grants\\ \\+([0-9]+)%\\ Dodge\\ until\\ your\\ next\\ turns?$"), count: 1, make: { values in L10n.talents_wildcard_gold_t3_2_description(values[0]) }),
-        NumericTemplate(prefix: "Your Physical attacks have a ", regex: try? NSRegularExpression(pattern: "^Your\\ Physical\\ attacks\\ have\\ a\\ ([0-9]+)%\\ chance\\ to\\ also\\ Freeze\\ or\\ Burn$"), count: 1, make: { values in L10n.talents_wildcard_physical_t1_1_description(values[0]) }),
-        NumericTemplate(prefix: "Physical attacks have a ", regex: try? NSRegularExpression(pattern: "^Physical\\ attacks\\ have\\ a\\ ([0-9]+)%\\ chance\\ to\\ deal\\ double\\ damage$"), count: 1, make: { values in L10n.talents_wildcard_physical_t1_2_description(values[0]) }),
+        NumericTemplate(prefix: "Your attacks have a ", regex: try? NSRegularExpression(pattern: "^Your\\ attacks\\ have\\ a\\ ([0-9]+)%\\ chance\\ to\\ also\\ Freeze\\ or\\ Burn$"), count: 1, make: { values in L10n.talents_wildcard_physical_t1_1_description(values[0]) }),
+        NumericTemplate(prefix: "Your attacks have a ", regex: try? NSRegularExpression(pattern: "^Your\\ attacks\\ have\\ a\\ ([0-9]+)%\\ chance\\ to\\ deal\\ double\\ damage$"), count: 1, make: { values in L10n.talents_wildcard_physical_t1_2_description(values[0]) }),
         NumericTemplate(prefix: "Physical attacks against Frozen enemies gain +", regex: try? NSRegularExpression(pattern: "^Physical\\ attacks\\ against\\ Frozen\\ enemies\\ gain\\ \\+([0-9]+)%\\ Critical\\ Hit\\ chance$"), count: 1, make: { values in L10n.talents_wildcard_physical_t3_1_description(values[0]) }),
         NumericTemplate(prefix: "Stealing Gold adds ", regex: try? NSRegularExpression(pattern: "^Stealing\\ Gold\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ attack$"), count: 1, make: { values in L10n.talents_wildcard_physical_t4_1_description(values[0]) }),
         NumericTemplate(prefix: "Burn deals ", regex: try? NSRegularExpression(pattern: "^Burn\\ deals\\ ([0-9]+)%\\ more\\ damage\\ to\\ enemies\\ with\\ no\\ Block$"), count: 1, make: { values in L10n.talents_wizard_burn_t1_1_description(values[0]) }),

@@ -139,8 +139,8 @@ extension UniqueCollectionTests {
     }
 
     @Test(arguments: [UInt64(1), 2, 3, 4])
-    func `oathkeeper shares Loaded Strike with holy attacks`(seed: UInt64) throws {
-        let profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t1_2"])
+    func `oathkeeper shares legacy Standard Deviation with holy damage`(seed: UInt64) throws {
+        let profile = CombatModifierProfile.withTriggers { $0.standardDeviation = true }
         var shared = try battle(["oathkeeper"], extra: profile)
         var physical = try battle([], extra: profile)
         shared.rng = SeededRandomNumberGenerator(seed: seed)
@@ -148,7 +148,7 @@ extension UniqueCollectionTests {
         try play(attack(.holy, amount: 20), in: &shared)
         try play(attack(.physical, amount: 20), in: &physical)
         #expect(shared.health(of: shared.enemy) == physical.health(of: physical.enemy))
-        #expect([1960, 1980].contains(shared.health(of: shared.enemy)))
+        #expect([1960, 1990].contains(shared.health(of: shared.enemy)))
     }
 
     @Test func `oathkeeper shares Shatterguards block damage with holy damage`() throws {

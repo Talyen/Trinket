@@ -8,7 +8,9 @@ struct KeywordCohesionTests {
         for ability in AbilityCatalog.all where Keyword.referenced(in: ability.summary).isEmpty {
             missing.append("ability:\(ability.id)")
         }
-        for (nodeID, talent) in CombatantTalentCatalog.signatureTalents where Keyword.referenced(in: talent.description).isEmpty {
+        for (nodeID, talent) in CombatantTalentCatalog.signatureTalents
+            where Keyword.referenced(in: talent.description).isEmpty
+            && !talent.description.lowercased().contains("attack") {
             missing.append("talent:\(nodeID)")
         }
         for trait in GameContent.traits where Keyword.referenced(in: trait.description).isEmpty {

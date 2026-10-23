@@ -64,7 +64,7 @@ enum AttackerOnHitEngine {
 
         await applyPhysicalDamageReactions(to: &state, hit: hit, in: &context)
         guard state.options.isAttackHit else { return }
-        if hit.keyword == .physical, hit.triggers.prismaticEdge {
+        if hit.triggers.prismaticEdge {
             await applyPrismaticEdge(to: &state, hit: hit, in: &context)
         }
         await applyTalentAttackApplications(to: &state, hit: hit, in: &context)
@@ -79,7 +79,7 @@ enum AttackerOnHitEngine {
               context.health(of: hit.source) > 0, context.health(of: state.combatant) > 0,
               let keyword = context.resolution.prismaticEdgeKeyword(for: hit.sourceActorID, using: &context.rng)
         else { return }
-        // Copy committed Physical damage without applying source bonuses or pacing twice.
+        // Copy committed attack damage without applying source bonuses or pacing twice.
         let outcome = await context.resolveDamage(DamageRequest(
             amount: state.healthLost,
             target: state.combatant,
