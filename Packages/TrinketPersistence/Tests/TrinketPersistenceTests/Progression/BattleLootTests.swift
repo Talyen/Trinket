@@ -24,6 +24,7 @@ struct BattleLootTests {
             .journey(stage: stage), encounterLevel: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: GameContent.chapters),
             enemyIsBoss: true, worldSeed: claimed.worldSeed, ownership: RewardOwnership(claimed),
             astralChanceBonusPercent: claimed.homestead.effects.astralChanceBonusPercent,
+            partyBias: PartyLootBias(roster: claimed.roster),
         ))
     }
 
@@ -50,6 +51,7 @@ struct BattleLootTests {
         let expected = BattleLoot.resolve(
             .contract(offerID: offer.id), encounterLevel: 20, enemyIsBoss: false,
             worldSeed: save.worldSeed, ownership: RewardOwnership(save),
+            partyBias: PartyLootBias(roster: save.roster),
         )
         #expect(actual == expected)
     }

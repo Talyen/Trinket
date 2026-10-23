@@ -28,6 +28,7 @@ struct BlacksmithForgeTests {
             astralChanceBonusPercent: 30,
             allowedTiers: [.basic, .astral, .unique],
             ownedTrinketIDs: [], ownedUniqueIDs: [],
+            partyBias: PartyLootBias(roster: save.roster),
             eligibleUniqueIDs: Set(GameContent.uniqueItems.filter { $0.baseType.id == recipe.baseID }.map(\.templateID)),
             fallbackBaseType: recipe.baseType, using: &expectedRandom,
         )
