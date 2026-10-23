@@ -242,6 +242,9 @@ public struct BattleView: View {
     }
 
     private func completeVictoryPrimaryAction(summary: BattleVictorySummary) -> Bool {
+        #if DEBUG
+        print("VICTORY_DIAG action current=\(input.isCurrent) progression=\(hasStageProgression)")
+        #endif
         guard input.isCurrent else { return false }
         guard hasStageProgression else {
             // A failed restart must leave the reward sequence in `.ready`, so

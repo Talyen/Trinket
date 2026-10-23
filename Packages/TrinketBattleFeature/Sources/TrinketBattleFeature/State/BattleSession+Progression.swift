@@ -19,12 +19,18 @@ public extension BattleSession {
     }
 
     func claimVictory(configurationID: UUID, summary: BattleVictorySummary, defersPresentationExit: Bool = false) -> Bool {
+        #if DEBUG
+        print("VICTORY_DIAG claim matching=\(activeBattle?.id == configurationID) delegate=\(progression != nil)")
+        #endif
         guard let configuration = activeBattle, configuration.id == configurationID,
               let progression else { return false }
         let result = progression.completeActiveBattle(
             configuration, battleGold: summary.goldFlow, materialRewards: nil,
             settlement: summary.settlement, defersPresentationExit: defersPresentationExit,
         )
+        #if DEBUG
+        print("VICTORY_DIAG result=\(result)")
+        #endif
         applyCompletionResult(result, for: configuration)
         return result.didComplete
     }
