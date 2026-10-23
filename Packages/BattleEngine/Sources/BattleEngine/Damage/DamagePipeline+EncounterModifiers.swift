@@ -25,7 +25,7 @@ package extension DamagePipeline {
     }
 
     static func applyEnemyAttackPurge(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard state.options.isAttackHit, state.amount > 0,

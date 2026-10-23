@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 package enum EnemyTraitEngine {
-    static func applyOutgoingAttackTraits(from state: DamageResolutionState, context: inout BattleState) async {
+    static func applyOutgoingAttackTraits(from state: CommittedDamage, context: inout BattleState) async {
         guard state.sourceActorID == context.enemy.id,
               state.combatant.role != .enemy,
               context.health(of: state.combatant) > 0,
@@ -30,7 +30,7 @@ package enum EnemyTraitEngine {
         }
     }
 
-    private static func firstAttackBleedBonus(from state: DamageResolutionState, context: inout BattleState) async {
+    private static func firstAttackBleedBonus(from state: CommittedDamage, context: inout BattleState) async {
         let source = context.roster.enemy
         let modifiers = context.enemyModifiers
         let triggers = modifiers.triggers
@@ -60,7 +60,7 @@ package enum EnemyTraitEngine {
         )
     }
 
-    private static func basicFreezeDamage(from state: DamageResolutionState, context: inout BattleState) async {
+    private static func basicFreezeDamage(from state: CommittedDamage, context: inout BattleState) async {
         let amount = context.enemyModifiers.triggers.basicAttackFreezeBuildup
         let immediateBasic = state.provenance != nil
             && state.provenance == context.resolution.damageProvenance(for: context.enemy.id)

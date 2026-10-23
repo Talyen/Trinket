@@ -159,7 +159,7 @@ extension CombatTriggerTalentDamageTests {
             damageKeyword: .bleed, options: .periodic,
         )
         hit.remaining = amount
-        CombatExecutor.run { await DamagePipeline.applyAttackerMirroredReactions(to: &hit, in: &battle) }
+        CombatExecutor.run { await DamagePipeline.applyAttackerMirroredReactions(to: CommittedDamage(hit), in: &battle) }
         let poison = battle.activeEffects(of: battle.enemy).first { $0.effect.keyword == .poison }
         #expect(poison?.effect == (shouldProc ? .poison(amount) : nil))
         #expect(battle.health(of: battle.enemy) == battle.maxHealth(of: battle.enemy) - (shouldProc ? amount : 0))

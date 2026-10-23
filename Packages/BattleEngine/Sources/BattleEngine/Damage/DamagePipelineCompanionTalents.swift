@@ -92,7 +92,7 @@ package extension DamagePipeline {
     }
 
     static func applyCompanionDamageRetaliation(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard state.options.isAttackHit || state.options.isPeriodic,
@@ -262,7 +262,7 @@ package extension DamagePipeline {
     }
 
     static func applyCompanionLeechCriticalBlock(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage, didLeech: Bool,
         in context: inout BattleState,
     ) {
         guard state.options.isAttackHit, state.isCritical, state.healthLost > 0,
@@ -272,7 +272,7 @@ package extension DamagePipeline {
         else { return }
         let triggers = context.modifiers(for: sourceID).triggers
         guard triggers.leechCriticalAllyBlock > 0 else { return }
-        guard state.didLeech || state.hasGuaranteedAttackLeech(in: context) else { return }
+        guard didLeech || state.hasGuaranteedAttackLeech(in: context) else { return }
         context.applyBlockGain(
             triggers.leechCriticalAllyBlock,
             to: context.roster.hero.combatant,

@@ -50,19 +50,13 @@ struct CombatFlags: OptionSet, Hashable, Sendable {
 }
 
 extension CombatOutcome {
-    static func fromDamage(state: DamageResolutionState) -> CombatOutcome {
-        var flags: CombatFlags = []
+    static func fromDamage(state: DamageResolutionState, reactionFlags: CombatFlags) -> CombatOutcome {
+        var flags = reactionFlags
         if state.isCritical {
             flags.insert(.critical)
         }
         if state.isDodged {
             flags.insert(.dodged)
-        }
-        if state.didLeech {
-            flags.insert(.leeched)
-        }
-        if state.didTriggerControl {
-            flags.insert(.controlTriggered)
         }
         return CombatOutcome(
             healthDelta: -state.healthLost,

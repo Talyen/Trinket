@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    static func applyResourceful(to state: inout DamageResolutionState, in context: inout BattleState) {
+    static func applyResourceful(to state: CommittedDamage, in context: inout BattleState) {
         guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
               let attackerID = state.sourceActorID,
               context.roster.combatant(for: attackerID)?.role == .enemy else { return }
@@ -17,14 +17,14 @@ package extension DamagePipeline {
     }
 
     static func applyLeech(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
-    ) async {
+    ) async -> Bool {
         guard !state.options.suppressLeech,
               let sourceActorID = state.sourceActorID,
               state.healthLost > 0 || (state.blockedAmount > 0 && context.modifiers(for: sourceActorID).triggers.leechOnBlockDamage),
               sourceActorID != state.combatant.id
-        else { return }
+        else { return false }
         let leechOutcome = await HealingEngine.leechFromDamage(
             state.healthLost,
             sourceActorID: sourceActorID,
@@ -36,12 +36,13 @@ package extension DamagePipeline {
             damageKeyword: state.damageKeyword,
             in: &context,
         )
-        state.didLeech = leechOutcome.flags.contains(.leeched)
-        applyFinalCompanionLeechRewards(to: &state, in: &context)
+        let didLeech = leechOutcome.flags.contains(.leeched)
+        applyFinalCompanionLeechRewards(to: state, didLeech: didLeech, in: &context)
+        return didLeech
     }
 
     static func applyKeywordReactions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard state.healthLost > 0,
@@ -81,7 +82,7 @@ package extension DamagePipeline {
     }
 
     static func applyThreefoldGrace(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard state.healthLost > 0,
@@ -99,7 +100,7 @@ package extension DamagePipeline {
     }
 
     static func applyAttackRewards(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard state.options.isAttackHit, state.amount > 0,
@@ -119,7 +120,7 @@ package extension DamagePipeline {
     }
 
     static func applyCriticalReaction(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard state.isCritical,
@@ -130,21 +131,21 @@ package extension DamagePipeline {
         await CombatTriggerEngine.afterCriticalHit(
             to: state.combatant,
             source: source.combatant,
-            targetWasStunnedAtHit: state.targetStatus.isStunned,
+            targetWasStunnedAtHit: state.targetWasStunnedAtHit,
             isAttackHit: state.options.isAttackHit,
             in: &context,
         )
     }
 
     static func applyControlMeter(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
-    ) async {
+    ) async -> Bool {
         guard state.remaining > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
               context.roster.health(for: state.combatant) > 0
-        else { return }
+        else { return false }
         let wasControlled = context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)
         let criticalMultiplier: Double = if damageKeyword == .freeze, state.isCritical, state.options.isAttackHit,
                                             let sourceActorID = state.sourceActorID {
@@ -161,11 +162,11 @@ package extension DamagePipeline {
             setupHealthDamage: state.healthLost,
             in: &context,
         )
-        state.didTriggerControl = !wasControlled && context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)
+        return !wasControlled && context.roster.hasControlStatus(for: state.combatant, keyword: damageKeyword)
     }
 
     static func applyReactiveOnHit(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard !state.isDodged, !state.options.isRetaliation, let sourceActorID = state.sourceActorID else { return }
@@ -177,12 +178,12 @@ package extension DamagePipeline {
 
         if state.healthLost > 0 {
             await applyEnemyTraitReactions(
-                to: &state,
+                to: state,
                 sourceActorID: sourceActorID,
                 in: &context,
             )
-            await applyOnHitAttackerWards(to: &state, attacker: attacker, in: &context)
-            await applyManaShieldOnHit(to: &state, in: &context)
+            await applyOnHitAttackerWards(to: state, attacker: attacker, in: &context)
+            await applyManaShieldOnHit(to: state, in: &context)
         }
 
         if state.options.isAttackHit {
@@ -199,12 +200,12 @@ package extension DamagePipeline {
                     in: &context,
                 )
             }
-            await applyOnHitWards(to: &state, attacker: attacker, in: &context)
+            await applyOnHitWards(to: state, attacker: attacker, in: &context)
         }
     }
 
     private static func applyEnemyTraitReactions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         sourceActorID: String,
         in context: inout BattleState,
     ) async {
@@ -220,7 +221,7 @@ package extension DamagePipeline {
     }
 
     private static func applyOnHitAttackerWards(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         attacker: CombatantRuntime,
         in context: inout BattleState,
     ) async {
@@ -249,7 +250,7 @@ package extension DamagePipeline {
     }
 
     private static func applyManaShieldOnHit(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         let activeEffects = context.roster.activeEffects(for: state.combatant)
@@ -295,7 +296,7 @@ package extension DamagePipeline {
     }
 
     private static func applyOnHitWards(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         attacker: CombatantRuntime,
         in context: inout BattleState,
     ) async {
@@ -313,7 +314,7 @@ package extension DamagePipeline {
             )
         }
 
-        await applyThornsRetaliation(amount: wards.thornsStacks, attacker: attacker, to: &state, in: &context)
+        await applyThornsRetaliation(amount: wards.thornsStacks, attacker: attacker, to: state, in: &context)
 
         if defenderTriggers.onHitGainBlock > 0 {
             context.applyBlockGain(
@@ -361,7 +362,7 @@ package extension DamagePipeline {
     private static func applyThornsRetaliation(
         amount: Int,
         attacker: CombatantRuntime,
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard amount > 0 else { return }

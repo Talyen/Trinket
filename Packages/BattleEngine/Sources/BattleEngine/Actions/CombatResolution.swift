@@ -383,8 +383,8 @@ enum CombatResolver {
         )
         state.provenance = request.provenance
         state.elementalHit = ElementalReactionEngine.capture(request, in: context)
-        await DamagePipeline.run(state: &state, in: &context)
-        var outcome = CombatOutcome.fromDamage(state: state)
+        let reactionFlags = await DamagePipeline.run(state: &state, in: &context)
+        var outcome = CombatOutcome.fromDamage(state: state, reactionFlags: reactionFlags)
         outcome.elementalHit = state.elementalHit
         // Recording is scoped to a resolved action, including its immediate DoT pulses.
         if !request.options.isHealthCost, let impact = outcome.damageImpact {

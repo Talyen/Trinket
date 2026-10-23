@@ -78,6 +78,12 @@ effects share the countdown fallback.
 `CombatExecutorTests` owns small-stack, ordered-unwind and recorded-battle parity
 coverage. Select verification through the [confidence ladder](../Platform/Verification.md#confidence-ladder).
 
+Damage calculation retains mutable `DamageResolutionState` through defense and
+Health commitment. `CommittedDamage` then freezes hit facts for ordered reactions;
+reaction helpers mutate the live battle, never the outgoing calculation scratch.
+Leech and control return their actual flags to the resolver. Hit-time status remains
+a snapshot while actor/target continuation checks still read live roster state.
+
 On-hit and reaction work is split on purpose:
 
 - `DamagePipeline` orders committed-damage reactions; `AttackerOnHitEngine` owns attacker-side on-hit applications during that checkpoint, including first-hit bonuses and attacker-ward DoTs. Keep live roster checks inside rider execution because earlier reactions can change Health and effects.

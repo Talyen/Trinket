@@ -20,7 +20,7 @@ package extension DamagePipeline {
             await CombatTriggerEngine.afterHealthDropped(target: state.combatant, in: &context)
         }
         await applyDeathsDoor(to: &state, in: &context)
-        await applyThreefoldGrace(to: &state, in: &context)
+        await applyThreefoldGrace(to: CommittedDamage(state), in: &context)
     }
 
     static func applyTakeDamage(

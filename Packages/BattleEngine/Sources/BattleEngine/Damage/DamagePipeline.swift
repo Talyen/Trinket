@@ -10,14 +10,14 @@ package enum DamagePipeline {
     /// `ResolutionSteps+Shield`, `+TakeDamage`), Marked's bonus and consumption
     /// (`OffenseSteps`, `+TakeDamage`), stochastic gates, then committed reactions
     /// (`PostSteps`, `AttackerOnHitEngine`, `TalentReactions`).
-    package static func run(
+    static func run(
         state: inout DamageResolutionState,
         in context: inout BattleState,
-    ) async {
+    ) async -> CombatFlags {
         if state.options.isElementalReaction {
             state.remaining = state.amount
             await applyElementalHealthLoss(to: &state, in: &context)
-            return
+            return []
         }
         if state.options.isHealthCost {
             state.remaining = state.amount
@@ -34,12 +34,12 @@ package enum DamagePipeline {
                     )
                 }
             }
-            return
+            return []
         }
 
         await applyDodgeGate(to: &state, in: &context)
         if state.isDodged {
-            return
+            return []
         }
         if let sourceActorID = state.sourceActorID,
            let source = context.roster.combatant(for: sourceActorID), source.role != .enemy {
@@ -66,9 +66,10 @@ package enum DamagePipeline {
             ElementalReactionEngine.recordNaturalTick(keyword, amount: state.healthLost, sourceID: state.sourceActorID, in: &context)
         }
 
-        applyResourceful(to: &state, in: &context)
-        applyCrackedGuard(to: &state, in: &context)
-        await applyCommittedDamageReactions(to: &state, in: &context)
+        let hit = CommittedDamage(state)
+        applyResourceful(to: hit, in: &context)
+        applyCrackedGuard(to: hit, in: &context)
+        return await applyCommittedDamageReactions(to: hit, in: &context)
     }
 
     /// Committed-damage reaction order (load-bearing, do not reorder):
@@ -77,8 +78,8 @@ package enum DamagePipeline {
     /// reactive → keyword rewards → ally Block → Threefold Grace → crit → uniques. DoT mirrors must precede leech so
     /// mirrored ticks count toward the same hit; keyword reactions stay last
     /// among pipeline-owned steps so wards see final healthLost.
-    private static func applyCommittedDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) async {
-        await applyAttackRewards(to: &state, in: &context)
+    private static func applyCommittedDamageReactions(to state: CommittedDamage, in context: inout BattleState) async -> CombatFlags {
+        await applyAttackRewards(to: state, in: &context)
         if state.options.isCardAttack, state.amount > 0, state.combatant.role == .enemy {
             await CombatTriggerEngine.afterHeroCardHit(
                 keyword: state.damageKeyword, sourceID: state.sourceActorID, critical: state.isCritical,
@@ -102,35 +103,43 @@ package enum DamagePipeline {
         }
 
         await EnemyTraitEngine.applyOutgoingAttackTraits(from: state, context: &context)
-        await applyDoTDamageReactions(to: &state, in: &context)
-        await applyCompanionDamageRetaliation(to: &state, in: &context)
-        await applyLeech(to: &state, in: &context)
+        await applyDoTDamageReactions(to: state, in: &context)
+        await applyCompanionDamageRetaliation(to: state, in: &context)
+        let didLeech = await applyLeech(to: state, in: &context)
         await CombatTriggerEngine.afterAffixAttack(state, in: &context)
-        await applyEnemyAttackPurge(to: &state, in: &context)
-        await AttackerOnHitEngine.apply(to: &state, in: &context)
-        await applyAttackerMirroredReactions(to: &state, in: &context)
+        await applyEnemyAttackPurge(to: state, in: &context)
+        await AttackerOnHitEngine.apply(to: state, in: &context)
+        await applyAttackerMirroredReactions(to: state, in: &context)
 
-        await applyControlMeter(to: &state, in: &context)
-        await AttackerOnHitEngine.applyNimbleFang(to: &state, in: &context)
+        let didTriggerControl = await applyControlMeter(to: state, in: &context)
+        await AttackerOnHitEngine.applyNimbleFang(to: state, in: &context)
         if !state.options.isRetaliation {
-            await applyReactiveOnHit(to: &state, in: &context)
+            await applyReactiveOnHit(to: state, in: &context)
         }
         // Full Basic counterattacks retain damage rewards without reopening counterattack retaliation.
         if !state.options.isRetaliation || state.options.isCounterattack || state.damageKeyword == .freeze
             || (state.options.isThornsDamage && state.damageKeyword == .holy)
             || (state.options.isPeriodic && state.damageKeyword == .burn) {
-            await applyKeywordReactions(to: &state, in: &context)
+            await applyKeywordReactions(to: state, in: &context)
         }
-        applyFinalCompanionHolyHitRewards(to: &state, in: &context)
-        applyCompanionLeechCriticalBlock(to: &state, in: &context)
-        await applyThreefoldGrace(to: &state, in: &context)
+        applyFinalCompanionHolyHitRewards(to: state, in: &context)
+        applyCompanionLeechCriticalBlock(to: state, didLeech: didLeech, in: &context)
+        await applyThreefoldGrace(to: state, in: &context)
         if !state.options.isRetaliation || state.options.isCounterattack {
-            await applyCriticalReaction(to: &state, in: &context)
+            await applyCriticalReaction(to: state, in: &context)
         }
         await UniqueCombatEngine.afterDamage(state, in: &context)
+        var flags: CombatFlags = []
+        if didLeech {
+            flags.insert(.leeched)
+        }
+        if didTriggerControl {
+            flags.insert(.controlTriggered)
+        }
+        return flags
     }
 
-    private static func applyDoTDamageReactions(to state: inout DamageResolutionState, in context: inout BattleState) async {
+    private static func applyDoTDamageReactions(to state: CommittedDamage, in context: inout BattleState) async {
         if let keyword = state.damageKeyword, keyword == .burn || keyword == .bleed,
            let sourceActorID = state.sourceActorID {
             await DoTMirrorCascade.resolve(

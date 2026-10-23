@@ -18,7 +18,7 @@ extension UniqueCombatEngine {
         }
     }
 
-    static func afterDamage(_ damage: DamageResolutionState, in context: inout BattleState) async {
+    static func afterDamage(_ damage: CommittedDamage, in context: inout BattleState) async {
         guard context.resolution.depth(.uniqueReaction) == 0 else { return }
         answerBlockedAttack(damage, in: &context)
         await physicalCriticalRewards(damage, in: &context)
@@ -50,7 +50,7 @@ extension UniqueCombatEngine {
             let options = damage.options.repeated(origin: .criticalRepeat, scaling: .resolved, guaranteedCritical: true)
             await repeatHit(
                 DamageRequest(
-                    amount: damage.unique.outgoingDamage,
+                    amount: damage.outgoingDamage,
                     target: damage.combatant,
                     keyword: damage.damageKeyword,
                     sourceActorID: source.id,
@@ -64,7 +64,7 @@ extension UniqueCombatEngine {
     }
 
     private static func physicalCriticalRewards(
-        _ damage: DamageResolutionState,
+        _ damage: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard damage.damageKeyword == .physical,
@@ -93,7 +93,7 @@ extension UniqueCombatEngine {
     }
 
     private static func answerBlockedAttack(
-        _ damage: DamageResolutionState,
+        _ damage: CommittedDamage,
         in context: inout BattleState,
     ) {
         guard damage.options.isAttackHit, damage.sourceActorID == context.roster.enemy.id else { return }

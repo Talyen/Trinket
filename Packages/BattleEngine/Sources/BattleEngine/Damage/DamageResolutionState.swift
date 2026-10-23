@@ -74,14 +74,12 @@ package struct DamageResolutionState {
     var pendingAttackBonus = 0
     var pendingHolyBonus = 0
     var ignoreBlockFromTalent = false
-    var didLeech = false
     var sourceHadNoBlockAtHit = false
     var talentAttackHasLeech = false
-    var didTriggerControl = false
     /// Scratch owned by Unique equipment rules (capture/apply/store), not by
     /// the generic pipeline. Only `UniqueCombatEngine`, burn-detonation folding,
     /// and the outgoing-damage step that folds stored values into `remaining`
-    /// may touch it.
+    /// may mutate it. Committed hit facts copy its outgoing damage after health commitment.
     var unique = UniqueDamageScratch()
     public var blockedAmount: Int = 0
 

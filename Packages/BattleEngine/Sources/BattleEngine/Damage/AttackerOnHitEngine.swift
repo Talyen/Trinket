@@ -16,10 +16,10 @@ enum AttackerOnHitEngine {
     }
 
     static func apply(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
-        await applyStoredAdditionalDamage(to: &state, in: &context)
+        await applyStoredAdditionalDamage(to: state, in: &context)
         guard let sourceRuntime = state.partySource(in: context),
               let keyword = state.damageKeyword
         else { return }
@@ -59,19 +59,19 @@ enum AttackerOnHitEngine {
                 let current = context.roster.runtime(for: state.combatant)?.talents.history.blindingReduction ?? 0
                 context.roster.mutateRuntime(for: state.combatant) { $0.talents.history.blindingReduction = max(current, reduction) }
             }
-            await applyHolyStunReactions(to: &state, hit: hit, in: &context)
+            await applyHolyStunReactions(to: state, hit: hit, in: &context)
         }
 
-        await applyPhysicalDamageReactions(to: &state, hit: hit, in: &context)
+        await applyPhysicalDamageReactions(to: state, hit: hit, in: &context)
         guard state.options.isAttackHit else { return }
         if hit.triggers.prismaticEdge {
-            await applyPrismaticEdge(to: &state, hit: hit, in: &context)
+            await applyPrismaticEdge(to: state, hit: hit, in: &context)
         }
-        await applyTalentAttackApplications(to: &state, hit: hit, in: &context)
+        await applyTalentAttackApplications(to: state, hit: hit, in: &context)
     }
 
     private static func applyPrismaticEdge(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         hit: Hit,
         in context: inout BattleState,
     ) async {
@@ -111,7 +111,7 @@ enum AttackerOnHitEngine {
     }
 
     private static func applyStoredAdditionalDamage(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard state.additionalHolyDamage > 0 || state.additionalPhysicalDamage > 0,
@@ -143,7 +143,7 @@ enum AttackerOnHitEngine {
     }
 
     private static func applyPhysicalDamageReactions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         hit: Hit,
         in context: inout BattleState,
     ) async {
@@ -180,7 +180,7 @@ enum AttackerOnHitEngine {
     }
 
     private static func applyHolyStunReactions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         hit: Hit,
         in context: inout BattleState,
     ) async {
@@ -233,7 +233,7 @@ enum AttackerOnHitEngine {
     }
 
     static func applyNimbleFang(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard state.options.isAttackHit,
@@ -244,14 +244,14 @@ enum AttackerOnHitEngine {
         else { return }
         let potency = runtime.talents.pending.bleedAfterDodge
         context.roster.mutateRuntime(for: attacker.combatant) { $0.talents.pending.bleedAfterDodge = 0 }
-        await appendTargetBleed(potency: potency, state: &state, context: &context)
+        await appendTargetBleed(potency: potency, state: state, context: &context)
     }
 
     /// Attached-bleed fan-out for attacker on-hit riders: the target is
     /// always the damage recipient and the source the pipeline attacker.
     static func appendTargetBleed(
         potency: Int,
-        state: inout DamageResolutionState,
+        state: CommittedDamage,
         context: inout BattleState,
     ) async {
         guard let sourceActorID = state.sourceActorID else { return }
@@ -268,7 +268,7 @@ enum AttackerOnHitEngine {
     static func appendAttackerBlock(
         _ amount: Int,
         abilityName: String,
-        state: inout DamageResolutionState,
+        state: CommittedDamage,
         context: inout BattleState,
     ) {
         guard let source = state.partySource(in: context) else { return }
@@ -278,19 +278,19 @@ enum AttackerOnHitEngine {
 
 extension AttackerOnHitEngine {
     private static func applyTalentAttackApplications(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         hit: Hit,
         in context: inout BattleState,
     ) async {
-        await applyRangedAndPhysicalAfflictions(to: &state, hit: hit, in: &context)
-        await applyHolyAfflictions(to: &state, hit: hit, in: &context)
-        await applyBasicAttackApplications(to: &state, hit: hit, in: &context)
-        await applyTargetStateReactions(to: &state, hit: hit, in: &context)
-        await applyRandomOnHitApplications(to: &state, hit: hit, in: &context)
+        await applyRangedAndPhysicalAfflictions(to: state, hit: hit, in: &context)
+        await applyHolyAfflictions(to: state, hit: hit, in: &context)
+        await applyBasicAttackApplications(to: state, hit: hit, in: &context)
+        await applyTargetStateReactions(to: state, hit: hit, in: &context)
+        await applyRandomOnHitApplications(to: state, hit: hit, in: &context)
     }
 
     private static func applyRangedAndPhysicalAfflictions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         hit: Hit,
         in context: inout BattleState,
     ) async {
@@ -308,11 +308,11 @@ extension AttackerOnHitEngine {
         }
         if triggers.physicalAttackApplyBleed > 0, hit.keyword == .physical,
            context.roster.health(for: target) > 0 {
-            await appendTargetBleed(potency: triggers.physicalAttackApplyBleed, state: &state, context: &context)
+            await appendTargetBleed(potency: triggers.physicalAttackApplyBleed, state: state, context: &context)
         }
         if triggers.physicalAttackApplyBleedAndStun > 0, hit.keyword == .physical,
            context.roster.health(for: target) > 0 {
-            await appendTargetBleed(potency: triggers.physicalAttackApplyBleedAndStun, state: &state, context: &context)
+            await appendTargetBleed(potency: triggers.physicalAttackApplyBleedAndStun, state: state, context: &context)
             await ControlMeterEngine.applyMeterCharge(
                 triggers.physicalAttackApplyBleedAndStun,
                 keyword: .stun,
@@ -323,12 +323,12 @@ extension AttackerOnHitEngine {
             )
         }
         if triggers.onPhysicalDamageGainBlock > 0, hit.keyword == .physical {
-            appendAttackerBlock(triggers.onPhysicalDamageGainBlock, abilityName: "Bone Shield", state: &state, context: &context)
+            appendAttackerBlock(triggers.onPhysicalDamageGainBlock, abilityName: "Bone Shield", state: state, context: &context)
         }
     }
 
     private static func applyHolyAfflictions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         hit: Hit,
         in context: inout BattleState,
     ) async {
@@ -353,7 +353,7 @@ extension AttackerOnHitEngine {
     }
 
     private static func applyBasicAttackApplications(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         hit: Hit,
         in context: inout BattleState,
     ) async {
@@ -376,7 +376,7 @@ extension AttackerOnHitEngine {
             )
         }
         if triggers.basicAttackApplyBleed > 0 {
-            await appendTargetBleed(potency: triggers.basicAttackApplyBleed, state: &state, context: &context)
+            await appendTargetBleed(potency: triggers.basicAttackApplyBleed, state: state, context: &context)
         }
         if triggers.basicAttackFreezeBuildup > 0 {
             _ = await DamagePipeline.resolveNestedDamage(
@@ -399,7 +399,7 @@ extension AttackerOnHitEngine {
     }
 
     private static func applyTargetStateReactions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         hit: Hit,
         in context: inout BattleState,
     ) async {
@@ -428,7 +428,7 @@ extension AttackerOnHitEngine {
             await context.restoreManaEmitting(triggers.onAttackFrozenEnemyGainMana, to: hit.source, abilityName: "Frost Siphon")
         }
         if triggers.onAttackFrozenEnemyGainBlock > 0, targetIsFrozen {
-            appendAttackerBlock(triggers.onAttackFrozenEnemyGainBlock, abilityName: "Frost Guard", state: &state, context: &context)
+            appendAttackerBlock(triggers.onAttackFrozenEnemyGainBlock, abilityName: "Frost Guard", state: state, context: &context)
         }
         if triggers.onAttackStunnedEnemyGold > 0, targetIsStunned {
             _ = await context.grantGold(
@@ -438,7 +438,7 @@ extension AttackerOnHitEngine {
             )
         }
         if triggers.onAttackStunnedEnemyBlock > 0, targetIsStunned {
-            appendAttackerBlock(triggers.onAttackStunnedEnemyBlock, abilityName: "Disorienting Strike", state: &state, context: &context)
+            appendAttackerBlock(triggers.onAttackStunnedEnemyBlock, abilityName: "Disorienting Strike", state: state, context: &context)
         }
         if hit.source.role == .hero, targetIsPoisoned, targetAlive {
             await CombatTriggerEngine.companionSpitPoison(to: target, in: &context)
@@ -446,7 +446,7 @@ extension AttackerOnHitEngine {
     }
 
     private static func applyRandomOnHitApplications(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         hit: Hit,
         in context: inout BattleState,
     ) async {
@@ -454,7 +454,7 @@ extension AttackerOnHitEngine {
         let target = state.combatant
         if triggers.directHitBleedChancePercent > 0, context.roster.health(for: target) > 0,
            BattleChance.succeeds(probability: triggers.directHitBleedChancePercent, using: &context.rng) {
-            await appendTargetBleed(potency: 1, state: &state, context: &context)
+            await appendTargetBleed(potency: 1, state: state, context: &context)
         }
         if triggers.dazingSwipeChancePercent > 0, triggers.dazingSwipeStunBuildup > 0,
            state.options.isAttackHit, state.damageKeyword == .physical,
@@ -471,7 +471,7 @@ extension AttackerOnHitEngine {
         }
         if triggers.attackApplyBleed > 0, state.options.isAttackHit,
            context.roster.health(for: target) > 0 {
-            await appendTargetBleed(potency: triggers.attackApplyBleed, state: &state, context: &context)
+            await appendTargetBleed(potency: triggers.attackApplyBleed, state: state, context: &context)
         }
         if triggers.attackBurstChancePercent > 0, context.roster.health(for: target) > 0,
            BattleChance.succeeds(probability: triggers.attackBurstChancePercent, using: &context.rng) {
@@ -487,7 +487,7 @@ extension AttackerOnHitEngine {
             }
             let burstBlock = max(0, triggers.attackBurstBlock)
             if burstBlock > 0 {
-                appendAttackerBlock(burstBlock, abilityName: "Bone Burst", state: &state, context: &context)
+                appendAttackerBlock(burstBlock, abilityName: "Bone Burst", state: state, context: &context)
             }
         }
     }

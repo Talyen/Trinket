@@ -2,7 +2,7 @@ import TrinketContent
 import TrinketCore
 
 package extension DamagePipeline {
-    static func applyCrackedGuard(to state: inout DamageResolutionState, in context: inout BattleState) {
+    static func applyCrackedGuard(to state: CommittedDamage, in context: inout BattleState) {
         guard state.damageKeyword == .physical, state.heroCardBlockBroken,
               state.combatant.role == .enemy,
               let source = state.partySource(in: context), source.isAlive,
@@ -25,7 +25,7 @@ package extension DamagePipeline {
     }
 
     static func applyAttackerMirroredReactions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
         guard let keyword = state.damageKeyword,
@@ -34,14 +34,14 @@ package extension DamagePipeline {
               state.amount > 0
         else { return }
         let triggers = context.modifiers(for: source.id).triggers
-        await applyTalentMirroredDoTs(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
-        await applyTalentBlockAndManaReactions(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
-        await applyTalentDetonations(to: &state, triggers: triggers, source: source, in: &context)
-        await applyTalentCardAndEconomyReactions(to: &state, triggers: triggers, keyword: keyword, source: source, in: &context)
+        await applyTalentMirroredDoTs(to: state, triggers: triggers, keyword: keyword, source: source, in: &context)
+        await applyTalentBlockAndManaReactions(to: state, triggers: triggers, keyword: keyword, source: source, in: &context)
+        await applyTalentDetonations(to: state, triggers: triggers, source: source, in: &context)
+        await applyTalentCardAndEconomyReactions(to: state, triggers: triggers, keyword: keyword, source: source, in: &context)
     }
 
     private static func applyTalentMirroredDoTs(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
         source: CombatantRuntime,
@@ -85,7 +85,7 @@ package extension DamagePipeline {
     }
 
     private static func applyTalentBlockAndManaReactions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
         source: CombatantRuntime,
@@ -104,7 +104,7 @@ package extension DamagePipeline {
     }
 
     private static func applyTalentDetonations(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         triggers: CombatTraitTriggers,
         source: CombatantRuntime,
         in context: inout BattleState,
@@ -116,7 +116,7 @@ package extension DamagePipeline {
     }
 
     private static func applyTalentCardAndEconomyReactions(
-        to state: inout DamageResolutionState,
+        to state: CommittedDamage,
         triggers: CombatTraitTriggers,
         keyword: Keyword,
         source: CombatantRuntime,
