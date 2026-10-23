@@ -200,12 +200,15 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         # Task acquires a tracked file that would overwrite ignored local work on main.
         other = self.task('other')
         (other / 'local-only').write_text('task version')
-        (other / '.gitignore').write_text('.worktrees/\nignored\nlocal-only\n')
+        ignore = other / '.gitignore'
+        ignore.write_text(ignore.read_text() + 'local-only\n')
         self.git(other, 'add', '-f', 'local-only')
         self.commit(other)
         (self.root / '.git/info/exclude').write_text('local-only\n')
         (self.root / 'local-only').write_text('main evidence')
-        self.assert_stopped(other, main)
+        result = self.assert_stopped(other, main)
+        self.assertIn('Ignored file would be overwritten', result.stderr)
+        self.assertIn('local-only', result.stderr)
         self.assertEqual((self.root / 'local-only').read_text(), 'main evidence')
         report = json.loads((other / '.DerivedData/Deliverables/task-report.json').read_text())
         self.assertEqual(report['completion_state'], 'local checks passed; landing pending')
