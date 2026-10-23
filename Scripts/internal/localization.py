@@ -5,6 +5,7 @@ from collections import Counter
 from contextlib import contextmanager
 from copy import deepcopy
 import fcntl
+from fnmatch import fnmatchcase
 import hashlib
 import json
 import os
@@ -259,14 +260,39 @@ def response_template(root: Path, queue: dict | None = None) -> dict:
     return {'version': queue['version'], 'source_revision': queue['source_revision'], 'translations': results}
 
 
-def prepare(root: Path) -> Path:
-    """Prepare one consistent queue and contextual response, preserving older drafts."""
+def prepare(root: Path, resume: Path | None = None) -> Path:
+    """Start a fresh queue, carrying matching drafts without inventing review."""
     queue = plan(root)
     parent = root / '.DerivedData/Localization'
     parent.mkdir(parents=True, exist_ok=True)
+    response = response_template(root, queue)
+    if resume is None:
+        candidates = [path for path in parent.glob('queue-*/response.json')
+                      if not path.is_symlink() and not path.parent.is_symlink()]
+        resume = max(candidates, key=lambda path: path.stat().st_mtime_ns, default=None)
+    if resume is not None:
+        previous = load(resume)
+        if previous.get('version') != 1:
+            raise ValueError(f'{resume}: unsupported draft version')
+        saved = {}
+        for item in previous['translations']:
+            identity = (item['id'], item['locale'])
+            if identity in saved:
+                raise ValueError(f'{resume}: duplicate translation {identity}')
+            saved[identity] = item
+        for item in response['translations']:
+            old = saved.get((item['id'], item['locale']))
+            if old is None or old.get('source_hash') != item['source_hash']:
+                continue
+            item['translation'] = deepcopy(old['translation'])
+            review = old.get('review', {})
+            if (review.get('verdict') == 'pass' and REVIEW_CHECKS <= set(review.get('checks', []))
+                    and review.get('rationale', '').strip()
+                    and review.get('translation_hash') == digest(item['translation'])):
+                item['review'] = deepcopy(review)
     directory = Path(tempfile.mkdtemp(prefix='queue-', dir=parent))
     (directory / 'plan.json').write_bytes(encoded(queue))
-    (directory / 'response.json').write_bytes(encoded(response_template(root, queue)))
+    (directory / 'response.json').write_bytes(encoded(response))
     return directory
 
 
@@ -292,6 +318,10 @@ def record_review(root: Path, response_path: Path, rationale: str) -> None:
             value = result['translation']
             validate_translation(entry['source'], value, locale, identifier, config.get('pluralForms', {}).get(locale))
             enforce_glossary(entry, value, locale, identifier)
+            previous = result.get('review', {})
+            if (previous.get('verdict') == 'pass' and REVIEW_CHECKS <= set(previous.get('checks', []))
+                    and previous.get('rationale', '').strip() and previous.get('translation_hash') == digest(value)):
+                continue
             result['review'] = {'verdict': 'pass', 'checks': sorted(REVIEW_CHECKS),
                                 'rationale': rationale, 'translation_hash': digest(value)}
         replace_files({response_path: encoded(response)})
@@ -375,17 +405,48 @@ def apply(root: Path, response: dict) -> None:
         print(f'Applied {len(seen)} reviewed translations.')
 
 
-def check(root: Path) -> list[str]:
-    queue = plan(root)
+def check(root: Path, paths: list[str] | None = None) -> list[str]:
+    config = load(root / 'Localization/config.json')
+    selected = None
+    source_paths = None
+    if paths is not None:
+        from internal.cli import validate_repo_paths
+        paths = [(root / path).resolve().relative_to(root.resolve()).as_posix()
+                 for path in validate_repo_paths(paths, root)]
+        def matches(path, *patterns):
+            return any(fnmatchcase(path, pattern) for pattern in patterns)
+        shared = ('Localization/config.json', 'Localization/glossary.json', 'Localization/reviews.json',
+                  'Scripts/localization.py', 'Scripts/internal/localization*.py', '.github/*', 'project.yml')
+        known = ('Packages/', 'Trinket/', 'TrinketUITests/', 'Scripts/', 'Localization/',
+                 'ContentManifest/', 'Docs/', 'ArtManifest/', 'MusicManifest/', 'SoundManifest/')
+        if all(path.startswith(known) or path.endswith('.md') for path in paths) and not any(matches(path, *shared) for path in paths):
+            selected = {name for name in config['catalogs'] if name in paths or any(
+                path.startswith(str(Path(name).parent.parent) + '/Generated/') for path in paths)}
+            content = ('ContentManifest/*', 'Localization/source-keys.json', 'Localization/legacy-content.json',
+                       'Packages/TrinketContent/Sources/TrinketContent/*.swift',
+                       'Packages/TrinketAppState/Sources/TrinketAppState/Play/*.swift',
+                       'Packages/TrinketCore/Sources/TrinketCore/Keyword.swift')
+            if config.get('contentCatalog') and any(matches(path, *content) for path in paths):
+                selected.add(config['contentCatalog'])
+            if config.get('metadataCatalog') and any(matches(path, 'Localization/Store/*') for path in paths):
+                selected.add(config['metadataCatalog'])
+            scopes = {str(Path(name).parent.parent) for name in selected if not name.startswith('Localization/')}
+            if any(name.startswith('Trinket/') for name in selected):
+                scopes.add('Trinket/Features')
+            source_paths = {(root / path).resolve() for path in paths if path.endswith('.swift')}
+            source_paths.update(path.resolve() for scope in scopes for path in (root / scope).rglob('*.swift'))
+    queue = plan(root) if selected is None or selected else {'requests': []}
     errors = [f"{item['catalog']}/{item['key']} [{item['locale']}]: missing, stale, invalid, or unreviewed translation"
-              for item in queue['requests']]
+              for item in queue['requests'] if selected is None or item['catalog'] in selected]
     receipt_path = root / 'Localization/reviews.json'
-    if receipt_path.exists() and receipt_path.read_bytes() != encoded_reviews(load(receipt_path)):
+    if selected is None and receipt_path.exists() and receipt_path.read_bytes() != encoded_reviews(load(receipt_path)):
         errors.append('Localization/reviews.json: use canonical compact review records; localization.py apply normalizes the format')
-    for name in load(root / 'Localization/config.json')['catalogs']:
+    for name in config['catalogs']:
+        if selected is not None and name not in selected:
+            continue
         path = contained(root, name)
         if path.read_bytes() != encoded_catalog(load(path)):
             errors.append(f'{name}: use canonical compact locale records; localization.py apply normalizes the format')
     from internal.localization_resources import resource_errors
-    errors.extend(resource_errors(root))
+    errors.extend(resource_errors(root, catalogs=selected, paths=source_paths))
     return errors

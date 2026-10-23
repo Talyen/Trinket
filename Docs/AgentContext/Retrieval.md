@@ -9,75 +9,41 @@ configuration independently of navigation hints.
 
 ## Search and discovery
 
-Start with the owning directory when known, or `rg --files` to locate it. Avoid
-build products and raw logs unless investigating those artifacts. Scope hidden
-searches to the relevant directory, such as `.agents/` or `.github/`.
-
-The optional `agent-search.py` helper offers ranked files, documentation sections,
-related tests, and caller hints. Use its `--help` when these capabilities would
-help; its modes and pagination are not prerequisites for ordinary searches.
-
-```sh
-rg --files Packages/TrinketPersistence -g '*Shop*'
-rg -n 'purchase' Packages/TrinketPersistence
-python3 Scripts/agent-search.py 'simulator budget' --mode docs --sections --scope Docs/Platform
-```
+Use `rg --files` to locate the owner, then scoped `rg` and ordinary file reads.
+Avoid generated output and raw logs unless those artifacts are the subject.
+Start hidden searches in the relevant directory, such as `.agents/` or `.github/`.
 
 ## Complete reads and navigation
 
-Read enough surrounding text to understand the contract and exceptions. A
-filename, signature, outline, or passing link check does not establish behavior.
-
-For long references, the optional section reader accepts Markdown anchors and
-Swift/Python declarations. It prints complete sections/bodies with source lines;
-large unanchored Markdown defaults to a heading outline. Use `--full` when the
-whole document is relevant, or ordinary reads for any supported text file.
-
-```sh
-python3 Scripts/agent-read.py 'Docs/Platform/Verification.md#local-simulator-budget'
-python3 Scripts/agent-read.py Scripts/verify.py --symbol main
-```
-
-Specialized helpers disclose omitted content and print continuation or recovery
-commands. Follow relevant omissions before drawing conclusions. Fingerprinted
-continuations reject changed inputs; restart that helper's query when necessary.
-Detailed options live in each command's `--help`.
+Read the implementation and its relevant callers/assertions. Outlines, names and
+navigation hints do not establish behavior. `agent-read.py <file>#<anchor>` can
+print complete Markdown sections; it also powers the briefing. Its source
+navigation and the other optional helpers remain compatible, with flags in
+`--help`; they are not prerequisites for ordinary reads.
 
 ## Routing and guidance reuse
 
 `--base main` includes task commits since the shared ancestor plus staged,
-unstaged, and untracked work, deletions, and both rename endpoints. Use the
-user-specified base when different. `--paths` focuses individual files;
-`--working-tree` intentionally selects dirty files only. Missing bases fail.
-Rerun briefing when entering another owner. Briefings are stateless and do not
-hide safeguards based on earlier reads.
+unstaged and untracked files, deletions and both rename endpoints. Use an explicit
+user-specified base when different. `--working-tree` selects dirty files only.
+Briefings are stateless; reuse unchanged guidance already read. The router uses
+owner directories and focused exceptions; follow dependencies independently.
 
 ### Concern and test pointers
 
-Concern shortcuts such as `--task shop` are optional navigation. Discover them
-with `python3 Scripts/agent-search.py --task --overview`; use file-scoped discovery
-for unindexed work. The concern index is not proof of ownership or test coverage.
+Optional `--task <concern>` navigation supplies entry points and test pointers.
+Inspect the assertions; an indexed file is not proof of coverage.
 
 ### Caller navigation
 
-Ordinary scoped searches and source reads are sufficient. The optional helpers
-can collect lexical invocation locations or caller/test bodies together:
-
-```sh
-python3 Scripts/agent-search.py purchase --callers --scope Packages/TrinketPersistence
-python3 Scripts/agent-investigate.py --path Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift --symbol ShopPurchaseApplier.purchase --scope Packages/TrinketPersistence
-```
-
-These are textual/lexical hints, without receiver or type resolution, indirect
-call analysis, or complete Swift call-syntax coverage. Inspect assertions and
-follow cross-owner dependencies explicitly. Swift declaration/caller helpers
-use the pinned SwiftFormat tokenizer and fail explicitly when it is unavailable.
+Scoped `rg` is sufficient. `agent-search.py`, `agent-investigate.py` and the source
+modes of `agent-read.py` offer lexical hints without type resolution, indirect-call
+analysis or complete Swift syntax coverage. Use them only when their specific
+output helps. Follow relevant omitted bodies; restart fingerprinted queries when
+inputs change. No task requires learning these modes or using them in sequence.
 
 ## Diff review
 
-Use `git diff`, `git diff --cached`, and explicit untracked-file reads. Inspect
-every overlapping dirty diff before editing; preserve unrelated work.
-`agent-diff.py` optionally separates authored patches from generated statistics
-and supplies record summaries for supported catalogs. Its bounded output prints
-continuations; `--full` is an explicit unbounded read. Those summaries do not
-replace full review where needed or generated consistency checks.
+Use `git diff`, `git diff --cached`, and explicit untracked-file reads. Review
+every overlapping dirty diff before editing. `agent-diff.py` remains an optional
+paged/generated-summary view; summaries do not replace applicable full review.

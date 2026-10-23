@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
 import os
 from pathlib import Path
 import shlex
@@ -14,9 +15,34 @@ import tempfile
 import uuid
 
 from internal.change_routing import Check, collect_paths, classify, verification_plan, lightweight
-from internal.cli import ROOT, pinned_tool_path
+from internal.cli import ROOT, pinned_tool_path, write_json_atomic
 from internal.ui_registration import registrations
 from internal import output_retention as retention
+
+
+def save_report(root: Path, route: str, paths: list[str], checks, outcomes: dict[str, str], status: int) -> Path:
+    """Preserve compact execution evidence separately from disposable phase logs."""
+    directory = root / '.DerivedData/Deliverables/Verification'
+    if any(path.is_symlink() for path in (directory, *directory.parents) if path.is_relative_to(root)):
+        raise ValueError('Verification deliverables cannot follow symlinks')
+    directory.mkdir(parents=True, exist_ok=True)
+    revision = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=root, text=True, capture_output=True)
+    dirty = subprocess.run(['git', 'status', '--porcelain', '--untracked-files=all'], cwd=root, text=True, capture_output=True)
+    report = directory / f'{route}-{uuid.uuid4().hex}.json'
+    write_json_atomic(report, {
+        'version': 1, 'recorded_at': datetime.now(timezone.utc).isoformat(),
+        'route': route, 'exit_status': status,
+        'commit': revision.stdout.strip() if revision.returncode == 0 else None,
+        'workspace_status': dirty.stdout.splitlines() if dirty.returncode == 0 else None,
+        'inputs': {name: hashlib.sha256((root / name).read_bytes()).hexdigest() if (root / name).is_file() else None
+                   for name in paths},
+        'checks': [{'id': check.id, 'command': check.command,
+                    'outcome': outcomes.get(check.id, 'deferred to CI' if check.deferred else 'not run')}
+                   for check in checks],
+        'visual_review': 'separate shipping-UI evidence required when visuals change',
+    })
+    print(f'Verification report (preserved during integration): {report}')
+    return report
 
 
 def run_checks(checks, *, root: Path = ROOT, quiet: bool = False, environment: dict[str, str] | None = None, outcomes: dict[str, str] | None = None) -> int:
@@ -124,7 +150,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     scope.add_argument('--working-tree', action='store_true')
     scope.add_argument('--base', help='include task commits since the shared ancestor of REF and HEAD, plus dirty files')
     parser.add_argument('--route', choices=('static', 'diagnostic', 'visual', 'release'), default='static',
-                        help='static handoff (default), one focused diagnostic, managed visual inspection, or full release verification')
+                        help='static handoff (default), focused verification/diagnosis, managed visual inspection, or full release verification')
     target = parser.add_mutually_exclusive_group()
     target.add_argument('--package', help='diagnostic: run this package only')
     target.add_argument('--ui', help='diagnostic: run one existing UI class or method selector')
@@ -192,6 +218,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
                 deliverables.mkdir(parents=True, exist_ok=True)
                 print(f'Task deliverables (preserved during integration): {deliverables}', flush=True)
             status = run_checks(checks, root=root, quiet=args.quiet and args.route != 'visual', environment=environment, outcomes=outcomes)
+            save_report(root, args.route, route.paths, checks, outcomes, status)
         deferred = [check.command for check in checks if check.deferred]
         if deferred:
             print('Deferred to CI:')

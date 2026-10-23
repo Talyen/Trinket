@@ -3,6 +3,11 @@
 Each rule has a canonical owner. Start with the document for the task; this map
 is a lookup aid, not a reading checklist.
 
+The [root workflow](../AGENTS.md#route-and-read) and its scoped briefing are the
+ordinary entry point. Read routed safeguards and applicable contracts directly;
+do not traverse each layer or every outgoing reference before making a change.
+Indexes and optional navigation helpers add no approval or checklist steps.
+
 ## Layers
 
 | Layer | Where | Role |
@@ -60,8 +65,8 @@ not a substitute for a usable explanation.
 | `Docs/Audits/Proposals.md` | Narrow durable audit memory; evidence pointers must continue to resolve |
 | Active execution plans | Temporary, with advisory review dates; allowed only directly under `Docs/Plans/` |
 | Completed or cancelled plans | Fold current requirements into their canonical owners, then delete; no outcome archive |
-| Tool logs, reports, and comparison evidence | Successful logs are removed after consumers finish; remaining output expires after 24 hours unless explicitly kept for active investigation |
-| Task deliverables | `.DerivedData/Deliverables/` is preserved outside the task checkout by integration; `agent-worktree.mjs evidence` preserves other task-local files. These deliverables do not expire with diagnostic logs |
+| Diagnostic logs and comparison output | Successful logs are removed after consumers finish; remaining output expires after 24 hours unless explicitly kept for active investigation |
+| Task deliverables | Handoff writes compact execution reports automatically; integration adds the task scope and preserves `.DerivedData/Deliverables/` outside the checkout. `agent-worktree.mjs evidence` preserves other files. These deliverables do not expire with diagnostic logs |
 | Evals | Representative validation fixtures, not standing workflow policy |
 
 Do not create execution plans under `.agents/` or another parallel plan folder.

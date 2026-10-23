@@ -456,7 +456,9 @@ No routine chat coordination is needed; the root guide's
 
 Successful integration automatically deletes and unregisters only the invoking
 task worktree under the same integration lock, including ignored files and build
-outputs. Before landing or cleanup, it preserves `.DerivedData/Deliverables/` in
+outputs. Handoff automatically saves compact verification reports; integration
+adds `task-report.json` with the verified commit, main base, task paths and report
+links. Before landing or cleanup, it preserves `.DerivedData/Deliverables/` in
 Git's shared `trinket-evidence/<branch>/` directory, outside task worktrees, with
 the preservation commit, branch, and original paths. This metadata records
 when files were preserved; capture/build identity still comes from the evidence.
@@ -468,7 +470,12 @@ retained until deliberately removed, separately from expiring diagnostic logs.
 Cleanup rechecks its registration,
 branch, commit, clean state and Git operation state; locked worktrees and submodules
 are preserved. A failed handoff never cleans up. Cleanup failure reports after the
-completed integration; it does not roll main back.
+completed integration; it does not roll main back. From the retained task checkout,
+`node Scripts/agent-worktree.mjs cleanup` retries preservation and removal only,
+without rebase, verification or another landing. It accepts a task whose commit
+is already an ancestor of main, even after later tasks land. The shared lock,
+clean-task, registration, branch, submodule and symlink protections still apply;
+dirty primary files are untouched because cleanup does not change main.
 
 The checkout first moves atomically to a temporary directory under
 `~/.codex/worktree-archives/Trinket/` so failed unregistration can restore it.

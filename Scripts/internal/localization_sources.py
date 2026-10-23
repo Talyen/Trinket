@@ -316,16 +316,15 @@ def canonical_argument_errors(source: str) -> list[tuple[int, str]]:
     return errors
 
 
-def source_errors(root: Path) -> list[str]:
+def source_errors(root: Path, *, paths: set[Path] | None = None, check_content: bool = True) -> list[str]:
     errors = []
     config = json.loads((root / 'Localization/config.json').read_text())
     content_path = config.get('contentCatalog')
-    if content_path:
+    if content_path and check_content:
         catalog = json.loads((root / content_path).read_text())
         if catalog != content_catalog(root, catalog):
             errors.append(f'{content_path}: authored content changed; run localization.py plan and apply the reviewed queue')
-    from internal.localization import inventory
-    _, catalogs, _ = inventory(root)
+    catalogs = {name: json.loads((root / name).read_text()) for name in config['catalogs']}
     owners = {}
     for name, catalog in catalogs.items():
         if name.startswith('Localization/'):
@@ -336,6 +335,8 @@ def source_errors(root: Path) -> list[str]:
             owners['Trinket/Features'] = owners[scope]
     for directory in ('Trinket/App', 'Trinket/Features', 'Packages'):
         for path in sorted((root / directory).rglob('*.swift')):
+            if paths is not None and path.resolve() not in paths:
+                continue
             if 'Tests' in path.parts or 'Generated' in path.parts or path.name.endswith('.generated.swift'):
                 continue
             source = path.read_text()

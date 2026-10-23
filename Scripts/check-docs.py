@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -141,20 +142,32 @@ def audit_inventory_failures() -> list[str]:
 
 def structural_checks(
     files: list[Path], *, final: bool = False, keep_plan: bool = False,
-    paths: set[Path] | None = None,
+    paths: set[Path] | None = None, closure_paths: set[Path] | None = None,
 ) -> list[str]:
     failures: list[str] = []
     relative = {path.relative_to(ROOT) for path in files}
+    changed = None if paths is None else {path.relative_to(ROOT).as_posix() for path in paths}
+
+    def touches(*prefixes: str) -> bool:
+        return changed is None or any(name == prefix or name.startswith(prefix.rstrip('/') + '/')
+                                      for name in changed for prefix in prefixes)
 
     for manifest in sorted((ROOT / "Packages").glob("*/Package.swift")):
         package = manifest.parent.relative_to(ROOT)
+        if not touches(package.as_posix()):
+            continue
         if package / "README.md" not in relative and package / "AGENTS.md" not in relative:
             failures.append(f"{package}: package has neither README.md nor AGENTS.md")
 
-    failures.extend(_check_testplan_sync.testplan_failures())
+    if touches('Smoke.xctestplan', 'FullUI.xctestplan', 'TrinketUITests',
+               'Scripts/config/ui-tests.tsv', 'Scripts/check-testplan-sync.py',
+               'Scripts/internal/ui_registration.py', '.github/workflows'):
+        failures.extend(_check_testplan_sync.testplan_failures())
 
     suites = test_suite_names()
     for tests_readme in sorted((ROOT / "Packages").glob("*/Tests/README.md")):
+        if not touches(tests_readme.parent.relative_to(ROOT).as_posix()):
+            continue
         text = tests_readme.read_text(encoding="utf-8")
         for name in set(re.findall(r"`([A-Za-z][A-Za-z0-9_*]*Tests)`", text)):
             if "*" not in name and name not in suites:
@@ -167,27 +180,44 @@ def structural_checks(
     try:
         references.update(reference for task in load_tasks(ROOT) for reference in task['contracts'])
         for reference in sorted(references):
+            if not touches('Scripts/internal/change_routing.py', 'Scripts/internal/agent_tasks.py',
+                           'Scripts/config/agent-tasks.json', reference.partition('#')[0]):
+                continue
             validate_reference(ROOT, reference)
     except (OSError, ValueError) as error:
         failures.append(f'Guidance routing: {error}')
 
-    failures.extend(_check_plans.plan_failures(files, final=final, keep_plan=keep_plan, paths=paths))
-    failures.extend(proposal_evidence_failures())
-    failures.extend(audit_inventory_failures())
+    failures.extend(_check_plans.plan_failures(files, final=final, keep_plan=keep_plan,
+                                             paths=paths if paths is not None else closure_paths,
+                                             scoped=paths is not None))
+    # Proposal pointers name source symbols. Source changes can retire a pointer,
+    # even when Proposals.md itself is unchanged.
+    if touches('Docs/Audits/Proposals.md', *SOURCE_GREP_PATHS):
+        failures.extend(proposal_evidence_failures())
+    if touches('Docs/Audits'):
+        failures.extend(audit_inventory_failures())
     return failures
 
 
 def main() -> int:
     args = _check_plans.parse_arguments(__doc__)
     files = _check_links.markdown_files()
+    paths = None if os.environ.get('GITHUB_ACTIONS') == 'true' else args.paths
+    # Changes to the checker itself need its full consistency surface. Hosted
+    # and unscoped invocations also retain the full repository gate.
+    checker_inputs = {'Scripts/check-docs.py', 'Scripts/check-links.py', 'Scripts/check-plans.py',
+                      'Scripts/internal/markdown.py', 'Scripts/internal/doc_diagnostics.py'}
+    if paths is not None and any((ROOT / name).resolve() in paths for name in checker_inputs):
+        paths = None
+    selected = files if paths is None else _check_links.affected_documents(files, paths)
     _check_plans.DOC_WARNINGS.clear()
-    failures = _check_links.broken_links(files) + structural_checks(
-        files, final=args.final, keep_plan=args.keep_plan, paths=args.paths,
+    failures = _check_links.broken_links(selected) + structural_checks(
+        files, final=args.final, keep_plan=args.keep_plan, paths=paths, closure_paths=args.paths,
     )
     if failures:
         report_failures("Documentation checks failed:", failures, root=ROOT)
         return 1
-    print(f"Documentation checks passed ({len(files)} Markdown files).")
+    print(f"Documentation checks passed ({len(selected)} Markdown files; {'full repository' if paths is None else 'affected inputs and inbound links'}).")
     for warning in _check_plans.DOC_WARNINGS:
         print(f"Warning: {warning}", file=sys.stderr)
     return 0

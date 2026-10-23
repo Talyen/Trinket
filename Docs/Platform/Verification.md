@@ -10,14 +10,14 @@ setup: [SimulatorOperations.md](SimulatorOperations.md).
 
 Choose one route based on the question. Isolation is automatic in handoff;
 existing `--isolate` calls remain supported. Static checks are the routine route.
-The other routes are explicit, bounded diagnostics, interactive visual work, or
+The other routes are explicit, bounded verification/diagnostics, interactive visual work, or
 requested release verification; they never run as a side effect of static checks.
 
 | Question | Explicit route | Evidence |
 |---|---|---|
 | Ready to land the task? | Commit reviewed work, then `node Scripts/agent-worktree.mjs integrate` | Runs the final static handoff after incorporating main under the lock; no redundant pre-commit handoff required |
 | Standalone or focused static check? | `handoff.sh --quiet --base main` (or `--paths <files...>`) | Scoped style, script/docs and relevant cheap checks; compilation and journeys remain CI-owned |
-| Concrete package/test failure? | `handoff.sh --route diagnostic --package <Package> --paths <files...>` | Executes only the selected package diagnostic |
+| Consequential logic change or package/test failure? | `handoff.sh --route diagnostic --package <Package> --paths <files...>` | Compiles/tests only the selected package; also available before a failure is known |
 | Concrete app or UI failure? | `handoff.sh --route diagnostic --app-only --paths <files...>` or `--ui <Class[/method]>` | App compilation or one existing UI selector; no full suite |
 | Changed visuals need inspection? | `handoff.sh --route visual --paths <files...>` in a persistent terminal | Managed build/launch/inspection lease; inspect and exercise the result before stopping the session |
 | Requested full release verification? | `handoff.sh --route release --paths <files...>` | Runs `test-deploy.sh --mode ui`; does not version, tag, sign, upload, or publish |
@@ -25,8 +25,9 @@ requested release verification; they never run as a side effect of static checks
 Use `--dry-run` with any route to inspect its command without executing it.
 Diagnostic selectors are required and mutually exclusive. Explicit non-static
 routes set the existing local-execution flags for their selected wrapper; callers
-need not discover environment overrides. Use the diagnostic route for a concrete
-failure, the visual route for the visual completion gate, and release only for
+need not discover environment overrides. Use the diagnostic route for one bounded
+package verification or a concrete app/UI failure, the visual route for the visual
+completion gate, and release only for
 requested release qualification. The execution limits below still apply.
 `--smoke` on the static route reports selected hosted journey obligations; it does
 not run them locally. Direct package, UI, play, performance, and release commands
@@ -40,9 +41,8 @@ without falling back to a smaller scope. Use the user-specified base when differ
 `--paths` accepts individual files for focused checks; absolute in-repository paths
 are normalized. `--working-tree` selects dirty files only.
 
-Before editing intended files, run `python3 Scripts/agent-brief.py --status --read
---paths <files...>` for safeguards. Reroute when crossing owners; standard scoped
-search, file reads and Git diffs are supported. Handoff's evidence summary separates
+The [root workflow](../../AGENTS.md#route-and-read) owns briefing and source review.
+Handoff's evidence summary separates
 static checks, app compilation, package compilation/behavior and UI behavior. Preview
 reports planned work; failed or unexecuted phases never count as passed. Visual review
 requires separate shipping-UI evidence. The summary identifies the next permitted
@@ -55,6 +55,13 @@ consumers; it catches exhaustive-switch failures in unchanged code. A bounded
 local compile diagnostic uses the same isolated app-only route under
 the execution limits below. Whole-tree dirty-path routing alone does not cover
 relevant committed changes.
+
+Local documentation checks select edited files, inbound links to changed or deleted
+targets, and affected structural owners. Checker changes select the full gate.
+Unscoped/hosted checks retain full link and structural coverage. Local localization
+checks validate changed Swift and affected catalogs plus their consumers; shared
+localization configuration, glossary, review and tool changes retain full coverage.
+These scoped passes do not establish repository-wide freshness.
 
 Markdown routes to documentation checks even beneath script or manifest roots.
 For executable script changes, handoff passes the same path scope to the script
@@ -145,7 +152,12 @@ heavy checks as deferred to CI; a local PASS is not compile or interaction proof
 CI owns package tests, app compilation, critical smoke, nightly/manual FullUI,
 generation/idempotence, and manual performance measurements. Review hosted results
 after the next authorized push. Keep missing CI evidence explicit in handoff; do
-not run the hosted suites on the laptop to fill that gap.
+not run broad hosted suites on the laptop to fill that gap. For consequential logic
+changes, a bounded package compile/test through the focused route is authorized
+before landing; it need not wait for an observed failure. Choose the owning package
+and state the scope/purpose. This is deliberate verification, not an automatic
+compile for every changed file. Shared API changes may need a focused app compile
+when the package does not compile its consumers.
 
 Changed interaction wiring and accessibility identifiers require the relevant
 hosted journey evidence. `--smoke` selects the routed smoke owner for the handoff
@@ -195,13 +207,16 @@ satisfy the gate. Guidance-only edits use scenario review, not a synthetic UI bu
   this policy. Controlled script fixtures may simulate those environments with
   stubbed commands; they must not start real builds or simulators.
 - Agents may choose bounded, task-relevant local compile, test, or simulator
-  diagnostics without separate user approval when needed to reproduce or resolve
-  a concrete failure, or to satisfy the visual completion gate above. Use
+  verification/diagnostics without separate user approval for consequential logic
+  changes (one owning package, plus an app compile when shared API consumers need
+  it), to reproduce or resolve a concrete failure, or to satisfy the visual
+  completion gate above. Use
   the explicit diagnostic or visual route above, or set
   `TRINKET_ALLOW_HEAVY_LOCAL=1` with a focused selector for direct compiled
   wrappers. State the scope and purpose before running.
   Keep simulator work isolated and release owned leases when finished. The
-  wrappers limit package and UI concurrency; this is not routine verification.
+  wrappers limit package and UI concurrency. Do not expand a focused check into
+  broad hosted-suite execution without a concrete new reason.
 - Bare FullUI additionally requires `TRINKET_ALLOW_FULL_UI=1`; preserve the
   deliberate full-suite distinction even during a diagnostic.
 - TestFlight beta journeys and their builds are CI-owned; deployment consumes
@@ -469,6 +484,14 @@ to bypass product chrome routing.
 
 `handoff.sh --quiet` prints one outcome per phase and retains complete child terminal
 output under `RESULTS_DIR` or `.DerivedData/HandoffResults` during execution.
+Each executed route also writes a compact JSON report under
+`.DerivedData/Deliverables/Verification/`, containing commit/dirty state, scoped
+input hashes, commands, outcomes and deferred/unrun checks. Previews create no
+execution evidence. Integration adds a task report with the verified main base and
+complete task scope and preserves these reports with other deliverables before
+cleanup. They do not expire with raw logs; no manual verification transcript is
+required. Visual artifacts still need to be captured and reviewed.
+
 Successful logs are removed after handoff; failed logs expire after 24 hours unless
 explicitly kept for active investigation. Failed phases include a
 bounded diagnostic excerpt and the full log path. Selected-check, documentation

@@ -21,7 +21,8 @@ Sample briefing shape (exact cards vary by path):
 Read first: AGENTS.md, Packages/BattleEngine/AGENTS.md
 Ownership and integration: Docs/AgentContext/battle-engine.md
 Behavior references: Docs/AgentContext/battle-damage.md
-Verification: ./Scripts/handoff.sh --isolate --quiet --paths <files...>
+Landing (after review and commit): node Scripts/agent-worktree.mjs integrate
+Optional iteration check: ./Scripts/handoff.sh --quiet --paths <files...>
 ```
 
 | Card | Typical trigger |
@@ -49,25 +50,13 @@ Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/S
 
 ## Quickstart
 
-Use ordinary scoped search, reads and Git diffs. Before editing intended files:
+Follow [Route and read](../../AGENTS.md#route-and-read) in the root guide. The
+briefing prints local safeguards, ownership and focused contract sections;
+reuse unchanged guidance and read broader references only for the affected
+behavior. This catalog is for lookup, not an additional reading sequence.
 
-```sh
-python3 Scripts/agent-brief.py --status --read --paths <files...>
-```
-
-Read the safeguards and relevant contracts it supplies. Reuse unchanged guidance;
-follow additional linked behavior sections only when they apply. After changes,
-`python3 Scripts/agent-brief.py --status --read --base main` derives the complete
-task scope, including committed and dirty work. Use the user-specified base if different.
-Commit reviewed task work and integrate; integration runs the final handoff against
-current main. For standalone handoff use `./Scripts/handoff.sh --quiet --base main`.
-
-The briefing is the only required retrieval entry point. Concern shortcuts such
-as `--task shop` and the specialized search/read/investigate/diff commands are
-optional conveniences, described in [Retrieval](Retrieval.md). They never replace
-reading relevant source bodies, assertions, or overlapping dirty diffs.
-
-Briefings are stateless. Inline reads use ownership sections and focused contract
-anchors; broad behavior references remain discoverable. The [task index](../../Scripts/config/agent-tasks.json)
-contains navigation hints, not coverage proof. `localization` routes copy work;
-`localization-tooling` routes changes to its implementation.
+`--base main` includes task commits plus dirty files; `--paths` selects intended
+files. Concern shortcuts and specialized helpers remain optional. The
+[task index](../../Scripts/config/agent-tasks.json) supplies navigation hints,
+not coverage proof. `localization` routes copy work; `localization-tooling` routes
+its implementation. Use [Retrieval](Retrieval.md) only for a navigation question.

@@ -227,6 +227,9 @@ class AgentContextTests(ScriptRegressionTestCase):
         for invariant in ('Shop offers are pinned', 'Empty Shops prepare stock', 'Voyage encounters use'):
             self.assertIn(invariant, guidance)
         self.assertNotIn('Corruption gives', guidance)
+        self.assertIn('Landing (from the task worktree after review/commit; includes final static handoff)', output)
+        self.assertIn('  node Scripts/agent-worktree.mjs integrate\n', output)
+        self.assertIn('Optional iteration or standalone check', output)
 
     def test_directive_skill_does_not_route_ordinary_rationale_comments(self) -> None:
         from internal.change_routing import classify

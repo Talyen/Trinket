@@ -327,7 +327,8 @@ def verification_plan(route: Route, *, root: Path = ROOT, environment: dict[str,
     if 'scripts' in route.needs:
         flag = ['--fast'] if local else ['--skip-docs'] if final or 'docs' in route.needs else []
         add('scripts', 'script regressions', './Scripts/test-scripts.sh', *flag, '--paths', *route.paths)
-    if not final and ('docs' in route.needs or local and 'scripts' in route.needs): add('docs', 'documentation', 'python3', './Scripts/check-docs.py')
+    if not final and ('docs' in route.needs or local and 'scripts' in route.needs):
+        add('docs', 'documentation', 'python3', './Scripts/check-docs.py', *(['--paths', *route.paths] if local else []))
     if route.packages: add('package', 'package tests', './Scripts/test-package.sh', *route.packages, heavy=True, env=(('SKIP_GENERATE', '1'),))
     if 'build' in route.needs or 'feature' in route.features and (not route.smoke_targets or not smoke):
         add('build', 'app compilation', './Scripts/build.sh', heavy=True, env=(('SKIP_GENERATE', '1'),))
@@ -361,6 +362,8 @@ def verification_plan(route: Route, *, root: Path = ROOT, environment: dict[str,
         lexer.whitespace_split = True
         argv = list(lexer)
         if any(token in {';', '&&', '||', '|', '>', '<'} for token in argv): raise ValueError('Cheap slices must be executable argument lists, not shell expressions')
+        if local and argv == ['python3', 'Scripts/localization.py', 'check']:
+            argv.extend(['--paths', *route.paths])
         add(f'cheap-{count}', 'cheap CI slice: ' + command.strip(), *argv)
     if not count: raise ValueError('Cheap-slice registry is empty.')
     if mirror and (route.needs & {'build', 'content', 'project'} or route.packages or 'feature' in route.features):

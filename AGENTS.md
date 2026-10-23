@@ -42,29 +42,26 @@ and do not reopen a task.
 Use ordinary scoped `rg`, file reads, and `git diff` for discovery and review.
 Before editing intended files, run
 `python3 Scripts/agent-brief.py --status --read --paths <files...>` once for
-applicable safeguards and initial contracts. Reuse unchanged guidance already in
-context. The briefing includes focused contract sections; broader references and
-skills apply only to the behavior being changed. Follow callers as needed.
+applicable safeguards and initial contracts. This is the only required retrieval
+command. Reuse unchanged guidance already in context; follow linked contracts and
+skills only for the behavior being changed. Index pages are lookup aids, not
+additional reading requirements. Follow callers and assertions as needed.
 
 As the task grows, `--base main` derives scope from task commits plus dirty files,
 including deletions and both rename endpoints. Use the user-specified base when
 different. Rerun briefing when entering another owner. `--paths` remains useful for
 focused work; `--working-tree` is an intentional whole-tree dirty-file view.
 
-Concern shortcuts (`--task shop`) and the specialized search/read/investigate/diff
-helpers are optional. [Retrieval](Docs/AgentContext/Retrieval.md) documents them;
-they do not impose a required sequence. Read every relevant overlapping dirty diff
-before editing and follow callers, tests, and configuration as needed. Create an
+Optional retrieval commands remain compatible; use their `--help` only when a
+specific capability is useful. Read every overlapping dirty diff before editing. Create an
 [execution plan](Docs/Plans/README.md) only for durable coordination/resumption.
 
 ## Choose the change
 
-Player-facing text changes include localization in the same task. Follow
-[Localization](Docs/Platform/Localization.md): run `python3 Scripts/localization.py prepare`,
-translate the affected queue in every configured language, perform a separate AI
-review pass, apply the reviewed response, and rerun `check`. Never stamp review
-records without the review or copy English into other locales to clear a gate.
-The working agent performs translation; hooks, builds and CI never call AI.
+Player-facing text changes complete [localization](Docs/Platform/Localization.md#agent-workflow)
+in the same task. `prepare` resumes matching drafts; `apply` includes validation.
+Retain every configured language and a separate actual AI review; never fabricate
+review records or copy English to clear a gate. Hooks, builds and CI never call AI.
 
 Fix the owning module's root cause with the simplest complete solution. Keep files
 cohesive; reuse abstractions for confirmed repetition or enforced boundaries, not
@@ -85,10 +82,10 @@ caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
 - Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
-- Keep routine local verification resource-light: no automatic Swift compilation, simulator/UI/performance tests, or broad generation. CI owns those checks; [Verification](Docs/Platform/Verification.md#local-simulator-budget) owns deliberate exceptions and local play.
+- Static handoff stays resource-light. For consequential logic changes, one bounded package compile/test through the existing focused route is authorized without another approval. Broad compilation, UI/performance suites and freshness generation remain CI-owned; [Verification](Docs/Platform/Verification.md#execution-limits) owns selection and limits.
 - Integration runs the final static handoff for the full rebased task under the lock; do not duplicate it before committing solely for landing. Use `./Scripts/handoff.sh --quiet --base main` for standalone handoff or `--paths <files...>` for focused checks. Isolation is automatic; existing `--isolate` calls remain valid. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns explicit static, diagnostic, visual, and release routes and their evidence limits.
 - Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. A local handoff proves only its lightweight checks; report CI-owned checks as pending until hosted evidence confirms them.
-- Save deliverables in `.DerivedData/Deliverables/`; integration preserves them outside the task checkout before cleanup. `node Scripts/agent-worktree.mjs evidence [path...]` prints the durable evidence directory or preserves other task-local files there immediately.
+- Handoff records verification evidence automatically; integration adds a task report and preserves `.DerivedData/Deliverables/` outside the checkout before cleanup. Save visual artifacts there too. `node Scripts/agent-worktree.mjs evidence [path...]` preserves other files or prints the durable directory. After a successful landing, `cleanup` retries only checkout removal.
 
 ## Maintain guidance
 

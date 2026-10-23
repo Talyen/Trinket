@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import fcntl
+from contextlib import contextmanager
 import os
 from pathlib import Path
 import subprocess
@@ -84,8 +85,24 @@ def preserve_default_evidence(source: Path) -> None:
         preserve_evidence(source, ['.DerivedData/Deliverables'])
 
 
+def save_task_report(source: Path, base: str, head: str, paths: list[str]) -> None:
+    from internal.cli import write_json_atomic
+    directory = source / '.DerivedData/Deliverables'
+    if any(path.is_symlink() for path in (directory, *directory.parents) if path.is_relative_to(source)):
+        raise RuntimeError('Task deliverables cannot follow symlinks')
+    directory.mkdir(parents=True, exist_ok=True)
+    report = directory / 'task-report.json'
+    if report.is_symlink():
+        raise RuntimeError('Task report cannot follow symlinks')
+    write_json_atomic(report, {
+        'version': 1, 'branch': git(source, 'branch', '--show-current'),
+        'static_verified_commit': head, 'verified_against_main': base, 'changed_paths': paths,
+        'verification_reports': sorted(str(path.relative_to(source)) for path in (directory / 'Verification').glob('*.json')),
+        'limitations': 'Static handoff only; compiled, hosted and visual evidence is recorded separately.',
+    })
 
-def remove_integrated_worktree(source: Path, target: Path, branch: str, head: str) -> None:
+
+def remove_integrated_worktree(source: Path, target: Path, branch: str, head: str, *, main_head: str | None = None) -> None:
     records = git(target, "worktree", "list", "--porcelain", "-z").split("\0\0")
     record = next((r.split("\0") for r in records if "worktree " + str(source) in r.split("\0")), [])
     if (source == target or source.is_symlink() or "branch refs/heads/" + branch not in record
@@ -93,7 +110,7 @@ def remove_integrated_worktree(source: Path, target: Path, branch: str, head: st
         raise RuntimeError("Task worktree registration changed or is locked")
     clean(source)
     if (git(source, "branch", "--show-current") != branch
-            or git(source, "rev-parse", "HEAD") != head or git(target, "rev-parse", "main") != head):
+            or git(source, "rev-parse", "HEAD") != head or git(target, "rev-parse", "main") != (main_head or head)):
         raise RuntimeError("Task or main changed after integration")
     if any(line.startswith("160000 ") for line in git(source, "ls-files", "--stage").splitlines()):
         raise RuntimeError("Submodule worktree preserved")
@@ -119,7 +136,7 @@ def remove_integrated_worktree(source: Path, target: Path, branch: str, head: st
     shutil.rmtree(recovery)
     print(f'Removed completed worktree {source}, including local-only files; retained branch {branch}.')
 
-def integrate(source: Path, *, keep_worktree: bool = False) -> None:
+def checkout_context(source: Path) -> tuple[Path, Path]:
     common = Path(git(source, "rev-parse", "--path-format=absolute", "--git-common-dir"))
     # Git lists the primary checkout first; bare repositories are not landing targets.
     records = git(source, "worktree", "list", "--porcelain", "-z").split("\0\0")
@@ -129,6 +146,11 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
     target = Path(primary[0][len("worktree "):]).resolve()
     if source == target:
         raise RuntimeError("Run integration from the isolated task worktree, not the primary checkout.")
+    return common, target
+
+
+@contextmanager
+def integration_lock(common: Path):
     # An OS-held lock releases on exit/crash. Never unlink this file: all callers
     # must lock the same inode, including callers in different linked worktrees.
     with (common / "trinket-integration.lock").open("a+") as lock:
@@ -136,6 +158,27 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             raise RuntimeError("Integration busy. Retry later without messaging other chats.") from None
+        yield
+
+
+def cleanup(source: Path) -> None:
+    """Retry only cleanup, including after main advances beyond the landed task."""
+    common, target = checkout_context(source)
+    with integration_lock(common):
+        branch = git(source, 'branch', '--show-current')
+        if not branch.startswith('codex/') or git(target, 'branch', '--show-current') != 'main':
+            raise RuntimeError('Cleanup requires a codex/ task and a primary checkout on main')
+        clean(source)
+        head = git(source, 'rev-parse', 'HEAD')
+        main_head = git(target, 'rev-parse', 'HEAD')
+        subprocess.run(['git', '-C', str(source), 'merge-base', '--is-ancestor', head, main_head], check=True)
+        preserve_default_evidence(source)
+        remove_integrated_worktree(source, target, branch, head, main_head=main_head)
+
+
+def integrate(source: Path, *, keep_worktree: bool = False) -> None:
+    common, target = checkout_context(source)
+    with integration_lock(common):
         if git(target, "branch", "--show-current") != "main":
             raise RuntimeError("Primary checkout must already be on main; no checkout was changed.")
         branch = git(source, "branch", "--show-current")
@@ -168,6 +211,10 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         environment["PATH"] = pinned_tool_path(source, environment.get('PATH', ''))
         subprocess.run([str(source / "Scripts/handoff.sh"), "--isolate", "--quiet", "--paths", *paths],
                        cwd=source, env=environment, check=True)
+        clean(source)
+        if git(source, 'rev-parse', 'HEAD') != head:
+            raise RuntimeError('Task commit changed during verification; review and retry')
+        save_task_report(source, base, head, paths)
         preserve_default_evidence(source)
         clean(source)
         clean(target)
@@ -193,9 +240,11 @@ if __name__ == "__main__":
                 print(evidence_directory(source))
         elif sys.argv[1:] in ([], ['--keep-worktree']):
             integrate(source, keep_worktree='--keep-worktree' in sys.argv)
+        elif sys.argv[1:] == ['--cleanup']:
+            cleanup(source)
         else:
-            sys.exit('Usage: agent-integrate.py [--keep-worktree | --evidence [path...]]')
+            sys.exit('Usage: agent-integrate.py [--keep-worktree | --cleanup | --evidence [path...]]')
     except (RuntimeError, subprocess.CalledProcessError, OSError) as error:
         if sys.argv[1:2] == ['--evidence']:
             sys.exit(f'Evidence preservation stopped: {error}\nOriginal task files were retained.')
-        sys.exit(f"Integration or cleanup stopped: {error}\nInspect main and the task/recovery checkout; completed integration is not rolled back. Resolve conflicts there, review, and retry; do not reset main.")
+        sys.exit(f"Integration or cleanup stopped: {error}\nInspect main and the task/recovery checkout; completed integration is not rolled back. Resolve conflicts there, review, and retry; do not reset main. After a completed landing, retry cleanup with node Scripts/agent-worktree.mjs cleanup.")

@@ -60,7 +60,7 @@ class DocumentationTests(ScriptRegressionTestCase):
             _, errors = self.check_docs._check_plans.plan_metadata(blocked)
             self.assertIn("duplicate status", errors)
 
-    def test_plan_checks_scope_closure_but_preserve_global_validation(self) -> None:
+    def test_local_document_checks_scope_dependencies_and_full_gate_retains_global_validation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             parent = Path(directory)
             subprocess.run(["git", "init", "-q", str(parent)], check=True)
@@ -97,13 +97,14 @@ class DocumentationTests(ScriptRegressionTestCase):
             )
             plan.write_text(original)
 
-            def run(name, *args, status=0, message=""):
-                result = run_captured([sys.executable, str(scripts / name), *args], cwd=root)
+            def run(name, *args, status=0, message="", hosted=False):
+                result = run_captured([sys.executable, str(scripts / name), *args], cwd=root,
+                                      env=self.verification_environment(hosted=hosted))
                 self.assertEqual(result.returncode, status, result.stdout + result.stderr)
                 self.assertIn(message, result.stdout + result.stderr)
                 return result
 
-            for name in ("check-docs.py", "check-plans.py"):
+            for name in ("check-plans.py",):
                 with self.subTest(checker=name):
                     run(name, message="Warning:")
                     run(name, "--final", status=1, message="active plan remains")
@@ -134,10 +135,35 @@ class DocumentationTests(ScriptRegressionTestCase):
                     plan.write_text(original)
 
             (root / "Docs/Broken.md").write_text("[missing](missing.md)")
-            run("check-docs.py", "--final", "--paths", "README.md", status=1, message="missing.md")
+            run("check-docs.py", "--final", "--paths", "README.md")
+            run("check-docs.py", "--paths", "Docs/Broken.md", status=1, message="missing.md")
+            run('check-docs.py', '--paths', 'README.md', status=1, message='missing.md', hosted=True)
+            run("check-docs.py", status=1, message="missing.md")
             (root / "Docs/Broken.md").unlink()
+            # Inbound links remain in scope when their target is deleted or an
+            # anchor disappears, even if the linking document is unchanged.
+            (root / 'Docs/Target.md').write_text('# Changed heading\n')
+            (root / 'Docs/Incoming.md').write_text('[target](Target.md#old-heading)\n')
+            run('check-docs.py', '--paths', 'Docs/Target.md', status=1, message='missing heading')
+            (root / 'Docs/Target.md').unlink()
+            run('check-docs.py', '--paths', 'Docs/Target.md', status=1, message='missing link target')
+            (root / 'Docs/Incoming.md').unlink()
+            (root / 'Docs/Folder').mkdir()
+            (root / 'Docs/Folder/README.md').write_text('# Changed heading\n')
+            (root / 'Docs/Incoming.md').write_text('[target](Folder/#old-heading)\n')
+            run('check-docs.py', '--paths', 'Docs/Folder/README.md', status=1, message='missing heading')
+            (root / 'Docs/Incoming.md').unlink()
+            # Changing checker implementation broadens structural validation,
+            # but final closure still belongs to this task's supplied scope.
+            run('check-docs.py', '--final', '--paths', 'Scripts/check-docs.py')
+            plan.write_text(original.replace('status: active', 'status: blocked'))
+            run('check-docs.py', '--paths', 'README.md')
+            run('check-docs.py', '--paths', str(plan), status=1, message='blocked plans require reason')
+            plan.write_text(original)
             (scripts / "config/ui-tests.tsv").write_text("SHELL=MissingTests")
-            run("check-docs.py", "--final", "--paths", "README.md", status=1, message="expected suite|key|class")
+            run('check-docs.py', '--final', '--paths', 'README.md')
+            run('check-docs.py', '--paths', 'Scripts/config/ui-tests.tsv', status=1, message='expected suite|key|class')
+            run('check-docs.py', status=1, message='expected suite|key|class')
             self.assertEqual(plan.read_text(), original)
 
     def test_proposal_evidence_identifier_resolution(self) -> None:
@@ -273,6 +299,8 @@ class DocumentationTests(ScriptRegressionTestCase):
         # Script infrastructure keeps the full registry; pure docs have no local slices.
         result = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Scripts/check-docs.py"], cwd=ROOT, expected=0)
         planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
+        self.assertIn('python3 ./Scripts/check-docs.py --paths Scripts/check-docs.py', planned)
+        planned = [command.partition(' --paths ')[0] for command in planned]
         # Infrastructure scope includes docs plus cheap slices in registry order.
         self.assertIn("python3 ./Scripts/check-docs.py", planned)
         cheap_positions = [planned.index(cmd) for cmd in registry]
@@ -291,7 +319,9 @@ class DocumentationTests(ScriptRegressionTestCase):
                     expected=0,
                 )
                 planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-                self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 1)
+                docs = [command for command in planned if command.startswith('python3 ./Scripts/check-docs.py')]
+                self.assertEqual(docs, ['python3 ./Scripts/check-docs.py' + (
+                    '' if hosted else ' --paths Docs/Platform/Verification.md Scripts/build.sh')])
                 script_commands = [p for p in planned if p.startswith("./Scripts/test-scripts.sh")]
                 flag = "--skip-docs" if hosted else "--fast"
                 self.assertEqual(script_commands, [
@@ -309,7 +339,8 @@ class DocumentationTests(ScriptRegressionTestCase):
                 self.assertIn(f"./Scripts/test-scripts.sh{flag} --paths Scripts/build.sh", planned)
                 self.assertFalse(any("--skip-docs" in command for command in planned))
                 # Hosted scripts own docs; fast local scripts need one separate docs check.
-                self.assertEqual(planned.count("python3 ./Scripts/check-docs.py"), 0 if hosted else 1)
+                self.assertEqual([command for command in planned if command.startswith('python3 ./Scripts/check-docs.py')],
+                                 [] if hosted else ['python3 ./Scripts/check-docs.py --paths Scripts/build.sh'])
 
     def test_final_handoff_preview_matches_execution_scope_without_running_docs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

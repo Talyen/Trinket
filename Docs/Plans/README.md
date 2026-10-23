@@ -13,9 +13,12 @@ metadata still fails validation. Review the disposition when resuming the work.
 
 Final handoff rejects remaining active plans in the task's file scope unless
 intentionally unfinished work is passed with `--keep-plan`. Include the task's plan
-in that scope, including when deleted. Link and structural checks remain global.
+in that scope, including when deleted. Unscoped and hosted documentation checks remain global.
 Direct `check-docs.py` and `check-plans.py` calls accept `--paths <files...>` for
-final closure scope; omitting it checks all active plans.
+scope; omitting it checks all active plans. `check-docs.py --paths` also scopes
+link checks to edited documents and inbound dependencies, and structural checks
+to affected owners. Standalone `check-plans.py` retains global metadata validation
+while scoping final closure.
 
 Use `./Scripts/new-plan.sh <PlanName>` to scaffold metadata. Execution plans are
 allowed only directly under this directory; supporting design reference images

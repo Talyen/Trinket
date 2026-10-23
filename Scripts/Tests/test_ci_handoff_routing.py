@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 import contextlib
 import io
+import json
 
 from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, write_executable
 
@@ -19,7 +20,7 @@ from pathlib import Path
 class CIHandoffRoutingTests(ScriptRegressionTestCase):
     def test_local_slices_follow_inputs_and_hosted_or_unknown_scope_keeps_full_registry(self) -> None:
         from internal.change_routing import classify, verification_plan
-        commands = lambda paths, hosted=False: [check.command for check in verification_plan(
+        commands = lambda paths, hosted=False: [check.command.partition(' --paths ')[0] for check in verification_plan(
             classify(paths), environment=self.verification_environment(hosted=hosted)) if check.id.startswith('cheap-')]
         self.assertEqual(commands(['Docs/Platform/Verification.md']), [])
         shop = commands(['Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift'])
@@ -35,6 +36,10 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         self.assertEqual(commands(['.githooks/pre-push']), full)
         self.assertEqual(commands(['Docs/Platform/Verification.md'], hosted=True), full)
         self.assertIn('./Scripts/release-notes.sh validate', commands(['CHANGELOG.md']))
+        selected = ['Packages/TrinketPersistence/Sources/TrinketPersistence/Progression/BattleRewardClaim.swift']
+        local = verification_plan(classify(selected), environment=self.verification_environment())
+        localization = next(check for check in local if 'Scripts/localization.py' in check.argv)
+        self.assertEqual(localization.argv[-2:], ('--paths', *selected))
 
     def test_explicit_routes_select_only_the_requested_work_and_isolate_by_default(self) -> None:
         from script_test_support import load_script
@@ -49,7 +54,8 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         )
         for arguments, expected in cases:
             with self.subTest(arguments=arguments), patch.dict(os.environ, self.verification_environment(), clear=True), \
-                 patch.object(verify, 'run_checks', return_value=0) as execute, contextlib.redirect_stdout(io.StringIO()):
+                 patch.object(verify, 'run_checks', return_value=0) as execute, \
+                 patch.object(verify, 'save_report'), contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(verify.main([*arguments, '--quiet', '--paths', 'Docs/README.md']), 0)
                 checks = execute.call_args.args[0]
                 self.assertEqual([check.argv for check in checks], [expected])
@@ -64,6 +70,28 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
             for arguments in (['--route', 'diagnostic'], ['--package', 'TrinketCore'], ['--route', 'visual', '--smoke']):
                 with self.assertRaises(SystemExit):
                     verify.main([*arguments, '--paths', 'Docs/README.md'])
+
+    def test_durable_reports_preserve_failed_deferred_and_unrun_evidence_without_preview_artifacts(self) -> None:
+        from script_test_support import load_script
+        from internal.change_routing import Check
+        verify = load_script('durable_evidence_verifier', 'verify.py')
+        checks = [Check('docs', 'documentation', ('unused',)),
+                  Check('package', 'package tests', ('unused',), deferred=True),
+                  Check('later', 'later check', ('unused',))]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'README.md').write_text('source at verification time')
+            with contextlib.redirect_stdout(io.StringIO()):
+                report = verify.save_report(root, 'static', ['README.md'], checks, {'docs': 'failed'}, 1)
+            value = json.loads(report.read_text())
+            self.assertEqual(value['exit_status'], 1)
+            self.assertEqual([item['outcome'] for item in value['checks']], ['failed', 'deferred to CI', 'not run'])
+            self.assertIsNone(value['commit'])
+            self.assertTrue(value['inputs']['README.md'])
+            report.unlink()
+            with patch.object(verify, 'save_report') as save, contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(verify.main(['--dry-run', '--paths', 'Docs/README.md']), 0)
+                save.assert_not_called()
 
     def test_evidence_summary_never_promotes_preview_deferred_or_unrun_checks(self) -> None:
         from script_test_support import load_script

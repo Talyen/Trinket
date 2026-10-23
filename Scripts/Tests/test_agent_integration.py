@@ -132,7 +132,7 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
             self.assertNotEqual(self.helper(self.root, 'remove', '--task', 'task').returncode, 0)
             self.assertEqual(evidence.read_text(), 'preserve me')
             evidence.unlink()
-        result = self.helper(self.root, 'remove', '--task', 'task')
+        result = self.helper(task, 'cleanup')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(task.exists())
         self.git(self.root, 'show-ref', '--verify', 'refs/heads/codex/task')
@@ -196,6 +196,9 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         manifest = json.loads(next(evidence.glob(head[:12] + '-*/evidence.json')).read_text())
         self.assertEqual(manifest['preserved_at_commit'], head)
         self.assertEqual(next(evidence.glob('*/files/ignored')).read_text(), 'other task evidence')
+        report = json.loads(next(evidence.glob('*/files/.DerivedData/Deliverables/task-report.json')).read_text())
+        self.assertEqual(report['static_verified_commit'], head)
+        self.assertIn('task', report['changed_paths'])
 
     def test_invalid_evidence_preserves_main_and_never_follows_peer_symlinks(self) -> None:
         task = self.task('task')
@@ -214,3 +217,24 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertTrue(task.exists())
         self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), self.git(task, 'rev-parse', 'HEAD'))
+        # Retry cleanup alone after unlocking and advancing main. A dirty primary
+        # checkout is safe here because cleanup never writes its files or ref.
+        self.git(self.root, 'worktree', 'unlock', str(task))
+        (self.root / 'later').write_text('later work')
+        self.commit(self.root)
+        main = self.git(self.root, 'rev-parse', 'HEAD')
+        (self.root / 'unfinished').write_text('preserve main work')
+        result = self.helper(task, 'cleanup')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse(task.exists())
+        self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
+        self.assertEqual((self.root / 'unfinished').read_text(), 'preserve main work')
+
+    def test_cleanup_cannot_remove_unmerged_or_dirty_task_work(self) -> None:
+        task = self.task('task')
+        self.assertNotEqual(self.helper(task, 'cleanup').returncode, 0)
+        self.assertTrue(task.exists())
+        self.assertEqual(self.helper(task, 'integrate', '--keep-worktree').returncode, 0)
+        (task / 'unfinished').write_text('preserve task work')
+        self.assertNotEqual(self.helper(task, 'cleanup').returncode, 0)
+        self.assertEqual((task / 'unfinished').read_text(), 'preserve task work')

@@ -107,7 +107,7 @@ Scripts/internal/agent_status.py	test_agent_context.py
 Scripts/internal/agent_tasks.py	test_agent_context.py,test_agent_investigate.py,test_agent_read.py,test_agent_search.py
 Scripts/internal/build_symbols.py	test_build_symbols.py,test_profile_device.py,test_testflight.py
 Scripts/internal/change_routing.py	test_agent_context.py,test_ci_handoff_routing.py,test_ui_registration.py
-Scripts/internal/cli.py	test_ci_effort.py,test_internal_cli.py,test_testflight.py
+Scripts/internal/cli.py	test_ci_effort.py,test_internal_cli.py,test_localization.py,test_testflight.py
 Scripts/internal/deploy_cache.py	test_deploy_verification.py
 Scripts/internal/content/abilities.py	test_codegen_abilities.py,test_content_codegen.py,test_content_inspect.py
 Scripts/internal/content/affix_rolling.py	test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py

@@ -101,7 +101,7 @@ def plan_metadata(path: Path) -> tuple[dict[str, str], list[str]]:
 
 def plan_failures(
     files: list[Path], *, final: bool = False, keep_plan: bool = False,
-    paths: set[Path] | None = None,
+    paths: set[Path] | None = None, scoped: bool = False,
 ) -> list[str]:
     failures: list[str] = []
     plans_dir = ROOT / "Docs" / "Plans"
@@ -114,6 +114,8 @@ def plan_failures(
         and declares_execution_plan(path)
     )
     for path in sorted(set(parallel_plan_paths)):
+        if scoped and paths is not None and path.resolve() not in paths:
+            continue
         failures.append(
             f"{path.relative_to(ROOT)}: execution plans are allowed only directly under Docs/Plans/"
         )
@@ -121,6 +123,8 @@ def plan_failures(
     plan_paths = sorted(plans_dir.glob("*.md"))
     for plan_path in plan_paths:
         if plan_path.name == "README.md":
+            continue
+        if scoped and paths is not None and plan_path.resolve() not in paths:
             continue
         metadata, errors = plan_metadata(plan_path)
         relative_plan = plan_path.relative_to(ROOT)
@@ -158,7 +162,7 @@ def parse_arguments(description: str) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("--final", action="store_true", help="require active plans in scope to be closed")
     parser.add_argument("--keep-plan", action="store_true", help="allow intentionally unfinished active plans")
-    parser.add_argument("--paths", nargs="+", help="scope final closure checks to individual repository files; other checks remain global")
+    parser.add_argument("--paths", nargs="+", help="repository file scope (check-docs scopes dependencies; check-plans scopes final closure)")
     args = parser.parse_args()
     if args.paths is not None:
         try:

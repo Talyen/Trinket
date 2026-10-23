@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Compiled/simulator verification belongs to CI; local overrides are deliberate diagnostics.
+# Broad compiled/simulator verification belongs to CI; focused local work is explicit.
 trinket_verification_is_lightweight() {
   [[ "${GITHUB_ACTIONS:-}" != true && "${TRINKET_ALLOW_HEAVY_LOCAL:-}" != 1 ]]
 }
@@ -8,7 +8,8 @@ trinket_require_heavy_verification() {
   if trinket_verification_is_lightweight; then
     echo "$1 is CI-owned: no local compilation, simulator boot, or GPU workload was started." >&2
     echo "Use ./Scripts/handoff.sh --isolate --quiet --paths <files> for lightweight local checks." >&2
-    echo "For a bounded local diagnostic, TRINKET_ALLOW_HEAVY_LOCAL=1 opts in." >&2
+    echo "For consequential logic or diagnosis, use handoff.sh --route diagnostic --package <Package> --paths <files>." >&2
+    echo "Focused direct wrappers also accept TRINKET_ALLOW_HEAVY_LOCAL=1." >&2
     return 2
   fi
   if [[ "${GITHUB_ACTIONS:-}" != true ]]; then

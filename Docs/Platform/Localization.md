@@ -14,20 +14,27 @@ For optional routed pointers, use `python3 Scripts/agent-brief.py --task localiz
    [store copy](../../Localization/Store/English.json), preserving stable keys.
 2. Run `python3 Scripts/localization.py prepare`. It saves one consistent
    `plan.json` and contextual `response.json` under a new `.DerivedData/Localization/`
-   directory without overwriting earlier drafts. The response includes English,
+   directory without overwriting earlier drafts. It resumes the latest draft by
+   default; `prepare --resume <response.json>` selects another draft. Only matching
+   ID/locale/source hashes carry translations forward. Completed reviews survive
+   only when bound to the exact translated values; changed sources start empty,
+   and changed translations require review again. The response includes English,
    translator comments, glossary, previous translations, placeholders, source
    fingerprints, and locale plural forms together. Fill only queued translations.
 3. Perform a separate AI review against English and game rules: meaning, mechanics
    (actors, targets, conditions, timing, quantities and chance), terminology,
    placeholders/markup, and grammar. Correct defects. When delegating translation
    or review, use high-reasoning subagents. After actually completing every check
-   for every supplied entry, run `python3 Scripts/localization.py review
+   for every pending supplied entry, run `python3 Scripts/localization.py review
    <response.json> --rationale '<what the separate review checked>'`. This records
    your attestation and binds it to the translated values; it does not perform AI
-   review. Trim a batch to the entries you reviewed when necessary.
-4. Run `python3 Scripts/localization.py apply <response.json>`, then
-   `python3 Scripts/localization.py check`. Commit catalogs, review fingerprints,
-   generated resources, and the English change together.
+   review. Existing matching hash-bound reviews retain their original rationale;
+   they need no repeated review. Trim a batch to the entries you reviewed when necessary.
+4. Run `python3 Scripts/localization.py apply <response.json>`. It applies the
+   reviewed results, generates resources, then validates the complete inventory.
+   An incomplete batch remains applied but exits nonzero with its remaining queue;
+   resume with `prepare`. `check` remains available as a standalone read-only gate.
+   Commit catalogs, review fingerprints, generated resources, and the English change together.
 
 The existing `plan` and `template` stdout commands and manually authored review
 records remain supported. Preparation never marks translations reviewed. The
@@ -42,9 +49,9 @@ the inventory reports the alias to split. Agents make that repository edit and
 complete the resulting queue; no human translation/export step is required.
 
 Source or glossary changes invalidate affected review records, including English
-edits under unchanged keys. Applying old results fails. If a source revision has
-changed, regenerate the queue and retain only individually matching source hashes;
-review changed entries again. Unchanged translations are preserved.
+edits under unchanged keys. Applying old results fails. Run `prepare` again to
+carry individually matching drafts and hash-bound reviews into the new revision;
+translate/review changed entries. Unchanged applied translations are preserved.
 
 `Localization/reviews.json` retains its nested JSON schema with one complete locale
 review record per line. `apply` writes this deterministic compact format; `check`
@@ -114,7 +121,11 @@ rendering locale; retained English descriptions remain canonical data.
 
 Handoff and locked local integration run the read-only localization check through
 the shared cheap-slice registry when source, catalog, or tooling inputs change.
-Documentation-only tasks skip it locally; CI retains full coverage. Pre-push and
+The local `check --paths <files...>` validates selected Swift and affected catalogs,
+generated resources and consumers. Shared config/glossary/review/tool changes
+select full coverage; content inventory sources select their content catalog.
+Unrelated translation queues do not block a source-only check. Documentation-only
+tasks skip it locally. CI and unscoped `check` retain full coverage. Pre-push and
 CI run the same check. They perform no AI calls, regeneration, compilation, or network requests. Translation and
 generation run before taking the shared integration lock. The source check also
 rejects direct `.name`, `.title`, `.description`, and `.rawValue` arguments (including

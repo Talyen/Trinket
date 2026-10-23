@@ -164,13 +164,18 @@ def generated_resources(root: Path, catalogs: dict) -> dict[Path, bytes]:
     return result
 
 
-def resource_errors(root: Path) -> list[str]:
+def resource_errors(root: Path, *, catalogs: set[str] | None = None, paths: set[Path] | None = None) -> list[str]:
     from internal.localization import inventory
-    _, catalogs, _ = inventory(root)
     errors = []
-    for path, expected in generated_resources(root, catalogs).items():
-        if not path.exists() or path.read_bytes() != expected:
-            errors.append(f'{path.relative_to(root)}: typed resources are missing or stale; run localization.py apply')
+    if catalogs is None or catalogs:
+        _, values, _ = inventory(root)
+        scopes = None if catalogs is None else {(root / name).parent.parent.resolve() for name in catalogs}
+        for path, expected in generated_resources(root, values).items():
+            if scopes is not None and not any(path.resolve().is_relative_to(scope) for scope in scopes):
+                continue
+            if not path.exists() or path.read_bytes() != expected:
+                errors.append(f'{path.relative_to(root)}: typed resources are missing or stale; run localization.py apply')
     from internal.localization_sources import source_errors
-    errors.extend(source_errors(root))
+    config = json.loads((root / 'Localization/config.json').read_text())
+    errors.extend(source_errors(root, paths=paths, check_content=catalogs is None or config.get('contentCatalog') in catalogs))
     return errors

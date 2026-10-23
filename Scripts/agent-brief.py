@@ -73,7 +73,9 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         emit('Boundary warnings', route.warnings)
         emit('Generated-output warnings', route.generated_warnings)
         handoff = ['./Scripts/handoff.sh', '--isolate', '--quiet', *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
-        emit('Verification (isolated automatically)', [shlex.join(handoff)])
+        emit('Landing (from the task worktree after review/commit; includes final static handoff)',
+             ['node Scripts/agent-worktree.mjs integrate'])
+        emit('Optional iteration or standalone check (isolated automatically)', [shlex.join(handoff)])
         if args.full: emit('Plan detail (sequential under that tenant)', [check.command + (' (deferred to CI locally)' if check.deferred else '') for check in verification_plan(route, root=root, smoke=args.smoke)])
         if route.smoke_unresolved: print('UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.')
         if args.read and read:

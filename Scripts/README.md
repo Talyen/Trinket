@@ -10,50 +10,28 @@ helpers, `config/` owns shared configuration, and `Tests/` owns script regressio
 
 ## Everyday workflow
 
-Implementation chats start in an isolated worktree with
-`node Scripts/agent-worktree.mjs create --task <slug>` (or reuse their own suitable
-worktree). Work and commit there, then run `node Scripts/agent-worktree.mjs integrate`
-there to verify and land into local `main` under the shared integration lock.
-[Isolated chat workflow](../Docs/Platform/Release.md#isolated-chat-workflow) owns
-failure recovery, authorization, and the quiet communication policy. Push separately
-only when requested. Read-only investigations do not need a new worktree.
-
-Use ordinary scoped search, reads and Git diffs. Before editing intended files,
-load their safeguards with `python3 Scripts/agent-brief.py --status --read --paths
-<files...>`. Concern shortcuts and specialized retrieval helpers are optional;
-[quickstart](../Docs/AgentContext/README.md#quickstart) owns their use.
-
-For the complete task, inspect scope, finish editing, review and commit task files,
-then integrate:
+The [root agent guide](../AGENTS.md#route-and-read) owns the ordinary procedure:
+create an isolated task worktree, load a scoped briefing, implement/review/commit,
+then integrate locally. Read-only investigations need no worktree. The briefing
+supplies safeguards and ownership; ordinary `rg`, file reads and Git diffs handle
+navigation. Optional retrieval helpers remain available through their `--help`.
 
 ```sh
-python3 Scripts/agent-brief.py --status --read --base main
+node Scripts/agent-worktree.mjs create --task <slug>
+# In the task checkout, before editing:
+python3 Scripts/agent-brief.py --status --read --paths <files...>
+# After implementation and review, commit task files, then:
 node Scripts/agent-worktree.mjs integrate
 ```
 
-Use the user-specified base when different. Explicit `--paths <files...>` remains
-available for focused checks. Handoff reports each kind of verification evidence
-and the next permitted action; a local pass establishes lightweight checks only.
-Integration supplies the final handoff under the lock. Use standalone
-`handoff.sh --quiet --base main` when no landing is requested; no duplicate
-pre-commit handoff is required.
-Create an execution plan only when durable coordination or resumption is useful.
-
-Generation and verification selection follow [Verification](../Docs/Platform/Verification.md).
-Routine handoff runs lightweight scoped static/script checks without compilation
-or Simulator. Explicit `--route diagnostic|visual|release` selects a focused
-diagnostic, managed inspection, or requested release verification; see
-[route selection](../Docs/Platform/Verification.md#confidence-ladder). Add `--smoke` to identify the selected CI-owned UI journeys; local
-execution reports them as deferred. [UI verification requirements](../Docs/Platform/Verification.md#choosing-ui-verification)
-own when to select that option. Isolation mechanics live in
-[Simulator operations](../Docs/Platform/SimulatorOperations.md); commit and push
-safeguards live in [Release](../Docs/Platform/Release.md#local-hooks-and-push-discipline).
-
-Use [CI diagnostics](../Docs/AgentContext/ci-diagnostics.md) after a failure.
-Successful logs are removed after their consumers finish. Failure, comparison,
-and timing evidence expires after 24 hours; use the
-[output keep/release controls](Reference.md#output-retention) for active investigations. Preview verification
-with `handoff.sh --isolate --quiet --dry-run --paths <files...>` before an unfamiliar route.
+[Verification](../Docs/Platform/Verification.md#confidence-ladder) selects static,
+focused, visual or release work. Integration supplies the final static handoff;
+there is no duplicate pre-commit handoff. Standalone checks accept `--base main`
+for the full task or `--paths <files...>` for individual files. Preview with
+`handoff.sh --dry-run` when useful. Compact verification and task reports are
+preserved automatically; raw logs follow [output retention](Reference.md#output-retention).
+[Release](../Docs/Platform/Release.md#isolated-chat-workflow) owns landing recovery
+and cleanup; pushes and publication remain separately authorized.
 
 ## Commands by task
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -62,6 +63,85 @@ class LocalizationTests(unittest.TestCase):
         catalog['strings']['deal.burn']['localizations']['en']['stringUnit']['value'] = 'Take %1$lld Burn damage'
         self.write(self.name, catalog)
         self.assertEqual({item['locale'] for item in plan(self.root)['requests']}, {'ja', 'de', 'fr'})
+
+    def test_prepare_resumes_only_matching_sources_and_hash_bound_reviews(self):
+        first = prepare(self.root)
+        response = self.response()
+        path = first / 'response.json'
+        path.write_bytes(encoded(response))
+        record_review(self.root, path, 'Separate review checked all required dimensions.')
+        reviewed = json.loads(path.read_text())
+        automatic = json.loads((prepare(self.root) / 'response.json').read_text())
+        self.assertEqual(automatic['translations'][0]['review']['verdict'], 'pass')
+        # A second entry changes the global revision but not the reviewed source.
+        catalog = json.loads((self.root / self.name).read_text())
+        catalog['strings']['another.rule'] = deepcopy(catalog['strings']['deal.burn'])
+        self.write(self.name, catalog)
+        resumed_path = prepare(self.root, path) / 'response.json'
+        resumed = json.loads(resumed_path.read_text())
+        old_id = self.name + '::deal.burn'
+        for item in resumed['translations']:
+            if item['id'] == old_id:
+                self.assertEqual(item['review']['verdict'], 'pass')
+                self.assertTrue(item['translation']['value'])
+            else:
+                self.assertEqual(item['review']['verdict'], 'pending')
+                self.assertEqual(item['translation']['value'], '')
+        translations = {item['locale']: item['translation'] for item in reviewed['translations']}
+        for item in resumed['translations']:
+            if item['review']['verdict'] == 'pending':
+                item['translation'] = translations[item['locale']]
+        resumed_path.write_bytes(encoded(resumed))
+        record_review(self.root, resumed_path, 'Separate review of only the new rule.')
+        resumed = json.loads(resumed_path.read_text())
+        self.assertTrue(all(item['review']['rationale'] == 'Separate review checked all required dimensions.'
+                            for item in resumed['translations'] if item['id'] == old_id))
+        # Editing translated values never carries an old attestation forward.
+        reviewed['translations'][0]['translation']['value'] += '.'
+        path.write_bytes(encoded(reviewed))
+        resumed = json.loads((prepare(self.root, path) / 'response.json').read_text())
+        self.assertEqual(resumed['translations'][0]['review']['verdict'], 'pending')
+        # Changed English invalidates the draft translation as well as its review.
+        catalog['strings']['deal.burn']['localizations']['en']['stringUnit']['value'] = 'Take %1$lld Burn damage'
+        self.write(self.name, catalog)
+        resumed = json.loads((prepare(self.root, path) / 'response.json').read_text())
+        for item in resumed['translations']:
+            if item['id'] == old_id:
+                self.assertEqual(item['translation']['value'], '')
+                self.assertEqual(item['review']['verdict'], 'pending')
+
+    def test_scoped_checks_ignore_unrelated_queue_but_validate_changed_sources_and_catalog_consumers(self):
+        source = 'Packages/Example/Sources/Example/Screen.swift'
+        path = self.root / source
+        path.write_text('struct Screen {}\n')
+        other = self.root / 'Packages/Other/Sources/Other/Screen.swift'
+        other.parent.mkdir(parents=True)
+        other.write_text('Text("Unrelated unlocalized copy")\n')
+        self.assertTrue(check(self.root))  # This catalog still needs translation.
+        self.assertEqual(check(self.root, [source]), [])
+        hosted = run_python('localization.py', '--root', str(self.root), 'check', '--paths', source,
+                            env={**os.environ, 'GITHUB_ACTIONS': 'true'}, expected=1)
+        self.assertIn('missing, stale', hosted.stderr)
+        self.assertTrue(check(self.root, ['unknown-input.config']))
+        self.assertTrue(check(self.root, ['Localization/glossary.json']))
+        self.assertTrue(any('unlocalized literal' in error for error in check(self.root, [str(other)])))
+        path.write_text('Text("An untranslated action")\n')
+        self.assertTrue(any('unlocalized literal' in error for error in check(self.root, [source])))
+        path.write_text('Text(L10n.missing_key)\n')
+        errors = check(self.root, [self.name])
+        self.assertTrue(any('missing, stale' in error for error in errors))
+        self.assertTrue(any('unknown typed localization resource' in error for error in errors))
+        with self.assertRaises(ValueError):
+            check(self.root, ['../outside.swift'])
+
+    def test_apply_cli_validates_and_reports_incomplete_batches(self):
+        response = self.response()
+        response['translations'] = response['translations'][:1]
+        path = self.root / 'response.json'
+        path.write_bytes(encoded(response))
+        result = run_python('localization.py', '--root', str(self.root), 'apply', str(path), expected=1)
+        self.assertIn('localization remains incomplete', result.stderr)
+        self.assertEqual(len(plan(self.root)['requests']), 2)
 
     def test_preparation_preserves_drafts_and_review_requires_valid_current_translations(self):
         first = prepare(self.root)

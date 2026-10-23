@@ -75,6 +75,27 @@ def broken_links(files: list[Path]) -> list[str]:
     return failures
 
 
+def affected_documents(files: list[Path], paths: set[Path]) -> list[Path]:
+    """Check edited documents and inbound links to changed/deleted targets."""
+    affected = set(paths)
+    selected = []
+    for source in files:
+        if source.resolve() in affected:
+            selected.append(source)
+            continue
+        for _, line in unfenced_lines(source.read_text(encoding='utf-8').splitlines()):
+            targets = []
+            for raw in LINK.findall(line):
+                target = raw.strip('<>').partition('#')[0]
+                if target and not re.match(r'[A-Za-z][A-Za-z0-9+.-]*:', target):
+                    resolved = (source.parent / unquote(target)).resolve()
+                    targets.append(resolved / 'README.md' if resolved.is_dir() else resolved)
+            if any(target in affected for target in targets):
+                selected.append(source)
+                break
+    return selected
+
+
 def main() -> int:
     if sys.argv[1:]:
         print(f"Usage: {Path(sys.argv[0]).name}", file=sys.stderr)
