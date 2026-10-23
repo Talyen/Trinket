@@ -25,6 +25,8 @@ concise inline pricing, pending-approval, verification, and restoration outcomes
 under [Purchases](../Platform/Purchases.md). Keep cancellation quiet and avoid
 additional alerts over Apple's purchase authorization.
 
+Artwork stays pinned/prewarmed on first presentation under the
+[pin lifecycle](ui-performance.md#first-paint-pins-and-encounter-transitions).
 Use native SwiftUI sheets. For layout, copy, artwork or motion changes,
 inspect the shipping UI under the [visual completion gate](../Platform/Verification.md#visual-completion-gate).
 
