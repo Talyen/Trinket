@@ -161,7 +161,7 @@ boot, or heavy-local override. Doctor checks Apple access and signing prerequisi
 
 The deployment command dispatches `release-verification.yml` on the pushed default
 branch commit when no run exists. That workflow installs the qualified iPhone 17
-Pro / iOS 26.2 runtime if needed, reuses compatible products or the shared warm
+Pro / iOS 26.2 (23C54) runtime if needed, reuses compatible products or the shared warm
 build cache, and runs qualified Smoke plus purchase denial/retry, durable rewards, battle/background
 lifecycle, navigation, and real audio recovery. Changed functional UI classes
 since the preceding commit and previously failed classes are selected alongside Smoke. The authored

@@ -280,7 +280,11 @@ Unknown shared helpers invalidate conservatively.
 
 Deployment consumes the exact-commit workflow's successful qualified job and
 proof artifact. Its receipt must match the release commit, Xcode, SDK, host
-architecture, and qualified simulator profile, and cover every critical journey.
+architecture, and qualified simulator profile, including runtime build 23C54 for
+iOS 26.2, and cover every critical journey. Runtime build changes invalidate
+cached journey evidence even when the displayed OS version is unchanged.
+Before checkpointing a UI batch, its completed xcresult must report that same
+guest OS build; an installed runtime listing alone does not establish execution.
 The standard CI `CI OK` gate must also succeed for that commit. Smoke is
 proven by the complete qualified hosted classes, or an actual standard CI Smoke
 execution; a skipped standard Smoke job does not force unrelated package reruns. Missing, failed, cancelled, unreadable, expired, or mismatched proof

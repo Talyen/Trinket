@@ -225,7 +225,7 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
 
     def test_hosted_receipt_requires_actual_profile_toolchain_and_complete_journeys(self):
         identity = dict(build=dict(commit='abc', xcode='27', sdk='iphonesimulator', sdk_version='27.1',
-                                   sdk_build='abc', host_architecture='arm64'), profile=dict(version='26.2'))
+                                   sdk_build='abc', host_architecture='arm64'), profile=dict(version='26.2', build='23C54'))
         saved = dict(schema=1, identity=copy.deepcopy(identity),
                      completed={f'ui:{case}': dict(evidence='local') for case in DEPLOY.CRITICAL_CASES.values()})
         saved['completed'].update({f'ui:{name}': dict(evidence='local') for name in DEPLOY.required_smoke_classes()})
@@ -237,6 +237,10 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
                 DEPLOY.validate_release_receipt(changed, identity)
         changed = copy.deepcopy(saved)
         changed['identity']['profile']['version'] = '27.1'
+        with self.assertRaisesRegex(ValueError, 'profile'):
+            DEPLOY.validate_release_receipt(changed, identity)
+        changed = copy.deepcopy(saved)
+        changed['identity']['profile']['build'] = '23C52'
         with self.assertRaisesRegex(ValueError, 'profile'):
             DEPLOY.validate_release_receipt(changed, identity)
         incomplete = copy.deepcopy(saved)
@@ -370,17 +374,59 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
             simctl.assert_not_called()
 
     def test_default_profile_is_qualified_and_explicit_unavailable_profile_never_falls_back(self):
-        runtimes = dict(runtimes=[dict(identifier='ios26', version='26.2', isAvailable=True, platform='iOS')])
+        runtimes = dict(runtimes=[dict(identifier=DEPLOY.QUALIFIED_PROFILE['runtime'], version='26.2',
+                                       buildversion='23C54', isAvailable=True, platform='iOS')])
         devices = dict(devicetypes=[dict(identifier='com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro')])
         with patch.dict(DEPLOY.os.environ, {}, clear=True), \
                 patch.object(DEPLOY.PROFILES, 'simctl', side_effect=[json.dumps(runtimes), json.dumps(devices)]):
-            self.assertEqual(DEPLOY.profile()['version'], '26.2')
+            self.assertEqual(DEPLOY.profile(), DEPLOY.QUALIFIED_PROFILE)
             self.assertEqual(DEPLOY.os.environ['TRINKET_SIM_OS_VERSION'], '26.2')
         with patch.dict(DEPLOY.os.environ, dict(TRINKET_SIM_DEVICE_TYPE=devices['devicetypes'][0]['identifier'],
                                              TRINKET_SIM_OS_VERSION='18.0'), clear=True), \
                 patch.object(DEPLOY.PROFILES, 'simctl', side_effect=[json.dumps(runtimes), json.dumps(devices)]):
             with self.assertRaisesRegex(ValueError, 'unavailable iOS 18.0'):
                 DEPLOY.profile()
+
+    def test_hosted_preflight_rejects_an_old_or_missing_runtime_build(self):
+        for build in ('23C52', None):
+            selected = dict(DEPLOY.QUALIFIED_PROFILE)
+            if build is None:
+                selected.pop('build')
+            else:
+                selected['build'] = build
+            with self.subTest(build=build), \
+                    patch.dict(DEPLOY.os.environ, {'GITHUB_ACTIONS': 'true'}, clear=True), \
+                    patch.object(sys, 'argv', ['deploy-verification.py', '--mode', 'hosted-beta', '--preflight']), \
+                    patch.object(DEPLOY, 'profile', return_value=selected), \
+                    patch.object(DEPLOY.BUILD, 'identity', side_effect=AssertionError('native build queried')):
+                with self.assertRaisesRegex(ValueError, 'qualified simulator profile'):
+                    DEPLOY.main()
+
+    def test_ui_batch_cannot_checkpoint_passes_from_an_old_or_unknown_guest_build(self):
+        for build in ('23C54', '23C52', None):
+            with self.subTest(build=build), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                self.content_fixture(root)
+                identity, _ = self.commit_inputs(root)
+                identity['profile']['build'] = '23C54'
+                cache = DEPLOY.PhaseCache(root / 'cache', DEPLOY.Inputs(root, identity))
+                verification = DEPLOY.Verification(root / 'run.json', identity, True, execute=lambda *a, **k: None, cache=cache)
+                manifest = root / 'invocation.json'
+                manifest.write_text(json.dumps(dict(action='test-without-building', result_bundle_complete=True,
+                                                     result_bundle=str(root / 'test.xcresult'))))
+                summary = dict(devicesAndConfigurations=[dict(device=dict(osBuildNumber=build, osVersion='26.2'))])
+                with patch.object(DEPLOY.UI_RESULTS, 'new_manifest', return_value=manifest), \
+                        patch.object(DEPLOY, 'capture', side_effect=lambda *command: json.dumps(summary)
+                                     if command[0] == 'xcrun' else identity['build']['commit']
+                                     if command[:2] == ('git', 'rev-parse') else ''):
+                    if build == '23C54':
+                        verification.ui_batch('smoke', ['ShopTests'])
+                        self.assertEqual(verification.completed['ui:ShopTests']['evidence']['runtime_devices'][0]['osBuildNumber'], build)
+                    else:
+                        with self.assertRaisesRegex(ValueError, 'runtime build'):
+                            verification.ui_batch('smoke', ['ShopTests'])
+                        self.assertEqual(verification.completed, {})
+                        self.assertIsNone(cache.proof('ui:ShopTests'))
 
 
 if __name__ == '__main__':

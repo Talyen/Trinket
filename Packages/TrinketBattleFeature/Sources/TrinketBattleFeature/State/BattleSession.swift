@@ -308,13 +308,6 @@ public final class BattleSession: BattleRuntime {
     }
 
     func presentVictory(_ summary: BattleVictorySummary) {
-        #if DEBUG
-        NSLog(
-            "%@",
-            "VICTORY_DIAG presented active=\(String(describing: activeBattle?.id)) presentation=\(String(describing: presentation.configurationID))",
-        )
-        NSLog("%@", "VICTORY_DIAG presented settlement=\(summary.settlement)")
-        #endif
         spectacle.outcomePresentation = .victory(summary)
     }
 

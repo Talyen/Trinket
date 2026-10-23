@@ -21,6 +21,9 @@ REUSE = load_sibling('deploy_ci_reuse', 'ci-reuse.py')
 PROFILES = load_sibling('deploy_profiles', 'coverage_profiles.py')
 UI_RESULTS = load_sibling('deploy_ui_results', 'ci_ui_retry.py')
 
+QUALIFIED_PROFILE = dict(device='com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro',
+                         runtime='com.apple.CoreSimulator.SimRuntime.iOS-26-2', version='26.2', build='23C54')
+
 CRITICAL_CASES = {
     'audio': 'AudioLifecycleUITests/testRealBackendsPlayAfterBattleAndForegroundRouting',
     'purchase': 'FullGamePurchaseUITests/testDeclinedAskToBuyRemainsLockedAndAllowsAnotherPurchase',
@@ -291,9 +294,30 @@ def profile():
     runtime = PROFILES.select_profile(
         json.loads(PROFILES.simctl('list', 'runtimes', 'available', '-j'))['runtimes'],
         json.loads(PROFILES.simctl('list', 'devicetypes', '-j'))['devicetypes'], type_id, int(major), version)
+    runtime_build = runtime.get('buildversion')
+    if not isinstance(runtime_build, str) or not runtime_build.strip():
+        raise ValueError(f'Simulator runtime build is unavailable for iOS {runtime["version"]}.')
     os.environ.update(TRINKET_SIM_DEVICE_TYPE=type_id, TRINKET_SIM_OS_VERSION=runtime['version'])
-    print(f'Release simulator preflight: {type_id}, iOS {runtime["version"]}', flush=True)
-    return dict(device=type_id, runtime=runtime['identifier'], version=runtime['version'])
+    print(f'Release simulator preflight: {type_id}, iOS {runtime["version"]} ({runtime_build})', flush=True)
+    return dict(device=type_id, runtime=runtime['identifier'], version=runtime['version'], build=runtime_build)
+
+
+def verify_ui_runtime(manifest_path, expected_build):
+    if manifest_path is None:
+        raise ValueError('UI runtime execution receipt is missing.')
+    manifest = UI_RESULTS.read(manifest_path)
+    if manifest.get('result_bundle_complete') is not True or manifest.get('action') != 'test-without-building':
+        raise ValueError('UI runtime requires a complete result bundle.')
+    summary = json.loads(capture('xcrun', 'xcresulttool', 'get', 'test-results', 'summary',
+                                 '--path', manifest['result_bundle'], '--compact'))
+    configurations = summary.get('devicesAndConfigurations')
+    if not isinstance(configurations, list) or not configurations:
+        raise ValueError('UI runtime device evidence is missing.')
+    devices = [item.get('device') if isinstance(item, dict) else None for item in configurations]
+    if any(not isinstance(device, dict) or device.get('osBuildNumber') != expected_build for device in devices):
+        raise ValueError(f'UI runtime build does not match qualified build {expected_build}: {devices}')
+    return [{key: device.get(key) for key in ('modelName', 'osVersion', 'osBuildNumber', 'platform')}
+            for device in devices]
 
 
 class Verification:
@@ -363,11 +387,18 @@ class Verification:
                                   if all(actual[case] == 'Passed' for case in selected)}
             except (OSError, ValueError, KeyError, TypeError, SystemExit):
                 pass
+        runtime_devices = None
+        if passed and self.identity['profile'].get('build'):
+            manifest_path = UI_RESULTS.new_manifest(results, before, session, mode)
+            runtime_devices = verify_ui_runtime(manifest_path, self.identity['profile']['build'])
         elapsed = round(time.monotonic() - started, 2)
         for selector in pending:
             name = f'ui:{selector}'
             if selector in passed:
-                self.phase(name, [], {'batch': session, 'mode': mode, 'batch_seconds': elapsed})
+                evidence = {'batch': session, 'mode': mode, 'batch_seconds': elapsed}
+                if runtime_devices is not None:
+                    evidence['runtime_devices'] = runtime_devices
+                self.phase(name, [], evidence)
                 if self.cache:
                     self.cache.passed(name, {**self.completed[name], 'evidence': 'local',
                                             'commit': self.identity['build']['commit']},
@@ -443,9 +474,9 @@ def main():
         parser.error('Phase selection requires --mode beta')
     if args.mode == 'hosted-beta' and os.environ.get('GITHUB_ACTIONS') != 'true':
         raise ValueError('hosted-beta is restricted to GitHub Actions; beta consumes hosted evidence locally.')
-    selected = (dict(device='com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro',
-                     runtime='com.apple.CoreSimulator.SimRuntime.iOS-26-2', version='26.2')
-                if args.mode == 'beta' else profile())
+    selected = dict(QUALIFIED_PROFILE) if args.mode == 'beta' else profile()
+    if args.mode == 'hosted-beta' and selected != QUALIFIED_PROFILE:
+        raise ValueError(f'Hosted beta requires the qualified simulator profile {QUALIFIED_PROFILE}; found {selected}.')
     # The beta client does not query or install local simulator runtimes.
     if args.preflight:
         return
