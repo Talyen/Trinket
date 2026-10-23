@@ -43,15 +43,13 @@ The ordinary implementation loop is:
 
 1. Create a task checkout: `node Scripts/agent-worktree.mjs create --task <slug>`.
 2. Locate intended files with `rg`, then run `python3 Scripts/agent-brief.py --status --read --paths <files...>` before editing. Read the affected behavior contracts and inspect overlapping dirty diffs. Reuse unchanged guidance; rerun when entering another owner.
-3. Implement and run `./Scripts/handoff.sh --quiet` in the task checkout. It derives task scope from `main`, runs scoped static checks and directly affected package tests serially, and compiles the app when needed. `--dry-run` previews; `--paths <files...>` narrows iteration checks.
+3. Implement and run `./Scripts/handoff.sh --quiet` for the complete task. [Verification](Docs/Platform/Verification.md#confidence-ladder) owns selection, previews, and iteration scope.
 4. Review the full task diff, commit task files, then run `node Scripts/agent-worktree.mjs integrate`. If main advanced, review the combined changes and refresh affected verification before retrying. If current main was already reviewed, pass `--reviewed-main <commit>`; a later advance still stops landing.
 5. Report the local result and remaining verification, then clean up the task checkout when no further work needs it.
 
-`--base <ref>` selects a user-specified base for briefing and handoff; `--base main`
-includes task commits plus dirty files, deletions and both rename endpoints.
-`--working-tree` selects dirty files only. Never narrow the final task scope to
-hide failures. The briefing is the only required retrieval tool; other navigation
-helpers are optional compatibility utilities. Index pages are lookup aids.
+Never narrow final task scope to hide failures. The briefing is the only required
+retrieval tool; indexes and other navigation helpers are optional. Use the
+[command reference](Scripts/Reference.md#development) for scope options.
 Create an [execution plan](Docs/Plans/README.md) only when durable resumption needs it.
 
 ## Choose the change
@@ -81,10 +79,9 @@ caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
 - Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
-- Handoff selects bounded local checks automatically. Explicit package/UI selectors remain available; `--route static` runs cheap checks only. Broad qualification and generation freshness stay hosted. [Verification](Docs/Platform/Verification.md#confidence-ladder) owns selection and resource limits.
-- Player-facing layout, copy, artwork and motion changes require inspection of the final shipping UI under the [visual completion gate](Docs/Platform/Verification.md#visual-completion-gate). Compilation and test success alone do not establish visual quality.
-- Integration holds the shared lock, preserves dirty work, and runs a final static check with plan closure. It retains the checkout. Evidence is saved automatically; put visual artifacts in `.DerivedData/Deliverables/`.
-- Report what passed and exact blockers/skips. **Locally integrated; hosted verification pending** is a valid local handoff, not a claim of full qualification. Follow hosted checks after a separately authorized push; do not require hosted results before that push. Cleanup preserves deliverables outside the task checkout and retains the branch.
+- Player-facing layout, copy, artwork and motion changes require the [visual completion gate](Docs/Platform/Verification.md#visual-completion-gate). Compilation and tests alone do not establish visual quality.
+- Report the checks that ran and exact blockers/skips using [Verification's completion states](Docs/Platform/Verification.md#completion-states). Pending hosted checks do not block an otherwise complete local task or authorize a push.
+- Save visual artifacts in `.DerivedData/Deliverables/`; [Release](Docs/Platform/Release.md#evidence-and-cleanup) owns evidence preservation and cleanup.
 
 ## Maintain guidance
 

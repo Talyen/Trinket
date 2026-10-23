@@ -234,6 +234,12 @@ normally. Only Basic/Astral tiers participate, with their existing relative weig
 The strict `requiredKeyword` input is separate from probabilistic `keywordBias`;
 missing matching content must never silently produce unrelated equipment.
 
+Gold, XP and Materials modifiers increase their category by 25%. Focused material
+modifiers guarantee their resource in one of two material slots and increase its
+quantity by 25%; the other slot remains random and distinct. General material
+bonuses apply to both slots; a focused bonus applies only to its matching resource.
+Existing quantity rounding and reward caps apply.
+
 Rare-tier modifiers double the selected eligible tier's weight. Combat nodes still
 receive one modifier. `NodeModifierCatalog.originalCombatIDs` anchors the category
 odds: the reward category has weight three against the count of originally eligible

@@ -8,7 +8,8 @@ Standing engineering policy. Product decisions live in [Docs/Product/Decisions.m
 | [HeadlessPlaythroughs.md](HeadlessPlaythroughs.md) | Manual progression careers, replay evidence, and host limits |
 | [Testing.md](Testing.md) | Unit / smoke / UI conventions and keep/drop rubric |
 | [PlayerCoverage.md](PlayerCoverage.md) | Critical settings profiles, repeated play, interruption/recovery coverage, and remaining live checks |
-| [Verification.md](Verification.md) | Task routing, gate composition, CI, style, and handoff |
+| [Verification.md](Verification.md) | Task check selection, completion, visual review, style, and handoff |
+| [VerificationInternals.md](VerificationInternals.md) | Runner qualification, profile execution, caching, and gate mechanics |
 | [SimulatorOperations.md](SimulatorOperations.md) | Managed simulator isolation and local Xcode operations |
 | [Localization.md](Localization.md) | Agent translation/review, freshness gates, bundled languages and submission preparation |
 | [Purchases.md](Purchases.md) | StoreKit testing, purchase ownership, and release prerequisites |

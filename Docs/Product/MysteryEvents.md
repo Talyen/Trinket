@@ -32,11 +32,9 @@ reveal; later item inspection uses the standard number styling.
 - Resolve offers before display. Basic/Astral gear uses the choice's fixed base;
   Trinkets and Uniques may only come from that choice's explicit thematic pool.
 - Offers use the shared [progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
-  at the highest won encounter level, capped at loot level 40, as in
-  [Contracts](Contracts.md#board); Voyage's active
-  party and difficulty determine the encounter level for secondary rewards.
-  Moonlit Sanctum scales Astral weight relatively. Remove unavailable special categories before normalizing the
-  remaining weights; never substitute an unrelated special item or promote gear.
+  for noncombat item quality, Sanctum weighting and eligible-category normalization.
+  Voyage's active party/difficulty determines the level for secondary rewards.
+  Never substitute an unrelated special item or promote gear.
   For each newly rolled offer, halve the resulting Trinket and Unique probabilities
   and return the removed chance to Basic gear, leaving Astral probability unchanged.
   With both special categories eligible and no Sanctum bonus, level-40 odds per

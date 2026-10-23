@@ -366,14 +366,10 @@ with the Apple network boundary replaced by fixtures.
 
 ## Isolated chat workflow
 
-Each implementation chat uses its own task checkout on `codex/<slug>`, based on
-committed local main. Read-only investigations need no worktree. Task creation,
-commits, local landing and final task cleanup are authorized; pushes, PRs,
-publication and unrelated changes need separate authorization.
-
-Follow [the root workflow](../../AGENTS.md#route-and-read) for creation, briefing,
-verification, review and landing. This section owns integration recovery and cleanup;
-[the command reference](../../Scripts/Reference.md#development) lists helper options.
+Follow [AGENTS.md](../../AGENTS.md#route-and-read) for the task workflow and
+[workspace safeguards](../../AGENTS.md#protect-the-workspace) for authorization and
+isolation. Read-only investigations need no worktree. This section owns landing,
+recovery and cleanup; [command help](../../Scripts/Reference.md#development) owns options.
 
 Use `--base <ref>` at creation only for a user-specified alternative. Reuse only
 this chat's suitable checkout; existing branches/directories are preserved.
@@ -398,8 +394,11 @@ For API/combat migrations, repeat the [consumer review](Testing.md#fixtures) aft
 incorporating main, including unchanged downstream tests and shared fixtures.
 A clean textual rebase is not semantic or compiled evidence.
 
-Integration first validates required compiled evidence using the
-[verification policy](Verification.md#confidence-ladder), then runs a final **static**
+Integration requires passed compiled evidence matching the complete build/test
+sources and selected Xcode/architecture. Commits and guidance-only edits preserve
+that evidence; source or toolchain changes invalidate it. Refresh missing checks
+with [handoff](Verification.md#confidence-ladder) outside the lock and reassess
+visual evidence after relevant changes. Integration then runs a final **static**
 handoff with plan closure under the lock,
 rechecks both checkouts and ignored-file collisions, then fast-forwards main.
 Use this helper for every automated local landing. It does not fetch, push or run
@@ -414,10 +413,9 @@ landing checks still run. Keep the plan's actual status and remaining work intac
 
 ### Evidence and cleanup
 
-Landing retains the checkout, ignored files and build outputs. `--keep-worktree`
-remains a compatibility no-op. The result is **locally integrated; hosted verification
-pending**; required visual evidence and any requested remaining work must still be
-completed. Push/hosted follow-up requires the existing separate authorization.
+Landing retains the checkout, ignored files and build outputs. Completion follows
+[Verification](Verification.md#completion-states), including required visual evidence.
+`--keep-worktree` remains a compatibility no-op.
 
 Handoff writes verification reports automatically. Integration adds `task-report.json`
 with the local completion state, main base, task paths and evidence links, and copies

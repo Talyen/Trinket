@@ -25,7 +25,9 @@ Use `./Scripts/new-plan.sh <PlanName>` to scaffold metadata. Execution plans are
 allowed only directly under this directory; supporting design reference images
 may accompany active work. Report the outcome in the task handoff.
 
-Keep each plan to its objective, boundaries, current status, unresolved blockers,
-next actions, and evidence pointers. Put run-by-run history in the task handoff or
-retained deliverables; Git preserves earlier plan revisions. Condensing a plan
-does not complete its unfinished work or renew its authorization.
+Keep each plan to its objective, boundaries, status, blockers, next actions and
+evidence. Link the [standing workflow](../../AGENTS.md#route-and-read) and
+[verification policy](../Platform/Verification.md); add only task-specific acceptance
+criteria rather than repeating those procedures. Run history belongs in handoffs or
+retained deliverables. Git preserves revisions; condensation neither completes
+unfinished work nor renews its authorization.

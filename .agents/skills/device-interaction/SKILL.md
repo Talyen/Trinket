@@ -7,7 +7,7 @@ description: Inspect or operate Trinket on a managed simulator or explicitly sel
 
 Use Xcode's device tools when the requested inspection needs screenshots,
 accessibility hierarchy, or device input. Read the
-[Apple workflow](references/apple-device-interaction.md) before using those tools;
+[input reference](references/apple-device-interaction.md) before using those tools;
 reuse it when already loaded and unchanged. This repository's
 [verification policy](../../../Docs/Platform/Verification.md#local-simulator-budget)
 owns local inspection and hosted qualification. Shipping-UI review uses the managed
@@ -15,7 +15,7 @@ inspection session described below; no additional approval is needed within that
 
 For managed simulators, follow the [simulator skill](../ios-simulator/SKILL.md)
 for `native`/`event` commands and recovery. Its controller owns the native session;
-do not create a second session with chat tools. Read the Apple reference for event
+do not create a second session with chat tools. Read the input reference for event
 semantics and use the latest hierarchy.
 
 The direct procedure below applies to physical devices or explicitly externally
@@ -42,18 +42,20 @@ owned native sessions.
   lease, including failed or cancelled checks. Do not leave a session open between
   unrelated tasks; its runtime is expensive.
 
+For an explicitly requested workspace build/install, prefer the tool's per-run
+`commandLineArguments` and `environmentVariables` over scheme edits. Omit them to
+retain the scheme settings; `$(inherited)` preserves existing values when adding
+arguments or environment entries. Inspect current metadata for their exact shape.
+
 ## Capture and input
 
-Use the tools actually exposed in this chat. Apple's snapshot calls the capture
-tool `DeviceEventSynthesize`; the current Xcode tool is
-`DeviceInteractionSynthesize`. Use its documented argument names, including
-`interactSessionKey`, rather than inventing aliases from the reference. Current
-tool constraints also govern supported events and coordinate selection when they
-differ from Apple's snapshot.
+Use the tools actually exposed in this chat: current Xcode names the capture/input
+tool `DeviceInteractionSynthesize`, with `interactSessionKey`. Inspect its metadata
+for supported events, arguments and coordinate constraints before use.
 
 Capture with no interaction command first. Read the hierarchy and inspect the
 screenshot before acting; prefer hierarchy hit points and observe again after
-input. Follow the Apple reference's bounded retries and application activation
+input. Follow the input reference's bounded retries and application activation
 rules. Stay within the requested flow; do not edit code, rebuild, or reset saves
 as an inspection workaround. The session owner closes the native session before
 releasing its lease; a delegated operator reports evidence to that owner.
@@ -67,8 +69,10 @@ driver or substitute routine local test suites for interactive evidence.
 
 ## Apple source
 
-The reference is an unchanged export from Xcode 27.0, build `27A266a`, obtained on
-2026-10-02 with `xcrun agent plugin path --plugin-format codex`. The command prints
-the official plugin directory; its `skills/device-interaction/SKILL.md` is the
-source. On an Xcode update, compare that source with the checked-in reference and
-update the tool mapping and repository adaptation only where behavior changed.
+The input reference is adapted from Apple's Xcode 27.0 export, build `27A266a`,
+obtained on 2026-10-02 with `xcrun agent plugin path --plugin-format codex`.
+The original export is retained in Git history at `cef5dd21c` under the same
+reference path. Its subagent-only workflow, default-destination selection and
+non-iOS examples are excluded from the operational adaptation.
+On an Xcode update, export to a temporary location, compare relevant event semantics,
+and refresh this skill/reference without replacing Trinket's session safeguards.

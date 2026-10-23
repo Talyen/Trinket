@@ -199,7 +199,7 @@ craft or success haptic. Swiping down returns to the Blacksmith. Interrupted or
 backgrounded preparation retains the item without launching a late detail view;
 the saved result card retains Done for this recovery path.
 
-Forging uses the shared non-boss item generator at the highest won encounter level.
+Forging uses the non-boss generator with the [shared noncombat item-quality policy](../../Packages/TrinketContent/README.md#random-item-rewards).
 Later Blacksmith tiers add the
 [authored forge-only Astral tier-weight bonus](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift),
 shown with its benefits. Basic and Astral outcomes retain normal
@@ -274,8 +274,8 @@ Outfitter retains the `woolTailoring` saved identity and existing artwork, passi
 bonuses, production and prices. Built Outfitter exposes **Craft** using the same
 recipe sheet, cost dock, immutable roll and actual-item reveal as other workshops.
 The [recipe catalog](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift)
-owns Leather Armor costs. Standard crafting includes Basic/Astral and
-the selected base's unowned Unique, excludes Trinkets, and uses the highest won
-encounter level. Later tiers use the shared workshop-only Astral weight formula.
+owns Leather Armor costs. Standard crafting follows the [Blacksmith outcome and
+quality rules](#blacksmith-crafting); later tiers use the shared workshop-only
+Astral weight formula.
 Focused recipes are taught by Library Research and guarantee a keyword affix
 within an ordinary slot, with Basic/Astral outcomes only. See [Library](Library.md).

@@ -38,45 +38,25 @@ on `BattleState`. `CombatResolution` retains action/card frames and activation c
 that span participants. Their existing cadence and reaction ordering remain separate
 from runtime storage.
 
-`CombatExecutor` drains each synchronous command on its calling thread. Internal
-rules use async continuations; entering damage, healing, or automatic card play
-suspends before child resolution so parent state lives on the heap. Await child
-rules in their existing order. These continuations must not await I/O, actors,
-timers, or independent tasks. Use synchronous facade commands only at command
-entry; internal reactions await their async overloads to retain one executor.
-Keep existing chain limits and post-damage counterattack/Block-answer timing.
-Public card, turn, and opening commands return `BattleCommandResult` only after
-resolution completes. `BattleState.nextEvent` writes command output in emission
-order, independently of retained battle history and optional action recording.
-Optional playback also captures immutable resource/effect changes at each event
-and reconciles eventless command cleanup onto the last event. It retains no live
-runtime storage and invokes no presentation consumer during resolution.
-Card/turn orchestration does not reconstruct command events from child return
-values. Damage, healing, and Leech outcomes carry rule facts only; their nested
-reactions emit directly into the enclosing command output without copying local
-event ranges. Outcome Health and impact facts are immutable; internal result flags
-use a compact bitset rather than allocated sets. Internal card plays and enemy/turn-start phases likewise emit
-without returning parallel arrays. Explicit test observers use `collectingEvents`
-or `collectingResult` at the operation boundary, including when retained battle
-history is disabled.
-Counterattacks drained after the outer damage packet remain in emission order.
-Discarded damage previews detach command output so speculative effects cannot publish.
-Internal triggers, effect turns and checkpoints likewise emit directly into this
-output rather than returning parallel arrays. Gold and Block grants return their
-applied amounts; action admission and DoT dispatch return decisions, independently
-of emitted feedback.
-Card plays, direct resource grants, and control-meter charges expose committed
-rule facts separately from emitted events. Critical-attack continuation, triggered-control
-rewards, and direct gain summaries consume those facts, never event searches,
-display names, or event positions. Critical card facts include nested attacks from
-the same actor but exclude critical healing. The active card frames own those
-facts even when history and optional action recording are disabled.
-Optional action recording never invokes consumer code or exposes intermediate
-engine snapshots.
-`EffectHandlers.advanceTurn` selects specialized ticks directly; ordinary timed
-effects share the countdown fallback.
-`CombatExecutorTests` owns small-stack, ordered-unwind and recorded-battle parity
-coverage. Select verification through the [confidence ladder](../Platform/Verification.md#confidence-ladder).
+`CombatExecutor` drains synchronous commands on the calling thread. Internal async
+continuations move nested damage, healing and automatic-card frames to the heap;
+await children in order without I/O, actors, timers or independent tasks. Use the
+synchronous facade only at command entry and async overloads for internal reactions.
+Preserve chain limits and post-damage counterattack/Block-answer timing.
+
+Commands return `BattleCommandResult` only after resolution. `BattleState.nextEvent`
+emits directly into command output in order, independently of retained history and
+optional action recording. Child outcomes carry immutable rule facts, not parallel
+event arrays. Explicit observers use `collectingEvents`/`collectingResult` at the
+operation boundary. Discarded previews detach output so speculation cannot publish.
+
+Consumers use committed rule facts for card plays, gains and control rewards, never
+event searches, names or positions. Critical card facts include nested attacks by
+that actor and exclude critical healing, even with history/recording disabled.
+Optional playback captures immutable per-event resource/effect changes, reconciles
+eventless cleanup onto the last event, retains no live storage and invokes no
+consumer during resolution. `CombatExecutorTests` owns small-stack, ordered-unwind
+and recording-parity coverage.
 
 Damage calculation retains mutable `DamageResolutionState` through defense and
 Health commitment. `CommittedDamage` then freezes hit facts for ordered reactions;

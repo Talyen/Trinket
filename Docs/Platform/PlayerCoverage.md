@@ -48,86 +48,30 @@ or resolve a concrete failure. The CI invocations are:
 ./Scripts/player-coverage.sh soak
 ```
 
-Settings profiles request iPhone SE third generation on iOS 26, iPad A16
-(eleventh generation) on iOS 27, and iPhone Duo on iOS 27.1 or later in that major.
-The Duo profile also runs the focused battle-rotation journey once after restoring
-native settings, retaining its hand and usable controls through rotation and a card play.
-Folding during held gestures, automatic casts, inspection, and reward reveal still
-requires managed Device Hub inspection; rotation automation does not prove folding.
-The compatibility lane separately requests iPhone
-SE third generation on iOS 18. Missing types, incompatible/missing runtimes, and
-missing native text controls fail visibly without fallback. Xcode 27's command-line
-download rejects pre-26 runtimes ([FB24836279](https://developer.apple.com/forums/thread/847134)).
-CI exports Apple's iOS 18.0 runtime with Xcode 26.6 on `macos-26`, transfers the
-archive with one-day retention, then imports it on the verified Xcode 27 runner.
-The disposable hosted compatibility runner removes eligible preinstalled iOS
-images before transfer and deletes the archive after import to leave room for test
-products. `ci-runtime-cleanup.py` validates the complete image inventory before any
-deletion, preserves busy/non-iOS images, and retains inventory/retry receipts. Only
-the read-only inventory receives one timeout retry; deletion errors fail visibly.
-Cleanup failures retain the `ios18-runtime-cleanup` phase. Its build and test
-simulator requests both require the iOS 18 profile.
-Compilation and tests still use the verified toolchain. Other profiles install the
-requested minimum runtime (`27.1` for Duo, otherwise the major's `.0`) when absent.
-They request Apple's `arm64` variant on Apple silicon and `universal` on Intel;
-forcing universal can reject a release that is available for Apple silicon
-([Apple component installation](https://developer.apple.com/documentation/xcode/downloading-and-installing-additional-xcode-components)).
-Every profile checks runtime availability and device compatibility after preparation; failed provisioning fails the aggregate verdict.
-Compatible products from successful exact-commit CI are reused;
-missing or incompatible products rebuild, using the shared warm cache when no transfer
-is available. One architecture's products are reused across settings and device profiles. All executions are serial on
-their owned simulator lease. Test runs retain the build's shared results directory
-so its validated build stamps remain available; each settings log and verdict
-identifies its retained result directory.
+Profiles cover iPhone SE third generation on iOS 26, iPad A16 (eleventh generation)
+on iOS 27, and iPhone Duo on iOS 27.1 or later in that major. The compatibility lane
+uses iPhone SE third generation on iOS 18. Missing or incompatible devices, runtimes
+or native settings fail visibly; there is no substitute profile.
 
-Each settings and compatibility device runs native default text, native largest
-accessibility text, and largest text with Reduce Motion. Native text settings are verified for every profile,
-unchanged sizes are not reapplied, and the original size is restored once after the
-device's profiles, even on failed journeys. Reduce Motion is selected through the native Settings app in the owned simulator
-and restored after each class execution, including failed journeys. Both profile
-methods verify the actual text-size and motion environment reached SwiftUI.
-Simulator checks do not establish hardware evidence. Native audits run all seven
-iOS audit types individually and exclude only the opt-in diagnostic label; no product
-failures are blanket-suppressed. Audits record all their findings before restoring
-the journey's stop-on-failure behavior; every recorded violation still fails its test.
-Each native audit timeout receives one immediate
-retry; a repeated timeout or any product
-violation still fails the profile. Settings navigation waits for the retained Motion
-screen, dismisses native search, and selects named back actions and destination
-cells rather than matching titles or keyboard buttons. It scrolls toward retained
-offscreen rows in either direction, including during settings restoration. Each
-class starts Settings from its root/sidebar and reacquires controls after navigation
-and mutation. Preparation failures carry a `[coverage prerequisite]` marker and
-native Settings screenshot/hierarchy; they fail as configuration, not completed
-product audits. Each audit attempt retains its profile, screen, audit type and
-runtime context, with separate issue/error attachments and foreground screenshots.
+Each device exercises native default text, largest accessibility text, and largest
+text with Reduce Motion. Verify those settings actually reach SwiftUI and restore
+the original settings even after failure. All seven native audit types run; product
+violations fail rather than receiving blanket suppression. A failed prerequisite
+is configuration failure, not completed product coverage.
 
-Settings-profile reward checks enter the existing victory fixture, then audit and tap
-the real claim and verify next-stage access. Earned victory remains smoke-owned;
-profiles avoid repeating combat across settings/device combinations.
-Defeat and reward journeys scroll to their real actions before auditing and restore
-their reachability afterward, since native text-size audits can move the viewport.
-Each settings profile publishes its log and status before the next profile starts,
-so a failed profile remains visible while independent checks continue.
-Hosted device profiles also prepare their runtimes independently: an unavailable
-runtime fails the requested portfolio without preventing other devices from running.
+Profiles exercise the real reward claim/next-stage access and visible Homestead tier
+change. Earned combat stays smoke-owned; detailed resource debits and reload stay
+with `HomesteadControlsUITests`. The Duo profile also runs the focused rotation
+journey once after settings restoration, checking actual geometry, retained hand,
+usable controls and a card play. Folding during held input, inspection, automatic
+casts or reward reveal still needs managed Device Hub inspection.
 
-Settings-profile Homestead checks audit and exercise the upgrade controls through the
-visible tier change. Detailed resource debits and reload persistence remain owned by
-`HomesteadControlsUITests`, avoiding repeated accounting across settings/device
-combinations while retaining each combination's native accessibility evidence.
-
-The iOS 18 lane also runs every registry-owned smoke class, the existing Full Game
-purchase/recovery suite, committed-reward termination recovery, and the complete
-Persistence package suite on the explicitly selected simulator. These cover
-onboarding reload, tab navigation, manual combat and earned rewards, purchase access,
-populated purchase recovery, and schema migration/reload without duplicating test bodies.
-Purchase automation is required; an unavailable purchase runtime cannot count as
-successful compatibility evidence. Stages run serially, retain failures while
-continuing independent checks, and export screenshots for visual review. A passing
-lane does not establish artwork readability, app-icon appearance, frame pacing,
-thermal behavior, or memory readiness on older physical hardware; inspect those
-before claiming release readiness.
+The iOS 18 lane additionally runs every registry Smoke class, Full Game purchase/
+recovery, committed-reward termination recovery and the Persistence package suite.
+Missing purchase execution cannot count as compatibility success. Passing automation
+still needs physical-device artwork, icon, frame, memory and thermal review before
+release-readiness claims. [Profile execution](VerificationInternals.md#player-profile-execution)
+owns runtime preparation, product reuse, native-settings mechanics and diagnostics.
 
 Weekly UI soak uses one audio-enabled store for twenty Contracts, visiting
 Collection/Homestead and backgrounding every fifth cycle. Headless careers cover

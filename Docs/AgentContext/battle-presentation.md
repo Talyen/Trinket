@@ -87,15 +87,12 @@ simulation suites; gesture inspection/drag safety uses `BattleFlowUITests`.
 ## Attack and impact presentation
 
 `BattleFeedbackLane` schedules attack phases and impact delivery from resolved
-actions. Combatant motion uses the same clock and native SwiftUI spring recipes,
-retargeting from its current pose. Hero and companion attacks use 0.10-second
-preparation for manual plays, automatic plays, and drag previews; enemies retain
-0.40-second preparation. All attacks share a 0.15-second swing and 0.45-second recovery. A prepared
-drag commits its swing and skips preparation. Each scheduled action retains its
-swing, recovery, and acceleration preparation cap. Later attacks
-by the same actor can shorten pending preparation to a 0.08-second cap
-and interrupt recovery, while distinct impacts remain ordered. Automatic card
-reveal and dissolve use the same scheduled swing time. Auto Battle hand departures
+actions. [Card play](../Product/CardPlay.md#turns-and-battlefield-effects) owns
+approved preparation, swing, recovery and acceleration timing. Combatant motion
+uses the same clock and native SwiftUI springs, retargeting from its current pose.
+Each scheduled action retains its timing; later attacks by the same actor may
+shorten preparation and interrupt recovery while preserving distinct ordered impacts.
+Automatic card reveal and dissolve use the same scheduled swing time. Auto Battle hand departures
 share the action's recorded cast identity and clock: their rise/dissolve spans
 preparation and finishes at swing, followed by the ordinary particle tail. Retiming
 and suspension update that same cast; hand departures never render as fly-in cards.
@@ -211,40 +208,31 @@ replay the bridge's live items using original timestamps and cached rasters.
 
 ### Lane and rendering invariants
 
-- **Lifetime:** Each `BattleFeedbackLane` owns its chip bridge, live items, eviction
-  callback and availability timer. Hosts bind through their session and unregister
-  from their original bridge. Independent battles/previews can reuse IDs without
-  affecting each other; publication follows lane lifetime, not mount order.
-- **Raster retention:** The host, bridge, shared glyph/mask cache and display clock
-  own rendering. Prewarm one production vocabulary, including glint masks; numeric
-  churn cannot evict it within the existing capacity. The bridge retains live chip
-  rasters across cache eviction/remount, replaces changed appearances, and releases
-  them on retirement, eviction or reset. New host metadata drops obsolete contexts.
-  Retain raster objects during identity comparisons so recycled wrapper addresses
-  cannot hide changes.
-- **Updates:** Refresh only changed recipients; matching fragment hosts share raster
-  resolution and per-tick animation samples while fitting and pushes stay independent.
-  Availability deadlines still reveal queued results. Update layer order only when
-  membership/order inputs change and assign only unequal frame properties. Cache
-  fitting positions until membership, order, region, reservation geometry, portrait
-  bounds or bottom inset changes; avoid per-publication comparison allocations.
-- **Caches and workers:** Reuse typography fonts within worker batches and a bounded,
-  pool-owned cache of tinted glyphs, outline silhouettes and drawing geometry across
-  publications; clearing the pool releases it. Workers keep separate value contexts
-  and merge prepared glyphs only after the current generation succeeds, within
-  existing bounds. Both worker and live caches retain source images for identity.
-  Raster hits/evictions maintain the LRU list of unprotected entries; catalog
-  protection changes rebuild it in recency order.
-- **Paint fidelity:** Color and mask passes share the resolved draw plan and a renderer
-  per composition. Preserve source-over outline draws: bitmap flattening changes
-  alpha blending. Keep draw sequence, sampling, masks and feedback clocks unchanged.
-- **Clocks and publication:** Unregister hosts from the display clock on teardown or
-  when eviction leaves no unpaused chips; new/resumed feedback restarts it. Expiration
-  participates in outcome timing. Suspension freezes all regions; resume shifts
-  their original clocks. Publish changed chips and permanent removals together;
-  full replacement is for whole-lane suspension/visibility reconciliation. Index
-  merge candidates within a batch while preserving reverse arrival order and the
-  existing semantic, width and lifetime rules.
+- **Lifetime:** Each lane owns its bridge, live items, eviction callback and
+  availability timer. Hosts bind through their session and unregister from their
+  original bridge. Independent
+  battles/previews may reuse IDs; publication follows lane lifetime, not mount order.
+- **Retention:** Prewarm the production raster vocabulary, including glint masks;
+  numeric churn cannot evict it within existing capacity. Live rasters survive cache
+  eviction/remount, update when appearance changes and release on retirement,
+  eviction or reset. Retain raster wrappers and source images during identity
+  comparisons so recycled addresses cannot hide changes. Workers retain separate
+  immutable contexts and publish only for their current preparation generation.
+- **Updates and bounds:** Refresh only changed recipients and frame properties.
+  Matching fragment hosts share raster resolution and animation samples while
+  fitting/pushes remain independent. Invalidate fitting when membership, order,
+  region, reserved geometry, portrait bounds or bottom inset changes. Availability
+  deadlines still reveal queued results. Glyph/geometry caches remain bounded and
+  pool-owned; clearing the pool releases them. New hosts drop obsolete contexts.
+- **Paint fidelity:** Color and mask passes share a resolved draw plan. Preserve
+  source-over outline order, sampling and masks; bitmap flattening changes alpha
+  blending. Keep rendering/feedback clocks and the prepared death-fragment behavior.
+- **Clocks and publication:** Unregister display hosts on teardown or when eviction
+  leaves no unpaused chips; new/resumed feedback restarts them. Expiration participates
+  in outcome timing. Suspension freezes all regions; resume shifts original clocks.
+  Publish changed chips and permanent removals together. Full replacement is for
+  whole-lane suspension/visibility reconciliation. Batch merging preserves reverse
+  arrival order and the semantic, width and lifetime rules above.
 
 ### Verification gap
 

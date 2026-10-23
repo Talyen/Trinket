@@ -18,14 +18,9 @@ Let P be the active Hero and Companion's average level, rounded down:
 | Standard | Ordinary enemy | P |
 | Hard | Boss | P + 3 |
 
-Use the existing enemy curves, shared
-[progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
-with each battle's captured encounter level determining its item-tier odds, capped
-at loot level 40. Victory records that level for later Shop, Mystery, and Blacksmith
-offers, whose quality follows the highest won encounter level. Contract encounter
-level also drives XP, Gold, and material quantities without that loot-level cap.
-Hard Contracts receive the shared
-boss loot guarantees. Preserve catch-up XP, shared level-difference XP scaling, reward
+Use the existing enemy curves and [shared loot policy](../../Packages/TrinketContent/README.md#random-item-rewards)
+for captured battle levels, later noncombat quality and Hard's boss guarantees.
+Preserve catch-up XP, shared level-difference XP scaling, reward
 ownership, and applicable Homestead effects. Higher-level enemies award more XP
 under the shared curve; Hard has no additional difficulty-specific XP multiplier.
 Difficulty labels describe level and enemy category, not a guaranteed matchup outcome.
@@ -47,10 +42,8 @@ Contracts, Labyrinth combat nodes, and Voyage combat nodes share the
 [reward modifier catalog](../../Packages/TrinketContent/README.md#shared-reward-modifiers).
 Contracts choose uniformly among its eligible entries.
 
-Each offer saves one modifier regardless of difficulty. Gold, XP, and Materials bonuses increase their category by 25%.
-Wood, Stone, Iron, Food, Herbs, Hide, and Gems bonuses guarantee that resource in
-one of the two material slots and increase its quantity by 25%; the other slot
-remains random and distinct. Existing quantity rounding and reward caps apply.
+Each offer saves one modifier regardless of difficulty. Shared quantity and
+focused-material amounts follow the catalog contract, including rounding and caps.
 
 Hard Contracts use the [shared boss guarantee](../../Packages/TrinketContent/README.md#random-item-rewards)
 and exclude item-focused modifiers from new offers; existing saved Hard item

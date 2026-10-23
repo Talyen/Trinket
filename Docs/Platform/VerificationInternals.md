@@ -223,6 +223,60 @@ screenshots and accessibility hierarchy evidence. The read-only localization gat
 does not prove compilation, fonts, layout or archive language packaging; use the
 handoff report for actual selected compiled checks.
 
+## Player profile execution
+
+[Player coverage](PlayerCoverage.md#ci-and-profiles) owns devices, scenarios, cadence
+and acceptance. These mechanics preserve that scope when provisioning or diagnosing
+`player-coverage.sh` and its native-settings helpers.
+
+### Runtime and product preparation
+
+Xcode 27's command-line downloader rejects pre-26 runtimes
+([FB24836279](https://developer.apple.com/forums/thread/847134)). CI exports iOS 18.0
+using Xcode 26.6 on `macos-26`, transfers it with one-day retention, and imports it
+on the verified Xcode 27 runner. Compilation/tests still use the verified toolchain.
+The disposable compatibility runner removes eligible preinstalled iOS images before
+transfer and the archive after import. `ci-runtime-cleanup.py` validates the complete
+inventory, preserves busy/non-iOS images and retains receipts. Only read-only
+inventory gets one timeout retry; deletion errors fail with the
+`ios18-runtime-cleanup` phase. Both build and test request the iOS 18 profile.
+
+Other profiles install the requested minimum runtime when absent: Duo's required
+minor, otherwise the major's `.0`. Use Apple's `arm64` variant on Apple silicon and
+`universal` on Intel; forcing universal can reject an available Apple-silicon release.
+Recheck runtime/device compatibility after preparation; failed provisioning fails
+the requested aggregate while independent device portfolios continue.
+
+Reuse only compatible exact-commit products. Missing/incompatible products rebuild,
+using warm caches when available. One architecture's products can serve multiple
+profiles. Executions remain serial under their owned simulator lease and retain the
+build's results directory/stamps; logs and verdicts identify that directory.
+
+### Native settings and failure evidence
+
+Native text-size setup verifies the requested value, avoids reapplying unchanged
+sizes and restores the original once after the device's profiles, including failures.
+Reduce Motion uses native Settings and restores after each class. Both methods verify
+the actual SwiftUI environment; a launch argument alone is insufficient.
+
+Settings navigation starts from the root/sidebar, uses named destination controls,
+and reacquires controls after navigation/mutation. The helpers handle offscreen rows,
+search dismissal and the retained Motion screen. Preparation failures attach native
+Settings screenshots/hierarchy and a `[coverage prerequisite]` marker; dependent
+product assertions must not proceed as if preparation succeeded.
+
+Run each of seven native audit types separately, excluding only the opt-in diagnostic
+label. Collect all findings before restoring stop-on-failure; every product violation
+still fails. A native-audit timeout gets one immediate retry; a repeated timeout fails.
+Each attempt retains profile, screen, audit type, runtime, issue/error attachments and
+foreground captures. Scroll reward actions into view before auditing and restore
+reachability afterward because the audit may move the viewport.
+
+Publish each profile's log/status before starting the next. Keep failed profiles,
+soak, careers and recovery verdicts individually visible while independent checks
+continue; screenshot export failure retains the original bundle. [Evidence limits](PlayerCoverage.md#evidence-and-remaining-gates)
+still distinguish automated execution from visual, hardware and live-service proof.
+
 ## TestFlight evidence and reuse
 
 Routine beta verification uses green exact-commit CI, actual Smoke, and qualified

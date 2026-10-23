@@ -32,14 +32,8 @@ checks. `--route focused` is optional and `diagnostic` remains a compatibility a
 `--isolate` is also retained for compatibility; isolation is automatic. Ordinary
 verification needs no additional user approval or manual environment flags.
 
-Before landing, review the task diff and commit it. Integration runs one final
-static handoff with plan closure under the shared lock. Integration checks required
-compiled evidence against the complete build/test source contents and selected
-Xcode/architecture. A commit or guidance-only edit preserves evidence; changed
-build/test sources or toolchain invalidate it and print the missing checks before
-landing. Run handoff outside the lock to refresh them. Reassess visual evidence
-after relevant changes. Preserve scopes for renames/deletions; missing bases fail
-instead of selecting less work.
+Before landing, follow [review and integration](Release.md#landing-and-review).
+Its final static gate does not replace the required compiled or visual evidence.
 
 ## Completion states
 

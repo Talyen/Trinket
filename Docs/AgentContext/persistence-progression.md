@@ -4,27 +4,15 @@ Use with [persistence ownership](persistence.md) for domain commands, rewards an
 
 ## Reward levels
 
-Content's `BattleLootContext` owns loot selection for every mode from explicit
-world seed, collectible ownership, claimed Journey reward IDs, Sanctum bonus values,
-and captured active-party keyword weighting. Launch and unsettled
-completion use the same policy, including Spire modifiers and Voyage's independent
-final destination roll and collectible exhaustion. Persistence supplies a save-value
-adapter and commits awards; completion appliers do not expose loot-planning APIs.
-`BattleLoot.resolve` rolls its `LootRequest` mode identity and bonuses;
-the captured encounter level drives both item quality
-and currency quantities. Item-tier odds clamp at loot level 40; currency quantities
-continue to scale beyond it. Noncombat item offers and Blacksmith forging use the
-highest won encounter level through `CampaignRewardLevel`, rather than the current
-party or battle level.
-Unsettled completion uses Content's `EncounterScaling` mode policy; Spires retain
-their fixed floor level even when the active party is below it.
-`VictoryRewardApplier` owns reward application to the save. Bosses use the
-[shared level-based collectible odds](../../Packages/TrinketContent/README.md#random-item-rewards)
-over uncollected full catalogs, the remaining category if one is complete,
-and Astral if both are complete. The soft party bias weights candidates within a
-category without excluding off-party items or changing category odds. The opening Journey boss guarantees a Trinket until
-its reward is claimed, with the same exhaustion fallback. Existing claimed IDs prevent
-retroactive awards; no new saved flag is used. Neither boss path can produce Basic.
+Content's `BattleLootContext` owns mode-specific loot from explicit world seed,
+collectible ownership, claimed Journey reward IDs, Sanctum bonuses and captured
+party weighting. [Random item rewards](../../Packages/TrinketContent/README.md#random-item-rewards)
+owns shared level selection, caps, boss guarantees, weighting and exhaustion rules.
+Launch and unsettled completion use that same policy. Persistence supplies the
+save-value adapter and `VictoryRewardApplier` commits the award; completion appliers
+expose no parallel loot-planning API. `BattleLoot.resolve` rolls the captured
+`LootRequest` identity/bonuses. Unsettled completion uses Content's `EncounterScaling`,
+including fixed Spire floor levels.
 
 ## Victory settlement
 
@@ -82,25 +70,14 @@ domain identities. Failed or rejected transactions publish neither awards nor re
 
 ## Reward modifiers
 
-Contracts and Labyrinth/Voyage combat share Content's `RewardModifier` catalog.
-Voyage destination offers save a separate modifier for the final boss victory;
-its XP bonus is excluded from partial-defeat XP. Every item-focused destination adds
-an independent modifier-driven item beside the boss guarantee, excluding Basic and
-the primary collectible. The final reward plan carries both rolls so the reveal and
-committed award remain identical. New bosses exclude item-focused node/Contract
-modifiers; saved boss item modifiers resolve to Gold in both presentation and payout.
-Voyage destination modifiers are exempt from that boss conversion.
-Rare-tier odds bonuses double the named eligible tier's weight.
-Saved IDs stay stable; exhausted collectible bonuses resolve to Gold consistently
-in artwork/details and launch loot. Keyword guarantees occupy one normal affix
-slot on matching Basic/Astral equipment. New reward modifiers apply only to combat;
-existing Mystery quantity bonuses remain supported.
-General material bonuses apply to both loot slots even with a focused material
-reward; the focused bonus applies only to matching resources.
-Item-family guarantees filter the normal single item to Weapon, Armor, Ring, or
-Amulet bases at Basic/Astral tier odds; guaranteed Astral, Trinket, and Unique
-tiers use their named tier directly. Exhausted collectible guarantees use the
-same Gold fallback as collectible weight bonuses.
+Content's [shared modifier contract](../../Packages/TrinketContent/README.md#shared-reward-modifiers)
+owns eligibility, amounts, tier/family/keyword guarantees, exhaustion fallbacks,
+and Voyage's composed destination reward. Persistence retains saved modifier IDs;
+preview, launch and commit resolve the same effective modifier and composed award.
+The final plan carries every roll, including Voyage's separate destination item,
+so reveal and claim cannot diverge. Destination rewards require final boss victory;
+their XP bonus never contributes to partial-defeat XP. Existing Mystery quantity
+bonuses remain readable; new reward modifiers apply only to combat.
 
 ## Battle experience
 

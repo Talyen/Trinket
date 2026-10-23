@@ -77,6 +77,9 @@ damage, healing, and status effects may still be animating.
 Card availability follows the current resolved state. Health, Mana, status artwork,
 and defeat artwork update with the action’s impact feedback.
 
+This section owns approved attack timing; [BattleFeedbackAttackRecipes.swift](../../Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/CombatFeedbackAttackRecipes.swift)
+implements the motion recipes.
+
 Combatant attacks retain a visible wind-up, swing, and recovery for taps,
 drags, automatic cards, and enemy actions. Party attacks prepare for 0.10 seconds;
 enemy attacks prepare for 0.40 seconds. All attacks share a 0.15-second swing and

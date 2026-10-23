@@ -14,7 +14,6 @@ Follow [AGENTS.md](../AGENTS.md#route-and-read) for the implementation workflow.
 Read-only investigations need no worktree. Use `rg`, file reads and Git diffs for
 navigation; optional retrieval helpers document their interfaces through `--help`.
 
-`./Scripts/handoff.sh --quiet` selects bounded checks; `--dry-run` previews them.
 [Verification](../Docs/Platform/Verification.md#confidence-ladder) owns check selection
 and evidence requirements. [Release](../Docs/Platform/Release.md#isolated-chat-workflow)
 owns integration recovery and cleanup.
