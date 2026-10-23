@@ -93,6 +93,12 @@ uses the same clock and native SwiftUI springs, retargeting from its current pos
 Recipes store named timed poses for impact/recovery and wind-up/swing/recovery.
 Shared phase timing is authored once; celebration retains an independent rotation
 track and scheduling lifetime.
+Dodge uses a 0.16-second shallow retreat, lean, and 1.5% shrink followed by a
+0.24-second eased recovery. Party cards retreat down and left from a lower pivot;
+enemy cards mirror that motion up and right from an upper pivot, away from the
+opponent in the portrait battlefield. The composed card and its feedback move
+together. Repeated impacts reuse the existing reaction bridge and priority;
+Dodge adds no input delay and retains its sound, haptics, and Reduce Motion behavior.
 Each scheduled action retains its timing; later attacks by the same actor may
 shorten preparation and interrupt recovery while preserving distinct ordered impacts.
 Automatic card reveal and dissolve use the same scheduled swing time. Auto Battle hand departures
@@ -253,6 +259,8 @@ inspection, including the [native device-interaction skill](../../.agents/skills
 when Computer Use cannot inspect Device Hub. The debug Game Feel preview offers
 fixed busy samples with a held feedback clock for layout inspection; held samples
 do not establish live pacing, physical audio balance, or haptic quality.
+The Dodge + Recovery sample plays both sides through complete recoveries and one
+interrupted repeat before holding the feedback clock.
 Check central readability and smaller lower-corner status feedback under rapid
 card play, including consolidation, overlap, and portrait clipping.
 

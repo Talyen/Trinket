@@ -53,9 +53,12 @@ enum CombatFeedbackCardRecipes {
 
     static let dodgeCardReaction = CombatantHitReactionRecipe(
         kind: .dodge,
-        impact: .init(pose: .init(offsetX: 6), duration: 0.08),
-        recovery: .init(pose: .rest, duration: 0.16),
-        duration: 0.24,
+        impact: .init(
+            pose: .init(scaleX: 0.985, scaleY: 0.985, offsetX: -8, offsetY: 10, rotation: -3, rotationX: 6),
+            duration: 0.16,
+        ),
+        recovery: .init(pose: .rest, duration: 0.24),
+        duration: 0.40,
     )
 
     static let celebrateCardReaction = CombatantHitReactionRecipe(

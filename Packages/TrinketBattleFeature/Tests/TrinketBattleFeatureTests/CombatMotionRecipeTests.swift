@@ -9,7 +9,7 @@ struct CombatMotionRecipeTests {
             (.critical, .init(scaleX: 0.91, scaleY: 1.055, offsetX: -9), 0.08, 0.18, 0.26),
             (.block, .init(scaleX: 0.945, scaleY: 1.035, offsetX: -6), 0.08, 0.16, 0.24),
             (.heal, .init(scaleX: 1.02, scaleY: 1.02), 0.1, 0.16, 0.26),
-            (.dodge, .init(offsetX: 6), 0.08, 0.16, 0.24),
+            (.dodge, .init(scaleX: 0.985, scaleY: 0.985, offsetX: -8, offsetY: 10, rotation: -3, rotationX: 6), 0.16, 0.24, 0.40),
             (.celebrate, .init(scaleX: 1.1, scaleY: 0.86, offsetY: -8), 0.1, 0.22, 1.0),
         ]
         for (kind, pose, impact, recovery, lifetime) in expected {

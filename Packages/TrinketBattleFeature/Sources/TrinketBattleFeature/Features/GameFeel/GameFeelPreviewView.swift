@@ -250,7 +250,8 @@ public struct GameFeelPreviewView: View {
                 }
                 guard !Task.isCancelled else { return }
                 record(scenario, index: index)
-                try? await Task.sleep(for: .milliseconds(80))
+                let delay = scenario == .dodge && index != 2 ? 550 : 80
+                try? await Task.sleep(for: .milliseconds(delay))
             }
             guard !Task.isCancelled else { return }
             // Freeze the real chip clock so delayed device captures can inspect overlap.

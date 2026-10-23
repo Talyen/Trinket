@@ -213,33 +213,19 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             trigger: playToken,
         ) { state in
             card
-                .scaleEffect(x: state.scaleX, y: state.scaleY)
-                .rotationEffect(.degrees(state.rotation))
+                .scaleEffect(x: state.scaleX, y: state.scaleY, anchor: layout.anchor)
+                .rotationEffect(.degrees(state.rotation), anchor: layout.anchor)
+                .rotation3DEffect(
+                    .degrees(state.rotationX), axis: (x: 1, y: 0, z: 0),
+                    anchor: layout.anchor, perspective: 0.35,
+                )
                 .offset(x: state.offsetX, y: state.offsetY)
         } keyframes: { _ in
             KeyframeTrack(\.scaleX) {
-                SpringKeyframe(
-                    layout.impactScaleX,
-                    duration: layout.impactDuration,
-                    spring: .snappy(duration: layout.impactDuration),
-                )
-                SpringKeyframe(
-                    layout.recoveryScaleX,
-                    duration: layout.recoveryDuration,
-                    spring: .bouncy(duration: layout.recoveryDuration),
-                )
+                scaleKeyframes(impact: layout.impactScaleX, recovery: layout.recoveryScaleX, layout: layout)
             }
             KeyframeTrack(\.scaleY) {
-                SpringKeyframe(
-                    layout.impactScaleY,
-                    duration: layout.impactDuration,
-                    spring: .snappy(duration: layout.impactDuration),
-                )
-                SpringKeyframe(
-                    layout.recoveryScaleY,
-                    duration: layout.recoveryDuration,
-                    spring: .bouncy(duration: layout.recoveryDuration),
-                )
+                scaleKeyframes(impact: layout.impactScaleY, recovery: layout.recoveryScaleY, layout: layout)
             }
             KeyframeTrack(\.offsetX) {
                 CubicKeyframe(layout.impactOffsetX, duration: layout.impactDuration)
@@ -252,13 +238,31 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             KeyframeTrack(\.rotation) {
                 let samples = layout.recipe.rotation
                 if samples.isEmpty {
-                    CubicKeyframe(0, duration: layout.impactDuration + layout.recoveryDuration)
+                    CubicKeyframe(layout.impactRotation, duration: layout.impactDuration)
+                    CubicKeyframe(0, duration: layout.recoveryDuration)
                 } else {
                     for sample in samples {
                         CubicKeyframe(sample.value, duration: sample.duration)
                     }
                 }
             }
+            KeyframeTrack(\.rotationX) {
+                CubicKeyframe(layout.impactRotationX, duration: layout.impactDuration)
+                CubicKeyframe(0, duration: layout.recoveryDuration)
+            }
+        }
+    }
+
+    @KeyframeTrackContentBuilder<Double>
+    private func scaleKeyframes(
+        impact: Double, recovery: Double, layout: ReactionLayoutState,
+    ) -> some KeyframeTrackContent<Double> {
+        if activeKind == .dodge {
+            CubicKeyframe(impact, duration: layout.impactDuration)
+            CubicKeyframe(recovery, duration: layout.recoveryDuration)
+        } else {
+            SpringKeyframe(impact, duration: layout.impactDuration, spring: .snappy(duration: layout.impactDuration))
+            SpringKeyframe(recovery, duration: layout.recoveryDuration, spring: .bouncy(duration: layout.recoveryDuration))
         }
     }
 
@@ -311,6 +315,9 @@ private struct ReactionLayoutState {
     let impactOffsetY: Double
     let recoverOffsetX: Double
     let recoverOffsetY: Double
+    let impactRotation: Double
+    let impactRotationX: Double
+    let anchor: UnitPoint
 
     init(activeKind: CombatantHitReactionKind, recoilDirection: CombatantHitRecoilDirection) {
         let reactionRecipe = CombatFeedbackCardRecipes.cardReaction(for: activeKind)
@@ -324,9 +331,10 @@ private struct ReactionLayoutState {
         let impactScales = isVerticalImpact
             ? recoilDirection.impactScales(scaleX: recipeScaleX, scaleY: recipeScaleY)
             : (x: recipeScaleX, y: recipeScaleY)
+        let dodgeDirection = activeKind == .dodge && recoilDirection == .up ? -1.0 : 1.0
         let resolvedOffset: CGSize = isVerticalImpact
             ? recoilDirection.impactOffset(magnitude: abs(defaultOffset.width))
-            : defaultOffset
+            : CGSize(width: defaultOffset.width * dodgeDirection, height: defaultOffset.height * dodgeDirection)
 
         recipe = reactionRecipe
         impactScaleX = impactScales.x
@@ -339,6 +347,9 @@ private struct ReactionLayoutState {
         impactOffsetY = Double(resolvedOffset.height)
         recoverOffsetX = reactionRecipe.recovery.pose.offsetX
         recoverOffsetY = reactionRecipe.recovery.pose.offsetY
+        impactRotation = reactionRecipe.impact.pose.rotation * dodgeDirection
+        impactRotationX = reactionRecipe.impact.pose.rotationX * dodgeDirection
+        anchor = activeKind == .dodge ? UnitPoint(x: 0.5, y: recoilDirection == .down ? 0.9 : 0.1) : .center
     }
 }
 
@@ -348,6 +359,7 @@ private struct CardReactionAnimationState {
     var offsetX = 0.0
     var offsetY = 0.0
     var rotation = 0.0
+    var rotationX = 0.0
 }
 
 private struct CombatantStatusBorderPulse: View {

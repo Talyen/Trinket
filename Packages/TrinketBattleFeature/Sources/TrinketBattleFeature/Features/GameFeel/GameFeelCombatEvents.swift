@@ -9,6 +9,7 @@ enum GameFeelCombatScenario: String, CaseIterable, Identifiable {
     case automatic = "Automatic Chain + Manual Hit"
     case statuses = "Benefits + Setbacks"
     case lethal = "Lethal Hit + Live Feedback"
+    case dodge = "Dodge + Recovery"
 
     var id: String {
         rawValue
@@ -36,6 +37,9 @@ enum GameFeelCombatEvents {
             ))
         }
         switch scenario {
+        case .dodge:
+            append(.effect(.dodgeApplied), amount: 0, keyword: .dodge, target: hero)
+            append(.effect(.dodgeApplied), amount: 0, keyword: .dodge, target: enemy)
         case .rapid, .lethal:
             append(
                 .abilityDamage,

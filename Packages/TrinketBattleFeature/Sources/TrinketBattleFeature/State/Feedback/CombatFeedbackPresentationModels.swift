@@ -115,6 +115,7 @@ struct CombatantPose: Equatable {
     var offsetX: Double
     var offsetY: Double
     var rotation: Double
+    var rotationX: Double
 
     init(
         scaleX: Double = 1,
@@ -122,12 +123,14 @@ struct CombatantPose: Equatable {
         offsetX: Double = 0,
         offsetY: Double = 0,
         rotation: Double = 0,
+        rotationX: Double = 0,
     ) {
         self.scaleX = scaleX
         self.scaleY = scaleY
         self.offsetX = offsetX
         self.offsetY = offsetY
         self.rotation = rotation
+        self.rotationX = rotationX
     }
 
     static let rest = Self()
