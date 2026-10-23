@@ -8,8 +8,13 @@ trinket_prepend_pinned_tools
 
 AGENT_SLOT_ARG=""
 INSPECT=0
+UNLOCKED=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --unlocked)
+      UNLOCKED=1
+      shift
+      ;;
     --inspect)
       INSPECT=1
       shift
@@ -29,12 +34,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/run-simulator.sh [--isolate] [--agent N] [--inspect]
+Usage: ./Scripts/run-simulator.sh [--isolate] [--agent N] [--inspect] [--unlocked] [-- app arguments]
 
 Builds Trinket and launches it. By default targets Trinket Run (human).
 Use --isolate to acquire an available agent lease or reuse an inherited lease.
 Use --agent N only under an existing parent lease for Trinket Agent N; it does not acquire one.
 Use --inspect in a terminal to hold the lease; type capture to save evidence or stop to release it.
+Use --unlocked for Debug-only Full Game access and a freshly seeded, separate development save.
+Arguments after -- are passed to the app (for example -- -launch-screen hero:wildcard).
 USAGE
       exit 0
       ;;
@@ -43,6 +50,12 @@ USAGE
     *) break ;;
   esac
 done
+
+LAUNCH_ARGS=(-appearance dark)
+if [[ "$UNLOCKED" == "1" ]]; then
+  LAUNCH_ARGS+=(-development-unlocked)
+fi
+LAUNCH_ARGS+=("$@")
 
 if [[ "$INSPECT" == "1" && ! -t 0 ]]; then
   echo "error: --inspect requires an interactive terminal session." >&2
@@ -185,7 +198,7 @@ if [[ "$SIMULATOR_UI_OPENED" == "0" ]]; then
 fi
 LAUNCH_DEADLINE=$((SECONDS + 20))
 until xcrun simctl launch --terminate-running-process \
-  "$SIMULATOR_UDID" "$BUNDLE_ID" -- -appearance dark
+  "$SIMULATOR_UDID" "$BUNDLE_ID" -- "${LAUNCH_ARGS[@]}"
 do
   if (( SECONDS >= LAUNCH_DEADLINE )); then
     echo "error: simctl launch failed for $BUNDLE_ID" >&2

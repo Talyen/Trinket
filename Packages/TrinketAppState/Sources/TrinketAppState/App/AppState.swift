@@ -42,7 +42,11 @@ public final class AppState {
         battleRewardDate: @escaping @MainActor () -> Date = { Date() },
     ) throws {
         self.environment = environment
+        #if DEBUG
+        self.fullGame = fullGame ?? (environment.developmentUnlocked ? .developmentUnlocked() : FullGameStore())
+        #else
         self.fullGame = fullGame ?? FullGameStore()
+        #endif
         let resolvedDefaults = userDefaults ?? .standard
 
         let dependencies = try Self.makeBootstrapDependencies(

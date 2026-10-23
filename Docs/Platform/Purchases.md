@@ -48,6 +48,17 @@ tracking or off-device data collection.
 
 ## Local development
 
+For gameplay and UI inspection, use
+`./Scripts/run-simulator.sh --isolate --inspect --unlocked`.
+The Debug-only launch fixture grants Full Game access and reseeds the dedicated
+`development-unlocked` save with the existing Unlock All gameplay fixture on every
+launch (all characters at level 20, their ability/talent choices, and development
+inventory). Cloud sync is disabled and an explicit `-store-name` cannot redirect
+this fixture into an ordinary save. Its access survives foreground reconciliation
+through an in-memory storefront fixture; it creates no StoreKit transactions.
+Release builds ignore `-development-unlocked` and omit the access/seed fixture.
+Use the normal launch and StoreKit tests below for purchase behavior.
+
 Both **Trinket** and **Trinket Development** use the
 [local StoreKit configuration](../../StoreKit/Trinket.storekit) for Xcode Run,
 as configured in [project.yml](../../project.yml). The configuration
@@ -60,7 +71,8 @@ does not clear ownership. The developer gameplay Unlock All action only seeds
 gameplay data and is not purchase authorization.
 
 Launching outside Xcode's configured StoreKit session, including through the
-simulator script, does not activate that local purchase configuration. Without
+simulator script, does not activate that local purchase configuration. The explicit
+Debug unlocked fixture above provides gameplay access independently. Without
 App Store Connect setup, product loading there may be unavailable; free play
 still works. Distributed release builds have no purchase overrides. TestFlight
 purchases are sandbox-only and do not become production purchases.

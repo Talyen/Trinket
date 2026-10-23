@@ -37,9 +37,18 @@ extension AppState {
             resetState: environment.resetState,
             inMemoryOnly: environment.resetState && environment.storeName == nil,
         )
+        #if DEBUG
+        if environment.developmentUnlocked {
+            try resolvedPlayerSave.unlockAllContent()
+            resolvedPlayerSave.contentAccess = .fullGame
+        } else if environment.seedTestProgress {
+            try resolvedPlayerSave.applyTestSeed()
+        }
+        #else
         if environment.seedTestProgress {
             try resolvedPlayerSave.applyTestSeed()
         }
+        #endif
         try resolvedPlayerSave.applyLaunchOverrides(
             skipStarterSelection: environment.skipStarterSelection,
             startingGold: environment.startingGold,

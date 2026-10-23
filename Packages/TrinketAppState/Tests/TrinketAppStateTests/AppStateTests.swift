@@ -16,6 +16,24 @@ struct AppStateTests {
         context = try AppTestContext()
     }
 
+    #if DEBUG
+    @Test func `unlocked development launch seeds the roster and survives access reconciliation`() async throws {
+        let state = try context.makeAppState(arguments: ["-development-unlocked"], contentAccess: .free)
+        #expect(state.playerSave.contentAccess.hasFullGame)
+        #expect(state.fullGame.ownership.access.hasFullGame)
+        #expect(state.playerSave.roster.unlockedHeroIDs.contains("wildcard"))
+        #expect(state.playerSave.roster.unlockedHeroIDs.count == GameContent.heroes.count)
+        #expect(state.playerSave.roster.unlockedCompanionIDs.count == GameContent.companions.count)
+        await state.fullGame.start()
+        state.synchronizePurchaseAccess()
+        #expect(state.playerSave.contentAccess.hasFullGame)
+        #expect(state.preparedContentAccess.hasFullGame)
+        await state.fullGame.refreshOwnership()
+        state.synchronizePurchaseAccess()
+        #expect(state.playerSave.contentAccess.hasFullGame)
+    }
+    #endif
+
     @Test func `retained battle callbacks release the save and shell with AppState`() async throws {
         var battle: BattleSession?
         var state: AppState? = try AppState(

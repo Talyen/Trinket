@@ -32,6 +32,22 @@ struct AppEnvironmentTests {
         #endif
     }
 
+    @Test func `unlocked development launch isolates its save and cannot enable cloud sync`() {
+        let environment = Self.parse(
+            arguments: ["-development-unlocked", "-store-name", "ordinary-save", "-enable-cloud-sync"],
+            cloudDefault: true,
+        )
+        #if DEBUG
+        #expect(environment.developmentUnlocked)
+        #expect(environment.storeName == "development-unlocked")
+        #expect(environment.disableCloudSync)
+        #else
+        #expect(!environment.developmentUnlocked)
+        #expect(environment.storeName == "ordinary-save")
+        #endif
+        #expect(!Self.parse(arguments: []).developmentUnlocked)
+    }
+
     private static let emptyEnvironment: [String: String] = [:]
 
     private static func parse(

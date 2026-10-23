@@ -470,7 +470,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
 
     def test_simulator_launcher_installs_resolved_product_and_rejects_missing_outputs(self) -> None:
         for mode in ("valid", "missing-target", "missing-product", "missing-plist", "settings-failed",
-                     "inspect-stop", "inspect-capture", "inspect-capture-failed", "inspect-eof", "inspect-cancel", "inspect-no-terminal", "inspect-legacy"):
+                     "inspect-stop", "inspect-capture", "inspect-capture-failed", "inspect-eof", "inspect-cancel", "inspect-no-terminal", "inspect-legacy", "inspect-unlocked"):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 scripts = root / "Scripts"
@@ -518,6 +518,8 @@ if '-showBuildSettings' in sys.argv:
 """,
                     "xcrun": """#!/usr/bin/env python3
 import json, pathlib, sys
+if sys.argv[1:3] == ['simctl', 'launch']:
+    pathlib.Path('launch.json').write_text(json.dumps(sys.argv[3:]))
 if sys.argv[1:3] == ['simctl', 'install']:
     pathlib.Path('install.json').write_text(json.dumps(sys.argv[3:]))
     if not pathlib.Path('mode').read_text().startswith('inspect-'):
@@ -549,6 +551,8 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                 if mode.startswith("inspect-"):
                     environment.pop("DEVELOPER_DIR", None)
                     command = [str(scripts / "run-simulator.sh"), "--isolate", "--inspect"]
+                    if mode == "inspect-unlocked":
+                        command += ["--unlocked", "--", "-launch-screen", "hero:wildcard"]
                     if mode == "inspect-no-terminal":
                         result = run_captured(command, env=environment, stdin=subprocess.DEVNULL, expected=1)
                         self.assertFalse((root / ".DerivedData").exists())
@@ -607,6 +611,10 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                         os.close(master)
                         os.close(slave)
                     self.assertEqual(json.loads((root / "install.json").read_text()), ["fixture", str(app)])
+                    launch = json.loads((root / "launch.json").read_text())
+                    self.assertEqual(launch[:6], ["--terminate-running-process", "fixture", "fixture.trinket", "--", "-appearance", "dark"])
+                    self.assertEqual(launch[6:], ["-development-unlocked", "-launch-screen", "hero:wildcard"]
+                                     if mode == "inspect-unlocked" else [])
                     opened = json.loads((root / "open.json").read_text())
                     self.assertEqual(opened[:2], ["-a", str(device_app)])
                     self.assertEqual(opened[2:], ["--args", "-CurrentDeviceUDID", "fixture"]

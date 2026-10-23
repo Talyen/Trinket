@@ -77,6 +77,15 @@ For interactive inspection, use one persistent terminal session:
 ./Scripts/run-simulator.sh --isolate --inspect
 ```
 
+For a fully unlocked gameplay inspection, add `--unlocked`. It uses a separate,
+freshly seeded development save with Debug-only Full Game access and cloud sync
+disabled; [Purchases](Purchases.md#local-development) owns that fixture and its
+separate StoreKit testing path. App arguments follow `--`, for example:
+
+```bash
+./Scripts/run-simulator.sh --isolate --inspect --unlocked -- -launch-screen hero:wildcard
+```
+
 Run the command in an interactive terminal session (e.g. using `run_command` with RunPersistent or `exec_command` with `tty=true`) and retain its session. The
 launcher acquires an available agent slot, builds, installs, launches, then
 prints `Inspection ready` with the simulator name, UDID, bundle ID, product

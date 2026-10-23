@@ -8,6 +8,7 @@ public struct AppEnvironment: Sendable {
     public let launchScreen: LaunchScreen?
     public let resetState: Bool
     public let seedTestProgress: Bool
+    let developmentUnlocked: Bool
     let equipmentPickerFixture: Bool
     public let skipStarterSelection: Bool
     public let disableCloudSync: Bool
@@ -56,9 +57,12 @@ public struct AppEnvironment: Sendable {
 
         let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
         let equipmentPickerFixture: Bool
+        let developmentUnlocked: Bool
         #if DEBUG
+        developmentUnlocked = arguments.contains("-development-unlocked")
         equipmentPickerFixture = arguments.contains("-equipment-picker-fixture") && arguments.contains("-seed-test-progress")
         #else
+        developmentUnlocked = false
         equipmentPickerFixture = false
         #endif
         let cloudSyncRequested: Bool
@@ -79,6 +83,7 @@ public struct AppEnvironment: Sendable {
             || arguments.contains("-disable-cloud-sync")
             || arguments.contains("-reset-state")
             || arguments.contains("-seed-test-progress")
+            || developmentUnlocked
             || isRunningTests
 
         return Self(
@@ -86,6 +91,7 @@ public struct AppEnvironment: Sendable {
             launchScreen: value(after: "-launch-screen").flatMap(LaunchScreen.parse),
             resetState: arguments.contains("-reset-state"),
             seedTestProgress: arguments.contains("-seed-test-progress"),
+            developmentUnlocked: developmentUnlocked,
             equipmentPickerFixture: equipmentPickerFixture,
             skipStarterSelection: arguments.contains("-skip-starter-selection"),
             disableCloudSync: disableCloudSync,
@@ -93,7 +99,7 @@ public struct AppEnvironment: Sendable {
             completedStageIDs: (value(after: "-completed-stages") ?? "").split(separator: ",")
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty },
             mysteryRecruitEventID: value(after: "-mystery-recruit-event"),
-            storeName: value(after: "-store-name"),
+            storeName: developmentUnlocked ? "development-unlocked" : value(after: "-store-name"),
             battleTickInterval: value(after: "-battle-tick-interval")
                 .flatMap(TimeInterval.init)
                 .flatMap { $0.isFinite && $0 > 0 ? $0 : nil },

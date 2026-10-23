@@ -46,6 +46,21 @@ public final class FullGameStore {
         self.storefront = storefront
     }
 
+    #if DEBUG
+    /// Ephemeral access for gameplay inspection; never creates a StoreKit transaction.
+    static func developmentUnlocked() -> FullGameStore {
+        let store = FullGameStore(storefront: FullGameStorefront(
+            currentOwnership: { .purchased },
+            observeUpdates: { _ in },
+            recoverUnfinished: { _ in },
+            loadProduct: { nil },
+            sync: {},
+        ))
+        store.ownership = .purchased
+        return store
+    }
+    #endif
+
     deinit {
         listener?.cancel()
     }
