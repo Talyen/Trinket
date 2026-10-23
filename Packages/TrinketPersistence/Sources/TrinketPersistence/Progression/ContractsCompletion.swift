@@ -10,7 +10,6 @@ enum ContractsCompletion {
         rewards: EncounterRewards = .unsettled(.init()),
         save: inout PlayerSave,
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         guard !(save.contracts.completedOfferIDs ?? []).contains(offerID),
               let offer = save.contracts.offers.first(where: { $0.id == offerID }) else { return .alreadyCompleted }
@@ -35,7 +34,6 @@ enum ContractsCompletion {
         }
         VictoryRewardApplier.apply(
             settlement, hero: hero, companion: companion, save: &save,
-            claim: .contract(offerID), recordReceipt: recordReceipt,
         )
         save.contracts.recordVictory(encounterLevel: encounterLevel)
         save.contracts.replace(

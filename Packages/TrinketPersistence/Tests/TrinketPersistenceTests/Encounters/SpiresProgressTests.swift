@@ -50,7 +50,6 @@ struct SpiresProgressTests {
                 companion: attempt.roster.activeCompanion,
                 rewards: .unsettled(.init(enemyEncounterLevel: enemyEncounterLevel)),
                 save: &attempt,
-                recordReceipt: { _ in },
             )
             return attempt.roster.progression(for: hero).currentXP - before.currentXP
         }

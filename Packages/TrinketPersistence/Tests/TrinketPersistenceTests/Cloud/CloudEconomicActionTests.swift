@@ -81,20 +81,18 @@ struct CloudEconomicActionTests {
         let offer = try #require(stock.offers.first)
 
         var completed = base
-        var receipts: [SaveEconomicReceipt] = []
-        _ = try ShopPurchaseApplier.purchase(
-            offerID: offer.id, encounter: encounter, save: &completed,
-            recordReceipt: { receipts.append($0) },
-        ).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &completed).get()
+        let receipts = [SaveEconomicReceipt.resolved(
+            from: CloudSaveSnapshot(base), to: CloudSaveSnapshot(completed), kind: .shop(encounter, .init(offer)), claim: nil,
+        )]
         let completion = NonCombatEncounterCompletion.complete(
             encounter: encounter, grantingEncounterRewards: false, save: &completed,
-            recordReceipt: { receipts.append($0) },
         )
         #expect(completion == .completed)
 
         var peer = base
         _ = try ShopPurchaseApplier.purchase(
-            offerID: offer.id, encounter: encounter, save: &peer, recordReceipt: { _ in },
+            offerID: offer.id, encounter: encounter, save: &peer,
         ).get()
         let mutation = CloudSaveMutation(
             id: "completed-shop", changedSliceMask: PlayerSaveSlice.all.rawValue,
@@ -143,28 +141,29 @@ struct CloudEconomicActionTests {
         ShopStockPersistence.setPayload(payload, encounter: encounter, save: &base)
         let well = try #require(GameContent.homesteadNode(matching: .wishingWell))
         let field = try #require(GameContent.homesteadNode(matching: .wheatField))
-        var first = base
+        let batch = SaveEconomicMutation(base, sourceRevision: 0)
         var second = base
-        var receipts: [SaveEconomicReceipt] = []
-        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &first, recordReceipt: { receipts.append($0) })
-            .get()
-        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &second, recordReceipt: { _ in }).get()
+        _ = try batch.resolve(kind: .shop(encounter, .init(offer))) { save in
+            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save)
+        }.get()
+        _ = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &second).get()
         for definition in [well, field] {
-            guard case .success = HomesteadBuildMutation.apply(
-                definition.id,
-                targetTier: 1,
-                at: date,
-                to: &first,
-                recordReceipt: { receipts.append($0) },
-            )
+            guard case .success = batch.resolve(kind: .upgrade(definition.id, 1), { save in
+                HomesteadBuildMutation.apply(definition.id, targetTier: 1, at: date, to: &save)
+            })
             else { Issue.record("Expected affordable build"); return }
         }
-        guard case .success = HomesteadBuildMutation.apply(well.id, targetTier: 1, at: date, to: &second, recordReceipt: { _ in })
+        guard case .success = HomesteadBuildMutation.apply(well.id, targetTier: 1, at: date, to: &second)
         else { Issue.record("Expected shared build"); return }
-        let materials = try ItemSalvageApplier.salvage(itemID: item.id, save: &first, recordReceipt: { receipts.append($0) }).get()
+        let materials = try batch.resolve(claim: .salvage(item.id)) { save in
+            ItemSalvageApplier.salvage(itemID: item.id, save: &save)
+        }.get()
+        let first = batch.save
+        var positions: [HomesteadResource: UInt64] = [:]
+        let operations = try ResolvedSaveAction.records(batch.actions, following: CloudSaveSnapshot(base), positions: &positions)
         let mutation = CloudSaveMutation(
             id: "composite", changedSliceMask: PlayerSaveSlice.all.rawValue,
-            before: CloudSaveSnapshot(base), after: CloudSaveSnapshot(first), receipts: receipts,
+            before: CloudSaveSnapshot(base), after: CloudSaveSnapshot(first), actions: operations,
         )
         let head = try resolve([mutation], incoming: first, base: base, existing: second)
         let merged = try head.revision.snapshot.restored()
@@ -190,6 +189,105 @@ struct CloudEconomicActionTests {
         #expect(reloaded.inventory.item(matching: item.id) == nil)
         #expect(reloaded.homestead.tier(for: .wheatField) == 1)
         #expect(reloaded.homestead.tier(for: .wishingWell) == 1)
+    }
+
+    @Test func `duplicate operation keeps the accepted reward without granting an alternative item`() throws {
+        var base = PlayerSave.testSeed
+        base.inventory.items = []
+        base.roster.gold = 100
+        let stage = try #require(GameContent.chapters.flatMap(\.stages).first { $0.encounter.isCombat })
+        let template = try #require(GameContent.sampleInventoryItems.first)
+        let localItem = template.rewardInstance(for: "local-alternative")
+        let acceptedItem = template.rewardInstance(for: "accepted-alternative")
+        var local = base
+        local.inventory.appendUniqueItem(localItem)
+        local.roster.gold += 10
+        local.journey.markRewardsClaimed(for: stage)
+        var accepted = base
+        accepted.inventory.appendUniqueItem(acceptedItem)
+        accepted.roster.gold += 17
+        accepted.journey.markRewardsClaimed(for: stage)
+        let action = ResolvedSaveAction(
+            before: CloudSaveSnapshot(base), after: CloudSaveSnapshot(local), kind: .reward, claim: .journey(stage.id),
+        )
+        let mutation = CloudSaveMutation(
+            id: "alternative", changedSliceMask: PlayerSaveSlice.all.rawValue,
+            before: action.before, after: action.after, actions: [.init(action, following: action.before)],
+        )
+        let head = try resolve([mutation], incoming: local, base: base, existing: accepted)
+        let merged = try head.revision.snapshot.restored()
+        #expect(merged.roster.gold == 117)
+        #expect(merged.inventory.items.map(\.id) == [acceptedItem.id])
+    }
+
+    @Test func `future operations and uncovered economic gaps refuse both attachment and replay`() throws {
+        let base = PlayerSave.testSeed
+        var after = base
+        after.roster.gold += 5
+        let action = ResolvedSaveAction(before: CloudSaveSnapshot(base), after: CloudSaveSnapshot(after), kind: .reward, claim: nil)
+        var future = ResolvedSaveAction.Record(action, following: action.before)
+        future.formatVersion += 1
+        let mutations = [
+            CloudSaveMutation(
+                id: "future-operation", changedSliceMask: PlayerSaveSlice.all.rawValue,
+                before: action.before, after: action.after, actions: [future],
+            ),
+            CloudSaveMutation(
+                id: "uncovered", changedSliceMask: PlayerSaveSlice.all.rawValue,
+                before: action.before, after: action.after, actions: [],
+            ),
+        ]
+        for mutation in mutations {
+            let journal = try JSONDecoder().decode(CloudSaveJournal.self, from: JSONEncoder().encode(CloudSaveJournal([mutation])))
+            for server in [Optional(base), nil] {
+                #expect(throws: CloudSaveError.unsupportedSave) {
+                    try resolve(Array(journal), incoming: after, base: base, existing: server)
+                }
+            }
+        }
+    }
+
+    @Test func `structural gaps cannot replace independently replayed economics`() throws {
+        var base = PlayerSave.testSeed
+        base.roster.gold = 100
+        let hero = base.roster.activeHero
+        var awarded = base
+        awarded.roster.gold += 5
+        awarded.homestead.resources[.iron, default: 0] += 3
+        awarded.roster.grantExperience(9, to: hero)
+        let action = ResolvedSaveAction(
+            before: CloudSaveSnapshot(base), after: CloudSaveSnapshot(awarded), kind: .reward, claim: nil,
+        )
+        var final = awarded
+        final.corruptionAltarCooldownRemaining = 1
+        var peer = base
+        peer.roster.gold += 17
+        peer.homestead.resources[.iron, default: 0] += 7
+        peer.roster.grantExperience(11, to: hero)
+        let mutation = CloudSaveMutation(
+            id: "award-and-structural-gap", changedSliceMask: PlayerSaveSlice.all.rawValue,
+            before: action.before, after: CloudSaveSnapshot(final), actions: [.init(action, following: action.before)],
+        )
+        let merged = try resolve([mutation], incoming: final, base: base, existing: peer).revision.snapshot.restored()
+        #expect(merged.roster.gold == 122)
+        #expect(merged.homestead.resources[.iron, default: 0] == base.homestead.resources[.iron, default: 0] + 10)
+        #expect(merged.roster.progression(for: hero).totalEarnedExperience == base.roster.progression(for: hero).totalEarnedExperience + 20)
+        #expect(merged.corruptionAltarCooldownRemaining == 1)
+    }
+
+    @Test(arguments: [false, true])
+    func `absent and empty historical receipts retain different replay semantics`(hasReceipts: Bool) throws {
+        var base = PlayerSave.testSeed
+        base.roster.gold = 100
+        var after = base
+        after.roster.gold += 5
+        let mutation = CloudSaveMutation(
+            id: "historical", changedSliceMask: PlayerSaveSlice.roster.rawValue,
+            before: CloudSaveSnapshot(base), after: CloudSaveSnapshot(after), receipts: hasReceipts ? [] : nil,
+        )
+        let decoded = try JSONDecoder().decode(CloudSaveMutation.self, from: JSONEncoder().encode(mutation))
+        let merged = try resolve([decoded], incoming: after, base: base, existing: base).revision.snapshot.restored()
+        #expect(merged.roster.gold == (hasReceipts ? 100 : 105))
     }
 
     private func resolve(

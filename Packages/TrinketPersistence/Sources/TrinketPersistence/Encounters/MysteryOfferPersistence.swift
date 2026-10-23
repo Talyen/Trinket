@@ -113,7 +113,6 @@ public enum MysteryOfferPersistence {
         else { return result }
         guard NonCombatEncounterCompletion.complete(
             encounter: encounter, grantingEncounterRewards: false, save: &candidate,
-            recordReceipt: { _ in },
         ) == .completed else { return MysteryEffectResult() }
         clear(encounter: encounter, save: &candidate)
         ItemCorruptionApplier.noteMysteryCompleted(save: &candidate)

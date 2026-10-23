@@ -48,7 +48,6 @@ struct CloudSaveMergeContractRefreshTests {
             #expect(ContractsCompletion.complete(
                 offerID: offer.id, hero: candidate.roster.activeHero, companion: candidate.roster.activeCompanion,
                 rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: 1)), save: &candidate,
-                recordReceipt: { _ in },
             ) == .completed)
             let refreshed = candidate.contracts.refresh()
             #expect(refreshed)

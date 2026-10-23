@@ -70,13 +70,39 @@ struct CloudSaveMutation: Codable, Equatable, Sendable {
     let after: CloudSaveSnapshot
     let economy: CloudEconomicAction?
     let receipts: [SaveEconomicReceipt]?
+    let actions: [ResolvedSaveAction.Record]?
     let collectionPositions: [HomesteadResource: UInt64]?
+
+    enum Replay {
+        case actions([ResolvedSaveAction.Record])
+        case receipts([SaveEconomicReceipt])
+        case economicDelta(CloudEconomicAction)
+        case snapshot
+    }
+
+    /// Absence and an explicitly empty receipt/action list carry different history.
+    var replay: Replay {
+        get throws {
+            if let actions {
+                guard receipts == nil, economy == nil else { throw CloudSaveError.unsupportedSave }
+                return .actions(actions)
+            }
+            if let receipts {
+                return .receipts(receipts)
+            }
+            if let economy {
+                return .economicDelta(economy)
+            }
+            return .snapshot
+        }
+    }
 
     init(
         id: String, changedSliceMask: UInt16,
         before: CloudSaveSnapshot, after: CloudSaveSnapshot,
         economy: CloudEconomicAction? = nil,
         receipts: [SaveEconomicReceipt]? = nil,
+        actions: [ResolvedSaveAction.Record]? = nil,
         collectionPositions: [HomesteadResource: UInt64]? = nil,
     ) {
         self.id = id
@@ -85,6 +111,7 @@ struct CloudSaveMutation: Codable, Equatable, Sendable {
         self.after = after
         self.economy = economy
         self.receipts = receipts
+        self.actions = actions
         self.collectionPositions = collectionPositions
     }
 }
@@ -155,7 +182,7 @@ struct CloudDeviceState: Codable, Equatable, Sendable {
     static func decode(_ data: Data?) throws -> Self {
         guard let data else { return Self() }
         var value = try JSONDecoder().decode(Self.self, from: data)
-        guard (1 ... 3).contains(value.formatVersion) else { throw CloudSaveError.unsupportedSave }
+        guard (1 ... 4).contains(value.formatVersion) else { throw CloudSaveError.unsupportedSave }
         value.formatVersion = max(2, value.formatVersion)
         return value
     }

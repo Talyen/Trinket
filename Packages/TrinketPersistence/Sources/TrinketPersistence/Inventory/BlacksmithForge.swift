@@ -29,19 +29,13 @@ enum BlacksmithForgeApplier {
     static func apply(
         _ plan: BlacksmithForgePlan,
         to save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> Result<InventoryItem, BlacksmithForgeFailure> {
-        let before = save
-        let result = plan.apply(
+        plan.apply(
             inventory: &save.inventory.items,
             homestead: &save.homestead,
             gold: &save.roster.gold,
             unlockedRecipeIDs: save.library.isReadable ? save.library.progress.unlockedRecipeIDs : [],
         ).mapError(BlacksmithForgeFailure.init)
-        if case .success = result {
-            recordReceipt(.reward(from: before, to: save))
-        }
-        return result
     }
 }
 
@@ -70,8 +64,8 @@ public extension PlayerSaveStore {
         case let .failure(error): return .failure(error)
         }
         let result = await retryingSaveTransaction {
-            self.persistTransaction(logging: "Failed to forge Blacksmith item") { save, recordReceipt in
-                BlacksmithForgeApplier.apply(plan, to: &save, recordReceipt: recordReceipt)
+            self.persistAction(logging: "Failed to forge Blacksmith item") { save in
+                BlacksmithForgeApplier.apply(plan, to: &save)
             }
         }
         switch result {

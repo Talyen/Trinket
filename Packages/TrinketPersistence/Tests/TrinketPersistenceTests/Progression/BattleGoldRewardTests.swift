@@ -35,7 +35,7 @@ struct BattleGoldRewardTests {
             )
             VictoryRewardApplier.apply(
                 settlement, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-                save: &save, recordReceipt: { _ in },
+                save: &save,
             )
         })
         let reloaded = try context.makeReloadedStore()
@@ -96,7 +96,7 @@ struct BattleGoldRewardTests {
                 battleGold: .init(gained: 3),
                 inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
             )
-            VictoryRewardApplier.apply(settlement, hero: hero, companion: companion, save: &save, recordReceipt: { _ in })
+            VictoryRewardApplier.apply(settlement, hero: hero, companion: companion, save: &save)
         })
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.gold == 108)

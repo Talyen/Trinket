@@ -133,8 +133,11 @@ mutation entry points are package-scoped; resolution owns action/card talent fra
 Save slices are read-only projections updated through explicit Persistence commands.
 Unrestricted save/roster mutation closures and economic receipts are internal to
 Persistence. AppState supplies battle/encounter inputs and acts on committed results;
-loadout and party edits use domain commands. Economic commits reject incomplete
-receipt coverage before publishing the candidate or writing its journal.
+loadout and party edits use domain commands. Economic commands resolve complete
+actions and derive receipt amounts from their recorded changes. Commit rejects
+incomplete economic coverage before publishing or journaling; new replay makes one
+duplicate decision for each action's structural and economic effects. Historical
+journal formats retain their version-specific readers.
 Battle completion and Retry read authoritative coordinator records; presentation
 contracts receive a supplied reward plan and never define saved reward policy.
 

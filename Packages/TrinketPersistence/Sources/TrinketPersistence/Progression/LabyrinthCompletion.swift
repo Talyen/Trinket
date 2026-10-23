@@ -28,7 +28,6 @@ public enum LabyrinthCompletion {
         rewards: EncounterRewards = .unsettled(.init()),
         save: inout PlayerSave,
         access: ContentAccessPolicy = .fullGame,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         let eligibleRecruitEventIDs = save.roster.eligibleRecruitEventIDs(access: access)
         save.labyrinth.ensureMap(
@@ -61,7 +60,6 @@ public enum LabyrinthCompletion {
         }
         VictoryRewardApplier.apply(
             settlement, hero: hero, companion: companion, save: &save,
-            claim: .labyrinth(seed: save.labyrinth.worldSeed, nodeID: nodeID), recordReceipt: recordReceipt,
         )
         if isCombat {
             save.contracts.recordVictory(encounterLevel: encounterLevel)

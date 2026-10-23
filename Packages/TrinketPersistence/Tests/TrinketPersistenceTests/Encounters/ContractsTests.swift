@@ -82,7 +82,7 @@ struct ContractBoardTests {
         )
         VictoryRewardApplier.apply(
             settlement, hero: hero, companion: companion,
-            save: &expected, recordReceipt: { _ in },
+            save: &expected,
         )
 
         #expect(ContractsCompletion.complete(
@@ -90,7 +90,6 @@ struct ContractBoardTests {
             rewards: .unsettled(.init(
                 battleGold: .init(gained: 5), loot: loot, enemyEncounterLevel: level,
             )), save: &save,
-            recordReceipt: { _ in },
         ) == .completed)
         #expect(save.roster == expected.roster)
         #expect(save.inventory == expected.inventory)
@@ -112,7 +111,6 @@ struct ContractBoardTests {
             rewards: .unsettled(.init(
                 battleGold: .init(gained: 5), loot: loot, enemyEncounterLevel: level,
             )), save: &save,
-            recordReceipt: { _ in },
         ) == .alreadyCompleted)
         #expect(save == claimed)
     }
@@ -128,7 +126,6 @@ struct ContractBoardTests {
         #expect(ContractsCompletion.complete(
             offerID: hard.id, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
             rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: 5)), save: &save,
-            recordReceipt: { _ in },
         ) == .completed)
         #expect(save.inventory.item(matching: item.id) == item)
     }
@@ -201,7 +198,6 @@ struct ContractsPersistenceTests {
             _ = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: level)),
                 save: &save,
-                recordReceipt: { _ in },
             )
         }
         #expect(!failed)
@@ -212,7 +208,6 @@ struct ContractsPersistenceTests {
             _ = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: level)),
                 save: &save,
-                recordReceipt: { _ in },
             )
         })
         let claimed = failedReload.currentSave
@@ -223,7 +218,6 @@ struct ContractsPersistenceTests {
             applied = ContractsCompletion.complete(
                 offerID: offer.id, hero: hero, companion: companion, rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: level)),
                 save: &save,
-                recordReceipt: { _ in },
             )
         })
         #expect(applied == .alreadyCompleted)

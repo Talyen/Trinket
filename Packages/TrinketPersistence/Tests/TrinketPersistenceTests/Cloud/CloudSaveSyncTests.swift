@@ -154,7 +154,7 @@ struct CloudSaveSyncTests {
         _ = try playOfflineContract(#require(b), offerID: offer.id, loot: loot, gains: 2, spending: (11, 5))
         let journal = try #require(b?.cloudDeviceState.account.journal)
         #expect(journal.count == 72)
-        #expect(journal.allSatisfy { $0.economy != nil || $0.receipts != nil })
+        #expect(journal.allSatisfy { $0.economy != nil || $0.receipts != nil || $0.actions != nil })
         #if DEBUG
         b?.forcesNextSaveFailure = true
         #expect(b?.persistFixtureBatch(logging: "Rejected earnings") { $0.roster.gold += 9 } == false)
@@ -195,15 +195,15 @@ extension CloudSaveSyncTests {
         gains: Int, spending: (gold: Int, food: Int),
     ) -> PlayerSave {
         let hero = store.roster.activeHero
-        let committed = store.persistBatch(logging: "Shared Contract") { save, recordReceipt in
-            let completion = ContractsCompletion.complete(
-                offerID: offerID, hero: hero, companion: save.roster.activeCompanion,
-                rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: 1)), save: &save, recordReceipt: recordReceipt,
-            )
-            #expect(completion == .completed)
-        }
-        #expect(committed)
-        #expect(store.cloudDeviceState.account.journal?.first?.receipts?.first?.effects.claim == .contract(offerID))
+        let committed: SaveTransactionResult<EncounterCompletion, Never> = store
+            .persistAction(claim: .contract(offerID), logging: "Shared Contract") { save in
+                .success(ContractsCompletion.complete(
+                    offerID: offerID, hero: hero, companion: save.roster.activeCompanion,
+                    rewards: .unsettled(.init(loot: loot, enemyEncounterLevel: 1)), save: &save,
+                ))
+            }
+        guard case .committed(.completed) = committed else { Issue.record("Expected Contract commit"); return store.currentSave }
+        #expect(store.cloudDeviceState.account.journal?.first?.actions?.first?.claim == .contract(offerID))
         let claimed = store.currentSave
         for _ in 0 ..< 70 {
             #expect(store.persistFixtureBatch(logging: "Offline battle") { save in

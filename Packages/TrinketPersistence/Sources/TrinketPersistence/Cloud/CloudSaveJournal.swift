@@ -11,6 +11,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
         let after: CloudSaveSnapshotDelta
         let economy: CloudEconomicAction?
         let receipts: [SaveEconomicReceipt]?
+        let actions: [ResolvedSaveAction.Record]?
         let collectionPositions: [HomesteadResource: UInt64]?
     }
 
@@ -18,6 +19,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
     private(set) var checkpoint: CloudSaveSnapshot?
     private(set) var lastSnapshot: CloudSaveSnapshot?
     private var history = CloudSaveJournalRecords()
+    private var hasActions = false
 
     init(_ mutations: [CloudSaveMutation] = []) {
         id = UUID().uuidString
@@ -44,6 +46,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
     }
 
     mutating func append(_ mutation: CloudSaveMutation) {
+        hasActions = hasActions || mutation.actions != nil
         let previous = lastSnapshot ?? mutation.before
         if checkpoint == nil {
             checkpoint = mutation.before
@@ -54,7 +57,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
             before: gap.changes.isEmpty ? nil : gap,
             after: CloudSaveSnapshotDelta(from: mutation.before, to: mutation.after),
             economy: mutation.economy,
-            receipts: mutation.receipts,
+            receipts: mutation.receipts, actions: mutation.actions,
             collectionPositions: mutation.collectionPositions,
         ))
         lastSnapshot = mutation.after
@@ -94,7 +97,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
             self.snapshot = after
             return CloudSaveMutation(
                 id: record.id, changedSliceMask: record.changedSliceMask,
-                before: before, after: after, economy: record.economy, receipts: record.receipts,
+                before: before, after: after, economy: record.economy, receipts: record.receipts, actions: record.actions,
                 collectionPositions: record.collectionPositions,
             )
         }
@@ -126,7 +129,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
             return
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        guard try container.decode(Int.self, forKey: .version) == 1 else { throw CloudSaveError.unsupportedSave }
+        guard try (1 ... 2).contains(container.decode(Int.self, forKey: .version)) else { throw CloudSaveError.unsupportedSave }
         let id = try container.decode(String.self, forKey: .id)
         let count = try container.decode(Int.self, forKey: .count)
         guard count >= 0 else { throw CloudSaveError.unsupportedSave }
@@ -155,6 +158,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
     }
 
     private mutating func appendDecoded(_ record: Record) {
+        hasActions = hasActions || record.actions != nil
         history.append(record)
         if let current = lastSnapshot {
             let before = record.before?.applying(to: current) ?? current
@@ -164,7 +168,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(1, forKey: .version)
+        try container.encode(hasActions ? 2 : 1, forKey: .version)
         try container.encode(id, forKey: .id)
         try container.encode(count, forKey: .count)
         if let key = Self.referencesKey, encoder.userInfo[key] as? Bool == true {

@@ -26,8 +26,8 @@ public extension PlayerSaveStore {
     ) async -> HomesteadBuildResult {
         let result = await retryingSaveTransaction {
             try prepareLocalProduction()
-            return persistTransaction(logging: "Failed to build or upgrade homestead node") { save, recordReceipt in
-                HomesteadBuildMutation.apply(nodeID, targetTier: targetTier, at: date, to: &save, recordReceipt: recordReceipt)
+            return persistAction(kind: .upgrade(nodeID, targetTier), logging: "Failed to build or upgrade homestead node") { save in
+                HomesteadBuildMutation.apply(nodeID, targetTier: targetTier, at: date, to: &save)
             }
         }
         switch result {
@@ -42,22 +42,18 @@ public extension PlayerSaveStore {
     func collectProduction(at date: Date = Date()) async -> HomesteadCollectionResult {
         let result = await retryingSaveTransaction {
             try prepareLocalProduction()
-            return persistTransaction(logging: "Failed to collect homestead production") { save, recordReceipt -> Result<
+            var settled = currentSave.homestead
+            settled.settleProduction(at: date, gold: currentSave.roster.gold)
+            let collection = SaveEconomicReceipt.Collection(
+                pending: settled.pendingProduction, nodeTiers: settled.nodeTiers,
+                date: settled.lastProductionAt, gold: currentSave.roster.gold,
+            )
+            return persistAction(kind: .collection(collection), logging: "Failed to collect homestead production") { save -> Result<
                 [ResourceAmount],
                 Never,
             > in
                 save.homestead.settleProduction(at: date, gold: save.roster.gold)
-                let collection = SaveEconomicReceipt.Collection(
-                    pending: save.homestead.pendingProduction, nodeTiers: save.homestead.nodeTiers,
-                    date: save.homestead.lastProductionAt, gold: save.roster.gold,
-                )
                 let collected = save.homestead.collectProduction(at: date, gold: &save.roster.gold)
-                let amounts = Dictionary(uniqueKeysWithValues: collected.map { ($0.resource, $0.quantity) })
-                if !collected.isEmpty {
-                    recordReceipt(SaveEconomicReceipt(kind: .collection(collection), effects: .committed(
-                        gold: amounts[.gold, default: 0], materials: amounts.filter { $0.key != .gold },
-                    )))
-                }
                 return .success(collected)
             }
         }
@@ -81,20 +77,12 @@ enum HomesteadBuildMutation {
         targetTier: Int,
         at date: Date,
         to save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> Result<Void, HomesteadBuildFailure> {
         guard let definition = GameContent.homesteadNode(matching: nodeID),
               let tier = save.homestead.nextTier(for: definition), tier.tier == targetTier else { return .failure(.notAvailable) }
         save.homestead.settleProduction(at: date, gold: save.roster.gold)
         guard save.homestead.canAfford(tier, gold: save.roster.gold) else { return .failure(.insufficientResources) }
         guard save.homestead.buildOrUpgrade(definition, gold: &save.roster.gold) else { return .failure(.notAvailable) }
-        var costs: [HomesteadResource: Int] = [:]
-        for amount in tier.cost {
-            costs[amount.resource, default: 0] -= amount.quantity
-        }
-        recordReceipt(SaveEconomicReceipt(kind: .upgrade(definition.id, tier.tier), effects: .committed(
-            gold: costs[.gold, default: 0], materials: costs.filter { $0.key != .gold },
-        )))
         return .success(())
     }
 }

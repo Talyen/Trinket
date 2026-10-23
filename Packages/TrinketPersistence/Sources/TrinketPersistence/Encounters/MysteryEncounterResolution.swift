@@ -141,7 +141,7 @@ public enum MysteryEncounterResolution {
     }
 
     private static func complete(_ request: MysteryEncounterRequest, event: MysteryEvent, save: inout PlayerSave) -> Bool {
-        guard NonCombatEncounterCompletion.complete(encounter: request.encounter, save: &save, recordReceipt: { _ in }) == .completed
+        guard NonCombatEncounterCompletion.complete(encounter: request.encounter, save: &save) == .completed
         else { return false }
         if request.eventID == GameContent.corruptionAltarEventID || event.choices
             .contains(where: { $0.effects.contains(.corruptItem) }) {

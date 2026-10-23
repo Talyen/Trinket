@@ -6,6 +6,10 @@ import TrinketCore
 /// The common ancestor makes resource deltas meaningful; unrelated older saves
 /// use the larger balance because their shared rewards cannot be identified.
 enum CloudSaveMerge {
+    enum Economy {
+        case inferred, receipts, actions
+    }
+
     /// One reconciliation decision shared by every save slice.
     struct Branches {
         let incoming: PlayerSave
@@ -16,7 +20,7 @@ enum CloudSaveMerge {
         /// Overlapping claims may describe the same payout on both branches.
         let canCombineIndependentRewards: Bool
 
-        init(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?, preferIncoming: Bool, reconcileEconomy: Bool = true) {
+        init(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?, preferIncoming: Bool, economy: Economy) {
             self.incoming = incoming
             self.existing = existing
             self.base = base
@@ -24,7 +28,7 @@ enum CloudSaveMerge {
                 ? preferIncoming : incoming.modifiedAt > existing.modifiedAt
             recent = prefersIncoming ? incoming : existing
             other = prefersIncoming ? existing : incoming
-            canCombineIndependentRewards = reconcileEconomy && base != nil
+            canCombineIndependentRewards = economy == .inferred && base != nil
                 && !CloudSaveMerge.hasDuplicateClaim(incoming: incoming, existing: existing, base: base)
         }
 
@@ -37,25 +41,44 @@ enum CloudSaveMerge {
         }
     }
 
+    /// Reconcile only fields changed by this action/gap. Unchanged monotonic
+    /// fields must not resurrect an alternative reward from a skipped action.
+    static func mergeChanges(
+        from before: CloudSaveSnapshot, to after: CloudSaveSnapshot, into existing: PlayerSave,
+    ) throws -> PlayerSave {
+        let delta = CloudSaveSnapshotDelta(from: before, to: after)
+        guard !delta.changes.isEmpty else { return existing }
+        let incoming = try delta.applying(to: CloudSaveSnapshot(existing)).restored()
+        return try merge(incoming: incoming, existing: existing, base: before.restored(), preferIncoming: true, economy: .actions)
+    }
+
     static func merge(
         incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?, preferIncoming: Bool,
-        reconcileEconomy: Bool = true,
+        economy: Economy = .inferred,
     ) -> PlayerSave {
         let branches = Branches(
             incoming: incoming,
             existing: existing,
             base: base,
             preferIncoming: preferIncoming,
-            reconcileEconomy: reconcileEconomy,
+            economy: economy,
         )
         var merged = branches.recent
+        if economy == .actions {
+            // Action replay owns these fields; structural merge starts with the
+            // existing economics instead of inferring and then undoing an award.
+            merged.roster.gold = existing.roster.gold
+            merged.roster.progressions = existing.roster.progressions
+            merged.homestead.resources = existing.homestead.resources
+            merged.homestead.rewardRemainders = existing.homestead.rewardRemainders
+        }
 
         mergeJourney(into: &merged, from: branches.other)
-        mergeRoster(into: &merged, branches: branches)
+        mergeRoster(into: &merged, branches: branches, mergeExperience: economy != .actions)
         mergeSelections(into: &merged, branches: branches)
         mergeInventory(into: &merged, from: branches.other, base: branches.base)
         preserveRecentWeaponPairs(into: &merged, recent: branches.recent, base: branches.base)
-        if reconcileEconomy {
+        if economy == .inferred {
             mergeEconomy(into: &merged, branches: branches)
         } else {
             merged.homestead.nodeTiers = incoming.homestead.nodeTiers.merging(existing.homestead.nodeTiers, uniquingKeysWith: max)
@@ -133,7 +156,7 @@ enum CloudSaveMerge {
         }
     }
 
-    private static func mergeRoster(into merged: inout PlayerSave, branches: Branches) {
+    private static func mergeRoster(into merged: inout PlayerSave, branches: Branches, mergeExperience: Bool) {
         let other = branches.other
         merged.roster.unlockedHeroIDs.formUnion(other.roster.unlockedHeroIDs)
         merged.roster.unlockedCompanionIDs.formUnion(other.roster.unlockedCompanionIDs)
@@ -149,6 +172,7 @@ enum CloudSaveMerge {
             }
             merged.roster.unlockedTalents[id] = talents.isEmpty ? nil : talents
         }
+        guard mergeExperience else { return }
         for (id, progression) in other.roster.progressions {
             if let current = merged.roster.progressions[id] {
                 merged.roster.progressions[id] = mergedProgression(

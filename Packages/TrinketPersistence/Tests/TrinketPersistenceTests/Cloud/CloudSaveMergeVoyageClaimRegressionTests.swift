@@ -30,7 +30,6 @@ struct CloudSaveMergeVoyageClaimRegressionTests {
                 runID: run.id, nodeID: battle.id, party: (hero, companion),
                 rewards: (settled: settled, earned: plan.resolve(battleGold: .init()), encounterLevel: 12),
                 save: &save, access: .free,
-                recordReceipt: { _ in },
             ) == .completed)
             return save
         }
@@ -256,7 +255,6 @@ struct CloudSaveMergeVoyageClaimRegressionTests {
             runID: run.id, nodeID: boss.id, party: (hero, companion),
             rewards: (settled: settled, earned: plan.resolve(battleGold: .init()), encounterLevel: 12),
             save: &save, access: .fullGame,
-            recordReceipt: { _ in },
         ) == .completed)
         return save
     }

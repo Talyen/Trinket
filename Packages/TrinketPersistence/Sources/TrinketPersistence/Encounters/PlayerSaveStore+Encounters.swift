@@ -10,12 +10,12 @@ public enum MysteryEncounterAction {
 @MainActor
 public extension PlayerSaveStore {
     func prepareShop(encounter: EncounterIdentity) -> SaveTransactionResult<ShopStock, ShopPurchaseFailure> {
-        persistTransaction(logging: "Failed to prepare shop stock") { save, recordReceipt in
+        persistAction(claim: encounter.economicClaim, logging: "Failed to prepare shop stock") { save in
             let prepared = ShopStockPersistence.prepare(encounter: encounter, save: &save)
             guard case let .success(stock) = prepared else { return prepared }
             if stock.offers.isEmpty {
                 guard NonCombatEncounterCompletion.complete(
-                    encounter: encounter, save: &save, access: contentAccess, recordReceipt: recordReceipt,
+                    encounter: encounter, save: &save, access: contentAccess,
                 ) == .completed else { return .failure(.invalidOffer) }
             }
             return .success(stock)
@@ -23,15 +23,24 @@ public extension PlayerSaveStore {
     }
 
     func purchaseShopOffer(offerID: String, encounter: EncounterIdentity) -> SaveTransactionResult<InventoryItem, ShopPurchaseFailure> {
-        persistTransaction(logging: "Failed to purchase shop offer") { save, recordReceipt in
-            ShopPurchaseApplier.purchase(offerID: offerID, encounter: encounter, save: &save, recordReceipt: recordReceipt)
+        let stock: ShopStock
+        do {
+            guard let prepared = try ShopStockPersistence.stock(encounter: encounter, save: currentSave)
+            else { return .rejected(.invalidOffer) }
+            stock = prepared
+        } catch {
+            return .rejected(.invalidOffer)
+        }
+        guard let offer = stock.offers.first(where: { $0.id == offerID }) else { return .rejected(.invalidOffer) }
+        return persistAction(kind: .shop(encounter, .init(offer)), logging: "Failed to purchase shop offer") { save in
+            ShopPurchaseApplier.purchase(offerID: offerID, encounter: encounter, save: &save)
         }
     }
 
     func finishShop(encounter: EncounterIdentity) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
-        persistTransaction(logging: "Failed to leave shop") { save, recordReceipt in
+        persistAction(claim: encounter.economicClaim, logging: "Failed to leave shop") { save in
             guard NonCombatEncounterCompletion.complete(
-                encounter: encounter, save: &save, access: contentAccess, recordReceipt: recordReceipt,
+                encounter: encounter, save: &save, access: contentAccess,
             ) == .completed else { return .failure(.unavailable) }
             return .success(())
         }
@@ -71,25 +80,17 @@ public extension PlayerSaveStore {
         _ request: MysteryEncounterRequest, action: MysteryEncounterAction,
         using random: inout some RandomNumberGenerator, at date: Date = Date(),
     ) -> SaveTransactionResult<MysteryChoiceOutcome, MysteryChoiceFailure> {
-        persistTransaction(logging: "Failed to resolve mystery encounter") { save, recordReceipt in
+        persistAction(claim: request.encounter.economicClaim, logging: "Failed to resolve mystery encounter") { save in
             guard let event = request.encounter.mysteryEvent(in: save, access: contentAccess),
                   event.id == request.eventID,
                   event.unlockCombatantID.map(contentAccess.allowsCombatant) ?? true
             else { return .failure(.unavailable) }
-            let before = save
-            let result = switch action {
+            return switch action {
             case let .choice(id):
                 MysteryEncounterResolution.resolve(choiceID: id, request: request, save: &save, using: &random, at: date)
             case let .corruptItem(id):
                 MysteryEncounterResolution.corrupt(itemID: id, request: request, save: &save, using: &random)
             }
-            if case .success = result {
-                // One encounter receipt includes its choice and completion payout.
-                // They share a claim, so separate receipts would deduplicate each other.
-                let claim = request.encounter.isPlayable(in: save) ? nil : request.encounter.economicClaim
-                recordReceipt(.reward(from: before, to: save, claim: claim))
-            }
-            return result
         }
     }
 }

@@ -16,7 +16,7 @@ enum CloudSaveReconciler {
         guard let server else {
             return try firstAttachment(request)
         }
-        guard (1 ... 2).contains(server.head.formatVersion) else { throw CloudSaveError.unsupportedSave }
+        guard (1 ... 3).contains(server.head.formatVersion) else { throw CloudSaveError.unsupportedSave }
         try server.head.productionClaims?.validate()
         let existing = server.head
         var oldSave = try existing.revision.snapshot.restored()
@@ -128,9 +128,21 @@ enum CloudSaveReconciler {
     }
 
     private static func validateEffects(in request: CloudSaveRequest) throws {
-        for mutation in request.mutations?.records ?? CloudSaveJournalRecords() {
+        for mutation in request.mutations ?? CloudSaveJournal() {
             try Task.checkCancellation()
             try mutation.economy?.validate()
+            let replay = try mutation.replay
+            // Validate every operation before any request can be accepted.
+            var previous = mutation.before
+            if case let .actions(actions) = replay {
+                for record in actions {
+                    try Task.checkCancellation()
+                    let action = try record.resolved(following: previous, finalSnapshot: mutation.after)
+                    try ResolvedSaveAction.requireNonEconomicChange(from: previous, to: action.before)
+                    previous = action.after
+                }
+                try ResolvedSaveAction.requireNonEconomicChange(from: previous, to: mutation.after)
+            }
             for receipt in mutation.receipts ?? [] {
                 try receipt.validate()
             }
@@ -143,10 +155,13 @@ enum CloudSaveReconciler {
             epoch: request.id, resetCount: request.action == .reset ? 1 : 0,
             authoritySequence: 0, revision: request.revision,
         )
-        if let mutations = request.mutations, mutations.records.contains(where: { $0.receipts != nil }) {
+        if let mutations = request.mutations, mutations.records.contains(where: { $0.receipts != nil || $0.actions != nil }) {
             var replay = CloudReceiptReplay(head: head)
-            replay.includeAccepted(mutations)
+            try replay.includeAccepted(mutations)
             replay.install(into: &head)
+            if mutations.records.contains(where: { $0.actions != nil }) {
+                head.formatVersion = 3
+            }
         }
         return resolution(head, request: request, outcome: .synchronized, backups: [], acceptedLocal: true)
     }
@@ -160,8 +175,11 @@ enum CloudSaveReconciler {
         if !mutations.isEmpty {
             var receiptReplay = CloudReceiptReplay(head: head)
             selected = try replay(mutations, onto: settledSave, receiptReplay: &receiptReplay)
-            if mutations.records.contains(where: { $0.receipts != nil }) {
+            if mutations.records.contains(where: { $0.receipts != nil || $0.actions != nil }) {
                 receiptReplay.install(into: &head)
+                if mutations.records.contains(where: { $0.actions != nil }) {
+                    head.formatVersion = 3
+                }
             }
             if let last = try mutations.lastSnapshot?.restored(), last.hasDomainDifference(from: incomingSave) {
                 selected = CloudSaveMerge.merge(
@@ -189,17 +207,35 @@ enum CloudSaveReconciler {
             try Task.checkCancellation()
             let before = try mutation.before.restored()
             let after = try mutation.after.restored()
-            var merged = CloudSaveMerge.merge(
-                incoming: after, existing: projected, base: before, preferIncoming: true,
-                reconcileEconomy: mutation.receipts == nil,
-            )
-            if let receipts = mutation.receipts {
+            switch try mutation.replay {
+            case let .actions(actions):
+                var previous = mutation.before
+                for record in actions {
+                    try Task.checkCancellation()
+                    let action = try record.resolved(following: previous, finalSnapshot: mutation.after)
+                    projected = try CloudSaveMerge.mergeChanges(from: previous, to: action.before, into: projected)
+                    projected = try receiptReplay.apply(action, collectionPositions: record.collectionPositions, onto: projected)
+                    previous = action.after
+                }
+                // Only edits outside action boundaries use residual snapshot merge.
+                projected = try CloudSaveMerge.mergeChanges(from: previous, to: mutation.after, into: projected)
+                receiptReplay.retireItems(in: &projected)
+            case let .receipts(receipts):
+                var merged = CloudSaveMerge.merge(
+                    incoming: after, existing: projected, base: before, preferIncoming: true, economy: .receipts,
+                )
                 try receiptReplay.apply(receipts, mutation: mutation, before: before, after: after, existing: projected, merged: &merged)
-            } else if let economy = mutation.economy {
+                receiptReplay.retireItems(in: &merged)
+                projected = merged
+            case let .economicDelta(economy):
+                var merged = CloudSaveMerge.merge(incoming: after, existing: projected, base: before, preferIncoming: true)
                 try economy.replay(onto: &merged, existing: projected, before: before)
+                receiptReplay.retireItems(in: &merged)
+                projected = merged
+            case .snapshot:
+                projected = CloudSaveMerge.merge(incoming: after, existing: projected, base: before, preferIncoming: true)
+                receiptReplay.retireItems(in: &projected)
             }
-            receiptReplay.retireItems(in: &merged)
-            projected = merged
         }
         return projected
     }
@@ -241,10 +277,10 @@ enum CloudSaveReconciler {
                     _ = claims.claim(amount.resource, start: start, quantity: amount.quantity)
                 }
                 head.productionClaims = claims
-                head.formatVersion = 2
+                head.formatVersion = max(2, head.formatVersion)
             }
         case let .upgrade(nodeID, tier):
-            switch HomesteadBuildMutation.apply(nodeID, targetTier: tier, at: date, to: &save, recordReceipt: { _ in }) {
+            switch HomesteadBuildMutation.apply(nodeID, targetTier: tier, at: date, to: &save) {
             case .success: break
             case .failure(.insufficientResources):
                 return resolution(head, request: request, outcome: .insufficientResources, backups: [])

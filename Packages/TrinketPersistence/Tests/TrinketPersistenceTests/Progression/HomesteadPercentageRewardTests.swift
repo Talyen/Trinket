@@ -24,7 +24,7 @@ struct HomesteadPercentageRewardTests {
                 )
                 VictoryRewardApplier.apply(
                     settlement, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-                    save: &save, recordReceipt: { _ in },
+                    save: &save,
                 )
             })
         }
@@ -40,7 +40,7 @@ struct HomesteadPercentageRewardTests {
             )
             VictoryRewardApplier.apply(
                 settlement, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-                save: &save, recordReceipt: { _ in },
+                save: &save,
             )
         })
         let final = try context.makeReloadedStore()

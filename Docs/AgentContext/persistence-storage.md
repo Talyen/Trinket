@@ -200,6 +200,19 @@ recovery during migration.
 
 ### Reconciliation
 
+Replay selects one explicit source per journal mutation: resolved actions, historical
+receipts, historical economic deltas, or snapshot-only history. Absent and empty
+receipt/action arrays are distinct. Action records cannot also supply receipts or
+legacy economic deltas. Historical readers retain their original overlap policies.
+
+| Fields | Action-backed replay owner |
+| --- | --- |
+| Inventory, equipment, navigation, completion markers, unlocks, building tiers | Structural merge of admitted changes after the shared duplicate decision |
+| Gold, materials, Experience, fractional reward balances | Recorded action effects; structural merge preserves the existing economic values |
+| Production credit and cursor | Settled existing production plus recorded collection intervals and unconsumed local credit |
+| Retired item identities | Replay state shared by the remote head |
+
+
 Cloud synchronization separates CPU-bound value planning from main-actor store
 work. `CloudSavePlanner` concurrently restores and merges snapshots, replays offline
 actions, and prepares local transitions; only immutable `Sendable` values cross
@@ -264,19 +277,41 @@ separate payouts into one snapshot pair: duplicate-claim detection would then
 suppress unrelated earnings in the collapsed batch.
 
 Battle rewards (including defeat XP), Salvage, Shop purchases, Homestead,
-Mystery choices and Blacksmith forging supply version-one `SaveEconomicReceipt`
-values inside Persistence-owned commands. Receipt-emitting appliers require the
-synchronous transaction collector; there is no default that silently discards effects. Each receipt records the
-actual committed currency, materials, XP, and fractional effects plus its claim
-identity, pinned item/price, or installed building tier. Composite transactions
-retain each receipt separately. Receipt-backed replay skips snapshot economic
-inference and applies only effects whose claims have not already been accepted;
-non-economic fields retain their snapshot reconciliation. Mystery records its choice
-and encounter completion as one receipt under the same claim. Commit checks full
-economic coverage before saving or journaling, so partial receipts cannot suppress
-unrecorded earnings during replay. Shop charges deduplicate
-only for matching pinned offers. Salvage retirement survives purchase-and-salvage
-in one transaction, where the starting Inventory has no item row.
+Mystery choices, forging, transmutation and inscription resolve complete actions
+inside Persistence. `ResolvedSaveAction` records the before/after values, semantic
+kind, and optional claim. Amounts, fractional effects, and XP are derived from
+these stored values before catalog repair; replay never rerolls rewards or rereads
+current prices. Each action includes its coupled item, equipment, encounter, and
+progress changes. Composite transactions retain ordered child actions, including
+intermediate purchase-and-salvage state that a final snapshot cannot reconstruct.
+Sanitation and Library reconciliation become part of the finalized last action.
+Commit retains full economic-coverage validation before publication or journaling.
+
+New journals encode version-one action records as checkpoint-relative gap/change
+deltas, under journal format 2 and device metadata format 4. The last action reuses
+the enclosing final snapshot instead of duplicating its Inventory/map payload.
+Each child retains its own production-consumption cursor. Frozen pending prefixes,
+request IDs, outbox row identities, and compensation remain unchanged. Remote heads
+advance to format 3 after accepting action records. Older readers reject these
+versions instead of dropping action semantics; new readers retain all supported
+historical journal, metadata, and head formats. Player value schema 20 and the
+SwiftData graph do not change. Unsupported action versions and economic edits in
+unowned gaps reject an upload before attachment or acknowledgment.
+
+Replay ownership is explicit:
+
+| Fields | Owner for new action records |
+|---|---|
+| Coupled items, equipment, claims, routes, unlocks, and other structural effects | One action-level duplicate decision precedes changed-field structural reconciliation. A skipped action cannot grant an alternative item through snapshot union. |
+| Gold, materials, XP and fractional balances | The same accepted action's derived receipt; structural merge does not decide these effects independently. |
+| Homestead production credit | Existing consumed-coordinate union and production-cursor policy; partially overlapping collections pay only uncovered quantities. |
+| Unrelated non-economic edits between or after actions | Changed-field residual reconciliation; economic edits in these gaps are refused. |
+| Historical snapshot/economy/receipt records | Their existing version-specific reconciliation, without inventing missing action boundaries. |
+
+Mystery records its choice and encounter completion as one action under the same
+claim. Shop actions retain the pinned item and price. Distinct claims in one
+transaction stay separate. Duplicate salvage and salvage after a shared purchase
+retain retirement identity even after the original Inventory row disappears.
 
 #### Homestead production identity
 
@@ -293,14 +328,14 @@ an unrelated reward. Spending does not alter these collection identities.
 Older records retain their version-one economic or conservative snapshot replay,
 including historically compacted records whose separate actions cannot be recovered.
 Current production commands always validate economic coverage, including an empty
-receipt set for non-economic edits. Unrestricted snapshot-inferred writes are
-Debug-only fixture APIs, preserving legacy replay coverage without a gameplay bypass.
+receipt set for non-economic edits. Independent receipt authoring and unrestricted
+snapshot-inferred writes are Debug-only fixture APIs for legacy replay coverage.
 Preserve older journal readers rather than reconstructing
 receipts whose separate actions are no longer recoverable. Unsupported
 receipt/economic versions reject the entire upload before acknowledging or changing
-progress. Local device metadata advances to version 3 when receipts are recorded;
-new readers also accept versions 1 and 2. Receipt-backed remote heads use version 2;
-new readers accept version 1, while older writers reject the newer head. This protects
+progress. Historical receipt-backed metadata uses version 3 and remote heads use version 2;
+new readers also accept metadata versions 1 and 2 and head version 1. New action
+records use the newer versions described above; older writers reject them. This protects
 receipt identities from downgrade writes without changing the player-save value or
 SwiftData graph schema.
 

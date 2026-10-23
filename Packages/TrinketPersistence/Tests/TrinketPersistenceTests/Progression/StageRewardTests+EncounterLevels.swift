@@ -59,7 +59,6 @@ extension StageRewardTests {
             rewards: .unsettled(.init(battleGold: .init(gained: 5))),
             in: GameContent.chapters,
             save: &save,
-            recordReceipt: { _ in },
         )
         #expect(first == .completed)
         let goldAfterFirst = save.roster.gold
@@ -71,7 +70,6 @@ extension StageRewardTests {
             rewards: .unsettled(.init(battleGold: .init(gained: 5))),
             in: GameContent.chapters,
             save: &save,
-            recordReceipt: { _ in },
         )
         #expect(second == .alreadyCompleted)
         #expect(save.roster.gold == goldAfterFirst)
@@ -99,7 +97,6 @@ extension StageRewardTests {
                 companion: save.roster.activeCompanion,
                 rewards: .unsettled(.init(enemyEncounterLevel: enemyEncounterLevel)),
                 save: &save,
-                recordReceipt: { _ in },
             )
             return save.roster.progression(for: hero).currentXP - before.currentXP
         }
@@ -131,7 +128,6 @@ extension StageRewardTests {
                 rewards: .unsettled(.init(enemyEncounterLevel: enemyEncounterLevel)),
                 in: GameContent.chapters,
                 save: &save,
-                recordReceipt: { _ in },
             )
         case .spire:
             let spire = try #require(GameContent.spire(id: .ironVein))
@@ -147,7 +143,6 @@ extension StageRewardTests {
                 companion: companion,
                 rewards: .unsettled(.init(enemyEncounterLevel: enemyEncounterLevel)),
                 save: &save,
-                recordReceipt: { _ in },
             )
         }
     }

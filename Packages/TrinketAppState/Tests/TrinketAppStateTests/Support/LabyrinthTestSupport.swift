@@ -22,7 +22,6 @@ enum LabyrinthTestSupport {
                 companion: roster.activeCompanion,
                 save: &save,
                 access: playerSave.contentAccess,
-                recordReceipt: { _ in },
             ) == .completed)
         }
     }

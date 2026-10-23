@@ -15,10 +15,8 @@ struct ShopPurchaseApplierTests {
         let loaded = try ShopStockPersistence.stock(encounter: current, save: save)
         let stock = try #require(loaded)
         #expect(stock.offers.map(\.id) == [offer.id])
-        #expect(ShopPurchaseApplier.purchase(offerID: offer.id, encounter: previous, save: &save, recordReceipt: { _ in
-        }) == .failure(.invalidOffer))
-        #expect(try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: current, save: &save, recordReceipt: { _ in
-        }).get() == offer.item)
+        #expect(ShopPurchaseApplier.purchase(offerID: offer.id, encounter: previous, save: &save) == .failure(.invalidOffer))
+        #expect(try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: current, save: &save).get() == offer.item)
     }
 
     @Test func `purchase settles production before opening gold capacity`() throws {
@@ -27,7 +25,7 @@ struct ShopPurchaseApplierTests {
         save.homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wishingWell: 1], lastProductionAt: start)
         let offer = try makeOffer(price: 28)
         let encounter = try pin([offer], in: &save)
-        let purchased = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save, recordReceipt: { _ in })
+        let purchased = try ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save)
             .get()
         #expect(purchased == offer.item)
         #expect(save.roster.gold == PlayerRosterState.maxGoldBalance - offer.price)
@@ -43,7 +41,7 @@ struct ShopPurchaseApplierTests {
         let encounter = try pin([offer], in: &save)
         let before = save
         let availability = ShopPurchaseApplier.availability(offerID: offer.id, encounter: encounter, save: save)
-        let result = ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save, recordReceipt: { _ in })
+        let result = ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save)
         if gold < offer.price {
             #expect(availability == .unavailable(.insufficientGold))
             #expect(result == .failure(.insufficientGold))
@@ -61,10 +59,8 @@ struct ShopPurchaseApplierTests {
         let offer = try makeOffer(price: -20)
         let encounter = try pin([offer], in: &save)
         let before = save
-        #expect(ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save, recordReceipt: { _ in
-        }) == .failure(.invalidOffer))
-        #expect(ShopPurchaseApplier.purchase(offerID: "unlisted", encounter: encounter, save: &save, recordReceipt: { _ in
-        }) == .failure(.invalidOffer))
+        #expect(ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save) == .failure(.invalidOffer))
+        #expect(ShopPurchaseApplier.purchase(offerID: "unlisted", encounter: encounter, save: &save) == .failure(.invalidOffer))
         #expect(save == before)
     }
 
@@ -76,9 +72,7 @@ struct ShopPurchaseApplierTests {
         let loaded = try ShopStockPersistence.stock(encounter: encounter, save: store.currentSave)
         let original = try #require(loaded)
         let offer = try #require(original.offers.first)
-        let result = store.persistTransaction(logging: "Buy shop item") { save, recordReceipt in
-            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save, recordReceipt: recordReceipt)
-        }
+        let result = store.purchaseShopOffer(offerID: offer.id, encounter: encounter)
         guard case let .committed(item) = result else { Issue.record("Expected purchase"); return }
         guard case .committed = store.salvageItem(id: item.id) else { Issue.record("Expected salvage"); return }
         try store.performFixtureMutation { save in
@@ -99,9 +93,7 @@ struct ShopPurchaseApplierTests {
         #expect(stock.purchasedOfferIDs == [offer.id])
         #expect(ShopPurchaseApplier
             .availability(offerID: offer.id, encounter: encounter, save: reloaded.currentSave) == .unavailable(.soldOut))
-        let repeatPurchase = reloaded.persistTransaction(logging: "Repeat purchase") { save, recordReceipt in
-            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save, recordReceipt: recordReceipt)
-        }
+        let repeatPurchase = reloaded.purchaseShopOffer(offerID: offer.id, encounter: encounter)
         guard case .rejected(.soldOut) = repeatPurchase else { Issue.record("Expected sold out"); return }
         #expect(reloaded.roster.gold == gold)
         #expect(reloaded.inventory.item(matching: item.id) == nil)
@@ -114,12 +106,10 @@ struct ShopPurchaseApplierTests {
         let first = ShopOffer(id: "first", item: item, price: 20)
         let second = ShopOffer(id: "second", item: item, price: 20)
         let encounter = try pin([first, second], in: &save)
-        #expect(try ShopPurchaseApplier.purchase(offerID: first.id, encounter: encounter, save: &save, recordReceipt: { _ in
-        }).get() == item)
+        #expect(try ShopPurchaseApplier.purchase(offerID: first.id, encounter: encounter, save: &save).get() == item)
         #expect(ShopPurchaseApplier.availability(offerID: first.id, encounter: encounter, save: save) == .unavailable(.soldOut))
         #expect(ShopPurchaseApplier.availability(offerID: second.id, encounter: encounter, save: save) == .unavailable(.alreadyOwned))
-        #expect(ShopPurchaseApplier.purchase(offerID: second.id, encounter: encounter, save: &save, recordReceipt: { _ in
-        }) == .failure(.alreadyOwned))
+        #expect(ShopPurchaseApplier.purchase(offerID: second.id, encounter: encounter, save: &save) == .failure(.alreadyOwned))
         #expect(save.roster.gold == 180)
     }
 
@@ -127,7 +117,7 @@ struct ShopPurchaseApplierTests {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 200)
         let first = try makeOffer(price: 20)
         let encounter = try pin([first], in: &save)
-        _ = try ShopPurchaseApplier.purchase(offerID: first.id, encounter: encounter, save: &save, recordReceipt: { _ in }).get()
+        _ = try ShopPurchaseApplier.purchase(offerID: first.id, encounter: encounter, save: &save).get()
         let otherStage = try #require(GameContent.chapters.flatMap(\.stages).first {
             if case .shop = $0.encounter {
                 $0.id != ShopOfferGenerator.starterShopStageID
@@ -140,8 +130,7 @@ struct ShopPurchaseApplierTests {
         let offer = try #require(stock.offers.first)
         #expect(ShopPurchaseApplier.availability(offerID: offer.id, encounter: other, save: save) == .available)
         save.sessionGeneration += 1
-        #expect(ShopPurchaseApplier.purchase(offerID: offer.id, encounter: other, save: &save, recordReceipt: { _ in
-        }) == .failure(.invalidOffer))
+        #expect(ShopPurchaseApplier.purchase(offerID: offer.id, encounter: other, save: &save) == .failure(.invalidOffer))
     }
 
     #if DEBUG
@@ -165,14 +154,10 @@ struct ShopPurchaseApplierTests {
         let identity = try #require(encounter)
         let before = store.currentSave
         store.forcesNextSaveFailure = true
-        let failed = store.persistTransaction(logging: "Fail purchase") { save, recordReceipt in
-            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: identity, save: &save, recordReceipt: recordReceipt)
-        }
+        let failed = store.purchaseShopOffer(offerID: offer.id, encounter: identity)
         guard case .persistFailed = failed else { Issue.record("Expected persistence failure"); return }
         #expect(store.currentSave == before)
-        let retried = store.persistTransaction(logging: "Retry purchase") { save, recordReceipt in
-            ShopPurchaseApplier.purchase(offerID: offer.id, encounter: identity, save: &save, recordReceipt: recordReceipt)
-        }
+        let retried = store.purchaseShopOffer(offerID: offer.id, encounter: identity)
         guard case .committed = retried else { Issue.record("Expected successful retry"); return }
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.gold == 80)

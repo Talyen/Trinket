@@ -72,8 +72,9 @@ Storage failures leave the claim retryable. Cloud metadata updates that preserve
 the local save generation preserve its claims. These claims are transient and add no
 battle-resume or player-save schema.
 
-Persistence-owned battle commands invoke completion appliers and collect explicit
-committed economic receipts, including one claim identity per award in a batch.
+Persistence-owned battle commands resolve complete committed actions, deriving
+economic receipts from their recorded changes with one claim identity per award
+in a batch.
 AppState supplies the retained claim and award and handles presentation after commitment;
 it cannot open a save mutation closure. Standalone victories
 and defeat XP carry unclaimed effects; normal battle/Salvage claims retain their

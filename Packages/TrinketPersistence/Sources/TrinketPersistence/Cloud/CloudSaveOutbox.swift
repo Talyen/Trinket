@@ -56,7 +56,7 @@ final class CloudSaveOutbox {
             decoder.userInfo[key] = rows.mapValues { $0.mapValues(\.payload) }
         }
         var state = try decoder.decode(CloudDeviceState.self, from: data)
-        guard (1 ... 3).contains(state.formatVersion) else { throw CloudSaveError.unsupportedSave }
+        guard (1 ... 4).contains(state.formatVersion) else { throw CloudSaveError.unsupportedSave }
         state.formatVersion = max(2, state.formatVersion)
         return state
     }

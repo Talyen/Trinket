@@ -29,14 +29,13 @@ enum StageCompletion {
         rewards: EncounterRewards = .unsettled(.init()),
         in chapters: [Chapter],
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         let claim = claimRewardsIfNeeded(
             for: stage,
             hero: hero,
             companion: companion,
             rewards: rewards,
-            save: &save, recordReceipt: recordReceipt,
+            save: &save,
         )
         guard !save.journey.isCompleted(stage) else {
             return claim
@@ -52,7 +51,6 @@ enum StageCompletion {
         companion: Combatant,
         rewards: EncounterRewards = .unsettled(.init()),
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         guard !save.journey.hasClaimedRewards(for: stage) else {
             return .alreadyCompleted
@@ -99,7 +97,6 @@ enum StageCompletion {
         }
         VictoryRewardApplier.apply(
             settlement, hero: hero, companion: companion, save: &save,
-            claim: .journey(stage.id), recordReceipt: recordReceipt,
         )
         if stage.encounter.isCombat {
             save.contracts.recordVictory(encounterLevel: encounterLevel)

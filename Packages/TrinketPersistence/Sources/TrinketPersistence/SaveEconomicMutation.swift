@@ -26,17 +26,72 @@ final class SaveEconomicMutation {
         case incompleteEffects
     }
 
+    private let sourceSave: PlayerSave
     let sourceRevision: UInt64
     var save: PlayerSave
-    private(set) var receipts: [SaveEconomicReceipt] = []
+    private(set) var actions: [ResolvedSaveAction] = []
+    #if DEBUG
+    private var legacyReceipts: [SaveEconomicReceipt] = []
+    #endif
+
+    var receipts: [SaveEconomicReceipt] {
+        #if DEBUG
+        actions.map(\.receipt) + legacyReceipts
+        #else
+        actions.map(\.receipt)
+        #endif
+    }
 
     init(_ save: PlayerSave, sourceRevision: UInt64) {
         self.sourceRevision = sourceRevision
+        sourceSave = save
         self.save = save
     }
 
+    #if DEBUG
+    /// Historical receipt fixtures cannot become a production authoring API.
     func record(_ receipt: SaveEconomicReceipt) {
-        receipts.append(receipt)
+        legacyReceipts.append(receipt)
+    }
+    #endif
+
+    func resolve<Value, Failure: Error>(
+        kind: SaveEconomicReceipt.Kind = .reward, claim: CloudEconomicAction.Claim? = nil,
+        _ mutation: (inout PlayerSave) -> Result<Value, Failure>,
+    ) -> Result<Value, Failure> {
+        let before = save
+        var candidate = save
+        switch mutation(&candidate) {
+        case let .failure(error): return .failure(error)
+        case let .success(value):
+            actions.append(ResolvedSaveAction(
+                before: CloudSaveSnapshot(before), after: CloudSaveSnapshot(candidate), kind: kind, claim: claim,
+            ))
+            save = candidate
+            return .success(value)
+        }
+    }
+
+    func finalizedActions(at candidate: PlayerSave) throws -> [ResolvedSaveAction] {
+        guard let last = actions.last else { return [] }
+        do {
+            var previous = CloudSaveSnapshot(sourceSave)
+            for action in actions {
+                try ResolvedSaveAction.requireNonEconomicChange(from: previous, to: action.before)
+                previous = action.after
+            }
+            try ResolvedSaveAction.requireNonEconomicChange(from: last.after, to: CloudSaveSnapshot(save))
+        } catch {
+            throw ValidationFailure.incompleteEffects
+        }
+        // All child actions became durable together. Scalar conflict selection
+        // uses that commit time, including children before the finalized last one.
+        let committed = actions.dropLast().map { action in
+            var after = action.after
+            after.modifiedAt = candidate.modifiedAt
+            return action.finalized(at: after)
+        }
+        return committed + [last.finalized(at: CloudSaveSnapshot(candidate))]
     }
 
     static func validate(from before: PlayerSave, to after: PlayerSave, receipts: [SaveEconomicReceipt]) throws {
@@ -63,37 +118,5 @@ final class SaveEconomicMutation {
         else {
             throw ValidationFailure.incompleteEffects
         }
-    }
-}
-
-extension SaveEconomicReceipt {
-    /// Capture effects at the owning single-action boundary, never across a
-    /// batch of claims whose separate payouts need independent replay identities.
-    static func reward(from before: PlayerSave, to after: PlayerSave, claim: CloudEconomicAction.Claim? = nil) -> Self {
-        var materials: [HomesteadResource: Int] = [:]
-        for resource in HomesteadResource.allCases where resource != .gold {
-            let delta = SaturatedArithmetic.saturatingSub(
-                after.homestead.resources[resource, default: 0], before.homestead.resources[resource, default: 0],
-            )
-            if delta != 0 {
-                materials[resource] = delta
-            }
-        }
-        var experience: [String: Int] = [:]
-        for id in Set(before.roster.progressions.keys).union(after.roster.progressions.keys) {
-            let delta = SaturatedArithmetic.saturatingSub(
-                (after.roster.progressions[id] ?? .initial).totalEarnedExperience,
-                (before.roster.progressions[id] ?? .initial).totalEarnedExperience,
-            )
-            if delta != 0 {
-                experience[id] = delta
-            }
-        }
-        let first = before.homestead.rewardRemainders ?? .zero
-        let last = after.homestead.rewardRemainders ?? .zero
-        return Self(kind: .reward, effects: .committed(
-            claim: claim, gold: after.roster.gold - before.roster.gold, materials: materials, experience: experience,
-            goldRemainder: last.gold - first.gold, gemsRemainder: last.gems - first.gems,
-        ))
     }
 }

@@ -16,7 +16,6 @@ enum SpiresTestSupport {
                 hero: roster.activeHero,
                 companion: roster.activeCompanion,
                 save: &save,
-                recordReceipt: { _ in },
             ) == .completed)
         }
     }

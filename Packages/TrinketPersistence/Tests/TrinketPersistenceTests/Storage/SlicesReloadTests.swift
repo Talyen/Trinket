@@ -123,7 +123,6 @@ struct SlicesReloadTests {
             hero: draft.roster.activeHero,
             companion: draft.roster.activeCompanion,
             save: &draft,
-            recordReceipt: { _ in },
         )
         StageCompletion.complete(
             stage,
@@ -131,7 +130,6 @@ struct SlicesReloadTests {
             companion: draft.roster.activeCompanion,
             in: GameContent.chapters,
             save: &draft,
-            recordReceipt: { _ in },
         )
         let clearedXP = draft.roster.progression(for: draft.roster.activeHero).currentXP
         try firstStore.performFixtureMutation { $0 = draft }

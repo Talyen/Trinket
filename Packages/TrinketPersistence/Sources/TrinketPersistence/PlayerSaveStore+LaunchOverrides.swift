@@ -16,10 +16,9 @@ public extension PlayerSaveStore {
             try performBatchMutation { $0.starterSelection = .complete }
         }
         if let startingGold, startingGold > 0 {
-            persistBatch(logging: "Failed to grant starting gold") { save, recordReceipt in
-                let before = save
+            _ = persistAction(logging: "Failed to grant starting gold") { save -> Result<Void, Never> in
                 save.roster.grantGold(startingGold)
-                recordReceipt(.reward(from: before, to: save))
+                return .success(())
             }
         }
     }

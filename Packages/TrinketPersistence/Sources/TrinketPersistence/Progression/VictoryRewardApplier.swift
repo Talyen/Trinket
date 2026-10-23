@@ -73,26 +73,17 @@ public enum VictoryRewardApplier {
         hero: Combatant,
         companion: Combatant,
         save: inout PlayerSave,
-        claim: CloudEconomicAction.Claim? = nil,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) {
         let award = settlement.award
-        let before = save.homestead.rewardRemainders ?? .zero
         if let remainders = award.rewardRemainders {
             save.homestead.rewardRemainders = remainders == .zero ? nil : remainders
         }
         let now = settlement.inputs.productionDate
-        let gold = save.applyGoldDelta(award.goldDelta, at: now)
-        let experience = BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save, recordReceipt: { _ in })
-            .effects.experience
-        let materials = save.grantMaterials(award.materials, at: now)
+        _ = save.applyGoldDelta(award.goldDelta, at: now)
+        BattleExperienceReward.apply(settlement, hero: hero, companion: companion, save: &save)
+        _ = save.grantMaterials(award.materials, at: now)
         for item in award.items {
             save.inventory.appendUniqueItem(item)
         }
-        let after = save.homestead.rewardRemainders ?? .zero
-        recordReceipt(SaveEconomicReceipt(kind: .reward, effects: .committed(
-            claim: claim, gold: gold, materials: Dictionary(uniqueKeysWithValues: materials.map { ($0.resource, $0.quantity) }),
-            experience: experience, goldRemainder: after.gold - before.gold, gemsRemainder: after.gems - before.gems,
-        )))
     }
 }

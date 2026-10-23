@@ -21,10 +21,10 @@ public extension PlayerSaveStore {
             award: award,
             victory: true,
             logging: "Failed to complete battle encounter",
-        ) { save, party, recordReceipt in
+        ) { save, party in
             let (hero, companion) = party
             guard let destination = claim.destination else {
-                VictoryRewardApplier.apply(award, hero: hero, companion: companion, save: &save, recordReceipt: recordReceipt)
+                VictoryRewardApplier.apply(award, hero: hero, companion: companion, save: &save)
                 return .success(())
             }
             guard let enemyEncounterLevel else { return .failure(.unavailable) }
@@ -34,28 +34,28 @@ public extension PlayerSaveStore {
             case let .journey(stage):
                 result = StageCompletion.complete(
                     stage, hero: hero, companion: companion, rewards: rewards,
-                    in: GameContent.chapters, save: &save, recordReceipt: recordReceipt,
+                    in: GameContent.chapters, save: &save,
                 )
             case let .spire(floor):
                 result = SpireCompletion.complete(
                     floor: floor, hero: hero, companion: companion, rewards: rewards,
-                    save: &save, recordReceipt: recordReceipt,
+                    save: &save,
                 )
             case let .labyrinth(nodeID, access):
                 result = LabyrinthCompletion.complete(
                     nodeID: nodeID, hero: hero, companion: companion, rewards: rewards,
-                    save: &save, access: access, recordReceipt: recordReceipt,
+                    save: &save, access: access,
                 )
             case let .contract(offerID):
                 result = ContractsCompletion.complete(
                     offerID: offerID, hero: hero, companion: companion,
-                    rewards: rewards, save: &save, makeOffer: makeContractOffer, recordReceipt: recordReceipt,
+                    rewards: rewards, save: &save, makeOffer: makeContractOffer,
                 )
             case let .voyage(runID, nodeID, encounterLevel, access):
                 guard let earnedVoyageRewards else { return .failure(.unavailable) }
                 result = VoyageCompletion.completeBattle(
                     runID: runID, nodeID: nodeID, party: (hero, companion),
-                    rewards: (award, earnedVoyageRewards, encounterLevel), save: &save, access: access, recordReceipt: recordReceipt,
+                    rewards: (award, earnedVoyageRewards, encounterLevel), save: &save, access: access,
                 )
             }
             return result == .completed ? .success(()) : .failure(.unavailable)
@@ -65,9 +65,9 @@ public extension PlayerSaveStore {
     func claimDefeatExperience(
         _ claim: BattleRewardClaim, award: BattleRewardSettlement,
     ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
-        persistBattleReward(claim, award: award, logging: "Failed to persist defeat experience") { save, party, recordReceipt in
+        persistBattleReward(claim, award: award, logging: "Failed to persist defeat experience") { save, party in
             let (hero, companion) = party
-            BattleExperienceReward.apply(award, hero: hero, companion: companion, save: &save, recordReceipt: recordReceipt)
+            BattleExperienceReward.apply(award, hero: hero, companion: companion, save: &save)
             return .success(())
         }
     }
@@ -75,23 +75,30 @@ public extension PlayerSaveStore {
     @discardableResult
     func completeJourneyStages(_ stages: [Stage], hero: Combatant, companion: Combatant, resetJourney: Bool = false) -> Bool {
         guard !stages.isEmpty else { return false }
-        return persistBatch(logging: "Failed to persist stage completions") { save, recordReceipt in
-            if resetJourney {
-                save.journey = .initial
-            }
-            for stage in stages {
-                StageCompletion.complete(
-                    stage, hero: hero, companion: companion, in: GameContent.chapters, save: &save, recordReceipt: recordReceipt,
-                )
+        let candidate = makeMutation()
+        if resetJourney {
+            candidate.save.journey = .initial
+        }
+        for stage in stages {
+            let _: Result<Void, Never> = candidate.resolve(claim: .journey(stage.id)) { save in
+                StageCompletion.complete(stage, hero: hero, companion: companion, in: GameContent.chapters, save: &save)
+                return .success(())
             }
         }
+        let result: SaveTransactionResult<Void, Never> = finishTransaction(
+            candidate, logging: "Failed to persist stage completions", result: .success(()),
+        )
+        if case .committed = result {
+            return true
+        }
+        return false
     }
 }
 
 private extension PlayerSaveStore {
     func persistBattleReward(
         _ claim: BattleRewardClaim, award: BattleRewardSettlement, victory: Bool = false, logging message: String,
-        _ mutation: (inout PlayerSave, (hero: Combatant, companion: Combatant), (SaveEconomicReceipt) -> Void) -> Result<
+        _ mutation: (inout PlayerSave, (hero: Combatant, companion: Combatant)) -> Result<
             Void,
             EncounterCompletionFailure,
         >,
@@ -104,14 +111,17 @@ private extension PlayerSaveStore {
                   save: candidate.save, hero: party.hero, companion: party.companion,
                   at: award.inputs.productionDate,
               ) else { return .rejected(.unavailable) }
-        // Bind receipts to their candidate instead of forwarding a borrowed callback.
-        switch mutation(&candidate.save, party, candidate.record) {
+        let economicClaim = victory ? claim.destination?.economicClaim(in: candidate.save) : nil
+        switch candidate.resolve(claim: economicClaim, { save in
+            let result = mutation(&save, party)
+            if case .success = result, victory, let enemyID = claim.enemyID {
+                save.library.defeat(enemyID)
+            }
+            return result
+        }) {
         case let .failure(error): return .rejected(error)
         case .success:
             do {
-                if victory, let enemyID = claim.enemyID {
-                    candidate.save.library.defeat(enemyID)
-                }
                 try commit(candidate)
                 claim.consume(completedResearchIDs: library.progress.completedResearchIDs.subtracting(previousResearch).sorted())
                 return .committed(())
@@ -119,6 +129,18 @@ private extension PlayerSaveStore {
                 notePersistenceFailure(error, logging: message)
                 return .persistFailed(PlayerSavePersistenceError.mapped(error))
             }
+        }
+    }
+}
+
+private extension BattleCompletionDestination {
+    func economicClaim(in save: PlayerSave) -> CloudEconomicAction.Claim {
+        switch self {
+        case let .journey(stage): .journey(stage.id)
+        case let .spire(floor): .spire(id: floor.spireID.rawValue, floor: floor.floor)
+        case let .labyrinth(nodeID, _): .labyrinth(seed: save.labyrinth.worldSeed, nodeID: nodeID)
+        case let .contract(offerID): .contract(offerID)
+        case let .voyage(runID, nodeID, _, _): .voyage(runID: runID, nodeID: nodeID)
         }
     }
 }

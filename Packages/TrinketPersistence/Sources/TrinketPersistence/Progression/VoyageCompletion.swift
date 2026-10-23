@@ -14,7 +14,6 @@ enum VoyageCompletion {
         runID: String, nodeID: String, party: (hero: Combatant, companion: Combatant),
         rewards: (settled: BattleRewardSettlement, earned: BattleRewardAward, encounterLevel: Int),
         save: inout PlayerSave, access: ContentAccessPolicy,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         let (hero, companion) = party
         guard save.voyage.isPlayable(runID: runID, nodeID: nodeID),
@@ -22,7 +21,6 @@ enum VoyageCompletion {
         let earned = rewards.earned
         VictoryRewardApplier.apply(
             rewards.settled, hero: hero, companion: companion, save: &save,
-            claim: .voyage(runID: runID, nodeID: nodeID), recordReceipt: recordReceipt,
         )
         save.contracts.recordVictory(encounterLevel: rewards.encounterLevel)
         if var activeRun = save.voyage.activeRun {

@@ -49,9 +49,9 @@ struct BlacksmithForgeTests {
         var save = fundedSave()
         var random = SeededRandomNumberGenerator(seed: 41)
         let attempt = try BlacksmithForgeApplier.prepare(recipeID: "blacksmith-longsword", save: save, using: &random).get()
-        _ = try BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: { _ in }).get()
+        _ = try BlacksmithForgeApplier.apply(attempt, to: &save).get()
         let committed = save
-        #expect(BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: { _ in }) == .failure(.alreadyOwned))
+        #expect(BlacksmithForgeApplier.apply(attempt, to: &save) == .failure(.alreadyOwned))
         #expect(save == committed)
         save.homestead.resources = [:]
         #expect(BlacksmithForgeApplier.prepare(recipeID: "blacksmith-dagger", save: save, using: &random).failure == .insufficientResources)
@@ -76,10 +76,8 @@ struct BlacksmithForgeTests {
                 expected = .unavailable
             }
             let before = save
-            var receipts: [SaveEconomicReceipt] = []
-            #expect(BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: { receipts.append($0) }) == .failure(expected))
+            #expect(BlacksmithForgeApplier.apply(attempt, to: &save) == .failure(expected))
             #expect(save == before)
-            #expect(receipts.isEmpty)
         }
     }
 
@@ -131,13 +129,13 @@ struct BlacksmithForgeTests {
         let attempt = try BlacksmithForgeApplier.prepare(recipeID: "blacksmith-dagger", save: store.currentSave, using: &random).get()
         let before = store.currentSave
         store.forcesNextSaveFailure = true
-        let failure = store.persistTransaction(logging: "Forge failure test") { save, recordReceipt in
-            BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: recordReceipt)
+        let failure = store.persistAction(logging: "Forge failure test") { save in
+            BlacksmithForgeApplier.apply(attempt, to: &save)
         }
         guard case .persistFailed = failure else { Issue.record("Expected failure"); return }
         #expect(store.currentSave == before)
-        let success = store.persistTransaction(logging: "Forge retry test") { save, recordReceipt in
-            BlacksmithForgeApplier.apply(attempt, to: &save, recordReceipt: recordReceipt)
+        let success = store.persistAction(logging: "Forge retry test") { save in
+            BlacksmithForgeApplier.apply(attempt, to: &save)
         }
         guard case let .committed(item) = success else { Issue.record("Expected commit"); return }
         #expect(item == attempt.item)

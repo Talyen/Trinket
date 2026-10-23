@@ -32,11 +32,18 @@ extension PlayerSaveStore {
             }
             let snapshot = currentSave
             let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed.save)
-            let receipts = (accounting ?? .receipts(proposed.receipts)).receipts
+            let actions = try proposed.finalizedActions(at: candidate)
+            let receipts = (accounting ?? .receipts(actions.isEmpty ? proposed.receipts : actions.map(\.receipt))).receipts
             if let receipts {
                 try SaveEconomicMutation.validate(from: snapshot, to: candidate, receipts: receipts)
             }
-            try applyCandidate(candidate, replacing: snapshot, slices: changedSlices, receipts: receipts)
+            try applyCandidate(
+                candidate,
+                replacing: snapshot,
+                slices: changedSlices,
+                receipts: receipts,
+                actions: actions.isEmpty ? nil : actions,
+            )
         } catch {
             saveActionAttempt?.record(PlayerSavePersistenceError.mapped(error))
             throw error
@@ -45,7 +52,15 @@ extension PlayerSaveStore {
 
     @discardableResult
     func persistBatch(logging message: String, _ mutation: (inout PlayerSave) -> Void) -> Bool {
-        persistBatch(logging: message) { save, _ in mutation(&save) }
+        let candidate = makeMutation()
+        mutation(&candidate.save)
+        do {
+            try commit(candidate)
+            return true
+        } catch {
+            notePersistenceFailure(error, logging: message)
+            return false
+        }
     }
 
     /// Single mapping from commit errors to `lastPersistenceError` + log.
@@ -82,9 +97,10 @@ extension PlayerSaveStore {
         replacing snapshot: PlayerSave,
         slices: PlayerSaveSlice,
         receipts: [SaveEconomicReceipt]? = nil,
+        actions: [ResolvedSaveAction]? = nil,
     ) throws {
         guard !slices.isEmpty else { return }
-        let state = try cloudStateRecordingMutation(from: snapshot, to: candidate, slices: slices, receipts: receipts)
+        let state = try cloudStateRecordingMutation(from: snapshot, to: candidate, slices: slices, receipts: receipts, actions: actions)
         try commitGraph(candidate, replacing: snapshot, slices: slices, cloudState: state)
     }
 }

@@ -1,7 +1,6 @@
 ---
 type: execution-plan
-status: blocked
-reason: Implementation scope has not been selected; the current request is investigation and a plan only.
+status: active
 created: 2026-10-23
 updated: 2026-10-23
 expires: 2026-11-06
@@ -18,10 +17,20 @@ about: a large mutable packet carries calculation scratch, committed results, an
 reaction bookkeeping through many ordered helpers. Battle lifecycle transitions
 and verification routing offer smaller, more bounded simplifications.
 
-This is a proposal, not authorization to implement its workstreams. No gameplay,
-save schema, UI, package dependency, or verification behavior changes in this task.
-Implementation should preserve those behaviors unless a separate product decision
-explicitly changes them.
+The user approved all five workstreams on 2026-10-23, including reuse of existing
+save-action work, behavior preservation, stage verification, and local integration.
+Preserve gameplay, save compatibility, UI, package dependencies, and verification
+policy unless a separate product decision explicitly changes them.
+
+## Execution progress
+
+- [x] Review and reuse the existing save-action migration (`e0660f96d`).
+- [x] Verify local action authority and explicit cloud replay ownership: AppState
+  218 passed / 1 skipped, Persistence 413 passed, static checks and app compilation passed.
+- [ ] Narrow damage calculation and committed reaction inputs with trace parity.
+- [ ] Encode battle transition state and verify reentry and replacement flows.
+- [ ] Share verification facts and matching semantics with selection parity.
+- [ ] Run whole-task verification, review, close the plan, and integrate locally.
 
 The inspection baseline is committed local main `b7bdef743`. Evidence below comes
 from source, callers, behavior contracts, existing tests, and relevant Git history.

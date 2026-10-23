@@ -12,9 +12,18 @@ struct CloudReceiptReplay {
         retiredItems = head.retiredItemIDs ?? []
     }
 
-    mutating func includeAccepted(_ mutations: CloudSaveJournal) {
+    mutating func includeAccepted(_ mutations: CloudSaveJournal) throws {
         for mutation in mutations {
-            for receipt in mutation.receipts ?? [] {
+            var receipts = mutation.receipts ?? []
+            var previous = mutation.before
+            for record in mutation.actions ?? [] {
+                try Task.checkCancellation()
+                // resolve() validates operations before first attachment.
+                let action = try record.resolved(following: previous, finalSnapshot: mutation.after)
+                receipts.append(action.receipt)
+                previous = action.after
+            }
+            for receipt in receipts {
                 if case let .collection(collection) = receipt.kind {
                     for (resource, amount) in receipt.collectionAmounts {
                         if let start = collection.positions?[resource] {
@@ -31,9 +40,45 @@ struct CloudReceiptReplay {
 
     func install(into head: inout CloudSaveHead) {
         // Older writers must reject the head instead of dropping its identities.
-        head.formatVersion = 2
+        head.formatVersion = max(2, head.formatVersion)
         head.productionClaims = productionClaims
         head.retiredItemIDs = retiredItems.isEmpty ? nil : retiredItems
+    }
+
+    /// Resolve duplicate ownership before merging either structural or economic
+    /// fields. Legacy receipt replay remains isolated below for historical rows.
+    mutating func apply(
+        _ action: ResolvedSaveAction, collectionPositions: [HomesteadResource: UInt64], onto existing: PlayerSave,
+    ) throws -> PlayerSave {
+        let before = try action.before.restored()
+        let after = try action.after.restored()
+        let receipt = action.receipt
+        let retiredID: String? = if case let .salvage(id) = receipt.effects.claim {
+            id
+        } else {
+            nil
+        }
+        if receipt.isDuplicate(in: existing, since: before, retiredItemIDs: retiredItems)
+            || retiredID.map({ retiredItems.contains($0) }) == true {
+            var retained = existing
+            retireItems(in: &retained)
+            return retained
+        }
+        var merged = try CloudSaveMerge.mergeChanges(from: action.before, to: action.after, into: existing)
+        var production = existing.homestead
+        production.settleProduction(at: merged.homestead.lastProductionAt, gold: existing.roster.gold)
+        merged.homestead.pendingProduction = production.pendingProduction
+        if case .collection = receipt.kind {
+            try productionClaims.replay(receipt, onto: &merged)
+        } else {
+            receipt.effects.applyEffects(to: &merged)
+        }
+        if let retiredID {
+            retiredItems.insert(retiredID)
+        }
+        reconcileProduction([receipt], positions: collectionPositions, after: after, merged: &merged)
+        retireItems(in: &merged)
+        return merged
     }
 
     mutating func apply(
@@ -50,7 +95,7 @@ struct CloudReceiptReplay {
         existingProduction.settleProduction(at: merged.homestead.lastProductionAt, gold: existing.roster.gold)
         merged.homestead.pendingProduction = existingProduction.pendingProduction
         try applyEffects(receipts, before: before, existing: existing, merged: &merged)
-        reconcileProduction(receipts, mutation: mutation, after: after, merged: &merged)
+        reconcileProduction(receipts, positions: mutation.collectionPositions ?? [:], after: after, merged: &merged)
     }
 
     private mutating func applyEffects(
@@ -80,10 +125,10 @@ struct CloudReceiptReplay {
     }
 
     private func reconcileProduction(
-        _ receipts: [SaveEconomicReceipt], mutation: CloudSaveMutation,
+        _ receipts: [SaveEconomicReceipt], positions: [HomesteadResource: UInt64],
         after: PlayerSave, merged: inout PlayerSave,
     ) {
-        var localPositions = mutation.collectionPositions ?? [:]
+        var localPositions = positions
         for receipt in receipts {
             if case let .collection(collection) = receipt.kind {
                 for (resource, start) in collection.positions ?? [:] {

@@ -10,7 +10,6 @@ enum SpireCompletion {
         companion: Combatant,
         rewards: EncounterRewards = .unsettled(.init()),
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         let spireID = floor.spireID.rawValue
         guard let spire = GameContent.spire(id: floor.spireID) else {
@@ -43,7 +42,6 @@ enum SpireCompletion {
         }
         VictoryRewardApplier.apply(
             settlement, hero: hero, companion: companion, save: &save,
-            claim: .spire(id: spireID, floor: floor.floor), recordReceipt: recordReceipt,
         )
         save.contracts.recordVictory(encounterLevel: encounterLevel)
 

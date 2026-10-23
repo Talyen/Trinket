@@ -23,16 +23,19 @@ candidate validation, slice reconciliation, and commit. Every candidate captures
 the store's in-memory commit revision before domain work; a nested durable command
 or reset makes that candidate obsolete. Commit rejects it before graph or journal
 writes, preserving the newer progress. The revision is transient and does not
-change serialized saves. Economic commands collect
-required `SaveEconomicReceipt` values in a synchronous `SaveEconomicMutation`;
-AppState neither mutates the candidate nor forwards receipts. Before any graph or
-journal write, commit verifies that receipt replay accounts for the candidate's
-Gold, materials, XP and fractional balances. Missing or partial effects reject the
-whole transaction even when cloud sync is disabled. Receipts and game progress
-share the same durable commit and compensation. Non-economic commands use an empty
-receipt set and reject economic edits through the same commit validation. Debug-only `performFixtureMutation` and
-`persistFixtureBatch` support unrestricted setup and legacy journal coverage through
-`@testable import TrinketPersistence`; gameplay never uses snapshot inference.
+change serialized saves. Economic commands use `persistAction` or ordered
+`SaveEconomicMutation.resolve` calls. Each successful action freezes its complete
+before/after values with a semantic kind and claim; its economic receipt is derived
+from those values, never authored by a separate callback. Finalization includes
+sanitation and Library reconciliation before journaling. AppState neither mutates
+the candidate nor forwards receipts. Before any graph or journal write, commit
+verifies that the derived receipts account for Gold, materials, XP and fractional
+balances; uncovered economic edits reject the whole transaction even with cloud
+disabled. Actions and progress share the same durable commit and compensation.
+Non-economic commands use an empty receipt set and reject economic edits through
+the same validation. Debug-only receipt callbacks and fixture mutation APIs retain
+historical journal coverage through `@testable import TrinketPersistence`; gameplay
+cannot independently author a candidate and its economic receipt.
 Domain operations mutate a candidate
 save; rejection discards it without publishing or writing. Writes publish
 the observed candidate only after the graph or durable recovery file accepts it.

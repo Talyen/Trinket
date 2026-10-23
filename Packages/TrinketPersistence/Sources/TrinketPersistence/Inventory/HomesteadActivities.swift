@@ -14,17 +14,15 @@ public extension PlayerSaveStore {
     ) async -> Result<ResourceAmount, HomesteadActivityFailure> {
         let result = await retryingSaveTransaction {
             try prepareLocalProduction()
-            return persistTransaction(logging: "Failed to transmute resource") { save, receipt -> Result<
+            return persistAction(logging: "Failed to transmute resource") { save -> Result<
                 ResourceAmount,
                 HomesteadActivityFailure,
             > in
-                let before = save
                 // Settle against the old Gold balance so spending cannot reopen past capped production.
                 save.homestead.settleProduction(at: date, gold: save.roster.gold)
                 guard ResourceTransmutation.apply(
                     from: source, to: destination, quantity: quantity, homestead: &save.homestead, gold: &save.roster.gold,
                 ) else { return .failure(.unavailable) }
-                receipt(.reward(from: before, to: save))
                 return .success(ResourceAmount(destination, quantity))
             }
         }
@@ -43,15 +41,13 @@ public extension PlayerSaveStore {
             return .failure(.unavailable)
         }
         let result = await retryingSaveTransaction {
-            persistTransaction(logging: "Failed to inscribe item") { save, receipt -> Result<InventoryItem, HomesteadActivityFailure> in
+            persistAction(logging: "Failed to inscribe item") { save -> Result<InventoryItem, HomesteadActivityFailure> in
                 guard save.homestead.tier(for: .runesmithWorkshop) > 0,
                       let position = save.inventory.items.firstIndex(where: { $0.id == itemID }),
                       save.inventory.items[position] == plan.original,
                       save.homestead.canAfford(cost: plan.cost, gold: save.roster.gold) else { return .failure(.unavailable) }
-                let before = save
                 save.homestead.deductCost(plan.cost, gold: &save.roster.gold)
                 save.inventory.items[position] = plan.item
-                receipt(.reward(from: before, to: save))
                 return .success(plan.item)
             }
         }

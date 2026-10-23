@@ -39,7 +39,6 @@ public enum ShopPurchaseApplier {
         offerID: String,
         encounter: EncounterIdentity,
         save: inout PlayerSave,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> Result<InventoryItem, ShopPurchaseFailure> {
         guard encounter.isPlayable(in: save) else { return .failure(.invalidOffer) }
         do {
@@ -49,11 +48,10 @@ public enum ShopPurchaseApplier {
             let payload = try ShopStockPersistence.encode(stock, encounter: encounter)
             // Publish money, item and sold stock together only after admission succeeds.
             var candidate = save
-            let gold = candidate.applyGoldDelta(-offer.price)
+            _ = candidate.applyGoldDelta(-offer.price)
             candidate.inventory.appendUniqueItem(offer.item)
             ShopStockPersistence.setPayload(payload, encounter: encounter, save: &candidate)
             save = candidate
-            recordReceipt(SaveEconomicReceipt(kind: .shop(encounter, .init(offer)), effects: .committed(gold: gold)))
             return .success(offer.item)
         } catch let failure as ShopPurchaseFailure {
             return .failure(failure)

@@ -9,7 +9,6 @@ enum NonCombatEncounterCompletion {
         grantingEncounterRewards: Bool = true,
         save: inout PlayerSave,
         access: ContentAccessPolicy = .fullGame,
-        recordReceipt: (SaveEconomicReceipt) -> Void,
     ) -> EncounterCompletion {
         guard encounter.isPlayable(in: save) else { return .unavailable }
 
@@ -19,7 +18,7 @@ enum NonCombatEncounterCompletion {
             if grantingEncounterRewards {
                 return StageCompletion.complete(
                     stage, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-                    in: GameContent.chapters, save: &save, recordReceipt: recordReceipt,
+                    in: GameContent.chapters, save: &save,
                 )
             }
             save.journey.markRewardsClaimed(for: stage)
@@ -29,7 +28,7 @@ enum NonCombatEncounterCompletion {
             if grantingEncounterRewards {
                 return LabyrinthCompletion.complete(
                     nodeID: nodeID, hero: save.roster.activeHero, companion: save.roster.activeCompanion,
-                    save: &save, access: access, recordReceipt: recordReceipt,
+                    save: &save, access: access,
                 )
             }
             save.labyrinth.markCleared(

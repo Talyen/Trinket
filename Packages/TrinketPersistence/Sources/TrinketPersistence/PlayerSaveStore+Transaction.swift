@@ -6,14 +6,28 @@ public enum SaveTransactionResult<Value, Failure: Error> {
 
 @MainActor
 extension PlayerSaveStore {
-    /// Domain owners supply receipts in the same synchronous candidate mutation.
-    /// A rejection or refused durable write discards both the save and receipts.
+    /// Commits a candidate only after the domain operation accepts it.
     func persistTransaction<Value, Failure: Error>(
         logging message: String,
-        _ mutation: (inout PlayerSave, (SaveEconomicReceipt) -> Void) -> Result<Value, Failure>,
+        _ mutation: (inout PlayerSave) -> Result<Value, Failure>,
     ) -> SaveTransactionResult<Value, Failure> {
         let candidate = makeMutation()
-        switch mutation(&candidate.save, candidate.record) {
+        return finishTransaction(candidate, logging: message, result: mutation(&candidate.save))
+    }
+
+    func persistAction<Value, Failure: Error>(
+        kind: SaveEconomicReceipt.Kind = .reward, claim: CloudEconomicAction.Claim? = nil,
+        logging message: String,
+        _ mutation: (inout PlayerSave) -> Result<Value, Failure>,
+    ) -> SaveTransactionResult<Value, Failure> {
+        let candidate = makeMutation()
+        return finishTransaction(candidate, logging: message, result: candidate.resolve(kind: kind, claim: claim, mutation))
+    }
+
+    func finishTransaction<Value, Failure: Error>(
+        _ candidate: SaveEconomicMutation, logging message: String, result: Result<Value, Failure>,
+    ) -> SaveTransactionResult<Value, Failure> {
+        switch result {
         case let .failure(error): return .rejected(error)
         case let .success(value):
             do {
@@ -24,29 +38,5 @@ extension PlayerSaveStore {
                 return .persistFailed(PlayerSavePersistenceError.mapped(error))
             }
         }
-    }
-
-    @discardableResult
-    func persistBatch(
-        logging message: String,
-        _ mutation: (inout PlayerSave, (SaveEconomicReceipt) -> Void) -> Void,
-    ) -> Bool {
-        let candidate = makeMutation()
-        mutation(&candidate.save, candidate.record)
-        do {
-            try commit(candidate)
-            return true
-        } catch {
-            notePersistenceFailure(error, logging: message)
-            return false
-        }
-    }
-
-    /// Commits a candidate only after the domain operation accepts it.
-    func persistTransaction<Value, Failure: Error>(
-        logging message: String,
-        _ mutation: (inout PlayerSave) -> Result<Value, Failure>,
-    ) -> SaveTransactionResult<Value, Failure> {
-        persistTransaction(logging: message) { save, _ in mutation(&save) }
     }
 }
