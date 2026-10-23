@@ -1640,15 +1640,16 @@
     }
   },
   "music": {
-    "input_hash": "613da5ef900a0a4fc8d2b8460775ee44eb5cb96475329e81b0da368dea65f1e0",
+    "input_hash": "d230c63969c2cd2289b36785da18efc7e00764831679861088afbc78972d3dcc",
     "outputs": {
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "33ffb27125df84c8aea760be3f8a63a040f73ace70437a92bbbe694737dcde1a",
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv": "5b06ba1966c6fe92ec4cbeb882f14bb702136083bf842575f1c6e9fa9dfe2e49",
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "37098ed9c4971dce9a92a2c5443965a53a22bb1a5597b71c8eeebd093500fbf9",
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv": "5b8df4b14046fe14cd3d98159c473604dcaf7040b84f4ae8faf67bd84e753909",
       "Trinket/Media/Music/music_battle_1.m4a": "3edcd6b9b215a405701843d32e63e60af865e7eb0a64b80496964e464acffedc",
       "Trinket/Media/Music/music_battle_2.m4a": "0cdfe07496b4cffbf68677003584714f5601c2a2afb101f2dedfeab3bcbfc689",
       "Trinket/Media/Music/music_battle_3.m4a": "f808a17ab0d02eb0766681bc860902a9a4b2d89f97bb8ec0d4238ed09684babc",
       "Trinket/Media/Music/music_battle_4.m4a": "a954cf4b7e4cf7d462ed906a1e529e5498c2f2cf2710780e6183be87d7ddf608",
       "Trinket/Media/Music/music_boss_blight_treant.m4a": "b0c300d0c4eee8637400a43ab668841a76263c8d29cc59a70d12654ea5e7782d",
+      "Trinket/Media/Music/music_boss_blood_countess.m4a": "e00e3a7e1ac32286e6a2747cbc8a076345636adf21e7fdd6320e1ec932135eab",
       "Trinket/Media/Music/music_boss_forge_golem.m4a": "7cbd9421ec90531340ed0d414b6553a63df500ae2dc0f22952742c4d274f45bd",
       "Trinket/Media/Music/music_boss_frostwarden.m4a": "bb39249add277fe65aa30b5541b69015a96f136b5d43b48deb6fa215724d8264",
       "Trinket/Media/Music/music_boss_iron_bear.m4a": "45297e2bf9e0d69b02c6a632dd868f56d92d76695c45a232735df657a4676414",
@@ -1667,6 +1668,7 @@
       "Sounds/Game Sources/Music/Menu 3.mp3": "69e73ed823c7001c212eacca5da4763f36b864e133a8d6b40808f870622cb138",
       "Sounds/Game Sources/Music/Menu 4.mp3": "27a73b88523deff2ffb3e5649474bcd8fcaa9caf286f92c931bf49a88cb6061f",
       "Sounds/Game Sources/Music/The Blight Treant.mp3": "56464355707bea1b6932b1fe107345a46d62f4ab3bc2f299aeb3d1b625719c38",
+      "Sounds/Game Sources/Music/The Blood Countess - Boss Track.mp3": "acfc64cba056fab100911b8fa805f60c8af910c8947843dbc57902c2b24ecbad",
       "Sounds/Game Sources/Music/The Forge Golem.mp3": "9e25e4c4cf704232857ad71d86355330221d7bb64a0c746702e64587c7324c90",
       "Sounds/Game Sources/Music/The Frostwarden.mp3": "80011a5374d03a5879b5563f4e30e7de5e316b0fb353fc23275b6f039070d15c",
       "Sounds/Game Sources/Music/The Iron Bear.mp3": "f9b94ebc9aca6ee40e93a3d7935ef20d05a1bd59bf84abcfee63138ab315a2cc"

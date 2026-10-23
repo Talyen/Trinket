@@ -51,7 +51,10 @@ Playback, route selection, and pause/resume behavior belong to
 Authored `lyrics/<track_id>.json` snapshots contain original-language phrase text,
 paired word start/end times in seconds, and the selected source recording's
 `audioSha256`. The Blight Treant, Forge Golem, Frostwarden, and Iron Bear snapshots are imported
-unchanged from Alchemy. Add a snapshot for an existing boss track to enable another boss;
+unchanged from Alchemy. The Blood Countess snapshot aligns the supplied “One More
+Heartbeat” lyrics to its selected recording using the same offline phrase-matching
+and bounded word-alignment workflow. Section directions are excluded.
+Add a snapshot for an existing boss track to enable another boss;
 unsupported tracks have no lyric presentation.
 
 Music preparation validates word counts, finite ordered positive intervals, boss
