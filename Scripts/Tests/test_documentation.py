@@ -296,7 +296,8 @@ class DocumentationTests(ScriptRegressionTestCase):
             ],
         )
         # Script infrastructure keeps the full registry; pure docs have no local slices.
-        result = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Scripts/check-docs.py"], cwd=ROOT, expected=0)
+        result = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Scripts/check-docs.py"],
+                              cwd=ROOT, env=self.verification_environment(), expected=0)
         planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
         self.assertIn('python3 ./Scripts/check-docs.py --paths Scripts/check-docs.py', planned)
         planned = [command.partition(' --paths ')[0] for command in planned]
@@ -305,7 +306,8 @@ class DocumentationTests(ScriptRegressionTestCase):
         cheap_positions = [planned.index(cmd) for cmd in registry]
         self.assertEqual(cheap_positions, sorted(cheap_positions))
         self.assertEqual(planned[-len(registry):], registry)
-        docs = run_captured([str(ROOT / "Scripts/handoff.sh"), '--dry-run', '--paths', 'Docs/Platform/Verification.md'], cwd=ROOT, expected=0)
+        docs = run_captured([str(ROOT / "Scripts/handoff.sh"), '--dry-run', '--paths', 'Docs/Platform/Verification.md'],
+                            cwd=ROOT, env=self.verification_environment(), expected=0)
         self.assertFalse(any(command in docs.stdout for command in registry))
 
     def test_mixed_script_and_docs_runs_docs_once(self) -> None:
