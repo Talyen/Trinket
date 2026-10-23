@@ -310,6 +310,14 @@
       "name": "excessLeechHealthToGoldChancePercent",
       "type": "Double",
       "merge": "max"
+    },
+    {
+      "name": "victoryGoldPerDifferentCardCap",
+      "type": "Int",
+      "merge": "max",
+      "affix_roll": {
+        "reason": "Fixed Merchant's Favor victory cap; different card identities determine the payout."
+      }
     }
   ]
 }

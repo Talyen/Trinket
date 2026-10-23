@@ -22,6 +22,7 @@ struct LingeringBlessing: Hashable, Sendable {
 
 struct CombatantTalentState: Hashable, Sendable {
     struct Battle: Hashable, Sendable {
+        var differentPlayedCardAbilityIDs: Set<String> = []
         var storedBlockedDamage = 0
         var actionDelays = 0
         var wasBelowHalfHealth = false

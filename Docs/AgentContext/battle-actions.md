@@ -126,6 +126,13 @@ Action summaries retain typed applied effects only. Log entries store committed 
 and damage totals grouped once by recipient and keyword; their single localized
 formatter derives wording when displayed,
 without building or retaining a separate English transcript during combat.
+Merchant's Favor counts distinct ability IDs from successfully admitted card plays
+by its living wearer, including automatic and winning cards. Replays and separate
+copies of one ability count once; partner cards and ordinary non-card actions do
+not count. Track at most seven identities in that wearer's battle runtime. Victory
+pays one base Gold per identity through ordinary Gold modifiers, at most once via
+the existing defeat milestone; a new battle starts empty. Saved Merchant's Favor
+powers adopt this rule and stop granting turn-start Gold.
 Targeted effects can carry a fixed chance, rolled once after their condition passes.
 A failed roll grants no resource or gain feedback; preceding card damage still resolves.
 Empowerment and talent transformations preserve the chance.

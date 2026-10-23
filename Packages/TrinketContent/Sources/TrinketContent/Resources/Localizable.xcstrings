@@ -4107,28 +4107,28 @@
       "comment": "ContentManifest/affixes.tsv: merchants_favor, astral_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte jeden Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> each turn"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cada turno"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> à chaque tour"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "毎ターン<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "매 턴 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> a cada turno"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Erhalte bei einem Sieg für jede unterschiedliche Karte, die du in diesem Kampf gespielt hast, <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>, bis zu <value id=\"quantity_2\">%2$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "On victory, gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> for each different card you played, up to <value id=\"quantity_2\">%2$lld</value>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Al vencer, obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> por cada carta diferente que hayas jugado en este combate, hasta <value id=\"quantity_2\">%2$lld</value>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "À la victoire, gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> par carte différente que vous avez jouée pendant ce combat, jusqu’à <value id=\"quantity_2\">%2$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "勝利時、この戦闘で使った異なるカード1種類につき<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得（最大<value id=\"quantity_2\">%2$lld</value>）"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "승리 시 이번 전투에서 사용한 서로 다른 카드마다 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득 (최대 <value id=\"quantity_2\">%2$lld</value>)"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ao vencer, ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> por cada carta diferente que você jogou neste combate, até <value id=\"quantity_2\">%2$lld</value>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "勝利時，本場戰鬥中你每使用一種不同卡牌，獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>，最多<value id=\"quantity_2\">%2$lld</value>"}}
       }
     },
     "affixes.merchants_favor.basic_description": {
       "comment": "ContentManifest/affixes.tsv: merchants_favor, basic_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte jeden Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> each turn"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cada turno"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> à chaque tour"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "毎ターン<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "매 턴 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> a cada turno"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Erhalte bei einem Sieg für jede unterschiedliche Karte, die du in diesem Kampf gespielt hast, <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>, bis zu <value id=\"quantity_2\">%2$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "On victory, gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> for each different card you played, up to <value id=\"quantity_2\">%2$lld</value>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Al vencer, obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> por cada carta diferente que hayas jugado en este combate, hasta <value id=\"quantity_2\">%2$lld</value>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "À la victoire, gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> par carte différente que vous avez jouée pendant ce combat, jusqu’à <value id=\"quantity_2\">%2$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "勝利時、この戦闘で使った異なるカード1種類につき<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得（最大<value id=\"quantity_2\">%2$lld</value>）"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "승리 시 이번 전투에서 사용한 서로 다른 카드마다 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득 (최대 <value id=\"quantity_2\">%2$lld</value>)"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ao vencer, ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> por cada carta diferente que você jogou neste combate, até <value id=\"quantity_2\">%2$lld</value>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "勝利時，本場戰鬥中你每使用一種不同卡牌，獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>，最多<value id=\"quantity_2\">%2$lld</value>"}}
       }
     },
     "affixes.merchants_favor.title": {
@@ -12417,6 +12417,20 @@
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">마나</keyword> 물약"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Poção de <keyword id=\"mana\">Mana</keyword>"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">魔力</keyword>藥水"}}
+      }
+    },
+    "authored.c6cc3d9441fb0428": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erhalte bei einem Sieg für jede unterschiedliche Karte, die du in diesem Kampf gespielt hast, <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>, bis zu <value id=\"quantity_2\">%2$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "On victory, gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> for each different card you played, up to <value id=\"quantity_2\">%2$lld</value>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Al vencer, obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> por cada carta diferente que hayas jugado en este combate, hasta <value id=\"quantity_2\">%2$lld</value>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "À la victoire, gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> par carte différente que vous avez jouée pendant ce combat, jusqu’à <value id=\"quantity_2\">%2$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "勝利時、この戦闘で使った異なるカード1種類につき<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得（最大<value id=\"quantity_2\">%2$lld</value>）"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "승리 시 이번 전투에서 사용한 서로 다른 카드마다 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득 (최대 <value id=\"quantity_2\">%2$lld</value>)"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ao vencer, ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> por cada carta diferente que você jogou neste combate, até <value id=\"quantity_2\">%2$lld</value>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "勝利時，本場戰鬥中你每使用一種不同卡牌，獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>，最多<value id=\"quantity_2\">%2$lld</value>"}}
       }
     },
     "authored.c728f11b4ea7db71": {

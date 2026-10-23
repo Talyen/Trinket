@@ -241,6 +241,10 @@ extension InventoryItem {
             triggers.bleedDamageGoldFlat = 0
             triggers.bleedDamageGoldStealChancePercent = 0.10
             description = "Bleed damage has a 10% chance to also steal Gold"
+        case "merchants_favor":
+            triggers.goldPerTurn = 0
+            triggers.victoryGoldPerDifferentCardCap = 7
+            description = "On victory, gain 1 Gold for each different card you played, up to 7"
         default: return nil
         }
         return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)

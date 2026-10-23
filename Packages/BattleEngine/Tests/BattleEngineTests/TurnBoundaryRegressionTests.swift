@@ -150,10 +150,11 @@ struct TurnBoundaryRegressionTests {
         let remedy = try #require(GameContent.itemAffixDefinition(matching: "mortar_and_pestle"))
         remedy.basic.triggers.apply(to: &hero, abilityName: remedy.title)
         var companion = CombatModifierProfile.zero
-        for id in ["merchants_favor", "windfall", "groves_favor"] {
+        for id in ["windfall", "groves_favor"] {
             let affix = try #require(GameContent.itemAffixDefinition(matching: id))
             affix.astral.triggers.apply(to: &companion, abilityName: affix.title)
         }
+        companion.triggers.goldPerTurn = 1
         companion.triggers.criticalChanceBonus = -1
         var battle = cadenceBattle(heroModifiers: hero, companionModifiers: companion)
 

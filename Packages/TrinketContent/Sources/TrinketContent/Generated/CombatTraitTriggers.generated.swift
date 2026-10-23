@@ -718,6 +718,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case leechGoldChancePercent
     case bleedDamageGoldStealChancePercent
     case excessLeechHealthToGoldChancePercent
+    case victoryGoldPerDifferentCardCap
     case contagiousJoy
     case livingArchive
     case marrowmend
@@ -1637,6 +1638,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var leechGoldChancePercent: Double = 0
         public var bleedDamageGoldStealChancePercent: Double = 0
         public var excessLeechHealthToGoldChancePercent: Double = 0
+        public var victoryGoldPerDifferentCardCap: Int = 0
         public var contagiousJoy: Bool = false
         public var livingArchive: Bool = false
         public var marrowmend: Bool = false
@@ -2559,6 +2561,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.leechGoldChancePercent, .leechGoldChancePercent, default: 0, merging: .max),
         .init(\.bleedDamageGoldStealChancePercent, .bleedDamageGoldStealChancePercent, default: 0, merging: .max),
         .init(\.excessLeechHealthToGoldChancePercent, .excessLeechHealthToGoldChancePercent, default: 0, merging: .max),
+        .init(\.victoryGoldPerDifferentCardCap, .victoryGoldPerDifferentCardCap, default: 0, merging: .max),
         .init(\.contagiousJoy, .contagiousJoy, default: false, merging: .or),
         .init(\.livingArchive, .livingArchive, default: false, merging: .or),
         .init(\.marrowmend, .marrowmend, default: false, merging: .or),

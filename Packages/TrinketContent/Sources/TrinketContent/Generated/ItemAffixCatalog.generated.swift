@@ -778,8 +778,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.gold],
             weight: 1,
-            basic: ItemAffixPower(description: "Gain 1 Gold each turn", modifiers: [], triggers: CombatTraitTriggers { $0.goldPerTurn = 1 }),
-            astral: ItemAffixPower(description: "Gain 1 Gold each turn", modifiers: [], triggers: CombatTraitTriggers { $0.goldPerTurn = 1 })
+            basic: ItemAffixPower(description: "On victory, gain 1 Gold for each different card you played, up to 7", modifiers: [], triggers: CombatTraitTriggers { $0.victoryGoldPerDifferentCardCap = 7 }),
+            astral: ItemAffixPower(description: "On victory, gain 1 Gold for each different card you played, up to 7", modifiers: [], triggers: CombatTraitTriggers { $0.victoryGoldPerDifferentCardCap = 7 })
         ),
         ItemAffixCatalog.affix(
             id: "meteorite",

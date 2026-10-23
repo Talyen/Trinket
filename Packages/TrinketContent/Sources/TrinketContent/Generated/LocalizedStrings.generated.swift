@@ -1174,12 +1174,12 @@ enum L10n {
         LocalizedStringResource("affixes.measured.title", defaultValue: "Measured", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func affixes_merchants_favor_astral_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.merchants_favor.astral_description", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"gold\">Gold</keyword> each turn", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func affixes_merchants_favor_astral_description(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("affixes.merchants_favor.astral_description", defaultValue: "On victory, gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"gold\">Gold</keyword> for each different card you played, up to <value id=\"quantity_2\">\(value2)</value>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func affixes_merchants_favor_basic_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.merchants_favor.basic_description", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"gold\">Gold</keyword> each turn", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func affixes_merchants_favor_basic_description(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("affixes.merchants_favor.basic_description", defaultValue: "On victory, gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"gold\">Gold</keyword> for each different card you played, up to <value id=\"quantity_2\">\(value2)</value>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var affixes_merchants_favor_title: LocalizedStringResource {
@@ -3548,6 +3548,10 @@ enum L10n {
 
     static var authored_c6ba8598e1c33058: LocalizedStringResource {
         LocalizedStringResource("authored.c6ba8598e1c33058", defaultValue: "<keyword id=\"mana\">Mana</keyword> Potion", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func authored_c6cc3d9441fb0428(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("authored.c6cc3d9441fb0428", defaultValue: "On victory, gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"gold\">Gold</keyword> for each different card you played, up to <value id=\"quantity_2\">\(value2)</value>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_c728f11b4ea7db71: LocalizedStringResource {

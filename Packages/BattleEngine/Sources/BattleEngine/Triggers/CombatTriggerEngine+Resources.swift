@@ -111,6 +111,10 @@ package extension CombatTriggerEngine {
         for (_, member) in livingPartyMembers(in: context) {
             let actor = member.combatant
             let triggers = context.modifiers(for: actor.id).triggers
+            if triggers.victoryGoldPerDifferentCardCap > 0 {
+                let amount = min(triggers.victoryGoldPerDifferentCardCap, member.talents.battle.differentPlayedCardAbilityIDs.count)
+                await emitGold(.victoryGoldPerDifferentCardCap, "Merchant's Favor", amount: amount, to: actor, in: &context)
+            }
             if triggers.victoryGoldFlat > 0 {
                 await emitGold(.victoryGoldFlat, "Smuggler's Map", amount: triggers.victoryGoldFlat, to: actor, in: &context)
             }

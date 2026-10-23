@@ -633,8 +633,8 @@ public enum ContentCopy {
             (L10n.affixes_measured_basic_description(2), [2])
         case "Measured":
             (L10n.affixes_measured_title, [])
-        case "Gain 1 Gold each turn":
-            (L10n.affixes_merchants_favor_astral_description(1), [1])
+        case "On victory, gain 1 Gold for each different card you played, up to 7":
+            (L10n.affixes_merchants_favor_astral_description(1, 7), [1, 7])
         case "Passive Income":
             (L10n.affixes_merchants_favor_title, [])
         case "Restore 4 additional Health while the enemy is Stunned or Frozen":
@@ -4528,7 +4528,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)%\\ Critical\\ chance\\\nGain\\ ([0-9]+)\\ Gold\\ on\\ Critical\\ Hit$"), count: 2, make: { values in L10n.affixes_lucky_clover_astral_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ bonus\\ Holy\\ damage\\\nTake\\ ([0-9]+)%\\ less\\ Holy\\ damage$"), count: 2, make: { values in L10n.affixes_martyrs_astral_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Attacks gain ", regex: try? NSRegularExpression(pattern: "^Attacks\\ gain\\ ([0-9]+)\\ damage\\ while\\ the\\ enemy\\ has\\ more\\ Block\\ than\\ you$"), count: 1, make: { values in L10n.affixes_measured_astral_description(values[0]) }),
-        NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Gold\\ each\\ turns?$"), count: 1, make: { values in L10n.affixes_merchants_favor_astral_description(values[0]) }),
+        NumericTemplate(prefix: "On victory, gain ", regex: try? NSRegularExpression(pattern: "^On\\ victory,\\ gain\\ ([0-9]+)\\ Gold\\ for\\ each\\ different\\ cards?\\ you\\ played,\\ up\\ to\\ ([0-9]+)$"), count: 2, make: { values in L10n.affixes_merchants_favor_astral_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ additional\\ Health\\ while\\ the\\ enemy\\ is\\ Stunned\\ or\\ Frozen$"), count: 1, make: { values in L10n.affixes_merciful_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)%\\ more\\ Block\\ while\\ your\\ ally\\ has\\ Block$"), count: 1, make: { values in L10n.affixes_mutual_astral_description(values[0]) }),
         NumericTemplate(prefix: "Purge ", regex: try? NSRegularExpression(pattern: "^Purge\\ ([0-9]+)\\ buffs?\\ when\\ you\\ deal\\ Holy\\ damage$"), count: 1, make: { values in L10n.affixes_nullifying_astral_description(values[0]) }),

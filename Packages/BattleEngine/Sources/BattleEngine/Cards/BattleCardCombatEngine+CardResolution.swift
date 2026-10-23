@@ -31,6 +31,14 @@ extension BattleCardCombatEngine {
         if !allowBufferedRemoval {
             context.turnState = .playerTurn
         }
+        let varietyCap = context.modifiers(for: actor.id).triggers.victoryGoldPerDifferentCardCap
+        if varietyCap > 0 {
+            context.roster.mutateRuntime(for: actor) {
+                if $0.talents.battle.differentPlayedCardAbilityIDs.count < varietyCap {
+                    $0.talents.battle.differentPlayedCardAbilityIDs.insert(card.ability.id)
+                }
+            }
+        }
         discardPlayedCard(card, context: &context)
         context.commandOutput?.beginCard(card)
         let criticalAttackActorIDs = await resolvePlayedCard(card, actor: actor, context: &context)
