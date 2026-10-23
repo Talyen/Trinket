@@ -2,74 +2,63 @@
 type: execution-plan
 status: active
 created: 2026-10-15
-updated: 2026-10-15
+updated: 2026-10-23
 expires: 2026-10-29
 ---
 
 # Localization release validation
 
-## Objective
+## Objective and boundaries
 
-Finish localized talent-reward coverage, inspect compact-phone layouts at normal
-and largest native text sizes, fix reproduced defects, and verify CI/release packaging.
-Artwork lettering is explicitly excluded by the user.
+Finish localized talent-reward and compact-phone display verification, then
+complete exact-commit hosted CI. Artwork lettering and release publication are
+excluded. The original task authorized a branch push and exhaustive CI after the
+pseudolocalization investigation; use bounded local selectors rather than full
+local suites.
 
-## Work
+## Recorded status
 
-- [x] Isolate from local main aad14f6c0; inspect verification and simulator contracts.
-- [x] Extend existing localization journey with real earned talent choices and return.
-- [x] Run focused XCTest diagnostics on managed iPhone SE; retain/review screenshots.
-- [x] Run normal German/French and largest native text configurations for all five languages.
-- [x] Fix confirmed layout/interaction failures and recheck them.
-- [x] Verify generated consistency and Release archive language bundles/offline resources.
-- [ ] Complete required handoff, review/commit/integrate and exact-commit hosted CI.
+Talent inspector scrolling, Campaign footer reflow, complete purchase labels,
+Restore reachability, computed-action extraction and failure attachments were
+repaired. Normal German/French and largest-text journeys passed for the five
+languages then configured. Simulator and unsigned device Release archives passed
+extraction and bundled-language checks. These historical results establish neither
+current-language coverage nor network-disabled play or hardware purchase approval.
 
-## Boundaries
+All five language journeys plus double English have individual hosted passes on
+`665c4bfd8`; that run did not complete the full portfolio. The latest recorded
+follow-up, [38843703793](https://github.com/Talyen/Trinket/actions/runs/38843703793)
+on `c541a8962`, built the app but exposed moved-profile initializer access in
+existing tests. The owning-module test imports were repaired in 35 files
+(33 Engine, one BattleFeature, one Content); compile-only checks passed, including
+Engine/BattleFeature on `34804bb57`. Hosted execution remains outstanding.
 
-No artwork edits or release publication. The owner authorized a branch push and
-exhaustive CI after the pseudolocalization investigation. No simulator
-or package full suites on the laptop merely to substitute for hosted coverage.
-Use bounded localization XCTest selectors for the known missing interaction and layout evidence.
+## Remaining work
 
-## Findings
+- [ ] Reconcile the committed repairs with current main, then complete whole-task
+  handoff, review and local integration under the normal workflow.
+- [ ] Finish exact-commit package, Smoke, exhaustive UI and device Release checks.
+  Options and Play navigation lack completed exhaustive evidence. Missing,
+  cancelled and timed-out executions remain incomplete.
+- [ ] Reproduce the declined Ask to Buy failure against qualified products before
+  changing purchase behavior. The isolated
+  [diagnostic](https://github.com/Talyen/Trinket/actions/runs/38837629489) reproduced
+  Warlock details instead of the offer in a fresh process. Local probes differ
+  between iOS 27 and 26.2; retain the strict ownership/denial assertions and follow
+  [StoreKit qualification](../Platform/Release.md#testflight-troubleshooting).
+- [ ] Preserve needed evidence, reconcile durable guidance, and delete this plan
+  after the outstanding acceptance gates pass.
 
-- German/French normal-text SE journeys passed (2 tests); screenshots retained outside the worktree.
-- Largest native text reproduced the selected-talent inspector overflowing the viewport and hiding Unlock. Bound the details to a scrollable panel and retain a separate action; all five language journeys passed.
-- Correct the screenshot helper main-actor capture and use the unique talent button when checking capture readiness.
-- SwiftPM stalled in exited Git subprocesses; command-scoped `core.fsmonitor=false` avoids the stall without changing repository settings.
-- Campaign's active encounter footer now reflows instead of widening the screen. All five largest-text journeys passed the horizontal guard.
-- Give the scrollable inspector the selected node identity so a new node starts at the beginning of its rule.
-- Screenshot review caught an untranslated Approach action. Strict computed-action extraction now inventories nine entries; a separate GPT-6.1-Sol High review approved all 45 translations. Localization checks and 20 Python regressions pass; previous translations/reviews are unchanged and compact formatting is retained.
-- The French Full Game screenshot exposed a truncated price despite the purchase button being hittable. Move support controls into scrollable content and preserve the complete purchase label. French/German largest-text journeys passed; screenshots show both complete prices and the translated Approach action.
-- XCTest's scroll view frame extends behind the pinned purchase action, and its hittability can also include covered content. Bound gestures above that action and require Restore's rendered frame to fit there. The strengthened French largest-text journey passed and its support screenshot shows Restore, Privacy, Family Sharing, and the full price.
-- Simulator and unsigned device Release archive pass compiler extraction coverage and all six compiled language checks. The archive contains the translated catalogs in the app and owning package bundles; actual network-disabled play and hardware purchase authorization are not established by this packaging check.
-- Final-source normal French and double-length English journeys passed. Real-language captions fit; Apple's synthetic double-English mode still crowds the native tab captions and leaves a format fragment in one doubled talent rule. These synthetic-only limits are retained in screenshots rather than hidden by disabling pseudolocalization or altering shipping wording.
-- Retain evidence under `/tmp/trinket-localization-release-validation/` before worktree cleanup. Native text size uses a restoring context; hardware purchase authorization is outside these display checks.
-- Production source commit: `191c3bf7f`. The first temporary archive runner incorrectly reused build-only output overrides; native archive arguments succeeded. No release/upload tool or Apple credentials were used.
-- Pseudolocalization investigation: a Foundation-only probe confirms that `NSDoubleLocalizedStrings` strips `%` from the first copy of `%1$lld` before interpolation; the same catalog renders `2` correctly with the flag off. No game renderer is involved in that corruption.
-- A bounded iPhone SE / iOS 26.5 diagnostic tested custom SwiftUI tab labels with fitting modifiers. The native caption crowding was unchanged. Removed the ineffective prototype and temporary diagnostic test; shipping code and translations remain unchanged. Screenshot: `/tmp/trinket-localization-release-validation/pseudo-tab-fit/ui-20261015T233410Z-81291-27721/Localization-en-double-tab-fit-diagnostic.png`.
-- Hosted exhaustive run [38824853732](https://github.com/Talyen/Trinket/actions/runs/38824853732) tests `0440755d9`. Content, generation/style, and prepared assets passed. Engine reported six boundary-test failures because localized display numbers use grouping, while the tests expected raw digits.
-- Update those display assertions with explicit English number formatting, preserving the exact `Int.max` expectations, canonical summaries, event/state saturation assertions, and queued restoration checks. No gameplay or translation change is needed. Collect remaining suite outcomes before the follow-up CI dispatch.
-- First run: Engine had 981 passes and six stale display assertions; smoke had five passes and one launch failure before the purchase flow. Its failure handler attempted an app screenshot with no app frame and masked the original issue. Capture the device screen and query the app hierarchy only while foregrounded. The UI test target compiles locally; a temporary expected-failure diagnostic passed XCTest but bypassed failure attachments and did not satisfy the wrapper's positive-execution gate, so it does not establish failure-handler runtime coverage. Remove the temporary test.
-- Follow-up exhaustive run [38827484352](https://github.com/Talyen/Trinket/actions/runs/38827484352) tests `19d7c1c30`, including the Engine assertion repair. The State shard stopped during preparation because `xcrun --sdk iphonesimulator --show-sdk-version` timed out after 120 seconds; no State tests executed in that attempt. Collect remaining outcomes before retrying on the diagnostic repair.
-- Follow-up result: all 987 Engine tests passed, as did native/iOS parity, Battle, and Content. Smoke again had five passes and the same pre-purchase launch failure; exhaustive UI and device Release did not execute.
-- Run [38829127644](https://github.com/Talyen/Trinket/actions/runs/38829127644) built `6221f59c3` successfully, then GitHub's build-product upload failed with `CreateArtifact: ETIMEDOUT` before smoke. Keep that transfer failure separate from compilation and test outcomes.
-- Capture screenshot PNG data on the main actor so no UI object crosses the bridge. A temporary deliberate failure after terminating the app retained the original assertion, device screenshot, and `Application state: 1` attachment in `stopped-app-failure-capture/` outside the checkout. It failed exactly once as intended, with no screenshot exception. The temporary test is removed; this verifies the failure-handler path without weakening test gates.
-- Cancel the superseded artifact-upload-failed run after dispatching [38831028218](https://github.com/Talyen/Trinket/actions/runs/38831028218) for `665c4bfd8`. This latest source includes the actor-correct diagnostic capture and committed main incorporated by locked integration. Generation/style and prepared assets have passed; collect package, smoke, exhaustive UI, and device Release results before closing.
-- Latest run: Engine has 987 passes and native/iOS parity passed; Content has 296 passes; State has 674 passes and one deliberately disabled worker entry requiring `TRINKET_PLAYTHROUGH_REQUEST`. Smoke passed all six cases, including the previously failing purchase launch. Exhaustive UI is now executing. Preserve the earlier failures; this passing run does not establish their original launch cause.
-- Battle shard: FeatureSupport passed 95 tests, but BattleFeature hit exit 124 while compiling TrinketContent at the shared CI execution deadline, before tests executed. Its result is incomplete and classified unknown, not a pass or proven simulator infrastructure recovery. The runner spent 217 seconds preparing its simulator plus an additional preparation gap; retain reports and retry that failed job after the current UI run completes.
-- Exhaustive UI attempt 1 did not finish before its remaining 1,230-second deadline. Raw completed-case logs prove 19 passes and one failure; Traditional Chinese and seven later cases are incomplete/unexecuted. Double English, French, German, Japanese, and Korean localization journeys individually passed. The concrete assertion failure is `FullGamePurchaseUITests/testDeclinedAskToBuyRemainsLockedAndAllowsAnotherPurchase`: Full Game access reported false before tapping Warlock, but the hierarchy showed Warlock details instead of the offer. Preserve this as a test failure, separate from the incomplete suite and budget limit.
-- Exact-build diagnostic [38835600137](https://github.com/Talyen/Trinket/actions/runs/38835600137) runs the existing `FullGamePurchaseUITests` class against `665c4bfd8` products from run 38831028218. Its source-resolution job passed before requesting attempt 2 of only the failed Battle job (116750419648). Both are executing. No purchase implementation or test expectation has been changed; diagnose the repeat before choosing a fix.
-- Battle attempt 2 stopped before tests: output cleanup's `git worktree list --porcelain -z` timed out after ten seconds. A disposable repository probe did not reproduce the stall and confirmed this command does not call a configured filesystem-monitor hook; leave ownership safeguards intact rather than assume that workaround applies.
-- Partial CI reruns clone successful build jobs into the new attempt without republishing artifacts. Repair the exact-build diagnostic resolver to read all attempts and select products only with their original producing build's successful compile proof. Regression cases reject foreign/missing/ambiguous proof and preserve preference for the newest proven products. Live API data resolves run 38831028218 to `build-derived-data-38831028218-1`; scoped handoff and script regressions pass.
-- The focused purchasing class diagnostic reproduced the same declined Ask to Buy assertion. Four cases passed and one failed before the deadline interrupted the remaining two. Next isolate that one case against the original products using the repaired resolver; no purchase behavior or expected access policy has been changed.
-- Isolated diagnostic [38837629489](https://github.com/Talyen/Trinket/actions/runs/38837629489) has a complete result: Traditional Chinese passed, and the declined Ask to Buy case failed when first in a fresh process. The screenshot confirms Warlock details, so preceding purchase tests are not required to reproduce it. All five localization journeys plus double English have individual hosted passes on `665c4bfd8`; Options and Play navigation still lack completed exhaustive evidence. No product entitlement behavior has been changed without a confirmed cause.
-- Correct measured deadline shortfalls: combined exhaustive build jobs allow 55 minutes (ordinary build/smoke stays 40), Battle allows 30 (other package shards stay 25), and exact-build diagnostics allow 30. Keep the existing 30-minute exhaustive UI watchdog, three-minute diagnostic reserves, and failure/execution-proof rules. The deadline contract regression covers literal and conditional budgets; YAML parsing and scoped handoff pass. Run hosted verification of this tooling change before final reporting.
-- Budget-adjusted run [38839961995](https://github.com/Talyen/Trinket/actions/runs/38839961995) built the app and passed generation/style, prepared assets, Content, and all 987 iOS Engine tests. Smoke stopped before execution when simulator process inspection (`ps`) timed out after 30 seconds. Native Engine parity exhausted the remaining job budget; exhaustive UI and device Release did not execute. These preparation/budget failures are not assertion failures or passes.
-- State and Battle reached real assertions on that run: recent main changes made three test expectations obsolete. Update the contract reward fixture to use ordinary offers for item-focused modifiers (new Hard offers exclude them), while keeping XP/Wood on Hard and preserving reward/idempotence checks. Update Blood Offering and slash feedback sound IDs to the current curated mappings, retaining one-immediate-cue/no-replay assertions. No gameplay behavior changes.
-- Bounded local purchase diagnostics used Xcode 27.1 RC and the declined-request selector only. iOS 27.0 build 24A434 fails with published purchased access after the decline; iOS 26.2 build 23C54 passes, remains free, and permits the subsequent purchase. Setting Ask to Buy before app/product loading still fails on 27.0. Temporary JSON fields, logging, and setup experiments are removed. This is an observed runtime discrepancy, not a proven App Store entitlement defect; keep the test strict and do not reject verified owners to hide it. Retain receipts in `purchase-probe-27/`, `purchase-probe-26/`, and `purchase-probe-27-early-configuration/` outside the checkout.
-- Follow-up exhaustive [38843703793](https://github.com/Talyen/Trinket/actions/runs/38843703793) tests `c541a8962`, including the reward and sound assertion repairs. Its app build passed. Engine exposed test compilation failures introduced when `CombatModifierProfile` moved to Content: callers relied on BattleEngine's internal memberwise initializer access. Give existing test fixtures `@testable import TrinketContent`, preserving fixture fields, assertions, and the production API. Use the existing native-qualification CI scope to verify the Engine repair without rebuilding the UI products or cancelling the active exhaustive run.
-- The compiler report was capped; a field-based inventory found 33 existing Engine test files using the moved profile’s memberwise initializer, including the shared trigger fixture. Apply the owning-module test import consistently to those consumers; all fixture values and assertions remain unchanged.
-- The same moved-profile access failure affects one BattleFeature test (`DodgeCounterDamageFeedbackTests`); update that existing import as well. A repository-wide test-consumer inventory found no other normal-import memberwise callers outside Engine. State's three package invocations passed (676 tests; one intentionally disabled worker). Replace the still-pending Engine/Core qualification run with a standard run on the combined test-only repair so both Engine and Battle are exercised; keep the active exhaustive UI run.
-- Content's moved `CombatantMaxValuesTests` also needs its owning module's test import; the full inventory is 35 files (33 Engine, one BattleFeature, one Content). Isolated `test-package.sh --build-for-testing BattleEngine TrinketBattleFeature` passes on `34804bb57`, proving the import repair compiles without running package suites. Retain invocation records/raw logs in `profile-import-compile/` outside the worktree. Compile Content's final import repair before updating the pending standard CI source.
-- Content compile-only diagnostics also pass with the final import fix. These local checks prove compilation only; preserve hosted execution requirements and the unresolved iOS 27 declined-request assertion.
+## Evidence and interpretation
+
+Retained captures and compile/probe output were placed under
+`/tmp/trinket-localization-release-validation/` outside the task checkout; confirm
+availability before relying on them or cleaning up. The original full-portfolio
+[run](https://github.com/Talyen/Trinket/actions/runs/38831028218) records package,
+Smoke and per-language outcomes separately from budget-limited work.
+
+[Localization](../Platform/Localization.md#pseudolanguage-diagnostics) owns the
+Foundation double-string format artifact and native tab-caption crowding limits.
+Keep real-language defects separate from synthetic stress behavior. Screenshot
+hittability alone does not prove complete rendered text or an unobscured control.
+Earlier run-by-run evidence and repairs remain in this file's Git history.

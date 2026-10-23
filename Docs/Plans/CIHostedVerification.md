@@ -2,76 +2,56 @@
 type: execution-plan
 status: active
 created: 2026-10-15
-updated: 2026-10-15
+updated: 2026-10-23
 expires: 2026-10-29
 ---
 
 # Hosted CI verification
 
-## Objective
+## Objective and boundaries
 
-Verify the CI reliability changes published at `53ef9777f`, investigate concrete
-hosted failures, and preserve product assertions and exact-build qualification.
-Pushes and workflow dispatches were authorized by the user on October 14.
+Complete hosted validation of the reliability changes and fix confirmed failures
+without weakening product assertions or exact-build qualification. The original
+October 14 task authorized pushes and workflow dispatches; live service enablement
+is excluded.
 
-## Plan
+## Recorded status
 
-- [x] Verify repository retention is 14 days and artifact expiry respects 14-day
-  diagnostics versus one-day products.
-- [x] Observe successful qualified selection on both runner inventories:
-  Engine/Battle use `27A9275`; Content passes with fallback `27A9269`.
-- [x] Inspect main CI run `38680834397`; Engine, Content, Battle, gate, and smoke pass.
-  State fails its external-save-generation fixture's seed assertion. AppState's
-  installed cleanup hook removes the stale registration before the intended
-  pre-cleanup generation-fence test. Repair `3aa1a69e5` isolates that callback,
-  explicitly requires the stale registration, and preserves every product assertion.
-- [x] Verify the repair in push run `38683089222` at `3aa1a69e5`: green; native Core,
-  Persistence, AppState, and all remaining required jobs pass.
-- [ ] Dispatch exact-build standard validation after publishing the diagnostic
-  follow-up, requiring `27A9275` in every lane. Superseded queued runs `38681168733`
-  and `38683100693` were canceled before execution. A missing candidate is a
-  qualification blocker, never a fallback admission.
-- [ ] Finish player coverage `38681171142`: critical phone/iPad profiles, iOS 18
-  compatibility, and repeated-play/crash recovery. Review retained visual evidence
-  for any UI failures before changing layout or gestures.
-  Soak job `116245844551` fails `Audio-enabled battle must resolve` on its fourth
-  contract. Raw log shows query latency rising from about 0.1 to 6–7 seconds near
-  the 45-second deadline; retained screenshot shows Victory. Earlier contracts
-  finish, all headless cohorts and settlement recovery complete. Keep the deadline
-  unchanged until a focused exact-product diagnostic distinguishes battle duration
-  from scheduling or UI observation delay. Artifact `11949007677` retains evidence.
-  iOS 18 smoke, purchases, recovery and all 394 Persistence tests pass. Largest-text
-  profiles fail an inaccessible-text audit on Defeat and reward Continue scrolling.
-  Logs prove the scroll helper selected a nested horizontal carousel rather than
-  the outer scroll view containing Continue. Repair target ancestry without changing
-  scroll counts or visibility assertions. Retain bounded accessibility hierarchies
-  alongside failure screenshots to identify the audit's missing semantic surface.
-  Artifact `11949777170` retains the original screenshots and raw traces.
-- [x] Repair the diagnostic workflow's relocated budget driver: retain its new
-  `internal` and `config` dependencies before checking out the source revision.
-  A regression executes the actual copy step and confirms failure classification
-  and original exit status without relying on checkout dependencies (14 tests pass).
-  The driver now admits the existing Soak plan, validates its source selectors,
-  and retains the same diagnostic deadline and original test exit status.
-- [ ] Publish the diagnostic workflow repair and run the existing repeated-play
-  selector against retained products; inspect new visual/log evidence.
-- [x] Lightweight handoff passes for the generation-fence fixture repair; compiled
-  verification remains hosted.
-- [x] Commit reviewed fixture repair, integrate under the shared lock, and push.
-  Running smoke evidence completed before the push; player coverage remains intact.
-- [ ] Update canonical owners, delete this file, and report the outcome and verification in the task handoff.
+Push [38683089222](https://github.com/Talyen/Trinket/actions/runs/38683089222)
+at `3aa1a69e5` passed required CI after the external-save-generation fixture repair.
+The newer combined range still needs hosted generation, compilation and tests.
+Runner selection observed preferred `27A9275` and qualified fallback `27A9269`;
+that mixed-build result cannot qualify one exact candidate.
 
-## Notes
+Player [38681171142](https://github.com/Talyen/Trinket/actions/runs/38681171142)
+passed iOS 18 Smoke, purchases, recovery, 394 Persistence tests and headless
+career/settlement cohorts. Soak stopped on its fourth audio-enabled Contract;
+the screenshot shows Victory while query latency rose near the existing deadline.
+Largest-text profiles also failed accessibility/Continue scrolling: the helper
+selected a nested carousel instead of Continue's outer scroll view.
+The diagnostic workflow's relocated-driver/dependency repair passed 14 regressions
+and admits the existing Soak plan; publication and exact-product execution remain pending.
 
-The user authorized publication of combined main after the integration of atomic
-save projections and typed trigger coding/discovery. Incorporate current main and
-preserve all commits. The published `3aa1a69e5` has green CI; the newer combined
-range still requires hosted generation, compilation, and tests.
-Original phone/iPad coverage completed with contrast/audit failures and native
-Reduce Motion preparation failures; dependent product assertions correctly abort
-when preparation fails. Inspect the retained audit attachments and Settings traces.
+## Remaining work
 
-Historical compilation/assertion repairs remain intact. No waits, execution proof,
-or accessibility scope have been weakened. Routine local compilation and simulator
-work remain deferred to CI. Merchant opening and timing defects require concrete
-current failures before further product edits.
+- [ ] Publish the reviewed diagnostic follow-up and validate current combined main
+  with `27A9275` in every requested lane. Missing candidate installations block
+  qualification; do not substitute fallback evidence.
+- [ ] Run the repeated-play selector against proven retained products. Distinguish
+  battle duration, scheduling and UI-query delay before changing the deadline.
+- [ ] Repair/verify Continue's scroll ancestry without weakening scroll counts or
+  visibility assertions. Inspect failure screenshots, bounded hierarchies, native
+  Settings traces and accessibility results before changing layout or gestures.
+- [ ] Complete phone/iPad profiles, iOS 18 compatibility and repeated-play/crash
+  recovery; record actual conclusions and individual skips.
+- [ ] Update canonical owners and delete this plan when acceptance is complete.
+
+## Evidence and safeguards
+
+Player artifacts `11949007677` (Soak) and `11949777170` (profile screenshots/traces)
+identify the original failures; check retention before reuse. Earlier attempts and
+superseded queued runs remain in Git history. Native Reduce Motion preparation
+must succeed before dependent assertions run. Preserve execution proof,
+accessibility scope and all product assertions. Use
+[Verification](../Platform/Verification.md) for current local/hosted selection;
+older notes deferring all local compilation do not override it.

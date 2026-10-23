@@ -135,11 +135,10 @@ text sizes retain natural wrapping. Production remains an absolute quantity per 
 and uses the existing clock; collecting multiple resources preserves each resource's
 fractional production independently. Multiple outputs remain individual rows.
 
-Homestead bonuses replace lower tiers. Maximum Hero and Companion Health use
-10/20/30/40%; damage-type bonuses use 10/15/20/25%; Critical damage, Health restored,
-Block gained, and Mana restored use 10/20/30/40%. Leech healing, Companion damage,
-ranged damage, and typed resistance use 5/10/15/20%. Dodge remains an additive
-2/4/6/8 percentage-point Companion chance bonus. Damage-type, Companion, and ranged
+[homestead_nodes.tsv](../../ContentManifest/homestead_nodes.tsv) owns tier values,
+production and upgrade costs. Homestead bonuses replace lower tiers; Companion
+Dodge adds percentage points rather than multiplying the existing chance.
+Damage-type, Companion, and ranged
 bonuses add before rounding; the Critical bonus multiplies the existing Critical
 result separately. Ranged bonuses retain the equipped Bow/Crossbow Physical-damage
 scope. Burn/Poison's stored potency is not scaled again on later ticks. General
@@ -147,9 +146,9 @@ restoration and Leech-specific bonuses each apply once to Leech healing; the
 Leech percentage includes flat equipment and conditional Leech healing bonuses. Resolved
 Block transfers do not repeat gain bonuses. No percentage grants a minimum +1.
 
-Library increases earned Experience by 5/10/15/20%, added to other XP percentages
-before existing recipient caps. Wishing Well increases positive earned Gold and
-Moonlit Sanctum increases existing Gem rewards by 5/10/15/20%. Neither changes
+Library adds its authored Experience percentage to other XP bonuses before
+recipient caps. Wishing Well increases positive earned Gold; Moonlit Sanctum
+increases existing Gem rewards. Neither changes
 production, purchase refunds, or initial balances; the Gem bonus cannot create Gems
 in rewards without Gems. Unpaid Gold/Gem hundredths persist separately from production,
 so repeated small rewards eventually pay their full percentage. Pure previews do not
@@ -174,12 +173,10 @@ Its opaque semantic surface separates Inventory-sized, two-column recipe artwork
 from the building artwork. The sheet can be expanded by dragging and dismissed by swiping down. It has no
 Resources or Close toolbar buttons; balances remain accessible on the node screen.
 
-The recipe order is Dagger, Shortsword, Longsword, Greatsword, Hatchet, Double Axe,
-Mace, Flail, Maul, Kite Shield, and Plate Armor. All unlock at Blacksmith tier one.
-Dagger, Shortsword, and Hatchet cost 24 Iron + 12 Wood; Longsword, Mace, Flail,
-and Kite Shield cost 32 Iron + 16 Wood; Greatsword, Double Axe, and Maul cost
-40 Iron + 20 Wood; Plate Armor costs 40 Iron + 20 Hide. These fixed initial prices
-preserve a net material sink when ordinary forged gear is salvaged.
+[EquipmentRecipe.all](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift)
+owns standard recipe order and fixed costs. All standard Blacksmith recipes
+unlock at tier one. Prices preserve a net material sink when ordinary forged gear
+is salvaged.
 
 Selecting a base immediately uses ordinary navigation inside that same sheet, with a compact
 520-point working detent for its artwork/name, material cost, and Forge button.
@@ -203,15 +200,17 @@ backgrounded preparation retains the item without launching a late detail view;
 the saved result card retains Done for this recovery path.
 
 Forging uses the shared non-boss item generator at the highest won encounter level.
-Blacksmith tiers 2–4 add a forge-only Astral tier-weight bonus of 10%, 20%, and
-30% respectively, shown with the Blacksmith's benefits. Basic and Astral outcomes retain normal
+Later Blacksmith tiers add the
+[authored forge-only Astral tier-weight bonus](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift),
+shown with its benefits. Basic and Astral outcomes retain normal
 rolls. Unique outcomes use only the chosen base's authored, unowned Unique;
 Trinkets never appear. Removing unavailable categories renormalizes loot weights.
 Building upgrades do not change recipes or prices.
 
-Material spending and inventory insertion commit atomically before success is
-presented. Transient retries retain the same rolled candidate. Leaving the flow
-never loses an accepted item, and reveal animation never grants one. Native
+Persistence resolves the recipe, workshop tier, research unlock and current balances
+before spending. Spending and inventory insertion commit atomically before success
+is presented. Retries revalidate eligibility and retain the same rolled candidate.
+Leaving the flow never loses an accepted item, and reveal animation never grants one. Native
 navigation, Inventory's item detail presentation, prepared artwork, and existing
 motion/haptic preferences govern presentation.
 
@@ -224,9 +223,9 @@ Its existing ranged-damage benefit, Wood production and building costs remain.
 Library is not a prerequisite for standard crafting.
 
 [Library, Research and Archery crafting](Library.md) owns discovery, project
-objectives, recipe prices, unlocks and their native navigation. Both workshops
+objectives, unlocks and native navigation; the recipe catalog owns prices. Both workshops
 share the immutable craft roll, spending/retry ownership and actual-item reveal
-above. Range tiers 2–4 add a Range-only Astral crafting weight bonus of 10/20/30%.
+above. Later Range tiers use the same workshop-only Astral weight formula.
 No workshop consumes an item or adds a new artwork asset. Trinkets and Uniques
 remain in Collection; the Library has no duplicate item archive.
 
@@ -246,8 +245,9 @@ Built Runesmith exposes **Inscribe**. Choose an owned Basic/Astral item, includi
 corrupted/equipped gear, then an affix position and an eligible replacement type.
 Exclude affix IDs already in other positions; choosing the same type rerolls it.
 Show the current effect, minimum/maximum possible effective effects, cost, and
-**Values are rolled when you inscribe**. Basic costs 8 Iron + 4 Gems; Astral costs
-16 Iron + 8 Gems. Inscribe immediately replaces the effect even if worse or equal.
+**Values are rolled when you inscribe**.
+[ItemInscriptionPlan](../../Packages/TrinketContent/Sources/TrinketContent/Equipment/ItemInscription.swift)
+owns rarity-specific costs. Inscribe immediately replaces the effect even if worse or equal.
 There is no keep-old step. Use normal rarity magnitude rolls, intrinsically fixed
 effects and base multipliers once. Other powers, item identity and equipment stay
 unchanged. First commitment permanently pins the only inscribable position, marked
@@ -273,8 +273,9 @@ from any source clears the wish; unknown/already-owned wish IDs sanitize to none
 Outfitter retains the `woolTailoring` saved identity and existing artwork, passive
 bonuses, production and prices. Built Outfitter exposes **Craft** using the same
 recipe sheet, cost dock, immutable roll and actual-item reveal as other workshops.
-Leather Armor costs 40 Hide + 20 Wood. Standard crafting includes Basic/Astral and
+The [recipe catalog](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift)
+owns Leather Armor costs. Standard crafting includes Basic/Astral and
 the selected base's unowned Unique, excludes Trinkets, and uses the highest won
-encounter level. Tiers II–IV add 10/20/30% Outfitter-only Astral tier weight.
+encounter level. Later tiers use the shared workshop-only Astral weight formula.
 Focused recipes are taught by Library Research and guarantee a keyword affix
 within an ordinary slot, with Basic/Astral outcomes only. See [Library](Library.md).

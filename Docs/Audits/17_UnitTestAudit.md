@@ -18,16 +18,10 @@ or similar assertions. A smaller portfolio is not inherently a better one.
 
 ## Evidence and remedy
 
-For redundant removal/merging, identify the surviving owner and show it covers the
-same consequential behavior under the relevant conditions. For distinct low-value
-cases, apply Testing.md's retirement rules; equivalent replacement coverage is not
-required. Consider strengthening or moving existing coverage before additions.
-For missing coverage, apply
-Testing.md's high-value threshold and strengthen the cheapest existing semantic owner.
-Low-value additions are excluded; medium-value additions need a rare, concrete
-exception under that policy. Assess directly related existing cases for retirement,
-including distinct cases whose additional protection does not justify their cost.
-A lack of test files or a low case count is not evidence of a gap.
+Use [Testing](../Platform/Testing.md#consolidation-and-retirement) for additions,
+consolidation and retirement. For redundant cases, identify the surviving owner
+and verify equivalent consequential protection. Distinct low-value cases can be
+retired without replacement under that policy. A low case count alone is not a gap.
 
 Correct false evidence before optimizing its runtime. Assert semantic outcomes;
 persistence coverage must establish durability rather than an in-memory setter

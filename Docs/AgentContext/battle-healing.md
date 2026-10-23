@@ -2,6 +2,8 @@
 
 Use with [engine ownership](battle-engine.md) for healing, overflow, bounded gains or party auras.
 
+## Allocation and overflow
+
 `HealingResult` carries `HealingAllocation`: resolved healing, direct restoration,
 transferred overflow, maximum-Health and Block allocations, and unspent overflow.
 Each consuming consequence allocates from the remainder. Block conversions spend
@@ -18,6 +20,9 @@ Floating feedback combines it with restored Health in the existing healing numbe
 restoration events, battle-log totals, and healing triggers still use actual restoration.
 Blood Price rolls a fixed 10% chance per qualifying Leech to grant its rolled
 Gold amount; saved powers retain their amount and adopt the same chance.
+
+## Bounded gains
+
 Gold grants require a positive request and a living recipient before flat bonuses;
 Gold-gain reactions and feedback require a positive actual grant, including when the Gold ledger is saturated.
 A saturated Gold ledger preserves theft preparations. Gilded Claws damage storage
@@ -44,6 +49,9 @@ all healers; healer-provided fallback conversion retains the healer's allowance.
 Cooling Salve rechecks its healer after Masterwork Mixture's Mana reactions.
 Turn start consumes due Lingering Blessing repeats before restoration reactions
 can queue replacements; newly queued repeats wait for the next player turn.
+
+## Base and resolved Block
+
 Block grants declare a base or resolved amount through `BlockAmountBasis`.
 Duplication, transfer, and already-scaled gains use `.resolved` to avoid applying
 outgoing bonuses and fight pacing again; consequences read the applied amount returned by `applyBlockGain`.
@@ -66,6 +74,9 @@ Block amount equal to that restoration. Overflow does not fund its Block.
 Bloodroot grants Thorns after direct Leech restoration only when the wearer has
 no Thorns. Scarfeast grants Leech to the wearer's Physical attacks while their
 Health was below half before the hit.
+
+## Leech and shared restoration
+
 Leeching and Vampiric add their displayed fraction of damage dealt to Leech
 restoration, rather than multiplying the existing restoration. Saved rolled
 powers retain their strength and describe that same additional fraction.
@@ -119,6 +130,8 @@ Touch, and do not consume its first-restoration allowance. Shared Roots offers h
 the Companion's actual restoration to the Hero, rounded once before recipient reductions.
 Bloodprice reduces enemy healing while its Companion
 is alive, independently of the Hero.
+
+## Ability-specific healing and preparations
 
 Panacea chooses its healing recipient at the healing checkpoint, after preceding
 Cleanse reactions such as Fresh Batch have changed Health.

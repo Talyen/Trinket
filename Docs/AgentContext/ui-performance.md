@@ -3,6 +3,8 @@
 Use when changing launch covers, tab mounting, artwork loading/retention, or
 first-frame performance. Root guidance owns product approval constraints.
 
+## Launch cover and readiness
+
 The launch cover intentionally holds for at least two seconds while resources
 prepare. `LaunchWarmupView` owns that duration, its timed gold title fill,
 and the completion callback used by `PreparedAppRoot`. Status text keeps stable
@@ -54,6 +56,8 @@ the retained underlay is decorative, hidden from accessibility, and no longer
 carries the loading-state identifier. Collection
 launch sheets use normal launch dismissal to expose their intended backdrop.
 
+## First-paint pins and encounter transitions
+
 Artwork on the first paint of a tab, sheet, or push is decoded into
 `PreparedArtworkCache` at launch (or the owning surface's `.task`) and **pinned**
 so deferred catalog warmup cannot evict it. `Image.preparedAsset` falling through
@@ -88,6 +92,8 @@ covers leave the underlying tab bar in place and ignore tab selection and back
 navigation during encounter presentation; only battle and the post-battle talent
 flow hide it. Failed opens and empty shops without a cover do not retain the map.
 
+## Collection inspection and salvage
+
 Collection item inspection prepares and pins detail artwork before presenting its
 native sheet. Successful salvage retains only the outgoing item's position
 and artwork through the native return and source-anchored dissolve; the saved item
@@ -101,6 +107,8 @@ Material rewards enter after 0.30 seconds while the fragments fade, begin their
 so the grid can settle without an extra hold. Salvage owns these overlapping stage
 timings; the shared battle dissolve keeps its existing duration.
 
+## Board replacement and Voyage entry
+
 Contracts retains the displayed board while replacement artwork prepares. Only
 the latest offer snapshot may publish, with actions bound to those same identities.
 Outgoing pins survive the board crossfade. Superseded preparation, navigation away,
@@ -111,6 +119,8 @@ crossfade. Preparation and cleanup belong outside the replaced screen identity.
 Retain outgoing artwork pins through the fade; superseded preparation transfers
 cleanup to the latest generation. Outgoing content has no interaction or
 accessibility exposure. Resume and ordinary progress reconciliation stay immediate.
+
+## Viewport resolution and compositing
 
 Catalog artwork views use `PreparedArtworkImage(reference, displaySize:)` for
 shared high-quality interpolation. `.compact` specifies the prepared first-paint
@@ -140,6 +150,8 @@ paint into a drawing group. Preserve the blur, badge shadows, and accumulated in
 edge; the group avoids repeating those compositor passes during scrolling and
 navigation. Keep native hosting views and controls outside these rasterized groups.
 
+## Mounted roots and battle visibility
+
 For players who completed starter selection, the selected tab and every hidden
 Collection, Homestead, and Options prewarm surface acknowledge nonzero layout
 under the launch cover after resource preparation. Mount hidden roots successively
@@ -157,7 +169,6 @@ drop the prepared overlay mount; pause its TimelineViews until
 `lifecyclePhase` is `.active` instead. Do not push campaign (or other
 navigation destinations) under the cover — those views are destroyed on pop,
 and a leftover path lands the player off the mode hub.
-
 
 While the retained battle overlay is active (Play-side view; Battle side:
 [battle-presentation.md](battle-presentation.md#display-lifetime)), `PlayBrowsingStack` removes its root
@@ -184,6 +195,8 @@ content do not hide system-owned vertical bars during prewarm.
 The overlay's navigation bar follows the same active-display gate; an inactive
 prepared stack must not compete with browsing's native bar. Toolbar actions need
 symbol-backed labels so their actions remain visible in Duo's vertical bars.
+
+## Decode admission and acquisition lifetime
 
 Artwork admission is shared across callers: at most two decodes run concurrently,
 with at most one deferred catalog decode. Launch/imminent pins precede viewport
@@ -223,6 +236,8 @@ retains that mounted presentation through prepared activation. Battle pins cover
 and portraits, not just the opening hand. Closed-vocabulary combat raster composition
 runs off the main actor from immutable resolved inputs and publishes only for the
 current preparation generation.
+
+## Decorative motion
 
 `trinketDecorativeMotion` parks shine and plasma clocks for hidden presentations,
 unselected tabs, and launch prewarm surfaces; nested scopes cannot re-enable an

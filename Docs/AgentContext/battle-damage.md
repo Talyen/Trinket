@@ -2,6 +2,8 @@
 
 Use with [engine ownership](battle-engine.md) for damage, reactions, effect application or expiry.
 
+## Operations and Block resolution
+
 `DamageOperation` supplies named attack, effect, periodic, reaction, and Health-cost
 operations. Damage type owns Stun/Freeze buildup; callers do not opt into it with
 a flag. Counterattacks and repeated hits carry explicit origins; repeating periodic
@@ -42,6 +44,9 @@ and duration; its feedback reports the combined amplified potency only when at
 least one stack grows. Fully capped pools emit no amplification feedback. Legacy
 `multiplyDoT` respects negative-status protection on the existing debuff; growth
 does not consume Fae Ward's interception of a new debuff.
+
+## Saturation and conditional damage
+
 Card preparations, DoT attachment/growth/detonation, and triggered Thorns gains
 and retaliation saturate at integer limits, including when an existing effect
 has already reached its maximum magnitude. Equipment and talent damage additions,
@@ -72,6 +77,9 @@ Prismatic Edge's copied initial damage skips these conditional source bonuses;
 its later ordinary Burn ticks retain their per-event bonuses.
 Later damage components skip a target already defeated by the same action, so
 post-defeat hits cannot trigger another on-hit reward; later support effects still resolve.
+
+## Stored damage and detonation
+
 `DecayingDoTProgression` captures the original stack owner’s legacy decay and tick
 rules plus the strongest matching enemy-pool Talent modifiers from living allies.
 Enemy-pool Talents apply regardless of the original applier; defeated owners cease
@@ -120,6 +128,8 @@ Shock and Cold Flame apply once per new hit.
 Searing Body attaches Burn after attack Health damage, never after periodic or
 reaction damage. Unquenchable Flame bypasses talent damage reduction as well as
 flat mitigation, typed resistance and Block; unapplied prepared protection remains ready.
+
+## Repeats, retaliation and living-owner rewards
 
 The Final Spark snapshots each original packet's outgoing magnitude and Critical
 Hit result before recipient defenses. Its repeat uses current defenses without
@@ -182,6 +192,8 @@ share the roll, a later card can roll again in the same turn, and repeated or
 reaction damage cannot roll. Copies add chance (capped at 100%); a successful
 roll deals one Bleed damage through the ordinary reaction/DoT applicator.
 
+## Mutation checkpoints, removal and expiry
+
 Keep ordered
 damage checkpoints in `DamagePipeline`; commit mutations before their dependent
 reactions. Reserve next-hit resources before nested reactions and never write a
@@ -217,6 +229,8 @@ Burn and Poison amounts do not guarantee next-turn damage; Stun and Freeze build
 percentage progress and explain that reaching 100% prevents the next action.
 
 For a named talent change, look up its rule in [talent interactions](battle-talents.md).
+
+## Control and lethal protection
 
 Glacial Barrier and Rimeguard reward each living owner when an opponent becomes
 Frozen, including freezes applied by an ally.

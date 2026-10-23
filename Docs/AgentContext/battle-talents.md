@@ -4,7 +4,9 @@ Authored talents and their short descriptions live in
 [the talent manifest](../../ContentManifest/talents.tsv). Talent rule changes
 reuse the ordinary damage, healing, control, and resource pipelines. Look up the
 named talent only. Resolve its current trigger from the manifest; an engine
-helper's fallback display name may describe an older, distinct trigger.
+helper's fallback display name may describe an older, distinct trigger. Authored catalogs
+own current amounts and chances; this guide retains ordering, eligibility,
+trigger limits, conversions and compatibility rules.
 
 - [Balance cadence](#balance-cadence)
 - [Damage and control](#damage-and-control)
@@ -22,14 +24,14 @@ helper's fallback display name may describe an older, distinct trigger.
 Lucky Break draws a card on its owner's first positive actual Gold gain each turn,
 including theft. Zero or rejected grants do not spend its turn allowance.
 
-Dig for Treasure adds 10 percentage points to victory Gold scaling over encounter
+Dig for Treasure adds a percentage bonus to victory Gold scaling over encounter
 Gold plus combat gains, before spending. The selected party's bonus is captured
 at launch and survives Companion defeat. It uses ordinary reward remainders,
 capacity, and receipt handling; noncombat rewards and defeat payouts exclude it.
-Light Fingers steals 1 Gold on attack Critical Hits, including fully Blocked hits
+Light Fingers steals Gold on attack Critical Hits, including fully Blocked hits
 and full Basic counterattacks, after the source survives retaliation. Critical
-healing, ongoing damage, and raw reactions do not qualify. Palmed Coin retains its
-20% Dodge chance and 4 Gold amount, now as theft. Both use ordinary theft reactions;
+healing, ongoing damage, and raw reactions do not qualify. Palmed Coin rolls for
+theft after Dodge. Both use ordinary theft reactions;
 there is no enemy Gold purse or new activation allowance.
 
 ### Shared Poison and Burn pools
@@ -43,13 +45,13 @@ natural-turn rolls never run during detonation.
 
 ### Reproving Light, Perfect Purity, and Loaded Strike
 
-Reproving Light deals one ordinary 3 Holy damage reaction per successful Cleanse
+Reproving Light deals one ordinary Holy damage reaction per successful Cleanse
 operation, regardless of removed debuff count. Empty removals and nested
 Hero-Talent reactions do not grant another hit. Legacy debuff-reflection profiles
 retain their existing rules.
 Perfect Purity requires an actual debuff removal and protects the cleansed
 recipient until the next player turn; it does not prevent associated damage.
-Loaded Strike rolls a 20% chance to double damage once per attack action,
+Loaded Strike rolls once per attack action to double damage,
 sharing the outcome across that action's hits regardless of damage type; otherwise damage is unchanged.
 Counterattacks own their roll; ongoing and raw reaction damage do not qualify.
 Clean Cut makes Critical Hits of every damage type ignore enemy Block.
@@ -64,7 +66,7 @@ Last Wager and Health is Wealth share that cadence. Counterattack Basics retain
 one allowance across separate Critical Hit Gold and theft gains; standalone Gold
 rewards retain their independent reactions.
 Coinmail converts only its owner's Gold gains using ordinary combat rounding,
-including odd gains such as Fickle Fortune's 3 or 7 Gold. Its converted Block is
+including Fickle Fortune's odd Gold gains. Its converted Block is
 resolved: it does not repeat Block bonuses or fight pacing, and preserves prepared
 bonuses for the next base Block grant. It does not suppress an
 independent Gold-earned Block threshold retained in saved equipment.
@@ -124,7 +126,7 @@ damage. Existing Poison is not required, and ongoing ticks do not activate it.
 ### Companion Gold and Leech
 
 Haggler adds Gold only to a positive steal by a living Retriever; an empty
-steal grants no Gold. Flawless Bounty has a 10% chance per Leech restoration
+steal grants no Gold. Flawless Bounty rolls per Leech restoration
 to convert unallocated excess healing on Lizard Scout into Gold, one for one.
 The gain cannot restore Health or start another Leech. War Chest grants the living Hero resolved Block
 equal to the living Retriever's actual Gold stolen, after theft modifiers;
@@ -141,8 +143,8 @@ apply; healing/draw loops are prevented by the once-per-turn claim.
 
 ### Forbidden Knowledge
 
-Forbidden Knowledge pays 1 Health (ordinary Health-cost, no hidden nonlethal
-floor, cost before drawing) and draws 1 from the wearer's deck on the existing
+Forbidden Knowledge pays Health (ordinary Health-cost, no hidden nonlethal
+floor, cost before drawing) and draws a card from the wearer's deck on the existing
 alternate-turn cadence beginning on player turn 1. A defeated owner cannot
 continue; unavailable draws still spend the Health cost.
 
@@ -170,8 +172,8 @@ normal Freeze damage and control resolution for both Frost Elemental and Winter 
 
 ### Poison riders and damage conversions
 
-Venomous Skin resolves its immediate 1 Poison damage before attaching stacks.
-Prismatic Edge rolls a 10% chance once per attack action to add either
+Venomous Skin resolves its immediate Poison damage before attaching stacks.
+Prismatic Edge rolls once per attack action to add either
 Freeze or Burn damage, chosen equally and shared across that action's hits.
 Each bonus hit copies the actual Health damage dealt, then uses current
 elemental defenses without repeating source bonuses, Critical damage or pacing.
@@ -195,7 +197,7 @@ Burning attacker. Fully absorbed ticks grant no damage rewards.
 
 ### Thick Hide
 
-Thick Hide reduces Physical damage by 2 only while its owner has Block.
+Thick Hide applies a flat Physical damage reduction only while its owner has Block.
 
 ### Concussive Blow and Pulverize
 
@@ -220,14 +222,14 @@ damage after its first Dodge.
 
 ### Mimic
 
-Mimic deals one additional 2 Bleed damage hit (ordinary Bleed damage and
+Mimic deals one additional Bleed damage hit (ordinary Bleed damage and
 application) on its first attack only, through the normal damage pipeline;
 subsequent hits and ongoing ticks do not repeat the bonus.
 
 ### Lead the Hunt
 
-Lead the Hunt increases Companion attacks against Bleeding enemies by 25%; it adds
-no unconditional flat Bleed damage.
+Lead the Hunt applies a percentage bonus to Companion attacks against Bleeding
+enemies; it adds no unconditional flat Bleed damage.
 
 ### Beastbond
 
@@ -245,8 +247,8 @@ rewarding each damage event.
 
 ### Bloodfire
 
-Bloodfire increases existing Burn attack damage by 25% against Bleeding enemies,
-checking the target on each hit. It creates no Bleed hit or stack and does not
+Bloodfire applies a percentage bonus to existing Burn attack damage against
+Bleeding enemies, checking the target on each hit. It creates no Bleed hit or stack and does not
 amplify ongoing Burn. Burn stacks still inherit their attack's actual Health damage.
 
 ### Paralysis, Bloodrush, and Arcane Focus
@@ -330,7 +332,7 @@ when it repeats. Typed damage bonuses strengthen an existing unconditional hit
 of that type when present, avoiding duplicate equipment bonuses. Sniff Out's
 recipient-owned preparation follows the [ability strategy contract](battle-actions.md#ability-strategy).
 Predator's
-Focus deals 1 Bleed and prepares the caster's next attack with Leech.
+Focus deals Bleed damage and prepares the caster's next attack with Leech.
 Gilded Claws
 instead accumulates actual Gold stolen until the next attack. Authored
 `Ability.stealsGold` identifies theft from Steal, Bounty Shot, Blackjack,
@@ -375,17 +377,17 @@ combatant's status summary.
 
 Surprise Strike doubles the next attack after Panther's first Dodge each
 combat. Stalker's Precision ignores Block and Vanish guarantees a Critical
-Hit on the next attack. Counter Pounce prepares 2 damage for the next Bleed
+Hit on the next attack. Counter Pounce prepares damage for the next Bleed
 attack after Dodge; Regroup rolls for one card draw. Preparations refresh instead
 of stacking.
 
 Lizard Scout's Cold Blood returns Poison on every Dodge; Barbed Tail rolls
-once per Dodge for 4 Bleed damage at 20% chance, limiting simultaneous typed
+once per Dodge for Bleed damage, limiting simultaneous typed
 retaliation feedback.
 
 ### Sleight of Coin and Jackpot
 
-Sleight of Coin prepares +15% Dodge for the rest of the turn after a successful
+Sleight of Coin prepares an additive Dodge chance bonus for the rest of the turn after a successful
 Gold steal; repeated steals refresh rather than stack it. Jackpot folds its
 extra Gold into a Critical Hit's Gold steal, producing one Gold gain event.
 This also applies to a qualifying Basic counterattack's own Critical Hit and theft.
@@ -434,9 +436,9 @@ from Mana-empowered Critical Hits within the existing hit.
 
 ### Dragon’s Patronage and Prismatic Scales
 
-Arcane Breath adds one damage to existing Freeze operations during Mana
+Arcane Breath adds damage to existing Freeze operations during Mana
 empowerment; a Burn outcome of Astral Arrow gains no extra Freeze hit or buildup.
-Dragon’s Patronage grants 2 Block to Frost Whelp's ally once per Mana-empowered
+Dragon’s Patronage grants Block to Frost Whelp's ally once per Mana-empowered
 ability. Mana Moth's Prismatic Scales strengthens existing Burn and Freeze
 damage during Mana empowerment, without adding hits or another Mana payment.
 
@@ -456,7 +458,7 @@ Blood Link, and Wishspring retain their existing targeting and preparation rules
 
 ### Campfire Comfort
 
-Campfire Comfort restores 2 Health to the lowest-Health living ally at the end
+Campfire Comfort restores Health to the lowest-Health living ally at the end
 of every other player turn, beginning on turn 1. It skips a fully healed ally.
 
 ### Sacrificial Guard and Man's Best Friend
@@ -495,7 +497,7 @@ shares the first actual Leech restoration each turn even when its hit defeats th
 
 ### Living Archive, Wishspring, and Marrowmend
 
-Living Archive rolls once per Health-restoring ability and gives 3 Thorns to
+Living Archive rolls once per Health-restoring ability and gives Thorns to
 one healed ally on success. Wishspring uses the original overhealing amount
 alongside existing Block and maximum-Health conversions. Marrowmend converts
 half the first excess Leech restoration each turn into resolved Block; later
@@ -503,11 +505,11 @@ turns can add to existing Block.
 
 ### Shelter Seed, Shared Prescription, and Thorn Shedding
 
-Shelter Seed checks Health before healing and grants three Block only after
+Shelter Seed checks Health before healing and grants Block only after
 actual restoration. Shared Prescription offers excess healing to the other
 living ally up to their missing Health without applying healing bonuses again,
 then Reclaimed Reagents can convert
-half the remainder to Block. Thorn Shedding adds one Poison damage after its
+half the remainder to Block. Thorn Shedding adds Poison damage after its
 owner's first positive Thorns Health damage each turn, with normal Poison
 application. It leaves Physical and other Thorns conversions intact; other
 allies cannot use the owner's allowance.
@@ -525,15 +527,15 @@ healer to survive the Cleanse reactions.
 Owl's Aether Shield and Living Archive each roll once per restoring ability
 after actual Health is gained. A successful roll affects one healed ally:
 Aether Shield grants Block equal to their restoration; Living Archive grants
-3 Thorns. Font of Magic rolls once when an ability restores Health or Mana,
+Thorns. Font of Magic rolls once when an ability restores Health or Mana,
 even when it restores both. Purifying Light's automatic Cleanse uses normal
-Cleanse reactions when it succeeds; its 10% chance rolls once per Holy ability.
+Cleanse reactions when it succeeds; it rolls once per Holy ability.
 
 ## Removal, protection, and Block
 
 ### Guardian
 
-Guardian grants the Hero 5 Block before the first qualifying Hero-targeted
+Guardian grants the Hero Block before the first qualifying Hero-targeted
 attack each combat. Ongoing damage and Dodged attacks do not consume it.
 
 ### Warning Bark
@@ -571,7 +573,7 @@ Death's Door, including its ongoing Burn damage.
 ### Block theft and protection
 
 Block theft transfers only available Block without multiplying the amount.
-Adamant Carapace increases its owner's Block absorption by 50% for all damage
+Adamant Carapace increases its owner's Block absorption for all damage
 types through the ordinary absorption calculation. The numeric absorption trigger
 uses a neutral multiplier of one; the legacy doubling field remains readable for
 retained serialized powers.
@@ -602,7 +604,7 @@ control through the ordinary action-skip lifecycle.
 
 ### Mana Absorption
 
-Mana Absorption grants 2 resolved Block per excess Mana restored, including at
+Mana Absorption converts excess Mana restored into resolved Block, including at
 full Mana. Only overflow funds the grant; actually restored Mana remains separate.
 The conversion and pending Block accumulation saturate at integer capacity.
 The existing enable flag remains serialized, with a separate per-Mana amount

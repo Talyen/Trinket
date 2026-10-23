@@ -12,17 +12,6 @@ focused contracts. Guidance follows owner directories rather than source leaf
 names. Briefings surface applicable skills and the short UI interaction constraints directly.
 Skills apply by their own triggers; the catalog below is optional lookup.
 
-Sample briefing shape (exact cards vary by path):
-
-```text
-Applicable requirements: AGENTS.md, Packages/BattleEngine/AGENTS.md
-Applicable ownership requirements: Docs/AgentContext/battle-engine.md
-Optional reference depth: Docs/AgentContext/battle-damage.md
-Landing (after review and commit): node Scripts/agent-worktree.mjs integrate
-Iteration check: ./Scripts/handoff.sh --quiet --paths <files...>
-Final task verification: ./Scripts/handoff.sh --quiet
-```
-
 | Card | Typical trigger |
 |------|-----------------|
 | [battle.md](battle.md) | Battle ownership router; load one focused battle subcard |
@@ -48,10 +37,8 @@ Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/S
 
 ## Quickstart
 
-Follow [Route and read](../../AGENTS.md#route-and-read) in the root guide. The
-briefing prints local safeguards and concise ownership;
-reuse unchanged guidance and read broader references only for the affected
-behavior. This catalog is for lookup, not an additional reading sequence.
+Use [the root workflow](../../AGENTS.md#route-and-read). Reuse unchanged guidance
+and load behavior depth only for the affected concern.
 
 `--base main` includes task commits plus dirty files; `--paths` selects intended
 files. Concern shortcuts and specialized helpers remain optional. The

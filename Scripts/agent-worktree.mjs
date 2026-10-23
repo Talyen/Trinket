@@ -13,7 +13,7 @@ function git(args, cwd = source) {
 function usage() {
   console.log(`Usage:
   node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>]
-  node Scripts/agent-worktree.mjs integrate [--reviewed-main <commit>] [--keep-worktree]
+  node Scripts/agent-worktree.mjs integrate [--reviewed-main <commit>] [--keep-plan] [--keep-worktree]
   node Scripts/agent-worktree.mjs cleanup
   node Scripts/agent-worktree.mjs evidence [path...]
   node Scripts/agent-worktree.mjs remove --task <slug>
@@ -34,7 +34,7 @@ try {
       const seen = new Set();
       for (let index = 0; index < args.length; index++) {
         const option = args[index];
-        if (!["--keep-worktree", "--reviewed-main"].includes(option) || seen.has(option)) throw new Error(`Invalid integration option: ${option}`);
+        if (!["--keep-worktree", "--reviewed-main", "--keep-plan"].includes(option) || seen.has(option)) throw new Error(`Invalid integration option: ${option}`);
         seen.add(option);
         if (option === "--reviewed-main" && (!args[++index] || !/^[a-f0-9]{40}$/.test(args[index]))) throw new Error("--reviewed-main requires the full reviewed commit ID");
       }

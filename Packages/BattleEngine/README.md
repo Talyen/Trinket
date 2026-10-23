@@ -32,21 +32,9 @@ independently useful rules and value types easy to locate. Closely related
 private helpers may stay with their owner; neither one type per file nor fewer
 files is a goal by itself.
 
-On-hit work is intentionally split across two channels (see
-[engine ownership](../../Docs/AgentContext/battle-engine.md)): `DamagePipeline`
-orders damage reactions and delegates attacker-side applications to
-`AttackerOnHitEngine`, while `CombatTriggerEngine` owns post-hit cadence.
-Do not fold one into the other. Unconditional hero/companion loops
-(stored-damage drain, healing-echo drain) must visit dead members too; the
-`livingPartyMembers`/`livingAllies` helpers are only for living-only passes.
-`EffectRemovalOperation` owns effect stripping (cleanse for debuffs, purge for
-buffs) plus each path's consequences; share handler dispatch, not the paths.
-
-Enemy abilities resolve offensive effect targets and opponent conditions against
-the selected party member. Conditions keep that target throughout the action,
-including after earlier hits change the party's Health ordering. Shared keyword
-reactions also run for enemy traits, with healing and Block awarded to the source's
-side; party-wide talent bonuses remain restricted to the party.
+[Engine ownership](../../Docs/AgentContext/battle-engine.md) owns reaction channels,
+participant eligibility and target-selection invariants. Keep simulation rules
+there and in the focused concern guides below.
 
 ## Key types
 

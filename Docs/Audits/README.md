@@ -42,9 +42,8 @@ root cause. Once confirmed, inspect materially similar instances under the same
 invariant and fix the confirmed cluster when verification is bounded. Do not leave
 an adjacent manifestation or replaced path behind merely to minimize the diff.
 
-Cross-audit routing deduplicates reporting; it does not prohibit necessary root-cause
-work. Use the most specific concern in the ownership table and report one finding
-per cause. A fix may cross owners without launching an uncited audit's full inventory.
+Report one finding per root cause under its most specific audit. Follow affected
+callers across owners without launching unrelated audit inventories.
 
 ### Severity scale
 
@@ -86,17 +85,11 @@ contracts; reassess remaining rationale when its assumptions change. It is neith
 Outcomes, coverage, and unresolved candidates belong in the handoff; do not append
 run logs or Done tables to audit guides.
 
-### Code and test budgets
+### Test decisions
 
-Judge simplification by avoided maintenance, indirection, duplication, or executed
-work, not just authored LOC. Ownership/correctness repairs may grow when necessary.
-Treat routed change-budget counts as investigation signals under
-[AGENTS.md](../../AGENTS.md), not targets or justification quotas. Do not preserve
-redundant paths to avoid migration work.
-
-Test additions, ownership, consolidation, and retirement follow
-[Testing.md](../Platform/Testing.md). Verification does not require new tests;
-report any deliberately relinquished coverage and its material remaining risk.
+Use [Testing](../Platform/Testing.md) for coverage, tier placement and retirement.
+Verification does not require new tests. Report deliberately relinquished
+protection and its material risk; counts alone do not establish value.
 
 ### Verification and handoff
 
@@ -137,12 +130,9 @@ remediation details only when they prevent a domain-specific mistake.
 | 17 | [17_UnitTestAudit.md](17_UnitTestAudit.md) | Unit/package test value, runtime, redundancy, fixture sprawl, and tier ownership |
 | — | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) | Device-led performance investigation |
 
-Ownership determines where a finding is reported and deduplicated. It does not require leaving necessary callers, tests, configuration, docs, or adjacent symptoms unchanged when they belong to the same root-cause remedy.
-
 ### Confusable pairs
 
-Use this table to route confirmed findings, not to classify search hits as defects.
-Guides link their closest neighbors; one problem produces one finding under one owner.
+Use these distinctions when ownership is ambiguous; search hits still need confirmation.
 
 | If the hit is… | Owner |
 |----------------|-------|

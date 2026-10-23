@@ -45,15 +45,8 @@ source selection and preparation.
 | Concern | Owner | Notes |
 |---------|-------|-------|
 | Effects, keywords, stats, progression | [TrinketCore](../../Packages/TrinketCore/README.md) | Domain primitives; no UI or app dependencies |
-| Battle Gold flow and reward values | TrinketCore / TrinketContent | Core carries gross gains/spending fields for compatibility; current combat content is gain-only |
-| Battle reward planning, seeded loot, and request identities | TrinketContent | `BattleLootContext` owns mode loot policy, including Voyage destination composition; shared encounter plans and capped XP policy serve launch and save commands. Persistence adapts saved inputs and commits claims |
-| Mystery item pools, reward quantities, and offer settlement | TrinketContent | Explicit ownership, Homestead effects, and reward inputs; Persistence pins offers and commits claims |
-| Item generation, duplicate ownership, forging, Corruption, and Salvage rules | TrinketContent | Item values and inventory arrays; Blacksmith plans retain rolls and validate current resources. Persistence owns save mapping, commands, receipts, and cooldowns |
-| Roster state, party/loadout edits, combat builds, and talent eligibility | TrinketContent | Value-only rules accept current access and inventory; build resolver produces modifier profiles and effective max stats; Persistence owns saved graph mapping, migration, and commits |
-| Homestead production and upgrade rules | TrinketContent | Value state and Gold inputs; Persistence owns saved wallet writes, graph mapping, and receipts |
-| Catalogs and authored content | [TrinketContent](../../Packages/TrinketContent/README.md) | Manifest/codegen boundary and runtime catalog |
-| Contracts and Voyage board selection | TrinketContent | Value-only repair, generation, and replacement rules; Persistence owns refresh admission, active runs, and retirement receipts |
-| Encounter scaling | TrinketContent | `EncounterScaling` pairs mode level rules with enemy power profiles for launch, reward fallbacks, and simulations |
+| Battle Gold flow and reward values | TrinketCore / TrinketContent | Gross gains/spending fields retain compatibility; current combat content is gain-only |
+| Content values, catalogs and progression rules | [TrinketContent](../../Packages/TrinketContent/README.md) | Loot/rewards, encounters and scaling, roster/builds, equipment transformations, and Homestead rules; Persistence adapts saved inputs and commits results |
 | Combat rules and card combat | [BattleEngine](../../Packages/BattleEngine/README.md) | Simulation owner |
 | Player save, stores, and sync wiring | [TrinketPersistence](../../Packages/TrinketPersistence/README.md) | Canonical save graph and write policy |
 | Shared UI chrome | [TrinketDesignSystem](../../Packages/TrinketDesignSystem/README.md) | Product colors, materials, typography, and reusable chrome |
@@ -111,9 +104,8 @@ production imports. No package may import the `Trinket`
 app module. `./Scripts/check-module-boundaries.sh` enforces these rules in source imports
 and package manifests.
 
-The app target is a composition root. `TrinketAppState` production code depends on
-`BattleEngine` and `TrinketFeatureContracts`, never concrete BattleFeature or
-save-backed adapters. Views take the narrowest owner. Launch/DTO details:
+The app target is the composition root; AppState never owns save-backed adapters.
+Views take the narrowest owner. Launch/DTO details:
 [battle-runtime.md](../AgentContext/battle-runtime.md).
 
 ## Cross-cutting ownership pointers

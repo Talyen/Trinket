@@ -144,6 +144,18 @@ protection to restore their owner; a final defeat grants neither reward.
 `BattleRoster.hasAffliction` distinguishes
 active debuffs from keyword-associated buffs for conditions and damage rules.
 
+## Participant and targeting rules
+
+Unconditional hero/companion loops (stored-damage and healing-echo drains) visit
+defeated members too; `livingPartyMembers`/`livingAllies` are for living-only passes.
+`EffectRemovalOperation` owns Cleanse/Purge consequences; share handler dispatch,
+not the distinct removal paths.
+
+Enemy offensive effects and opponent conditions retain their selected party target
+throughout the action, even when earlier hits change Health ordering. Shared keyword
+reactions also run for enemy traits, awarding healing and Block to the source's
+side; party-wide Talent bonuses remain party-only.
+
 ## Focused contracts
 
 Use the scoped briefing to locate applicable contracts; follow calls into other

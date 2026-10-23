@@ -96,20 +96,15 @@ Required pushes use an explicitly qualified toolchain; admission, preference and
 [toolchain ladder](../../Scripts/Reference.md#toolchain-ladder). Latest-toolchain
 manual runs cannot reuse qualified-toolchain checks; exhaustive UI remains advisory.
 
-`Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. Routine internal TestFlight
-uses green exact-commit CI, actual hosted or local Smoke, and focused high-risk
-journeys selected against the last available beta. FullUI is nightly/on-demand;
-`testflight.sh --full-ui` and the formal `release.sh` retain the complete portfolio.
-The [beta policy](Release.md#local-testflight-deployment) owns selection, baseline,
-and known-failure handling. Use `--mode smoke` for the optional local smoke canary.
-Qualified beta verification batches pending selectors by Smoke/FullUI plan, retaining
-StoreKit configuration and exact-method execution checks. Complete passed selectors
-remain checkpointed even when another selector in the batch fails; incomplete results
-certify nothing. Formal FullUI release verification retains per-class phases.
+`Smoke.xctestplan` and `FullUI.xctestplan` are disjoint. [Release](Release.md#local-testflight-deployment)
+owns beta/full-release policy and known-failure handling;
+[TestFlight evidence](#testflight-evidence-and-reuse) owns execution and reuse.
 Before pushing a release candidate, `test-deploy.sh --compile-only` can expose
-test-target compiler failures together without running the full test portfolio.
-Targeted UI runs require at least one non-skipped execution for every requested
-class or method filter; an absent or entirely skipped filter fails the run.
+test-target compiler failures without executing the portfolio. Targeted UI filters
+require a non-skipped execution for every requested class or method; an absent or
+entirely skipped filter fails.
+
+### Generation and package selection
 
 Generation in full gates is intentionally uncached: CI and an explicitly enabled
 heavy handoff invoke `generate.sh` directly, including repeated generation for
@@ -142,6 +137,8 @@ Upfront full runs execute FullUI on the build/smoke runner and report its outcom
 through a separate advisory status job, eliminating product transfer. Follow-up
 full dispatches with prior standard proof retain the transfer/reuse path.
 
+### Runner admission and package isolation
+
 Verified runs admit the short Engine/Core jobs alongside build/smoke, gate and
 Release, then allow up to five remaining package jobs after that logic stage
 succeeds. A skipped or failed logic stage retains the three-job cap; remaining
@@ -165,6 +162,8 @@ They do not download the app product archive. Native-only Engine/Core jobs resto
 only native compiler state in a separate namespace, retaining simulator state for
 the iOS comparator lanes. Cache identity uses setup-trinket’s selected Xcode
 version/build without launching another version-query process.
+
+### Hosted proof reuse
 
 Manual runs queue behind current branch verification without allocating a waiting
 runner. They reuse successful standard checks only for the exact commit and branch,
@@ -190,6 +189,8 @@ neither consumed nor saved by that comparison. Compare the same runtime and exec
 selectors, and separate first attempts, reruns, setup, transfers and queue time.
 Prepared asset integrity runs the same source-free byte and manifest checks on
 Linux; that gate does not reserve a Mac or install Xcode and Swift lint tools.
+
+### Build products and cache identity
 
 Ordinary `build.sh` compiles only the app; it does not produce reusable test
 bundles. CI keeps app incremental build state in its warm cache and transfers only
@@ -218,9 +219,50 @@ The cheap slices include read-only [localization coverage and freshness](Localiz
 Every relevant handoff, locked integration and pre-push blocks on its pending
 queue; builds and hooks do not invoke AI. Existing CI app builds separately verify
 compiler-extracted keys and compiled language bundles. FullUI owns localization
-screenshots and accessibility hierarchy evidence; local handoff does not prove
-compilation, fonts, layout, or successful archive language packaging.
+screenshots and accessibility hierarchy evidence. The read-only localization gate
+does not prove compilation, fonts, layout or archive language packaging; use the
+handoff report for actual selected compiled checks.
 
+## TestFlight evidence and reuse
+
+Routine beta verification uses green exact-commit CI, actual Smoke, and qualified
+high-risk journeys selected against the last available beta. FullUI remains
+nightly/on-demand; `testflight.sh --full-ui` and `release.sh` retain the complete
+portfolio. Use `--mode smoke` for the optional local canary. Beta selectors batch
+by Smoke/FullUI plan with StoreKit configuration and exact-method execution proof;
+formal FullUI release verification retains per-class phases.
+
+Successful journey inputs and failed-class markers are retained in a hosted cache.
+Reuse compares committed app, resources, configuration, tooling, shared helpers,
+selected tests, Xcode/SDK, architecture, simulator profile, and verification
+settings. Every expected UI case must execute once and pass before evidence is
+saved. A failure revokes prior evidence for its class and selects that class again
+on the next candidate. Pending selectors share one invocation per test plan;
+complete passed selectors remain checkpointed if another selector fails.
+Unknown shared helpers invalidate conservatively.
+
+Deployment consumes the exact-commit workflow's successful qualified job and
+proof artifact. Its receipt must match the release commit, Xcode, SDK, host
+architecture, and qualified simulator profile, and cover every critical journey.
+The standard CI `CI OK` gate must also succeed for that commit. Smoke is
+proven by the complete qualified hosted classes, or an actual standard CI Smoke
+execution; a skipped standard Smoke job does not force unrelated package reruns. Missing, failed, cancelled, unreadable, expired, or mismatched proof
+blocks upload; there is no automatic local test fallback. Resume retains signed
+artifacts while awaiting CI. Signing keys and App Store Connect credentials stay
+on the Mac; simulator CI needs no Apple distribution credentials.
+
+Hosted warm builds also retain a source-timestamp manifest. Before Xcode runs,
+CI restores an input's prior timestamp only when its current bytes, size, mode,
+and checkout/toolchain context match the cached record. Changed, new, missing,
+or symlinked inputs stay fresh. This avoids treating every file in a fresh Git
+checkout as changed while retaining Xcode's normal build/dependency checks.
+The manifest is refreshed only after a successful build and saved with DerivedData.
+
+`verification.json` checkpoints successful package suites and UI selectors, with
+phase timings and local or hosted evidence. Resume runs only missing phases for
+the same clean commit, checkout, toolchain/SDK, architecture, and simulator
+profile. A changed identity invalidates the checkpoints; a failed phase never
+becomes a checkpoint. Missing build products are rebuilt before remaining tests.
 
 ## Scoped static routing
 

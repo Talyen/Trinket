@@ -1,6 +1,6 @@
 # Unique equipment
 
-The collection has one Unique for each of the 29 weapon, armor, and accessory
+The collection has one Unique for each of the weapon, armor, and accessory
 bases. Trinkets remain a separate category. Uniques use their base item's Astral artwork
 and the existing singleton ownership, equipment, reward, and corruption rules.
 
@@ -30,35 +30,15 @@ fixed ordinary gear base and use the shared
 [progression-based loot policy](../../Packages/TrinketContent/README.md#random-item-rewards).
 Owned or ineligible Uniques leave the available pool before category selection.
 
-The original eight Trinket signatures remain unchanged. The following additions
-adapt Alchemy's item names and base pairings to Trinket's combat rules. Their
-identifiers use underscores.
-
 ## Completion signatures
 
-| Base | Unique | Signature |
-|---|---|---|
-| Double Axe | The Unclosing Wound | Your Bleed continues after its normal duration, halving in potency each additional turn. |
-| Maul | Kingbreaker | Your Stun damage ignores enemy Block and gains damage equal to that Block. |
-| Greatsword | Everkeen | Your first Physical Critical Hit each turn strikes again. |
-| Hatchet | Red Harvest | Physical Critical Hits detonate Bleed. |
-| Longsword | Oathkeeper | Your Physical damage bonuses also strengthen Holy damage. |
-| Shortsword | The Patient Edge | Blocking an attack makes your next manually played attack Critically Hit. |
-| Dagger | Viper’s Courtesy | After Dodging, your next manually played card hit that removes Health deals additional Poison and Bleed damage, each equal to half the Health lost. |
-| Mace | The Lingering Bell | Stunning an enemy preserves a quarter of the Stun buildup that triggered it. |
-| Longbow | Huntsmaster’s Call | Your Physical Critical Hits draw from your Companion's deck. |
-| Shortbow | Wrenflight | Playing your second card each turn draws a card and grants 10% Dodge until your next turn. |
-| Recurve Bow | The Returning Gale | Once per turn, Dodging returns the last card you played to your hand. |
-| Wand | The Final Spark | Once per turn, spending your last Mana to empower a Burn or Freeze card repeats its damage. |
-| Leather Buckler | Laughing Guard | Keep Block between turns. Dodging spends half your Block to deal that much Physical damage. |
-| Kite Shield | The Knight’s Answer | The first time each turn your Block absorbs attack damage, immediately use your Basic ability. |
-| Quiver | The Returning Flight | Your first Physical card each turn returns to your hand. |
-| Spellbook | Threefold Grace | Burn, Freeze, or Holy damage has a 10% chance to restore 1 Mana to the wearer. |
-| Ruby Amulet | Bloodember Pendant | Burn and Bleed share their damage bonuses. |
-| Sapphire Ring | Winter’s Credit | When empowering a Freeze card, spend 3 Block per missing Mana. |
-| Emerald Ring | Serpent’s Eye | Your attacks against Poisoned enemies ignore Block. |
-| Emerald Amulet | Wildheart’s Favor | Dodging draws a Poison card and guarantees your next Poison card’s damage Critically Hits. |
-| Topaz Amulet | The Golden Crucible | Gold gained in combat adds equal damage to your next Holy hit from a manually played card. |
+Use the authored [Melee](../../Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Melee.swift),
+[Ranged](../../Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Ranged.swift),
+[Offhand](../../Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Offhand.swift)
+and [Accessory](../../Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Accessory.swift)
+catalogs for base pairings, names, signatures and tuning values. Identifiers use
+underscores. The sections below own interaction and compatibility rules that the
+short catalog descriptions cannot fully express.
 
 ## Card cadence and reactions
 

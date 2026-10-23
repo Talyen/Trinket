@@ -10,39 +10,37 @@ There is no paid translation API, runtime translation service, or human translat
 Every displayed-copy change completes localization in the same task:
 
 1. Edit the canonical English catalog, content, or [store copy](../../Localization/Store/English.json), preserving stable keys.
-2. Run `python3 Scripts/localization.py run`. It prepares/resumes the queue, dispatches translation and independent review to separate ephemeral Codex CLI sessions, collects their structured results, applies resources and validates the inventory. Both passes use the configured model with high reasoning; no model, authentication, or account setting is changed. The workers return data in read-only sessions; only the coordinator applies validated resources.
+2. Run `python3 Scripts/localization.py run`. It coordinates separate high-reasoning
+   translation and independent review in ephemeral read-only Codex CLI sessions.
+   Workers return structured data; the coordinator applies validated resources
+   and checks the inventory.
 3. Commit English, catalogs, review fingerprints and generated resources together.
 
-The explicit local runner uses the signed-in Codex CLI and its AI allowance. A failed
-or interrupted pass preserves the response path and phase logs; rerun `run` or use
-`run --resume <response.json>`. Matching completed translations and reviews survive;
-changed values still need independent review. There are at most two AI passes per run,
-each bounded by `--timeout` (default 1800 seconds). Missing CLI/authentication or
-allowance leaves the task incomplete; hooks, builds and CI cannot invoke this runner.
+`run` uses the signed-in Codex CLI and its AI allowance for separate translation
+and independent-review passes. Hooks, builds and CI invoke only read-only checks.
+The runner changes no model, authentication or account settings. Missing CLI,
+authentication or allowance leaves an incomplete queue; never clear it by dropping
+languages, copying English or fabricating review.
 
-For another available AI tool, `python3 Scripts/localization.py job` still prepares
-`translate.md` and `review.md`. Give the latter to a separate high-reasoning reviewer,
-then run its printed `finish <response.json> --rationale …` command after actual
-review. This manual interface remains supported; it requires no export to a human.
+For interruption, rerun `run` or select its retained response with
+`run --resume <response.json>`; phase logs and original drafts survive. Each run
+has at most two AI passes, bounded by `--timeout`. Matching translations survive;
+reviews carry forward only for the exact source and translated values. An incomplete
+batch preserves applied work and exits nonzero. Limit each attestation to entries actually reviewed, and correct defects before
+finishing.
 
-The job contains English, game context, glossary, previous translations,
-placeholders, source fingerprints and native plural forms. Review meaning and
-mechanics (actors, targets, conditions, timing, quantities and chance), terminology,
-markup/placeholders and grammar for every pending supplied entry. Correct defects
-before attesting. Do not fabricate review records, copy English to clear the queue,
-or drop configured languages. An unavailable AI allowance leaves an incomplete job.
+For another AI tool, `job` prepares `translate.md`, `review.md` and a printed
+`finish <response.json> --rationale …` command. Give review to a separate
+high-reasoning reviewer; `finish` itself performs no AI review. Jobs supply English,
+game context, glossary, prior translations, placeholders, source fingerprints and
+native plural forms. Review meaning/mechanics, terminology, placeholders/markup
+and grammar for every supplied pending entry. No human translation/export step
+is required.
 
-`job` and `prepare` are aliases. A new job resumes matching drafts by default;
-`--resume <response.json>` selects one explicitly. Original drafts are preserved.
-Only matching source identities/hashes carry translations forward. Completed reviews
-survive only when bound to the exact values; edited translations need review again.
-Trim a batch to the entries actually reviewed when necessary. An incomplete batch
-preserves applied work and exits nonzero with its remaining queue; resume the job.
-
-`check` is the read-only gate. Legacy `review`/`apply`, stdout `plan`/`template`,
-and manual review records remain compatible. Preparation never marks review complete;
-`finish` performs no AI review; only the explicit local `run` coordinator dispatches AI passes. Hash-bound fingerprints prove recorded work, not
-linguistic correctness. Hooks, builds and CI make no AI calls.
+`check` is the read-only gate. `job`/`prepare` are aliases; legacy `review`/`apply`,
+stdout `plan`/`template` and manual review records remain compatible. Preparation
+never marks review complete. Fingerprints establish recorded work, not linguistic
+correctness.
 
 Swift-authored content uses stable source anchors. The initial key aliases in
 `Localization/source-keys.json` preserve existing key identities; new anchors get
@@ -63,10 +61,6 @@ records without translating again or creating new review evidence. String Catalo
 keep string keys and translator context expanded, with each complete locale record
 on one line, including native plural forms. `apply` normalizes this JSON formatting;
 `check` rejects formatting drift without changing translation or review data.
-
-An unavailable AI allowance leaves a pending queue and an incomplete task. Do not
-disable locales, bypass the gate, or mark English fallback as translated. Review
-fingerprints record work performed; they do not establish linguistic correctness.
 
 New languages use `locales`, `pluralForms` (CLDR categories), and `storeLocales`
 in `Localization/config.json`. Run the same queue workflow, regenerate the project,

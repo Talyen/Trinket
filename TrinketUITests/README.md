@@ -3,11 +3,8 @@
 UI test mechanics for Trinket. Agent workflow: `AGENTS.md`. Semantic test
 ownership and keep/drop rules: [`Docs/Platform/Testing.md`](../Docs/Platform/Testing.md).
 UI selector constants live in `Packages/TrinketFeatureSupport`. “Exhaustive” names
-the existing suite, not a requirement to cover every mechanic or interaction;
-use the canonical high-value threshold and retirement rules for selective player
-journeys. Opening a surface or mutating state alone does not justify new UI coverage;
-identify critical protection that package tests cannot provide. Account for launches,
-waits, flakiness, and maintenance; medium-value additions are rare, justified exceptions.
+the existing suite; use the [Testing rubric](../Docs/Platform/Testing.md#ui-keep-drop-rubric)
+for coverage and retirement decisions.
 
 ## Layout
 

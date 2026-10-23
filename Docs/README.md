@@ -3,23 +3,9 @@
 Each rule has a canonical owner. Start with the document for the task; this map
 is a lookup aid, not a reading checklist.
 
-The [root workflow](../AGENTS.md#route-and-read) and its scoped briefing are the
-ordinary entry point. Read routed safeguards and applicable contracts directly;
-do not traverse each layer or every outgoing reference before making a change.
-The briefing separates applicable safeguards/ownership from optional reference depth
-and prints iteration versus whole-task verification separately. Indexes and optional
-navigation helpers add no approval or checklist steps; agents need not consult them
-after a usable briefing.
-
-## Layers
-
-| Layer | Where | Role |
-|-------|-------|------|
-| Human onboarding | [README.md](../README.md), [Scripts/README.md](../Scripts/README.md) | Setup and command index |
-| Agent constitution | [AGENTS.md](../AGENTS.md), nested `AGENTS.md` | Guardrails and local hard stops |
-| Standing policy | [Platform](Platform/README.md), [Product](Product/Decisions.md) | Architecture, verification, player decisions |
-| Path-routed depth | [AgentContext](AgentContext/) ([router](AgentContext/README.md)), package and manifest READMEs, [skills](../.agents/skills/) | Applicable ownership constraints and on-demand behavior references |
-| On demand | [Audits](Audits/README.md), performance/CloudKit playbooks, [Plans](Plans/README.md) | Cited audits, investigation, in-flight plans |
+For implementation, follow [AGENTS.md](../AGENTS.md#route-and-read) and its scoped
+briefing. Read the applicable safeguards and behavior contracts; indexes and
+outgoing links are references, not additional workflow steps.
 
 ## Source of truth
 
@@ -76,39 +62,27 @@ Do not create execution plans under `.agents/` or another parallel plan folder.
 
 ## Policy precedence
 
-Within repository guidance, use the canonical owner for the fact in question.
-Root `AGENTS.md` sets repository-wide behavior and constraints; a narrower guide
-may add constraints but cannot silently relax the root. Product and Platform
-documents own standing policy; AgentContext cards and package READMEs supply
-scope-specific contracts and procedures.
+Root `AGENTS.md` sets repository-wide constraints; narrower guides may add safeguards
+but cannot silently relax them. Use the source-of-truth table above for each fact.
 
-Checked-in configuration and script option parsing establish what currently
-runs. They do not prove that the behavior is intended: a failing script or
-misconfigured gate can be a defect. When prose and execution disagree, inspect
-the relevant implementation and evidence, then fix the incorrect owner under
-the root guide's change discipline. If the intended policy is ambiguous, report
-the conflict and obtain that decision rather than silently choosing a side.
+Configuration and script parsing establish what runs, not necessarily what is
+intended. When execution and prose disagree, inspect the implementation and
+intent, then fix the incorrect owner. Ask for a decision when intent is ambiguous.
 
 ## Editing guidance
 
-Add an instruction when it prevents a concrete failure or resolves a recurring
-decision. Put it at the narrowest owner that covers its actual scope, state the
-trigger and required action, and link to executable mechanics instead of copying
-flags or mutable implementation details. Prefer removing a duplicate or stale
-rule over adding another exception. Keep rationale beside the rule when it explains a surprising constraint; use
-knowledge for substantial rejected approaches that would otherwise distract from
-the current workflow.
+Add guidance only for a concrete failure or recurring decision. State the trigger
+and action at the narrowest owner; link to mechanics rather than copying flags,
+tuning values, or exception lists. Remove superseded guidance and duplicates.
+Keep rationale beside surprising rules, and substantial rejected approaches in
+knowledge. Preserve non-obvious game rules, save contracts, and recovery steps.
 
-Distinguish requirements from defaults, examples, historical evidence, and known
-implementation gaps. Reserve “always” and “never” for actual invariants. Guidance
-should help a reader choose the smallest complete solution, not turn every
-example into a required abstraction, test, or approval step. Remove detail when
-its maintenance cost exceeds its decision value; retain non-obvious game rules,
-save contracts, and recovery instructions even when they are lengthy.
+Distinguish requirements from defaults, examples, history, and implementation gaps.
+Reserve “always” and “never” for invariants; examples do not mandate abstractions,
+tests, or approval steps.
 
-For documentation-only changes, verify local links and the routed checks, and
-compare command examples or behavioral claims with their executable owners.
-A link checker cannot establish that an instruction is correct. For consequential
-skill workflow changes, use a relevant scenario from the
-[evaluation guide](../.agents/evals/README.md); report the scope of validation
-without requiring a separate promotion log or synthetic feature for wording edits.
+For documentation-only changes, check local links and routed gates, and compare
+changed commands or behavioral claims with their executable owners. Link checks
+alone do not establish correctness. Consequential skill workflow changes also use
+a relevant [evaluation scenario](../.agents/evals/README.md); wording edits need no
+synthetic feature or promotion log.

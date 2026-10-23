@@ -55,7 +55,7 @@ Scripts/check-docs.py	test_documentation.py
 Scripts/check-exclusivity-footguns.sh	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py
 Scripts/check-links.py	test_agent_read.py,test_documentation.py,test_internal_cli.py
 Scripts/check-module-boundaries.sh	test_policy_scripts.py,test_swift_style_policy.py
-Scripts/check-plans.py	test_documentation.py
+Scripts/check-plans.py	test_documentation.py,test_agent_integration.py
 Scripts/check-staged-project.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/check-swift-policy.py	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py,test_ui_policy.py
 Scripts/check-testplan-sync.py	test_documentation.py,test_project_generation.py,test_ui_registration.py

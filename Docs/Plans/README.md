@@ -12,7 +12,8 @@ without requiring date-only renewals. Updates may follow that date; malformed
 metadata still fails validation. Review the disposition when resuming the work.
 
 Final handoff rejects remaining active plans in the task's file scope unless
-intentionally unfinished work is passed with `--keep-plan`. Include the task's plan
+intentionally unfinished work is passed with `--keep-plan` to handoff and
+`integrate --keep-plan` at landing. Include the task's plan
 in that scope, including when deleted. Unscoped and hosted documentation checks remain global.
 Direct `check-docs.py` and `check-plans.py` calls accept `--paths <files...>` for
 scope; omitting it checks all active plans. `check-docs.py --paths` also scopes
@@ -22,5 +23,9 @@ while scoping final closure.
 
 Use `./Scripts/new-plan.sh <PlanName>` to scaffold metadata. Execution plans are
 allowed only directly under this directory; supporting design reference images
-may accompany active work. When a plan finishes, fold durable rules into their
-canonical owners and delete the plan. Report the outcome in the task handoff.
+may accompany active work. Report the outcome in the task handoff.
+
+Keep each plan to its objective, boundaries, current status, unresolved blockers,
+next actions, and evidence pointers. Put run-by-run history in the task handoff or
+retained deliverables; Git preserves earlier plan revisions. Condensing a plan
+does not complete its unfinished work or renew its authorization.

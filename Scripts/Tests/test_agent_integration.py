@@ -93,6 +93,47 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         self.assertEqual((self.root / 'second').read_text(), 'second task\n')
         self.assertEqual(self.git(self.root, 'status', '--porcelain'), '')
 
+    def test_explicit_plan_retention_keeps_closure_and_metadata_guards(self) -> None:
+        task = self.create('plan-maintenance')
+        shutil.copy2(ROOT / 'Scripts/check-plans.py', task / 'Scripts/check-plans.py')
+        plans = task / 'Docs/Plans'
+        plans.mkdir(parents=True)
+        plan = plans / 'Campaign.md'
+        plan.write_text('---\ntype: execution-plan\nstatus: active\n'
+                        'created: 2026-10-01\nupdated: 2026-10-23\nexpires: 2099-01-01\n'
+                        '---\n# Campaign\nHosted verification remains outstanding.\n')
+        write_executable(task / 'Scripts/handoff.sh', """#!/usr/bin/env python3
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from internal.cli import load_sibling
+checker = load_sibling('plan_checker', 'check-plans.py')
+files = list(Path('Docs/Plans').resolve().glob('*.md'))
+failures = checker.plan_failures(files, final='--final' in sys.argv,
+                                keep_plan='--keep-plan' in sys.argv)
+print('\\n'.join(failures))
+sys.exit(bool(failures))
+""")
+        self.commit(task)
+        main = self.git(self.root, 'rev-parse', 'HEAD')
+        result = self.assert_stopped(task, main)
+        self.assertIn('active plan remains at final handoff', result.stdout)
+        for arguments in (('--keep-plan', '--keep-plan'), ('--keep-plan', '--unknown')):
+            self.assertNotEqual(self.helper(task, 'integrate', *arguments).returncode, 0)
+            self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
+        result = self.helper(task, 'integrate', '--keep-plan')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('status: active', (self.root / 'Docs/Plans/Campaign.md').read_text())
+
+        plan.write_text(plan.read_text().replace('updated: 2026-10-23\n', ''))
+        self.commit(task)
+        main = self.git(self.root, 'rev-parse', 'HEAD')
+        result = self.helper(task, 'integrate', '--keep-plan')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('missing updated', result.stdout)
+        self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
+        self.assertTrue(task.exists())
+
     def test_main_advances_require_review_before_checks_or_landing(self) -> None:
         task = self.task('task')
         write_executable(task / 'Scripts/handoff.sh', '#!/bin/sh\necho checked >> "$(git rev-parse --git-common-dir)/checks"\n')

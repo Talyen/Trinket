@@ -10,34 +10,14 @@ helpers, `config/` owns shared configuration, and `Tests/` owns script regressio
 
 ## Everyday workflow
 
-The [root agent guide](../AGENTS.md#route-and-read) owns the ordinary procedure:
-create an isolated task worktree, load a scoped briefing, implement/review/commit,
-then integrate locally. Read-only investigations need no worktree. The briefing
-supplies safeguards and ownership; ordinary `rg`, file reads and Git diffs handle
-navigation. Optional retrieval helpers remain available through their `--help`.
+Follow [AGENTS.md](../AGENTS.md#route-and-read) for the implementation workflow.
+Read-only investigations need no worktree. Use `rg`, file reads and Git diffs for
+navigation; optional retrieval helpers document their interfaces through `--help`.
 
-```sh
-node Scripts/agent-worktree.mjs create --task <slug>
-# In the task checkout:
-python3 Scripts/agent-brief.py --status --read --paths <files...>
-# Implement, then verify the complete task (scope defaults to main):
-./Scripts/handoff.sh --quiet
-# Review and commit task files, then land:
-node Scripts/agent-worktree.mjs integrate
-# After reporting and finishing remaining work:
-node Scripts/agent-worktree.mjs cleanup
-```
-
-Handoff selects scoped static checks and bounded compiled checks automatically;
-`--dry-run` previews the plan. [Verification](../Docs/Platform/Verification.md#confidence-ladder)
-owns optional selectors, visual evidence and the difference between local and
-hosted results. Integration performs the final static gate and retains the checkout.
-[Release](../Docs/Platform/Release.md#isolated-chat-workflow) owns landing recovery
-and explicit cleanup. Pushes and publication remain separately authorized.
-
-Ordinary navigation uses `rg`, file reads and Git diffs. The optional retrieval
-helpers are compatibility utilities; new instructions use the briefing and ordinary
-`rg`/Git navigation. No task requires learning the legacy command family.
+`./Scripts/handoff.sh --quiet` selects bounded checks; `--dry-run` previews them.
+[Verification](../Docs/Platform/Verification.md#confidence-ladder) owns check selection
+and evidence requirements. [Release](../Docs/Platform/Release.md#isolated-chat-workflow)
+owns integration recovery and cleanup.
 
 ## Commands by task
 

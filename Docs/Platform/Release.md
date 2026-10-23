@@ -169,31 +169,11 @@ Smoke/FullUI registry bounds selection; Profiles and Soak are excluded. A select
 full class covers its critical methods once. These checks protect a critical
 subset, not every FullUI scenario.
 
-Successful journey inputs and failed-class markers are retained in a hosted cache.
-Reuse compares committed app, resources, configuration, tooling, shared helpers,
-selected tests, Xcode/SDK, architecture, simulator profile, and verification
-settings. Every expected UI case must execute once and pass before evidence is
-saved. A failure revokes prior evidence for its class and selects that class again
-on the next candidate. Pending selectors share one invocation per test plan;
-complete passed selectors remain checkpointed if another selector fails.
-Unknown shared helpers invalidate conservatively.
-
-Deployment consumes the exact-commit workflow's successful qualified job and
-proof artifact. Its receipt must match the release commit, Xcode, SDK, host
-architecture, and qualified simulator profile, and cover every critical journey.
-The standard CI `CI OK` gate must also succeed for that commit. Smoke is
-proven by the complete qualified hosted classes, or an actual standard CI Smoke
-execution; a skipped standard Smoke job does not force unrelated package reruns. Missing, failed, cancelled, unreadable, expired, or mismatched proof
-blocks upload; there is no automatic local test fallback. Resume retains signed
-artifacts while awaiting CI. Signing keys and App Store Connect credentials stay
-on the Mac; simulator CI needs no Apple distribution credentials.
-
-Hosted warm builds also retain a source-timestamp manifest. Before Xcode runs,
-CI restores an input's prior timestamp only when its current bytes, size, mode,
-and checkout/toolchain context match the cached record. Changed, new, missing,
-or symlinked inputs stay fresh. This avoids treating every file in a fresh Git
-checkout as changed while retaining Xcode's normal build/dependency checks.
-The manifest is refreshed only after a successful build and saved with DerivedData.
+Upload requires matching exact-commit CI and qualified journey proof. Missing,
+failed, cancelled, expired or incompatible evidence blocks upload; resume retains
+signed artifacts while awaiting CI. Signing credentials remain on the Mac.
+[Verification internals](VerificationInternals.md#testflight-evidence-and-reuse)
+owns proof identity, selector checkpoints and cache mechanics.
 
 FullUI runs nightly and on demand. Use `--full-ui` before an App Store/release
 candidate or for a deliberate complete local UI pass. A known relevant FullUI
@@ -310,11 +290,9 @@ Backfill a retained archive using its original receipt and exported IPA:
 python3 Scripts/build-symbols.py --archive /absolute/path/Trinket.xcarchive --ipa /absolute/path/Trinket.ipa --receipt /absolute/path/receipt.json
 ```
 
-`verification.json` checkpoints successful package suites and UI selectors, with
-phase timings and local or hosted evidence. Resume runs only missing phases for
-the same clean commit, checkout, toolchain/SDK, architecture, and simulator
-profile. A changed identity invalidates the checkpoints; a failed phase never
-becomes a checkpoint. Missing build products are rebuilt before remaining tests.
+Resume keeps passed phases only while their source and build identity remain
+compatible; missing products are rebuilt. See the linked
+[checkpoint contract](VerificationInternals.md#testflight-evidence-and-reuse).
 New beta receipts record their verification mode and source baseline. Legacy
 receipts retain their original FullUI requirement. After qualified hosted UI passes, signed
 archive/export runs while standard hosted CI finishes; upload waits for CI and Smoke.
@@ -399,16 +377,9 @@ committed local main. Read-only investigations need no worktree. Task creation,
 commits, local landing and final task cleanup are authorized; pushes, PRs,
 publication and unrelated changes need separate authorization.
 
-```sh
-node Scripts/agent-worktree.mjs create --task <slug>
-# Work in the printed checkout; brief intended files, implement and verify:
-python3 Scripts/agent-brief.py --status --read --paths <files...>
-./Scripts/handoff.sh --quiet
-# Review and commit task files, then:
-node Scripts/agent-worktree.mjs integrate
-# After reporting and finishing any remaining work:
-node Scripts/agent-worktree.mjs cleanup
-```
+Follow [the root workflow](../../AGENTS.md#route-and-read) for creation, briefing,
+verification, review and landing. This section owns integration recovery and cleanup;
+[the command reference](../../Scripts/Reference.md#development) lists helper options.
 
 Use `--base <ref>` at creation only for a user-specified alternative. Reuse only
 this chat's suitable checkout; existing branches/directories are preserved.
@@ -443,6 +414,9 @@ window. Never delete the lock file. A busy lock means retry later without messag
 peers. Dirty main remains untouched: preserve committed task work and report the
 blocker if it persists. Resolve understood rebase conflicts only in the task checkout;
 bring ambiguous behavior decisions to the user. A failed check leaves main unchanged.
+For maintenance of an intentionally unfinished plan, use `integrate --keep-plan`.
+It forwards handoff's explicit retention choice; metadata, links and all other
+landing checks still run. Keep the plan's actual status and remaining work intact.
 
 ### Evidence and cleanup
 

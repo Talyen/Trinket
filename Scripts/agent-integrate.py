@@ -183,7 +183,7 @@ class ReviewRequired(RuntimeError):
     """The combined revision needs source review before a separate landing attempt."""
 
 
-def integrate(source: Path, *, reviewed_main: str | None = None) -> None:
+def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool = False) -> None:
     common, target = checkout_context(source)
     with integration_lock(common):
         if git(target, "branch", "--show-current") != "main":
@@ -238,7 +238,8 @@ def integrate(source: Path, *, reviewed_main: str | None = None) -> None:
         environment = dict(os.environ)
         from internal.cli import pinned_tool_path
         environment["PATH"] = pinned_tool_path(source, environment.get('PATH', ''))
-        subprocess.run([str(source / "Scripts/handoff.sh"), "--route", "static", "--quiet", "--final", "--paths", *paths],
+        subprocess.run([str(source / "Scripts/handoff.sh"), "--route", "static", "--quiet", "--final",
+                        *(["--keep-plan"] if keep_plan else []), "--paths", *paths],
                        cwd=source, env=environment, check=True)
         clean(source)
         if git(source, 'rev-parse', 'HEAD') != head:
@@ -276,8 +277,9 @@ if __name__ == "__main__":
             parser = argparse.ArgumentParser(description='Land reviewed task work; retain the checkout until explicit cleanup.')
             parser.add_argument('--keep-worktree', action='store_true', help='compatibility flag; landing always keeps the checkout')
             parser.add_argument('--reviewed-main', help='full main commit ID already reviewed against this task')
+            parser.add_argument('--keep-plan', action='store_true', help='retain intentionally unfinished plans; still validate their metadata and links')
             arguments = parser.parse_args()
-            integrate(source, reviewed_main=arguments.reviewed_main)
+            integrate(source, reviewed_main=arguments.reviewed_main, keep_plan=arguments.keep_plan)
     except ReviewRequired as error:
         print(str(error), file=sys.stderr)
         sys.exit(3)

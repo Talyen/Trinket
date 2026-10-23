@@ -20,17 +20,12 @@ transaction outcomes, observation and reload evidence. Detailed contracts live i
 [storage](../../Docs/AgentContext/persistence-storage.md) and
 [progression](../../Docs/AgentContext/persistence-progression.md).
 
-Mode loot policy and seeded generation live in Content's
-`BattleLootContext` / `BattleLoot` / `LootRequest`; `BattleLootContext+Save` and
-`RewardOwnership+Save` adapt saved values without defining loot policy.
-Roster value state and party/loadout/talent rules live in Content; store commands
-supply current access and inventory inside the transaction. Roster hydration retains
-save compatibility mapping and delegates physical-item ownership to Content.
-Homestead value state and production/build rules live in Content; store commands
-apply them to saved Gold and retain transaction and receipt ownership.
-Content also owns inventory duplicate policy and `BlacksmithForgePlan`; forging
-adapts the current save into that retained roll and applies it with an economic
-receipt inside the existing revision and retry boundary.
+[Content](../TrinketContent/README.md) owns value-only loot, roster, Homestead and
+item-transformation rules. Persistence supplies current saved inputs, retains
+resolved rolls, and commits their mutations and receipts within the revision/retry
+boundary. `BattleLootContext+Save` and `RewardOwnership+Save` adapt saved inputs;
+roster hydration owns compatibility mapping and delegates physical-item ownership
+to Content.
 Store methods are `@MainActor`; completion and reward appliers (`StageCompletion`,
 `VictoryRewardApplier`) stay non-isolated
 `save: inout` inside the package. App sessions decide when to invoke domain commands;
