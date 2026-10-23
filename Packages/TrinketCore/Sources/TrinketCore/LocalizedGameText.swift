@@ -44,12 +44,18 @@ public struct LocalizedGameText: Sendable {
         var output = ""
         var spans: [Span] = []
         var cursor = 0
-        for match in expression.matches(in: markedText, range: NSRange(location: 0, length: source.length)) {
-            output += source.substring(with: NSRange(location: cursor, length: match.range.location - cursor))
-            let start = output.utf16.count
+        var outputLength = 0
+        expression.enumerateMatches(in: markedText, range: NSRange(location: 0, length: source.length)) { match, _, _ in
+            guard let match else { return }
+            let prefix = NSRange(location: cursor, length: match.range.location - cursor)
+            output += source.substring(with: prefix)
+            outputLength += prefix.length
+            let start = outputLength
             let identifier = source.substring(with: match.range(at: 2))
-            output += source.substring(with: match.range(at: 3))
-            let range = start ..< output.utf16.count
+            let content = match.range(at: 3)
+            output += source.substring(with: content)
+            outputLength += content.length
+            let range = start ..< outputLength
             if source.substring(with: match.range(at: 1)) == "keyword",
                let keyword = Self.keywordByID[identifier] {
                 spans.append(Span(utf16Range: range, meaning: .keyword(keyword)))

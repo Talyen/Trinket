@@ -47,14 +47,16 @@ public extension ItemAffixPower {
         var text = AffixMagnitudeText(description)
         for (target, old) in magnitudes {
             let new = transform(target, old)
-            switch target {
-            case let .modifier(index):
-                switch new {
-                case let .int(value): modifiers[index] = modifiers[index].mapInt { _ in value }
-                case let .percent(value): modifiers[index] = modifiers[index].mapPercent { _ in value }
+            if new != old {
+                switch target {
+                case let .modifier(index):
+                    switch new {
+                    case let .int(value): modifiers[index] = modifiers[index].mapInt { _ in value }
+                    case let .percent(value): modifiers[index] = modifiers[index].mapPercent { _ in value }
+                    }
+                case let .trigger(index):
+                    CombatTraitTriggers.affixMagnitudeFields[index].set(new, in: &triggers)
                 }
-            case let .trigger(index):
-                CombatTraitTriggers.affixMagnitudeFields[index].set(new, in: &triggers)
             }
             // Unchanged fields still claim their text so later equal values
             // cannot overwrite them. Zero fields have no display magnitude.
@@ -277,7 +279,7 @@ private enum AffixMagnitude: Equatable {
 /// Rolled values never become search input for another field.
 private struct AffixMagnitudeText {
     let original: String
-    var bindings: [(range: Range<String.Index>, replacement: String)] = []
+    var bindings: [(range: Range<String.Index>, replacement: String?)] = []
 
     init(_ original: String) {
         self.original = original
@@ -298,9 +300,9 @@ private struct AffixMagnitudeText {
             start = range.upperBound
             guard !bindings.contains(where: { $0.range.overlaps(range) }) else { continue }
             let matched = original[range]
-            let replacement: String
+            let replacement: String?
             if new == old {
-                replacement = String(matched)
+                replacement = nil
             } else if case .int = old, matched.contains("buff") {
                 let noun = matched.contains("debuff") ? "debuff" : "buff"
                 replacement = new == .int(1) ? "a \(noun)" : "\(new.text) \(noun)s"
@@ -315,6 +317,7 @@ private struct AffixMagnitudeText {
     var rendered: String {
         var result = original
         for (range, replacement) in bindings.sorted(by: { $0.range.lowerBound > $1.range.lowerBound }) {
+            guard let replacement else { continue }
             result.replaceSubrange(range, with: replacement)
         }
         return result

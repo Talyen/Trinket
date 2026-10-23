@@ -51,8 +51,11 @@ enum BattleAbilityRules {
     }
 
     static func canPayBlockCost(_ ability: Ability, action: BattleActionContext, in context: BattleState) -> Bool {
-        let outcomes = possibleOutcomes(ability, action: action, in: context)
-        let cost = outcomes.ability.blockCost
+        // Random branches change operations, not Block cost. Only conditional
+        // outcomes need selection before quoting this payment.
+        let cost = ability.conditionalOutcome == nil
+            ? ability.blockCost
+            : possibleOutcomes(ability, action: action, in: context).ability.blockCost
         guard cost > 0 else { return true }
         let balance = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: action.actor))
         return balance >= cost
