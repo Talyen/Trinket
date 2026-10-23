@@ -143,11 +143,6 @@ public struct BattleView: View {
                 castPresentation.reset()
                 interactionState.suppressCombatantTaps = false
             }
-            .onChange(of: input.isCurrent, initial: true) { _, current in
-                #if DEBUG
-                NSLog("%@", "VICTORY_DIAG view current=\(current) matching=\(battleSession.activeBattle?.id == configuration.id)")
-                #endif
-            }
     }
 
     private func battleActionsMenu(canRetreat: Bool) -> some View {
