@@ -98,7 +98,8 @@ the other slots. Save fields and offer identifiers retain their existing formats
 `ItemRewardGenerator` owns category selection and candidate filtering for battles,
 shops, Mysteries, and Blacksmith forging. Tune level endpoints, tier weights,
 curvature, and the boss guarantee in `Sources/TrinketContent/Equipment/ItemLootPolicy.swift`;
-affix counts and keyword bias live with `ItemGenerator.swift`.
+affix counts and source keyword bias live with `ItemGenerator.swift`;
+`PartyLootBias.swift` owns the soft active-party weighting.
 The loot policy blends the endpoint weights with smoothstep `x² × (3 − 2x)`, where
 `x = (clamp(level, 1, 40) - 1) / 39`. This delays early rare drops while preserving
 level-1 and level-40 weights. Ordinary rewards use those weights; Moonlit Sanctum multiplies
@@ -106,7 +107,8 @@ Astral weight by `1 + bonus/100`. After ownership, reservations, keywords, and
 explicit pools remove unavailable categories, the remaining weights normalize.
 Boss victories instead guarantee an uncollected Trinket or Unique. With both categories
 available, Unique chance is `5% + 45% × smoothstep(x)` and Trinkets receive the remainder;
-the odds reach 50/50 at level 40. Selection is uniform within the selected full catalog.
+the odds reach 50/50 at level 40. Selection uses the selected full catalog with
+the soft active-party weighting described below.
 A completed category leaves the other
 at 100%; both complete guarantees Astral equipment. Boss collectible selection ignores
 keyword restrictions, Sanctum, and item-tier weighting. The opening Journey boss's first
@@ -114,6 +116,20 @@ reward claim guarantees an uncollected Trinket, falling back to the regular boss
 when Trinkets are complete. Existing claimed Journey rewards receive no retroactive award.
 Bosses never drop Basics. Guaranteed Astral rewards constrain
 the same resolver to Astral gear; exact authored item rewards remain exact.
+
+All newly rolled random items, including boss Uniques and Trinkets, shop stock,
+Mystery offers, and crafted equipment, favor the active Hero and Companion's
+three authored Talent keyword affinities. Matching either character gives 1.5×
+selection weight; matching a keyword shared by both gives 1.75×. The boost caps
+there regardless of how many keywords match. Gear applies these weights to random
+affixes, retaining the usual base-family distribution. Collectibles apply them to
+item selection within the rolled category. Party weighting never excludes a
+candidate or changes category odds, affix counts, or power magnitudes. Existing
+source restrictions and guaranteed affixes still apply. An eligible Wishing Well
+target retains its exact 50% chance; only the remaining choices receive party
+weighting. Capture the party weighting with prepared battle loot and pinned
+noncombat offers so later party changes do not reroll them. Existing saved items
+and offers remain unchanged.
 
 Battle items roll at that battle's captured encounter level, with tier odds capped
 at loot level 40. Shop, Mystery, and Blacksmith item quality uses the highest

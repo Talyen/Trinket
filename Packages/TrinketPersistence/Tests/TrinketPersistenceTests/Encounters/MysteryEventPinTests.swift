@@ -20,8 +20,14 @@ struct MysteryEventPinTests {
         var rng = SeededRandomNumberGenerator(seed: 11)
         let offered = try MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &save, using: &rng)
         try #require(offered.count == 2)
+        save.roster.unlockedHeroIDs.insert("knight")
+        save.roster.unlockedCompanionIDs.insert("bear")
+        save.roster.activeHeroID = "knight"
+        save.roster.activeCompanionID = "bear"
         try store.performFixtureMutation { $0 = save }
         let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.activeHeroID == "knight")
+        #expect(reloaded.roster.activeCompanionID == "bear")
         var reopenedSave = reloaded.currentSave
         rng = SeededRandomNumberGenerator(seed: 999)
         let reopened = try MysteryOfferPersistence.prepare(event: event, encounter: encounter, save: &reopenedSave, using: &rng)

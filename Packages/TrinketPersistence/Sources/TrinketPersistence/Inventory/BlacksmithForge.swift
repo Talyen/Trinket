@@ -21,6 +21,7 @@ enum BlacksmithForgeApplier {
             homestead: save.homestead,
             gold: save.roster.gold,
             unlockedRecipeIDs: save.library.isReadable ? save.library.progress.unlockedRecipeIDs : [],
+            partyBias: PartyLootBias(roster: save.roster),
             using: &random,
         ).mapError(BlacksmithForgeFailure.init)
     }

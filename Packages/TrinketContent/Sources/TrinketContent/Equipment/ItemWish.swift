@@ -7,6 +7,7 @@ public enum ItemWish {
 
     static func select(
         from candidates: [InventoryItem], wishedTemplateID: String?,
+        partyBias: PartyLootBias = PartyLootBias(),
         using random: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         if let wishedTemplateID, let wish = candidates.first(where: { $0.templateID == wishedTemplateID }) {
@@ -14,8 +15,8 @@ public enum ItemWish {
             if others.isEmpty || Int.random(in: 0 ... 1, using: &random) == 0 {
                 return wish
             }
-            return others[Int.random(in: others.indices, using: &random)]
+            return partyBias.select(from: others, using: &random)
         }
-        return candidates[Int.random(in: candidates.indices, using: &random)]
+        return partyBias.select(from: candidates, using: &random)
     }
 }

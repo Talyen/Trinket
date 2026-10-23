@@ -5,7 +5,8 @@ Use with [persistence ownership](persistence.md) for domain commands, rewards an
 ## Reward levels
 
 Content's `BattleLootContext` owns loot selection for every mode from explicit
-world seed, collectible ownership, claimed Journey reward IDs, and Sanctum bonus values. Launch and unsettled
+world seed, collectible ownership, claimed Journey reward IDs, Sanctum bonus values,
+and captured active-party keyword weighting. Launch and unsettled
 completion use the same policy, including Spire modifiers and Voyage's independent
 final destination roll and collectible exhaustion. Persistence supplies a save-value
 adapter and commits awards; completion appliers do not expose loot-planning APIs.
@@ -20,7 +21,8 @@ their fixed floor level even when the active party is below it.
 `VictoryRewardApplier` owns reward application to the save. Bosses use the
 [shared level-based collectible odds](../../Packages/TrinketContent/README.md#random-item-rewards)
 over uncollected full catalogs, the remaining category if one is complete,
-and Astral if both are complete. The opening Journey boss guarantees a Trinket until
+and Astral if both are complete. The soft party bias weights candidates within a
+category without excluding off-party items or changing category odds. The opening Journey boss guarantees a Trinket until
 its reward is claimed, with the same exhaustion fallback. Existing claimed IDs prevent
 retroactive awards; no new saved flag is used. Neither boss path can produce Basic.
 

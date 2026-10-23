@@ -18,6 +18,7 @@ public struct BlacksmithForgePlan: Sendable {
         homestead: PlayerHomesteadState,
         gold: Int,
         unlockedRecipeIDs: Set<String> = [],
+        partyBias: PartyLootBias = PartyLootBias(),
         using random: inout some RandomNumberGenerator,
     ) -> Result<Self, Rejection> {
         guard let recipe = BlacksmithRecipe.matching(recipeID),
@@ -35,6 +36,7 @@ public struct BlacksmithForgePlan: Sendable {
             requiredKeyword: recipe.requiredKeyword,
             ownedTrinketIDs: Set(inventory.lazy.filter(\.isTrinket).map(\.templateID)),
             ownedUniqueIDs: Set(inventory.lazy.filter { $0.rarity == .unique }.map(\.templateID)),
+            partyBias: partyBias,
             eligibleUniqueIDs: uniqueIDs,
             fallbackBaseType: recipe.baseType,
             baseTypes: [recipe.baseType],

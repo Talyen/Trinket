@@ -39,6 +39,7 @@ extension BattleLootContext {
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
             claimedJourneyRewardStageIDs: playerSave.journey.claimedRewardStageIDs,
             wishedTemplateID: playerSave.homestead.wishedTemplateID,
+            partyBias: PartyLootBias(roster: playerSave.roster),
         )
     }
 }

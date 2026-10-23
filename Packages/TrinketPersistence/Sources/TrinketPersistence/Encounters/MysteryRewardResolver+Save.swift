@@ -9,6 +9,7 @@ public extension MysteryRewardResolver {
             inputs: RewardSettlementInputs(
                 save: save, hero: save.roster.activeHero, companion: save.roster.activeCompanion, at: date,
             ),
+            partyBias: PartyLootBias(roster: save.roster),
         )
     }
 }

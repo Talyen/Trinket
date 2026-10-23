@@ -5,12 +5,17 @@ import TrinketCore
 public struct MysteryRewardResolver: Sendable {
     private let homesteadEffects: HomesteadEffects
     private let ownership: RewardOwnership
+    private let partyBias: PartyLootBias
     private let inputs: RewardSettlementInputs
 
-    public init(homesteadEffects: HomesteadEffects, ownership: RewardOwnership, inputs: RewardSettlementInputs) {
+    public init(
+        homesteadEffects: HomesteadEffects, ownership: RewardOwnership, inputs: RewardSettlementInputs,
+        partyBias: PartyLootBias = PartyLootBias(),
+    ) {
         self.homesteadEffects = homesteadEffects
         self.ownership = ownership
         self.inputs = inputs
+        self.partyBias = partyBias
     }
 
     public static func materialQuantity(forLevel level: Int) -> Int {
@@ -77,6 +82,7 @@ public struct MysteryRewardResolver: Sendable {
             collectibleChancePercent: 50,
             ownedTrinketIDs: ownership.ownedTrinketIDs,
             ownedUniqueIDs: ownership.ownedUniqueIDs,
+            partyBias: partyBias,
             eligibleTrinketIDs: pool.trinketIDs,
             eligibleUniqueIDs: pool.uniqueIDs,
             fallbackBaseType: base,

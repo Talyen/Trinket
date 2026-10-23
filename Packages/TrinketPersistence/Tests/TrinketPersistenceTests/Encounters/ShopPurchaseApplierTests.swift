@@ -81,7 +81,15 @@ struct ShopPurchaseApplierTests {
         }
         guard case let .committed(item) = result else { Issue.record("Expected purchase"); return }
         guard case .committed = store.salvageItem(id: item.id) else { Issue.record("Expected salvage"); return }
+        try store.performFixtureMutation { save in
+            save.roster.unlockedHeroIDs.insert("knight")
+            save.roster.unlockedCompanionIDs.insert("bear")
+            save.roster.activeHeroID = "knight"
+            save.roster.activeCompanionID = "bear"
+        }
         let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.activeHeroID == "knight")
+        #expect(reloaded.roster.activeCompanionID == "bear")
         let gold = reloaded.roster.gold
         let reopened = reloaded.persistTransaction(logging: "Reopen shop") { save in
             ShopStockPersistence.prepare(encounter: encounter, save: &save)

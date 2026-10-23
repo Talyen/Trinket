@@ -14,6 +14,7 @@ public struct ItemGenerator: Sendable {
         rarity: Rarity,
         fixedAffixCount: Int? = nil,
         keywordBias: Set<Keyword> = [],
+        partyBias: PartyLootBias = PartyLootBias(),
         requireBuildAlignment: Bool = false,
         guaranteedAffixIDs: [String] = [],
         requiredKeyword: Keyword? = nil,
@@ -62,6 +63,7 @@ public struct ItemGenerator: Sendable {
             remainingPool,
             count: remainingCount,
             keywordBias: keywordBias,
+            partyBias: partyBias,
             using: &randomNumberGenerator,
         )
 
@@ -102,10 +104,14 @@ public struct ItemGenerator: Sendable {
         _ definitions: [ItemAffixDefinition],
         count: Int,
         keywordBias: Set<Keyword> = [],
+        partyBias: PartyLootBias = PartyLootBias(),
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> [ItemAffixDefinition] {
         guard count > 0 else { return [] }
-        var pool = definitions.map { (definition: $0, weight: adjustedWeight(for: $0, keywordBias: keywordBias)) }
+        var pool = definitions.map { definition in
+            let weight = adjustedWeight(for: definition, keywordBias: keywordBias)
+            return (definition: definition, weight: partyBias.isEmpty ? weight : weight * partyBias.weight(for: definition.keywords))
+        }
         var totalWeight = pool.reduce(0) { $0 + $1.weight }
         var selected: [ItemAffixDefinition] = []
 

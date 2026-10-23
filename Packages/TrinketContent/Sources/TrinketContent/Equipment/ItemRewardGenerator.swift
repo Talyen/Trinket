@@ -16,6 +16,7 @@ public enum ItemRewardGenerator {
         ownedUniqueIDs: Set<String>,
         reservedTrinketIDs: Set<String> = [],
         keywordBias: Set<Keyword> = [],
+        partyBias: PartyLootBias = PartyLootBias(),
         eligibleTrinketIDs: Set<String>? = nil,
         eligibleUniqueIDs: Set<String>? = nil,
         fallbackBaseType: ItemBaseType? = nil,
@@ -42,9 +43,19 @@ public enum ItemRewardGenerator {
         let rarity: Rarity
         switch ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator) {
         case .unique:
-            return ItemWish.select(from: availability.uniques, wishedTemplateID: wishedTemplateID, using: &randomNumberGenerator)
+            return ItemWish.select(
+                from: availability.uniques,
+                wishedTemplateID: wishedTemplateID,
+                partyBias: partyBias,
+                using: &randomNumberGenerator,
+            )
         case .trinket:
-            return ItemWish.select(from: availability.trinkets, wishedTemplateID: wishedTemplateID, using: &randomNumberGenerator)
+            return ItemWish.select(
+                from: availability.trinkets,
+                wishedTemplateID: wishedTemplateID,
+                partyBias: partyBias,
+                using: &randomNumberGenerator,
+            )
         case .astral: rarity = .astral
         case .basic: rarity = .basic
         }
@@ -64,6 +75,7 @@ public enum ItemRewardGenerator {
             baseType: baseType,
             rarity: rarity,
             keywordBias: keywordBias,
+            partyBias: partyBias,
             guaranteedAffixIDs: guaranteedAffixIDs,
             requiredKeyword: effectiveKeyword,
             using: &randomNumberGenerator,

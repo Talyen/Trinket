@@ -4,6 +4,7 @@ import TrinketCore
 /// consumes content values; reading rewards never requires a save store.
 public struct BattleLootContext: Equatable, Sendable {
     public let wishedTemplateID: String?
+    public let partyBias: PartyLootBias
     public let worldSeed: UInt64
     public let ownership: RewardOwnership
     public let astralChanceBonusPercent: Int
@@ -15,7 +16,9 @@ public struct BattleLootContext: Equatable, Sendable {
         astralChanceBonusPercent: Int = 0,
         claimedJourneyRewardStageIDs: Set<String> = [],
         wishedTemplateID: String? = nil,
+        partyBias: PartyLootBias = PartyLootBias(),
     ) {
+        self.partyBias = partyBias
         self.worldSeed = worldSeed
         self.wishedTemplateID = wishedTemplateID
         self.ownership = ownership
@@ -91,7 +94,7 @@ public struct BattleLootContext: Equatable, Sendable {
             request, encounterLevel: encounterLevel, enemyIsBoss: enemyIsBoss,
             worldSeed: worldSeed, ownership: ownership,
             astralChanceBonusPercent: astralChanceBonusPercent,
-            wishedTemplateID: wishedTemplateID,
+            wishedTemplateID: wishedTemplateID, partyBias: partyBias,
         )
     }
 

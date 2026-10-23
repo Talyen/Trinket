@@ -34,6 +34,7 @@ public enum ShopStockPersistence {
             let stock = ShopStock(offers: ShopOfferGenerator.generateOffers(
                 stageID: encounter.stageID, rewardLevel: rewardLevel, ownedTrinketIDs: save.inventory.ownedTrinketIDs,
                 astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
+                partyBias: PartyLootBias(roster: save.roster),
                 allAstral: effects.astralShopOffers, priceDiscountPercent: effects.shopDiscountPercent, using: &rng,
             ))
             let payload = try encode(stock, encounter: encounter)
