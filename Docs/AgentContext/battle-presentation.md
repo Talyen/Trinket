@@ -90,6 +90,9 @@ simulation suites; gesture inspection/drag safety uses `BattleFlowUITests`.
 actions. [Card play](../Product/CardPlay.md#turns-and-battlefield-effects) owns
 approved preparation, swing, recovery and acceleration timing. Combatant motion
 uses the same clock and native SwiftUI springs, retargeting from its current pose.
+Recipes store named timed poses for impact/recovery and wind-up/swing/recovery.
+Shared phase timing is authored once; celebration retains an independent rotation
+track and scheduling lifetime.
 Each scheduled action retains its timing; later attacks by the same actor may
 shorten preparation and interrupt recovery while preserving distinct ordered impacts.
 Automatic card reveal and dissolve use the same scheduled swing time. Auto Battle hand departures

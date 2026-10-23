@@ -12,37 +12,15 @@ enum CombatFeedbackAttackRecipes {
 
     static func timing(isPartyMember: Bool) -> Timing {
         Timing(
-            preparation: isPartyMember ? 0.10 : lungeCardAttack.windUpDuration,
-            swing: lungeCardAttack.swingDuration,
-            recovery: lungeCardAttack.recoverDuration, preparationCap: 0.08,
+            preparation: isPartyMember ? 0.10 : lungeCardAttack.windUp.duration,
+            swing: lungeCardAttack.swing.duration,
+            recovery: lungeCardAttack.recovery.duration, preparationCap: 0.08,
         )
     }
 
     static let lungeCardAttack = CombatantAttackReactionRecipe(
-        scaleX: [
-            .init(value: 0.98, duration: 0.40),
-            .init(value: 1.05, duration: 0.15),
-            .init(value: 1.0, duration: 0.45),
-        ],
-        scaleY: [
-            .init(value: 1.02, duration: 0.40),
-            .init(value: 0.94, duration: 0.15),
-            .init(value: 1.0, duration: 0.45),
-        ],
-        offsetX: [
-            .init(value: 0, duration: 0.40),
-            .init(value: 0, duration: 0.15),
-            .init(value: 0, duration: 0.45),
-        ],
-        offsetY: [
-            .init(value: -12, duration: 0.40),
-            .init(value: 28, duration: 0.15),
-            .init(value: 0, duration: 0.45),
-        ],
-        rotation: [
-            .init(value: -4, duration: 0.40),
-            .init(value: 3, duration: 0.15),
-            .init(value: 0, duration: 0.45),
-        ],
+        windUp: .init(pose: .init(scaleX: 0.98, scaleY: 1.02, offsetY: -12, rotation: -4), duration: 0.40),
+        swing: .init(pose: .init(scaleX: 1.05, scaleY: 0.94, offsetY: 28, rotation: 3), duration: 0.15),
+        recovery: .init(pose: .rest, duration: 0.45),
     )
 }

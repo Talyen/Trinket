@@ -18,124 +18,50 @@ enum CombatFeedbackCardRecipes {
 
     static let noneCardReaction = CombatantHitReactionRecipe(
         kind: .none,
-        scaleX: [.init(value: 1.0, duration: 0.01)],
-        scaleY: [.init(value: 1.0, duration: 0.01)],
-        offsetX: [.init(value: 0, duration: 0.01)],
-        offsetY: [.init(value: 0, duration: 0.01)],
+        impact: .init(pose: .rest, duration: 0.01),
+        recovery: .init(pose: .rest, duration: 0.16),
         duration: 0.01,
     )
 
     static let damageCardReaction = CombatantHitReactionRecipe(
         kind: .damage,
-        scaleX: [
-            .init(value: 0.945, duration: 0.08),
-            .init(value: 1.0, duration: 0.16),
-        ],
-        scaleY: [
-            .init(value: 1.035, duration: 0.08),
-            .init(value: 1.0, duration: 0.16),
-        ],
-        offsetX: [
-            .init(value: -6, duration: 0.08),
-            .init(value: 0, duration: 0.16),
-        ],
-        offsetY: [
-            .init(value: 0, duration: 0.08),
-            .init(value: 0, duration: 0.16),
-        ],
+        impact: .init(pose: .init(scaleX: 0.945, scaleY: 1.035, offsetX: -6), duration: 0.08),
+        recovery: .init(pose: .rest, duration: 0.16),
         duration: 0.24,
     )
 
     static let criticalCardReaction = CombatantHitReactionRecipe(
         kind: .critical,
-        scaleX: [
-            .init(value: 0.91, duration: 0.08),
-            .init(value: 1.0, duration: 0.18),
-        ],
-        scaleY: [
-            .init(value: 1.055, duration: 0.08),
-            .init(value: 1.0, duration: 0.18),
-        ],
-        offsetX: [
-            .init(value: -9, duration: 0.08),
-            .init(value: 0, duration: 0.18),
-        ],
-        offsetY: [
-            .init(value: 0, duration: 0.08),
-            .init(value: 0, duration: 0.18),
-        ],
+        impact: .init(pose: .init(scaleX: 0.91, scaleY: 1.055, offsetX: -9), duration: 0.08),
+        recovery: .init(pose: .rest, duration: 0.18),
         duration: 0.26,
     )
 
     static let blockCardReaction = CombatantHitReactionRecipe(
         kind: .block,
-        scaleX: damageCardReaction.keyframes.scaleX,
-        scaleY: damageCardReaction.keyframes.scaleY,
-        offsetX: damageCardReaction.keyframes.offsetX,
-        offsetY: damageCardReaction.keyframes.offsetY,
+        impact: damageCardReaction.impact,
+        recovery: damageCardReaction.recovery,
         duration: damageCardReaction.duration,
     )
 
     static let healCardReaction = CombatantHitReactionRecipe(
         kind: .heal,
-        scaleX: [
-            .init(value: 1.02, duration: 0.1),
-            .init(value: 1.0, duration: 0.16),
-        ],
-        scaleY: [
-            .init(value: 1.02, duration: 0.1),
-            .init(value: 1.0, duration: 0.16),
-        ],
-        offsetX: [
-            .init(value: 0, duration: 0.1),
-            .init(value: 0, duration: 0.16),
-        ],
-        offsetY: [
-            .init(value: 0, duration: 0.1),
-            .init(value: 0, duration: 0.16),
-        ],
+        impact: .init(pose: .init(scaleX: 1.02, scaleY: 1.02), duration: 0.1),
+        recovery: .init(pose: .rest, duration: 0.16),
         duration: 0.26,
     )
 
     static let dodgeCardReaction = CombatantHitReactionRecipe(
         kind: .dodge,
-        scaleX: [
-            .init(value: 1.0, duration: 0.08),
-            .init(value: 1.0, duration: 0.16),
-        ],
-        scaleY: [
-            .init(value: 1.0, duration: 0.08),
-            .init(value: 1.0, duration: 0.16),
-        ],
-        offsetX: [
-            .init(value: 6, duration: 0.08),
-            .init(value: 0, duration: 0.16),
-        ],
-        offsetY: [
-            .init(value: 0, duration: 0.08),
-            .init(value: 0, duration: 0.16),
-        ],
+        impact: .init(pose: .init(offsetX: 6), duration: 0.08),
+        recovery: .init(pose: .rest, duration: 0.16),
         duration: 0.24,
     )
 
     static let celebrateCardReaction = CombatantHitReactionRecipe(
         kind: .celebrate,
-        scaleX: [
-            .init(value: 1.1, duration: 0.1),
-            .init(value: 1.0, duration: 0.22),
-        ],
-        scaleY: [
-            .init(value: 0.86, duration: 0.1),
-            .init(value: 1.0, duration: 0.22),
-        ],
-        offsetX: [
-            .init(value: 0, duration: 0.1),
-            .init(value: 0, duration: 0.22),
-        ],
-        offsetY: [
-            .init(value: -8, duration: 0.1),
-            .init(value: 0, duration: 0.22),
-        ],
+        impact: .init(pose: .init(scaleX: 1.1, scaleY: 0.86, offsetY: -8), duration: 0.1),
+        recovery: .init(pose: .rest, duration: 0.22),
         rotation: [
             .init(value: -6, duration: 0.1),
             .init(value: 6, duration: 0.1),

@@ -15,11 +15,11 @@ easier to reason about without changing Trinket's rules, saves, presentation, or
 player feedback. Reduce independently maintained representations of the same rule;
 preserve the package DAG and existing ownership boundaries.
 
-The requested analysis and plan are complete. Implementation has not started and
-is outside this planning task. This plan intentionally remains active as a proposed
-sequence for subsequent work; retaining it does not authorize those refactors.
-Next action: select implementation scope, then refresh its evidence against current
-main. No prerequisite blocks delivery of this plan.
+Implementation of all four simplifications is authorized. Work proceeds in the
+agreed order: motion recipes, explicit retry results, shared card semantics, then
+damage packets. Motion representation is being migrated first. Shipping-UI
+verification currently awaits the occupied managed simulator slot; independent
+implementation and verification continue.
 
 Reviewed baseline: committed local main `2ad7f9db7`. Evidence comes from production
 source, callers, contracts, and existing regression tests. These are maintenance

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CombatantAttackMotion {
     var reaction: CombatantAttackReaction?
-    var initialPose = CombatantAttackPose.rest
+    var initialPose = CombatantPose.rest
 
     func duration(for reaction: CombatantAttackReaction, aim: CombatantAttackAim) -> TimeInterval {
         if let duration = reaction.duration {
@@ -17,12 +17,12 @@ struct CombatantAttackMotion {
         }
     }
 
-    func pose(at date: Date, aim: CombatantAttackAim) -> CombatantAttackPose {
+    func pose(at date: Date, aim: CombatantAttackAim) -> CombatantPose {
         guard let reaction else { return .rest }
         let recipe = CombatFeedbackAttackRecipes.lungeCardAttack
-        let target: CombatantAttackPose = switch reaction.phase {
-        case .windUp: recipe.windUpPose(aim: aim)
-        case .swing: recipe.swingPose(aim: aim)
+        let target: CombatantPose = switch reaction.phase {
+        case .windUp: recipe.windUp.pose.aimed(aim)
+        case .swing: recipe.swing.pose.aimed(aim)
         case .cancel, .recover, .rest: .rest
         }
         let duration = duration(for: reaction, aim: aim)
@@ -34,7 +34,7 @@ struct CombatantAttackMotion {
         case .cancel, .recover, .rest: .bouncy(duration: duration)
         }
         let progress = spring.value(target: 1.0, time: elapsed)
-        return CombatantAttackPose(
+        return CombatantPose(
             scaleX: initialPose.scaleX + (target.scaleX - initialPose.scaleX) * progress,
             scaleY: initialPose.scaleY + (target.scaleY - initialPose.scaleY) * progress,
             offsetX: initialPose.offsetX + (target.offsetX - initialPose.offsetX) * progress,

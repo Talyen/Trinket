@@ -87,92 +87,18 @@ enum CombatantHitReactionKind: String, CaseIterable, Equatable {
     }
 }
 
-struct CombatReactionKeyframes: Equatable {
-    let scaleX: [CombatFeedbackKeyframeSample]
-    let scaleY: [CombatFeedbackKeyframeSample]
-    let offsetX: [CombatFeedbackKeyframeSample]
-    let offsetY: [CombatFeedbackKeyframeSample]
-    let rotation: [CombatFeedbackKeyframeSample]
-
-    init(
-        scaleX: [CombatFeedbackKeyframeSample],
-        scaleY: [CombatFeedbackKeyframeSample],
-        offsetX: [CombatFeedbackKeyframeSample],
-        offsetY: [CombatFeedbackKeyframeSample],
-        rotation: [CombatFeedbackKeyframeSample] = [],
-    ) {
-        self.scaleX = scaleX
-        self.scaleY = scaleY
-        self.offsetX = offsetX
-        self.offsetY = offsetY
-        self.rotation = rotation
-    }
-
-    var impactDuration: TimeInterval {
-        scaleX[safe: 0]?.duration ?? 0.08
-    }
-
-    var recoveryDuration: TimeInterval {
-        scaleX[safe: 1]?.duration ?? 0.16
-    }
-
-    var rawImpactScaleX: Double {
-        scaleX[safe: 0]?.value ?? 1.0
-    }
-
-    var rawImpactScaleY: Double {
-        scaleY[safe: 0]?.value ?? 1.0
-    }
-
-    var rawImpactOffsetX: Double {
-        offsetX[safe: 0]?.value ?? 0.0
-    }
-
-    var rawImpactOffsetY: Double {
-        offsetY[safe: 0]?.value ?? 0.0
-    }
-
-    var recoveryScaleX: Double {
-        scaleX[safe: 1]?.value ?? 1.0
-    }
-
-    var recoveryScaleY: Double {
-        scaleY[safe: 1]?.value ?? 1.0
-    }
-
-    var recoverOffsetX: Double {
-        offsetX[safe: 1]?.value ?? 0.0
-    }
-
-    var recoverOffsetY: Double {
-        offsetY[safe: 1]?.value ?? 0.0
-    }
+struct CombatantMotionPhase: Equatable {
+    let pose: CombatantPose
+    let duration: TimeInterval
 }
 
 struct CombatantHitReactionRecipe: Equatable {
     let kind: CombatantHitReactionKind
-    let keyframes: CombatReactionKeyframes
+    let impact: CombatantMotionPhase
+    let recovery: CombatantMotionPhase
+    var rotation: [CombatFeedbackKeyframeSample] = []
+    /// Scheduling lifetime is independent of the transform phases (notably celebration and no reaction).
     let duration: TimeInterval
-
-    init(
-        kind: CombatantHitReactionKind,
-        scaleX: [CombatFeedbackKeyframeSample],
-        scaleY: [CombatFeedbackKeyframeSample],
-        offsetX: [CombatFeedbackKeyframeSample],
-        offsetY: [CombatFeedbackKeyframeSample],
-        rotation: [CombatFeedbackKeyframeSample] = [],
-        duration: TimeInterval,
-    ) {
-        self.kind = kind
-        keyframes = CombatReactionKeyframes(
-            scaleX: scaleX,
-            scaleY: scaleY,
-            offsetX: offsetX,
-            offsetY: offsetY,
-            rotation: rotation,
-        )
-        self.duration = duration
-    }
 }
 
 enum CombatantAttackPhase: String, CaseIterable, Equatable {
@@ -183,7 +109,7 @@ enum CombatantAttackPhase: String, CaseIterable, Equatable {
     case rest
 }
 
-struct CombatantAttackPose: Equatable {
+struct CombatantPose: Equatable {
     var scaleX: Double
     var scaleY: Double
     var offsetX: Double
@@ -205,6 +131,12 @@ struct CombatantAttackPose: Equatable {
     }
 
     static let rest = Self()
+
+    func aimed(_ aim: CombatantAttackAim) -> Self {
+        var pose = self
+        pose.offsetY = aim.aimedOffsetY(offsetY)
+        return pose
+    }
 }
 
 enum CombatantAttackAim: String, CaseIterable, Equatable {
@@ -224,53 +156,9 @@ enum CombatantAttackAim: String, CaseIterable, Equatable {
 }
 
 struct CombatantAttackReactionRecipe: Equatable {
-    let keyframes: CombatReactionKeyframes
-
-    init(
-        scaleX: [CombatFeedbackKeyframeSample],
-        scaleY: [CombatFeedbackKeyframeSample],
-        offsetX: [CombatFeedbackKeyframeSample],
-        offsetY: [CombatFeedbackKeyframeSample],
-        rotation: [CombatFeedbackKeyframeSample] = [],
-    ) {
-        keyframes = CombatReactionKeyframes(
-            scaleX: scaleX,
-            scaleY: scaleY,
-            offsetX: offsetX,
-            offsetY: offsetY,
-            rotation: rotation,
-        )
-    }
-
-    var windUpDuration: TimeInterval {
-        keyframes.scaleX[safe: 0]?.duration ?? 0.01
-    }
-
-    var swingDuration: TimeInterval {
-        keyframes.scaleX[safe: 1]?.duration ?? 0.01
-    }
-
-    var recoverDuration: TimeInterval {
-        keyframes.scaleX[safe: 2]?.duration ?? 0.01
-    }
-
-    func windUpPose(aim: CombatantAttackAim) -> CombatantAttackPose {
-        pose(at: 0, aim: aim)
-    }
-
-    func swingPose(aim: CombatantAttackAim) -> CombatantAttackPose {
-        pose(at: 1, aim: aim)
-    }
-
-    private func pose(at index: Int, aim: CombatantAttackAim) -> CombatantAttackPose {
-        CombatantAttackPose(
-            scaleX: keyframes.scaleX[safe: index]?.value ?? 1,
-            scaleY: keyframes.scaleY[safe: index]?.value ?? 1,
-            offsetX: keyframes.offsetX[safe: index]?.value ?? 0,
-            offsetY: aim.aimedOffsetY(keyframes.offsetY[safe: index]?.value ?? 0),
-            rotation: keyframes.rotation[safe: index]?.value ?? 0,
-        )
-    }
+    let windUp: CombatantMotionPhase
+    let swing: CombatantMotionPhase
+    let recovery: CombatantMotionPhase
 }
 
 enum CombatantHitRecoilDirection: String, CaseIterable, Equatable {

@@ -250,7 +250,7 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
                 CubicKeyframe(layout.recoverOffsetY, duration: layout.recoveryDuration)
             }
             KeyframeTrack(\.rotation) {
-                let samples = layout.recipe.keyframes.rotation
+                let samples = layout.recipe.rotation
                 if samples.isEmpty {
                     CubicKeyframe(0, duration: layout.impactDuration + layout.recoveryDuration)
                 } else {
@@ -315,12 +315,12 @@ private struct ReactionLayoutState {
     init(activeKind: CombatantHitReactionKind, recoilDirection: CombatantHitRecoilDirection) {
         let reactionRecipe = CombatFeedbackCardRecipes.cardReaction(for: activeKind)
         let defaultOffset = CGSize(
-            width: CGFloat(reactionRecipe.keyframes.rawImpactOffsetX),
-            height: CGFloat(reactionRecipe.keyframes.rawImpactOffsetY),
+            width: CGFloat(reactionRecipe.impact.pose.offsetX),
+            height: CGFloat(reactionRecipe.impact.pose.offsetY),
         )
         let isVerticalImpact = activeKind == .damage || activeKind == .critical || activeKind == .block
-        let recipeScaleX: Double = reactionRecipe.keyframes.rawImpactScaleX
-        let recipeScaleY: Double = reactionRecipe.keyframes.rawImpactScaleY
+        let recipeScaleX: Double = reactionRecipe.impact.pose.scaleX
+        let recipeScaleY: Double = reactionRecipe.impact.pose.scaleY
         let impactScales = isVerticalImpact
             ? recoilDirection.impactScales(scaleX: recipeScaleX, scaleY: recipeScaleY)
             : (x: recipeScaleX, y: recipeScaleY)
@@ -331,14 +331,14 @@ private struct ReactionLayoutState {
         recipe = reactionRecipe
         impactScaleX = impactScales.x
         impactScaleY = impactScales.y
-        recoveryScaleX = reactionRecipe.keyframes.recoveryScaleX
-        recoveryScaleY = reactionRecipe.keyframes.recoveryScaleY
-        impactDuration = reactionRecipe.keyframes.impactDuration
-        recoveryDuration = reactionRecipe.keyframes.recoveryDuration
+        recoveryScaleX = reactionRecipe.recovery.pose.scaleX
+        recoveryScaleY = reactionRecipe.recovery.pose.scaleY
+        impactDuration = reactionRecipe.impact.duration
+        recoveryDuration = reactionRecipe.recovery.duration
         impactOffsetX = Double(resolvedOffset.width)
         impactOffsetY = Double(resolvedOffset.height)
-        recoverOffsetX = reactionRecipe.keyframes.recoverOffsetX
-        recoverOffsetY = reactionRecipe.keyframes.recoverOffsetY
+        recoverOffsetX = reactionRecipe.recovery.pose.offsetX
+        recoverOffsetY = reactionRecipe.recovery.pose.offsetY
     }
 }
 
