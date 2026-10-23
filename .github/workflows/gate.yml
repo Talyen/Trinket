@@ -31,7 +31,7 @@ jobs:
           filter: blob:limit=1g
           sparse-checkout-cone-mode: true
           # Cone mode keeps root files (project.yml, *.xctestplan). Raw sources live outside the repository.
-          # Docs, Performance baselines, .agents, Website, .cursor, and
+          # Docs, Performance baselines, .agents, Website, and
           # .githooks are read by the gate suite.
           sparse-checkout: |
             Scripts
@@ -49,7 +49,6 @@ jobs:
             Performance
             Website
             .agents
-            .cursor
             .githooks
             .github
       - uses: ./.github/actions/setup-trinket

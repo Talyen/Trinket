@@ -24,7 +24,7 @@ from internal.markdown import headings
 TEXT_SUFFIXES = {
     ".swift", ".metal", ".sh", ".py", ".mjs", ".js", ".ts", ".tsx",
     ".env", ".json", ".yml", ".yaml", ".tsv", ".toml", ".pbxproj",
-    ".xctestplan", ".xcprivacy", ".entitlements", ".plist", ".md", ".mdc", ".txt",
+    ".xctestplan", ".xcprivacy", ".entitlements", ".plist", ".md", ".txt",
 }
 ASSET_SUFFIXES = {".png", ".jpg", ".jpeg", ".heic", ".webp", ".gif", ".svg", ".pdf",
                   ".wav", ".mp3", ".m4a", ".aac", ".aiff", ".ogg", ".caf", ".mp4", ".mov"}
@@ -58,7 +58,7 @@ def inventory(root: Path, modes: tuple[str, ...], scopes: list[str]) -> dict[str
             continue
         is_generated = any(name == entry or name.startswith(entry + "/") for entry in generated)
         is_generated |= "/Generated/" in name or ".generated." in name
-        is_docs = path.suffix in {".md", ".mdc"}
+        is_docs = path.suffix == ".md"
         is_test = any(part == "Tests" or part.endswith("TestSupport") or part == "TrinketUITests"
                       for part in path.relative_to(root).parts)
         category = "generated" if is_generated else "docs" if is_docs else "tests" if is_test else "source"

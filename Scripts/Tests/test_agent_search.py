@@ -195,7 +195,7 @@ class AgentSearchTests(unittest.TestCase):
 
     def test_documentation_orders_roles_before_file_and_excerpt_limits(self) -> None:
         expected = [
-            ".cursor/rules/colors.mdc", "Docs/Platform/Verification.md", "Scripts/Reference.md",
+            "Docs/Design/Colors.md", "Docs/Platform/Verification.md", "Scripts/Reference.md",
             ".agents/knowledge/patterns/example.md", ".agents/skills/example/SKILL.md",
             "Docs/Audits/README.md", ".agents/FRICTION_LOG.md", ".agents/evals/example.md",
             "Docs/Audits/Proposals.md", "Docs/Plans/Example.md",
@@ -221,7 +221,7 @@ class AgentSearchTests(unittest.TestCase):
         status, output = self.search("needle", "--mode", "docs", "--scope", "Docs/Plans")
         self.assertEqual(status, 0)
         self.assertIn("Matched 2 lines in 1 files; omitted 0 files", output)
-        status, _ = self.search("needle", "--scope", ".cursor/rules")
+        status, _ = self.search("needle", "--scope", "Docs/Design")
         self.assertEqual(status, 1)
 
     def test_invalid_search_expression_is_reported_as_an_error(self) -> None:

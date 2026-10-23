@@ -84,7 +84,7 @@ def recovery_command(target: str, args: argparse.Namespace, root: Path) -> list[
             raise ValueError("empty file")
         if args.lines and not separator:
             command = command[:2] + [name, '--lines', f'1:{min(80, len(lines))}']
-        elif path.suffix in {".md", ".mdc"}:
+        elif path.suffix == ".md":
             if separator and not any(entry.slug == unquote(anchor) for entry in headings(lines)):
                 command = command[:2] + [name, "--outline"]
             elif not separator:
@@ -98,7 +98,7 @@ def recovery_command(target: str, args: argparse.Namespace, root: Path) -> list[
             raise ValueError("unsupported text")
         return command
     except (OSError, ValueError, UnicodeError):
-        mode = "docs" if path.suffix in {".md", ".mdc"} else "source" if path.suffix in {".swift", ".py"} else "assets"
+        mode = "docs" if path.suffix == ".md" else "source" if path.suffix in {".swift", ".py"} else "assets"
         return ["python3", "Scripts/agent-search.py", "--mode", mode, "--files", "--", re.escape(Path(name).name)]
 
 
@@ -113,12 +113,12 @@ def read_target(target: str, args: argparse.Namespace, root: Path,
                           or args.signatures or args.kind or args.match):
             raise ValueError("--full cannot combine with other read modes")
         relative = path.relative_to(root.resolve()).as_posix()
-        supported = {".md", ".mdc", ".swift", ".py"}
+        supported = {".md", ".swift", ".py"}
         if args.lines or args.full:
             supported |= RANGE_SUFFIXES
         if not name or path.suffix not in supported:
             raise ValueError("target must be Markdown, Swift, or Python; shell/config text requires --lines or --full within the repository")
-        if separator and path.suffix not in {".md", ".mdc"}:
+        if separator and path.suffix != ".md":
             raise ValueError("anchors require Markdown")
         data = path.read_bytes()
         source = data.decode("utf-8")
@@ -142,7 +142,7 @@ def read_target(target: str, args: argparse.Namespace, root: Path,
             raise ValueError("signatures and declaration filters require Swift or Python")
         if (args.kind or args.match) and not (args.outline or args.signatures):
             raise ValueError("declaration filters require --outline or --signatures")
-        if args.full and path.suffix not in {".md", ".mdc"}:
+        if args.full and path.suffix != ".md":
             print(f"{relative}:1-{len(lines)} (complete text file)")
             print_lines(1, len(lines))
             return 0
