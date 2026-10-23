@@ -44,11 +44,11 @@ enum L10n {
     }
 
     static var ui_emptyslots_empty_accessory: LocalizedStringResource {
-        LocalizedStringResource("ui.emptyslots.empty_accessory", defaultValue: "Empty Accessory", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("ui.emptyslots.empty_accessory", defaultValue: "Accessory", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var ui_emptyslots_empty_armor: LocalizedStringResource {
-        LocalizedStringResource("ui.emptyslots.empty_armor", defaultValue: "Empty Armor", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("ui.emptyslots.empty_armor", defaultValue: "Armor", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var ui_emptyslots_empty_basic: LocalizedStringResource {
@@ -60,7 +60,7 @@ enum L10n {
     }
 
     static var ui_emptyslots_empty_trinket: LocalizedStringResource {
-        LocalizedStringResource("ui.emptyslots.empty_trinket", defaultValue: "Empty Trinket", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("ui.emptyslots.empty_trinket", defaultValue: "Trinket", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var ui_emptyslots_empty_ultimate: LocalizedStringResource {
@@ -68,7 +68,7 @@ enum L10n {
     }
 
     static var ui_emptyslots_empty_weapon: LocalizedStringResource {
-        LocalizedStringResource("ui.emptyslots.empty_weapon", defaultValue: "Empty Weapon", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("ui.emptyslots.empty_weapon", defaultValue: "Weapon", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func ui_experiencebar_1_2_xp_0ef2d(_ value1: String, _ value2: String) -> LocalizedStringResource {

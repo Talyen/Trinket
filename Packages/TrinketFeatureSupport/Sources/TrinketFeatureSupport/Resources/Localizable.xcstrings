@@ -142,31 +142,31 @@
       }
     },
     "ui.emptyslots.empty_accessory": {
-      "comment": "Empty equipment slot card label for accessory. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete label.",
+      "comment": "Equipment type label below an empty accessory slot. Show only the equipment type; the artwork indicates that the slot is empty. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Leerer Accessoireplatz"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Empty Accessory"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sin accesorio"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Emplacement d’accessoire vide"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "装飾品未装備"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "장신구 미장착"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem Acessório"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "未裝備配飾"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Accessoire"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Accessory"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Accesorio"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Accessoire"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "装飾品"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "장신구"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Acessório"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "配飾"}}
       }
     },
     "ui.emptyslots.empty_armor": {
-      "comment": "Empty equipment slot card label for armor. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete label.",
+      "comment": "Equipment type label below an empty armor slot. Show only the equipment type; the artwork indicates that the slot is empty. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Leerer Rüstungsplatz"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Empty Armor"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sin armadura"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Emplacement d’armure vide"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "防具未装備"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "방어구 미장착"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem Armadura"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "未裝備護甲"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Rüstung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Armor"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Armadura"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Armure"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "防具"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방어구"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Armadura"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "護甲"}}
       }
     },
     "ui.emptyslots.empty_basic": {
@@ -198,17 +198,17 @@
       }
     },
     "ui.emptyslots.empty_trinket": {
-      "comment": "Empty equipment slot card label for trinket. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete label.",
+      "comment": "Equipment type label below an empty trinket slot. Show only the equipment type; the artwork indicates that the slot is empty. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Leerer Schmuckstückplatz"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Empty Trinket"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sin abalorio"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Emplacement de bibelot vide"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "トリンケット未装備"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "트링킷 미장착"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem Berloque"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "未裝備飾物"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Schmuckstück"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Trinket"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Abalorio"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Bibelot"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "トリンケット"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "트링킷"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Berloque"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "飾物"}}
       }
     },
     "ui.emptyslots.empty_ultimate": {
@@ -226,17 +226,17 @@
       }
     },
     "ui.emptyslots.empty_weapon": {
-      "comment": "Empty equipment slot card label for weapon. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label. Translate the complete label.",
+      "comment": "Equipment type label below an empty weapon slot. Show only the equipment type; the artwork indicates that the slot is empty. Trinket is an equippable item type, not the game brand. Secondary slots share their base slot label.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Leerer Waffenplatz"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Empty Weapon"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sin arma"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Emplacement d’arme vide"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "武器未装備"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "무기 미장착"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem Arma"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "未裝備武器"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Waffe"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Weapon"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Arma"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Arme"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "武器"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "무기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Arma"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "武器"}}
       }
     },
     "ui.experiencebar.1_2_xp_0ef2d": {
