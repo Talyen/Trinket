@@ -25,7 +25,7 @@ skipped its opt-in playthrough sweep. These runs used task revision `22faa2d99`
 (the app build preceded its guidance-only commit). Completed output is preserved
 under `.DerivedData/Deliverables/Verification/InterruptedHandoff/`.
 
-Current main's performance, gear-label, and CI-first verification changes are
+Current main's performance, gear-label, accessibility-layout, and CI-first verification changes are
 incorporated and reviewed. Remaining package qualification and final combined-
 revision compiled evidence belong to CI. The old automatic chain was stopped
 after the three completed suites; its next Content invocation was cancelled.
@@ -34,10 +34,26 @@ No full automatic compiled handoff is claimed.
 The unwrapped inspection launch was stopped when the new Mac-resource policy
 arrived, and its managed lease was released. A subsequent shipping-UI launch under
 the shared heavy lane (`--wait 30 --timeout 300`) exited 75 because another live
-inspection held admission; no command started. Do not retry automatically or
-increase resource limits. Shipping-UI motion/cue/delayed-feedback inspection,
-local integration, and plan closure remain outstanding. No visual equivalence is
-claimed from source, compilation, or package tests alone.
+inspection held admission; no command started. After an explicit dependency-release
+update, a new bounded attempt used that lane. Asset reconciliation consumed part
+of its budget, so preparation was stopped and the remaining 150 seconds used
+existing prepared outputs (`SKIP_GENERATE=1`), without extending the original
+five-minute budget. The combined-revision app build passed at `bb9afd5d6`.
+
+Partial shipping-UI evidence now exists: on Trinket Agent 1, iOS 27.0,
+UDID `26F81913-A080-4170-A5B2-C01B6F54DCD2`, Computer Use played Astral Arrow
+(its hand card disappeared), enabled Auto, and showed damage feedback. The
+54.94-second, 1206×2622 recording and inspected frames are preserved under
+`.DerivedData/Deliverables/Inspection/`. Artwork and feedback were readable;
+the recording does not establish the complete motion/feedback acceptance matrix.
+Native interaction could not start because a pre-existing session reservation
+file remained; that reservation was preserved. Computer Use supplied the fallback.
+The host deadline then ended the session; recording cleanup completed normally.
+Do not retry or widen that timed-out run automatically.
+
+Remaining shipping-UI motion states, cues, and delayed-save-feedback inspection,
+local integration, and plan closure remain outstanding. No full visual-equivalence
+claim is made. Current lightweight handoff passes; hosted qualification is pending.
 
 Reviewed baseline: committed local main `2ad7f9db7`. Evidence comes from production
 source, callers, contracts, and existing regression tests. These are maintenance
