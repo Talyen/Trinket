@@ -153,6 +153,7 @@ prerequisites.
 | `./Scripts/ci-diagnostics.sh --cleanup [--keep] <RESULTS_DIR>` | Remove completed successful invocations individually after staging; expire failures and unfinished output after 24 hours; `--keep` explicitly retains the results directory until released |
 | `./Scripts/change-budget.sh --paths …` | Advisory authored-surface signals against HEAD; counts can include pre-existing work and are not justification quotas; `--base <rev>` for CI ranges |
 | `./Scripts/prune-derived-data-cache.sh` | Prune safe, old local build artifacts |
+| `python3 Scripts/simulator-idle-cleanup.py --install [--idle-seconds 600]` | Enable opt-in human simulator/device UI idle cleanup; `--status` shows the last observation, `--check` previews eligibility, and `--uninstall` disables it. See [simulator idle cleanup](../Docs/Platform/SimulatorOperations.md#optional-human-session-idle-cleanup) |
 | `./Scripts/balance-sweep.sh` | Run the headless battle balance sweep |
 
 ### Internal helpers

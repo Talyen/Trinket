@@ -28,6 +28,7 @@ Scripts/agent-push-gate.sh	test_build_process.py,test_ci_build_scripts.py,test_p
 Scripts/agent-read.py	test_agent_context.py,test_agent_read.py
 Scripts/agent-search.py	test_agent_callers.py,test_agent_investigate.py,test_agent_search.py
 Scripts/agent-sim-lifetime.py	test_agent_sim_lifetime.py
+Scripts/simulator-idle-cleanup.py	test_simulator_idle_cleanup.py
 Scripts/agent-watch-ci.sh	test_policy_scripts.py
 Scripts/agent-worktree.mjs	test_agent_integration.py,test_git_safety.py
 Scripts/aggregate-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py

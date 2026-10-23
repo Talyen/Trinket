@@ -27,7 +27,8 @@ Failed or timed-out cleanup observations retry after five seconds, preserving th
 ownership record and rechecking leases before another shutdown attempt.
 `TRINKET_AGENT_SIM_IDLE_SECONDS` can select a 0–3600-second grace period.
 No extra registration or cleanup commands are required. **Trinket Run** stays
-available for human play. Existing top-level hygiene also reclaims unleased excess
+available for human play unless the optional host idle cleanup below is enabled.
+Existing top-level hygiene also reclaims unleased excess
 boots. Every active lease is protected, even when multiple agents are running. In CI (`GITHUB_ACTIONS=true`) there is no human `Run`, so the
 legacy single-warm rule across all managed devices still applies. Preview
 devices are reclaimed and bulky artifacts age-pruned. Nested commands release
@@ -40,6 +41,33 @@ Stale lock recovery is serialized by an adjacent `.reclaim` directory in
 [`Scripts/lib/lock.sh`](../../Scripts/lib/lock.sh). Missing or malformed cleanup
 lock owners also remain reserved. Interrupted recovery leaves its claim in place;
 inspect the claim's `pid` and confirm recovery has stopped before removing it manually.
+
+### Optional human-session idle cleanup
+
+`python3 Scripts/simulator-idle-cleanup.py --install` enables a per-user macOS
+LaunchAgent. It checks once per minute and, after ten minutes of observed
+inactivity, gracefully shuts down **Trinket Run**. Both the background interval
+and macOS's input-idle clock must reach the timeout. Device Hub, Simulator, or
+Xcode in the foreground always preserves the session, including controller play
+or reading without keyboard input. Input anywhere on the Mac restarts the interval.
+`--idle-seconds` selects a different timeout when installing.
+
+Live or ambiguous leases, inspection/lifetime records, builds, XCTest guests,
+device commands, and Xcode Preview agents prevent cleanup. Cleanup reserves the
+human run slot and agent allocation lock, then refreshes ownership and activity
+before shutdown. Only the uniquely named **Trinket Run** is a shutdown candidate;
+agent devices, foreign devices, and saves are never erased. After shutdown, the
+tool requests a normal quit of the previously observed Device Hub/Simulator
+process only when every default-set simulator is shut down, no simulator guest
+processes remain (including custom device sets), and activity is still idle.
+It never force quits a device UI or closes Xcode.
+
+The job uses the primary checkout, survives login, and saves one bounded status
+record at `~/.local/state/trinket-simulator-idle/status.json`. `--status` reads it;
+`--check` reports current eligibility without shutting anything down, and
+`--uninstall` disables the job without changing devices. Missing activity or
+ownership evidence preserves the session and records the reason. This opt-in
+host policy is separate from the short agent lease-release grace period.
 
 ## Inspection lease and capture
 
