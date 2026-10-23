@@ -17,14 +17,27 @@ preserve the package DAG and existing ownership boundaries.
 
 Implementation of all four simplifications is authorized, in order: motion
 recipes, explicit retry results, shared card semantics, then damage packets.
-All four simplifications are implemented and reviewed. Static checks, catalog
-generation (no generated changes), and the complete app build against the generic
-iOS Simulator destination passed with Xcode 27.1 RC. Latest local main's
-documentation consolidation was incorporated without source changes or conflicts.
-Package test compilation is in progress. The automatic handoff repeatedly stopped
-before test execution because the managed simulator pool was full (0/1 free).
-Behavior tests, shipping-UI inspection, local integration, and plan closure remain
-outstanding; no visual equivalence is claimed from source or compilation alone.
+All four simplifications are implemented and reviewed. Before the final main
+rebases, catalog generation (no generated changes), the complete generic Simulator
+app build, and three package suites passed with Xcode 27.1 RC: BattleEngine 1,035,
+AppState 218, and BattleFeature 210 tests; zero failures. The normal AppState run
+skipped its opt-in playthrough sweep. These runs used task revision `22faa2d99`
+(the app build preceded its guidance-only commit). Completed output is preserved
+under `.DerivedData/Deliverables/Verification/InterruptedHandoff/`.
+
+Current main's performance, gear-label, and CI-first verification changes are
+incorporated and reviewed. Remaining package qualification and final combined-
+revision compiled evidence belong to CI. The old automatic chain was stopped
+after the three completed suites; its next Content invocation was cancelled.
+No full automatic compiled handoff is claimed.
+
+The unwrapped inspection launch was stopped when the new Mac-resource policy
+arrived, and its managed lease was released. A subsequent shipping-UI launch under
+the shared heavy lane (`--wait 30 --timeout 300`) exited 75 because another live
+inspection held admission; no command started. Do not retry automatically or
+increase resource limits. Shipping-UI motion/cue/delayed-feedback inspection,
+local integration, and plan closure remain outstanding. No visual equivalence is
+claimed from source, compilation, or package tests alone.
 
 Reviewed baseline: committed local main `2ad7f9db7`. Evidence comes from production
 source, callers, contracts, and existing regression tests. These are maintenance
