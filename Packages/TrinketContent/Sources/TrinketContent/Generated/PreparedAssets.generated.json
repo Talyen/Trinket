@@ -1640,7 +1640,7 @@
     }
   },
   "music": {
-    "input_hash": "d230c63969c2cd2289b36785da18efc7e00764831679861088afbc78972d3dcc",
+    "input_hash": "f18711976fd91e83f4dcaff424e5cf96c9b688cfefccc67defed53243d551a6a",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "37098ed9c4971dce9a92a2c5443965a53a22bb1a5597b71c8eeebd093500fbf9",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv": "5b8df4b14046fe14cd3d98159c473604dcaf7040b84f4ae8faf67bd84e753909",
@@ -1668,7 +1668,7 @@
       "Sounds/Game Sources/Music/Menu 3.mp3": "69e73ed823c7001c212eacca5da4763f36b864e133a8d6b40808f870622cb138",
       "Sounds/Game Sources/Music/Menu 4.mp3": "27a73b88523deff2ffb3e5649474bcd8fcaa9caf286f92c931bf49a88cb6061f",
       "Sounds/Game Sources/Music/The Blight Treant.mp3": "56464355707bea1b6932b1fe107345a46d62f4ab3bc2f299aeb3d1b625719c38",
-      "Sounds/Game Sources/Music/The Blood Countess - Boss Track.mp3": "acfc64cba056fab100911b8fa805f60c8af910c8947843dbc57902c2b24ecbad",
+      "Sounds/Game Sources/Music/The Blood Countess.mp3": "acfc64cba056fab100911b8fa805f60c8af910c8947843dbc57902c2b24ecbad",
       "Sounds/Game Sources/Music/The Forge Golem.mp3": "9e25e4c4cf704232857ad71d86355330221d7bb64a0c746702e64587c7324c90",
       "Sounds/Game Sources/Music/The Frostwarden.mp3": "80011a5374d03a5879b5563f4e30e7de5e316b0fb353fc23275b6f039070d15c",
       "Sounds/Game Sources/Music/The Iron Bear.mp3": "f9b94ebc9aca6ee40e93a3d7935ef20d05a1bd59bf84abcfee63138ab315a2cc"
