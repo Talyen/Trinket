@@ -181,9 +181,6 @@ public struct RewardRevealShell<Content: View>: View {
     private var primaryAction: some View {
         if let primaryActionTitle {
             Button {
-                #if DEBUG
-                NSLog("%@", "VICTORY_DIAG shell disabled=\(isPrimaryActionDisabled) confirmed=\(isPrimaryActionConfirmed)")
-                #endif
                 guard !isPrimaryActionDisabled else { return }
                 onPrimaryAction()
             } label: {
