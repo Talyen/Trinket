@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/trinket-path-filter/internal /tmp/trinket-path-filter/config
-          for path in ci-path-filter.py build-inputs.env internal/cli.py config/generated-paths.tsv; do
+          for path in ci-path-filter.py build-inputs.env internal/cli.py internal/path_matching.py internal/source_ownership.py config/generated-paths.tsv; do
             gh api "repos/${GITHUB_REPOSITORY}/contents/Scripts/${path}?ref=${SHA}" \
               --jq .content | base64 --decode > "/tmp/trinket-path-filter/${path}"
           done

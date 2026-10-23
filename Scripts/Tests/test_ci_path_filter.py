@@ -39,6 +39,28 @@ class CIPathFilterTests(unittest.TestCase):
             self.assertEqual(set(admitted), selected)
             self.assertEqual(len(admitted), len(selected))
 
+    def test_shards_cannot_omit_or_duplicate_a_configured_package(self) -> None:
+        for shards in ({"Engine": ["BattleEngine"]},
+                       {**self.filter.SHARDS, "Duplicate": ["BattleEngine"]}):
+            with self.subTest(shards=shards), patch.object(self.filter, 'SHARDS', shards):
+                with self.assertRaisesRegex(ValueError, "exactly once"):
+                    self.filter.package_matrix(self.filter.all_packages())
+
+    def test_matching_dialects_preserve_component_and_recursive_boundaries(self) -> None:
+        from internal.path_matching import glob_match, matches
+        cases = [
+            ('Scripts/build.sh', 'Scripts/*.sh', True, True),
+            ('Scripts/lib/build.sh', 'Scripts/*.sh', True, False),
+            ('Scripts/lib/build.sh', 'Scripts/**/*.sh', True, True),
+            ('Scripts/build.sh', 'Scripts/**/*.sh', False, True),
+            ('Scripts/lib/build.sh', 'Scripts/**', True, True),
+            ('Scripts', 'Scripts/**', False, False),
+        ]
+        for path, pattern, local, hosted in cases:
+            with self.subTest(path=path, pattern=pattern):
+                self.assertEqual(matches(path, pattern), local)
+                self.assertEqual(glob_match(path, pattern), hosted)
+
     def test_compare_includes_rename_source_and_fails_closed_at_file_limit(self) -> None:
         cases = [
             ({"status": "ahead", "files": [{"filename": "Docs/archived.swift", "previous_filename": "Trinket/App.swift"}]},
@@ -287,7 +309,8 @@ let package = Package(name: "TrinketCore",
             shutil.copy(ROOT / "Scripts" / "build-inputs.env", Path(tmp) / "build-inputs.env")
             internal = Path(tmp) / "internal"
             internal.mkdir()
-            shutil.copy(ROOT / "Scripts/internal/cli.py", internal / "cli.py")
+            for helper in ("cli.py", "path_matching.py", "source_ownership.py"):
+                shutil.copy(ROOT / "Scripts/internal" / helper, internal / helper)
             child = (
                 "import importlib.util, sys;"
                 "spec = importlib.util.spec_from_file_location('ci_standalone', 'ci-path-filter.py');"

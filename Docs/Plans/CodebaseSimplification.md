@@ -29,7 +29,8 @@ policy unless a separate product decision explicitly changes them.
   218 passed / 1 skipped, Persistence 413 passed, static checks and app compilation passed.
 - [ ] Narrow damage calculation and committed reaction inputs with trace parity.
 - [ ] Encode battle transition state and verify reentry and replacement flows.
-- [ ] Share verification facts and matching semantics with selection parity.
+- [x] Share verification facts and matching semantics: identical results for 174
+  patterns across 3,243 paths and 302 scopes; five selected script suites passed.
 - [ ] Run whole-task verification, review, close the plan, and integrate locally.
 
 The inspection baseline is committed local main `b7bdef743`. Evidence below comes

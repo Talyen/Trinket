@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from fnmatch import fnmatchcase
 import os
 from pathlib import Path
 import re
@@ -10,12 +9,10 @@ import shlex
 import subprocess
 
 from internal.agent_status import changes
-from internal.cli import ROOT, read_env_arrays
+from internal.cli import ROOT
 from internal.ui_registration import registrations
-
-
-def matches(path: str, *patterns: str) -> bool:
-    return any(fnmatchcase(path, pattern) for pattern in patterns)
+from internal.path_matching import matches
+from internal.source_ownership import build_inputs, generated_paths
 
 
 def beneath(path: str, roots: tuple[str, ...]) -> bool:
@@ -143,20 +140,13 @@ class Route:
 def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) -> Route:
     route = Route(paths)
     comparison = task_ancestor(base, root) if base is not None else 'HEAD'
-    arrays = read_env_arrays(root / 'Scripts/build-inputs.env', ['TRINKET_TEST_PACKAGES', 'TRINKET_CONTENT_GENERATION_INPUTS', 'TRINKET_ASSET_GENERATION_INPUTS', 'TRINKET_PROJECT_GENERATION_INPUTS'])
+    arrays = build_inputs(root / 'Scripts')
     packages = arrays['TRINKET_TEST_PACKAGES']
     smoke = {row['key']: row['name'] for row in registrations(root) if row['suite'] == 'Smoke'}
-    registry = root / 'Scripts/config/generated-paths.tsv'
-    generated_roots, asset_roots = [], []
-    if registry.exists():
-        for line in registry.read_text().splitlines():
-            if line.startswith('#') or '|' not in line:
-                continue
-            kind, entry = line.split('|', 1)
-            if kind in {'content', 'asset'} and entry:
-                generated_roots.append(entry.rstrip('/'))
-                if kind == 'asset':
-                    asset_roots.append(entry.rstrip('/'))
+    scripts = root / 'Scripts'
+    has_registry = (scripts / 'config/generated-paths.tsv').exists()
+    generated_roots = generated_paths(scripts, ('content', 'asset')) if has_registry else ()
+    asset_roots = generated_paths(scripts, ('asset',)) if has_registry else ()
 
     def add_smoke(path: str) -> None:
         key = None

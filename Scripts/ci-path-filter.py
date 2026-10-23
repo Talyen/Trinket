@@ -7,7 +7,6 @@ This script lists files via compare/{before}...{sha} and writes GITHUB_OUTPUT.
 
 from __future__ import annotations
 
-import fnmatch
 import base64
 import hashlib
 from collections.abc import Callable
@@ -21,7 +20,8 @@ import urllib.request
 from pathlib import Path
 
 
-from internal.cli import read_env_arrays
+from internal.path_matching import glob_match
+from internal.source_ownership import build_inputs, generated_paths
 
 Z40 = "0000000000000000000000000000000000000000"
 
@@ -78,46 +78,20 @@ INFRA_EXCLUDES = ("Scripts/**/*.md",)
 
 
 @functools.cache
-def generation_inputs() -> tuple[tuple[str, ...], ...]:
-    """Generation input registries parsed from build-inputs.env in Python.
+def configured_inputs() -> dict[str, tuple[str, ...]]:
+    # The API-only job downloads these literal registries beside this script.
+    return build_inputs(Path(__file__).resolve().parent)
 
-    Lazy (not import-time) so importing this module never shells out, and
-    parsed — not bash-sourced — so behavior is identical without a subprocess.
-    """
-    registry = Path(__file__).with_name("build-inputs.env")
-    parsed = read_env_arrays(
-        registry,
-        [
-            "TRINKET_CONTENT_GENERATION_INPUTS",
-            "TRINKET_ASSET_GENERATION_INPUTS",
-            "TRINKET_PROJECT_GENERATION_INPUTS",
-        ],
-    )
-    return (
-        parsed["TRINKET_CONTENT_GENERATION_INPUTS"],
-        parsed["TRINKET_ASSET_GENERATION_INPUTS"],
-        parsed["TRINKET_PROJECT_GENERATION_INPUTS"],
-    )
+
+def generation_inputs() -> tuple[tuple[str, ...], ...]:
+    parsed = configured_inputs()
+    return tuple(parsed[name] for name in (
+        'TRINKET_CONTENT_GENERATION_INPUTS', 'TRINKET_ASSET_GENERATION_INPUTS', 'TRINKET_PROJECT_GENERATION_INPUTS',
+    ))
 
 
 def is_generation_input(path: str, inputs: tuple[str, ...]) -> bool:
     return any(glob_match(path, entry) or path.startswith(entry + "/") for entry in inputs)
-
-
-def glob_match(path: str, pattern: str) -> bool:
-    patterns, segments = pattern.split("/"), path.split("/")
-
-    @functools.cache
-    def match(p: int, s: int) -> bool:
-        if p == len(patterns):
-            return s == len(segments)
-        if patterns[p] == "**":
-            if p == len(patterns) - 1:
-                return s < len(segments)
-            return match(p + 1, s) or (s < len(segments) and match(p, s + 1))
-        return s < len(segments) and fnmatch.fnmatchcase(segments[s], patterns[p]) and match(p + 1, s + 1)
-
-    return match(0, 0)
 
 
 def matches_any(path: str, patterns: tuple[str, ...]) -> bool:
@@ -182,9 +156,7 @@ def is_smoke_path(path: str) -> bool:
 
 @functools.cache
 def asset_outputs() -> tuple[str, ...]:
-    registry = Path(__file__).with_name('config') / 'generated-paths.tsv'
-    return tuple(line.partition('|')[2].rstrip('/') for line in registry.read_text().splitlines()
-                 if line.startswith('asset|'))
+    return generated_paths(Path(__file__).resolve().parent, ('asset',))
 
 
 def is_asset_path(path: str) -> bool:
@@ -229,7 +201,7 @@ REVIEWED_MANIFESTS = {
 
 
 def all_packages() -> set[str]:
-    return {package for packages in SHARDS.values() for package in packages}
+    return set(configured_inputs()["TRINKET_TEST_PACKAGES"])
 
 
 def affected_packages(paths: list[str], load_dependencies: Callable[[], dict[str, set[str]]]) -> set[str]:
@@ -265,6 +237,9 @@ def affected_packages(paths: list[str], load_dependencies: Callable[[], dict[str
 
 
 def package_matrix(selected: set[str]) -> dict:
+    members = [package for packages in SHARDS.values() for package in packages]
+    if len(members) != len(set(members)) or set(members) != all_packages():
+        raise ValueError("CI shards must cover the configured test packages exactly once")
     entries = [{"name": name, "packages": " ".join(p for p in packages if p in selected)}
                for name, packages in SHARDS.items() if any(p in selected for p in packages)]
     # GitHub validates matrices even for skipped jobs; keep an inert nonempty
