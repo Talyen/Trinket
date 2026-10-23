@@ -61,6 +61,9 @@ Manual CLI only — **no CI gates** or scheduled automations. Use the script's
 ./Scripts/balance-sweep.sh --mode ability-contrast
 ```
 
+Run broad sweeps in a hosted diagnostic environment. [Verification](../Platform/Verification.md#execution-limits)
+owns local admission; a short CLI default does not authorize heavy local work.
+
 Use the default identity mode for a routine, approximately ten-minute-or-less
 screen after the release binary is built. Cold compilation is additional time,
 and a busy host can increase runtime. This small screen finds large encounter
