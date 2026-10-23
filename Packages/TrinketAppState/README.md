@@ -93,6 +93,7 @@ and retire active, fading, prepared, and loading music voices. The notification
 does not restart playback. Both players reject automatic route, play, and warm
 requests until a direct player interaction calls
 `AppState.resumeAudioAfterMediaServicesReset(scenePhase:)` in the active scene.
+The shell enables its recovery tap observer only while a media-services reset is pending.
 Recovery then creates fresh native objects and restores the ambient category,
 Ring/Silent behavior, and audio mixing.
 

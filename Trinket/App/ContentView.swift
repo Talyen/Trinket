@@ -1,3 +1,4 @@
+import AVFAudio
 import os
 import SwiftUI
 import TrinketAppState
@@ -20,6 +21,7 @@ struct ContentView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
     @Environment(\.scenePhase) private var scenePhase
     @Namespace private var homesteadZoomNamespace
+    @State private var audioRecoveryPending = false
 
     var onFirstLayout: () -> Void = {}
 
@@ -46,8 +48,12 @@ struct ContentView: View {
         }
         .fullGameOfferHost()
         .simultaneousGesture(TapGesture().onEnded {
-            appState.resumeAudioAfterMediaServicesReset(scenePhase: scenePhase)
-        })
+            resumeAudioAfterMediaServicesReset()
+        }, isEnabled: audioRecoveryPending)
+        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.mediaServicesWereResetNotification)
+            .receive(on: RunLoop.main)) { _ in
+                audioRecoveryPending = appState.needsMediaServicesRecovery
+        }
         // Keep the phone's navigation and stacked hubs on every portrait canvas.
         .environment(\.horizontalSizeClass, .compact)
         .animation(TrinketMotion.Screen.crossfade, value: playerSave.starterSelection.phase)
@@ -58,6 +64,7 @@ struct ContentView: View {
         )
         .tint(TrinketDesign.Colors.accent)
         .onAppear {
+            audioRecoveryPending = appState.needsMediaServicesRecovery
             appState.reconcileShellState(.scenePhaseChanged, scenePhase: scenePhase)
         }
         .task(id: scenePhase) {
@@ -95,6 +102,11 @@ struct ContentView: View {
         }
     }
 
+    private func resumeAudioAfterMediaServicesReset() {
+        appState.resumeAudioAfterMediaServicesReset(scenePhase: scenePhase)
+        audioRecoveryPending = appState.needsMediaServicesRecovery
+    }
+
     private func tabRoot(selection: Binding<AppTab>) -> some View {
         @Bindable var shellSession = shellSession
         let intercepting = Binding<AppTab>(
@@ -111,7 +123,7 @@ struct ContentView: View {
                     )
                     return
                 }
-                appState.resumeAudioAfterMediaServicesReset(scenePhase: scenePhase)
+                resumeAudioAfterMediaServicesReset()
                 if newTab == selection.wrappedValue {
                     guard newTab != .play || battle.lifecyclePhase != .active else { return }
                     withAnimation { shellSession.popToRoot(newTab) }
