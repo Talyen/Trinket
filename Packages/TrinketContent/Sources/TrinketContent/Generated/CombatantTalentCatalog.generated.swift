@@ -952,8 +952,8 @@ public extension CombatantTalentCatalog {
             "wildcard_gold_t3_2": CombatantTalentEffect(
                 name: "Sleight of Coin",
                 iconID: "sf:hand.pinch.fill",
-                description: "Stealing Gold grants +15% Dodge until your next turn",
-                triggers: CombatTraitTriggers { $0.goldTheftDodgeBonus = 0.15 }
+                description: "Stealing Gold grants +20% Dodge until your next turn",
+                triggers: CombatTraitTriggers { $0.goldTheftDodgeBonus = 0.20 }
             ),
             "wildcard_gold_t4_1": CombatantTalentEffect(
                 name: "Lucky Break",
@@ -1048,8 +1048,8 @@ public extension CombatantTalentCatalog {
             "wildcard_physical_t4_1": CombatantTalentEffect(
                 name: "Paid in Full",
                 iconID: "sf:circle.circle.fill",
-                description: "Stealing Gold adds 2 damage to your next attack",
-                triggers: CombatTraitTriggers { $0.goldStealNextAttackBonus = 2 }
+                description: "Stealing Gold adds 3 damage to your next attack",
+                triggers: CombatTraitTriggers { $0.goldStealNextAttackBonus = 3 }
             )
     ]
 

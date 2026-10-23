@@ -23,11 +23,12 @@ extension TalentCatalogRoundTripTests {
         _ = battle.performTestAction(attack)
 
         let paidInFull = talentID == "wildcard_physical_t4_1"
-        let expectedBonus = paidInFull ? 2 : (keyword == .physical ? 3 : 0)
+        let physicalBonus = profile.triggers.goldStealNextPhysicalBonus
+        let expectedBonus = paidInFull ? profile.triggers.goldStealNextAttackBonus : (keyword == .physical ? physicalBonus : 0)
         #expect(before - battle.health(of: battle.enemy) == 4 + expectedBonus)
         let after = battle.health(of: battle.enemy)
         _ = battle.performTestAction(.slash)
-        let remainingBonus = !paidInFull && keyword != .physical ? 3 : 0
+        let remainingBonus = !paidInFull && keyword != .physical ? physicalBonus : 0
         #expect(after - battle.health(of: battle.enemy) == 3 + remainingBonus)
     }
 

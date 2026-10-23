@@ -4073,8 +4073,8 @@ public enum ContentCopy {
             (L10n.talents_wildcard_gold_t3_1_description, [])
         case "Last Wager":
             (L10n.talents_wildcard_gold_t3_1_name, [])
-        case "Stealing Gold grants +15% Dodge until your next turn":
-            (L10n.talents_wildcard_gold_t3_2_description(15), [15])
+        case "Stealing Gold grants +20% Dodge until your next turn":
+            (L10n.talents_wildcard_gold_t3_2_description(20), [20])
         case "Sleight of Coin":
             (L10n.talents_wildcard_gold_t3_2_name, [])
         case "Your first Gold gain each turn draws a card":
@@ -4105,8 +4105,8 @@ public enum ContentCopy {
             (L10n.talents_wildcard_physical_t3_2_description, [])
         case "Feigned Miss":
             (L10n.talents_wildcard_physical_t3_2_name, [])
-        case "Stealing Gold adds 2 damage to your next attack":
-            (L10n.talents_wildcard_physical_t4_1_description(2), [2])
+        case "Stealing Gold adds 3 damage to your next attack":
+            (L10n.talents_wildcard_physical_t4_1_description(3), [3])
         case "Paid in Full":
             (L10n.talents_wildcard_physical_t4_1_name, [])
         case "Burn deals 25% more damage to enemies with no Block":

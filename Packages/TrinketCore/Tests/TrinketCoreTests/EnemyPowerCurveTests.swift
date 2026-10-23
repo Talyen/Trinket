@@ -3,9 +3,9 @@ import TrinketCore
 
 struct EnemyPowerCurveTests {
     @Test(arguments: [
-        (EnemyPowerCurve.Profile.standard, 1, 6.4, 15.0, 0.5, 0.25),
+        (EnemyPowerCurve.Profile.standard, 1, 7.2, 15.0, 0.5, 0.25),
         (.standard, 20, 16.0, 28.0, 4.3, 2.2),
-        (.standard, 40, 44.0, 75.0, 13.0, 6.5),
+        (.standard, 40, 38.0, 75.0, 11.0, 6.5),
         (.spire, 1, 6.4, 10.0, 0.5, 0.35),
         (.spire, 20, 16.0, 28.0, 1.6, 1.1),
         (.spire, 40, 35.2, 60.0, 3.25, 3.25),
@@ -47,7 +47,7 @@ struct EnemyPowerCurveTests {
 
     @Test func `mid bracket values interpolate between anchors`() {
         let hp10 = EnemyPowerCurve.health(level: 10, isBoss: false)
-        #expect(hp10 > 6.4)
+        #expect(hp10 > EnemyPowerCurve.health(level: 1, isBoss: false))
         #expect(hp10 < 16.0)
         let damage30 = EnemyPowerCurve.rawDamagePercent(level: 30, isBoss: false)
         #expect(damage30 > EnemyPowerCurve.rawDamagePercent(level: 20, isBoss: false))

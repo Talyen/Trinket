@@ -410,7 +410,7 @@ wildcard_gold_t1_2	Health is Wealth	sf:heart.fill	Gaining Gold has a 25% chance 
 wildcard_gold_t2_1	Jackpot	sf:rectangle.3.group.fill	Critical Hits that steal Gold grant 5 additional Gold		criticalGoldTheftBonus:5
 wildcard_gold_t2_2	Lucky Charm	sf:suit.club.fill	Gaining Gold has a 20% chance to Cleanse a debuff		goldGainCleanseChancePercent:0.20
 wildcard_gold_t3_1	Last Wager	sf:die.face.5.fill	Gaining Gold while below half Health draws a card		goldGainBelowHalfDrawCard:true
-wildcard_gold_t3_2	Sleight of Coin	sf:hand.pinch.fill	Stealing Gold grants +15% Dodge until your next turn		goldTheftDodgeBonus:0.15
+wildcard_gold_t3_2	Sleight of Coin	sf:hand.pinch.fill	Stealing Gold grants +20% Dodge until your next turn		goldTheftDodgeBonus:0.20
 wildcard_gold_t4_1	Lucky Break	sf:suit.club.fill	Your first Gold gain each turn draws a card		firstGoldGainDrawCardPerTurn:true
 wildcard_dodge_t1_1	False Opening	sf:burst.fill	Dodging grants +20% Critical Hit chance on your next attack		dodgeNextAttackCritBonus:0.20
 wildcard_dodge_t1_2	Missed Opportunity	sf:shield.lefthalf.filled	Dodging below half Health draws a card		dodgeBelowHalfDrawCard:true
@@ -425,7 +425,7 @@ wildcard_physical_t2_1	Clean Cut	sf:burst.fill	Your Critical Hits ignore enemy B
 wildcard_physical_t2_2	Cracked Guard	sf:shield.slash.fill	Breaking enemy Block with Physical damage makes your next attack Critically Hit		crackedGuard:true
 wildcard_physical_t3_1	Cold Read	sf:eye.fill	Physical attacks against Frozen enemies gain +15% Critical Hit chance		physicalVsFrozenCritBonus:0.15
 wildcard_physical_t3_2	Feigned Miss	sf:theatermasks.fill	An enemy fully Blocking your attack doubles your next Physical attack		blockedAttackNextPhysicalDouble:true
-wildcard_physical_t4_1	Paid in Full	sf:circle.circle.fill	Stealing Gold adds 2 damage to your next attack		goldStealNextAttackBonus:2
+wildcard_physical_t4_1	Paid in Full	sf:circle.circle.fill	Stealing Gold adds 3 damage to your next attack		goldStealNextAttackBonus:3
 warlock_leech_t4_1	Emberdrinker	sf:flame.fill	Your first Burn attack each turn gains Leech if you are below half Health		firstBurnAttackLeech:true
 frost_whelp_mana_t4_1	Dragon’s Patronage	sf:person.2.fill	Mana empowerment grants your ally 2 Block		manaEmpowerAllyBlock:2
 frost_whelp_dodge_t4_1	Winter’s Wake	sf:cloud.snow.fill	Dodging makes your next Freeze attack ignore enemy Block		dodgeNextFreezeIgnoreBlock:true

@@ -71,6 +71,7 @@ extension UniqueCollectionTests {
 
     @Test func `Paid in Full cannot strengthen the later hit that triggered its theft`() throws {
         var profile = CombatantTalentCatalog.profile(for: ["wildcard_physical_t4_1"])
+        let preparedDamage = profile.triggers.goldStealNextAttackBonus
         profile.triggers.criticalChanceBonus = -1
         var battle = try battle(["saintfall_plate", "golden_verdict"], extra: profile)
         let threshold = ControlMeterEngine.threshold(for: battle.enemy, in: battle)
@@ -87,10 +88,10 @@ extension UniqueCollectionTests {
         let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.rayOfFrost.id }
         #expect(hits.map(\.amount) == [1, 1])
         #expect(battle.gold == 1)
-        #expect(battle.roster.hero.talents.pending.nextAttackDamageBonus?.value == 2)
+        #expect(battle.roster.hero.talents.pending.nextAttackDamageBonus?.value == preparedDamage)
 
         let next = try play(.slash, in: &battle)
-        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id }?.amount == 5)
+        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id }?.amount == 3 + preparedDamage)
         #expect(battle.roster.hero.talents.pending.nextAttackDamageBonus == nil)
     }
 
