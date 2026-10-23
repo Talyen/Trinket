@@ -108,39 +108,39 @@ ios_runtimes.sort(
     key=lambda r: (r.get("version", ""), r.get("buildversion", "")),
     reverse=True,
 )
-runtime_id = ios_runtimes[0]["identifier"]
-runtime_build = ios_runtimes[0].get("buildversion", "?")
-
-compatible_devices = devices_payload.get("devices", {}).get(runtime_id, [])
-compatible_types = {
-    device["identifier"]: device["name"]
-    for device in ios_runtimes[0].get("supportedDeviceTypes", [])
-    if device.get("identifier") and device.get("name")
-}
-# Pre-created devices are reusable instances, not a complete runtime type
-# inventory. A runner image containing only a Duo must not hide supported Pro phones.
-for d in compatible_devices:
-    type_id = d.get("deviceTypeIdentifier")
-    name = d.get("name")
-    if type_id and name:
-        compatible_types.setdefault(type_id, name)
+def types_for(runtime):
+    types = {
+        device["identifier"]: device["name"]
+        for device in runtime.get("supportedDeviceTypes", [])
+        if device.get("identifier") and device.get("name")
+    }
+    # Pre-created devices are reusable instances, not a complete type inventory.
+    for device in devices_payload.get("devices", {}).get(runtime["identifier"], []):
+        if device.get("deviceTypeIdentifier") and device.get("name"):
+            types.setdefault(device["deviceTypeIdentifier"], device["name"])
+    return types
 
 preferred = ["iPhone 18 Pro", "iPhone 17 Pro", "iPhone 16 Pro", "iPhone 15 Pro"]
+selected_runtime = ios_runtimes[0]
+compatible_types = types_for(selected_runtime)
 chosen_type_id = None
-
-for name in preferred:
-    for type_id, comp_name in compatible_types.items():
-        if name in comp_name:
-            chosen_type_id = type_id
-            break
+# Special-device runtimes can be newer than every conventional phone runtime.
+# Default runs retain their Pro phone preference; explicit profiles select Duo.
+for runtime in ios_runtimes:
+    types = types_for(runtime)
+    chosen_type_id = next((type_id for name in preferred for type_id, label in types.items()
+                           if name in label), None)
+    if not chosen_type_id:
+        chosen_type_id = next((type_id for type_id, label in types.items()
+                               if "iPhone" in label and "Pro" in label), None)
     if chosen_type_id:
+        selected_runtime = runtime
+        compatible_types = types
         break
 
-if not chosen_type_id:
-    for type_id, comp_name in compatible_types.items():
-        if "iPhone" in comp_name and "Pro" in comp_name:
-            chosen_type_id = type_id
-            break
+runtime_id = selected_runtime["identifier"]
+runtime_build = selected_runtime.get("buildversion", "?")
+compatible_devices = devices_payload.get("devices", {}).get(runtime_id, [])
 
 if not chosen_type_id:
     for type_id, comp_name in compatible_types.items():

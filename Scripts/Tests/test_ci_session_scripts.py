@@ -23,21 +23,23 @@ import signal
 import select
 
 class CISessionScriptTests(ScriptRegressionTestCase):
-    def test_default_simulator_can_create_a_supported_pro_when_only_duo_is_precreated(self) -> None:
+    def test_default_simulator_uses_newest_runtime_supporting_preferred_phone(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             binaries = root / 'bin'
             binaries.mkdir()
-            runtime = 'com.apple.CoreSimulator.SimRuntime.iOS-27-1'
+            runtime = 'com.apple.CoreSimulator.SimRuntime.iOS-27-0'
+            duo_runtime = 'com.apple.CoreSimulator.SimRuntime.iOS-27-1'
             phone = 'com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro'
             duo = 'com.apple.CoreSimulator.SimDeviceType.iPhone-Duo'
-            write_json(root / 'devices.json', {'devices': {runtime: [
+            write_json(root / 'devices.json', {'devices': {duo_runtime: [
                 {'name': 'iPhone Duo', 'deviceTypeIdentifier': duo, 'udid': 'duo', 'isAvailable': True},
             ]}})
             write_json(root / 'runtimes.json', {'runtimes': [
-                {'platform': 'iOS', 'isAvailable': True, 'version': '27.1', 'identifier': runtime,
-                 'supportedDeviceTypes': [{'identifier': duo, 'name': 'iPhone Duo'},
-                                          {'identifier': phone, 'name': 'iPhone 18 Pro'}]},
+                {'platform': 'iOS', 'isAvailable': True, 'version': '27.1', 'identifier': duo_runtime,
+                 'supportedDeviceTypes': [{'identifier': duo, 'name': 'iPhone Duo'}]},
+                {'platform': 'iOS', 'isAvailable': True, 'version': '27.0', 'identifier': runtime,
+                 'supportedDeviceTypes': [{'identifier': phone, 'name': 'iPhone 18 Pro'}]},
             ]})
             write_executable(binaries / 'xcrun', '''#!/usr/bin/env python3
 import json, sys
