@@ -1,209 +1,149 @@
 # CloudKit Pre-Ship Checklist
 
-Use before enabling CloudKit sync in production or submitting Trinket with iCloud progress sync.
+Use before enabling Production sync or submitting Trinket with iCloud progress sync.
+Keep these repeatable gates unchecked in Git; record candidate build IDs, outcomes,
+and missing evidence in release handoffs or TestFlight notes.
 
-This guide owns the remaining CloudKit enablement work and the repeatable release
-checklist. It is not a code-quality audit. Source checks can run locally;
-account, portal, and device checks require access to the corresponding Apple services.
+**Current posture:** ordinary builds remain local-only. Explicit internal TestFlight
+builds may use Production for controlled testing; wider enablement requires all
+readiness stages below. Complete-save sync is implemented, but historical sync
+success and closure of its implementation plan do not establish current live readiness.
+[App Store readiness](AppStoreMetadata.md#read-only-readiness-check-october-12-2026)
+records the dated purchase/cloud evidence snapshot.
 
-Do not check boxes into git as durable state — leave items unchecked in the committed file. Record build-specific outcomes in the release handoff or TestFlight notes.
-The latest App Store and device readiness snapshot is in
-[AppStoreMetadata.md](AppStoreMetadata.md#read-only-readiness-check-october-12-2026);
-it distinguishes verified purchase behavior from outstanding cloud evidence.
-
-**Apple Developer Program:** A paid membership is required to create the CloudKit container, fill production entitlements, and verify multi-device sync. Local SwiftData, privacy-manifest prep, and `-disable-cloud-sync` testing do **not** require an account.
-
-**Current ship posture:** Ordinary builds default to **local-only** progress.
-Explicitly enabled internal TestFlight builds use CloudKit Production for
-controlled testing; wider distribution remains subject to the readiness gates
-below. Build-flag, launch-argument, and storage-isolation mechanics live in the
-[storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation).
-Change the distributed default and player-facing sync copy only after the gates
-below pass.
-
-**Identity:** Cross-device progress uses this CloudKit private container — not Sign in with Apple / Google. Guest-first, no login UI. See [Identity.md](../Product/Identity.md).
+A paid Apple Developer membership is required for provisioning and multi-device
+sync verification. Local SwiftData and cloud-disabled checks need none. Identity
+remains [guest-first](../Product/Identity.md), with no in-app account or login funnel.
+[Storage](../AgentContext/persistence-storage.md#cloudkit-preparation) owns build flags,
+isolation, merge, recovery, reset, and account policy; this checklist verifies them.
 
 ## Setup baseline
 
-Recheck provisioning in App Store Connect and Xcode when preparing a
-cloud-enabled build; these identifiers do not check off the release gates.
-Container `iCloud.com.ryanmcintire.Trinket` serves app ID
-`com.ryanmcintire.Trinket` (iCloud and Push Notifications enabled); the App
-Store Connect record is `6811284921` (currently **Trinket!**).
+Recheck these identities against the candidate's signing and provisioning:
 
-Banking/tax completion and Full Game purchase testing are separate StoreKit work
-and do not block CloudKit development. See [Purchases.md](Purchases.md).
+| Service | Existing identity |
+|---|---|
+| Bundle / app ID | `com.ryanmcintire.Trinket`, with iCloud and Push Notifications |
+| Private CloudKit container | `iCloud.com.ryanmcintire.Trinket` |
+| App Store Connect | `6811284921`, currently **Trinket!** |
+
+Banking/tax and [Full Game purchases](Purchases.md) are separate StoreKit work;
+they do not block CloudKit development. Provisioning alone completes no readiness gate.
 
 ## Remaining live verification
 
-The CloudKit implementation plan is closed with verification gaps; closure does
-not waive the readiness gates below or enable wider distribution. Complete-save
-sync and internal Production testing are implemented. Historical bidirectional
-sync evidence does not establish all account and failure scenarios on the current
-build. Build-specific outcomes remain in the archived plan's Git history and
-release handoffs.
+Resume when test accounts, controllable devices, and a named cloud-enabled build
+are available, or before changing the distributed default or submitting with sync.
+The validation scenarios below include the outstanding account, failure, upgrade,
+starter-navigation, reset, and concurrent/interrupted Homestead evidence.
+[Player coverage](PlayerCoverage.md) provides isolated transport and process-exit
+proof; live Development and TestFlight checks remain required. Reconcile disclosures
+only after the relevant gates pass. Use [Release](Release.md#local-testflight-deployment)
+for clean-source and deployment prerequisites.
 
-Before wider enablement, obtain the missing live evidence for account switching,
-sign-out/restricted accounts, network loss/reconnect, quota failures, populated-save
-upgrade/rollback, imported starter-choice navigation, Production reset with an
-offline device, and concurrent/interrupted Homestead claims and upgrades. Isolated
-transport tests cover relevant invariants but do not replace these device checks.
-Reconcile player-facing disclosures after the gates pass.
+## Validation scenarios
 
-Resume this validation when suitable test accounts, controllable devices, and a
-named cloud-enabled build are available, or before changing the distributed
-default or submitting with sync. A new TestFlight build follows the clean-checkout
-and deployment prerequisites in [Release](Release.md#local-testflight-deployment).
-Until the evidence is obtained, ordinary builds retain their local-only default.
+Use this set for source/isolated proof in stages 1–2, live Development in stage 3,
+and the critical device scenarios in stage 4. Record the actual scope at each stage.
 
-The [real-player automation portfolio](PlayerCoverage.md) adds populated schema-two
-fixtures and hard process-exit recovery with a disk-backed test transport. These
-checks supplement, and do not replace, the live gates below.
+| Scenario | Required result |
+|---|---|
+| First attachment and concurrent progress | Fresh B imports A; populated saves merge under the approved policy without prompts. Preserve the existing beta save, coherent wallet/items/claims/unlocks/world progress, and atomic conflict backups. Remote progress appears while the app stays open. |
+| Account boundaries | Switching accounts, sign-out and restricted accounts preserve local play and account separation; sign-out retains a local copy. |
+| Network, quota and interrupted requests | Network loss/reconnect, quota errors, `serverRecordChanged`, lost responses and termination preserve accepted actions and once-only replay. |
+| Upgrade and rollback | A populated beta save survives restart, upgrade and sync disablement at its existing URL, including outbox/account metadata. Store-open errors preserve original files. |
+| Remote publication | Preserve newer local mutations, invalidate stale encounters, and refresh imported starter-choice navigation. Own-upload acknowledgements do not interrupt gameplay. |
+| Reset with an offline device | Reset propagates and invalidates outstanding claims; reconnecting stale devices cannot resurrect prior progress. |
+| Homestead actions | Offline Collect/Upgrade complete after durable local writes. Overlapping production pays once; distinct upgrades survive. Concurrent Collect/Upgrade preserve the production cursor; interrupted uploads cannot lose or duplicate rewards. |
 
 ## Required readiness gates
 
-Complete these stages in order. Source and isolated test checks are agent-checkable;
-portal, signing, and device checks need the corresponding account and hardware.
-Stages 1–2 establish safety before a controlled cloud-enabled Development build;
-stages 3–4 prove readiness before changing the distributed default.
+Complete stages in order. Source and isolated tests are agent-checkable; portal,
+signing and device checks require the corresponding services and hardware.
+Stages 1–2 precede controlled Development play; stages 3–4 precede wider enablement.
 
 ### 1. Product decisions
 
-Persistence owns save policy; AppState owns lifecycle coordination. The [persistence contracts](../AgentContext/persistence.md) record the approved
-choices and implemented behavior. Verify them on the candidate build; these
-unchecked release gates do not imply that the implementation is missing:
-
-- [ ] Verify first-sync and concurrent-play reconciliation against the approved
-  [merge policy](../AgentContext/persistence-storage.md#cloudkit-preparation)
-  (no player conflict prompts; conflicting snapshots archived before the merged
-  head commits). Preserve the existing TestFlight save;
-  never replace it with a fresh root during enablement.
-- [ ] Keep merged wallet, claims, inventory, recruitment, and world progress
-  coherent per the [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation).
-  Verify action-journal reload and once-only replay, independent earned progress,
-  one-time claim deduplication, player-favorable
-  concurrent spending, backup durability, and replay-safe production before enabling cloud play.
-- [ ] Verify the approved reset/account policy in the
-  [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation):
-  reset wins over older offline saves, sign-out retains a local copy, and account
-  changes cannot leak prior-account progress into a new container.
-
-These decisions do not authorize hosted accounts, a manual sync funnel, or an
-unapproved merge algorithm.
+- [ ] Confirm the candidate follows the approved [reconciliation and reset/account
+  contracts](../AgentContext/persistence-storage.md#cloudkit-preparation), including
+  action-journal reload, independent earnings, claim deduplication, zero-floored
+  concurrent spending, and durable conflict backups. These are existing decisions,
+  not authorization for a new merge algorithm, hosted accounts, or manual sync UI.
 
 ### 2. Persistence safety
 
-- [ ] Prove upgrade and rollback against a populated beta save. SwiftData always
-  opens the existing local URL with mirroring disabled. The optional
-  `PlayerSaveRoot.cloudStatePayload` adds local outbox/account metadata; the
-  current value schema (`PlayerSave.currentSchemaVersion`) is unchanged. Store-open errors preserve the original files. Disabling sync
-  must retain both current progress and metadata at that same URL.
-- [ ] Verify complete-save projection, concurrent merge, and atomic conflict backups. The explicit
-  service implements the approved merge policy and rejects stale reset epochs
-  and production sequences. Remote imports refresh observed values, preserve newer
-  local mutations, and invalidate stale encounter sessions. Own upload acknowledgements
-  must not interrupt gameplay. Native SwiftData root mirroring is removed; duplicate
-  local roots still fail safely when opening for cloud play.
-- [ ] Verify linked Homestead Collect and Upgrade complete after durable local
-  writes while offline, then reconcile without a prompt. Two devices collecting
-  the same interval must grant it once; distinct upgrades must both survive.
-- [ ] Verify change-tag retry, replay-safe legacy production receipts, and atomic
-  head/backup commits. A lost response or termination must neither lose nor
-  duplicate an accepted action. Real `serverRecordChanged`, network failures,
-  and interrupted application still need Development/device evidence.
-- [ ] Retain isolated, credential-free tests and CI. `TestLaunchArg` and `AppEnvironment`
-  keep tests/reset local; persistence fixtures use in-memory or unique temporary
-  stores. Cover root creation, reset, test seeding, graph mutations, and disk reload.
+- [ ] Establish the validation scenarios through source and isolated tests before
+  live trials. Keep the existing local SwiftData URL and mirroring disabled;
+  explicit sync owns complete-save projection and atomic head/backup commits.
+  Reject stale reset epochs and production sequences; duplicate local roots fail
+  safely when opening for cloud play.
+- [ ] Prove populated upgrade/rollback, failure preservation, local offline action
+  acceptance, and replay-safe legacy receipts. Retain credential-free coverage
+  for root creation, reset, test seeding, mutations and disk reload. Test/reset
+  configurations use memory or unique temporary stores through `TestLaunchArg`
+  and `AppEnvironment`.
 
 ### 3. Development verification
 
-- [ ] Recheck the setup baseline against the signed build. Edit authored `project.yml`
-  and regenerate; `Trinket/Info.plist` and `Trinket/Trinket.entitlements` are generated
-  outputs. Match the registered app ID, private container,
-  `com.apple.developer.icloud-services = CloudKit`, container identifiers,
-  Push Notifications and signed `aps-environment` to the provisioning profile.
-  Add Remote notifications background mode for background change delivery. Keep
-  development opt-in and distributed builds local-only during these trials.
-- [ ] Initialize and inspect the explicit Development schema in private custom zone
-  `TrinketProgressV1`: `TrinketSaveHead` (`payload`: Asset, `clockProbe`: String),
-  `TrinketSaveBackup` (`payload`: Asset), and `TrinketSaveOperation` (`payload`: Bytes).
-  Head and backup assets carry versioned complete snapshots; operations carry immutable
-  receipts. The service creates the zone and head subscription during authenticated
-  Development use. SwiftData models are local and are not deployed as CloudKit records.
-  Do not force Production onto Development builds.
-- [ ] Verify actual import/export on two devices (or Simulator plus device) using
-  the same iCloud account: fresh B imports A, two populated saves merge according
-  to stage 1, concurrent domain changes honor that policy, and remote progress appears
-  while the receiving app remains open. Container-open success alone is insufficient.
-- [ ] Verify reset propagation and invalidation of outstanding production claims,
-  including an offline device reconnecting without resurrecting pre-reset progress.
-  Exercise switching accounts, sign-out, restricted accounts, unavailable network,
-  quota/errors, and reconnect; preserve local play and account separation.
-- [ ] Verify two devices collecting the same production interval grant it once;
-  concurrent Collect and Upgrade retain the correct production cursor; termination
-  after a successful upload neither loses nor duplicates rewards on retry. Exercise
-  the offline action behavior established in stage 2.
+- [ ] Match the baseline identities to the signed candidate. Edit authored
+  `project.yml` and regenerate Info.plist/entitlements. Check
+  `com.apple.developer.icloud-services = CloudKit` and
+  container identifiers, Push Notifications, signed `aps-environment`, and Remote
+  notifications background mode. Keep the distributed default local-only.
+- [ ] Initialize and inspect private Development zone `TrinketProgressV1`:
+  `TrinketSaveHead` (`payload`: Asset, `clockProbe`: String), `TrinketSaveBackup`
+  (`payload`: Asset), and `TrinketSaveOperation` (`payload`: Bytes). Heads/backups
+  carry complete snapshots; operations carry immutable receipts. Authenticated
+  Development use creates the zone and head subscription. SwiftData models stay local.
+- [ ] Run the validation scenarios on two devices, or Simulator plus device, in
+  the same iCloud account. Verify actual import/export and receiving-app behavior;
+  container-open success is insufficient. Keep Development separate from Production.
 
 ### 4. TestFlight promotion
 
-- [ ] After Development passes, review and deploy the schema to Production using
-  deliberate test saves. Schema promotion does not copy Development player records.
-  TestFlight uses Production CloudKit and cannot be the first Development test.
-- [ ] Verify a cloud-enabled internal TestFlight update over the existing local-save
-  beta, repeating stage 3's critical device scenarios and stage 2's rollback proof.
-  Record actual outcomes and build IDs. Preserve source identifiers independently
-  of the App Store display name.
-- [ ] Ship `PrivacyInfo.xcprivacy` and reconcile the iCloud sync delta against actual
-  behavior: optional sync, offline play without login, and propagated reset.
-  Do not promise manual sync controls. General support/privacy pages and App Privacy
-  answers follow the [release procedure](Release.md#prepare-while-the-beta-is-running);
-  keep existing local-only disclosures until sync ships. Use [Apple's privacy definitions](https://developer.apple.com/app-store/app-privacy-details/).
-- [ ] Enable automatic sync by default only after the required gates pass. Retain the
-  tested rollback and repeat relevant checks when the implementation or provisioning
-  changes. Verify Production again before App Store submission.
+- [ ] After Development passes, follow [prepared activation](#prepared-testflight-activation).
+  Repeat stage 3's critical device scenarios and stage 2's populated rollback proof
+  on an internal Production build over the existing local-save beta.
+- [ ] Ship `PrivacyInfo.xcprivacy` and reconcile optional-sync, offline/no-login,
+  and propagated-reset disclosures against observed behavior. General support/privacy
+  and App Privacy preparation follow [Release](Release.md#prepare-while-the-beta-is-running)
+  and [Apple's privacy definitions](https://developer.apple.com/app-store/app-privacy-details/).
+  Keep existing local-only disclosures until sync ships; promise no manual sync controls.
+- [ ] Change the automatic-sync default only after all gates pass. Retain tested
+  rollback, repeat affected checks after implementation/provisioning changes, and
+  verify Production again before App Store submission.
 
 ## Prepared TestFlight activation
 
-TestFlight always uses CloudKit **Production**, including internal testing.
-Deploying a CloudKit schema does not submit the app for App Review or release it.
-Preparing and compiling an enabled Release build does not access Production;
-installing/running that distributed build does. Keep these actions distinct.
+TestFlight uses **Production**, including internal testing. Schema deployment
+changes structure, not Development player records, and submits no app for review.
+Preparing/compiling a build accesses no Production save; running it can.
 
-The build switch is ready without another save-code change. The checked-in
-default stays `NO`; pass `YES` only as an archive-time override for the
-intended TestFlight build:
-
-| Build | `CLOUDKIT_SYNC_ENABLED` | CloudKit environment |
+| Build | `CLOUDKIT_SYNC_ENABLED` | Environment |
 |---|---|---|
-| Ordinary Debug | `NO`; explicit retained launch opt-in available | Development |
+| Ordinary Debug | `NO`; explicit retained development opt-in | Development |
 | Ordinary Release / rollback | `NO` | Production entitlement, sync inactive |
-| Intended cloud-enabled TestFlight archive | `YES` | Production |
+| Intended internal cloud TestFlight archive | Explicit `YES` override | Production |
 
-The setting expands into `TrinketCloudSyncEnabled` in the built Info.plist.
-Inspect that value together with `TrinketCloudEnvironment` and the final signed
-entitlements; passing a Debug launch argument does not enable TestFlight.
+The switch expands into `TrinketCloudSyncEnabled` in Info.plist. Verify it with
+`TrinketCloudEnvironment` and signed entitlements; Debug arguments do not enable TestFlight.
 
-After the Development gates pass, the remaining activation sequence is:
+After Development gates pass:
 
-1. In CloudKit Console, deploy the Development schema for
-   `iCloud.com.ryanmcintire.Trinket` to Production (structure only, not
-   Development player records).
-2. Archive scheme `Trinket` in Release with `CLOUDKIT_SYNC_ENABLED=YES` at the
-   next internal beta build number. Keep the existing bundle ID, verify
-   Production entitlements on export, and leave the checked-in default `NO`
-   until adoption is verified.
-3. Upload only to internal TestFlight, attach the prepared cloud beta notes from
-   [AppStoreMetadata.md](AppStoreMetadata.md#cloud-enabled-beta-copy), and run the
-   critical two-device/restart/reset/production-claim checks in Production. This
-   requires a Production-capable second device/build; the ordinary Debug Simulator
-   uses Development and cannot verify the TestFlight user's Production save.
-4. Reconcile privacy/support copy with the enabled beta. Keep the App Store version
-   and Full Game purchase out of App Review until the owner requests submission.
+1. Review and deploy the existing container's Development schema to Production in
+   CloudKit Console, using deliberate test saves.
+2. Archive scheme `Trinket` in Release at the next internal beta build number with
+   `CLOUDKIT_SYNC_ENABLED=YES`. Preserve the bundle ID, check Production export
+   entitlements, and leave the checked-in default `NO` until adoption is verified.
+3. Upload only to internal TestFlight with the prepared [cloud beta notes](AppStoreMetadata.md#cloud-enabled-beta-copy).
+   Complete stage 4 using a Production-capable second device/build; an ordinary
+   Debug Simulator cannot verify the TestFlight user's Production save.
+4. Reconcile support/privacy copy for that beta. App Store and Full Game review
+   submission remain separate owner-requested actions.
 
-If a rollback is needed, distribute a higher build number with
-`CLOUDKIT_SYNC_ENABLED=NO`; do not delete the local store or cloud records.
-The tested account/production detachment policy remains in the
-[storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation).
+Rollback distributes a higher build number with `CLOUDKIT_SYNC_ENABLED=NO`,
+preserving local stores and cloud records under the existing
+[account/production detachment policy](../AgentContext/persistence-storage.md#reset-and-account-isolation).
 
 ## Apple references
 

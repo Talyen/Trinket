@@ -8,25 +8,17 @@ rubric to directly related retirement candidates.
 
 ## Ownership matrix
 
-| Concern | Suite |
-|---------|-------|
-| Session lifecycle, prepare/restart/activation | `BattleSessionPreparationTests` (+`Artwork` extension owns artwork-pin lifecycle; consuming outcomes protect fixture defaults) |
-| Session commands, turn/auto-end, overlays, finishing taps | `BattleSessionSimulationTests` (+`CardPlayback` extension owns visual-cast vs settled-combat parity) |
-| Card cues (begin/cancel/deny/clear) | `BattleSessionCardCueTests` |
-| Auto-battle driving and retry | `BattleSessionAutoBattleTests` |
-| Ultimate feedback and outcome spectacle | `BattleSpectacleSessionTests` |
-| Attack/impact sequencing and timing | `BattleActionPresentationTests` |
-| Presentation projection identity | `BattlePresentationProjectionTests` |
-| Feedback scheduling, absorption, and expiry | `BattleFeedbackLaneTests` |
-| Feedback classification / consolidation | `CombatFeedbackPresenterTests` |
-| Chip host delivery and availability | `CombatFeedbackChipPresentationTests` |
-| Card gesture policy | `BattleCardGesturePolicyTests` |
-| Wide portrait hand / battlefield clearance for visible party resource bars | `BattleHandLayoutTests` |
-| Effect descriptor visibility policy | `CombatFeedbackEffectPresentationTests` |
-| Raster warmup and invalidation | `CombatFeedbackRasterCatalogTests` |
-| Dissolve-mask transparency and shared storage | `CardDissolveTextureTests` |
-| SFX mapping | `CombatSFXMapperTests` |
-| Victory summary / claimed victory | `BattleVictorySummaryTests`, `BattleClaimedVictoryTests` |
+| Boundary | Starting points |
+|---|---|
+| Session lifecycle, artwork pins and activation | `BattleSessionPreparationTests` |
+| Commands, turn/auto-end, finishing taps and cast parity | `BattleSessionSimulationTests`, `BattleSessionAutoBattleTests` |
+| Cues, gestures and viewport geometry | `BattleSessionCardCueTests`, `BattleCardGesturePolicyTests`, `BattleHandLayoutTests` |
+| Projection, attack timing, rewards and spectacle | `BattlePresentationProjectionTests`, `BattleActionPresentationTests`, `BattleSpectacleSessionTests`, victory suites |
+| Feedback semantics, delivery and resources | `CombatFeedbackPresenterTests`, `BattleFeedbackLaneTests`, chip/effect/raster/texture suites |
+| Committed-result sound selection | `CombatSFXMapperTests` |
+
+The test tree supplies the complete inventory; extend the suite whose assertions
+already own the outcome. Keep consuming-outcome tests for fixture defaults.
 
 Runtime-contract behavior is exercised here through `BattleSession` (see
 `BattleEngine` and [`Docs/AgentContext/battle-runtime.md`](../../../Docs/AgentContext/battle-runtime.md)); there is no separate runtime test target.

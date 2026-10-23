@@ -214,13 +214,9 @@ fall back to the other owner, while a single-card request uses only its target.
 Draw-and-play collection stops when no candidate can draw;
 its work is bounded by available cards rather than the requested count.
 
-Unique returns move the exact physical copy from discard or draw pile into hand,
-never adding another deck copy. The Returning Flight returns the first Physical
-card once per wearer per player turn. The Returning Gale recovers the last ordinary
-copy on Dodge at most once per wearer per player-turn cycle, including the enemy
-turn. Both allowances reset at the next player-turn start. Presentation IDs are
-fresh on arrival while the physical copy's identity survives draws and returns.
-Full equipment rules live in [Unique equipment](../Product/UniqueItems.md).
+Card returns preserve the physical copy's identity and create a fresh presentation
+ID on arrival, without adding a deck copy. [Unique equipment](../Product/UniqueItems.md#card-cadence-and-reactions)
+owns Returning Flight/Gale eligibility, ordering, and reset cadence.
 
 Dance of Blades continues its draw-and-play chain only after the drawn attack
 Critically Hits; critical healing or Leech restoration cannot extend it.

@@ -12,18 +12,10 @@ Read the relevant implementation contract below for the behavior being changed.
 
 ## Interaction constraints
 
-Player-facing failures use no error or operation-status text and no authored native
-alerts or confirmation dialogs except the reset confirmation below. Keep diagnostics
-internal, action eligibility visible before a tap, and rejected/pending outcomes
-distinct from success. Use
-unlabeled progress only during active work, with Retry/Back controls when blocked.
-Destructive actions expand inline consequences with Cancel and a final action;
-revalidate on that final action. Reset Game Progress uses a native alert with
-concise consequences, Cancel, and a destructive Reset Progress action.
-Full Game purchasing is a narrow exception: show
-concise inline pricing, pending-approval, verification, and restoration outcomes
-under [Purchases](../Platform/Purchases.md). Keep cancellation quiet and avoid
-additional alerts over Apple's purchase authorization.
+Apply the [product failure-presentation contract](../Product/DesignPrinciples.md#failure-presentation),
+including inline destructive actions, the Reset confirmation, and Full Game's
+narrow purchase-outcome exception. Keep diagnostics internal and success tied to
+committed actions.
 
 Artwork stays pinned/prewarmed on first presentation under the
 [pin lifecycle](ui-performance.md#first-paint-pins-and-encounter-transitions).

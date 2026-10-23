@@ -53,22 +53,28 @@ scalar does not discard otherwise readable pinned offers.
 Distributed TestFlight builds have local player saves that must be preserved or
 migrated when schemas or serialized identifiers change. Production CloudKit remains
 gated by the [release checklist](../Platform/CloudKitPreShipChecklist.md).
-Historical development-save migrations and retired identifier aliases were removed
-before that distribution; their retirement is not permission to remove support for
-current saves. The current value schema is 20. Distributed wire-18/19 graphs, recovery snapshots,
-cloud ancestors and outbox snapshots/deltas migrate through the shared codec.
-Older development schemas and future schemas are rejected without rewriting their
-progress. SwiftData graph v3 is frozen, including all relationship inverses; graph
-v4 adds optional Library history through a lightweight migration. Graph v4 is
-also frozen; v5 adds optional inventory inscription positions and Homestead wish
-template IDs through lightweight migration. Both additions decode absent in old
-value snapshots. The value-version bump prevents older clients from dropping the
-new metadata when re-saving a new snapshot. Item powers and inscription position travel together as one item
-through cloud conflict selection; wish selection follows existing scalar branch
-selection and clears against merged ownership. Unsupported Labyrinth map payloads use
-the existing unreadable-map recovery path, without translating historical floor
-progress. Current-data validation, relationship repair, and corruption recovery
-remain required.
+Compatibility layers are versioned independently:
+
+| Layer | Current format and retained compatibility | Executable owner |
+|---|---|---|
+| Player values | Write 20; migrate distributed wire 18/19 in graphs, recovery, cloud ancestors, and outbox snapshots/deltas. Reject older development and future schemas without rewriting progress. | [PlayerSave](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSave.swift), [snapshot codec](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveSnapshot.swift) |
+| SwiftData graph | Lightweight 2 → 3 (outbox rows) → 4 (optional Library history) → 5 (optional inscription positions and Homestead wish IDs). Preserve historical model shapes and relationship inverses; v3/v4 are frozen. | [Migration plan](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveGraph/PlayerSaveRoot.swift) |
+| Journal | Action-backed journals use 2 with version-one action records; retain journal 1 and legacy metadata arrays. | [Journal codec](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Cloud/CloudSaveJournal.swift) |
+| Device metadata | Action-backed writes use 4; retain 1–3, including receipt-backed 3. | [CloudSaveState](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Cloud/CloudSaveState.swift), [journal writer](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore+CloudJournal.swift) |
+| Remote head | Accepting actions advances to 3; retain 1 and receipt-backed 2. | [Reconciler](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Cloud/CloudSaveReconciler.swift) |
+
+Library and inscription/wish fields decode absent in older values. The value-version
+bump prevents older clients from dropping new metadata on re-save; older readers
+reject the newer journal/metadata/head formats rather than dropping action semantics.
+Unsupported action, receipt, or economic versions reject the entire upload before
+attachment, acknowledgement, or progress changes.
+
+Item powers and inscription positions travel together through cloud conflict
+selection. Wish selection follows scalar branch selection and clears against merged
+ownership. Unsupported Labyrinth payloads follow unreadable-map recovery without
+translating floor progress. Retain current-data validation, relationship repair, and
+corruption recovery. Historical development migrations and aliases retired before
+TestFlight distribution do not justify removing current-save compatibility.
 
 Labyrinth's map is a JSON blob (`LabyrinthProgressModel.mapPayload`) while roster/inventory/homestead are normalized child tables — intentional trade-off for spatial graph queries; don't normalize the labyrinth without measuring encode cost.
 
@@ -205,13 +211,7 @@ receipts, historical economic deltas, or snapshot-only history. Absent and empty
 receipt/action arrays are distinct. Action records cannot also supply receipts or
 legacy economic deltas. Historical readers retain their original overlap policies.
 
-| Fields | Action-backed replay owner |
-| --- | --- |
-| Inventory, equipment, navigation, completion markers, unlocks, building tiers | Structural merge of admitted changes after the shared duplicate decision |
-| Gold, materials, Experience, fractional reward balances | Recorded action effects; structural merge preserves the existing economic values |
-| Production credit and cursor | Settled existing production plus recorded collection intervals and unconsumed local credit |
-| Retired item identities | Replay state shared by the remote head |
-
+[Journal replay](#journal-and-economic-replay) defines ownership for each admitted action.
 
 Cloud synchronization separates CPU-bound value planning from main-actor store
 work. `CloudSavePlanner` concurrently restores and merges snapshots, replays offline
@@ -287,16 +287,11 @@ intermediate purchase-and-salvage state that a final snapshot cannot reconstruct
 Sanitation and Library reconciliation become part of the finalized last action.
 Commit retains full economic-coverage validation before publication or journaling.
 
-New journals encode version-one action records as checkpoint-relative gap/change
-deltas, under journal format 2 and device metadata format 4. The last action reuses
-the enclosing final snapshot instead of duplicating its Inventory/map payload.
-Each child retains its own production-consumption cursor. Frozen pending prefixes,
-request IDs, outbox row identities, and compensation remain unchanged. Remote heads
-advance to format 3 after accepting action records. Older readers reject these
-versions instead of dropping action semantics; new readers retain all supported
-historical journal, metadata, and head formats. Player value schema 20 and the
-SwiftData graph do not change. Unsupported action versions and economic edits in
-unowned gaps reject an upload before attachment or acknowledgment.
+Action records use checkpoint-relative gap/change deltas; the last action reuses
+the enclosing final snapshot instead of duplicating Inventory/map payloads. Each
+child retains its production-consumption cursor. Preserve frozen pending prefixes,
+request IDs, outbox row identities, and compensation. The [compatibility table](#save-compatibility)
+owns format versions; economic edits in unowned gaps reject an upload.
 
 Replay ownership is explicit:
 
@@ -306,6 +301,7 @@ Replay ownership is explicit:
 | Gold, materials, XP and fractional balances | The same accepted action's derived receipt; structural merge does not decide these effects independently. |
 | Homestead production credit | Existing consumed-coordinate union and production-cursor policy; partially overlapping collections pay only uncovered quantities. |
 | Unrelated non-economic edits between or after actions | Changed-field residual reconciliation; economic edits in these gaps are refused. |
+| Retired item identities | Replay state shared by the remote head; preserve retirement after Inventory removal. |
 | Historical snapshot/economy/receipt records | Their existing version-specific reconciliation, without inventing missing action boundaries. |
 
 Mystery records its choice and encounter completion as one action under the same
@@ -330,19 +326,10 @@ including historically compacted records whose separate actions cannot be recove
 Current production commands always validate economic coverage, including an empty
 receipt set for non-economic edits. Independent receipt authoring and unrestricted
 snapshot-inferred writes are Debug-only fixture APIs for legacy replay coverage.
-Preserve older journal readers rather than reconstructing
-receipts whose separate actions are no longer recoverable. Unsupported
-receipt/economic versions reject the entire upload before acknowledging or changing
-progress. Historical receipt-backed metadata uses version 3 and remote heads use version 2;
-new readers also accept metadata versions 1 and 2 and head version 1. New action
-records use the newer versions described above; older writers reject them. This protects
-receipt identities from downgrade writes without changing the player-save value or
-SwiftData graph schema.
+Preserve historical readers under the [compatibility table](#save-compatibility);
+never reconstruct receipts whose separate actions are no longer recoverable.
 
-`CloudOutboxRecord` stores checkpoint and action payloads as independent local
-SwiftData rows. Schema 3 adds this entity through a lightweight migration from the
-unchanged schema-2 graph; the player-value and remote snapshot schemas are unchanged.
-Preserve that schema-2 model shape when making future graph migrations.
+`CloudOutboxRecord` stores checkpoint/action payloads as independent SwiftData rows.
 Device metadata reads version-one legacy arrays without inferring missing
 economic effects or changing action/request identities. Gameplay and outbox changes share one durable
 commit or recovery record, including compensation after a refused write.

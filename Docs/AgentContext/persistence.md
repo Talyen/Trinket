@@ -23,28 +23,23 @@ candidate validation, slice reconciliation, and commit. Every candidate captures
 the store's in-memory commit revision before domain work; a nested durable command
 or reset makes that candidate obsolete. Commit rejects it before graph or journal
 writes, preserving the newer progress. The revision is transient and does not
-change serialized saves. Economic commands use `persistAction` or ordered
-`SaveEconomicMutation.resolve` calls. Each successful action freezes its complete
-before/after values with a semantic kind and claim; its economic receipt is derived
-from those values, never authored by a separate callback. Finalization includes
-sanitation and Library reconciliation before journaling. AppState neither mutates
-the candidate nor forwards receipts. Before any graph or journal write, commit
-verifies that the derived receipts account for Gold, materials, XP and fractional
-balances; uncovered economic edits reject the whole transaction even with cloud
-disabled. Actions and progress share the same durable commit and compensation.
-Non-economic commands use an empty receipt set and reject economic edits through
-the same validation. Debug-only receipt callbacks and fixture mutation APIs retain
-historical journal coverage through `@testable import TrinketPersistence`; gameplay
-cannot independently author a candidate and its economic receipt.
-Domain operations mutate a candidate
-save; rejection discards it without publishing or writing. Writes publish
-the observed candidate only after the graph or durable recovery file accepts it.
-Total write failures use compensation and silent action retries, as described in
-[storage recovery](persistence-storage.md). Observable sessions apply outcomes and
-navigation only after commit; they do not show technical save-error alerts.
-There is one commit model: every mutation is durable before publication.
-`flushPendingPersistence` retries an already accepted recovery-file save at
-lifecycle and synchronization checkpoints; it never publishes an uncommitted edit.
+change serialized saves.
+
+Economic commands use `persistAction` or ordered `SaveEconomicMutation.resolve`
+calls. Each action freezes complete before/after values, semantic kind, and claim;
+commit derives receipts and validates complete Gold/material/XP/fractional coverage,
+including with cloud disabled. Non-economic commands use empty receipts and reject
+economic edits. Sanitation and Library reconciliation finalize the action before
+journaling. AppState supplies neither candidate mutations nor receipts; independent
+receipt callbacks remain Debug-only legacy fixtures through `@testable` access.
+[Journal replay](persistence-storage.md#journal-and-economic-replay) owns action
+ordering, coupled effects, and duplicate decisions.
+
+Rejection discards the candidate without writing or publishing. Accepted writes
+publish only after the graph or recovery file is durable; sessions then apply
+navigation and outcomes, keeping technical save errors internal. [Storage recovery](persistence-storage.md#durable-acceptance-and-recovery)
+owns compensation and silent retries. `flushPendingPersistence` retries an already
+accepted recovery-file save at lifecycle/sync checkpoints, never an uncommitted edit.
 
 Roster edits carry combatant, ability, and physical item IDs, never caller-owned
 catalog or Inventory snapshots. Content owns `PlayerRosterState` and its candidate-value

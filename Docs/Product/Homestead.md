@@ -1,8 +1,10 @@
 # Homestead UX
 
-Player-facing Homestead layout. Implementation and presentation tuning live in
-`Trinket/Features/Homestead/`. [PD-012](Decisions.md) owns immediate purchases
-without a confirmation dialog.
+Player-facing Homestead layout. [PD-012](Decisions.md) owns immediate purchases
+without confirmation. Existing row geometry, symbols, and tints live in
+[HomesteadEffectViews.swift](../../Trinket/Features/Homestead/HomesteadEffectViews.swift);
+Forge detents live in [BlacksmithForgeView.swift](../../Trinket/Features/Homestead/BlacksmithForgeView.swift).
+Those shared implementations retain the presentation tuning.
 
 Native bar interaction follows [content beside native bars](../Platform/ApplePlatformReference.md#content-beside-native-bars).
 Building scenery fills behind chrome; identity and controls stay in the usable
@@ -38,32 +40,20 @@ wallet sheet with a Close control.
 
 The bottom panel contains only current bonuses and production. It shares native
 `thinMaterial` with Craft, Build, and Upgrade containers, including completed tier
-progress. All use the same subtle border and rounded geometry for consistent
-text legibility over artwork. Every bonus and production output
-uses a full-width row: a top-aligned icon in a 36-point frame sits 8 points beside
-a leading-aligned text column. A thematic row-title header sits 4 points above a
-wrapping body-size description; both retain primary contrast. Benefits are separated
-by 16 points. Names remain stable across tiers and are owned by the Homestead feature's
-building/effect-key lookup. Details and offers share this layout; offers retain
-their solid sheet background. Each effect keeps its own block, including buildings
-with multiple bonuses or outputs. Descriptions contain bold values, preserve keyword formatting, and name production resources
-explicitly (for example, “Produce 1 Food per Day”). Panel content scrolls as needed without
-truncating descriptions. Completed buildings keep benefits and omit the build/upgrade action.
+progress. Use the shared subtle border, rounded geometry, and full-width benefit
+rows: top-aligned icon, leading title, and wrapping body description with primary
+contrast. Names stay stable across tiers. Details and offers share this layout;
+offers retain their solid sheet background. Each effect or output gets its own
+block, bold values, keyword formatting, and explicit production resources
+(for example, “Produce 1 Food per Day”). Scroll rather than truncate. Completed
+buildings keep benefits and omit the build/upgrade action.
 Unbuilt bonuses and production use 35% saturation in details and first-build offers,
 matching the muted artwork while retaining text contrast. Built benefits use full
 color, restored alongside the artwork after the first-build offer dismisses.
 
-Bonus symbols reuse keyword identities and colors: Health uses heart.fill; healing
-uses heart.circle.fill; damage uses its keyword symbol; damage resistance uses
-shield.fill tinted to its keyword. Party protection uses Block styling; companion
-damage uses pawprint.fill with Physical tint; ranged damage uses figure.archery with
-Physical tint; Dodge uses wind; Astral finds uses sparkles with arcane tint; Gold finds
-uses circle.circle.fill with Gold tint.
-Production uses the same illustrated resource artwork as wallets, collection,
-and purchase costs for every material. Material names use semantic colors: Iron
-and Stone use Physical grey, Food uses Health red, and Wood, Hide, Herbs, Gems,
-and Gold use their resource tints. Quantities and per-Day text retain primary
-contrast.
+Benefits reuse semantic keyword symbols and colors; production reuses the
+illustrated resources from wallets, collection, and costs. Material names use
+their resource colors while quantities and per-Day text retain primary contrast.
 Progress uses the catalog's actual tier count. No persistent completion banner,
 checkmark, or Tier N label appears.
 
@@ -129,9 +119,9 @@ Training intentionally have no production. All material types have a producer.
 
 Descriptions use the same player-directed voice as affixes: Increase, Take,
 Restore, Gain, Find, and Produce. They have no trailing periods. Hero and Companion
-scopes remain explicit where they differ. Full-width descriptions target one line
-at 393-point portrait width and the default text size; smaller screens and larger
-text sizes retain natural wrapping. Production remains an absolute quantity per Day
+scopes remain explicit where they differ. Keep descriptions compact at ordinary
+phone size and allow natural wrapping on smaller screens or at larger text sizes.
+Production remains an absolute quantity per Day
 and uses the existing clock; collecting multiple resources preserves each resource's
 fractional production independently. Multiple outputs remain individual rows.
 
@@ -178,8 +168,8 @@ owns standard recipe order and fixed costs. All standard Blacksmith recipes
 unlock at tier one. Prices preserve a net material sink when ordinary forged gear
 is salvaged.
 
-Selecting a base immediately uses ordinary navigation inside that same sheet, with a compact
-520-point working detent for its artwork/name, material cost, and Forge button.
+Selecting a base navigates inside the same sheet to its compact working detent,
+with artwork/name, material cost, and Forge button.
 The prepared thumbnail appears while the full artwork finishes preparing; artwork
 readiness does not delay the Forge button.
 Selecting a recipe always fits the preview to that working detent, even after

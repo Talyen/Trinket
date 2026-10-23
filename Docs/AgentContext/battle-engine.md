@@ -18,10 +18,8 @@ Read the relevant behavior contract for the change: [actions](battle-actions.md)
 
 Start with `BattleState`, the matching `EffectHandlers/` type, or the matching `CombatTriggerEngine+*.swift` cadence extension. `BattleState` is a facade: put shared mutation plumbing in `BattleState+*.swift`; place rule branches in handlers or engines. Do not put feature calls in the engine. BattleState shares its immutable modifier profiles through private storage so nested card resolution does not copy those large values into every state snapshot.
 
-Battle state, roster, and combatant storage are externally read-only. Commands and
-log lifecycle are the public mutation boundary; handler dispatch and turn/card engine
-drivers stay package-scoped. Consumers that inspect future RNG values must copy the
-generator rather than advance the live battle's generator.
+Battle state, roster, and combatant storage are externally read-only; handler
+dispatch and turn/card engine drivers stay package-scoped.
 
 `BattleRoster` owns participant identity. Combatant reads and runtime writes require
 an exact roster ID and matching role; role alone cannot address live battle state.

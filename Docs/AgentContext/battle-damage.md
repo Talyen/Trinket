@@ -116,11 +116,8 @@ event once, including a stored tick; Venomtrail retains its per-event rule below
 Oathkeeper and Bloodember share keyword percentage bonuses as well as flat bonuses,
 counting universal bonuses once, including companion status multipliers, Critical
 damage bonuses, and chance-based damage multipliers such as Supernova and Standard
-Deviation. Loaded Strike applies to attack hits of every damage type:
-all hits in one action share a 20% chance to double damage,
-with normal damage on the other rolls. Counterattacks have independent actions;
-ongoing and raw reaction damage cannot roll. Legacy Standard Deviation retains its
-existing damage eligibility and card-scoped roll. Shared numeric bonuses include
+Deviation. [Loaded Strike and legacy Standard Deviation](battle-talents.md#reproving-light-perfect-purity-and-loaded-strike)
+retain their distinct eligibility, action rolls, and rounding. Shared numeric bonuses include
 damage to Block: Shatterguard applies to Oathkeeper Holy damage, while Flaming Arrows
 and Armor Shred apply to the other
 Bloodember keyword. Block absorption and attack-only eligibility remain unchanged. Thermal

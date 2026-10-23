@@ -23,21 +23,18 @@ helpers live in `Support/`. All remain in the same test target.
 
 ## Ownership rules
 
-| Concern | Suite family |
-|---------|--------------|
-| Handler apply / status / turn advance | `EffectHandlers*Tests`, `EffectTurnEngineTests` |
-| Block pools, costs and opening gains; Thorns feedback and resistance | `BlockCombatTests`, `ThornsCombatTests` |
-| Source survival across chained combat rewards | `CombatSurvivalTests` |
-| Damage pipeline steps, DoT math | `DoT*Tests`, `BattleMechanicsTests`, `ReactionScopeTests` |
-| Engine cadence, fight pacing, control states | `BattleTurnEngineTests`, `FightPacingTests`, `ControlMeter*Tests`, `DeathsDoorEngineTests` |
-| Cross-boundary card combat | `BattleCardCombatTests` plus `*IntegrationTests` |
-| Builds, triggers, talents, traits, affixes, items, trinkets | `CombatModifierIntegrationTests`, `TalentCatalogRoundTripTests` (+`Damage`/`Capstone*`/`Hero*` splits), `TalentMigrationTests` (legacy trait-trigger side), `CombatTriggerTalent*Tests` (`Damage`+`Cadence`+`ResourceInteractions`, standalone `Control`), `*BattleTests` |
-| Uniques | `UniqueCollectionTests` (+`Cards`/`Damage`/`Defense`/`Resources`/`SharedDamage`) |
-| Cards, opening hand, assessment, Auto Battle | `BattleCardCombatTests` (+`Buffer`/`BlockTiming`/`Feedback`), `BattleCardAssessmentTests`, `PlayPolicyTests` |
-| Single-concern mechanics | `BattleConditionEvaluatorTests`, `BattleRosterTests`, `BattleStateTests`, `BattleOutcomeBranchTests`, `CleanseIntegrationTests`, `FaeWardTests`, `HealingReductionTests`, `KeywordCohesionMechanicsTests`, `ManaEmpowermentTests`, `RestorationIntegrationTests`, `RogueRevisionTests` |
-| Catalog ability combos | `AbilityEffectIntegrationTests` (including `+Balance`, which stays in this default target despite the name) |
-| Outcome, log, event formatting | `BattleLogProjectionTests`, `BattleMechanicsTests` |
-| Balance simulator and sweep tooling | `BattleBalanceToolsTests` (`BattleSimulator*`, `Balance*`, `ModeProgressionToolingTests`); `PlayPolicyTests` stays in `BattleEngineTests` (Auto Battle) |
+| Boundary | Representative owners |
+|---|---|
+| Effect application, stored ticks, damage, Block and healing | `EffectHandlers*Tests`, `DoT*Tests`, `BlockCombatTests`, `RestorationIntegrationTests` |
+| Ordered actions, turns, control and survival | `BattleTurnEngineTests`, `ControlMeter*Tests`, `CombatSurvivalTests` |
+| Card/hand rules, assessment and Auto Battle | `BattleCardCombatTests`, `BattleCardAssessmentTests`, `PlayPolicyTests` |
+| Talent, affix and Unique interactions | `CombatTriggerTalent*Tests`, `CombatModifierIntegrationTests`, `UniqueCollectionTests` |
+| Cross-boundary combat and committed output | `BattleCardCombatTests`, `*IntegrationTests`, `BattleLogProjectionTests` |
+| Headless balance tooling | `BattleBalanceToolsTests`, `BalanceSweepCLITests`; excluded by default |
+
+Find the current suite in the matching domain directory and inspect its assertions
+before extending it. `PlayPolicyTests` and `AbilityEffectIntegrationTests+Balance`
+remain ordinary engine coverage despite their diagnostic/balance names.
 
 ## Conventions
 

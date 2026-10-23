@@ -3,8 +3,7 @@
 ImageGen concepts from October 17, 2026, using existing Trinket screenshots and
 artwork. [Library.md](../Library.md) owns shipping behavior. These images are design
 references, not production assets or evidence of the implemented UI. Selected
-historical prompts remain in [Prompts.md](Prompts.md); earlier iterations and the
-full generation record remain in Git history.
+historical prompts and the full generation record remain in Git history.
 
 ## Current refined boards
 

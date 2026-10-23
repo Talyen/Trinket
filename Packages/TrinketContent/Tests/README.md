@@ -4,40 +4,19 @@ Test ownership for `Packages/TrinketContent/Tests/TrinketContentTests/`.
 Tests follow the content domains in `Abilities/`, `Equipment/`, `Encounters/`,
 `Roster/`, `Homestead/`, and `Media/`; cross-domain invariants stay at the root.
 
-| Concern | Owner | Notes |
-|---------|-------|-------|
-| Ability catalog and descriptions | `AbilityCatalogTests` | IDs, authored operations, and player-facing card text |
-| Ability validation | `AbilityValidationTests` | Base, random, and conditional paths; target rules, tier damage, and description overrides |
-| Art catalog cross-references | `ArtCatalogIntegrationTests` | Ability/item/stage wiring and artwork for every player combatant and enemy |
-| Player roster rules | `PlayerRosterStateTests` | Party selection, ability loadouts, equipment transfer, Gold bounds, progression, and talent gates without save fixtures |
-| Combatant catalog graph | `CombatantCatalogTests` | Hero/companion loadouts, health/mana |
-| Homestead rules | `HomesteadStateTests` | Production timing and fractional credit, wallet/material overflow, collection, and build costs without save fixtures |
-| Homestead catalog and reward bonuses | `HomesteadCatalogTests` | Unique node IDs, four increasing tiers, production sources, and once-only percentage/fractional reward adjustments |
-| Contracts | `ContractGeneratorTests` | Exclusions, exhausted-pool fallback, saved offers, and independent identities for repeated targets |
-| Voyage | `VoyageTests` | Regional route generation, chapter keyword affinity, and completion-bonus rounding/saturation |
-| Content access policy | `ContentAccessPolicyTests` | Free/full chapter/labyrinth/spire gates |
-| Unique catalog | `UniqueCatalogTests` | Counts, slots, pinned powers, save decode |
-| Combatant talent trees | `CombatantTalentCatalogTests` | Three trees with at least seven nodes each, affinities, authored IDs, no placeholders |
-| Trigger family schema | `Scripts/internal/content/content_codegen_triggers.py` + `Scripts/internal/content/trigger_families/index.json` | Generated `*Triggers` fields must match the schema; generation fails on drift |
-| Catalog cross-invariants | `GameContentCatalogInvariantTests` | Authored encounter ID uniqueness and stage wiring; manifest ID validation stays in codegen |
-| Affix modifier compatibility | `AffixModifierTests` | Saved representations and minimum bump boundaries; transformations are exercised by `ItemAffixRollCoverageTests` |
-| Enemy traits | `GameContentTraitCatalogTests` | Enemy→trait ID refs and boss resistance rules; `KeywordCohesionTests` checks mechanic descriptions |
-| Enemy kits and Health | `EnemyCatalogTests` | Normal HP band, complete kits, canonical ability references; Journey/Spire tests own boss placement |
-| Loadout selection | `AbilityLoadoutTests` | Tier ordering, canonical selection/fallback, preserved empty tiers |
-| Battle loot | `BattleLootTests` | Quantity bands and saturation, distinct materials, modifier isolation, and seed stability without save fixtures |
-| Mode loot policy | `EncounterLootTests`, `VoyageLootTests` | Shared guarantees, captured levels/Sanctum, Spire seed selection, and final destination composition/collectible exhaustion without Persistence |
-| Item generation | `ItemGeneratorTests`, `ThemedGearGeneratorTests` | Seeded RNG, affix counts |
-| Item affix magnitude rolls | `ItemAffixMagnitudeRollTests` | Seeded magnitude ranges |
-| Shop offers | `ShopOfferGeneratorTests` | Offer count, price/rarity rules, seed stability |
-| Item affix catalog | `ItemAffixCatalogTests` | Weights, slot pools |
-| Combatant equipment rules | `CombatantEquipmentTests` | Hero vs companion slots |
-| Combat builds and max values | `CombatBuildResolverTests`, `CombatantMaxValuesTests` | Build resolution, stat saturation, and scaling without simulation fixtures |
-| Encounter level scaling | `EncounterLevelResolverTests` | Chapter span, contract offsets |
-| Journey catalog | `JourneyCatalogTests` | Chapter/stage wiring |
-| Labyrinth catalog | `LabyrinthCatalogTests` | Layout diversity, node types |
-| Mystery events | `MysteryEventCatalogTests` | Event IDs, effect coverage |
-| Corruption altar picks | `CorruptionAltarPickTests` | Eligible-item selection |
-| Spire catalog | `SpireCatalogTests` | Spire identities and encounter wiring |
+| Concern | Boundary and starting points |
+|---|---|
+| Abilities and authored content | `Abilities/` and root catalog-invariant suites: validate operations, descriptions, references, stable IDs and ordered registration. Manifest row validation belongs to codegen. |
+| Equipment and transformations | `Equipment/`: seeded item generation, affix ranges and Unique rules. Keep rules independent of stores. |
+| Encounters and rewards | `Encounters/`: pure Contract/Voyage generation, shared mode loot, captured scaling, Shop/Mystery pools, and Labyrinth layout. |
+| Roster edits and progression | `Roster/`: `PlayerRosterStateTests`, equipment/loadout/talent/scaling, combat-build and max-value suites; use explicit content, access and inventory values. |
+| Homestead | `Homestead/`: production/fractions, collection, affordability, tier effects, research and craft rules without save fixtures. |
+| Media references | `Media/`: catalog/content cross-references and selected artwork wiring. |
+
+Inspect existing assertions in the relevant directory before extending coverage.
+The source tree supplies the complete suite inventory. Trigger-field/schema parity
+is enforced by `Scripts/internal/content/content_codegen_triggers.py` against
+`Scripts/internal/content/trigger_families/index.json`; generated fields are outputs.
 
 **Not here:** Encounter art presentation wiring
 (`Packages/TrinketFeatureSupport/Tests/TrinketFeatureSupportTests/StageMapPresentationTests.swift`)

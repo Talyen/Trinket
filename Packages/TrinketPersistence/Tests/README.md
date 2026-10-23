@@ -6,46 +6,20 @@ Tests are grouped in `Storage/`, `Cloud/`, `Progression/`, `Encounters/`, and
 
 Store I/O tests isolate `@MainActor` on the test that opens `PlayerSaveStore`, not the suite. Value-type sanitizer, loot, and homestead math stay off the main actor so they can run in parallel. Write-through proofs still follow the mutate → reload-from-disk rubric in [Testing.md](../../../Docs/Platform/Testing.md).
 
-| Concern | Owner | Notes |
-|---------|-------|-------|
-| SwiftData graph / hub | `PlayerSaveStoreTests` | Root creation, reset, seed, relaunch, independent records, snapshot validation, and failed-write rollback |
-| Durable local recovery and action retries | `PendingSaveRecoveryTests` | Recovery-file acceptance/relaunch, reset ordering, background persistence retry, and nested/stale action isolation |
-| Save schema | `PlayerSaveStoreTests` | Current-schema reload and rejection of unsupported development saves without replacement |
-| Complete-save sync | `CloudSaveSyncTests` | Snapshot coding, conflict backups, account separation, reset epochs, server claims/retries, late imports, and disk recovery with a fake transport |
-| Concurrent-save reconciliation | `CloudSaveMergeTests` plus `CloudSaveMerge*Tests` | Shared-base progress, economy, talents/loadouts, claims, Contract refreshes, and Voyage terminal-claim deduplication (pure; no live CloudKit I/O) |
-| Store cleanup / duplicate roots | `PlayerSaveStoreCleanupTests` | Sidecar wipe, `resetState`, newest-primary repair |
-| Graph identity | `PlayerSaveGraphIdentityTests` | Persistent IDs survive in-place updates |
-| Graph repair | `PlayerSaveGraphRepairTests` | Duplicate/orphan row repair on load |
-| Sanitize on load | `PlayerSaveSanitizeOnLoadTests` | Dirty rows persist cleaned after open |
-| Slice-scoped sanitize | `PlayerSaveSliceSanitizerTests` | Scoped vs full sanitize; persist-target expansion |
-| Sanitizer (in-memory) | `PlayerSaveSanitizerTests` | Inventory, roster, journey, homestead, talents, progressions |
-| World seed | `PlayerSaveWorldSeedTests` | Assign-once seed; labyrinth backfill |
-| Starter selection | `StarterSelectionTests` | Draft/complete reload and invalid-draft repair |
-| Homestead store API | `PlayerHomesteadStoreTests` | `buildOrUpgradeNode` / `collectProduction` through the hub |
-| Homestead save integration | `HomesteadStateTests` | Sanitized production overflow and reward settlement; pure production/build rules live in TrinketContent |
-| Saved inventory and wallet values | `PlayerInventoryStateTests` | Reward-item deduplication and signed saved-Gold deltas; pure roster rules live in TrinketContent |
-| Roster edit durability | `RosterEditPersistenceTests` | Rejected/stale choices, write-failure compensation, retry, and reload |
-| Unique items | `UniqueItemRuleTests` | Unique affix-power reload; altar exclusion; trinket catalog refresh from stale rows |
-| Talents | `TalentPersistenceTests` | Sanitizer filter, unlock API, reload |
-| Journey progression | `JourneyProgressTests` | Unlock chain and campaign end, pin/progress reload, duplicate-stage repair |
-| Stage rewards | `StageRewardTests` | Claim policy, gold/XP, party-adjusted claim fallback (journey + spire) |
-| Combat loot integration | `BattleLootTests` | Saved reward levels, authored items, and duplicate-item compensation; mode policy and pure roll coverage live in TrinketContent |
-| Shop | `ShopPurchaseApplierTests` | Purchase rules; one cross-applier reload proof |
-| Mystery apply | `MysteryEffectApplierTests` | Gold/materials/XP/items/recruits |
-| Mystery pins | `MysteryEventPinTests` | Journey/labyrinth pin idempotency |
-| Mystery pick context | `MysteryEventPinTests` | Corruption Altar gating |
-| Content access | `ContentAccessPersistenceTests` | Transient policy never serialized; reload resets to free |
-| Contracts board | `ContractBoardTests` in `ContractsTests.swift` | Generation, repair, refresh, claim policy (pure) |
-| Contracts persistence | `ContractsPersistenceTests` in `ContractsTests.swift` | Lazy board open, reload survival, failure rollback |
-| Voyage persistence | `VoyagePersistenceTests` | Board/run lifecycle, saved destination modifiers, earned-total saturation, stock/Mystery reload, and unreadable-payload preservation |
-| Salvage | `ItemSalvageApplierTests` | Yields, unequip, trinket/unique ineligibility, one reload |
-| Corruption | `ItemCorruptionTests` | Affix rules, eligibility, one reload |
-| Spires progress | `SpiresProgressTests` | Floor unlock/clear; XP override |
-| Slice reload proofs | `SlicesReloadTests` | Spire clamp, ability loadouts, invalid companion equipment |
-| Labyrinth map / completion | `LabyrinthProgressTests` | Generation, clear, sanitize, completion, map+run-health reload |
-| Labyrinth encounter level | `StageRewardTests` | Completion XP at overridden levels (pure; durable proof via slice reloads) |
-| Labyrinth unreadable blob | `LabyrinthSaveRecoveryTests` | Rebuild unreadable maps with the saved seed and retain the repaired map across reload |
-| Transport error mapping | `CloudTransportErrorMappingTests` | Conflict vs surfacing classification (pure; no live CloudKit I/O) |
-| Item degradation | `ItemResolutionTests` | Unknown-base drop, keyword strip, rarity fallback across codecs (pure) |
+## Ownership boundaries
+
+| Concern | Boundary and starting points |
+|---|---|
+| Durable writes, reset, recovery and retries | `Storage/`: `PlayerSaveStoreTests`, `PendingSaveRecoveryTests`; prove accepted writes survive reload and rejected writes preserve prior progress. |
+| Graph identity, schema and repair | `Storage/`: identity/repair/sanitizer suites; preserve in-place relationships, supported-save migration, world seeds and starter selection. |
+| Cloud merge, outbox and transport | `Cloud/`: `CloudSaveMerge*Tests`, `CloudSaveSyncTests`; use pure values or fake transport, including account/reset isolation, interrupted requests, and reload. No live CloudKit I/O. |
+| Saved progression and rewards | `Progression/`: stage reward, talent and loot suites; prove saved admission, claims, captured levels and once-only settlement. Pure roll policy belongs to Content. |
+| Encounter lifecycle | `Encounters/`: Campaign, Spires, Shop, Mystery, Contracts, Voyage and Labyrinth suites; prove pinned offers, stale/duplicate rejection, rollback, and unreadable-payload preservation. |
+| Inventory and roster commands | `Inventory/`: `RosterEditPersistenceTests`, Salvage/Corruption and item-resolution suites; prove current-input admission, compensation, compatibility and reload. Pure edit/yield rules belong to Content. |
+| Homestead save integration | `PlayerHomesteadStoreTests`, `HomesteadStateTests`; prove saved collection/build/craft settlement and overflow. Production timing and affordability math belong to Content. |
+
+The domain directories contain the complete suite inventory. Extend the existing
+assertion owner; a suite name alone does not establish coverage. Retain the narrow
+[Content/store split](../../TrinketContent/Tests/README.md) when moving rules.
 
 Harnesses: `Support/PersistenceTestContext.swift` (fresh temp dir per test) and `TrinketPersistenceTestSupport.SaveTestSupport` (`writeRoot`, `makeSave`, `makeSideContext`, `makeGeneratedItem`, store factory).

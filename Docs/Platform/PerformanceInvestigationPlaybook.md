@@ -1,9 +1,20 @@
 # Frame-Pacing Investigation Playbook
 
-Use this for measured frame-pacing regressions. Static review can identify leads; it
-cannot prove that a SwiftUI surface is slow or that a change improved it. Memory,
-battery, thermal, and lifecycle regressions use [Memory and energy](#memory-and-energy)
-below; Simulator-only observations there are leads, not shipping evidence.
+Use for measured frame-pacing, memory, battery, thermal, or lifecycle regressions.
+
+## Evidence contract
+
+- Reproduce the exact player interaction on a named source/build, device/OS,
+  toolchain, seed and optimized configuration. Keep those inputs, duration,
+  thermal state and Low Power Mode comparable before/after.
+- Attribute cost with Instruments before editing. Source patterns and Simulator
+  observations identify leads; device traces establish shipping performance.
+  Functional checks and faster automated journeys alone establish neither.
+- Delivered display-link callbacks, rendered-frame hitches, CPU self-time and
+  elapsed signpost intervals measure different things. Report each by its scope.
+- Evaluate every requested repetition and incomplete capture. Preserve gameplay,
+  artwork/pins/budgets, timing, feedback, sound and interactions; report missing
+  evidence explicitly instead of claiming an improvement.
 
 ## Frame-pacing contract
 
@@ -28,18 +39,15 @@ TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/performance.sh --group collection
 TRINKET_ALLOW_HEAVY_LOCAL=1 ./Scripts/performance.sh --scenario real-card-play
 ```
 
-Scenario and group selectors can be combined. The runner snapshots the selected
-baseline and validates exactly that coverage. It validates the full baseline before
-selection, rejects unknown scenario overrides, and retains only selected overrides
-in the snapshot. Test prerequisites still run, but
-unselected steps after the last requested measurement do not. Each invocation
-uses a new output directory: a clean rerun never erases an earlier finding.
-`TRINKET_PERFORMANCE_REPETITIONS=2` is an optional consistency check, not a
-prerequisite. Cold launch explicitly records the requested iteration count;
-XCTest additionally performs its unrecorded warmup invocation. The suite wall-time
-budget scales with selected tests and repetitions (at least 20 minutes), independently
-of each interaction's 60-second watchdog. An explicit
-`TRINKET_XCODE_WALL_TIMEOUT_SECONDS` override is preserved.
+Scenario/group selectors combine; the runner validates the full baseline and exact
+selected coverage before capture. Prerequisites run, while unselected later steps
+do not. Each invocation gets a fresh directory. Optional
+`TRINKET_PERFORMANCE_REPETITIONS=2` checks consistency. Cold launch records the
+requested iterations plus XCTest's unrecorded warmup. Suite budgets scale with
+selection/repetitions (at least 20 minutes), independently of each interaction's
+60-second watchdog; explicit
+`TRINKET_XCODE_WALL_TIMEOUT_SECONDS` overrides remain honored. Use `--help` for
+selectors; [performance.sh](../../Scripts/performance.sh) owns budget calculation.
 
 Set `TRINKET_PERFORMANCE_SCREENSHOTS` to a comma-separated list of scenario IDs to
 retain completed-screen attachments for visual verification. Screenshots are taken
@@ -79,14 +87,12 @@ catalog entry.
 | Outcomes / encounters | Victory/defeat reveal, victory claim/return, talent reward/choice; Mystery reward and corruption reveal |
 | Diagnostic exceptions | Engine/hand and engine/feedback attribution controls; injected stall detector |
 
-Secondary browsing and control tours are retired: starter carousel/confirmation,
-Campaign browsing/party selection/chapter advancement, Spires/Contracts/Voyage,
-Labyrinth inspector/floor selection/Shop/Boss navigation, Collection shelves and
-category grids, ability/equipment/talent editing, salvage, battle inspection/auto/retreat,
-Shop purchase/return, recruit reveal/return, Mystery inspection/claim, corruption
-picker/scroll/return, Homestead root/build/upgrade/wallet/collection, Options controls,
-Full Game offer, and defeat return. Their frame-pacing regressions can escape the
-maintained matrix even when functional package or UI tests pass.
+Secondary browsing/control tours are retired: onboarding and mode navigation;
+Collection inspection/editing/salvage; battle inspection/Auto/retreat; Shop,
+Mystery and corruption interactions; Homestead overview/build/upgrade/wallet/
+collection; Options, Full Game and defeat return. Their frame-pacing regressions
+can escape this matrix even when functional tests pass. The baseline supplies
+current scenario membership.
 
 Retained scenario IDs and thresholds remain stable. The physical-device baseline
 retains only its existing surviving workloads; it does not gain Simulator scenarios.
@@ -156,12 +162,11 @@ is retained. The 60-second watchdog and bounded accumulator report timeout or
 overflow rather than silently truncating evidence. Split longer journeys into
 separate steps.
 
-`FramePacingCapture` owns bounded interval accumulation below the app sampler.
-It retains first-callback latency and freezes completed evidence. Reports include
-monotonic `captureStartedAt`, `captureEndedAt`, `measurementDuration`, completion
-status, step identity, test name, and launch arguments. Empty, unstarted, timed-out,
-overflowed, legacy-only, and inconsistent reports cannot establish new interaction
-coverage. Older artifacts remain readable for historical comparisons.
+`FramePacingCapture` owns bounded interval accumulation, first-callback latency,
+and frozen reports with monotonic capture boundaries, completion status, test/step
+identity and launch arguments. Empty, unstarted, timed-out, overflowed, legacy-only,
+or inconsistent reports cannot establish interaction coverage; older reports remain
+readable for historical comparison.
 
 The summary distinguishes **coverage failure**, **performance finding**, and
 **clean observation**. Missing evidence always fails, even in observation mode.
@@ -195,14 +200,14 @@ Do not describe an average as a “60 FPS floor.” Every repetition is evaluate
 
 ## Battle investigation stages
 
-For a Battle regression, use the failing interaction and trace to choose the relevant stage:
+Use the failing interaction and trace to choose the relevant Battle stage:
 
 1. `engine-hand`: verify engine resolution plus projection construction/publication fits within 8 ms and the scenario passes its frame gate.
 2. `engine-feedback`: determine whether feedback publication is the added cost.
 3. `real-card-play` and `hand-drag-cancel`: measure normal gestures, fan reflow, and full presentation.
 4. `turn-transition` and `combined-worst-case`: confirm adjacent Battle behavior did not regress.
 
-A failing engine/hand scenario is a lead, not proof of engine cost: confirm the expensive stack in the trace before changing it. If the trace attributes the added cost to feedback publication, consider one pass: build each item once, partition immediate/scheduled items while deriving the earliest wake, compute reactions and SFX once, apply the host once, and update one timer. Preserve `availableAt`, expiration, stagger, SFX, reactions, and keyword timing.
+For trace-attributed feedback publication cost, consider one pass: build each item once, partition immediate/scheduled items while deriving the earliest wake, compute reactions and SFX once, apply the host once, and update one timer. Preserve `availableAt`, expiration, stagger, SFX, reactions, and keyword timing.
 
 Do not freeze slots, delay card removal, add placeholders, split user-visible work across frames, reduce feedback richness, lower asset resolution, reduce particle counts, or add another presentation framework to win a metric. Hand movement is gameplay feedback.
 
@@ -294,20 +299,17 @@ budgets there.
    matrix when the change affects its shared boundaries or a broad comparison is
    needed; unrelated scenarios are not a mandatory iteration step.
 
-Choose scroll containers for the actual working set. Collection and Homestead
-already use lazy grids; the read-only Combat Log uses `ScrollView` with lazy rows;
-Collection's landing shelves
-are bounded. An eager stage stack alone is not evidence of a defect. Likewise,
-viewport state invalidating an inventory view is a lead until a profile shows
-material derivation cost. Retain these owners unless measured app work supports
-a simpler change; a generic feed benchmark does not justify migrating the game
-to `List` or adding another cache/model layer.
-
-Prefer direct stored-state mutation, one projection publication, narrow observation, cached immutable geometry, equatable static faces, bounded/preallocated resources, and parked idle clocks. Consider removing dead wrappers and redundant passes when that addresses the measured cause.
+Preserve the existing working-set owners unless measured app work supports a
+change: lazy Collection/Homestead grids, lazy Combat Log rows and bounded landing
+shelves. Eager stage stacks or viewport invalidation alone do not justify a `List`
+migration, cache or model layer. Prefer direct mutation, one projection publication,
+narrow observation, immutable cached geometry, bounded resources and parked idle
+clocks when they address the attributed cost.
 
 ## Device and production evidence
 
-Simulator evidence does not establish physical-device performance. Before claiming ProMotion performance, pin a supported iPhone/OS, derive cadence from the display link, capture Instruments traces on-device, and record thermal state and Low Power Mode.
+ProMotion claims require a supported iPhone/OS, observed display-link cadence,
+and on-device Instruments traces under the [evidence contract](#evidence-contract).
 
 MetricKit `MXAnimationMetric.hitchTimeRatio` supplies production trend evidence for tracked animations on iOS 26+. On iOS 18, Trinket records `scrollHitchTimeRatio`, which covers scrolling only. Keep these differently scoped metrics separate when comparing trends. They complement—and do not replace—reproducible local scenarios and Instruments traces.
 
@@ -375,9 +377,7 @@ transport, then investigate network filtering using Apple's
 Do not reset pairing, delete symbol caches, or weaken security settings as routine
 preflight actions.
 
-During capture, reproduce the exact player interaction. For before/after claims,
-keep source/build, device/OS, seed, thermal state, Low Power Mode, and interaction
-comparable. Collection success alone does not establish gameplay smoothness.
+During capture, reproduce the exact interaction under the [evidence contract](#evidence-contract).
 
 ### Unresolved device evidence
 
@@ -413,10 +413,6 @@ coverage, not hardware budgets or authoritative audible/thermal evidence.
 
 ## Memory and energy
 
-Use measured device evidence for memory, battery, thermal, and lifecycle regressions.
-Simulator-only observations can identify leads but cannot establish a shipping
-budget or improvement.
-
 Reproduce on a named device/OS/build configuration from a cold launch. Record
 process footprint at launch, after visiting the affected surfaces, after
 returning to Play, and after a representative extended session. Use Instruments
@@ -441,13 +437,13 @@ the same fixed-duration journey. Inspect idle clocks, timers, display-link
 work, audio/video playback, background tasks, persistence churn, and repeated
 image decode. Confirm that backgrounding parks or cancels work and foregrounding
 restores one owner without duplicate timers or playback. Compare CPU, wakeups,
-network, GPU activity, and thermal behavior before and after. Report thermal
-and Low Power Mode state with the revision, device, and evidence required in
-[Reporting](#reporting). Do not claim a production improvement when device
-evidence is missing.
+network, GPU activity, and thermal behavior before and after under the
+[evidence contract](#evidence-contract).
 
 ## Reporting
 
-Report the source revision/dirty state, Xcode, Simulator model/runtime, seed, optimized build settings, duration, all requested individual results, aggregate spread when repeated, affected scenarios, Instruments evidence when available, and functional verification. If any input or evidence is missing, record the limitation and do not claim an improvement.
+Report the [evidence-contract inputs](#evidence-contract), revision/dirty state,
+affected scenarios, all individual results and aggregate spread, Instruments
+artifacts, functional checks, and exact limitations.
 
 Apple references: [Animation hitches](https://developer.apple.com/documentation/xcode/understanding-hitches-in-your-app), [Optimize for variable refresh-rate displays](https://developer.apple.com/documentation/quartzcore/optimizing-iphone-and-ipad-apps-to-support-promotion-displays), and [MXAnimationMetric hitch time ratio](https://developer.apple.com/documentation/metrickit/mxanimationmetric/hitchtimeratio).

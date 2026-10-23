@@ -139,29 +139,21 @@ full dispatches with prior standard proof retain the transfer/reuse path.
 
 ### Runner admission and package isolation
 
-Verified runs admit the short Engine/Core jobs alongside build/smoke, gate and
-Release, then allow up to five remaining package jobs after that logic stage
-succeeds. A skipped or failed logic stage retains the three-job cap; remaining
-coverage still runs after a logic failure, which independently fails CI OK.
-This avoids both initial runner starvation and a permanently restricted tail.
-Qualification/latest retain their complete iOS matrices. Retune admission with
-whole-run timing if runner capacity changes. Package jobs restore separately keyed incremental state and byte-verified source
-timestamps in their per-package DerivedData tenants, then always invoke compilation/testing
-so changed inputs rebuild. Disposable standard/release runners disable local output
-age-pruning scans; explicit cache pruning, result retention and simulator/guest
-ownership checks remain in force. Core, Persistence, and AppState have separate jobs: a failed
-app-state invocation does not repeat passed save tests when rerunning failed jobs.
-FeatureSupport and BattleFeature also run separately, preserving passed support
-coverage when battle verification needs a retry. AppState runs its seven purchase
-contracts and the remaining suites in disjoint invocations on the same runner.
-The purchase suite retains its one-minute limit; heavy MainActor save/career work
-cannot consume that deadline while purchase tasks wait to resume. Filtered package
-runs require complete result-bundle evidence: an ignored inclusion/exclusion, a
-skipped purchase method or missing case evidence fails the job.
-They do not download the app product archive. Native-only Engine/Core jobs restore
-only native compiler state in a separate namespace, retaining simulator state for
-the iOS comparator lanes. Cache identity uses setup-trinket’s selected Xcode
-version/build without launching another version-query process.
+[Hosted workflows](../../.github/workflows/tests.yml) own admission limits and job
+membership. Verified runs stage short logic jobs before widening package concurrency,
+avoiding startup starvation. Failed/skipped logic keeps conservative admission but
+still runs remaining coverage; its failure independently fails `CI OK`.
+Qualification/latest retain the complete iOS matrices. Retune with whole-run timing.
+
+Package jobs compile/test in separate cache tenants. Core, Persistence, AppState,
+FeatureSupport and BattleFeature retain independent failure/retry boundaries;
+packages do not download app products. AppState separates purchase contracts from
+MainActor-heavy save/career work so that work cannot consume the purchase suite's
+one-minute deadline. Filtered invocations require complete result-bundle evidence;
+ignored filters, skipped purchase methods, or missing cases fail.
+Native compiler state stays separate from iOS comparator state. Disposable runners
+skip local age-pruning scans while retaining explicit pruning, result retention,
+and simulator/guest ownership safeguards.
 
 ### Hosted proof reuse
 
@@ -192,36 +184,27 @@ Linux; that gate does not reserve a Mac or install Xcode and Swift lint tools.
 
 ### Build products and cache identity
 
-Ordinary `build.sh` compiles only the app; it does not produce reusable test
-bundles. CI keeps app incremental build state in its warm cache and transfers only
-runtime products, build stamps, and versioned environment metadata in a tar archive to preserve executable permissions. Compiler-only Swift module metadata is omitted from transfers; runtime shaders and artwork remain intact.
-Local reuse requires matching Xcode, SDK, architecture policy, configuration, and
-test fingerprint as well as the build's source snapshot. The snapshot detects
-edits and deletions, includes all authored test plans plus generated project/shared
-scheme configuration, and excludes compiler caches, Xcode user state, and Markdown
-so those changes do not force a rebuild. The selected Xcode product version
-is read directly from its installed version plist when available, avoiding a
-potentially stalled `xcodebuild -version` process; SDK and source checks still run. Missing or legacy metadata requires
-a rebuild. CI additionally requires the same commit; incompatible or missing
-transfers are discarded and rebuilt on the receiving runner, then validated again.
-Builds invalidate prior stamps for their product family before compilation so a
-failed build cannot leave partially updated products marked reusable.
-The cache uses a new version prefix when its layout changes. Compare the hosted
-restore, build, and save step durations together when assessing cache value;
-a cache hit alone is not evidence of a faster run.
+`build.sh` compiles only the app. Test products transfer separately from incremental
+compiler caches, preserving executable permissions, runtime shaders and artwork.
+Reuse requires matching Xcode/SDK, architecture policy, configuration, test fingerprint,
+and source snapshot; CI additionally requires the same commit. Missing, legacy or
+incompatible metadata/products rebuild and validate again. Invalidate the product
+family's old stamp before compilation so failed work cannot appear reusable.
 
-Combined gates run API bans once: standalone style includes them, and cheap
-slices omit that check only after successful style verification. Standalone
-cheap slices retain the full registry. Unit mode delegates directly to the
-package runner; per-package timing records own its diagnostic evidence.
+The [metadata owner](../../Scripts/build-metadata.py) fingerprints source edits and
+deletions, authored test plans, generated project and schemes. Markdown, compiler
+caches and Xcode user state are excluded. Change cache-version prefixes when layouts
+change. Assess cache value using restore, build and save durations together.
 
-The cheap slices include read-only [localization coverage and freshness](Localization.md).
-Every relevant handoff, locked integration and pre-push blocks on its pending
-queue; builds and hooks do not invoke AI. Existing CI app builds separately verify
-compiler-extracted keys and compiled language bundles. FullUI owns localization
-screenshots and accessibility hierarchy evidence. The read-only localization gate
-does not prove compilation, fonts, layout or archive language packaging; use the
-handoff report for actual selected compiled checks.
+Combined gates omit a repeated API-ban slice only after style has passed; standalone
+cheap slices retain the full registry. Unit mode delegates to the package runner
+and its timing/diagnostic records.
+
+Cheap slices include read-only [localization freshness](Localization.md). Relevant
+handoff, locked integration and pre-push checks block on pending work without AI
+calls. Existing CI builds verify extraction and compiled languages; FullUI captures
+localized screenshots/hierarchies. Use actual compiled and rendered evidence for
+layout, fonts and packaging.
 
 ## Player profile execution
 
@@ -305,12 +288,10 @@ blocks upload; there is no automatic local test fallback. Resume retains signed
 artifacts while awaiting CI. Signing keys and App Store Connect credentials stay
 on the Mac; simulator CI needs no Apple distribution credentials.
 
-Hosted warm builds also retain a source-timestamp manifest. Before Xcode runs,
-CI restores an input's prior timestamp only when its current bytes, size, mode,
-and checkout/toolchain context match the cached record. Changed, new, missing,
-or symlinked inputs stay fresh. This avoids treating every file in a fresh Git
-checkout as changed while retaining Xcode's normal build/dependency checks.
-The manifest is refreshed only after a successful build and saved with DerivedData.
+Hosted warm builds restore source timestamps only for byte/size/mode-identical inputs
+in the same checkout/toolchain context; changed, new, missing and symlinked inputs
+stay fresh. [Timestamp restoration](../../Scripts/build-source-times.py)
+owns that optimization; refresh its manifest only after a successful build.
 
 `verification.json` checkpoints successful package suites and UI selectors, with
 phase timings and local or hosted evidence. Resume runs only missing phases for

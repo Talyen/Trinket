@@ -17,6 +17,7 @@ outgoing links are references, not additional workflow steps.
 | What a good test is | [Platform/Testing.md](Platform/Testing.md) |
 | Module DAG and hub containment | [Platform/Architecture.md](Platform/Architecture.md) (`check-module-boundaries.sh`) |
 | Player-facing locked choices | [Product/Decisions.md](Product/Decisions.md) |
+| Input feedback and failure presentation | [Product/DesignPrinciples.md](Product/DesignPrinciples.md) |
 | iOS support window and native API adoption | [Platform/ApplePlatformReference.md](Platform/ApplePlatformReference.md) |
 | Current vs banned SwiftUI/observation APIs | [Platform/ApplePlatformReference.md](Platform/ApplePlatformReference.md#current-vs-banned-swiftui) (enforced by `check-api-bans.sh`) |
 | Style and boundary checker split | [Platform/Verification.md](Platform/Verification.md#style-and-boundary-ownership) |
