@@ -217,11 +217,29 @@ trinket_run_full_gate
         self.assertIn("kill -INT", text)
 
     def test_handoff_defaults_to_main_and_supports_working_tree_override(self) -> None:
-        command = [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run"]
-        default = run_captured(command, cwd=ROOT, expected=0)
-        explicit = run_captured([*command, "--base", "main"], cwd=ROOT, expected=0)
-        self.assertEqual(default.stdout, explicit.stdout)
-        run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--working-tree"], cwd=ROOT, expected=0)
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_repo_fixture(directory, (
+                'Scripts/handoff.sh', 'Scripts/internal/verification_evidence.py',
+            ))
+            run_captured(['git', 'init', '-q', '-b', 'main'], cwd=root, expected=0)
+            run_captured(['git', 'add', '.'], cwd=root, expected=0)
+            commit = ['git', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                      'commit', '-qm']
+            run_captured([*commit, 'Baseline'], cwd=root, expected=0)
+            run_captured(['git', 'checkout', '-qb', 'task'], cwd=root, expected=0)
+            changed = root / 'Packages/TrinketAppState/Sources/TrinketAppState/Focused.swift'
+            changed.parent.mkdir(parents=True)
+            changed.write_text('struct Focused {}\n')
+            run_captured(['git', 'add', '.'], cwd=root, expected=0)
+            run_captured([*commit, 'Task change'], cwd=root, expected=0)
+            run_captured(['git', 'checkout', '--detach'], cwd=root, expected=0)
+
+            command = [str(root / 'Scripts/handoff.sh'), '--dry-run']
+            default = run_captured(command, cwd=root, expected=0)
+            explicit = run_captured([*command, '--base', 'main'], cwd=root, expected=0)
+            self.assertEqual(default.stdout, explicit.stdout)
+            self.assertIn('Focused.swift', default.stdout)
+            run_captured([*command, '--working-tree'], cwd=root, expected=0)
 
     def test_cheap_slices_require_a_readable_nonempty_registry(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
