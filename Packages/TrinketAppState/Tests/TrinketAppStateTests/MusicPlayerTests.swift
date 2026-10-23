@@ -51,7 +51,7 @@ struct MusicPlayerTests {
 
     @Test func `teardown stops the active and prepared replacement voices`() async throws {
         let backend = ControlledMusicBackend()
-        var player: MusicPlayer? = MusicPlayer(isDisabled: false, backend: backend)
+        var player: TrinketAppState.MusicPlayer? = MusicPlayer(isDisabled: false, backend: backend)
         let active = try await start(request("active"), player: #require(player), backend: backend)
         try player?.prepare(request("prepared"))
         try await eventually { backend.loads.count == 2 }
@@ -266,7 +266,7 @@ struct MusicPlayerTests {
     }
 
     private func start(
-        _ request: MusicPlaybackRequest, player: MusicPlayer, backend: ControlledMusicBackend,
+        _ request: MusicPlaybackRequest, player: TrinketAppState.MusicPlayer, backend: ControlledMusicBackend,
     ) async throws -> TestMusicVoice {
         let index = backend.loads.count
         player.update(route: .track(request), volume: 1)
@@ -319,7 +319,7 @@ private final class ControlledMusicBackend: MusicPlaybackBackend {
     var activations = 0
     var resumedSteps = 0
 
-    func load(_: MusicTrack) async -> (any MusicPlaybackVoice)? {
+    func load(_: TrinketContent.MusicTrack) async -> (any MusicPlaybackVoice)? {
         await withCheckedContinuation { loads.append($0) }
     }
 
