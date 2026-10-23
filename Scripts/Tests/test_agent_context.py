@@ -45,6 +45,15 @@ class AgentContextTests(ScriptRegressionTestCase):
             expected = [api, 'committed name.py', 'dirty.py', 'old name.py', 'removed.py', 'staged name.py', 'untracked.py']
             self.assertEqual(collect_paths(None, root, base='main'), expected)
             self.assertIn('.agents/skills/architect/SKILL.md', classify(expected, root, base='main').skills)
+            self.assertIn('public-api', classify(expected, root, base='main').features)
+            # Public enum membership changes must also compile external consumers.
+            (root / api).write_text('public enum Probe {\n case first\n}\n')
+            git('add', api)
+            git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
+                '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'public enum')
+            (root / api).write_text('public enum Probe {\n case first\n case second\n}\n')
+            self.assertIn('public-api', classify([api], root).features)
+
             with self.assertRaises(subprocess.CalledProcessError):
                 collect_paths(None, root, base='missing-base')
 
@@ -193,6 +202,15 @@ class AgentContextTests(ScriptRegressionTestCase):
             self.assertIn('Ownership', output)
         engine = self.brief('--read', '--paths', 'Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift')
         self.assertIn('copy the generator rather than advance live RNG', engine)
+
+    def test_ui_brief_surfaces_unusual_constraints_and_implementation_skill_directly(self) -> None:
+        output = self.brief('--read', '--paths', 'Trinket/Features/Play/PlayBrowsingStack.swift')
+        self.assertIn('swiftui-specialist/SKILL.md', output)
+        self.assertIn('## Interaction constraints', output)
+        self.assertIn('no error or operation-status text', output)
+        self.assertIn('Reset Game Progress', output)
+        self.assertIn('Full Game purchasing is a narrow exception', output)
+        self.assertIn('Artwork stays pinned/prewarmed', output)
 
     def test_directive_skill_does_not_route_ordinary_rationale_comments(self) -> None:
         from internal.change_routing import classify

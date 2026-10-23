@@ -115,12 +115,11 @@ reusable. Cancelled commands cannot create new catalog warmups.
 
 ## Testing
 
-Package execution and local diagnostic opt-in follow
-[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
-changes use path-scoped handoff.
+Ordinary task checks are selected automatically by
+[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
 
 ```sh
-./Scripts/test-package.sh TrinketAppState
+./Scripts/handoff.sh --package TrinketAppState
 ```
 
 `Support/AppTestContext.swift` builds isolated states (temp directory plus

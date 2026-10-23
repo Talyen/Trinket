@@ -69,9 +69,56 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 if arguments[1] == 'release':
                     self.assertEqual(environment['TRINKET_ALLOW_FULL_UI'], '1')
         with contextlib.redirect_stderr(io.StringIO()):
-            for arguments in (['--route', 'diagnostic'], ['--route', 'focused'], ['--route', 'static', '--package', 'TrinketCore'], ['--route', 'visual', '--smoke']):
+            for arguments in (['--route', 'diagnostic'], ['--route', 'focused'], ['--route', 'static', '--package', 'TrinketCore'], ['--route', 'visual', '--smoke'], ['--package', 'Unknown'], ['--package', 'TrinketCore', 'TrinketCore']):
                 with self.assertRaises(SystemExit):
                     verify.main([*arguments, '--paths', 'Docs/README.md'])
+
+    def test_automatic_checks_compile_direct_packages_serially_and_retain_hosted_obligations(self) -> None:
+        from internal.change_routing import automatic_plan, classify
+        paths = ['Packages/TrinketPersistence/Sources/TrinketPersistence/Probe.swift',
+                 'Packages/TrinketAppState/Sources/TrinketAppState/Probe.swift']
+        checks = automatic_plan(classify(paths), environment=self.verification_environment())
+        packages = [check for check in checks if check.id.startswith('package:')]
+        self.assertEqual({check.argv[-1] for check in packages}, {'TrinketPersistence', 'TrinketAppState'})
+        self.assertTrue(all(not check.deferred for check in packages))
+        self.assertTrue(all(dict(check.environment)['TRINKET_PACKAGE_TEST_JOBS'] == '1' for check in packages))
+        fixture = 'Packages/TrinketContent/Sources/TrinketContentTestSupport/CombatantFixtures.swift'
+        checks = automatic_plan(classify([fixture]), environment=self.verification_environment())
+        self.assertEqual([check.argv[-1] for check in checks if check.id.startswith('package:') and not check.deferred], ['TrinketContent'])
+        self.assertTrue(any(check.id.startswith('package:') and check.deferred for check in checks))
+        ui = automatic_plan(classify(['Trinket/Features/Play/PlayBrowsingStack.swift']), environment=self.verification_environment())
+        self.assertTrue(any(check.id == 'build' and not check.deferred for check in ui))
+        self.assertTrue(any(check.id == 'smoke' and check.deferred for check in ui))
+        generated = automatic_plan(classify(['project.yml']), environment=self.verification_environment())
+        self.assertTrue(all(check.deferred for check in generated if check.id in {'generate', 'assert'}))
+        docs = automatic_plan(classify(['Docs/README.md']), environment=self.verification_environment())
+        self.assertFalse(any(check.id in {'build', 'package'} or check.id.startswith('package:') for check in docs))
+
+    def test_public_api_edits_compile_unchanged_app_consumers_and_missing_xcode_is_incomplete(self) -> None:
+        from internal.change_routing import automatic_plan, classify, Check
+        from script_test_support import load_script
+        verify = load_script('automatic_compilation_verifier', 'verify.py')
+        paths = ['Packages/TrinketCore/Sources/TrinketCore/Probe.swift']
+        route = classify(paths)
+        route.features.add('public-api')
+        checks = automatic_plan(route, environment=self.verification_environment())
+        self.assertEqual([check.argv for check in checks if check.id == 'build'], [('./Scripts/test.sh', 'unit', '--app-only')])
+        for identifier in ('build', 'package:TrinketCore'):
+            outcomes = {}
+            with patch.object(verify.shutil, 'which', return_value=None), patch.object(verify.subprocess, 'run') as execute, contextlib.redirect_stderr(io.StringIO()):
+                status = verify.run_checks([Check(identifier, 'compilation', ('must-not-run',))], outcomes=outcomes)
+            self.assertEqual(status, 2)
+            self.assertEqual(outcomes, {identifier: 'unavailable'})
+            execute.assert_not_called()
+
+    def test_explicit_package_batch_runs_each_registered_package_once(self) -> None:
+        from script_test_support import load_script
+        verify = load_script('package_batch_verifier', 'verify.py')
+        with patch.object(verify, 'run_checks', return_value=0) as execute, patch.object(verify, 'save_report'), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(verify.main(['--package', 'TrinketCore', 'TrinketPersistence', '--paths', 'Docs/README.md']), 0)
+        self.assertEqual([check.argv for check in execute.call_args.args[0]],
+                         [('./Scripts/test-package.sh', 'TrinketCore'), ('./Scripts/test-package.sh', 'TrinketPersistence')])
+        self.assertEqual(execute.call_args.kwargs['environment']['TRINKET_PACKAGE_TEST_JOBS'], '1')
 
     def test_durable_reports_preserve_failed_deferred_and_unrun_evidence_without_preview_artifacts(self) -> None:
         from script_test_support import load_script
@@ -123,7 +170,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         for hosted in (False, True):
             for path in ("Gemfile", "Gemfile.lock"):
                 with self.subTest(path=path, hosted=hosted):
-                    result = run_captured([str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", path], cwd=ROOT, env=self.verification_environment(hosted=hosted), expected=0)
+                    result = run_captured([str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--route", "static", "--paths", path], cwd=ROOT, env=self.verification_environment(hosted=hosted), expected=0)
                     flag = "" if hosted else " --fast"
                     self.assertIn(f"./Scripts/test-scripts.sh{flag} --paths {path}", result.stdout)
 
@@ -132,7 +179,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         for hosted in (False, True):
             with self.subTest(hosted=hosted):
                 result = run_captured(
-                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", "Scripts/check-links.py", "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift"],
+                    [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--route", "static", "--paths", "Scripts/check-links.py", "Packages/TrinketCore/Sources/TrinketCore/Keyword.swift"],
                     cwd=ROOT,
                     env=self.verification_environment(hosted=hosted),
                     expected=0,
@@ -162,7 +209,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         )
         for paths, package, smoke in cases:
             with self.subTest(paths=paths):
-                result = run_captured([str(ROOT / "Scripts/handoff.sh"), "--dry-run", *(["--smoke"] if smoke else []), "--paths", *paths], cwd=ROOT, expected=0)
+                result = run_captured([str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--route", "static", *(["--smoke"] if smoke else []), "--paths", *paths], cwd=ROOT, expected=0)
                 commands = [line.strip().removeprefix("SKIP_GENERATE=1 ") for line in result.stdout.splitlines()]
                 if package:
                     self.assertEqual(commands.count(f"./Scripts/test-package.sh {package}"), 1)
@@ -203,7 +250,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
             (scripts / 'test.sh').write_text('#!/usr/bin/env python3\nimport json, pathlib, sys\npathlib.Path("arguments.json").write_text(json.dumps(sys.argv[1:]))\n')
             write_executable(scripts / 'cheap-fixture.sh', '#!/bin/bash\nexit 0\n')
             (scripts / 'config/cheap-slices.txt').write_text('./Scripts/cheap-fixture.sh\n')
-            command = [str(scripts / 'handoff.sh'), '--quiet', '--paths', path]
+            command = [str(scripts / 'handoff.sh'), '--quiet', '--route', 'static', '--paths', path]
             preview = run_captured([command[0], '--dry-run', *command[1:]], env=self.verification_environment(), expected=0)
             style = next(line.strip() for line in preview.stdout.splitlines() if line.strip().startswith('./Scripts/test.sh style'))
             run_captured(command, env=self.verification_environment(), expected=0)
@@ -228,7 +275,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         ]
         for name, paths, expected_packages, app_build, generation in cases:
             with self.subTest(case=name):
-                result = run_captured([str(ROOT / "Scripts/handoff.sh"), "--isolate", "--dry-run", "--smoke", "--paths", *paths], cwd=ROOT, expected=0)
+                result = run_captured([str(ROOT / "Scripts/handoff.sh"), "--isolate", "--dry-run", "--route", "static", "--smoke", "--paths", *paths], cwd=ROOT, expected=0)
                 plan = result.stdout
                 package_commands = re.findall(r"^\s*(?:SKIP_GENERATE=1 )?\./Scripts/test-package\.sh (.+)$", plan, re.MULTILINE)
                 packages = [package for command in package_commands for package in command.split()]
@@ -289,7 +336,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 )
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                 if expected == 0:
-                    self.assertTrue(result.stdout.strip().endswith("Handoff PASS: selected checks and cheap CI slices completed."))
+                    self.assertTrue(result.stdout.strip().endswith("Handoff PASS: selected local checks completed; hosted verification remains pending."))
                     self.assertLess(result.stdout.index("Handoff phase PASS: cheap CI slice"), result.stdout.index("Handoff PASS"))
                     self.assertNotIn("selected-check", result.stdout)
                     self.assertNotIn("cheap-check", result.stdout)

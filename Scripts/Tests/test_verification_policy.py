@@ -57,6 +57,7 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
                 'bash',
                 'Scripts/handoff.sh',
                 '--dry-run',
+                '--route', 'static',
                 '--smoke',
                 '--paths',
                 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Accessibility/AccessibilityID.swift',

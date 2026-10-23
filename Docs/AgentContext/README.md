@@ -9,7 +9,8 @@ The required briefing reads local `AGENTS.md` safeguards and concise ownership.
 Behavior cards remain links for the concern being changed; `--full --read` expands
 all routed depth, while optional `--task <concern> --read` reads that concern's
 focused contracts. Guidance follows owner directories rather than source leaf
-names. Skills apply by their own triggers.
+names. Briefings surface applicable skills and the short UI interaction constraints directly.
+Skills apply by their own triggers; the catalog below is optional lookup.
 
 Sample briefing shape (exact cards vary by path):
 

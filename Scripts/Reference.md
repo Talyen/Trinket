@@ -11,7 +11,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 | `python3 Scripts/agent-brief.py --base main --status --read` | Stateless full-task briefing (commits plus dirty files); `--paths <files...>` selects intended files before editing and `--task <concern>` is an optional shortcut; `--status` adds scoped changes; `--read` includes safeguards and concise ownership; `--full --read` expands behavior contracts and `--task` selects concern depth. [Quickstart](../Docs/AgentContext/README.md#quickstart) |
 | `python3 Scripts/content-inspect.py --id <id>` | Inspect authored content by exact ID, player-facing `--name <text>`, or canonical `--trigger <field>`; `--references` follows parsed fields to schemas, rule anchors, authored Swift and tests; record and reference pages disclose omissions; `--full` expands record fields |
 | `node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>]` | Independent implementation checkout under primary `.worktrees/<slug>` on `codex/<slug>`, starting from committed local `main` by default; reuse the chat's existing suitable worktree |
-| `node Scripts/agent-worktree.mjs integrate [--keep-worktree]` | From the task worktree: shared integration lock, rebase onto local `main`, scoped handoff, then fast-forward primary `main` and delete the task checkout including local-only files; `--keep-worktree` retains it for continued work. No push. [Policy and recovery](../Docs/Platform/Release.md#isolated-chat-workflow) |
+| `node Scripts/agent-worktree.mjs integrate [--reviewed-main <commit>] [--keep-worktree]` | Locked rebase, final static handoff and fast-forward into local main; retains the checkout. A full reviewed main commit ID avoids a redundant review checkpoint and rejects later advances. No push. [Policy and recovery](../Docs/Platform/Release.md#isolated-chat-workflow) |
 | `node Scripts/agent-worktree.mjs cleanup` | From an already landed task checkout: retry evidence preservation and safe cleanup only, including after main advances; no rebase, handoff or main mutation |
 | `node Scripts/agent-worktree.mjs evidence [path...]` | Print the durable shared evidence directory, or preserve task-local files there immediately. Integration also preserves `.DerivedData/Deliverables/` before cleanup, with revision metadata and automatic task/verification reports |
 | `node Scripts/agent-worktree.mjs remove --task <slug>` | From primary: remove only a clean, registered task worktree already merged into `main`; retain its branch for recovery and preserve ignored files first |
@@ -24,37 +24,38 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 
 ### Optional retrieval
 
-Ordinary `rg`, file reads and Git diffs are the default. Existing
-`agent-context.sh`, `agent-search.py`, `agent-read.py`, `agent-investigate.py` and
-`agent-diff.py` interfaces remain compatible; their `--help` owns optional modes
-and pagination. `agent-read.py` also renders briefing sections. Lexical caller/test
-hints are not semantic analysis or coverage proof. No task requires this command
-family or a prescribed navigation sequence. See [Retrieval](../Docs/AgentContext/Retrieval.md)
-only when a navigation question arises.
+Use `rg`, file reads and Git diffs. The briefing is the sole required retrieval
+command. Legacy navigation helpers remain compatible; consult their own `--help`
+only when useful. [Retrieval](../Docs/AgentContext/Retrieval.md) describes their limits.
 
 ### Localization
 
-`python3 Scripts/localization.py prepare` saves one queue and contextual response
-under a fresh `.DerivedData/Localization/` directory, resuming matching work from
-the latest draft (`--resume <response.json>` selects another). Fill translations and perform
-a separate review, then use `finish <response.json> --rationale '<completed checks>'`
-to record that attestation, apply results, generate resources and run the complete
-check. The command does not perform AI review; separate `review` and `apply` steps
-remain supported; incomplete batches exit nonzero after preserving their reviewed work. `check` validates
-freshness and coverage without AI, network, or compilation; `check --paths <files...>`
-limits local checks to affected inputs and consumers. The stdout `plan` and
-`template` commands remain supported. The
-[localization contract](../Docs/Platform/Localization.md#agent-workflow) owns the
-review requirements and compatibility formats.
+`python3 Scripts/localization.py job` creates/resumes one translation job with
+`response.json`, `translate.md` and `review.md`. Complete translation and a separate
+AI review, then run its printed `finish <response.json> --rationale ...` command.
+The CLI coordinates files, validation and application; it performs no AI work.
+`prepare` remains an alias; `review`, `apply`, `plan` and `template` stay compatible.
+`check --paths <files...>` is the read-only local gate. See the
+[localization contract](../Docs/Platform/Localization.md#agent-workflow).
 
 ### Verification
 
-Routine local checks perform no Swift compilation or Simulator/GPU tests.
-Use focused static/script checks and handoff. Compiled test wrappers require
-CI or explicit focused verification under
-[execution limits](../Docs/Platform/Verification.md#execution-limits); separate user
-approval is not required. Your normal Simulator run remains available and uses
-two local build workers.
+Ordinary work uses `./Scripts/handoff.sh --quiet`: automatic bounded selection,
+task scope from `main`, and isolation. `--dry-run` previews; `--base <ref>` changes
+the comparison base; `--paths <files...>` selects an iteration. Reports distinguish
+local checks, hosted obligations and required visual review. See
+[Verification](../Docs/Platform/Verification.md#confidence-ladder) for policy.
+
+| Command | Purpose |
+|---|---|
+| `./Scripts/handoff.sh --quiet` | Scoped static checks plus directly affected package tests serially; app compilation for app/UI or public-API changes |
+| `./Scripts/handoff.sh --route static --paths <files...>` | Cheap checks only, used by integration; `--final` also closes task plans and `--keep-plan` explicitly retains unfinished work |
+| `./Scripts/handoff.sh --package <Package...> --paths <files...>` | Selected package tests serially; `--app-only` or `--ui <Class[/method]>` selects app compilation or one registered journey instead |
+| `./Scripts/handoff.sh --route visual --paths <files...>` | Persistent-terminal managed build/launch/capture; inspect images and interactions separately |
+| `./Scripts/handoff.sh --route release --paths <files...>` | Requested full release qualification without publishing |
+
+Low-level wrappers remain available for tooling work and diagnostics. Compiled
+wrappers require the focused execution flag; handoff sets it automatically.
 
 | Command | Purpose |
 |---|---|
@@ -72,10 +73,6 @@ two local build workers.
 | `./Scripts/test.sh smoke [--no-build]` | CI-owned checked-in smoke registry |
 | `./Scripts/test.sh smoke <Class...>` | CI-owned targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | CI-owned exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
-| `./Scripts/handoff.sh --quiet --base main` | Static route, isolated automatically (`--isolate` remains supported). Full task scope (commits plus dirty files), or focused `--paths …`; evidence states and next action are reported. Lightweight local gate; compiled/simulator/generation checks are reported as CI-owned; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` reports targeted UI ownership, `--mirror` requires the deliberate heavy-local flag before installing on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` captures child logs during execution and prints phase outcomes plus bounded failures; successful logs are removed on completion |
-| `./Scripts/handoff.sh --package <Package> --paths <files...>` | Ordinary focused verification (`--route focused` is optional; `diagnostic` remains an alias): one package, or use `--app-only` / `--ui <Class[/method]>`. UI selectors choose their registered Smoke/FullUI plan. Sets the focused local-execution flag; no other checks run |
-| `./Scripts/handoff.sh --route visual --paths <files...>` | Persistent-terminal managed build/launch/inspection session. Inspect the actual result, save deliverables, and stop the owned lease. A completed session does not certify visual quality |
-| `./Scripts/handoff.sh --route release --paths <files...>` | Requested full release verification through `test-deploy.sh --mode ui`, including explicit local/full-UI flags. No versioning, tagging, signing, upload, or publication |
 | `./Scripts/ci-gate.sh` | CI-owned full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
 | `./Scripts/ci-gate.sh --fast` | Run only the ordered commands in [the cheap-slice registry](config/cheap-slices.txt); skips generation and style |
 | `./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> …]` | Script syntax/regressions with leaf-family selection (`script_test_selection.py`); runs docs unless the caller already checked them |

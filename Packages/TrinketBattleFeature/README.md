@@ -155,12 +155,11 @@ never submit production gameplay commands, claim rewards, or change saves.
 
 ## Testing
 
-Package execution and local diagnostic opt-in follow
-[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
-changes use path-scoped handoff.
+Ordinary task checks are selected automatically by
+[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
 
 ```sh
-./Scripts/test-package.sh TrinketBattleFeature
+./Scripts/handoff.sh --package TrinketBattleFeature
 ```
 
 Semantic feedback classification lives in `CombatFeedbackPresenterTests`. Test

@@ -13,7 +13,7 @@ function git(args, cwd = source) {
 function usage() {
   console.log(`Usage:
   node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>]
-  node Scripts/agent-worktree.mjs integrate [--keep-worktree]
+  node Scripts/agent-worktree.mjs integrate [--reviewed-main <commit>] [--keep-worktree]
   node Scripts/agent-worktree.mjs cleanup
   node Scripts/agent-worktree.mjs evidence [path...]
   node Scripts/agent-worktree.mjs remove --task <slug>
@@ -21,7 +21,7 @@ function usage() {
 
 Implementation uses .worktrees/<slug> on codex/<slug>, based on local main.
 Run integrate from the task worktree: locked rebase, scoped handoff, fast-forward
-into primary main. No push. Remove only clean work already merged into main.
+into primary main; retains the checkout. Cleanup removes only clean integrated work. No push.
 See Docs/Platform/Release.md#isolated-chat-workflow for authorization and recovery.`);
 }
 
@@ -30,7 +30,15 @@ try {
   if (!command || ["--help", "-h"].includes(command)) {
     usage();
   } else if (["integrate", "evidence", "cleanup"].includes(command)) {
-    if (command === "integrate" && args.length && (args.length !== 1 || args[0] !== "--keep-worktree")) throw new Error("integrate accepts only --keep-worktree");
+    if (command === "integrate") {
+      const seen = new Set();
+      for (let index = 0; index < args.length; index++) {
+        const option = args[index];
+        if (!["--keep-worktree", "--reviewed-main"].includes(option) || seen.has(option)) throw new Error(`Invalid integration option: ${option}`);
+        seen.add(option);
+        if (option === "--reviewed-main" && (!args[++index] || !/^[a-f0-9]{40}$/.test(args[index]))) throw new Error("--reviewed-main requires the full reviewed commit ID");
+      }
+    }
     if (command === "cleanup" && args.length) throw new Error("cleanup takes no arguments");
     const result = spawnSync("python3", [path.join(source, "Scripts/agent-integrate.py"), ...(command === "integrate" ? [] : [`--${command}`]), ...args], { cwd: source, stdio: "inherit" });
     process.exitCode = result.status ?? 1;

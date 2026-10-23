@@ -124,7 +124,10 @@ def initial_reference(reference: str) -> str:
 def guidance_command(root: Path, task: dict | None, guides: list[str], *, full: bool = False) -> str:
     """Print a stateless batch read; only initial applicable guidance is expanded."""
     command = ['python3', 'Scripts/agent-read.py', '--full']
-    for reference in dict.fromkeys([*(reference if full else initial_reference(reference) for reference in guides), *(task['contracts'] if task else [])]):
+    references = [reference if full else initial_reference(reference) for reference in guides]
+    if not full and 'Docs/AgentContext/swiftui-features.md' in guides:
+        references.append('Docs/AgentContext/swiftui-features.md#interaction-constraints')
+    for reference in dict.fromkeys([*references, *(task['contracts'] if task else [])]):
         validate_reference(root, reference)
         command.append(reference)
     return shlex.join(command)

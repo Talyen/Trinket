@@ -6,6 +6,7 @@ from __future__ import annotations
 import fcntl
 from contextlib import contextmanager
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -79,13 +80,13 @@ def preserve_evidence(source: Path, names: list[str]) -> Path:
     return saved
 
 
-def preserve_default_evidence(source: Path) -> None:
+def preserve_default_evidence(source: Path) -> Path | None:
     deliverables = source / '.DerivedData/Deliverables'
     if deliverables.exists() or deliverables.is_symlink():
-        preserve_evidence(source, ['.DerivedData/Deliverables'])
+        return preserve_evidence(source, ['.DerivedData/Deliverables'])
 
 
-def save_task_report(source: Path, base: str, head: str, paths: list[str]) -> None:
+def save_task_report(source: Path, base: str, head: str, paths: list[str], *, landed: bool = False) -> Path:
     from internal.cli import write_json_atomic
     directory = source / '.DerivedData/Deliverables'
     if any(path.is_symlink() for path in (directory, *directory.parents) if path.is_relative_to(source)):
@@ -98,8 +99,10 @@ def save_task_report(source: Path, base: str, head: str, paths: list[str]) -> No
         'version': 1, 'branch': git(source, 'branch', '--show-current'),
         'static_verified_commit': head, 'verified_against_main': base, 'changed_paths': paths,
         'verification_reports': sorted(str(path.relative_to(source)) for path in (directory / 'Verification').glob('*.json')),
-        'limitations': 'Static handoff only; compiled, hosted and visual evidence is recorded separately.',
+        'completion_state': 'locally integrated; hosted verification pending' if landed else 'local checks passed; landing pending',
+        'limitations': 'Landing checks are static; compiled and visual results are in the referenced reports. Hosted evidence requires an authorized push.',
     })
+    return report
 
 
 def remove_integrated_worktree(source: Path, target: Path, branch: str, head: str, *, main_head: str | None = None) -> None:
@@ -180,7 +183,7 @@ class ReviewRequired(RuntimeError):
     """The combined revision needs source review before a separate landing attempt."""
 
 
-def integrate(source: Path, *, keep_worktree: bool = False) -> None:
+def integrate(source: Path, *, reviewed_main: str | None = None) -> None:
     common, target = checkout_context(source)
     with integration_lock(common):
         if git(target, "branch", "--show-current") != "main":
@@ -191,6 +194,10 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         clean(source)
         clean(target)
         base = git(target, "rev-parse", "HEAD")
+        if reviewed_main is not None and not re.fullmatch(r'[a-f0-9]{40}', reviewed_main):
+            raise RuntimeError('--reviewed-main requires the full reviewed commit ID, not a moving ref')
+        if reviewed_main is not None and git(source, 'rev-parse', '--verify', '--end-of-options', reviewed_main + '^{commit}') != base:
+            raise ReviewRequired('Main changed since the reviewed revision. Review current main and retry; no rebase or landing was performed.')
         previous_head = git(source, 'rev-parse', 'HEAD')
         new_main = git(source, 'merge-base', previous_head, base) != base
         preserve_ignored(source, base)
@@ -202,10 +209,9 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         if head == base:
             print("Task already integrated; main unchanged.")
             preserve_default_evidence(source)
-            if not keep_worktree:
-                remove_integrated_worktree(source, target, branch, head)
+            print('Task checkout retained; use node Scripts/agent-worktree.mjs cleanup when finished.')
             return
-        if new_main:
+        if new_main and reviewed_main is None:
             # A clean textual rebase is not semantic review or compiled evidence.
             # Retry the ordinary command after reviewing this combined revision;
             # another main advance will create another checkpoint.
@@ -227,13 +233,13 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         environment = dict(os.environ)
         from internal.cli import pinned_tool_path
         environment["PATH"] = pinned_tool_path(source, environment.get('PATH', ''))
-        subprocess.run([str(source / "Scripts/handoff.sh"), "--isolate", "--quiet", "--paths", *paths],
+        subprocess.run([str(source / "Scripts/handoff.sh"), "--route", "static", "--quiet", "--final", "--paths", *paths],
                        cwd=source, env=environment, check=True)
         clean(source)
         if git(source, 'rev-parse', 'HEAD') != head:
             raise RuntimeError('Task commit changed during verification; review and retry')
         save_task_report(source, base, head, paths)
-        preserve_default_evidence(source)
+        saved = preserve_default_evidence(source)
         clean(source)
         clean(target)
         if (git(source, "rev-parse", "HEAD") != head
@@ -243,9 +249,11 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
             raise RuntimeError("Checkout changed during verification; main was not advanced by this command. Retry after review.")
         preserve_ignored(target, head)
         subprocess.run(["git", "-C", str(target), "merge", "--ff-only", "--no-overwrite-ignore", head], check=True)
+        report = save_task_report(source, base, head, paths, landed=True)
+        if saved is not None:
+            shutil.copy2(report, saved / 'files/.DerivedData/Deliverables/task-report.json', follow_symlinks=False)
         print(f"Integrated {branch} into local main at {head}. Nothing pushed; hosted checks remain pending.")
-        if not keep_worktree:
-            remove_integrated_worktree(source, target, branch, head)
+        print('Task checkout retained. Finish any remaining work, then run node Scripts/agent-worktree.mjs cleanup.')
 
 
 if __name__ == "__main__":
@@ -256,12 +264,15 @@ if __name__ == "__main__":
                 preserve_evidence(source, sys.argv[2:])
             else:
                 print(evidence_directory(source))
-        elif sys.argv[1:] in ([], ['--keep-worktree']):
-            integrate(source, keep_worktree='--keep-worktree' in sys.argv)
         elif sys.argv[1:] == ['--cleanup']:
             cleanup(source)
         else:
-            sys.exit('Usage: agent-integrate.py [--keep-worktree | --cleanup | --evidence [path...]]')
+            import argparse
+            parser = argparse.ArgumentParser(description='Land reviewed task work; retain the checkout until explicit cleanup.')
+            parser.add_argument('--keep-worktree', action='store_true', help='compatibility flag; landing always keeps the checkout')
+            parser.add_argument('--reviewed-main', help='full main commit ID already reviewed against this task')
+            arguments = parser.parse_args()
+            integrate(source, reviewed_main=arguments.reviewed_main)
     except ReviewRequired as error:
         print(str(error), file=sys.stderr)
         sys.exit(3)

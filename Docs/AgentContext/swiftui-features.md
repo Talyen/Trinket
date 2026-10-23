@@ -15,6 +15,25 @@ Read the relevant implementation contract below for the behavior being changed;
 Play/Battle state and routing also use [runtime ownership](battle-runtime.md#ownership)
 and [observation boundaries](battle-runtime.md#play-observation-boundaries).
 
+## Interaction constraints
+
+Player-facing failures use no error or operation-status text and no authored native
+alerts or confirmation dialogs except the reset confirmation below. Keep diagnostics
+internal, action eligibility visible before a tap, and rejected/pending outcomes
+distinct from success. Use
+unlabeled progress only during active work, with Retry/Back controls when blocked.
+Destructive actions expand inline consequences with Cancel and a final action;
+revalidate on that final action. Reset Game Progress uses a native alert with
+concise consequences, Cancel, and a destructive Reset Progress action.
+Full Game purchasing is a narrow exception: show
+concise inline pricing, pending-approval, verification, and restoration outcomes
+under [Purchases](../Platform/Purchases.md). Keep cancellation quiet and avoid
+additional alerts over Apple's purchase authorization.
+
+Artwork stays pinned/prewarmed on first presentation; use shared DesignSystem
+chrome and native SwiftUI sheets. For layout, copy, artwork or motion changes,
+inspect the shipping UI under the [visual completion gate](../Platform/Verification.md#visual-completion-gate).
+
 ## Implementation contracts
 
 The app root keeps `appearsActive` true so switching apps does not grey out game
@@ -93,16 +112,3 @@ completion callbacks. Retiring covers cannot buy, resolve, or dismiss a replacem
 Party pickers capture selected-first ordering once per presentation and share it
 between shelves and grids. Selection changes animate emphasis without reordering
 the choices; reopening captures the new selection order. Eligibility stays live.
-
-Player-facing failures use no error or operation-status text and no authored native
-alerts or confirmation dialogs except the reset confirmation below. Keep diagnostics
-internal, action eligibility visible before a tap, and rejected/pending outcomes
-distinct from success. Use
-unlabeled progress only during active work, with Retry/Back controls when blocked.
-Destructive actions expand inline consequences with Cancel and a final action;
-revalidate on that final action. Reset Game Progress uses a native alert with
-concise consequences, Cancel, and a destructive Reset Progress action.
-Full Game purchasing is a narrow exception: show
-concise inline pricing, pending-approval, verification, and restoration outcomes
-under [Purchases](../Platform/Purchases.md). Keep cancellation quiet and avoid
-additional alerts over Apple's purchase authorization.

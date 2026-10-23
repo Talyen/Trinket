@@ -18,21 +18,25 @@ navigation. Optional retrieval helpers remain available through their `--help`.
 
 ```sh
 node Scripts/agent-worktree.mjs create --task <slug>
-# In the task checkout, before editing:
+# In the task checkout:
 python3 Scripts/agent-brief.py --status --read --paths <files...>
-# After implementation and review, commit task files, then:
+# Implement, then verify the complete task (scope defaults to main):
+./Scripts/handoff.sh --quiet
+# Review and commit task files, then land:
 node Scripts/agent-worktree.mjs integrate
+# After reporting and finishing remaining work:
+node Scripts/agent-worktree.mjs cleanup
 ```
 
-[Verification](../Docs/Platform/Verification.md#confidence-ladder) selects static,
-focused, visual or release work. Integration pauses for review when it incorporates new main commits, then supplies
-the final static handoff on retry;
-there is no duplicate pre-commit handoff. Standalone checks accept `--base main`
-for the full task or `--paths <files...>` for individual files. Preview with
-`handoff.sh --dry-run` when useful. Compact verification and task reports are
-preserved automatically; raw logs follow [output retention](Reference.md#output-retention).
+Handoff selects scoped static checks and bounded compiled checks automatically;
+`--dry-run` previews the plan. [Verification](../Docs/Platform/Verification.md#confidence-ladder)
+owns optional selectors, visual evidence and the difference between local and
+hosted results. Integration performs the final static gate and retains the checkout.
 [Release](../Docs/Platform/Release.md#isolated-chat-workflow) owns landing recovery
-and cleanup; pushes and publication remain separately authorized.
+and explicit cleanup. Pushes and publication remain separately authorized.
+
+Ordinary navigation uses `rg`, file reads and Git diffs. The optional retrieval
+helpers are compatibility utilities; no task requires learning their command family.
 
 ## Commands by task
 
@@ -40,7 +44,7 @@ and cleanup; pushes and publication remain separately authorized.
 |---|---|
 | Development | [Generation, builds, discovery, and simulator/device launch](Reference.md#development) |
 | Verification | [Package tests, UI checks, handoff, and gates](Reference.md#verification) |
-| Localization | `python3 Scripts/localization.py prepare`, `finish <response.json> --rationale …`, `check` — [agent workflow](../Docs/Platform/Localization.md) |
+| Localization | `python3 Scripts/localization.py job`, `finish <response.json> --rationale …`, `check` — [agent workflow](../Docs/Platform/Localization.md) |
 | Assets | [Artwork and media preparation](Reference.md#assets) |
 | TestFlight | `./Scripts/testflight.sh` — [one-time setup and recovery](../Docs/Platform/Release.md#local-testflight-deployment) |
 | Release | [Release and deploy verification](Reference.md#release) |

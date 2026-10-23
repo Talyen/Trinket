@@ -81,6 +81,8 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
                 self.assertFalse((self.root / 'second').exists())
                 result = self.helper(task, 'integrate')
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue(task.exists())
+            self.assertEqual(self.helper(task, 'cleanup').returncode, 0)
             self.assertFalse(task.exists())
             self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), self.git(self.root, 'rev-parse', 'codex/' + task.name))
         self.assertEqual((self.root / 'first').read_text(), 'task work\n')
@@ -103,6 +105,29 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         result = self.helper(task, 'integrate')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual((self.root / '.git/checks').read_text(), 'checked\n')
+
+    def test_reviewed_main_skips_redundant_checkpoint_but_rejects_a_later_advance(self) -> None:
+        task = self.task('task')
+        (self.root / 'incoming').write_text('reviewed main work')
+        self.commit(self.root)
+        reviewed = self.git(self.root, 'rev-parse', 'HEAD')
+        for arguments in (('--reviewed-main', 'main'), ('--cleanup',), ('--keep-worktree', '--keep-worktree')):
+            self.assertNotEqual(self.helper(task, 'integrate', *arguments).returncode, 0)
+            self.assertTrue(task.exists())
+            self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), reviewed)
+        result = self.helper(task, 'integrate', '--reviewed-main', reviewed)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(task.exists())
+        self.assertEqual((self.root / 'task').read_text(), 'task work\n')
+        other = self.task('other')
+        (self.root / 'later').write_text('unreviewed main work')
+        self.commit(self.root)
+        main = self.git(self.root, 'rev-parse', 'HEAD')
+        previous = self.git(other, 'rev-parse', 'HEAD')
+        result = self.helper(other, 'integrate', '--reviewed-main', reviewed)
+        self.assertEqual(result.returncode, 3, result.stderr)
+        self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
+        self.assertEqual(self.git(other, 'rev-parse', 'HEAD'), previous)
 
     def test_busy_lock_and_dirty_checkouts_preserve_main_and_task(self) -> None:
         task = self.task('task')
@@ -182,8 +207,10 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         (self.root / 'local-only').write_text('main evidence')
         self.assert_stopped(other, main)
         self.assertEqual((self.root / 'local-only').read_text(), 'main evidence')
+        report = json.loads((other / '.DerivedData/Deliverables/task-report.json').read_text())
+        self.assertEqual(report['completion_state'], 'local checks passed; landing pending')
 
-    def test_automatic_cleanup_deletes_local_outputs_and_preserves_peer(self) -> None:
+    def test_explicit_cleanup_deletes_local_outputs_and_preserves_peer(self) -> None:
         task = self.task('task')
         peer = self.task('peer')
         (task / 'ignored').mkdir()
@@ -192,13 +219,16 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         (peer / 'unfinished').write_text('peer work')
         result = self.helper(task, 'integrate')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue(task.exists())
+        self.assertEqual((task / 'ignored/build-output').read_text(), 'rebuildable')
+        self.assertEqual(self.helper(task, 'cleanup').returncode, 0)
         self.assertFalse(task.exists())
         self.assertEqual(list(self.archive.iterdir()), [])
         self.assertNotIn(str(task), self.git(self.root, 'worktree', 'list', '--porcelain'))
         self.assertEqual((peer / 'unfinished').read_text(), 'peer work')
         self.git(self.root, 'show-ref', '--verify', 'refs/heads/codex/task')
 
-    def test_landing_runs_one_handoff_and_preserves_deliverables_before_cleanup(self) -> None:
+    def test_landing_reports_local_state_and_preserves_deliverables_before_explicit_cleanup(self) -> None:
         task = self.task('task')
         captures = task / '.DerivedData/Deliverables'
         captures.mkdir(parents=True)
@@ -211,7 +241,7 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         head = self.git(task, 'rev-parse', 'HEAD')
         result = self.helper(task, 'integrate')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertFalse(task.exists())
+        self.assertTrue(task.exists())
         self.assertEqual((self.root / '.git/checks').read_text(), 'checked\n')
         evidence = self.root / '.git/trinket-evidence/codex/task'
         saved = list(evidence.glob('*/files/.DerivedData/Deliverables/screen.png'))
@@ -223,6 +253,9 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         report = json.loads(next(evidence.glob('*/files/.DerivedData/Deliverables/task-report.json')).read_text())
         self.assertEqual(report['static_verified_commit'], head)
         self.assertIn('task', report['changed_paths'])
+        self.assertEqual(report['completion_state'], 'locally integrated; hosted verification pending')
+        self.assertEqual(self.helper(task, 'cleanup').returncode, 0)
+        self.assertFalse(task.exists())
 
     def test_invalid_evidence_preserves_main_and_never_follows_peer_symlinks(self) -> None:
         task = self.task('task')
@@ -238,7 +271,8 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         task = self.task('task')
         self.git(self.root, 'worktree', 'lock', str(task))
         result = self.helper(task, 'integrate')
-        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotEqual(self.helper(task, 'cleanup').returncode, 0)
         self.assertTrue(task.exists())
         self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), self.git(task, 'rev-parse', 'HEAD'))
         # Retry cleanup alone after unlocking and advancing main. A dirty primary

@@ -18,7 +18,7 @@ def main(argv=None) -> int:
     commands = parser.add_subparsers(dest='operation', required=True)
     commands.add_parser('plan', help='Write the current translation queue as JSON to stdout')
     commands.add_parser('template', help='Write a response skeleton with queue metadata and empty translation/review fields')
-    preparation = commands.add_parser('prepare', help='Save a fresh queue, resuming matching work from the latest draft')
+    preparation = commands.add_parser('prepare', aliases=['job'], help='Save a fresh queue, resuming matching work from the latest draft')
     preparation.add_argument('--resume', type=Path, help='Resume this response instead of the latest draft; originals remain untouched')
     review = commands.add_parser('review', help='Record your completed separate review of pending translations; preserve matching completed reviews; does not perform AI review')
     review.add_argument('response', type=Path)
@@ -36,16 +36,41 @@ def main(argv=None) -> int:
             print(json.dumps(plan(args.root), ensure_ascii=False, indent=2))
         elif args.operation == 'template':
             print(json.dumps(response_template(args.root), ensure_ascii=False, indent=2))
-        elif args.operation == 'prepare':
+        elif args.operation in {'prepare', 'job'}:
             directory = prepare(args.root, args.resume)
             print(f'Queue: {directory / "plan.json"}')
             print(f'Translate and separately review: {directory / "response.json"}')
             queue = load(directory / 'plan.json')
             print(f"Pending: {len(queue['requests'])} translations across {len({item['locale'] for item in queue['requests']})} locales.")
+            if not queue['requests']:
+                print('Localization job complete: no queued translations or reviews.')
+                return 0
+            finish_command = shlex.join(['python3', 'Scripts/localization.py', '--root', str(args.root),
+                                         'finish', str(directory / 'response.json'), '--rationale',
+                                         '<what the completed separate review checked>'])
+            (directory / 'translate.md').write_text(
+                '# Translation task\n\n'
+                f'Fill pending translations in `{directory / "response.json"}`. The response includes English, '
+                'game context, glossary, previous values, placeholders and native plural forms. '
+                'Preserve source IDs, hashes, semantic tags and every configured locale. '
+                'Leave review records pending. Do not copy English to clear the queue.\n\n'
+                'After translation, give review.md to a separate high-reasoning AI reviewer. '
+                'Do not run finish until that review has actually completed.\n')
+            (directory / 'review.md').write_text(
+                '# Independent localization review\n\n'
+                f'Review every pending entry in `{directory / "response.json"}` against its English '
+                'and game context. Check meaning, actors, targets, conditions, timing, quantities, chance, '
+                'terminology, grammar, placeholders, semantic markup and all native plural forms. '
+                'Correct defects and inspect the corrected values. Do not reuse the translation pass as review. '
+                'Preserve matching completed reviews and do not attest entries you have not checked.\n\n'
+                'Only after completing this separate review, record an honest rationale and finish:\n\n'
+                f'```sh\n{finish_command}\n```\n\n'
+                'finish binds review to the translated values, applies resources and validates the inventory. '
+                'The command performs no AI review itself. A remaining queue means the job is incomplete.\n')
+            print(f'Translation task: {directory / "translate.md"}')
+            print(f'Independent review task: {directory / "review.md"}')
             print('After translating and completing a separate AI review, finish with:')
-            print(shlex.join(['python3', 'Scripts/localization.py', '--root', str(args.root),
-                              'finish', str(directory / 'response.json'), '--rationale',
-                              '<what the completed separate review checked>']))
+            print(finish_command)
         elif args.operation == 'review':
             record_review(args.root, args.response, args.rationale)
             print(f'Recorded the caller-attested review: {args.response}')

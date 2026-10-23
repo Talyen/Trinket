@@ -56,6 +56,30 @@ class LocalizationTests(unittest.TestCase):
         result = run_python('localization.py', *prefix, 'check', expected=0)
         self.assertIn('Localization PASS', result.stdout)
 
+    def test_job_emits_separate_tasks_and_keeps_review_pending_until_attested(self):
+        prefix = ['--root', str(self.root)]
+        job = run_python('localization.py', *prefix, 'job', expected=0)
+        response = Path(next(line.split(': ', 1)[1] for line in job.stdout.splitlines()
+                             if line.startswith('Translate and separately review: ')))
+        translator = (response.parent / 'translate.md').read_text()
+        reviewer = (response.parent / 'review.md').read_text()
+        self.assertIn(str(response), translator)
+        self.assertIn(str(response), reviewer)
+        self.assertIn('separate high-reasoning AI reviewer', translator)
+        self.assertIn('does not perform AI review', reviewer.replace('performs no AI review itself', 'does not perform AI review'))
+        draft = json.loads(response.read_text())
+        self.assertTrue(all(item['review']['verdict'] == 'pending' for item in draft['translations']))
+        for item, translated in zip(draft['translations'], self.response()['translations']):
+            item['translation'] = translated['translation']
+        response.write_bytes(encoded(draft))
+        run_python('localization.py', *prefix, 'finish', str(response), '--rationale',
+                   'Fixture independent review checked all supplied meanings and mechanics, terminology, grammar and placeholders.', expected=0)
+        self.assertEqual(check(self.root), [])
+        self.assertTrue((response.parent / 'translate.md').is_file())
+        empty = run_python('localization.py', *prefix, 'job', expected=0)
+        self.assertIn('no queued translations or reviews', empty.stdout)
+        self.assertNotIn('finish ', empty.stdout)
+
     def test_finish_requires_valid_translations_and_records_only_explicit_review(self):
         prefix = ['--root', str(self.root)]
         response = prepare(self.root) / 'response.json'

@@ -394,111 +394,85 @@ with the Apple network boundary replaced by fixtures.
 
 ## Isolated chat workflow
 
-Use one isolated worktree and task branch per implementation chat; reuse its own
-suitable worktree. Task-scoped branch/worktree creation, commits, and local landing
-are authorized for implementation unless the user restricts the task. Pushes, PRs,
-publication, destructive cleanup, and unrelated changes need separate authorization.
-Read-only investigations can stay in the current checkout.
-
-From any checkout, create from committed local `main` (no fetch or dirty-file copy):
+Each implementation chat uses its own task checkout on `codex/<slug>`, based on
+committed local main. Read-only investigations need no worktree. Task creation,
+commits, local landing and final task cleanup are authorized; pushes, PRs,
+publication and unrelated changes need separate authorization.
 
 ```sh
 node Scripts/agent-worktree.mjs create --task <slug>
-```
-
-The helper prints the primary checkout's `.worktrees/<slug>` path and creates
-`codex/<slug>`. Use `--base <ref>` only for a user-specified alternative. Existing
-branches/directories are preserved; choose a unique slug for a new task. Run all
-implementation, review, and scoped checks inside the task worktree. Worktree
-isolation does not isolate external resources; retain existing simulator leases,
-asset-library safeguards, and verification limits. Supported check commands resolve
-installed tools from the task checkout first,
-then the primary checkout, then `PATH`; version and checksum gates still enforce
-pins. No manual `PATH` setup is needed in a fresh worktree. If tools are absent,
-use `./Scripts/ensure-ci-tools.sh`; lookup never installs implicitly. Build directories
-and generated resources remain checkout-local.
-
-For API or combat-semantic migrations, repeat the
-[consumer review](Testing.md#fixtures) after incorporating current main; include
-unchanged downstream tests and shared fixtures. Review the complete task diff and
-relevant integration contracts, run any focused checks needed while iterating,
-and commit only task-related files under the staging discipline below. Integration
-provides the required final handoff; a separate pre-commit handoff is unnecessary.
-Then, **from the task worktree**, run:
-
-```sh
+# Work in the printed checkout; brief intended files, implement and verify:
+python3 Scripts/agent-brief.py --status --read --paths <files...>
+./Scripts/handoff.sh --quiet
+# Review and commit task files, then:
 node Scripts/agent-worktree.mjs integrate
+# After reporting and finishing any remaining work:
+node Scripts/agent-worktree.mjs cleanup
 ```
 
-`Scripts/agent-integrate.py` takes a nonblocking OS file lock at
-`trinket-integration.lock` in Git's common directory, shared by all linked worktrees.
-It requires a clean task checkout on `codex/` and a clean primary checkout already
-on `main`, with no unfinished Git operations. While holding the lock, it rebases
-onto current local `main`. If that incorporates new main commits, it exits with
-status 3 before verification or landing, prints the incoming comparison, and retains
-the task checkout. Review the combined work and refresh any focused tests or visual
-evidence affected by incoming changes, then retry the same integration command.
-Another main advance creates another review checkpoint. With main already included,
-it runs `handoff.sh --isolate --quiet --paths` for the full rebased task diff
-(including deletions and both rename endpoints), rechecks both checkouts, protects ignored files from incoming tracked-path collisions, and
-fast-forwards primary `main`. All automated local main landings must
-use this command. Keep manual main edits out of the integration window; the lock
-is cooperative. The command does not fetch, push, create a PR, or run hosted checks.
+Use `--base <ref>` at creation only for a user-specified alternative. Reuse only
+this chat's suitable checkout; existing branches/directories are preserved.
+Installed tools resolve from the task checkout, then primary checkout, then PATH;
+version/checksum pins still apply. No PATH setup is needed. Missing tools use
+`./Scripts/ensure-ci-tools.sh`; lookup never installs implicitly. Build products
+and generated resources stay checkout-local. Simulator leases and asset-library
+safeguards still apply outside Git isolation.
 
-A busy lock means retry later without messaging peers. The OS releases it when the
-process exits, including crashes; never delete the lock file, which would split
-lock ownership. Dirty primary main remains untouched: leave the task committed and
-report the blocker if it persists. A rebase conflict stays in the task worktree;
-resolve understood conflicts there, review the combined result, finish the rebase,
-and retry. Bring ambiguous behavior decisions to the user. A failed handoff leaves
-main unchanged; repair the task, review and commit the fix, then retry. If the safe
-integration command is unavailable, retain reviewed commits on the task branch and
-report that limitation rather than landing through an unguarded command.
+### Landing and review
 
-No routine chat coordination is needed; the root guide's
-[communication rules](../../AGENTS.md#communication) own peer messaging.
+Review the full task diff and relevant consumers, then commit only task files.
+The integration helper holds a nonblocking OS lock in Git's common directory,
+requires a clean task checkout on `codex/` and clean primary main with no unfinished
+Git operations, and rebases the task onto current main. If main advanced, it
+pauses before landing so the combined work can be reviewed and affected verification
+refreshed. Retry after that review. To avoid a redundant checkpoint when current
+main was already reviewed against the task, pass `integrate --reviewed-main <commit>`;
+the helper rejects a later main advance before rebasing or landing.
 
-Successful integration automatically deletes and unregisters only the invoking
-task worktree under the same integration lock, including ignored files and build
-outputs. Handoff automatically saves compact verification reports; integration
-adds `task-report.json` with the verified commit, main base, task paths and report
-links. Before landing or cleanup, it preserves `.DerivedData/Deliverables/` in
-Git's shared `trinket-evidence/<branch>/` directory, outside task worktrees, with
-the preservation commit, branch, and original paths. This metadata records
-when files were preserved; capture/build identity still comes from the evidence.
-Evidence copies never follow symlinks; a failed preservation stops landing/cleanup. Each copy gets a unique
-directory, so retries do not overwrite earlier evidence. To preserve other
-task-local files immediately, run `node Scripts/agent-worktree.mjs evidence <paths...>`;
-without paths it prints the durable directory for direct captures. Evidence is
-retained until deliberately removed, separately from expiring diagnostic logs.
-Cleanup rechecks its registration,
-branch, commit, clean state and Git operation state; locked worktrees and submodules
-are preserved. A failed handoff never cleans up. Cleanup failure reports after the
-completed integration; it does not roll main back. From the retained task checkout,
-`node Scripts/agent-worktree.mjs cleanup` retries preservation and removal only,
-without rebase, verification or another landing. It accepts a task whose commit
-is already an ancestor of main, even after later tasks land. The shared lock,
-clean-task, registration, branch, submodule and symlink protections still apply;
-dirty primary files are untouched because cleanup does not change main.
+For API/combat migrations, repeat the [consumer review](Testing.md#fixtures) after
+incorporating main, including unchanged downstream tests and shared fixtures.
+A clean textual rebase is not semantic or compiled evidence.
 
-The checkout first moves atomically to a temporary directory under
-`~/.codex/worktree-archives/Trinket/` so failed unregistration can restore it.
-After unregistration, the temporary directory is deleted immediately; successful
-integration retains no archived checkout or build output. The task branch remains
-available through `git worktree add <original-path> <branch>`; ignored and other
-local-only files are permanently deleted. Use `--keep-worktree` when those files
-are still needed. `CODEX_WORKTREE_ARCHIVE_ROOT` can select an external staging
-directory; a cross-filesystem move fails without deleting the source. If cleanup
-fails after integration, inspect the reported checkout or staging directory;
-`recovery.json` records the original path, branch and commit.
+Integration runs a final **static** handoff with plan closure under the lock,
+rechecks both checkouts and ignored-file collisions, then fast-forwards main.
+Use this helper for every automated local landing. It does not fetch, push or run
+hosted checks. The lock is cooperative; keep manual main edits out of the landing
+window. Never delete the lock file. A busy lock means retry later without messaging
+peers. Dirty main remains untouched: preserve committed task work and report the
+blocker if it persists. Resolve understood rebase conflicts only in the task checkout;
+bring ambiguous behavior decisions to the user. A failed check leaves main unchanged.
 
-Pass `node Scripts/agent-worktree.mjs integrate --keep-worktree` for intermediate
-integration when requested work, a preview or an experiment still needs the checkout.
-Report the local main commit, verification boundary and cleanup result. Hosted checks
-remain pending until a separately authorized push. Explicit removal from primary
-remains available with `node Scripts/agent-worktree.mjs remove --task <slug>` after
-preserving ignored files; it refuses dirty, unmerged or unexpected worktrees and
-retains the branch.
+### Evidence and cleanup
+
+Landing retains the checkout, ignored files and build outputs. `--keep-worktree`
+remains a compatibility no-op. The result is **locally integrated; hosted verification
+pending**; required visual evidence and any requested remaining work must still be
+completed. Push/hosted follow-up requires the existing separate authorization.
+
+Handoff writes verification reports automatically. Integration adds `task-report.json`
+with the local completion state, main base, task paths and evidence links, and copies
+`.DerivedData/Deliverables/` to Git's shared `trinket-evidence/<branch>/` directory.
+Copies have unique names, preservation commit/branch/path metadata, and never follow
+symlinks. Failed preservation stops landing or cleanup; raw build logs expire
+separately. Save visual artifacts in Deliverables. For other task-local evidence,
+use `node Scripts/agent-worktree.mjs evidence <paths...>`; without paths it prints
+the durable directory. Evidence provenance still comes from the capture/build record.
+
+When no remaining work needs the checkout, run `cleanup` there. It preserves
+deliverables again and removes only this clean, registered, integrated task worktree,
+including ignored outputs; it retains the branch and never changes primary main.
+It refuses unmerged/dirty tasks, locked worktrees, submodules and unsafe registrations.
+It can run after main advances or while primary files are dirty. A cleanup failure
+does not roll back landing; inspect the reported path and retry cleanup.
+
+Removal first moves the checkout to a temporary directory under
+`~/.codex/worktree-archives/Trinket/`, unregisters it, then deletes that temporary
+copy. Failed unregistration restores the checkout. `CODEX_WORKTREE_ARCHIVE_ROOT`
+can select another external staging directory; cross-filesystem moves fail without
+deleting the source. `recovery.json` identifies the original checkout, branch and
+commit. Recover tracked work with `git worktree add <path> <branch>`; ignored files
+are permanently deleted by successful cleanup. Legacy `remove --task <slug>` from
+primary remains supported and refuses ignored files as well as dirty/unmerged work.
 
 ## Local hooks and push discipline
 

@@ -21,10 +21,10 @@ and do not reopen a task.
 
 ## Protect the workspace
 
-- Before editing, inspect scoped status with the briefing below and every overlapping dirty file's full diff. Preserve in-flight work with surgical edits; clarify unclear ownership. Use `git status --short` only for intentional whole-tree inspection.
+- Read every overlapping dirty file's full diff before editing; preserve unrelated and unfinished work. The briefing below supplies scoped status.
 - Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree.
 - Use one isolated worktree and `codex/` task branch per implementation chat, based on committed local `main` unless instructed otherwise. Reuse that chat's suitable worktree; do not inspect other chats to decide whether isolation is needed. Keep the primary checkout on `main` for locked integration only. [Isolated chat workflow](Docs/Platform/Release.md#isolated-chat-workflow) owns commands, locking, and recovery.
-- Implementation tasks authorize task-scoped commits and verified local integration into `main`, unless the user restricts the task. Verified integration automatically deletes and unregisters only the invoking task worktree, including ignored files and build outputs, while retaining its branch. Use `agent-worktree.mjs integrate --keep-worktree` for intermediate landings while requested work or a preview still needs it. Pushes, PRs, publication, other destructive cleanup, and unrelated changes require separate authorization. Read [Release](Docs/Platform/Release.md#local-hooks-and-push-discipline) for staging and push rules; hosted CI runs after a push and is not a prerequisite for it. For TestFlight, read [deployment](Docs/Platform/Release.md#local-testflight-deployment) and use `./Scripts/testflight.sh` and its doctor.
+- Implementation tasks authorize task-scoped commits and verified local integration into `main`, unless the user restricts the task. Landing retains the checkout; run `node Scripts/agent-worktree.mjs cleanup` after finishing the task and preserving deliverables. Pushes, PRs, publication, and unrelated changes need separate authorization. [Release](Docs/Platform/Release.md#isolated-chat-workflow) owns recovery; [TestFlight](Docs/Platform/Release.md#local-testflight-deployment) owns deployment.
 - Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. CI checks generation freshness; `./Scripts/generate.sh` explicitly regenerates.
 - Never kill foreign Xcode/Simulator processes. [Verification](Docs/Platform/Verification.md) owns isolation and diagnostics.
 
@@ -39,28 +39,26 @@ and do not reopen a task.
 
 ## Route and read
 
-Use ordinary scoped `rg`, file reads, and `git diff` for discovery and review.
-Before editing intended files, run
-`python3 Scripts/agent-brief.py --status --read --paths <files...>` once for
-applicable safeguards and concise ownership. Read linked behavior contracts for
-the change; `--full --read` expands them explicitly. This is the only required
-retrieval command. Reuse unchanged guidance already in context; follow linked contracts and
-skills only for the behavior being changed. Index pages are lookup aids, not
-additional reading requirements. Follow callers and assertions as needed.
+The ordinary implementation loop is:
 
-As the task grows, `--base main` derives scope from task commits plus dirty files,
-including deletions and both rename endpoints. Use the user-specified base when
-different. Rerun briefing when entering another owner. `--paths` remains useful for
-focused work; `--working-tree` is an intentional whole-tree dirty-file view.
+1. Create a task checkout: `node Scripts/agent-worktree.mjs create --task <slug>`.
+2. Locate intended files with `rg`, then run `python3 Scripts/agent-brief.py --status --read --paths <files...>` before editing. Read the affected behavior contracts and inspect overlapping dirty diffs. Reuse unchanged guidance; rerun when entering another owner.
+3. Implement and run `./Scripts/handoff.sh --quiet` in the task checkout. It derives task scope from `main`, runs scoped static checks and directly affected package tests serially, and compiles the app when needed. `--dry-run` previews; `--paths <files...>` narrows iteration checks.
+4. Review the full task diff, commit task files, then run `node Scripts/agent-worktree.mjs integrate`. If main advanced, review the combined changes and refresh affected verification before retrying. If current main was already reviewed, pass `--reviewed-main <commit>`; a later advance still stops landing.
+5. Report the local result and remaining verification, then clean up the task checkout when no further work needs it.
 
-Optional retrieval commands remain compatible; use their `--help` only when a
-specific capability is useful. Read every overlapping dirty diff before editing. Create an
-[execution plan](Docs/Plans/README.md) only for durable coordination/resumption.
+`--base <ref>` selects a user-specified base for briefing and handoff; `--base main`
+includes task commits plus dirty files, deletions and both rename endpoints.
+`--working-tree` selects dirty files only. Never narrow the final task scope to
+hide failures. The briefing is the only required retrieval tool; other navigation
+helpers are optional compatibility utilities. Index pages are lookup aids.
+Create an [execution plan](Docs/Plans/README.md) only when durable resumption needs it.
 
 ## Choose the change
 
 Player-facing text changes complete [localization](Docs/Platform/Localization.md#agent-workflow)
-in the same task. `prepare` resumes matching drafts; `apply` includes validation.
+in the same task. `python3 Scripts/localization.py job` prepares resumable translation
+and independent-review tasks; the agent completes them and runs the printed finish command.
 Retain every configured language and a separate actual AI review; never fabricate
 review records or copy English to clear a gate. Hooks, builds and CI never call AI.
 
@@ -83,10 +81,10 @@ caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
 - Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
-- Static handoff stays resource-light. Use `handoff.sh --package <Package> --paths <files...>` for one task-relevant package compile/test without another approval. Broad compilation, UI/performance suites and freshness generation remain CI-owned; [Verification](Docs/Platform/Verification.md#execution-limits) owns selection and limits.
-- Integration pauses for combined review if main advanced, then runs the final static handoff under the lock on retry; do not duplicate it before committing solely for landing. Use `./Scripts/handoff.sh --quiet --base main` for standalone handoff or `--paths <files...>` for focused checks. Isolation is automatic; existing `--isolate` calls remain valid. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns static, focused, visual, and release routes and their evidence limits.
-- Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. A local handoff proves only its lightweight checks; report CI-owned checks as pending until hosted evidence confirms them.
-- Handoff records verification evidence automatically; integration adds a task report and preserves `.DerivedData/Deliverables/` outside the checkout before cleanup. Save visual artifacts there too. `node Scripts/agent-worktree.mjs evidence [path...]` preserves other files or prints the durable directory. After a successful landing, `cleanup` retries only checkout removal.
+- Handoff selects bounded local checks automatically. Explicit package/UI selectors remain available; `--route static` runs cheap checks only. Broad qualification and generation freshness stay hosted. [Verification](Docs/Platform/Verification.md#confidence-ladder) owns selection and resource limits.
+- Player-facing layout, copy, artwork and motion changes require inspection of the final shipping UI under the [visual completion gate](Docs/Platform/Verification.md#visual-completion-gate). Compilation and test success alone do not establish visual quality.
+- Integration holds the shared lock, preserves dirty work, and runs a final static check with plan closure. It retains the checkout. Evidence is saved automatically; put visual artifacts in `.DerivedData/Deliverables/`.
+- Report what passed and exact blockers/skips. **Locally integrated; hosted verification pending** is a valid local handoff, not a claim of full qualification. Follow hosted checks after a separately authorized push; do not require hosted results before that push. Cleanup preserves deliverables outside the task checkout and retains the branch.
 
 ## Maintain guidance
 

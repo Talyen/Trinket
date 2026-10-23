@@ -14,8 +14,8 @@ import sys
 import tempfile
 import uuid
 
-from internal.change_routing import Check, collect_paths, classify, verification_plan, lightweight
-from internal.cli import ROOT, pinned_tool_path, write_json_atomic
+from internal.change_routing import Check, collect_paths, classify, verification_plan, automatic_plan
+from internal.cli import ROOT, pinned_tool_path, write_json_atomic, read_env_arrays
 from internal.ui_registration import registrations
 from internal import output_retention as retention
 
@@ -30,6 +30,8 @@ def save_report(root: Path, route: str, paths: list[str], checks, outcomes: dict
     dirty = subprocess.run(['git', 'status', '--porcelain', '--untracked-files=all'], cwd=root, text=True, capture_output=True)
     report = directory / f'{route}-{uuid.uuid4().hex}.json'
     write_json_atomic(report, {
+        'local_state': 'checks passed' if status == 0 else 'verification incomplete',
+        'hosted_state': 'pending; requires an authorized push and successful hosted checks',
         'version': 1, 'recorded_at': datetime.now(timezone.utc).isoformat(),
         'route': route, 'exit_status': status,
         'commit': revision.stdout.strip() if revision.returncode == 0 else None,
@@ -58,7 +60,7 @@ def run_checks(checks, *, root: Path = ROOT, quiet: bool = False, environment: d
             if check.deferred:
                 outcomes[check.id] = 'deferred to CI'
                 continue
-            if check.id == 'build' and shutil.which('xcodebuild', path=environment.get('PATH')) is None:
+            if (check.id == 'build' or check.id.startswith('package:') or check.id == 'package') and shutil.which('xcodebuild', path=environment.get('PATH')) is None:
                 unavailable = True
                 outcomes[check.id] = 'unavailable'
                 continue
@@ -94,7 +96,7 @@ def run_checks(checks, *, root: Path = ROOT, quiet: bool = False, environment: d
                 return status
         if unavailable:
             status = 2
-            print('Handoff INCOMPLETE: app compilation requires xcodebuild; available checks passed.', file=sys.stderr)
+            print('Handoff INCOMPLETE: selected compilation requires xcodebuild; available checks passed.', file=sys.stderr)
         return status
     except BaseException:
         status = status or 1
@@ -126,16 +128,17 @@ def report_evidence(checks, outcomes: dict[str, str], *, preview: bool, status: 
         print('Release verification: ' + state([check for check in checks if check.id == 'release']))
         print('Static, app/package compilation and UI results: inspect the release runner report.')
     else:
-        print('Static checks: ' + state([check for check in checks if check.id not in {'package', 'build', 'smoke', 'generate', 'assert', 'mirror'}]))
+        print('Static checks: ' + state([check for check in checks if check.id not in {'package', 'build', 'smoke', 'generate', 'assert', 'mirror'} and not check.id.startswith('package:')]))
         print('App compilation: ' + state([check for check in checks if check.id in {'build', 'smoke'}]))
-        print('Package compilation and behavior: ' + state([check for check in checks if check.id == 'package']))
+        print('Package compilation and behavior: ' + state([check for check in checks if check.id == 'package' or check.id.startswith('package:')]))
         print('UI behavior: ' + state([check for check in checks if check.id == 'smoke']))
+    print('Hosted verification: pending until successful hosted evidence is available.')
     print('Visual review: separate shipping-UI evidence required when visuals change; handoff does not certify it.')
     if status:
         print('Next: resolve failed/unavailable checks and rerun handoff.')
     elif preview:
         print('Next: execute this handoff to establish the planned evidence.')
-    elif route != 'static':
+    elif route not in {'static', 'auto'}:
         print('Next: review the captured results; focused verification and inspection do not replace static handoff or hosted qualification.')
     elif any(check.deferred for check in checks):
         print('Next: local integration is permitted after review; after an authorized push, inspect hosted CI for deferred checks.')
@@ -149,27 +152,27 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     scope.add_argument('--paths', nargs='+')
     scope.add_argument('--working-tree', action='store_true')
     scope.add_argument('--base', help='include task commits since the shared ancestor of REF and HEAD, plus dirty files')
-    parser.add_argument('--route', choices=('static', 'focused', 'diagnostic', 'visual', 'release'),
-                        help='static handoff by default; selectors choose focused verification; diagnostic remains an alias')
+    parser.add_argument('--route', choices=('auto', 'static', 'focused', 'diagnostic', 'visual', 'release'),
+                        help='auto selects scoped static and compiled checks; static is the cheap landing gate; explicit selectors remain supported')
     target = parser.add_mutually_exclusive_group()
-    target.add_argument('--package', help='focused: run this package only')
+    target.add_argument('--package', nargs='+', help='focused: run selected packages serially')
     target.add_argument('--ui', help='focused: run one existing UI class or method selector')
     target.add_argument('--app-only', action='store_true', help='focused: compile the app only')
     for flag in ('dry-run', 'quiet', 'isolate', 'smoke', 'mirror', 'final', 'keep-plan'):
         parser.add_argument('--' + flag, action='store_true')
     args = parser.parse_args(argv)
     if args.paths is None and not args.working_tree and args.base is None:
-        parser.error('handoff requires --paths <file...> or --base <ref>; use --working-tree for intentional whole-tree scope')
+        args.base = 'main'
     if args.paths == []:
         parser.error('--paths requires at least one repository-relative path')
     selected = bool(args.package or args.ui or args.app_only)
-    args.route = args.route or ('focused' if selected else 'static')
+    args.route = args.route or ('focused' if selected else 'static' if args.mirror else 'auto')
     if args.route == 'diagnostic':
         args.route = 'focused'
     if selected != (args.route == 'focused'):
         parser.error('focused verification requires exactly one of --package, --ui, --app-only')
-    if args.route != 'static' and (args.smoke or args.mirror or args.final or args.keep_plan):
-        parser.error('--smoke, --mirror, --final and --keep-plan apply only to the static route')
+    if args.route not in {'static', 'auto'} and (args.smoke or args.mirror or args.final or args.keep_plan):
+        parser.error('--smoke, --mirror, --final and --keep-plan apply only to auto/static checks')
     environment = dict(os.environ)
     environment['PATH'] = pinned_tool_path(root, environment.get('PATH', ''))
     if not environment.get('TRINKET_DIAGNOSTICS_SESSION_ID'):
@@ -180,16 +183,25 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     environment['TRINKET_ISOLATE'] = '1'
     try:
         route = classify(collect_paths(args.paths, root, base=args.base), root, base=args.base)
-        if not route.paths and args.route == 'static':
+        if not route.paths and args.route in {'static', 'auto'}:
             print('No changes in the selected scope to verify; no new evidence established.')
             return 0
-        if args.route == 'static':
+        if args.route == 'auto' and args.mirror:
+            raise ValueError('--mirror requires --route static or the legacy unqualified --mirror invocation')
+        if args.route == 'auto':
+            checks = automatic_plan(route, root=root, environment=environment, final=args.final, keep_plan=args.keep_plan)
+        elif args.route == 'static':
             checks = verification_plan(route, root=root, environment=environment, smoke=args.smoke or environment.get('TRINKET_ENABLE_SMOKE') == 'true', final=args.final, keep_plan=args.keep_plan, mirror=args.mirror)
         else:
             environment['TRINKET_ALLOW_HEAVY_LOCAL'] = '1'
             if args.route == 'focused':
                 if args.package:
-                    checks = [Check('package', 'focused package verification', ('./Scripts/test-package.sh', args.package))]
+                    known = set(read_env_arrays(root / 'Scripts/build-inputs.env', ['TRINKET_TEST_PACKAGES'])['TRINKET_TEST_PACKAGES'])
+                    if not set(args.package) <= known or len(args.package) != len(set(args.package)):
+                        raise ValueError('--package requires distinct registered package names')
+                    environment['TRINKET_PACKAGE_TEST_JOBS'] = '1'
+                    checks = [Check('package:' + package, 'focused package verification: ' + package,
+                                    ('./Scripts/test-package.sh', package)) for package in args.package]
                 elif args.ui:
                     suite = next((row['suite'] for row in registrations(root)
                                   if row['name'] == args.ui.partition('/')[0]), None)
@@ -210,8 +222,8 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             print('Planned checks:')
             for check in checks:
                 if not check.deferred:
-                    if check.id == 'build' and shutil.which('xcodebuild', path=environment.get('PATH')) is None:
-                        print('Unavailable required check: app compilation (xcodebuild missing).')
+                    if (check.id == 'build' or check.id.startswith('package:') or check.id == 'package') and shutil.which('xcodebuild', path=environment.get('PATH')) is None:
+                        print(f'Unavailable required check: {check.label} (xcodebuild missing).')
                     else:
                         print('  ' + check.command)
             status = 0
@@ -230,10 +242,10 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         if status:
             print('Rerun: ' + shlex.join(['./Scripts/handoff.sh', *(sys.argv[1:] if argv is None else argv)]), file=sys.stderr)
         elif not args.dry_run:
-            if args.route != 'static':
+            if args.route not in {'static', 'auto'}:
                 print(f'{args.route.capitalize()} route completed; see evidence above for its scope.')
             else:
-                print('Handoff PASS: lightweight local checks completed; deferred checks require CI verification.' if lightweight(environment) else 'Handoff PASS: selected checks and cheap CI slices completed.')
+                print('Handoff PASS: selected local checks completed; hosted verification remains pending.')
         return status
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         parser.exit(2, f'Verification failed: {error}\n')

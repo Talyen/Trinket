@@ -24,7 +24,7 @@ Indexes and optional navigation helpers add no approval or checklist steps.
 |------|-------|
 | Toolchain versions, schemes, entitlements | [project.yml](../project.yml), `Packages/*/Package.swift`, [tool-versions.env](../Scripts/tool-versions.env); required CI Xcode version/build in [ci-xcode.json](../Scripts/config/ci-xcode.json) |
 | Commands and flags | script usage/option parsing and [command reference](../Scripts/Reference.md) |
-| When to run which gate | [Platform/Verification.md](Platform/Verification.md) |
+| When to run which gate and what completion means | [Platform/Verification.md](Platform/Verification.md); hosted implementation details in [VerificationInternals](Platform/VerificationInternals.md) |
 | What a good test is | [Platform/Testing.md](Platform/Testing.md) |
 | Module DAG and hub containment | [Platform/Architecture.md](Platform/Architecture.md) (`check-module-boundaries.sh`) |
 | Player-facing locked choices | [Product/Decisions.md](Product/Decisions.md) |

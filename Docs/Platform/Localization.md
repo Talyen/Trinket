@@ -7,40 +7,30 @@ There is no paid translation API, runtime translation service, or human translat
 
 ## Agent workflow
 
-Every task that changes displayed copy completes its localization before handoff.
-For optional routed pointers, use `python3 Scripts/agent-brief.py --task localization --read`.
+Every displayed-copy change completes localization in the same task:
 
-1. Edit the owning English catalog, authored content, or
-   [store copy](../../Localization/Store/English.json), preserving stable keys.
-2. Run `python3 Scripts/localization.py prepare`. It saves one consistent
-   `plan.json` and contextual `response.json` under a new `.DerivedData/Localization/`
-   directory without overwriting earlier drafts. It resumes the latest draft by
-   default; `prepare --resume <response.json>` selects another draft. Only matching
-   ID/locale/source hashes carry translations forward. Completed reviews survive
-   only when bound to the exact translated values; changed sources start empty,
-   and changed translations require review again. The response includes English,
-   translator comments, glossary, previous translations, placeholders, source
-   fingerprints, and locale plural forms together. Fill only queued translations.
-3. Perform a separate AI review against English and game rules: meaning, mechanics
-   (actors, targets, conditions, timing, quantities and chance), terminology,
-   placeholders/markup, and grammar. Correct defects. When delegating translation
-   or review, use high-reasoning subagents. After actually completing every check
-   for every pending supplied entry, run `python3 Scripts/localization.py finish
-   <response.json> --rationale '<what the separate review checked>'`. `prepare`
-   prints this command with the draft path. It records your attestation, binds it
-   to the translated values, applies the results, generates resources, and validates
-   the complete inventory. It does not perform AI review. Existing matching
-   hash-bound reviews retain their original rationale and need no repeated review.
-   Trim a batch to the entries you reviewed when necessary.
-4. Commit catalogs, review fingerprints, generated resources, and the English
-   change together. An incomplete batch remains applied but exits nonzero with its
-   remaining queue; resume with `prepare`. `check` is a standalone read-only gate.
+1. Edit the canonical English catalog, content, or [store copy](../../Localization/Store/English.json), preserving stable keys.
+2. Run `python3 Scripts/localization.py job`. It prepares a resumable response and ready-to-use translation and independent-review tasks. Follow `translate.md`, then give `review.md` to a separate high-reasoning AI reviewer. The agent coordinates these tasks; no AI service or human export step is built into the CLI.
+3. After the separate review actually completes, run the printed `finish <response.json> --rationale '<completed checks>'` command. It records the attestation, binds it to the translated values, applies resources and validates the inventory. Commit English, catalogs, review fingerprints and generated resources together.
 
-The existing `review` and `apply` steps, `plan` and `template` stdout commands,
-and manually authored review records remain supported. Preparation never marks translations reviewed. The
-review command rejects stale sources and incomplete or mechanically invalid
-translations; apply rejects edits to translations after a recorded review.
-Actual separate review remains mandatory for every configured language.
+The job contains English, game context, glossary, previous translations,
+placeholders, source fingerprints and native plural forms. Review meaning and
+mechanics (actors, targets, conditions, timing, quantities and chance), terminology,
+markup/placeholders and grammar for every pending supplied entry. Correct defects
+before attesting. Do not fabricate review records, copy English to clear the queue,
+or drop configured languages. An unavailable AI allowance leaves an incomplete job.
+
+`job` and `prepare` are aliases. A new job resumes matching drafts by default;
+`--resume <response.json>` selects one explicitly. Original drafts are preserved.
+Only matching source identities/hashes carry translations forward. Completed reviews
+survive only when bound to the exact values; edited translations need review again.
+Trim a batch to the entries actually reviewed when necessary. An incomplete batch
+preserves applied work and exits nonzero with its remaining queue; resume the job.
+
+`check` is the read-only gate. Legacy `review`/`apply`, stdout `plan`/`template`,
+and manual review records remain compatible. Preparation never marks review complete;
+`finish` performs no AI review. Hash-bound fingerprints prove recorded work, not
+linguistic correctness. Hooks, builds and CI make no AI calls.
 
 Swift-authored content uses stable source anchors. The initial key aliases in
 `Localization/source-keys.json` preserve existing key identities; new anchors get

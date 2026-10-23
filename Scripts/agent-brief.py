@@ -55,7 +55,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         cards = [card for card in route.cards if card not in focus]
         emit('Ownership and integration (read applicable constraints)', [card for card in cards if card.partition('#')[0] not in BEHAVIOR_CARDS])
         emit('Behavior references (read relevant sections and follow dependencies)', [card for card in cards if card.partition('#')[0] in BEHAVIOR_CARDS])
-        triggers = {'apple-design': 'visual or interaction changes', 'architect': 'public type, protocol, schema, or package boundary changes', 'doc-budget': 'checker directives or suppression failures'}
+        triggers = {'apple-design': 'visual or interaction changes', 'architect': 'public type, protocol, schema, or package boundary changes', 'doc-budget': 'checker directives or suppression failures', 'swiftui-specialist': 'SwiftUI state, identity, correctness or update performance'}
         emit('Skills (load only when the trigger applies)', [skill + ' — ' + triggers.get(Path(skill).parent.name, 'see skill description') for skill in route.skills])
         emit('Memory (only for its concern)', route.knowledge)
         if read and task and not args.read: emit('Suggested initial reads (root already injected; follow other relevant behavior and skill references)', [read])
@@ -72,9 +72,10 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         emit('Boundary warnings', route.warnings)
         emit('Generated-output warnings', route.generated_warnings)
         handoff = ['./Scripts/handoff.sh', '--isolate', '--quiet', *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
+        emit('Verify (selects scoped checks automatically; --dry-run previews)', [shlex.join(handoff)])
         emit('Landing (from the task worktree after review/commit; includes final static handoff)',
              ['node Scripts/agent-worktree.mjs integrate'])
-        emit('Optional iteration or standalone check (isolated automatically)', [shlex.join(handoff)])
+        emit('Finish (after reporting and any remaining work)', ['node Scripts/agent-worktree.mjs cleanup'])
         if args.full: emit('Plan detail (sequential under that tenant)', [check.command + (' (deferred to CI locally)' if check.deferred else '') for check in verification_plan(route, root=root, smoke=args.smoke)])
         if route.smoke_unresolved: print('UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.')
         if args.read and read:

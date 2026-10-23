@@ -65,10 +65,9 @@ This supports iOS 18.0 without `isolated deinit`, which requires iOS 18.4+.
 
 ## Testing
 
-Package execution and local diagnostic opt-in follow
-[Verification](../../Docs/Platform/Verification.md#execution-limits); routine local
-changes use path-scoped handoff.
+Ordinary task checks are selected automatically by
+[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
 
 ```sh
-./Scripts/test-package.sh TrinketCore
+./Scripts/handoff.sh --package TrinketCore
 ```

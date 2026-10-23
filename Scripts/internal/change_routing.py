@@ -102,7 +102,7 @@ BEHAVIOR_CARDS = {ACTION, PRESENTATION, STORAGE, PROGRESSION, BALANCE, LAUNCH, U
 
 
 def guidance_references() -> set[str]:
-    references = {'Docs/Platform/Localization.md', CONTENT, PERSISTENCE, RUNTIME, LAUNCH, ENGINE, BALANCE, UI, UI_PERFORMANCE, AUDIO, TALENTS, *sections(CONTENT, 'shared-safeguards', 'project-generation', 'generation-tooling')}
+    references = {'Docs/Platform/Localization.md', CONTENT, PERSISTENCE, RUNTIME, LAUNCH, ENGINE, BALANCE, UI, UI_PERFORMANCE, AUDIO, TALENTS, UI + '#interaction-constraints', *sections(CONTENT, 'shared-safeguards', 'project-generation', 'generation-tooling')}
     for _, values in (*OWNER_GUIDANCE, *CONTENT_GUIDANCE):
         references.update(values)
     return references
@@ -233,8 +233,13 @@ def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) ->
     for path in paths:
         if path.endswith('.swift'):
             tracked = subprocess.run(['git', 'ls-files', '--error-unmatch', '--', path], cwd=root, capture_output=True).returncode == 0
-            diff = subprocess.check_output(['git', 'diff', '--no-ext-diff', '--unified=0', comparison, '--', path], cwd=root, text=True) if tracked else '\n'.join((root / path).read_text().splitlines()[:240]) if (root / path).is_file() else ''
+            diff = subprocess.check_output(['git', 'diff', '--no-ext-diff', '--unified=0', comparison, '--', path], cwd=root, text=True) if tracked else (root / path).read_text() if (root / path).is_file() else ''
             if re.search(r'//.*(swiftlint:|swiftformat:|[A-Za-z]+Check:\s*allow|Concurrency-Safety:)', diff): route.add('skills', '.agents/skills/doc-budget/SKILL.md')
+            # A changed enum case can break external exhaustive switches without
+            # changing a line containing "public". Treat API-bearing files broadly.
+            source = (root / path).read_text() if (root / path).is_file() else ''
+            if diff and re.search(r'\b(?:public|open)\b', diff + '\n' + source):
+                route.features.add('public-api')
             public = r'(public\s+(actor|class|enum|struct|protocol|typealias)|(^|\s)protocol\s|@Model|[A-Za-z0-9_]+Schema|@attached)'
             if re.search(r'^\+(?!\+).*' + public if tracked else public, diff, re.MULTILINE): route.add('skills', '.agents/skills/architect/SKILL.md'); route.add('knowledge', '.agents/knowledge/patterns/module-dag-containment.md')
         for owners, references in OWNER_GUIDANCE:
@@ -245,7 +250,9 @@ def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) ->
             if parent == root: break
             if (parent / 'AGENTS.md').is_file(): route.add('guides', (parent / 'AGENTS.md').relative_to(root).as_posix())
     if any(matches(path, 'Localization/*', '*.xcstrings', 'Scripts/*localization*', 'Scripts/internal/localization*') for path in paths): route.add('cards', 'Docs/Platform/Localization.md')
-    if any(matches(path, *VISUAL_PATHS) for path in paths): route.add('skills', '.agents/skills/apple-design/SKILL.md'); route.add('cards', UI)
+    if any(matches(path, *VISUAL_PATHS) for path in paths):
+        route.add('skills', '.agents/skills/apple-design/SKILL.md', '.agents/skills/swiftui-specialist/SKILL.md')
+        route.add('cards', UI)
     return route
 
 
@@ -328,6 +335,44 @@ def verification_plan(route: Route, *, root: Path = ROOT, environment: dict[str,
             raise ValueError('Simulator mirroring is CI-owned; a bounded local diagnostic requires TRINKET_ALLOW_HEAVY_LOCAL=1')
         add('mirror', 'mirror', './Scripts/promote.sh', '--quiet', heavy=True)
     return checks
+
+
+def automatic_plan(route: Route, *, root: Path = ROOT, environment: dict[str, str], final: bool = False, keep_plan: bool = False) -> list[Check]:
+    """Keep static checks cheap; execute directly affected packages serially.
+
+    Shared fixtures can route many consumer suites. Those additional suites and
+    broad generation remain hosted obligations rather than an implicit full run.
+    """
+    planning_environment = environment if environment.get('GITHUB_ACTIONS') == 'true' else {**environment, 'TRINKET_ALLOW_HEAVY_LOCAL': ''}
+    checks = verification_plan(route, root=root, environment=planning_environment, smoke=True, final=final, keep_plan=keep_plan)
+    if environment.get('GITHUB_ACTIONS') == 'true':
+        return checks
+    direct = {path.split('/')[1] for path in route.paths
+              if path.startswith('Packages/') and (path.endswith('.swift') or path.endswith('/Package.swift'))}
+    compile_app = ('build' in route.needs or bool(route.features & {'feature', 'public-api'}) or
+                   '.agents/skills/architect/SKILL.md' in route.skills or
+                   any(path.endswith('/Package.swift') for path in route.paths))
+    selected = []
+    for check in checks:
+        if check.id == 'package':
+            for package in route.packages:
+                selected.append(Check('package:' + package, 'package tests: ' + package,
+                                      ('./Scripts/test-package.sh', package),
+                                      (('SKIP_GENERATE', '1'), ('TRINKET_ALLOW_HEAVY_LOCAL', '1'), ('TRINKET_PACKAGE_TEST_JOBS', '1')),
+                                      package not in direct))
+        elif check.id == 'build':
+            # App-only compilation includes unchanged consumers of shared APIs.
+            if compile_app:
+                selected.append(Check('build', 'app compilation', ('./Scripts/test.sh', 'unit', '--app-only'),
+                                      (('SKIP_GENERATE', '1'), ('TRINKET_ALLOW_HEAVY_LOCAL', '1'))))
+            else:
+                selected.append(check)
+        else:
+            selected.append(check)
+    if compile_app and not any(check.id == 'build' for check in selected):
+        selected.append(Check('build', 'app compilation', ('./Scripts/test.sh', 'unit', '--app-only'),
+                              (('SKIP_GENERATE', '1'), ('TRINKET_ALLOW_HEAVY_LOCAL', '1'))))
+    return selected
 
 
 if __name__ == '__main__':
