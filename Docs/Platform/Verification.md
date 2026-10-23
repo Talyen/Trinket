@@ -13,6 +13,7 @@ and `--dry-run` to preview without executing anything.
 |---|---|---|
 | Ordinary task verification | `handoff.sh --quiet` | Scoped static checks; compilation and test obligations reported as deferred to CI |
 | Cheap static checks only | `handoff.sh --route static --paths <files...>` | Style, scripts/docs and cheap invariants; no compilation or simulator |
+| One concrete local diagnostic | Exact selector under the [single focused diagnostic limits](#single-focused-local-diagnostic) | One bounded attempt without additional approval; setup counts toward the deadline |
 | Expressly requested local package diagnostic | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --package <Package...> --paths <files...>` | Selected package tests, executed serially |
 | Expressly requested local app compilation | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --app-only --paths <files...>` | App and unchanged downstream consumers compile |
 | Expressly requested local UI diagnostic | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --ui <Class[/method]> --paths <files...>` | The selected registered Smoke/FullUI journey |
@@ -31,8 +32,9 @@ Explicit selectors run only that selected work; they do not replace static landi
 checks. `--route focused` is optional and `diagnostic` remains a compatibility alias.
 `--isolate` is also retained for compatibility; isolation is automatic. Ordinary
 verification needs no additional user approval or manual environment flags.
-Focused/release execution requires `TRINKET_ALLOW_HEAVY_LOCAL=1` locally and an
-express user request for that local work; selectors alone never enable the override.
+Focused/release execution requires `TRINKET_ALLOW_HEAVY_LOCAL=1` locally and either
+the single focused diagnostic exception below or an express user request for that
+local work; selectors alone never enable the override.
 Dry-run previews need no opt-in. The bounded visual route remains authorized by
 the visual completion gate below.
 
@@ -163,10 +165,10 @@ satisfy the gate. Guidance-only edits use scenario review, not a synthetic UI bu
 Do not run local compilation, package tests, simulator test journeys, full script
 qualification or performance measurements merely to complete an ordinary task.
 A task request, a failing CI check, or an explicit selector alone is not permission
-to move that workload onto this Mac. Use lightweight handoff and report hosted
+to move broad qualification onto this Mac. Use lightweight handoff and report hosted
 checks as pending until an authorized push runs them. Do not push just to obtain CI.
 
-For an expressly requested local diagnostic/release run, set
+For an authorized single focused diagnostic or expressly requested local diagnostic/release run, set
 `TRINKET_ALLOW_HEAVY_LOCAL=1` with the selected command. Local package checks then
 execute serially; UI workers remain serialized and app builds use two workers.
 The visual completion gate and interactive play retain their bounded build/launch
@@ -175,6 +177,34 @@ exceptions. Bare FullUI additionally requires
 resource policy. Stubbed script fixtures may simulate these environments without
 starting real builds or simulators. Local script regressions use at most two
 workers (`TRINKET_SCRIPT_TEST_JOBS=1` serializes them on a busy machine).
+
+### Single focused local diagnostic
+
+An agent may run one local compiled diagnostic without asking for approval when
+it answers a concrete unresolved question in the current task. Select one exact
+test method or one small, directly relevant test suite/file; an entire package,
+unfiltered UI plan, performance sweep or release suite does not qualify.
+
+Wrap the outermost command with the shared host admission helper using
+`--wait 30 --timeout 30`. The 30-second execution budget includes generation,
+compilation, simulator setup and the test itself. Use one worker and the existing
+isolated checkout and managed simulator lease. Set `TRINKET_ALLOW_HEAVY_LOCAL=1`
+only on that command; the flag does not grant broader authorization. For example:
+
+```sh
+python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
+  --owner "$CODEX_THREAD_ID" --wait 30 --timeout 30 -- \
+  env TRINKET_ALLOW_HEAVY_LOCAL=1 TRINKET_ISOLATE=1 \
+  TRINKET_PACKAGE_TEST_JOBS=1 TRINKET_SERIAL_TESTS=1 \
+  ./Scripts/test-package.sh --only-suite LabyrinthVictoryCompletionTests TrinketAppState
+```
+
+A busy lane or deadline ends the attempt. Preserve its logs, report what actually
+ran, and continue source work or hosted verification. Do not automatically retry,
+widen the selector, increase the deadline, or split a larger run into repeated
+diagnostics. Another local compiled attempt or a longer/broader run requires an
+express user request. This exception supplies diagnostic evidence only; it does
+not replace final static handoff, hosted qualification or required visual review.
 
 ### Local play
 
