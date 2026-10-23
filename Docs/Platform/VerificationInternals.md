@@ -106,8 +106,8 @@ entirely skipped filter fails.
 
 ### Generation and package selection
 
-Generation in full gates is intentionally uncached: CI and an explicitly enabled
-heavy handoff invoke `generate.sh` directly, including repeated generation for
+Generation in full gates is intentionally uncached: CI and hosted handoff
+invoke `generate.sh` directly, including repeated generation for
 idempotence. Lightweight local handoff and pre-push do not regenerate. Only the
 `prepare_generated_inputs` freshness path inside build/test wrappers skips
 generation, and only when content, project, and asset inputs are all unchanged.
