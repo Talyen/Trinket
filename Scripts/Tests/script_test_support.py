@@ -87,7 +87,8 @@ class ScriptRegressionTestCase(unittest.TestCase):
         files = tuple(files)
         if set(files) & {'Scripts/handoff.sh', 'Scripts/agent-context.sh', 'Scripts/agent-push-gate.sh', 'Scripts/change-budget.sh'}:
             files = tuple(dict.fromkeys((*files, 'Scripts/verify.py', 'Scripts/agent-brief.py',
-                'Scripts/internal/change_routing.py', 'Scripts/internal/ui_registration.py',
+                'Scripts/internal/change_routing.py', 'Scripts/internal/path_matching.py',
+                'Scripts/internal/source_ownership.py', 'Scripts/internal/ui_registration.py',
                 'Scripts/internal/agent_status.py',
                 'Scripts/internal/agent_tasks.py', 'Scripts/internal/agent_arguments.py',
                 'Scripts/internal/markdown.py', 'Scripts/internal/cli.py',

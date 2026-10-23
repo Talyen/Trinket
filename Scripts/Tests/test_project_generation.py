@@ -248,6 +248,8 @@ printf cached > "$cache"
     def test_push_hook_keeps_commit_completeness_for_project_changes(self):
         for relative in ('.githooks/pre-push', 'Scripts/pre-push-paths.py', 'Scripts/agent-push-gate.sh',
                          'Scripts/assert-generated-output.sh', 'Scripts/internal/change_routing.py',
+                         'Scripts/internal/path_matching.py',
+                         'Scripts/internal/source_ownership.py',
                          'Scripts/internal/agent_status.py', 'Scripts/internal/cli.py',
                          'Scripts/internal/ui_registration.py',
                          'Scripts/lib/generated-paths.sh',

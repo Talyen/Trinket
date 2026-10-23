@@ -115,7 +115,8 @@ class ScriptSelectionTests(unittest.TestCase):
             scripts = root / 'Scripts'
             # Exercise the real normalization, selector, syntax pass and worker;
             # the leaf suite's behavior already has its own independent owner.
-            for name in ('internal/change_routing.py', 'internal/agent_status.py', 'internal/ui_registration.py'):
+            for name in ('internal/change_routing.py', 'internal/path_matching.py',
+                         'internal/source_ownership.py', 'internal/agent_status.py', 'internal/ui_registration.py'):
                 shutil.copy2(ROOT / 'Scripts' / name, scripts / name)
             (scripts / 'config/script-regressions.tsv').write_text('')
             relative = 'Scripts/Tests/test_probe.py'
