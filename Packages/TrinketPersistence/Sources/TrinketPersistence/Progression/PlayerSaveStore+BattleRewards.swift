@@ -1,3 +1,4 @@
+import Foundation
 import TrinketContent
 import TrinketCore
 
@@ -58,6 +59,9 @@ public extension PlayerSaveStore {
                     rewards: (award, earnedVoyageRewards, encounterLevel), save: &save, access: access,
                 )
             }
+            #if DEBUG
+            NSLog("%@", "VICTORY_DIAG persistence destination=\(destination) completion=\(result)")
+            #endif
             return result == .completed ? .success(()) : .failure(.unavailable)
         }
     }
@@ -103,6 +107,18 @@ private extension PlayerSaveStore {
             EncounterCompletionFailure,
         >,
     ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
+        #if DEBUG
+        NSLog(
+            "%@",
+            "VICTORY_DIAG persistence current=\(claim.isCurrent(in: self)) consumed=\(claim.isConsumed) party=\(claim.party(in: currentSave) != nil)",
+        )
+        if let party = claim.party(in: currentSave) {
+            NSLog(
+                "%@",
+                "VICTORY_DIAG persistence inputsMatch=\(award.inputs == RewardSettlementInputs(save: currentSave, hero: party.hero, companion: party.companion, at: award.inputs.productionDate))",
+            )
+        }
+        #endif
         guard claim.isCurrent(in: self), !claim.isConsumed else { return .rejected(.unavailable) }
         let previousResearch = library.progress.completedResearchIDs
         let candidate = makeMutation()

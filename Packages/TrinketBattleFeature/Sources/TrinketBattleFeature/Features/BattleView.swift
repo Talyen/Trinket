@@ -1,4 +1,5 @@
 import BattleEngine
+import Foundation
 import Observation
 import SwiftUI
 import TrinketContent
@@ -142,6 +143,11 @@ public struct BattleView: View {
                 castPresentation.reset()
                 interactionState.suppressCombatantTaps = false
             }
+            .onChange(of: input.isCurrent, initial: true) { _, current in
+                #if DEBUG
+                NSLog("%@", "VICTORY_DIAG view current=\(current) matching=\(battleSession.activeBattle?.id == configuration.id)")
+                #endif
+            }
     }
 
     private func battleActionsMenu(canRetreat: Bool) -> some View {
@@ -242,6 +248,9 @@ public struct BattleView: View {
     }
 
     private func completeVictoryPrimaryAction(summary: BattleVictorySummary) -> Bool {
+        #if DEBUG
+        NSLog("%@", "VICTORY_DIAG action current=\(input.isCurrent) progression=\(hasStageProgression)")
+        #endif
         guard input.isCurrent else { return false }
         guard hasStageProgression else {
             // A failed restart must leave the reward sequence in `.ready`, so
