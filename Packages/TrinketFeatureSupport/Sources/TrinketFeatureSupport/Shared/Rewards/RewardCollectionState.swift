@@ -38,6 +38,9 @@ final class RewardCollectionState {
     }
 
     func perform(_ action: RewardRevealAction) {
+        #if DEBUG
+        NSLog("%@", "VICTORY_DIAG collection phase=\(phase)")
+        #endif
         guard phase == .ready else { return }
         phase = .claiming
         switch action {
@@ -71,6 +74,9 @@ final class RewardCollectionState {
     }
 
     func finish() {
+        #if DEBUG
+        NSLog("%@", "VICTORY_DIAG finish phase=\(phase)")
+        #endif
         guard phase == .collected else { return }
         phase = .finished
         task?.cancel()

@@ -20,7 +20,7 @@ public extension BattleSession {
 
     func claimVictory(configurationID: UUID, summary: BattleVictorySummary, defersPresentationExit: Bool = false) -> Bool {
         #if DEBUG
-        print("VICTORY_DIAG claim matching=\(activeBattle?.id == configurationID) delegate=\(progression != nil)")
+        NSLog("%@", "VICTORY_DIAG claim matching=\(activeBattle?.id == configurationID) delegate=\(progression != nil)")
         #endif
         guard let configuration = activeBattle, configuration.id == configurationID,
               let progression else { return false }
@@ -29,7 +29,7 @@ public extension BattleSession {
             settlement: summary.settlement, defersPresentationExit: defersPresentationExit,
         )
         #if DEBUG
-        print("VICTORY_DIAG result=\(result)")
+        NSLog("%@", "VICTORY_DIAG result=\(result)")
         #endif
         applyCompletionResult(result, for: configuration)
         return result.didComplete

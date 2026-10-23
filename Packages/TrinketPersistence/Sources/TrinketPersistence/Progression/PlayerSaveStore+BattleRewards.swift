@@ -59,7 +59,7 @@ public extension PlayerSaveStore {
                 )
             }
             #if DEBUG
-            print("VICTORY_DIAG persistence destination=\(destination) completion=\(result)")
+            NSLog("%@", "VICTORY_DIAG persistence destination=\(destination) completion=\(result)")
             #endif
             return result == .completed ? .success(()) : .failure(.unavailable)
         }
@@ -107,11 +107,13 @@ private extension PlayerSaveStore {
         >,
     ) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
         #if DEBUG
-        print(
+        NSLog(
+            "%@",
             "VICTORY_DIAG persistence current=\(claim.isCurrent(in: self)) consumed=\(claim.isConsumed) party=\(claim.party(in: currentSave) != nil)",
         )
         if let party = claim.party(in: currentSave) {
-            print(
+            NSLog(
+                "%@",
                 "VICTORY_DIAG persistence inputsMatch=\(award.inputs == RewardSettlementInputs(save: currentSave, hero: party.hero, companion: party.companion, at: award.inputs.productionDate))",
             )
         }

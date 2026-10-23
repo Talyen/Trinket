@@ -48,11 +48,6 @@ extension PlayBattleCoordinator {
         onFinished: @escaping () -> Void,
         onClaimed: @escaping () -> Void,
     ) -> BattleCompletionResult {
-        #if DEBUG
-        print(
-            "VICTORY_DIAG coordinator transition=\(runtimeTransition) currentClaim=\(activeRun?.rewardClaim.isCurrent(in: playerSave) == true) state=\(String(describing: activeBattle?.claimState))",
-        )
-        #endif
         guard runtimeTransition == .idle, let expectedBattle = activeBattle, isCurrent(expectedBattle),
               expectedBattle.registration.launch.configuration.id == configuration.id,
               case .unclaimed = expectedBattle.claimState else { return .unavailable }
@@ -68,14 +63,7 @@ extension PlayBattleCoordinator {
                 configuration, battleGold: battleGold, materialRewards: baseMaterials,
                 at: settlement?.inputs.productionDate ?? Date(),
             ) else { return SaveActionAttempt(.unavailable) }
-            guard settlement == nil || settlement == resolved else {
-                #if DEBUG
-                print(
-                    "VICTORY_DIAG stale inputs=\(String(describing: settlement?.inputs)) resolved=\(resolved.inputs) awardMatches=\(settlement?.award == resolved.award)",
-                )
-                #endif
-                return SaveActionAttempt(.staleSettlement(resolved))
-            }
+            guard settlement == nil || settlement == resolved else { return SaveActionAttempt(.staleSettlement(resolved)) }
             let earnedVoyageRewards: BattleRewardAward? = if case .voyage = route {
                 run.launch.rewardPlan.resolve(
                     battleGold: resolved.award.goldFlow,
