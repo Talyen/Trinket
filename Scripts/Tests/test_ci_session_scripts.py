@@ -23,6 +23,45 @@ import signal
 import select
 
 class CISessionScriptTests(ScriptRegressionTestCase):
+    def test_default_simulator_can_create_a_supported_pro_when_only_duo_is_precreated(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            binaries = root / 'bin'
+            binaries.mkdir()
+            runtime = 'com.apple.CoreSimulator.SimRuntime.iOS-27-1'
+            phone = 'com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro'
+            duo = 'com.apple.CoreSimulator.SimDeviceType.iPhone-Duo'
+            write_json(root / 'devices.json', {'devices': {runtime: [
+                {'name': 'iPhone Duo', 'deviceTypeIdentifier': duo, 'udid': 'duo', 'isAvailable': True},
+            ]}})
+            write_json(root / 'runtimes.json', {'runtimes': [
+                {'platform': 'iOS', 'isAvailable': True, 'version': '27.1', 'identifier': runtime,
+                 'supportedDeviceTypes': [{'identifier': duo, 'name': 'iPhone Duo'},
+                                          {'identifier': phone, 'name': 'iPhone 18 Pro'}]},
+            ]})
+            write_executable(binaries / 'xcrun', '''#!/usr/bin/env python3
+import json, sys
+from pathlib import Path
+root = Path(__file__).resolve().parent.parent
+args = sys.argv[1:]
+if args[:3] == ['simctl', 'list', 'devices']:
+    print((root / 'devices.json').read_text())
+elif args[:3] == ['simctl', 'list', 'runtimes']:
+    print((root / 'runtimes.json').read_text())
+elif args[:2] == ['simctl', 'create']:
+    (root / 'created.json').write_text(json.dumps(args[2:]))
+    print('created-pro')
+else:
+    raise SystemExit('Unexpected simulator mutation: ' + repr(args))
+''')
+            environment = {key: value for key, value in os.environ.items()
+                           if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
+            run_captured(['bash', '-ec', 'source "$1/Scripts/ensure-simulator.sh"; resolve_or_create_simulator',
+                          '_', str(ROOT)], cwd=root,
+                         env={**environment, 'GITHUB_ACTIONS': 'true',
+                              'PATH': str(binaries) + os.pathsep + os.environ['PATH']}, expected=0)
+            self.assertEqual(json.loads((root / 'created.json').read_text()), ['Trinket Run', phone, runtime])
+
     def test_ci_simulator_recovery_admission_uses_the_selected_window(self) -> None:
         script = r'''set -eu
 source "$1/Scripts/ensure-simulator.sh"

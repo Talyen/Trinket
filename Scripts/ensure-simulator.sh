@@ -112,14 +112,20 @@ runtime_id = ios_runtimes[0]["identifier"]
 runtime_build = ios_runtimes[0].get("buildversion", "?")
 
 compatible_devices = devices_payload.get("devices", {}).get(runtime_id, [])
-compatible_types = {}
+compatible_types = {
+    device["identifier"]: device["name"]
+    for device in ios_runtimes[0].get("supportedDeviceTypes", [])
+    if device.get("identifier") and device.get("name")
+}
+# Pre-created devices are reusable instances, not a complete runtime type
+# inventory. A runner image containing only a Duo must not hide supported Pro phones.
 for d in compatible_devices:
     type_id = d.get("deviceTypeIdentifier")
     name = d.get("name")
     if type_id and name:
-        compatible_types[type_id] = name
+        compatible_types.setdefault(type_id, name)
 
-preferred = ["iPhone 17 Pro", "iPhone 16 Pro", "iPhone 15 Pro"]
+preferred = ["iPhone 18 Pro", "iPhone 17 Pro", "iPhone 16 Pro", "iPhone 15 Pro"]
 chosen_type_id = None
 
 for name in preferred:
