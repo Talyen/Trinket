@@ -11,9 +11,9 @@ extension BalanceSweepCLI {
         Usage: BalanceSweepCLI [options]
 
           --mode <name>            identity | ability-contrast | affix-contrast | talent-contrast |
-                                   mode-progression | all (default: identity)
+                                   mode-progression | all (default: identity; all is a deep run)
           --samples <n>            Observations per identity enemy and pairs per contrast focus
-                                   per tier (default: 32)
+                                   per tier (default: \(BalanceSweepConfig.defaultBattlesPerTier))
           --seed <n>               Sweep seed (default: 1)
           --tiers <list>           Comma list: early,middle,lateGame (default: all)
           --jobs <n>               Concurrent worker processes (default: CPU count)

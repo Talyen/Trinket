@@ -318,3 +318,30 @@ extension BalanceSweepOrchestrationTests {
         #expect(summary.decidedPairs == count - 1)
     }
 }
+
+extension BalanceSweepOrchestrationTests {
+    @Test(arguments: [(8, 13), (2, 4), (4, 2), (3, 6), (1, 13)])
+    func `identity rotation balances owners and covers every filtered pairing`(heroes: Int, companions: Int) {
+        let pairs = (0 ..< heroes * companions).map { index in
+            [index % heroes, BalanceSweepRunner.identityCompanionIndex(
+                sampleIndex: index, heroCount: heroes, companionCount: companions,
+            )]
+        }
+        #expect(Set(pairs).count == heroes * companions)
+        let prefix = pairs.prefix(max(heroes, companions))
+        #expect(Set(prefix.map { $0[0] }).count == heroes)
+        #expect(Set(prefix.map { $0[1] }).count == companions)
+    }
+
+    @Test func `default identity screen includes every roster owner for each enemy`() throws {
+        let config = BalanceSweepConfig(maxRounds: 1, maxActions: 1, jobs: 1)
+        let roster = config.resolvedRoster
+        let enemy = try #require(roster.enemies.first)
+        var focused = config
+        focused.tiers = [.early]
+        let report = BalanceSweepRunner.run(config: focused, enemies: [enemy])
+        #expect(report.records.count == BalanceSweepConfig.defaultBattlesPerTier)
+        #expect(Set(report.records.map(\.heroID)) == Set(roster.heroes.map(\.id)))
+        #expect(Set(report.records.map(\.companionID)) == Set(roster.companions.map(\.id)))
+    }
+}

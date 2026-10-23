@@ -165,9 +165,9 @@ public enum BalanceSweepRunner {
         var rng = SeededRandomNumberGenerator(seed: battleSeed)
 
         let hero = roster.heroes[sampleIndex % roster.heroes.count]
-        let companion = roster.companions[
-            (sampleIndex % roster.heroes.count + sampleIndex / roster.heroes.count) % roster.companions.count,
-        ]
+        let companion = roster.companions[identityCompanionIndex(
+            sampleIndex: sampleIndex, heroCount: roster.heroes.count, companionCount: roster.companions.count,
+        )]
         let partyLoadouts = SimulationMatchupBuilder.samplePartyLoadouts(
             hero: hero,
             companion: companion,
@@ -203,6 +203,18 @@ public enum BalanceSweepRunner {
             appliesFightPacing: config.appliesFightPacing,
         )
         return makeIdentityRecord(matchup: matchup, enemy: enemy, policyID: policy.id, result: result)
+    }
+
+    /// Round-robin both owners first, then shift when that pairing sequence repeats.
+    /// The shift covers every pairing even when filtered roster sizes share a divisor.
+    static func identityCompanionIndex(sampleIndex: Int, heroCount: Int, companionCount: Int) -> Int {
+        var divisor = heroCount
+        var remainder = companionCount
+        while remainder != 0 {
+            (divisor, remainder) = (remainder, divisor % remainder)
+        }
+        let repeatPeriod = (heroCount / divisor) * companionCount
+        return (sampleIndex + sampleIndex / repeatPeriod) % companionCount
     }
 
     private static func makeIdentityRecord(

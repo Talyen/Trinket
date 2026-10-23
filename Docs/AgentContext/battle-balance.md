@@ -61,6 +61,14 @@ Manual CLI only — **no CI gates** or scheduled automations. Use the script's
 ./Scripts/balance-sweep.sh --mode ability-contrast
 ```
 
+Use the default identity mode for a routine, approximately ten-minute-or-less
+screen after the release binary is built. Cold compilation is additional time,
+and a busy host can increase runtime. This small screen finds large encounter
+and duration outliers; it does not establish roster parity or full party coverage.
+Use explicit `--samples` increases and additional seeds to confirm candidates.
+`--mode all` is an opt-in deep run: the full card, talent, and affix matrices can
+take much longer even at the default sample count.
+
 The CLI writes a findings brief and JSON sidecar under the gitignored
 `BalanceSweepReports/` directory. Reports remain available for comparison for 24 hours. Use the
 [keep/release controls](../../Scripts/Reference.md#output-retention) when an active
@@ -82,7 +90,9 @@ than bypassing concurrency checks on a shared collection.
 ### Reading sweep evidence
 
 Identity runs use the same rotating Hero/Companion schedule for every enemy.
-Within a complete Hero × Companion cycle every pairing is represented. Enemy
+Both rosters cycle evenly before repeated pairings shift to cover filtered rosters
+with shared divisors. The default screen represents every Hero and Companion;
+within a complete Hero × Companion cycle every pairing is represented. Enemy
 seeds use the enemy ID, so narrowing an enemy filter preserves that enemy's
 samples. This sampling revision changes results from older sweeps with the same
 seed; compare reports produced by the same tooling revision.

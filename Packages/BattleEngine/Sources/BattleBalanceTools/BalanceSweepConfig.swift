@@ -46,7 +46,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         usesTierTalentBuilds ?? false
     }
 
-    public static let defaultBattlesPerTier = 32
+    public static let defaultBattlesPerTier = 16
     public static let defaultOutputDirectory = "BalanceSweepReports"
     public static let contrastFlagMinPairs = 8
     public static let identityFlagMinBattles = 8
