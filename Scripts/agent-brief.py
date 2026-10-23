@@ -50,11 +50,11 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             if values:
                 print(label + ':')
                 print('\n'.join('  ' + value for value in values))
-        emit('Read first (reuse unchanged guidance already in context)', ['AGENTS.md', *route.guides])
+        emit('Applicable requirements (reuse unchanged guidance already in context)', ['AGENTS.md', *route.guides])
         if task: emit(f'Concern focus: {task["label"]} (routed ownership/behavior; follow relevant callers/sections)', focus)
         cards = [card for card in route.cards if card not in focus]
-        emit('Ownership and integration (read applicable constraints)', [card for card in cards if card.partition('#')[0] not in BEHAVIOR_CARDS])
-        emit('Behavior references (read relevant sections and follow dependencies)', [card for card in cards if card.partition('#')[0] in BEHAVIOR_CARDS])
+        emit('Applicable ownership requirements', [card for card in cards if card.partition('#')[0] not in BEHAVIOR_CARDS])
+        emit('Optional reference depth (read when changing this behavior)', [card for card in cards if card.partition('#')[0] in BEHAVIOR_CARDS])
         triggers = {'apple-design': 'visual or interaction changes', 'architect': 'public type, protocol, schema, or package boundary changes', 'doc-budget': 'checker directives or suppression failures', 'swiftui-specialist': 'SwiftUI state, identity, correctness or update performance'}
         emit('Skills (load only when the trigger applies)', [skill + ' — ' + triggers.get(Path(skill).parent.name, 'see skill description') for skill in route.skills])
         emit('Memory (only for its concern)', route.knowledge)
@@ -71,8 +71,10 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         emit(f'Generated/processed paths (do not hand-edit) ({len(route.generated)})', route.generated)
         emit('Boundary warnings', route.warnings)
         emit('Generated-output warnings', route.generated_warnings)
-        handoff = ['./Scripts/handoff.sh', '--isolate', '--quiet', *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
-        emit('Verify (selects scoped checks automatically; --dry-run previews)', [shlex.join(handoff)])
+        handoff = ['./Scripts/handoff.sh', '--quiet', *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
+        emit('Iteration check (only the supplied scope)', [shlex.join(handoff)])
+        emit('Final task verification (all task changes; --dry-run previews)',
+             [shlex.join(['./Scripts/handoff.sh', '--quiet', *(['--base', args.base] if args.base else [])])])
         emit('Landing (from the task worktree after review/commit; includes final static handoff)',
              ['node Scripts/agent-worktree.mjs integrate'])
         emit('Finish (after reporting and any remaining work)', ['node Scripts/agent-worktree.mjs cleanup'])

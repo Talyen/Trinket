@@ -433,7 +433,9 @@ For API/combat migrations, repeat the [consumer review](Testing.md#fixtures) aft
 incorporating main, including unchanged downstream tests and shared fixtures.
 A clean textual rebase is not semantic or compiled evidence.
 
-Integration runs a final **static** handoff with plan closure under the lock,
+Integration first validates required compiled evidence using the
+[verification policy](Verification.md#confidence-ladder), then runs a final **static**
+handoff with plan closure under the lock,
 rechecks both checkouts and ignored-file collisions, then fast-forwards main.
 Use this helper for every automated local landing. It does not fetch, push or run
 hosted checks. The lock is cooperative; keep manual main edits out of the landing
@@ -490,9 +492,9 @@ sources for freshness; other pushes check prepared outputs without the library.
 Prepare changed media and download offloaded sources before an asset-routed push;
 [media preparation](../AgentContext/content-and-manifests.md#media-assets) owns that workflow.
 Pre-push does not regenerate assets or run package tests;
-CI owns content generation freshness, idempotence, compilation, and game/UI suites.
+Select local and hosted checks through the [confidence ladder](Verification.md#confidence-ladder).
 A requested push still requires a green path-scoped
-handoff for the complete task; successful locked integration supplies it. A
+handoff for the complete task; successful locked integration validates required compiled evidence and supplies the final static gate. A
 standalone task must run handoff explicitly. Review and include only task-related
 authored and generated files; stage individual hunks when task and unrelated changes share a file.
 
@@ -508,8 +510,8 @@ run it manually after commit. Landing policy remains in [AGENTS.md](../../AGENTS
 
 Direct pushes to `main` retain inexpensive pre-push safeguards: scoped style and
 committed generated-output completeness, plus the asset checks described above.
-A local handoff is lightweight evidence;
-watch CI for the deferred compile, package, and UI checks. There is no receipt reuse. The hook implements `SKIP_TRINKET_PREPUSH=1` as a
+The [verification report](Verification.md#failures-and-reporting) lists executed and deferred checks;
+watch CI for the deferred obligations after an authorized push. The hook implements `SKIP_TRINKET_PREPUSH=1` as a
 manual bypass, but it does not satisfy the required verification or authorize
 skipping checks during routine agent work. Report blocked checks under
 [Verification.md](Verification.md#failures-and-reporting).

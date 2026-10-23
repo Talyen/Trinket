@@ -124,6 +124,7 @@ class Route:
     needs: set[str] = field(default_factory=set)
     features: set[str] = field(default_factory=set)
     smoke_unresolved: bool = False
+    compile_reasons: list[str] = field(default_factory=list)
 
     def add(self, collection: str, *values: str) -> None:
         target = getattr(self, collection)
@@ -239,7 +240,15 @@ def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) ->
             # changing a line containing "public". Treat API-bearing files broadly.
             source = (root / path).read_text() if (root / path).is_file() else ''
             if diff and re.search(r'\b(?:public|open)\b', diff + '\n' + source):
-                route.features.add('public-api')
+                declaration_change = re.search(
+                    r'^[-+](?![-+])\s*(?:@[\w.]+(?:\([^\n]*?\))?\s+)*'
+                    r'(?:(?:nonisolated|final|static|override)\s+)*(?:public|open)\s+'
+                    r'(?:(?:final|static|class|nonisolated|override|mutating|private\(set\))\s+)*'
+                    r'(?:actor|class|struct|enum|protocol|func|var|let|typealias|init|subscript|case)\b',
+                    diff, re.MULTILINE)
+                route.features.add('public-api' if declaration_change else 'api-consumer-check')
+                route.compile_reasons.append(f'{path}: ' + ('public declaration changed' if declaration_change
+                    else 'conservative consumer check: implementation changed in an API-bearing file'))
             public = r'(public\s+(actor|class|enum|struct|protocol|typealias)|(^|\s)protocol\s|@Model|[A-Za-z0-9_]+Schema|@attached)'
             if re.search(r'^\+(?!\+).*' + public if tracked else public, diff, re.MULTILINE): route.add('skills', '.agents/skills/architect/SKILL.md'); route.add('knowledge', '.agents/knowledge/patterns/module-dag-containment.md')
         for owners, references in OWNER_GUIDANCE:
@@ -349,7 +358,7 @@ def automatic_plan(route: Route, *, root: Path = ROOT, environment: dict[str, st
         return checks
     direct = {path.split('/')[1] for path in route.paths
               if path.startswith('Packages/') and (path.endswith('.swift') or path.endswith('/Package.swift'))}
-    compile_app = ('build' in route.needs or bool(route.features & {'feature', 'public-api'}) or
+    compile_app = ('build' in route.needs or bool(route.features & {'feature', 'public-api', 'api-consumer-check'}) or
                    '.agents/skills/architect/SKILL.md' in route.skills or
                    any(path.endswith('/Package.swift') for path in route.paths))
     selected = []

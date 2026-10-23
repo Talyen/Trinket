@@ -36,7 +36,8 @@ hosted results. Integration performs the final static gate and retains the check
 and explicit cleanup. Pushes and publication remain separately authorized.
 
 Ordinary navigation uses `rg`, file reads and Git diffs. The optional retrieval
-helpers are compatibility utilities; no task requires learning their command family.
+helpers are compatibility utilities; new instructions use the briefing and ordinary
+`rg`/Git navigation. No task requires learning the legacy command family.
 
 ## Commands by task
 
@@ -44,7 +45,7 @@ helpers are compatibility utilities; no task requires learning their command fam
 |---|---|
 | Development | [Generation, builds, discovery, and simulator/device launch](Reference.md#development) |
 | Verification | [Package tests, UI checks, handoff, and gates](Reference.md#verification) |
-| Localization | `python3 Scripts/localization.py job`, `finish <response.json> --rationale …`, `check` — [agent workflow](../Docs/Platform/Localization.md) |
+| Localization | `python3 Scripts/localization.py run` (separate translation/review), `job` (manual), `check` — [agent workflow](../Docs/Platform/Localization.md) |
 | Assets | [Artwork and media preparation](Reference.md#assets) |
 | TestFlight | `./Scripts/testflight.sh` — [one-time setup and recovery](../Docs/Platform/Release.md#local-testflight-deployment) |
 | Release | [Release and deploy verification](Reference.md#release) |

@@ -10,8 +10,18 @@ accessibility hierarchy, or device input. Read the
 [Apple workflow](references/apple-device-interaction.md) before using those tools;
 reuse it when already loaded and unchanged. This repository's
 [verification policy](../../../Docs/Platform/Verification.md#local-simulator-budget)
-controls when local device work is authorized. Apple's automatic trigger after a
-UI edit does not override Trinket's CI-owned verification policy.
+owns local inspection and hosted qualification. Shipping-UI review uses the managed
+inspection session described below; no additional approval is needed within that scope.
+
+For a managed simulator, use `native` and `event <command>` in the existing
+inspection terminal. Its controller discovers the Xcode tool metadata, supplies
+the exact device/session/app identity, preserves captures, and ends the session
+before releasing the lease. Do not also start a native session with chat tools.
+Read the Apple reference above for event semantics; use the latest hierarchy.
+Missing bridge tools leave Computer Use available through the simulator skill.
+
+The direct tool procedure below is for physical devices or a native session
+explicitly owned outside the controller.
 
 ## Session ownership
 

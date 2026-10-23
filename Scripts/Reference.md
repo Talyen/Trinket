@@ -26,14 +26,19 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 
 Use `rg`, file reads and Git diffs. The briefing is the sole required retrieval
 command. Legacy navigation helpers remain compatible; consult their own `--help`
-only when useful. [Retrieval](../Docs/AgentContext/Retrieval.md) describes their limits.
+only when useful. Their caller hints are lexical, not resolved Swift call graphs;
+concern indexes supply navigation hints rather than coverage proof. Preserve full
+dirty diffs and both rename endpoints during review. No additional retrieval guide
+is required.
 
 ### Localization
 
-`python3 Scripts/localization.py job` creates/resumes one translation job with
-`response.json`, `translate.md` and `review.md`. Complete translation and a separate
-AI review, then run its printed `finish <response.json> --rationale ...` command.
-The CLI coordinates files, validation and application; it performs no AI work.
+`python3 Scripts/localization.py run` coordinates separate local Codex translation
+and independent-review passes, applies validated results, and resumes matching work.
+`run --resume <response.json>` selects a draft; `--timeout SECONDS` bounds each pass.
+For another available AI tool, `job` retains manual task files and the printed
+`finish <response.json> --rationale ...` command after actual independent review.
+Only the explicit local `run` command invokes AI; hooks, builds and CI remain read-only validators.
 `prepare` remains an alias; `review`, `apply`, `plan` and `template` stay compatible.
 `check --paths <files...>` is the read-only local gate. See the
 [localization contract](../Docs/Platform/Localization.md#agent-workflow).

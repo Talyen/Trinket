@@ -32,8 +32,12 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
             shutil.copy2(ROOT / 'Scripts' / name, scripts / name)
         (scripts / 'internal').mkdir()
         shutil.copy2(ROOT / 'Scripts/internal/cli.py', scripts / 'internal/cli.py')
+        shutil.copy2(ROOT / 'Scripts/internal/verification_evidence.py', scripts / 'internal/verification_evidence.py')
+        (scripts / 'internal/change_routing.py').write_text(
+            'def classify(*args, **kwargs): return None\n'
+            'def automatic_plan(*args, **kwargs): return []\n')
         write_executable(scripts / 'handoff.sh', '#!/bin/sh\nexit 0\n')
-        (self.root / '.gitignore').write_text('.worktrees/\nignored\n__pycache__/\n.DerivedData/\n')
+        (self.root / '.gitignore').write_text('.worktrees/\nignored\n__pycache__/\n.DerivedData/\n.tools/\n')
         (self.root / 'shared').write_text('baseline\n')
         self.commit(self.root)
 
@@ -128,6 +132,50 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         self.assertEqual(result.returncode, 3, result.stderr)
         self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
         self.assertEqual(self.git(other, 'rev-parse', 'HEAD'), previous)
+
+    def test_landing_requires_current_compiled_evidence_and_preserves_it_across_commit(self) -> None:
+        from internal.verification_evidence import source_identity
+        task = self.task('compiled')
+        routing = task / 'Scripts/internal/change_routing.py'
+        routing.write_text('from types import SimpleNamespace\n'
+                           'def classify(*args, **kwargs): return None\n'
+                           'def automatic_plan(*args, **kwargs): return [SimpleNamespace(\n'
+                           ' id="package:Example", argv=("./Scripts/test-package.sh", "Example"), deferred=False)]\n')
+        tools = self.root / '.tools'
+        tools.mkdir()
+        write_executable(tools / 'xcodebuild', '#!/bin/sh\necho Fixture-Xcode\n')
+        self.env['PATH'] = str(tools) + os.pathsep + self.env['PATH']
+        self.commit(task)
+        main = self.git(self.root, 'rev-parse', 'HEAD')
+        result = self.helper(task, 'integrate')
+        self.assertEqual(result.returncode, 3, result.stderr)
+        self.assertIn('package:Example', result.stderr)
+        self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
+        report = task / '.DerivedData/Deliverables/Verification/check.json'
+        report.parent.mkdir(parents=True)
+        def evidence():
+            report.write_text(json.dumps({'source_identity': source_identity(task),
+                'toolchain': {'developer_dir': self.env.get('DEVELOPER_DIR', ''), 'xcode': 'Fixture-Xcode', 'architecture': os.uname().machine},
+                'checks': [{'id': 'package:Example', 'argv': ['./Scripts/test-package.sh', 'Example'], 'outcome': 'passed'}]}))
+        evidence()
+        failed = report.with_name('failed.json')
+        failure = json.loads(report.read_text())
+        failure['checks'][0]['outcome'] = 'failed'
+        failed.write_text(json.dumps(failure))
+        self.assertEqual(self.helper(task, 'integrate').returncode, 3)
+        (task / 'task').write_text('changed after verification\n')
+        self.commit(task)
+        self.assertEqual(self.helper(task, 'integrate').returncode, 3)
+        # Committing identical sources and changing guidance preserve compiled evidence.
+        (task / 'task').write_text('verified contents\n')
+        evidence()
+        identity = source_identity(task)
+        (task / 'notes.md').write_text('Guidance-only change after verification\n')
+        self.assertEqual(source_identity(task), identity)
+        self.commit(task)
+        self.assertEqual(source_identity(task), identity)
+        result = self.helper(task, 'integrate')
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_busy_lock_and_dirty_checkouts_preserve_main_and_task(self) -> None:
         task = self.task('task')

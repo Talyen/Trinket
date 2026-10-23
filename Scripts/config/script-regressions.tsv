@@ -197,7 +197,7 @@ Scripts/report-art-memory.sh	test_ci_build_scripts.py,test_media_asset_scripts.p
 Scripts/report-exhaustive-ci.py	test_ci_gate_scripts.py
 Scripts/restore-ci-test-products.sh	test_build_metadata.py
 Scripts/run-env.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py
-Scripts/run-simulator.sh	test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
+Scripts/run-simulator.sh	test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py,test_inspection.py
 Scripts/script_diagnostics.py	test_codegen_abilities.py,test_failure_diagnostics.py,test_package_diagnostics.py,test_test_timing.py
 Scripts/script_test_execution.py	test_failure_diagnostics.py,test_script_selection.py
 Scripts/script_test_selection.py	test_script_selection.py
@@ -234,3 +234,6 @@ Scripts/internal/diagnostics/execution_identity.py	test_ci_improvements.py,test_
 Scripts/report-ci-status.py	test_ci_build_scripts.py,test_ci_gate_scripts.py,test_player_coverage.py
 Scripts/ci-runtime-cleanup.py	test_player_coverage.py
 .github/workflows/release-verification.yml	test_deploy_verification.py
+Scripts/internal/verification_evidence.py	test_agent_integration.py,test_ci_handoff_routing.py
+Scripts/internal/localization_runner.py	test_localization.py
+Scripts/internal/inspection.py	test_inspection.py

@@ -21,6 +21,9 @@ The default `auto` route runs static checks plus tests for directly edited packa
 Shared fixtures retain additional consumer suites as hosted obligations. App/UI,
 package-manifest and public-API changes select an app compile. Generation freshness,
 full UI suites, broad consumer qualification and performance runs remain hosted.
+App compilation previews distinguish confirmed public declaration edits from
+conservative checks of unchanged consumers when an implementation in an API-bearing
+file changes. Those conservative checks also protect nested enum cases and inferred types.
 The preview and report list selected and deferred work; a skipped or unexecuted
 check never counts as passed. Default selection does not certify visual quality.
 
@@ -30,9 +33,13 @@ checks. `--route focused` is optional and `diagnostic` remains a compatibility a
 verification needs no additional user approval or manual environment flags.
 
 Before landing, review the task diff and commit it. Integration runs one final
-static handoff with plan closure under the shared lock. Rerun affected compiled or
-visual checks if integration incorporates relevant changes. Preserve scopes for
-renames/deletions; missing bases fail instead of selecting less work.
+static handoff with plan closure under the shared lock. Integration checks required
+compiled evidence against the complete build/test source contents and selected
+Xcode/architecture. A commit or guidance-only edit preserves evidence; changed
+build/test sources or toolchain invalidate it and print the missing checks before
+landing. Run handoff outside the lock to refresh them. Reassess visual evidence
+after relevant changes. Preserve scopes for renames/deletions; missing bases fail
+instead of selecting less work.
 
 ## Completion states
 
@@ -225,8 +232,10 @@ to bypass product chrome routing.
 Handoff writes a compact report under `.DerivedData/Deliverables/Verification/`
 with commit/dirty state, scoped input hashes, commands, outcomes and deferred work.
 Integration records the main base, full task scope and local completion state,
-and preserves deliverables outside the checkout. No manual verification transcript
-is required. Previews establish no execution evidence. Visual artifacts still need
+and preserves deliverables outside the checkout. Compiled reports include whole-source and toolchain fingerprints; integration accepts
+only matching passed commands for its required package/app checks. Older reports
+remain readable evidence but need one fresh run for reuse. No manual verification
+transcript is required. Previews establish no execution evidence. Visual artifacts still need
 capture and review.
 
 `--quiet` prints phase outcomes and bounded failures. Successful raw logs are

@@ -12,19 +12,28 @@ with `tty=true`), and retain the returned session ID:
 ./Scripts/run-simulator.sh --isolate --inspect
 ```
 
-Wait for `Inspection ready`, which identifies the exact leased UDID, bundle ID,
-product and device UI. Choose the available inspection tool directly:
+Wait for `Inspection ready`. The same terminal owns the leased device, captures,
+and optional native Xcode session. Keep it alive and send these commands through
+`write_stdin`:
 
-- Prefer [native device interaction](../device-interaction/SKILL.md) when Xcode's
-  device-session and capture/input tools are exposed. Target the leased UDID.
-- Otherwise use **Computer Use** (`mcp__cua_repl`) with the printed device UI path.
-  Confirm the selected device matches the leased name before acting. Follow the
-  tool's live documentation; Device Hub attachment is a recorded tooling gap.
+- `status\n`: device/build target and available inspection routes.
+- `capture\n`: screenshot plus product metadata saved in Deliverables.
+- `native\n`: discover Xcode tools, start one native session for the leased UDID,
+  and capture its screenshot and hierarchy. The controller retains the session key.
+- `event <command>\n`: use the documented Xcode interaction command on that same
+  session, then capture the result. Read the [native interaction guidance](../device-interaction/SKILL.md)
+  before input, choose positions from the latest hierarchy, and observe each result.
+- `stop\n`: close the native session before releasing the lease; confirm exit.
 
-Keep the terminal session alive. Type `capture\n` through `write_stdin` to save the
-leased display and product metadata under `.DerivedData/Deliverables/Inspection/`.
-Inspect the actual image and record screen/state and build provenance; a saved
-capture is not visual acceptance. Send `stop\n` when finished and confirm exit.
+Native interaction is lazy, so capture and Computer Use work without Xcode's
+bridge. If native discovery fails, use Computer Use with the printed device UI
+path and confirm the selected device. Do not create another native session beside
+an uncertain one. The controller reports failures and retains a recovery record
+when closure cannot be confirmed. Never start a separate Xcode session for a
+controller-owned native inspection.
+
+Inspect actual saved images and record screen/state and build provenance; command
+success alone does not establish visual acceptance.
 
 Managed scripts own builds, installs, leases and logs. Use native device tools or
 Computer Use for exploratory input, and existing XCTest journeys for repeatable

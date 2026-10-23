@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Plan, validate/apply, or check agent-authored localization deltas without an AI service."""
+"""Coordinate local AI translation/review or manually prepare, apply, and check localization."""
 from __future__ import annotations
 
 import argparse
 import json
 import os
 import shlex
+import subprocess
 from pathlib import Path
 import sys
 
@@ -20,6 +21,10 @@ def main(argv=None) -> int:
     commands.add_parser('template', help='Write a response skeleton with queue metadata and empty translation/review fields')
     preparation = commands.add_parser('prepare', aliases=['job'], help='Save a fresh queue, resuming matching work from the latest draft')
     preparation.add_argument('--resume', type=Path, help='Resume this response instead of the latest draft; originals remain untouched')
+    automated = commands.add_parser('run', help='Translate, independently review, and apply with separate local Codex sessions')
+    automated.add_argument('--resume', type=Path)
+    automated.add_argument('--codex', default='codex', help='Codex CLI executable; uses its configured model and authentication')
+    automated.add_argument('--timeout', type=int, default=1800, help='Maximum seconds per AI pass')
     review = commands.add_parser('review', help='Record your completed separate review of pending translations; preserve matching completed reviews; does not perform AI review')
     review.add_argument('response', type=Path)
     review.add_argument('--rationale', required=True, help='What you checked in the completed separate review of each pending entry')
@@ -32,6 +37,11 @@ def main(argv=None) -> int:
     validation.add_argument('--paths', nargs='+', help='Check affected sources/catalogs and their consumers; omit for the full repository')
     args = parser.parse_args(argv)
     try:
+        if args.operation == 'run':
+            from internal.localization_runner import run
+            if args.timeout <= 0:
+                raise ValueError('--timeout must be positive')
+            return run(args.root.resolve(), args.resume, codex=args.codex, timeout=args.timeout)
         if args.operation == 'plan':
             print(json.dumps(plan(args.root), ensure_ascii=False, indent=2))
         elif args.operation == 'template':
@@ -94,7 +104,7 @@ def main(argv=None) -> int:
             print('Localization PASS: affected sources, catalogs and consumers are consistent; full coverage remains CI-owned.'
                   if paths else 'Localization PASS: all configured locales are current and reviewed; resources are consistent.')
         return 0
-    except (OSError, ValueError, KeyError, TypeError) as error:
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
         print(f'Localization failed: {error}', file=sys.stderr)
         return 2
 

@@ -206,41 +206,24 @@ if [[ "$INSPECT" == "1" ]]; then
     "$TRINKET_SIMULATOR_NAME" "$SIMULATOR_UDID" "$BUNDLE_ID" "$APP_PATH"
   echo "Device UI: $SIMULATOR_APP_NAME ($SIMULATOR_APP_PATH)"
   echo "Lease held by this process. Use native Xcode device tools when available, otherwise Computer Use."
-  echo "Type capture to save this leased display with product identity, or stop to release the lease."
-  while IFS= read -r inspection_command; do
-    [[ "$inspection_command" == "stop" ]] && break
-    if [[ "$inspection_command" == "capture" ]]; then
-      mkdir -p .DerivedData/Deliverables/Inspection
-      CAPTURE_DIRECTORY="$(mktemp -d .DerivedData/Deliverables/Inspection/capture.XXXXXX)"
-      if xcrun simctl io "$SIMULATOR_UDID" screenshot "$CAPTURE_DIRECTORY/screen.png" --type=png --mask=ignored; then
-        python3 - "$CAPTURE_DIRECTORY" "$SIMULATOR_UDID" "$TRINKET_SIMULATOR_NAME" "$APP_PATH" "$INSPECTION_REVISION" <<'PYCAPTURE' || echo "Capture metadata failed; image retained at $CAPTURE_DIRECTORY/screen.png; inspection remains active." >&2
-from datetime import datetime, timezone
-import json
-from pathlib import Path
-import plistlib
-import sys
-
-directory, udid, name, app, revision = sys.argv[1:]
-with (Path(app) / 'Info.plist').open('rb') as handle:
-    product = plistlib.load(handle)
-metadata = {
-    'captured_at': datetime.now(timezone.utc).isoformat(),
-    'simulator_udid': udid, 'simulator_name': name, 'product_path': app,
-    'bundle_id': product['CFBundleIdentifier'],
-    'product_version': product.get('CFBundleShortVersionString'),
-    'product_build': product.get('CFBundleVersion'),
-    'checkout_revision_at_launch': revision or None,
-    'evidence_limit': 'Inspect the image and record screen/state and build provenance; capture alone is not visual review.',
-}
-(Path(directory) / 'capture.json').write_text(json.dumps(metadata, indent=2) + '\n')
-print(f'Capture saved: {Path(directory).resolve() / "screen.png"}')
-PYCAPTURE
-      else
-        echo "Capture failed for leased simulator $SIMULATOR_UDID; inspection remains active." >&2
-      fi
-      continue
+  echo "Commands: status, capture, native, event <Xcode command>, stop. This terminal owns native session cleanup."
+  # Waiting on the controller lets Bash handle cancellation immediately. It closes
+  # its native session before the EXIT trap releases the simulator lease.
+  trinket_inspection_cancel() {
+    local status="$1"
+    trap '' INT TERM
+    if [[ -n "$INSPECTION_PID" ]]; then
+      kill -TERM "$INSPECTION_PID" 2>/dev/null || true
+      wait "$INSPECTION_PID" 2>/dev/null || true
     fi
-    echo "Inspection still active. Type capture or stop."
-  done
+    exit "$status"
+  }
+  INSPECTION_PID=""
+  trap 'trinket_inspection_cancel 130' INT
+  trap 'trinket_inspection_cancel 143' TERM
+  python3 -c 'from Scripts.internal.inspection import main; raise SystemExit(main())' \
+    "$SIMULATOR_UDID" "$TRINKET_SIMULATOR_NAME" "$APP_PATH" "$INSPECTION_REVISION" "$SIMULATOR_APP_PATH" <&0 &
+  INSPECTION_PID=$!
+  wait "$INSPECTION_PID"
   echo "Inspection finished; releasing this process's lease."
 fi

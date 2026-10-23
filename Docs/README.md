@@ -6,7 +6,10 @@ is a lookup aid, not a reading checklist.
 The [root workflow](../AGENTS.md#route-and-read) and its scoped briefing are the
 ordinary entry point. Read routed safeguards and applicable contracts directly;
 do not traverse each layer or every outgoing reference before making a change.
-Indexes and optional navigation helpers add no approval or checklist steps.
+The briefing separates applicable safeguards/ownership from optional reference depth
+and prints iteration versus whole-task verification separately. Indexes and optional
+navigation helpers add no approval or checklist steps; agents need not consult them
+after a usable briefing.
 
 ## Layers
 

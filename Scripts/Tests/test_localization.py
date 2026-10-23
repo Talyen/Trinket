@@ -41,6 +41,67 @@ class LocalizationTests(unittest.TestCase):
                         'rationale': 'Second pass checked the damage amount, enemy target, and Burn meaning.'}}
             for item in queue['requests']]}
 
+    def worker(self):
+        import sys
+        worker = self.root / 'fixture codex'
+        translations = {item['locale']: item['translation'] for item in self.response()['translations']}
+        worker.write_text('#!' + sys.executable + '\n' + """
+import json, os, sys
+from pathlib import Path
+prompt = sys.stdin.read()
+items = json.loads(prompt.split('\\n')[-1])
+output = Path(sys.argv[sys.argv.index('--output-last-message') + 1])
+phase = output.name.split('.')[0]
+with (output.parent.parent / 'worker-calls.txt').open('a') as log: log.write(phase + '\\n')
+if os.environ.get('FIXTURE_FAIL_REVIEW') == '1' and phase == 'review': raise SystemExit(1)
+values = VALUES
+results = []
+for item in items:
+    value = values[item['locale']]
+    result = {key: item[key] for key in ('id', 'locale', 'source_hash')}
+    result['forms'] = [{'name': key, 'text': text} for key, text in value.items()]
+    if phase == 'review':
+        result.update(rationale='Independent fixture reviewed damage, Burn, target, grammar and placeholders.',
+                      checks=item['required_review_checks'])
+    results.append(result)
+output.write_text(json.dumps({'translations': results}))
+""".replace('VALUES', repr(translations)))
+        worker.chmod(0o755)
+        return worker
+
+    def test_automated_runner_dispatches_independent_passes_and_resumes_failed_review(self):
+        from unittest.mock import patch
+        worker = self.worker()
+        prefix = ['--root', str(self.root), 'run', '--codex', str(worker)]
+        with patch.dict(os.environ, {'CI': '', 'GITHUB_ACTIONS': '', 'TRINKET_LOCALIZATION_WORKER': ''}):
+            failed = run_python('localization.py', *prefix, env={**os.environ, 'FIXTURE_FAIL_REVIEW': '1'}, expected=2)
+            self.assertIn('Resumable localization response', failed.stdout)
+            self.assertNotEqual(check(self.root), [])
+            response = max((self.root / '.DerivedData/Localization').glob('queue-*/response.json'), key=lambda p: p.stat().st_mtime_ns)
+            draft = json.loads(response.read_text())
+            self.assertTrue(all(item['translation']['value'] for item in draft['translations']))
+            self.assertTrue(all(item['review']['verdict'] == 'pending' for item in draft['translations']))
+            result = run_python('localization.py', *prefix, '--resume', str(response), expected=0)
+            self.assertIn('separate translation and review completed', result.stdout)
+            self.assertEqual(check(self.root), [])
+            calls = (self.root / '.DerivedData/Localization/worker-calls.txt').read_text().splitlines()
+            self.assertEqual(calls, ['translate', 'review', 'review'])
+            run_python('localization.py', *prefix, expected=0)
+            self.assertEqual((self.root / '.DerivedData/Localization/worker-calls.txt').read_text().splitlines(), calls)
+
+    def test_automated_runner_rejects_incomplete_reviews_and_cannot_run_in_ci(self):
+        from internal.localization_runner import collect, run
+        from unittest.mock import patch
+        response = response_template(self.root)
+        item = response['translations'][0]
+        result = {key: item[key] for key in ('id', 'locale', 'source_hash')}
+        result.update(forms=[{'name': 'value', 'text': self.response()['translations'][0]['translation']['value']}],
+                      rationale='', checks=[])
+        with self.assertRaises(ValueError): collect(response, [item], [result], review=True)
+        self.assertEqual(item['review']['verdict'], 'pending')
+        for environment in ({'CI': 'true'}, {'TRINKET_LOCALIZATION_WORKER': '1'}):
+            with patch.dict(os.environ, environment), self.assertRaises(ValueError): run(self.root)
+
     def test_prepare_review_apply_check_cli_journey(self):
         prefix = ['--root', str(self.root)]
         prepared = run_python('localization.py', *prefix, 'prepare', expected=0)

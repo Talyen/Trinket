@@ -18,9 +18,10 @@ from internal.change_routing import Check, collect_paths, classify, verification
 from internal.cli import ROOT, pinned_tool_path, write_json_atomic, read_env_arrays
 from internal.ui_registration import registrations
 from internal import output_retention as retention
+from internal.verification_evidence import source_identity, toolchain_identity
 
 
-def save_report(root: Path, route: str, paths: list[str], checks, outcomes: dict[str, str], status: int) -> Path:
+def save_report(root: Path, route: str, paths: list[str], checks, outcomes: dict[str, str], status: int, *, identity: str | None = None, toolchain: dict | None = None) -> Path:
     """Preserve compact execution evidence separately from disposable phase logs."""
     directory = root / '.DerivedData/Deliverables/Verification'
     if any(path.is_symlink() for path in (directory, *directory.parents) if path.is_relative_to(root)):
@@ -32,13 +33,14 @@ def save_report(root: Path, route: str, paths: list[str], checks, outcomes: dict
     write_json_atomic(report, {
         'local_state': 'checks passed' if status == 0 else 'verification incomplete',
         'hosted_state': 'pending; requires an authorized push and successful hosted checks',
-        'version': 1, 'recorded_at': datetime.now(timezone.utc).isoformat(),
+        'source_identity': identity, 'toolchain': toolchain,
+        'version': 2, 'recorded_at': datetime.now(timezone.utc).isoformat(),
         'route': route, 'exit_status': status,
         'commit': revision.stdout.strip() if revision.returncode == 0 else None,
         'workspace_status': dirty.stdout.splitlines() if dirty.returncode == 0 else None,
         'inputs': {name: hashlib.sha256((root / name).read_bytes()).hexdigest() if (root / name).is_file() else None
                    for name in paths},
-        'checks': [{'id': check.id, 'command': check.command,
+        'checks': [{'id': check.id, 'command': check.command, 'argv': list(check.argv),
                     'outcome': outcomes.get(check.id, 'deferred to CI' if check.deferred else 'not run')}
                    for check in checks],
         'visual_review': 'separate shipping-UI evidence required when visuals change',
@@ -129,7 +131,7 @@ def report_evidence(checks, outcomes: dict[str, str], *, preview: bool, status: 
         print('Static, app/package compilation and UI results: inspect the release runner report.')
     else:
         print('Static checks: ' + state([check for check in checks if check.id not in {'package', 'build', 'smoke', 'generate', 'assert', 'mirror'} and not check.id.startswith('package:')]))
-        print('App compilation: ' + state([check for check in checks if check.id in {'build', 'smoke'}]))
+        print('App compilation: ' + state([check for check in checks if check.id == 'build']))
         print('Package compilation and behavior: ' + state([check for check in checks if check.id == 'package' or check.id.startswith('package:')]))
         print('UI behavior: ' + state([check for check in checks if check.id == 'smoke']))
     print('Hosted verification: pending until successful hosted evidence is available.')
@@ -217,6 +219,10 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
                 environment['TRINKET_ALLOW_FULL_UI'] = '1'
                 checks = [Check('release', 'full release verification', ('./Scripts/test-deploy.sh', '--mode', 'ui'))]
             print(f'Explicit {args.route} route: ' + checks[0].command, flush=True)
+        if any(check.id == 'build' and not check.deferred for check in checks):
+            print('App compilation selection:')
+            for reason in route.compile_reasons or ['app/UI, package manifest, public contract, or explicit app selector']:
+                print('  ' + reason)
         outcomes = {}
         if args.dry_run:
             print('Planned checks:')
@@ -232,8 +238,16 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
                 deliverables = root / '.DerivedData/Deliverables'
                 deliverables.mkdir(parents=True, exist_ok=True)
                 print(f'Task deliverables (preserved during integration): {deliverables}', flush=True)
+            compiled = bool(shutil.which('xcodebuild', path=environment.get('PATH'))) and any(
+                not check.deferred and (check.id == 'build' or check.id.startswith('package:')) for check in checks)
+            identity = source_identity(root) if compiled else None
+            toolchain = toolchain_identity(root) if compiled else None
             status = run_checks(checks, root=root, quiet=args.quiet and args.route != 'visual', environment=environment, outcomes=outcomes)
-            save_report(root, args.route, route.paths, checks, outcomes, status)
+            if compiled and source_identity(root) != identity:
+                status = status or 2
+                identity = None
+                print('Source changed during verification; compiled evidence cannot be reused. Rerun handoff.', file=sys.stderr)
+            save_report(root, args.route, route.paths, checks, outcomes, status, identity=identity, toolchain=toolchain)
         deferred = [check.command for check in checks if check.deferred]
         if deferred:
             print('Deferred to CI:')

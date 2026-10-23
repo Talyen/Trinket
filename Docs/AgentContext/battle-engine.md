@@ -76,7 +76,7 @@ engine snapshots.
 `EffectHandlers.advanceTurn` selects specialized ticks directly; ordinary timed
 effects share the countdown fallback.
 `CombatExecutorTests` owns small-stack, ordered-unwind and recorded-battle parity
-coverage; package compilation and execution follow the normal CI-owned policy.
+coverage. Select verification through the [confidence ladder](../Platform/Verification.md#confidence-ladder).
 
 On-hit and reaction work is split on purpose:
 

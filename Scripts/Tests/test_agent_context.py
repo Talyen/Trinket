@@ -52,7 +52,8 @@ class AgentContextTests(ScriptRegressionTestCase):
             git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid',
                 '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'public enum')
             (root / api).write_text('public enum Probe {\n case first\n case second\n}\n')
-            self.assertIn('public-api', classify([api], root).features)
+            self.assertIn('api-consumer-check', classify([api], root).features)
+            self.assertIn('conservative consumer check', classify([api], root).compile_reasons[0])
 
             with self.assertRaises(subprocess.CalledProcessError):
                 collect_paths(None, root, base='missing-base')
@@ -81,7 +82,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         plain = self.route(*paths)
         focused = self.brief('--task', 'cloud', '--paths', *paths)
         start = focused.index('Concern focus:')
-        end = focused.index('Ownership and integration', start)
+        end = focused.index('Applicable ownership requirements', start)
         without_focus = focused[:start] + focused[end:]
         read_start = without_focus.index('Suggested initial reads (')
         read_end = without_focus.index('Source owners', read_start)
@@ -146,7 +147,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             ('Packages/TrinketDesignSystem/Tests/TrinketDesignSystemTests/DesignSystemTests.swift', [], ['apple-design/SKILL.md']),
             ('Packages/TrinketAppState/Sources/TrinketAppState/Audio/MusicPlayer.swift', ['Docs/AgentContext/audio.md'], ['Docs/AgentContext/battle']),
             ('project.yml', ['Docs/AgentContext/content-and-manifests.md'], []),
-            ('Scripts/check-docs.py', [], ['Ownership and integration']),
+            ('Scripts/check-docs.py', [], ['Applicable ownership requirements']),
             ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['apple-design/SKILL.md', '.agents/knowledge/patterns/']),
             ('Packages/BattleEngine/Package.swift', ['.agents/knowledge/patterns/module-dag-containment.md'], []),
             ('Docs/Platform/Architecture.md', [], []),
@@ -286,7 +287,7 @@ class AgentContextTests(ScriptRegressionTestCase):
                     result = run_captured(["/bin/bash", str(root / "Scripts/agent-context.sh"), "--agent", "--status", "--working-tree", *flags], cwd=root, env=env, expected=0)
                     self.assertIn("Workspace status: 0 dirty entries", result.stdout)
                     self.assertIn("Agent context (working tree, 0):", result.stdout)
-                    self.assertIn("./Scripts/handoff.sh --isolate --quiet --working-tree", result.stdout)
+                    self.assertIn("./Scripts/handoff.sh --quiet --working-tree", result.stdout)
 
     def test_compact_and_full_share_required_guidance_and_safety(self) -> None:
         paths = [
@@ -300,7 +301,7 @@ class AgentContextTests(ScriptRegressionTestCase):
         for expected in (
             "AGENTS.md", "Docs/AgentContext/ui-performance.md",
             "Docs/AgentContext/battle-engine.md", "Generated/processed paths (do not hand-edit)",
-            "./Scripts/handoff.sh --isolate --quiet --paths",
+            "./Scripts/handoff.sh --quiet --paths",
         ):
             self.assertIn(expected, compact)
             self.assertIn(expected, full)
@@ -330,7 +331,9 @@ class AgentContextTests(ScriptRegressionTestCase):
         )
         import shlex
         command = next(line.strip() for line in output.splitlines() if "./Scripts/handoff.sh" in line)
-        self.assertEqual(shlex.split(command), ["./Scripts/handoff.sh", "--isolate", "--quiet", "--paths", *paths])
+        self.assertEqual(shlex.split(command), ["./Scripts/handoff.sh", "--quiet", "--paths", *paths])
+        final = output.split('Final task verification', 1)[1].splitlines()[1].strip()
+        self.assertEqual(shlex.split(final), ['./Scripts/handoff.sh', '--quiet'])
 
 
     def test_agent_context_routes_each_semantic_owner_to_one_required_card(self) -> None:

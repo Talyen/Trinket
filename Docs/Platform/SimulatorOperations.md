@@ -118,24 +118,30 @@ report the limitation rather than claiming its feel was verified.
 
 ### Native Xcode inspection
 
-For requested local device diagnostics or UI verification, the
-[device-interaction skill](../../.agents/skills/device-interaction/SKILL.md) provides
-Xcode's native screenshot, hierarchy, and input route. Prefer it when its tools
-are exposed, avoiding the recorded Device Hub attachment failure; otherwise use
-Computer Use. Neither route guarantees correct Duo display routing. Keep the
-same managed simulator lease alive and target its exact UDID; an Xcode interaction
-session does not reserve a Trinket simulator slot. The skill owns session operation,
-session cleanup, tool mapping, and Apple's exported interaction reference.
+The inspection terminal also owns native Xcode interaction. Type `native` to
+query `xcrun mcpbridge` capabilities and create one session for the exact leased
+UDID. It captures the screenshot and hierarchy into Deliverables. Type
+`event <documented Xcode interaction command>` to act and capture again; the
+controller supplies the session key and app identity. Read the
+[device-interaction skill](../../.agents/skills/device-interaction/SKILL.md) before
+input and use the latest hierarchy. `status` reports the target and routes.
 
-Reuse one native interaction session for the owned inspection. Record its session
-key, end it on completion, failure, or cancellation, and confirm the close before
-releasing the simulator lease. Do not create replacement sessions alongside an
-unresponsive one. A warm Simulator/Device Hub window and the user's play session
-are separate from the expensive native interaction runtime; preserve them.
-Trinket's simulator pool does not coordinate memory with other projects' sessions.
-If host memory pressure is high, defer another expensive inspection or build;
-source editing can continue. Preserve foreign sessions under the
-[workspace safeguards](../../AGENTS.md#protect-the-workspace).
+Native discovery is lazy. Missing tools leave screenshot capture and Computer Use
+available; a discovered capability is not proof that an interaction succeeded.
+`stop`, EOF and handled cancellation close the native session before the launcher
+releases the lease. Uncertain starts or failed closure retain
+`.DerivedData/Deliverables/Inspection/native-session.json` for recovery and prevent
+replacement sessions. A shared per-device reservation under the primary checkout's
+`.DerivedData/InspectionSessions/` also blocks replacement from other worktrees;
+confirmed closure removes it. Do not start a second native session with chat tools beside
+the controller's session. Inspect the recovery record and Xcode before retrying;
+never delete it merely to clear the guard.
+
+Physical devices and pre-existing externally owned sessions still use the native
+skill directly. The controller operates only its leased simulator and its own
+bridge process. It never closes foreign Xcode workspaces or device sessions.
+Neither native tools nor Computer Use guarantee Duo display routing. Host memory
+pressure can still require deferring another expensive inspection or build.
 
 ### Optional evidence capture
 

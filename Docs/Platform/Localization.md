@@ -10,8 +10,20 @@ There is no paid translation API, runtime translation service, or human translat
 Every displayed-copy change completes localization in the same task:
 
 1. Edit the canonical English catalog, content, or [store copy](../../Localization/Store/English.json), preserving stable keys.
-2. Run `python3 Scripts/localization.py job`. It prepares a resumable response and ready-to-use translation and independent-review tasks. Follow `translate.md`, then give `review.md` to a separate high-reasoning AI reviewer. The agent coordinates these tasks; no AI service or human export step is built into the CLI.
-3. After the separate review actually completes, run the printed `finish <response.json> --rationale '<completed checks>'` command. It records the attestation, binds it to the translated values, applies resources and validates the inventory. Commit English, catalogs, review fingerprints and generated resources together.
+2. Run `python3 Scripts/localization.py run`. It prepares/resumes the queue, dispatches translation and independent review to separate ephemeral Codex CLI sessions, collects their structured results, applies resources and validates the inventory. Both passes use the configured model with high reasoning; no model, authentication, or account setting is changed. The workers return data in read-only sessions; only the coordinator applies validated resources.
+3. Commit English, catalogs, review fingerprints and generated resources together.
+
+The explicit local runner uses the signed-in Codex CLI and its AI allowance. A failed
+or interrupted pass preserves the response path and phase logs; rerun `run` or use
+`run --resume <response.json>`. Matching completed translations and reviews survive;
+changed values still need independent review. There are at most two AI passes per run,
+each bounded by `--timeout` (default 1800 seconds). Missing CLI/authentication or
+allowance leaves the task incomplete; hooks, builds and CI cannot invoke this runner.
+
+For another available AI tool, `python3 Scripts/localization.py job` still prepares
+`translate.md` and `review.md`. Give the latter to a separate high-reasoning reviewer,
+then run its printed `finish <response.json> --rationale …` command after actual
+review. This manual interface remains supported; it requires no export to a human.
 
 The job contains English, game context, glossary, previous translations,
 placeholders, source fingerprints and native plural forms. Review meaning and
@@ -29,7 +41,7 @@ preserves applied work and exits nonzero with its remaining queue; resume the jo
 
 `check` is the read-only gate. Legacy `review`/`apply`, stdout `plan`/`template`,
 and manual review records remain compatible. Preparation never marks review complete;
-`finish` performs no AI review. Hash-bound fingerprints prove recorded work, not
+`finish` performs no AI review; only the explicit local `run` coordinator dispatches AI passes. Hash-bound fingerprints prove recorded work, not
 linguistic correctness. Hooks, builds and CI make no AI calls.
 
 Swift-authored content uses stable source anchors. The initial key aliases in
@@ -124,8 +136,8 @@ This bounded check does not infer types or trace local variables/custom adapters
 `displayName` can already be localized by its presentation owner. Behavior tests
 protect localized equipment search and index invalidation; those Swift tests run in CI.
 
-Local handoff establishes lightweight validation only. CI owns compiler extraction
-coverage, package/app compilation, locale UI checks, and localized screenshots.
+Select local and hosted verification through the [confidence ladder](Verification.md#confidence-ladder).
+Compiler extraction coverage, locale UI checks, and localized screenshots follow that policy.
 `check-localization-build.py` reads compiler `.stringsdata` and compiled bundle
 languages after the existing CI app build; it fails on missing extraction, unknown
 keys, or absent languages. Pure numeric counters and punctuation separators need

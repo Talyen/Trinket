@@ -228,6 +228,11 @@ def integrate(source: Path, *, reviewed_main: str | None = None) -> None:
         ).decode().rstrip("\0").split("\0")
         if paths == [""]:
             raise RuntimeError("No changed paths to verify; review empty task commits manually.")
+        from internal.verification_evidence import missing_compilation, required_compilation
+        missing = missing_compilation(source, required_compilation(source, paths, base))
+        if missing:
+            raise ReviewRequired('Missing or invalidated compiled evidence: ' + ', '.join(missing) +
+                                 '\nRun ./Scripts/handoff.sh --quiet in this checkout, then retry integration. Main unchanged.')
         # Reuse installed executables without sharing writable build/generated
         # directories. Task-local tools take precedence; validators enforce pins.
         environment = dict(os.environ)
@@ -276,7 +281,7 @@ if __name__ == "__main__":
     except ReviewRequired as error:
         print(str(error), file=sys.stderr)
         sys.exit(3)
-    except (RuntimeError, subprocess.CalledProcessError, OSError) as error:
+    except (RuntimeError, ValueError, subprocess.CalledProcessError, OSError) as error:
         if sys.argv[1:2] == ['--evidence']:
             sys.exit(f'Evidence preservation stopped: {error}\nOriginal task files were retained.')
         sys.exit(f"Integration or cleanup stopped: {error}\nInspect main and the task/recovery checkout; completed integration is not rolled back. Resolve conflicts there, review, and retry; do not reset main. After a completed landing, retry cleanup with node Scripts/agent-worktree.mjs cleanup.")

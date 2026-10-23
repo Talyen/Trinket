@@ -50,9 +50,10 @@ normalization pass; modifier and catalog-backed Unique migrations stay separate.
 ```
 
 Generated files are committed so the app builds without rerunning the generator.
-Review the outputs alongside their authored inputs. Routine local handoff defers
-compilation, content tests, and idempotence proof to CI under
-[Verification](../../Docs/Platform/Verification.md#generated-project-consistency).
+Review the outputs alongside their authored inputs. Select checks through the
+[verification policy](../../Docs/Platform/Verification.md#confidence-ladder);
+[generated-project consistency](../../Docs/Platform/Verification.md#generated-project-consistency)
+owns freshness and idempotence checks.
 
 ## Key types
 

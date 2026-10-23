@@ -57,8 +57,8 @@ Create an [execution plan](Docs/Plans/README.md) only when durable resumption ne
 ## Choose the change
 
 Player-facing text changes complete [localization](Docs/Platform/Localization.md#agent-workflow)
-in the same task. `python3 Scripts/localization.py job` prepares resumable translation
-and independent-review tasks; the agent completes them and runs the printed finish command.
+in the same task. `python3 Scripts/localization.py run` coordinates resumable translation
+and independent review; `job` remains available for manual coordination with another AI tool.
 Retain every configured language and a separate actual AI review; never fabricate
 review records or copy English to clear a gate. Hooks, builds and CI never call AI.
 

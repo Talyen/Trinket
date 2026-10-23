@@ -42,10 +42,10 @@ dispatch conventions belong in the owning test guide, including
 
 When an API signature or combat rule changes, review consumers across production
 code, package tests and shared fixtures using the existing
-[caller investigation](../AgentContext/Retrieval.md#caller-navigation). Include
+[caller investigation](../../Scripts/Reference.md#optional-retrieval). Include
 unchanged consumers and migrate them in the same change. Repeat that review after
-incorporating current main before integration; a lightweight handoff does not prove
-Swift compilation. Retire an old expectation only after identifying the surviving
+incorporating current main before integration; the [verification report](Verification.md#failures-and-reporting)
+establishes which compilation and behavior checks actually ran. Retire an old expectation only after identifying the surviving
 behavioral contract.
 
 For balance changes, use authored catalog values to construct fixtures while keeping

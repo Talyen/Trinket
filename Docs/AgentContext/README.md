@@ -1,6 +1,6 @@
 # AgentContext cards
 
-Path-routed domain guides. `./Scripts/agent-context.sh` attaches them from
+Path-routed domain guides. The required `Scripts/agent-brief.py` attaches them from
 `Scripts/internal/change_routing.py`. Cards hold
 cross-package exceptions, not restated root policy. Platform docs own architecture
 and testing; nested `AGENTS.md` files own local hard stops.
@@ -15,11 +15,12 @@ Skills apply by their own triggers; the catalog below is optional lookup.
 Sample briefing shape (exact cards vary by path):
 
 ```text
-Read first: AGENTS.md, Packages/BattleEngine/AGENTS.md
-Ownership and integration: Docs/AgentContext/battle-engine.md
-Behavior references: Docs/AgentContext/battle-damage.md
+Applicable requirements: AGENTS.md, Packages/BattleEngine/AGENTS.md
+Applicable ownership requirements: Docs/AgentContext/battle-engine.md
+Optional reference depth: Docs/AgentContext/battle-damage.md
 Landing (after review and commit): node Scripts/agent-worktree.mjs integrate
-Optional iteration check: ./Scripts/handoff.sh --quiet --paths <files...>
+Iteration check: ./Scripts/handoff.sh --quiet --paths <files...>
+Final task verification: ./Scripts/handoff.sh --quiet
 ```
 
 | Card | Typical trigger |
@@ -56,4 +57,6 @@ behavior. This catalog is for lookup, not an additional reading sequence.
 files. Concern shortcuts and specialized helpers remain optional. The
 [task index](../../Scripts/config/agent-tasks.json) supplies navigation hints,
 not coverage proof. `localization` routes copy work; `localization-tooling` routes
-its implementation. Use [Retrieval](Retrieval.md) only for a navigation question.
+its implementation. Legacy helpers are listed in the
+[command reference](../../Scripts/Reference.md#optional-retrieval); their interfaces
+remain available for existing consumers.
