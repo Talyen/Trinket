@@ -301,6 +301,7 @@ struct HomesteadNodeDetailView: View {
                     nodeID: definition.id,
                     tier: tier,
                     effectsIdentifier: AccessibilityID.Homestead.currentEffects,
+                    isBuilt: displaysBuiltArtwork,
                     highlightedEffects: purchasePresentation?.highlightedEffects ?? [],
                     highlightsProduction: purchasePresentation?.highlightsProduction ?? false,
                 )

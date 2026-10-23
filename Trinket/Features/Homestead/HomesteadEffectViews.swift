@@ -28,6 +28,7 @@ struct HomesteadBenefitsView: View {
     let nodeID: HomesteadNodeID
     let tier: HomesteadNodeTier
     let effectsIdentifier: String
+    let isBuilt: Bool
     var highlightedEffects: Set<HomesteadEffectLine.Key> = []
     var highlightsProduction = false
 
@@ -42,6 +43,8 @@ struct HomesteadBenefitsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+        .saturation(isBuilt ? 1 : 0.35)
+        .animation(HomesteadMotion.valueReveal, value: isBuilt)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(effectsIdentifier)
     }

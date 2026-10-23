@@ -67,6 +67,7 @@ struct HomesteadDetailSheetView: View {
                         nodeID: definition.id,
                         tier: tier,
                         effectsIdentifier: AccessibilityID.Homestead.upgradeEffects,
+                        isBuilt: status.currentTier > 0,
                     )
                 }
             }

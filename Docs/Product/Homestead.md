@@ -49,6 +49,9 @@ their solid sheet background. Each effect keeps its own block, including buildin
 with multiple bonuses or outputs. Descriptions contain bold values, preserve keyword formatting, and name production resources
 explicitly (for example, “Produce 1 Food per Day”). Panel content scrolls as needed without
 truncating descriptions. Completed buildings keep benefits and omit the build/upgrade action.
+Unbuilt bonuses and production use 35% saturation in details and first-build offers,
+matching the muted artwork while retaining text contrast. Built benefits use full
+color, restored alongside the artwork after the first-build offer dismisses.
 
 Bonus symbols reuse keyword identities and colors: Health uses heart.fill; healing
 uses heart.circle.fill; damage uses its keyword symbol; damage resistance uses
