@@ -80,6 +80,28 @@ class PlayerCoverageTests(unittest.TestCase):
             with self.subTest(version=version), self.assertRaisesRegex(ValueError, error):
                 MODULE.select_profile(runtimes, types, 'phone', 27, version)
 
+    def test_runtime_version_ties_select_the_newest_build_in_either_inventory_order(self):
+        older = dict(identifier='ios-26.2', version='26.2.0', buildversion='23C52',
+                     platform='iOS', isAvailable=True)
+        newer = dict(older, version='26.2', buildversion='23C54')
+        for runtimes in ([older, newer], [newer, older]):
+            for version in (None, '26.2'):
+                with self.subTest(inventory=runtimes, version=version):
+                    self.assertEqual(MODULE.select_profile(runtimes, [dict(identifier='phone')],
+                                                          'phone', 26, version), newer)
+
+    def test_parallel_runtime_trains_preserve_device_compatibility_without_minor_fallback(self):
+        phone = dict(identifier='ios-27.1', version='27.1', buildversion='24A94232',
+                     platform='iOS', isAvailable=True, supportedDeviceTypes=[dict(identifier='phone')])
+        duo = dict(phone, buildversion='24A94425', supportedDeviceTypes=[dict(identifier='duo')])
+        for runtimes in ([phone, duo], [duo, phone]):
+            for version in (None, '27.1'):
+                with self.subTest(inventory=runtimes, version=version):
+                    self.assertEqual(MODULE.select_profile(runtimes, [dict(identifier='phone')],
+                                                          'phone', 27, version), phone)
+        with self.assertRaisesRegex(ValueError, 'incompatible'):
+            MODULE.select_profile([phone, dict(duo, version='27.2')], [dict(identifier='phone')], 'phone', 27)
+
     def test_runtime_preparation_installs_missing_major_and_validates_the_result(self):
         for name, architecture, variant in [('compact', 'arm64', 'arm64'),
                                              ('ios18', 'x86_64', 'universal')]:

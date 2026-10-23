@@ -26,6 +26,10 @@ TEXT_SIZES = ('large', 'accessibility-extra-extra-extra-large')
 
 def select_profile(runtimes, device_types, type_id, major, version=None):
     """Fail closed: a requested runtime/type never falls back to another profile."""
+    def components(value):
+        parts = tuple(int(part) for part in value.split('.'))
+        return parts + (0,) * (3 - len(parts))
+
     if not any(item.get('identifier') == type_id for item in device_types):
         raise ValueError(f'unavailable device type: {type_id}')
     candidates = [item for item in runtimes if item.get('isAvailable') is True
@@ -36,19 +40,18 @@ def select_profile(runtimes, device_types, type_id, major, version=None):
     if version is not None:
         if not re.fullmatch(r'\d+\.\d+(?:\.\d+)?', version) or int(version.split('.')[0]) != major:
             raise ValueError(f'invalid or conflicting exact iOS version: {version}')
-        def components(value):
-            parts = tuple(int(part) for part in value.split('.'))
-            return parts + (0,) * (3 - len(parts))
         candidates = [item for item in candidates if components(item['version']) == components(version)]
     if not candidates:
         minimum = MINIMUM_RUNTIME_VERSIONS.get(type_id)
         requested = version or ('.'.join(map(str, minimum)) + '+' if minimum else str(major))
         raise ValueError(f'unavailable iOS {requested} runtime')
-    selected = max(candidates, key=lambda item: tuple(int(part) for part in item['version'].split('.')))
-    supported = selected.get('supportedDeviceTypes')
-    if supported and not any(item.get('identifier') == type_id for item in supported):
-        raise ValueError(f'{type_id} is incompatible with {selected["identifier"]}')
-    return selected
+    newest_version = max(components(item['version']) for item in candidates)
+    latest = [item for item in candidates if components(item['version']) == newest_version]
+    compatible = [item for item in latest if not item.get('supportedDeviceTypes')
+                  or any(device.get('identifier') == type_id for device in item['supportedDeviceTypes'])]
+    if not compatible:
+        raise ValueError(f'{type_id} is incompatible with {latest[0]["identifier"]}')
+    return max(compatible, key=lambda item: item.get('buildversion', ''))
 
 
 def simctl(*arguments):
