@@ -3,7 +3,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct KeywordCohesionTests {
-    @Test func `keyword mechanics name their keywords`() throws {
+    @Test func `mechanics name their keywords or general attack scope`() throws {
         var missing: [String] = []
         for ability in AbilityCatalog.all where Keyword.referenced(in: ability.summary).isEmpty {
             missing.append("ability:\(ability.id)")
@@ -21,10 +21,13 @@ struct KeywordCohesionTests {
             }
         }
         for definition in GameContent.itemAffixDefinitions {
-            if Keyword.referenced(in: definition.basic.description).isEmpty {
+            // Damage-agnostic attack rules do not name a single damage-type keyword.
+            if Keyword.referenced(in: definition.basic.description).isEmpty,
+               !definition.basic.description.lowercased().contains("attack") {
                 missing.append("affix-basic:\(definition.id)")
             }
-            if Keyword.referenced(in: definition.astral.description).isEmpty {
+            if Keyword.referenced(in: definition.astral.description).isEmpty,
+               !definition.astral.description.lowercased().contains("attack") {
                 missing.append("affix-astral:\(definition.id)")
             }
         }

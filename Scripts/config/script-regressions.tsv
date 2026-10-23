@@ -216,7 +216,7 @@ Scripts/testflight.sh	test_output_retention.py,test_testflight.py
 Scripts/tool-versions.env	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py,test_swift_style_policy.py
 Scripts/update-tools.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/validate-commit-msg.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
-Scripts/verify.py	test_agent_context.py,test_ci_handoff_routing.py
+Scripts/verify.py	test_agent_context.py,test_ci_gate_scripts.py,test_ci_handoff_routing.py
 Scripts/xcode-runner.sh	test-xcode-runner.sh,test_ci_build_scripts.py,test_ci_session_scripts.py
 Scripts/xcresult-report.py	test_build_artifacts.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_failure_diagnostics.py,test_test_timing.py
 Scripts/localization.py	test_localization.py

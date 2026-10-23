@@ -39,7 +39,7 @@ struct ItemGeneratorTests {
             let definition = try #require(GameContent.itemAffixDefinition(matching: affix.id))
             let catalog = definition.power(for: rarity)
             let stored = powers[index]
-            if definition.basic == definition.astral {
+            if !catalog.hasRollableMagnitudes {
                 try #expect(stored == catalog)
                 try #expect(!item.isPerfectAffix(at: index))
                 continue

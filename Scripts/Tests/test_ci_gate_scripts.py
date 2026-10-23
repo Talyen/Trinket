@@ -216,10 +216,11 @@ trinket_run_full_gate
         self.assertNotIn("SAVE_BUDGET", text)
         self.assertIn("kill -INT", text)
 
-    def test_handoff_requires_explicit_scope_and_supports_working_tree_override(self) -> None:
-        missing = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run"], cwd=ROOT)
-        self.assertNotEqual(missing.returncode, 0)
-        self.assertIn("requires --paths", missing.stderr)
+    def test_handoff_defaults_to_main_and_supports_working_tree_override(self) -> None:
+        command = [str(ROOT / "Scripts" / "handoff.sh"), "--dry-run"]
+        default = run_captured(command, cwd=ROOT, expected=0)
+        explicit = run_captured([*command, "--base", "main"], cwd=ROOT, expected=0)
+        self.assertEqual(default.stdout, explicit.stdout)
         run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--working-tree"], cwd=ROOT, expected=0)
 
     def test_cheap_slices_require_a_readable_nonempty_registry(self) -> None:
